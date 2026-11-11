@@ -5,7 +5,7 @@
       "name": "Validation Claude",
       "role": "validation",
       "driver": "session",
-      "remit": "Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv"
+      "remit": "Boss of the Claude team: sequencing, briefs, the shortest safe path to the release, and the one route to hv. It batches changes into as few runs as it can, reads a builder's proof and does not repeat it, and stops any check that repeats one"
     },
     {
       "moniker": "cc",

@@ -32,17 +32,17 @@ A **Team Profile** is the Intent resource a Team is declared from. It gives the 
 
 ## The seats
 
-| Moniker | Name              | Role       | Driven by                | Default remit                                                                                                                                      |
-| ------- | ----------------- | ---------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vc`    | Validation Claude | validation | a session                | Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv                                        |
-| `cc`    | Control Claude    | control    | a session                | The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included |
-| `ic`    | Interface Claude  | interface  | a session                | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)                                                      |
-| `ac`    | Authoring Claude  | authoring  | a session                | Authoring and content creation                                                                                                                     |
-| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end                                                                                                                     |
-| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy, and every ratified decision                                                                                     |
-| `gc`    | Generalist Claude | generalist | a session                | The whole project, alone: it builds and checks its own work and talks to hv directly                                                               |
-| `sc`    | Supervisor Claude | supervisor | a session                | Coordination across several projects, each with its own vc: audits, briefs to each vc, and the route to hv on its own hub                          |
-| `sv`    | Supervisor Claude | supervisor | the supervisor's session | The supervisor's seat on a supervised project's whiteboard: findings and briefs to that project's vc, and no builds                                |
+| Moniker | Name              | Role       | Driven by                | Default remit                                                                                                                                                                                                                                    |
+| ------- | ----------------- | ---------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vc`    | Validation Claude | validation | a session                | Boss of the Claude team: sequencing, briefs, the shortest safe path to the release, and the one route to hv. It batches changes into as few runs as it can, reads a builder's proof and does not repeat it, and stops any check that repeats one |
+| `cc`    | Control Claude    | control    | a session                | The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included                                                                                               |
+| `ic`    | Interface Claude  | interface  | a session                | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)                                                                                                                                                    |
+| `ac`    | Authoring Claude  | authoring  | a session                | Authoring and content creation                                                                                                                                                                                                                   |
+| `dc`    | DevX Claude       | devx       | a session                | The dev-x pipeline, end to end                                                                                                                                                                                                                   |
+| `hv`    | Hypervisor        | hypervisor | the human                | Scope, sequencing, release policy, and every ratified decision                                                                                                                                                                                   |
+| `gc`    | Generalist Claude | generalist | a session                | The whole project, alone: it builds and checks its own work and talks to hv directly                                                                                                                                                             |
+| `sc`    | Supervisor Claude | supervisor | a session                | Coordination across several projects, each with its own vc: audits, briefs to each vc, and the route to hv on its own hub                                                                                                                        |
+| `sv`    | Supervisor Claude | supervisor | the supervisor's session | The supervisor's seat on a supervised project's whiteboard: findings and briefs to that project's vc, and no builds                                                                                                                              |
 
 Where an interface has a contract, cc is authoritative on what it means and ic on its shape and transport, and a change to it needs both.
 
@@ -51,6 +51,22 @@ A supervisor is needed only where work is coordinated across several projects, e
 ## The mediator
 
 The **mediator** is the one seat through which hv is reached on a whiteboard. The base profile names it, vc under `team` and gc under `solo`, and the `supervisor` layer moves it to sc on a hub. A seat that needs something from hv sends its request to the mediator.
+
+## Proof, and what it costs
+
+One layer of proof per change. The builder runs its change once and reports what it measured. That measurement is the evidence, and the change lands on it.
+
+Changes are batched. Changes that do not touch each other are stacked, proved in one run and landed together, and a change gets a run of its own only when it cannot share one. When a batched run fails, the change at fault is fixed or taken out and the batch runs once more.
+
+The mediator validates by reading: the claim against the ask, and the evidence against the claim. It does not run again what a builder has run. It asks for a second run only when it can name the fault the first run could not have seen.
+
+Before any seat starts a check, the question is what it would catch that the check before it did not. If the answer is nothing, the check is not run.
+
+Nothing tests a test. During a release no seat adds a guard, a scanner or a test whose subject is the tests or the process. A fault found in the product is fixed in the product.
+
+The mediator owns the cost of checking as well as its result. It looks for this in every seat's plan, its own included, stops it, and tells hv in one line that it did. Any seat that sees the mediator doing it says so, and the mediator stops.
+
+The release's own gates are the one whole test of what ships.
 
 ## hv
 

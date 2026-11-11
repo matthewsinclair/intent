@@ -98,7 +98,7 @@ A node session is started with `intent claude start <node>`, which binds it to i
 
 ## Node roles
 
-Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node that checks landed or claimed work and posts findings for `hv` to adjudicate (advisory only: it never mutates another node's work or blocks it), others as needed, and `hv`.
+Per-project; the README is the source of truth. A common shape: a **control** node doing the heavy lifting, a **validation** node that reads landed or claimed work against the ask and its builder's evidence, and posts findings for `hv` to adjudicate (advisory only: it never mutates another node's work or blocks it), others as needed, and `hv`.
 
 ## Protocol invariants
 
@@ -114,14 +114,14 @@ Per-project; the README is the source of truth. A common shape: a **control** no
 
 ## Red Flags
 
-| Rationalisation                                             | Reality                                                                                         |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| "I'll edit a peer's `wip.md` to correct it."                | Never. You write only your own node. Send an `ask` to its inbox.                                |
-| "/compact ended the session, so I'll set `status: paused`." | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.            |
-| "This ruling is dated, so the fold archives it."            | Only if it was EXECUTED. Unexecuted, it is todo work, and `.history/` is where nobody looks.    |
-| "I read the inbox entry, so `clear` is just hygiene."       | Reading is not handling. Answer it, action it, or re-state it live -- then clear.               |
-| "I am holding this item." (no condition)                    | Then it is not a hold. Name what has to become true, or it reads as abandoned at every pickup.  |
-| "The node said it's done, so it's done."                    | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask.  |
-| "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate. |
-| "I'll just edit the board file, it is right there."         | It is a rendered view. Your edit is skew doctor reports, and the next render drops it.          |
-| "The verb returned ok, so the peer has it."                 | Stored is not delivered. A thing that must be acted on gets said twice.                         |
+| Rationalisation                                             | Reality                                                                                                  |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| "I'll edit a peer's `wip.md` to correct it."                | Never. You write only your own node. Send an `ask` to its inbox.                                         |
+| "/compact ended the session, so I'll set `status: paused`." | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.                     |
+| "This ruling is dated, so the fold archives it."            | Only if it was EXECUTED. Unexecuted, it is todo work, and `.history/` is where nobody looks.             |
+| "I read the inbox entry, so `clear` is just hygiene."       | Reading is not handling. Answer it, action it, or re-state it live -- then clear.                        |
+| "I am holding this item." (no condition)                    | Then it is not a hold. Name what has to become true, or it reads as abandoned at every pickup.           |
+| "The node said it's done, so it's done."                    | A "done" claim is read against the ask and the evidence its builder gives. Read it; do not run it again. |
+| "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate.          |
+| "I'll just edit the board file, it is right there."         | It is a rendered view. Your edit is skew doctor reports, and the next render drops it.                   |
+| "The verb returned ok, so the peer has it."                 | Stored is not delivered. A thing that must be acted on gets said twice.                                  |
