@@ -348,3 +348,194 @@ fn an_absent_launcher_refuses_by_name() {
     "the refusal does not name the path the operator must restore: {text}"
   );
 }
+
+/// A fixture install that also carries the shipped Team Profiles and the roster
+/// README's template, so `wb init` can declare a board under it.
+fn fixture_install_with_profiles() -> tempfile::TempDir {
+  let install = fixture_install();
+  let teams = testkit::repo_root().join("intent/plugins/claude/teams");
+  for entry in std::fs::read_dir(&teams).expect("the shipped profiles") {
+    let path = entry.expect("an entry").path();
+    let name = path
+      .file_name()
+      .expect("a file name")
+      .to_string_lossy()
+      .into_owned();
+    crate::common::seed_plugin(
+      install.path(),
+      &format!("intent/plugins/claude/teams/{name}"),
+      &path,
+    );
+  }
+  crate::common::seed_plugin(
+    install.path(),
+    "lib/templates/whiteboard/_README.md",
+    &testkit::repo_root().join("lib/templates/whiteboard/_README.md"),
+  );
+  install
+}
+
+/// The composed context `claude start <ws>` handed the fixture `claude`.
+fn launched_context(exe: &Path, ws: &str, cwd: &Path, claude: &Claude) -> String {
+  let (text, code) = run(exe, &["claude", "start", ws], cwd, claude);
+  assert_eq!(code, 0, "`claude start {ws}` should launch: {text}");
+  let argv = claude
+    .invocation()
+    .unwrap_or_else(|| panic!("the fixture claude never ran: {text}"));
+  argv
+    .windows(2)
+    .find(|w| w[0] == "--append-system-prompt")
+    .map(|w| w[1].clone())
+    .unwrap_or_else(|| panic!("no composed context was passed: {argv:?}"))
+}
+
+/// The body of the team profile's `## ` section `heading`, read from the
+/// shipped file.
+fn profile_section(heading: &str) -> String {
+  let brief = intentsvcs::teams::Teams::new(&testkit::repo_root())
+    .profile("team")
+    .expect("the shipped team profile")
+    .brief;
+  let body: Vec<&str> = brief
+    .lines()
+    .skip_while(|l| l.trim_end() != heading)
+    .skip(1)
+    .take_while(|l| !l.starts_with("## "))
+    .collect();
+  body.join("\n").trim().to_string()
+}
+
+/// ST0092 AT-06.3
+///
+/// ST0092 AC-06.3: on a declared board `claude start` hands the session its
+/// brief and the profile's launch steps -- a seat other than the mediator sends
+/// its plan to the mediator, the mediator shows its plan to hv -- and calls it
+/// a seat; on a board that declares no profile the launch reads exactly as it
+/// did before this thread; and an unregistered moniker on a declared board is
+/// told to run `intent wb init --apply`.
+#[test]
+fn start_hands_the_seat_its_brief_and_the_profiles_launch_steps() {
+  let install = fixture_install_with_profiles();
+  let exe = install.path().join("bin/intent");
+  let claude = Claude::new();
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (text, code) = run(&exe, &["init", "cwi-team"], dir.path(), &claude);
+  assert_eq!(code, 0, "init: {text}");
+  let (text, code) = run(
+    &exe,
+    &["wb", "init", "team", "--apply"],
+    dir.path(),
+    &claude,
+  );
+  assert_eq!(code, 0, "wb init: {text}");
+
+  let worker = launched_context(&exe, "cc", dir.path(), &claude);
+  assert!(
+    worker.lines().next().is_some_and(|l| l.contains(" seat ")),
+    "the opening line does not call the session a seat: {worker}"
+  );
+  assert!(
+    worker.contains(&profile_section(intentsvcs::teams::SECTION_LAUNCH_SEATS)),
+    "a worker's launch steps are not the profile's: {worker}"
+  );
+  assert!(
+    !worker.contains("STOP and wait for my instructions"),
+    "a worker on a declared board is still told to wait on hv: {worker}"
+  );
+  let mediator = launched_context(&exe, "vc", dir.path(), &claude);
+  assert!(
+    mediator.contains(&profile_section(intentsvcs::teams::SECTION_LAUNCH_MEDIATOR)),
+    "the mediator's launch steps are not the profile's: {mediator}"
+  );
+
+  let (text, code) = run(&exe, &["claude", "start", "zz"], dir.path(), &claude);
+  assert_eq!(code, 1, "an unregistered moniker: {text}");
+  assert!(
+    text.contains("intent wb init --apply"),
+    "a declared board's refusal does not name `wb init --apply`: {text}"
+  );
+}
+
+/// ST0092 WP-06's retired-seat edge at the launcher: `claude start` of a
+/// retired seat passes `wb brief`'s refusal through on exit 1, naming the
+/// retirement and `wb register`, and nothing is launched.
+#[test]
+fn start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing() {
+  let install = fixture_install_with_profiles();
+  let exe = install.path().join("bin/intent");
+  let claude = Claude::new();
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (text, code) = run(&exe, &["init", "cwi-retired"], dir.path(), &claude);
+  assert_eq!(code, 0, "init: {text}");
+  let (text, code) = run(
+    &exe,
+    &["wb", "init", "team", "--apply"],
+    dir.path(),
+    &claude,
+  );
+  assert_eq!(code, 0, "wb init: {text}");
+  let resolved = intentsvcs::teams::Teams::new(&testkit::repo_root())
+    .resolve(&["team".to_string()], None, false)
+    .expect("the team profile resolves");
+  let gone = resolved
+    .seats
+    .iter()
+    .map(|s| s.moniker.clone())
+    .find(|m| *m != resolved.mediator && *m != resolved.human)
+    .expect("a seat a retirement may take");
+  let reason = "its remit moved to another seat";
+  let (text, code) = run(
+    &exe,
+    &["wb", "retire", &gone, "--reason", reason],
+    dir.path(),
+    &claude,
+  );
+  assert_eq!(code, 0, "wb retire: {text}");
+
+  let (text, code) = run(&exe, &["claude", "start", &gone], dir.path(), &claude);
+  assert_eq!(code, 1, "a retired seat must be refused: {text}");
+  assert!(
+    text.contains("retired") && text.contains(reason) && text.contains("intent wb register"),
+    "the refusal does not name the retirement and `wb register`: {text}"
+  );
+  assert!(
+    claude.invocation().is_none(),
+    "a retired seat reached the launch: {text}"
+  );
+}
+
+/// On a board that declares no profile, the composed context up to the restart
+/// context is byte-equal to the launcher's text before this thread, so an
+/// unprofiled project's launch is unchanged.
+#[test]
+fn an_unprofiled_launch_reads_exactly_as_it_did() {
+  let install = fixture_install();
+  let exe = install.path().join("bin/intent");
+  let claude = Claude::new();
+  let project = project(&exe, &claude);
+  let context = launched_context(&exe, "cc", project.path(), &claude);
+  let proj = std::fs::canonicalize(project.path())
+    .expect("canonical root")
+    .file_name()
+    .expect("a root has a name")
+    .to_string_lossy()
+    .into_owned();
+  let before = format!(
+    "YOU ARE: cc (Control Claude) -- a workstream node on the {proj} whiteboard (intent/whiteboard/cc/).\n\
+     \n\
+     On wake, do ALL of the following now, in this one turn, without waiting for further input:\n  \
+     1. Run /in-session (loads coding skills, releases the prompt gate, chains /in-whiteboard pickup).\n     \
+     If pickup did not identify you, run: /in-whiteboard pickup cc\n  \
+     2. Read your inbox(es) under intent/whiteboard/cc/ and act on any opening assignment.\n  \
+     3. Claim your steel threads if your assignment names any.\n  \
+     4. ULTRATHINK, then show me a detailed plan for today's work for this workstream (cc).\n  \
+     5. Then STOP and wait for my instructions.\n\
+     \n\
+     Project restart context follows.\n\
+     --------------------------------------------------------------------------------"
+  );
+  assert!(
+    context.starts_with(&before),
+    "an unprofiled launch changed:\n--- before this thread\n{before}\n--- now\n{context}"
+  );
+}

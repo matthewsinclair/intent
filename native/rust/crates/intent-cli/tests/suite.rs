@@ -268,6 +268,8 @@ mod schema_command;
 mod schema_versioning;
 #[path = "search_surface.rs"]
 mod search_surface;
+#[path = "seat_brief.rs"]
+mod seat_brief;
 #[path = "self_loop_population.rs"]
 mod self_loop_population;
 #[path = "self_loop_voice.rs"]
