@@ -503,14 +503,14 @@ The header block is line-oriented `key: value` (D13) and the traffic runs both w
 
 The team a board declares: one row, written by `intent wb init --apply` and by nothing else, and carried by one canon file beside the node directories (a file at the top level of `whiteboard/` is never read as a node). A board that declares no team has no row and no file, which is why the openness block declares it `carried by intent/whiteboard/declaration.json -- when declared` and proves it by a round trip over a fixture that declares one, not by the path existing in this repository.
 
-| Field             | Form                                                                                                              |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `schema`          | always `intent/team-declaration@1.0`                                                                              |
-| `base`            | the base profile `wb init` applied                                                                                |
-| `layers`          | the layers applied, in the order they were named; empty when there are none                                       |
-| `mediator`        | the seat through which hv is reached, as the profiles resolve it                                                  |
-| `human`           | the seat the human drives                                                                                         |
-| `readme_baseline` | optional: the hash the roster README's last render recorded; ST0092 WP-07 writes it, and until then no build does |
+| Field             | Form                                                                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `schema`          | always `intent/team-declaration@1.0`                                                                                                                               |
+| `base`            | the base profile `wb init` applied                                                                                                                                 |
+| `layers`          | the layers applied, in the order they were named; empty when there are none                                                                                        |
+| `mediator`        | the seat through which hv is reached, as the profiles resolve it                                                                                                   |
+| `human`           | the seat the human drives                                                                                                                                          |
+| `readme_baseline` | optional: the sha256 of the roster README's text outside its block, as its last render wrote it; `intent wb init --apply` records it at each render (ST0092 WP-07) |
 
 The store's row adds `id` (always 1, the one row) and the `updated_at` record stamp, which the extract omits. A clone ingests the same declaration from the file. `wb register` and its `--correct` take a moniker the declaration's profiles name only with the profile's name and role, and an apply corrects a seat toward them; a seat leaves its profile only when the profile changes.
 
