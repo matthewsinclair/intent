@@ -1059,9 +1059,12 @@ source_commit_of() {
 # passed `0 vendored files intact` over it and upgrade found nothing recorded,
 # so nothing edited. A caller to whom absence means "no entries" asks
 # manifest_readable first, or tests the file, and never swallows this status.
-manifest_entries() {
-  local path
-  path="$(manifest_path "$1")"
+#
+# tool_manifest_entries <root> <manifest> is the same body for any tool's
+# manifest, at <root>/<manifest> (T3; issue 0326).
+manifest_entries() { tool_manifest_entries "$1" "$DEVBIN_MANIFEST_REL"; }
+tool_manifest_entries() {
+  local path="$1/$2"
   [ -f "$path" ] || return 1
   # ASKED BEFORE THE REDIRECT, so the shell's own message about a file it
   # cannot open never stands beside this one, saying the same thing in a form
@@ -1524,10 +1527,15 @@ manifest_state_of() { _tab_lookup "$1" "$2" || printf 'new\n'; }
 # fault nobody committed. And `modified` is a verdict callers act on -- upgrade
 # --force replaces an edit -- where a file devbin cannot read supports no
 # verdict at all.
-manifest_check() {
-  local root="$1" entries="" sums line sum rel now
-  if [ -f "$(manifest_path "$root")" ]; then
-    entries="$(manifest_entries "$root")" || return 1
+#
+# tool_manifest_check <root> <manifest> is the same check against any tool's
+# manifest, at <root>/<manifest>: doctor reads a tool's opt and brew trees
+# through it (T3; issue 0326).
+manifest_check() { tool_manifest_check "$1" "$DEVBIN_MANIFEST_REL"; }
+tool_manifest_check() {
+  local root="$1" m="$2" entries="" sums line sum rel now
+  if [ -f "$root/$m" ]; then
+    entries="$(tool_manifest_entries "$root" "$m")" || return 1
   fi
   # One checksum pass over everything present, then a pure-bash comparison. The
   # per-file form cost a fork each and made the manifest half the wall clock of

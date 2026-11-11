@@ -3745,15 +3745,22 @@ cache_root_problem() {
 # no empty, `.` or `..` segment. So a pull never writes, nor removes, anything
 # outside the project or over it, and one path never makes two keys. Config
 # validation asks it of every path the block declares, and cache_paths_overlap
-# of an artefact's path against every input path.
-cache_path_problem() {
+# of an artefact's path against every input path. It is relative_path_problem
+# below the project root.
+cache_path_problem() { relative_path_problem "$1" "the project root"; }
+
+# relative_path_problem <path> <root> -- why <path> cannot be a path below the
+# directory <root> names, in cache_path_problem's terms, or nothing, at status
+# 1, when it can (issue 0326: a tool's file in the dev tree is below the
+# project root, and its place in opt and brew below the tool's tree root).
+relative_path_problem() {
   case "${1,,}" in
     '')
-      printf 'is empty -- name a path relative to the project root'
+      printf 'is empty -- name a path relative to %s' "$2"
       return 0
       ;;
     /*)
-      printf 'is absolute -- name a path relative to the project root'
+      printf 'is absolute -- name a path relative to %s' "$2"
       return 0
       ;;
     .git | .git/*)
@@ -3763,7 +3770,7 @@ cache_path_problem() {
   esac
   case "/$1/" in
     */./* | */../* | *//*)
-      printf 'has an empty, . or .. segment -- write the path once, as git names it, below the project root'
+      printf 'has an empty, . or .. segment -- write the path once, as git names it, below %s' "$2"
       return 0
       ;;
   esac
@@ -4523,14 +4530,27 @@ is_devbin_dev_tree() {
 # and calls them unchanged.
 DEVBIN_MANIFEST_REL="bin/.devbin/manifest.sha256"
 
+# DEVBIN_SELF -- devbin's own name, as one of the tools the dev/opt/brew code
+# serves (docs/dev-opt-brew.md; issue 0326): its formula's name, its one link
+# and the tool its install manifest names. devbin's opt and brew trees carry no
+# config to declare it in, so, like DEVBIN_MANIFEST_REL above, it is the
+# bootstrap's to know, and devbin's own callers of the tool_ functions below
+# pass it.
+DEVBIN_SELF="devbin"
+
 manifest_path() { printf '%s\n' "$1/$DEVBIN_MANIFEST_REL"; }
 
-# manifest_field <root> <field> -- read one `# <field>: <value>` header line.
-manifest_field() {
-  local path
-  path="$(manifest_path "$1")"
+# manifest_field <root> <field> -- read one `# <field>: <value>` header line of
+# devbin's own manifest (tool_manifest_field, with devbin's path).
+manifest_field() { tool_manifest_field "$1" "$DEVBIN_MANIFEST_REL" "$2"; }
+
+# tool_manifest_field <root> <manifest> <field> -- read one `# <field>: <value>`
+# header line of the manifest at <root>/<manifest>, a tool's own path from its
+# root (T3); rc 1, printing nothing, when there is none.
+tool_manifest_field() {
+  local path="$1/$2"
   [ -f "$path" ] || return 1
-  awk -v f="$2" '
+  awk -v f="$3" '
     $0 !~ /^#/ { exit }
     {
       line = $0
@@ -4579,16 +4599,14 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 # verb that runs only in one tree ask it, so none of them can read a tree its
 # own way. A vendored project is none of these: its manifest is a project's
 # record, and it answers unknown.
+#
+# devbin's manifest path is every vendored project's too, so an install of
+# devbin's says so by `kind: install` (is_install_tree), and only then is its
+# manifest read as a tree's (tool_install_tree_word).
 devbin_tree() {
   local root="$1"
   if is_install_tree "$root"; then
-    if [ "$(manifest_field "$root" managed_by 2>/dev/null || true)" = brew ]; then
-      printf 'brew\n'
-    elif [ "$(manifest_field "$root" tool 2>/dev/null || true)" = devbin ]; then
-      printf 'opt\n'
-    else
-      printf 'unknown\n'
-    fi
+    tool_install_tree_word "$root" "$DEVBIN_SELF" "$DEVBIN_MANIFEST_REL"
   elif _devbin_unmanifested_keg "$root"; then
     printf 'brew\n'
   elif is_devbin_dev_tree "$root" && { [ -e "$root/.git" ] || [ -L "$root/.git" ]; }; then
@@ -4612,15 +4630,33 @@ devbin_install_old() {
   [ -z "$(manifest_field "$1" tool 2>/dev/null || true)" ]
 }
 
-# _devbin_unmanifested_keg <root> -- rc 0 when <root> has no manifest and
-# resolves to the same directory as Homebrew's opt link for devbin
-# (devbin_brew_root): a keg from before kegs carried one, which T3 reads as an
-# old brew manifest. Compared physically, so the keg under Cellar/ and its opt
-# link are one tree.
-_devbin_unmanifested_keg() {
+# tool_install_tree_word <root> <tool> <manifest> -- which tree an install
+# manifest at <root>/<manifest> says <root> is, one word, by T4's first two
+# rules: brew when it says `managed_by: brew`, opt when its `tool` is <tool>,
+# unknown otherwise, a manifest that cannot be read included. For a caller
+# that knows the manifest is an install's.
+tool_install_tree_word() {
+  if [ "$(tool_manifest_field "$1" "$3" managed_by 2>/dev/null || true)" = brew ]; then
+    printf 'brew\n'
+  elif [ "$(tool_manifest_field "$1" "$3" tool 2>/dev/null || true)" = "$2" ]; then
+    printf 'opt\n'
+  else
+    printf 'unknown\n'
+  fi
+}
+
+# _devbin_unmanifested_keg <root> -- tool_unmanifested_keg for devbin.
+_devbin_unmanifested_keg() { tool_unmanifested_keg "$1" "$DEVBIN_SELF" "$DEVBIN_MANIFEST_REL"; }
+
+# tool_unmanifested_keg <root> <formula> <manifest> -- rc 0 when <root> has no
+# manifest at <root>/<manifest> and resolves to the same directory as
+# Homebrew's opt link for <formula> (tool_brew_root): a keg from before kegs
+# carried one, which T3 reads as an old brew manifest. Compared physically, so
+# the keg under Cellar/ and its opt link are one tree.
+tool_unmanifested_keg() {
   local brew a b
-  [ ! -e "$(manifest_path "$1")" ] || return 1
-  brew="$(devbin_brew_root)" || return 1
+  [ ! -e "$1/$3" ] || return 1
+  brew="$(tool_brew_root "$2")" || return 1
   physical_dir "$1" a || return 1
   physical_dir "$brew" b || return 1
   [ "$a" = "$b" ]
@@ -4635,10 +4671,7 @@ _devbin_unmanifested_keg() {
 # The line names no path (issue 0230): where the running copy lives is
 # `command -v devbin`'s answer, so no caller adds one back.
 #
-# THE FIELD IS BUILT FROM ITS PARTS (issue 0244): the commit's first twelve hex
-# digits, then `+dirty`, never a slice of a longer string, so a 64-digit
-# commit prints twelve. A recorded commit of fewer than twelve digits prints
-# `unknown`, the line's one shape for a commit it cannot name in full.
+# The line is tool_line's, which builds the field from its parts (issue 0244).
 #
 # A RECORDED +dirty IS KEPT (issue 0277). An install's manifest records a dirty
 # source as `<sha> +dirty (<answer>) -- THESE BYTES MATCH NO COMMIT`, the answer
@@ -4668,11 +4701,87 @@ devbin_tree_line() {
       is_commit_sha "$sha" || sha=unknown
       ;;
   esac
+  tool_line "$DEVBIN_SELF" "$ver" "$tree" "$sha" "$dirty"
+}
+
+# tool_line <tool> <version> <tree> <commit> [<mark>] -- a tool's version line,
+# `<tool> <version> (<tree>, <sha12>[+dirty])` (T4), the one formatter for every
+# tool's line (issue 0326); <mark> is `+dirty` or nothing. Pure.
+#
+# THE FIELD IS BUILT FROM ITS PARTS (issue 0244): the commit's first twelve hex
+# digits, then the mark, never a slice of a longer string, so a 64-digit commit
+# prints twelve. A commit of fewer than twelve digits prints `unknown`, the
+# line's one shape for a commit it cannot name in full, and so does an empty
+# version.
+tool_line() {
+  local sha="$4"
   case "$sha" in
     unknown) ;;
-    *) if [ "${#sha}" -ge 12 ]; then sha="${sha:0:12}$dirty"; else sha=unknown; fi ;;
+    *) if [ "${#sha}" -ge 12 ]; then sha="${sha:0:12}${5:-}"; else sha=unknown; fi ;;
   esac
-  printf 'devbin %s (%s, %s)\n' "${ver:-unknown}" "$tree" "$sha"
+  printf '%s %s (%s, %s)\n' "$1" "${2:-unknown}" "$3" "$sha"
+}
+
+# tool_line_parse <line> -- tool_line's inverse: the parts of a line in T4's
+# shape, read up to its closing parenthesis as T4's reader reads it
+# (tree_line_head), as one line `<tool><TAB><version><TAB><tree><TAB><sha12 or
+# unknown><TAB><mark>`, the mark `+dirty` or empty; rc 1, nothing printed, for
+# a line not in that shape. Pure.
+tool_line_parse() {
+  local head
+  head="$(tree_line_head "$1")"
+  [[ "$head" =~ ^([^ ]+)\ ([^ ]+)\ \(([a-z]+),\ ([0-9a-f]{12}|unknown)(\+dirty)?\)$ ]] || return 1
+  printf '%s\t%s\t%s\t%s\t%s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}" "${BASH_REMATCH[4]}" "${BASH_REMATCH[5]}"
+}
+
+# tool_link_line <line> <name> -- <line>, a tool's version line, as the binary
+# <name> of its link set prints it (T4; issue 0331): read up to its closing
+# parenthesis, as T4's reader reads it, with the binary's own name in its first
+# field and the tool's version, tree and commit kept. EVERY BINARY OF A TOOL
+# PRINTS THE TOOL'S ONE LINE UNDER ITS OWN NAME, so the line a manifest records
+# or a build is handed is read for each link through here, never compared whole.
+# rc 1, printing nothing, for a line not in T4's shape (tool_line_parse). Pure.
+tool_link_line() {
+  local parts ver tree sha mark
+  parts="$(tool_line_parse "$1")" || return 1
+  IFS=$'\t' read -r _ ver tree sha mark <<<"$parts"
+  tool_line "$2" "$ver" "$tree" "$sha" "$mark"
+}
+
+# dep_info_paths <dep-info file> <root> -- each input a build's dependency
+# record names (make's form, as cargo writes `<binary>.d` beside a binary),
+# that lies below <root>, relative to it, one a line, each once (issue 0326:
+# T4's +dirty reads a compiled tool's build inputs from the build system's own
+# record). A rule's target, the path before its colon, is no input. An escaped
+# space is a space, a line ending in a backslash runs on into the next, and a
+# relative path is the build's own, below <root>. An input outside <root>, as a
+# crate from cargo's registry is, has no state git can read, and is left out.
+# rc 1, printing nothing, when the file cannot be read or <root> resolved.
+dep_info_paths() {
+  local file="$1" root p
+  [ -r "$file" ] || return 1
+  physical_dir "$2" root || return 1
+  # The awk joins continued lines, cuts each rule at its first `: ` or closing
+  # `:`, and prints each input on a line of its own, an escaped space kept in a
+  # byte no path holds until the split is done.
+  awk '
+    { line = (held == "" ? $0 : held " " $0); held = "" }
+    sub(/\\$/, "", line) { held = line; next }
+    {
+      gsub(/\\ /, "\001", line)
+      c = index(line, ": ")
+      if (c == 0 && line ~ /:$/) c = length(line)
+      if (c == 0) next
+      n = split(substr(line, c + 1), w, /[ \t]+/)
+      for (i = 1; i <= n; i++) if (w[i] != "") { gsub(/\001/, " ", w[i]); print w[i] }
+    }
+  ' "$file" | while IFS= read -r p; do
+    case "$p" in
+      "$root"/*) printf '%s\n' "${p#"$root"/}" ;;
+      /*) ;;
+      *) printf '%s\n' "$p" ;;
+    esac
+  done | LC_ALL=C sort -u
 }
 
 # tree_line_head <line> -- a version line as T4's reader rule reads it: up to
@@ -4971,45 +5080,53 @@ devbin_home_pointer() {
   printf '%s\n' "${d%/}/devbin/home"
 }
 
-# brew_opt_link <homebrew prefix> -- Homebrew's opt link for devbin under
-# <prefix>, <prefix>/opt/devbin, which leads to the current keg. Its bin/devbin
-# is the keg's own launcher: the formula's env script on macOS, which puts the
-# formula's bash first on PATH, and a link to libexec's launcher on Linux
-# (issue 0266). Pure.
-# brew_opt_root <homebrew prefix> -- where Homebrew keeps devbin under <prefix>
-# across upgrades, <prefix>/opt/devbin/libexec. Pure.
+# tool_brew_opt_link <homebrew prefix> <formula> -- Homebrew's opt link for
+# <formula> under <prefix>, <prefix>/opt/<formula>, which leads to the current
+# keg. devbin's bin/devbin there is the keg's own launcher: the formula's env
+# script on macOS, which puts the formula's bash first on PATH, and a link to
+# libexec's launcher on Linux (issue 0266). Pure.
+# tool_brew_opt_root <homebrew prefix> <formula> -- where Homebrew keeps
+# <formula> under <prefix> across upgrades, <prefix>/opt/<formula>/libexec.
+# Pure.
 # brew_keg_root <libexec root> -- the keg a formula's libexec root sits in,
 # its parent, where Homebrew puts the README and the formula the guides
 # (issue 0254). Pure.
-# brew_keg_prefix <root> -- the Homebrew prefix whose keg <root> is, when <root>
-# is one, <prefix>/Cellar/devbin/<version>/libexec: rc 0 with the prefix, rc 1
+# tool_brew_keg_prefix <root> <formula> -- the Homebrew prefix whose keg of
+# <formula> <root> is, when <root> is one,
+# <prefix>/Cellar/<formula>/<version>/libexec: rc 0 with the prefix, rc 1
 # otherwise. Pure.
-# brew_bin_link <homebrew prefix> -- the link `brew link` makes for devbin in
-# Homebrew's bin, <prefix>/bin/devbin, which answers on PATH once devbin's own
-# link is gone (0235). Pure.
+# tool_brew_bin_link <homebrew prefix> <link> -- the link `brew link` makes for
+# <link> in Homebrew's bin, <prefix>/bin/<link>, which answers on PATH once the
+# tool's own link is gone (0235). Pure.
 #
-# THE ONE SPELLING OF THE FORMULA'S LAYOUT (issue 0195). Discovery,
-# the sentence that says where it looked, and the opt link shell-init and the
-# hints name a keg by each spelled it, so a formula that moved the runtime would
-# have been followed by one and missed by the others.
-brew_opt_link() {
-  printf '%s/opt/devbin\n' "${1%/}"
+# THE ONE SPELLING OF THE FORMULA'S LAYOUT (issue 0195), for every tool (issue
+# 0326). Discovery, the sentence that says where it looked, and the opt link
+# shell-init and the hints name a keg by each spelled it, so a formula that
+# moved the runtime would have been followed by one and missed by the others.
+# brew_opt_link, brew_opt_root, brew_keg_prefix and brew_bin_link are these
+# for devbin.
+tool_brew_opt_link() {
+  printf '%s/opt/%s\n' "${1%/}" "$2"
 }
-brew_opt_root() {
-  printf '%s/libexec\n' "$(brew_opt_link "$1")"
+tool_brew_opt_root() {
+  printf '%s/libexec\n' "$(tool_brew_opt_link "$1" "$2")"
 }
 brew_keg_root() {
   printf '%s\n' "${1%/libexec}"
 }
-brew_keg_prefix() {
+tool_brew_keg_prefix() {
   case "$1" in
-    /*/Cellar/devbin/*/libexec) printf '%s\n' "${1%%/Cellar/devbin/*}" ;;
+    /*/Cellar/"$2"/*/libexec) printf '%s\n' "${1%%/Cellar/"$2"/*}" ;;
     *) return 1 ;;
   esac
 }
-brew_bin_link() {
-  printf '%s/bin/devbin\n' "${1%/}"
+tool_brew_bin_link() {
+  printf '%s/bin/%s\n' "${1%/}" "$2"
 }
+brew_opt_link() { tool_brew_opt_link "$1" "$DEVBIN_SELF"; }
+brew_opt_root() { tool_brew_opt_root "$1" "$DEVBIN_SELF"; }
+brew_keg_prefix() { tool_brew_keg_prefix "$1" "$DEVBIN_SELF"; }
+brew_bin_link() { tool_brew_bin_link "$1" "$DEVBIN_SELF"; }
 
 # install_named_root <root> -- the path to name the install at <root> by: when
 # <root> is a Homebrew keg, its prefix's opt link; <root> otherwise.
@@ -5026,10 +5143,13 @@ brew_bin_link() {
 # name that still runs. It is named whether or not it is there yet: during
 # brew's first install it is the link brew is about to make, and a tree that
 # only sits at a keg's path is named by a link that may never exist.
-install_named_root() {
+#
+# tool_install_named_root <root> <formula> is the same for any tool's keg.
+install_named_root() { tool_install_named_root "$1" "$DEVBIN_SELF"; }
+tool_install_named_root() {
   local brew
-  if brew="$(brew_keg_prefix "$1")"; then
-    brew_opt_root "$brew"
+  if brew="$(tool_brew_keg_prefix "$1" "$2")"; then
+    tool_brew_opt_root "$brew" "$2"
     return 0
   fi
   printf '%s\n' "$1"
@@ -5049,10 +5169,13 @@ install_named_root() {
 # floor from a PATH without Homebrew's bin, cron's and a GUI hook's, so a line
 # naming it led back to the refusal. The install itself, which --from and the
 # upgrade remedy name, is still install_named_root's libexec.
-install_launcher_root() {
+#
+# tool_install_launcher_root <root> <formula> is the same for any tool's keg.
+install_launcher_root() { tool_install_launcher_root "$1" "$DEVBIN_SELF"; }
+tool_install_launcher_root() {
   local brew
-  if brew="$(brew_keg_prefix "$1")"; then
-    brew_opt_link "$brew"
+  if brew="$(tool_brew_keg_prefix "$1" "$2")"; then
+    tool_brew_opt_link "$brew" "$2"
     return 0
   fi
   printf '%s\n' "$1"
@@ -5080,15 +5203,20 @@ install_launcher_root() {
 # NO LAUNCHER, NO MATCH. real_path hands back a path it cannot follow as it was
 # given, so two spellings of a file that is not there would compare equal: the
 # launcher is asked to exist first.
-is_install_launcher() {
+#
+# tool_is_install_launcher <file> <root> <formula> <link> is the same for any
+# tool's link: <root>/bin/<link>, and for a keg of <formula> the plain file at
+# <keg>/bin/<link>.
+is_install_launcher() { tool_is_install_launcher "$1" "$2" "$DEVBIN_SELF" "$DEVBIN_SELF"; }
+tool_is_install_launcher() {
   local got want root
-  real_path "$2/bin/devbin" want getcwd
+  real_path "$2/bin/$4" want getcwd
   [ -f "$want" ] || return 1
   real_path "$1" got getcwd
   [ "$got" = "$want" ] && return 0
   physical_dir "$2" root getcwd || return 1
-  brew_keg_prefix "$root" >/dev/null || return 1
-  [ "$got" = "${root%/libexec}/bin/devbin" ] && [ -f "$got" ] && [ ! -L "$got" ]
+  tool_brew_keg_prefix "$root" "$3" >/dev/null || return 1
+  [ "$got" = "${root%/libexec}/bin/$4" ] && [ -f "$got" ] && [ ! -L "$got" ]
 }
 
 # path_absolute_entries <out-array> -- PATH's absolute entries, in order, into
@@ -5244,13 +5372,17 @@ launcher_shown() {
 # held off in the suite, whose scrubbed `env -i` calls keep PATH and would find
 # a real install on the machine running them. An environment with no
 # HOMEBREW_PREFIX has no Homebrew default.
-devbin_brew_root() {
+#
+# tool_brew_root <formula> is the same for any tool's keg, at
+# $HOMEBREW_PREFIX/opt/<formula>/libexec.
+devbin_brew_root() { tool_brew_root "$DEVBIN_SELF"; }
+tool_brew_root() {
   local p="${HOMEBREW_PREFIX:-}"
   case "$p" in
     /*) ;;
     *) return 1 ;;
   esac
-  p="$(brew_opt_root "$p")"
+  p="$(tool_brew_opt_root "$p" "$1")"
   [ -e "$p" ] || return 1
   printf '%s\n' "$p"
 }
@@ -5260,10 +5392,12 @@ devbin_brew_root() {
 # process started without the login profile -- cron, a hook a GUI app launched, a
 # bare ssh command -- has no HOMEBREW_PREFIX, and there the default is off, so
 # the clause names the variable rather than leaving a bare "no install". Pure.
-brew_unplaced_why() {
+# tool_brew_unplaced_why <formula> is the same clause for any tool.
+brew_unplaced_why() { tool_brew_unplaced_why "$DEVBIN_SELF"; }
+tool_brew_unplaced_why() {
   case "$(_brew_unplaced_cause)" in
     unset) printf 'HOMEBREW_PREFIX is not set' ;;
-    empty) printf 'no devbin at %s, under HOMEBREW_PREFIX' "$(brew_opt_root "$HOMEBREW_PREFIX")" ;;
+    empty) printf 'no %s at %s, under HOMEBREW_PREFIX' "$1" "$(tool_brew_opt_root "$HOMEBREW_PREFIX" "$1")" ;;
     *) printf "HOMEBREW_PREFIX, '%s', is not an absolute path" "$HOMEBREW_PREFIX" ;;
   esac
 }
@@ -5347,9 +5481,11 @@ _brew_unplaced_cause() {
 
 # brew_none_why -- the one sentence for no Homebrew devbin here, with
 # brew_unplaced_why's clause: a bare `use` says it, and so do use brew's
-# refusal and doctor's switch row. Pure.
-brew_none_why() {
-  printf 'Homebrew has no devbin here (%s)' "$(brew_unplaced_why)"
+# refusal and doctor's switch row. Pure. tool_brew_none_why <formula> is the
+# same sentence for any tool.
+brew_none_why() { tool_brew_none_why "$DEVBIN_SELF"; }
+tool_brew_none_why() {
+  printf 'Homebrew has no %s here (%s)' "$1" "$(tool_brew_unplaced_why "$1")"
 }
 
 # brew_unplaced_fix <running root> [<trees>] -- the remedy for the cause
@@ -5359,13 +5495,17 @@ brew_none_why() {
 # prefix with no devbin, install devbin with Homebrew. Keyed by
 # _brew_unplaced_cause, as the reason is, so the remedy and the cause cannot
 # part. devbin_checkout_clause adds dev or opt, for the maintainer alone.
-brew_unplaced_fix() {
+#
+# tool_brew_unplaced_fix <formula> [<clause>] is the same remedy for any tool,
+# <clause> ending it as devbin_checkout_clause ends devbin's.
+brew_unplaced_fix() { tool_brew_unplaced_fix "$DEVBIN_SELF" "$(devbin_checkout_clause "${1:-}" "${2:-}")"; }
+tool_brew_unplaced_fix() {
   local fix
   case "$(_brew_unplaced_cause)" in
-    empty) fix='install devbin with Homebrew' ;;
+    empty) fix="install $1 with Homebrew" ;;
     *) fix='export HOMEBREW_PREFIX in the profile this process reads, as brew shellenv exports it' ;;
   esac
-  printf '%s%s' "$fix" "$(devbin_checkout_clause "${1:-}" "${2:-}")"
+  printf '%s%s' "$fix" "${2:-}"
 }
 
 # devbin_checkout_clause <running root> [<trees>] -- ", or run bin/devbin use
@@ -5390,12 +5530,14 @@ devbin_checkout_clause() {
 # devbin_link_path -- the link that records which devbin install this machine
 # reads: $HOME/.local/bin/devbin, the one link `devbin use` writes and removes
 # (docs/dev-opt-brew.md, T5). Every reader asks here for its place. An empty
-# HOME locates nothing.
-devbin_link_path() {
+# HOME locates nothing. tool_link_path <link> is the same place for any of a
+# tool's links, $HOME/.local/bin/<link>.
+devbin_link_path() { tool_link_path "$DEVBIN_SELF"; }
+tool_link_path() {
   local home="${HOME:-}"
   home="${home%/}"
   [ -n "$home" ] || return 1
-  printf '%s\n' "$home/.local/bin/devbin"
+  printf '%s\n' "$home/.local/bin/$1"
 }
 
 # machine_install_chooser -- which place chose this machine's devbin install, one
@@ -5461,32 +5603,38 @@ machine_named_state() {
 # dev or opt, which replace the link, are offered only from a dev or opt tree
 # (devbin_checkout_clause, issue 0250), since this reaches every reader of
 # the switch, keg users included.
-machine_link_state() {
+#
+# tool_link_state <formula> <link> <use> [<clause>] is the same for any of a
+# tool's links: <use> is how its reader runs the switch, and <clause>, a
+# function, ends the remedy for a link to no file, asked only on that path.
+machine_link_state() { tool_link_state "$DEVBIN_SELF" "$DEVBIN_SELF" "devbin use" _machine_link_clause; }
+_machine_link_clause() { devbin_checkout_clause "${PROJECT_ROOT:-}"; }
+tool_link_state() {
   local p f d
-  if ! p="$(devbin_link_path)" || { [ ! -e "$p" ] && [ ! -L "$p" ]; }; then
+  if ! p="$(tool_link_path "$2")" || { [ ! -e "$p" ] && [ ! -L "$p" ]; }; then
     printf 'none\n'
     return 0
   fi
   if [ ! -L "$p" ]; then
-    printf 'bad %s is not a link, so it is no choice devbin use made -- remove it, or run devbin use brew\n' "$p"
+    printf 'bad %s is not a link, so it is no choice %s made -- remove it, or run %s brew\n' "$p" "$3" "$3"
     return 0
   fi
   if ! f="$(follow_links "$p" 2>/dev/null)"; then
-    printf 'bad the link %s leads to no file it can follow -- remove it, so no link means brew%s\n' "$p" "$(devbin_checkout_clause "${PROJECT_ROOT:-}")"
+    printf 'bad the link %s leads to no file it can follow -- remove it, so no link means brew%s\n' "$p" "$([ -z "${4:-}" ] || "$4")"
     return 0
   fi
   case "$f" in
-    ?*/bin/devbin) ;;
+    ?*/bin/"$2") ;;
     *)
-      printf 'bad the link %s leads to %s, which is no devbin tree'"'"'s bin/devbin\n' "$p" "$f"
+      printf 'bad the link %s leads to %s, which is no %s tree'"'"'s bin/%s\n' "$p" "$f" "$1" "$2"
       return 0
       ;;
   esac
-  if ! physical_dir "${f%/bin/devbin}" d; then
+  if ! physical_dir "${f%/bin/"$2"}" d; then
     printf 'bad cannot resolve the tree the link %s leads to\n' "$p"
     return 0
   fi
-  printf 'at %s\n' "$(install_named_root "$d")"
+  printf 'at %s\n' "$(tool_install_named_root "$d" "$1")"
 }
 
 # devbin_link_shadow -- why the link is not the devbin a login shell runs, as
@@ -5521,23 +5669,27 @@ machine_link_state() {
 # With no Homebrew devbin at all it says nothing, since that is no shadow: the
 # report says what is missing. A file standing where the link belongs says
 # nothing here either: the link's own state names it.
-devbin_link_shadow() {
+#
+# tool_link_shadow <formula> <link> is the same check for any of a tool's
+# links, by the name <link> answers on PATH.
+devbin_link_shadow() { tool_link_shadow "$DEVBIN_SELF" "$DEVBIN_SELF"; }
+tool_link_shadow() {
   local p first ld state why
   local -a entries
-  p="$(devbin_link_path)" || return 0
+  p="$(tool_link_path "$2")" || return 0
   if [ ! -e "$p" ] && [ ! -L "$p" ]; then
-    state="$(brew_answer_state)"
+    state="$(tool_brew_answer_state "$1" "$2")"
     case "$state" in
       absent | "brew "*) ;;
       "other "* | "noexec "*)
-        why="$(brew_path_why "$state")"
+        why="$(tool_brew_path_why "$1" "$2" "$state")"
         printf 'no link means brew, but %s -- %s\n' "${why%%$'\n'*}" "${why#*$'\n'}"
         ;;
       "offpath "* | "unlinked "*)
-        why="$(brew_path_why "$state")"
-        printf 'no link means brew, but no devbin is on PATH (%s) -- %s\n' "${why%%$'\n'*}" "${why#*$'\n'}"
+        why="$(tool_brew_path_why "$1" "$2" "$state")"
+        printf 'no link means brew, but no %s is on PATH (%s) -- %s\n' "$2" "${why%%$'\n'*}" "${why#*$'\n'}"
         ;;
-      *) printf 'no link means brew, but what answers devbin on PATH cannot be told: %s\n' "$state" ;;
+      *) printf 'no link means brew, but what answers %s on PATH cannot be told: %s\n' "$2" "$state" ;;
     esac
     return 0
   fi
@@ -5548,15 +5700,15 @@ devbin_link_shadow() {
   fi
   first=""
   if [ "${#entries[@]}" -gt 0 ]; then
-    first="$(PATH="$(IFS=:; printf '%s' "${entries[*]}")" type -P devbin 2>/dev/null || true)"
+    first="$(PATH="$(IFS=:; printf '%s' "${entries[*]}")" type -P "$2" 2>/dev/null || true)"
   fi
   if [ -z "$first" ]; then
-    printf '%s is not on PATH, so a login shell runs no devbin through the link -- put it on PATH ahead of Homebrew'"'"'s bin\n' "${p%/*}"
+    printf '%s is not on PATH, so a login shell runs no %s through the link -- put it on PATH ahead of Homebrew'"'"'s bin\n' "${p%/*}" "$2"
     return 0
   fi
   physical_dir "${p%/*}" ld getcwd || ld="${p%/*}"
   link_chain_reaches "$first" "${ld%/}/${p##*/}" && return 0
-  printf 'the link %s is shadowed: the first devbin on PATH is %s -- put %s ahead of %s on PATH\n' "$p" "$first" "${p%/*}" "${first%/*}"
+  printf 'the link %s is shadowed: the first %s on PATH is %s -- put %s ahead of %s on PATH\n' "$p" "$2" "$first" "${p%/*}" "${first%/*}"
 }
 
 # brew_answer_state -- what would answer `devbin` on PATH once the link
@@ -5600,32 +5752,36 @@ devbin_link_shadow() {
 # is searched and would run, and still is no hit, was passed over because it
 # reaches the keg through the link, and is vialink, never unlinked: it is
 # linked, and leads nowhere once the link is gone.
-brew_answer_state() {
+#
+# tool_brew_answer_state <formula> <link> is the same lookup for any of a
+# tool's links, against Homebrew's keg of <formula>.
+brew_answer_state() { tool_brew_answer_state "$DEVBIN_SELF" "$DEVBIN_SELF"; }
+tool_brew_answer_state() {
   local root p ld first bin file
-  if ! root="$(devbin_brew_root)"; then
+  if ! root="$(tool_brew_root "$1")"; then
     printf 'absent\n'
     return 0
   fi
   ld=""
-  if p="$(devbin_link_path)"; then
+  if p="$(tool_link_path "$2")"; then
     ld="${p%/*}"
   fi
-  first="$(path_hit devbin "$ld")" || first=""
+  first="$(path_hit "$2" "$ld")" || first=""
   if [ -n "$first" ]; then
-    if ! is_install_launcher "$first" "$root"; then
+    if ! tool_is_install_launcher "$first" "$root" "$1" "$2"; then
       printf 'other %s\n' "$first"
-    elif file="$(brew_launcher_inert "$first" "$root")"; then
+    elif file="$(tool_brew_launcher_inert "$first" "$root" "$2")"; then
       printf 'noexec %s\n' "$file"
     else
       printf 'brew %s\n' "$root"
     fi
     return 0
   fi
-  bin="$(brew_bin_link "$HOMEBREW_PREFIX")"
-  if [ -e "$bin" ] && is_install_launcher "$bin" "$root"; then
+  bin="$(tool_brew_bin_link "$HOMEBREW_PREFIX" "$2")"
+  if [ -e "$bin" ] && tool_is_install_launcher "$bin" "$root" "$1" "$2"; then
     if ! path_searches "${bin%/*}"; then
       printf 'offpath %s\n' "$bin"
-    elif file="$(brew_launcher_inert "$bin" "$root")"; then
+    elif file="$(tool_brew_launcher_inert "$bin" "$root" "$2")"; then
       printf 'noexec %s\n' "$file"
     else
       printf 'vialink %s\n' "$bin"
@@ -5644,9 +5800,13 @@ brew_answer_state() {
 # execs libexec's launcher, so an executable script in front of a launcher
 # without its execute bit still fails with "Permission denied". On Linux the
 # keg's bin/devbin is a link to that launcher, and the two are one file.
-brew_launcher_inert() {
+#
+# tool_brew_launcher_inert <file> <root> <link> is the same for any of a tool's
+# links, the keg's own being <root>/bin/<link>.
+brew_launcher_inert() { tool_brew_launcher_inert "$1" "$2" "$DEVBIN_SELF"; }
+tool_brew_launcher_inert() {
   local hop inert
-  for hop in "$1" "$2/bin/devbin"; do
+  for hop in "$1" "$2/bin/$3"; do
     [ -x "$hop" ] && continue
     real_path "$hop" inert
     printf '%s\n' "$inert"
@@ -5667,40 +5827,45 @@ brew_launcher_inert() {
 # ONE WORDING FOR EACH CAUSE (issue 0273). `use brew`'s refusal says it, and so
 # does the shadow check with no link, for a bare `use` and doctor's switch row,
 # so the remedy and the cause it answers cannot part.
-brew_path_why() {
+#
+# tool_brew_path_why <formula> <link> <state> [<link path>] is the same wording
+# for any of a tool's links: <link> where a command on PATH is meant, <formula>
+# in each brew command.
+brew_path_why() { tool_brew_path_why "$DEVBIN_SELF" "$DEVBIN_SELF" "$@"; }
+tool_brew_path_why() {
   local b
-  case "$1" in
+  case "$3" in
     "other "*)
-      if [ -n "${2:-}" ]; then
-        printf 'with %s left out, the first devbin on PATH would be %s' "${2%/*}" "${1#other }"
+      if [ -n "${4:-}" ]; then
+        printf 'with %s left out, the first %s on PATH would be %s' "${4%/*}" "$2" "${3#other }"
       else
-        printf 'the first devbin on PATH is %s' "${1#other }"
+        printf 'the first %s on PATH is %s' "$2" "${3#other }"
       fi
-      # Every state here is brew_answer_state's after devbin_brew_root found
+      # Every state here is tool_brew_answer_state's after tool_brew_root found
       # the keg, so it finds it again; `|| true` only keeps a keg removed in
       # between from ending the sentence half said.
-      printf ', which is not Homebrew'"'"'s devbin at %s\n' "$(devbin_brew_root || true)"
-      printf 'move %s aside\n' "${1#other }"
+      printf ', which is not Homebrew'"'"'s %s at %s\n' "$2" "$(tool_brew_root "$1" || true)"
+      printf 'move %s aside\n' "${3#other }"
       ;;
     "noexec "*)
-      printf 'Homebrew'"'"'s devbin would not run: %s is not executable\n' "${1#noexec }"
-      printf 'reinstall devbin with Homebrew (brew reinstall devbin)\n'
+      printf 'Homebrew'"'"'s %s would not run: %s is not executable\n' "$2" "${3#noexec }"
+      printf 'reinstall %s with Homebrew (brew reinstall %s)\n' "$1" "$1"
       ;;
     "offpath "*)
-      b="${1#offpath }"
-      printf 'Homebrew'"'"'s devbin is linked at %s, and %s is not on PATH\n' "$b" "${b%/*}"
-      printf 'put %s on PATH%s\n' "${b%/*}" "${2:+, after ${2%/*}}"
+      b="${3#offpath }"
+      printf 'Homebrew'"'"'s %s is linked at %s, and %s is not on PATH\n' "$2" "$b" "${b%/*}"
+      printf 'put %s on PATH%s\n' "${b%/*}" "${4:+, after ${4%/*}}"
       ;;
     "unlinked "*)
-      b="$(brew_bin_link "${HOMEBREW_PREFIX:-}")"
-      printf 'Homebrew'"'"'s devbin at %s is not linked: no devbin in %s leads into it\n' "${1#unlinked }" "${b%/*}"
-      printf 'link it (brew link devbin)\n'
+      b="$(tool_brew_bin_link "${HOMEBREW_PREFIX:-}" "$2")"
+      printf 'Homebrew'"'"'s %s at %s is not linked: no %s in %s leads into it\n' "$2" "${3#unlinked }" "$2" "${b%/*}"
+      printf 'link it (brew link %s)\n' "$1"
       ;;
     "vialink "*)
-      [ -n "${2:-}" ] || return 1
-      b="${1#vialink }"
-      printf 'Homebrew'"'"'s devbin is linked at %s, and it reaches the keg only through the link %s, so it goes with it\n' "$b" "$2"
-      printf 'point %s at the keg itself (brew link --overwrite devbin)\n' "$b"
+      [ -n "${4:-}" ] || return 1
+      b="${3#vialink }"
+      printf 'Homebrew'"'"'s %s is linked at %s, and it reaches the keg only through the link %s, so it goes with it\n' "$2" "$b" "$4"
+      printf 'point %s at the keg itself (brew link --overwrite %s)\n' "$b" "$1"
       ;;
     *) return 1 ;;
   esac

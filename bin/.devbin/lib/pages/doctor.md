@@ -88,6 +88,24 @@ In this order:
                     Homebrew devbin, a note says so, why, and what to do:
                     export HOMEBREW_PREFIX as brew shellenv does when it is
                     unset or relative, or install devbin with Homebrew
+    <tool> dev      in a project that declares its tool in an install: block:
+                    each link's copy in the checkout against the line a
+                    build there carries. A copy not built yet, one built
+                    before an input changed and one HEAD has moved past are
+                    notes naming bin/devbin build; one printing no line,
+                    another tool's or tree's, no commit or a commit HEAD
+                    does not contain fails
+    <tool> switch   the tool's link set (bin/devbin help use): a link a
+                    login shell does not run, one it cannot follow or that
+                    leads into no tree of the tool, and a set split across
+                    trees fail; a set left on dev or opt once Homebrew's
+                    copy is at that tree's version is a note, as devbin's
+                    own switch gives
+    <tool> tree     each opt or brew tree the set serves: every file that
+                    does not match its manifest is named with the tree's
+                    remedy, and each copy's --version is held to the line
+                    the manifest records. A keg with no manifest, or one
+                    with no line, is a note naming brew upgrade
     bash            which bash is running, against the >= 5 floor
     location        under WSL only: where the project sits. One on a
                     Windows drive (/mnt/<letter>) is a note naming the

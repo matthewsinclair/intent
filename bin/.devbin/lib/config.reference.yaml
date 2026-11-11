@@ -197,10 +197,12 @@ devbin_version: "^1.0.0"
 
 # --- install ---------------------------------------------------------------
 #
-# WHERE `devbin install` PUBLISHES TO, when run inside devbin's OWN source tree.
-# `upgrade` reads it there too. In a consumer the one reader is `shell-init`,
-# which writes it into `dvb` as the machine-install fallback -- otherwise a
-# project that sets it is describing a publish it will never perform.
+# THE PROJECT'S OWN TOOL (docs/dev-opt-brew.md). An install: block
+# declares the tool `bin/devbin install` publishes and `bin/devbin use`
+# switches, both run in the project's checkout; its name is the formula's
+# (formula.name, or project.name). `prefix` is its opt prefix (T1). devbin's
+# own checkout declares devbin's, which `upgrade` reads there too, and there
+# alone `shell-init` writes it into `dvb` as the machine-install fallback.
 #
 # REQUIRED TO PUBLISH, AND THERE IS NO DEFAULT. `lib/install` once fell back to
 # a path under `$HOME` -- one operator's directory layout, baked into the
@@ -219,8 +221,48 @@ devbin_version: "^1.0.0"
 # A leading `~/` is expanded. A config value is a literal string, so an
 # unexpanded tilde would create a directory actually named `~` under the cwd and
 # every later command would find an install exactly where it looked.
+#
+# The rest of the block names what the tool's trees hold, and each is read once
+# (cfg_tool_links, cfg_tool_files, cfg_tool_manifest and cfg_tool_own in
+# lib/config):
+#
+#   manifest     its manifest, from the tree's root (T3); undeclared:
+#                .<name>-install, and devbin's is bin/.devbin/manifest.sha256
+#   links        its link set in ~/.local/bin (T5), each name and its file in
+#                the dev tree, from the project root; undeclared: one link,
+#                <name>, at bin/<name>. In opt and brew a link's file is
+#                bin/<name>
+#   files        the rest of its runtime set (T1), each under a label: `path`,
+#                its place in opt and brew from the tree's root; `from`, its
+#                file in the dev tree, undeclared: its path; `platforms`, the
+#                platform words it ships on, undeclared: every one
+#   switch       the tool's own switch (T5), a command devbin names and never
+#                runs: declared, `use` refuses in this checkout, naming it, and
+#                doctor's remedies name it; undeclared: bin/devbin use
+#   publish      the tool's own publish (T2), the same: declared, `install`
+#                refuses its opt publish, naming it, though not --managed-by
+#                brew or --into; undeclared: bin/devbin install
+#
+# A link's name and a file's label start with a letter or a digit, then
+# letters, digits, _ or -. No two of the tree's places, each link's
+# bin/<name>, the manifest and each file's path, may be one.
 install:
   prefix: ~/opt/devbin
+
+  # manifest: .demo-install
+
+  # switch: demo use
+  # publish: demo install
+
+  # links:
+  #   demo: target/release/demo
+
+  # files:
+  #   config:
+  #     path: config.toml
+  #     from: examples/config.toml
+  #     platforms:
+  #       - macos
 
 # --- help ------------------------------------------------------------------
 #
@@ -590,6 +632,10 @@ release:
     # run: bin/release-notes # notes.kind: command only -- receives a verb (state, date, body, paths, views, views-check) and that verb's arguments, run at the root
   # derived:                 # commands that regenerate derived files, each printing the paths it wrote
   #   - cargo update --workspace
+  # preflight:               # devbin verbs, run in order in place at pre-flight, by a dry run and a cut alike, before anything is stamped; each must exit 0 and write nothing, each refusal joins pre-flight's own, and none may run release. Each command a cut runs of the project's own is handed the release's target (bin/devbin help release)
+  #   - doctor
+  # trailer:                 # lines the release commit carries after release: <tag>, as its second paragraph, one line an item; none may hold a skip marker such as [skip ci]
+  #   - "(C) A Person <a.person@example.com>"
   gates:                     # devbin verbs, run in order on the release commit under one seal, tmp/release/<stamp>.GATES.*; each must exit 0, and a green that stands for the release commit on this platform is not run again
     - check all
     - test all
@@ -666,7 +712,9 @@ macos:
   #     path: <Name>.app                      # a .app is packed at the archive's root, a binary under bin/
   #     identifier: com.example.demo-links
   # pack:
-  #   files:                                  # packed at the archive's root beside the binaries, each from the root
+  #   name: "{project}-{triple}.tar.gz"       # the archive's name, {project}, {version} and {triple} filled; undeclared: {project}-{version}-{triple}.tar.gz
+  #   root: "{project}-{triple}"              # its one top-level directory, filled as the name is, never bin; undeclared: none, its entries at its root
+  #   files:                                  # beside the binaries: a file at the archive's root, a directory's tracked files at their paths
   #     - examples/config.toml
 
 # The built-in formula: the project's Homebrew formula, rendered
@@ -684,12 +732,10 @@ formula:
   # tap: ssh://git@git.example/example/homebrew-demo.git   # undeclared: homebrew-<name> under the release repository's owner
   # repo: example/demo-dist   # assets: undeclared: the release repository
   sums: SHA256SUMS            # assets: the sums file's name on the release
-  # manifest: .demo-install   # assets: undeclared: .<name>-install, under libexec
   # cask: packaging/homebrew/demo-app.rb   # assets: undeclared: no cask
   # assets:                   # assets: each name may hold {version}
   #   - demo-aarch64-apple-darwin
-  # bin:                      # assets: from libexec, each set 0755 and linked into bin
-  #   - bin/demo
+  bash: false                 # true: on macOS each of the tool's links is an env script putting the formula's bash first on PATH
 
 # The built-in worktrees: a read-only report of each linked worktree, landed,
 # held or unknown, with its evidence, and `remove-landed <path>...`. Offered in

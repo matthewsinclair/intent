@@ -188,29 +188,11 @@ require_staged() {
   local triple missing=""
   triple="$(host_triple)"
   for b in $BINARIES; do
-    [ -f "$STAGE_DIR/$b-$triple" ] || missing="$missing $b-$triple"
+    [ -f "$PARTS_DIR/$b-$triple" ] || missing="$missing $b-$triple"
   done
-  [ -f "$STAGE_DIR/$SUPPORT_ASSET" ] || missing="$missing $SUPPORT_ASSET"
+  [ -f "$PARTS_DIR/$SUPPORT_ASSET" ] || missing="$missing $SUPPORT_ASSET"
   [ -f "$STAGE_DIR/$APP_ASSET" ] || missing="$missing $APP_ASSET"
-  [ -z "$missing" ] || die "nothing staged:$missing -- run 'bin/devbin macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
-}
-
-# is_binary_artefact <file> <triple> -- is this staged file one of the Mach-O
-# artefacts, and therefore something that MUST be proven signed and notarised
-# before anything hashes it?
-#
-# Derived from $BINARIES rather than matched against a pattern. The staged names
-# used to be identified by the glob `*-$triple`, which answers a question about
-# SPELLING when the question is about KIND -- and a data artefact that happened to
-# end in the triple would have been fed to `verify_notarised`, while one that did
-# not would have been silently left out of SHA256SUMS.txt. Neither failure names
-# itself.
-is_binary_artefact() {
-  local f="$1" triple="$2" b
-  for b in $BINARIES; do
-    [ "$f" = "$b-$triple" ] && return 0
-  done
-  return 1
+  [ -z "$missing" ] || die "nothing staged:$missing -- run 'bin/devbin macos stage' first (it copies the build output into $PARTS_DIR, where a peer's cargo build cannot reach it)"
 }
 
 # staged_artefacts -- everything in the staging directory that is a candidate for
@@ -236,9 +218,10 @@ published_upload_conflicts() {
   done
 }
 
-# unclassified_artefacts -- staged files that are neither a Mach-O we must prove,
-# nor the app zip (APP_ASSET, proven from the zip by `checksum`), nor a data asset
-# we have decided to ship unproven (SUPPORT_ASSET).
+# unclassified_artefacts -- staged files that are neither the macOS archive
+# (MACOS_ASSET, whose binaries `checksum` proves from the archive itself) nor the
+# app zip (APP_ASSET, proven from the zip). The binaries and the support tarball
+# are parts, in PARTS_DIR, and never staged.
 #
 # EXTRACTED SO IT CAN BE DRIVEN. Inline in cmd_checksum this was reachable only
 # through a full release run -- stage, sign, and a multi-minute notarisation
@@ -246,10 +229,9 @@ published_upload_conflicts() {
 # tested and its first exercise would have been a release. The refusal is the
 # part worth proving; proving it should not cost a trip to Apple.
 unclassified_artefacts() {
-  local triple="$1" f out=""
+  local f out=""
   for f in $(staged_artefacts); do
-    is_binary_artefact "$f" "$triple" && continue
-    [ "$f" = "$SUPPORT_ASSET" ] && continue
+    [ "$f" = "$MACOS_ASSET" ] && continue
     [ "$f" = "$APP_ASSET" ] && continue
     out="$out $f"
   done
@@ -273,6 +255,60 @@ support_archive() {
   )
 }
 
+# pack_macos_asset <parts> <triple> <out> -- the macOS archive (devbin 0329): the
+# support tarball's tree, with the signed and notarised binaries at bin/intent and
+# bin/intentd, under the one top-level directory MACOS_TOP that Homebrew enters,
+# as the Linux packages are laid out. The binaries are copied with `cp -p`: a
+# Mach-O carries its signature in its own bytes, so a copy keeps it, and the
+# step runs where ditto does not, on the Linux legs that test it. They are packed
+# after notarisation, since a ticket is about
+# the Mach-O bytes and a tar.gz changes none of them. gzip -n writes no name or
+# stamp into its header.
+pack_macos_asset() {
+  local parts="$1" triple="$2" out="$3" root b
+  root="$(mktemp -d)" || return 1
+  (
+    set -o pipefail
+    mkdir -p "$root/$MACOS_TOP/bin" &&
+      tar -xzf "$parts/$SUPPORT_ASSET" -C "$root/$MACOS_TOP" --strip-components 1 &&
+      for b in $BINARIES; do
+        cp -p "$parts/$b-$triple" "$root/$MACOS_TOP/bin/$b" || exit 1
+      done &&
+      tar -C "$root" -cf - "$MACOS_TOP" | gzip -n >"$out"
+  )
+  local rc=$?
+  rm -rf "$root"
+  return "$rc"
+}
+
+# unpack_macos_asset <dir> -- the packed archive unpacked into <dir>, as Homebrew
+# unpacks it; its binaries are then <dir>/$MACOS_TOP/bin/<name>.
+unpack_macos_asset() {
+  tar -xzf "$STAGE_DIR/$MACOS_ASSET" -C "$1"
+}
+
+# macos_asset_layout <archive> -- what is wrong with the archive's layout, one line
+# each, nothing when it is right: exactly one top-level entry, MACOS_TOP, which is
+# not `bin`; each of BINARIES at bin/<name>; and no bin/devbin, which the
+# formula's generated install would run.
+macos_asset_layout() {
+  local list tops b
+  list="$(tar -tzf "$1")" || {
+    printf 'it cannot be listed\n'
+    return 0
+  }
+  tops="$(printf '%s\n' "$list" | awk -F/ 'NF { print $1 }' | LC_ALL=C sort -u)"
+  [ "$tops" = "$MACOS_TOP" ] || printf 'its top-level entries are %s, where the one entry is %s\n' "$(printf '%s' "$tops" | tr '\n' ' ')" "$MACOS_TOP"
+  [ "$MACOS_TOP" != bin ] || printf 'its top-level directory is named bin\n'
+  for b in $BINARIES; do
+    grep -qxF -- "$MACOS_TOP/bin/$b" <<<"$list" || printf 'it carries no %s/bin/%s\n' "$MACOS_TOP" "$b"
+  done
+  if grep -qxF -- "$MACOS_TOP/bin/devbin" <<<"$list"; then
+    printf 'it carries bin/devbin, which the generated install would run\n'
+  fi
+  return 0
+}
+
 # support_tree_drift -- how the built archive differs from the source tree, in
 # both directions. Empty output means they agree.
 #
@@ -291,7 +327,7 @@ support_archive() {
 # kovacs preflight, 2026-10-23). Byte order is the one every implementation
 # agrees on, which is lib/release.steps' spelling too.
 support_tree_drift() {
-  local archive="$STAGE_DIR/$SUPPORT_ASSET"
+  local archive="$PARTS_DIR/$SUPPORT_ASSET"
   [ -f "$archive" ] || { printf 'no archive at %s' "$archive"; return 0; }
   # SUPPORT_PATHS is a fixed list of three space-free repository paths, and
   # splitting it into one argument each is the point (IN-SH-CODE-001 exempts
@@ -619,14 +655,14 @@ cmd_sign() {
     # --timestamp        secure timestamp; notarisation REFUSES without it
     # --force            replace the ad-hoc signature the linker already applied
     #                    (arm64 binaries are always signed; this is a re-sign)
-    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$STAGE_DIR/$b-$triple"
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$PARTS_DIR/$b-$triple"
     # --strict, and READ WHAT THIS PROVES: that the signature present is internally
     # valid. It is NOT evidence the binary is ours -- `codesign --verify --strict`
     # returns 0 on the linker's ad-hoc signature too, because an ad-hoc signature
     # is a valid signature. This board carried it as "the check that means
     # something" for hours and it took a live incident to refute. The check that
     # means something is `verify_notarised`, on a quarantined copy.
-    codesign --verify --strict --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 | sed 's/^/    /'
+    codesign --verify --strict --verbose=2 "$PARTS_DIR/$b-$triple" 2>&1 | sed 's/^/    /'
     # READ THE HARDENED RUNTIME BACK OFF THE ARTEFACT. `--options runtime` above
     # is a REQUEST; whether the flag is actually set is a property of the bytes,
     # and the summary below used to assert it from the request alone. Measured
@@ -636,7 +672,7 @@ cmd_sign() {
     #
     # Notarisation refuses without it, so an unmeasured claim here is discovered
     # minutes later at Apple -- after this pipeline has reported success twice.
-    flags="$(codesign -d --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 |
+    flags="$(codesign -d --verbose=2 "$PARTS_DIR/$b-$triple" 2>&1 |
       sed -n 's/.*flags=\([^ ]*\).*/\1/p')"
     flags="${flags%%$'\n'*}"
     case "$flags" in
@@ -667,7 +703,7 @@ cmd_notarize() {
   # anyway, minutes later, with a less useful message -- and a gate that fails
   # early beats one that fails after a round trip to Apple.
   for b in $BINARIES; do
-    grep -q 'TeamIdentifier=not set' <<<"$(codesign -dv "$STAGE_DIR/$b-$triple" 2>&1)" &&
+    grep -q 'TeamIdentifier=not set' <<<"$(codesign -dv "$PARTS_DIR/$b-$triple" 2>&1)" &&
       die "$b-$triple is not Developer ID signed -- run 'bin/devbin macos sign' first"
   done
 
@@ -685,7 +721,7 @@ cmd_notarize() {
   # what the first version of this did. Notarytool is happy with a zip of a
   # directory; it walks it and assesses every Mach-O inside.
   for b in $BINARIES; do
-    /usr/bin/ditto "$STAGE_DIR/$b-$triple" "$payload/$b-$triple" || die "could not stage $b-$triple"
+    /usr/bin/ditto "$PARTS_DIR/$b-$triple" "$payload/$b-$triple" || die "could not stage $b-$triple"
   done
   /usr/bin/ditto -c -k --keepParent --sequesterRsrc "$payload" "$zip" ||
     die "could not build the submission archive"
@@ -738,7 +774,7 @@ cmd_notarize() {
   while [ "$waited" -lt 300 ]; do
     visible=1
     for vb in $BINARIES; do
-      verify_notarised "$vb-$triple" >/dev/null 2>&1 || visible=0
+      verify_notarised "$PARTS_DIR" "$vb-$triple" >/dev/null 2>&1 || visible=0
     done
     [ "$visible" -eq 1 ] && break
     sleep 15
@@ -768,21 +804,22 @@ cmd_notarize() {
 # engages ONLY on quarantined files -- which is why an unquarantined check is not
 # evidence, and why brew-installed ad-hoc binaries run happily.
 #
-# IT ASKS ONLY ABOUT STAGED ARTEFACTS, and it used to take a directory so that
-# `verify` could ask about the build output while `stage` asked about the shipping
-# copies. That parameter is gone with the reason for it: the build output is no
-# longer a thing that ever ships, so a verdict about it would be a confident
-# answer to a question nobody is asking. **Verify the artefact you are going to
-# publish, never its ancestor.**
+# verify_notarised <dir> <file> -- <file> under <dir>, proven as a download meets it.
+#
+# IT ASKS ABOUT BYTES THAT SHIP, NEVER THE BUILD OUTPUT. <dir> is PARTS_DIR, where
+# `sign` and `notarize` act on the binaries, or the macOS archive unpacked
+# (unpack_macos_asset), whose binaries are the ones a user receives: `checksum`
+# and `publish` ask the archive, because once it is packed it is what ships.
+# **Verify the artefact you are going to publish, never its ancestor.**
 #
 # One implementation, one target, every CLI caller (`notarize`, `verify`,
 # `checksum`, `publish`) -- which is the arrangement where
 # a release-time check cannot drift away from the development-time one everybody
 # actually runs.
 verify_notarised() {
-  local file="$1" t verdict rc=0
+  local dir="$1" file="$2" t verdict rc=0
   t="$(mktemp -d)"
-  /usr/bin/ditto "$STAGE_DIR/$file" "$t/$file"
+  /usr/bin/ditto "$dir/$file" "$t/$file"
   # Set quarantine, then ASSERT IT IS SET before reading any verdict: a fixture
   # that never entered the branch proves nothing and looks like a pass.
   xattr -w com.apple.quarantine "0083;0;dc-verify;" "$t/$file"
@@ -808,7 +845,7 @@ cmd_verify() {
   local triple rc=0
   triple="$(host_triple)"
   for b in $BINARIES; do
-    verify_notarised "$b-$triple" || rc=1
+    verify_notarised "$PARTS_DIR" "$b-$triple" || rc=1
   done
   # A QUARANTINED COPY, WHICH IS WHAT WAS MEASURED. This said "from a quarantined
   # download", and nothing here downloads: the file is copied locally and given
@@ -816,6 +853,48 @@ cmd_verify() {
   # anything. "Download" asserts an origin, and the origin is this machine.
   [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined copy.\n'; }
   return $rc
+}
+
+# cmd_pack -- the macOS archive, packed from the parts once they are signed and
+# notarised (devbin 0329).
+#
+# AFTER `notarize`, AND THE ORDER IS THE POINT. A ticket is Apple's verdict on
+# the Mach-O bytes, and packing changes none of them, so the binaries inside the
+# archive carry the verdict the parts earned; packed before it, the archive
+# would hold binaries nobody had proven. `checksum` then proves them from inside
+# the archive, which is the authoritative check, and this refuses only what is
+# plainly not ready: a part that is not Developer ID signed, by the test
+# `notarize` applies.
+#
+# A NEW ARCHIVE WITHDRAWS THE OLD CLAIM: any SHA256SUMS.txt describes the archive
+# it replaces, so it goes before anything is packed.
+cmd_pack() {
+  require_staged
+  local triple layout b
+  triple="$(host_triple)"
+  for b in $BINARIES; do
+    grep -q 'TeamIdentifier=not set' <<<"$(codesign -dv "$PARTS_DIR/$b-$triple" 2>&1)" &&
+      die "$b-$triple is not Developer ID signed -- run 'bin/devbin macos sign' and 'bin/devbin macos notarize' first"
+  done
+  rm -f "$STAGE_DIR/SHA256SUMS.txt" "$STAGE_DIR/$MACOS_ASSET"
+
+  step "packing $MACOS_ASSET"
+  pack_macos_asset "$PARTS_DIR" "$triple" "$STAGE_DIR/$MACOS_ASSET" || {
+    rm -f "$STAGE_DIR/$MACOS_ASSET"
+    die "could not pack $MACOS_ASSET from $PARTS_DIR"
+  }
+  layout="$(macos_asset_layout "$STAGE_DIR/$MACOS_ASSET")"
+  [ -z "$layout" ] || {
+    rm -f "$STAGE_DIR/$MACOS_ASSET"
+    die "$MACOS_ASSET is not laid out as the formula installs it:
+$(printf '%s\n' "$layout" | sed 's/^/       /')"
+  }
+  printf '    %-34s <- %s, and %s\n' "$MACOS_ASSET" "$BINARIES" "$SUPPORT_ASSET"
+  printf '\n'
+  ok
+  printf '  %s holds bin/intent, bin/intentd and the support tree under %s/,\n' "$MACOS_ASSET" "$MACOS_TOP"
+  printf '  the layout the formula installs on both platforms.\n'
+  printf '  NEXT: bin/devbin macos checksum\n'
 }
 
 # cmd_stage -- copy the build output out of shared space, under its shipping name.
@@ -867,10 +946,10 @@ cmd_stage() {
   fi
 
   step "staging $BINARIES for $triple"
-  rm -rf "$STAGE_DIR"
-  mkdir -p "$STAGE_DIR"
+  rm -rf "$STAGE_DIR" "$PARTS_DIR"
+  mkdir -p "$STAGE_DIR" "$PARTS_DIR"
   for b in $BINARIES; do
-    /usr/bin/ditto "$RELEASE_DIR/$b" "$STAGE_DIR/$b-$triple" ||
+    /usr/bin/ditto "$RELEASE_DIR/$b" "$PARTS_DIR/$b-$triple" ||
       die "could not stage $b"
     printf '    %-34s <- target/release/%s\n' "$b-$triple" "$b"
   done
@@ -927,16 +1006,21 @@ cmd_stage() {
   # an embedded marker is HONEST about the bytes carrying it. A hold with a named
   # condition is a covered property; a hold without one is a permanent exemption.
   local artefact_commits
-  artefact_commits="$(artefact_commit_lines "$STAGE_DIR" "$triple")" || exit 2
+  artefact_commits="$(artefact_commit_lines "$PARTS_DIR" "$triple")" || exit 2
   {
     printf 'artefact_sha256:\n'
     printf '  answers: IDENTITY -- which of several builds these bytes are; one line per staged artefact\n'
     for b in $BINARIES; do
-      printf '  %-30s %s\n' "$b-$triple" "$(shasum -a 256 "$STAGE_DIR/$b-$triple" | awk '{ print $1 }')"
+      printf '  %-30s %s\n' "$b-$triple" "$(shasum -a 256 "$PARTS_DIR/$b-$triple" | awk '{ print $1 }')"
     done
     printf 'artefact_commit:\n'
     printf '  answers: PROVENANCE -- the source commit each staged binary NAMES IN ITS OWN BYTES; one line per staged artefact\n'
     printf '%s\n' "$artefact_commits"
+    printf 'packed_as:\n'
+    printf '  answers: WHERE THESE SHIP -- `pack` lays each binary, once signed and notarised, into the one macOS archive at this path; one line per staged binary\n'
+    for b in $BINARIES; do
+      printf '  %-30s %s\n' "$b-$triple" "$MACOS_ASSET:$MACOS_TOP/bin/$b"
+    done
     printf 'commit: %s\n' "$head"
     printf '  answers: CURRENCY -- which commit THE CHECKOUT was on when these bytes were staged. NOT what the bytes name -- that is artefact_commit, and the two diverge whenever anything lands between the build and the stage.\n'
     printf 'drift: HELD\n'
@@ -971,7 +1055,7 @@ cmd_stage() {
   local mrc
   for b in $BINARIES; do
     mrc=0
-    sc="$(artefact_source_commit "$STAGE_DIR/$b-$triple")" || mrc=$?
+    sc="$(artefact_source_commit "$PARTS_DIR/$b-$triple")" || mrc=$?
     case "$mrc" in
       0)
         if [ "$sc" = "$head" ]; then
@@ -1012,7 +1096,7 @@ $uncovered
        rule library on the fleet: every critic gate armed 0 of 0 and passed."
   printf '    %-34s %s\n' "resolver coverage" "every install-root path v3 reads is carried"
 
-  support_archive "$ROOT" "$head" "$STAGE_DIR/$SUPPORT_ASSET" ||
+  support_archive "$ROOT" "$head" "$PARTS_DIR/$SUPPORT_ASSET" ||
     die "could not build $SUPPORT_ASSET from $SUPPORT_PATHS at $head"
   printf '    %-34s <- %s at %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS" "$head"
 
@@ -1033,7 +1117,7 @@ $drift
        '<' is in the source tree and missing from the archive; '>' is in the
        archive and not in the source tree."
   printf '    %-34s matches %s exactly (%s files)\n' "" "$SUPPORT_PATHS" \
-    "$(tar -tzf "$STAGE_DIR/$SUPPORT_ASSET" | grep -cv '/$')"
+    "$(tar -tzf "$PARTS_DIR/$SUPPORT_ASSET" | grep -cv '/$')"
 
   # EXACTLY ONE TOP-LEVEL ENTRY, AND IT IS THE WRAPPER. This is the property
   # Homebrew's unpack heuristic keys on, and the drift check above cannot see it:
@@ -1042,7 +1126,7 @@ $drift
   # entry and it strips the wrong thing. Either way the marker lands at a depth
   # `install::home` does not walk, and NOTHING about the install looks wrong.
   local tops
-  tops="$(tar -tzf "$STAGE_DIR/$SUPPORT_ASSET" | awk -F/ 'NF { print $1 }' | sort -u)"
+  tops="$(tar -tzf "$PARTS_DIR/$SUPPORT_ASSET" | awk -F/ 'NF { print $1 }' | sort -u)"
   [ "$tops" = "$SUPPORT_PREFIX" ] ||
     die "$SUPPORT_ASSET must have exactly one top-level entry ('$SUPPORT_PREFIX') so Homebrew's single-directory strip lands the install root -- it has: $(printf '%s' "$tops" | tr '\n' ' ')"
   printf '    %-34s single top-level entry %s/ (Homebrew strips exactly this)\n' "" "$SUPPORT_PREFIX"
@@ -1113,26 +1197,43 @@ cmd_checksum() {
   # it cannot be silently omitted from SHA256SUMS.txt the way the old
   # `*-$triple` glob would have omitted it.
   local unclassified
-  unclassified="$(unclassified_artefacts "$triple")"
+  unclassified="$(unclassified_artefacts)"
   [ -z "$unclassified" ] || {
     rm -f "$sums"
     die "unclassified staged artefact(s):$unclassified
-       Every artefact is either a Mach-O that MUST be proven signed and notarised
-       (add it to BINARIES), the app bundle's zip (APP_ASSET), or data that cannot
-       be proven (add it beside SUPPORT_ASSET).
+       Every staged artefact is the macOS archive (MACOS_ASSET), whose binaries
+       are proven from inside it, or the app bundle's zip (APP_ASSET); a binary
+       or the support tarball is a part, packed into the archive by `pack`.
        Refusing to guess: guessing wrong publishes either an unproven binary or a
        hash for a file nobody checked."
   }
 
-  step "proving every Mach-O artefact before anything is hashed"
+  # THE BINARIES ARE PROVEN FROM INSIDE THE ARCHIVE (devbin 0329): it is what a
+  # user receives, so its layout is checked and its Mach-O members are unpacked
+  # and proven, not the parts they were packed from.
+  step "proving $MACOS_ASSET before it is hashed"
+  local layout unpacked
+  layout="$(macos_asset_layout "$STAGE_DIR/$MACOS_ASSET")"
+  [ -z "$layout" ] || {
+    rm -f "$sums"
+    die "refusing to checksum -- $MACOS_ASSET is not laid out as the formula installs it:
+$(printf '%s\n' "$layout" | sed 's/^/       /')
+       Run: bin/devbin macos pack"
+  }
+  unpacked="$(mktemp -d)"
+  unpack_macos_asset "$unpacked" || {
+    rm -rf "$unpacked"
+    rm -f "$sums"
+    die "refusing to checksum -- $MACOS_ASSET could not be unpacked. Run: bin/devbin macos pack"
+  }
   for b in $BINARIES; do
-    verify_notarised "$b-$triple" || rc=1
+    verify_notarised "$unpacked/$MACOS_TOP/bin" "$b" || rc=1
   done
+  rm -rf "$unpacked"
   if [ "$rc" -ne 0 ]; then
     rm -f "$sums"
-    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: bin/devbin macos sign && bin/devbin macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
+    die "refusing to checksum -- a binary in $MACOS_ASSET is not signed AND notarised. Run: bin/devbin macos sign && bin/devbin macos notarize && bin/devbin macos pack (the parts are left alone; only the checksum claim is withdrawn)"
   fi
-  printf '    %-34s not a Mach-O -- nothing to sign, nothing to notarise\n' "$SUPPORT_ASSET"
 
   # THE APP IS PROVEN FROM THE ZIP, NOT FROM APP_DIST_DIR: the zip is what ships,
   # so it is unpacked and checked the way a download meets it before it is hashed.
@@ -1160,12 +1261,12 @@ cmd_checksum() {
   # never notarised, and is stated as the exception above before the
   # summary asserted the rule over it. A summary that generalises past its own
   # exception is an unmeasured assertion in the place people read first.
-  printf '\n  Each BINARY above was proven signed and notarised from a quarantined\n'
-  printf '  copy before it was hashed, and so was the bundle inside %s.\n' "$APP_ASSET"
-  printf '  %s is not a Mach-O: it carries no\n' "$SUPPORT_ASSET"
-  printf '  signature and no ticket, and nothing here claims it does -- its hash\n'
-  printf '  says the bytes are intact and says nothing about their origin.\n'
-  printf '  NOT REGENERATED ON RE-SIGN -- re-run `checksum` after any `sign`,\n'
+  printf '\n  Each binary inside %s was proven signed and notarised from a\n' "$MACOS_ASSET"
+  printf '  quarantined copy before it was hashed, and so was the bundle inside %s.\n' "$APP_ASSET"
+  printf '  The support tree beside the binaries is not a Mach-O: it carries no\n'
+  printf '  signature and no ticket, and nothing here claims it does -- the hash\n'
+  printf '  says the archive is intact and nothing about where that tree came from.\n'
+  printf '  NOT REGENERATED ON RE-SIGN -- re-run `pack` and `checksum` after any `sign`,\n'
   printf '  because signing rewrites the bytes these hashes describe.\n'
 }
 
@@ -1238,13 +1339,15 @@ $(printf '%s\n' "$blockers" | sed 's/^/       /')
   printf '\n'
   cmd_notarize
   printf '\n'
+  cmd_pack
+  printf '\n'
   cmd_checksum
   printf '\n'
   # NAMES THE STEPS THAT RAN, not a property of every artefact they touched --
   # `sign` and `notarize` never touch the support tarball, so the participle list
   # was asserting over an artefact some of its words do not apply to.
-  printf 'prepare: app-sign, app-notarize, stage, sign, notarize and checksum ran in\n'
-  printf '  one pass; each step reported above what it did and did not cover.\n'
+  printf 'prepare: app-sign, app-notarize, stage, sign, notarize, pack and checksum ran\n'
+  printf '  in one pass; each step reported above what it did and did not cover.\n'
   printf '  NEXT: bin/devbin macos publish, which uploads them to the release, re-downloads them against SHA256SUMS.txt and prints the steps after it\n'
 }
 
@@ -1438,7 +1541,7 @@ $(sed 's/^/       /' "$PROVENANCE_FILE")
   # several. The number of controls says nothing -- the number of distinct
   # subjects does.
   local artefact_blockers
-  artefact_blockers="$(artefact_commit_blockers "$STAGE_DIR" "$(host_triple)" "$tag_commit")" || exit 2
+  artefact_blockers="$(artefact_commit_blockers "$PARTS_DIR" "$(host_triple)" "$tag_commit")" || exit 2
   [ -z "$artefact_blockers" ] ||
     die "the staged BYTES cannot be shown to have come from $tag ($tag_commit):
 $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
@@ -1453,7 +1556,7 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   local pb pbc mrc
   for pb in $BINARIES; do
     mrc=0
-    pbc="$(artefact_source_commit "$STAGE_DIR/$pb-$(host_triple)")" || mrc=$?
+    pbc="$(artefact_source_commit "$PARTS_DIR/$pb-$(host_triple)")" || mrc=$?
     case "$mrc" in
       0) ;;
       1) pbc="<none>" ;;
@@ -1475,10 +1578,18 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   # that proves the whole chain, on a quarantined copy, because `codesign
   # --verify --strict` returns 0 over the linker's ad-hoc signature.
   step "proving the claim the release body is about to make"
-  local vrc=0 vb
-  for vb in $BINARIES; do
-    verify_notarised "$vb-$(host_triple)" || vrc=1
-  done
+  # The binaries the release body speaks of are the ones inside the archive.
+  local vrc=0 vb unpacked
+  unpacked="$(mktemp -d)"
+  if unpack_macos_asset "$unpacked"; then
+    for vb in $BINARIES; do
+      verify_notarised "$unpacked/$MACOS_TOP/bin" "$vb" || vrc=1
+    done
+  else
+    printf '    %-34s could not be unpacked\n' "$MACOS_ASSET"
+    vrc=1
+  fi
+  rm -rf "$unpacked"
   [ "$vrc" -eq 0 ] ||
     die "refusing to publish: the release notes assert both binaries are Developer ID
        signed and notarised, and that could not be established on these bytes just
@@ -2254,19 +2365,19 @@ bin/devbin macos <subcommand>
   THE PIPELINE, in order, after `bin/devbin release vX.Y.Z` has cut and tagged
   the release and `bin/devbin build all` has built the pair at the tag, which
   is what makes the pair say `release` (source_commit.rs). Every
-  step after `stage` acts on the staged copies in native/rust/target/dist --
-  never on target/release, which every session in this clone shares and any
+  step after `stage` acts on the staged parts in native/rust/target/dist-parts
+  or the assets in native/rust/target/dist -- never on target/release, which every session in this clone shares and any
   `cargo build --release` will overwrite underneath you.
 
   prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: app-sign, app-notarize,
-               stage, sign, notarize, checksum. Run it AT THE TAG: the app
+               stage, sign, notarize, pack, checksum. Run it AT THE TAG: the app
                stamps its version from the tree. The path for cutting a
                release; the individual steps below exist for diagnosis and for
                re-running one of them.
 
-  stage        Copy the build output into target/dist under its shipping name
-               (<binary>-<target-triple>), out of shared space. Wipes first.
-               Archives the support tree as intent-support.tar.gz, REFUSING if
+  stage        Copy the build output into target/dist-parts, as
+               <binary>-<target-triple>, out of shared space. Wipes first.
+               Archives the support tree there as intent-support.tar.gz, REFUSING if
                it misses a path v3 resolves or drifts from the source tree.
                Zips the stapled Intent.app in as Intent.app.zip, and REFUSES one
                that is missing, unstapled, or not the staged CLI's version.
@@ -2275,12 +2386,16 @@ bin/devbin macos <subcommand>
                read back off each
   notarize     Submit the staged CLI binaries to Apple, wait, report, then
   (notarise)   wait for the ticket to become visible to Gatekeeper
-  checksum     Prove each staged binary, and the bundle inside Intent.app.zip,
-               from a quarantined copy, and only then write SHA256SUMS.txt.
-               The support tarball is hashed unproven (it holds no Mach-O).
+  pack         Pack the signed and notarised binaries and the support tree into
+               target/dist as intent-aarch64-apple-darwin.tar.gz, one top-level
+               directory holding bin/intent, bin/intentd and the support tree,
+               as the Linux packages are. REFUSES a layout the formula cannot install
+  checksum     Prove the binaries inside the macOS archive, and the bundle inside
+               Intent.app.zip, from a quarantined copy, and only then write
+               SHA256SUMS.txt. The support tree in the archive is unproven (it holds no Mach-O).
                REFUSES an unclassified artefact or anything unproven
 
-  verify       Prove the staged CLI binaries without hashing them (read-only)
+  verify       Prove the staged CLI binaries in target/dist-parts without hashing them (read-only)
   publish      Upload the artefacts to the release (creating it, or attaching
                to the one the release cut made), RE-DOWNLOAD them and confirm
                they hash to what SHA256SUMS.txt records, then print the steps
@@ -2373,6 +2488,7 @@ case "${1:-}" in
   stage) no_args "$@"; cmd_stage ;;
   sign) no_args "$@"; cmd_sign ;;
   notarize | notarise) no_args "$@"; cmd_notarize ;;
+  pack) no_args "$@"; cmd_pack ;;
   verify) no_args "$@"; cmd_verify ;;
   checksum) no_args "$@"; cmd_checksum ;;
   prepare) no_args "$@"; cmd_prepare ;;

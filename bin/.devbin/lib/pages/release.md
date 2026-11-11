@@ -23,8 +23,10 @@ Cut a release: confirm once, then stamp, commit, run every leg (the gates, here 
                  hold back on every leg; under release.publish.url, no
                  remote it pushes to naming the publish repository, the
                  snapshot list in the tree, and the url's refs read
-                 (Publishing a snapshot, below); every refusal named in one
-                 run
+                 (Publishing a snapshot, below); then, while the tag is
+                 absent, release.preflight's commands of the project's own,
+                 every one run, in place, handed the release's target
+                 (below); every refusal named in one run
     confirm      ask once, before anything runs, naming the tag, the release
                  commit, the candidate's push, the send to each host
                  release.legs names, the macOS stage's submission to Apple,
@@ -35,7 +37,8 @@ Cut a release: confirm once, then stamp, commit, run every leg (the gates, here 
                  version file in step through cargo metadata, refusing any
                  change but the crate's own version, run any derived:
                  commands, date the note, regenerate the notes views
-    commit       the release commit
+    commit       the release commit, release: <tag>, with release.trailer's
+                 lines as its second paragraph where they are declared
     legs         every leg at once, read by one wait loop: the declared
                  gates on the release commit (default: check all, test all),
                  under one seal of their own, already where a sealed green
@@ -75,11 +78,11 @@ The push step reads each remote back after pushing to it, and a remote is slowes
 
 Each step with a postcondition checks it first. Running the same command again after a failure therefore continues from where it stopped, and a step already done says `already`. A cut that stopped after its tag is resumed by naming the version: once the tag exists, `--patch` would name the NEXT version, so the summary prints the command to resume with. A dry run's prints the command to cut with.
 
-A project with a `formula` command, devbin's built-in enabled or its own handler, publishes to Homebrew, and there a released cut ends on one more line, a note (a cut whose `after:` failed ends on its remedy instead): once the tap has the tag, `brew upgrade <formula>`, then `<formula> use brew`, after which `<formula> --version` reads `<formula> <version> (brew, <sha12>)` at the released version. The switch among dev, opt and brew rests at brew, and this step puts the machine back there. The core runs no brew and points no link. The formula's name is `formula.name`, or `project.name` where that is not declared.
+A project with a `formula` command, devbin's built-in enabled or its own handler, publishes to Homebrew, and there a released cut ends on one more line, a note (a cut whose `after:` failed ends on its remedy instead): once the tap has the tag, `brew upgrade <formula>`, then `bin/devbin use brew` in this checkout when it is devbin's own or declares its tool in an `install:` block (a project that declares none has no link for `use` to point), after which `<formula> --version` reads `<formula> <version> (brew, <sha12>)` at the released version. The switch among dev, opt and brew rests at brew, and this step puts the machine back there. The core runs no brew and points no link. The formula's name is `formula.name`, or `project.name` where that is not declared.
 
 ## CI green before the tag
 
-Unless `release.ci.query` is `-`, the opt-out, the legs step pushes the release commit to its candidate ref, `release.publish.candidate` with `{tag}` filled in (default `candidate/{tag}`), on the remote that pushes to the project's repository, `release.repo` or the repository read from the remote it falls back to, each remote judged by where a push to it goes, its push urls where it has any, else all its urls, as configured: of the remotes `release.remotes` declares, in its order, then every other remote, the first that pushes to it on its own host, whatever the case, else the first that pushes to its OWNER/NAME on any host, an ssh host alias included; pre-flight refuses a cut where no remote pushes to it, and one where remotes push to its OWNER/NAME on more than one host and none on its own, naming each remote with each host and the repository's own host to point a push url at, since a mirror would take the candidate's push where CI never runs. Under `release.publish.url` the candidate is the release commit's snapshot instead, pushed to that ref at the public repository (Publishing a snapshot, below). The push comes first: one refused, or one that does not answer, stops the run before anything else starts. The query is then asked about the release commit with `DEVBIN_RELEASE_TAG` set to the candidate ref, every 15 seconds, while the local gates run beside it; the run prints a line with the clock each time a leg's word changes, and a leg read green is not read again. The local gates are pending while their run is alive, and once it has ended its own exit status decides, the record giving the detail. A gate that opens the terminal itself to ask, as ssh, gpg or sudo can, is stopped there, since the local gates' run is not the terminal's foreground group, and the cut waits until it is interrupted: run such a gate under `release gates`. A cut run again after a red candidate pushes it again, and a red read the same before and after that push is the earlier run's, pending until CI answers anything else; a candidate a killed run left holding the release commit, read red, is deleted first, so that push makes a run of its own. The tag is made and pushed only once every leg is green. The candidate ref is deleted once the tag is pushed, as at any stop, only while it holds the release commit; one that will not go is named with the command that deletes it, and the run ends at exit 1, the release standing. A red leg stops the run with nothing tagged, the local gates' whole process group stopped and the candidate ref deleted on the same terms as after the tag's push, and so does a candidate not green within `ci.wait` of the loop's start; the local gates alone are not bounded by `ci.wait` and run to their end. Fix what the run names and run the same target again: the stamp and the commit read `already`, and a leg whose record is green for the release commit is not run again. The project's workflow must therefore run on a push of the candidate branch, and pre-flight asks `bin/devbin ci-state --fires` whether it does, refusing a cut whose push would start no run.
+Unless `release.ci.query` is `-`, the opt-out, the legs step pushes the release commit to its candidate ref, `release.publish.candidate` with `{tag}` filled in (default `candidate/{tag}`), on the remote that pushes to the project's repository, `release.repo` or the repository read from the remote it falls back to, each remote judged by where a push to it goes, its push urls where it has any, else all its urls, as configured: of the remotes `release.remotes` declares, in its order, then every other remote, the first that pushes to it on its own host, whatever the case, else the first that pushes to its OWNER/NAME on any host, an ssh host alias included; pre-flight refuses a cut where no remote pushes to it, and one where remotes push to its OWNER/NAME on more than one host and none on its own, naming each remote with each host and the repository's own host to point a push url at, since a mirror would take the candidate's push where CI never runs. Under `release.publish.url` the candidate is the release commit's snapshot instead, pushed to that ref at the public repository (Publishing a snapshot, below). The push comes first: one refused, or one that does not answer, stops the run before anything else starts. The query is then asked about the release commit with `DEVBIN_RELEASE_TAG` set to the candidate ref, every 15 seconds, while the local gates run beside it; the run prints a line with the clock each time a leg's word changes, and a leg read green is not read again. The local gates are pending while their run is alive, and once it has ended its own exit status decides, the record giving the detail. A gate that opens the terminal itself to ask, as ssh, gpg or sudo can, is stopped there, since the local gates' run is not the terminal's foreground group, and the cut waits until it is interrupted: run such a gate under `release gates`. A cut run again after a red candidate pushes it again, and a red read the same before and after that push is the earlier run's, pending until CI answers anything else; with the built-in query, the runs already at the release commit on the candidate's branch before that push, an earlier attempt's, are read first and passed over in every later read, each named, so a run an earlier attempt left cancelled never decides the leg; a candidate a killed run left holding the release commit, read red, is deleted first, so that push makes a run of its own. The tag is made and pushed only once every leg is green. The candidate ref is deleted once the tag is pushed, as at any stop, only while it holds the release commit; one that will not go is named with the command that deletes it, and the run ends at exit 1, the release standing. A red leg stops the run with nothing tagged, the local gates' whole process group stopped and the candidate ref deleted on the same terms as after the tag's push, and so does a candidate not green within `ci.wait` of the loop's start; the local gates alone are not bounded by `ci.wait` and run to their end. Fix what the run names and run the same target again: the stamp and the commit read `already`, and a leg whose record is green for the release commit is not run again. The project's workflow must therefore run on a push of the candidate branch, and pre-flight asks `bin/devbin ci-state --fires` whether it does, refusing a cut whose push would start no run.
 
 ## Publishing a snapshot
 
@@ -120,11 +123,17 @@ The bump is the one judgement in a release, so nothing infers it from commits. N
 
 ## --dry-run and --yes
 
-`--dry-run` makes no stamp, commit, tag, push or release object, and runs no gate and no `after:`. It prints each step as what it would do, naming anything it could not predict. Where it would make the release commit, it names that commit as the one the commit step makes, never HEAD, and plans its push to every remote, one already at HEAD included. Where the release commit exists already, its gates row reads the record a cut reads: `already` where a sealed green stands for that commit on this platform, and otherwise what the cut would run. When no step failed, its last line is its verdict, saying so and whether the cut stops to ask at the confirm step.
+`--dry-run` makes no stamp, commit, tag, push or release object, and runs no gate and no `after:`. It runs `release.preflight`'s commands as the cut does, so it refuses wherever the cut would. It prints each step as what it would do, naming anything it could not predict. Where it would make the release commit, it names that commit as the one the commit step makes, never HEAD, and plans its push to every remote, one already at HEAD included. Where the release commit exists already, its gates row reads the record a cut reads: `already` where a sealed green stands for that commit on this platform, and otherwise what the cut would run. When no step failed, its last line is its verdict, saying so and whether the cut stops to ask at the confirm step.
 
 The confirm step asks a person, once, before anything runs, and everything after it runs under that answer. `--yes` answers it. The `after:` commands run under the same yes: they are handed `DEVBIN_RELEASE_CONFIRMED`, naming the tag, whenever the confirm step was answered, at its prompt or by `--yes`, so `formula publish` as an `after:` command pushes to the tap the question named. A confirm step with nothing left to ask about gives no yes. With neither a terminal nor `--yes`, the cut stops there, before anything is stamped, committed or run, and exits 1, its row saying nobody was there to ask. It never guesses consent.
 
 Under `release.publish.url`, a dry run whose release commit exists already makes the snapshot in its own scratch, reads the public repository and the candidate on the snapshot, and pushes nothing.
+
+## The release's target
+
+Every command of the project's own that a cut runs is handed the release's target in two variables: `DEVBIN_RELEASE_VERSION`, the version being released, and `DEVBIN_RELEASE_TARGET_TAG`, the tag it is released under. They reach each `release.preflight` command, a dry run's included, each `derived:` command, the gates, the macOS stage, `macos leg` and the build it runs, before the tag, the formula step and each `after:` command, and nothing else a cut runs. The gates are handed the pair wherever they run: in place, on each host `release.legs` names, and under `release gates`, which reads both from the tree it stands on, the version the tree declares and the tag `release.tag` makes of it, and refuses to run where the version cannot be read. On the release commit, which carries the stamp, that is the cut's own pair, so a sealed green stands for gates that saw what the cut's would.
+
+Neither is `DEVBIN_RELEASE_TAG`, which a cut hands `release.ci.query` alone: the ref the query reads its runs by, the candidate's branch, not the tag.
 
 ## The other forms
 
@@ -169,13 +178,15 @@ Under `release.publish.url`, a dry run whose release commit exists already makes
     gates [--rerun]
                  run release.gates in order, in place, on the commit HEAD
                  is, under one sealed run of their own under tmp/release/,
-                 as a cut's legs step runs them: the record that step
-                 reads. It reads that record first, as the cut does, and
-                 where a sealed green stands for the commit on this platform
-                 it prints the cut's row and runs nothing; --rerun runs them
-                 all the same. Refuses a tree that is not one commit, clean,
-                 before anything runs, and fails a gate that writes to the
-                 tree or commits, or a pass whose record does not read back
+                 as a cut's legs step runs them, each handed the version the
+                 tree declares and its tag (The release's target): the
+                 record that step reads. It reads that record first, as the
+                 cut does, and where a sealed green stands for the commit on
+                 this platform it prints the cut's row and runs nothing;
+                 --rerun runs them all the same. Refuses a tree that is not
+                 one commit, clean, or whose version cannot be read, before
+                 anything runs, and fails a gate that writes to the tree or
+                 commits, or a pass whose record does not read back
 
 ## Exit codes
 

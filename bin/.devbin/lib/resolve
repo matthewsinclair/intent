@@ -92,11 +92,16 @@ project_owns_command() {
 # machine-wide switch is thrown. The one predicate for every reader of the
 # question (the dispatcher's refusal, command_active, help), so they cannot
 # disagree. A project that owns a command of its own called `use` runs it.
+#
+# AND IN A PROJECT THAT DECLARES ITS OWN TOOL (issue 0326), `use` is offered:
+# there it switches that tool's links, never the machine's devbin
+# (lib/cmd/use, tool_use in lib/tool). Which of the two a tree's `use`
+# switches, or neither, is use_target's answer (lib/config), the one the
+# switch asks too.
 devbin_tree_refusal() {
   [ "$1" = use ] || return 1
   project_owns_command "$1" && return 1
-  case "$(devbin_tree "$PROJECT_ROOT")" in dev | opt | brew) return 1 ;; esac
-  is_install_tree "$PROJECT_ROOT" && return 1
+  [ "$(use_target "$PROJECT_ROOT")" = none ] || return 1
   printf "devbin use chooses which devbin this machine runs, so a project's bin/devbin does not offer it: run devbin use (the devbin on PATH)\n"
 }
 

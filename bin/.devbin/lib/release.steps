@@ -622,6 +622,92 @@ _release_gates_refuse() {
   return 0
 }
 
+# release_target_run <version> <tag> <cmd>... -- <cmd> run with the release's
+# target in its environment: DEVBIN_RELEASE_VERSION, the version being
+# released, and DEVBIN_RELEASE_TARGET_TAG, the tag it is released under (issue
+# 0327). THE ONE PLACE THE PAIR IS SET. Every step that runs a project's own
+# commands calls it, per call and never as an export, so nothing else a cut
+# runs is handed the pair: release.preflight (release_preflight_run), each
+# derived: command, the gates (gates_sealed, handed the pair by its callers),
+# the macOS stage (_release_macos_run, lib/release.macos; issue 0329), the
+# formula step and each after: command. It is not DEVBIN_RELEASE_TAG,
+# which names the ref a query reads its runs by, the candidate's branch, and
+# reaches ci.query alone (release_ci_verdict, issue 0149). <cmd> may be a
+# function: bash hands an assignment written in front of a function's call to
+# every process the function starts, and keeps it from the shell after.
+release_target_run() {
+  local _rt_version="$1" _rt_tag="$2"
+  shift 2
+  DEVBIN_RELEASE_VERSION="$_rt_version" DEVBIN_RELEASE_TARGET_TAG="$_rt_tag" "$@"
+}
+
+# release_preflight_run <why-file> <command>... -- the commands given, each a
+# release.preflight line, in order, in place, through the project's own
+# launcher, with no stdin, since pre-flight asks nobody (issue 0327). EVERY ONE
+# RUNS: pre-flight names every refusal in one run, so a command that fails
+# never keeps the next from running. A command that holds no words, fails,
+# changes or creates a path git does not ignore, or moves HEAD writes one line
+# to <why-file> for each, which the cut adds to pre-flight's own refusals. The
+# tree and HEAD are read around each command, by the readers
+# release_gates_run reads them with, so a line names the command that wrote.
+# 0 when every command ran and passed and none moved anything; 1 when a line
+# was written; 2 when <why-file> could not be written, so a refusal could be
+# lost. The library reads no config: the cut reads release.preflight once and
+# passes it, under release_target_run.
+release_preflight_run() {
+  local why="$1" launcher="${PROJECT_ROOT:?}/bin/devbin" cmd before after changed head_before head_after rc n=0 lines=0
+  local -a pw=()
+  shift
+  : >"$why" || return 2
+  for cmd in "$@"; do
+    if ! run_words pw release.preflight "$cmd" 2>/dev/null; then
+      _release_preflight_refuse "$why" "the pre-flight command '$cmd' holds no words" || return 2
+      lines=$((lines + 1))
+      continue
+    fi
+    if ! before="$(release_tree_state)" || ! head_before="$(git rev-parse HEAD)"; then
+      _release_preflight_refuse "$why" "the tree or HEAD could not be read before the pre-flight command '$cmd', so it was not run" || return 2
+      lines=$((lines + 1))
+      continue
+    fi
+    printf '\nrelease: pre-flight: %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$cmd"
+    rc=0
+    "$launcher" "${pw[@]}" </dev/null || rc=$?
+    n=$((n + 1))
+    if [ "$rc" -ne 0 ]; then
+      _release_preflight_refuse "$why" "the pre-flight command '$cmd' failed (exit $rc, above)" || return 2
+      lines=$((lines + 1))
+    fi
+    if ! after="$(release_tree_state)" || ! changed="$(release_tree_changed "$before" "$after")"; then
+      _release_preflight_refuse "$why" "the tree could not be read after the pre-flight command '$cmd', so whether it wrote to it is not known" || return 2
+      lines=$((lines + 1))
+    elif [ -n "$changed" ]; then
+      _release_preflight_refuse "$why" "the pre-flight command '$cmd' changed the tree: ${changed//$'\n'/, } -- pre-flight commands examine the tree and must not write to it" || return 2
+      lines=$((lines + 1))
+    fi
+    if ! head_after="$(git rev-parse HEAD)"; then
+      _release_preflight_refuse "$why" "HEAD could not be read after the pre-flight command '$cmd', so whether it committed is not known" || return 2
+      lines=$((lines + 1))
+    elif [ "$head_after" != "$head_before" ]; then
+      _release_preflight_refuse "$why" "the pre-flight command '$cmd' moved HEAD from ${head_before:0:12} to ${head_after:0:12} -- pre-flight commands must not commit" || return 2
+      lines=$((lines + 1))
+    fi
+  done
+  if [ "$lines" -eq 0 ]; then
+    printf '\nrelease: pre-flight: %s command(s) of release.preflight passed, and none wrote to the tree\n' "$n"
+    return 0
+  fi
+  printf '\nrelease: pre-flight: release.preflight refused %s time(s) over %s command(s) run, each named in the pre-flight row\n' "$lines" "$n"
+  return 1
+}
+
+# _release_preflight_refuse <why-file> <line> -- one pre-flight refusal:
+# printed, and appended to <why-file>; 1 when the file could not take it.
+_release_preflight_refuse() {
+  printf 'release: pre-flight: %s\n' "$2"
+  printf '%s\n' "$2" >>"$1"
+}
+
 # release_gates_verdict <sha> -- what the gates' sealed runs on this platform say
 # about <sha>: seal_verdict's word, a TAB and its detail, over the GATES pairs
 # under tmp/release/ (ST0011). release_gates_word maps it to the local gates'

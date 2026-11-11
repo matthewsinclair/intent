@@ -819,6 +819,24 @@ if refusal="$(command_env_refusal "$command")"; then
   die "$refusal"
 fi
 
+# THE BUILD CARRIES ITS VERSION LINE (docs/dev-opt-brew.md, T4; issue 0326). In
+# a project that declares a tool, `build` is tool_build's (lib/tool): this
+# launcher run again as a child, handed the dev line in DEVBIN_VERSION_LINE, and
+# once more when the build's own dependency record says the line was wrong. The
+# child finds _DEVBIN_BUILD_STAMPED set and takes the route below, whatever
+# tier supplies the build. A request for the build's usage builds nothing.
+if [ "$command" = build ] && [ -z "${_DEVBIN_BUILD_STAMPED:-}" ] && cfg_is_tool; then
+  case "${1:-}" in
+    -h | --help) ;;
+    *)
+      # shellcheck source=lib/tool
+      . "$DEVBIN_LIB/tool"
+      tool_build "$BIN_DIR/devbin" "$@"
+      exit $?
+      ;;
+  esac
+fi
+
 # THE ROUTE IS arg_route's (lib/resolve), asked once and acted on here (issue
 # 0128). It states the dispatch order for an argument list in one place -- `all`
 # over the options there are, or refused over a run: line with none, a declared

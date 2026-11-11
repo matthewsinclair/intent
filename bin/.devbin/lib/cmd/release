@@ -78,7 +78,8 @@ usage() {
     printf '  and the candidate'"'"'s CI) under one wait, and tag and push once all are\n'
     printf '  green; then the release object and after:, all under that one yes. Each\n'
     printf '  step with a postcondition reads it first, so a re-run continues.\n'
-    printf '  --dry-run makes no commit, tag, push or release object and runs no gate.\n'
+    printf '  --dry-run makes no commit, tag, push or release object and runs no gate;\n'
+    printf '  it runs release.preflight, as the cut does.\n'
     printf '  Under release.publish.url the candidate is the release commit'"'"'s snapshot,\n'
     printf '  pushed to that repository for its CI, and the push makes the snapshot\n'
     printf '  public there: its branch fast-forwarded and the tag at it. Nothing is forced.\n'
@@ -608,12 +609,15 @@ release_one_repository() {
   esac
 }
 
-# gates_sealed <sha> -- the gates in `gl`, release.gates as gates_list read it,
-# in order, in place, under one sealed run of their own,
+# gates_sealed <sha> <version> <tag> -- the gates in `gl`, release.gates as
+# gates_list read it, in order, in place, under one sealed run of their own,
 # tmp/release/<stamp>.GATES.{out,errors}, standing on <sha>, the commit the
-# tree is (ST0011). THE ONE CALL the cut's local leg and `release gates` both
-# make, each over release.gates as it read it once, so the pair either leaves
-# is one producer's, and a remote leg's copy of it is
+# tree is (ST0011), each handed <version> and <tag> as the release's target
+# (release_target_run, issue 0327): a cut's own, or the tree's, read by
+# `release gates`, which on the release commit are the same pair. THE ONE CALL
+# the cut's local leg and `release gates` both make, each over release.gates as
+# it read it once, so the pair either leaves is one producer's, and a remote
+# leg's copy of it is
 # the same record; the PUBLISH pair is sealed the same way. Its status is the
 # run's -- 0 only when a gate ran, every gate passed and none wrote to the tree
 # or committed -- AND THE RECORD MUST READ BACK: the verdict a cut reads for
@@ -631,7 +635,7 @@ gates_sealed() {
   # line, and each gate is an argument of the one command the run ran. The
   # list is the declared one, never the verb's argv, so no flag of devbin's
   # reaches release_gates_run through it.
-  if ! run_gate --label "release gates" --suffix GATES --grammar generic --purge \
+  if ! release_target_run "$2" "$3" run_gate --label "release gates" --suffix GATES --grammar generic --purge \
     --out-dir "$(gate_out_dir release)" \
     --source "release.gates ($(printf '%s, ' "${gl[@]}" | sed 's/, $//')) -- release_gates_run in this process, not a command line" \
     -- release_gates_run "${gl[@]}"; then
@@ -650,15 +654,22 @@ gates_sealed() {
   return 1
 }
 
+# release_list_into <array> <list> -- the lines of <list>, a release list as
+# cfg_release_list reads it, into the caller's array named <array>, one
+# element per line, blank lines left out: THE ONE SPLIT of a list whose lines a
+# step runs, release.gates (gates_list) and release.preflight (issue 0327).
+release_list_into() {
+  local -n _rli_into="$1"
+  local _rli_line
+  _rli_into=()
+  while IFS= read -r _rli_line; do
+    [ -z "$_rli_line" ] || _rli_into+=("$_rli_line")
+  done <<<"$2"
+}
+
 # gates_list <list> -- the gates of release.gates, as read, into the caller's
 # array `gl`, one element per declared gate.
-gates_list() {
-  local g
-  gl=()
-  while IFS= read -r g; do
-    [ -z "$g" ] || gl+=("$g")
-  done <<<"$1"
-}
+gates_list() { release_list_into gl "$1"; }
 
 # gates_decision_words <state> -- release gates' decision in words, from a
 # release_gates_word line: `<detail>, so they are not run again` when it is
@@ -693,8 +704,15 @@ gates_decision_words() {
 # RELEASE_GATES_WHY is unset first: gates_sealed writes its refusal to the file
 # it names, which a cut names for its own local leg alone, so one inherited
 # from the environment would have this verb write where nobody here chose.
+#
+# THE RELEASE'S TARGET IS THE TREE'S (issue 0327): the version the tree
+# declares and the tag release.tag makes of it, which on the release commit,
+# carrying the stamp, are the cut's own pair. So a remote leg's host and a run
+# by hand hand the gates what the cut's local leg does, and a sealed green
+# stands for one run of them whoever made it. A version that cannot be read is
+# refused before any gate runs, in version_unread's words, never run without.
 gates_verb() {
-  local stood list answer
+  local stood list answer unread ver tpl
   unset RELEASE_GATES_WHY
   release_one_repository "release gates"
   stood="$(git_head_identity "$PROJECT_ROOT")"
@@ -713,7 +731,12 @@ gates_verb() {
   # The purge after the seal reads RUNLOG_KEEP_RUNS: refused before anything
   # runs, never found after a green.
   runlog_assert_keep_runs
-  gates_sealed "$stood"
+  if unread="$(version_unread why)"; then
+    die "release gates: the version cannot be read: $unread -- $(version_unread fix); the gates are handed it as DEVBIN_RELEASE_VERSION, so none runs without it"
+  fi
+  ver="$(read_version)" || die "release gates: the version cannot be read (exit $?), and the gates are handed it as DEVBIN_RELEASE_VERSION"
+  tpl="$(cfg_release_get tag)" || die "release gates: cannot read release.tag, which names the tag the gates are handed as DEVBIN_RELEASE_TARGET_TAG"
+  gates_sealed "$stood" "$ver" "$(release_tag_name "$tpl" "$ver")"
 }
 
 # ---------------------------------------------------------------------------
@@ -732,10 +755,12 @@ gates_verb() {
 # from: empty for the project's own, or in the publish shape the snapshot's,
 # since S is in no other; _leg_cand_git) and LEG_CAND_SHOWN (LEG_CAND_REMOTE as
 # a line names it: the remote's name, or the url as release_url_shown shows
-# it). A remote leg runs through lib/release.legs and the macOS stage through
-# lib/release.macos, each passed the context it reads, since neither library
-# reads config. A start that finds its leg green already starts nothing.
-LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
+# it). LEG_VERSION and LEG_TAG are the release's target, which the local leg
+# hands its gates (gates_sealed, issue 0327). A remote leg runs through
+# lib/release.legs and the macOS stage through lib/release.macos, each passed
+# the context it reads, since neither library reads config. A start that finds
+# its leg green already starts nothing.
+LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_VERSION="" LEG_TAG="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
 LEG_CQ=() LEGS=() LEGS_T0=0
 # Pre-flight's reading of release.legs (ST0011 WP-05): each host it reached,
 # a leg of the cut as legs.<host>, and each it could not, `<host><TAB><why>`,
@@ -786,7 +811,7 @@ leg_start() {
     local) _leg_local_start ;;
     candidate) _leg_candidate_start ;;
     legs.*) _leg_remote_start "$1" ;;
-    macos) release_macos_start "$LEG_ROOT" "$LEG_SHA" "$SCRATCH" ;;
+    macos) release_macos_start "$LEG_ROOT" "$LEG_SHA" "$SCRATCH" "$LEG_VERSION" "$LEG_TAG" ;;
     *) printf 'unknown\tno such leg: %s\n' "$1" ;;
   esac
 }
@@ -869,7 +894,7 @@ _leg_local_start() {
 _leg_local_run() {
   RELEASE_GATES_WHY="$SCRATCH/gates.why"
   rm -f "$RELEASE_GATES_WHY"
-  gates_sealed "$LEG_SHA"
+  gates_sealed "$LEG_SHA" "$LEG_VERSION" "$LEG_TAG"
 }
 
 # The leg's read, in a command substitution, from what the cut's shell knows
@@ -982,7 +1007,7 @@ _leg_candidate_verdict() {
   local left=0
   [ -z "$LEGS_DEADLINE" ] || left=$((LEGS_DEADLINE - SECONDS))
   [ "$left" -ge 0 ] || left=0
-  release_wait "$left" "" unknown release_ci_verdict "$LEG_CAND_SHA" "$LEG_REF" "${LEG_CQ[@]}"
+  DEVBIN_RELEASE_PASSED_OVER="$LEG_CAND_PASSED" release_wait "$left" "" unknown release_ci_verdict "$LEG_CAND_SHA" "$LEG_REF" "${LEG_CQ[@]}"
 }
 
 # The start runs in the cut's shell (legs_step), so the push it makes joins
@@ -1008,7 +1033,15 @@ _leg_candidate_verdict() {
 # the timeout. Such a ref, read red at the start, is deleted first, under a
 # lease on that commit, and read back as gone (_leg_candidate_clear), so the
 # push makes a run of its own. A ref that cannot be read is pushed to as it is.
-LEG_CAND_BEFORE="" LEGS_CAND_PUSHED=no
+#
+# AND THIS ATTEMPT'S RUNS ALONE DECIDE (issue 0330). An earlier attempt's run
+# stays listed at the release commit on the candidate's branch, cancelled when
+# that attempt deleted the candidate, and the worst of the runs there would be
+# it, whatever this push's run does. With the built-in query, the runs there
+# before this push are read first (_leg_candidate_earlier), and every later
+# read passes them over, naming them. A query of the project's own is handed
+# none, and LEG_CAND_BEFORE above is what it has.
+LEG_CAND_BEFORE="" LEG_CAND_PASSED="" LEGS_CAND_PUSHED=no
 _leg_candidate_start() {
   local v rc=0 held
   v="$(_leg_at_start candidate)"
@@ -1022,6 +1055,7 @@ _leg_candidate_start() {
       _leg_candidate_clear || return 0
     fi
   fi
+  _leg_candidate_earlier
   LEGS_CAND_PUSHED=trying
   cut_call_rc --reads "git ls-remote $LEG_CAND_SHOWN refs/heads/$LEG_REF reads it" "the candidate push to $LEG_CAND_SHOWN" \
     _leg_cand_git push -q -- "$LEG_CAND_SHA:refs/heads/$LEG_REF" >&2 || rc=$?
@@ -1051,6 +1085,56 @@ _leg_candidate_start() {
     return 0
   fi
   printf 'pending\t%s pushed to %s on %s; its run is read by that ref\n' "${LEG_CAND_SHA:0:12}" "$LEG_REF" "$LEG_CAND_SHOWN"
+}
+
+# _leg_candidate_earlier -- with the built-in query, the ids of the runs already
+# at the release commit on the candidate's branch, an earlier attempt's, read
+# in one bounded ask before this push (_leg_candidate_runs) into
+# LEG_CAND_PASSED, which _leg_candidate_verdict hands each later read as
+# DEVBIN_RELEASE_PASSED_OVER (issue 0330). Runs found are said on stderr. A list
+# that cannot be read is said too, and none is passed over, as before this
+# read; a query of the project's own is handed none. Runs in the cut's shell,
+# so LEG_CAND_PASSED holds for every read after it.
+_leg_candidate_earlier() {
+  local q answer
+  LEG_CAND_PASSED=""
+  if ! q="$(cfg_release_get ci.query)"; then
+    printf 'release: legs: release.ci.query cannot be read (above), so the runs on %s before this push are not read, and none is passed over\n' "$LEG_REF" >&2
+    return 0
+  fi
+  cfg_ci_query_is_builtin "$q" || return 0
+  answer="$(release_wait 0 "" unknown _leg_candidate_runs)"
+  case "${answer%%$'\t'*}" in
+    runs) LEG_CAND_PASSED="${answer#*$'\t'}" ;;
+    *)
+      printf 'release: legs: the runs at %s on %s before this push could not be read (%s), so none is passed over\n' \
+        "${LEG_CAND_SHA:0:12}" "$LEG_REF" "${answer#*$'\t'}" >&2
+      ;;
+  esac
+  [ -z "$LEG_CAND_PASSED" ] ||
+    printf 'release: legs: %s holds run(s) %s at %s from before this push, which every read of this push passes over\n' \
+      "$LEG_REF" "$LEG_CAND_PASSED" "${LEG_CAND_SHA:0:12}" >&2
+}
+
+# _leg_candidate_runs -- one ask of `ci-state --runs` for the release commit on
+# the candidate's branch, as release_wait reads an answer: `runs<TAB><the ids,
+# a space between each, none for none>`, or `unknown<TAB><why>` when it fails,
+# its first line of words kept in the wait's scratch until read.
+_leg_candidate_runs() {
+  local dir="${RELEASE_WAIT_DIR:-${TMPDIR:-/tmp}}" err out said rc=0
+  if ! err="$(mktemp "$dir/devbin-cand-runs.XXXXXX")"; then
+    printf 'unknown\tno file for the words of ci-state --runs could be made under %s\n' "$dir"
+    return 0
+  fi
+  out="$(DEVBIN_RELEASE_TAG="$LEG_REF" "$PROJECT_ROOT/bin/devbin" ci-state --runs "$LEG_CAND_SHA" 2>"$err" </dev/null)" || rc=$?
+  said=""
+  IFS= read -r said <"$err" || true
+  rm -f "$err"
+  if [ "$rc" -ne 0 ]; then
+    printf 'unknown\tci-state --runs exited %s: %s\n' "$rc" "${said:-it said nothing}"
+    return 0
+  fi
+  printf 'runs\t%s\n' "${out//$'\n'/ }"
 }
 
 # _leg_candidate_clear -- the candidate ref an earlier run left holding the
@@ -1345,7 +1429,9 @@ legs_cache_lines() {
       return 0
       ;;
     *)
-      # Why there is none: macos.build is not declared, or two entries name the app.
+      # Why there is none: macos.build is not declared, two entries name the
+      # app, the app carries its commit (macos.commit_stamp), or the entry's
+      # inputs hold no file the app's version is read from.
       printf 'release: cache: %s\n' "$art"
       return 0
       ;;
@@ -1531,7 +1617,7 @@ legs_step() {
     cut_row legs would "start ${LEGS[*]} together on the release commit the commit step makes, then tag only when every one is green"
     return 0
   fi
-  LEG_ROOT="$PROJECT_ROOT" LEG_SHA="$commit"
+  LEG_ROOT="$PROJECT_ROOT" LEG_SHA="$commit" LEG_VERSION="$v" LEG_TAG="$tag"
   LEG_PROJECT="$(legs_project_name)"
   if [ -n "$cand_remote" ]; then
     run_words LEG_CQ release.ci.query "$(cfg_release_get ci.query)" || cut_fail legs "release.ci.query cannot be read as words"
@@ -1695,15 +1781,31 @@ cut_summary() {
 # since brew has nothing of it to upgrade. A cut whose after: failed, or whose
 # candidate would not be deleted, gets none either: its last line stays the
 # remedy (0181), and after a failed after: the tap may not have the release.
+#
+# THE SWITCH IS NAMED WHERE THIS CHECKOUT OFFERS IT (issue 0326): `bin/devbin
+# use brew` in this checkout, in devbin's own and in a project that declares
+# its tool (use_target, lib/config). A project that declares none has no link
+# devbin points, so its note is the upgrade and the line alone.
+#
+# THE LINE NAMED IS THE FIRST LINK'S (issue 0331): each binary of a tool prints
+# the tool's line under its own name, so the command a person types and the
+# line it prints are the first link's, which is the formula's name where no
+# link set is declared (cfg_tool_links).
 cut_back_to_brew() {
-  local name
+  local name step="" links link
   command_active formula || return 0
+  [ "$(use_target "$PROJECT_ROOT")" = none ] || step="$(cfg_tool_verb switch) brew in this checkout"
   if ! name="$(cfg_formula_name)" || [ -z "$name" ]; then
-    printf 'release: NOTE: the switch rests at brew -- once the tap has %s, upgrade it with brew and run use brew (the formula'"'"'s name could not be read: formula.name, or project.name)\n' "$1"
+    printf 'release: NOTE: the switch rests at brew -- once the tap has %s, upgrade it with brew%s (the formula'"'"'s name could not be read: formula.name, or project.name)\n' \
+      "$1" "${step:+ and run $step}"
     return 0
   fi
-  printf 'release: NOTE: the switch rests at brew -- once the tap has %s: brew upgrade %s, then %s use brew, and %s --version reads %s %s (brew, %s)\n' \
-    "$1" "$name" "$name" "$name" "$name" "$2" "${3:0:12}"
+  links="$(cfg_tool_links)" || links=""
+  link="${links%%$'\n'*}"
+  link="${link%%$'\t'*}"
+  [ -n "$link" ] || link="$name"
+  printf 'release: NOTE: the switch rests at brew -- once the tap has %s: brew upgrade %s,%s and %s --version reads %s %s (brew, %s)\n' \
+    "$1" "$name" "${step:+ then $step,}" "$link" "$link" "$2" "${3:0:12}"
 }
 
 # cut_fail <n> <detail> -- step <n> FAILED: its row, the table so far, and what
@@ -2079,12 +2181,12 @@ cut_lock_sync() {
 cut_run() {
   local tpl branch object today launcher line v tag how rc_line commit source
   local state detail remotes remote answer nremote=0 owned dirt outside="" deferred=""
-  local derived gates out written="" have n ignored_rc ignored_why assets_wf after_list lock
+  local derived gates pf_list trailer trailer_said="" out written="" have n ignored_rc ignored_why assets_wf after_list lock
   local formula_on formula_step=no
   # The binaries' archive (issue 0323): named at pre-flight where the object
   # step runs macos bin-publish, and empty where it does not.
-  local bins_archive=""
-  local -a refusals=() gl=()
+  local bins_archive="" app_asset=""
+  local -a refusals=() gl=() pl=()
   # The candidate's target, its ref and the target as a line names it, found
   # at pre-flight: the remote the legs step pushes it to, or in the publish
   # shape release.publish.url.
@@ -2098,8 +2200,15 @@ cut_run() {
 
   # THE TAG REACHES ci.query ALONE (issue 0149): one exported from outside,
   # to try a query by hand, would reach every gate and after: command, and a
-  # gate exercising the query would read a stale tag.
-  unset DEVBIN_RELEASE_TAG
+  # gate exercising the query would read a stale tag. So does the list of the
+  # runs it passes over (issue 0330), which this cut makes before its own
+  # candidate push and hands each later read of that leg.
+  unset DEVBIN_RELEASE_TAG DEVBIN_RELEASE_PASSED_OVER
+  # THE TARGET REACHES THE PROJECT'S COMMANDS ALONE (issue 0327): each step that
+  # runs one hands it the pair through release_target_run, per call, so a pair
+  # inherited from outside, from a cut that started this one, say, would reach
+  # nothing else this cut runs.
+  unset DEVBIN_RELEASE_VERSION DEVBIN_RELEASE_TARGET_TAG
   # THE GATES' WHY FILE IS THE CUT'S OWN (ST0011), set in the local leg's own
   # run and never exported: one inherited from outside, or assigned in front
   # of a call, would reach every gate as an environment variable.
@@ -2128,6 +2237,15 @@ cut_run() {
   # a step runs is: empty would skip the gates in silence.
   gates="$(cfg_release_list gates)" || die "release: cannot read release.gates"
   gates_list "$gates"
+  # THE ONE READ OF release.preflight IN A CUT (issue 0327), with its status, as
+  # the gates are read: empty would pass over the project's own refusals in
+  # silence. Pre-flight runs what it reads here.
+  pf_list="$(cfg_release_list preflight)" || die "release: cannot read release.preflight"
+  release_list_into pl "$pf_list"
+  # THE RELEASE COMMIT'S TRAILER (issue 0328): release.trailer's lines, read
+  # once with their status, the commit step's second paragraph where declared.
+  # The subject stays `release: <tag>`, as it was before any was declared.
+  trailer="$(cfg_release_list trailer)" || die "release: cannot read release.trailer"
   # Read once, for the confirm step's question and the after step's run.
   after_list="$(cfg_release_list after)" || die "release: cannot read release.after"
   # Read once, for pre-flight, the confirm step's question and the formula
@@ -2535,13 +2653,41 @@ cut_run() {
   # a cut elsewhere is refused above, with the stage, and a re-run past the tag
   # here. A name that cannot be made is refused before anything is stamped.
   if [ "$object" = local ] && cfg_macos_declared && [ -n "$(cfg_macos_binaries)" ]; then
-    local bins_word
+    local bins_word bins_why bins_root
     bins_word="$(platform_word)" || bins_word=""
     if [ "$bins_word" = macos ]; then
-      bins_archive="$(release_bin_archive "$(cfg_get project.name)" "$v")" ||
+      if ! bins_archive="$(release_bin_archive "$(cfg_get project.name)" "$v" "$(cfg_macos_pack_name)")"; then
         refusals+=("the binaries' archive cannot be named for the object step's macos bin-publish: project.name is not declared, or rustc -vV names no host triple")
+      elif bins_why="$(release_bin_name_problem "$bins_archive")"; then
+        refusals+=("macos.pack.name makes the binaries' archive's name $bins_archive, which $bins_why -- the object step's macos bin-publish would refuse it past the tag")
+      fi
+      bins_root="$(cfg_macos_pack_root)"
+      if [ -n "$bins_root" ]; then
+        if ! bins_root="$(release_bin_fill "$bins_root" "$(cfg_get project.name)" "$v")"; then
+          refusals+=("macos.pack.root cannot be filled: project.name is not declared, or rustc -vV names no host triple")
+        elif bins_why="$(release_bin_root_problem "$bins_root")"; then
+          refusals+=("macos.pack.root makes the binaries' archive's top-level directory $bins_root, which $bins_why -- the object step's macos bin-publish would refuse it past the tag")
+        fi
+      fi
     elif [ "$source" = tag ]; then
       refusals+=("macos.binaries is declared under object: local, so the object step packs the binaries' archive through macos bin-publish, whose name carries a macOS host's triple, and this host is ${bins_word:-one devbin has no platform word for} -- run the cut again on a macOS host")
+    fi
+  fi
+  # THE APP'S ZIP (issue 0329): under object: local, where the macOS stage is
+  # declared with macos.app, the object step runs macos publish once the object
+  # is made, before the formula step, so a cask the formula step renders from
+  # the release finds the zip in its SHA256SUMS, and reads the release for the
+  # zip by publish's own name for it (cfg_macos_app_asset). Only on a macOS
+  # host, since publish runs there alone: a cut elsewhere is refused above,
+  # with the stage, and a re-run past the tag here.
+  if [ "$object" = local ] && cfg_macos_declared && [ -n "$(cfg_macos_get app)" ]; then
+    local app_word
+    app_word="$(platform_word)" || app_word=""
+    if [ "$app_word" = macos ]; then
+      app_asset="$(cfg_macos_app_asset)" ||
+        refusals+=("the app's zip cannot be named for the object step's macos publish: macos.asset or macos.app cannot be read")
+    elif [ "$source" = tag ]; then
+      refusals+=("macos.app is declared under object: local, so the object step zips and attaches the app through macos publish, which runs on macOS alone, and this host is ${app_word:-one devbin has no platform word for} -- run the cut again on a macOS host")
     fi
   fi
   for legs_a in "${LEGS_ABSENT[@]}"; do
@@ -2609,13 +2755,41 @@ cut_run() {
     esac
   fi
 
+  # THE PROJECT'S OWN PRE-FLIGHT (issue 0327): release.preflight, read once
+  # above, run here, after the core's own checks and whatever they found, by a
+  # dry run and a cut alike, each refusal it writes named beside theirs. So a
+  # cut it refuses stops before anything is stamped and leaves no release
+  # commit, and a dry run refuses wherever the cut would. Every command runs,
+  # handed the release's target (release_target_run). While the tag is absent,
+  # the window the tree rule holds: past it nothing is stamped or committed, so
+  # they are not run, and the row says so.
+  local pf_rc pf_said=""
+  local -a pf_why=()
+  if [ "${#pl[@]}" -gt 0 ] && [ "$source" = HEAD ]; then
+    pf_rc=0
+    release_target_run "$v" "$tag" release_preflight_run "$SCRATCH/preflight.why" "${pl[@]}" || pf_rc=$?
+    case "$pf_rc" in
+      0) pf_said="; release.preflight: ${#pl[@]} command(s) passed" ;;
+      1)
+        if mapfile -t pf_why <"$SCRATCH/preflight.why" && [ "${#pf_why[@]}" -gt 0 ]; then
+          refusals+=("${pf_why[@]}")
+        else
+          refusals+=("release.preflight refused, and what it said cannot be read back from $SCRATCH/preflight.why (above)")
+        fi
+        ;;
+      *) refusals+=("release.preflight's refusals could not be written to $SCRATCH/preflight.why, so they cannot be named here (above)") ;;
+    esac
+  elif [ "${#pl[@]}" -gt 0 ]; then
+    pf_said="; release.preflight not run: $tag exists, so nothing is stamped or committed"
+  fi
+
   if [ "${#refusals[@]}" -gt 0 ]; then
     cut_fail pre-flight "$(printf '%s; ' "${refusals[@]}" | sed 's/; $//')"
   fi
   local pf_public=""
   [ -z "$publish_url" ] ||
     pf_public="; $shown_pub answers: $pbranch $(publish_at "$pub_branch"), $cand_ref $(publish_at "$pub_cand"), $tag $(publish_at "$pub_tag")"
-  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")$legs_said$pf_public"
+  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")$pf_said$legs_said$pf_public"
   if [ -n "$deferred" ] && [ "$dry_run" = 1 ]; then
     CUT_UNREACHED+=("the stamp step checks ${deferred//$'\n'/, } against what derived: writes, after it runs")
   fi
@@ -2644,7 +2818,7 @@ cut_run() {
   # about whether anything is left.
   local -a left=() push_plan=()
   local object_work="" object_detail="" title repo="" declared_repo drem
-  local attach_work=no assets_detail="" bins_work=no bins_detail="" heading plan_words
+  local attach_work=no assets_detail="" bins_work=no bins_detail="" app_work=no app_detail="" heading plan_words
   declared_repo="$(cfg_release_get repo)" || cut_fail confirm "release.repo cannot be read"
   drem="$(declared_remote)" || cut_fail confirm "the first declared remote cannot be read"
   cut_read_remotes "$push_mode" confirm
@@ -2743,7 +2917,8 @@ cut_run() {
       while IFS= read -r d <&3; do
         [ -n "$d" ] || continue
         run_words words release.derived "$d" 2>/dev/null || cut_fail stamp "the derived: command '$d' holds no words"
-        out="$("${words[@]}" 3<&-)" || cut_fail stamp "the derived: command '$d' failed (exit $?)"
+        # Handed the release's target, as each project command is (issue 0327).
+        out="$(release_target_run "$v" "$tag" "${words[@]}" 3<&-)" || cut_fail stamp "the derived: command '$d' failed (exit $?)"
         written+="$out"$'\n'
       done 3<<<"$derived"
       if ! out="$(notes_date "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
@@ -2778,6 +2953,13 @@ cut_run() {
   # An UNREADABLE postcondition is pre-flight's refusal now, read before the
   # confirm step asks.
   local release_made=yes
+  # The message: `release: <tag>`, and release.trailer's lines, where
+  # declared, as its second paragraph (issue 0328), each a -m of git's own.
+  local -a commit_msg=(-m "release: $tag")
+  if [ -n "$trailer" ]; then
+    commit_msg+=(-m "$trailer")
+    trailer_said=" with release.trailer's $(grep -c . <<<"$trailer") line(s) as its second paragraph"
+  fi
   if [ "$source" = tag ]; then
     cut_row commit already "${commit:0:12}, $tag's commit, is the release commit"
   else
@@ -2785,7 +2967,7 @@ cut_run() {
     if [ "$head_is_release" = yes ]; then
       cut_row commit already "${commit:0:12} carries the stamp and the tree is clean"
     elif [ "$dry_run" = 1 ]; then
-      cut_row commit would "commit the stamp as \"release: $tag\""
+      cut_row commit would "commit the stamp as \"release: $tag\"$trailer_said"
       release_made=no
     else
       dirt="$(release_dirt)" || cut_fail commit "git status failed"
@@ -2797,7 +2979,7 @@ cut_run() {
       # pre-flight and the stamp step refuse any dirt outside the owned
       # set, staged included, so the index holds nothing these paths do not.
       # Kept so the commit stays exactly these paths if that rule ever moves.
-      git commit -q --only -m "release: $tag" -- "${paths[@]}" </dev/null ||
+      git commit -q --only "${commit_msg[@]}" -- "${paths[@]}" </dev/null ||
         cut_fail commit "git commit failed (exit $?, above)"
       commit="$(git rev-parse HEAD)" || cut_fail commit "the new HEAD cannot be read: git rev-parse HEAD exited $?"
       rel_at="${commit:0:12}"
@@ -2809,7 +2991,7 @@ cut_run() {
         cut_fail commit "reading the stamp at ${commit:0:12} failed (exit $?)"
       [ "${answer%%$'\t'*}" = already ] || cut_fail commit "${commit:0:12} does not carry the stamp: ${answer#*$'\t'}"
       [ "$(release_read_clean | cut -f1)" = already ] || cut_fail commit "the tree is not clean after the commit: $(release_read_clean | cut -f2-)"
-      cut_row commit "done" "${commit:0:12} \"release: $tag\", ${#paths[@]} path(s)"
+      cut_row commit "done" "${commit:0:12} \"release: $tag\"$trailer_said, ${#paths[@]} path(s)"
     fi
   fi
 
@@ -3134,6 +3316,29 @@ cut_object_left() {
       esac
     fi
   fi
+  # THE APP'S ZIP (issue 0329), named at pre-flight where the object step runs
+  # macos publish, is work left on the same terms, read by the same read
+  # (release_bins_read): done where the release carries it with SHA256SUMS
+  # naming it, and refused where SHA256SUMS disagrees, since publish never zips
+  # over an asset the release carries.
+  if [ -n "${app_asset:-}" ]; then
+    if [ "$object_work" = create ]; then
+      app_work=yes
+      left+=("zip and attach the app $app_asset through macos publish, and SHA256SUMS")
+    else
+      answer="$(release_wait 0 "" UNREADABLE release_bins_read "$repo" "$tag" "$app_asset")" ||
+        cut_fail confirm "reading whether $tag carries $app_asset failed (exit $?)"
+      case "${answer%%$'\t'*}" in
+        already) app_detail="$app_asset attached, ${answer#*$'\t'}" ;;
+        absent)
+          app_work=yes
+          left+=("zip and attach the app $app_asset through macos publish, and SHA256SUMS: ${answer#*$'\t'}")
+          ;;
+        pending) cut_fail confirm "$(release_bins_pending "$tag" "$app_asset" "${answer#*$'\t'}")" ;;
+        *) cut_fail confirm "${answer#*$'\t'}" ;;
+      esac
+    fi
+  fi
 }
 
 # cut_confirm <who> <heading> [<after>] -- the confirm step's question, for a
@@ -3234,10 +3439,11 @@ cut_formula_step() {
   # A mark inherited from whatever started this cut is not this cut's yes.
   unset DEVBIN_RELEASE_CONFIRMED
   printf '\nrelease: formula: %s formula publish --pull\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  # Handed the release's target, as each project command is (issue 0327).
   if [ "$confirmed" = yes ]; then
-    DEVBIN_RELEASE_CONFIRMED="$tag" gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
+    DEVBIN_RELEASE_CONFIRMED="$tag" release_target_run "$v" "$tag" gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
   else
-    gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
+    release_target_run "$v" "$tag" gate_exec "${pub[@]}" >"$out" 2>&1 || frc=$?
   fi
   cat "$out"
   last="$(awk 'NF { l = $0 } END { print l }' "$out")"
@@ -3404,6 +3610,35 @@ cut_tail() {
           row_detail+="; $bins_archive attached, ${answer#*$'\t'}"
         fi
       fi
+      # THE APP'S ZIP (issue 0329), on the binaries' archive's terms: macos
+      # publish through the launcher, where the confirm step named the zip as
+      # work left, before the formula step, whose cask reads it from the
+      # release's SHA256SUMS, then read back by the same read. A FAILURE STOPS
+      # THE CUT HERE, the object made and standing, and the formula step unrun.
+      if [ "$app_work" != yes ]; then
+        row_detail+="${app_detail:+; $app_detail}"
+      elif [ "$dry_run" = 1 ]; then
+        row_state=would
+        row_detail+="; then zip and attach the app $app_asset through macos publish, and SHA256SUMS"
+        CUT_UNREACHED+=("the object step's publish of the app: a dry run zips and attaches nothing")
+      else
+        # NO ARM REACHES IT: the zip is work left, so the confirm step has confirmed
+        # it or stopped the run. Kept so the object step never zips on its own say-so.
+        [ "$confirmed" = yes ] || cut_fail object "the app's zip has work left and nobody confirmed attaching it"
+        local app_out="$SCRATCH/app-publish.out" app_rc=0 app_last
+        printf '\nrelease: publish: %s macos publish, the app %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$app_asset"
+        gate_exec "$launcher" macos publish >"$app_out" 2>&1 || app_rc=$?
+        cat "$app_out"
+        if grep -q '^published: ' "$app_out"; then CUT_OUTWARD+=", attached $app_asset to the release object for $tag"; fi
+        app_last="$(awk 'NF { l = $0 } END { print l }' "$app_out")"
+        [ "$app_rc" -eq 0 ] ||
+          cut_fail object "$row_detail; macos publish did not attach $app_asset (exit $app_rc): ${app_last:-it said nothing}"
+        answer="$(release_wait 0 "" UNREADABLE release_bins_read "$repo" "$tag" "$app_asset")" ||
+          cut_fail object "reading back whether $tag carries $app_asset failed (exit $?)"
+        [ "${answer%%$'\t'*}" = already ] ||
+          cut_fail object "macos publish finished, and $tag does not read back as carrying $app_asset: ${answer#*$'\t'}"
+        row_state="done" row_detail+="; attached $app_asset through macos publish, ${answer#*$'\t'}"
+      fi
       cut_row object "$row_state" "$row_detail"
       ;;
   esac
@@ -3450,11 +3685,15 @@ cut_tail() {
       # the step had nothing to ask. `formula publish` reads it as the yes for the
       # push the question named. Nothing but these commands is given it, and its
       # name and its value, the tag, stay what consumers read. And the after
-      # step does not depend on its caller to keep stdin off the terminal.
+      # step does not depend on its caller to keep stdin off the terminal. Each
+      # is handed the release's target too, as each project command is (issue
+      # 0327).
       if [ "$confirmed" = yes ]; then
-        DEVBIN_RELEASE_CONFIRMED="$tag" gate_exec "${aw[@]}" 3<&- || arc=$?
+        DEVBIN_RELEASE_CONFIRMED="$tag" release_target_run "$v" "$tag" \
+          gate_exec "${aw[@]}" 3<&- || arc=$?
       else
-        gate_exec "${aw[@]}" 3<&- || arc=$?
+        release_target_run "$v" "$tag" \
+          gate_exec "${aw[@]}" 3<&- || arc=$?
       fi
       if [ "$arc" -eq 0 ]; then
         ran=$((ran + 1))

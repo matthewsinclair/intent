@@ -24,6 +24,10 @@ A `run:` line is split into words and never handed to a shell, so quoting, pipes
 
 With options declared and neither a `commands.build.run` nor a handler, a bare `build` prints its usage and exits 1: naming no target is a usage error, because `build && deploy` must not read a run that built nothing as success. `build --help` prints the same usage and exits 0.
 
+## A project's own tool
+
+Where the project declares its tool in an `install:` block, `build` hands the build its version line in `DEVBIN_VERSION_LINE`, `<tool> <version> (dev, <sha12>[+dirty])`, for each binary of the tool to carry and print on `--version` under its own name, `<name> <version> (dev, <sha12>[+dirty])`: `+dirty` while the runtime set, `build.inputs` or an input the build's dependency record (`<binary>.d`) names differs from HEAD. After the build it reads that record again, and builds once more, saying so, when the record names a changed input the line missed.
+
 ## Why it never guesses
 
 A default `build` would be right for one project and quietly wrong for the rest, and a build that runs the wrong thing and exits 0 looks exactly like a build that worked.

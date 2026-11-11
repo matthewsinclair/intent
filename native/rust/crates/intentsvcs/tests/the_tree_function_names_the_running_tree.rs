@@ -195,6 +195,40 @@ fn a_manifest_naming_intent_is_opt_and_its_sha_is_the_manifests() {
   );
 }
 
+/// The manifest `intent install` writes now ends its header with the line the
+/// tree's binaries print (devbin 0332). The header reader takes it as one more
+/// key: the tree is still opt and its sha is still `source_commit`'s, and the
+/// version line is still worked out by the binary, never read from the file.
+#[test]
+fn a_manifest_recording_its_line_is_still_opt_and_its_sha_is_the_manifests() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = install_root(dir.path());
+  let manifest_sha = "abcdefabcdef0123456789abcdef0123456789ab";
+  std::fs::write(
+    root.join(MANIFEST),
+    format!(
+      "# tool: intent\n# version: 9.9.9\n# source_commit: {manifest_sha}\n# managed_by: intent\n# line: intent 9.9.9 (opt, abcdefabcdef)\nabc  bin/intent\n"
+    ),
+  )
+  .expect("write");
+
+  let id = install::tree_at(&root, "0123456789abcdef0123456789abcdef01234567");
+
+  assert_eq!(id.tree, Tree::Opt);
+  assert_eq!(id.sha.as_deref(), Some(manifest_sha));
+  assert_eq!(
+    line("0123456789abcdef0123456789abcdef01234567", &id),
+    "intent 9.9.9 (opt, abcdefabcdef) dev"
+  );
+  let findings = install::tree_findings(&id);
+  assert!(
+    findings
+      .iter()
+      .all(|f| f.class != FindingClass::InstallManifestOld),
+    "a manifest with its line is no older form: {findings:?}"
+  );
+}
+
 /// AT-01.1: **one function names the running tree in the contract's order --
 /// brew by its manifest, opt, dev, a manifest-less keg by its opt link, unknown
 /// otherwise -- and doctor fails on an unknown tree or an unreadable dev git.**

@@ -39,13 +39,27 @@ It is opt-in: absent until a project asks for it with `commands.formula.enabled:
                       SHA256SUMS
     formula.assets    assets: the assets the templates take a sha256 of, each
                       a name on the release, which may hold {version}
-    formula.bin       assets: the keg's executables, from libexec
-    formula.manifest  assets: the keg's manifest, under libexec; default
-                      .<name>-install
     formula.cask      assets: a cask template, from the project root; none:
                       no cask
+    formula.bash      true: on macOS each of the tool's links is an env
+                      script that puts the formula's bash first on PATH;
+                      default false, a link
+
+The keg's manifest, under libexec, is the tool's own, `install.manifest`, or `.<name>-install` where it is not declared, and the keg's executables are the tool's link set, `install.links`, each at `bin/<name>` in the tree.
 
 A key the mode does not read is refused rather than ignored.
+
+## The install body
+
+In both modes the template's install holds exactly one `@@INSTALL@@`, on a line of its own, and render writes there the install body every formula takes:
+
+- from a tag's checkout, which holds `bin/devbin`: the core's publish, `bin/devbin install --prefix libexec --managed-by brew`, which writes the manifest itself;
+- from the release's assets, each packed rooted at the install root: everything the stage holds into libexec, or into libexec/bin where Homebrew entered an archive that holds only `bin/`, then 0755 on each link at `bin/<name>`, and the manifest;
+- then each link of the set into bin, or, with formula.bash true, on macOS an env script for each that puts the formula's bash first on PATH, and a link elsewhere. A template that sets it depends on bash, and one that does not is refused.
+
+A source template's body is the publish alone. An assets template's asks the stage which it holds, so one formula can build one platform from the tag's checkout and install the release's assets on another. Lines the template keeps in its install go after `@@INSTALL@@`. Nothing else comes before it in the install, blank and comment lines aside: a template whose install runs a line there is refused, naming the line, since the body devbin generates lays out the stage it is given, and an asset is packed rooted at the install root. `@@FINISH@@`, a second form, is retired, and a template holding it is refused by name, as formula.bin is in the config.
+
+Each line of the assets' layout answers a way such a keg fails. GitHub serves a release asset with no executable bit and Homebrew's install keeps the mode it is given, so without the 0755, brew installs the keg and nothing in it runs. The manifest is the dev/opt/brew contract's, T3's: `tool`, `version`, `source_commit` and `managed_by: brew` as `# key: value` lines, and `line`, the keg's version line, then one `<sha256>  <path>` line for each file under libexec, the manifest itself left out, sorted bytewise.
 
 ## Source mode
 
@@ -66,14 +80,8 @@ For a formula that installs the release's assets rather than building from sourc
                          the release's sums file by its exact name; exactly
                          once for each asset, across the formula and the cask
     @@REVISION@@         the tag's commit, where the template wants it
-    @@INSTALL@@          the whole install body devbin generates, on a line of
-                         its own: everything the archive holds into libexec,
-                         then what @@FINISH@@ adds
-    @@FINISH@@           the install body's end, on a line of its own, for a
-                         template that lays its assets out itself: 0755 on each
-                         of formula.bin, the manifest, and a link in bin for each
 
-The formula holds exactly one of `@@INSTALL@@` and `@@FINISH@@`, and the cask holds neither. Each line of that generated body answers a way such a keg fails. GitHub serves a release asset with no executable bit and Homebrew's install keeps the mode it is given, so without the 0755, brew installs the keg and nothing in it runs. The manifest is the dev/opt/brew contract's, T3's: `tool`, `version`, `source_commit` and `managed_by: brew` as `# key: value` lines, then one `<sha256>  <path>` line for each file under libexec, the manifest itself left out, sorted bytewise.
+The formula holds its install body's `@@INSTALL@@` (above), and the cask holds none.
 
 The sums come from the release, never from a download hashed here: `gh release download <tag> --pattern <sums>` on formula.repo, or the file `--sums` names, for a render offline. Each line is `<sha256>  <name>`, the form a sha256 check reads, and render refuses a file with any other line, one that names an asset twice, and one that does not name an asset formula.assets lists.
 

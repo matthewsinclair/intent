@@ -198,12 +198,16 @@ BODY
 # invented from somebody's $HOME -- which is what the removed default did, in
 # every project that vendored this file.
 #
-# A PROJECT THAT DECLARES `install.prefix` GETS IT, which is what the reference
-# has always promised. It never did until issue 0125: install_prefix_configured
-# reads the config cache, the dispatcher's cache does not cross into a
-# handler's process, and nothing here loaded one, so every project answered
-# empty whatever it declared. The config is read here, where the one question
-# is asked, the way doctor and upgrade read theirs.
+# DEVBIN'S OWN CHECKOUT'S `install.prefix` IS BAKED IN (issue 0125). It never
+# was until 0125: install_prefix_configured reads the config cache, the
+# dispatcher's cache does not cross into a handler's process, and nothing here
+# loaded one, so every tree answered empty whatever it declared. The config is
+# read here, where the one question is asked, the way doctor and upgrade read
+# theirs.
+#
+# AND ONLY devbin's (issue 0326). Another project's install.prefix is its own
+# tool's opt prefix, no devbin install, so a project that is no devbin checkout
+# gets no fallback from its config: is_devbin_dev_tree asks.
 #
 # A CONFIG THAT CANNOT BE READ EMITS THE FUNCTION ANYWAY, and says so on
 # stderr. This runs from a shell rc, and a shell that will not start is a worse
@@ -225,6 +229,7 @@ _shell_init_prefix() {
     install_launcher_root "$PROJECT_ROOT"
     return 0
   fi
+  is_devbin_dev_tree "$PROJECT_ROOT" || return 0
   [ -f "${DEVBIN_DIR:-}/config.yaml" ] || return 0
   if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null; then
     printf 'devbin shell-init: %s/config.yaml could not be read (above), so dvb has no machine-install fallback from it\n' \

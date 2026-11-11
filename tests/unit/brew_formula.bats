@@ -21,7 +21,7 @@
 
 load "../lib/test_helper.bash"
 
-ASSETS="intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz intent-x86_64-unknown-linux-musl.tar.gz intent-aarch64-unknown-linux-musl.tar.gz Intent.app.zip"
+ASSETS="intent-aarch64-apple-darwin.tar.gz intent-x86_64-unknown-linux-musl.tar.gz intent-aarch64-unknown-linux-musl.tar.gz Intent.app.zip"
 
 # make_release -- $REPO, a scratch repository holding this checkout's devbin and
 # templates, committed and tagged v3.3.0 annotated, as the cut tags; and
@@ -79,25 +79,27 @@ sum_of() { awk -v f="$1" '$2 == f { print $1 }' "$SUMS"; }
 
 @test "AT-03.1: an asset the release's sums do not name is refused, and nothing is rendered" {
   make_release
-  grep -v ' intent-support.tar.gz$' "$SUMS" >"$SUMS.less"
+  grep -v ' intent-aarch64-apple-darwin.tar.gz$' "$SUMS" >"$SUMS.less"
   mv "$SUMS.less" "$SUMS"
   render
   assert_failure
-  assert_output_contains "intent-support.tar.gz"
+  assert_output_contains "intent-aarch64-apple-darwin.tar.gz"
   [ ! -e "$FORMULA" ] || fail "a formula was written without every asset's sum"
 }
 
-@test "AT-03.1: the install lays the assets into libexec, writes the manifest with managed_by brew and links both binaries" {
+@test "AT-03.1: the install lays each platform's archive into libexec, writes the manifest with managed_by brew and links both binaries" {
   make_release
   render
   assert_success
-  grep -qF '(libexec/"bin").install Dir["intent-*"].first => "intent"' "$FORMULA" || fail "the macOS CLI is not installed into libexec/bin"
-  grep -qF 'resource("support").stage do' "$FORMULA" || fail "the support tree is not staged"
+  grep -qF 'libexec.install Dir["*"]' "$FORMULA" || fail "the archive is not laid into libexec"
+  ! grep -qF 'resource(' "$FORMULA" || fail "the formula still stages a resource by hand: $(grep -n 'resource(' "$FORMULA")"
   grep -qF '"# managed_by: brew",' "$FORMULA" || fail "the manifest does not say managed_by brew"
   grep -qF '(libexec/".intent-install").write' "$FORMULA" || fail "the manifest is not written under libexec"
-  grep -qF 'bin.install_symlink libexec/"bin/intent"' "$FORMULA" || fail "bin/intent is not linked"
-  grep -qF 'bin.install_symlink libexec/"bin/intentd"' "$FORMULA" || fail "bin/intentd is not linked"
-  grep -qF 'chmod 0755, libexec/"bin/intentd"' "$FORMULA" || fail "intentd is not made executable"
+  local b
+  for b in intent intentd; do
+    grep -qF "chmod 0755, libexec/\"bin/$b\"" "$FORMULA" || fail "$b is not made executable"
+    grep -qF "bin.install_symlink libexec/\"bin/$b\"" "$FORMULA" || fail "bin/$b is not linked"
+  done
 }
 
 @test "AT-03.1: test do runs the version line, and the caveats name intent bootstrap and intent use" {

@@ -115,8 +115,11 @@ fn refused(result: Result<install::Publication, InstallError>, needle: &str) {
 }
 
 /// AT-02.2: **the publish lays out the keg's layout with `.intent-install` in
-/// T3's form -- tool, version, source_commit and managed_by, then one sum line
-/// per runtime file sorted by path -- and `shasum -a 256 -c` accepts it.**
+/// T3's form -- tool, version, source_commit, managed_by and the version line
+/// the opt tree's binaries print, then one sum line per runtime file sorted by
+/// path -- and `shasum -a 256 -c` accepts it.** devbin's doctor fails an opt
+/// tree whose manifest records no `line` (devbin 0332), so the line is held
+/// here: no `+dirty`, since an opt tree is published only from a clean commit.
 #[test]
 fn a_publish_lays_out_the_keg_and_round_trips_through_shasum() {
   let dev = dev_tree();
@@ -140,6 +143,7 @@ fn a_publish_lays_out_the_keg_and_round_trips_through_shasum() {
       "# version: 9.9.9".to_string(),
       format!("# source_commit: {}", dev.sha),
       "# managed_by: intent".to_string(),
+      format!("# line: intent 9.9.9 (opt, {})", &dev.sha[..12]),
     ]
   );
   let body: Vec<&str> = manifest

@@ -1059,10 +1059,345 @@ _switch_left_off_brew() {
   [ "$(devbin_tree "$brew")" = brew ] || return 0
   want="$(devbin_version_of "$root" 2>/dev/null)" || return 0
   have="$(devbin_version_of "$brew" 2>/dev/null)" || return 0
-  is_semver "$want" && is_semver "$have" || return 0
-  ! semver_gt "$want" "$have" || return 0
-  _note "switch: on $tree, and Homebrew's devbin is $have, at or past $tree's $want -- the switch rests at brew"
-  _detail "once the work on $tree is released: brew upgrade devbin, then devbin use brew"
+  _left_off_brew switch devbin "$tree" "$want" "$have" "devbin use"
+}
+
+# _left_off_brew <label> <tool> <tree> <want> <have> <use> -- the note that the
+# switch rests at brew (T5), as <label>'s row: <tree>, dev or opt, is at <want>
+# and Homebrew's <tool> at <have>, at or past it, so it names brew upgrade
+# <tool>, then <use> brew. A version that is not X.Y.Z compares as nothing, and
+# says nothing. THE ONE RULE for devbin's switch and a tool's (issue 0326).
+_left_off_brew() {
+  is_semver "$4" && is_semver "$5" || return 0
+  ! semver_gt "$4" "$5" || return 0
+  _note "$1: on $3, and Homebrew's $2 is $5, at or past $3's $4 -- the switch rests at brew"
+  _detail "once the work on $3 is released: brew upgrade $2, then $6 brew"
+}
+
+# check_tool -- the project's own tool, where this checkout declares one and
+# bin/devbin use switches it (use_target; docs/dev-opt-brew.md, T3 to T5; issue
+# 0326). devbin's own switch is check_switch's, above. These rows are the
+# tool's: its copies in this checkout against the line a build here carries
+# (_check_tool_dev), its link set's switch, with the note when it was left off
+# brew (_check_tool_switch), and each opt or brew tree the set serves against
+# that tree's manifest (_check_tool_trees).
+#
+# A config that does not load, or an install: block that cannot be read,
+# returns quietly HERE, as check_release does: check_config, which runs first,
+# fails on it by name.
+check_tool() {
+  local formula links
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 || return 0
+  [ "$(use_target "$PROJECT_ROOT")" = tool ] || return 0
+  # shellcheck source=lib/tool
+  . "$DEVBIN_LIB/tool"
+  formula="$(cfg_formula_name 2>/dev/null)" || return 0
+  links="$(cfg_tool_links 2>/dev/null)" || return 0
+  _check_tool_dev "$formula" "$links"
+  _check_tool_switch "$formula" "$links"
+  _check_tool_trees "$formula" "$links"
+  return 0
+}
+
+# _check_tool_dev <formula> <links> -- each link's copy in this checkout
+# against the line a build here carries now (tool_dev_line; T4), read under
+# that link's own name (tool_link_line; issue 0331), a pass when the two are one
+# line.
+#
+# HEAD MAY MOVE PAST A BUILD (T4). A copy the build makes carries the commit it
+# was built from, so one built from a commit HEAD contains, or from HEAD's own
+# before an input changed, is a NOTE naming the build, and so is a copy not
+# built yet. It FAILS for a copy that prints no line in T4's shape, or names
+# another tool or tree, no commit, or a commit HEAD does not contain, and for a
+# copy git tracks, which runs as this checkout and so prints its line exactly.
+# A checkout git cannot read gives a line naming no commit, and fails once,
+# saying so.
+_check_tool_dev() {
+  local formula="$1" want name from mine
+  if ! want="$(tool_dev_line)"; then
+    _fail "$formula dev: the line a build here carries cannot be worked out (above)"
+    return 0
+  fi
+  case "$want" in
+    *"(dev, unknown)")
+      _fail "$formula dev: git cannot read this checkout, so the line a build here carries names no commit: $want"
+      return 0
+      ;;
+  esac
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    if ! mine="$(tool_link_line "$want" "$name")"; then
+      _fail "$formula dev: the line a build here carries, $want, is no line in T4's shape, so $name's copy cannot be read against it"
+      continue
+    fi
+    _check_tool_dev_copy "$formula" "$mine" "$name" "$from"
+  done <<<"$2"
+}
+
+# _check_tool_dev_copy <formula> <want> <name> <from> -- the row for the copy of
+# the link <name>, <from> in this checkout, against <want>, the line a build
+# here carries under that link's name.
+_check_tool_dev_copy() {
+  local formula="$1" want="$2" name="$3" from="$4" got parts tool tree sha
+  if [ ! -e "$PROJECT_ROOT/$from" ]; then
+    if tool_tracked "$from"; then
+      _fail "$formula dev: $from is not in this checkout, though git tracks it"
+      _detail "restore it: git checkout -- $from"
+    else
+      _note "$formula dev: $from is not built yet"
+      _detail "build it: bin/devbin build"
+    fi
+    return 0
+  fi
+  if ! got="$(tool_copy_line "$PROJECT_ROOT/$from")"; then
+    _fail "$formula dev: $from prints no version line on --version"
+    return 0
+  fi
+  if [ "$got" = "$want" ]; then
+    _pass "$formula dev: $from prints the line a build here carries, $want"
+    return 0
+  fi
+  if ! parts="$(tool_line_parse "$got")"; then
+    _fail "$formula dev: $from prints \"$got\" on --version, which is no line in T4's shape, $name <version> (dev, <sha12>[+dirty])"
+    return 0
+  fi
+  IFS=$'\t' read -r tool _ tree sha _ <<<"$parts"
+  if [ "$tool" != "$name" ] || [ "$tree" != dev ]; then
+    _fail "$formula dev: $from prints $got, which names another tool or tree than the line a build here carries, $want"
+    return 0
+  fi
+  if tool_tracked "$from"; then
+    _fail "$formula dev: $from prints $got, where this checkout's line is $want -- git tracks it, so it runs as this checkout and prints that line"
+    return 0
+  fi
+  if [ "$sha" = unknown ]; then
+    _fail "$formula dev: $from prints $got, which names no commit, so its bytes are no build of this checkout's"
+    _detail "build it: bin/devbin build"
+    return 0
+  fi
+  case "$want" in
+    *"(dev, $sha"*)
+      _note "$formula dev: $from was built from HEAD's commit, and prints $got where a build now carries $want"
+      _detail "build it again: bin/devbin build"
+      return 0
+      ;;
+  esac
+  # Which way HEAD has moved from the build is commit_direction's to say, the
+  # one place ancestry is asked, with git's local variables cleared first, so it
+  # reads this checkout's repository whatever a hook exported.
+  case "$(git_local_env_clear && commit_direction "$PROJECT_ROOT" "$sha")" in
+    forward | same)
+      _note "$formula dev: HEAD has moved past the build: $from prints $got, and a build now carries $want"
+      _detail "build it again: bin/devbin build"
+      return 0
+      ;;
+  esac
+  _fail "$formula dev: $from prints $got, built from a commit HEAD does not contain, so its bytes are no build of this checkout's"
+  _detail "build it again: bin/devbin build"
+}
+
+# _check_tool_switch <formula> <links> -- the tool's link set (T5). For each
+# link: a FAILURE when a login shell would not run it (tool_link_shadow), and
+# one when it cannot be followed, or leads into no tree of the tool; otherwise
+# a pass naming the tree it serves. No link is brew: a pass where Homebrew has
+# the tool, and a NOTE naming what is missing where it has not. Then a FAILURE
+# when the set is split across trees (tool_set_split), the one rule use's
+# report says too. A set whose rows passed, on one tree, is then asked whether
+# it was left off brew (_check_tool_left_off_brew), as devbin's switch is.
+_check_tool_switch() {
+  local formula="$1" name from p why state root word split failed=""
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    p="$(tool_link_path "$name")" || p="$name"
+    why="$(tool_link_shadow "$formula" "$name")"
+    if [ -n "$why" ]; then
+      _fail "$formula switch: $why"
+      failed=yes
+    fi
+    state="$(tool_switch_state "$name" "$from")"
+    case "$state" in
+      "bad "*)
+        _fail "$formula switch: ${state#bad }"
+        failed=yes
+        continue
+        ;;
+    esac
+    [ -z "$why" ] || continue
+    case "$state" in
+      "dev "*) _pass "$formula switch: the link $p names the dev tree" ;;
+      "at "*)
+        root="${state#at }"
+        word="$(tool_tree_word "$root")" || word=unknown
+        if [ "$word" = unknown ]; then
+          _fail "$formula switch: the link $p leads into $root, which is none of $formula's trees: no manifest there names $formula"
+          _detail "point it at one of them: $(cfg_tool_verb switch) dev, opt or brew"
+          failed=yes
+        else
+          _pass "$formula switch: the link $p names $word at $root"
+        fi
+        ;;
+      *)
+        if tool_brew_root "$formula" >/dev/null; then
+          _pass "$formula switch: no link for $name, so brew"
+        else
+          _note "$formula switch: no link for $name, and $(tool_brew_none_why "$formula")"
+          _detail "$(tool_brew_unplaced_fix "$formula"), or run $(cfg_tool_verb switch) dev or opt in this checkout"
+        fi
+        ;;
+    esac
+  done <<<"$2"
+  if ! split="$(tool_set_split "$2")"; then
+    _fail "$formula switch: $split"
+    return 0
+  fi
+  [ -z "$failed" ] || return 0
+  _check_tool_left_off_brew "$formula" "$2"
+  return 0
+}
+
+# _check_tool_left_off_brew <formula> <links> -- the note that the switch rests
+# at brew, for a tool (_left_off_brew; issue 0326), asked once the set's rows
+# passed and the set serves one tree. That tree is its first link's: dev, at
+# the checkout's version, or an opt install, at its manifest's. It is compared
+# with the version Homebrew's keg records in its manifest. A set on brew, a keg
+# that records no version, or no keg at all says nothing.
+_check_tool_left_off_brew() {
+  local formula="$1" name from m state tree root want have brew
+  IFS=$'\t' read -r name from <<<"$2"
+  m="$(cfg_tool_manifest)" || return 0
+  state="$(tool_switch_state "$name" "$from")"
+  case "$state" in
+    "dev "*)
+      tree=dev
+      want="$(read_version "$(cfg_version_from)" version-file 2>/dev/null)" || return 0
+      ;;
+    "at "*)
+      root="${state#at }"
+      tree="$(tool_tree_word "$root")" || return 0
+      [ "$tree" = opt ] || return 0
+      want="$(tool_manifest_field "$root" "$m" version 2>/dev/null)" || return 0
+      ;;
+    *) return 0 ;;
+  esac
+  brew="$(tool_brew_root "$formula")" || return 0
+  [ "$(tool_tree_word "$brew")" = brew ] || return 0
+  have="$(tool_manifest_field "$brew" "$m" version 2>/dev/null)" || return 0
+  _left_off_brew "$formula switch" "$formula" "$tree" "$want" "$have" "$(cfg_tool_verb switch)"
+}
+
+# _check_tool_trees <formula> <links> -- each opt or brew tree the link set
+# serves, once (T3, T4): a link's install, or with no link Homebrew's keg, each
+# checked by _check_tool_tree with the links it serves. A link into no tree of
+# the tool is the switch row's to fail, above, so it is passed over here.
+_check_tool_trees() {
+  local formula="$1" name from state root word
+  local -a roots=()
+  local -A served=()
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    state="$(tool_switch_state "$name" "$from")"
+    case "$state" in
+      "at "*)
+        root="${state#at }"
+        word="$(tool_tree_word "$root")" || word=unknown
+        [ "$word" != unknown ] || continue
+        ;;
+      none) root="$(tool_brew_root "$formula")" || continue ;;
+      *) continue ;;
+    esac
+    [ -n "${served[$root]+set}" ] || roots+=("$root")
+    served[$root]+="$name"$'\n'
+  done <<<"$2"
+  for root in ${roots[@]+"${roots[@]}"}; do
+    _check_tool_tree "$formula" "$root" "${served[$root]}"
+  done
+  return 0
+}
+
+# _check_tool_tree <formula> <root> <names> -- one opt or brew tree at <root>,
+# and the copies there of <names>, the links it serves, one a line. Its files
+# against its manifest (tool_manifest_check, T3): each that does not match is
+# named with the tree's remedy, a FAILURE, as is a manifest that records no
+# file. Each copy's --version against the line the manifest records, read under
+# that copy's own name (T4; tool_link_line, issue 0331): a FAILURE where it
+# prints another. A tree in the form written before devbin's
+# core, a keg with no manifest or a manifest with no line, is a NOTE naming
+# brew upgrade in brew, and a FAILURE naming the republish in opt, as T3 has it.
+_check_tool_tree() {
+  local formula="$1" root="$2" m word fix states line state rel name got mine
+  local -a bad=()
+  m="$(cfg_tool_manifest)" || return 0
+  word="$(tool_tree_word "$root")" || word=unknown
+  case "$word" in
+    opt)
+      # A tool that keeps its own publish republishes with it (issue 0332),
+      # and devbin's republishes with --force.
+      fix="republish it from this checkout: $(cfg_tool_verb publish)"
+      [ -n "$(cfg_tool_own publish)" ] || fix+=" --force"
+      ;;
+    brew) fix="reinstall it: brew reinstall $formula" ;;
+    *)
+      _fail "$formula tree: Homebrew's keg at $root holds a manifest that names no install of $formula, so its files cannot be checked"
+      _detail "reinstall it: brew reinstall $formula"
+      return 0
+      ;;
+  esac
+  if [ ! -f "$root/$m" ]; then
+    _note "$formula tree: Homebrew's keg at $root has no manifest, the form written before devbin's core, so its files cannot be checked"
+    _detail "run: brew upgrade $formula, once a release that writes the new form is out"
+    return 0
+  fi
+  if ! states="$(tool_manifest_check "$root" "$m")"; then
+    _fail "$formula tree: $root/$m cannot be read (named above), so no file of the $word install can be checked"
+    return 0
+  fi
+  if [ -z "$states" ]; then
+    _fail "$formula tree: $root/$m records no files, so no file of the $word install can be checked"
+    _detail "$fix"
+    return 0
+  fi
+  while IFS=$'\t' read -r state rel; do
+    case "$state" in
+      modified) bad+=("edited:  $rel") ;;
+      missing) bad+=("missing: $rel") ;;
+      unreadable) bad+=("unreadable: $rel") ;;
+    esac
+  done <<<"$states"
+  if [ "${#bad[@]}" -gt 0 ]; then
+    _fail "$formula tree: the $word install at $root does not match its manifest"
+    for rel in "${bad[@]}"; do
+      _detail "$rel"
+    done
+    _detail "$fix"
+  else
+    _pass "$formula tree: the $word install at $root, $(nonempty_lines "$states") file(s) as its manifest records"
+  fi
+  if ! line="$(tool_tree_line "$root")"; then
+    if [ "$word" = brew ]; then
+      _note "$formula tree: Homebrew's keg at $root records no version line, the manifest form written before devbin's core"
+      _detail "run: brew upgrade $formula, once a release that writes the new form is out"
+    else
+      _fail "$formula tree: the opt install at $root records no version line, the manifest form written before devbin's core"
+      _detail "$fix"
+    fi
+    return 0
+  fi
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if ! mine="$(tool_link_line "$line" "$name")"; then
+      _fail "$formula tree: $root/$m records the line $line, which is no line in T4's shape, so $root/bin/$name cannot be read against it"
+      _detail "$fix"
+    elif ! got="$(tool_copy_line "$root/bin/$name")"; then
+      _fail "$formula tree: $root/bin/$name prints no version line on --version"
+      _detail "$fix"
+    elif [ "$got" != "$mine" ]; then
+      _fail "$formula tree: $root/bin/$name prints $got, where its install records $line, which $name prints as $mine"
+      _detail "a copy in an install prints the line its manifest records under its own name (T4), and this one does not read it"
+    else
+      _pass "$formula tree: $root/bin/$name prints its install's line, $mine"
+    fi
+  done <<<"$3"
+  return 0
 }
 
 # check_bash -- the floor, asserted where a human reads it.
@@ -1114,8 +1449,10 @@ check_cache() {
 # there, by the one answer app-sign and a cut read too (cfg_macos_artefact;
 # ST0011 WP-06): a pass naming it, or a NOTE that the stage builds uncached,
 # so an adoption whose artefact's path missed macos.app's sees it before a
-# cut. Two entries naming the app are config validation's to refuse, and a
-# stage that builds no app has nothing to cache, so this says nothing of them.
+# cut. Two entries naming the app, one beside macos.commit_stamp, and one whose
+# inputs hold no file the app's version is read from are config validation's
+# to refuse, and a stage that builds no app has nothing to cache, so this says
+# nothing of them.
 check_macos_cache() {
   local art s=0
   cfg_macos_declared || return 0
@@ -1325,6 +1662,7 @@ main() {
   check_source_currency
   check_tree
   check_switch
+  check_tool
   check_bash
   check_cache
   check_macos_cache

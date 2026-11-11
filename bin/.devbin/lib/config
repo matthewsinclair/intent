@@ -93,6 +93,26 @@ function unquote(s) {
   if (s ~ /^'.*'$/) return substr(s, 2, length(s) - 2)
   return s
 }
+# quoted_scalar(s) -- true when s is one quoted scalar: it opens and closes
+# with the same quote, and that quote closes nowhere before the end. Inside
+# double quotes a `"` closes it unless a backslash escapes it; inside single
+# quotes a `'` closes it unless it is doubled. So `"k": "v"`, a key and a value
+# each quoted, is not one, where a pattern over the ends alone would take it
+# for one (issue 0328).
+function quoted_scalar(s,   q, inner, i, c) {
+  if (length(s) < 2) return 0
+  q = substr(s, 1, 1)
+  if ((q != "\"" && q != "'") || substr(s, length(s), 1) != q) return 0
+  inner = substr(s, 2, length(s) - 2)
+  for (i = 1; i <= length(inner); i++) {
+    c = substr(inner, i, 1)
+    if (q == "\"" && c == "\\") { i++; continue }
+    if (c != q) continue
+    if (q == "'" && substr(inner, i + 1, 1) == "'") { i++; continue }
+    return 0
+  }
+  return 1
+}
 function joinpath(upto,   i, p) {
   p = ""
   for (i = 0; i <= upto; i++) p = (p == "" ? key[i] : p "." key[i])
@@ -131,7 +151,11 @@ BEGIN { maxlevel = -1 }
 
   if (substr(body, 1, 2) == "- ") {
     val = trim(substr(body, 3))
-    if (val ~ /:[ ]/ || val ~ /:$/) err("sequences of maps are not supported")
+    # A QUOTED SCALAR IS A SCALAR, whatever it holds (issue 0328): a list item
+    # quoted whole, `- "Reviewed-by: A B <a@b>"` say, is one line of text, so
+    # its ": " makes no map of it. An item that is not one quoted scalar, a
+    # bare `k: v` or a quoted key with its value, `"k": "v"`, is still a map.
+    if (!quoted_scalar(val) && (val ~ /:[ ]/ || val ~ /:$/)) err("sequences of maps are not supported")
     if (val ~ /^[|>]/) err("block scalars are not supported")
     path = joinpath(level - 1)
     if (path == "") err("a sequence must be under a key")
@@ -402,12 +426,20 @@ _cfg_path_known() {
       return 1
       ;;
     install)
-      # install.prefix -- where `devbin install` PUBLISHES to when run inside
-      # devbin's own source tree (ST0005). In a consumer it publishes
-      # nothing, and its one reader is `shell-init`, which bakes it into `dvb`
-      # as the machine-install fallback. This said the key was meaningless in a
-      # consumer until issue 0125 made shell-init read it, as the reference had
-      # promised all along.
+      # THE PROJECT'S OWN TOOL (docs/dev-opt-brew.md; issue 0326): a project
+      # with an install: block declares one (cfg_is_tool). install.prefix is
+      # its opt prefix (T1), where `devbin install` publishes it; devbin's own
+      # checkout declares devbin's, which shell-init bakes into `dvb` as the
+      # machine-install fallback there alone (issue 0125). install.manifest
+      # is its manifest, from its tree's root (T3). install.links.<name> is
+      # each link of its link set (T5), with its file in the dev tree.
+      # install.files.<label> is the rest of its runtime set (T1): path, its
+      # place in opt and brew; from, its file in the dev tree; platforms, the
+      # platforms it ships on. The readers are cfg_tool_links, cfg_tool_files
+      # and cfg_tool_manifest. install.switch and install.publish name the
+      # tool's own switch (T5) and publish (T2), commands devbin names and never
+      # runs, which withhold its own use and install in the tool's checkout
+      # (issue 0332); their reader is cfg_tool_own.
       #
       # ADDED IN THE SAME CHANGE AS THE READER, deliberately. `project.referent`
       # was readable by the runtime and unknown to this function for two days --
@@ -416,6 +448,13 @@ _cfg_path_known() {
       # branch above as the mismatch this validator exists to catch, occurring
       # in the validator.
       [ "$n" -eq 2 ] && [ "${p[1]}" = prefix ] && return 0
+      [ "$n" -eq 2 ] && [ "${p[1]}" = manifest ] && return 0
+      [ "$n" -eq 2 ] && case "${p[1]}" in switch | publish) return 0 ;; esac
+      [ "$n" -eq 3 ] && [ "${p[1]}" = links ] && return 0
+      if [ "$n" -eq 4 ] && [ "${p[1]}" = files ]; then
+        case "${p[3]}" in path | from) return 0 ;; esac
+      fi
+      [ "$n" -eq 5 ] && [ "${p[1]}" = files ] && [ "${p[3]}" = platforms ] && _cfg_is_index "${p[4]}" && return 0
       return 1
       ;;
     help)
@@ -459,6 +498,8 @@ _cfg_path_known() {
       [ "$n" -eq 2 ] && _cfg_macos_row "${p[1]}" >/dev/null && return 0
       [ "$n" -eq 4 ] && [ "${p[1]}" = binaries ] && _cfg_macos_binary_field "${p[3]}" && return 0
       [ "$n" -eq 4 ] && [ "${p[1]}.${p[2]}" = pack.files ] && _cfg_is_index "${p[3]}" && return 0
+      # Issue 0329's archive name and its one top-level directory.
+      [ "$n" -eq 3 ] && [ "${p[1]}" = pack ] && case "${p[2]}" in name | root) return 0 ;; esac
       return 1
       ;;
     formula)
@@ -581,6 +622,8 @@ scalar branch          cut,status,snapshot!publish.branch main
 scalar notes.kind      cut,status,notes,check changelog
 scalar notes.run       cut,status,notes,check
 list   derived         cut
+list   preflight       cut
+list   trailer         cut
 list   gates           cut,status,gates               check all|test all
 list   legs            cut,status
 scalar ci.query        cut,status,check               $_DEVBIN_CI_BUILTIN_QUERY
@@ -920,9 +963,10 @@ cfg_macos_binary() {
   cfg_get "macos.binaries.$1.$2"
 }
 
-# cfg_macos_pack_files -- macos.pack.files, the files bin-publish packs at the
-# archive's root beside the binaries, each from the project root, one a line in
-# the order declared; nothing when none is. IFS is pinned, as cfg_release_list
+# cfg_macos_pack_files -- macos.pack.files, what bin-publish packs beside the
+# binaries, a file at the archive's root and a directory's tracked files at
+# their paths (issue 0329), each from the project root, one a line in the order
+# declared; nothing when none is. IFS is pinned, as cfg_release_list
 # pins it, so a caller's IFS cannot join the indices into one.
 cfg_macos_pack_files() {
   local i IFS=$' \t\n'
@@ -931,12 +975,55 @@ cfg_macos_pack_files() {
   done
 }
 
+# cfg_macos_pack_name -- macos.pack.name, the name bin-publish packs the
+# binaries' archive under, as a template whose {project}, {version} and
+# {triple} release_bin_fill fills (issue 0329); where it is not declared,
+# {project}-{version}-{triple}.tar.gz, the name archives were packed under
+# before it could be. THE ONE DEFAULT of the name.
+cfg_macos_pack_name() { cfg_get macos.pack.name '{project}-{version}-{triple}.tar.gz'; }
+
+# cfg_macos_pack_root -- macos.pack.root, the archive's one top-level directory,
+# a template filled as the name is, or nothing where it is not declared, and
+# the archive's entries are then at its root.
+cfg_macos_pack_root() { cfg_get macos.pack.root ""; }
+
+# cfg_macos_app_asset -- the name the app's zip is attached to the release
+# under: macos.asset, or the app's own name with .zip where it is not
+# declared, and nothing where no macos.app is (issue 0329). THE ONE DERIVATION:
+# macos publish zips the app under it, and a cut's confirm and object steps
+# read the release for it.
+cfg_macos_app_asset() {
+  local a app
+  a="$(cfg_macos_get asset)" || return 1
+  if [ -z "$a" ]; then
+    app="$(cfg_macos_get app)" || return 1
+    app="${app%/}"
+    [ -z "$app" ] || a="${app##*/}.zip"
+  fi
+  printf '%s\n' "$a"
+}
+
 # cfg_macos_declared -- 0 when the project declares the built-in macos
 # (commands.macos.enabled), whose stage is then a leg of every cut, signing and
 # notarising the app at the release commit (ST0011 WP-06). THE ONE TEST, which
 # a cut's pre-flight, release status and doctor ask.
 cfg_macos_declared() {
   is_true_word "$(cfg_get "commands.macos.enabled" false)"
+}
+
+# cfg_macos_version_file -- the file the app's version is read from, as the
+# config writes it (issue 0325): macos.version_from where it is declared, else
+# the project's version file (cfg_version_from), a leading `./` dropped. THE
+# ONE STATEMENT of which file that is: config validation asks it which file an
+# app artefact's inputs must hold, and macos's release_names takes the app's
+# version file from it, so the file the key reads and the file app-sign
+# compares the app's version against are one.
+cfg_macos_version_file() {
+  local f
+  f="$(cfg_macos_get version_from)" || return 1
+  [ -n "$f" ] || f="$(cfg_version_from)"
+  while [[ "$f" == ./* ]]; do f="${f#./}"; done
+  printf '%s\n' "$f"
 }
 
 # cfg_macos_artefacts -- each build.artefacts entry whose path is macos.app's,
@@ -965,14 +1052,47 @@ cfg_macos_artefacts() {
 # seal; nothing at 1 when no entry's path is the app's, so the stage builds
 # its app uncached; at 2 why there is none to take when two or more entries
 # name the app, which config validation refuses, so the stage never guesses
-# between them; and at 3 why there is none when macos.build is not declared,
-# since a stage that builds no app pulls and puts none.
+# between them; at 3 why there is none when macos.build is not declared,
+# since a stage that builds no app pulls and puts none; and at 4 why there is
+# none when the one entry's app carries its commit (macos.commit_stamp, issue
+# 0324), which config validation refuses too: the key holds no commit, so a
+# copy pulled at a later commit would be another commit's build, which
+# app-sign refuses, and such an app gains nothing from the cache; and at 5 why
+# there is none when the one entry's inputs hold no file the app's version is
+# read from (cfg_macos_version_file, issue 0325), which config validation
+# refuses too: the key reads the declared inputs alone, so a release that moves
+# the version alone keeps it, and a copy pulled then is at the old version,
+# which app-sign refuses. A version file no input path can hold, one not below
+# the project root, is 5 as well. 4 and 5 are asked before 3, since a project's
+# own build handler can pull the app whether or not macos.build is declared.
 cfg_macos_artefact() {
-  local arts build
+  local arts build stamp vf held p
   arts="$(cfg_macos_artefacts)" || return 1
   if [ "$arts" != "${arts%%$'\n'*}" ]; then
     printf "build.artefacts %s each have macos.app's path, so the macOS stage takes none of them -- declare the app's artefact once\n" "${arts//$'\n'/, }"
     return 2
+  fi
+  stamp="$(cfg_macos_get commit_stamp)" || return 1
+  if [ -n "$arts" ] && [ -n "$stamp" ]; then
+    printf "build.artefacts.%s has macos.app's path beside macos.commit_stamp (%s): the app carries the commit it was built at and its key does not, so a copy pulled at a later commit is another commit's build, which app-sign refuses -- leave the app out of build.artefacts, since it gains nothing from the cache\n" "$arts" "$stamp"
+    return 4
+  fi
+  if [ -n "$arts" ]; then
+    vf="$(cfg_macos_version_file)" || return 1
+    held=no
+    if ! cache_path_problem "$vf" >/dev/null; then
+      while IFS= read -r p; do
+        [ -n "$p" ] || continue
+        if cache_paths_overlap "$p" "$vf"; then
+          held=yes
+          break
+        fi
+      done <<<"$(cfg_build_input_paths "$arts")"
+    fi
+    if [ "$held" = no ]; then
+      printf "build.artefacts.%s has macos.app's path, and its inputs hold no %s, the file the app's version is read from: a release that moves the version alone keeps the key, so a copy pulled then is at the old version, which app-sign refuses -- add %s, written relative to the project root, to build.inputs or to the artefact's own inputs\n" "$arts" "$vf" "$vf"
+      return 5
+    fi
   fi
   build="$(cfg_macos_get build)" || return 1
   if [ -z "$build" ]; then
@@ -988,8 +1108,10 @@ cfg_macos_artefact() {
 # THE ONE STATEMENT OF THE FORMULA KEYS, the built-in formula's settings: shape,
 # the key under `formula.`, and its default. The schema branch above and the two
 # readers below read it. A key with no default here has one lib/cmd/formula
-# derives (name, template, tap, repo, manifest), or none that is sound (assets,
-# bin, cask: the project's own).
+# derives (name, template, tap, repo), or none that is sound (assets, cask:
+# the project's own). The keg's manifest is the tool's own,
+# install.manifest (cfg_tool_manifest, issue 0326), and so are its
+# executables, the tool's link set, install.links (cfg_tool_links).
 #
 #   mode      source (a formula built from the tag's checkout) or assets (one
 #             that installs the release's own assets)
@@ -1001,12 +1123,12 @@ cfg_macos_artefact() {
 #   repo      assets: the repository whose release carries the assets and its
 #             sums; default the release repository
 #   sums      assets: the sums file's name on that release
-#   manifest  assets: the keg's T3 manifest, under libexec; default .<name>-install
 #   cask      assets: a cask template, from the project root; none: no cask
 #   assets    assets: the asset names the templates take a sha256 of, each may
 #             hold {version}
-#   bin       assets: the keg's executables, from libexec, each set 0755 and
-#             linked into bin
+#   bash      true when the tool's links run under the bash the formula depends
+#             on: on macOS each is an env script putting that bash first on
+#             PATH; default false, a plain link
 _DEVBIN_FORMULA_SCHEMA="
 scalar mode      source
 scalar name
@@ -1014,10 +1136,9 @@ scalar template
 scalar tap
 scalar repo
 scalar sums      SHA256SUMS
-scalar manifest
 scalar cask
 list   assets
-list   bin
+scalar bash      false
 "
 
 # _cfg_formula_row <key> -- the shape of a formula key, then a tab and its
@@ -1071,6 +1192,125 @@ cfg_formula_name() {
   printf '%s\n' "$n"
 }
 
+# cfg_is_tool -- rc 0 when the project declares a tool of its own, by an
+# install: block (docs/dev-opt-brew.md; issue 0326), rc 1 otherwise. Its name
+# is the formula's (cfg_formula_name). devbin's own checkout declares one.
+cfg_is_tool() {
+  [ -n "$(cfg_list install)" ]
+}
+
+# use_target <root> -- what `use` switches in the tree at <root>, one word
+# (docs/dev-opt-brew.md, T5; issue 0326): `devbin` in devbin's own trees, its
+# dev checkout, an opt install or a keg (devbin_tree), or an install in an
+# older form (is_install_tree); `tool` in a project whose loaded config
+# declares a tool (cfg_is_tool); `none` anywhere else. devbin's source with no
+# .git is none: its config declares devbin's own manifest, yet it is no tree
+# devbin's switch serves, so it is not read as a tool's checkout either.
+#
+# THE ONE ANSWER for the dispatcher's refusal (devbin_tree_refusal, lib/resolve)
+# and the switch (lib/cmd/use), so the trees offered `use` and what `use`
+# switches there cannot part.
+use_target() {
+  case "$(devbin_tree "$1")" in
+    dev | opt | brew)
+      printf 'devbin\n'
+      return 0
+      ;;
+  esac
+  if is_install_tree "$1"; then
+    printf 'devbin\n'
+  elif ! is_devbin_dev_tree "$1" && cfg_is_tool; then
+    printf 'tool\n'
+  else
+    printf 'none\n'
+  fi
+}
+
+# cfg_tool_links -- the tool's link set (T5), one link a line,
+# `<name><TAB><its file in the dev tree>`, in the order the block declares
+# them; with none declared, the one link the formula's name gives, at
+# bin/<name>. THE ONE READING OF THE SET: install, use and doctor ask it.
+cfg_tool_links() {
+  local names n
+  names="$(cfg_list install.links)"
+  if [ -z "$names" ]; then
+    n="$(cfg_formula_name)" || return 1
+    printf '%s\tbin/%s\n' "$n" "$n"
+    return 0
+  fi
+  while IFS= read -r n; do
+    [ -n "$n" ] || continue
+    printf '%s\t%s\n' "$n" "$(cfg_get "install.links.$n")"
+  done <<<"$names"
+}
+
+# cfg_tool_manifest -- the tool's manifest, from its tree's root (T3):
+# install.manifest, or .<formula name>-install where it is not declared. THE
+# ONE DERIVATION of that default: install, use, doctor and the formula's render
+# ask it, so none restates the fallback.
+cfg_tool_manifest() {
+  local m
+  m="$(cfg_get install.manifest "")"
+  if [ -z "$m" ]; then
+    m="$(cfg_formula_name)" || return 1
+    m=".$m-install"
+  fi
+  printf '%s\n' "$m"
+}
+
+# cfg_tool_own <switch|publish> -- the tool's own command for its switch (T5)
+# or its publish (T2), install.switch or install.publish as the project wrote
+# it, or nothing where the key is not declared (issue 0332). devbin names the
+# command and never runs it: a tool that keeps its own switch or publish has
+# devbin's use or install refuse in its checkout, naming it, while the formula,
+# doctor's rows and the link set still read install.links. THE ONE READER of
+# the two keys.
+cfg_tool_own() {
+  case "$1" in
+    switch | publish) cfg_get "install.$1" "" ;;
+    *) return 1 ;;
+  esac
+}
+
+# cfg_tool_verb <switch|publish> -- the command a remedy names for the tool's
+# switch or publish: its own (cfg_tool_own), or devbin's, bin/devbin use or
+# bin/devbin install, where it keeps none.
+cfg_tool_verb() {
+  local own
+  own="$(cfg_tool_own "$1")" || return 1
+  if [ -n "$own" ]; then
+    printf '%s\n' "$own"
+  elif [ "$1" = switch ]; then
+    printf 'bin/devbin use\n'
+  else
+    printf 'bin/devbin install\n'
+  fi
+}
+
+# cfg_tool_files [<platform word>] -- the rest of the tool's runtime set (T1)
+# that ships on <platform word>, this host's (platform_word) where none is
+# given: one file a line, `<label><TAB><its path in opt and brew><TAB><its file
+# in the dev tree>`, in the order the block declares them, the dev file
+# defaulting to the path. A file that names no platforms ships on every one.
+cfg_tool_files() {
+  local want="${1:-}" l p f i on IFS=$' \t\n'
+  if [ -z "$want" ]; then
+    want="$(platform_word)" || return 1
+  fi
+  for l in $(cfg_list install.files); do
+    if [ -n "$(cfg_list "install.files.$l.platforms")" ]; then
+      on=""
+      for i in $(cfg_list "install.files.$l.platforms"); do
+        [ "$(cfg_get "install.files.$l.platforms.$i")" != "$want" ] || on=yes
+      done
+      [ -n "$on" ] || continue
+    fi
+    p="$(cfg_get "install.files.$l.path" "")"
+    f="$(cfg_get "install.files.$l.from" "")"
+    printf '%s\t%s\t%s\n' "$l" "$p" "${f:-$p}"
+  done
+}
+
 # cfg_ident <value> [<name-var> <email-var>] -- rc 0 when <value> is
 # `Name <email>` exactly as git writes an identity, with the name and the email
 # in the two variables when they are named: one space before the `<`, no
@@ -1115,7 +1355,9 @@ _cfg_release_value_problem() {
       # rule refuses, so a refusal is the template's own text. A tag git cannot
       # make would stop a cut at its tag step, after its candidate's run, and
       # git refuses brackets and spaces, so no skip marker such as [skip ci]
-      # can reach the release commit's message, `release: <tag>`. Where git
+      # can reach the release commit's message, `release: <tag>`, through the
+      # tag; release.trailer's lines, the message's second paragraph, are held
+      # to the same rule by _cfg_release_problems (issue 0328). Where git
       # cannot be asked at all (any status but 0 and 1), that is said on
       # stderr and the template is accepted, never refused for a name git might
       # take: a cut's tag step meets it.
@@ -1148,6 +1390,21 @@ _cfg_release_value_problem() {
     ci.wait | object_wait | assets.wait)
       [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
       printf 'must be a whole number of s, m or h, eg 20m'
+      ;;
+    preflight.*)
+      # A PRE-FLIGHT COMMAND NEVER RUNS release (issue 0327): a cut runs each one
+      # inside its own pre-flight, a dry run's included, so one whose first word
+      # is release would start a cut there, which would run it again, without
+      # end. `-` declares none, as leaving the key out does.
+      is_no_default "$v" && return 1
+      local pf_first=""
+      IFS=$' \t\n' read -r pf_first _ <<<"$v"
+      [ -n "$pf_first" ] && [ "$pf_first" != release ] && return 1
+      if [ -z "$pf_first" ]; then
+        printf 'is empty -- leave the key out to run no pre-flight command'
+      else
+        printf 'runs release, which would start a cut inside the cut'"'"'s own pre-flight, again without end -- name the check itself'
+      fi
       ;;
     legs.*)
       # A REMOTE LEG IS A HOST ALIAS (ST0011 WP-05): ssh is handed the name as a
@@ -1378,6 +1635,25 @@ _cfg_release_problems() {
       rc=1
     fi
   fi
+  # NO SKIP MARKER IN THE RELEASE COMMIT'S TRAILER (issue 0328): its lines are
+  # the release commit's second paragraph, and wherever release.publish.url is
+  # not declared the candidate CI is read on is that commit, so a marker in
+  # them starts no run, whatever the trigger says. Refused in every project, a
+  # publishing one's too, since a marker has no use in a release commit. A
+  # list that cannot be read is said, never taken for one with no line.
+  local trailer_lines trailer_line trailer_marker
+  if ! trailer_lines="$(cfg_release_list trailer)"; then
+    printf 'config: %s: release.trailer could not be read, so its lines were not checked for a skip marker\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  else
+    while IFS= read -r trailer_line; do
+      [ -n "$trailer_line" ] || continue
+      if trailer_marker="$(cfg_ci_skip_marker "$trailer_line")"; then
+        printf 'config: %s: release.trailer: "%s" holds %s, a skip marker: the release commit carries the trailer, and a push of it would start no run of CI, whatever its trigger says\n' "$_DEVBIN_CFG_FILE" "$trailer_line" "$trailer_marker" >&2
+        rc=1
+      fi
+    done <<<"$trailer_lines"
+  fi
   if cfg_has release.publish.branch && ! cfg_has release.publish.url; then
     printf 'config: %s: release.publish.branch is read only when release.publish.url is declared\n' "$_DEVBIN_CFG_FILE" >&2
     rc=1
@@ -1447,11 +1723,15 @@ _cfg_release_readers_said() {
 }
 
 # _cfg_path_platform <path> -- true when the path is an item of an option's
-# platforms: list, whose value must be a platform word (ST0011 WP-17).
+# platforms: list (ST0011 WP-17), or of a tool file's (install.files.<label>,
+# issue 0326), whose value must be a platform word.
 _cfg_path_platform() {
   local -a p
   IFS='.' read -ra p <<<"$1"
-  [ "${#p[@]}" -eq 6 ] && [ "${p[0]}" = commands ] && [ "${p[2]}" = options ] && [ "${p[4]}" = platforms ]
+  if [ "${#p[@]}" -eq 6 ] && [ "${p[0]}" = commands ] && [ "${p[2]}" = options ] && [ "${p[4]}" = platforms ]; then
+    return 0
+  fi
+  [ "${#p[@]}" -eq 5 ] && [ "${p[0]}" = install ] && [ "${p[1]}" = files ] && [ "${p[3]}" = platforms ]
 }
 
 # cfg_option_platforms <command> <option> -- the option's platforms: list, one
@@ -1484,6 +1764,7 @@ _cfg_path_boolean() {
     3:commands) [ "${p[2]}" = enabled ] ;;
     5:commands) [ "${p[2]}" = options ] && case "${p[4]}" in enabled | in_all) return 0 ;; *) return 1 ;; esac ;;
     3:options) [ "${p[2]}" = flag ] ;;
+    2:formula) [ "${p[1]}" = bash ] ;;
     *) return 1 ;;
   esac
 }
@@ -1499,6 +1780,8 @@ _cfg_retired_why() {
     macos.keychain) printf ' -- retired: every notarisation submits under one notarytool keychain profile, macos.notary_profile (default devbin), stored once with bin/devbin macos store-creds; leave it out' ;;
     release.ci.tag) printf ' -- retired: a cut reads CI before the tag, on its candidate ref, so no query is asked about the tag; leave it out' ;;
     release.ci.base) printf ' -- retired: a cut reads CI on its release commit, through its candidate, before the tag, never on the commit it is cut from; leave it out' ;;
+    formula.manifest) printf " -- retired: the manifest is the tool's own, install.manifest, read by install and the formula alike; declare it there, or leave it out for .<name>-install" ;;
+    formula.bin | formula.bin.*) printf " -- retired: the keg's executables are the tool's link set, install.links, read by install, use and the formula alike; declare them there, or leave it out for bin/<name>" ;;
     release.verbs.*)
       [ "${2-}" != publish ] ||
         printf ' -- retired: a cut whose release.publish.url is declared makes its snapshot public itself, once every leg is green; leave it out'
@@ -1618,12 +1901,65 @@ _cfg_build_problems() {
   done
   # THE APP IS ONE ARTEFACT (ST0011 WP-06): two entries whose path is
   # macos.app's would leave the macOS stage to guess which to pull and put.
+  # AND NONE WHERE IT CARRIES ITS COMMIT (issue 0324): beside
+  # macos.commit_stamp, a copy pulled at a later commit is another commit's
+  # build. NOR ONE WHOSE INPUTS MISS ITS VERSION FILE (issue 0325): a copy
+  # pulled after a release moved the version alone is at the old version.
   local said s=0
   said="$(cfg_macos_artefact)" || s=$?
-  if [ "$s" -eq 2 ]; then
-    printf 'config: %s: %s\n' "$_DEVBIN_CFG_FILE" "$said" >&2
+  case "$s" in
+    2 | 4 | 5)
+      printf 'config: %s: %s\n' "$_DEVBIN_CFG_FILE" "$said" >&2
+      rc=1
+      ;;
+  esac
+  return "$rc"
+}
+
+# _cfg_install_problems -- the install: block's checks beyond each key's own
+# (issue 0326): each link's name is one a link can carry, each file's label is
+# a name and its path is declared, and no two of the tool's tree's places, each
+# link's bin/<name>, the manifest and each file's path, are one.
+_cfg_install_problems() {
+  local links name m l p rc=0 IFS=$' \t\n'
+  local -A at=()
+  links="$(cfg_tool_links)" || return 1
+  while IFS=$'\t' read -r name _; do
+    [ -n "$name" ] || continue
+    if ! is_artefact_name "$name"; then
+      printf 'config: %s: install.links.%s: "%s" is no link name -- start it with a letter or a digit, then letters, digits, _ or -\n' \
+        "$_DEVBIN_CFG_FILE" "$name" "$name" >&2
+      rc=1
+    fi
+    at["bin/$name"]="install.links.$name"
+  done <<<"$links"
+  m="$(cfg_tool_manifest)" || return 1
+  if [ -n "${at[$m]:-}" ]; then
+    printf "config: %s: install.manifest: \"%s\" is %s's place in the tree too -- a tree holds one file at a path\n" \
+      "$_DEVBIN_CFG_FILE" "$m" "${at[$m]}" >&2
     rc=1
   fi
+  at["$m"]=install.manifest
+  for l in $(cfg_list install.files); do
+    if ! is_artefact_name "$l"; then
+      printf 'config: %s: install.files.%s: "%s" is no label -- start it with a letter or a digit, then letters, digits, _ or -\n' \
+        "$_DEVBIN_CFG_FILE" "$l" "$l" >&2
+      rc=1
+    fi
+    p="$(cfg_get "install.files.$l.path" "")"
+    if [ -z "$p" ]; then
+      printf "config: %s: install.files.%s declares no path -- name its place in opt and brew, from the tool's tree root\n" \
+        "$_DEVBIN_CFG_FILE" "$l" >&2
+      rc=1
+      continue
+    fi
+    if [ -n "${at[$p]:-}" ]; then
+      printf "config: %s: install.files.%s.path: \"%s\" is %s's place in the tree too -- a tree holds one file at a path\n" \
+        "$_DEVBIN_CFG_FILE" "$l" "$p" "${at[$p]}" >&2
+      rc=1
+    fi
+    at["$p"]="install.files.$l"
+  done
   return "$rc"
 }
 
@@ -1640,8 +1976,9 @@ cfg_validate() {
     ! declare -F has_words >/dev/null || ! declare -F cargo_root_problem >/dev/null ||
     ! declare -F is_cache_tool >/dev/null || ! declare -F cache_path_problem >/dev/null ||
     ! declare -F cache_paths_overlap >/dev/null || ! declare -F is_artefact_name >/dev/null ||
-    ! declare -F is_platform_word >/dev/null || ! declare -F is_host_alias >/dev/null; then
-    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, the platform words, the toolchain table, has_words, cargo_root_problem, cache_path_problem, cache_paths_overlap, is_artefact_name and is_host_alias there\n' >&2
+    ! declare -F is_platform_word >/dev/null || ! declare -F is_host_alias >/dev/null ||
+    ! declare -F relative_path_problem >/dev/null; then
+    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, the platform words, the toolchain table, has_words, cargo_root_problem, cache_path_problem, relative_path_problem, cache_paths_overlap, is_artefact_name and is_host_alias there\n' >&2
     return 1
   fi
   if ! cfg_has project.name; then
@@ -1664,6 +2001,20 @@ cfg_validate() {
     elif [[ "$k" == build.inputs.* || "$k" == build.artefacts.*.path || "$k" == build.artefacts.*.inputs.* ]] &&
       why="$(cache_path_problem "$v")"; then
       printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif [[ "$k" == install.links.* || "$k" == install.files.*.from ]] && why="$(cache_path_problem "$v")"; then
+      # A file in the dev tree, below the project root, as a build's are.
+      printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif [[ "$k" == install.manifest || "$k" == install.files.*.path ]] &&
+      why="$(relative_path_problem "$v" "the tool's tree root")"; then
+      printf 'config: %s: %s: "%s" %s\n' "$_DEVBIN_CFG_FILE" "$k" "$v" "$why" >&2
+      rc=1
+    elif [[ "$k" == install.switch || "$k" == install.publish ]] && ! has_words "$v"; then
+      # The tool's own command, named in devbin's refusals and remedies, so one
+      # with no words would name nothing.
+      printf "config: %s: %s is empty -- name the tool's own command, or leave the key out, and devbin's own %s serves\n" \
+        "$_DEVBIN_CFG_FILE" "$k" "${k#install.}" >&2
       rc=1
     elif _cfg_path_platform "$k" && ! is_platform_word "$v"; then
       printf 'config: %s: %s: "%s" is not a platform word -- use one of: %s\n' \
@@ -1695,6 +2046,9 @@ EOF
   fi
   if [ -n "$(cfg_list build)" ]; then
     _cfg_build_problems || rc=1
+  fi
+  if [ -n "$(cfg_list install)" ]; then
+    _cfg_install_problems || rc=1
   fi
   # THE MACOS PAIR (issue 0243): kind_value is what kind_stamp must carry, so
   # without kind_stamp it is config nothing reads, and empty it would pass a

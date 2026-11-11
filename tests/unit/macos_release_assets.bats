@@ -41,8 +41,10 @@ load_macos_fns() {
   # SUPPORT_ASSET lives in the library both release steps source since ST0081
   # WP-06, and APP_ASSET since issue 0634, and both come out of it for the same
   # reason.
-  sed -n '/^SUPPORT_ASSET=/p;/^APP_ASSET=/p' "$BREW_LIB" >>"$fns"
-  sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_archive() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
+  # The macOS archive's names (devbin 0329) live there too, beside the triple
+  # they are spelled from.
+  sed -n '/^SUPPORT_ASSET=/p;/^APP_ASSET=/p;/^MACOS_TRIPLE=/p;/^MACOS_TOP=/p;/^MACOS_ASSET=/p' "$BREW_LIB" >>"$fns"
+  sed -n '/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_archive() {/,/^}/p;/^pack_macos_asset() {/,/^}/p;/^macos_asset_layout() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
   . "$fns"
@@ -69,7 +71,8 @@ stage_with() {
 build_support_fixture() {
   ROOT="${TEST_TEMP_DIR}/root"
   STAGE_DIR="${TEST_TEMP_DIR}/dist"
-  rm -rf "$ROOT" "$STAGE_DIR"
+  PARTS_DIR="${TEST_TEMP_DIR}/parts"
+  rm -rf "$ROOT" "$STAGE_DIR" "$PARTS_DIR"
   # THE FIXTURE'S TREES ARE DERIVED FROM $SUPPORT_PATHS, NEVER LISTED AGAIN
   # HERE. When the copy list grew from one tree to three on 2026-08-26 this
   # helper still mkdir'd `lib/templates` alone, `tar` failed with `Cannot stat`
@@ -98,7 +101,7 @@ build_support_fixture() {
       printf 'fixture\n' >"$ROOT/$_p/README.md"
     fi
   done
-  mkdir -p "$ROOT/lib/templates/hooks" "$ROOT/lib/templates/.claude/scripts" "$STAGE_DIR"
+  mkdir -p "$ROOT/lib/templates/hooks" "$ROOT/lib/templates/.claude/scripts" "$STAGE_DIR" "$PARTS_DIR"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/whiteboard-clock-guard.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/pre-commit.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/.claude/scripts/require-in-session.sh"
@@ -107,7 +110,7 @@ build_support_fixture() {
   git -C "$ROOT" config user.name t
   git -C "$ROOT" add -A
   git -C "$ROOT" commit -qm fixture
-  support_archive "$ROOT" HEAD "$STAGE_DIR/$SUPPORT_ASSET"
+  support_archive "$ROOT" HEAD "$PARTS_DIR/$SUPPORT_ASSET"
 }
 
 @test "int macos is syntactically valid" {
@@ -119,65 +122,139 @@ build_support_fixture() {
 # Classification: every staged artefact is a decision
 # --------------------------------------------------------------------
 
-@test "is_binary_artefact is derived from BINARIES, not from a name pattern" {
-  load_macos_fns
-  run is_binary_artefact "intent-aarch64-apple-darwin" "aarch64-apple-darwin"
-  assert_success
-  run is_binary_artefact "intentd-aarch64-apple-darwin" "aarch64-apple-darwin"
-  assert_success
-
-  # The support asset is NOT a Mach-O, however it is spelled. This is the
-  # distinction the old `*-$triple` glob could not make.
-  run is_binary_artefact "intent-support.tar.gz" "aarch64-apple-darwin"
-  assert_failure
-  # A binary name carrying the wrong triple is not this host's artefact.
-  run is_binary_artefact "intent-x86_64-apple-darwin" "aarch64-apple-darwin"
-  assert_failure
-}
-
 @test "staged_artefacts lists the artefacts and never the claim about them" {
   load_macos_fns
-  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin \
-    intent-support.tar.gz SHA256SUMS.txt
+  stage_with "$MACOS_ASSET" "$APP_ASSET" SHA256SUMS.txt
 
   run staged_artefacts
   assert_success
-  assert_output_contains "intent-support.tar.gz"
+  assert_output_contains "$MACOS_ASSET"
+  assert_output_contains "$APP_ASSET"
   # SHA256SUMS.txt describes the others; hashing it into itself is meaningless.
-  run bash -c "cd '$STAGE_DIR' && ls -1 | wc -l | tr -d ' '"
-  assert_output "4"
-  run bash -c "$(declare -f staged_artefacts); STAGE_DIR='$STAGE_DIR'; staged_artefacts | wc -l | tr -d ' '"
-  assert_output "3"
+  refute_output_contains "SHA256SUMS.txt"
 }
 
-@test "BASELINE: the shipping set classifies clean" {
+@test "BASELINE: the shipping set, the macOS archive and the app zip, classifies clean" {
   load_macos_fns
-  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz Intent.app.zip
-  run unclassified_artefacts "aarch64-apple-darwin"
+  stage_with "$MACOS_ASSET" "$APP_ASSET"
+  run unclassified_artefacts
   assert_success
   assert_output ""
 }
 
-@test "an artefact that is neither a proven binary nor declared data is REFUSED" {
+@test "a part staged as an asset is REFUSED: a bare binary or the support tarball ships only inside the archive" {
+  # devbin 0329: the parts live in PARTS_DIR and `pack` lays them into one
+  # archive. One that reaches the staging directory would be uploaded beside it,
+  # an asset no formula names.
+  load_macos_fns
+  stage_with "$MACOS_ASSET" "$APP_ASSET" "intent-$MACOS_TRIPLE" "$SUPPORT_ASSET"
+  run unclassified_artefacts
+  assert_output_contains "intent-$MACOS_TRIPLE"
+  assert_output_contains "$SUPPORT_ASSET"
+}
+
+@test "an artefact that is neither the archive nor the app zip is REFUSED" {
   # The control that closes the class. Without it, the next artefact added to the
   # staging directory either ships as unproven bytes under a published hash or is
   # silently left out of SHA256SUMS.txt -- and neither failure names itself.
   load_macos_fns
-  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin \
-    intent-support.tar.gz intent-completions.zip
+  stage_with "$MACOS_ASSET" "$APP_ASSET" intent-completions.zip
 
-  run unclassified_artefacts "aarch64-apple-darwin"
+  run unclassified_artefacts
   assert_output_contains "intent-completions.zip"
 }
 
 @test "the refusal names the artefact rather than only counting it" {
   load_macos_fns
-  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin \
-    intent-support.tar.gz alpha.bin beta.bin
+  stage_with "$MACOS_ASSET" "$APP_ASSET" alpha.bin beta.bin
 
-  run unclassified_artefacts "aarch64-apple-darwin"
+  run unclassified_artefacts
   assert_output_contains "alpha.bin"
   assert_output_contains "beta.bin"
+}
+
+# --------------------------------------------------------------------
+# The macOS archive: one install root, as the formula installs it (devbin 0329)
+# --------------------------------------------------------------------
+
+# pack_fixture -- PARTS_DIR holding the support tarball build_support_fixture
+# makes and a stand-in for each of BINARIES under its staged name, then the
+# archive packed from them into STAGE_DIR by the script's own pack_macos_asset.
+pack_fixture() {
+  build_support_fixture
+  local b
+  for b in $BINARIES; do
+    printf '#!/bin/sh\necho %s\n' "$b" >"$PARTS_DIR/$b-$MACOS_TRIPLE"
+  done
+  pack_macos_asset "$PARTS_DIR" "$MACOS_TRIPLE" "$STAGE_DIR/$MACOS_ASSET"
+}
+
+@test "pack lays the binaries and the support tree under one top-level directory, and the layout reads clean" {
+  load_macos_fns
+  pack_fixture
+  run tar -tzf "$STAGE_DIR/$MACOS_ASSET"
+  assert_success
+  local b
+  for b in $BINARIES; do
+    assert_output_contains "$MACOS_TOP/bin/$b"
+  done
+  assert_output_contains "$MACOS_TOP/lib/templates/hooks/pre-commit.sh"
+  refute_output_contains "$SUPPORT_PREFIX/"
+  run macos_asset_layout "$STAGE_DIR/$MACOS_ASSET"
+  assert_success
+  assert_output ""
+}
+
+@test "each binary in the archive is the part's bytes, so the signature it carries is the one notarize proved" {
+  load_macos_fns
+  pack_fixture
+  local out="$TEST_TEMP_DIR/unpacked" b
+  mkdir -p "$out"
+  tar -xzf "$STAGE_DIR/$MACOS_ASSET" -C "$out"
+  for b in $BINARIES; do
+    cmp -s "$PARTS_DIR/$b-$MACOS_TRIPLE" "$out/$MACOS_TOP/bin/$b" || fail "bin/$b is not the part $b-$MACOS_TRIPLE"
+  done
+}
+
+# macos_tarball <name>... -- an archive in STAGE_DIR holding each named path.
+macos_tarball() {
+  local t="$TEST_TEMP_DIR/tarball" p
+  rm -rf "$t"
+  mkdir -p "$t"
+  for p in "$@"; do
+    mkdir -p "$t/$(dirname "$p")"
+    printf 'x' >"$t/$p"
+  done
+  STAGE_DIR="${TEST_TEMP_DIR}/dist"
+  mkdir -p "$STAGE_DIR"
+  (cd "$t" && tar -czf "$STAGE_DIR/$MACOS_ASSET" *)
+}
+
+@test "a layout the formula cannot install is refused by name: a missing binary, bin/devbin, another top-level entry" {
+  load_macos_fns
+  # Paths inside the archive, not a binary this test runs.
+  local member_bin="$MACOS_TOP/bin"
+  macos_tarball "$member_bin/intent" "$member_bin/devbin" stray.txt
+  run macos_asset_layout "$STAGE_DIR/$MACOS_ASSET"
+  assert_output_contains "it carries no $MACOS_TOP/bin/intentd"
+  assert_output_contains "it carries bin/devbin"
+  assert_output_contains "stray.txt"
+}
+
+@test "prepare packs after notarize and before checksum, read from cmd_prepare itself" {
+  # The ticket is Apple's verdict on the Mach-O bytes: packed before notarize, the
+  # archive would hold binaries nobody had proven; hashed before pack, the sums
+  # would describe an archive that no longer exists.
+  local steps notarize pack checksum
+  steps="$(sed -n '/^cmd_prepare() {/,/^}/p' "$MACOS" | sed -n 's/^  \(cmd_[a-z_]*\)$/\1/p')"
+  [ -n "$steps" ] || fail "cmd_prepare names no steps"
+  notarize="$(grep -nx cmd_notarize <<<"$steps" | cut -d: -f1)"
+  pack="$(grep -nx cmd_pack <<<"$steps" | cut -d: -f1)"
+  checksum="$(grep -nx cmd_checksum <<<"$steps" | cut -d: -f1)"
+  [ -n "$notarize" ] && [ -n "$pack" ] && [ -n "$checksum" ] ||
+    fail "cmd_prepare does not run notarize, pack and checksum: $steps"
+  [ "$notarize" -lt "$pack" ] || fail "prepare packs before it notarizes: $steps"
+  [ "$pack" -lt "$checksum" ] || fail "prepare checksums before it packs: $steps"
 }
 
 # --------------------------------------------------------------------
@@ -239,9 +316,9 @@ build_support_fixture() {
   build_support_fixture
   mkdir -p "$ROOT/lib/templates/issues" "$ROOT/lib/templates/eng"
   printf 'x' >"$ROOT/lib/templates/eng/.DS_Store"
-  support_archive "$ROOT" HEAD "$STAGE_DIR/$SUPPORT_ASSET"
+  support_archive "$ROOT" HEAD "$PARTS_DIR/$SUPPORT_ASSET"
 
-  run tar -tzf "$STAGE_DIR/$SUPPORT_ASSET"
+  run tar -tzf "$PARTS_DIR/$SUPPORT_ASSET"
   assert_success
   assert_output_contains "intent-support/lib/templates/hooks/pre-commit.sh"
   refute_output_contains "lib/templates/issues"
@@ -448,7 +525,7 @@ git_fixture() {
 # ST0081 WP-06.
 
 # run_staged_version -- staged_version, extracted from the script and run
-# against STAGE_DIR in a bash carrying the script's shell options.
+# against PARTS_DIR in a bash carrying the script's shell options.
 run_staged_version() {
   local fns="$TEST_TEMP_DIR/staged_version.sh"
   sed -n '/^staged_version() {/,/^}/p' "$BREW_LIB" >"$fns"
@@ -457,24 +534,24 @@ run_staged_version() {
     shopt -s inherit_errexit
     die() { printf "%s\n" "$*" >&2; exit 1; }
     rust_host() { printf "aarch64-apple-darwin\n"; }
-    STAGE_DIR="$2"
+    PARTS_DIR="$2"
     . "$1"
-    staged_version' _ "$fns" "$STAGE_DIR"
+    staged_version' _ "$fns" "$PARTS_DIR"
 }
 
 @test "invariant: staged_version refuses by name when no binary is staged, where it ended the script in silence (0595)" {
-  STAGE_DIR="$TEST_TEMP_DIR/dist"
-  mkdir -p "$STAGE_DIR"
+  PARTS_DIR="$TEST_TEMP_DIR/parts"
+  mkdir -p "$PARTS_DIR"
   run_staged_version
   [ "$status" -eq 1 ] || fail "staged_version exited $status, and before 0595's follow-up it was 127 with no output: [$output]"
-  assert_output_contains "there is no staged intent binary at $STAGE_DIR/intent-aarch64-apple-darwin"
+  assert_output_contains "there is no staged intent binary at $PARTS_DIR/intent-aarch64-apple-darwin"
 }
 
 @test "invariant: staged_version refuses with the binary's own words when the staged binary does not run (0595)" {
-  STAGE_DIR="$TEST_TEMP_DIR/dist"
-  mkdir -p "$STAGE_DIR"
-  printf '#!/bin/sh\necho "dyld: Library not loaded" >&2\nexit 6\n' >"$STAGE_DIR/intent-aarch64-apple-darwin"
-  chmod +x "$STAGE_DIR/intent-aarch64-apple-darwin"
+  PARTS_DIR="$TEST_TEMP_DIR/parts"
+  mkdir -p "$PARTS_DIR"
+  printf '#!/bin/sh\necho "dyld: Library not loaded" >&2\nexit 6\n' >"$PARTS_DIR/intent-aarch64-apple-darwin"
+  chmod +x "$PARTS_DIR/intent-aarch64-apple-darwin"
   run_staged_version
   [ "$status" -eq 1 ] || fail "staged_version exited $status, and before 0595's follow-up it was the binary's own status with no output: [$output]"
   assert_output_contains "the staged intent binary does not run"

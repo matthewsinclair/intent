@@ -112,6 +112,13 @@ BREW_TAP="matthewsinclair/intent"
 # control is still there underneath because catching it is free.
 STAGE_DIR="$ROOT/native/rust/target/dist"
 
+# THE PARTS THE macOS ARCHIVE IS PACKED FROM, NEVER PUBLISHED (ST0091, devbin
+# 0329): the two binaries `stage` copies and `sign` and `notarize` prove, and the
+# support tarball. A sibling of STAGE_DIR, so everything in STAGE_DIR is an
+# asset the release carries and nothing here can be uploaded by mistake. `pack`
+# lays them into MACOS_ASSET, rooted at the install root as the Linux package is.
+PARTS_DIR="$ROOT/native/rust/target/dist-parts"
+
 # require_sums -- the proof file, or the reason there isn't one.
 #
 # ONE MESSAGE FOR ONE MISSING FILE. `formula` and `publish` both need it and both
@@ -149,7 +156,7 @@ staged_version() {
   # the script at the pipe, in silence, before the die below could say why: an
   # empty refusal at a release cut. Its stderr is kept, because a binary that will
   # not run says why there.
-  bin="$STAGE_DIR/intent-$(rust_host)"
+  bin="$PARTS_DIR/intent-$(rust_host)"
   [ -e "$bin" ] || die "there is no staged intent binary at $bin -- run 'bin/devbin macos stage' (or 'prepare') first"
   out="$("$bin" --version 2>&1)" || die "the staged intent binary does not run, so its version cannot be read. $bin --version said:
 $out"
@@ -175,8 +182,17 @@ $out"
 # where the host's own triple names nothing on the release.
 MACOS_TRIPLE="aarch64-apple-darwin"
 
-# brew_macos_assets -- the three macOS assets the formula names, one per line:
-# the CLI, the daemon and the support tree.
+# THE ONE macOS ARCHIVE (devbin 0329, hv's "Agree", 2026-11-11): bin/intent,
+# bin/intentd and the support tree under one top-level directory, its stem, as
+# the Linux packages are, so the formula's generated install lays out both
+# platforms alike and the template stages nothing by hand (T8). The top
+# directory is never `bin`, and nothing in it is bin/devbin, which the generated
+# install would run.
+MACOS_TOP="intent-$MACOS_TRIPLE"
+MACOS_ASSET="$MACOS_TOP.tar.gz"
+
+# brew_macos_assets -- the macOS assets the formula names, one per line: the
+# archive.
 brew_macos_assets() {
-  printf '%s\n' "intent-$MACOS_TRIPLE" "intentd-$MACOS_TRIPLE" "$SUPPORT_ASSET"
+  printf '%s\n' "$MACOS_ASSET"
 }

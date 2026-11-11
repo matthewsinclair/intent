@@ -1,0 +1,630 @@
+#!/usr/bin/env bash
+#
+# lib/tool -- the project's own tool (docs/dev-opt-brew.md; issue 0326): the
+# line its build carries.
+#
+# Sourced, not executed, after lib/helpers and lib/config with the project's
+# config loaded: a project declares its tool in its install: block, and the
+# readers there (cfg_tool_links, cfg_tool_files, cfg_build_input_paths) are what
+# this file asks. lib/helpers reads no config, so what joins the config to git
+# lives here.
+#
+# THE CORE WRITES THE LINE AND THE BINARY PRINTS IT (T4). A compiled tool's dev
+# build is handed its whole version line, `<tool> <version> (dev, <sha12>[+dirty])`,
+# in DEVBIN_VERSION_LINE, and its --version prints it; in opt and brew it prints
+# the line its tree's manifest carries. So the commit and +dirty are worked out
+# here, once, for every tool, never in a tool's own build script.
+[ -n "${_DEVBIN_TOOL_LOADED:-}" ] && return 0
+_DEVBIN_TOOL_LOADED=1
+
+# tool_build_paths -- the paths whose state the dev line's +dirty reads, below
+# the project root, one a line, each once (T4): each of the runtime set's files
+# git tracks (a link's or a file's `from`), the declared build inputs
+# (cfg_build_input_paths), and the inputs each build product's dependency
+# record names (`<from>.d`, dep_info_paths), where the build has written one.
+# A product is a `from` git does not track. Nothing printed is an answer: with
+# no file tracked, none declared and no record yet, the caller reads the whole
+# tree. rc 1 when the declaration cannot be read.
+tool_build_paths() {
+  local links files name from label
+  links="$(cfg_tool_links)" || return 1
+  files="$(cfg_tool_files)" || return 1
+  {
+    while IFS=$'\t' read -r name from; do
+      [ -n "$name" ] || continue
+      _tool_build_from "$from"
+    done <<<"$links"
+    while IFS=$'\t' read -r label _ from; do
+      [ -n "$label" ] || continue
+      _tool_build_from "$from"
+    done <<<"$files"
+    cfg_build_input_paths
+  } | LC_ALL=C sort -u
+}
+
+# tool_tracked <from> -- rc 0 when git tracks <from>, a runtime file that
+# ships as committed; rc 1 when it does not, a build product.
+tool_tracked() {
+  git_readonly -C "$PROJECT_ROOT" ls-files --error-unmatch -- ":(literal)$1" >/dev/null 2>&1
+}
+
+# _tool_build_from <from> -- a `from` git tracks, as itself; a product, as the
+# inputs its dependency record names, when there is one.
+_tool_build_from() {
+  if tool_tracked "$1"; then
+    printf '%s\n' "$1"
+  elif [ -f "$PROJECT_ROOT/$1.d" ]; then
+    dep_info_paths "$PROJECT_ROOT/$1.d" "$PROJECT_ROOT" || true
+  fi
+}
+
+# tool_build_state -- git's porcelain lines for the build's inputs that differ
+# from HEAD (tool_build_paths), changed, staged or untracked, nothing when none;
+# rc 1 when git, or the declaration, cannot say. With no path to read, the
+# whole tree is read, so a missed input never reads clean: that is a first
+# build with nothing declared and no record yet, and the next build reads its
+# record.
+tool_build_state() {
+  local paths p
+  local -a spec=()
+  paths="$(tool_build_paths)" || return 1
+  while IFS= read -r p; do
+    [ -n "$p" ] && spec+=(":(literal)$p")
+  done <<<"$paths"
+  git_readonly -C "$PROJECT_ROOT" status --porcelain --untracked-files=all -- ${spec[@]+"${spec[@]}"} 2>/dev/null
+}
+
+# tool_build_dirty -- whether the build's inputs differ from HEAD, one word:
+# `dirty` when tool_build_state names any, `clean` when none, and `unknown`
+# when it cannot say.
+tool_build_dirty() {
+  local out
+  if ! out="$(tool_build_state)"; then
+    printf 'unknown\n'
+    return 0
+  fi
+  if [ -n "$out" ]; then printf 'dirty\n'; else printf 'clean\n'; fi
+}
+
+# tool_dev_line -- the line a dev build of the project's tool carries:
+# `<tool> <version> (dev, <sha12>[+dirty])` (tool_line), the tool's name the
+# formula's, its version the project's (cfg_version_from), and its commit
+# HEAD's, `+dirty` when tool_build_dirty says so. A checkout git cannot read
+# gives `(dev, unknown)`, T4's one shape for a commit it cannot name.
+tool_dev_line() {
+  local name ver sha mark=""
+  name="$(cfg_formula_name)" || return 1
+  ver="$(read_version "$(cfg_version_from)" version-file 2>/dev/null || true)"
+  sha="$(git_head_sha "$PROJECT_ROOT" full)"
+  if [ "$sha" != unknown ]; then
+    case "$(tool_build_dirty)" in
+      dirty) mark=+dirty ;;
+      clean) ;;
+      *) sha=unknown ;;
+    esac
+  fi
+  tool_line "$name" "$ver" dev "$sha" "$mark"
+}
+
+# tool_build <launcher> [<arg>...] -- the project's build, run by <launcher>
+# (the project's own bin/devbin) as `build <arg>...`, handed the dev line in
+# DEVBIN_VERSION_LINE. _DEVBIN_BUILD_STAMPED tells that launcher the line is
+# set, so it runs the build as any other command.
+#
+# ONE MORE BUILD, AND ONLY ONE, WHEN THE RECORD SAYS THE LINE IS WRONG. The
+# line is worked out before the build, from the record the last build left, so
+# a build reading an input that record did not name can carry a clean line over
+# a changed input. After a build that succeeds the line is worked out again from
+# the record it has just written, and where it differs the build runs once more
+# to carry it, and says so. The second build's line is final: it is bounded at
+# one, so a build whose inputs move on every run cannot loop.
+tool_build() {
+  local launcher="$1" line again
+  shift
+  line="$(tool_dev_line)" || die "cannot work out the version line the build is to carry (above)"
+  export _DEVBIN_BUILD_STAMPED=1 DEVBIN_VERSION_LINE="$line"
+  "$launcher" build "$@" || return $?
+  again="$(tool_dev_line)" || die "cannot work out the version line again after the build (above)"
+  [ "$again" != "$line" ] || return 0
+  warn "the build read inputs its line did not count ($line), so it runs once more to carry: $again"
+  export DEVBIN_VERSION_LINE="$again"
+  "$launcher" build "$@"
+}
+
+# --- the publish (T2, T3) ----------------------------------------------------
+#
+# tool_publish needs lib/install sourced too, for its one checksum pass
+# (_sha256_of_set), so a tool's manifest and devbin's are summed alike.
+
+# tool_runtime_set -- the tool's runtime set on this host (T1), one place a
+# line, `<its place in the tree><TAB><its file in the dev tree><TAB><kind>`:
+# each link at bin/<name>, then each file at its path (cfg_tool_links,
+# cfg_tool_files), the kind `tracked` for a file git tracks, which ships as
+# committed, and `product` for one a build makes. THE ONE LIST the publish reads.
+tool_runtime_set() {
+  local links files name from label path
+  links="$(cfg_tool_links)" || return 1
+  files="$(cfg_tool_files)" || return 1
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    _tool_set_row "bin/$name" "$from"
+  done <<<"$links"
+  while IFS=$'\t' read -r label path from; do
+    [ -n "$label" ] || continue
+    _tool_set_row "$path" "$from"
+  done <<<"$files"
+}
+
+_tool_set_row() {
+  if tool_tracked "$2"; then
+    printf '%s\t%s\ttracked\n' "$1" "$2"
+  else
+    printf '%s\t%s\tproduct\n' "$1" "$2"
+  fi
+}
+
+# tool_publish <prefix> <force> <managed> -- publish the project's tool from
+# its dev checkout to <prefix>: its opt tree, or, with <managed> `brew`, the keg
+# its formula installs into (issue 0326). <force> `yes` replaces this tool's
+# own tree there. Everything that refuses does so before a byte is written:
+# a commit git cannot name, inputs that differ from it (T2), and a prefix that
+# is Homebrew's, another tool's, this tool's without <force>, or holds files no
+# install wrote. The build runs through the stamp when the set holds a
+# product, and each linked product must then print the clean dev line for
+# HEAD on --version, under its own name (tool_link_line; issue 0331), so the
+# bytes published are that commit's. The copy
+# replaces each place whole, removes what the old manifest listed and the new
+# tree does not hold, and the manifest is written last: T3's four keys, the
+# tree's version line under `line`, and each file's sum.
+tool_publish() {
+  local prefix="${1%/}" force="$2" managed="$3" name m ver sha want set place from kind got word owner files removed line n mine
+  name="$(cfg_formula_name)" || return 1
+  m="$(cfg_tool_manifest)" || return 1
+  ver="$(read_version "$(cfg_version_from)" version-file 2>/dev/null || true)"
+  sha="$(git_head_sha "$PROJECT_ROOT" full)"
+  [ "$sha" != unknown ] || die "cannot publish $name: git cannot name the commit of $PROJECT_ROOT, so the install would claim none"
+  _tool_publish_clean "$name" "$sha"
+  _tool_publish_target "$prefix" "$name" "$m" "$force"
+  set="$(tool_runtime_set)" || die "cannot read $name's runtime set from the install: block (above)"
+  if grep -q $'\tproduct$' <<<"$set"; then
+    "$PROJECT_ROOT/bin/devbin" build || die "the build failed (above), so $name was not published"
+  fi
+  want="$(tool_line "$name" "$ver" dev "$sha")"
+  while IFS=$'\t' read -r place from kind; do
+    [ -n "$place" ] || continue
+    [ -e "$PROJECT_ROOT/$from" ] || die "$from is not there, so it cannot be published as $place -- the build makes it: $DEVBIN_INVOKE build"
+    [ "$kind" = product ] || continue
+    case "$place" in bin/*) ;; *) continue ;; esac
+    mine="$(tool_link_line "$want" "${place#bin/}")" ||
+      die "the line a build of $sha carries, \"$want\", is no line in T4's shape, so $from cannot be read against it"
+    got="$("$PROJECT_ROOT/$from" --version 2>/dev/null)" || got=""
+    [ "$(tree_line_head "$got")" = "$mine" ] ||
+      die "$from prints \"$got\" for --version, where a build of $sha carries \"$mine\", so its bytes are no build of this commit -- build it with $DEVBIN_INVOKE build, then publish"
+  done <<<"$set"
+  word=opt
+  owner="$name"
+  if [ "$managed" = brew ]; then
+    word=brew
+    owner=brew
+  fi
+  removed="$(_tool_publish_write "$prefix" "$m" "$set")" || die "failed to write the install at $prefix (above)"
+  files="$(_tool_tree_files "$prefix" "$set")" || die "cannot list what the install at $prefix holds (above)"
+  line="$(tool_line "$name" "$ver" "$word" "$sha")"
+  _tool_publish_manifest "$prefix" "$m" "$name" "$ver" "$sha" "$owner" "$line" "$files" ||
+    die "failed to write the manifest at $prefix/$m (above)"
+  n="$(nonempty_lines "$files")"
+  printf '  published  %s file(s) to %s\n' "$n" "$prefix"
+  while IFS= read -r place; do
+    [ -z "$place" ] || printf '  removed    %s (%s no longer ships it)\n' "$place" "$name"
+  done <<<"$removed"
+  printf '  recorded   %s\n' "$line"
+}
+
+# _tool_publish_clean <name> <sha> -- refuse, naming each, inputs that differ
+# from <sha> (tool_build_state), or a git that cannot say.
+_tool_publish_clean() {
+  local state
+  state="$(tool_build_state)" || die "cannot publish $1: git cannot say whether its inputs are committed"
+  [ -n "$state" ] || return 0
+  die "refusing to publish $1: its inputs differ from $2, so the install would claim a commit its bytes are not
+$(printf '%s\n' "$state" | sed 's/^/       /')
+       commit or stash them, then publish"
+}
+
+# _tool_publish_target <prefix> <name> <manifest> <force> -- refuse a prefix the
+# publish may not write: a file, Homebrew's keg (its manifest says
+# `managed_by: brew`), another tool's install, this tool's without --force, or
+# a directory holding files and no manifest of this tool's (T2).
+_tool_publish_target() {
+  local p="$1" name="$2" m="$3" force="$4" owner t
+  [ ! -e "$p" ] || [ -d "$p" ] || die "$p is not a directory, so $name cannot be published there"
+  if [ -f "$p/$m" ]; then
+    owner="$(tool_manifest_field "$p" "$m" managed_by 2>/dev/null || true)"
+    t="$(tool_manifest_field "$p" "$m" tool 2>/dev/null || true)"
+    [ "$owner" != brew ] || die "$p is the $name Homebrew installed, and Homebrew replaces it whole at each version, so devbin will not write into it
+       to update it:  brew upgrade $name"
+    [ "$t" = "$name" ] || die "$p holds an install whose manifest names ${t:-no tool}, not $name, so it is left as it is"
+    [ "$force" = yes ] || die "$name is already published at $p
+       to replace it:  $DEVBIN_INVOKE install --force"
+    return 0
+  fi
+  if [ -d "$p" ] && [ -n "$(ls -A -- "$p" 2>/dev/null)" ]; then
+    die "$p holds files no install of $name wrote (it has no $m), so it is left as it is -- move it aside, or publish to another prefix"
+  fi
+}
+
+# _tool_publish_write <prefix> <manifest> <set> -- each place of <set> copied
+# whole from its dev file, then each file the old manifest at <prefix> listed
+# and the new tree does not hold removed, with each directory that leaves
+# empty; prints each place removed. The old manifest is read before anything
+# is written. A place is a path below the tree's root, as config validation
+# holds it, so nothing outside <prefix> is written or removed.
+_tool_publish_write() {
+  local p="$1" m="$2" set="$3" place from kind old rel dir now
+  local -A held=()
+  old=""
+  if [ -f "$p/$m" ]; then
+    old="$(awk '/^#/ { next } { line = $0; sub(/^[^ ]+  /, "", line); print line }' "$p/$m")" || return 1
+  fi
+  mkdir -p "$p" || return 1
+  while IFS=$'\t' read -r place from kind; do
+    [ -n "$place" ] || continue
+    mkdir -p "$(dirname "$p/$place")" || return 1
+    rm -rf -- "${p:?}/$place" || return 1
+    cp -R "$PROJECT_ROOT/$from" "$p/$place" || return 1
+  done <<<"$set"
+  now="$(_tool_tree_files "$p" "$set")" || return 1
+  while IFS= read -r rel; do
+    [ -n "$rel" ] && held[$rel]=1
+  done <<<"$now"
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    case "/$rel/" in */../* | //*) continue ;; esac
+    [ -z "${held[$rel]:-}" ] || continue
+    [ -e "$p/$rel" ] || [ -L "$p/$rel" ] || continue
+    rm -f -- "${p:?}/$rel" || return 1
+    printf '%s\n' "$rel"
+    dir="${rel%/*}"
+    while [ "$dir" != "$rel" ] && [ -d "$p/$dir" ] && [ -z "$(ls -A -- "$p/$dir")" ]; do
+      rmdir -- "$p/$dir" || return 1
+      case "$dir" in */*) dir="${dir%/*}" ;; *) break ;; esac
+    done
+  done <<<"$old"
+}
+
+# _tool_tree_files <prefix> <set> -- each file the places of <set> hold under
+# <prefix>, relative to it, sorted bytewise as T3 sorts: a place that is a
+# file, or each file below a place that is a directory, as a .app bundle is.
+_tool_tree_files() {
+  local p="$1" set="$2" place from kind f
+  while IFS=$'\t' read -r place from kind; do
+    [ -n "$place" ] || continue
+    if [ -d "$p/$place" ]; then
+      f="$(find_walk "$p/$place" -type f -print)" || return 1
+      [ -z "$f" ] || printf '%s\n' "${f//"$p/"/}"
+    elif [ -f "$p/$place" ]; then
+      printf '%s\n' "$place"
+    fi
+  done <<<"$set" | LC_ALL=C sort -u
+}
+
+# _tool_publish_manifest <prefix> <manifest> <name> <version> <sha> <owner>
+# <line> <files> -- the manifest in T3's form: `tool`, `version`,
+# `source_commit` and `managed_by` (<owner>: the tool's name, or brew), then
+# `line`, the tree's version line, which a compiled binary prints from here,
+# then one `<sha256>  <path>` line a file, in <files>' order.
+_tool_publish_manifest() {
+  local p="$1" m="$2" sums row
+  sums="$(_sha256_of_set "$p" "$8")" || return 1
+  mkdir -p "$(dirname "$p/$m")" || return 1
+  {
+    printf '# tool: %s\n# version: %s\n# source_commit: %s\n# managed_by: %s\n# line: %s\n' "$3" "$4" "$5" "$6" "$7"
+    while IFS= read -r row; do
+      [ -n "$row" ] && printf '%s  %s\n' "${row%%$'\t'*}" "${row#*$'\t'}"
+    done <<<"$sums"
+  } >"$p/$m"
+}
+
+# --- the switch (T5) ---------------------------------------------------------
+#
+# A project's tool is switched by `bin/devbin use [dev|opt|brew]`, run in its
+# checkout (docs/dev-opt-brew.md, T5). Its links in ~/.local/bin are the one
+# record of which tree serves each, and no link means brew. lib/install's
+# install_prefix_configured gives `use opt` its prefix, so it is sourced too.
+
+# tool_switch_state <name> <from> -- what the tool's link <name> names, one
+# line: `none`, no link; `dev <root>`, it resolves to this checkout's <from>,
+# the dev tree's copy, a build product where it is one; `at <root>`, it leads
+# to a tree's bin/<name>, a keg named by its opt link (tool_link_state); or
+# `bad <reason>`, a file where the link belongs, or a link to no file or to one
+# no tree of this tool holds.
+tool_switch_state() {
+  local name="$1" from="$2" p got want
+  if p="$(tool_link_path "$name")" && [ -L "$p" ] && [ -e "$p" ] && [ -e "$PROJECT_ROOT/$from" ]; then
+    real_path "$p" got
+    real_path "$PROJECT_ROOT/$from" want
+    if [ "$got" = "$want" ]; then
+      printf 'dev %s\n' "$PROJECT_ROOT"
+      return 0
+    fi
+  fi
+  tool_link_state "$(cfg_formula_name)" "$name" "$(cfg_tool_verb switch)"
+}
+
+# tool_tree_word <root> -- which of the tool's trees <root> is, one word: by its
+# install manifest (tool_install_tree_word), or brew for a keg with none that
+# resolves to the tool's opt link (tool_unmanifested_keg), else unknown.
+tool_tree_word() {
+  local name m
+  name="$(cfg_formula_name)" || return 1
+  m="$(cfg_tool_manifest)" || return 1
+  if [ -f "$1/$m" ]; then
+    tool_install_tree_word "$1" "$name" "$m"
+  elif tool_unmanifested_keg "$1" "$name" "$m"; then
+    printf 'brew\n'
+  else
+    printf 'unknown\n'
+  fi
+}
+
+# tool_tree_line <root> -- the version line an opt or brew tree of the tool
+# carries, its manifest's `line` (T4), or nothing at rc 1 where it carries none.
+tool_tree_line() {
+  local line
+  line="$(tool_manifest_field "$1" "$(cfg_tool_manifest)" line 2>/dev/null)" || return 1
+  [ -n "$line" ] || return 1
+  printf '%s\n' "$line"
+}
+
+# tool_use [dev|opt|brew] -- the switch for the project's tool, over its whole
+# link set (cfg_tool_links). Bare, it reports the tree each link serves by its
+# line, fails a link it cannot follow, a set split across trees, and a link a
+# login shell does not run (tool_link_shadow), and changes nothing. dev and opt
+# point every link at that tree's copy, refusing a tree that is not there and
+# naming the step that makes it, then report. brew removes every link, and
+# refuses, removing nothing, unless each is a link into one of the tool's trees
+# and Homebrew's copy would answer for each once it is gone.
+tool_use() {
+  local links
+  links="$(cfg_tool_links)" || return 1
+  case "${1:-}" in
+    "")
+      _tool_use_report "$links" || return 1
+      _tool_use_shadowed "$links" ""
+      ;;
+    dev | opt)
+      _tool_use_point_set "$1" "$links" || return 1
+      _tool_use_report "$links" || return 1
+      _tool_use_shadowed "$links" "$1"
+      ;;
+    brew)
+      _tool_use_brew "$links" || return 1
+      _tool_use_report "$links"
+      ;;
+    *) die "unknown tree '$1' -- bin/devbin use takes dev, opt or brew" ;;
+  esac
+}
+
+# _tool_link_tree_line <root> <name> -- the line the tree at <root> records, as
+# its copy of the link <name> prints it (tool_link_line; issue 0331); rc 1,
+# printing nothing, where the tree records none, or one not in T4's shape.
+_tool_link_tree_line() {
+  local line
+  line="$(tool_tree_line "$1")" || return 1
+  tool_link_line "$line" "$2"
+}
+
+# _tool_use_report <links> -- each link's tree, by its line under the link's own
+# name; rc 1 for a link it cannot follow, a missing Homebrew copy with no link,
+# or a set split across trees (tool_set_split).
+_tool_use_report() {
+  local name from state p root brew formula split rc=0
+  formula="$(cfg_formula_name)" || return 1
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    state="$(tool_switch_state "$name" "$from")"
+    p="$(tool_link_path "$name")" || p="$name"
+    case "$state" in
+      "dev "*)
+        printf 'use: the link %s names the dev tree\n  %s\n' "$p" "$(tool_copy_line "$PROJECT_ROOT/$from" || printf '%s prints no version line' "$from")"
+        ;;
+      "at "*)
+        root="${state#at }"
+        printf 'use: the link %s names\n  %s\n' "$p" "$(_tool_link_tree_line "$root" "$name" || printf '%s, which records no version line' "$(_tool_state_words "$state")")"
+        ;;
+      none)
+        if brew="$(tool_brew_root "$formula")"; then
+          printf 'use: no link for %s, so brew\n  %s\n' "$name" "$(_tool_link_tree_line "$brew" "$name" || printf 'brew at %s, which records no version line' "$brew")"
+        else
+          printf 'use: no link for %s, so brew, and %s\n' "$name" "$(tool_brew_none_why "$formula")"
+          printf '  %s, or run bin/devbin use dev or opt in this checkout\n' "$(tool_brew_unplaced_fix "$formula")"
+          rc=1
+        fi
+        ;;
+      *)
+        warn "${state#bad }"
+        rc=1
+        ;;
+    esac
+  done <<<"$1"
+  if ! split="$(tool_set_split "$1")"; then
+    warn "$split"
+    rc=1
+  fi
+  return "$rc"
+}
+
+# tool_set_split <links> -- rc 1, saying how, when the link set serves more
+# than one tree (T5): the first link whose tree is not the first link's, named
+# by the tree each serves; rc 0, printing nothing, when every link it can
+# follow serves one. THE ONE RULE for a split: use's report and doctor's switch
+# rows both say its answer.
+#
+# A SPLIT IS NAMED BY THE TREES THE LINKS SERVE: dev, brew for no link, and
+# for a link into an install its tree's word with its root, so installs of one
+# word at different roots are told apart. A link it cannot follow is no tree to
+# compare: its own row says why.
+tool_set_split() {
+  local name from state key first="" first_state=""
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    state="$(tool_switch_state "$name" "$from")"
+    key="$(_tool_state_key "$state")" || continue
+    if [ -z "$first" ]; then
+      first="$key"
+      first_state="$state"
+    elif [ "$key" != "$first" ]; then
+      printf "the link set is split: %s serves %s, where the set's first link serves %s -- point them together with %s dev, opt or brew\n" \
+        "$name" "$(_tool_state_words "$state")" "$(_tool_state_words "$first_state")" "$(cfg_tool_verb switch)"
+      return 1
+    fi
+  done <<<"$1"
+  return 0
+}
+
+# _tool_state_key <state> -- what a split compares of tool_switch_state's
+# <state>: `dev`, `brew` for no link, or `at <root>`; rc 1 for a link it cannot
+# follow.
+_tool_state_key() {
+  case "$1" in
+    "dev "*) printf 'dev\n' ;;
+    "at "*) printf '%s\n' "$1" ;;
+    none) printf 'brew\n' ;;
+    *) return 1 ;;
+  esac
+}
+
+# _tool_state_words <state> -- the tree <state> serves, in words: `dev`,
+# `brew` for no link, or `<tree word> at <root>`.
+_tool_state_words() {
+  case "$1" in
+    "dev "*) printf 'dev\n' ;;
+    "at "*) printf '%s at %s\n' "$(tool_tree_word "${1#at }")" "${1#at }" ;;
+    *) printf 'brew\n' ;;
+  esac
+}
+
+# tool_copy_line <file> -- the version line <file> prints on --version, its
+# first line read up to the closing parenthesis (tree_line_head); rc 1,
+# printing nothing, when it prints none or will not run.
+tool_copy_line() {
+  local got
+  got="$("$1" --version 2>/dev/null)" || return 1
+  got="$(tree_line_head "${got%%$'\n'*}")"
+  [ -n "$got" ] || return 1
+  printf '%s\n' "$got"
+}
+
+# _tool_use_shadowed <links> <word> -- the shadow check for each link
+# (tool_link_shadow); rc 1 when any link is not what a login shell runs. With
+# <word>, the tree just chosen, each refusal says the links were pointed and
+# stay so, as devbin's own switch says it (issue 0275).
+_tool_use_shadowed() {
+  local name from why formula rc=0
+  formula="$(cfg_formula_name)" || return 1
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    why="$(tool_link_shadow "$formula" "$name")"
+    [ -n "$why" ] || continue
+    if [ -n "$2" ]; then
+      warn "use $2 pointed the link $(tool_link_path "$name"), and it stays pointed, but a login shell does not run it
+       $why
+       fix PATH as that says, or run bin/devbin use brew"
+    else
+      warn "$why"
+    fi
+    rc=1
+  done <<<"$1"
+  return "$rc"
+}
+
+# _tool_use_point_set <dev|opt> <links> -- point every link at the tree's copy,
+# each first found there: in dev the checkout's <from>, refusing one the build
+# has not made; in opt <prefix>/bin/<name>, refusing a prefix that holds no opt
+# install of the tool. Nothing is pointed until every copy is found.
+_tool_use_point_set() {
+  local word="$1" links="$2" name from prefix target formula
+  local -a names=() targets=()
+  formula="$(cfg_formula_name)" || return 1
+  if [ "$word" = opt ]; then
+    prefix="$(install_prefix_configured)" ||
+      die "no install prefix is configured for $formula, so there is no opt tree to point at
+       set install.prefix in this project's bin/.devbin/config.yaml"
+    [ "$(tool_tree_word "$prefix")" = opt ] ||
+      die "there is no opt install of $formula at $prefix
+       publish one:  bin/devbin install"
+  fi
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    if [ "$word" = dev ]; then
+      target="$PROJECT_ROOT/$from"
+      [ -e "$target" ] || die "the dev tree has no $from for the link $name
+       build it:  bin/devbin build"
+    else
+      target="$prefix/bin/$name"
+      [ -e "$target" ] || die "the opt install at $prefix has no bin/$name
+       republish it:  bin/devbin install --force"
+    fi
+    names+=("$name")
+    targets+=("$target")
+  done <<<"$links"
+  local i
+  for i in "${!names[@]}"; do
+    _tool_use_point "${names[$i]}" "${targets[$i]}"
+  done
+}
+
+# _tool_use_point <name> <target> -- point the link <name> at <target>. A file
+# standing where the link belongs is refused, never replaced: it is no choice
+# the switch made. An existing link is removed and made anew, never written
+# through.
+_tool_use_point() {
+  local p
+  p="$(tool_link_path "$1")" || die "there is no home directory to keep the link in"
+  if [ -e "$p" ] && [ ! -L "$p" ]; then
+    die "$p is not a link, so it is no choice bin/devbin use made -- move it aside, then run this again"
+  fi
+  mkdir -p "${p%/*}" || die "cannot create ${p%/*} for the link"
+  if [ -L "$p" ]; then rm -f "$p" || die "cannot remove the link $p"; fi
+  ln -s "$2" "$p" || die "cannot write the link $p"
+}
+
+# _tool_use_brew <links> -- remove the tool's whole link set, once each link
+# there is one into the tool's own trees and Homebrew's copy would answer for
+# each once it is gone (tool_brew_answer_state); otherwise refuse, removing
+# nothing, naming the link and why, with that cause's remedy.
+_tool_use_brew() {
+  local name from p state brew why formula
+  local -a gone=()
+  formula="$(cfg_formula_name)" || return 1
+  while IFS=$'\t' read -r name from; do
+    [ -n "$name" ] || continue
+    p="$(tool_link_path "$name")" || die "there is no home directory to look for the link in"
+    if [ -e "$p" ] && [ ! -L "$p" ]; then
+      die "$p is not a link, so it is no choice bin/devbin use made -- use brew leaves it: remove it by hand"
+    fi
+    [ -L "$p" ] || continue
+    state="$(tool_switch_state "$name" "$from")"
+    case "$state" in
+      "dev "* | "at "*) ;;
+      *) die "${state#bad }
+       it is not a link into a tree of $formula, so use brew leaves it: remove it by hand" ;;
+    esac
+    brew="$(tool_brew_answer_state "$formula" "$name")"
+    case "$brew" in
+      "brew "*) ;;
+      absent)
+        die "use brew removes nothing: no Homebrew $name would answer once the link is gone
+       $(tool_brew_none_why "$formula")
+       $(tool_brew_unplaced_fix "$formula"), then run bin/devbin use brew again, or stay on dev or opt" ;;
+      *)
+        why="$(tool_brew_path_why "$formula" "$name" "$brew" "$p")" ||
+          die "cannot tell what would answer $name on PATH once the link $p is gone: $brew"
+        die "use brew removes nothing: no Homebrew $name would answer once the link is gone
+       ${why%%$'\n'*}
+       ${why#*$'\n'}, then run bin/devbin use brew again, or stay on dev or opt" ;;
+    esac
+    gone+=("$p")
+  done <<<"$1"
+  [ "${#gone[@]}" -eq 0 ] || rm -f -- "${gone[@]}" || die "cannot remove the links: ${gone[*]}"
+}

@@ -358,10 +358,9 @@ commands:
 
   # THE CUT'S OWN STAGES (ST0091 WP-01). devbin's release core runs the cut, and
   # these are what it asks of this project: `preflight` at its pre-flight seam
-  # (`release.preflight`, once the devbin release that carries it, devbin 0327,
-  # is swept in) and `stamp` as `release.derived`. Each option runs one step of
-  # bin/.devbin/cut/<command>, which says what the step reads, writes and
-  # prints. Declared options rather than a handler in cmd/: a handler shadows
+  # as `release.preflight` (devbin 0327), and `stamp` as `release.derived`.
+  # Each option runs one step of bin/.devbin/cut/<command>, which says what
+  # the step reads, writes and prints. Declared options rather than a handler in cmd/: a handler shadows
   # every declared option (lib/resolve), so help would not list the steps.
   # `all` is synthesised from each list and runs it in this order.
   preflight:
@@ -497,6 +496,13 @@ commands:
 # the cargo steps and the shell suite. A host the pre-flight cannot reach is
 # named and recorded as not run.
 #
+# `preflight` IS INTENT'S OWN PRE-FLIGHT (ST0091 AC-01.3, devbin 0327): the
+# four read-only checks of bin/.devbin/cut/preflight, which the core runs at its
+# pre-flight, a dry run's included, after its own checks and before the
+# confirm, each refusal named beside the core's. One line a check, so every
+# refusal names its check. A live intentd refuses the cut here, before anything
+# is stamped.
+#
 # `derived` IS THE STAMP, in the order its steps run: bin/.devbin/cut/stamp says
 # what each writes, and why the lock comes before the schema.
 #
@@ -517,6 +523,11 @@ release:
     - local
     - upstream
   title: "Intent {tag}"
+  preflight:
+    - preflight clean
+    - preflight daemon
+    - preflight faces
+    - preflight spill
   gates:
     - gate all
     - test shell
@@ -544,20 +555,29 @@ release:
 # sums are on the release. The tap is the default the built-in derives from
 # release.repo, matthewsinclair/homebrew-intent. `release.formula` stays false
 # (the default), because the core's formula step runs before Intent's macOS
-# assets exist. The asset names are the ones 3.2.8 shipped, so no installed keg
-# and no formula line changes name.
+# assets exist. Each platform's asset is one archive rooted at the install root
+# (devbin 0329): on macOS, bin/intent, bin/intentd and the support tree, packed
+# by `bin/devbin macos pack`, as the Linux packages already are. A 3.2.8 keg is
+# untouched: `brew upgrade` reads the new formula, which names the new asset.
 formula:
   mode: assets
   template: packaging/homebrew/intent.rb
   cask: packaging/homebrew/intent-app.rb
   sums: SHA256SUMS
   assets:
-    - intent-aarch64-apple-darwin
-    - intentd-aarch64-apple-darwin
-    - intent-support.tar.gz
+    - intent-aarch64-apple-darwin.tar.gz
     - intent-x86_64-unknown-linux-musl.tar.gz
     - intent-aarch64-unknown-linux-musl.tar.gz
     - Intent.app.zip
-  bin:
-    - bin/intent
-    - bin/intentd
+
+# THE TOOL'S LINK SET (devbin 0331, 0332): intent and intentd, moved as one,
+# each built where the pair lands. The formula's generated install sets the
+# executable bit on both and links both, and devbin's doctor reads each link's
+# version line under its own name. Intent keeps its own switch and publish,
+# `intent use` and `intent install`.
+install:
+  switch: intent use
+  publish: intent install
+  links:
+    intent: native/rust/target/release/intent
+    intentd: native/rust/target/release/intentd

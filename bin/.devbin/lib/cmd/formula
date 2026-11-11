@@ -26,10 +26,14 @@
 #   assets   @@VERSION@@, the release's version, read from the tag through
 #            release.tag; @@SHA256:<asset>@@, one per asset in formula.assets,
 #            each read from the release's sums file, never computed here from
-#            a download; @@REVISION@@ where the template wants the tag's
-#            commit; and exactly one of @@INSTALL@@ or @@FINISH@@, the install
-#            body this generates (finish_ruby, below), which carries the
-#            executable bit, T3's manifest and the links.
+#            a download; and @@REVISION@@ where the template wants the tag's
+#            commit.
+#
+# AND IN BOTH, EXACTLY ONE @@INSTALL@@, THE FORMULA'S ONE INSTALL FORM (T8;
+# issue 0326): the body this generates (install_ruby, below), the core's
+# publish or the release's assets laid out with T3's manifest, then the tool's
+# link set (install.links). The template keeps what is its own, and lines after
+# @@INSTALL@@ in its install. @@FINISH@@, the second form, is retired.
 #
 # A placeholder left after filling is refused by name, so a misspelt one
 # cannot ship. In both modes the file written opens with a header of its own,
@@ -78,8 +82,8 @@ set -euo pipefail
 . "$DEVBIN_LIB/release.steps"
 
 # The formula's settings, read once by formula_settings.
-F_MODE="" F_NAME="" F_TEMPLATE="" F_CASK="" F_SUMS="" F_MANIFEST="" F_TPL=""
-F_ASSETS=() F_BIN=()
+F_MODE="" F_NAME="" F_TEMPLATE="" F_CASK="" F_SUMS="" F_MANIFEST="" F_TPL="" F_BASH=""
+F_ASSETS=() F_LINKS=()
 # What assets_check found, read by render_assets.
 ASSETS_WHY="" ASSETS_SEEN=()
 
@@ -287,7 +291,7 @@ is_ruby_word() {
 # formula_settings -- read the formula: block into the F_ globals, refusing a
 # setting the mode does not read, so nothing declared is silently ignored.
 formula_settings() {
-  local k v
+  local k v links name
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null ||
     die "cannot read the config at $DEVBIN_DIR/config.yaml (above)"
   F_MODE="$(cfg_formula_get mode)" || exit 1
@@ -297,34 +301,45 @@ formula_settings() {
   F_TEMPLATE="$(cfg_formula_get template)" || exit 1
   [ -n "$F_TEMPLATE" ] || F_TEMPLATE="packaging/homebrew/$F_NAME.rb"
   F_TPL="$(cfg_release_get tag)" || exit 1
+  # THE KEG'S EXECUTABLES ARE THE TOOL'S LINK SET (issue 0326), each at
+  # bin/<name> in the tree install and the assets' layout leave, so a link is
+  # named in the keg's paths and in brew's commands.
+  links="$(cfg_tool_links)" || die "cannot read the tool's link set, install.links (above)"
+  F_LINKS=()
+  while IFS=$'\t' read -r name _; do
+    [ -n "$name" ] || continue
+    is_ruby_word "$name" && [[ "$name" != */* ]] ||
+      die "the link '$name' holds a character a keg path never does (install.links)"
+    F_LINKS+=("$name")
+  done <<<"$links"
+  F_BASH=""
+  ! is_true_word "$(cfg_formula_get bash)" || F_BASH=yes
   case "$F_MODE" in
     source)
-      for k in repo manifest cask; do
+      for k in repo cask; do
         v="$(cfg_formula_get "$k")" || exit 1
         [ -z "$v" ] || die "formula.$k is declared, and formula.mode is source, which reads it nowhere"
       done
-      for k in assets bin; do
-        [ -z "$(cfg_formula_list "$k")" ] ||
-          die "formula.$k is declared, and formula.mode is source, which reads it nowhere"
-      done
+      [ -z "$(cfg_formula_list assets)" ] ||
+        die "formula.assets is declared, and formula.mode is source, which reads it nowhere"
       ;;
     assets)
       F_SUMS="$(cfg_formula_get sums)" || exit 1
       F_CASK="$(cfg_formula_get cask)" || exit 1
-      F_MANIFEST="$(cfg_formula_get manifest)" || exit 1
-      [ -n "$F_MANIFEST" ] || F_MANIFEST=".$F_NAME-install"
-      is_ruby_word "$F_MANIFEST" || die "formula.manifest '$F_MANIFEST' holds a character a keg path never does"
+      # The tool's own manifest, the one install writes too (issue 0326).
+      F_MANIFEST="$(cfg_tool_manifest)" || exit 1
+      is_ruby_word "$F_MANIFEST" || die "install.manifest '$F_MANIFEST' holds a character a keg path never does"
       mapfile -t F_ASSETS < <(cfg_formula_list assets)
-      mapfile -t F_BIN < <(cfg_formula_list bin)
       [ "${#F_ASSETS[@]}" -gt 0 ] || die "formula.mode is assets, and formula.assets names no asset"
       # As the release core names an asset (release_name_problem), {version}
       # aside, which each name may hold and the release's version fills.
+      # IN AN if, so the loop ends at 0 on names that are sound: its last
+      # `&& die` left 1, which errexit took for a failure once nothing ran
+      # after the loop (issue 0326).
       for v in "${F_ASSETS[@]}"; do
-        k="$(release_name_problem "${v//"{version}"/0.0.0}")" && die "formula.assets '$v': $k"
-      done
-      [ "${#F_BIN[@]}" -gt 0 ] || die "formula.mode is assets, and formula.bin names no executable for the keg"
-      for v in "${F_BIN[@]}"; do
-        is_ruby_word "$v" || die "formula.bin '$v' holds a character a keg path never does"
+        if k="$(release_name_problem "${v//"{version}"/0.0.0}")"; then
+          die "formula.assets '$v': $k"
+        fi
       done
       ;;
     *) die "formula.mode '$F_MODE' is not a mode: use source or assets" ;;
@@ -358,7 +373,12 @@ render_source() {
   [ -n "$TPL_BODY" ] || die "$F_TEMPLATE holds nothing after its header, so there is no formula to render"
   why="$(formula_refusal "$TPL_BODY" "$tag")"
   [ -z "$why" ] || die "$F_TEMPLATE: $why"
+  why="$(install_refusal "$TPL_BODY" "$F_TEMPLATE")"
+  [ -z "$why" ] || die "$why"
   filled="$(formula_fill "$TPL_BODY" "$tag" "$commit" && printf .)"
+  filled="${filled%.}"
+  filled="$(fill_block "$filled" @@INSTALL@@ "$(install_ruby source)" && printf .)" ||
+    die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
   filled="${filled%.}"
   left="$(leftover_placeholder "$filled")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder source mode fills, and it would ship as written"
@@ -401,34 +421,74 @@ sums_of() {
   done <<<"$1"
 }
 
-# finish_ruby <version> <commit> -- the install body's closing lines, one per
-# line and unindented, for @@FINISH@@: 0755 on each of formula.bin, T3's
-# manifest under libexec, and a link in bin for each. Pure.
+# install_ruby <source|assets> [<version> <commit>] -- the install body render
+# writes for @@INSTALL@@, one line per line and unindented (fill_block indents
+# it): a note that it is generated, then the publish or the assets' layout,
+# then the tool's link set (links_ruby). Pure.
+#
+# ONE FORM FOR EVERY FORMULA (T8; issue 0326). A tag's checkout holds
+# bin/devbin, and the core publishes it (publish_ruby), writing T3's manifest
+# itself: that is source mode's whole body. An assets formula may build one
+# platform from the tag's checkout and install the release's assets on
+# another, so its body asks the stage which it holds: the core's publish where
+# it holds bin/devbin, and otherwise the assets' layout (assets_ruby).
+install_ruby() {
+  local line
+  printf '%s\n' "# GENERATED by devbin's formula built-in: the publish, or the release's" \
+    "# assets laid out with T3's manifest, then the tool's link set."
+  if [ "$1" = source ]; then
+    publish_ruby
+  else
+    printf '%s\n' 'if (buildpath/"bin/devbin").exist?'
+    printf '  %s\n' "$(publish_ruby)"
+    printf '%s\n' 'else'
+    while IFS= read -r line; do
+      printf '  %s\n' "$line"
+    done < <(assets_ruby "$2" "$3")
+    printf '%s\n' 'end'
+  fi
+  links_ruby
+}
+
+# publish_ruby -- the core's publish from a tag's checkout into the keg, which
+# install marks Homebrew's (docs/dev-opt-brew.md, T2 and T8). Pure.
+publish_ruby() {
+  printf '%s\n' 'system "bin/devbin", "install", "--prefix", libexec, "--managed-by", "brew"'
+}
+
+# assets_ruby <version> <commit> -- the release's assets laid out in libexec,
+# one line per line and unindented: every file the stage holds, 0755 on each of
+# the tool's links at bin/<name>, and T3's manifest. Pure.
+#
+# AN ASSET IS PACKED ROOTED AT THE INSTALL ROOT (issue 0326), each link at
+# bin/<name> and each other runtime file at its place, as the release's own
+# archive packs it. Homebrew enters an archive's one top-level directory before
+# the install runs, so one that holds only bin/ stages as bin's own files, and
+# those go into libexec/bin.
 #
 # EACH LINE ANSWERS A WAY A RELEASE-ASSET KEG FAILS. GitHub serves a release
-# asset with no executable bit, and
-# Homebrew's install keeps the mode it is given, so a keg without the chmod
-# installs and nothing in it runs. The manifest is T3's form (docs/dev-opt-brew.md):
-# `# key: value` header lines carrying tool, version, source_commit and
-# managed_by: brew, then one `<sha256>  <path>` line per file under libexec, the
-# manifest itself left out, sorted bytewise, as `LC_ALL=C sort` sorts and Ruby
-# sorts strings. It is written inside brew's install because the keg is where
-# the files are, and no devbin is there to list them: this Ruby is that lister's
-# one copy, generated here for every formula that asks.
+# asset with no executable bit, and Homebrew's install keeps the mode it is
+# given, so a keg without the chmod installs and nothing in it runs. The
+# manifest is T3's form (docs/dev-opt-brew.md): `# key: value` header lines
+# carrying tool, version, source_commit and managed_by: brew, and the keg's
+# version line under `line`, which a compiled binary prints from it (T4), then
+# one `<sha256>  <path>` line per file under libexec, the manifest itself left
+# out, sorted bytewise, as `LC_ALL=C sort` sorts and Ruby sorts strings. It is
+# written inside brew's install because the keg is where the files are, and no
+# devbin is there to list them: this Ruby is that lister's one copy, generated
+# here for every formula that installs assets.
 #
 # THE MANIFEST'S HEADER IS ONE ELEMENT A LINE (issue 0322). Written as one
 # array on one line, the name, the version and the commit together ran past the
 # line length Homebrew's style allows (its Layout/LineLength), so `brew style`
 # refused every render. Each element has a line of its own, and the array ends
 # with the trailing comma Homebrew's style asks of a multi-line one.
-finish_ruby() {
-  local b
-  printf '%s\n' "# GENERATED by devbin's formula built-in from formula.bin and"
-  printf '%s\n' "# formula.manifest: the executable bit, which a release asset"
-  printf '%s\n' "# arrives without; the install's manifest in the dev/opt/brew contract's T3"
-  printf '%s\n' "# form; and the links."
-  for b in "${F_BIN[@]}"; do
-    printf 'chmod 0755, libexec/"%s"\n' "$b"
+assets_ruby() {
+  local n
+  printf '%s\n' 'if buildpath.basename.to_s == "bin"' '  (libexec/"bin").install Dir["*"]' 'else' \
+    '  libexec.install Dir["*"]' 'end'
+  for n in "${F_LINKS[@]}"; do
+    printf 'chmod 0755, libexec/"bin/%s"\n' "$n"
   done
   printf 'files = Dir.glob("**/*", File::FNM_DOTMATCH, base: libexec).select do |f|\n'
   printf '  (libexec/f).file? && !(libexec/f).symlink? && f != "%s"\n' "$F_MANIFEST"
@@ -437,38 +497,99 @@ finish_ruby() {
   printf '  "# tool: %s",\n' "$F_NAME"
   printf '  "# version: %s",\n' "$1"
   printf '  "# source_commit: %s",\n' "$2"
-  printf '%s\n' '  "# managed_by: brew",' ']'
+  printf '%s\n' '  "# managed_by: brew",'
+  printf '  "# line: %s",\n' "$(tool_line "$F_NAME" "$1" brew "$2")"
+  printf '%s\n' ']'
   printf 'lines += files.sort.map { |f| "#{(libexec/f).sha256}  #{f}" }\n'
   printf '(libexec/"%s").write("#{lines.join("\\n")}\\n")\n' "$F_MANIFEST"
-  for b in "${F_BIN[@]}"; do
-    printf 'bin.install_symlink libexec/"%s"\n' "$b"
+}
+
+# links_ruby -- the tool's link set into the keg's bin, one line per line and
+# unindented: a link to libexec/bin/<name> for each, or, where formula.bash is
+# true, on macOS an env script for each that puts the formula's bash first on
+# PATH, since macOS's own bash is below a bash tool's floor and a process
+# started without Homebrew's PATH finds it first. Pure.
+links_ruby() {
+  local n
+  if [ -n "$F_BASH" ]; then
+    printf '%s\n' 'if OS.mac?'
+    for n in "${F_LINKS[@]}"; do
+      # shellcheck disable=SC2016 # the $PATH and the #{} are the env script's, written as Ruby reads them
+      printf '  (bin/"%s").write_env_script libexec/"bin/%s", PATH: "#{formula_opt_bin("bash")}:$PATH"\n' "$n" "$n"
+    done
+    printf '%s\n' 'else'
+    for n in "${F_LINKS[@]}"; do
+      printf '  bin.install_symlink libexec/"bin/%s"\n' "$n"
+    done
+    printf '%s\n' 'end'
+    return 0
+  fi
+  for n in "${F_LINKS[@]}"; do
+    printf 'bin.install_symlink libexec/"bin/%s"\n' "$n"
   done
 }
 
-# install_ruby <version> <commit> -- the whole install body for @@INSTALL@@:
-# everything the release's archive holds into libexec, then finish_ruby's lines.
-# Pure. For an asset that is a tarball rooted at the install root; a template
-# whose assets need laying out writes its own install and ends it with @@FINISH@@.
-install_ruby() {
-  printf '%s\n' 'libexec.install Dir["*"]'
-  finish_ruby "$@"
+# install_before <text> -- the first line of the formula template body <text>'s
+# install, `def install`, that is neither blank nor a comment and comes before
+# the line holding @@INSTALL@@, trimmed; nothing where none does, or where the
+# body has no such install. Pure.
+install_before() {
+  awk '
+    !inside && /^[[:blank:]]*def install[[:blank:]]*(#.*)?$/ { inside = 1; next }
+    inside && /@@INSTALL@@/ { exit }
+    inside && !/^[[:blank:]]*(#.*)?$/ { sub(/^[[:blank:]]+/, ""); sub(/[[:blank:]]+$/, ""); print; exit }
+  ' <<<"$1"
+}
+
+# install_refusal <text> <what> -- why the formula template body <text> (named
+# <what>) holds no install body render can fill, or nothing (issue 0326):
+# exactly one @@INSTALL@@, the body devbin generates, and no @@FINISH@@, the
+# form it retired; nothing but blank and comment lines before @@INSTALL@@ in
+# the template's install (install_before, issue 0329), since no template lays
+# its assets out by hand (docs/dev-opt-brew.md T8); and where formula.bash is
+# true, a template that depends on bash, whose bin the env scripts name. Pure.
+install_refusal() {
+  local n before
+  if [ "$(placeholder_count "$1" @@FINISH@@)" != 0 ]; then
+    printf '%s holds @@FINISH@@, which is retired: the install body is @@INSTALL@@ alone, which devbin generates whole, and lines the template keeps go after it\n' "$2"
+    return 0
+  fi
+  n="$(placeholder_count "$1" @@INSTALL@@)"
+  if [ "$n" != 1 ]; then
+    printf '%s holds %s @@INSTALL@@, and a formula holds exactly one, the install body devbin generates\n' "$2" "$n"
+    return 0
+  fi
+  before="$(install_before "$1")"
+  if [ -n "$before" ]; then
+    printf '%s runs "%s" in its install before @@INSTALL@@, and no template lays its assets out by hand (docs/dev-opt-brew.md T8): the install body devbin generates lays out the stage it is given, and lines the template keeps go after @@INSTALL@@ -- pack each asset rooted at the install root\n' "$2" "$before"
+    return 0
+  fi
+  if [ -n "$F_BASH" ] && ! [[ $'\n'$1 =~ $'\n'[[:blank:]]*depends_on\ \"bash\" ]]; then
+    printf '%s does not depend on bash, and formula.bash is true, whose env scripts name the bin of the bash the formula depends on\n' "$2"
+  fi
 }
 
 # fill_block <text> <placeholder> <block> -- <text> with the line holding only
-# <placeholder> replaced by <block>, each of its lines indented as that line is.
-# Pure. Fails, printing nothing, when <placeholder> does not stand alone on its
-# line.
+# <placeholder> replaced by <block>, each of its lines indented as that line is
+# and ended as it is: a template checked out with CRLF line ends (issue 0257)
+# gets the block's lines in CRLF too, so a source template under autocrlf
+# renders as an LF one does (issue 0326). Pure. Fails, printing nothing, when
+# <placeholder> does not stand alone on its line.
 fill_block() {
-  local text="$1" ph="$2" block="$3" head tail indent line out=""
+  local text="$1" ph="$2" block="$3" head tail indent line out="" eol=$'\n'
   head="${text%%"$ph"*}"
   tail="${text#*"$ph"}"
   indent="${head##*$'\n'}"
   [[ "$indent" =~ ^[[:blank:]]*$ ]] || return 1
-  case "$tail" in "" | $'\n'*) ;; *) return 1 ;; esac
+  case "$tail" in
+    $'\r\n'*) eol=$'\r\n' ;;
+    "" | $'\n'*) ;;
+    *) return 1 ;;
+  esac
   while IFS= read -r line; do
-    if [ -n "$line" ]; then out+="$indent$line"$'\n'; else out+=$'\n'; fi
+    if [ -n "$line" ]; then out+="$indent$line$eol"; else out+="$eol"; fi
   done <<<"$block"
-  printf '%s' "${head%"$indent"}${out%$'\n'}$tail"
+  printf '%s' "${head%"$indent"}${out%"$eol"}$tail"
 }
 
 # assets_check <text> <what> <formula|cask> -- why the assets-mode template
@@ -496,10 +617,8 @@ assets_check() {
   ins="$(placeholder_count "$text" @@INSTALL@@)"
   fin="$(placeholder_count "$text" @@FINISH@@)"
   if [ "$kind" = formula ]; then
-    if [ "$((ins + fin))" != 1 ]; then
-      ASSETS_WHY="$what holds $ins @@INSTALL@@ and $fin @@FINISH@@, and a formula holds exactly one of the two, the install body devbin generates"
-      return 0
-    fi
+    ASSETS_WHY="$(install_refusal "$text" "$what")"
+    [ -z "$ASSETS_WHY" ] || return 0
     url="$(grep -E '^  url "' <<<"$text" || true)"
     if [ -z "$url" ]; then
       ASSETS_WHY="$what has no url at top level (two spaces in, inside the class), and brew refuses a tap whose formula has no url on some OS"
@@ -540,11 +659,7 @@ assets_fill() {
     text="${text//"@@SHA256:$a@@"/"$sha"}"
   done
   if [ "$kind" = formula ]; then
-    if [ "$(placeholder_count "$text" @@INSTALL@@)" = 1 ]; then
-      text="$(fill_block "$text" @@INSTALL@@ "$(install_ruby "$version" "$commit")" && printf .)" || return 1
-    else
-      text="$(fill_block "$text" @@FINISH@@ "$(finish_ruby "$version" "$commit")" && printf .)" || return 1
-    fi
+    text="$(fill_block "$text" @@INSTALL@@ "$(install_ruby assets "$version" "$commit")" && printf .)" || return 1
     text="${text%.}"
   fi
   printf '%s' "$text"
@@ -612,7 +727,7 @@ render_assets() {
       die "the release's sums file names no asset ${a//"{version}"/"$version"}, so its sha256 is not known and nothing was rendered"
   done
   out="$(assets_fill "$text" "$version" "$commit" "$sums" formula && printf .)" ||
-    die "$F_TEMPLATE: @@INSTALL@@ or @@FINISH@@ does not stand alone on its line"
+    die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
   out="${out%.}"
   left="$(leftover_placeholder "$out")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder assets mode fills, and it would ship as written"

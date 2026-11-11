@@ -8,8 +8,9 @@
 # all` runs the four. They are the cut's pre-flight seam: devbin's release core
 # runs `release.preflight` at its pre-flight, a dry run included, and a check
 # that refuses joins the refusals pre-flight collects, before the confirm step
-# asks and before anything is stamped (devbin 0327). Until Intent sweeps in the
-# devbin release that carries the seam, they run by hand.
+# asks and before anything is stamped (devbin 0327). bin/.devbin/config.yaml
+# declares the four as `release.preflight`, and the core hands each the
+# release's target as DEVBIN_RELEASE_VERSION and DEVBIN_RELEASE_TARGET_TAG.
 #
 # EACH CHECK WRITES NOTHING: the seam refuses a change one of them makes to the
 # tree, as it refuses a gate's, and git is read without its optional locks. A
@@ -56,12 +57,20 @@ refuse() {
 # then every derived step again. Refusing that dirt would refuse the core's own
 # resume, so the check stands down while the version file differs from HEAD's,
 # and the core's tree rule judges what lies outside the release's files. The
-# version file stands in for whether a stamp has begun: one edited by hand
-# before the cut reads as a stamp in progress.
+# version file stands in for whether a stamp has begun, and under the cut it
+# must read the release's own version, DEVBIN_RELEASE_VERSION, which `version
+# set` writes: one edited by hand to anything else is refused rather than read
+# as a stamp in progress. Run by hand the variable is unset, and any version
+# file that differs from HEAD's reads as a stamp begun.
 check_clean() {
-  local have head dirt
+  local have head want dirt
   have="$(release_version_file "$PROJECT_ROOT")" || exit 1
   head="$(release_head_version "$PROJECT_ROOT")" || exit 1
+  want="${DEVBIN_RELEASE_VERSION:-}"
+  if [ "$have" != "$head" ] && [ -n "$want" ] && [ "$have" != "$want" ]; then
+    refuse "${DEVBIN_VERSION_FILE:-VERSION} reads $have, which is neither HEAD's $head nor the release's $want, so it is no stamp of this release" \
+      "set ${DEVBIN_VERSION_FILE:-VERSION} back to $head, $AGAIN"
+  fi
   if [ "$have" != "$head" ]; then
     printf 'ok: %s reads %s and HEAD has %s, so a stamp has begun and the core judges the dirt\n' \
       "${DEVBIN_VERSION_FILE:-VERSION}" "$have" "$head"

@@ -217,8 +217,15 @@ main() {
   # that already exist rather than from a path or a project name, neither of
   # which is a fact about what the tree IS. The install tree reads as a consumer
   # here, which is correct: it is consumer-shaped by design.
+  #
+  # AND A PROJECT'S OWN TOOL IS PUBLISHED FROM ITS CHECKOUT (issue 0326): with
+  # no --into, a project whose config declares a tool (cfg_is_tool) publishes
+  # that tool to its prefix (tool_publish, lib/tool), as devbin's own tree
+  # publishes devbin. Anywhere else is VENDOR, as before.
   if [ -z "$into" ] && is_devbin_dev_tree "$srcroot"; then
     mode=publish
+  elif [ -z "$into" ] && cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 && cfg_is_tool; then
+    mode=tool
   else
     mode=vendor
   fi
@@ -226,22 +233,46 @@ main() {
   # A flag that is meaningless in the mode you are actually in is a usage error,
   # not something to ignore. Silently discarding --prefix would publish to the
   # configured location while the operator believed they had redirected it.
-  if [ -n "$prefix" ] && [ "$mode" != publish ]; then
-    die "--prefix applies only when publishing from devbin's own source tree
+  if [ -n "$prefix" ] && [ "$mode" = vendor ]; then
+    die "--prefix applies only when publishing, from devbin's own source tree or a project's that declares its tool
        you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')
        to publish:  cd <the devbin source tree> && bin/devbin install"
   fi
-  if [ -n "$managed" ] && [ "$mode" != publish ]; then
-    die "--managed-by applies only when publishing from devbin's own source tree
+  if [ -n "$managed" ] && [ "$mode" = vendor ]; then
+    die "--managed-by applies only when publishing, from devbin's own source tree or a project's that declares its tool
        you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')"
   fi
   # AND THE MIRROR (issue 0103): a VENDOR flag while publishing was dropped in
   # silence. Publishing writes no config, so --name, --alias and --lang have
-  # nothing to act on. --force is both modes': it replaces what is there.
-  if [ -n "$vendor_only" ] && [ "$mode" = publish ]; then
+  # nothing to act on. --force is every mode's: it replaces what is there.
+  if [ -n "$vendor_only" ] && [ "$mode" != vendor ]; then
     die "${vendor_only# } applies only when vendoring into a project
-       you are in PUBLISH mode, in devbin's own source tree with no --into
+       you are in PUBLISH mode, in a tree that publishes, with no --into
        to vendor:  $DEVBIN_INVOKE install --into <project>${vendor_only}"
+  fi
+
+  # A PROJECT'S TOOL publishes and returns here: it vendors nothing, so none of
+  # what follows, devbin's own publish and the vendor, is its.
+  if [ "$mode" = tool ]; then
+    # A TOOL THAT KEEPS ITS OWN PUBLISH (install.publish; issue 0332) has its opt
+    # tree written by that command alone, so the publish refuses here, writing
+    # nothing, and names it. A keg is brew's tree, not the tool's opt tree, so
+    # the formula's publish into one, --managed-by brew, is not refused.
+    local own
+    own="$(cfg_tool_own publish)" || die "cannot read install.publish from this checkout's config"
+    [ -z "$own" ] || [ "$managed" = brew ] ||
+      die "$(cfg_formula_name) keeps its own publish, install.publish: run $own -- $DEVBIN_INVOKE install publishes no opt tree of it"
+    # shellcheck source=lib/tool
+    . "$DEVBIN_LIB/tool"
+    if [ -z "$prefix" ]; then
+      prefix="$(install_prefix_configured)" ||
+        die "no install prefix is configured for $(cfg_formula_name), and there is no default
+       set install.prefix in this project's bin/.devbin/config.yaml, or pass --prefix <dir> for a single run"
+    fi
+    printf "mode: PUBLISH -- %s is the checkout of %s, this project's tool\n" "$srcroot" "$(cfg_formula_name)"
+    printf '  publishing to: %s\n\n' "$prefix"
+    tool_publish "$prefix" "$force" "$managed"
+    return $?
   fi
 
   # And what KIND of tree it is, which the manifest records (issue 0153), asked

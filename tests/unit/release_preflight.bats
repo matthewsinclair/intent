@@ -3,11 +3,11 @@
 #
 # ST0091 AT-01.3 cites this file for AC-01.3.
 #
-# devbin's release core will run these at its pre-flight, a dry run included,
-# once the devbin release carrying the seam (devbin 0327) is swept in; until
-# then they run by hand, and these arms drive each check as the seam will: in a
-# scratch repository with PROJECT_ROOT pointed at it, a stub standing in for the
-# release pair's CLI where the check asks it something. Each check writes
+# devbin's release core runs these at its pre-flight, a dry run included, as
+# `release.preflight` (devbin 0327); release_preflight_seam.bats proves the
+# seam. These arms drive each check as the seam does: in a scratch repository
+# with PROJECT_ROOT pointed at it, a stub standing in for the release pair's
+# CLI where the check asks it something. Each check writes
 # nothing, refuses on stderr with the remedy, and passes with one `ok:` line.
 
 load "../lib/test_helper.bash"
@@ -86,6 +86,24 @@ err_has() {
   check clean
   assert_success
   assert_output_contains "a stamp has begun"
+}
+
+@test "AT-01.3: clean: under the cut, a VERSION reading the release's own version is a stamp begun, and the check stands down" {
+  make_repo
+  printf '3.3.0\n' >"$REPO/VERSION"
+  printf 'stamped\n' >>"$REPO/CLAUDE.md"
+  DEVBIN_RELEASE_VERSION=3.3.0 check clean
+  assert_success
+  assert_output_contains "a stamp has begun"
+}
+
+@test "AT-01.3: clean: under the cut, a VERSION reading neither HEAD's nor the release's version is refused, not read as a stamp" {
+  make_repo
+  printf '3.2.9\n' >"$REPO/VERSION"
+  DEVBIN_RELEASE_VERSION=3.3.0 check clean
+  assert_failure
+  err_has "VERSION reads 3.2.9, which is neither HEAD's 3.2.0 nor the release's 3.3.0"
+  err_has "set VERSION back to 3.2.0"
 }
 
 @test "AT-01.3: clean: a clean tree passes" {

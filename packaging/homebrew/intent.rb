@@ -18,34 +18,22 @@ class Intent < Formula
   # architecture overrides it inside `on_linux`, below.
   # There is no `version` line because brew reads it from the /v<version>/ path,
   # and `brew audit --strict` refuses the redundant one.
-  url "https://github.com/matthewsinclair/intent/releases/download/v@@VERSION@@/intent-aarch64-apple-darwin"
-  sha256 "@@SHA256:intent-aarch64-apple-darwin@@"
+  url "https://github.com/matthewsinclair/intent/releases/download/v@@VERSION@@/intent-aarch64-apple-darwin.tar.gz"
+  sha256 "@@SHA256:intent-aarch64-apple-darwin.tar.gz@@"
   license "MIT"
 
   # On macOS it is arm64 only, by ruling (hv, 2026-08-15) rather than by
   # omission, and TRUE BY CONSTRUCTION through the dependency line inside
-  # `on_macos`, which is what a platform limit in a formula is for. Both macOS
-  # binaries are Developer ID signed and notarised; nothing is stapled, because a
-  # bare Mach-O has nowhere to hold a ticket and Gatekeeper checks online. On
-  # Linux (hv, 2026-10-14) the package for the machine's architecture carries
-  # both binaries, built static against musl, and the support tree. (No comment
+  # `on_macos`, which is what a platform limit in a formula is for. On macOS one
+  # archive carries both binaries, Developer ID signed and notarised, and the
+  # support tree (devbin 0329); nothing is stapled, because a Mach-O has nowhere
+  # to hold a ticket and Gatekeeper checks online. On Linux (hv, 2026-10-14) the
+  # package for the machine's architecture carries both binaries, built static
+  # against musl, and the support tree. (No comment
   # line here may open with the dependency keyword: `brew audit` reads that as a
   # commented-out dependency and refuses it.)
   on_macos do
     depends_on arch: :arm64
-
-    resource "intentd" do
-      url "https://github.com/matthewsinclair/intent/releases/download/v@@VERSION@@/intentd-aarch64-apple-darwin"
-      sha256 "@@SHA256:intentd-aarch64-apple-darwin@@"
-    end
-
-    # The support tree the binaries read and exec: templates, hooks, guards, the
-    # rule library, skills and subagents. Not signed and not notarised -- there
-    # is no Mach-O in it. See SUPPORT_PATHS in bin/.devbin/cmd/shared/support.lib.
-    resource "support" do
-      url "https://github.com/matthewsinclair/intent/releases/download/v@@VERSION@@/intent-support.tar.gz"
-      sha256 "@@SHA256:intent-support.tar.gz@@"
-    end
   end
 
   on_linux do
@@ -73,31 +61,16 @@ class Intent < Formula
   # a directory called `templates` into `#{HOMEBREW_PREFIX}/lib`. `libexec` is
   # not linked, so the tree stays private to this keg.
   #
-  # The end of `install` is devbin's generated block, below: the executable bit,
-  # which a release asset arrives without and Homebrew's `.install` keeps (the
-  # v3.0.0 tap installed and nothing ran, 2026-08-26); T3's manifest under
-  # libexec, which makes `intent doctor` and `intent use` read this keg as the
-  # brew tree; and the links into bin.
+  # `install` is devbin's generated block alone (T8). Each platform's archive is
+  # the install root under one top-level directory, which Homebrew enters, so the
+  # block lays it into libexec; sets the executable bit on each binary the link
+  # set names, which a release asset arrives without and Homebrew's `.install`
+  # keeps (the v3.0.0 tap installed and nothing ran, 2026-08-26); writes T3's
+  # manifest under libexec, with the version line, which makes `intent doctor`
+  # and `intent use` read this keg as the brew tree; and links intent and intentd
+  # into bin.
   def install
-    if OS.mac?
-      (libexec/"bin").install Dir["intent-*"].first => "intent"
-      resource("intentd").stage do
-        (libexec/"bin").install Dir["intentd-*"].first => "intentd"
-      end
-      # The archive is rooted at the install root, so this stays correct when the
-      # shipped set grows -- it installs whatever the tarball carries rather than
-      # naming `templates` and having to change when something joins it.
-      resource("support").stage do
-        libexec.install Dir["*"]
-      end
-    else
-      # The Linux package is the install root already, under the one top-level
-      # directory brew strips when it unpacks: bin/intent and bin/intentd, and
-      # the support tree beside them (bin/int linux package).
-      libexec.install Dir["*"]
-    end
-
-    @@FINISH@@
+    @@INSTALL@@
   end
 
   # A CAVEAT, NOT A post_install, AND THE CHOICE WAS DRIVEN (dc, 2026-09-11).

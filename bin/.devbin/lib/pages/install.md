@@ -118,6 +118,10 @@ An install has no author, so nothing in it is preserved: every file the source s
 
 Replacing the install moves no project: each keeps the bytes it has until it is upgraded.
 
+## A project's own tool
+
+In a project whose `bin/.devbin/config.yaml` declares its tool in an `install:` block, `bin/devbin install` run in its checkout publishes the tool, not devbin: its links at `bin/<name>` and the files it declares, built first by the project's own `build` where the set holds what a build makes, to `install.prefix` or `--prefix`, with the manifest the dev/opt/brew contract fixes, naming the tool, its version, its commit and its version line. It refuses inputs that differ from HEAD, naming each, a prefix holding another tool's install or files no install wrote, and the tool's own install without `--force`; `--managed-by brew` marks a keg, as the formula's install does. Where the tool keeps its own publish, `install.publish`, the publish refuses, naming its command, and writes nothing; `--managed-by brew` and `--into` are not refused. `install --into <dir>` still vendors devbin, from any tree.
+
 ## Provenance is transitive
 
 A project vendored from an install records the commit the install was cut from, not "not a git checkout": an install is not a git repository, so re-deriving the commit at the second hop would answer nothing, and the install's own stamp is forwarded instead.

@@ -97,8 +97,8 @@ else
     "read why from \`bin/devbin build all\`'s output above (a dirty tree builds into a private target), $AGAIN"
 fi
 
-# The macOS assets, by the names 3.2.8 shipped: the CLI and the daemon for the
-# host triple, the support tree and the app.
+# The macOS assets: the one archive holding both binaries and the support tree
+# (devbin 0329), and the app.
 mac_assets="$(brew_macos_assets)
 $APP_ASSET"
 published="$(gh release view "$tag" --repo "$REPO" --json assets -q '.assets[].name')" ||

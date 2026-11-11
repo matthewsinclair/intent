@@ -53,6 +53,22 @@
 # worst decides (cistate_rank): failed (any conclusion but success, a cancelled
 # one included) over one still going over green.
 #
+# AN EARLIER ATTEMPT'S RUNS ARE PASSED OVER (issue 0330). A cut that stops after
+# its candidate push deletes the candidate, and GitHub cancels the run that
+# push started; a resume pushes the candidate again, and the cancelled run
+# stays listed at the same sha on the same branch, where the worst would decide.
+# So with a ref, DEVBIN_RELEASE_PASSED_OVER names the ids of the runs the cut
+# found on it before its own push (`ci-state --runs`, below), and no verdict
+# ranks them: each is named after the detail, `passed over run <id>
+# (<conclusion>), from before this push`, and with only such runs the verdict is
+# none. A value that is not run ids is unknown. Ids, not a time: a bound on a
+# run's creation would compare the cut's clock with GitHub's.
+#
+# THE RUNS, `ci-state --runs <sha>`: the ids of the workflow's runs at <sha> on
+# the ref DEVBIN_RELEASE_TAG names, one a line, which the cut reads before its
+# candidate push. One it cannot read whole exits 1, naming why, since a list
+# that may be cut short would pass over too few.
+#
 # IT NEVER GUESSES. Every gh call goes through release_gh, the core's one door
 # to gh. A gh that is not installed, a call that fails, a list as long as the
 # limit it was given, and a git that cannot answer about a commit the walk
@@ -126,23 +142,29 @@ set -euo pipefail
 # release_repo, the repository gh is told about, and release_gh, every gh call.
 . "$DEVBIN_LIB/release.steps"
 
-# The settings, read once by cistate_settings, and the file gh's and git's
-# words land in, a global so the exit trap can read it from wherever the script
-# exits.
-CS_REPO="" CS_WORKFLOW="" CS_SUMMARY="" CS_ERR=""
+# The settings, read once by cistate_settings, the file gh's and git's words
+# land in, a global so the exit trap can read it from wherever the script
+# exits, and the run ids DEVBIN_RELEASE_PASSED_OVER names (cistate_passed_set).
+CS_REPO="" CS_WORKFLOW="" CS_SUMMARY="" CS_ERR="" CS_PASSED=""
 
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE ci-state <sha>
+       $DEVBIN_INVOKE ci-state --runs <sha>
        $DEVBIN_INVOKE ci-state --fires <ref> <sha> [<path>...]
 
   <sha>          the full sha of the commit CI's verdict is read for: one line,
                  <verdict><TAB><detail>, the verdict green, failed, pending,
                  none or unknown. With DEVBIN_RELEASE_TAG set, only the runs of
-                 that tag, or of that branch, count. The runs are
-                 release.ci.workflow's (default tests.yml), and a run's verdict
-                 is release.ci.summary's job, or the run's own conclusion when
-                 none is declared; a failed one names its failed jobs
+                 that tag, or of that branch, count, and the runs
+                 DEVBIN_RELEASE_PASSED_OVER names, by id, are passed over, each
+                 named. The runs are release.ci.workflow's (default
+                 tests.yml), and a run's verdict is release.ci.summary's job,
+                 or the run's own conclusion when none is declared; a failed
+                 one names its failed jobs
+  --runs <sha>   the ids of release.ci.workflow's runs at <sha> on the ref
+                 DEVBIN_RELEASE_TAG names, one a line, which a cut reads before
+                 its candidate push and passes over in its later reads
   --fires <ref>  whether a push of the branch <ref> starts release.ci.workflow,
                  as committed at <sha>: one line, <word><TAB><reason>, the word
                  fires, quiet, missing or unknown; <path>... are the files the
@@ -201,8 +223,9 @@ cistate_summary_in() {
 # they are the run's own, and `nosummary` for a finished run with no summary
 # job; <jobs> is what a failed verdict would say of the run's jobs
 # (cistate_failed_jobs), read from the one job list the summary was found in,
-# or `-` when no job list was read. Returns 1, gh's words on stderr, when a
-# run's jobs cannot be read.
+# or `-` when no job list was read. A run CS_PASSED names, an earlier
+# attempt's, does not count with <ref> given (cistate_passed_over names it).
+# Returns 1, gh's words on stderr, when a run's jobs cannot be read.
 cistate_rows() {
   local ref="$2" id head st con jobs job fj jst jcon
   # The head sha and the created time are the attach's to read, not this.
@@ -210,6 +233,7 @@ cistate_rows() {
     [ -n "$id" ] || continue
     dash_to_empty head
     [ -z "$ref" ] || [ "$head" = "$ref" ] || continue
+    [ -z "$ref" ] || ! cistate_is_passed "$id" || continue
     if [ -z "$CS_SUMMARY" ]; then
       printf '%s\t%s\t%s\t%s\t%s\n' "$id" "$st" run - "$con"
       continue
@@ -227,6 +251,47 @@ cistate_rows() {
     fi
   done <<<"$1"
   return 0
+}
+
+# cistate_is_passed <id> -- true when CS_PASSED names the run <id>. Pure.
+cistate_is_passed() {
+  case " $CS_PASSED " in *" $1 "*) return 0 ;; esac
+  return 1
+}
+
+# cistate_passed_set <value> -- DEVBIN_RELEASE_PASSED_OVER's run ids, a space
+# between each, nothing for an empty value; rc 1, printing the first word that
+# is no run id, a whole number, for any other. Pure.
+cistate_passed_set() {
+  local w out=""
+  local -a ws=()
+  IFS=$' \t\n' read -ra ws <<<"$1"
+  for w in ${ws[@]+"${ws[@]}"}; do
+    if ! [[ "$w" =~ ^[1-9][0-9]*$ ]]; then
+      printf '%s' "$w"
+      return 1
+    fi
+    out+="${out:+ }$w"
+  done
+  printf '%s' "$out"
+}
+
+# cistate_passed_over <runs> <ref> -- the runs of <runs>, release_runs_list's
+# rows, on <ref> whose ids CS_PASSED names, each `run <id> (<conclusion, or its
+# status while it runs>)`, joined by `, `; nothing for none, or for no <ref>.
+# Pure.
+cistate_passed_over() {
+  local id head st con out=""
+  [ -n "$2" ] && [ -n "$CS_PASSED" ] || return 0
+  while IFS=$'\t' read -r id _ head st _ con; do
+    [ -n "$id" ] || continue
+    dash_to_empty head
+    if [ "$head" != "$2" ] || ! cistate_is_passed "$id"; then
+      continue
+    fi
+    out+="${out:+, }run $id (${con:-$st})"
+  done <<<"$1"
+  printf '%s' "$out"
 }
 
 # cistate_rank <summary> -- the worst of the rows on stdin (cistate_rows) as
@@ -290,10 +355,12 @@ cistate_failed_jobs() {
 # cistate_verdict_on <sha> <ref> -- the answer line for the runs on <sha>, or
 # nothing when no run counts; a failed one's detail names the deciding run's
 # failed jobs (cistate_failed_jobs) inside its parenthesis, from the job list
-# cistate_rows read when a summary is declared, else read here, once. Returns
-# 1, the answer line `unknown` printed, when the runs cannot be read whole.
+# cistate_rows read when a summary is declared, else read here, once. A run
+# passed over on <ref> (cistate_passed_over) is named after the detail, and
+# with only such runs the answer is none, naming them. Returns 1, the answer
+# line `unknown` printed, when the runs cannot be read whole.
 cistate_verdict_on() {
-  local out rows best id fj v jobs rc=0
+  local out rows best id fj v jobs passed rc=0
   out="$(release_runs_list "$CS_REPO" "$CS_WORKFLOW" "$1" "$RELEASE_RUNS_LIMIT")" || rc=$?
   case "$rc" in
     0) ;;
@@ -310,8 +377,13 @@ cistate_verdict_on() {
     cistate_say unknown "gh run view failed for ${1:0:12}: $(cistate_err)"
     return 1
   fi
+  passed="$(cistate_passed_over "$out" "$2")"
   best="$(cistate_rank "$CS_SUMMARY" <<<"$rows")"
-  [ -n "$best" ] || return 0
+  if [ -z "$best" ]; then
+    [ -z "$passed" ] ||
+      printf 'none\tno %s run for %s on %s yet; passed over %s, from before this push' "$CS_WORKFLOW" "$2" "${1:0:12}" "$passed"
+    return 0
+  fi
   id="${best%%$'\t'*}"
   best="${best#*$'\t'}"
   fj="${best%%$'\t'*}"
@@ -329,6 +401,7 @@ cistate_verdict_on() {
     # clause the walk adds after it reads apart from the list.
     v="${v%)}; $fj)"
   fi
+  [ -z "$passed" ] || v+="; passed over $passed, from before this push"
   printf '%s' "$v"
 }
 
@@ -856,20 +929,69 @@ cistate_settings() {
   CS_SUMMARY="$(cfg_release_get ci.summary)" || exit 1
 }
 
-# cistate_repo -- read the repository gh is told about into CS_REPO, after
-# cistate_settings. A repository that cannot be named is no verdict: unknown,
-# naming the key, and exit 0. The trigger reads no repository, so --fires never
-# asks for one.
+# cistate_repo [--runs] -- read the repository gh is told about into CS_REPO,
+# after cistate_settings. A repository that cannot be named is no verdict:
+# unknown, naming the key, and exit 0; with --runs, which prints run ids alone,
+# the reason goes to stderr and the exit is 1. The trigger reads no
+# repository, so --fires never asks for one.
 cistate_repo() {
   local repo remote why
   repo="$(cfg_release_get repo)" || exit 1
   remote="$(cfg_release_first_remote)" || exit 1
   if ! why="$(release_repo "$repo" "$remote" 2>&1)"; then
     why="${why#"$DEVBIN_NAME: "}"
+    if [ "${1:-}" = --runs ]; then
+      printf '%s: ci-state: --runs: %s\n' "$DEVBIN_NAME" "${why#release: }" >&2
+      exit 1
+    fi
     cistate_say unknown "${why#release: }"
     exit 0
   fi
   CS_REPO="$why"
+}
+
+# cistate_runs_main <sha> -- `ci-state --runs`: the ids of release.ci.workflow's
+# runs at <sha> on the ref DEVBIN_RELEASE_TAG names, one a line, read through
+# the one lister (release_runs_list), nothing for none, and exit 0; a cut reads
+# them before its candidate push, and passes them over in every later read
+# (issue 0330). Exit 1, saying why on stderr, for a usage error, no ref named,
+# a repository that cannot be named, no gh, or runs that cannot be read whole,
+# since a list that may be cut short would pass over too few.
+cistate_runs_main() {
+  local sha ref out id head rc=0
+  if [ "$#" -ne 1 ]; then
+    usage >&2
+    exit 1
+  fi
+  if ! is_commit_sha "$1" full; then
+    printf "%s: ci-state: '%s' is not a full commit sha, and gh matches a run's commit by its whole sha\n" "$DEVBIN_NAME" "$1" >&2
+    usage >&2
+    exit 1
+  fi
+  sha="$1"
+  ref="${DEVBIN_RELEASE_TAG:-}"
+  if [ -z "$ref" ]; then
+    printf '%s: ci-state: --runs lists the runs on the ref DEVBIN_RELEASE_TAG names, and none is set\n' "$DEVBIN_NAME" >&2
+    exit 1
+  fi
+  cistate_settings
+  cistate_repo --runs
+  if ! command -v gh >/dev/null 2>&1; then
+    printf '%s: ci-state: --runs: gh is not installed, so no run on %s can be read\n' "$DEVBIN_NAME" "${sha:0:12}" >&2
+    exit 1
+  fi
+  out="$(release_runs_list "$CS_REPO" "$CS_WORKFLOW" "$sha" "$RELEASE_RUNS_LIMIT")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf '%s: ci-state: --runs: %s\n' "$DEVBIN_NAME" "$out" >&2
+    exit 1
+  fi
+  while IFS=$'\t' read -r id _ head _; do
+    [ -n "$id" ] || continue
+    dash_to_empty head
+    [ "$head" = "$ref" ] || continue
+    printf '%s\n' "$id"
+  done <<<"$out"
+  exit 0
 }
 
 # cistate_scratch -- CS_ERR, the file gh's and git's words land in, removed when
@@ -953,6 +1075,10 @@ main() {
       shift
       cistate_fires_main "$@"
       ;;
+    --runs)
+      shift
+      cistate_runs_main "$@"
+      ;;
   esac
   if [ "$#" -ne 1 ]; then
     usage >&2
@@ -965,6 +1091,10 @@ main() {
   fi
   sha="$1"
   ref="${DEVBIN_RELEASE_TAG:-}"
+  if ! CS_PASSED="$(cistate_passed_set "${DEVBIN_RELEASE_PASSED_OVER:-}")"; then
+    cistate_say unknown "DEVBIN_RELEASE_PASSED_OVER holds '$CS_PASSED', which is no run id, so the runs this verdict passes over are not known"
+    exit 0
+  fi
   cistate_settings
   cistate_repo
   if ! command -v gh >/dev/null 2>&1; then

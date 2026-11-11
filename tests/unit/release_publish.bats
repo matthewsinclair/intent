@@ -17,7 +17,7 @@
 load "../lib/test_helper.bash"
 
 PUBLISH="${INTENT_PROJECT_ROOT}/bin/.devbin/cut/publish"
-MAC_ASSETS="intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz Intent.app.zip"
+MAC_ASSETS="intent-aarch64-apple-darwin.tar.gz Intent.app.zip"
 
 # make_repo -- $REPO committed and tagged v3.3.0 annotated, its stand-in
 # `bin/devbin`, and the stand-in `gh` first on PATH. The stand-in devbin logs
@@ -141,14 +141,14 @@ $(cat "$CALLS")"
 @test "AT-03.1: a release holding some macOS assets and not others is refused by name, and nothing is uploaded" {
   make_repo
   write_pair release "$(git -C "$REPO" rev-parse HEAD)"
-  printf 'intent-aarch64-apple-darwin\n' >"$HELD"
+  printf 'intent-aarch64-apple-darwin.tar.gz\n' >"$HELD"
   publish
   assert_failure
   [ ! -s "$CALLS" ] || fail "a step ran over a half-published release: $(cat "$CALLS")"
-  err_has "held intent-aarch64-apple-darwin"
-  err_has "missing intentd-aarch64-apple-darwin"
+  err_has "held intent-aarch64-apple-darwin.tar.gz"
+  err_has "missing Intent.app.zip"
   # The remedy names the one command for each held asset, to run as printed.
-  err_has "gh release delete-asset v3.3.0 intent-aarch64-apple-darwin --repo matthewsinclair/intent --yes"
+  err_has "gh release delete-asset v3.3.0 intent-aarch64-apple-darwin.tar.gz --repo matthewsinclair/intent --yes"
   [ "$(grep -c 'gh release delete-asset' "$ERR")" -eq "$(grep -c . "$HELD")" ] ||
     fail "expected one delete command per held asset: $(cat "$ERR")"
   err_has "then run the same cut again"
