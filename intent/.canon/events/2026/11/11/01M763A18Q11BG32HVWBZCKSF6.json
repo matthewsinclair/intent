@@ -1,0 +1,15 @@
+{
+  "id": "01M763A18Q11BG32HVWBZCKSF6",
+  "ts": "2026-11-11T20:03:09.872Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "NEXT SESSION (after hv's close-out of 2026-11-11): (1) ST0093: when devbin's next release (0333-0339) is on the tap, dc re-vendors and lands WP-06 (c)-(e); before the next cut the new macos leg and any changed leg run once on their host. (2) ST0092 WP-06 AC-06.4: record hv's next real intent claude start on 3.3.0 by session id, then wp done. (3) ST0092 WP-11: AC-11.4 and 11.7 wait on arca_supervisor's sc committing its tree; AC-11.6 is molt-vc's (Molt's guide cites Intent's terms). (4) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. Work rides the next release; one cut."
+  }
+}
