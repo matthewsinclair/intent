@@ -1,0 +1,16 @@
+{
+  "id": "01M75476MZCAB92CHMHMKN9YYH",
+  "ts": "2026-11-11T10:59:50.559Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 109,
+    "text": "ST0092 WP-09 (doctor reports a board that has left its profile) LANDED on vc's word, 2026-11-11: b14af42b6 red, 4c0d27cda green (code tree 9db4a15b0bde equals vc's judged tip 66eb6f5eb251's, judge slot 01M75299N6BRR3Z88MPCZ0709H), 6f620ebc0 rows: AT-09.1 and 09.2 green, AC-09.2 satisfied; AT-09.4 to-write on AC-09.1 for the retired-seat arm; AC-09.3 is vc's census; gate BLOCKED 1/3, so WP-09 STAYS WIP (no wp done). NEXT, after dc's WP-04 is on main (WbNode.retired, teams::Verdict::Retired): a bank whose arm holds that doctor names a retired declared seat as retired, shown and not counted, never seat-not-registered; red then green, then AT-09.4 green, then gate and wp done. Worktrees tmp/wt-cc-0092-wp09 and -wp09b go at the next fold by the checks."
+  }
+}
