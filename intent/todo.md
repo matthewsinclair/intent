@@ -46,7 +46,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 03: vc stops judging: the mediator reads proof and lands
   - [ ] 04: No chain broadcasts, no bare pickup commits
   - [ ] 05: Short messages, and no check without a named catch
-  - [ ] 06: The release pipeline, briefed to devbin's core
+  - [-] 06: The release pipeline, briefed to devbin's core
 
 ## DONE:2026-09-10T00:00:51Z
 

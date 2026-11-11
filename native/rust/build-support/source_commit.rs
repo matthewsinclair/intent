@@ -389,11 +389,21 @@ fn emit_currency_scope() {
 /// takes the `intent-source-` prefix so that `install::embedded_marker`, the one
 /// reader of these markers, reads it with the key `kind`.
 ///
+/// **THE CUT'S TARGET COUNTS AS THE TAG** (ST0093 WP-06). devbin's release core
+/// signs and notarises the macOS assets at the release commit before it tags
+/// it, and hands every command it runs there the tag it will make as
+/// `DEVBIN_RELEASE_TARGET_TAG`. A clean build of that commit under that target
+/// is the release's bytes, so it says `release` before the tag exists, and the
+/// pair is not built again after the tag. The variable is watched, so a build
+/// under a target and one without it never share an answer.
+///
 /// **IT IS AS FRESH AS THIS SCRIPT'S LAST RUN, LIKE THE COMMIT.** A tag made
 /// after an incremental build moves no watched file, so that binary keeps
 /// saying `dev` until a build that cleans the packages: the kind can understate
 /// a release, and it cannot claim one for bytes the tag does not name.
 fn emit_source_kind(commit: &str, version: &str) {
+  println!("cargo:rerun-if-env-changed=DEVBIN_RELEASE_TARGET_TAG");
+  let target = std::env::var("DEVBIN_RELEASE_TARGET_TAG").unwrap_or_default();
   let tags = if is_commit(commit) {
     git(&["tag", "--points-at", commit]).unwrap_or_else(|| {
       println!(
@@ -404,17 +414,23 @@ fn emit_source_kind(commit: &str, version: &str) {
   } else {
     String::new()
   };
-  let kind = source_kind(commit, &tags, version);
+  let kind = source_kind(commit, &tags, &target, version);
   println!("cargo:rustc-env=INTENT_SOURCE_KIND={kind}");
   println!("cargo:rustc-env=INTENT_SOURCE_KIND_MARKER=[intent-source-kind:{kind}]");
 }
 
-/// `release` when `commit` is a clean sha and `tags_at_commit`, one tag per
-/// line, holds exactly `v<version>`, and `dev` otherwise. Pure, so the decision
-/// is driven without a repository (`build_support` in `version_spellings_agree.rs`).
-fn source_kind(commit: &str, tags_at_commit: &str, version: &str) -> &'static str {
+/// `release` when `commit` is a clean sha and either `tags_at_commit`, one tag
+/// per line, holds exactly `v<version>`, or `target_tag`, the tag a cut is about
+/// to make, is exactly `v<version>`; `dev` otherwise. Pure, so the decision is
+/// driven without a repository (`build_support` in `version_spellings_agree.rs`).
+fn source_kind(
+  commit: &str,
+  tags_at_commit: &str,
+  target_tag: &str,
+  version: &str,
+) -> &'static str {
   let tag = format!("v{version}");
-  if is_commit(commit) && tags_at_commit.lines().any(|t| t == tag) {
+  if is_commit(commit) && (target_tag == tag || tags_at_commit.lines().any(|t| t == tag)) {
     "release"
   } else {
     "dev"

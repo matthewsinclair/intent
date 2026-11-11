@@ -1297,10 +1297,10 @@ $(printf '%s\n' "$layout" | sed 's/^/       /')
 # already on stderr.
 #
 # THE CHECK IS vc's RULING ON dc's FINDING F1 (ST0091 WP-03). A build reads
-# `release` only where its commit carries the version's tag when it is built
-# (issue 0534), and the cut's gates build the pair before the tag, so that pair
-# reads `dev`. The pair that ships is built again at the tag (`bin/devbin cut
-# publish` does it first). This refusal is what holds the order: no step of the
+# `release` only where its commit carries the version's tag, or the tag a cut is
+# about to make, when it is built (issue 0534, ST0093 WP-06). The pair that
+# ships is the one `macos leg` builds at the release commit under the cut's
+# target. This refusal is what holds the order: no step of the
 # cut is trusted to have built the right pair, and a shipped asset that says
 # `dev` is a visible regression.
 release_pair_blockers() {
@@ -1349,6 +1349,34 @@ $(printf '%s\n' "$blockers" | sed 's/^/       /')
   printf 'prepare: app-sign, app-notarize, stage, sign, notarize, pack and checksum ran\n'
   printf '  in one pass; each step reported above what it did and did not cover.\n'
   printf '  NEXT: bin/devbin macos publish, which uploads them to the release, re-downloads them against SHA256SUMS.txt and prints the steps after it\n'
+}
+
+# cmd_leg -- the release core's macOS stage (ST0093 WP-06): `prepare`, at the
+# release commit before the tag, from a pair the leg builds itself.
+#
+# devbin's release core runs `macos leg` as one leg of the cut where
+# commands.macos.enabled is declared (lib/release.macos), at the release commit,
+# under a seal of its own, handed the tag it will make as
+# DEVBIN_RELEASE_TARGET_TAG. So a notary rejection stops the cut before anything
+# is public, and `cut publish` after the tag only uploads what this staged.
+#
+# THE PAIR IS BUILT INTO A TARGET OF ITS OWN. The local gates' `build all`
+# rebuilds native/rust/target/release in this same tree while the legs run, so
+# signing that pair would race it. LEG_TARGET is a fixed path under the ignored
+# target/, so the build is warm from one cut to the next. The build stamp reads
+# the target tag, so a clean build of the release commit says `release`, which
+# prepare's own check refuses it without.
+LEG_TARGET="$ROOT/native/rust/target/macos-leg"
+
+cmd_leg() {
+  [ -n "${DEVBIN_RELEASE_TARGET_TAG:-}" ] || [ -n "$(git -C "$ROOT" tag --points-at HEAD 'v*')" ] ||
+    die "macos leg signs a release pair, and HEAD is neither a cut's release commit (DEVBIN_RELEASE_TARGET_TAG is unset) nor tagged v*
+       remedy: let the cut run it (bin/devbin release <tag>), or check out the release tag and run it again"
+  printf 'macos leg: building the pair at %s into %s\n' "$(git -C "$ROOT" rev-parse --short=12 HEAD)" "$LEG_TARGET"
+  (cd "$ROOT/native/rust" && CARGO_TARGET_DIR="$LEG_TARGET" cargo build --release --workspace --bins) ||
+    die "the leg's release build failed; its output is above"
+  RELEASE_DIR="$LEG_TARGET/release"
+  cmd_prepare
 }
 
 # cmd_publish -- put the proven artefacts where a user can reach them, and leave
@@ -2352,7 +2380,7 @@ cmd_app_notarize() {
 }
 
 
-SUBCOMMANDS="doctor stage sign notarize verify checksum prepare publish env store-creds app-doctor app-icons app-build app-run app-test app-install app-verify app-sign app-notarize"
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare leg publish env store-creds app-doctor app-icons app-build app-run app-test app-install app-verify app-sign app-notarize"
 
 usage() {
   cat <<'USAGE'
@@ -2370,10 +2398,14 @@ bin/devbin macos <subcommand>
   `cargo build --release` will overwrite underneath you.
 
   prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: app-sign, app-notarize,
-               stage, sign, notarize, pack, checksum. Run it AT THE TAG: the app
-               stamps its version from the tree. The path for cutting a
-               release; the individual steps below exist for diagnosis and for
-               re-running one of them.
+               stage, sign, notarize, pack, checksum, on the pair under
+               target/release, which must be a release build of HEAD. The
+               individual steps below exist for diagnosis and for re-running
+               one of them.
+
+  leg          The cut's macOS stage: build the pair into target/macos-leg,
+               then prepare from it. devbin's release core runs it at the
+               release commit before the tag; by hand, run it at the tag.
 
   stage        Copy the build output into target/dist-parts, as
                <binary>-<target-triple>, out of shared space. Wipes first.
@@ -2492,6 +2524,7 @@ case "${1:-}" in
   verify) no_args "$@"; cmd_verify ;;
   checksum) no_args "$@"; cmd_checksum ;;
   prepare) no_args "$@"; cmd_prepare ;;
+  leg) no_args "$@"; cmd_leg ;;
   publish) at_most_one "$@"; shift; cmd_publish "${1:-}" ;;
   store-creds) no_args "$@"; cmd_store_creds ;;
   app-doctor)  no_args "$@"; cmd_app_doctor ;;

@@ -6,7 +6,7 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-11 17:45Z
 status: active
 focus: "2026-11-11 17:45Z, post-cut list done on vc's word; HOLDING for vc's next order. 3.3.0 released at 1e423060f. ST0091 WP-04 done (b863c4421). Follow-ups filed: Intent 0682 (the gate tree's place) and 0683 (prepush, delete-only push); devbin 0333 (the leg sends no previous tag). tmp/wt-dc-0092-04 stays on disk: plain remove refused two untracked test files, both in its bank refs/bank/dc/0092-04/superseded-worktree-04-on-008b41c6f; vc told. Hold 37 stands for hv's look on the released build."
-claims: [ST0090/02]
+claims: [ST0090/02, ST0093/06]
 ---
 
 # DevX Claude (dc)

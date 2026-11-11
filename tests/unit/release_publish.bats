@@ -21,8 +21,7 @@ MAC_ASSETS="intent-aarch64-apple-darwin.tar.gz Intent.app.zip"
 
 # make_repo -- $REPO committed and tagged v3.3.0 annotated, its stand-in
 # `bin/devbin`, and the stand-in `gh` first on PATH. The stand-in devbin logs
-# every call to $CALLS and fails the step STUB_FAIL names; its `build all`
-# writes a pair that is a release build of HEAD unless STUB_BUILD_DEV is set.
+# every call to $CALLS and fails the step STUB_FAIL names.
 # The stand-in gh answers `release view` with the names in $HELD, one per line,
 # and the tap's formula with RELEASE_VERSION $STUB_TAP_VERSION.
 make_repo() {
@@ -33,13 +32,6 @@ make_repo() {
 #!/usr/bin/env bash
 printf '%s\n' "$*" >>"$CALLS"
 [ "$*" != "${STUB_FAIL:-}" ] || { echo "stub devbin: $* failed" >&2; exit 1; }
-if [ "$*" = "build all" ]; then
-  kind=release
-  [ -z "${STUB_BUILD_DEV:-}" ] || kind=dev
-  for b in intent intentd; do
-    printf '[intent-source-commit:%s][intent-source-kind:%s]\n' "$(git rev-parse HEAD)" "$kind" >"native/rust/target/release/$b"
-  done
-fi
 exit 0
 EOF
   chmod +x "$REPO/bin/devbin"
@@ -97,22 +89,21 @@ they were:
 $(cat "$CALLS")"
 }
 
-@test "AT-03.1: a first run builds the pair at the tag, stages and publishes the macOS assets, writes the sums and pushes the tap, in that order" {
+# ST0093 WP-06: the macOS leg built, signed and staged before the tag, so
+# publish builds and signs nothing.
+@test "AT-03.1: a first run publishes the macOS assets the leg staged, writes the sums and pushes the tap, in that order, and builds nothing" {
   make_repo
-  write_pair dev "$(git -C "$REPO" rev-parse HEAD)"
   publish
   assert_success
-  calls_are "build all" "macos prepare" "macos publish" "release attach v3.3.0" "formula publish --pull"
+  calls_are "macos publish" "release attach v3.3.0" "formula publish --pull"
 }
 
-@test "AT-03.1: a run after a full success rebuilds nothing and uploads nothing, and the sums and the tap steps find their work done" {
+@test "AT-03.1: a run after a full success uploads nothing, and the sums and the tap steps find their work done" {
   make_repo
-  write_pair release "$(git -C "$REPO" rev-parse HEAD)"
   hold_all
   publish
   assert_success
   calls_are "release attach v3.3.0" "formula publish --pull"
-  assert_output_contains "already a release build"
   assert_output_contains "already holds every macOS asset"
 }
 
@@ -120,27 +111,17 @@ $(cat "$CALLS")"
 # every `brew upgrade`.
 @test "AT-03.1: a failed macOS publish stops the run before the sums and the tap, and the remedy is the same run again" {
   make_repo
-  write_pair release "$(git -C "$REPO" rev-parse HEAD)"
   export STUB_FAIL="macos publish"
   publish
   assert_failure
-  calls_are "macos prepare" "macos publish"
+  calls_are "macos publish"
   err_has "the tap is as it was"
+  err_has "bin/devbin macos leg"
   err_has "run the same cut again"
-}
-
-@test "AT-03.1: a pair the build leaves as a dev build is refused before anything is staged" {
-  make_repo
-  export STUB_BUILD_DEV=1
-  publish
-  assert_failure
-  calls_are "build all"
-  err_has "is not a release build of"
 }
 
 @test "AT-03.1: a release holding some macOS assets and not others is refused by name, and nothing is uploaded" {
   make_repo
-  write_pair release "$(git -C "$REPO" rev-parse HEAD)"
   printf 'intent-aarch64-apple-darwin.tar.gz\n' >"$HELD"
   publish
   assert_failure

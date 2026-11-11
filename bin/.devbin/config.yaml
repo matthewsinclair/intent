@@ -461,6 +461,15 @@ commands:
   formula:
     enabled: true
 
+  # THE CUT'S macOS STAGE (ST0093 WP-06). Enabled, devbin's release core runs
+  # `bin/devbin macos leg` as a leg of the cut at the release commit, beside the
+  # gates and before the tag (lib/release.macos), so the app and the pair are
+  # signed and notarised before anything is public. Intent's own handler,
+  # cmd/macos, answers it; no macos: block is declared, so the core's own app
+  # and binaries steps stay off and `cut publish` uploads what the leg staged.
+  macos:
+    enabled: true
+
   # devbin's release core cuts Intent (ST0091 WP-01): the release: block below
   # declares the cut, and `release.verbs` offers its verbs.
   release:

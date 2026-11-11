@@ -226,26 +226,49 @@ mod build_support {
     let sha256 = "8a48430ee9b8dceeb5ecebb83a678941bc44848a8a48430ee9b8dceeb5ecebb8";
     let dirty = format!("dirty-{sha1}");
 
-    assert_eq!(source_kind(sha1, "v3.2.1", "3.2.1"), "release");
-    assert_eq!(source_kind(sha256, "v3.2.1", "3.2.1"), "release");
+    assert_eq!(source_kind(sha1, "v3.2.1", "", "3.2.1"), "release");
+    assert_eq!(source_kind(sha256, "v3.2.1", "", "3.2.1"), "release");
     assert_eq!(
-      source_kind(sha1, "latest\nv3.2.1\nv3.2.1-notes", "3.2.1"),
+      source_kind(sha1, "latest\nv3.2.1\nv3.2.1-notes", "", "3.2.1"),
       "release",
       "the tag is one line among several"
     );
 
-    assert_eq!(source_kind(sha1, "", "3.2.1"), "dev", "no tag");
+    assert_eq!(source_kind(sha1, "", "", "3.2.1"), "dev", "no tag");
     assert_eq!(
-      source_kind(sha1, "v3.2.0", "3.2.1"),
+      source_kind(sha1, "v3.2.0", "", "3.2.1"),
       "dev",
       "another version's tag"
     );
     assert_eq!(
-      source_kind(sha1, "v3.2.10\nv3.2.1-rc1\n3.2.1", "3.2.1"),
+      source_kind(sha1, "v3.2.10\nv3.2.1-rc1\n3.2.1", "", "3.2.1"),
       "dev",
       "tags that only start with `v3.2.1`, or leave out its `v`"
     );
-    assert_eq!(source_kind(&dirty, "v3.2.1", "3.2.1"), "dev", "dirty");
-    assert_eq!(source_kind("unknown", "v3.2.1", "3.2.1"), "dev", "unknown");
+    assert_eq!(source_kind(&dirty, "v3.2.1", "", "3.2.1"), "dev", "dirty");
+    assert_eq!(
+      source_kind("unknown", "v3.2.1", "", "3.2.1"),
+      "dev",
+      "unknown"
+    );
+
+    // ST0093 WP-06: the tag a cut is about to make counts as the tag, so the
+    // macOS stage signs a `release` pair at the release commit before it is
+    // tagged; any other target, or a commit that is not clean, is still `dev`.
+    assert_eq!(
+      source_kind(sha1, "", "v3.2.1", "3.2.1"),
+      "release",
+      "the cut's target"
+    );
+    assert_eq!(
+      source_kind(sha1, "", "v3.2.0", "3.2.1"),
+      "dev",
+      "another version's target"
+    );
+    assert_eq!(
+      source_kind(&dirty, "", "v3.2.1", "3.2.1"),
+      "dev",
+      "dirty under the target"
+    );
   }
 }
