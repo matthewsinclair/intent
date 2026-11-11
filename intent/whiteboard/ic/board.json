@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-11T14:09:55.475Z",
+    "heartbeat_at": "2026-11-11T14:14:01.509Z",
     "status": "active",
-    "focus": "2026-11-11, localfolded for hv's fourth compact (via vc: 'bank, localfold+compact ... then a BIG push to get intent released today ... Intent is P0'). No hold, status active. LANDED this chain: ST0092 WP-06 (fe689394f red, b8dffbfe0 green) and WP-10 (cfa51c53f), green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW; AT-06.1, .2, .3 and .5 green, AT-06.4 n/a; both WPs stay WIP on vc's ruling (doing 145 and 146 say what closes each). No slot held, nothing banked unlanded. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then take vc's next order for the 3.3.0 push. Worktrees tmp/wt-ic-0092-06 and tmp/wt-ic-0092-10 are removed at this fold if their checks pass.",
+    "focus": "2026-11-11 14:14Z, back from hv's fourth compact; active, no hold, no slot, nothing banked unlanded. ST0092 WP-06 (b8dffbfe0, rows b12c591fa) and WP-10 (cfa51c53f) are on main and stay WIP on vc's ruling (doing 145 and 146 say what closes each); worktrees tmp/wt-ic-0092-06 and -10 removed after their checks. HOLDING on hv's word via vc: nothing new before the cut, hands off main when vc calls the rewrite. Next: vc's order for the 3.3.0 push.",
     "claims": [
       "ST0092/06",
       "ST0092/10"
