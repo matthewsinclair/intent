@@ -208,3 +208,72 @@ fn a_reapply_after_a_retirement_prints_it_and_writes_nothing() {
     "the re-apply reinstated {seat}"
   );
 }
+
+/// ST0092 AT-04.7 and AT-04.8 at the surface (bank (ii)): an ask to a retired
+/// node refuses at exit 1 naming the retirement, and the sender's pickup names
+/// the message the leaver never handled with the archive that takes it, which
+/// then runs as printed.
+#[test]
+fn at_04_7_and_8_an_ask_to_a_retired_node_refuses_and_pickup_names_the_stranded_message() {
+  let dir = applied("wbretirerecipient", "team");
+  let seat = retirable("team");
+  let mediator = resolved("team").mediator;
+  ok(
+    dir.path(),
+    &["wb", "ask", &seat, "one it never read", "--node", &mediator],
+  );
+  ok(dir.path(), &["wb", "retire", &seat, "--reason", REASON]);
+
+  let (out, err, code) = run(
+    dir.path(),
+    &["wb", "ask", &seat, "are you there?", "--node", &mediator],
+  );
+  assert_eq!(code, 1, "an ask to a retired node: {out}{err}");
+  assert!(
+    err.contains("retired") && err.contains(REASON) && err.contains("remedy:"),
+    "{err}"
+  );
+
+  let up = ok(dir.path(), &["wb", "pickup", "--node", &mediator]);
+  let line = up
+    .lines()
+    .find(|l| l.starts_with("stranded: ") && l.contains(&seat))
+    .unwrap_or_else(|| panic!("the pickup names no stranded message: {up}"));
+  let archive = line
+    .split('`')
+    .nth(1)
+    .expect("the line carries the archive command");
+  let args: Vec<String> = shell_words(archive);
+  assert_eq!(
+    args.first().map(String::as_str),
+    Some("intent"),
+    "{archive}"
+  );
+  let argv: Vec<&str> = args[1..].iter().map(String::as_str).collect();
+  ok(dir.path(), &argv);
+  let again = ok(dir.path(), &["wb", "pickup", "--node", &mediator]);
+  assert!(!again.contains("stranded: "), "{again}");
+}
+
+/// Split a printed command as a shell would, for the one quoting form the
+/// pickup line uses: double quotes around the anchor.
+fn shell_words(cmd: &str) -> Vec<String> {
+  let mut words = Vec::new();
+  let mut word = String::new();
+  let mut quoted = false;
+  for c in cmd.chars() {
+    match c {
+      '"' => quoted = !quoted,
+      ' ' if !quoted => {
+        if !word.is_empty() {
+          words.push(std::mem::take(&mut word));
+        }
+      }
+      _ => word.push(c),
+    }
+  }
+  if !word.is_empty() {
+    words.push(word);
+  }
+  words
+}
