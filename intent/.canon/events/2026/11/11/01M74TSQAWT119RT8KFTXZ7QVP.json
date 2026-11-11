@@ -1,0 +1,15 @@
+{
+  "id": "01M74TSQAWT119RT8KFTXZ7QVP",
+  "ts": "2026-11-11T08:15:11.708Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "ST0092 WP-04 rulings (vc, 2026-11-11): retirement is WbNode.retired: Option<WbRetired { at, reason }> in board 4.1 (folded, one shape for 3.3.0), never a status value; store rung 34 to 35. A re-apply reinstates nothing as it retires nothing: a retired declared seat shows as 'retired <m> (<reason>)' and comes back only through wb register (WP-09's doctor names it, shown not counted; cc told). The human seat has one home, seat::human_seat (declared human, else model::HYPERVISOR, no install read), which WP-06 rebases onto. The red is a door file (intent-cli tests/wb_retire_door.rs) red at runtime on the base, with wb_retire.rs as the precise half. surface_check.sh's INV-09/10/11 refusal predates WP-04 and goes to ic's WP-10."
+  }
+}

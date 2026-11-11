@@ -1,0 +1,15 @@
+{
+  "id": "01M74TSPBMSMWYYV9E8B6X0ESC",
+  "ts": "2026-11-11T08:15:10.708Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-04 bank (ii), after cc's WP-05 lands: the recipient changes. wb ask to a retired node is refused naming the retirement, wb announce skips it, a message to the leaver it never handled is named at its sender's next pickup, and wb archive message accepts it; the help for wb ask, wb announce and wb archive message names the retired-node behaviour (vc's ruling). Builds on bank (i)'s WbNode.retired."
+  }
+}
