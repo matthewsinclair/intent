@@ -1,0 +1,16 @@
+{
+  "id": "01M74TBR6XY2G31GMMQ9QCQA2D",
+  "ts": "2026-11-11T08:07:33.853Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0. WHERE IT STANDS at 2026-11-11 08:07Z, main 4dc6a34a7: DONE and judged WP-01, 02, 03, 07, 08 (5 of 11). IN PROGRESS: WP-04 (dc), bank (i) green in its worktree, its red and final green queued on the desk as 01M74T4WZM85VYCGKHZ5H8BDFC, then banked on 4dc6a34a7 for ic's row read and vc's FULL judge; bank (ii), the recipient changes, follows cc's WP-05. WP-05 (cc), rebased on WP-07, run 3 (red then green) on the desk as 01M74STTN131RBVM4NY0M0QJ60, then banked as red and green-on-red for ic's row read and vc's full judge. WP-06 (ic, whole, size L, with issue 0675), claimed, building; vc reads ic's three rows itself. NOT STARTED: WP-09 (cc, after 05; it names a retired declared seat, shown and not counted), WP-10 (ic, after 02 to 09; it also owes surface_check.sh's unprobed INV-09 to INV-12 and a gate that runs it or its removal), WP-11 the fleet sweep after the cut on the brew-installed release. RULINGS IN FORCE are in decisions 125 and 126 and the package bodies: one predicate FacadeError::build_cannot_answer read once by fail; seat::human_seat (declared human, else hv) beside mediator_of; retired folds into board 4.1 and a re-apply reinstates nothing; MCP's wb status renames items and messages to live_items and live_messages; the caller is an enum of session, terminal and unattributed. EVERY BANK: ic reads the rows, vc judges on the tree that lands (full for a train; the contract and bats legs and the attachment hash each caught something on 2026-11-11), red is the arms on main's code. NOT DONE, hv told: Intent's own roster README and hv's directive 2 still show cc's old default remit. Nothing touches a real board before the cut; the first live drive is hv's."
+  }
+}

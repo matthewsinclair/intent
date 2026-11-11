@@ -1,0 +1,16 @@
+{
+  "id": "01M74TBSEN13VT0KGHVFXTMXVR",
+  "ts": "2026-11-11T08:07:35.125Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 77,
+    "text": "3.3.0, THE ONE RELEASE, cut ONCE when everything is in and working locally; a thing found while building it is built into it, and nothing is left for after the cut but the fleet sweep (hv decision 36, 2026-11-11). ON MAIN at 4dc6a34a7, 222 ahead of upstream, unpushed, untagged: ST0091's four packages; issues 0649, 0650, 0665, 0667, 0670, 0672, 0676, 0677, 0678, 0679 closed; ST0092 WP-01, 02, 03, 07, 08. WHAT STANDS BETWEEN HERE AND THE CUT. (1) ST0092 WP-04, 05, 06, 09, 10: todo 76. (2) dc's sweep bank on devbin 0.1.22: todo 71. (3) Issue 0680, a background script's slots release refused for a live session, open and UNASSIGNED: give it to the first seat that frees up. (4) dc regenerates docs/reference last, then build all at HEAD on the desk, then the kovacs line to devbin-vc. (5) The push, hold 8, and hv's cut, ST0091 AC-04.3. OWED BY hv, at the terminal: the go for devbin 0.1.22's cut in devbin-vc's window when its pre-cut is green; at Intent's cut the one-message rewrite of c1d7d163d with every seat held (refs/bank/vc/rewrite/), the kovacs preflight line, then tag and push; hv's eye on ST0090's row on a 3.3.0 build (hold 6). THE DESK is devbin-vc's; it stalled seven hours overnight with no waiter and has one now. A wrapper's release can be refused in the background (0680): read END WRITTEN or release from the foreground at once. LESSONS: a fix is judged on the bats tree and the contract gate as well as cargo; a bank that edits an ST0056 attachment owes its canon hash at landing; a light run of intent-cli builds intentd first."
+  }
+}

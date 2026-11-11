@@ -1,0 +1,16 @@
+{
+  "id": "01M74TBPY4AVNH92TKXDZ21RZ8",
+  "ts": "2026-11-11T08:07:32.549Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Intent's cut through devbin's core: the four packages are on main and judged (decision 119), gate 10 of 12. WHAT IS LEFT, as of 2026-11-11 08:07Z. (1) AC-01.3 rides dc's ONE sweep bank on devbin 0.1.22 (hv decisions 36 to 38, vc decision 125): sweep 0.1.22; install.links for intent and intentd with install.switch: intent use and install.publish: intent install; formula.bin and @@FINISH@@ dropped; the macOS assets packed as one archive intent-aarch64-apple-darwin.tar.gz by Intent's own cmd/macos handler; `intent install`'s opt manifest gains its # line: header (MANIFEST_KEYS unchanged); release.preflight with the four checks and tests/unit/release_preflight_seam.bats for AT-01.6. Built in tmp/wt-dc-devbin0121, unbanked; it banks when devbin-vc says 0.1.22 is on the tap, which needs hv's go for devbin's cut and then brew upgrade devbin (vc may run that). vc judges it full, with the keg proof (164 files, no difference against 3.2.8's libexec). (2) AC-04.3 is hv's first cut. (3) dc regenerates docs/reference as the last unit; gate reference refuses until then, which is correct. (4) NOT PROVEN BY vc: the core's dry run on Intent's tree."
+  }
+}
