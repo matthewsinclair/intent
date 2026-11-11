@@ -1,0 +1,14 @@
+{
+  "id": "01M751QBBKTX1BYHNADT9VYHX2",
+  "ts": "2026-11-11T10:16:13.944Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-05.8"
+  },
+  "payload": {
+    "evidence": "intent/plugins/claude/skills/in-whiteboard/SKILL.md at 2bb9392ca: the hv node section and the ask and announce bullets say hv is reached through the mediator on a declared board, that wb ask between hv and any other node is refused naming the mediator, that wb announce sends hv no copy, and that a write as hv is taken only from the mediator's session or a shell with no session, citing intent/plugins/claude/teams/TERMS.md; it no longer requires the README to name hv's reader"
+  }
+}

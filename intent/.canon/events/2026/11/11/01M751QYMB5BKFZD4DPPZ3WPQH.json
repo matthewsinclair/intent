@@ -1,0 +1,15 @@
+{
+  "id": "01M751QYMB5BKFZD4DPPZ3WPQH",
+  "ts": "2026-11-11T10:16:33.675Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0092 WP-09 (doctor reports a board that has left its profile), built in tmp/wt-cc-0092-wp09 stacked on WP-05's tip tree 753a8290e2f8, now landed as 2bb9392ca: three classes seat-differs-from-profile, seat-not-registered and closed-pair-view in FindingClass::as_str, shown and never counted, read through teams::plan and WP-05's closed_pair_views; arms wb_profile_drift.rs AT-09.1 and AT-09.2. Run 1 (slot 01M74Z2NTWJ4K49H5KEN3HPKGY): red 2 of 2 as designed on 753a8290e2f8, green 103 passed on tree 7b93aff4748b (red tree eb87b15efb85). Next: run 2, the full pre-bank run (slot 01M751GHPAJHV20ZHRJ84P6QZ3 asked), then bank red and green-on-red, mint AT-09.1 and 09.2, send to vc. The retired-seat arm waits for dc's WP-04."
+  }
+}

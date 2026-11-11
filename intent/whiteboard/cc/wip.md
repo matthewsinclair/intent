@@ -6,14 +6,14 @@ session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
 heartbeat_at: 2026-11-11 09:24Z
 status: active
 focus: "2026-11-11, back from hv's compact (localfold at 19813562f), active, no hold. WP-05 banked on 8f3da433f (doing 108), vc's judge queued behind devbin's 0.1.22 cut; land on vc's word. Meanwhile on vc's word at 09:24Z: build WP-09 (todo 49) in a worktree stacked on WP-05's tip tree 753a8290e2f8, and measure issue 0680's cause (todo 50, no cargo). Slots asked as needed."
-claims: [ST0092/05, ISSUE:0680]
+claims: [ISSUE:0680, ST0092/09]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0092 WP-05 (hv through one node, INV-12): BANKED on 8f3da433f as refs/bank/cc/st0092/wp05-red-on-8f3da433f (tree edc084dd19f3) and wp05-green-on-red-on-8f3da433f (blob 124be9df11d4, tip 36e400d93151), plus the table-only delta refs/bank/cc/st0092/wp05-table-on-36e400d93151 (blob 313e2b2c871d, tip 753a8290e2f8: wb init's removed: line and the seven MCP rows' human-seat sentence). Red and green ran in desk slot 01M74STTN131RBVM4NY0M0QJ60. ic's row read clean; vc's full judge asked as 01M74TJVHPMXQQMBJZNYAT76GK, then the delta checked warm. Worktrees tmp/wt-cc-0092-wp05 (green, at tip) and tmp/wt-cc-0092-wp05-red stay until the landing. Next: land on vc's word (red, rows, green with the delta, AT-05.5/05.7 green, gate, wp done), then WP-09, then issue 0680. (edited)
+- ST0092 WP-09 (doctor reports a board that has left its profile), built in tmp/wt-cc-0092-wp09 stacked on WP-05's tip tree 753a8290e2f8, now landed as 2bb9392ca: three classes seat-differs-from-profile, seat-not-registered and closed-pair-view in FindingClass::as_str, shown and never counted, read through teams::plan and WP-05's closed_pair_views; arms wb_profile_drift.rs AT-09.1 and AT-09.2. Run 1 (slot 01M74Z2NTWJ4K49H5KEN3HPKGY): red 2 of 2 as designed on 753a8290e2f8, green 103 passed on tree 7b93aff4748b (red tree eb87b15efb85). Next: run 2, the full pre-bank run (slot 01M751GHPAJHV20ZHRJ84P6QZ3 asked), then bank red and green-on-red, mint AT-09.1 and 09.2, send to vc. The retired-seat arm waits for dc's WP-04.
 
 ## TODO
 
