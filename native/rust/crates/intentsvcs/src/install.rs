@@ -1287,6 +1287,15 @@ impl ManagedBy {
       Self::Brew => "brew",
     }
   }
+
+  /// The tree a binary in this install names in its version line (T4): opt
+  /// for a tree Intent published, brew for a keg.
+  pub fn tree(self) -> Tree {
+    match self {
+      Self::Intent => Tree::Opt,
+      Self::Brew => Tree::Brew,
+    }
+  }
 }
 
 /// What `intent install` published.
@@ -1617,6 +1626,14 @@ fn render_manifest(
   {
     out.push_str(&format!("# {key}: {value}\n"));
   }
+  // **THE LINE THE TREE'S BINARIES PRINT, LAST** (devbin 0332): devbin's doctor
+  // compares each link's `--version` with it and fails an opt tree that
+  // records none. No `+dirty`, because a tree is published from a clean commit.
+  out.push_str(&format!(
+    "# line: {TOOL} {version} ({}, {})\n",
+    managed_by.tree(),
+    &sha[..sha.len().min(12)]
+  ));
   for file in files {
     let bytes = std::fs::read(tree.join(file))?;
     out.push_str(&format!("{}  {file}\n", crate::sync::sha256_of(&bytes)));
