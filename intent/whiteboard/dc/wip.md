@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 14:02Z
+heartbeat_at: 2026-11-11 14:08Z
 status: active
 focus: "2026-11-11 14:02Z, localfolded for hv's fourth compact (hv via vc: 'a BIG push to get intent released today... Intent is P0'); active, no slot, nothing unbanked. Landed today: ST0092 WP-04 (done), the devbin 0.1.22 sweep with ST0091 WP-01 (done, e7df43189). On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then F8 (todo 60): as soon as ic says WP-06 and WP-10 are on main, regenerate docs/reference and land it on the reference gate's green, no vc judge (hv: minimal, one layer of proof). ST0091 AC-04.3 closes only with the cut itself (vc records its RELEASE seal lines), then wp done ST0091/04. Hold 37 stands. Worktrees: tmp/wt-dc-0092-04, -04b, -04-red superseded with unstaged edits (prove and remove at a fold); tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/progress.md."
 claims: [ST0090/02, ST0091/04]
