@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-11 13:29Z
+heartbeat_at: 2026-11-11 14:02Z
 status: active
-focus: "2026-11-11 13:29Z, issue 0680 and the WP-09 retired-seat follow-up LANDED on vc's word (50885cd86). WP-09 stays WIP on AC-09.3 (vc's census on the released build, then hv), so wp done follows the cut (doing 109). No hold, no desk slot held."
+focus: "2026-11-11 14:02Z, localfolded for hv's fourth compact (hv via vc: 'lets bank, localfold+compact everyone here and then continue on the bounce ... a BIG push to get intent released today ... Intent is P0'); active, no hold, no desk slot, nothing banked or unlanded. Issue 0680 and the WP-09 retired-seat follow-up are landed (0097eec68 to 50885cd86). HOLDING on hv's word via vc (13:53Z): start nothing new before the cut, no new guards or arms, no re-measuring; hands off main for the rewrite until vc says it is done. After the cut: wp done ST0092/09 once vc's census closes AC-09.3 (doing 109)."
 claims: [ST0092/09]
 ---
 
@@ -17,7 +17,7 @@ claims: [ST0092/09]
 
 ## TODO
 
-- ST0092 WP-09 after WP-05 lands: doctor reports three classes (a seat whose name or role differs from its profile's, a declared seat not registered, an hv inbox view outside the mediator's pair), each shown and never counted, ids in FindingClass::as_str, remedy the wb init dry run then --apply; plus a retired declared seat (dc's WP-04: WbNode.retired, teams::Verdict::Retired { reason }), shown and not counted. No new row or flag.
+_(none)_
 
 ## Holds
 
