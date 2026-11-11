@@ -1,0 +1,15 @@
+{
+  "id": "01M74KM1GDQJGDQVVA18V962JT",
+  "ts": "2026-11-11T06:09:45.485Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0092 WP-07, the roster README rendered from the profile with the project's own block kept (vc's word at WP-03's END, 2026-11-11). Builds in tmp/wt-dc-0092-07 on f9bdbc11d, test-first: one template under lib/templates/ with the roster table as one token, padded columns; the preserved block carried by canon.rs's carry_user_block, never a copy; the first render recorded in TeamDeclaration.readme_baseline (sha256 of the text outside the block), placing the whole old file in the block and dropping and naming an opening verblock; roster-readme-edited and roster-readme-behind shown and never counted; markers refused unless one start then one end. Behind the devbin 0.1.22 sweep bank, which takes priority when it is on the tap."
+  }
+}

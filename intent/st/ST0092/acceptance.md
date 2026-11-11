@@ -70,7 +70,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-06.4 (non-test) A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, which only the launcher can give it, and its role, its remit, the mediator and its route to hv, which its pickup gives it; vc records that boot by its session id. -- satisfied: no
 - AC-06.5 `intent wb brief <moniker>` prints the seat's brief, and with `--launch` its launch steps, on a board that declares a profile, and writes nothing: no heartbeat moves, no session is recorded and no file changes. -- satisfied: no (computed)
 
-### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: Not Started)
+### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: WIP)
 
 - AC-07.1 An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: a title, the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, its columns padded so that the project's formatter leaves it unchanged, the route to hv, which names the mediator as the one reader of hv's inbox, and the verb that prints the terms. -- satisfied: no (computed)
 - AC-07.2 Everything inside the template's preserved block is carried byte for byte across every re-render, by the function that carries CLAUDE.md's block and by no copy of it. -- satisfied: no (computed)
@@ -150,7 +150,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: Not Started)
+### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: WIP)
 
 _(no tests in this group)_
 

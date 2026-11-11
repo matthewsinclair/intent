@@ -11,7 +11,8 @@
     "claims": [
       "ST0090/02",
       "ST0091/01",
-      "ST0091/04"
+      "ST0091/04",
+      "ST0092/07"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2793,6 +2794,14 @@
       "state": "archived",
       "archived_at": "2026-11-11T05:25:46.158Z",
       "recorded_at": "2026-11-10T19:53:58.861Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 158,
+      "text": "ST0092 WP-07, the roster README rendered from the profile with the project's own block kept (vc's word at WP-03's END, 2026-11-11). Builds in tmp/wt-dc-0092-07 on f9bdbc11d, test-first: one template under lib/templates/ with the roster table as one token, padded columns; the preserved block carried by canon.rs's carry_user_block, never a copy; the first render recorded in TeamDeclaration.readme_baseline (sha256 of the text outside the block), placing the whole old file in the block and dropping and naming an opening verblock; roster-readme-edited and roster-readme-behind shown and never counted; markers refused unless one start then one end. Behind the devbin 0.1.22 sweep bank, which takes priority when it is on the tap.",
+      "state": "live",
+      "recorded_at": "2026-11-11T06:09:45.485Z"
     }
   ],
   "sent": [
