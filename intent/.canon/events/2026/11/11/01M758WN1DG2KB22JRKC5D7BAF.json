@@ -1,0 +1,16 @@
+{
+  "id": "01M758WN1DG2KB22JRKC5D7BAF",
+  "ts": "2026-11-11T12:21:27.725Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 77,
+    "text": "3.3.0, THE ONE RELEASE, cut ONCE when everything is in and working locally; a thing found while building it is built into it (hv decision 36). ON MAIN at c29bbb2f2, unpushed, untagged: ST0091 four packages; issues 0649, 0650, 0665, 0667, 0670, 0672, 0676, 0677, 0678, 0679 closed; ST0092 WP-01, 02, 03, 05, 07, 08 done, WP-09 landed and WP-04 bank (i) landed. WHAT STANDS BETWEEN HERE AND THE CUT, in the desk order devbin-vc gave at 12:1xZ by its own stamp: vc judge of WP-04 (ii), dc sweep run, cc WP-09 follow-up run, ic WP-06 run. (1) ST0092 WP-04 (ii), 0680, WP-09 follow-up, WP-06, WP-10: todo 76. (2) dc sweep bank on devbin 0.1.22: todo 71. (3) dc regenerates docs/reference last, then build all at HEAD on the desk, then the kovacs line to devbin-vc. (4) The push, hold 8, and hv cut, ST0091 AC-04.3. OWED BY hv, at the terminal: at Intent cut the one-message rewrite of c1d7d163d with every seat held (refs/bank/vc/rewrite/), the kovacs preflight line, then tag and push; hv eye on ST0090 row on a 3.3.0 build (hold 6). OPTIONAL FOR hv: seeing bin/devbin use dev and bin/devbin install refuse in tmp/wt-dc-devbin0121. THE DESK is devbin-vc and chains grants at each END with load under 16. WEBBER: webber-vc holds vc brief for the hand form of the team profile (decision 128); vc reads the result back when webber-vc says it is on Webber main, and tells hv; vc told hv that vc name there changes from Verification to Validation unless hv says keep it."
+  }
+}

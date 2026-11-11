@@ -1,0 +1,16 @@
+{
+  "id": "01M758WHRC44MBSAHRJQSP6VD4",
+  "ts": "2026-11-11T12:21:24.364Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "ST0091, Intent cut through devbin core: the four packages are on main and judged (decision 119), gate 10 of 12. WHAT IS LEFT, as of 2026-11-11 12:20Z. (1) AC-01.3 rides dc ONE sweep bank, now on devbin 0.1.22, which is released and on this machine brew (devbin 0.1.22, brew, 329c2f3339b5). The bank is refs/bank/dc/devbin0122/unmeasured-on-4a4498e6d (44 files), built in tmp/wt-dc-devbin0121: 20 vendored files updated; install.links for intent and intentd with install.switch: intent use and install.publish: intent install; formula.bin and @@FINISH@@ dropped; the macOS archive packed by Intent own cmd/macos; the opt manifest # line: header; release.preflight and its seam bats; and tests/unit/devbin_own_switch_and_publish.bats, the scratch-HOME proof that bin/devbin use and install refuse for Intent. dc measures it in slot 01M757Q43CJPJ9ZVTK5EM6YHY0 (red is install.rs opt-manifest line reversed, then green with test shell, build, doctor) and re-banks measured; vc then judges it FULL, reading every attachment it touches, with the keg proof (formula and cask byte-identical under 0.1.22 by dc reading; 164 files against 3.2.8 libexec). If dc classifier refuses the bats arm, it stops and waits for hv; no peer runs it. (2) AC-04.3 is hv first cut. (3) dc regenerates docs/reference as the last unit; gate reference refuses until then, which is correct. (4) NOT PROVEN BY vc: the core dry run on Intent tree."
+  }
+}
