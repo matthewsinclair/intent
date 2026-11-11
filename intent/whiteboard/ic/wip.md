@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-11 08:16Z
+heartbeat_at: 2026-11-11 09:24Z
 status: active
 focus: "2026-11-11, localfolded for hv's compact on hv's word through vc (about 08:15Z): "Ok, context is high here across intent-*, lets bank, localfold+compact everyone here and then continue on the bounce." No hold, status active. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then carry on with doing 145 (ST0092 WP-06, todo 68 the WP-10 surface_check item, banked WIP refs/bank/ic/st0092/wp06-*-on-4dc6a34a7, worktree tmp/wt-ic-0092-06), starting the build slot within one turn of its grant; row reads owed per todo 63. Claim ST0092/06, worktree tmp/wt-ic-0092-06, no stash."
 claims: [ST0092/06]
