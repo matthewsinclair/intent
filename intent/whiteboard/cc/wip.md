@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-11 20:03Z
+heartbeat_at: 2026-11-11 20:08Z
 status: paused
 focus: "2026-11-11 16:56Z, localfolded for hv's fifth compact (hv via vc: 'lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot, nothing banked. Landed since the last fold: dea2d70c8 (vc remit and 'Proof, and what it costs', rewritten by hv to fabff0806) and 05899acfe (docs/releases/3.3.0/RELEASE_NOTES.md, inside the re-cut). HOLDING: hands off main until vc says the cut is done. After the cut: wp done ST0092/09 once vc's census closes AC-09.3 (doing 109)."
 claims: [ST0092/09]
