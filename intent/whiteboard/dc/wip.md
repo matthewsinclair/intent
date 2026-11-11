@@ -6,7 +6,7 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-11 12:16Z
 status: active
 focus: "2026-11-11 12:15Z, localfolded for hv's third compact (hv via vc: 'bank, localfold+compact everyone here and then continue on the bounce'); active. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then: (1) ST0092 WP-04 bank (ii) is measured and judged by vc (01M757GCPEFGE91WRCCBCVB08Z); land it ONLY on vc's word in the order doing 159 gives; (2) the devbin 0.1.22 sweep (todo 61): desk slot 01M757Q43CJPJ9ZVTK5EM6YHY0 is next after vc's judge; if it was granted during the compact, start it at once and run scratchpad sw2/run/run.sh, else wait for it; then re-bank measured and send vc; (3) F8 docs/reference last (todo 60). Hold 37 stands. Worktrees: -04c and -04c-red hold (ii); -04d free; -04, -04b, -04-red superseded with unstaged edits (prove and remove at a fold); tmp/wt-dc-devbin0121 holds the sweep; tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/, sw2/."
-claims: [ST0090/02, ST0091/01, ST0091/04]
+claims: [ST0090/02, ST0091/04]
 ---
 
 # DevX Claude (dc)
@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - ST0091 F8 (vc, 2026-11-10): regenerate docs/reference against v3.2.8 and commit it as the last unit before the cut, after ST0092's surface is on main, since those pages change with it. Until then `gate reference` refuses, which is correct; it is not a derived step.
-- ST0091 AT-01.6 and the devbin sweep, one unit for 3.3.0 (vc's rulings, hv decisions 37 and 38). RE-SWEPT ONTO devbin 0.1.22 in tmp/wt-dc-devbin0121 on 4a4498e6d, banked UNMEASURED as refs/bank/dc/devbin0122/unmeasured-on-4a4498e6d (a7f4ec1d0026, 44 files, tree f6be87c6e379); the 0.1.21 ref is superseded. Done: the 0.1.21 bank applied 3-way with no conflict; bin/devbin upgrade (20 vendored files); config.yaml install.switch: intent use and install.publish: intent install (new keys in 0.1.22); 0.1.22's other changes need nothing (intentd prints its own name, the template runs nothing before @@INSTALL@@, no macos: block so Intent's cmd/macos packs); formula and cask render byte-identical to 0.1.21's archive render, so the 164-file keg proof on v3.2.8's real assets stands (scratchpad sw2); devbin doctor light 20 checks 0 failed. NEW, on vc's ruling: tests/unit/devbin_own_switch_and_publish.bats, two arms that run bin/devbin use dev and bin/devbin install with HOME, XDG and the prefix in the test's sandbox, assert each refuses naming intent use / intent install, and assert the sandbox is unchanged (my classifier refused running them bare; the lines went to hv via vc as an option). NEXT: desk slot 01M757Q43CJPJ9ZVTK5EM6YHY0 (next after vc's (ii) judge) runs scratchpad sw2/run/run.sh: red = install.rs's opt-manifest line reversed with the arms kept (test rust), then green = format, clippy, panics, test rust, test shell (the new bats first runs here; if the classifier refuses it, stop and tell vc), build, devbin doctor. Then re-bank measured and send vc for a full judge with the keg proof. (edited)
 
 ## Holds
 
