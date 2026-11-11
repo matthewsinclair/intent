@@ -1,0 +1,16 @@
+{
+  "id": "01M752BA24S3Q02YSXNBY71EE2",
+  "ts": "2026-11-11T10:27:07.972Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 159,
+    "text": "ST0092 WP-04 bank (i). REBASED onto 867cad6d3 (after WP-05 landed) in tmp/wt-dc-0092-04c with ic's three wording fixes folded in (all read clean by ic, upheld by vc); red tree tmp/wt-dc-0092-04c-red. Refs, UNMEASURED: refs/bank/dc/0092-04/red-unmeasured-on-867cad6d3 (blob 3a7b799ca29c), green-on-red-unmeasured-on-867cad6d3 (50dfcbecb67d), fix-unmeasured-on-867cad6d3 (aff52f1a8391); red tree 2d2162073e23, tip tree 4cdc6d6fbba4 (stacking verified). Two conflicts, both taking WP-05's side: (1) facade.rs land_board_write tail = drop_closed_pair_views()?; record_landed(..)?; prune_retired_pair_views(&rendered); (2) dispatch-table.json wb init when_to_use = WP-05's text whole with WP-04's two sentences after 're-applies the board's recorded declaration.'. seat.rs, views.rs, WbInit merged cleanly; told vc. Slot 01M751XM0NFWE737SY9JNTDY7G never ran (asked devbin-vc to deny it for the compact). NEXT: re-ask a slot, run /w04/run-c.sh (red in -04c-red, green plus schema stamp check in -04c), rebank as measured, send vc for the full judge. Landing: red, mint AT-04.1, 04.2, 04.5, 04.6 citing intent-cli/tests/wb_retire_door.rs and AT-04.3, 04.4 citing intentsvcs/tests/wb_retire.rs (compile red, naming at_04_1's door arm), at red, green, at green full notes, lint. The 8f3da433f refs and tmp/wt-dc-0092-04, -04b, -04-red are superseded and go at the next fold."
+  }
+}

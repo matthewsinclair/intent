@@ -1,0 +1,16 @@
+{
+  "id": "01M752BEYDVFYTAYPFG34RSV4V",
+  "ts": "2026-11-11T10:27:12.973Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 62,
+    "text": "ST0092 WP-04 bank (ii), stacked on (i)'s rebased tip 4cdc6d6fbba4 in tmp/wt-dc-0092-04d, DRAFTED, UNBUILT: refs/bank/dc/0092-04/ii-draft-unbuilt-on-4cdc6d6fbba4 (blob d8a5cae30357, tree 46ff68d230d6, 11 files). FacadeError::WbRecipientRetired (wb ask refuses, exit 1, remedy names wb register); wb announce skips retired; Pickup.stranded: Vec<WbStranded{recipient, recorded_at, reason}> (skipped when empty) with a CLI 'stranded:' line carrying the archive command; store archive_messages' one-message form (id given) takes a message to a retired recipient unhandled, the --handled sweep does not; views::live_to is the one reading of a live message (holds_live, wb_retire's awaiting, pickup). Help for wb ask, announce, archive, pickup; CHANGELOG; error_remedies and mandatory_fields lists. Tests: wb_retire.rs at_04_7 and at_04_8; door arm at_04_7_and_8 (runtime red on (i)'s tip: the ask succeeds). New ATs AT-04.7 (AC-04.1) and AT-04.8 (AC-04.3). NEXT after (i)'s green: a slot for (ii)'s red (door file only on (i)'s tip) and green, bank as its own bank, vc judges both in one full run, one landing each."
+  }
+}

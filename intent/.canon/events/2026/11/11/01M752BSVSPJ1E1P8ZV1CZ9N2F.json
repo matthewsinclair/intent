@@ -1,0 +1,16 @@
+{
+  "id": "01M752BSVSPJ1E1P8ZV1CZ9N2F",
+  "ts": "2026-11-11T10:27:24.153Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 61,
+    "text": "ST0091 AT-01.6 and the devbin sweep, one unit for 3.3.0 (vc's rulings, hv decisions 37 and 38). Built on devbin 0.1.21 in tmp/wt-dc-devbin0121 and banked UNJUDGED as refs/bank/dc/devbin0121/unjudged-built-on-0.1.21-waiting-0.1.22-on-2763e1f2b; re-sweep onto 0.1.22 once devbin-vc says it is on the tap (as of 2026-11-11 10:27Z its macOS CI job is being re-run). The unit: bin/devbin upgrade; install.links for intent and intentd, install.switch: intent use, install.publish: intent install; formula.bin and @@FINISH@@ gone, the template's install @@INSTALL@@ alone; the macOS assets packed as ONE archive, intent-aarch64-apple-darwin.tar.gz, by Intent's own cmd/macos pack after notarize (hv: leave it on Intent's handler); intent install's opt manifest gains '# line: intent <v> (opt, <sha12>)' with a writer arm and a reader arm, run red then green in one slot; release.preflight's four checks, preflight clean against DEVBIN_RELEASE_VERSION, and release_preflight_seam.bats for AT-01.6. Proofs: the rendered keg is 3.2.8's (164 files, byte-equal on v3.2.8's real assets), devbin doctor 0 failed with the built pair and an opt tree, bin/devbin use and install refused for Intent, brew_formula green. vc judges light with test shell."
+  }
+}
