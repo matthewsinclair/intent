@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 14:16Z
+heartbeat_at: 2026-11-11 16:58Z
 status: active
-focus: "2026-11-11 14:16Z, hands-off main for vc's rewrite dry run and hv's 3.3.0 cut. docs/reference landed at 9f0c87eb5 on gate reference exit 0 (todo 60 archived). No code owed before the cut. After the cut: ST0091 AC-04.3 closes with it (vc's RELEASE seal lines), then wp done ST0091/04; hold 37 is hv's look at ST0090 AC-02.4 on the released build, no rebuild before it. Worktrees tmp/wt-dc-0092-04, -04b, -04-red superseded (prove and remove at a fold); tmp/wt-dc-0090-app (hold 37). Active, no slot."
+focus: "2026-11-11 16:58Z, localfolded for hv's fifth compact (hv via vc: 'bank, localfold+compact everyone here and then continue on the bounce'). Main reset by hv to 4410d1563; the 3.3.0 cut is re-cut from there. On the bounce: doing 160, the leg-fix bank: read kovacs ~/work/intent-dcbank.rc (its proving run, test shell running at the fold); END to devbin-vc for slot 01M75R498NA198WEQ9FXVFHHX3; on green land it in a chain with the pair first on PATH, then build all at the new HEAD for pre-push. On main already, under the rewrite's shas: docs/reference (a6938a293) and known-defects (41a43881d). After the cut: ST0091 AC-04.3 and wp done ST0091/04; hold 37 is hv's look on the released build. Notes: scratchpad w04/progress.md."
 claims: [ST0090/02, ST0091/04]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0090/02, ST0091/04]
 
 ## DOING
 
-_(none)_
+- LEG-FIX BANK for the 3.3.0 cut (hv: "Fix the bloody error!"), refs/bank/dc/legpair/patch (blob cc3556c4542f) on 4410d1563, 4 paths: release.gates becomes gate all, build all, test shell (a leg's fresh worktree has no pair for the shell suite); every bare intentd spawn in intentd's tests goes through testkit::fixtured_command (kovacs' ssh XDG_RUNTIME_DIR made every test daemon share one socket). Proving run, its one proof: kovacs ~/work/intent-dcbank at b4e04b8d5 (transport commit, never lands), bin/devbin release gates whole from 16:48Z, log ~/work/intent-dcbank.log, exit status ~/work/intent-dcbank.rc; gate all GREEN with XDG_RUNTIME_DIR live, build all passed, test shell running at the fold. Desk slot 01M75R498NA198WEQ9FXVFHHX3: END to devbin-vc when it exits. On green: land on main in a chain (apply the patch, commit --only the 4 paths, pair first on PATH), then bin/devbin build all at the new HEAD for pre-push; then remove kovacs ~/work/intent-dcbank and tmp/wt-dc-legpair.
 
 ## TODO
 

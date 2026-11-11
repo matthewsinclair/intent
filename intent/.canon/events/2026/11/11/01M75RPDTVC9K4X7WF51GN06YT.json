@@ -1,0 +1,15 @@
+{
+  "id": "01M75RPDTVC9K4X7WF51GN06YT",
+  "ts": "2026-11-11T16:57:40.955Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "LEG-FIX BANK for the 3.3.0 cut (hv: \"Fix the bloody error!\"), refs/bank/dc/legpair/patch (blob cc3556c4542f) on 4410d1563, 4 paths: release.gates becomes gate all, build all, test shell (a leg's fresh worktree has no pair for the shell suite); every bare intentd spawn in intentd's tests goes through testkit::fixtured_command (kovacs' ssh XDG_RUNTIME_DIR made every test daemon share one socket). Proving run, its one proof: kovacs ~/work/intent-dcbank at b4e04b8d5 (transport commit, never lands), bin/devbin release gates whole from 16:48Z, log ~/work/intent-dcbank.log, exit status ~/work/intent-dcbank.rc; gate all GREEN with XDG_RUNTIME_DIR live, build all passed, test shell running at the fold. Desk slot 01M75R498NA198WEQ9FXVFHHX3: END to devbin-vc when it exits. On green: land on main in a chain (apply the patch, commit --only the 4 paths, pair first on PATH), then bin/devbin build all at the new HEAD for pre-push; then remove kovacs ~/work/intent-dcbank and tmp/wt-dc-legpair."
+  }
+}
