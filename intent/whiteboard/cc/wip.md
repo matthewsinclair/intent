@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-11 12:16Z
+heartbeat_at: 2026-11-11 12:23Z
 status: active
 focus: "2026-11-11 12:16Z, localfolded for hv's third compact (hv via vc: 'across intent-* lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot held. WP-09 LANDED and stays WIP; its retired-seat follow-up is built and banked NOT RUN on dc's WP-04 (ii) tip, run 01M756VSEZ1EPG28GEJ78P609M queued (doing 109). Issue 0680 GREEN and banked on 4a4498e6d; re-bank green-on-red owed after dc's (ii) lands (todo 50). On the bounce: /in-session, then start a granted slot within a turn (named tree=wt-cc-0092-wp09r, script tools/wp09r-run1.sh), and re-bank 0680 at dc's (ii) END. Notes: scratchpad wp03-notes.md, LOCALFOLD 3."
 claims: [ISSUE:0680, ST0092/09]
