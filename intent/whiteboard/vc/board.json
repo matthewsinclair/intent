@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "124edee5-f105-45bd-8483-ee7dc6dd6fd9",
-    "heartbeat_at": "2026-11-11T17:00:13.999Z",
+    "heartbeat_at": "2026-11-11T17:36:14.231Z",
     "status": "active",
-    "focus": "2026-11-11 17:00Z fold for hv's sixth compact. 3.3.0 NOT cut: three stops at stamp and legs.kovacs, nothing tagged; main reset by hv to 4410d1563 plus notes and folds. Waiting on dc's legpair bank (kovacs run), then build all, then hv re-cuts with the pair first on PATH. Decision 129 or the latest has the whole state. One layer of proof; no re-judging.",
+    "focus": "3.3.0 RELEASED at 1e423060f (17:35Z). Post-cut closes with cc, dc, ic; then todo 78, the yak-shaving deep dive.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2831,6 +2831,14 @@
       "text": "(2026-11-11 17:00Z on vc's date -u, vc under the pen; hv's words first-hand in vc's session) THE 3.3.0 CUT, WHERE IT STANDS. hv ran the one-message rewrite of c1d7d163d (main 50637ff81 became 4410d1563, old history at refs/attic/vc/main-before-message-rewrite) and then the cut three times; nothing was tagged. Stops: (1) stamp views, the store held an older ST0056 attachment than canon; vc ran intent sync --to-store. (2) legs.kovacs: /tmp there is a 1.7G tmpfs (hv added export TMPDIR to kovacs ~/.config/molt/env.sh, a stopgap still in place), and the leg's tree had no v3.2.8 tag (devbin-vc and dc sent it to the bare repo). (3) legs.kovacs: intentd's test daemons share one socket under XDG_RUNTIME_DIR. (4) legs.kovacs: test shell has no pair in a leg's tree. hv, on a skipped leg or a fix: \"Fix the bloody error!\" dc's bank refs/bank/dc/legpair/patch on 4410d1563 holds both fixes (release.gates gains build all before test shell; intentd's test spawns go through testkit::fixtured_command) and is proving on kovacs, gate all green there, test shell running at this fold. hv reset main to 4410d1563 (the release commit 3447124a0 is gone). On main since: cc's release notes 05899acfe (hv: \"Yes, please\"), folds 1deb99c1b, 4d32c1461, 5984d1433. ALSO THIS SESSION: the real store went to schema 35 when dc's known-defects drive opened it with the dev pair, so every verb and commit here runs with native/rust/target/release first on PATH until brew 3.3.0; hv ruled the vc remit and TERMS \"Proof, and what it costs\" into 3.3.0 (\"Yes, in 3.3.0\", \"It should also batch changes\", \"Ship that in 3.3.0, please\"), landed by cc; webber-vc landed the hand form on Webber (its 5b726b6f). NEXT: dc lands the bank on its kovacs green, build all at the new HEAD, then hv: export PATH with the pair first, bin/devbin release v3.3.0 --dry-run, then the cut. AFTER THE CUT: brew upgrade intent; remove the TMPDIR line on kovacs or give Molt a disk TMPDIR for it; the gate tree's place (cut/gate:112); prepush exempting a delete-only push; the leg sending the previous tag (devbin); hv directive 2 still carries cc's old remit; todo 78.",
       "state": "live",
       "recorded_at": "2026-11-11T17:00:13.072Z"
+    },
+    {
+      "node": "vc",
+      "kind": "decision",
+      "seq": 130,
+      "text": "3.3.0 IS RELEASED. hv's fourth run of bin/devbin release v3.3.0 ran 17:13:29Z to 17:35:36Z as one process: every leg green (candidate, local, legs.kovacs), annotated tag v3.3.0 at release commit 1e423060f, pushed to local and upstream, release object with the Linux and macOS assets and SHA256SUMS, tap published, brew smoke green; brew's intent on rhadamanth reads 3.3.0. After the cut: ST0091 WP-04 done (dc), ST0092 WP-10 done (ic, issue 0681 carries three help-text gaps). ST0092 WP-06 stays WIP on AC-06.4 until hv's next real intent claude start on 3.3.0, which vc records by session id. Open with hv: the TMPDIR line in kovacs ~/.config/molt/env.sh, which the leg needs until Molt sets it. Next: ST0092 WP-11, the estate sweep (hv 17:4xZ: 'once this is done, we need to do the estate sweep to roll out the agent profiles for all Intent projects here'), then todo 78.",
+      "state": "live",
+      "recorded_at": "2026-11-11T17:45:16.794Z"
     }
   ],
   "sent": [
