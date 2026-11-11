@@ -951,6 +951,56 @@
       "note": "The skill at the base says hv's inbox is the escalation surface on every board, requires the README to name who reads hv/inbox.*, and cites no terms document; the wording lands in the same bank as the code, as AC-05.8 requires."
     },
     {
+      "id": "AT-06.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/seat_brief.rs",
+      "covers": [
+        "AC-06.1"
+      ],
+      "status": "green",
+      "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): a_pickup_on_a_declared_board_carries_the_seat_brief_on_four_faces failed: no brief ahead of the board. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+    },
+    {
+      "id": "AT-06.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/seat_brief.rs",
+      "covers": [
+        "AC-06.2"
+      ],
+      "status": "green",
+      "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): a_seat_no_session_has_picked_up_is_marked_never_started failed: no never-started mark. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+    },
+    {
+      "id": "AT-06.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/claude_cwi_door.rs",
+      "covers": [
+        "AC-06.3"
+      ],
+      "status": "green",
+      "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): start_hands_the_seat_its_brief_and_the_profiles_launch_steps failed: the launch carried no brief. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+    },
+    {
+      "id": "AT-06.4",
+      "kind": "non-test",
+      "prose": "A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, role, remit, mediator and route to hv; vc records that boot by its session id.",
+      "covers": [
+        "AC-06.4"
+      ],
+      "status": "n-a",
+      "note": "Not yet observable: it needs a seat booted on an installed 3.3.0. On vc's ruling (2026-11-11), WP-06 stays WIP until vc records that boot; this row is not taken green before then."
+    },
+    {
+      "id": "AT-06.5",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/seat_brief.rs",
+      "covers": [
+        "AC-06.5"
+      ],
+      "status": "green",
+      "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): wb_brief_prints_a_seat_and_its_launch_steps_and_writes_nothing failed: unrecognized subcommand 'brief'. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+    },
+    {
       "id": "AT-07.1",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/tests/roster_readme.rs",
