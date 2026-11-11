@@ -363,10 +363,17 @@ done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
 # is a promise that something else covers the key, and it is only ever as good
 # as that promise.
 INV_PROBED="INV-01 INV-02 INV-03 INV-04 INV-06 INV-07 INV-08"
-INV_SKIPPED="INV-05"
+INV_SKIPPED="INV-05 INV-09 INV-10 INV-11 INV-12"
+# INV-09 to INV-12 are held by tests, not by a --help sweep, so each reason is
+# the table's held_by sentence, written here by hand and never derived, so a
+# new invariant still refuses until someone says what holds it (ST0092 WP-10).
 inv_skip_reason() {
   case "$1" in
     INV-05) echo "a property of v2 SOURCE (an unreachable second call after error), not of observable v3 behaviour -- there is nothing to probe, which is why it is not merely unimplemented" ;;
+    INV-09) echo "held by \`twin_of\` naming the partner row, a probe result of \`varies\` naming the axis it varies on, and intent-cli's twin_spellings_agree.rs and edit_and_browse_reach_one_model.rs" ;;
+    INV-10) echo "held by intent-cli's st_edit_opens_or_prints.rs: the four modes are refused pairwise (the_two_flags_together_are_refused_rather_than_ranked, browser_with_either_other_override_is_refused_rather_than_ranked), and \`--path\` is a documented output contract under test in docs/getting-started.md" ;;
+    INV-11) echo "held by dispatch::table()'s load checks on \`value_facades\` and \`value_args\`, and mcp.rs's expansion test with its positive control, beside a_subcommand_slot_is_not_published" ;;
+    INV-12) echo "held by Facade::require_writer_as, which every node-taking board verb calls first, with intentsvcs's wb_hv.rs, intent-cli's hv_seat_door.rs and intentd's own store test" ;;
     *) echo "no reason recorded" ;;
   esac
 }

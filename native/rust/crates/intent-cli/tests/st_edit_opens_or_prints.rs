@@ -394,6 +394,28 @@ fn the_two_flags_together_are_refused_rather_than_ranked() {
   );
 }
 
+/// **`--browser` JOINS THE SET THE OTHER TWO OVERRIDES ARE REFUSED IN** (INV-10):
+/// beside either, it is refused naming both flags and prints nothing on stdout,
+/// so a command substitution receives no path. render.rs's `browsed` already
+/// refused both pairs; this arm is what holds it (ST0092 WP-10).
+#[test]
+fn browser_with_either_other_override_is_refused_rather_than_ranked() {
+  let dir = seeded();
+  for other in ["--editor", "--path"] {
+    let out = intent(dir.path(), &["edit", "st", "ST0001", "--browser", other]);
+    assert!(!out.status.success(), "`--browser {other}` succeeded");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+      stderr.contains("--browser") && stderr.contains(other),
+      "the refusal must name both flags: {stderr:?}"
+    );
+    assert!(
+      String::from_utf8_lossy(&out.stdout).trim().is_empty(),
+      "`--browser {other}` was refused and printed to stdout anyway"
+    );
+  }
+}
+
 #[test]
 fn an_unset_editor_refuses_and_names_the_way_out() {
   let dir = seeded();

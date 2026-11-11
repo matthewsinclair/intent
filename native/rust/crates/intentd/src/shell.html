@@ -747,11 +747,13 @@
       var byReq = {};
       s.queue.forEach(function (q) { byReq[q.id] = q; });
       var holding = function (q) { return q.state === "granted" || q.state === "running"; };
-      // **A HOLD WHOSE HOLDER IS GONE, OR NOT ON THIS HOST AT ALL, IS ORPHANED**:
-      // the slot is still counted against its lane, and saying so is the point.
+      // **A HOLD WHOSE HOLDER'S SESSION IS GONE IS ORPHANED**: the slot is still
+      // counted against its lane, and saying so is the point. Only a session row
+      // in state `gone` is that evidence (issue 0680): a hold with no row is
+      // drawn held, never ORPHANED, because this read could not see its holder.
       var orphaned = function (q) {
         var who = byId[q.by];
-        return holding(q) && (!who || who.state === "gone");
+        return holding(q) && !!who && who.state === "gone";
       };
       var who = function (id) { return byId[id] ? byId[id].name : id.slice(0, 8); };
       var cap = 0, running = 0, held = 0;
@@ -761,7 +763,10 @@
       var ctl = s.controller;
       // A controller record that will not parse is its own state, never no
       // controller: the reader names it beside `controller`, which is null then.
-      var ctlState = !ctl ? (s.controller_unreadable ? "unreadable" : "none") : (!byId[ctl.session_id] || byId[ctl.session_id].state === "gone") ? "orphaned" : "live";
+      // **ORPHANED IS THE READER'S WORD ALONE** (ST0092 AC-08.4, issue 0680):
+      // `controller_orphaned` says it, with the step that takes the desk, so
+      // the page and `intent estate status` cannot disagree.
+      var ctlState = !ctl ? (s.controller_unreadable ? "unreadable" : "none") : s.controller_orphaned ? "orphaned" : "live";
       return {
         byId: byId, byReq: byReq, holding: holding, orphaned: orphaned, who: who,
         cap: cap, running: running, held: held, tally: tally, ctlState: ctlState,
@@ -818,13 +823,22 @@
         rows.push(line([["k", "         "], "asks queue, nothing is granted"]));
       } else if (ix.ctlState === "orphaned") {
         rows.push(line([["k", "control  "], ["warn", s.controller.name + " ORPHANED"]]));
-        rows.push(line([["k", "         "], "pid " + s.controller.pid + " is not a live session; the next take succeeds"]));
+        rows.push(line([["k", "         "], "pid " + s.controller.pid + " is not a live session"]));
+        // The step is the reader's, a line of its own, as the CLI prints it.
+        rows.push(line([["k", "         "], ["k", "take it: "], s.controller_orphaned.take], true));
       } else {
         // The node is the take's own, never the session's board: the two must
         // not disagree on screen.
         var ctl = ix.byId[s.controller.session_id];
-        rows.push(line([["k", "control  "], s.controller.name, ["k", " in "], (ctl.project ? ctl.project.name : "no project") + (s.controller.node ? " / " + s.controller.node : "")]));
-        rows.push(line([["k", "         "], "since " + age(secs(Date.parse(s.controller.taken_at), ix.now)), ["k", " pid "], String(s.controller.pid)]));
+        if (!ctl) {
+          // A controller the reader does not call orphaned and that has no
+          // session row is worn by a session this read could not see.
+          rows.push(line([["k", "control  "], s.controller.name, ["k", " pid "], String(s.controller.pid)]));
+          rows.push(line([["k", "         "], "its session could not be read here, so it is taken as live"]));
+        } else {
+          rows.push(line([["k", "control  "], s.controller.name, ["k", " in "], (ctl.project ? ctl.project.name : "no project") + (s.controller.node ? " / " + s.controller.node : "")]));
+          rows.push(line([["k", "         "], "since " + age(secs(Date.parse(s.controller.taken_at), ix.now)), ["k", " pid "], String(s.controller.pid)]));
+        }
       }
       if (s.controller && s.controller.predecessor) {
         var pre = s.controller.predecessor;
@@ -836,6 +850,12 @@
       if (s.controller && s.controller.hv) {
         rows.push(line([["k", "         "], ["k", "hv: "], "\u201c" + s.controller.hv + "\u201d"], true));
       }
+      // **A START WITH NO END WHOSE ASKER IS IDLE** (issue 0680): the reader's
+      // `running_idle`, oldest start first, one line each under the controller,
+      // who decides on it.
+      s.running_idle.forEach(function (r) {
+        rows.push(line([["k", "         "], ["warn", "RUNNING, ASKER IDLE: "], shortId(r.id), ["k", " (" + r.name + ", " + r.lanes.join("+") + ", started " + age(secs(Date.parse(r.started_at), ix.now)) + ")"]], true));
+      });
       // **A STANDING DESK HOLD MEANS NOTHING IS GRANTED**, so it is the loudest
       // line in the band.
       ix.deskHolds.forEach(function (h) {
