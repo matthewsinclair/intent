@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
-heartbeat_at: 2026-11-11 16:59Z
+heartbeat_at: 2026-11-11 17:41Z
 status: active
-focus: "2026-11-11 16:59Z, localfolded for hv's fifth compact (via vc: 'bank, localfold+compact everyone here and then continue on the bounce'). Active, no hold, no slot, nothing banked or uncommitted. Main was reset by hv to 4410d1563; ST0092 WP-06 (eb9e9f6c3, rows b23bd66fa) and WP-10 (5b597abd9) are on it and stay WIP on vc's ruling (doing 145 and 146 say what closes each). The explorer shots for 3.3.0 were taken at 2f33321eb and changed nothing. Until brew 3.3.0 is installed, every intent verb and git commit here runs with native/rust/target/release first on PATH (vc; the store is at schema 35). On the bounce: /in-session, pickup with the dev pair first, then vc's next order; hands off main while the cut is open."
+focus: "2026-11-11 17:41Z, post-cut pickup on brew 3.3.0 (vc: the cut is done, 3.3.0 released at 1e423060f; the dev-pair PATH prefix is over). Active, no slot, nothing banked. ST0092 WP-06 stays WIP on vc's ruling: AC-06.4 closes at hv's next real `intent claude start <node>` on 3.3.0, recorded by vc by session id. WP-10 closes now on vc's rulings, its three help and guide findings filed as one issue for the next release."
 claims: [ST0092/06, ST0092/10]
 ---
 
