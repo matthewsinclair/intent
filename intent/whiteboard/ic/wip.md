@@ -17,7 +17,7 @@ claims: [ST0092/06]
 
 ## TODO
 
-- PARKED UNTIL AFTER THE 3.3.0 CUT, on vc's word of 2026-11-10: the dispatch table's `doctor` row still has target state `pending-hv` on "Should doctor exit non-zero when it finds something?", which the shipped exit contract (INV-04, doctor exits 1 on a counted finding) answered long ago. ic, as the table's owner, brings the row's correction to vc after the cut.
+_(none)_
 
 ## Holds
 
