@@ -205,7 +205,8 @@
       "covers": [
         "AC-01.3"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "Red at 668c9ddab only because the row machine declares green from red alone: release_preflight_seam.bats lands in that commit with devbin 0.1.22's core, and its own red on the code before the sweep was not measured; the commit's measured red is install_publishes_an_opt_tree (desk slot 01M757Q43CJPJ9ZVTK5EM6YHY0). Green at 06d0f4475: vc's full judge in desk slot 01M75AK5RA7YSWPYVS6J0GRSEY on tip f69e0c360e8f ran bats 827 ok 0 not ok, release_preflight_seam.bats among them, holding that the cut's pre-flight runs Intent's release.preflight checks (preflight daemon among them, which refuses while an intentd is live) and stops the cut before anything is stamped."
     },
     {
       "id": "AT-02.1",
