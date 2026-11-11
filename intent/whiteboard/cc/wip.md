@@ -3,22 +3,21 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-11 12:23Z
+heartbeat_at: 2026-11-11 13:29Z
 status: active
-focus: "2026-11-11 12:16Z, localfolded for hv's third compact (hv via vc: 'across intent-* lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot held. WP-09 LANDED and stays WIP; its retired-seat follow-up is built and banked NOT RUN on dc's WP-04 (ii) tip, run 01M756VSEZ1EPG28GEJ78P609M queued (doing 109). Issue 0680 GREEN and banked on 4a4498e6d; re-bank green-on-red owed after dc's (ii) lands (todo 50). On the bounce: /in-session, then start a granted slot within a turn (named tree=wt-cc-0092-wp09r, script tools/wp09r-run1.sh), and re-bank 0680 at dc's (ii) END. Notes: scratchpad wp03-notes.md, LOCALFOLD 3."
-claims: [ISSUE:0680, ST0092/09]
+focus: "2026-11-11 13:29Z, issue 0680 and the WP-09 retired-seat follow-up LANDED on vc's word (50885cd86). WP-09 stays WIP on AC-09.3 (vc's census on the released build, then hv), so wp done follows the cut (doing 109). No hold, no desk slot held."
+claims: [ST0092/09]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0092 WP-09 LANDED on vc's word (b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows: AT-09.1 and 09.2 green, AC-09.2 satisfied, AT-09.4 to-write on AC-09.1, upheld by vc); gate BLOCKED 1/3, so WP-09 STAYS WIP. THE RETIRED-SEAT FOLLOW-UP is BUILT, NOT RUN, on dc's WP-04 bank (ii) (main 4a4498e6d plus dc's ii-red- and ii-green-on-red-measured-on-8965685b9, tip 125c524fe171), in tmp/wt-cc-0092-wp09r with (ii) and the red arm staged (index ee3a509ee3f3). Banked as drafts: refs/bank/cc/st0092/wp09r-red-draft-NOT-RUN-on-ii-125c524fe171 (blob 6bc9a6ad35b5) and wp09r-green-draft-NOT-RUN-on-ii-125c524fe171 (blob 9cdf9a61b799). Arm at_09_4 in wb_profile_drift.rs: a third declared worker retired through wb_retire is named seat-retired on its board.json with team, moniker and reason, shown and not counted, never seat-not-registered, count unchanged, still named after wb init --apply. Fix: FindingClass::SeatRetired (seat-retired, rank 8, in both lists), doctor reports Verdict::Retired only for a seat resolved.seats declares, CHANGELOG sentence. RUN: slot 01M756VSEZ1EPG28GEJ78P609M (named tree=wt-cc-0092-wp09r), queued after vc's (ii) judge and dc's devbin sweep; script tools/wp09r-run1.sh does red then green in the one tree (the fix as scratchpad wp09r-green.patch). Then bank red and green on (ii)'s landed main, AT-09.4 red then green at landing, gate, wp done. Worktrees tmp/wt-cc-0092-wp09 and -wp09b go at a fold by the checks. (edited)
+- ST0092 WP-09 LANDED whole on vc's word, and stays WIP. The package: b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows. The retired-seat follow-up: f1ca4a7d3 red, 5436963bc green, 50885cd86 rows; AT-09.1, 09.2 and 09.4 green; AC-09.1 and AC-09.2 satisfied. Gate ST0092/09 BLOCKED 2/3 on AC-09.3 alone: vc runs its census (refs/bank/vc/st0092/census-boards.zsh, now four classes with seat-retired) on the released build, and hv rules with the table whether any class gates. Then cc runs ac gate and wp done, after the cut. (edited)
 
 ## TODO
 
 - ST0092 WP-09 after WP-05 lands: doctor reports three classes (a seat whose name or role differs from its profile's, a declared seat not registered, an hv inbox view outside the mediator's pair), each shown and never counted, ids in FindingClass::as_str, remedy the wb init dry run then --apply; plus a retired declared seat (dc's WP-04: WbNode.retired, teams::Verdict::Retired { reason }), shown and not counted. No new row or flag.
-- ISSUE:0680 (vc's ruling, size S). GREEN: run 1 (slot 01M750CK5NYJ9JN8XTQYF9HKMT) red as wanted, 5 lib and 3 cli arms rc 101 on 867cad6d3; run 2 (slot 01M7555TM0DQD7NA235XNBR53Q) green: workspace compiles clean, lib estate 63, cli estate_surface 31, svcs suite estate 79 passed. Line 1 of estate.rs, damaged by an earlier misplaced insertion, was restored before run 2. BANKED on main 4a4498e6d: refs/bank/cc/issue-0680/red-on-4a4498e6d (blob 53dbd676301f, tree 32fa8752fabd) and green-on-red-on-4a4498e6d (blob 626645c06686, replays to cbe0a2b395da); estate.rs, slots.rs and estate_surface.rs are byte-identical to run 2's tree, and render.rs merges main's later changes cleanly but is unrun. OWED, on vc's word: after dc's CHAIN END for WP-04 bank (ii), re-bank green-on-red on that main with the CHANGELOG rebuilt (it fails only on CHANGELOG.md on (ii)'s tip), check render.rs merges, tell vc, who then asks the full judge. Worktrees tmp/wt-cc-0680 and -0680-red (on 867cad6d3, staged) stay until it lands. The NOT-RUN draft refs are superseded: drop them at the next fold. ic builds the page's twins in WP-10 (todo 69). (edited)
 
 ## Holds
 

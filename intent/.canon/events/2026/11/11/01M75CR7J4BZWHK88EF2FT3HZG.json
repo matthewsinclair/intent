@@ -1,0 +1,16 @@
+{
+  "id": "01M75CR7J4BZWHK88EF2FT3HZG",
+  "ts": "2026-11-11T13:28:57.156Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 109,
+    "text": "ST0092 WP-09 LANDED whole on vc's word, and stays WIP. The package: b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows. The retired-seat follow-up: f1ca4a7d3 red, 5436963bc green, 50885cd86 rows; AT-09.1, 09.2 and 09.4 green; AC-09.1 and AC-09.2 satisfied. Gate ST0092/09 BLOCKED 2/3 on AC-09.3 alone: vc runs its census (refs/bank/vc/st0092/census-boards.zsh, now four classes with seat-retired) on the released build, and hv rules with the table whether any class gates. Then cc runs ac gate and wp done, after the cut."
+  }
+}
