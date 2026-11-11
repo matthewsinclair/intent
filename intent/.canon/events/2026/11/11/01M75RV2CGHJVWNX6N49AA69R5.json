@@ -1,0 +1,15 @@
+{
+  "id": "01M75RV2CGHJVWNX6N49AA69R5",
+  "ts": "2026-11-11T17:00:13.072Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-11-11 17:00Z on vc's date -u, vc under the pen; hv's words first-hand in vc's session) THE 3.3.0 CUT, WHERE IT STANDS. hv ran the one-message rewrite of c1d7d163d (main 50637ff81 became 4410d1563, old history at refs/attic/vc/main-before-message-rewrite) and then the cut three times; nothing was tagged. Stops: (1) stamp views, the store held an older ST0056 attachment than canon; vc ran intent sync --to-store. (2) legs.kovacs: /tmp there is a 1.7G tmpfs (hv added export TMPDIR to kovacs ~/.config/molt/env.sh, a stopgap still in place), and the leg's tree had no v3.2.8 tag (devbin-vc and dc sent it to the bare repo). (3) legs.kovacs: intentd's test daemons share one socket under XDG_RUNTIME_DIR. (4) legs.kovacs: test shell has no pair in a leg's tree. hv, on a skipped leg or a fix: \"Fix the bloody error!\" dc's bank refs/bank/dc/legpair/patch on 4410d1563 holds both fixes (release.gates gains build all before test shell; intentd's test spawns go through testkit::fixtured_command) and is proving on kovacs, gate all green there, test shell running at this fold. hv reset main to 4410d1563 (the release commit 3447124a0 is gone). On main since: cc's release notes 05899acfe (hv: \"Yes, please\"), folds 1deb99c1b, 4d32c1461, 5984d1433. ALSO THIS SESSION: the real store went to schema 35 when dc's known-defects drive opened it with the dev pair, so every verb and commit here runs with native/rust/target/release first on PATH until brew 3.3.0; hv ruled the vc remit and TERMS \"Proof, and what it costs\" into 3.3.0 (\"Yes, in 3.3.0\", \"It should also batch changes\", \"Ship that in 3.3.0, please\"), landed by cc; webber-vc landed the hand form on Webber (its 5b726b6f). NEXT: dc lands the bank on its kovacs green, build all at the new HEAD, then hv: export PATH with the pair first, bin/devbin release v3.3.0 --dry-run, then the cut. AFTER THE CUT: brew upgrade intent; remove the TMPDIR line on kovacs or give Molt a disk TMPDIR for it; the gate tree's place (cut/gate:112); prepush exempting a delete-only push; the leg sending the previous tag (devbin); hv directive 2 still carries cc's old remit; todo 78."
+  }
+}
