@@ -2294,6 +2294,14 @@
       "text": "ST0092 WP-03, wb init and the declaration, cc's to build after WP-02 landed at 86e180439 (2026-11-10): board@4.1 with 4.0 read and named board-schema-behind, WbNode.remit, store rung 34 with wb_declaration, declaration.json, teams::resolve and plan, facade wb_init (one transaction, one event, one landing, the dry run's view list from a shadow projection) and wb_remit, register honouring the declaration, and the rows wb init and wb remit. Built in tmp/wt-cc-0092-wp03 and banked for vc's judge. Then WP-05, WP-06 and WP-09; dc takes WP-04 and WP-07 from WP-03's landing.",
       "state": "live",
       "recorded_at": "2026-11-10T21:57:15.855Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 48,
+      "text": "OWED in the WP-05 bank (vc's ruling on ic's note on WP-03 v2, in 3.3.0): render.rs `fail` maps FacadeError::Teams(Malformed | Absent | Io) to Failure::Unavailable, so every verb that reads the installed profiles exits 2 on an unreadable install, wb register and --correct included; wb init's own teams_unavailable route folds into it if that leaves one path; an arm drives register on a declared board with a fixture install that has no profiles and holds exit 2; the register row's exits gain 2.",
+      "state": "live",
+      "recorded_at": "2026-11-11T05:37:27.031Z"
     }
   ],
   "sent": [

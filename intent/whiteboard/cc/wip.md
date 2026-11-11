@@ -17,7 +17,7 @@ claims: [ST0092/03]
 
 ## TODO
 
-_(none)_
+- OWED in the WP-05 bank (vc's ruling on ic's note on WP-03 v2, in 3.3.0): render.rs `fail` maps FacadeError::Teams(Malformed | Absent | Io) to Failure::Unavailable, so every verb that reads the installed profiles exits 2 on an unreadable install, wb register and --correct included; wb init's own teams_unavailable route folds into it if that leaves one path; an arm drives register on a declared board with a fixture install that has no profiles and holds exit 2; the register row's exits gain 2.
 
 ## Holds
 
