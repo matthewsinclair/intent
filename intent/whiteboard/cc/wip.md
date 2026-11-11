@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-11 10:29Z
+heartbeat_at: 2026-11-11 10:47Z
 status: active
 focus: "2026-11-11, localfolded for hv's second compact (via vc: 'Ok, let's localfold+compact everyone here in intent-* again. And then continue on the bounce.'); active, no hold, no desk slot held. WP-05 LANDED (867cad6d3). WP-09 banked on 867cad6d3 for vc's judge 01M75299N6BRR3Z88MPCZ0709H; it lands as is and stays WIP until the retired-seat follow-up after dc's WP-04 (doing 109). Issue 0680 written and banked NOT RUN; its run 1 is next on the desk (todo 50). On the bounce: /in-session, then take the 0680 slot when the desk gives it, and land WP-09 on vc's word. Notes: scratchpad wp03-notes.md, LOCALFOLD 2."
 claims: [ISSUE:0680, ST0092/09]
