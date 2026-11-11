@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: b6c81c66-6862-4b68-a61a-ac299e1bb7ce
-heartbeat_at: 2026-11-10 19:33Z
+heartbeat_at: 2026-11-11 09:24Z
 status: active
-focus: "2026-11-10, folded for hv's compact of cc's window; NO HOLD on the bounce. hv RATIFIED ST0092's terms ("Ratified as recommended", read in vc's window at 19:26:54Z), vc landed it at 3ee4da245, and WP-02 MAY START on vc's word. ON THE BOUNCE: /in-session, commit the heartbeat-only pickup in its own chain, then (1) on vc's "verified" of the 0665/0670/0649 train (a08b6f03e, 03a820eb0, cedbc46fe; the attachment test at HEAD was the last leg), close issues 0665 and 0649 in one chain and remove tmp/wt-cc-0665 and tmp/wt-cc-0649 by the fold checks; (2) BUILD WP-02 (claimed, WIP) in a new worktree off main with its own target, booking a desk slot for every cargo run (a waiter's command goes in a script file, never in its command line). Read TERMS.md as landed FIRST: cc's default remit changed, the pen is a second hat, and "unseated session" is a defined word; AC-02.5 holds TERMS.md's seats table and seats.json to each other. Working copy of every ruling: refs/bank/cc/st0092/build-notes-v3.md (vc writes them into the WP bodies after this chain; until then the notes win over a body that disagrees). The MODULES.md row comes before teams.rs. Do NOT build around TERMS.md's Desk sentence ("One vc on a host wears it"): it goes to hv before WP-08. Nothing pushed or released."
+focus: "2026-11-11, back from hv's compact (localfold at 19813562f), active, no hold. WP-05 banked on 8f3da433f (doing 108), vc's judge queued behind devbin's 0.1.22 cut; land on vc's word. Meanwhile on vc's word at 09:24Z: build WP-09 (todo 49) in a worktree stacked on WP-05's tip tree 753a8290e2f8, and measure issue 0680's cause (todo 50, no cargo). Slots asked as needed."
 claims: [ST0092/05, ISSUE:0680]
 ---
 
