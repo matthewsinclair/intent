@@ -2,12 +2,6 @@
 
 This file is the entry point and holds no state: current work is `intent/wip.md`, and `intent/restart.md` indexes where the rules every node works under live. Never write a state or a count here: a number printed beside the command that regenerates it gets read instead of the command.
 
-## Your seat
-
-Intent's whiteboard declares the `team` profile: vc, cc, ic, ac, dc and hv, with vc the mediator. The line above this file names your seat. Your name, role and remit are your row in `intent/whiteboard/README.md`, hv's standing brief prints with every `intent wb pickup`, and the words are defined in `intent/plugins/claude/teams/TERMS.md`.
-
-The launcher's last step says to stop and wait for instructions. On this board a seat other than vc sends its plan to vc over `SendMessage` and takes its go from vc, unless hv speaks to it directly. A seat that needs something from hv asks vc and never hv, holds only the work that depends on the answer, and carries on with the rest.
-
 ## Three measurements before any work
 
 1. **Ask the other nodes** (`ListAgents`, then `SendMessage`). A board header says what its node wrote at its last fold, not what it is doing now.

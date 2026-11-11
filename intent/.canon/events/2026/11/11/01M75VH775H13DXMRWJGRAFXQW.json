@@ -1,0 +1,19 @@
+{
+  "id": "01M75VH775H13DXMRWJGRAFXQW",
+  "ts": "2026-11-11T17:47:16.069Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.init",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "base": "team",
+    "corrected": [],
+    "declaration": true,
+    "layers": [],
+    "registered": [],
+    "retired": []
+  }
+}
