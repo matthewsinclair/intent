@@ -1,0 +1,15 @@
+{
+  "id": "01M75WTECGHBN22JEQ0FFNY0JG",
+  "ts": "2026-11-11T18:09:47.572Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "ST0092 WP-11, THE ESTATE SWEEP, on hv's go (2026-11-11, rulings: the five stale hv messages cleared; Prodinfra and Riffle solo; Pipeliner converges with sc as it stands and sc retires as a separate step; gyges and kovacs upgraded to 3.3.0 by hv). Converged and committed, one commit per project of what the verbs printed: Intent 69879b5eb, and 29 other boards under ~/Devel/prj, ~/Devel/writing and the client tree; Devbin by devbin-vc (e10e51ee), Webber by webber-vc (10dd2048). Laksa needed its own inbox guard taught that the profile apply's declaration sanctions removing the views of pairs with hv (hv chose that over a --no-verify commit). NOT DONE: Arca's arca_supervisor: the profile is applied in its store, but its tree already held 83 uncommitted paths of its own sessions' work, so nothing was committed; its sc commits the lot (hv: ok). Four Intent projects in the client tree have no board and get none (hv: 'Maybe not'). Pipeliner's sc retirement is still to do. Two Intent defects filed for the next release."
+  }
+}
