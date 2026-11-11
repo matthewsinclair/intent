@@ -2881,6 +2881,15 @@
       "text": "ST0092 WP-10, owed in 3.3.0 (vc 2026-11-11, from dc's find): intent/st/ST0056/parity/tools/surface_check.sh refuses on main's own table (\"invariant(s) this check has no probe for and does not skip: INV-09 INV-10 INV-11\", and INV-12 arrives with WP-05) and nothing runs it, so it has been red unseen since INV-09. Each of INV-09 to INV-12 gets a probe in that check or a declared skip naming the Rust arms that hold it; then either a gate runs the check, or ic shows the Rust probes supersede it and it goes with its MODULES.md row. Tell vc which way.",
       "state": "live",
       "recorded_at": "2026-11-11T08:16:34.775Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 69,
+      "text": "ST0092 WP-10, from cc's issue 0680 note (2026-11-11, vc copied): (a) the estate page, the TUI and Intent.app draw cc's new status key `running_idle` (oldest start first; each {id, by, name, lanes, started_at}; a running request whose asker's session is `idle` exactly), read from cc's landed reader, once it lands. (b) shell.html:764 decides ctlState ORPHANED by itself; it is to read `s.controller_orphaned`, and a controller with no session row reads as live in the CLI's words (\"its session could not be read here, so it is taken as live\"). (c) cc's rule for the per-hold twin at 752 (behind 1007, 1080 and 1125): only a session row in state `gone` is evidence its holder is gone, so orphaned(q) becomes `who && who.state === \"gone\"`, and a hold with no row reads as unknown, drawn held with no ORPHANED and no take step; the reader carries no per-request verdict and gets none.",
+      "state": "live",
+      "recorded_at": "2026-11-11T09:53:32.331Z",
+      "edited_at": "2026-11-11T09:53:51.576Z"
     }
   ],
   "sent": [

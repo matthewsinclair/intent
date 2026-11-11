@@ -1,0 +1,15 @@
+{
+  "id": "01M750DSNB29VV2QVME65F3X3F",
+  "ts": "2026-11-11T09:53:32.331Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-10, from cc's issue 0680 note (2026-11-11, vc copied): (a) the estate page, the TUI and Intent.app draw cc's new status key `running_idle` (oldest start first; each {id, by, name, lanes, started_at}; a running request whose asker's session is `idle` exactly), read from cc's landed reader, once it lands. (b) shell.html:764 decides ctlState ORPHANED by itself; it is to read `s.controller_orphaned`, and a controller with no session row reads as live in the CLI's words (\"its session could not be read here, so it is taken as live\"). (c) cc's rule for the per-hold twin at 752 (behind 1007, 1080 and 1125): only a session row in state `gone` is evidence its holder is gone, so orphaned(q) becomes `who && who.state === \"gone\"`, and a hold with no row reads as unknown, drawn held with no ORPHANED and no take step; the reader carries no per-request verdict and gets none."
+  }
+}
