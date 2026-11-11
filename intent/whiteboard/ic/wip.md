@@ -6,14 +6,14 @@ session_id: 677e6c35-f820-4993-8ec4-ad639debeb1b
 heartbeat_at: 2026-11-10 19:36Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word through vc (read at 17:50:29Z by vc's clock): "Ok, context is high here, lets bank, localfold+compact here in intent-* and then continue on the bounce." No hold: on the bounce ic runs /in-session, commits its heartbeat-only pickup in its own chain, then continues todo 63, the ST0092 row read, whose notes are banked at refs/bank/ic/st0092/row-read-notes-v1.md. ic's train and 0679 are landed and closed. No claim, worktree or stash."
-claims: []
+claims: [ST0092/06]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-_(none)_
+- ST0092 WP-06: the seat brief (seat_brief in the library), wb brief, the brief and 0675's pickup age at pickup, the per-seat status row, and the launcher; vc judges, retired-seat arm last against WP-04
 
 ## TODO
 

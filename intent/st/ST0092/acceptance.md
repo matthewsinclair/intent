@@ -62,7 +62,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-05.7 A board that declares no profile renders every pair and takes every ask, as it did before this thread. -- satisfied: no (computed)
 - AC-05.8 (non-test) The `/in-whiteboard` skill says what the tool does about hv, `ask` and `announce` in the same landing as this package, cites the terms document for its words, and no longer requires the README to name hv's reader. -- satisfied: no
 
-### WP-06 -- A session is told its seat at pickup and at launch (status: Not Started)
+### WP-06 -- A session is told its seat at pickup and at launch (status: WIP)
 
 - AC-06.1 `intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, or for the mediator that it is the mediator and reaches hv directly, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields. -- satisfied: no (computed)
 - AC-06.2 A seat that no session has ever picked up is listed like any other and marked never started, in `intent wb pickup` and in `intent wb status`, read from the absence of any recorded session and never from its status or heartbeat, and the time it was registered is not printed as a heartbeat; the human seat, which no session drives, carries no such mark. -- satisfied: no (computed)
@@ -146,7 +146,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-06 -- A session is told its seat at pickup and at launch (status: Not Started)
+### WP-06 -- A session is told its seat at pickup and at launch (status: WIP)
 
 _(no tests in this group)_
 
