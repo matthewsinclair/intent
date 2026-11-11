@@ -14,7 +14,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
@@ -164,7 +164,7 @@ impl RunningDaemon {
     // **AND `piped()` IS THE WHOLE OF THE ARMING** -- there is no flag and no
     // variable. The daemon asks the kernel what its stdin is and treats a pipe,
     // and only a pipe, as an owner. `launchd` hands it `/dev/null`.
-    let child = Command::new(env!("CARGO_BIN_EXE_intentd"))
+    let child = testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .envs(vars.iter().copied())
       .stdin(Stdio::piped())

@@ -22,7 +22,7 @@
 
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::Duration;
 
@@ -56,7 +56,7 @@ fn isolated_home(tag: &str) -> PathBuf {
 /// every developer machine. A code of `None` is the deadline's kill.
 fn run(home: &PathBuf, arg: &str) -> (Option<i32>, String, String) {
   // Issue 0388: this spawned `timeout 5 intentd <arg>`.
-  let mut child = Command::new(env!("CARGO_BIN_EXE_intentd"))
+  let mut child = testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
     .arg(arg)
     .env("HOME", home)
     .stdin(Stdio::null())
@@ -238,7 +238,7 @@ fn the_no_argument_case_really_does_serve() {
   // Armed with the `ST0073` lifeline like both shared harnesses: this arm
   // deliberately starts a daemon that SERVES, so it is the one spawn in this
   // file that can outlive a killed test binary.
-  let mut child = Command::new(env!("CARGO_BIN_EXE_intentd"))
+  let mut child = testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
     .env("HOME", &home)
     .stdin(std::process::Stdio::piped())
     .stdout(std::process::Stdio::null())

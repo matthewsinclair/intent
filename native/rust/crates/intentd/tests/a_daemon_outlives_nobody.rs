@@ -249,7 +249,7 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
   );
 
   let mut daemon_proc = Reaped(
-    Command::new(env!("CARGO_BIN_EXE_intentd"))
+    testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .stdin(Stdio::from(reader))
       .stdout(Stdio::null())
@@ -308,7 +308,7 @@ fn invariant_a_daemon_with_no_lifeline_serves_until_signalled() {
   // Arming it would delete the only test of the supervised path. It is reaped
   // by `Reaped` and by its own SIGTERM below.
   let mut daemon_proc = Reaped(
-    Command::new(env!("CARGO_BIN_EXE_intentd"))
+    testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .stdin(Stdio::null())
       .stdout(Stdio::null())
@@ -385,7 +385,7 @@ fn invariant_a_daemon_whose_state_directory_is_removed_stops_by_itself() {
   // LIFELINE-EXEMPT, AND THE EXEMPTION IS THE POINT OF THE ARM: a lifeline here
   // would be the alternative explanation for the exit this test asserts.
   let mut daemon_proc = Reaped(
-    Command::new(env!("CARGO_BIN_EXE_intentd"))
+    testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .stdin(Stdio::null())
       .stdout(Stdio::null())
@@ -424,7 +424,7 @@ fn invariant_a_daemon_whose_state_directory_remains_keeps_serving() {
   // LIFELINE-EXEMPT for the same reason as the arm above: the two must differ
   // in the directory and in nothing else.
   let mut daemon_proc = Reaped(
-    Command::new(env!("CARGO_BIN_EXE_intentd"))
+    testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .stdin(Stdio::null())
       .stdout(Stdio::null())
@@ -569,7 +569,7 @@ fn invariant_the_owner_may_write_on_the_lifeline_without_ending_it() {
   );
 
   let mut daemon_proc = Reaped(
-    Command::new(env!("CARGO_BIN_EXE_intentd"))
+    testkit::fixtured_command(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
       .stdin(Stdio::from(reader))
       .stdout(Stdio::null())

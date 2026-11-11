@@ -14,6 +14,12 @@ load "../lib/test_helper.bash"
 
 PREFLIGHT="${INTENT_PROJECT_ROOT}/bin/.devbin/cut/preflight"
 
+# The release core hands every gate the release's target, so under
+# `bin/devbin release gates` this suite inherits the tree's own version and
+# tag. An arm that drives the check outside a cut must not see them; the arms
+# that drive it under one set them on the check itself.
+unset DEVBIN_RELEASE_VERSION DEVBIN_RELEASE_TARGET_TAG
+
 # make_repo -- $REPO committed at 3.2.0, with a schema face carrying it, a
 # sidecar and a tracked file that is not the release's, and the build target
 # ignored, as this repository ignores it.

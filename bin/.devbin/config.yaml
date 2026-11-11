@@ -486,7 +486,13 @@ commands:
 #
 # `gates` ARE INTENT'S OWN CHECKS ON THE RELEASE COMMIT: `gate all` (the
 # reads, the cargo steps, and on macOS the pair; bin/.devbin/cut/gate) and the
-# shell suite. A red gate stops the cut before the tag.
+# shell suite. A red gate stops the cut before the tag. `build all` comes
+# before `test shell` because the shell suite runs the pair at
+# native/rust/target/release in the tree the gates stand in, and a leg's tree
+# is a fresh worktree with none: `gate all` builds its pair in a private gate
+# tree of its own, which the suite never sees (the 3.3.0 cut's kovacs leg, 158
+# arms red on a missing binary). On this machine's leg it rebuilds the pair in
+# place at the release commit.
 #
 # `legs` RUNS THOSE GATES ON kovacs TOO (ST0091 WP-02), the Ubuntu VM on this
 # machine: the core pushes the release commit to a scratch repository there,
@@ -530,6 +536,7 @@ release:
     - preflight spill
   gates:
     - gate all
+    - build all
     - test shell
   legs:
     - kovacs
