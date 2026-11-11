@@ -9087,7 +9087,8 @@ impl Facade {
   /// The inbox views on disk that `declaration` closes: each migrated node's
   /// `inbox.<sender>.md` for a sender it shares no pair with. **ONE ANSWER FOR
   /// THE DRY RUN AND THE APPLY**, so `would remove:` names what `removed:` will.
-  fn closed_pair_views(
+  /// Doctor reads the same answer for its `closed-pair-view` class (ST0092 WP-09).
+  pub(crate) fn closed_pair_views(
     project: &Project,
     boards: &[crate::model::Board],
     declaration: &crate::model::TeamDeclaration,

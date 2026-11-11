@@ -308,6 +308,19 @@ pub enum FindingClass {
   /// its block is the last render's, and this build would render it
   /// differently (ST0092 WP-07). Shown and never counted.
   RosterReadmeBehind,
+  /// A seat its board's declared profile names, registered with another name
+  /// or role (ST0092 WP-09). Shown and never counted, by vc's ruling: the
+  /// classes report from the day they ship, and whether any gates is hv's to
+  /// say once the fleet census has measured them.
+  SeatDiffersFromProfile,
+  /// A seat its board's declared profile names that is not registered (ST0092
+  /// WP-09). Shown and never counted, as above.
+  SeatNotRegistered,
+  /// An inbox view on disk for a pair the declaration closes, which is a pair
+  /// of the human seat with anyone but the mediator (ST0092 WP-09, INV-12). No
+  /// render writes one, so it is left from before the board declared its team.
+  /// Shown and never counted, as above.
+  ClosedPairView,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -755,6 +768,21 @@ impl FindingClass {
         "roster-readme-behind",
         "`intent wb init --apply` re-renders it; only text the renderer owns differs",
       ),
+      Self::SeatDiffersFromProfile => (
+        8,
+        "seat-differs-from-profile",
+        "run `intent wb init` to see the correction the profile makes, then `intent wb init --apply` to make it",
+      ),
+      Self::SeatNotRegistered => (
+        8,
+        "seat-not-registered",
+        "run `intent wb init` to see the seats it would register, then `intent wb init --apply` to register them",
+      ),
+      Self::ClosedPairView => (
+        8,
+        "closed-pair-view",
+        "run `intent wb init` to see the views it would remove, then `intent wb init --apply` to remove them; a live message on the pair is refused by name until its recipient clears it",
+      ),
       Self::BackupStale => (
         8,
         "backup-stale",
@@ -993,6 +1021,9 @@ impl FindingClass {
         | Self::BoardSchemaBehind
         | Self::RosterReadmeEdited
         | Self::RosterReadmeBehind
+        | Self::SeatDiffersFromProfile
+        | Self::SeatNotRegistered
+        | Self::ClosedPairView
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
@@ -1033,6 +1064,9 @@ impl FindingClass {
           | Self::BoardSchemaBehind
           | Self::RosterReadmeEdited
           | Self::RosterReadmeBehind
+          | Self::SeatDiffersFromProfile
+          | Self::SeatNotRegistered
+          | Self::ClosedPairView
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::ProseIndexDuplicated

@@ -1816,6 +1816,89 @@ fn roster_readme_advisories(
   }
 }
 
+/// A board that has left the profile it declares (ST0092 WP-09): a declared
+/// seat registered with another name or role, a declared seat not registered,
+/// and an inbox view on disk for a pair the declaration closes. **SHOWN, NEVER
+/// COUNTED** (vc's ruling): each reports from the day it ships, and whether any
+/// gates is hv's to say once the fleet census has measured it. A board that
+/// declares no profile has nothing to measure against, and is no finding.
+///
+/// **THE SAME ANSWERS `wb init` ACTS ON**, so a finding names what its remedy's
+/// dry run prints: the seats come from [`crate::teams::plan`], and the views
+/// from the one function the apply removes them by.
+fn team_drift_advisories(project: &Project, canon: &Canon) -> Vec<Finding> {
+  let Some(declared) = canon.declaration.as_ref() else {
+    return Vec::new();
+  };
+  let declaration_file = project.relative(&project.declaration_json());
+  let advisory = |why: String| {
+    vec![Finding::new(
+      declaration_file.clone(),
+      FindingClass::Advisory,
+      format!("the board could not be measured against the profile it declares: {why}"),
+    )]
+  };
+  let resolved = match crate::teams::installed() {
+    Ok(teams) => match teams.resolve(&[], Some(declared), false) {
+      Ok(resolved) => resolved,
+      Err(e) => return advisory(e.to_string()),
+    },
+    Err(e) => return advisory(e.to_string()),
+  };
+  let profile = std::iter::once(resolved.base.as_str())
+    .chain(resolved.layers.iter().map(String::as_str))
+    .collect::<Vec<_>>()
+    .join(" + ");
+  let roster: Vec<crate::teams::RosterRow<'_>> = canon
+    .boards
+    .iter()
+    .map(|b| {
+      (
+        b.node.moniker.as_str(),
+        b.node.name.as_str(),
+        b.node.role.as_str(),
+        b.node.remit.as_deref(),
+      )
+    })
+    .collect();
+  let mut out = Vec::new();
+  for seat in crate::teams::plan(&resolved, &roster) {
+    match seat.verdict {
+      crate::teams::Verdict::Register => out.push(Finding::new(
+        declaration_file.clone(),
+        FindingClass::SeatNotRegistered,
+        format!(
+          "profile `{profile}` declares seat `{}` ({}, {}), and no board registers it",
+          seat.moniker, seat.name, seat.role
+        ),
+      )),
+      crate::teams::Verdict::Correct {
+        held_name,
+        held_role,
+      } => out.push(Finding::new(
+        project.relative(&project.board_json(&seat.moniker)),
+        FindingClass::SeatDiffersFromProfile,
+        format!(
+          "seat `{}` is registered as {held_name}, {held_role}, and profile `{profile}` declares it {}, {}",
+          seat.moniker, seat.name, seat.role
+        ),
+      )),
+      crate::teams::Verdict::Unchanged | crate::teams::Verdict::Outside => {}
+    }
+  }
+  for view in crate::facade::Facade::closed_pair_views(project, &canon.boards, declared) {
+    out.push(Finding::new(
+      project.relative(&view),
+      FindingClass::ClosedPairView,
+      format!(
+        "profile `{profile}` reaches `{}` only through `{}`, so no render writes this view: it is left from before the board declared its team",
+        declared.human, declared.mediator
+      ),
+    ));
+  }
+  out
+}
+
 /// Every `board.json` still in the old shape, and every old message no board
 /// can carry, as uncounted advisories (issue 0612).
 ///
@@ -1923,6 +2006,9 @@ fn file_checks(
   report
     .findings
     .extend(roster_readme_advisories(project, canon, ctx));
+  report
+    .findings
+    .extend(team_drift_advisories(project, canon));
 
   // **Every file under a thread that nothing in the model holds, named.** The
   // classifier is `Project::classify` rather than a list repeated here: a

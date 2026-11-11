@@ -176,7 +176,9 @@ _(no tests in this group)_
 
 ### WP-09 -- Doctor reports a board that has left its profile (status: WIP)
 
-_(no tests in this group)_
+- AT-09.1 `native/rust/crates/intentsvcs/tests/wb_profile_drift.rs` -- covers AC-09.1 -- status: red -- Red in desk slot 01M74Z2NTWJ4K49H5KEN3HPKGY (10:10Z to 10:12Z) on red tree eb87b15efb85, which is WP-05's tip 753a8290e2f8, the code before WP-09, plus intentsvcs/tests/wb_profile_drift.rs and its suite registration and nothing else: at_09_1 failed at wb_profile_drift.rs:112, doctor reported no seat-differs-from-profile finding (an empty list).
+- AT-09.2 `native/rust/crates/intentsvcs/tests/wb_profile_drift.rs` -- covers AC-09.2 -- status: red -- Red in desk slot 01M74Z2NTWJ4K49H5KEN3HPKGY (10:10Z to 10:12Z) on red tree eb87b15efb85, which is WP-05's tip 753a8290e2f8, the code before WP-09, plus intentsvcs/tests/wb_profile_drift.rs and its suite registration and nothing else: at_09_2 failed at wb_profile_drift.rs:154, "seat-differs-from-profile was not reported".
+- AT-09.3 (non-test) vc has run the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build carrying WP-09 and recorded each class's count for each project, and hv has ruled with that table in front of hv whether any class gates after the sweep. -- covers AC-09.3 -- status: n/a
 
 ### WP-10 -- The new surface reads as one (status: Not Started)
 

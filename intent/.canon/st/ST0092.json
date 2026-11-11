@@ -980,6 +980,35 @@
       ],
       "status": "green",
       "note": "estate_surface.rs mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does: the wearer's pickup through the CLI's --json and MCP's intent_wb_pickup carry one desk (state wears, the duties from their one template, the ask waiting), and wb status's rows carry hats [\"desk\"] for vc on both faces. Red at c4818da9b on vc's judge, slot 01M74FJ6P8MG9V0TMTF5WYMC4R: the pickup json carried no desk, because the brief and the hats were joined in render.rs. Green at 852e5049f, vc's judged tree 7494660906bf at slot 01M74GAE0DJQ7GP1W794BRDQX0, once the library joins the desk and the hats for both faces."
+    },
+    {
+      "id": "AT-09.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/wb_profile_drift.rs",
+      "covers": [
+        "AC-09.1"
+      ],
+      "status": "red",
+      "note": "Red in desk slot 01M74Z2NTWJ4K49H5KEN3HPKGY (10:10Z to 10:12Z) on red tree eb87b15efb85, which is WP-05's tip 753a8290e2f8, the code before WP-09, plus intentsvcs/tests/wb_profile_drift.rs and its suite registration and nothing else: at_09_1 failed at wb_profile_drift.rs:112, doctor reported no seat-differs-from-profile finding (an empty list)."
+    },
+    {
+      "id": "AT-09.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/wb_profile_drift.rs",
+      "covers": [
+        "AC-09.2"
+      ],
+      "status": "red",
+      "note": "Red in desk slot 01M74Z2NTWJ4K49H5KEN3HPKGY (10:10Z to 10:12Z) on red tree eb87b15efb85, which is WP-05's tip 753a8290e2f8, the code before WP-09, plus intentsvcs/tests/wb_profile_drift.rs and its suite registration and nothing else: at_09_2 failed at wb_profile_drift.rs:154, \"seat-differs-from-profile was not reported\"."
+    },
+    {
+      "id": "AT-09.3",
+      "kind": "non-test",
+      "prose": "vc has run the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build carrying WP-09 and recorded each class's count for each project, and hv has ruled with that table in front of hv whether any class gates after the sweep.",
+      "covers": [
+        "AC-09.3"
+      ],
+      "status": "n-a"
     }
   ]
 }
