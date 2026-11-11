@@ -1,5 +1,5 @@
 {
-  "schema": "intent/board@4.0",
+  "schema": "intent/board@4.1",
   "node": {
     "moniker": "ic",
     "name": "Interface Claude",
