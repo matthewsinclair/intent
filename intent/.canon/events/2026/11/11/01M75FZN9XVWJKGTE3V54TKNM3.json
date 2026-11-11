@@ -1,0 +1,15 @@
+{
+  "id": "01M75FZN9XVWJKGTE3V54TKNM3",
+  "ts": "2026-11-11T14:25:26.333Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "(hv, 2026-11-11, first-hand in prose in vc's session, read at 14:23Z on vc's date -u) WHY CLAUDES KEEP YAK-SHAVING, AND A PLAN TO STOP IT. hv, verbatim: \"I want to know _why_ Claudes keep ending up in this yak-shaving singularity NONSENSE. Again and again. We spent days last week building out a performance optimisation plan in devbin, maybe we need to do the same thing here in Intent with the Claude skills and prompts, etc. It needs a deep dive on Ultrathink. I want to know why this keeps happening and what can be done about it. We need to DRASTICALLY improve release performance of Intent projects. Do that when you next have a free slot.\" vc's reading, the wording vc's: a deep dive into the causes (the skills, the prompts, the memory notes, the seats' roles and the release procedure), then a plan on the lines of devbin's performance plan. vc starts it once 3.3.0 is cut, so that it takes nothing from the release."
+  }
+}

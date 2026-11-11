@@ -1,5 +1,5 @@
 {
-  "schema": "intent/board@4.0",
+  "schema": "intent/board@4.1",
   "node": {
     "moniker": "vc",
     "name": "Validation Claude",
@@ -2815,6 +2815,14 @@
       "text": "(2026-11-11, vc under the pen) JUDGED AND LANDED SINCE DECISION 127, AND WHAT WAS RULED. WP-09 (cc): full judge green in slot 01M75299N6BRR3Z88MPCZ0709H, landed b14af42b6 red, 4c0d27cda green, code tree equal to the judged 66eb6f5eb251; it stays WIP, AT-09.4 to-write on AC-09.1 for the retired-seat arm (upheld). WP-04 bank (i) (dc): full judge in slot 01M755213Q9H499VS3AXT70EBF green but for the contract gate, a real red (schema entity WbRetired had no contract row); dc fixed it as a contract-only delta that vc checked warm, landed 56c58ba4d red, 8965685b9 green. The landed tree differs from the judged one in ST0056.json alone, because the delta edited contract_check.sh, itself an ST0056 attachment, and its canon entry was written at landing; vc had read one attachment where the delta touched two, so from here the judge reads every attachment a bank touches. RULED: the retired filter in two places becomes one helper, teams::retirements, in bank (ii); ic todo 68 as ic put it (four declared skips in surface_check.sh, the check stays manual, one new arm for edit --browser with --path or --editor, in WP-10); a brief leaves a retired seat out of its list of other seats, in Facade::seat_brief, and AC-06.1 is reworded to say so (4a4498e6d); a process under an intent-gate-tree temp directory is attributed by its parent chain, and one that ends at a judge holding a desk slot refuses no commit; the proof that bin/devbin use and install refuse for Intent is a bats arm with a scratch HOME in the sweep bank, never a run by a peer of a command another session refused. vc ran brew upgrade devbin to 0.1.22 at 11:40Z on hv earlier word for 0.1.21. WEBBER: on hv word of 12:0xZ in vc window (the new Intent profiles on Webber, to ride its next release) vc briefed webber-vc with the hand form of the team profile; webber-vc makes every write there and had not answered by this fold.",
       "state": "live",
       "recorded_at": "2026-11-11T12:20:46.429Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 78,
+      "text": "(hv, 2026-11-11, first-hand in prose in vc's session, read at 14:23Z on vc's date -u) WHY CLAUDES KEEP YAK-SHAVING, AND A PLAN TO STOP IT. hv, verbatim: \"I want to know _why_ Claudes keep ending up in this yak-shaving singularity NONSENSE. Again and again. We spent days last week building out a performance optimisation plan in devbin, maybe we need to do the same thing here in Intent with the Claude skills and prompts, etc. It needs a deep dive on Ultrathink. I want to know why this keeps happening and what can be done about it. We need to DRASTICALLY improve release performance of Intent projects. Do that when you next have a free slot.\" vc's reading, the wording vc's: a deep dive into the causes (the skills, the prompts, the memory notes, the seats' roles and the release procedure), then a plan on the lines of devbin's performance plan. vc starts it once 3.3.0 is cut, so that it takes nothing from the release.",
+      "state": "live",
+      "recorded_at": "2026-11-11T14:25:26.333Z"
     }
   ],
   "sent": [
