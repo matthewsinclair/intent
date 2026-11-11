@@ -2878,9 +2878,10 @@
       "node": "ic",
       "kind": "todo",
       "seq": 68,
-      "text": "ST0092 WP-10, owed in 3.3.0 (vc 2026-11-11, from dc's find): intent/st/ST0056/parity/tools/surface_check.sh refuses on main's own table (\"invariant(s) this check has no probe for and does not skip: INV-09 INV-10 INV-11\", and INV-12 arrives with WP-05) and nothing runs it, so it has been red unseen since INV-09. Each of INV-09 to INV-12 gets a probe in that check or a declared skip naming the Rust arms that hold it; then either a gate runs the check, or ic shows the Rust probes supersede it and it goes with its MODULES.md row. Tell vc which way.",
+      "text": "ST0092 WP-10, owed in 3.3.0, RULED by vc 2026-11-11, received before ic read 10:51Z on date -u, on ic's reading (dc's find): intent/st/ST0056/parity/tools/surface_check.sh refuses on main's own table because its hand-written INV map has no entry for INV-09 to INV-12. The check STAYS MANUAL (runner_roster_check.sh rosters it manual on purpose: a --help sweep over every path), and is neither gated nor removed. WP-10 writes, nothing before it starts: (1) four declared skips in INV_SKIPPED with inv_skip_reason entries, each reason the table's held_by sentence written by hand (never derived, so the map still refuses the next new INV): INV-09 twin_spellings_agree.rs and edit_and_browse_reach_one_model.rs; INV-10 st_edit_opens_or_prints.rs, naming the new arm below once it exists; INV-11 dispatch::table()'s value_facades/value_args load checks and mcp.rs's expansion test beside a_subcommand_slot_is_not_published; INV-12 Facade::require_writer_as with intentsvcs tests/wb_hv.rs and intent-cli tests/hv_seat_door.rs. (2) One new arm beside the_two_flags_together_are_refused_rather_than_ranked: `edit --browser --path` and `edit --browser --editor` each refused with nothing on stdout (render.rs browsed() already refuses both; no test held it). It passes first run and its AT note says so, as AT-05.5 and AT-05.7 do. Then run the check green on a current binary in a WP-10 slot.",
       "state": "live",
-      "recorded_at": "2026-11-11T08:16:34.775Z"
+      "recorded_at": "2026-11-11T08:16:34.775Z",
+      "edited_at": "2026-11-11T10:52:13.981Z"
     },
     {
       "node": "ic",
