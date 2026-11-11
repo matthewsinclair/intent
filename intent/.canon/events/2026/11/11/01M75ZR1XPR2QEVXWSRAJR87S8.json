@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR1XPR2QEVXWSRAJR87S8",
+  "ts": "2026-11-11T19:00:54.330Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.1"
+  },
+  "payload": {
+    "evidence": "vc's dry-run census of every board on 2026-11-11 (wb init per board, nothing written), put to hv with each board's changes; hv ruled the five stale hv messages cleared, Prodinfra and Riffle solo, Pipeliner as it stood, and said go (vc decision 131)"
+  }
+}

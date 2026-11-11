@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR8BXGYAN6MM0C8MGX094",
+  "ts": "2026-11-11T19:01:01.503Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.8"
+  },
+  "payload": {
+    "evidence": "vc decision 131: no install, no new board (hv: the four board-less client projects stay so), nothing pushed; every project commit carried what the verbs printed, plus prettier on the rendered README and the schema-line re-render the verb leaves; Laksa's own inbox guard was taught the declaration on hv's choice (a), 0b4e634fb"
+  }
+}

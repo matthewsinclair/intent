@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR3ZE0GBC31AHAC4YFR3Y",
+  "ts": "2026-11-11T19:00:56.435Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.3"
+  },
+  "payload": {
+    "evidence": "69879b5eb: Intent's board converged first; ac and dc read unchanged, README rendered with its old text inside the block and pruned, the commit carries what wb init team --apply printed plus the prune"
+  }
+}

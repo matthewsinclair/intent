@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR50NZVWGAJJ354WRCHB6",
+  "ts": "2026-11-11T19:00:58.073Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.5"
+  },
+  "payload": {
+    "text": "Pipeliner's board is a team with vc the mediator and no supervisor layer, and its sc seat stays registered outside every profile with its board left as it is (hv's decision 1 on Pipeliner's board, 2026-11-11, which replaced retiring sc)."
+  }
+}

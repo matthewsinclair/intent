@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR7BAM9X61SQCRZQGMM7P",
+  "ts": "2026-11-11T19:00:59.886Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.5"
+  },
+  "payload": {
+    "evidence": "Pipeliner e340c34 (sc's apply on hv's word; declaration.json base team, no layers, mediator vc), a980f8b"
+  }
+}

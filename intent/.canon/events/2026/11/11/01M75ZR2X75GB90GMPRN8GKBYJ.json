@@ -1,0 +1,14 @@
+{
+  "id": "01M75ZR2X75GB90GMPRN8GKBYJ",
+  "ts": "2026-11-11T19:00:55.340Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-11.2"
+  },
+  "payload": {
+    "evidence": "hv upgraded gyges and kovacs to brew 3.3.0 before the sweep wrote any board, and rhadamanth's brew was 3.3.0 from the cut; no machine reading a converged board runs an older Intent (vc decision 131)"
+  }
+}
