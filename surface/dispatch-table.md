@@ -2505,8 +2505,14 @@ Diagnose common Intent configuration issues
 - **Defects observed in v2:**
   - INV-01 at the unknown-option message has NO `error:` prefix
   - Exits 0 even with findings, so it cannot be used as a CI gate as it stands. Usage block also names `intent_doctor` rather than `intent doctor`.
-- **Target:** `pending-hv`
+- **Target:** `corrected` -- behaviour: `doctor` exits 1 when it reports a counted finding, so a commit gate or a CI job can refuse on it; findings shown and never counted leave it at 0. This is INV-04's exit contract applied to doctor, which answered the question below.
 - **Open question for hv:** Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-09-14
+  - `0.record`: design.md:225
+- **answered:** ic, 2026-11-11, todo 66 on vc's word: the question below stayed `pending-hv` after INV-04's ruling answered it, and the row now records that answer. The question and its obligations are kept as the record of why it was asked.
 - **new obligations:**
   - STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how WPs came to disagree with their own gates while every one of them had been closed legitimately.
   - BACKUP STALENESS (vc, 2026-08-15, amending AC-03.10 after ic's `--list` question): `doctor` reports the newest snapshot's age against the configured `backup.schedule`. AC-03.10(d) had said only that a failed backup surfaces -- but A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could ship where nothing had ever run. Staleness is the two-sided test: it detects never-ran WITHOUT needing anything to have failed, the same construction as the clock guard's check C, which compares two stamps to each other and needs no clock at all.

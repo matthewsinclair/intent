@@ -5307,7 +5307,17 @@
             }
           },
           "target": {
-            "state": "pending-hv",
+            "state": "corrected",
+            "behaviour": "`doctor` exits 1 when it reports a counted finding, so a commit gate or a CI job can refuse on it; findings shown and never counted leave it at 0. This is INV-04's exit contract applied to doctor, which answered the question below.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "vc",
+                "date": "2026-09-14",
+                "record": "design.md:225"
+              }
+            ],
+            "answered": "ic, 2026-11-11, todo 66 on vc's word: the question below stayed `pending-hv` after INV-04's ruling answered it, and the row now records that answer. The question and its obligations are kept as the record of why it was asked.",
             "question": "Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.",
             "new_obligations": [
               "STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how WPs came to disagree with their own gates while every one of them had been closed legitimately.",
