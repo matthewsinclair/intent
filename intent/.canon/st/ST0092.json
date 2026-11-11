@@ -1097,8 +1097,8 @@
       "covers": [
         "AC-09.1"
       ],
-      "status": "to-write",
-      "note": "To write after dc's WP-04 lands (WbNode.retired, teams::Verdict::Retired): an arm holding that doctor names a retired declared seat as retired, shown and not counted, and never as seat-not-registered, red then green, on vc's ruling of 2026-11-11. AC-09.1 stays open until it is green."
+      "status": "green",
+      "note": "To write after dc's WP-04 lands (WbNode.retired, teams::Verdict::Retired): an arm holding that doctor names a retired declared seat as retired, shown and not counted, and never as seat-not-registered, red then green, on vc's ruling of 2026-11-11. AC-09.1 stays open until it is green. Written as at_09_4_doctor_names_a_retired_declared_seat_as_retired and RED at f1ca4a7d3, the arm on the code before it: in vc's delta slot on tree 3cdad4e56465 exactly at_09_4 fails, no seat-retired finding, with 09.1 and 09.2 passing (cc's run 1, desk slot 01M756VSEZ1EPG28GEJ78P609M, saw the same). GREEN at 5436963bc (FindingClass::SeatRetired, doctor naming Verdict::Retired for a declared seat with register_form's command): judged by vc warm in desk slot 01M75AY5MKC724WX04W38B6YST, the arm green on adb4b044e9b1, rc 0; the landed tree outside intent/ equals the judged 4335e011eda6."
     }
   ]
 }
