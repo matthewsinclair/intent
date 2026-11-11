@@ -1,0 +1,14 @@
+{
+  "id": "01M74ZKBBMSF4BE7JKWZAKASWM",
+  "ts": "2026-11-11T09:39:05.721Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-09.1"
+  },
+  "payload": {
+    "text": "`intent doctor` reports, each as its own class naming the profile it measured against, with `intent wb init`'s dry run then `--apply` as its remedy: a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an inbox view on disk for a pair the declaration closes. A board that declares no profile is no finding. A declared seat that is retired is named as retired, shown and not counted, and is not a seat its profile declares that is not registered."
+  }
+}

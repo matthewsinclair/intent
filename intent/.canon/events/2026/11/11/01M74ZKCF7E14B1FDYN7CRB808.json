@@ -1,0 +1,14 @@
+{
+  "id": "01M74ZKCF7E14B1FDYN7CRB808",
+  "ts": "2026-11-11T09:39:06.859Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-09.2"
+  },
+  "payload": {
+    "text": "None of these classes refuses a commit: the pre-commit gate passes a tree that carries each."
+  }
+}

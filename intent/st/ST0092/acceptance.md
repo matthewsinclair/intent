@@ -90,8 +90,8 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ### WP-09 -- Doctor reports a board that has left its profile (status: Not Started)
 
-- AC-09.1 `intent doctor` reports, each as its own class with `intent wb init` in its remedy: a board that declares no profile, a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an hv inbox view outside the mediator's pair. -- satisfied: no (computed)
-- AC-09.2 None of the four classes refuses a commit: the pre-commit gate passes a tree that carries each. -- satisfied: no (computed)
+- AC-09.1 `intent doctor` reports, each as its own class naming the profile it measured against, with `intent wb init`'s dry run then `--apply` as its remedy: a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an inbox view on disk for a pair the declaration closes. A board that declares no profile is no finding. A declared seat that is retired is named as retired, shown and not counted, and is not a seat its profile declares that is not registered. -- satisfied: no (computed)
+- AC-09.2 None of these classes refuses a commit: the pre-commit gate passes a tree that carries each. -- satisfied: no (computed)
 - AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv. -- satisfied: no
 
 ### WP-10 -- The new surface reads as one (status: Not Started)
