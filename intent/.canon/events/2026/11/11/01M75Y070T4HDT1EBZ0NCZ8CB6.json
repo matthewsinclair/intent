@@ -1,0 +1,14 @@
+{
+  "id": "01M75Y070T4HDT1EBZ0NCZ8CB6",
+  "ts": "2026-11-11T18:30:24.541Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0093"
+  },
+  "payload": {
+    "title": "Why Claudes yak-shave, and faster releases"
+  }
+}

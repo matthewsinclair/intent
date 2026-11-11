@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0093 | Why Claudes yak-shave, and faster releases                                                                                                      | Triage      | 2026-11-11 |                      |
 | ST0092 | A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges                      | WIP         | 2026-11-10 |                      |
 | ST0091 | Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire                                                   | WIP         | 2026-10-31 |                      |
 | ST0090 | The index rebuild says what happened, in the CLI's report and Intent.app's menu                                                                 | WIP         | 2026-10-31 |                      |

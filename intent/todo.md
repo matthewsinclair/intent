@@ -40,6 +40,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [ ] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
+- [?] ST0093: Why Claudes yak-shave, and faster releases
 
 ## DONE:2026-09-10T00:00:51Z
 
