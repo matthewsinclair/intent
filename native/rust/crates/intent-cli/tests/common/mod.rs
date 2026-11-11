@@ -193,8 +193,26 @@ pub fn mcp_session(
   home: Option<&Path>,
   frames: &[&str],
 ) -> (std::process::Output, Vec<serde_json::Value>) {
+  mcp_session_with_env(root, home, &[], frames)
+}
+
+/// [`mcp_session`] with each named variable set to `Some` value or removed for
+/// `None`, for an arm about what the server reads from the session that
+/// started it (ST0092 WP-05: `CLAUDE_CODE_SESSION_ID`).
+pub fn mcp_session_with_env(
+  root: &Path,
+  home: Option<&Path>,
+  env: &[(&str, Option<&str>)],
+  frames: &[&str],
+) -> (std::process::Output, Vec<serde_json::Value>) {
   use std::io::Write;
   let mut cmd = intent();
+  for (name, value) in env {
+    match value {
+      Some(v) => cmd.env(name, v),
+      None => cmd.env_remove(name),
+    };
+  }
   cmd
     .arg("mcp")
     .current_dir(root)

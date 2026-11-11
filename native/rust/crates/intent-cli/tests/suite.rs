@@ -179,6 +179,8 @@ mod graphql_escape_hatch;
 mod guards_surface;
 #[path = "hook_compat.rs"]
 mod hook_compat;
+#[path = "hv_seat_door.rs"]
+mod hv_seat_door;
 #[path = "info_exit_code.rs"]
 mod info_exit_code;
 #[path = "ingest_command.rs"]
