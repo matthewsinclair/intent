@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "2026-11-11, localfolded for hv's third compact (via vc, hv first-hand at 12:15Z: \"lets bank, localfold+compact everyone here and then continue on the bounce. I am about to go AFK\"). No hold, status active. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then doing 145 (ST0092 WP-06 rebased on 4a4498e6d, banked UNMEASURED with the retired-seat edge; its run waits on desk slot 01M757013KSVD5MEAWKCZS5PTB, which grants on its own: start scratchpad wp06-drive5.sh within one turn of the grant), todo 63 (cc's WP-09 follow-up rows), WP-10 per todos 67, 68 (ruled) and 69. Claim ST0092/06, worktree tmp/wt-ic-0092-06 detached at be1032dcb, no stash.",
     "claims": [
-      "ST0092/06"
+      "ST0092/06",
+      "ST0092/10"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2891,6 +2892,14 @@
       "state": "live",
       "recorded_at": "2026-11-11T09:53:32.331Z",
       "edited_at": "2026-11-11T09:53:51.576Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 146,
+      "text": "ST0092 WP-10, claimed and started on vc's word (2026-11-11). Built in tmp/wt-ic-0092-10 on 950f6849c and banked UNMEASURED as refs/bank/ic/st0092/wp10-unmeasured-on-950f6849c (blob e2e745c682b1, tree 156e29468abe verified): todo 68 (four declared skips in surface_check.sh, attached to ST0056; the browser_with_either_other_override arm), todo 69 (the estate page reads controller_orphaned, draws a row-less controller live and a row-less hold held, and draws running_idle, which needs cc's issue 0680 under it; the TUI and Intent.app take cc's CLI host lines and this page, so nothing more there), todo 67 (estate control, wb status and wb pickup rows), and a CHANGELOG line. Rebases after WP-06, cc's WP-09 follow-up and 0680 land; then a slot for the arm, surface_check on a current binary and a page look; AC-10.1 to 10.3 reads last.",
+      "state": "live",
+      "recorded_at": "2026-11-11T12:36:35.904Z"
     }
   ],
   "sent": [

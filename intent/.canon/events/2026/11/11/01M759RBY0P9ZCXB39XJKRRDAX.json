@@ -1,0 +1,15 @@
+{
+  "id": "01M759RBY0P9ZCXB39XJKRRDAX",
+  "ts": "2026-11-11T12:36:35.904Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0092 WP-10, claimed and started on vc's word (2026-11-11). Built in tmp/wt-ic-0092-10 on 950f6849c and banked UNMEASURED as refs/bank/ic/st0092/wp10-unmeasured-on-950f6849c (blob e2e745c682b1, tree 156e29468abe verified): todo 68 (four declared skips in surface_check.sh, attached to ST0056; the browser_with_either_other_override arm), todo 69 (the estate page reads controller_orphaned, draws a row-less controller live and a row-less hold held, and draws running_idle, which needs cc's issue 0680 under it; the TUI and Intent.app take cc's CLI host lines and this page, so nothing more there), todo 67 (estate control, wb status and wb pickup rows), and a CHANGELOG line. Rebases after WP-06, cc's WP-09 follow-up and 0680 land; then a slot for the arm, surface_check on a current binary and a page look; AC-10.1 to 10.3 reads last."
+  }
+}

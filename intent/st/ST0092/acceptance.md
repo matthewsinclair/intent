@@ -94,7 +94,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-09.2 None of these classes refuses a commit: the pre-commit gate passes a tree that carries each. -- satisfied: yes (computed)
 - AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv. -- satisfied: no
 
-### WP-10 -- The new surface reads as one (status: Not Started)
+### WP-10 -- The new surface reads as one (status: WIP)
 
 - AC-10.1 Every verb this thread adds has a dispatch-table row that states its recoverability, its `when_to_use` and its MCP disposition, and `intent llm guide` prints it. -- satisfied: no (computed)
 - AC-10.2 (non-test) ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board. -- satisfied: no
@@ -188,7 +188,7 @@ _(no tests in this group)_
 - AT-09.3 (non-test) vc has run the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build carrying WP-09 and recorded each class's count for each project, and hv has ruled with that table in front of hv whether any class gates after the sweep. -- covers AC-09.3 -- status: n/a
 - AT-09.4 `native/rust/crates/intentsvcs/tests/wb_profile_drift.rs` -- covers AC-09.1 -- status: to-write -- To write after dc's WP-04 lands (WbNode.retired, teams::Verdict::Retired): an arm holding that doctor names a retired declared seat as retired, shown and not counted, and never as seat-not-registered, red then green, on vc's ruling of 2026-11-11. AC-09.1 stays open until it is green.
 
-### WP-10 -- The new surface reads as one (status: Not Started)
+### WP-10 -- The new surface reads as one (status: WIP)
 
 _(no tests in this group)_
 

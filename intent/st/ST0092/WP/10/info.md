@@ -2,7 +2,7 @@
 wp_id: WP-10
 title: The new surface reads as one
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-10: The new surface reads as one
