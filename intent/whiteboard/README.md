@@ -8,14 +8,14 @@ The verbs are `intent wb`'s, and `intent wb --help` lists them; the protocol, an
 
 Profile: team. Mediator: vc. Human seat: hv.
 
-| Moniker | Name              | Role       | Driven by | Remit                                                                                                       |
-| ------- | ----------------- | ---------- | --------- | ----------------------------------------------------------------------------------------------------------- |
-| `vc`    | Validation Claude | validation | a session | Boss of the Claude team: sequencing, briefs, validation of landed and claimed work, and the one route to hv |
-| `cc`    | Control Claude    | control    | a session | Back-end services and the non-user-facing implementation of services                                        |
-| `ic`    | Interface Claude  | interface  | a session | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)               |
-| `ac`    | Authoring Claude  | authoring  | a session | Authoring and content creation                                                                              |
-| `dc`    | DevX Claude       | devx       | a session | The dev-x pipeline, end to end                                                                              |
-| `hv`    | Hypervisor        | hypervisor | the human | Scope, sequencing, release policy, and every ratified decision                                              |
+| Moniker | Name              | Role       | Driven by | Remit                                                                                                                                                                                                                                            |
+| ------- | ----------------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vc`    | Validation Claude | validation | a session | Boss of the Claude team: sequencing, briefs, the shortest safe path to the release, and the one route to hv. It batches changes into as few runs as it can, reads a builder's proof and does not repeat it, and stops any check that repeats one |
+| `cc`    | Control Claude    | control    | a session | Back-end services and the non-user-facing implementation of services                                                                                                                                                                             |
+| `ic`    | Interface Claude  | interface  | a session | User-facing interfaces (UI and UX) and machine-facing interfaces (REST, GraphQL and the rest)                                                                                                                                                    |
+| `ac`    | Authoring Claude  | authoring  | a session | Authoring and content creation                                                                                                                                                                                                                   |
+| `dc`    | DevX Claude       | devx       | a session | The dev-x pipeline, end to end                                                                                                                                                                                                                   |
+| `hv`    | Hypervisor        | hypervisor | the human | Scope, sequencing, release policy, and every ratified decision                                                                                                                                                                                   |
 
 Every seat is registered whether or not it has ever been started. Each remit is the `team` profile's default, word for word, and Intent sets none of its own. The roster of record is the store: `intent wb status` reads it back, so a row here that disagrees with it is this file's defect.
 
