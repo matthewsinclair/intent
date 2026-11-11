@@ -98,6 +98,7 @@ pub mod remedy;
 pub mod renumber;
 pub mod resolve;
 pub mod rootfiles;
+pub mod roster_readme;
 pub mod rules;
 pub mod search;
 pub mod seat;

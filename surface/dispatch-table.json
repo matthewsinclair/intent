@@ -9350,7 +9350,7 @@
         {
           "path": "wb init",
           "help": "Bring the board to what its Team Profiles declare, and record the declaration",
-          "when_to_use": "USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit.",
+          "when_to_use": "USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit.",
           "args": [
             {
               "name": "profile",
@@ -9399,14 +9399,14 @@
               },
               {
                 "code": 1,
-                "when": "a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, or a node not yet migrated"
+                "when": "a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, a node not yet migrated, a roster README edited outside its block, which names the lines, a README whose markers are not one start followed by one end, a README that cannot be read, or a README write that fails"
               },
               {
                 "code": 2,
-                "when": "the installed profiles cannot be read"
+                "when": "the installed profiles or the roster README's template cannot be read"
               }
             ],
-            "stdout": "the plan, one line per seat, then `ok:`; after an apply, every file on a `wrote:` line and the roster-commit `note:`",
+            "stdout": "the plan, one line per seat, the declaration and `README:` lines, then `ok:`; a dry run lists every file it would write on `would write:` lines; after an apply, every file on a `wrote:` line and the roster-commit `note:`, and on a first render that drops a frontmatter block, a `note:` naming it",
             "stderr": "`error: ...` on stderr (INV-01)"
           },
           "note": "**ONE STORE TRANSACTION, ONE `wb.init` EVENT AND ONE LANDING OF VIEWS** (vc's ruling, 2026-11-10), so a running intentd meets the apply whole."
@@ -9513,6 +9513,24 @@
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
           "recoverability_anomaly": "IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT IS A PROJECT-SETUP ACT RATHER THAN THAT IT CANNOT BE UNDONE -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is irreversibility, and this one is reversible in the only sense that matters: running it twice writes nothing the first run did not. **What it does is decide WHO the participants of this project are, which is a thing a human declares and an agent should not start unasked** -- every board, every item and every message afterwards hangs off the rows it writes, and a roster registered by a passing tool call is a coordination estate nobody chose. The same reasoning `index rebuild` records, arriving at the same answer from a different direction: that one is withheld for contention, this one for authorship. A candidate for exposure on a ruling about who may declare a roster, never on the observation that it is safe to repeat -- which is true and is a different question.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "the nodes were registered or corrected, or the same values again wrote nothing"
+              },
+              {
+                "code": 1,
+                "when": "a refusal: a node named without both `--name` and `--role`; `--correct` without a moniker, `--name` and `--role`, or on a moniker not registered; other values for a moniker already registered; a declared moniker given other than its profile's name and role; arguments that disagree with the node's hand-authored board header; a node whose migrated board this store has not taken in; with no arguments, a board header that lacks a name or a role, or that cannot be read; or `--name` and `--role` with no moniker"
+              },
+              {
+                "code": 2,
+                "when": "on a board that declares a team, the installed profiles cannot be read"
+              }
+            ],
+            "stdout": "`ok: <n> node(s) registered`, or with `--correct` `ok: <moniker> corrected to <name> (<role>)` or `ok: <moniker> unchanged, already <name> (<role>)`; then every file on a `wrote:` line and the roster-commit `note:`",
+            "stderr": "`error: ...` with a remedy on any refusal (INV-01)"
+          },
           "facade": "register_roster",
           "note": "**THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration. **AND A NODE CAN BE NAMED FROM ITS ARGUMENTS** (vc, 2026-09-13, on ic's finding): once headers render from the store, reading them can create nothing, so the explicit form is how a node joins after the cutover; the header form stays beside it until the last hand-authored board has migrated. Both forms reach the store through one insert."
         },

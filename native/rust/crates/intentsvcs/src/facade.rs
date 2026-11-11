@@ -2001,6 +2001,18 @@ pub enum FacadeError {
   /// for by a name the install does not ship (ST0092 WP-02).
   #[error(transparent)]
   Teams(#[from] crate::teams::TeamsError),
+  /// The roster README refuses a render: a hand edit outside its block, or
+  /// its block markers (ST0092 WP-07). Nothing is written.
+  #[error(transparent)]
+  RosterReadme(#[from] crate::roster_readme::ReadmeError),
+  /// The install's roster README template could not be read or did not
+  /// render (ST0092 WP-07): this build cannot answer, exit 2.
+  #[error("the roster README's template `{path}` could not be read or rendered: {why}")]
+  RosterReadmeTemplate { path: String, why: String },
+  /// The project's roster README could not be read, or its write failed
+  /// (ST0092 WP-07). Nothing the apply decided was recorded.
+  #[error("`{path}` could not be read or written: {why}")]
+  RosterReadmeUnreadable { path: String, why: String },
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -2726,6 +2738,8 @@ pub struct WbInit {
   /// For a dry run, every whiteboard file the apply would write, rendered by
   /// the apply's own code on a shadow store and never landed.
   pub would_write: Vec<String>,
+  /// What the render does to the roster README (WP-07).
+  pub readme: crate::roster_readme::Plan,
 }
 
 /// The files one board verb landed, split by whose they are to commit (issue
@@ -2773,6 +2787,22 @@ pub fn require_local(address: &Address) -> Result<(), FacadeError> {
       }
       .to_url(),
     }),
+  }
+}
+
+impl FacadeError {
+  /// **WHETHER THIS BUILD CANNOT ANSWER AT ALL**, as against a refusal of what
+  /// was asked (INV-04): exit 2 rather than exit 1, which a consumer written
+  /// against v2 reads as fail-open. The one definition the CLI's `fail` reads:
+  /// an install whose Team Profiles cannot be read, and an install whose
+  /// roster README template cannot be (ST0092 WP-07). Every other variant is a
+  /// refusal, and a new variant is one until it is named here.
+  pub fn build_cannot_answer(&self) -> bool {
+    match self {
+      Self::Teams(cause) => cause.build_cannot_answer(),
+      Self::RosterReadmeTemplate { .. } => true,
+      _ => false,
+    }
   }
 }
 
@@ -3351,6 +3381,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::Sync(cause) => cause.remedy(),
       Self::Estate(cause) => cause.remedy(),
       Self::Teams(cause) => cause.remedy(),
+      Self::RosterReadme(cause) => cause.remedy(),
+      Self::RosterReadmeTemplate { .. } => "the Intent install is incomplete or its whiteboard template is malformed; reinstall it. Nothing was written.".to_string(),
+      Self::RosterReadmeUnreadable { .. } => "check that `intent/whiteboard/README.md` and its directory can be read and written, then run `intent wb init --apply` again, which repairs a write that failed. Nothing was recorded.".to_string(),
       Self::Store(cause) => cause.remedy(),
       // Delegated for the same reason: `organize` knows which of its four
       // refusals happened and this does not.
@@ -8207,7 +8240,13 @@ impl Facade {
       })
       .collect();
     let seats = crate::teams::plan(&resolved, &roster);
-    let declaration = resolved.declaration(held.as_ref());
+    // **THE ROSTER README IS DECIDED HERE, BEFORE ANY WRITE, AND THE DRY RUN
+    // MEETS ITS REFUSALS TOO** (WP-07): a hand edit outside its block and
+    // wrong markers refuse now, and the hash the render records rides the
+    // declaration.
+    let readme = self.roster_readme(&teams, &resolved, &roster, held.as_ref())?;
+    let mut declaration = resolved.declaration(held.as_ref());
+    declaration.readme_baseline = Some(readme.baseline.clone());
     let declaration_moves = held.as_ref() != Some(&declaration);
 
     // **EVERY REFUSAL BEFORE ANY WRITE, AND THE DRY RUN MEETS THEM TOO.** A
@@ -8242,6 +8281,7 @@ impl Facade {
       applied: false,
       moved: 0,
       would_write: Vec::new(),
+      readme: readme.plan.clone(),
     };
     let register: Vec<(String, String, String)> = report
       .seats
@@ -8258,7 +8298,32 @@ impl Facade {
     let recorded = declaration_moves.then_some(&declaration);
     if !apply {
       report.would_write = self.wb_init_preview(&register, &correct, recorded)?;
+      if readme.plan != crate::roster_readme::Plan::Unchanged {
+        report
+          .would_write
+          .push(self.project.relative(&self.roster_readme_path()));
+        report.would_write.sort();
+      }
       return Ok(report);
+    }
+    // **THE README FIRST, WHOLE, AND THE BASELINE AFTER IT** (vc's ruling on
+    // ic's read of WP-07). A write that fails records nothing, so the next
+    // apply decides again over the old file. A store landing that fails after
+    // it leaves a README whose text outside its block is this build's render,
+    // and `decide` takes that as rendered whatever the baseline says, so the
+    // next apply records it. Either half failing heals; neither is refused as
+    // a hand edit. The temporary file and rename keep it from being torn.
+    let readme_path = self.roster_readme_path();
+    if readme.plan != crate::roster_readme::Plan::Unchanged {
+      let failed = |why: String| FacadeError::RosterReadmeUnreadable {
+        path: self.project.relative(&readme_path),
+        why,
+      };
+      if let Some(dir) = readme_path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| failed(e.to_string()))?;
+      }
+      crate::write_set::write_atomically(&readme_path, readme.text.as_bytes())
+        .map_err(|e| failed(e.to_string()))?;
     }
     let event = self.wb_event(
       "wb.init",
@@ -8287,6 +8352,10 @@ impl Facade {
         .collect();
       self.land_board_write_noting(&acting)?;
     }
+    if readme.plan != crate::roster_readme::Plan::Unchanged {
+      self.record_written(std::slice::from_ref(&readme_path))?;
+      self.landed.push(readme_path);
+    }
     Ok(report)
   }
 
@@ -8308,6 +8377,62 @@ impl Facade {
       w.set_declaration(d)?;
     }
     Ok(moved)
+  }
+
+  /// Where the roster README lives (WP-07).
+  fn roster_readme_path(&self) -> std::path::PathBuf {
+    self
+      .project
+      .whiteboard_dir()
+      .join(crate::roster_readme::FILE)
+  }
+
+  /// The roster README a `wb init` renders over what is on disk (WP-07): the
+  /// template under the install, filled from the resolved profiles and the
+  /// registered nodes, and decided against the file and the hash the last
+  /// render recorded. Every refusal is here, so it comes before any write.
+  fn roster_readme(
+    &self,
+    teams: &crate::teams::Teams,
+    resolved: &crate::teams::Resolved,
+    registered: &[crate::roster_readme::Registered<'_>],
+    held: Option<&crate::model::TeamDeclaration>,
+  ) -> Result<crate::roster_readme::Decision, FacadeError> {
+    let home = crate::install::home()?;
+    let source = home
+      .join(crate::install::MARKER)
+      .join(crate::roster_readme::TEMPLATE);
+    let template_fault = |why: String| FacadeError::RosterReadmeTemplate {
+      path: source.display().to_string(),
+      why,
+    };
+    let template =
+      std::fs::read_to_string(&source).map_err(|cause| template_fault(cause.to_string()))?;
+    let roster =
+      crate::roster_readme::Roster::of(resolved, registered, &teams.profile(&resolved.base)?.brief);
+    let ctx = RenderContext {
+      version: &self.ctx.version,
+      todo_watermark: None,
+      devbin: crate::rootfiles::has_devbin(self.project.root()),
+    };
+    let rendered = crate::roster_readme::render(&template, &roster, self.project.config(), &ctx)
+      .map_err(|fault| template_fault(fault.to_string()))?;
+    let path = self.roster_readme_path();
+    let existing = match std::fs::read_to_string(&path) {
+      Ok(text) => Some(text),
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+      Err(e) => {
+        return Err(FacadeError::RosterReadmeUnreadable {
+          path: self.project.relative(&path),
+          why: e.to_string(),
+        });
+      }
+    };
+    Ok(crate::roster_readme::decide(
+      existing.as_deref(),
+      held.and_then(|d| d.readme_baseline.as_deref()),
+      &rendered,
+    )?)
   }
 
   /// The whiteboard files an apply of `wb init` would write, as project-relative

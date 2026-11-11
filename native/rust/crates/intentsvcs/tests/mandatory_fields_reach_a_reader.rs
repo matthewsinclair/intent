@@ -74,6 +74,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A Team Profile is refused by its name or for its install, never for a
     // field left out.
     | FacadeError::Teams(_)
+    | FacadeError::RosterReadme(_)
+    | FacadeError::RosterReadmeTemplate { .. }
+    | FacadeError::RosterReadmeUnreadable { .. }
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement
     | FacadeError::SqlUnterminated

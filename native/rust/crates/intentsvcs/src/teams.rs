@@ -207,6 +207,23 @@ pub enum TeamsError {
   NoDeclaration { shipped: Vec<String> },
 }
 
+impl TeamsError {
+  /// Whether this build cannot answer at all, as against a refusal of what
+  /// was asked: the install's profiles are absent, malformed or unreadable.
+  /// [`crate::facade::FacadeError::build_cannot_answer`] reads it, so exit 2
+  /// has one definition for a profile fault.
+  pub fn build_cannot_answer(&self) -> bool {
+    match self {
+      Self::Malformed { .. } | Self::Absent { .. } | Self::Io { .. } => true,
+      Self::UnknownProfile { .. }
+      | Self::TwoBases { .. }
+      | Self::LayerWithoutBase { .. }
+      | Self::BaseDiffers { .. }
+      | Self::NoDeclaration { .. } => false,
+    }
+  }
+}
+
 impl crate::remedy::Remedy for TeamsError {
   fn remedy(&self) -> String {
     match self {

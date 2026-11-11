@@ -298,6 +298,16 @@ pub enum FindingClass {
   /// project takes one re-render commit at upgrade, and doctor names it. So it is
   /// shown and never counted: an upgraded project never reads as skewed for it.
   BoardSchemaBehind,
+  /// The roster README was edited outside its preserved block since
+  /// `wb init --apply` rendered it, or its block markers are wrong (ST0092
+  /// WP-07). Shown and never counted, by vc's ruling: the block is the
+  /// project's, and the hard stop is the apply, which refuses to render over
+  /// it. Deliberately not `ViewSkew`, which is counted.
+  RosterReadmeEdited,
+  /// The roster README is only behind this build's render: the text outside
+  /// its block is the last render's, and this build would render it
+  /// differently (ST0092 WP-07). Shown and never counted.
+  RosterReadmeBehind,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -735,6 +745,16 @@ impl FindingClass {
         "board-schema-behind",
         "nothing is wrong and nothing is refused: the next board write re-renders every `board.json` in the current shape, one mechanical commit, the coordinating node's or hv's. Upgrade every machine that reads this board first, because Intent 3.2.8 refuses a board in the current shape",
       ),
+      Self::RosterReadmeEdited => (
+        8,
+        "roster-readme-edited",
+        "move the lines it names inside the block, between `<!-- user:start -->` and `<!-- user:end -->`, where every render keeps them, and put the generated text back as `git diff` shows it; `intent wb init --apply` refuses to render over the edit until then",
+      ),
+      Self::RosterReadmeBehind => (
+        8,
+        "roster-readme-behind",
+        "`intent wb init --apply` re-renders it; only text the renderer owns differs",
+      ),
       Self::BackupStale => (
         8,
         "backup-stale",
@@ -971,6 +991,8 @@ impl FindingClass {
         | Self::StatusGateDisagreementOverFiat
         | Self::ClosedContractDrift
         | Self::BoardSchemaBehind
+        | Self::RosterReadmeEdited
+        | Self::RosterReadmeBehind
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
@@ -1009,6 +1031,8 @@ impl FindingClass {
         Self::StoreStale
           | Self::ClosedContractDrift
           | Self::BoardSchemaBehind
+          | Self::RosterReadmeEdited
+          | Self::RosterReadmeBehind
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::ProseIndexDuplicated

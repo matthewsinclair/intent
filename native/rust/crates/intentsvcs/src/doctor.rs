@@ -1723,6 +1723,99 @@ fn event_checks(project: &Project, out: &mut Vec<Finding>) {
 // File checks
 // ---------------------------------------------------------------------------
 
+/// The roster README against what `wb init --apply` would render now (ST0092
+/// WP-07): `roster-readme-edited` for a hand edit outside its block or wrong
+/// markers, and `roster-readme-behind` for a README a newer render would
+/// change. **SHOWN, NEVER COUNTED** (vc's rulings on WP-07): the block is the
+/// project's, and the hard stop is the apply's refusal. A board that declares no
+/// profile, or a README never rendered, has nothing to judge.
+fn roster_readme_advisories(
+  project: &Project,
+  canon: &crate::ingest::Canon,
+  ctx: &RenderContext<'_>,
+) -> Vec<Finding> {
+  let Some(declared) = canon.declaration.as_ref() else {
+    return Vec::new();
+  };
+  if declared.readme_baseline.is_none() {
+    return Vec::new();
+  }
+  let path = project.whiteboard_dir().join(crate::roster_readme::FILE);
+  let file = project.relative(&path);
+  let advisory = |why: String| {
+    vec![Finding::new(
+      file.clone(),
+      FindingClass::Advisory,
+      format!("the roster README could not be judged against its render: {why}"),
+    )]
+  };
+  let teams = match crate::teams::installed() {
+    Ok(teams) => teams,
+    Err(e) => return advisory(e.to_string()),
+  };
+  let resolved = match teams.resolve(&[], Some(declared), false) {
+    Ok(resolved) => resolved,
+    Err(e) => return advisory(e.to_string()),
+  };
+  let brief = match teams.profile(&resolved.base) {
+    Ok(profile) => profile.brief,
+    Err(e) => return advisory(e.to_string()),
+  };
+  let template = match crate::install::home()
+    .map(|home| {
+      home
+        .join(crate::install::MARKER)
+        .join(crate::roster_readme::TEMPLATE)
+    })
+    .map_err(|e| e.to_string())
+    .and_then(|source| std::fs::read_to_string(source).map_err(|e| e.to_string()))
+  {
+    Ok(text) => text,
+    Err(why) => return advisory(why),
+  };
+  let registered: Vec<crate::roster_readme::Registered<'_>> = canon
+    .boards
+    .iter()
+    .map(|b| {
+      (
+        b.node.moniker.as_str(),
+        b.node.name.as_str(),
+        b.node.role.as_str(),
+        b.node.remit.as_deref(),
+      )
+    })
+    .collect();
+  let roster = crate::roster_readme::Roster::of(&resolved, &registered, &brief);
+  let rendered = match crate::roster_readme::render(&template, &roster, project.config(), ctx) {
+    Ok(text) => text,
+    Err(fault) => return advisory(fault.to_string()),
+  };
+  let existing = match std::fs::read_to_string(&path) {
+    Ok(text) => Some(text),
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+    Err(e) => return advisory(e.to_string()),
+  };
+  match crate::roster_readme::standing(
+    existing.as_deref(),
+    declared.readme_baseline.as_deref(),
+    &rendered,
+  ) {
+    crate::roster_readme::Standing::Current | crate::roster_readme::Standing::NeverRendered => {
+      Vec::new()
+    }
+    crate::roster_readme::Standing::Behind => vec![Finding::new(
+      file,
+      FindingClass::RosterReadmeBehind,
+      "this build renders it differently: only text the renderer owns differs".to_string(),
+    )],
+    crate::roster_readme::Standing::Edited(e) => vec![Finding::new(
+      file,
+      FindingClass::RosterReadmeEdited,
+      e.to_string(),
+    )],
+  }
+}
+
 /// Every `board.json` still in the old shape, and every old message no board
 /// can carry, as uncounted advisories (issue 0612).
 ///
@@ -1827,6 +1920,9 @@ fn file_checks(
   report.views_checked = views::render_all(project, canon, ctx).len();
   report.findings.extend(skew);
   report.findings.extend(board_shape_advisories(project));
+  report
+    .findings
+    .extend(roster_readme_advisories(project, canon, ctx));
 
   // **Every file under a thread that nothing in the model holds, named.** The
   // classifier is `Project::classify` rather than a list repeated here: a

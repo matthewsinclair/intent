@@ -55,6 +55,8 @@ fn proofs() {
   implements::<intentsvcs::project::GuardError>();
   implements::<intentsvcs::modules::ModulesError>();
   implements::<intentsvcs::project::ProjectError>();
+  implements::<intentsvcs::roster_readme::ReadmeError>();
+  implements::<intentsvcs::roster_readme::MarkerFault>();
   implements::<intentsvcs::nav::Unlanded>();
   implements::<intentsvcs::finding::Refusal>();
   implements::<intentsvcs::rootfiles::Fault>();

@@ -59,6 +59,18 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   // The census and statusline doors refuse their input before anything is
   // read or written, so each is provokable by a bad call too.
+  // A roster README that cannot be read is refused before any write (ST0092
+  // WP-07): a directory where the file goes is read as one, and fails.
+  let unreadable = Fixture::new();
+  std::fs::create_dir_all(unreadable.root().join("intent/whiteboard/README.md"))
+    .expect("a directory where the README goes");
+  out.push((
+    "a roster README that cannot be read",
+    unreadable
+      .facade_on_disk()
+      .wb_init(&["team".to_string()], false, false)
+      .expect_err("an unreadable README"),
+  ));
   out.push((
     "a path as a census class",
     facade
@@ -1240,6 +1252,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Sync(_) => "Sync",
     FacadeError::Estate(_) => "Estate",
     FacadeError::Teams(_) => "Teams",
+    FacadeError::RosterReadme(_) => "RosterReadme",
+    FacadeError::RosterReadmeTemplate { .. } => "RosterReadmeTemplate",
+    FacadeError::RosterReadmeUnreadable { .. } => "RosterReadmeUnreadable",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
@@ -1383,6 +1398,9 @@ const ALL_VARIANTS: &[&str] = &[
   "Sync",
   "Estate",
   "Teams",
+  "RosterReadme",
+  "RosterReadmeTemplate",
+  "RosterReadmeUnreadable",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
@@ -1437,6 +1455,15 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **PROVOKED WHERE A RENDERED ROSTER README IS** (ST0092 WP-07). Each of its
+  // refusals needs a README `wb init --apply` rendered and an edit or a
+  // marker over it, so `roster_readme.rs` drives them (AT-07.5, AT-07.7) and
+  // the line each names.
+  "RosterReadme",
+  // **PROVOKED WHERE AN INSTALL LACKS THE TEMPLATE** (ST0092 WP-07). This test
+  // binary's install is this repository, which ships it, so
+  // `wb_init_door.rs` runs a fixture install without it and holds exit 2.
+  "RosterReadmeTemplate",
   // **PROVOKED WHERE A DECLARED BOARD IS** (ST0092 WP-03, AC-03.6). It needs a
   // board `wb init` has declared, so `wb_init.rs` applies a profile and drives
   // this refusal and the profile's values it prints.

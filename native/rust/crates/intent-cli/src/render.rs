@@ -37,8 +37,15 @@ use intentsvcs::wire::{self, Op, Request, Response, ThreadSummary};
   clippy::needless_pass_by_value,
   reason = "a `map_err` adapter: `Result::map_err` hands the error over by value, so this signature is the closure's"
 )]
+/// A facade refusal, rendered: exit 2 where the library says this build
+/// cannot answer (`FacadeError::build_cannot_answer`, INV-04), exit 1
+/// otherwise. The one place that mapping is made.
 fn fail(e: FacadeError) -> Failure {
-  Failure::Error(e.render())
+  if e.build_cannot_answer() {
+    Failure::Unavailable(e.render())
+  } else {
+    Failure::Error(e.render())
+  }
 }
 
 /// Dispatch one parsed invocation.
@@ -4380,12 +4387,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       let apply = m.get_flag("apply");
       let report = f
         .wb_init(&names, apply, m.get_flag("change"))
-        .map_err(|e| match e {
-          // An install whose profiles cannot be read is this build unable to
-          // answer, exit 2, as `wb profile` says it; a refusal is exit 1.
-          FacadeError::Teams(t) => teams_unavailable(t),
-          other => fail(other),
-        })?;
+        .map_err(fail)?;
       wb_init_report(&report);
       if !apply {
         for path in &report.would_write {
@@ -15423,6 +15425,36 @@ fn wb_init_report(report: &intentsvcs::facade::WbInit) {
       "unchanged"
     }
   );
+  wb_init_readme(report);
+}
+
+/// The roster README's line in `wb init`'s report (ST0092 WP-07): what the
+/// render does to it, and, on a first render, the frontmatter block it does
+/// not carry, named on a `note:` line of its own.
+fn wb_init_readme(report: &intentsvcs::facade::WbInit) {
+  use intentsvcs::roster_readme::Plan;
+  let (did, would) = match &report.readme {
+    Plan::Create => ("rendered", "renders"),
+    Plan::First { .. } => (
+      "first render: the whole existing README is carried inside its block, where the project prunes what the generated part now says",
+      "first render: carries the whole existing README inside its block, where the project prunes what the generated part now says",
+    ),
+    Plan::Rerender => (
+      "re-rendered, its block carried as it is",
+      "re-renders, its block carried as it is",
+    ),
+    Plan::Unchanged => ("unchanged", "unchanged"),
+  };
+  println!("README: {}", if report.applied { did } else { would });
+  if let Plan::First {
+    dropped: Some(block),
+  } = &report.readme
+  {
+    println!(
+      "note: the frontmatter block that opened the README is not carried, since a generated view carries none: {}",
+      block.lines().collect::<Vec<_>>().join(" / ")
+    );
+  }
 }
 
 /// `intent wb profile <list|show|validate|terms>` (ST0092 WP-02).
@@ -15465,15 +15497,10 @@ fn teams() -> Result<intentsvcs::teams::Teams, Failure> {
 )]
 fn teams_unavailable(e: intentsvcs::teams::TeamsError) -> Failure {
   let line = format!("error: {e}\n  remedy: {}", e.remedy());
-  match e {
-    intentsvcs::teams::TeamsError::UnknownProfile { .. }
-    | intentsvcs::teams::TeamsError::TwoBases { .. }
-    | intentsvcs::teams::TeamsError::LayerWithoutBase { .. }
-    | intentsvcs::teams::TeamsError::BaseDiffers { .. }
-    | intentsvcs::teams::TeamsError::NoDeclaration { .. } => Failure::Error(line),
-    intentsvcs::teams::TeamsError::Malformed { .. }
-    | intentsvcs::teams::TeamsError::Absent { .. }
-    | intentsvcs::teams::TeamsError::Io { .. } => Failure::Unavailable(line),
+  if e.build_cannot_answer() {
+    Failure::Unavailable(line)
+  } else {
+    Failure::Error(line)
   }
 }
 

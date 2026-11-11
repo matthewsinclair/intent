@@ -295,8 +295,8 @@ pub enum Releaser {
 /// could reach the block. It is the opposite: a file that DOES carry the footer
 /// is regenerated on the plain path, block and all. `--force` gates
 /// hand-authored files; it never gated this.
-const USER_START: &str = "<!-- user:start -->";
-const USER_END: &str = "<!-- user:end -->";
+pub(crate) const USER_START: &str = "<!-- user:start -->";
+pub(crate) const USER_END: &str = "<!-- user:end -->";
 
 /// Whether a `CLAUDE.md`'s user block holds nothing a person wrote: only
 /// whitespace and HTML comments between the markers, as the template seeds it,
