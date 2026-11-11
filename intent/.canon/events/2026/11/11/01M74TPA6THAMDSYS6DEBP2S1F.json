@@ -1,0 +1,15 @@
+{
+  "id": "01M74TPA6THAMDSYS6DEBP2S1F",
+  "ts": "2026-11-11T08:13:19.963Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0092 WP-09 after WP-05 lands: doctor reports three classes (a seat whose name or role differs from its profile's, a declared seat not registered, an hv inbox view outside the mediator's pair), each shown and never counted, ids in FindingClass::as_str, remedy the wb init dry run then --apply; plus a retired declared seat (dc's WP-04: WbNode.retired, teams::Verdict::Retired { reason }), shown and not counted. No new row or flag."
+  }
+}

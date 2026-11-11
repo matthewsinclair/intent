@@ -1,0 +1,16 @@
+{
+  "id": "01M74TP939F36TF93K5CH5KRF3",
+  "ts": "2026-11-11T08:13:18.825Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 108,
+    "text": "ST0092 WP-05 (hv through one node, INV-12): BANKED on 8f3da433f as refs/bank/cc/st0092/wp05-red-on-8f3da433f (tree edc084dd19f3) and wp05-green-on-red-on-8f3da433f (blob 124be9df11d4, tip 36e400d93151), plus the table-only delta refs/bank/cc/st0092/wp05-table-on-36e400d93151 (blob 313e2b2c871d, tip 753a8290e2f8: wb init's removed: line and the seven MCP rows' human-seat sentence). Red and green ran in desk slot 01M74STTN131RBVM4NY0M0QJ60. ic's row read clean; vc's full judge asked as 01M74TJVHPMXQQMBJZNYAT76GK, then the delta checked warm. Worktrees tmp/wt-cc-0092-wp05 (green, at tip) and tmp/wt-cc-0092-wp05-red stay until the landing. Next: land on vc's word (red, rows, green with the delta, AT-05.5/05.7 green, gate, wp done), then WP-09, then issue 0680."
+  }
+}

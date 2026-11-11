@@ -1,0 +1,15 @@
+{
+  "id": "01M74TPBAKZ6WSVZZT7F65FAJ3",
+  "ts": "2026-11-11T08:13:21.107Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ISSUE:0680 after WP-09 (vc, in 3.3.0, size M): measure the cause first (a session file read mid-rewrite is a hypothesis); then (1) slots::caller tells unreadable from absent and re-reads a bounded count before refusing, with a remedy that says which; (2) release is accepted from the session id its start.json recorded; (3) the desk shows a start with no end whose asker is alive."
+  }
+}

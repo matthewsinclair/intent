@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "2026-11-10, folded for hv's compact of cc's window; NO HOLD on the bounce. hv RATIFIED ST0092's terms (\"Ratified as recommended\", read in vc's window at 19:26:54Z), vc landed it at 3ee4da245, and WP-02 MAY START on vc's word. ON THE BOUNCE: /in-session, commit the heartbeat-only pickup in its own chain, then (1) on vc's \"verified\" of the 0665/0670/0649 train (a08b6f03e, 03a820eb0, cedbc46fe; the attachment test at HEAD was the last leg), close issues 0665 and 0649 in one chain and remove tmp/wt-cc-0665 and tmp/wt-cc-0649 by the fold checks; (2) BUILD WP-02 (claimed, WIP) in a new worktree off main with its own target, booking a desk slot for every cargo run (a waiter's command goes in a script file, never in its command line). Read TERMS.md as landed FIRST: cc's default remit changed, the pen is a second hat, and \"unseated session\" is a defined word; AC-02.5 holds TERMS.md's seats table and seats.json to each other. Working copy of every ruling: refs/bank/cc/st0092/build-notes-v3.md (vc writes them into the WP bodies after this chain; until then the notes win over a body that disagrees). The MODULES.md row comes before teams.rs. Do NOT build around TERMS.md's Desk sentence (\"One vc on a host wears it\"): it goes to hv before WP-08. Nothing pushed or released.",
     "claims": [
-      "ST0092/05"
+      "ST0092/05",
+      "ISSUE:0680"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2300,17 +2301,36 @@
       "node": "cc",
       "kind": "todo",
       "seq": 48,
-      "text": "OWED in the WP-05 bank (vc's ruling on ic's note on WP-03 v2, in 3.3.0): render.rs `fail` maps FacadeError::Teams(Malformed | Absent | Io) to Failure::Unavailable, so every verb that reads the installed profiles exits 2 on an unreadable install, wb register and --correct included; wb init's own teams_unavailable route folds into it if that leaves one path; an arm drives register on a declared board with a fixture install that has no profiles and holds exit 2; the register row's exits gain 2.",
-      "state": "live",
-      "recorded_at": "2026-11-11T05:37:27.031Z"
+      "text": "MOVED to dc's ST0092 WP-07 v2 on vc's ruling (2026-11-11), landed there: FacadeError::build_cannot_answer read once by render.rs's fail, wb init's arm folded, dc's register arm at exit 2. Nothing of it rides WP-05.",
+      "state": "archived",
+      "archived_at": "2026-11-11T08:13:17.621Z",
+      "recorded_at": "2026-11-11T05:37:27.031Z",
+      "edited_at": "2026-11-11T08:13:16.450Z"
     },
     {
       "node": "cc",
       "kind": "doing",
       "seq": 108,
-      "text": "ST0092 WP-05, hv is reached through one node and the tool enforces it, cc's to build after WP-03 landed at 2b1d00b92 (2026-11-11); carries todo 48, the owed `fail` exit-2 fix, in the same bank.",
+      "text": "ST0092 WP-05 (hv through one node, INV-12): BANKED on 8f3da433f as refs/bank/cc/st0092/wp05-red-on-8f3da433f (tree edc084dd19f3) and wp05-green-on-red-on-8f3da433f (blob 124be9df11d4, tip 36e400d93151), plus the table-only delta refs/bank/cc/st0092/wp05-table-on-36e400d93151 (blob 313e2b2c871d, tip 753a8290e2f8: wb init's removed: line and the seven MCP rows' human-seat sentence). Red and green ran in desk slot 01M74STTN131RBVM4NY0M0QJ60. ic's row read clean; vc's full judge asked as 01M74TJVHPMXQQMBJZNYAT76GK, then the delta checked warm. Worktrees tmp/wt-cc-0092-wp05 (green, at tip) and tmp/wt-cc-0092-wp05-red stay until the landing. Next: land on vc's word (red, rows, green with the delta, AT-05.5/05.7 green, gate, wp done), then WP-09, then issue 0680.",
       "state": "live",
-      "recorded_at": "2026-11-11T06:08:09.039Z"
+      "recorded_at": "2026-11-11T06:08:09.039Z",
+      "edited_at": "2026-11-11T08:13:18.825Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 49,
+      "text": "ST0092 WP-09 after WP-05 lands: doctor reports three classes (a seat whose name or role differs from its profile's, a declared seat not registered, an hv inbox view outside the mediator's pair), each shown and never counted, ids in FindingClass::as_str, remedy the wb init dry run then --apply; plus a retired declared seat (dc's WP-04: WbNode.retired, teams::Verdict::Retired { reason }), shown and not counted. No new row or flag.",
+      "state": "live",
+      "recorded_at": "2026-11-11T08:13:19.963Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 50,
+      "text": "ISSUE:0680 after WP-09 (vc, in 3.3.0, size M): measure the cause first (a session file read mid-rewrite is a hypothesis); then (1) slots::caller tells unreadable from absent and re-reads a bounded count before refusing, with a remedy that says which; (2) release is accepted from the session id its start.json recorded; (3) the desk shows a start with no end whose asker is alive.",
+      "state": "live",
+      "recorded_at": "2026-11-11T08:13:21.107Z"
     }
   ],
   "sent": [

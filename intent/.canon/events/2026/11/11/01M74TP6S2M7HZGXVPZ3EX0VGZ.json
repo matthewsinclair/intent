@@ -1,0 +1,16 @@
+{
+  "id": "01M74TP6S2M7HZGXVPZ3EX0VGZ",
+  "ts": "2026-11-11T08:13:16.450Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 48,
+    "text": "MOVED to dc's ST0092 WP-07 v2 on vc's ruling (2026-11-11), landed there: FacadeError::build_cannot_answer read once by render.rs's fail, wb init's arm folded, dc's register arm at exit 2. Nothing of it rides WP-05."
+  }
+}
