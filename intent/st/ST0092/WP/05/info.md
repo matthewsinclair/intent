@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: hv is reached through one node, and the tool enforces it
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-05: hv is reached through one node, and the tool enforces it

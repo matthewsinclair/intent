@@ -1,0 +1,15 @@
+{
+  "id": "01M74KH1ZT9W1TKPT61E7NJJ1M",
+  "ts": "2026-11-11T06:08:09.039Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0092 WP-05, hv is reached through one node and the tool enforces it, cc's to build after WP-03 landed at 2b1d00b92 (2026-11-11); carries todo 48, the owed `fail` exit-2 fix, in the same bank."
+  }
+}

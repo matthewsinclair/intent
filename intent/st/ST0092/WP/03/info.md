@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: wb init reconciles a board to its profile, and is a dry run until told to apply
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-03: wb init reconciles a board to its profile, and is a dry run until told to apply
