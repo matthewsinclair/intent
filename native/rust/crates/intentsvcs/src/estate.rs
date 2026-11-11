@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, json};
 use thiserror::Error;
 use time::OffsetDateTime;
 
@@ -93,6 +93,11 @@ pub enum EstateError {
     #[source]
     cause: std::io::Error,
   },
+  /// The directory Claude Code keeps its session files in is not there (issue
+  /// 0680). Never read as "no sessions": that answer calls every live session
+  /// gone. `configured` is whether `CLAUDE_CONFIG_DIR` chose the directory.
+  #[error("there is no Claude Code sessions directory at `{}`, so no session can be read", path.display())]
+  NoSessionsDir { path: PathBuf, configured: bool },
   #[error("which sessions are alive could not be read: {why}")]
   NoLiveness { why: String },
   #[error("`{class}` is not a census class name")]
@@ -121,6 +126,7 @@ impl crate::remedy::Remedy for EstateError {
       Self::BadStatusline { .. } => "hand it the JSON Claude Code gives a statusline command, unchanged, on stdin. Nothing was written.".to_string(),
       Self::Slot(e) => e.remedy(),
       Self::Coordinator(e) => e.remedy(),
+      Self::NoSessionsDir { configured, .. } => slots::no_sessions_dir_remedy(*configured),
       Self::NoLiveness { .. } => "prune must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone session from a live one, so nothing was removed. Run `intent estate status` to see what `ps` reported.".to_string(),
     }
   }
@@ -202,6 +208,9 @@ pub struct Gathered {
   pub usage: usage::Usage,
   /// The slot records ([`slots::read`]).
   pub slots: slots::Slots,
+  /// The sessions directory and whether `CLAUDE_CONFIG_DIR` chose it, when it
+  /// is not there (issue 0680); `None` when it was read.
+  pub no_sessions_dir: Option<(PathBuf, bool)>,
   pub unreadable: Vec<Unreadable>,
 }
 
@@ -264,6 +273,17 @@ pub struct EstateStatus {
   /// Null, or the recorded controller whose session is gone, with the step
   /// that takes the desk (ST0092 AC-08.4).
   pub controller_orphaned: Value,
+  /// Every running request whose asker's session is alive and idle: a start
+  /// with no end and nobody running it, which the desk shows rather than waits
+  /// on (issue 0680). A session whose status is `shell` is between turns with
+  /// a background shell running, a wrapper mid-run, and is not shown.
+  pub running_idle: Value,
+  /// Null, or `{path, configured}` when there is no Claude Code sessions
+  /// directory to read (issue 0680). Unset and absent is a host Claude Code
+  /// has never run on, and a face says so as a note; set and absent is the
+  /// variable naming the wrong place, and a face warns. Either way no session
+  /// is called gone, because none could be seen.
+  pub no_sessions_dir: Value,
   pub lanes: Value,
   pub queue: Value,
   pub recent: Value,
@@ -498,6 +518,10 @@ pub fn parse_board_header(path: &Path, text: &str) -> Result<BoardHeader, Unread
   serde_json::from_value(node).map_err(|e| unreadable(format!("`node`: {e}")))
 }
 
+/// The status Claude Code writes for a session between turns with nothing
+/// running: the one reading of it, for a row's state and for `running_idle`.
+pub const IDLE: &str = "idle";
+
 /// The row's state, most decisive first.
 ///
 /// **ANY STATUS BUT `idle` IS BUSY**, so a status Claude Code adds later still
@@ -509,7 +533,7 @@ pub fn state_of(alive: bool, paused: bool, heavy: bool, claude_status: &str) -> 
     State::Paused
   } else if heavy {
     State::Heavy
-  } else if claude_status == "idle" {
+  } else if claude_status == IDLE {
     State::Idle
   } else {
     State::Busy
@@ -527,6 +551,7 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     census,
     usage,
     slots,
+    no_sessions_dir,
     mut unreadable,
   } = gathered;
   let starts = match liveness {
@@ -547,6 +572,13 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
         .find(|s| s.session_id == id)
         .is_some_and(|s| alive(s, starts)),
     )
+  });
+  let running_idle = slots::running_idle_value(&slots, |by| {
+    sessions
+      .iter()
+      .find(|s| s.session_id == by)
+      .filter(|s| s.status == IDLE && starts.as_ref().is_none_or(|st| alive(s, st)))
+      .map(|s| s.name.clone())
   });
   let held_by = slots.held_by();
   let running_by = slots.running_by();
@@ -620,6 +652,11 @@ pub fn join(gathered: Gathered, now: OffsetDateTime) -> EstateStatus {
     controller: slots::controller_value(&slots),
     controller_unreadable: slots::controller_unreadable_value(&slots),
     controller_orphaned: crate::seat::orphaned_value(&desk),
+    running_idle,
+    no_sessions_dir: no_sessions_dir.map_or(
+      Value::Null,
+      |(path, configured)| json!({ "path": path.display().to_string(), "configured": configured }),
+    ),
     lanes: slots::lanes_value(&slots),
     queue: slots::queue_value(&slots),
     recent: slots::recent_value(&slots, |at| at >= since),
@@ -721,6 +758,11 @@ pub(crate) fn project_at(cwd: &Path, unreadable: &mut Vec<Unreadable>) -> Option
 }
 
 /// Every session file under `claude_dir`, and every one it could not read.
+///
+/// **AN ABSENT DIRECTORY IS AN ERROR, NEVER AN EMPTY LIST** (issue 0680): an
+/// empty list reads every live session as gone, so a status would draw a live
+/// controller orphaned and a prune would remove every session's record. Each
+/// caller says what the absence means to it.
 fn read_sessions(
   claude_dir: &Path,
   unreadable: &mut Vec<Unreadable>,
@@ -728,7 +770,12 @@ fn read_sessions(
   let dir = sessions_dir(claude_dir);
   let entries = match std::fs::read_dir(&dir) {
     Ok(entries) => entries,
-    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+      return Err(EstateError::NoSessionsDir {
+        path: dir,
+        configured: crate::userstate::claude_dir_configured(),
+      });
+    }
     Err(cause) => return Err(EstateError::Unlistable { path: dir, cause }),
   };
   let mut paths: Vec<PathBuf> = entries
@@ -866,8 +913,20 @@ pub fn status_with(
 ) -> Result<EstateStatus, EstateError> {
   let mut unreadable = Vec::new();
   let host = read_host().map_err(|u| unreadable.push(u)).ok();
-  let sessions = read_sessions(claude_dir, &mut unreadable)?;
-  let liveness = Some(read_liveness(&pids_of(&sessions)));
+  // **A STATUS WITH NO SESSIONS DIRECTORY NAMES IT AND CALLS NOBODY GONE**
+  // (issue 0680): liveness stays unknown, which the desk reads as worn, so a
+  // read from an environment naming the wrong directory never draws a live
+  // controller ORPHANED.
+  let (sessions, liveness, no_sessions_dir) = match read_sessions(claude_dir, &mut unreadable) {
+    Ok(sessions) => {
+      let liveness = Some(read_liveness(&pids_of(&sessions)));
+      (sessions, liveness, None)
+    }
+    Err(EstateError::NoSessionsDir { path, configured }) => {
+      (Vec::new(), None, Some((path, configured)))
+    }
+    Err(e) => return Err(e),
+  };
   let cwds: BTreeSet<PathBuf> = sessions.iter().map(|s| s.cwd.clone()).collect();
   let projects = cwds
     .into_iter()
@@ -890,6 +949,7 @@ pub fn status_with(
       census,
       usage,
       slots,
+      no_sessions_dir,
       unreadable,
     },
     clock::now(),
@@ -1105,7 +1165,21 @@ pub fn kept_ids(
 /// files are never touched.
 pub fn prune(dirs: &Dirs, claude_dir: &Path) -> Result<Pruned, EstateError> {
   let mut unreadable = Vec::new();
-  let sessions = read_sessions(claude_dir, &mut unreadable)?;
+  // **NO SESSIONS DIRECTORY REMOVES NOTHING** (issue 0680): it read as no
+  // sessions, so every record was a gone session's and was removed. Unset and
+  // absent is a host Claude Code never ran on, quiet and with nothing to do;
+  // set and absent is the variable naming the wrong place, refused.
+  let sessions = match read_sessions(claude_dir, &mut unreadable) {
+    Ok(sessions) => sessions,
+    Err(EstateError::NoSessionsDir {
+      configured: false, ..
+    }) => {
+      return Ok(Pruned {
+        removed: Vec::new(),
+      });
+    }
+    Err(e) => return Err(e),
+  };
   let starts =
     read_liveness(&pids_of(&sessions)).map_err(|u| EstateError::NoLiveness { why: u.why })?;
   let unparsed: Vec<String> = unreadable

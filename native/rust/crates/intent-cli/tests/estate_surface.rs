@@ -1835,6 +1835,7 @@ fn issue_0680_a_host_claude_code_never_ran_on_is_a_note_and_nothing_fails() {
       .env("HOME", &bare)
       .env_remove("CLAUDE_CONFIG_DIR")
       .args(args)
+      .stdin(testkit::lifeline_for(args))
       .output()
       .expect("run an estate verb")
   };

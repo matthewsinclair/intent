@@ -10747,23 +10747,41 @@ fn estate_value(status: &intentsvcs::estate::EstateStatus) -> Result<serde_json:
   })
 }
 
-/// One `warning:` line per session file the reader could not read.
+/// One `warning:` line per session file the reader could not read, after the
+/// reader's `no_sessions_dir` (issue 0680): a `note:` where `CLAUDE_CONFIG_DIR`
+/// is unset, which is a host Claude Code has never run on, and a `warning:`
+/// where the variable names a directory with no sessions in it.
 fn estate_warnings(v: &serde_json::Value) -> Vec<String> {
-  v["unreadable"]
-    .as_array()
-    .map(|rows| {
-      rows
-        .iter()
-        .map(|u| {
-          format!(
-            "warning: {} -- {}",
-            u["path"].as_str().unwrap_or("?"),
-            u["why"].as_str().unwrap_or("unreadable")
-          )
-        })
-        .collect()
-    })
-    .unwrap_or_default()
+  let none = &v["no_sessions_dir"];
+  let mut out: Vec<String> = match none["configured"].as_bool() {
+    Some(true) => vec![format!(
+      "warning: no Claude Code sessions directory at {}: `CLAUDE_CONFIG_DIR` names it, so no session could be read and none is called gone",
+      none["path"].as_str().unwrap_or("?")
+    )],
+    Some(false) => vec![format!(
+      "note: no Claude Code sessions directory at {} (`CLAUDE_CONFIG_DIR` is not set), so no session is shown",
+      none["path"].as_str().unwrap_or("?")
+    )],
+    None => Vec::new(),
+  };
+  out.extend(
+    v["unreadable"]
+      .as_array()
+      .map(|rows| {
+        rows
+          .iter()
+          .map(|u| {
+            format!(
+              "warning: {} -- {}",
+              u["path"].as_str().unwrap_or("?"),
+              u["why"].as_str().unwrap_or("unreadable")
+            )
+          })
+          .collect::<Vec<_>>()
+      })
+      .unwrap_or_default(),
+  );
+  out
 }
 
 /// How long before the status was taken the row's `key` stamp was, in the
@@ -10989,12 +11007,17 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
       format!("take it: {}", s(&v["controller_orphaned"]["take"])),
     );
   } else {
-    match by_id(&s(&ctl["session_id"])).filter(|x| x["state"].as_str() != Some("gone")) {
+    // **ORPHANED IS THE READER'S WORD ALONE** (issue 0680): this arm used to
+    // say it again of any controller whose session had no row, so a read with
+    // no sessions directory, which has no rows, called a live controller gone
+    // whose next take succeeds. A controller the reader does not call orphaned
+    // and that has no row is worn, by a session this read could not see.
+    match by_id(&s(&ctl["session_id"])) {
       None => push(
         "control",
         &mut first,
         format!(
-          "{} ORPHANED: pid {} is not a live session; the next take succeeds",
+          "{}, pid {}: its session could not be read here, so it is taken as live",
           s(&ctl["name"]),
           ctl["pid"]
         ),
@@ -11053,6 +11076,22 @@ fn estate_host(v: &serde_json::Value) -> Vec<(String, String)> {
         s(&h["condition"]),
         h["node"].as_str().unwrap_or("?"),
         estate_age(v, h, "held_at")
+      ),
+    );
+  }
+  // **A START WITH NO END WHOSE ASKER IS IDLE** (issue 0680), the reader's
+  // `running_idle`, one line each under the controller, who decides on it.
+  for r in arr(&v["running_idle"]) {
+    let lanes: Vec<String> = arr(&r["lanes"]).iter().map(s).collect();
+    push(
+      "control",
+      &mut first,
+      format!(
+        "RUNNING, ASKER IDLE: {} ({}, {}, started {})",
+        s(&r["id"]),
+        s(&r["name"]),
+        lanes.join("+"),
+        estate_age(v, &r, "started_at")
       ),
     );
   }

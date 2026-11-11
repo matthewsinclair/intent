@@ -45,8 +45,22 @@ pub const PAUSE: Duration = Duration::from_millis(500);
 
 #[derive(Debug, Error)]
 pub enum SlotError {
-  #[error("no Claude Code session file names session `{session_id}`")]
-  NoSession { session_id: String },
+  #[error("no Claude Code session file under `{}` names session `{session_id}`", dir.display())]
+  NoSession { session_id: String, dir: PathBuf },
+  /// The directory Claude Code keeps its session files in is not there, so no
+  /// session can be read (issue 0680). `configured` is whether
+  /// `CLAUDE_CONFIG_DIR` chose the directory it was looked for under.
+  #[error("there is no Claude Code sessions directory at `{}`, so no session can be read", path.display())]
+  NoSessionsDir { path: PathBuf, configured: bool },
+  #[error("the Claude Code sessions directory `{}` could not be listed: {why}", path.display())]
+  SessionsUnlistable { path: PathBuf, why: String },
+  /// No readable session file names the session, and some could not be read,
+  /// so one of them may be its own (issue 0680).
+  #[error("no readable Claude Code session file names session `{session_id}`, and {} could not be read: {}", unreadable.len(), unreadable.join("; "))]
+  SessionFileUnreadable {
+    session_id: String,
+    unreadable: Vec<String>,
+  },
   #[error("`{verb}` is the controller's, and this session is not it ({controller})")]
   NotController { verb: String, controller: String },
   #[error("control is held by `{name}` (pid {pid}), which is still live")]
@@ -132,7 +146,10 @@ pub enum SlotError {
 impl crate::remedy::Remedy for SlotError {
   fn remedy(&self) -> String {
     match self {
-      Self::NoSession { .. } => "run it from inside a Claude Code session: the caller is the session `CLAUDE_CODE_SESSION_ID` names, read from its own session file. Nothing was written.".to_string(),
+      Self::NoSession { .. } => "run it from inside the Claude Code session that asked, or a script that session started: the caller is the session `CLAUDE_CODE_SESSION_ID` names, read from its own session file. Nothing was written.".to_string(),
+      Self::NoSessionsDir { configured, .. } => no_sessions_dir_remedy(*configured),
+      Self::SessionsUnlistable { .. } => "fix the directory's permissions so this user can list it. Nothing was written.".to_string(),
+      Self::SessionFileUnreadable { .. } => "one of the files named above may be this session's own: each carries why it could not be read, and only Claude Code writes them, so a file that stays unreadable is Claude Code's to rewrite. Nothing was written.".to_string(),
       Self::NotController { .. } => "ask the controller to do it, or take control with `intent estate control take` when the controller is gone. Nothing was written.".to_string(),
       Self::ControllerLive { .. } => "ask the controller to `intent estate control release`; a take succeeds over a gone controller only. Nothing was written.".to_string(),
       Self::NeedsHv { .. } => "take it under the recorded name, or pass `--hv \"<hv's words>\"` quoting hv's yes, which is recorded on the take. Nothing was written.".to_string(),
@@ -200,23 +217,60 @@ pub struct Caller {
   pub seat: Option<crate::seat::Seat>,
 }
 
+/// The remedy for a sessions directory that is not there, by whether
+/// `CLAUDE_CONFIG_DIR` chose it: the one text a slot verb, a status and a prune
+/// give (issue 0680).
+pub(crate) fn no_sessions_dir_remedy(configured: bool) -> String {
+  if configured {
+    "`CLAUDE_CONFIG_DIR` chose that directory, and Claude Code keeps no sessions there: set it to the directory the Claude Code session running this was started with. Nothing was written.".to_string()
+  } else {
+    "`CLAUDE_CONFIG_DIR` is not set, so the default was read: where Claude Code runs with the variable set, a script that unsets it must set it back before an estate verb. Nothing was written.".to_string()
+  }
+}
+
+/// The session file naming `session_id`, `None` when every file read and none
+/// names it.
+///
+/// **ONLY A READ THAT SAW EVERY FILE MAY SAY "NONE"** (issue 0680). A missing
+/// sessions directory, one that will not list, and a file that will not read
+/// are each refused with its own error, because a caller told its live session
+/// does not exist goes looking in the wrong place: the measured case was a
+/// script that had unset `CLAUDE_CONFIG_DIR`, so the default directory was
+/// read, and it is not there on a host that sets the variable.
+fn session_named(claude_dir: &Path, session_id: &str) -> Result<Option<ClaudeSession>, SlotError> {
+  let mut unreadable = Vec::new();
+  let sessions = super::read_sessions(claude_dir, &mut unreadable).map_err(|e| match e {
+    super::EstateError::NoSessionsDir { path, configured } => {
+      SlotError::NoSessionsDir { path, configured }
+    }
+    other => SlotError::SessionsUnlistable {
+      path: super::sessions_dir(claude_dir),
+      why: other.to_string(),
+    },
+  })?;
+  match sessions.into_iter().find(|s| s.session_id == session_id) {
+    Some(found) => Ok(Some(found)),
+    None if unreadable.is_empty() => Ok(None),
+    None => Err(SlotError::SessionFileUnreadable {
+      session_id: session_id.to_string(),
+      unreadable: unreadable
+        .into_iter()
+        .map(|u| format!("`{}`: {}", u.path, u.why))
+        .collect(),
+    }),
+  }
+}
+
 /// The caller, from the session files under `claude_dir`.
 pub fn caller(
   claude_dir: &Path,
   session_id: &str,
   node: Option<&str>,
 ) -> Result<Caller, SlotError> {
-  let mut ignored = Vec::new();
-  let sessions =
-    super::read_sessions(claude_dir, &mut ignored).map_err(|_| SlotError::NoSession {
-      session_id: session_id.to_string(),
-    })?;
-  let found = sessions
-    .into_iter()
-    .find(|s| s.session_id == session_id)
-    .ok_or_else(|| SlotError::NoSession {
-      session_id: session_id.to_string(),
-    })?;
+  let found = session_named(claude_dir, session_id)?.ok_or_else(|| SlotError::NoSession {
+    session_id: session_id.to_string(),
+    dir: super::sessions_dir(claude_dir),
+  })?;
   let seat = crate::seat::seat_of(&found.cwd, &found.session_id);
   Ok(Caller {
     session_id: found.session_id,
@@ -767,16 +821,17 @@ fn wrong_state(r: &Request, verb: &str) -> SlotError {
 
 /// Whether a session is alive by the page's ORPHANED test: its session file is
 /// present and its pid is still the process Claude Code recorded.
+///
+/// **A READ THAT COULD NOT SEE EVERY FILE IS AN ERROR, NEVER `false`** (issue
+/// 0680): `false` lets a take succeed over a controller that may be live, so
+/// an absent directory or an unreadable file answers no liveness at all.
 pub(crate) fn session_live(claude_dir: &Path, session_id: &str) -> Result<bool, SlotError> {
-  let mut ignored = Vec::new();
-  let sessions: Vec<ClaudeSession> = super::read_sessions(claude_dir, &mut ignored)
-    .map_err(|e| SlotError::NoLiveness { why: e.to_string() })?;
-  let Some(found) = sessions.iter().find(|s| s.session_id == session_id) else {
+  let Some(found) = session_named(claude_dir, session_id)? else {
     return Ok(false);
   };
   let starts =
     super::read_liveness(&[found.pid]).map_err(|u| SlotError::NoLiveness { why: u.why })?;
-  Ok(super::alive(found, &starts))
+  Ok(super::alive(&found, &starts))
 }
 
 /// What a take wrote.
@@ -1496,6 +1551,37 @@ fn row(r: &Request) -> Value {
   })
 }
 
+/// The reader's `running_idle`: each running request whose asker `idle_name`
+/// names, which is the asker's session name when that session is alive and
+/// idle, oldest start first (issue 0680). Liveness and status are the
+/// caller's, read once with every other session row.
+pub fn running_idle_value(slots: &Slots, idle_name: impl Fn(&str) -> Option<String>) -> Value {
+  let mut running: Vec<(&Request, String)> = slots
+    .requests
+    .iter()
+    .filter(|r| r.state() == ReqState::Running)
+    .filter_map(|r| idle_name(&r.ask.record.by).map(|name| (r, name)))
+    .collect();
+  running.sort_by(|(a, _), (b, _)| {
+    let at = |r: &Request| r.start.as_ref().and_then(|s| s.at);
+    at(a).cmp(&at(b)).then_with(|| a.id().cmp(b.id()))
+  });
+  Value::Array(
+    running
+      .into_iter()
+      .map(|(r, name)| {
+        json!({
+          "id": r.id(),
+          "by": r.ask.record.by,
+          "name": name,
+          "lanes": r.lanes(),
+          "started_at": stamp(r.start.as_ref().and_then(|s| s.at)),
+        })
+      })
+      .collect(),
+  )
+}
+
 /// Every request not finished, oldest first by its sort key, which is its own
 /// `asked_at` or, for a hand-back, the `--place-of` request's: the one order
 /// the queue and every lane's queue share.
@@ -1714,11 +1800,18 @@ pub fn pending(
 
 /// Each session's name by its id, from Claude Code's own session files: how
 /// `slots wait`, `slots watch` and `slots pending` name an asker. A session
-/// file that will not parse is left out, and its session's lines show its id.
+/// file that will not parse is left out, and its session's lines show its id;
+/// so is every session when there is no sessions directory, since a name only
+/// labels a line and no wait should refuse for want of one.
 pub fn names(claude_dir: &Path) -> Result<BTreeMap<String, String>, super::EstateError> {
   let mut ignored = Vec::new();
+  let sessions = match super::read_sessions(claude_dir, &mut ignored) {
+    Ok(sessions) => sessions,
+    Err(super::EstateError::NoSessionsDir { .. }) => Vec::new(),
+    Err(e) => return Err(e),
+  };
   Ok(
-    super::read_sessions(claude_dir, &mut ignored)?
+    sessions
       .into_iter()
       .map(|s| (s.session_id, s.name))
       .collect(),
