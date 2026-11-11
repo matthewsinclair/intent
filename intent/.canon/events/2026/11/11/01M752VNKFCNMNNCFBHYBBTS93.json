@@ -1,0 +1,15 @@
+{
+  "id": "01M752VNKFCNMNNCFBHYBBTS93",
+  "ts": "2026-11-11T10:36:04.079Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "JUDGEMENTS AND RULINGS OF 2026-11-11, 08:07Z to 10:35Z. (1) ST0092 WP-05 (cc), hv reached through one node: full judge in slot 01M74TJVHPMXQQMBJZNYAT76GK on tree 36e400d93151 (Rust 3621, bats 816, app 79 of 79, 0 failed); its table delta checked warm in slot 01M751DMQZYKRWZR52DBMBDZ5C on tree 753a8290e2f8 (intent-cli 1299 passed); landed to 867cad6d3, gate 8 of 8, WP-05 done. (2) WP-04 bank (i) (dc): vc started its judge on 8f3da433f and stopped it at 4 minutes, because WP-05's landing left it conflicting in facade.rs, seat.rs and views.rs and the tree could not land; vc should not have queued it on the old base. dc rebased, keeping WP-05's side, banked unmeasured as refs/bank/dc/0092-04/*-unmeasured-on-867cad6d3 (tip 4cdc6d6fbba4), with bank (ii) drafted on that tip. Rulings: the undeclared board's human seat is seat::human_seat, hv by convention, no install read; ic's three row points folded in. (3) WP-06 (ic): the age function takes the answer's record, never two strings; rebased on WP-05 and green whole, banked as wp06-red and wp06-green-on-red on 867cad6d3; it needs WP-04 on main for the retired-seat arm and the one human_seat. (4) WP-09 (cc): AC-09.1 and AC-09.2 reworded by vc to three classes (fc7c5d1cb); banked on 867cad6d3, tip 66eb6f5eb251; it lands as judged and stays WIP until a follow-up carries the retired-seat arm after WP-04. (5) Issue 0680: cc MEASURED the refused releases to vc's own wrapper unsetting CLAUDE_CONFIG_DIR before the release, and a torn read false; working on it cc found a prune that reads every session as gone when the sessions directory is absent, and a second ORPHANED judgement in the CLI and the page. Ruled size S: four cases told apart, running_idle on the status (idle only, no threshold), no release from start.json; a host that never ran Claude Code stays quiet. The page's halves are ic's WP-10. (6) surface_check.sh refuses on main's own table and nothing runs it: ic's WP-10. (7) The desk declined an overlap with devbin's cut and then granted on vc's showing that the cut only polled GitHub."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M752VPRH13DYHRV6BBPVHM59",
+  "ts": "2026-11-11T10:36:05.265Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "ST0092, Claude Team profiles, rides 3.3.0. WHERE IT STANDS at 2026-11-11 10:35Z, main 5deb0d059: DONE and judged WP-01, 02, 03, 05, 07, 08 (6 of 11). IN FLIGHT, in the order vc acts. (a) WP-09 (cc): vc's FULL judge is RUNNING as a background script, slot 01M75299N6BRR3Z88MPCZ0709H, worktree tmp/wt-vc-0909, base 867cad6d3, want tip 66eb6f5eb251, started about 10:33Z, log in the scratchpad's judge-stack/log; ic's read is clean but for the retired-seat sentence. On green: cc lands it, the green commit says AC-09.1 waits, NO wp done, and a follow-up bank carries the retired-seat arm after WP-04. Then remove the worktree (reset --hard, worktree remove) and set the log aside. (b) WP-04 (dc): bank (i) rebased on 867cad6d3 and UNMEASURED (refs/bank/dc/0092-04/red-, green-on-red-, fix-unmeasured-on-867cad6d3, red tree 2d2162073e23, tip 4cdc6d6fbba4); dc runs red and green after its compact and re-banks measured; bank (ii) is a draft on that tip. vc then runs ONE full judge over (i) and, if stacked, (ii), on the tree that lands, and ic re-reads what the rebase changed. If WP-09 lands first, check that WP-04 still applies before asking its judge. (c) WP-06 (ic): green whole on 867cad6d3 (refs/bank/ic/st0092/wp06-red-on-867cad6d3 and wp06-green-on-red-on-867cad6d3); after WP-04 lands ic rebases, adds the retired-seat arm and the AT rows, banks, and vc reads ic's three rows itself and judges full. (d) WP-10 (ic) after 02 to 09: also surface_check.sh's INV-09 to INV-12 and a gate that runs it or its removal, the page drawing running_idle and reading controller_orphaned. (e) WP-11, the fleet sweep, after the cut. RULES FOR EVERY BANK: ic reads the rows; vc judges the tree that lands, so a bank is re-checked for plain apply on main before its judge is asked; red is the arms on main's code; a table-only delta is checked warm with judge-stack/warm-delta.zsh; a wrapper's slot verbs keep CLAUDE_CONFIG_DIR."
+  }
+}
