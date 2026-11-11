@@ -455,6 +455,8 @@ mod schema_faces_drift;
 mod a_pull_into_a_cold_warmed_store_carries_its_board;
 #[path = "a_pulled_board_is_taken_only_when_the_store_is_still.rs"]
 mod a_pulled_board_is_taken_only_when_the_store_is_still;
+#[path = "roster_readme.rs"]
+mod roster_readme;
 #[path = "skills_sync.rs"]
 mod skills_sync;
 #[path = "status_gate_states_what_it_observed.rs"]
