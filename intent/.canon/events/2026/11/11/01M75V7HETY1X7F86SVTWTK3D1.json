@@ -1,0 +1,15 @@
+{
+  "id": "01M75V7HETY1X7F86SVTWTK3D1",
+  "ts": "2026-11-11T17:41:58.877Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0681"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The guide prints no when_to_use, and wb brief's help has a lowercase flag line and an undescribed argument"
+  }
+}

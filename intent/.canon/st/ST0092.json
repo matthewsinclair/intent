@@ -563,7 +563,8 @@
       "text": "ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "AT-10.2: ic's read of 2026-11-11 on brew 3.3.0; the two help differences filed as issue 0681 on vc's ruling"
       }
     },
     {
@@ -571,7 +572,8 @@
       "text": "No shipped file defines one of the terms a second time: the `/in-whiteboard` skill, the guide and the roster template cite the terms document, and ic has recorded the search that shows it.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "AT-10.3: ic's search of 2026-11-11, recorded on doing 146"
       }
     },
     {
@@ -1149,6 +1151,36 @@
       ],
       "status": "green",
       "note": "To write after dc's WP-04 lands (WbNode.retired, teams::Verdict::Retired): an arm holding that doctor names a retired declared seat as retired, shown and not counted, and never as seat-not-registered, red then green, on vc's ruling of 2026-11-11. AC-09.1 stays open until it is green. Written as at_09_4_doctor_names_a_retired_declared_seat_as_retired and RED at f1ca4a7d3, the arm on the code before it: in vc's delta slot on tree 3cdad4e56465 exactly at_09_4 fails, no seat-retired finding, with 09.1 and 09.2 passing (cc's run 1, desk slot 01M756VSEZ1EPG28GEJ78P609M, saw the same). GREEN at 5436963bc (FindingClass::SeatRetired, doctor naming Verdict::Retired for a declared seat with register_form's command): judged by vc warm in desk slot 01M75AY5MKC724WX04W38B6YST, the arm green on adb4b044e9b1, rc 0; the landed tree outside intent/ equals the judged 4335e011eda6."
+    },
+    {
+      "id": "AT-10.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/dispatch.rs:1816",
+      "covers": [
+        "AC-10.1"
+      ],
+      "status": "green",
+      "note": "ic's read on brew 3.3.0 (1e423060f919), 2026-11-11: every verb ST0092 adds (wb brief, profile, init, remit, retire) has a row in surface/dispatch-table.json declaring when_to_use and exposed_on_mcp; the three mutations declare recoverability (init idempotent, remit and retire reversible) and the two reads declare none, which this test holds for every row. intent llm guide prints all five rows with safety, recoverability, call, does, flags and mcp, but no row's when_to_use, which reaches only the MCP tool descriptions; vc ruled 'prints it' means the row, so AC-10.1 is met, and the gap rides issue 0681 to the next release. The test held before this row was minted, so the row passes through red only because the machine declares green from red alone."
+    },
+    {
+      "id": "AT-10.2",
+      "kind": "non-test",
+      "prose": "ic has read every new help line, refusal and exit code against the tool's voice and exit-code contract, and recorded the read.",
+      "covers": [
+        "AC-10.2"
+      ],
+      "status": "n-a",
+      "note": "ic's read, 2026-11-11. Refusals and exits, read before the landing of 5b597abd9: voice and exit 1 consistent, nothing to correct. Help lines, read on brew 3.3.0 (1e423060f919): wb brief, profile, init, remit and retire --help all exit 0 in the tool's voice; two differences found, wb brief --launch's help in lowercase and wb brief <MONIKER> with no argument help, filed with the guide's missing when_to_use as issue 0681 for the next release on vc's ruling (no code in 3.3.0)."
+    },
+    {
+      "id": "AT-10.3",
+      "kind": "non-test",
+      "prose": "No shipped file defines a ST0092 term a second time; the skill, guide and roster template cite the terms document.",
+      "covers": [
+        "AC-10.3"
+      ],
+      "status": "n-a",
+      "note": "ic's search, 2026-11-11: the /in-whiteboard SKILL.md cites intent/plugins/claude/teams/TERMS.md, the roster template cites `intent wb profile terms`, and no dispatch-table row or other shipped file defines a term; recorded on ic's doing 146."
     }
   ]
 }

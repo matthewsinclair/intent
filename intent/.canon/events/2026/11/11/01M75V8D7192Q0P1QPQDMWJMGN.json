@@ -1,0 +1,14 @@
+{
+  "id": "01M75V8D7192Q0P1QPQDMWJMGN",
+  "ts": "2026-11-11T17:42:27.301Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-10.2"
+  },
+  "payload": {
+    "evidence": "AT-10.2: ic's read of 2026-11-11 on brew 3.3.0; the two help differences filed as issue 0681 on vc's ruling"
+  }
+}

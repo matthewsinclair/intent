@@ -1,0 +1,14 @@
+{
+  "id": "01M75V8E53QA6V4V67165D55KZ",
+  "ts": "2026-11-11T17:42:28.263Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-10.3"
+  },
+  "payload": {
+    "evidence": "AT-10.3: ic's search of 2026-11-11, recorded on doing 146"
+  }
+}

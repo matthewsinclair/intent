@@ -96,9 +96,9 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 ### WP-10 -- The new surface reads as one (status: WIP)
 
-- AC-10.1 Every verb this thread adds has a dispatch-table row that states its recoverability, its `when_to_use` and its MCP disposition, and `intent llm guide` prints it. -- satisfied: no (computed)
-- AC-10.2 (non-test) ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board. -- satisfied: no
-- AC-10.3 (non-test) No shipped file defines one of the terms a second time: the `/in-whiteboard` skill, the guide and the roster template cite the terms document, and ic has recorded the search that shows it. -- satisfied: no
+- AC-10.1 Every verb this thread adds has a dispatch-table row that states its recoverability, its `when_to_use` and its MCP disposition, and `intent llm guide` prints it. -- satisfied: yes (computed)
+- AC-10.2 (non-test) ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board. -- evidence: AT-10.2: ic's read of 2026-11-11 on brew 3.3.0; the two help differences filed as issue 0681 on vc's ruling -- satisfied: yes
+- AC-10.3 (non-test) No shipped file defines one of the terms a second time: the `/in-whiteboard` skill, the guide and the roster template cite the terms document, and ic has recorded the search that shows it. -- evidence: AT-10.3: ic's search of 2026-11-11, recorded on doing 146 -- satisfied: yes
 
 ### WP-11 -- Every live board converges, Intent's own first (status: Not Started)
 
@@ -194,7 +194,9 @@ _(no tests in this group)_
 
 ### WP-10 -- The new surface reads as one (status: WIP)
 
-_(no tests in this group)_
+- AT-10.1 `native/rust/crates/intent-cli/src/dispatch.rs:1816` -- covers AC-10.1 -- status: green -- ic's read on brew 3.3.0 (1e423060f919), 2026-11-11: every verb ST0092 adds (wb brief, profile, init, remit, retire) has a row in surface/dispatch-table.json declaring when_to_use and exposed_on_mcp; the three mutations declare recoverability (init idempotent, remit and retire reversible) and the two reads declare none, which this test holds for every row. intent llm guide prints all five rows with safety, recoverability, call, does, flags and mcp, but no row's when_to_use, which reaches only the MCP tool descriptions; vc ruled 'prints it' means the row, so AC-10.1 is met, and the gap rides issue 0681 to the next release. The test held before this row was minted, so the row passes through red only because the machine declares green from red alone.
+- AT-10.2 (non-test) ic has read every new help line, refusal and exit code against the tool's voice and exit-code contract, and recorded the read. -- covers AC-10.2 -- status: n/a -- ic's read, 2026-11-11. Refusals and exits, read before the landing of 5b597abd9: voice and exit 1 consistent, nothing to correct. Help lines, read on brew 3.3.0 (1e423060f919): wb brief, profile, init, remit and retire --help all exit 0 in the tool's voice; two differences found, wb brief --launch's help in lowercase and wb brief <MONIKER> with no argument help, filed with the guide's missing when_to_use as issue 0681 for the next release on vc's ruling (no code in 3.3.0).
+- AT-10.3 (non-test) No shipped file defines a ST0092 term a second time; the skill, guide and roster template cite the terms document. -- covers AC-10.3 -- status: n/a -- ic's search, 2026-11-11: the /in-whiteboard SKILL.md cites intent/plugins/claude/teams/TERMS.md, the roster template cites `intent wb profile terms`, and no dispatch-table row or other shipped file defines a term; recorded on ic's doing 146.
 
 ### WP-11 -- Every live board converges, Intent's own first (status: Not Started)
 

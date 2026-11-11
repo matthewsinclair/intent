@@ -1813,6 +1813,7 @@ mod tests {
   /// deserialized class this register has now produced six instances of, and
   /// the reason the field is `Option` with the totality enforced here instead
   /// of by serde: serde can say something was missing, this can say WHICH.
+  // AT-10.1 / AC-10.1 (ST0092 WP-10): every row the thread adds holds this.
   #[test]
   fn a_mutation_declares_its_recoverability_and_a_read_must_not() {
     assert!(
