@@ -729,6 +729,16 @@
       ],
       "status": "green",
       "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: estate status json carried no controller_orphaned; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
+    },
+    {
+      "id": "AT-08.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+      "covers": [
+        "AC-08.3"
+      ],
+      "status": "red",
+      "note": "estate_surface.rs mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does: the wearer's pickup through the CLI's --json and MCP's intent_wb_pickup carry one desk (state wears, the duties from their one template, the ask waiting), and wb status's rows carry hats [\"desk\"] for vc on both faces. Red at c4818da9b on vc's judge, slot 01M74FJ6P8MG9V0TMTF5WYMC4R: the pickup json carried no desk, because the brief and the hats were joined in render.rs."
     }
   ]
 }
