@@ -1,0 +1,15 @@
+{
+  "id": "01M7639TMTRYPGXYZ8HDFFP9JD",
+  "ts": "2026-11-11T20:03:02.426Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0093/06 stays WIP until devbin's next release (issues 0335, 0338, 0339) is vendored into Intent. Then dc builds (c) a build: block declaring the pair, its handlers calling cache get/put; (d) gate rust's target at DEVBIN_GATE_CACHE; (e) tests/run_tests.sh onto devbin's lanes runner, with daemon and socket tests tagged serial. One proof run for the batch, then land. (a) and (b) landed at 6375023ea; the macos leg first runs at the next cut."
+  }
+}

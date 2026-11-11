@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 17:45Z
-status: active
-focus: "2026-11-11 17:45Z, post-cut list done on vc's word; HOLDING for vc's next order. 3.3.0 released at 1e423060f. ST0091 WP-04 done (b863c4421). Follow-ups filed: Intent 0682 (the gate tree's place) and 0683 (prepush, delete-only push); devbin 0333 (the leg sends no previous tag). tmp/wt-dc-0092-04 stays on disk: plain remove refused two untracked test files, both in its bank refs/bank/dc/0092-04/superseded-worktree-04-on-008b41c6f; vc told. Hold 37 stands for hv's look on the released build."
+heartbeat_at: 2026-11-11 20:03Z
+status: paused
+focus: "2026-11-11 20:03Z, localfolded and released on hv's word via vc (finish what is live, start nothing new). 3.3.0 released at 1e423060f; ST0091 WP-04 done; follow-ups 0682, 0683 (Intent), 0333 (devbin). ST0093 WP-06 (a)+(b) landed at 6375023ea, WIP under hold 41 until devbin's next release is vendored, then (c) to (e). Hold 37 waits on hv's look. Banks: refs/bank/dc/0093-06/ab-on-6acaba3cb (landed); tmp/wt-dc-0092-04 stays on disk, its diff in refs/bank/dc/0092-04/superseded-worktree-04-on-008b41c6f."
 claims: [ST0090/02, ST0093/06]
 ---
 
@@ -22,6 +22,7 @@ _(none)_
 ## Holds
 
 - ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on a build that carries WP-01 and WP-02, and vc records which build that was. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. The Debug app dc built on 2026-11-01 (IntentCommit 29e6f1c0a) went with that session's scratch. dc rebuilds it on vc's word once 3.3.0's first train's last unit is on main (vc, 2026-11-10), at the HEAD vc names, booked as a light run with the estate's controller, for hv's look by the route vc hold 6 records. dc removes tmp/wt-dc-0090-app once the look is recorded. (edited)
+- ST0093/06 stays WIP until devbin's next release (issues 0335, 0338, 0339) is vendored into Intent. Then dc builds (c) a build: block declaring the pair, its handlers calling cache get/put; (d) gate rust's target at DEVBIN_GATE_CACHE; (e) tests/run_tests.sh onto devbin's lanes runner, with daemon and socket tests tagged serial. One proof run for the batch, then land. (a) and (b) landed at 6375023ea; the macos leg first runs at the next cut.
 
 ## Watch-outs
 
