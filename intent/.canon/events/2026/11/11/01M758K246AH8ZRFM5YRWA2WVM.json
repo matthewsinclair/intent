@@ -1,0 +1,16 @@
+{
+  "id": "01M758K246AH8ZRFM5YRWA2WVM",
+  "ts": "2026-11-11T12:16:13.446Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 61,
+    "text": "ST0091 AT-01.6 and the devbin sweep, one unit for 3.3.0 (vc's rulings, hv decisions 37 and 38). RE-SWEPT ONTO devbin 0.1.22 in tmp/wt-dc-devbin0121 on 4a4498e6d, banked UNMEASURED as refs/bank/dc/devbin0122/unmeasured-on-4a4498e6d (a7f4ec1d0026, 44 files, tree f6be87c6e379); the 0.1.21 ref is superseded. Done: the 0.1.21 bank applied 3-way with no conflict; bin/devbin upgrade (20 vendored files); config.yaml install.switch: intent use and install.publish: intent install (new keys in 0.1.22); 0.1.22's other changes need nothing (intentd prints its own name, the template runs nothing before @@INSTALL@@, no macos: block so Intent's cmd/macos packs); formula and cask render byte-identical to 0.1.21's archive render, so the 164-file keg proof on v3.2.8's real assets stands (scratchpad sw2); devbin doctor light 20 checks 0 failed. NEW, on vc's ruling: tests/unit/devbin_own_switch_and_publish.bats, two arms that run bin/devbin use dev and bin/devbin install with HOME, XDG and the prefix in the test's sandbox, assert each refuses naming intent use / intent install, and assert the sandbox is unchanged (my classifier refused running them bare; the lines went to hv via vc as an option). NEXT: desk slot 01M757Q43CJPJ9ZVTK5EM6YHY0 (next after vc's (ii) judge) runs scratchpad sw2/run/run.sh: red = install.rs's opt-manifest line reversed with the arms kept (test rust), then green = format, clippy, panics, test rust, test shell (the new bats first runs here; if the classifier refuses it, stop and tell vc), build, devbin doctor. Then re-bank measured and send vc for a full judge with the keg proof."
+  }
+}
