@@ -1633,3 +1633,108 @@ fn a_desk_whose_controllers_session_is_gone_reads_orphaned_and_shows_on_no_board
   let pickup = ok_out(&wb(&host, "s-vc2", &["pickup", "--node", "vc"]));
   assert!(!pickup.contains("wears the desk"), "{pickup}");
 }
+
+/// One MCP tool call on the host's project, its answer's text parsed as JSON.
+fn mcp_tool(host: &Host, tool: &str, arguments: serde_json::Value) -> serde_json::Value {
+  let call = serde_json::json!({
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": { "name": tool, "arguments": arguments },
+  })
+  .to_string();
+  let (out, frames) = mcp_session(&host.project, Some(&host.home), &[INITIALIZE, &call]);
+  assert!(
+    out.status.success(),
+    "{}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  let answer = frames
+    .iter()
+    .find(|f| f["id"] == 2)
+    .unwrap_or_else(|| panic!("no answer to {tool} in {frames:?}"));
+  let text = answer["result"]["content"][0]["text"]
+    .as_str()
+    .unwrap_or_else(|| panic!("{tool} answers text content: {answer:#}"));
+  serde_json::from_str(text).unwrap_or_else(|e| panic!("{tool}'s text is JSON: {e}: {text}"))
+}
+
+/// A `wb status` row for `node`, from an array of rows.
+fn status_row<'a>(rows: &'a serde_json::Value, node: &str) -> &'a serde_json::Value {
+  rows
+    .as_array()
+    .expect("an array of rows")
+    .iter()
+    .find(|r| r["node"]["moniker"] == node || r["moniker"] == node)
+    .unwrap_or_else(|| panic!("no row for {node}: {rows}"))
+}
+
+/// ST0092 AT-08.4
+///
+/// ST0092 AC-08.3 through MCP: the hat is joined in the library, so MCP's
+/// `wb pickup` and `wb status` carry the desk exactly as the CLI's `--json`
+/// does for the same board, the brief with the duties and the asks waiting,
+/// and the wearer's `hats`.
+#[test]
+fn mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does() {
+  let host = Host::new();
+  seat(&host, "vc", "s-vc", std::process::id());
+  ok_out(&slot(&host, "s-vc", &["control", "take"]));
+  ok_out(&slot(
+    &host,
+    "s-vc",
+    &[
+      "lane",
+      "open",
+      "heavy",
+      "--type",
+      "heavy",
+      "--capacity",
+      "1",
+    ],
+  ));
+  let asked = ok_out(&slot(&host, "s-vc", &["slots", "ask", "heavy", "a build"]));
+  let id = asked
+    .lines()
+    .find_map(|l| l.strip_prefix("asked: "))
+    .expect("ask prints the id")
+    .to_string();
+
+  let cli_pickup: serde_json::Value = serde_json::from_str(&ok_out(&wb(
+    &host,
+    "s-vc",
+    &["pickup", "--node", "vc", "--json"],
+  )))
+  .expect("wb pickup --json is one JSON value");
+  let desk = &cli_pickup["desk"];
+  assert_eq!(
+    desk["state"], "wears",
+    "the CLI's pickup json carries the desk: {cli_pickup:#}"
+  );
+  assert_eq!(desk["duties"].as_str(), Some(duties().as_str()));
+  assert_eq!(desk["asks"][0]["id"], id.as_str(), "{desk:#}");
+
+  let mcp_pickup = mcp_tool(
+    &host,
+    "intent_wb_pickup",
+    serde_json::json!({ "node": "vc", "session": "s-vc" }),
+  );
+  assert_eq!(
+    &mcp_pickup["desk"], desk,
+    "MCP's pickup carries the same desk"
+  );
+
+  let cli_status: serde_json::Value =
+    serde_json::from_str(&ok_out(&wb(&host, "s-vc", &["status", "--json"])))
+      .expect("wb status --json is one JSON value");
+  let mcp_status = mcp_tool(&host, "intent_wb_status", serde_json::json!({}));
+  assert_eq!(
+    status_row(&cli_status, "vc")["hats"],
+    serde_json::json!(["desk"])
+  );
+  assert_eq!(
+    status_row(&mcp_status, "vc")["hats"],
+    status_row(&cli_status, "vc")["hats"],
+    "MCP's status row carries the same hats"
+  );
+}
