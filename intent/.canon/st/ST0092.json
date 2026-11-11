@@ -737,8 +737,8 @@
       "covers": [
         "AC-08.3"
       ],
-      "status": "red",
-      "note": "estate_surface.rs mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does: the wearer's pickup through the CLI's --json and MCP's intent_wb_pickup carry one desk (state wears, the duties from their one template, the ask waiting), and wb status's rows carry hats [\"desk\"] for vc on both faces. Red at c4818da9b on vc's judge, slot 01M74FJ6P8MG9V0TMTF5WYMC4R: the pickup json carried no desk, because the brief and the hats were joined in render.rs."
+      "status": "green",
+      "note": "estate_surface.rs mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does: the wearer's pickup through the CLI's --json and MCP's intent_wb_pickup carry one desk (state wears, the duties from their one template, the ask waiting), and wb status's rows carry hats [\"desk\"] for vc on both faces. Red at c4818da9b on vc's judge, slot 01M74FJ6P8MG9V0TMTF5WYMC4R: the pickup json carried no desk, because the brief and the hats were joined in render.rs. Green at 852e5049f, vc's judged tree 7494660906bf at slot 01M74GAE0DJQ7GP1W794BRDQX0, once the library joins the desk and the hats for both faces."
     }
   ]
 }
