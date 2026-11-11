@@ -1,0 +1,15 @@
+{
+  "id": "01M75YCDD7E3AYYYXR504BYQ2Y",
+  "ts": "2026-11-11T18:37:04.299Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0093/06"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The release pipeline, briefed to devbin's core"
+  }
+}

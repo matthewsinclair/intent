@@ -1,0 +1,15 @@
+{
+  "id": "01M75YC7001BPS4TWX80C48BRN",
+  "ts": "2026-11-11T18:36:57.732Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0093/02"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Sync the installed skills; in-verify leaves the fold"
+  }
+}

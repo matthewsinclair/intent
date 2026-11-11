@@ -41,6 +41,12 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
 - [?] ST0093: Why Claudes yak-shave, and faster releases
+  - [ ] 01: Prune the shared memory to durable facts
+  - [ ] 02: Sync the installed skills; in-verify leaves the fold
+  - [ ] 03: vc stops judging: the mediator reads proof and lands
+  - [ ] 04: No chain broadcasts, no bare pickup commits
+  - [ ] 05: Short messages, and no check without a named catch
+  - [ ] 06: The release pipeline, briefed to devbin's core
 
 ## DONE:2026-09-10T00:00:51Z
 

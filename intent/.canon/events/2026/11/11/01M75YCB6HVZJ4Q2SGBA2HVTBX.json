@@ -1,0 +1,15 @@
+{
+  "id": "01M75YCB6HVZJ4Q2SGBA2HVTBX",
+  "ts": "2026-11-11T18:37:02.609Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0093/05"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "Short messages, and no check without a named catch"
+  }
+}

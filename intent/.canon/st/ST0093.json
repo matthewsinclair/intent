@@ -9,6 +9,62 @@
   "context": "",
   "body": "",
   "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Prune the shared memory to durable facts",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "Sync the installed skills; in-verify leaves the fold",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "vc stops judging: the mediator reads proof and lands",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "No chain broadcasts, no bare pickup commits",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "Short messages, and no check without a named catch",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "The release pipeline, briefed to devbin's core",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "",
+      "body": "",
+      "preamble": ""
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",
