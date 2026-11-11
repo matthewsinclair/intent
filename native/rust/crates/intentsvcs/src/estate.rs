@@ -1526,4 +1526,72 @@ mod tests {
     assert!(!mine.exists());
     assert!(theirs.exists());
   }
+
+  /// A host whose live controller is this test process, read through the slot
+  /// verbs as a door reads it, then with its sessions directory gone.
+  fn controller_then_no_sessions_dir() -> (tempfile::TempDir, Dirs, PathBuf) {
+    let tmp = tempfile::tempdir().unwrap();
+    let dirs = Dirs::at_home(tmp.path());
+    let claude = tmp.path().join("claude");
+    std::fs::create_dir_all(sessions_dir(&claude)).unwrap();
+    let pid = std::process::id();
+    let body = json!({
+      "pid": pid,
+      "sessionId": "ctl",
+      "cwd": "/",
+      "name": "intent-vc",
+      "status": "idle",
+      "procStart": proc_start_of(pid).unwrap().unwrap(),
+      "startedAt": 1_792_820_660_805_u64,
+      "updatedAt": 1_792_848_120_372_u64,
+    });
+    std::fs::write(
+      sessions_dir(&claude).join(format!("{pid}.json")),
+      body.to_string(),
+    )
+    .unwrap();
+    let ctl = slots::caller(&claude, "ctl", Some("vc")).unwrap();
+    slots::control_take(&dirs, &claude, &ctl, None).unwrap();
+    wip(&dirs, "ctl", Some("judging")).unwrap();
+    std::fs::remove_dir_all(sessions_dir(&claude)).unwrap();
+    (tmp, dirs, claude)
+  }
+
+  /// Issue 0680: a status read where there is no sessions directory names the
+  /// directory and draws a live controller as nothing but worn, never
+  /// ORPHANED, whose next take would succeed over it.
+  #[test]
+  fn issue_0680_a_status_with_no_sessions_dir_names_it_and_orphans_nobody() {
+    let (_tmp, dirs, claude) = controller_then_no_sessions_dir();
+    let read = status(&dirs, &claude).unwrap();
+    assert_eq!(
+      read.controller_orphaned,
+      Value::Null,
+      "{}",
+      read.controller_orphaned
+    );
+    let named = sessions_dir(&claude).display().to_string();
+    // Read as it serialises, so the arm compiles on the code before the key.
+    let sent = serde_json::to_value(&read).unwrap();
+    assert_eq!(
+      sent["no_sessions_dir"]["path"],
+      named.as_str(),
+      "{}",
+      sent["no_sessions_dir"]
+    );
+  }
+
+  /// Issue 0680: a prune where there is no sessions directory removes nothing,
+  /// because it cannot tell a live session from a gone one. Whether it refuses
+  /// turns on `CLAUDE_CONFIG_DIR` in this process, so the arm holds what is
+  /// true either way: every record is still there.
+  #[test]
+  fn issue_0680_a_prune_with_no_sessions_dir_removes_nothing() {
+    let (_tmp, dirs, claude) = controller_then_no_sessions_dir();
+    let held: Vec<PathBuf> = record_paths(&dirs).into_iter().map(|(_, p)| p).collect();
+    assert!(!held.is_empty(), "precondition: a record to keep");
+    let removed = prune(&dirs, &claude).map(|p| p.removed).unwrap_or_default();
+    assert!(removed.is_empty(), "{removed:?}");
+    assert!(held.iter().all(|p| p.exists()), "{held:?}");
+  }
 }

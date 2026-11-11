@@ -174,6 +174,7 @@ fn status_json_carries_every_key_of_the_boundary_from_the_first_work_package() {
     "controller",
     "controller_unreadable",
     "controller_orphaned",
+    "running_idle",
     "lanes",
     "queue",
     "recent",
@@ -1736,5 +1737,122 @@ fn mcp_pickup_and_status_carry_the_desk_as_the_cli_json_does() {
     status_row(&mcp_status, "vc")["hats"],
     status_row(&cli_status, "vc")["hats"],
     "MCP's status row carries the same hats"
+  );
+}
+
+/// Issue 0680 through the binary. A request started and not ended, whose
+/// asker's session is alive and idle, is the reader's `running_idle` and a line
+/// under the controller; an asker between turns with a background shell
+/// running (`shell`) is a wrapper mid-run and is neither. A status read with
+/// no sessions directory names it, and calls the live controller nothing that
+/// says its next take succeeds.
+#[test]
+fn issue_0680_a_start_whose_asker_is_idle_is_shown_and_no_sessions_dir_orphans_nobody() {
+  let host = Host::new();
+  let me = std::process::id();
+  host.session(me, "s-ctl", "molt-vc", &host.project, "idle");
+  ok_out(&slot(&host, "s-ctl", &["control", "take", "--node", "vc"]));
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &[
+      "lane",
+      "open",
+      "cargo",
+      "--type",
+      "heavy",
+      "--capacity",
+      "1",
+    ],
+  ));
+  let asked = ok_out(&slot(&host, "s-ctl", &["slots", "ask", "heavy", "a judge"]));
+  let id = asked
+    .lines()
+    .find_map(|l| l.strip_prefix("asked: "))
+    .expect("ask prints the id")
+    .to_string();
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "grant", &id, "--lane", "cargo"],
+  ));
+  ok_out(&slot(&host, "s-ctl", &["slots", "start", &id]));
+
+  let v = host.status_json();
+  assert_eq!(v["running_idle"][0]["id"], id.as_str(), "{v:#}");
+  assert_eq!(v["running_idle"][0]["name"], "molt-vc");
+  assert_eq!(v["running_idle"][0]["lanes"], serde_json::json!(["cargo"]));
+  let text = ok_out(
+    &host
+      .cmd()
+      .env("COLUMNS", "200")
+      .args(["estate", "status"])
+      .output()
+      .expect("run estate status"),
+  );
+  assert!(
+    text.contains(&format!("RUNNING, ASKER IDLE: {id} (molt-vc, cargo")),
+    "{text}"
+  );
+
+  host.session(me, "s-ctl", "molt-vc", &host.project, "shell");
+  let v = host.status_json();
+  assert_eq!(v["running_idle"], serde_json::json!([]), "{v:#}");
+
+  let elsewhere = host.home.join("no-claude-here");
+  let blind = host
+    .cmd()
+    .env("CLAUDE_CONFIG_DIR", &elsewhere)
+    .env("COLUMNS", "200")
+    .args(["estate", "status"])
+    .output()
+    .expect("run estate status with no sessions directory");
+  assert_eq!(blind.status.code(), Some(0), "a blind read still answers");
+  let said = format!(
+    "{}{}",
+    String::from_utf8_lossy(&blind.stdout),
+    String::from_utf8_lossy(&blind.stderr)
+  );
+  assert!(!said.contains("ORPHANED"), "{said}");
+  assert!(!said.contains("the next take succeeds"), "{said}");
+  assert!(
+    said.contains(&elsewhere.join("sessions").display().to_string()),
+    "the read names the directory it found no sessions in: {said}"
+  );
+}
+
+/// Issue 0680, vc's case: a host Claude Code has never run on has no sessions
+/// directory, and that is no fault. `estate status` exits 0 and says so once,
+/// as a note naming the path; `estate prune` exits 0 and removes nothing.
+#[test]
+fn issue_0680_a_host_claude_code_never_ran_on_is_a_note_and_nothing_fails() {
+  let host = Host::new();
+  let bare = host.home.join("never-ran");
+  std::fs::create_dir_all(&bare).expect("a home with no Claude directory");
+  let run = |args: &[&str]| {
+    host
+      .cmd()
+      .env("HOME", &bare)
+      .env_remove("CLAUDE_CONFIG_DIR")
+      .args(args)
+      .output()
+      .expect("run an estate verb")
+  };
+  let status = run(&["estate", "status"]);
+  let err = String::from_utf8_lossy(&status.stderr).into_owned();
+  assert_eq!(status.status.code(), Some(0), "{err}");
+  let notes: Vec<&str> = err.lines().filter(|l| l.starts_with("note: ")).collect();
+  assert_eq!(notes.len(), 1, "one note: {err}");
+  assert!(
+    notes[0].contains(&bare.join(".claude").join("sessions").display().to_string()),
+    "{err}"
+  );
+  assert!(!err.contains("warning:"), "{err}");
+  let pruned = run(&["estate", "prune"]);
+  assert_eq!(
+    pruned.status.code(),
+    Some(0),
+    "{}",
+    String::from_utf8_lossy(&pruned.stderr)
   );
 }

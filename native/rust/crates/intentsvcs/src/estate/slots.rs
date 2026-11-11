@@ -2438,4 +2438,64 @@ mod tests {
     );
     assert_eq!(unreadable.len(), 1, "{unreadable:?}");
   }
+
+  /// The refusal and its remedy, as a caller reads them.
+  fn said(e: &SlotError) -> String {
+    format!("{e} {}", crate::remedy::Remedy::remedy(e))
+  }
+
+  /// Issue 0680: a caller whose sessions directory is not there is told so,
+  /// with the path it read and the variable that chooses it, never that its
+  /// live session does not exist.
+  #[test]
+  fn issue_0680_an_absent_sessions_directory_is_named_as_absent() {
+    let h = host();
+    let sessions = h.claude.join("sessions");
+    std::fs::remove_dir(&sessions).expect("remove the sessions directory");
+    let said = said(&caller(&h.claude, "me", None).expect_err("no directory"));
+    assert!(said.contains(&sessions.display().to_string()), "{said}");
+    assert!(said.contains("CLAUDE_CONFIG_DIR"), "{said}");
+  }
+
+  /// Issue 0680: a session file that will not read is named with why, because
+  /// it may be the caller's own; and when every file reads and none names the
+  /// session, the refusal names the directory it read.
+  #[test]
+  fn issue_0680_an_unreadable_session_file_is_named_and_an_absent_session_names_its_directory() {
+    let h = host();
+    let sessions = h.claude.join("sessions");
+    session_file(&h, std::process::id(), "someone", "intent-dc");
+    let said_absent = said(&caller(&h.claude, "me", None).expect_err("no file names it"));
+    assert!(
+      said_absent.contains(&sessions.display().to_string()),
+      "{said_absent}"
+    );
+    let torn = sessions.join("4242.json");
+    std::fs::write(&torn, "{\"pid\":").expect("write a torn file");
+    let said_torn = said(&caller(&h.claude, "me", None).expect_err("a torn file"));
+    assert!(
+      said_torn.contains(&torn.display().to_string()),
+      "{said_torn}"
+    );
+  }
+
+  /// Issue 0680: a take whose caller reads its own session file, and cannot
+  /// read the live controller's, cannot tell that controller from a gone one,
+  /// so it is refused, never taken over it. The caller is read as a door reads
+  /// it, through [`caller`].
+  #[test]
+  fn issue_0680_a_take_that_cannot_read_the_controllers_file_takes_nothing() {
+    let h = host();
+    let ctl = desk(&h);
+    let other_pid = dead_pid();
+    session_file(&h, other_pid, "other", "intent-vc");
+    let other = caller(&h.claude, "other", None).expect("the caller's own file reads");
+    std::fs::write(
+      h.claude.join("sessions").join(format!("{}.json", ctl.pid)),
+      "{\"pid\":",
+    )
+    .expect("tear the controller's file");
+    control_take(&h.dirs, &h.claude, &other, Some("hv's words"))
+      .expect_err("a take that cannot read liveness");
+  }
 }
