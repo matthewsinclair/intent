@@ -3709,6 +3709,11 @@ impl WbWrite<'_> {
   /// `RETURNING` says which rows did, so the event the verb records names
   /// exactly what moved. Archived is a state and never a deletion, as
   /// [`Self::archive_item`]'s is: the row keeps its body and its place.
+  ///
+  /// **ONE MESSAGE TO A RETIRED NODE MOVES UNHANDLED** (ST0092 WP-04,
+  /// AC-04.3): nobody will ever mark it, so the one-message form takes it
+  /// as its sender names it. The sweep still moves only what was handled, so
+  /// a fold never archives a message its sender has not seen named.
   pub fn archive_messages(
     &mut self,
     sender: &str,
@@ -3720,7 +3725,9 @@ impl WbWrite<'_> {
        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
        WHERE sender = ?1 AND (?2 IS NULL OR recipient = ?2) AND (?3 IS NULL OR id = ?3) \
        AND archived_at IS NULL \
-       AND EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = wb_message.mid) \
+       AND (EXISTS (SELECT 1 FROM wb_mark k WHERE k.mid = wb_message.mid) \
+            OR (?3 IS NOT NULL AND EXISTS (SELECT 1 FROM wb_node n \
+                WHERE n.moniker = wb_message.recipient AND n.retired_at IS NOT NULL))) \
        RETURNING mid, recipient, recorded_at",
     )?;
     let rows = stmt.query_map(params![sender, recipient, id], |row| {

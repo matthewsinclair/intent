@@ -2185,6 +2185,14 @@ pub enum FacadeError {
   /// `wb retire` with no reason (ST0092 WP-04): the retirement records why.
   #[error("retiring `{node}` needs a reason, which the retirement records")]
   WbRetireNoReason { node: String },
+  /// A message to a retired node (ST0092 WP-04, AC-04.1): nobody reads its
+  /// inbox, so the message is refused and the retirement named.
+  #[error("`{recipient}` was retired at {at} ({reason}), and a message to it would never be read")]
+  WbRecipientRetired {
+    recipient: String,
+    at: String,
+    reason: String,
+  },
   /// An entry body over the configured bound.
   ///
   /// **THE BOUND IS IN THE MESSAGE BECAUSE THE WRITER HAS TO ACT ON IT.** A
@@ -2696,6 +2704,10 @@ pub struct Pickup {
   /// skills, and a pickup is a moment it cannot skip. Absent when no session is
   /// named or its sentinel records nothing.
   pub languages_moved: Option<LanguagesMoved>,
+  /// Each message this node sent a node that retired without handling it
+  /// (ST0092 WP-04, AC-04.3), **ABSENT WHEN THERE IS NONE**.
+  #[serde(skip_serializing_if = "Vec::is_empty")]
+  pub stranded: Vec<WbStranded>,
   /// What this session's pickup says about the host's desk (ST0092
   /// AC-08.3), **ABSENT WHEN IT DOES NOT WEAR IT**: read live from the control
   /// record, joined here once, and rendered alike by the CLI and MCP.
@@ -2715,6 +2727,16 @@ pub struct StatusRow {
   /// never shown as no hat. Why is in [`WbStatus::desk_unreadable`], which
   /// `intent wb status` prints on stderr; both faces answer the rows alone.
   pub hats: Option<Vec<String>>,
+}
+
+/// A message its sender's pickup names (ST0092 WP-04, AC-04.3): sent to a node
+/// that retired without handling it, so nobody will ever clear it.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct WbStranded {
+  pub recipient: String,
+  pub recorded_at: String,
+  /// The recipient's retirement reason.
+  pub reason: String,
 }
 
 /// What `wb status` answers: the roster's rows, and why the desk could not be
@@ -2949,6 +2971,10 @@ impl crate::remedy::Remedy for FacadeError {
       ),
       Self::WbRetireNoReason { node } => format!(
         "say why: `intent wb retire {node} --reason \"<why>\"`. Nothing was written."
+      ),
+      Self::WbRecipientRetired { recipient, .. } => format!(
+        "send it to the seat that took `{recipient}`'s work on, or bring `{recipient}` back with `{}` and send it again. Nothing was written.",
+        crate::model::register_form(recipient)
       ),
       Self::WbNodeNotRegistered { node, .. } => format!(
         "check the spelling against that roster. A missing node is registered with `{}`, with a display name and a one-word role rather than the session name (eg `--name \"Control Claude\" --role control`); where each node's board is still a hand-authored `wip.md`, `intent wb register` with no arguments registers the roster from those headers. A node registered with the wrong name or role is fixed with `intent wb register <moniker> --name ... --role ... --correct`",
@@ -8318,20 +8344,10 @@ impl Facade {
       .iter()
       .filter(|b| b.node.moniker != moniker)
       .flat_map(|b| {
-        b.sent
-          .iter()
-          .filter(|m| {
-            m.recipient == moniker
-              && m.archived_at.is_none()
-              && !leaver
-                .handled
-                .iter()
-                .any(|h| h.id == m.id && h.sender == b.node.moniker)
-          })
-          .map(|m| WbAwaiting {
-            sender: b.node.moniker.clone(),
-            recorded_at: m.recorded_at.clone(),
-          })
+        crate::views::live_to(b, leaver).map(|m| WbAwaiting {
+          sender: b.node.moniker.clone(),
+          recorded_at: m.recorded_at.clone(),
+        })
       })
       .collect();
     if leaver.node.retired.is_some() {
@@ -8554,6 +8570,30 @@ impl Facade {
     }
   }
 
+  /// Refuse a message to a retired node (ST0092 WP-04, AC-04.1), naming the
+  /// retirement: its inbox has no reader until `wb register` brings it back.
+  fn refuse_retired_recipient(&self, recipient: &str) -> Result<(), FacadeError> {
+    match self.retired_of(recipient)? {
+      Some(r) => Err(FacadeError::WbRecipientRetired {
+        recipient: recipient.to_string(),
+        at: r.at,
+        reason: r.reason,
+      }),
+      None => Ok(()),
+    }
+  }
+
+  /// The retirement a registered node carries, or `None` while it is active.
+  fn retired_of(&self, moniker: &str) -> Result<Option<crate::model::WbRetired>, FacadeError> {
+    Ok(
+      self
+        .boards()?
+        .into_iter()
+        .find(|b| b.node.moniker == moniker)
+        .and_then(|b| b.node.retired),
+    )
+  }
+
   /// The identity this board's declared profiles give a moniker, or `None`
   /// where the board declares no profile or its profiles do not name it
   /// (ST0092 WP-03, AC-03.6).
@@ -8599,15 +8639,7 @@ impl Facade {
     // ruling (2)): a re-apply leaves one retired, and only `wb register` brings
     // it back. `--change` to another base retires the old base's seats the new
     // one does not declare, and is the only thing in `wb init` that retires.
-    let retired: Vec<(&str, &str)> = boards
-      .iter()
-      .filter_map(|b| {
-        b.node
-          .retired
-          .as_ref()
-          .map(|r| (b.node.moniker.as_str(), r.reason.as_str()))
-      })
-      .collect();
+    let retired = crate::teams::retirements(&boards);
     let retiring: Vec<String> = match held.as_ref() {
       Some(old) if change && old.base != resolved.base => teams
         .resolve(&[], Some(old), false)?
@@ -9897,6 +9929,20 @@ impl Facade {
       .find(|b| b.node.moniker == node)
       .cloned()
       .expect("require_registered passed, so this node has a board");
+    // **A MESSAGE TO A NODE THAT RETIRED WITHOUT HANDLING IT IS NAMED HERE**
+    // (ST0092 WP-04, AC-04.3), at its sender's next pickup, because nobody
+    // will ever clear it; `wb archive message` then accepts it.
+    let stranded: Vec<WbStranded> = boards
+      .iter()
+      .filter_map(|b| b.node.retired.as_ref().map(|r| (b, r)))
+      .flat_map(|(b, r)| {
+        crate::views::live_to(&board, b).map(move |m| WbStranded {
+          recipient: b.node.moniker.clone(),
+          recorded_at: m.recorded_at.clone(),
+          reason: r.reason.clone(),
+        })
+      })
+      .collect();
     let shown = |b: &crate::model::Board, i: &crate::model::WbItem| {
       b.node.moniker == crate::model::HYPERVISOR && STANDING_KINDS.contains(&i.kind)
     };
@@ -9951,6 +9997,7 @@ impl Facade {
       standing,
       peers,
       languages_moved,
+      stranded,
       desk: session_id.and_then(crate::estate::host_pickup_desk),
       written: self.take_written(node),
     })
@@ -11321,6 +11368,7 @@ impl Facade {
     self.require_writer_as(sender)?;
     self.require_registered(sender)?;
     self.require_migrated(recipient)?;
+    self.refuse_retired_recipient(recipient)?;
     self.check_body_bound(sender, body)?;
     self.refuse_closed_pair(sender, recipient, body)?;
     // Issue 0610: `re` is resolved, never stored as typed. It names a message
@@ -11384,12 +11432,21 @@ impl Facade {
     // and never the human's (ST0092 WP-05, AC-05.3), and a closed pair is no
     // more open to a broadcast than to an ask.
     let declared = self.store.wb_declaration().map_err(FacadeError::Store)?;
+    // A retired node reads no inbox, so an announce skips it (ST0092 WP-04,
+    // AC-04.1) where an ask to it is refused.
+    let retired: Vec<String> = self
+      .boards()?
+      .into_iter()
+      .filter(|b| b.node.retired.is_some())
+      .map(|b| b.node.moniker)
+      .collect();
     let recipients: Vec<String> = self
       .store
       .wb_monikers()
       .map_err(FacadeError::Store)?
       .into_iter()
       .filter(|m| m != sender)
+      .filter(|m| !retired.contains(m))
       .filter(|m| declared.as_ref().is_none_or(|d| m != &d.human))
       .filter(|m| crate::model::pair_open(declared.as_ref(), sender, m))
       .collect();

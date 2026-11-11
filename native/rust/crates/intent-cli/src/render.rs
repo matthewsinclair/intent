@@ -4612,6 +4612,13 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       }
       report_wb_board(&up.board, false, all)?;
       render_desk(&me, up.desk.as_ref());
+      for s in &up.stranded {
+        let stamp = intentsvcs::views::board_stamp(&s.recorded_at);
+        println!(
+          "stranded: your message to {} headed {stamp} was never handled, and {} is retired ({}); `intent wb archive message \"{stamp}\" --to {} --node {me}` archives it",
+          s.recipient, s.recipient, s.reason, s.recipient
+        );
+      }
       // **A SESSION WHOSE SKILLS ARE FOR OTHER LANGUAGES SAYS SO HERE** (issue
       // 0676), at a moment the seat cannot skip, with what clears it.
       if let Some(moved) = &up.languages_moved {

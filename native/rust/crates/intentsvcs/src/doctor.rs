@@ -1863,16 +1863,7 @@ fn team_drift_advisories(project: &Project, canon: &Canon) -> Vec<Finding> {
     .collect();
   // A retired seat is planned as retired, so it reads neither as registered
   // nor as missing; doctor plans no change of base, so nothing is retiring.
-  let retired: Vec<(&str, &str)> = canon
-    .boards
-    .iter()
-    .filter_map(|b| {
-      b.node
-        .retired
-        .as_ref()
-        .map(|r| (b.node.moniker.as_str(), r.reason.as_str()))
-    })
-    .collect();
+  let retired = crate::teams::retirements(&canon.boards);
   let mut out = Vec::new();
   for seat in crate::teams::plan(&resolved, &roster, &retired, &[]) {
     match seat.verdict {

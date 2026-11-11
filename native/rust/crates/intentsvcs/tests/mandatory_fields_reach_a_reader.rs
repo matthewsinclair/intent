@@ -83,6 +83,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::WbRetireHuman { .. }
     | FacadeError::WbRetireMediator { .. }
     | FacadeError::WbRetireHoldsClaims { .. }
+    // A message to a retired node is refused for the recipient, not for a
+    // field left out.
+    | FacadeError::WbRecipientRetired { .. }
     | FacadeError::RosterReadmeUnreadable { .. }
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement

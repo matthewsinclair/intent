@@ -831,6 +831,20 @@ impl Teams {
   }
 }
 
+/// Each retired board's moniker and the reason it was retired, in board
+/// order: the `retired` argument [`plan`] takes. **PURE.**
+pub fn retirements(boards: &[crate::model::Board]) -> Vec<(&str, &str)> {
+  boards
+    .iter()
+    .filter_map(|b| {
+      b.node
+        .retired
+        .as_ref()
+        .map(|r| (b.node.moniker.as_str(), r.reason.as_str()))
+    })
+    .collect()
+}
+
 /// What an apply would do to each seat, in the profile's order, then each
 /// registered node no profile names. **PURE.**
 pub fn plan(
@@ -850,13 +864,13 @@ pub fn plan(
     .iter()
     .map(|seat| {
       let held = roster.iter().find(|(m, ..)| *m == seat.moniker);
-      let verdict = match held {
-        Some(_) if retired_reason(&seat.moniker).is_some() => Verdict::Retired {
-          reason: retired_reason(&seat.moniker).unwrap_or_default(),
-        },
-        None => Verdict::Register,
-        Some((_, name, role, _)) if *name == seat.name && *role == seat.role => Verdict::Unchanged,
-        Some((_, name, role, _)) => Verdict::Correct {
+      let verdict = match (held, retired_reason(&seat.moniker)) {
+        (Some(_), Some(reason)) => Verdict::Retired { reason },
+        (None, _) => Verdict::Register,
+        (Some((_, name, role, _)), None) if *name == seat.name && *role == seat.role => {
+          Verdict::Unchanged
+        }
+        (Some((_, name, role, _)), None) => Verdict::Correct {
           held_name: (*name).to_string(),
           held_role: (*role).to_string(),
         },

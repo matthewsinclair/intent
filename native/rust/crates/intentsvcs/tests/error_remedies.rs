@@ -1264,6 +1264,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbRetireMediator { .. } => "WbRetireMediator",
     FacadeError::WbRetireHoldsClaims { .. } => "WbRetireHoldsClaims",
     FacadeError::WbRetireNoReason { .. } => "WbRetireNoReason",
+    FacadeError::WbRecipientRetired { .. } => "WbRecipientRetired",
     FacadeError::RosterReadmeUnreadable { .. } => "RosterReadmeUnreadable",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
@@ -1417,6 +1418,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbRetireHuman",
   "WbRetireMediator",
   "WbRetireHoldsClaims",
+  "WbRecipientRetired",
   "WbRetireNoReason",
   "NoSuchFormat",
   "LossyFormat",
@@ -1476,11 +1478,13 @@ const ALL_VARIANTS: &[&str] = &[
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
   // **PROVOKED WHERE A ROSTER WITH SEATS IS** (ST0092 WP-04). Each needs a
-  // board with a declared human seat, a mediator or a claim, so `wb_retire.rs`
-  // applies a profile and drives them, and the names each refusal carries.
+  // board with a declared human seat, a mediator, a claim or a retired node to
+  // send to, so `wb_retire.rs` applies a profile and drives them, and the names
+  // each refusal carries.
   "WbRetireHuman",
   "WbRetireMediator",
   "WbRetireHoldsClaims",
+  "WbRecipientRetired",
   // **PROVOKED WHERE A RENDERED ROSTER README IS** (ST0092 WP-07). Each of its
   // refusals needs a README `wb init --apply` rendered and an edit or a
   // marker over it, so `roster_readme.rs` drives them (AT-07.5, AT-07.7) and

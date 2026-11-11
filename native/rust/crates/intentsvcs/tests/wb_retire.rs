@@ -358,3 +358,95 @@ fn a_reapply_leaves_a_retired_declared_seat_retired_and_moves_nothing() {
   );
   assert_eq!(files(&fx), before, "the re-apply moved a file");
 }
+
+/// ST0092 AT-04.7 (AC-04.1, bank (ii)): an ask to a retired node is refused,
+/// naming the retirement, and writes nothing; an announce sends it no copy and
+/// still reaches every other seat it reached before.
+#[test]
+fn at_04_7_an_ask_to_a_retired_node_is_refused_and_an_announce_skips_it() {
+  let fx = Fixture::new();
+  let mut f = applied(&fx, TEAM);
+  let team = resolved(TEAM);
+  let seat = a_retirable_seat(TEAM);
+  let reached_before = f
+    .wb_announce(&team.mediator, "before the retirement")
+    .expect("an announce");
+  f.wb_retire(&seat, REASON).expect("the retirement");
+  let _ = f.take_written_by_the_roster();
+
+  let before = files(&fx);
+  match f.wb_ask(&team.mediator, &seat, "are you there?", None, false) {
+    Err(e @ FacadeError::WbRecipientRetired { .. }) => {
+      let said = e.to_string();
+      assert!(
+        said.contains(&seat) && said.contains(REASON),
+        "the refusal does not name the retirement: {said}"
+      );
+    }
+    other => panic!("an ask to a retired node was not refused: {other:?}"),
+  }
+  assert_eq!(files(&fx), before, "a refused ask wrote");
+
+  let reached = f
+    .wb_announce(&team.mediator, "after the retirement")
+    .expect("an announce");
+  assert_eq!(
+    reached,
+    reached_before - 1,
+    "the announce did not skip exactly the retired seat"
+  );
+  let mediator = f
+    .boards()
+    .expect("boards")
+    .into_iter()
+    .find(|b| b.node.moniker == team.mediator)
+    .expect("the mediator's board");
+  assert!(
+    !mediator
+      .sent
+      .iter()
+      .any(|m| m.recipient == seat && m.body == "after the retirement"),
+    "the announce sent the retired seat a copy"
+  );
+}
+
+/// ST0092 AT-04.8 (AC-04.3, bank (ii)): a message the leaver never handled is
+/// named at its sender's next pickup; the sweep leaves it, and the one-message
+/// archive takes it, after which the pickup names it no more.
+#[test]
+fn at_04_8_a_stranded_message_is_named_at_pickup_and_archive_message_takes_it() {
+  let fx = Fixture::new();
+  let mut f = applied(&fx, TEAM);
+  let team = resolved(TEAM);
+  let seat = a_retirable_seat(TEAM);
+  let sender = team.mediator.clone();
+  f.wb_ask(&sender, &seat, "one it never read", None, false)
+    .expect("an ask");
+  f.wb_retire(&seat, REASON).expect("the retirement");
+
+  let up = f
+    .wb_pickup(&sender, None, None, false)
+    .expect("the sender's pickup");
+  assert_eq!(up.stranded.len(), 1, "{:?}", up.stranded);
+  assert_eq!(up.stranded[0].recipient, seat);
+  assert_eq!(up.stranded[0].reason, REASON);
+
+  let sweep = f
+    .wb_archive_handled(&sender, Some(&seat))
+    .expect("the sweep");
+  assert!(
+    sweep.archived.is_empty(),
+    "the sweep took an unhandled message"
+  );
+
+  let anchor = intentsvcs::views::board_stamp(&up.stranded[0].recorded_at);
+  assert!(
+    f.wb_archive_message(&sender, &seat, &anchor)
+      .expect("the one-message archive takes it"),
+    "nothing moved"
+  );
+  let again = f
+    .wb_pickup(&sender, None, None, false)
+    .expect("the next pickup");
+  assert!(again.stranded.is_empty(), "{:?}", again.stranded);
+}

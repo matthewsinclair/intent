@@ -2496,7 +2496,18 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
 /// Whether `sender` sent `recipient` a message the sender has not archived and
 /// the recipient has not handled: what keeps a retired node's pair view.
 pub fn holds_live(sender: &crate::model::Board, recipient: &crate::model::Board) -> bool {
-  sender.sent.iter().any(|m| {
+  live_to(sender, recipient).next().is_some()
+}
+
+/// Each message `sender` sent `recipient` that the sender has not archived and
+/// the recipient has not handled, in send order: the one reading of a live
+/// message that a retirement's report, a retired pair's view and a sender's
+/// pickup share.
+pub fn live_to<'a>(
+  sender: &'a crate::model::Board,
+  recipient: &'a crate::model::Board,
+) -> impl Iterator<Item = &'a crate::model::WbSent> + 'a {
+  sender.sent.iter().filter(move |m| {
     m.recipient == recipient.node.moniker
       && m.archived_at.is_none()
       && !recipient
