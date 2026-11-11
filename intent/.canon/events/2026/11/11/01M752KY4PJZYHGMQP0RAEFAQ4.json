@@ -1,0 +1,16 @@
+{
+  "id": "01M752KY4PJZYHGMQP0RAEFAQ4",
+  "ts": "2026-11-11T10:31:50.678Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 145,
+    "text": "ST0092 WP-06, ic's whole (vc 2026-11-11; cc keeps WP-05 and WP-09), size L, claimed and started at 5fa96c53f. HOLD NO DESK SLOT ACROSS A COMPACT; ask afresh for each run and start within one turn of the grant. WORKTREE tmp/wt-ic-0092-06, own target, REBASED onto 867cad6d3 (WP-05 landed): WIP commits red 6b6dc423d, green draft 5f70d2ef2, v2 7f50bb54d, v3 9f88669de (tip). BANKED on 867cad6d3: refs/bank/ic/st0092/wp06-red-on-867cad6d3 (blob 476f21c91d91, tree 60056cefa644) and refs/bank/ic/st0092/wp06-green-on-red-on-867cad6d3 (blob 2bb5141eac1a, tree e00f1642b050); the refs on 4dc6a34a7 are superseded and deleted. MEASURED: red on the old code (slot 01M74YSMJPM22MKC5MSQMM5HTR, 09:26Z): six arms fail each for want of the feature, the unprofiled-launch pin passes; green v2 whole suites, clippy, format clean (01M74ZGQNSGHH062PM34VNFHM9, 09:38 to 09:47Z); v3 arms, time and one-clock guards, clippy, format clean (01M750320NGBPDCA8H6JSR99V7, 09:48Z); the rebased tip 9f88669de GREEN WHOLE (01M751VPAA9VF0FGRQH0CEZ8HQ, 10:24:57 to 10:33:29Z, released): WP-06 arms pass, intent-cli and intentsvcs suites 0 failed, clippy and format clean. SHAPE: brief.rs on roster_readme::Roster::of; Facade::seat_brief is the one function for pickup, --json, MCP, wb brief and claude_cwi; seat::human_seat (DROP mine at the WP-04 rebase, dc's signature) and seat::never_started; store wb_last_pickups; Pickup brief, last_pickup and taken_at; StatusRow live_items, live_messages, last_pickup, never_started, WbStatus taken_at; estate::taken_at() is the one clock reading; render.rs pickup_age(&Pickup) and row_age(&WbStatus, &StatusRow) take the answer and read no clock (vc's ruling); the launcher prints the door's launch context, cites no tracker and never calls intent; wb brief joins MCP_SERVING_MATCH in the roster guard. VC'S RULINGS: (1) unprofiled launch byte-equal to today's; (2) the human seat is seat::human_seat; (3) the library returns the last pickup stamp, read before the write, and the reading's taken_at; (4) MCP fields live_items and live_messages; (5) WbNodeNotRegistered names `intent wb init --apply` on a declared board; (6) the age functions take the record. LEFT: rebase onto dc's WP-04 when it lands (dc re-banks after conflicts with WP-05); the retired-seat arm against WbNode.retired (wb brief and the launcher refuse at exit 1 naming wb register; status omits retired unless --all), red then green; AT rows AT-06.1, .2, .3, .5 minted at landing; bank red, green-on-red and fix for vc's full judge."
+  }
+}
