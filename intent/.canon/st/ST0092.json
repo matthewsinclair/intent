@@ -391,7 +391,7 @@
     },
     {
       "id": "AC-06.1",
-      "text": "`intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, or for the mediator that it is the mediator and reaches hv directly, and one line for each other seat with its name, role and remit; `--json` and the MCP tool carry the same fields.",
+      "text": "`intent wb pickup` on a board that declares a profile prints, ahead of the board, the declared profiles, this node's name, role and remit, the node hv is reached through, or for the mediator that it is the mediator and reaches hv directly, and one line for each other seat that is not retired with its name, role and remit; `--json` and the MCP tool carry the same fields.",
       "kind": "test",
       "state": {
         "is": "computed"
