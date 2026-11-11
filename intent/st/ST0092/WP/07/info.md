@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: The roster README is rendered from the profile and keeps the project's own block
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-07: The roster README is rendered from the profile and keeps the project's own block

@@ -20,10 +20,10 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
   - [x] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
   - [x] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
-  - [ ] 04: A seat can be retired, and a board can change its profile
+  - [-] 04: A seat can be retired, and a board can change its profile
   - [-] 05: hv is reached through one node, and the tool enforces it
   - [ ] 06: A session is told its seat at pickup and at launch
-  - [-] 07: The roster README is rendered from the profile and keeps the project's own block
+  - [x] 07: The roster README is rendered from the profile and keeps the project's own block
   - [x] 08: The Desk is a hat with a written contract
   - [ ] 09: Doctor reports a board that has left its profile
   - [ ] 10: The new surface reads as one

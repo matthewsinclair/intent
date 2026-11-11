@@ -6,14 +6,14 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-10 19:34Z
 status: active
 focus: "2026-11-10, localfolded for hv's compact on hv's word direct to dc ("Fold, then compact."); dc stays active and continues on the bounce. Lane, on vc's word: (1) on vc's "verified", close 0670 and remove tmp/wt-dc-0670 in one chain (doing 155); (2) AT-01.6's release.preflight wiring once devbin-vc says devbin's release (re-cutting after 0.1.21 went red) is swept in (todo 61); (3) F8's reference pages as the last unit before the cut, after ST0092's surface lands (todo 60). dc builds no ST0092 package for now; vc revisits when cc reaches WP-05. Claims: ST0090/02, ISSUE:0670, ST0091/01-04. Worktrees: tmp/wt-dc-0670 (v2, kept until verified) and tmp/wt-dc-0090-app (hold 37)."
-claims: [ST0090/02, ST0091/01, ST0091/04, ST0092/07]
+claims: [ST0090/02, ST0091/01, ST0091/04, ST0092/04]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0092 WP-07, the roster README rendered from the profile with the project's own block kept (vc's word at WP-03's END, 2026-11-11). Builds in tmp/wt-dc-0092-07 on f9bdbc11d, test-first: one template under lib/templates/ with the roster table as one token, padded columns; the preserved block carried by canon.rs's carry_user_block, never a copy; the first render recorded in TeamDeclaration.readme_baseline (sha256 of the text outside the block), placing the whole old file in the block and dropping and naming an opening verblock; roster-readme-edited and roster-readme-behind shown and never counted; markers refused unless one start then one end. Behind the devbin 0.1.22 sweep bank, which takes priority when it is on the tap.
+- ST0092 WP-04, retirement as roster state and the move between base profiles (vc's word at WP-07's landing, 2026-11-11). Bank (i) builds in tmp/wt-dc-0092-04 on WP-07's tip: wb retire with its refusals (no reason, unknown, human seat, mediator, claims), reinstatement by register, wb status --all, wb show of a retired node, wb init --change retiring the old base's seats, a re-apply reinstating nothing (vc's ruling (2)), pair views pruned once nothing in them is live; board 4.1 carries retired, store rung 35. Red: the door file intent-cli/tests/wb_retire_door.rs, runtime red on the base. Bank (ii), the recipient changes on wb ask, announce and archive message, waits for cc's WP-05.
 
 ## TODO
 

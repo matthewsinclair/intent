@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: A seat can be retired, and a board can change its profile
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-04: A seat can be retired, and a board can change its profile

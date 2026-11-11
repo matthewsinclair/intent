@@ -1,0 +1,15 @@
+{
+  "id": "01M74SKQ8XY1QMVYMSTP33FJ22",
+  "ts": "2026-11-11T07:54:26.461Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0092 WP-04, retirement as roster state and the move between base profiles (vc's word at WP-07's landing, 2026-11-11). Bank (i) builds in tmp/wt-dc-0092-04 on WP-07's tip: wb retire with its refusals (no reason, unknown, human seat, mediator, claims), reinstatement by register, wb status --all, wb show of a retired node, wb init --change retiring the old base's seats, a re-apply reinstating nothing (vc's ruling (2)), pair views pruned once nothing in them is live; board 4.1 carries retired, store rung 35. Red: the door file intent-cli/tests/wb_retire_door.rs, runtime red on the base. Bank (ii), the recipient changes on wb ask, announce and archive message, waits for cc's WP-05."
+  }
+}

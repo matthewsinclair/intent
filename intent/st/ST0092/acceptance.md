@@ -42,7 +42,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-03.8 A clone of a project whose board was applied ingests the same declaration, seats and remits from the canon on disk. -- satisfied: yes (computed)
 - AC-03.9 A build of this thread reads a board at schema `intent/board@4.0` unchanged. -- satisfied: yes (computed)
 
-### WP-04 -- A seat can be retired, and a board can change its profile (status: Not Started)
+### WP-04 -- A seat can be retired, and a board can change its profile (status: WIP)
 
 - AC-04.1 `intent wb retire <moniker> --reason "<why>"` retires a node: `intent wb status` lists it only with `--all`, an ask to it is refused and names the retirement, an announce skips it, and its board and every message it sent or received stay readable. -- satisfied: no (computed)
 - AC-04.2 It refuses without `--reason`, refuses a node that holds a claim and names each claim, and refuses the board's mediator. -- satisfied: no (computed)
@@ -70,7 +70,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 - AC-06.4 (non-test) A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, which only the launcher can give it, and its role, its remit, the mediator and its route to hv, which its pickup gives it; vc records that boot by its session id. -- satisfied: no
 - AC-06.5 `intent wb brief <moniker>` prints the seat's brief, and with `--launch` its launch steps, on a board that declares a profile, and writes nothing: no heartbeat moves, no session is recorded and no file changes. -- satisfied: no (computed)
 
-### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: WIP)
+### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: Done)
 
 - AC-07.1 An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: a title, the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, its columns padded so that the project's formatter leaves it unchanged, the route to hv, which names the mediator as the one reader of hv's inbox, and the verb that prints the terms. -- satisfied: yes (computed)
 - AC-07.2 Everything inside the template's preserved block is carried byte for byte across every re-render, by the function that carries CLAUDE.md's block and by no copy of it. -- satisfied: yes (computed)
@@ -138,7 +138,7 @@ _(no tests in this group)_
 - AT-03.8 `native/rust/crates/intentsvcs/tests/wb_init.rs` -- covers AC-03.8 -- status: green -- Red at the base, driven by cc: the installed 3.2.8 answered `intent wb init team` with `error: unrecognized subcommand 'init'` and `intent wb remit cc x` with `error: unrecognized subcommand 'remit'`, each exit 1 (cc's clock read 05:08:52Z on 2026-11-11 by date -u). The arm drives `Facade::wb_init` and `wb_remit`, which do not exist at the base, so it cannot compile there and no run saw this arm itself fail. Green in cc's run 4 on desk slot 01M74FRBVRXXQZFERBYAG0TFSA, before the carry onto 8dd1a3993. Green at 2b1d00b92, landed on vc's judge: v2's full judge in desk slot 01M74HQ60YDHF5FYKYED886NR9 (05:36:48Z to 05:58:29Z) on tree 92ef202e2506, and v3's contract-row delta verified by vc at 06:01Z.
 - AT-03.9 `native/rust/crates/intentsvcs/tests/wb_init.rs` -- covers AC-03.9 -- status: green -- Red at the base, driven by cc: the installed 3.2.8 answered `intent wb init team` with `error: unrecognized subcommand 'init'` and `intent wb remit cc x` with `error: unrecognized subcommand 'remit'`, each exit 1 (cc's clock read 05:08:52Z on 2026-11-11 by date -u). The arm drives `Facade::wb_init` and `wb_remit`, which do not exist at the base, so it cannot compile there and no run saw this arm itself fail. Green in cc's run 4 on desk slot 01M74FRBVRXXQZFERBYAG0TFSA, before the carry onto 8dd1a3993. Green at 2b1d00b92, landed on vc's judge: v2's full judge in desk slot 01M74HQ60YDHF5FYKYED886NR9 (05:36:48Z to 05:58:29Z) on tree 92ef202e2506, and v3's contract-row delta verified by vc at 06:01Z.
 
-### WP-04 -- A seat can be retired, and a board can change its profile (status: Not Started)
+### WP-04 -- A seat can be retired, and a board can change its profile (status: WIP)
 
 _(no tests in this group)_
 
@@ -150,7 +150,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: WIP)
+### WP-07 -- The roster README is rendered from the profile and keeps the project's own block (status: Done)
 
 - AT-07.1 `native/rust/crates/intentsvcs/tests/roster_readme.rs` -- covers AC-07.1 -- status: green -- roster_readme.rs at_07_1_an_apply_renders_the_roster_readme_from_the_profile_and_the_store and at_07_1_the_route_names_the_declared_mediator_whichever_seat_it_is: the README's title, profile, padded roster table, route naming the declared mediator as hv's inbox's one reader (solo's gc included) and terms verb. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5).
 - AT-07.2 `native/rust/crates/intentsvcs/tests/roster_readme.rs` -- covers AC-07.2 -- status: green -- roster_readme.rs at_07_2_the_block_is_carried_byte_for_byte_by_canons_one_function: the project's block survives a re-render byte for byte, carried by canon::carry_user_block and no copy. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5).
