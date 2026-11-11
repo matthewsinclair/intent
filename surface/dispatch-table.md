@@ -2227,11 +2227,11 @@ Display the resolved project configuration -- not implemented in this build (exi
 - **This command produces NO OUTPUT AT ALL in a project** -- nothing on either stream, exit 0, measured. `bin/intent_config` is primarily a LIBRARY: `bin/intent:211` sources it for `load_intent_config`, and the executable path is close to vestigial.
 - It is the clearest case in the surface of a command whose v3 shape is a decision rather than a port: `intent config` printing nothing is not a behaviour worth reproducing.
 
-| command      | args          | flags | help                                                                                  | disposition |
-| ------------ | ------------- | ----- | ------------------------------------------------------------------------------------- | ----------- |
-| `config`     | [command]     | --    | Display the resolved project configuration -- not implemented in this build (exits 2) | pending     |
-| `config get` | <key>         | --    | Print one configuration value -- not implemented in this build (exits 2)              | new-surface |
-| `config set` | <key> <value> | --    | Set one configuration value -- not implemented in this build (exits 2)                | new-surface |
+| command      | args          | flags | help                                                                                                               | disposition |
+| ------------ | ------------- | ----- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `config`     | [command]     | --    | Display the resolved project configuration -- not implemented in this build (exits 2)                              | pending     |
+| `config get` | <key>         | --    | Print one configuration value -- not implemented in this build (exits 2)                                           | new-surface |
+| `config set` | <key> <value> | --    | Set one configuration value; this build sets `commands.build` and `commands.test` alone, and any other key exits 2 | new-surface |
 
 ### `config`
 
@@ -2240,7 +2240,7 @@ Display the resolved project configuration -- not implemented in this build (exi
 - **v2:** bin/intent_config
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
-    - Optional: `get` or `set`; bare `intent config` is its own action, not a default verb. Not implemented in this build: every `intent config` invocation exits 2 with `a known command that is not implemented yet`.
+    - Optional: `get` or `set`; bare `intent config` is its own action, not a default verb. Not implemented in this build: bare `intent config` and `config get` exit 2 with `a known command that is not implemented yet`, and `config set` is built for `commands.build` and `commands.test` alone.
 - **Exit codes:**
   - `0` -- bare -- ZERO bytes on both streams
   - `0` -- `--help` -- also zero bytes
@@ -2313,24 +2313,31 @@ Print one configuration value -- not implemented in this build (exits 2)
 
 ### `config set`
 
-Set one configuration value -- not implemented in this build (exits 2)
+Set one configuration value; this build sets `commands.build` and `commands.test` alone, and any other key exits 2
 
 - **v2:** new-surface
 - **Arguments:**
-  - `key` (config-key, arity `1`)
-  - `value` (string, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+  - `key` (config-key, arity `1`) -- `commands.build` or `commands.test`
+  - `value` (string, arity `1`) -- The command, one line; an empty value removes the key
+- **Exit codes:**
+  - `0` -- set, removed, or already so
+  - `1` -- a value of more than one line; outside a project (INV-03)
+  - `2` -- a key this build does not set, the refusal naming the keys it does
+- **stdout:** `ok: <key> set`, `ok: <key> removed` or `ok: <key> unchanged`; after a write, the config on a `wrote:` line, a `note:` where the tree has `bin/devbin`, and the `next:` step
+- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- see `config get`.
 - **unknown key refuses:** *** THE LOAD-BEARING DECISION ON THIS ROW: AN UNKNOWN KEY IS REFUSED, NEVER CREATED. *** `intent config set backup.retian.daily 7` -- note `retian`, a TRANSPOSITION OF THE REAL KEY `backup.retain.daily` -- must fail and name the unknown key. **The near-miss is the whole point and a garbage key would not make it**: one transposed character produces a dead key that nothing reads, a config file that LOOKS configured, and a user who believes they set a retention policy they did not. The failure surfaces, if ever, as backups quietly pruned on defaults, long after the typo is forgotten. **The example spells out the misspelling because it failed on its first reader** -- an example whose point depends on the reader spotting a one-character difference is itself a silent failure. This is the whole class this toolchain keeps closing, sitting in the one command whose entire job is to be believed about what is configured.
 - **known keys are derived:** THE VALID-KEY SET IS DERIVED FROM THE DECLARED CONFIG SCHEMA, NEVER A HAND-MAINTAINED LIST IN THE SETTER. A hand list is a designed figure: correct the day it is typed, silently wrong at the next key added, because the act that invalidates it (declaring a new setting) is not the act that updates it. Derived, a new key becomes settable the day it is declared and an unknown one stays refused for free. Same rule the drift check applies to new surface, pointed at configuration.
 - **typed writes:** VALUES ARE WRITTEN WITH THEIR DECLARED TYPE, NOT AS STRINGS. `config set backup.enabled false` must write JSON `false`, not `"false"` -- a non-empty string is truthy nearly everywhere, so the string form would turn `disable the scheduled backup` into `enable it`, which is the worst available direction for that particular key. The type comes from the same schema that validates the key, so a value that cannot be coerced is a refusal rather than a cast.
 - **not model state:** `config.json` is project configuration, NOT model state, so this writes the file rather than mutating through the store -- and D32's every-state-is-leavable reasoning does not apply. vc's carry-forward on the `config` row above records the trigger that would change that: if configuration ever enters the model the way the whiteboard did under D30, this becomes a D32 question rather than a surface one.
+- **built for two keys:** BUILT FOR `commands.build` AND `commands.test` ALONE (issue 0678, vc's approval of ic's shape under hv's word of 2026-11-11 that 0678 rides 3.3.0). There is still no declared config schema, so the keys come from ONE list, `intentsvcs::project::SettableKey::ALL`, which the setter dispatches on and the refusal of any other key names, so the two cannot disagree. Both values are strings, so `typed_writes` above has nothing to coerce yet. When the family is built from a schema, that schema replaces the list, as `known_keys_are_derived` says.
 - **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off.
+- **when to use:** USE IT to declare the commands a project without `bin/devbin` builds and tests with: `intent config set commands.build "<cmd>"` and `intent config set commands.test "<cmd>"`, then `intent agents sync` puts them in AGENTS.md. An empty value removes one. It writes `intent/.config/config.json` alone and runs neither command. DO NOT USE IT on a project that has `bin/devbin`: AGENTS.md names that and not a declaration, and the verb says so. Any other key is not built in this build and exits 2; edit it in the file by hand.
 - **recoverability:** reversible
-- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD FROM MCP, ON AUTHORSHIP (vc's ruling (A), 2026-11-11, on issue 0678). The project's declared build and test commands are a human's declaration, and AGENTS.md, the contract every agent reads, is rendered from them. The key list will grow to keys an agent must not set unasked, this row's own `backup.enabled` case among them, so exposure is decided when the family is built and not by its first two keys. The wiredness ground this replaced expired when the verb was built.
 
 ## Family: `init`
 

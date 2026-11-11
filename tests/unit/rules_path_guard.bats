@@ -32,9 +32,12 @@ PROPAGATED_SURFACES=(
 @test "canon LLM templates carry only placeholders the installer substitutes" {
   # canon_substitute_placeholders handles PROJECT_NAME, AUTHOR, DATE,
   # INTENT_VERSION, INTENT_HOME. Anything else ([[LANG]] was the v2.11.x
-  # escapee) ships verbatim into consumers' files.
+  # escapee) ships verbatim into consumers' files. v3's one table is
+  # `value` in native/rust/crates/intentsvcs/src/rootfiles.rs, which also
+  # renders DECLARED_COMMANDS, the project's declared build and test
+  # commands (issue 0678), inside AGENTS.md's `[[#commands]]` block.
   run grep -rnoE '\[\[[A-Z_]+\]\]' "${INTENT_HOME}/lib/templates/llm"
   local unknown
-  unknown=$(printf '%s\n' "$output" | grep -vE '\[\[(PROJECT_NAME|AUTHOR|DATE|INTENT_VERSION|INTENT_HOME)\]\]' || true)
+  unknown=$(printf '%s\n' "$output" | grep -vE '\[\[(PROJECT_NAME|AUTHOR|DATE|INTENT_VERSION|INTENT_HOME|DECLARED_COMMANDS)\]\]' || true)
   [ -z "$unknown" ] || fail "unsubstitutable placeholder(s) in canon templates: $unknown"
 }

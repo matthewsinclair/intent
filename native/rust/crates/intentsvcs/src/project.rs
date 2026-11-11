@@ -735,6 +735,12 @@ pub struct Config {
   /// Absent unless a project declares one, and never written when empty.
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub guards: Vec<GuardDecl>,
+  /// The `commands` block (issue 0678): the build and test commands a project
+  /// without `bin/devbin` declares, which `AGENTS.md` names. Absent unless a
+  /// project declares one, and not written back when empty, for the `index`
+  /// block's reason.
+  #[serde(default, skip_serializing_if = "CommandsConfig::is_empty")]
+  pub commands: CommandsConfig,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
   ///
@@ -834,6 +840,111 @@ impl Config {
     let before = self.languages.len();
     self.languages.retain(|l| l != lang);
     self.languages.len() != before
+  }
+
+  /// `intent config set <key> <value>` on this config, in memory (issue 0678):
+  /// `true` when the value changed. An empty value removes the key.
+  ///
+  /// **ONE LIST OF THE KEYS THIS BUILD SETS, [`SettableKey::ALL`]**, which this
+  /// dispatches on and the refusal of any other key names, so the two cannot
+  /// disagree. A key outside it is refused rather than written as an unknown
+  /// member: one the build does not set reads as configured and does nothing.
+  pub fn set(&mut self, key: &str, value: &str) -> Result<bool, ConfigSetError> {
+    let key = SettableKey::require(key)?;
+    // **ONE LINE, BECAUSE THE VALUE LANDS IN A FENCE** (vc's condition on the
+    // shape): a newline would end the command and start another line of the
+    // contract that nobody declared.
+    if value.contains(['\n', '\r']) {
+      return Err(ConfigSetError::MultiLine {
+        key: key.name().to_string(),
+      });
+    }
+    let wanted = (!value.is_empty()).then(|| value.to_string());
+    let slot = match key {
+      SettableKey::Build => &mut self.commands.build,
+      SettableKey::Test => &mut self.commands.test,
+    };
+    if *slot == wanted {
+      return Ok(false);
+    }
+    *slot = wanted;
+    Ok(true)
+  }
+}
+
+/// A config key `intent config set` writes in this build (issue 0678).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SettableKey {
+  Build,
+  Test,
+}
+
+impl SettableKey {
+  /// Every key this build sets, in the order a refusal names them.
+  pub const ALL: [Self; 2] = [Self::Build, Self::Test];
+
+  /// The dotted key as `config set` takes it.
+  pub fn name(self) -> &'static str {
+    match self {
+      Self::Build => "commands.build",
+      Self::Test => "commands.test",
+    }
+  }
+
+  pub fn parse(key: &str) -> Option<Self> {
+    Self::ALL.into_iter().find(|k| k.name() == key)
+  }
+
+  /// [`Self::parse`], or the refusal naming every key this build sets.
+  pub fn require(key: &str) -> Result<Self, ConfigSetError> {
+    Self::parse(key).ok_or_else(|| ConfigSetError::NotSettable {
+      key: key.to_string(),
+    })
+  }
+}
+
+/// Why `intent config set` wrote nothing (issue 0678).
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum ConfigSetError {
+  /// A key this build does not set: the command it asks for is not built.
+  #[error("`intent config set` is not built for `{key}` in this build")]
+  NotSettable { key: String },
+  /// A value of more than one line.
+  #[error("the value for `{key}` is more than one line")]
+  MultiLine { key: String },
+}
+
+impl crate::remedy::Remedy for ConfigSetError {
+  fn remedy(&self) -> String {
+    match self {
+      Self::NotSettable { .. } => format!(
+        "this build sets {}; any other key is edited in intent/.config/config.json by hand",
+        SettableKey::ALL
+          .iter()
+          .map(|k| format!("`{}`", k.name()))
+          .collect::<Vec<_>>()
+          .join(" and ")
+      ),
+      Self::MultiLine { key } => format!(
+        "give `{key}` one line: it is printed as one command in AGENTS.md, so chain several with `&&`"
+      ),
+    }
+  }
+}
+
+/// The `commands` block (issue 0678): what a project without `bin/devbin`
+/// builds and tests with, as the contract names it. Intent never runs either.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CommandsConfig {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub build: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub test: Option<String>,
+}
+
+impl CommandsConfig {
+  pub fn is_empty(&self) -> bool {
+    self.build.is_none() && self.test.is_none()
   }
 }
 
@@ -2927,6 +3038,7 @@ mod tests {
       whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
       guards: Vec::new(),
+      commands: CommandsConfig::default(),
       extra: serde_json::Map::new(),
     };
 
@@ -2965,6 +3077,7 @@ mod tests {
       whiteboard: WhiteboardConfig::default(),
       doctor: DoctorConfig::default(),
       guards: Vec::new(),
+      commands: CommandsConfig::default(),
       extra: serde_json::Map::new(),
     };
 

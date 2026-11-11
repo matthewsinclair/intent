@@ -105,6 +105,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("help", _)) => help_root(),
     Some(("plugin", m)) => plugin(m),
     Some(("lang", m)) => lang(m),
+    Some(("config", m)) => config(m),
     Some(("modules", m)) => modules(m),
     Some(("claude", m)) => claude(m),
     Some(("llm", m)) => llm(m),
@@ -10234,6 +10235,59 @@ fn migrated_project() -> Result<Project, Failure> {
       Err(fail(intentsvcs::facade::FacadeError::Unmigrated(pending)))
     }
   }
+}
+
+/// `intent config`: only `config set`, for the keys this build sets (issue
+/// 0678). Every other verb, and bare `intent config`, is declared and unbuilt
+/// (hv, 2026-08-31), and says so at exit 2.
+fn config(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("set", m)) => config_set(m),
+    Some((verb, _)) => unwired("config", verb),
+    None => unwired("config", ""),
+  }
+}
+
+/// `intent config set <key> <value>` (issue 0678): the key list, the refusals
+/// and the change are [`intentsvcs::project::Config::set`]'s; this writes the
+/// file as `lang init` does and says what to run next.
+fn config_set(m: &ArgMatches) -> Result<(), Failure> {
+  use intentsvcs::remedy::Remedy;
+  let key = arg(m, "key")?;
+  let value = arg(m, "value")?;
+  // **AN UNBUILT KEY IS REFUSED AT EXIT 2, BEFORE ANY PROJECT IS READ**: the
+  // build cannot answer it anywhere. It is NOT the unwired refusal, whose
+  // phrase says the verb is unbuilt: `config set` is built, for the keys the
+  // refusal names, and the wiredness probes read the phrase as the verb's.
+  if let Err(e) = intentsvcs::project::SettableKey::require(&key) {
+    return Err(Failure::Unavailable(format!(
+      "error: {e}\n  remedy: {}",
+      e.remedy()
+    )));
+  }
+  let project = migrated_project()?;
+  let mut config = project.config().clone();
+  let changed = config
+    .set(&key, &value)
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+  if !changed {
+    println!("ok: {key} unchanged");
+    return Ok(());
+  }
+  if value.is_empty() {
+    println!("ok: {key} removed");
+  } else {
+    println!("ok: {key} set");
+  }
+  write_config_naming_it(&project, &config)?;
+  if intentsvcs::rootfiles::has_devbin(project.root()) {
+    println!(
+      "note: this tree has {}, so AGENTS.md names it and not the declared commands",
+      intentsvcs::rootfiles::DEVBIN
+    );
+  }
+  println!("next: `intent agents sync` renders the change into AGENTS.md");
+  Ok(())
 }
 
 /// `intent lang init <lang>...` -- declare one or more languages.

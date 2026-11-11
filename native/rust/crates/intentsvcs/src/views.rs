@@ -88,8 +88,9 @@ pub struct RenderContext<'a> {
   /// Whether the project builds and tests through `bin/devbin` (issue 0672),
   /// read by whoever builds this context from the project's root with
   /// [`crate::rootfiles::has_devbin`]: a root file's `[[#devbin]]` blocks are
-  /// kept on it, and its `[[#nodevbin]]` blocks on its absence. A fact about
-  /// the project's tree, never about the moment of rendering.
+  /// kept on it, and on its absence [`crate::rootfiles::build_case`] weighs the
+  /// config's declared commands (issue 0678). A fact about the project's tree,
+  /// never about the moment of rendering.
   pub devbin: bool,
 }
 

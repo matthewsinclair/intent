@@ -139,6 +139,39 @@ pub fn has_devbin(root: &Path) -> bool {
   root.join(DEVBIN).is_file()
 }
 
+/// Which of a root file's three build and test cases a project is in (issue
+/// 0678), in the order they win: `bin/devbin` where the tree has one, then the
+/// commands its config declares, then none.
+///
+/// **THE ONE PLACE THE ORDER IS DECIDED.** Every caller hands [`expand`] the
+/// tree's fact and the config, and this is the only function that weighs them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BuildCase {
+  Devbin,
+  Declared,
+  None,
+}
+
+pub fn build_case(devbin: bool, commands: &crate::project::CommandsConfig) -> BuildCase {
+  if devbin {
+    BuildCase::Devbin
+  } else if commands.is_empty() {
+    BuildCase::None
+  } else {
+    BuildCase::Declared
+  }
+}
+
+/// The `DECLARED_COMMANDS` token: a fenced block of each command the project
+/// declares, one line each, and nothing for one it does not (issue 0678).
+fn declared_commands(commands: &crate::project::CommandsConfig) -> String {
+  let lines: Vec<String> = [(&commands.build, "build"), (&commands.test, "test")]
+    .into_iter()
+    .filter_map(|(cmd, what)| cmd.as_ref().map(|c| format!("{c}  # {what}\n")))
+    .collect();
+  format!("```bash\n{}```", lines.concat())
+}
+
 pub fn template_path(home: &Path, name: &str) -> PathBuf {
   home
     .join(crate::install::MARKER)
@@ -153,7 +186,11 @@ pub fn template_path(home: &Path, name: &str) -> PathBuf {
 /// expander: [`substitute`] is this plus a Markdown rule, so a template in any
 /// other format is expanded here and nowhere else.
 pub fn expand(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
-  let kept = resolve_blocks(template, &cfg.languages, ctx.devbin)?;
+  let kept = resolve_blocks(
+    template,
+    &cfg.languages,
+    build_case(ctx.devbin, &cfg.commands),
+  )?;
   expand_tokens(&kept, cfg, ctx)
 }
 
@@ -369,7 +406,8 @@ fn opener(line: &str) -> Option<Block> {
   match t {
     "[[#nolang]]" => Some(Block::NoLang),
     "[[#devbin]]" => Some(Block::Devbin),
-    "[[#nodevbin]]" => Some(Block::NoDevbin),
+    "[[#commands]]" => Some(Block::Commands),
+    "[[#nocommands]]" => Some(Block::NoCommands),
     _ => None,
   }
 }
@@ -384,17 +422,22 @@ enum Block {
   NoLang,
   /// Kept when the project builds and tests through `bin/devbin` (issue 0672).
   Devbin,
-  /// Kept when it does not: the build and test lines a template cannot know.
-  NoDevbin,
+  /// Kept when it has no `bin/devbin` and its config declares its own
+  /// commands (issue 0678).
+  Commands,
+  /// Kept when it has neither: the build and test lines a template cannot
+  /// know.
+  NoCommands,
 }
 
 impl Block {
-  fn keeps(&self, languages: &[String], devbin: bool) -> bool {
+  fn keeps(&self, languages: &[String], build: BuildCase) -> bool {
     match self {
       Self::Lang(name) => languages.iter().any(|l| l == name),
       Self::NoLang => languages.is_empty(),
-      Self::Devbin => devbin,
-      Self::NoDevbin => !devbin,
+      Self::Devbin => build == BuildCase::Devbin,
+      Self::Commands => build == BuildCase::Declared,
+      Self::NoCommands => build == BuildCase::None,
     }
   }
 
@@ -403,12 +446,13 @@ impl Block {
       Self::Lang(name) => format!("[[#lang {name}]]"),
       Self::NoLang => "[[#nolang]]".to_string(),
       Self::Devbin => "[[#devbin]]".to_string(),
-      Self::NoDevbin => "[[#nodevbin]]".to_string(),
+      Self::Commands => "[[#commands]]".to_string(),
+      Self::NoCommands => "[[#nocommands]]".to_string(),
     }
   }
 }
 
-fn resolve_blocks(template: &str, languages: &[String], devbin: bool) -> Result<String, Fault> {
+fn resolve_blocks(template: &str, languages: &[String], build: BuildCase) -> Result<String, Fault> {
   let mut out = String::with_capacity(template.len());
   let mut open: Option<Block> = None;
 
@@ -452,7 +496,7 @@ fn resolve_blocks(template: &str, languages: &[String], devbin: bool) -> Result<
 
     if matches!(
       t,
-      "[[/lang]]" | "[[/nolang]]" | "[[/devbin]]" | "[[/nodevbin]]"
+      "[[/lang]]" | "[[/nolang]]" | "[[/devbin]]" | "[[/commands]]" | "[[/nocommands]]"
     ) {
       let Some(block) = open.take() else {
         return Err(Fault::Unopened(t.to_string()));
@@ -466,7 +510,7 @@ fn resolve_blocks(template: &str, languages: &[String], devbin: bool) -> Result<
       continue;
     }
 
-    let keep = open.as_ref().is_none_or(|b| b.keeps(languages, devbin));
+    let keep = open.as_ref().is_none_or(|b| b.keeps(languages, build));
     if keep {
       if t.is_empty() {
         // A blank the reader would meet as a second one, standing here only
@@ -507,7 +551,7 @@ fn expand_tokens(text: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<St
       return Err(Fault::UnknownToken(after.to_string()));
     };
     let name = &after[..end];
-    out.push_str(value(name, cfg, ctx).ok_or_else(|| Fault::UnknownToken(name.to_string()))?);
+    out.push_str(&value(name, cfg, ctx).ok_or_else(|| Fault::UnknownToken(name.to_string()))?);
     rest = &after[end + 2..];
   }
   out.push_str(rest);
@@ -516,10 +560,18 @@ fn expand_tokens(text: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<St
 
 /// The substitution table. **`DATE` is absent on purpose** -- see the module
 /// doc; it reaches [`Fault::UnknownToken`] and refuses, which is the point.
-fn value<'a>(name: &str, cfg: &'a Config, ctx: &RenderContext<'a>) -> Option<&'a str> {
+fn value<'a>(
+  name: &str,
+  cfg: &'a Config,
+  ctx: &RenderContext<'a>,
+) -> Option<std::borrow::Cow<'a, str>> {
+  use std::borrow::Cow;
   match name {
-    "PROJECT_NAME" => Some(&cfg.project_name),
-    "AUTHOR" => Some(&cfg.author),
+    "PROJECT_NAME" => Some(Cow::Borrowed(&cfg.project_name)),
+    "AUTHOR" => Some(Cow::Borrowed(&cfg.author)),
+    // Only inside `[[#commands]]`, which is dropped unless something is
+    // declared, so this never renders an empty fence (issue 0678).
+    "DECLARED_COMMANDS" => Some(Cow::Owned(declared_commands(&cfg.commands))),
     // The RUNNING tool's version, never `config.intent_version`. The banner
     // says what generated the file; the config says what the project is
     // stamped at, and `upgrade` moves one without touching the other. Every
@@ -527,7 +579,7 @@ fn value<'a>(name: &str, cfg: &'a Config, ctx: &RenderContext<'a>) -> Option<&'a
     // second source here is how the root files come to disagree with the views
     // about which Intent produced them. The token feeds only the footer, so it
     // takes the footer's major-only form from the views' one home.
-    "INTENT_VERSION" => Some(crate::views::banner_version(ctx.version)),
+    "INTENT_VERSION" => Some(Cow::Borrowed(crate::views::banner_version(ctx.version))),
     _ => None,
   }
 }

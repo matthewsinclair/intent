@@ -45,11 +45,18 @@ intent doctor     # verify Intent configuration
 This project builds and tests through `bin/devbin`, and only through it: `bin/devbin --help` lists its verbs. Do not run a language's own build or test tools directly. `bin/devbin` books no slot itself, so where `intent estate status` shows the estate has a controller, ask it for one with `intent estate slots ask` before a build or a test.
 
 [[/devbin]]
-[[#nodevbin]]
+[[#commands]]
 
-This project declares no build or test commands, so none is listed here. Its README, and its `usage-rules.md` where it keeps one, say how it builds and tests.
+This project declares its own build and test commands, in `intent/.config/config.json`, and they are these. `intent config set commands.build` and `intent config set commands.test` change them.
 
-[[/nodevbin]]
+[[DECLARED_COMMANDS]]
+
+[[/commands]]
+[[#nocommands]]
+
+This project declares no build or test commands, so none is listed here. Its README, and its `usage-rules.md` where it keeps one, say how it builds and tests. `intent config set commands.build` and `intent config set commands.test` declare them.
+
+[[/nocommands]]
 
 ### Validation
 
