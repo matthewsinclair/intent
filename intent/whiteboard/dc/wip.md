@@ -6,7 +6,7 @@ session_id: 2aba47df-5301-4790-a6b7-e11815afe307
 heartbeat_at: 2026-11-11 12:16Z
 status: active
 focus: "2026-11-11 12:15Z, localfolded for hv's third compact (hv via vc: 'bank, localfold+compact everyone here and then continue on the bounce'); active. On the bounce: /in-session, commit the heartbeat-only pickup in its own chain, then: (1) ST0092 WP-04 bank (ii) is measured and judged by vc (01M757GCPEFGE91WRCCBCVB08Z); land it ONLY on vc's word in the order doing 159 gives; (2) the devbin 0.1.22 sweep (todo 61): desk slot 01M757Q43CJPJ9ZVTK5EM6YHY0 is next after vc's judge; if it was granted during the compact, start it at once and run scratchpad sw2/run/run.sh, else wait for it; then re-bank measured and send vc; (3) F8 docs/reference last (todo 60). Hold 37 stands. Worktrees: -04c and -04c-red hold (ii); -04d free; -04, -04b, -04-red superseded with unstaged edits (prove and remove at a fold); tmp/wt-dc-devbin0121 holds the sweep; tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/, sw2/."
-claims: [ST0090/02, ST0091/01, ST0091/04, ST0092/04]
+claims: [ST0090/02, ST0091/01, ST0091/04]
 ---
 
 # DevX Claude (dc)
