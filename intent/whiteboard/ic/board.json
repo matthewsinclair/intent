@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-11-10T19:36:31.757Z",
     "status": "active",
     "focus": "2026-11-10, localfolded for hv's compact on hv's word through vc (read at 17:50:29Z by vc's clock): \"Ok, context is high here, lets bank, localfold+compact here in intent-* and then continue on the bounce.\" No hold: on the bounce ic runs /in-session, commits its heartbeat-only pickup in its own chain, then continues todo 63, the ST0092 row read, whose notes are banked at refs/bank/ic/st0092/row-read-notes-v1.md. ic's train and 0679 are landed and closed. No claim, worktree or stash.",
-    "claims": [
-      "ISSUE:0678"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
