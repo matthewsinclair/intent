@@ -372,3 +372,5 @@ mod wb_profile_door;
 mod wb_reads_list_live_messages;
 #[path = "wb_register_correct.rs"]
 mod wb_register_correct;
+#[path = "wb_retire_door.rs"]
+mod wb_retire_door;
