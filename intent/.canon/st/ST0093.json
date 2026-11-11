@@ -3,7 +3,7 @@
   "id": "ST0093",
   "title": "Why Claudes yak-shave, and faster releases",
   "slug": "why-claudes-yak-shave-and-faster-releases",
-  "status": "triage",
+  "status": "wip",
   "created": "2026-11-11",
   "objective": "Find why Claudes on Intent's estate keep falling into yak-shaving (checks that repeat checks, coordination that outweighs the work), and plan the changes to the prompts, the memory, the seats' roles and the release pipeline that cut release time drastically. hv's todo 78, 2026-11-11.",
   "context": "",
