@@ -1,0 +1,16 @@
+{
+  "id": "01M763A0D4WTMX55PDN914S68P",
+  "ts": "2026-11-11T20:03:08.324Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 145,
+    "text": "ST0092 WP-06 LANDED (2026-11-11): red 754f9013d, green eb9e9f6c3, rows b23bd66fa, measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP on vc's ruling of 2026-11-11: the gate is BLOCKED on AC-06.4 alone. It needs a session launched with `intent claude start <node>` on an installed 3.3.0, to which hv types nothing, recorded by vc by its session id; a resumed session's pickup does not meet it. vc records hv's next real launch, then `wp done ST0092/06`. Claim ST0092/06 held until then."
+  }
+}
