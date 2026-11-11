@@ -1,6 +1,6 @@
-# Known defects in v3.2.8
+# Known defects in v3.3.0
 
-**Every defect on this page has been run against the build v3.2.8 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.7 (dev, 9b5e3e4fe8a1) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.3.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.2.8 (dev, 2f33321eb6de) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-10-30T16:51:05.991Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-11T14:21:54.575Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-10-30T16:51:05.991Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-11T14:21:54.575Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-10-30T16:51:05.991Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-11T14:21:54.575Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-10-30T16:51:05.991Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-11T14:21:54.575Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-10-30T16:51:05.991Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-11T14:21:54.575Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -39,7 +39,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.7, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.2.8, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -90,7 +90,7 @@ Two controls make it sharp. Remove the file from the worktree and the gate flips
 
 Listed in `--help` and refusing when called, exit codes as shown.
 
-**`intent config` and `intent learn`.** Both are in `intent --help`, and each refuses with ``error: `config` is a known command that is not implemented yet`` (`learn` likewise), exit 2.
+**`intent config` and `intent learn`.** Both are in `intent --help`. Bare `intent config` refuses with ``error: `config` is a known command that is not implemented yet``, and `intent learn` likewise, exit 2. Under `intent config`, `get` refuses the same way at exit 2, and `set` sets `commands.build` and `commands.test` alone: any other key refuses with ``error: `intent config set` is not built for `some.key` in this build``, exit 2, and is edited in `intent/.config/config.json` by hand.
 
 **`intent ext` and every verb under it** (`intent#0177`, which records the missing `remove`). `intent ext --help` lists `list`, `show`, `validate` and `new`, and each refuses with ``error: `ext` is a known command that is not implemented yet``, exit 2. `intent ext remove` is not listed and refuses with `error: unrecognized subcommand 'remove'`, exit 1.
 
@@ -106,4 +106,4 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 `intent --version` names the build you are on, as `intent <version> (<tree>, <sha>) <kind>`. The tree is where the binary is installed: `brew` for a Homebrew install, `dev` for a build in a git checkout, `opt` for a tree `intent install` published, and `unknown` when it is none of these. The sha is the commit the binary was built at, followed by `+dirty` in a dev tree when the build, or a file it reads from the tree, differs from that commit. The last word says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.2.8, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.3.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
