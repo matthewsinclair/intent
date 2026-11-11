@@ -4424,16 +4424,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("status", m)) => {
       let f = open()?;
-      let boards = f.wb_status().map_err(fail)?;
+      let status = f.wb_status().map_err(fail)?;
       let live = f.wb_live_counts().map_err(fail)?;
-      // The hat is read from the host's control record now, never stored on a
-      // board (ST0092 AC-08.3); a desk that cannot be read is said on stderr
-      // and the roster still prints, with no hat on it.
-      let desk = intentsvcs::estate::host_desk().unwrap_or_else(|e| {
-        eprintln!("error: the desk could not be read: {e}");
-        intentsvcs::seat::Desk::Free
-      });
-      report_wb_status(&boards, &live, &desk, m.get_flag("json"))
+      report_wb_status(&status, &live, m.get_flag("json"))
     }
     Some(("show", m)) => {
       let f = open()?;
@@ -4513,7 +4506,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         return Ok(());
       }
       report_wb_board(&up.board, false, all)?;
-      desk_brief(&me, session.as_deref());
+      render_desk(&me, up.desk.as_ref());
       // **A SESSION WHOSE SKILLS ARE FOR OTHER LANGUAGES SAYS SO HERE** (issue
       // 0676), at a moment the seat cannot skip, with what clears it.
       if let Some(moved) = &up.languages_moved {
@@ -4903,17 +4896,23 @@ pub(crate) fn pickup_session(flag: Option<&str>) -> Option<String> {
 /// THE STORE** (issue 0612): a node's board carries what it sent, so the
 /// messages addressed to it are counted where they are joined with its marks.
 fn report_wb_status(
-  boards: &[intentsvcs::model::Board],
+  status: &intentsvcs::facade::WbStatus,
   live: &std::collections::BTreeMap<String, usize>,
-  desk: &intentsvcs::seat::Desk,
   json: bool,
 ) -> Result<(), Failure> {
+  // **THE HATS ARE THE FACADE'S** (ST0092 AC-08.3): read live from the host's
+  // desk there, rendered here. A desk that could not be read is said once,
+  // with its cause, and the roster still prints with no hat on it.
+  if let Some(why) = &status.desk_unreadable {
+    eprintln!("error: the desk could not be read: {why}");
+  }
+  let rows = &status.rows;
   if json {
-    let rows: Vec<serde_json::Value> = boards
+    let rows: Vec<serde_json::Value> = rows
       .iter()
-      .map(|b| {
-        let mut row = serde_json::json!(b.node);
-        row["hats"] = serde_json::json!(hats(desk, &b.node));
+      .map(|r| {
+        let mut row = serde_json::json!(r.board.node);
+        row["hats"] = serde_json::json!(r.hats);
         row
       })
       .collect();
@@ -4923,7 +4922,7 @@ fn report_wb_status(
     );
     return Ok(());
   }
-  if boards.is_empty() {
+  if rows.is_empty() {
     println!(
       "no nodes are registered\n  remedy: `{}` registers one; where each node's board is still a \
        hand-authored `wip.md`, `intent wb register` with no arguments reads the roster from those \
@@ -4932,7 +4931,8 @@ fn report_wb_status(
     );
     return Ok(());
   }
-  for b in boards {
+  for r in rows {
+    let b = &r.board;
     let n = &b.node;
     // **`focus` IS PRINTED LAST AND UNTRUNCATED**, because it is the one field
     // a person actually reads, and a fixed-width table would be the thing that
@@ -4954,24 +4954,19 @@ fn report_wb_status(
         .filter(|i| i.state == intentsvcs::model::WbItemState::Live)
         .count(),
       live.get(&n.moniker).copied().unwrap_or(0),
-      if hats(desk, n).is_empty() {
-        ""
-      } else {
+      if r
+        .hats
+        .as_ref()
+        .is_some_and(|h| h.iter().any(|h| h == "desk"))
+      {
         " wears the desk"
+      } else {
+        ""
       },
       focus,
     );
   }
   Ok(())
-}
-
-/// The hats a node wears now, read from the host's desk: `desk` when the
-/// session its board records holds control and is running (ST0092 AC-08.3).
-fn hats(desk: &intentsvcs::seat::Desk, node: &intentsvcs::model::WbNode) -> Vec<&'static str> {
-  match node.session_id.as_deref() {
-    Some(session) if intentsvcs::seat::wears(desk, session) => vec!["desk"],
-    _ => Vec::new(),
-  }
 }
 
 fn status_word(s: &intentsvcs::model::WbNodeStatus) -> &'static str {
@@ -11613,21 +11608,10 @@ fn slot_line(
   r: &intentsvcs::estate::slots::Request,
   names: &std::collections::BTreeMap<String, String>,
 ) -> String {
-  use intentsvcs::estate::slots::{GATE_HOLD, Step};
+  use intentsvcs::estate::slots::Step;
   let a = &r.ask.record;
-  let who = names.get(&a.by).map_or(a.by.as_str(), String::as_str);
   let tail = match step {
-    Step::Asked => {
-      let tags = a.tags.iter().map(|t| format!(" [{t}]"));
-      let gates = a.gates.iter().map(|g| {
-        if g.kind == GATE_HOLD {
-          format!(" (hold: {})", g.text)
-        } else {
-          format!(" ({})", g.text)
-        }
-      });
-      tags.chain(gates).collect::<String>()
-    }
+    Step::Asked => ask_tail(a),
     Step::Granted => {
       let lanes = r.lanes();
       if lanes.is_empty() {
@@ -11660,6 +11644,18 @@ fn slot_line(
       .map(|result| format!(" (result: {result})"))
       .unwrap_or_default(),
   };
+  slot_text(step, a, names, &tail)
+}
+
+/// The shape every slot line shares: the step word, the full id so it can be
+/// copied into a grant, the type, who asked and what, then the step's `tail`.
+fn slot_text(
+  step: intentsvcs::estate::slots::Step,
+  a: &intentsvcs::estate::slots::AskRecord,
+  names: &std::collections::BTreeMap<String, String>,
+  tail: &str,
+) -> String {
+  let who = names.get(&a.by).map_or(a.by.as_str(), String::as_str);
   format!(
     "{}: {} {} by {who} -- {}{tail}",
     step.as_str(),
@@ -11667,6 +11663,21 @@ fn slot_line(
     a.kind,
     a.what
   )
+}
+
+/// What an `asked:` line adds: the ask's tags, then its gates, a hold named
+/// as one.
+fn ask_tail(a: &intentsvcs::estate::slots::AskRecord) -> String {
+  use intentsvcs::estate::slots::GATE_HOLD;
+  let tags = a.tags.iter().map(|t| format!(" [{t}]"));
+  let gates = a.gates.iter().map(|g| {
+    if g.kind == GATE_HOLD {
+      format!(" (hold: {})", g.text)
+    } else {
+      format!(" ({})", g.text)
+    }
+  });
+  tags.chain(gates).collect()
 }
 
 /// `intent estate slots wait <id> [--timeout <s>]` (ST0086 AC-04.4): blocks
@@ -11783,55 +11794,56 @@ fn slots_pending() -> Result<(), Failure> {
 
 /// The Desk brief a pickup prints when its session wears the desk (ST0092
 /// AC-08.3): that it wears it, the duties from their one template, and the asks
-/// waiting for its judgement. Read live from the control record and stored
-/// nowhere, so a session that does not wear the desk prints nothing here.
+/// waiting for its judgement.
 ///
-/// **A READ THAT FAILS IS ONE `error:` LINE ON STDERR AND THE PICKUP GOES ON**,
-/// as `slots pending` does: the board was already read and printed, and a
-/// desk nobody can read is said, never taken for no desk.
-fn desk_brief(node: &str, session: Option<&str>) {
-  let Some(session) = session else {
-    return;
-  };
-  let desk = match intentsvcs::estate::host_desk() {
-    Ok(desk) => desk,
-    Err(e) => {
-      eprintln!("error: the desk could not be read: {e}");
+/// **THE BRIEF IS THE FACADE'S [`intentsvcs::facade::Pickup::desk`]**, joined
+/// there and rendered here, as `--json` and MCP render the same field. A desk
+/// that could not be read is one `error:` line on stderr, said and never taken
+/// for no desk, and the pickup goes on.
+fn render_desk(node: &str, desk: Option<&intentsvcs::seat::PickupDesk>) {
+  let (duties, asks, unreadable) = match desk {
+    None => return,
+    Some(intentsvcs::seat::PickupDesk::Unreadable { why }) => {
+      eprintln!("error: the desk could not be read: {why}");
       return;
     }
+    Some(intentsvcs::seat::PickupDesk::Wears {
+      duties,
+      asks,
+      unreadable,
+    }) => (duties, asks, unreadable),
   };
-  if !intentsvcs::seat::wears(&desk, session) {
-    return;
-  }
   println!();
   println!("hat: {node} wears the desk, control of this host's slots");
-  match intentsvcs::estate::host_duties() {
-    Ok(duties) => println!("\n{duties}\n"),
-    Err(e) => eprintln!("error: the duties could not be read: {e}"),
-  }
-  let (dirs, claude) = match intentsvcs::estate::host_slot_dirs() {
-    Ok(found) => found,
-    Err(e) => {
-      eprintln!("error: the asks waiting could not be read: {e}");
-      return;
-    }
-  };
-  let mut unreadable = Vec::new();
-  let asks =
-    intentsvcs::estate::slots::pending(&dirs, session, &mut unreadable).unwrap_or_default();
-  if let Some(u) = unreadable.first() {
+  println!("\n{duties}\n");
+  for u in unreadable {
     eprintln!("error: {} could not be read: {}", u.path, u.why);
   }
   if asks.is_empty() {
     println!("asks waiting: none");
     return;
   }
-  let names = slot_names(&claude);
+  // The asker's session name is looked up for display alone, as every slot
+  // line does; the asks themselves are the facade's.
+  let names = match intentsvcs::estate::host_slot_dirs() {
+    Ok((_, claude)) => slot_names(&claude),
+    Err(e) => {
+      eprintln!(
+        "warning: the session names could not be read, so session ids stand in for them: {e}"
+      );
+      std::collections::BTreeMap::new()
+    }
+  };
   println!("asks waiting, oldest first:");
-  for r in &asks {
+  for a in asks {
     println!(
       "{}",
-      slot_line(intentsvcs::estate::slots::Step::Asked, r, &names)
+      slot_text(
+        intentsvcs::estate::slots::Step::Asked,
+        a,
+        &names,
+        &ask_tail(a)
+      )
     );
   }
 }

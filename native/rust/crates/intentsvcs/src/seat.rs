@@ -110,6 +110,35 @@ pub fn wears(desk: &Desk, session_id: &str) -> bool {
   matches!(desk, Desk::Worn(r) if r.session_id == session_id)
 }
 
+/// The hats a node wears now, read from the desk: `desk` when `session`, the
+/// session its board records, wears it (ST0092 AC-08.3). WP-06's row per seat
+/// extends this list and replaces nothing.
+pub fn hats(desk: &Desk, session: Option<&str>) -> Vec<String> {
+  match session {
+    Some(s) if wears(desk, s) => vec!["desk".to_string()],
+    _ => Vec::new(),
+  }
+}
+
+/// What a pickup says about the desk (ST0092 AC-08.3): absent when the session
+/// does not wear it. One answer for the CLI's text and `--json` and for MCP,
+/// joined here and rendered there.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(tag = "state", rename_all = "lowercase")]
+pub enum PickupDesk {
+  /// The session wears the desk: the duties from their one template, the asks
+  /// waiting for its judgement oldest first, and any request file that could
+  /// not be read, listed rather than dropped.
+  Wears {
+    duties: String,
+    asks: Vec<crate::estate::slots::AskRecord>,
+    unreadable: Vec<crate::estate::Unreadable>,
+  },
+  /// The desk could not be read, so nobody can say whether the session wears
+  /// it. Said, never taken for no desk.
+  Unreadable { why: String },
+}
+
 /// The estate reader's `controller_orphaned`: null, or the recorded
 /// controller whose session is gone and the step that takes the desk
 /// (ST0092 AC-08.4).

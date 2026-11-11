@@ -2580,9 +2580,33 @@ pub struct Pickup {
   /// skills, and a pickup is a moment it cannot skip. Absent when no session is
   /// named or its sentinel records nothing.
   pub languages_moved: Option<LanguagesMoved>,
+  /// What this session's pickup says about the host's desk (ST0092
+  /// AC-08.3), **ABSENT WHEN IT DOES NOT WEAR IT**: read live from the control
+  /// record, joined here once, and rendered alike by the CLI and MCP.
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub desk: Option<crate::seat::PickupDesk>,
   /// The files this pickup landed, by whose they are to commit (issue 0612),
   /// as every board verb's answer carries them.
   pub written: Written,
+}
+
+/// One node of the roster `wb status` answers: its board and the hats it wears
+/// now (ST0092 AC-08.3). WP-06's row per seat extends this row.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct StatusRow {
+  pub board: crate::model::Board,
+  /// Read live from the host's desk; **null when the desk could not be read**,
+  /// never shown as no hat. Why is in [`WbStatus::desk_unreadable`], which
+  /// `intent wb status` prints on stderr; both faces answer the rows alone.
+  pub hats: Option<Vec<String>>,
+}
+
+/// What `wb status` answers: the roster's rows, and why the desk could not be
+/// read when it could not, said once for the roster (ST0092 AC-08.3).
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct WbStatus {
+  pub rows: Vec<StatusRow>,
+  pub desk_unreadable: Option<String>,
 }
 
 /// What a session loaded skills for against what its project declares now
@@ -8745,12 +8769,29 @@ impl Facade {
   /// register`, and from there `sync --to-disk` or `wb migrate` wrote empty
   /// boards over every file. What that store lacks is the boards on disk, and
   /// the refusal names the verb that carries them in.
-  pub fn wb_status(&self) -> Result<Vec<Board>, FacadeError> {
+  pub fn wb_status(&self) -> Result<WbStatus, FacadeError> {
     let boards = self.boards()?;
     if boards.is_empty() {
       self.refuse_if_the_store_lacks_any()?;
     }
-    Ok(boards)
+    // The desk is read once for the roster, live from the host's control
+    // record, and never stored on a board (ST0092 AC-08.3).
+    // A desk that cannot be read keeps its cause, once, beside the rows.
+    let desk = crate::estate::host_desk().map_err(|e| e.to_string());
+    let rows = boards
+      .into_iter()
+      .map(|board| StatusRow {
+        hats: desk
+          .as_ref()
+          .ok()
+          .map(|d| crate::seat::hats(d, board.node.session_id.as_deref())),
+        board,
+      })
+      .collect();
+    Ok(WbStatus {
+      rows,
+      desk_unreadable: desk.err(),
+    })
   }
 
   /// Refuse a moniker the roster does not carry, with the roster named.
@@ -8953,6 +8994,7 @@ impl Facade {
       standing,
       peers,
       languages_moved,
+      desk: session_id.and_then(crate::estate::host_pickup_desk),
       written: self.take_written(node),
     })
   }

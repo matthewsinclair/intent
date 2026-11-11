@@ -4178,7 +4178,7 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
-- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk.
+- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7

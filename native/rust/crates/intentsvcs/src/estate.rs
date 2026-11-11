@@ -961,6 +961,32 @@ pub fn host_desk() -> Result<crate::seat::Desk, EstateError> {
   ))
 }
 
+/// What a pickup by `session_id` says about the desk (ST0092 AC-08.3), read
+/// once from the control record and the session files: `None` when it does not
+/// wear the desk, and [`crate::seat::PickupDesk::Unreadable`] when that cannot
+/// be told.
+pub fn host_pickup_desk(session_id: &str) -> Option<crate::seat::PickupDesk> {
+  pickup_desk(session_id)
+    .unwrap_or_else(|e| Some(crate::seat::PickupDesk::Unreadable { why: e.to_string() }))
+}
+
+fn pickup_desk(session_id: &str) -> Result<Option<crate::seat::PickupDesk>, EstateError> {
+  let (dirs, claude) = host_slot_dirs()?;
+  let mut unreadable = Vec::new();
+  let slots = slots::read(&dirs, &mut unreadable);
+  if !crate::seat::wears(&crate::seat::desk(&slots, &claude), session_id) {
+    return Ok(None);
+  }
+  Ok(Some(crate::seat::PickupDesk::Wears {
+    duties: host_duties()?,
+    asks: slots::waiting(&slots)
+      .into_iter()
+      .map(|r| r.ask.record.clone())
+      .collect(),
+    unreadable,
+  }))
+}
+
 /// The controller's duties from the running install's template (ST0092
 /// AC-08.1), the text `intent estate init` puts in a coordinator's AGENTS.md.
 pub fn host_duties() -> Result<String, EstateError> {

@@ -50,6 +50,12 @@ fn boards_of(fx: &Fixture) -> Vec<Board> {
   fx.facade_on_disk().boards().expect("the estate's boards")
 }
 
+/// The boards `wb status` answers, each row's board without its hats.
+fn roster_of(f: &mut intentsvcs::facade::Facade, what: &str) -> Vec<Board> {
+  let status = f.wb_status().expect(what);
+  status.rows.into_iter().map(|row| row.board).collect()
+}
+
 /// A clone whose store an Intent before 0535 warmed: every thread and issue the
 /// extract carries, and no board. `Store::rebuild` is that warm's own write,
 /// the rebuild that took threads and issues only.
@@ -86,7 +92,7 @@ fn a_fresh_clone_opens_holding_every_board_its_extract_carries() {
 
   let mut f = clone.facade_on_disk();
   assert_eq!(
-    f.wb_status().expect("the clone's roster"),
+    roster_of(&mut f, "the clone's roster"),
     boards_of(&fx),
     "the first open took every board, archived items and messages included"
   );
@@ -227,7 +233,7 @@ fn the_reads_name_sync_to_store_and_it_carries_every_board_in() {
   f.sync_from_disk(&Scope::All)
     .expect("sync --to-store carries the boards in");
   assert_eq!(
-    f.wb_status().expect("the roster after the restore"),
+    roster_of(&mut f, "the roster after the restore"),
     boards_of(&fx),
     "the restore took every board, archived items and messages included"
   );

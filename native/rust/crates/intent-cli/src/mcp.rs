@@ -1442,8 +1442,10 @@ fn tool_answer(
     "wb status" => {
       // The messages addressed to a node are counted from the store, which
       // joins them with its marks: its own board carries what it sent (0612).
+      let status = f.wb_status()?;
       let mut rows = Vec::new();
-      for b in f.wb_status()? {
+      for row in &status.rows {
+        let b = &row.board;
         rows.push(json!({
           "node": b.node,
           // **THE COUNTS TRAVEL AND THE CONTENTS DO NOT.** An agent asking who
@@ -1452,8 +1454,15 @@ fn tool_answer(
           // the whole estate would make the cheap question the expensive one.
           "items": b.items.len(),
           "messages": f.board_read(&b.node.moniker, true)?.messages.len(),
+          // The hats the facade read live from the host's desk, the same field
+          // the CLI's `--json` carries (ST0092 AC-08.3).
+          "hats": row.hats,
         }));
       }
+      // **THE ANSWER IS THE BARE ARRAY OF ROWS**, the shape the CLI's `--json`
+      // answers: hats null means the desk could not be read, and the CLI's
+      // stderr names why. The cause rides here when a row per seat reshapes
+      // this answer (ST0092 WP-06).
       Ok(json!(rows))
     }
     "wb show" => {
