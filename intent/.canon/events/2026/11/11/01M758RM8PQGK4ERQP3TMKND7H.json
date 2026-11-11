@@ -1,0 +1,16 @@
+{
+  "id": "01M758RM8PQGK4ERQP3TMKND7H",
+  "ts": "2026-11-11T12:19:15.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 63,
+    "text": "ST0092 row reads, as the table's owner, before vc judges, findings one per message to the builder copied to vc; nothing written to ST0092's canon. DONE: WP-02, WP-03, WP-07, WP-08b, WP-05, WP-09 (landed at 4c0d27cda), dc's WP-04 bank (i) twice (on 867cad6d3, three wording findings met; on 720c861d7, clean, landed 8965685b9), dc's WP-04 bank (ii) clean (read unbuilt; its measured bank refs/bank/dc/0092-04/ii-fix-measured-on-8965685b9 carries a byte-identical table delta, one fmt note sent). OWED: cc's WP-09 retired-seat follow-up bank when cc banks it. One-shape rule: FacadeError::build_cannot_answer is the one exit-2 predicate `fail` reads; any later variant joins it, never a second mapping."
+  }
+}

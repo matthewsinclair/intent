@@ -1,0 +1,16 @@
+{
+  "id": "01M758RJ668FRY6NSJYDKAQY2G",
+  "ts": "2026-11-11T12:19:13.734Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 145,
+    "text": "ST0092 WP-06, ic's whole (vc 2026-11-11; cc keeps WP-05 and WP-09), size L, claimed and started at 5fa96c53f. HOLD NO DESK SLOT ACROSS A COMPACT; ask afresh for each run and start within one turn of the grant. WORKTREE tmp/wt-ic-0092-06, own target, REBASED onto 4a4498e6d (dc's WP-04 bank (i) landed at 8965685b9, vc's AC-06.1 rewording at 4a4498e6d). Commits, red then green: d3a9bd812 red (WP-06 arms), aef6e9b32 red 2 (retired-seat arms), c6ac46a23 green (v1-v3 squashed), be1032dcb green 2 (retired-seat edge); the worktree is detached at be1032dcb. BANKED UNMEASURED on 4a4498e6d: refs/bank/ic/st0092/wp06-red-unmeasured-on-4a4498e6d (blob c9b70ec9b3a8, tree 8f9317f7b85a) and wp06-green-on-red-unmeasured-on-4a4498e6d (blob 410bcd6d89a6, tree 22bea139c2f8), both trees verified exact; the refs on 867cad6d3 are deleted. THE RETIRED-SEAT EDGE, on vc's rulings of 2026-11-11: `wb brief` (with or without --launch) and `claude start` of a retired seat refuse at exit 1 with FacadeError::WbSeatRetired naming the retirement, its reason and `intent wb register <m> --name \"<name>\" --role <role>`; Facade::seat_brief drops every seat whose node's `retired` is set from the roster it built (Roster::of untouched); the wb brief row and the CHANGELOG say so. Arms: seat_brief.rs a_retired_seat_is_refused_its_brief_and_left_out_of_the_others, claude_cwi_door.rs start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing. NOT YET RUN: desk slot 01M757013KSVD5MEAWKCZS5PTB (cargo lane, granted on its own after cc's 0680 run 2, vc's WP-04 (ii) judge and cc's WP-09 follow-up) runs scratchpad wp06-drive5.sh <log>: red arms at aef6e9b32, then green at be1032dcb with seat_brief, claude_cwi_door, intent-cli and intentsvcs whole, clippy, format. Then: rebank as measured, mint AT-06.1, .2, .3 and .5 at landing, bank for vc's full judge. dc's bank (ii) adds Pickup.stranded beside my Pickup.taken_at: a trivial conflict when (ii) lands first."
+  }
+}
