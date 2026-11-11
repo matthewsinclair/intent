@@ -796,8 +796,8 @@
       "covers": [
         "AC-07.1"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_1_an_apply_renders_the_roster_readme_from_the_profile_and_the_store and at_07_1_the_route_names_the_declared_mediator_whichever_seat_it_is: the README's title, profile, padded roster table, route naming the declared mediator as hv's inbox's one reader (solo's gc included) and terms verb. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_1_an_apply_renders_the_roster_readme_from_the_profile_and_the_store and at_07_1_the_route_names_the_declared_mediator_whichever_seat_it_is: the README's title, profile, padded roster table, route naming the declared mediator as hv's inbox's one reader (solo's gc included) and terms verb. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.2",
@@ -806,8 +806,8 @@
       "covers": [
         "AC-07.2"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_2_the_block_is_carried_byte_for_byte_by_canons_one_function: the project's block survives a re-render byte for byte, carried by canon::carry_user_block and no copy. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_2_the_block_is_carried_byte_for_byte_by_canons_one_function: the project's block survives a re-render byte for byte, carried by canon::carry_user_block and no copy. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.3",
@@ -816,8 +816,8 @@
       "covers": [
         "AC-07.3"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_3_a_first_render_carries_the_whole_old_readme_and_drops_its_verblock, and its surface arm wb_init_door.rs at_07_3_a_first_render_says_it_carried_the_readme_and_names_the_dropped_verblock: the whole old README inside the block, the verblock dropped and named on a note: line. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_3_a_first_render_carries_the_whole_old_readme_and_drops_its_verblock, and its surface arm wb_init_door.rs at_07_3_a_first_render_says_it_carried_the_readme_and_names_the_dropped_verblock: the whole old README inside the block, the verblock dropped and named on a note: line. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.4",
@@ -826,8 +826,8 @@
       "covers": [
         "AC-07.4"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_4_two_projects_with_one_declaration_differ_only_in_their_name: issue 0672's lesson, the generated part states only what the profiles and the store declare. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_4_two_projects_with_one_declaration_differ_only_in_their_name: issue 0672's lesson, the generated part states only what the profiles and the store declare. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.5",
@@ -836,8 +836,8 @@
       "covers": [
         "AC-07.5"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_5_an_edit_outside_the_block_refuses_and_a_behind_readme_re_renders and at_07_5_a_failed_readme_write_records_nothing_and_the_next_apply_heals: roster-readme-edited and roster-readme-behind shown and never counted, the apply's refusal naming the line, nothing written by a no-op re-render, and a failed write healed. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_5_an_edit_outside_the_block_refuses_and_a_behind_readme_re_renders and at_07_5_a_failed_readme_write_records_nothing_and_the_next_apply_heals: roster-readme-edited and roster-readme-behind shown and never counted, the apply's refusal naming the line, nothing written by a no-op re-render, and a failed write healed. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.6",
@@ -846,8 +846,8 @@
       "covers": [
         "AC-07.6"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_6_an_unset_remit_shows_the_default_marked_and_a_set_one_the_projects_words. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_6_an_unset_remit_shows_the_default_marked_and_a_set_one_the_projects_words. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-07.7",
@@ -856,8 +856,8 @@
       "covers": [
         "AC-07.7"
       ],
-      "status": "red",
-      "note": "roster_readme.rs at_07_7_stray_markers_refuse_naming_the_line: two starts, and a first render over a marker, refuse naming the line and write nothing. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written."
+      "status": "green",
+      "note": "roster_readme.rs at_07_7_stray_markers_refuse_naming_the_line: two starts, and a first render over a marker, refuse naming the line and write nothing. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
     },
     {
       "id": "AT-08.1",
