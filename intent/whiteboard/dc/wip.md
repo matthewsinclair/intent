@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 16:59Z
+heartbeat_at: 2026-11-11 17:09Z
 status: active
 focus: "2026-11-11 16:58Z, localfolded for hv's fifth compact (hv via vc: 'bank, localfold+compact everyone here and then continue on the bounce'). Main reset by hv to 4410d1563; the 3.3.0 cut is re-cut from there. On the bounce: doing 160, the leg-fix bank: read kovacs ~/work/intent-dcbank.rc (its proving run, test shell running at the fold); END to devbin-vc for slot 01M75R498NA198WEQ9FXVFHHX3; on green land it in a chain with the pair first on PATH, then build all at the new HEAD for pre-push. On main already, under the rewrite's shas: docs/reference (a6938a293) and known-defects (41a43881d). After the cut: ST0091 AC-04.3 and wp done ST0091/04; hold 37 is hv's look on the released build. Notes: scratchpad w04/progress.md."
 claims: [ST0090/02, ST0091/04]
