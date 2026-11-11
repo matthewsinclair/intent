@@ -9326,9 +9326,129 @@
           "note": "**THE PROFILES BELONG TO THE INSTALL, SO NO PROJECT IS OPENED** (vc's ruling, 2026-11-10). A user-authored profile is out of ST0092, so nothing is read from the extension base. Each verb is its own MCP tool under INV-11."
         },
         {
+          "path": "wb init",
+          "help": "Bring the board to what its Team Profiles declare, and record the declaration",
+          "when_to_use": "USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit.",
+          "args": [
+            {
+              "name": "profile",
+              "type": "string",
+              "arity": "0..n",
+              "help": "The profiles to declare, a base and any layers, as `wb profile list` names them; none re-applies the recorded declaration"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--apply"
+              ],
+              "type": "bool",
+              "help": "Make the changes; without it, print the plan and write nothing",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": [
+                "--change"
+              ],
+              "type": "bool",
+              "help": "Move the board to a different base. Seats the new profiles do not declare are left as they are and reported outside the profile",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0092/WP/03 info.md: `intent wb init <profile>` brings a board to what its profiles declare and touches nothing else on it. There is no v2 antecedent.",
+          "owner_wp": "ST0092 WP-03",
+          "acceptance": "ST0092 AC-03.1 to AC-03.5, AC-03.8",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "IDEMPOTENT AND WITHHELD FROM MCP ON `wb register`'s GROUND: a roster act, which that row's anomaly states and this row does not restate.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "a dry run the apply would carry out, or an apply that wrote or found nothing to write"
+              },
+              {
+                "code": 1,
+                "when": "a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, or a node not yet migrated"
+              },
+              {
+                "code": 2,
+                "when": "the installed profiles cannot be read"
+              }
+            ],
+            "stdout": "the plan, one line per seat, then `ok:`; after an apply, every file on a `wrote:` line and the roster-commit `note:`",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "note": "**ONE STORE TRANSACTION, ONE `wb.init` EVENT AND ONE LANDING OF VIEWS** (vc's ruling, 2026-11-10), so a running intentd meets the apply whole."
+        },
+        {
+          "path": "wb remit",
+          "help": "Set the remit this project gives a seat, or remove it so the seat shows its profile's default",
+          "when_to_use": "USE IT when this project's seat does something narrower or other than its profile's default remit. DO NOT USE IT to restate the default: a seat with no remit of its own shows its profile's, read from the installed Intent, so a later release's rewording reaches it. `--default` removes the project's own.",
+          "args": [
+            {
+              "name": "moniker",
+              "type": "node",
+              "arity": "1",
+              "help": "The seat whose remit this sets"
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "arity": "0..1",
+              "help": "The remit, one line; give it or `--default`, not both"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--default"
+              ],
+              "type": "bool",
+              "help": "Remove the project's own remit, so the seat shows its profile's default",
+              "disposition": "keep",
+              "exposed_on_mcp": false
+            }
+          ],
+          "v2": "new-surface",
+          "basis": "ST0092/WP/03 info.md: the node row gains a remit, on the seat's own row and nowhere else, holding only a remit the project set. There is no v2 antecedent.",
+          "owner_wp": "ST0092 WP-03",
+          "acceptance": "ST0092 AC-03.7",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD FROM MCP ON `wb register`'s GROUND: a roster act, which that row's anomaly states and this row does not restate.",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "set, removed or already so"
+              },
+              {
+                "code": 1,
+                "when": "both a remit and `--default`, or neither; an unregistered or unmigrated seat"
+              }
+            ],
+            "stdout": "`ok:`, then every file on a `wrote:` line",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          }
+        },
+        {
           "path": "wb register",
           "help": "Register a node from its arguments, or the roster from each node's own board header",
-          "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name \"<display name>\" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.",
+          "when_to_use": "USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name \"<display name>\" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. On a board that declares a team, a moniker its profiles name is taken only with the profile's name and role, `--correct` included: other values are refused, and the refusal prints the profile's. `wb init --apply` brings a seat back to its profile; a seat leaves its profile only when the profile changes. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.",
           "args": [
             {
               "name": "moniker",
@@ -9341,21 +9461,21 @@
             {
               "spellings": ["--name"],
               "type": "string",
-              "help": "The node's display name, eg \"QA Claude\" -- not its session name; given with `<moniker>`",
+              "help": "The node's display name, eg \"QA Claude\" -- not its session name; given with `<moniker>`. For a moniker the board's declared profiles name, it must be the profile's name, or the register is refused and the refusal prints the profile's",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
               "spellings": ["--role"],
               "type": "string",
-              "help": "The node's role, one word, eg `worker` -- not its moniker; given with `<moniker>`",
+              "help": "The node's role, one word, eg `worker` -- not its moniker; given with `<moniker>`. For a moniker the board's declared profiles name, it must be the profile's role, or the register is refused and the refusal prints the profile's",
               "disposition": "keep",
               "exposed_on_mcp": false
             },
             {
               "spellings": ["--correct"],
               "type": "bool",
-              "help": "Change a registered node's name and role to `--name` and `--role`, keeping its board",
+              "help": "Change a registered node's name and role to `--name` and `--role`, keeping its board; for a moniker the board's declared profiles name, only to the profile's, as plain `register` refuses",
               "disposition": "keep",
               "exposed_on_mcp": false,
               "note": "**A FLAG ON THE ONE IDENTITY DOOR, NOT A NEW VERB** (vc decision 21 (1), issue 0417; hv may respell it before release). It refuses a moniker that is not registered and names plain `register`, so it never creates a node; it writes name and role and nothing else; the values already held answer `unchanged` at rc 0 and record nothing. Its recoverability is the verb's: correcting back is the undo. Until it, a node registered wrong could be repaired only by a hand `DELETE` on `wb_node`."
@@ -11757,6 +11877,8 @@
       "wb unclaim",
       "wb clear",
       "wb profile",
+      "wb init",
+      "wb remit",
       "wb register",
       "wb migrate",
       "index",
@@ -11940,6 +12062,8 @@
       "wb unclaim",
       "wb clear",
       "wb profile",
+      "wb init",
+      "wb remit",
       "wb register",
       "wb migrate",
       "index",
@@ -12132,6 +12256,8 @@
       "wb unclaim",
       "wb clear",
       "wb profile",
+      "wb init",
+      "wb remit",
       "wb register",
       "wb migrate",
       "index",

@@ -463,7 +463,7 @@ Every file has one writer, its node, and every view renders from one file: a nod
 
 | Field     | Form                                                                        |
 | --------- | --------------------------------------------------------------------------- |
-| `schema`  | always `intent/board@4.0`, the shape's structural marker (see below)        |
+| `schema`  | always `intent/board@4.1`, the shape's structural marker (see below)        |
 | `node`    | this board's own `wb_node` -- the header block, modelled                    |
 | `items`   | this node's `wb_item` rows, in insertion order (ROWID)                      |
 | `sent`    | the `wb_message` rows this node SENT, in id order, which is send order      |
@@ -471,18 +471,18 @@ Every file has one writer, its node, and every view renders from one file: a nod
 
 **A message lands in its SENDER's file and a mark in its RECIPIENT's**, so a node that commits its own `board.json` and the inbox views its verbs wrote has committed everything those verbs changed, and a fresh checkout of that commit reads clean: AC-14.5's single-writer invariant is a property of the file as well as of the API. A message carries an id minted at the send, the one key a mark names across clones; a message that predates this shape carries an id derived from its old row, so every clone that converts it agrees. This placement is issue 0612's (2026-10-22).
 
-**The `schema` string marks a structural break a reader must implement, and `SCHEMA_JSON_VER` marks the contract** (vc's ruling on issue 0627, 2026-10-23). The string moved from `3.0` to `4.0` at 0612, where a message changed boards and a reader had to convert; it did not move when 0525 added the optional `edited_at`, or when 0627 added the optional `archived_at`, and the face version moved both times. Every board type denies unknown fields, so a reader refuses a board that carries a field newer than itself rather than reading it as absent: a board written by a later release is read by that release or later.
+**The `schema` string marks a structural break a reader must implement, and `SCHEMA_JSON_VER` marks the contract** (vc's ruling on issue 0627, 2026-10-23). The string moved from `3.0` to `4.0` at 0612, where a message changed boards and a reader had to convert; it did not move when 0525 added the optional `edited_at`, or when 0627 added the optional `archived_at`, and the face version moved both times. It moved from `4.0` to `4.1` at ST0092 WP-03 (vc's ruling under the pen, 2026-11-10), when `node` gained the optional `remit`: this build reads a `4.0` board unchanged, `intent doctor` names each one as `board-schema-behind`, shown and never counted, and the next board write re-renders it at `4.1`. Every board type denies unknown fields, so a reader refuses a board that carries a field newer than itself rather than reading it as absent: a board written by a later release is read by that release or later.
 
 ### wb_node / wb_item / wb_message / wb_mark (`whiteboard/<node>/board.json`; D30, WP-14)
 
 The coordination entities, **modelled and in the store from ST0069 WP-14**, inside the `board` envelope above. `intent wb register` is how a roster gets there: it reads `moniker`, `name` and `role` from each node's own `wip.md` header and writes one `wb_node` row per participant, idempotent by moniker, with no items and no messages. **Registering is not migrating.** The markdown beside the registered rows stays hand-authored and authoritative, and `wip.md` and `inbox.<sender>.md` are not yet the generated views D02 describes -- switching them is a later package, and until it lands a thin registered board is configuration rather than a half-finished migration. As built (2026-09-13), that package has landed: `intent wb migrate` carries a node's board and inboxes into rows and stamps `migrated_at`, every board write on an unmigrated node refuses (`WbNotMigrated`), a migrated node's `wip.md` and inboxes are rendered from its rows, and `wb register <moniker> --name <display> --role <role>` registers one node from its arguments (`facade.rs:5338-5350`, `:5538`, `render.rs:3853-3872`). Durable form is committed JSON canon per D01, one `board.json` per node.
 
-| Entity       | Fields                                                                                                                                                                |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?`       |
-| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`, `edited_at?` |
-| `wb_message` | `id` (the store's `mid`, minted at the send), `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `recorded_at`, `authored_at?`, `edited_at?`, `archived_at?`    |
-| `wb_mark`    | `id` (the store's `mid`: the message this marks), `sender`, `handled_at`                                                                                              |
+| Entity       | Fields                                                                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`, `recorded_at`, `authored_at?`, `migrated_at?`, `remit?` |
+| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout · hold`), `seq`, `text`, `state` (`live · archived`), `archived_at?`, `recorded_at`, `authored_at?`, `edited_at?`     |
+| `wb_message` | `id` (the store's `mid`, minted at the send), `recipient`, `body`, `re?` (prior anchor), `fyi` (bool), `recorded_at`, `authored_at?`, `edited_at?`, `archived_at?`        |
+| `wb_mark`    | `id` (the store's `mid`: the message this marks), `sender`, `handled_at`                                                                                                  |
 
 Each `wb_message` and `wb_mark` row above is the face its board carries: a message in its sender's `sent`, a mark in its recipient's `handled`. The store's row adds the node the board leaves implicit, `sender` on `wb_message` and `recipient` on `wb_mark`, and names the id `mid` beside its own ROWID. A message is handled when a mark names it; a mark whose message no board carries yet is kept, counted by nothing, and joins its message when that arrives.
 
@@ -496,6 +496,23 @@ The properties that are the point of modelling these rather than parsing them (D
 - **`state` transitions are the API's**, so archival happens on schedule rather than when a node remembers, which is what produced 251KB of `.history`.
 
 The header block is line-oriented `key: value` (D13) and the traffic runs both ways: `wb register` PARSES it to seed `wb_node`, and the rendered view is GENERATED from those rows once the node is migrated (`wb migrate`). Parsing is how an existing hand-authored board gets into the model at all; it is a one-way door taken once per node, not a standing read.
+
+`wb_node.remit` (ST0092 WP-03) is the remit this project set for the seat, and only that, written by `intent wb remit`. A seat with none shows its profile's default, read from the installed profile wherever a remit is shown and never copied into the row, so a later release's rewording reaches it.
+
+### wb_declaration (`whiteboard/declaration.json`; ST0092 WP-03)
+
+The team a board declares: one row, written by `intent wb init --apply` and by nothing else, and carried by one canon file beside the node directories (a file at the top level of `whiteboard/` is never read as a node). A board that declares no team has no row and no file, which is why the openness block declares it `carried by intent/whiteboard/declaration.json -- when declared` and proves it by a round trip over a fixture that declares one, not by the path existing in this repository.
+
+| Field             | Form                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `schema`          | always `intent/team-declaration@1.0`                                                                              |
+| `base`            | the base profile `wb init` applied                                                                                |
+| `layers`          | the layers applied, in the order they were named; empty when there are none                                       |
+| `mediator`        | the seat through which hv is reached, as the profiles resolve it                                                  |
+| `human`           | the seat the human drives                                                                                         |
+| `readme_baseline` | optional: the hash the roster README's last render recorded; ST0092 WP-07 writes it, and until then no build does |
+
+The store's row adds `id` (always 1, the one row) and the `updated_at` record stamp, which the extract omits. A clone ingests the same declaration from the file. `wb register` and its `--correct` take a moniker the declaration's profiles name only with the profile's name and role, and an apply corrects a seat toward them; a seat leaves its profile only when the profile changes.
 
 ## Generated views: the renderer has no clock
 

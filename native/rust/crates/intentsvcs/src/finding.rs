@@ -293,6 +293,11 @@ pub enum FindingClass {
   /// test removed after the close and a row older than the label rule read the
   /// same today, and only the file's history tells them apart.
   ClosedContractDrift,
+  /// A `board.json` in the previous minor shape, `intent/board@4.0`, which this
+  /// build reads unchanged (ST0092 WP-03). vc's ruling of 2026-11-10: the
+  /// project takes one re-render commit at upgrade, and doctor names it. So it is
+  /// shown and never counted: an upgraded project never reads as skewed for it.
+  BoardSchemaBehind,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -725,6 +730,11 @@ impl FindingClass {
         "closed-contract-drift",
         "the close gate does not ask a completed thread's rows for their literal id, so nothing reopens and nothing is refused. Read the cited file's history (`git log -S<AT id> -- <file>`). If the id was there and has gone, a test was removed or renamed after the close: restore it, or re-cite the row with `intent at edit <ST> <AT>` to the test that covers it now. If the id was never there, the row predates the label rule, and labelling the test is optional",
       ),
+      Self::BoardSchemaBehind => (
+        8,
+        "board-schema-behind",
+        "nothing is wrong and nothing is refused: the next board write re-renders every `board.json` in the current shape, one mechanical commit, the coordinating node's or hv's. Upgrade every machine that reads this board first, because Intent 3.2.8 refuses a board in the current shape",
+      ),
       Self::BackupStale => (
         8,
         "backup-stale",
@@ -960,6 +970,7 @@ impl FindingClass {
         | Self::StatusGateDisagreement
         | Self::StatusGateDisagreementOverFiat
         | Self::ClosedContractDrift
+        | Self::BoardSchemaBehind
         | Self::AttachmentDrift
         | Self::BackupStale
         | Self::StoreStale
@@ -997,6 +1008,7 @@ impl FindingClass {
         self,
         Self::StoreStale
           | Self::ClosedContractDrift
+          | Self::BoardSchemaBehind
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::ProseIndexDuplicated

@@ -470,6 +470,23 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      that a carried snapshot comes back out of its sections byte for byte.",
   ),
   (
+    "wb init",
+    "intentsvcs/tests/wb_init.rs -- `at_03_3_an_apply_changes_only_names_roles_and_the_roster` \
+     holds what this file asks of a mutator in the form this verb has it: over a populated board \
+     an apply moves names, roles and the roster set, and every other field of every board it held \
+     (the node row, items, sent messages and marks) reads back unchanged. \
+     `at_03_4_a_second_apply_writes_nothing_and_no_profile_reapplies` holds that a repeat moves \
+     nothing, and `at_03_2_the_dry_run_names_each_verdict_writes_nothing_and_names_what_the_apply_writes` \
+     that the dry run moves no file and no row and names, as a set, exactly the files the apply \
+     then writes.",
+  ),
+  (
+    "wb remit",
+    "intentsvcs/tests/wb_init.rs -- `at_03_7_a_remit_survives_an_apply_and_default_removes_it` \
+     sets a remit, applies over it, and removes it with `--default`, reading the one field this \
+     verb writes back from the store at each step.",
+  ),
+  (
     "index rebuild",
     "intent-cli/tests/the_index_says_what_it_holds.rs -- `a_status_before_a_rebuild_says_the_index_holds_nothing` \
      drives the verb against a real estate and holds the property this file exists for, in the form \

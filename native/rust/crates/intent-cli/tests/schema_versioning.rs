@@ -343,7 +343,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 28: `archived_at` on `wb_message` (issue 0627, schema rung 33), the sender's
     // archive of a message its recipient has handled. One field on two modelled
     // types, so all three faces move for it.
-    ("SCHEMA_DDL_VER", 28, 0xf552_b430_97cb_7580),
+    // 29: `remit` on `wb_node` and the new `wb_declaration` (ST0092 WP-03,
+    // schema rung 34), a seat's project remit and the board's team
+    // declaration. All three faces move for it.
+    ("SCHEMA_DDL_VER", 29, 0xf4e9_158d_d22c_279b),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -358,7 +361,8 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 19 -> 20 is the board as its file carries it (issue 0612): `messages`
     // gives way to `sent: [WbSent!]!` and `handled: [WbHandled!]!`.
     // 20 -> 21 is `archivedAt` on `WbSent` and `WbMessage` (issue 0627).
-    ("SCHEMA_SDL_VER", 21, 0xda1f_153a_0318_c246),
+    // 21 -> 22 is `remit` on `WbNode` (ST0092 WP-03).
+    ("SCHEMA_SDL_VER", 22, 0xd37a_f664_e966_d0a2),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -382,7 +386,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 24 -> 25 is ST0092 WP-02: `team-seats.schema.json` and
     // `team-profile.schema.json` join the JSON contract, the seat registry and
     // a profile's frontmatter. The DDL and SDL do not move.
-    ("SCHEMA_JSON_VER", 25, 0x924d_7f4f_69f0_6256),
+    // 25 -> 26 is ST0092 WP-03: `intent/board@4.1`, `remit` on the board's
+    // node, and `team-declaration.schema.json` joins the contract.
+    ("SCHEMA_JSON_VER", 26, 0x3cba_6958_2916_d192),
   ];
 
   let mut moved = Vec::new();

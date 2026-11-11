@@ -17,6 +17,7 @@ fn canon() -> Canon {
     issues: Vec::new(),
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   }
 }
 

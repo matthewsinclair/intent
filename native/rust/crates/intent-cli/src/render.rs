@@ -4370,6 +4370,79 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     // Before every arm that opens a project: the profiles belong to the
     // install, so this answers from any directory (ST0092 WP-02).
     Some(("profile", m)) => wb_profile(m),
+    Some(("init", m)) => {
+      let mut f = open()?;
+      let names: Vec<String> = m
+        .get_many::<String>("profile")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
+      let apply = m.get_flag("apply");
+      let report = f
+        .wb_init(&names, apply, m.get_flag("change"))
+        .map_err(|e| match e {
+          // An install whose profiles cannot be read is this build unable to
+          // answer, exit 2, as `wb profile` says it; a refusal is exit 1.
+          FacadeError::Teams(t) => teams_unavailable(t),
+          other => fail(other),
+        })?;
+      wb_init_report(&report);
+      if !apply {
+        for path in &report.would_write {
+          println!("would write: {path}");
+        }
+        println!("ok: a dry run, and nothing was written; `--apply` makes these changes");
+        return Ok(());
+      }
+      print_notes(&f.take_notes(), "the roster");
+      if report.moved == 0 && !report.declaration_moves {
+        println!("ok: nothing to write, the board already matches its profiles");
+        return Ok(());
+      }
+      println!(
+        "ok: {} roster row(s) moved{}",
+        report.moved,
+        if report.declaration_moves {
+          ", and the declaration recorded"
+        } else {
+          ""
+        }
+      );
+      print_written(&f.take_written_by_the_roster());
+      println!(
+        "note: this is the roster's own mechanical commit, made by the coordinating node or hv (the whiteboard protocol's ninth invariant)"
+      );
+      Ok(())
+    }
+    Some(("remit", m)) => {
+      let moniker = arg(m, "moniker")?;
+      let text = opt(m, "text")?;
+      let default = m.get_flag("default");
+      let remit = match (text.as_deref(), default) {
+        (Some(_), true) => {
+          return Err(Failure::Error(
+            "error: `wb remit` takes a remit or `--default`, not both\n  remedy: `intent wb remit <moniker> \"<text>\"` sets the project's own; `intent wb remit <moniker> --default` removes it".to_string(),
+          ));
+        }
+        (None, false) => {
+          return Err(Failure::Error(
+            "error: `wb remit` needs a remit or `--default`\n  remedy: `intent wb remit <moniker> \"<text>\"` sets the project's own; `intent wb remit <moniker> --default` removes it, so the seat shows its profile's default".to_string(),
+          ));
+        }
+        (text, _) => text,
+      };
+      let mut f = open()?;
+      let moved = f.wb_remit(&moniker, remit).map_err(fail)?;
+      print_notes(&f.take_notes(), "the roster");
+      match (moved, remit) {
+        (false, _) => println!("ok: {moniker}'s remit unchanged"),
+        (true, Some(_)) => println!("ok: {moniker}'s remit set"),
+        (true, None) => {
+          println!("ok: {moniker}'s remit removed, so it shows its profile's default")
+        }
+      }
+      print_written(&f.take_written(&moniker));
+      Ok(())
+    }
     Some(("register", m)) => {
       let mut f = open()?;
       let moniker = m.get_one::<String>("moniker");
@@ -15247,6 +15320,57 @@ fn rules(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
+/// `wb init`'s plan, one line per seat (ST0092 WP-03): register, correct with
+/// the old and the new value, unchanged, or outside the profile, each declared
+/// seat marked where it shows its profile's default remit.
+fn wb_init_report(report: &intentsvcs::facade::WbInit) {
+  use intentsvcs::teams::Verdict;
+  let r = &report.resolved;
+  let layers = if r.layers.is_empty() {
+    String::new()
+  } else {
+    format!(" + {}", r.layers.join(" + "))
+  };
+  println!(
+    "profiles: {}{layers}; mediator {}; human seat {}",
+    r.base, r.mediator, r.human
+  );
+  for seat in &report.seats {
+    let line = match &seat.verdict {
+      Verdict::Register => format!(
+        "register   {} as {} ({})",
+        seat.moniker, seat.name, seat.role
+      ),
+      Verdict::Correct {
+        held_name,
+        held_role,
+      } => format!(
+        "correct    {} from {held_name} ({held_role}) to {} ({})",
+        seat.moniker, seat.name, seat.role
+      ),
+      Verdict::Unchanged => format!("unchanged  {} {} ({})", seat.moniker, seat.name, seat.role),
+      Verdict::Outside => format!(
+        "outside    {} {} ({}): no declared profile names it, and it is left as it is",
+        seat.moniker, seat.name, seat.role
+      ),
+    };
+    let remit = if seat.default_remit {
+      "; remit: the profile's default"
+    } else {
+      ""
+    };
+    println!("  {line}{remit}");
+  }
+  println!(
+    "declaration: {}",
+    if report.declaration_moves {
+      "recorded by this apply"
+    } else {
+      "unchanged"
+    }
+  );
+}
+
 /// `intent wb profile <list|show|validate|terms>` (ST0092 WP-02).
 ///
 /// **NO PROJECT IS OPENED.** The Team Profiles belong to the install, as the
@@ -15288,7 +15412,11 @@ fn teams() -> Result<intentsvcs::teams::Teams, Failure> {
 fn teams_unavailable(e: intentsvcs::teams::TeamsError) -> Failure {
   let line = format!("error: {e}\n  remedy: {}", e.remedy());
   match e {
-    intentsvcs::teams::TeamsError::UnknownProfile { .. } => Failure::Error(line),
+    intentsvcs::teams::TeamsError::UnknownProfile { .. }
+    | intentsvcs::teams::TeamsError::TwoBases { .. }
+    | intentsvcs::teams::TeamsError::LayerWithoutBase { .. }
+    | intentsvcs::teams::TeamsError::BaseDiffers { .. }
+    | intentsvcs::teams::TeamsError::NoDeclaration { .. } => Failure::Error(line),
     intentsvcs::teams::TeamsError::Malformed { .. }
     | intentsvcs::teams::TeamsError::Absent { .. }
     | intentsvcs::teams::TeamsError::Io { .. } => Failure::Unavailable(line),

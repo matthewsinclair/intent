@@ -46,7 +46,7 @@ pub const RECORD_SCHEMA: &str = "intent/estate-session@1";
 /// The board schemas whose node header this build reads. The header carries
 /// the same keys under both, so one narrow read serves a fleet that has not
 /// all migrated.
-const BOARD_SCHEMAS: &[&str] = &["intent/board@3.0", "intent/board@4.0"];
+const BOARD_SCHEMAS: &[&str] = &["intent/board@3.0", "intent/board@4.0", "intent/board@4.1"];
 
 /// The session-file fields the reader relies on, and nothing else.
 pub const PINNED: &[&str] = &[

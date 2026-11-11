@@ -350,8 +350,13 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // its recipient has handled, which takes it out of the inbox view. One
   // rebuild, for rung 15's reason, as rung 30 added `edited_at`; existing rows
   // start null, since nothing was archived before the rung.
-  const PINNED_SCHEMA_HASH: u64 = 0x3a6d_3544_f0b2_f28e;
-  const PINNED_FOR_VERSION: i32 = 33;
+  //
+  // 34 is `wb_node.remit` and the new `wb_declaration` (ST0092 WP-03), the
+  // remit a project gives a seat and the team its board declares. One rebuild
+  // of `wb_node`, for rung 15's reason; existing rows start null, and a store
+  // declares no team until `wb init` writes one.
+  const PINNED_SCHEMA_HASH: u64 = 0x811f_3b53_f6de_62cb;
+  const PINNED_FOR_VERSION: i32 = 34;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

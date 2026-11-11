@@ -38,6 +38,9 @@ pub struct Canon {
   /// One per node, each carrying that node's row, its items, the messages it
   /// sent and its marks on the messages it handled (issue 0612).
   pub boards: Vec<crate::model::Board>,
+  /// The team the board declares, from `whiteboard/declaration.json` (ST0092
+  /// WP-03); `None` for a board that declares no profile.
+  pub declaration: Option<crate::model::TeamDeclaration>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -375,6 +378,10 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   let on_disk = boards_on_disk(project)?;
   canon.boards = on_disk.boards;
   findings.extend(on_disk.not_boards);
+  match declaration_on_disk(project)? {
+    Ok(declaration) => canon.declaration = declaration,
+    Err(found) => findings.push(found),
+  }
 
   if findings.is_empty() {
     // **DERIVED FROM THE ASSEMBLED CANON, NOT ACCUMULATED DURING THE WALK.**
@@ -412,12 +419,17 @@ pub(crate) fn boards_on_disk(project: &Project) -> Result<BoardsOnDisk, IngestEr
   let mut files = Vec::new();
   let mut not_boards = Vec::new();
   let mut old_shape = Vec::new();
+  let mut behind = Vec::new();
   for node in project.board_nodes()? {
     let path = project.board_json(&node);
     match read_board_file(&read_to_string(&path)?) {
       Ok(file) => {
-        if matches!(file, crate::model::BoardFile::V3(_)) {
-          old_shape.push(node);
+        match &file {
+          crate::model::BoardFile::V3(_) => old_shape.push(node),
+          crate::model::BoardFile::Current(b) if b.schema == crate::model::BOARD_SCHEMA_V4_0 => {
+            behind.push(node)
+          }
+          crate::model::BoardFile::Current(_) => {}
         }
         files.push(file);
       }
@@ -433,8 +445,41 @@ pub(crate) fn boards_on_disk(project: &Project) -> Result<BoardsOnDisk, IngestEr
     boards,
     not_boards,
     old_shape,
+    behind,
     uncarried,
   })
+}
+
+/// The board's team declaration on disk (ST0092 WP-03): `None` where the file
+/// is absent, which is a board that declares no profile, and a finding where it
+/// does not parse strictly, as a malformed `board.json` is.
+pub(crate) fn declaration_on_disk(
+  project: &Project,
+) -> Result<Result<Option<crate::model::TeamDeclaration>, Finding>, IngestError> {
+  let path = project.declaration_json();
+  if !path.is_file() {
+    return Ok(Ok(None));
+  }
+  let text = read_to_string(&path)?;
+  Ok(
+    match serde_json::from_str::<crate::model::TeamDeclaration>(&text) {
+      Ok(d) if d.schema == crate::model::DECLARATION_SCHEMA => Ok(Some(d)),
+      Ok(d) => Err(Finding::new(
+        project.relative(&path),
+        FindingClass::SchemaInvalid,
+        format!(
+          "not a team declaration: schema `{}`, where this build reads `{}`",
+          d.schema,
+          crate::model::DECLARATION_SCHEMA
+        ),
+      )),
+      Err(e) => Err(Finding::new(
+        project.relative(&path),
+        FindingClass::SchemaInvalid,
+        format!("not a team declaration: {e}"),
+      )),
+    },
+  )
 }
 
 /// Every `board.json` on disk, as [`boards_on_disk`] reads it.
@@ -445,6 +490,9 @@ pub(crate) struct BoardsOnDisk {
   pub not_boards: Vec<Finding>,
   /// The nodes whose `board.json` is in the old shape (issue 0612).
   pub old_shape: Vec<String>,
+  /// The nodes whose `board.json` is in the previous minor shape, 4.0, which
+  /// reads unchanged (ST0092 WP-03).
+  pub behind: Vec<String>,
   /// The old messages no board in the set can carry (issue 0612).
   pub uncarried: Vec<crate::model::UncarriedMessage>,
 }
@@ -831,6 +879,7 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
       issues,
       sections: read_sections(project, store)?,
       boards,
+      declaration: store.wb_declaration()?,
     });
   }
 
@@ -1004,6 +1053,7 @@ fn compose_scoped(
     issues: stored_issues,
     sections,
     boards: store.hydrate_boards()?,
+    declaration: store.wb_declaration()?,
   })
 }
 
@@ -1287,8 +1337,12 @@ fn resync_inner(
           issues,
           sections: read_sections(project, store)?,
           boards: store.hydrate_boards()?,
+          declaration: store.wb_declaration()?,
         });
       }
+      // A cold store warms with the declaration too, so a fresh clone holds the
+      // team its canon file declares (ST0092 WP-03, AC-03.8).
+      store.replace_declaration(canon.declaration.as_ref())?;
     }
   }
   // **ONLY AN UNSCOPED `Restore` CARRIES BOARDS FROM DISK INTO THE STORE HERE.**
@@ -1321,9 +1375,11 @@ fn resync_inner(
   // projected yet.
   if scope.named().is_none() && load == Load::Restore {
     store.replace_boards(&canon.boards)?;
+    store.replace_declaration(canon.declaration.as_ref())?;
   }
   canon.boards = store.hydrate_boards()?;
   swap_board_sections(project, &mut canon.sections, &canon.boards);
+  canon.declaration = store.wb_declaration()?;
   store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
   // **AN INGEST RENDER NEVER TOUCHES THE EVENT FILES; ITS COMMIT TAKES THEM.**

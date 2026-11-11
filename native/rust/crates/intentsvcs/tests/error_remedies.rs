@@ -1293,6 +1293,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbDirectiveOffHv { .. } => "WbDirectiveOffHv",
     FacadeError::WbDirectivesOnAnotherBoard { .. } => "WbDirectivesOnAnotherBoard",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
+    FacadeError::WbRegisterNotAsDeclared { .. } => "WbRegisterNotAsDeclared",
     FacadeError::WbRegisterDisagreesWithHeader { .. } => "WbRegisterDisagreesWithHeader",
     FacadeError::WbCorrectUnregistered { .. } => "WbCorrectUnregistered",
     FacadeError::WbUncarried { .. } => "WbUncarried",
@@ -1422,6 +1423,7 @@ const ALL_VARIANTS: &[&str] = &[
   "WbDirectiveOffHv",
   "WbDirectivesOnAnotherBoard",
   "WbRegisteredDifferently",
+  "WbRegisterNotAsDeclared",
   "WbRegisterDisagreesWithHeader",
   "WbCorrectUnregistered",
   "WbUncarried",
@@ -1435,6 +1437,10 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **PROVOKED WHERE A DECLARED BOARD IS** (ST0092 WP-03, AC-03.6). It needs a
+  // board `wb init` has declared, so `wb_init.rs` applies a profile and drives
+  // this refusal and the profile's values it prints.
+  "WbRegisterNotAsDeclared",
   // **PROVOKED WHERE A CARRIED INBOX IS** (issue 0523). Two messages share a
   // heading minute without depending on the clock only when a carry stamps
   // them with its one instant, so `wb_edit_keeps_the_old_text_out_of_a_commit.rs`

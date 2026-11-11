@@ -192,6 +192,19 @@ pub enum TeamsError {
   /// A profile was asked for by a name the install does not ship (INV-04).
   #[error("no Team Profile named `{name}`")]
   UnknownProfile { name: String, shipped: Vec<String> },
+  /// `wb init` was named more than one base; a board declares exactly one.
+  #[error("`wb init` was named more than one base: {}", bases.join(", "))]
+  TwoBases { bases: Vec<String> },
+  /// A layer was named on a board that declares no base, and none was named.
+  #[error("a layer ({}) adds to a base, and this board declares none and none was named", layers.join(", "))]
+  LayerWithoutBase { layers: Vec<String> },
+  /// A base other than the declared one, without `--change`.
+  #[error("this board declares the base `{declared}`, and `{named}` was named")]
+  BaseDiffers { declared: String, named: String },
+  /// The reinit (`wb init --apply` with no profile) on a board with no
+  /// recorded declaration.
+  #[error("this board records no declaration to re-apply")]
+  NoDeclaration { shipped: Vec<String> },
 }
 
 impl crate::remedy::Remedy for TeamsError {
@@ -205,6 +218,19 @@ impl crate::remedy::Remedy for TeamsError {
       }
       Self::UnknownProfile { shipped, .. } => format!(
         "name one of the shipped profiles: {}. `intent wb profile list` says which are bases and which are layers",
+        shipped.join(", ")
+      ),
+      Self::TwoBases { .. } => {
+        "name one base and any layers after it, eg `intent wb init team supervised`; `intent wb profile list` says which profile is which".to_string()
+      }
+      Self::LayerWithoutBase { .. } => {
+        "name the base first, eg `intent wb init team supervised`; `intent wb profile list` says which profiles are bases".to_string()
+      }
+      Self::BaseDiffers { declared, named } => format!(
+        "to move this board from `{declared}` to `{named}`, pass `--change`, which retires the seats `{named}` does not declare; to keep `{declared}`, name it or name no base"
+      ),
+      Self::NoDeclaration { shipped } => format!(
+        "name the profiles to declare, eg `intent wb init team --apply`; the shipped profiles are {}",
         shipped.join(", ")
       ),
     }
@@ -630,6 +656,205 @@ fn section_texts(brief: &str) -> Vec<String> {
   }
   out.extend(open);
   out
+}
+
+// ---------------------------------------------------------------------------
+// `wb init`: what a board's profiles declare, and what an apply would do
+// (ST0092 WP-03). Pure: the profiles, the declaration and the roster are
+// arguments, so every verdict and every refusal is driven without a store.
+// ---------------------------------------------------------------------------
+
+/// What a board's profiles declare, resolved: the base and its layers, the
+/// mediator, the human seat, and every seat with the registry's identity.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Resolved {
+  pub base: String,
+  pub layers: Vec<String>,
+  pub mediator: String,
+  pub human: String,
+  /// The base's seats, then each layer's new ones, in that order.
+  pub seats: Vec<Seat>,
+}
+
+impl Resolved {
+  /// The declaration this resolution records, keeping a recorded README
+  /// baseline (WP-07 writes it, and an apply never moves it).
+  pub fn declaration(
+    &self,
+    held: Option<&crate::model::TeamDeclaration>,
+  ) -> crate::model::TeamDeclaration {
+    crate::model::TeamDeclaration {
+      schema: crate::model::DECLARATION_SCHEMA.to_string(),
+      base: self.base.clone(),
+      layers: self.layers.clone(),
+      mediator: self.mediator.clone(),
+      human: self.human.clone(),
+      readme_baseline: held.and_then(|d| d.readme_baseline.clone()),
+    }
+  }
+}
+
+/// What an apply does to one seat.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Verdict {
+  /// The seat is declared and not registered.
+  Register,
+  /// The seat is registered with another name or role.
+  Correct {
+    held_name: String,
+    held_role: String,
+  },
+  /// The seat is registered as the profile declares it.
+  Unchanged,
+  /// A registered node no profile names. It is left as it is.
+  Outside,
+}
+
+/// One seat's line in the plan.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SeatPlan {
+  pub moniker: String,
+  /// The profile's name and role, or the node's own for one outside it.
+  pub name: String,
+  pub role: String,
+  pub verdict: Verdict,
+  /// Whether the seat shows its profile's default remit, having none of its
+  /// own. `false` for a node outside the profile, which has no default.
+  pub default_remit: bool,
+}
+
+/// One registered node as the plan reads it: moniker, name, role and the
+/// remit the project set, if any.
+pub type RosterRow<'a> = (&'a str, &'a str, &'a str, Option<&'a str>);
+
+impl Teams {
+  /// Resolve the profiles `wb init` was named against the board's recorded
+  /// declaration (ST0092 WP-03). The library classifies each name by the kind
+  /// its profile declares, and every refusal is here: an unknown name, more
+  /// than one base, a layer with no base named or declared, a base other than
+  /// the declared one without `change`, and no name on a board that records
+  /// no declaration.
+  pub fn resolve(
+    &self,
+    names: &[String],
+    declared: Option<&crate::model::TeamDeclaration>,
+    change: bool,
+  ) -> Result<Resolved, TeamsError> {
+    let (base, layers) = if names.is_empty() {
+      let Some(d) = declared else {
+        return Err(TeamsError::NoDeclaration {
+          shipped: self.names()?,
+        });
+      };
+      (d.base.clone(), d.layers.clone())
+    } else {
+      let mut bases = Vec::new();
+      let mut layers = Vec::new();
+      for name in names {
+        match self.profile(name)?.front.kind {
+          ProfileKind::Base => bases.push(name.clone()),
+          ProfileKind::Layer => layers.push(name.clone()),
+        }
+      }
+      if bases.len() > 1 {
+        return Err(TeamsError::TwoBases { bases });
+      }
+      let base = match (bases.pop(), declared) {
+        (Some(named), Some(d)) if named != d.base && !change => {
+          return Err(TeamsError::BaseDiffers {
+            declared: d.base.clone(),
+            named,
+          });
+        }
+        (Some(named), _) => named,
+        (None, Some(d)) => d.base.clone(),
+        (None, None) => return Err(TeamsError::LayerWithoutBase { layers }),
+      };
+      (base, layers)
+    };
+
+    let registry = self.registry()?;
+    let base_profile = self.profile(&base)?;
+    let mut mediator = base_profile.front.mediator.clone().unwrap_or_default();
+    let mut monikers: Vec<String> = base_profile.front.seats.clone();
+    for layer in &layers {
+      let p = self.profile(layer)?;
+      if let Some(m) = p.front.mediator {
+        mediator = m;
+      }
+      for seat in p.front.seats {
+        if !monikers.contains(&seat) {
+          monikers.push(seat);
+        }
+      }
+    }
+    let seats: Vec<Seat> = monikers
+      .iter()
+      .filter_map(|m| registry.seats.iter().find(|s| &s.moniker == m).cloned())
+      .collect();
+    let human = seats
+      .iter()
+      .find(|s| s.driver == Driver::Human)
+      .map(|s| s.moniker.clone())
+      .unwrap_or_default();
+    Ok(Resolved {
+      base,
+      layers,
+      mediator,
+      human,
+      seats,
+    })
+  }
+}
+
+/// What an apply would do to each seat, in the profile's order, then each
+/// registered node no profile names. **PURE.**
+pub fn plan(resolved: &Resolved, roster: &[RosterRow<'_>]) -> Vec<SeatPlan> {
+  let mut out: Vec<SeatPlan> = resolved
+    .seats
+    .iter()
+    .map(|seat| {
+      let held = roster.iter().find(|(m, ..)| *m == seat.moniker);
+      let verdict = match held {
+        None => Verdict::Register,
+        Some((_, name, role, _)) if *name == seat.name && *role == seat.role => Verdict::Unchanged,
+        Some((_, name, role, _)) => Verdict::Correct {
+          held_name: (*name).to_string(),
+          held_role: (*role).to_string(),
+        },
+      };
+      SeatPlan {
+        moniker: seat.moniker.clone(),
+        name: seat.name.clone(),
+        role: seat.role.clone(),
+        verdict,
+        default_remit: held.is_none_or(|(.., remit)| remit.is_none()),
+      }
+    })
+    .collect();
+  for (moniker, name, role, _) in roster {
+    if !resolved.seats.iter().any(|s| s.moniker == *moniker) {
+      out.push(SeatPlan {
+        moniker: (*moniker).to_string(),
+        name: (*name).to_string(),
+        role: (*role).to_string(),
+        verdict: Verdict::Outside,
+        default_remit: false,
+      });
+    }
+  }
+  out
+}
+
+/// The identity a declared moniker must register with, or `None` when the
+/// declaration does not name it (ST0092 WP-03, AC-03.6): `register` honours a
+/// board's declaration through this.
+pub fn declared_identity(resolved: &Resolved, moniker: &str) -> Option<(String, String)> {
+  resolved
+    .seats
+    .iter()
+    .find(|s| s.moniker == moniker)
+    .map(|s| (s.name.clone(), s.role.clone()))
 }
 
 impl crate::facade::Facade {

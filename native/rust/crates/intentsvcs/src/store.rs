@@ -738,6 +738,9 @@ CREATE TABLE IF NOT EXISTS project (
 -- hand-authored board to carry. Null means the markdown on disk is still the
 -- board, so every board write refuses until the node is migrated. It sits at
 -- the tail, where the rung that added it rebuilds the table to put it.
+--
+-- `remit` is the remit this project set for the seat, and only that: a seat
+-- with none shows its profile's default, read from the install.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -751,7 +754,23 @@ CREATE TABLE IF NOT EXISTS wb_node (
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  migrated_at TEXT
+  migrated_at TEXT,
+  remit TEXT
+);
+-- The board's team declaration: one row, the base and layers
+-- `wb init` applied, the mediator and the human seat they resolve to, and the
+-- hash the roster README's last render recorded. A clone ingests the same team
+-- from the canon file.
+-- openness: carried by intent/whiteboard/declaration.json -- when declared, by
+-- a_declared_team_round_trips_through_its_file
+CREATE TABLE IF NOT EXISTS wb_declaration (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  base TEXT NOT NULL,
+  layers TEXT NOT NULL DEFAULT '[]',
+  mediator TEXT NOT NULL,
+  human TEXT NOT NULL,
+  readme_baseline TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_item (
@@ -830,7 +849,7 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 33;
+pub const SCHEMA_VERSION: i32 = 34;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -2035,6 +2054,48 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      CREATE UNIQUE INDEX IF NOT EXISTS wb_message_by_mid ON wb_message (mid);
      CREATE INDEX IF NOT EXISTS wb_message_by_sender ON wb_message (sender, mid);
      CREATE INDEX IF NOT EXISTS wb_message_by_recipient ON wb_message (recipient, mid);",
+  ),
+  (
+    34,
+    // 33 -> 34: `wb_node.remit` and the one-row `wb_declaration` (ST0092 WP-03),
+    // the remit a project set for a seat and the team its board declares.
+    // Nothing was declared before this rung, so the column starts null and the
+    // table empty.
+    //
+    // **A REBUILD RATHER THAN `ALTER TABLE ADD COLUMN`, for rung 15's reason**,
+    // as rung 25 rebuilt `wb_node` for `migrated_at`. The `SELECT` names only
+    // the columns the table had before.
+    "CREATE TABLE wb_node_rebuilt (
+       moniker TEXT PRIMARY KEY,
+       name TEXT NOT NULL,
+       role TEXT NOT NULL,
+       session_id TEXT,
+       heartbeat_at TEXT NOT NULL,
+       status TEXT NOT NULL,
+       focus TEXT NOT NULL,
+       claims TEXT NOT NULL DEFAULT '[]',
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       migrated_at TEXT,
+       remit TEXT
+     );
+     INSERT INTO wb_node_rebuilt (moniker, name, role, session_id, heartbeat_at, status, focus,
+       claims, recorded_at, authored_at, updated_at, migrated_at)
+       SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at,
+         authored_at, updated_at, migrated_at
+       FROM wb_node;
+     DROP TABLE wb_node;
+     ALTER TABLE wb_node_rebuilt RENAME TO wb_node;
+     CREATE TABLE IF NOT EXISTS wb_declaration (
+       id INTEGER PRIMARY KEY CHECK (id = 1),
+       base TEXT NOT NULL,
+       layers TEXT NOT NULL DEFAULT '[]',
+       mediator TEXT NOT NULL,
+       human TEXT NOT NULL,
+       readme_baseline TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );",
   ),
 ];
 
@@ -3306,6 +3367,36 @@ impl WbWrite<'_> {
     Ok(())
   }
 
+  /// Set or remove the remit a project set for a seat, for `wb remit` and
+  /// nothing else (ST0092 WP-03). `None` removes it, and the seat then shows
+  /// its profile's default.
+  pub fn set_remit(&mut self, node: &str, remit: Option<&str>) -> Result<bool, StoreError> {
+    let moved = self.tx.execute(
+      "UPDATE wb_node SET remit = ?2, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE moniker = ?1 AND remit IS NOT ?2",
+      params![node, remit],
+    )?;
+    self.moved += moved;
+    Ok(moved > 0)
+  }
+
+  /// Record the board's team declaration, for `wb init` and the ingest of its
+  /// canon file (ST0092 WP-03). A declaration equal to the one held moves no
+  /// row.
+  pub fn set_declaration(&mut self, d: &crate::model::TeamDeclaration) -> Result<(), StoreError> {
+    let layers = serde_json::to_string(&d.layers)?;
+    self.moved += self.tx.execute(
+      "INSERT INTO wb_declaration (id, base, layers, mediator, human, readme_baseline) \
+       VALUES (1, ?1, ?2, ?3, ?4, ?5) \
+       ON CONFLICT (id) DO UPDATE SET base = ?1, layers = ?2, mediator = ?3, human = ?4, \
+       readme_baseline = ?5, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE base IS NOT ?1 OR layers IS NOT ?2 OR mediator IS NOT ?3 OR human IS NOT ?4 \
+       OR readme_baseline IS NOT ?5",
+      params![d.base, layers, d.mediator, d.human, d.readme_baseline],
+    )?;
+    Ok(())
+  }
+
   /// Set a node's status.
   pub fn set_status(&mut self, node: &str, status: &str) -> Result<(), StoreError> {
     self.moved += self.tx.execute(
@@ -3719,7 +3810,7 @@ impl WbWrite<'_> {
           self.moved += self.tx.execute(
             "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, heartbeat_at = ?5, \
              status = ?6, focus = ?7, claims = ?8, recorded_at = ?9, authored_at = ?10, \
-             migrated_at = ?11, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+             migrated_at = ?11, remit = ?12, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
              WHERE moniker = ?1",
             params![
               n.moniker,
@@ -3733,6 +3824,7 @@ impl WbWrite<'_> {
               n.recorded_at,
               n.authored_at,
               n.migrated_at,
+              n.remit,
             ],
           )?;
         }
@@ -3744,8 +3836,8 @@ impl WbWrite<'_> {
         let n = now.nodes[o];
         self.moved += self.tx.execute(
           "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-           claims, recorded_at, authored_at, migrated_at, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, \
+           claims, recorded_at, authored_at, migrated_at, remit, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, \
            strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
             n.moniker,
@@ -3759,6 +3851,7 @@ impl WbWrite<'_> {
             n.recorded_at,
             n.authored_at,
             n.migrated_at,
+            n.remit,
           ],
         )?;
       }
@@ -5978,7 +6071,7 @@ impl Store {
   fn hydrate_boards_on(conn: &rusqlite::Connection) -> Result<Vec<Board>, StoreError> {
     let mut stmt = conn.prepare(
       "SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at, \
-       authored_at, migrated_at FROM wb_node ORDER BY moniker",
+       authored_at, migrated_at, remit FROM wb_node ORDER BY moniker",
     )?;
     let nodes = stmt
       .query_map([], |row| {
@@ -5994,6 +6087,7 @@ impl Store {
           row.get::<_, String>(8)?,
           row.get::<_, Option<String>>(9)?,
           row.get::<_, Option<String>>(10)?,
+          row.get::<_, Option<String>>(11)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -6011,6 +6105,7 @@ impl Store {
       recorded_at,
       authored_at,
       migrated_at,
+      remit,
     ) in nodes
     {
       let node = WbNode {
@@ -6025,6 +6120,7 @@ impl Store {
         recorded_at,
         authored_at,
         migrated_at,
+        remit,
       };
       boards.push(Board {
         schema: BOARD_SCHEMA.to_string(),
@@ -6400,6 +6496,39 @@ impl Store {
   }
 
   /// Is this node's board the model's, rather than its markdown on disk?
+  /// The board's team declaration, or `None` for a board that declares no
+  /// profile (ST0092 WP-03).
+  pub fn wb_declaration(&self) -> Result<Option<crate::model::TeamDeclaration>, StoreError> {
+    use rusqlite::OptionalExtension;
+    let row = self
+      .conn
+      .query_row(
+        "SELECT base, layers, mediator, human, readme_baseline FROM wb_declaration WHERE id = 1",
+        [],
+        |row| {
+          Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, String>(2)?,
+            row.get::<_, String>(3)?,
+            row.get::<_, Option<String>>(4)?,
+          ))
+        },
+      )
+      .optional()?;
+    let Some((base, layers, mediator, human, readme_baseline)) = row else {
+      return Ok(None);
+    };
+    Ok(Some(crate::model::TeamDeclaration {
+      schema: crate::model::DECLARATION_SCHEMA.to_string(),
+      base,
+      layers: serde_json::from_str(&layers)?,
+      mediator,
+      human,
+      readme_baseline,
+    }))
+  }
+
   pub fn wb_node_migrated(&self, moniker: &str) -> Result<bool, StoreError> {
     let migrated: i64 = self.conn.query_row(
       "SELECT count(*) FROM wb_node WHERE moniker = ?1 AND migrated_at IS NOT NULL",
@@ -6517,6 +6646,25 @@ impl Store {
       moved: 0,
     };
     w.restore(boards)?;
+    w.tx.commit()?;
+    Ok(())
+  }
+
+  /// Make the store hold the declaration the canon file carries, or none, for
+  /// the doors that carry boards from disk (ST0092 WP-03). Like
+  /// [`Self::replace_boards`] it writes no event: its act is the sync.
+  pub fn replace_declaration(
+    &mut self,
+    declaration: Option<&crate::model::TeamDeclaration>,
+  ) -> Result<(), StoreError> {
+    let mut w = WbWrite {
+      tx: Self::write_tx(&mut self.conn)?,
+      moved: 0,
+    };
+    match declaration {
+      Some(d) => w.set_declaration(d)?,
+      None => w.moved += w.tx.execute("DELETE FROM wb_declaration", [])?,
+    }
     w.tx.commit()?;
     Ok(())
   }

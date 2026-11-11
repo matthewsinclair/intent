@@ -25,6 +25,7 @@ fn canon() -> Canon {
     issues: vec![crate::common::sample_issue(21)],
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   }
 }
 
@@ -288,6 +289,7 @@ fn authored_prose_emphasis_is_the_one_case_the_renderer_cannot_stabilise() {
     issues: Vec::new(),
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   };
   views::write_all(&fx.project(), &canon, &ctx()).expect("write");
 
@@ -460,6 +462,7 @@ fn the_view_writes_every_at_status_in_the_authored_spelling() {
       issues: Vec::new(),
       sections: Vec::new(),
       boards: Vec::new(),
+      declaration: None,
     };
     // Rendered directly rather than through the projection: the claim is about
     // the RENDERER's vocabulary, and reaching it through `write_all` would make a

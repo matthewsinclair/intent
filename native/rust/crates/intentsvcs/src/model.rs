@@ -2325,12 +2325,46 @@ pub fn parse_domain_date(raw: &str) -> Result<String, DateError> {
 // migration therefore inserts in SOURCE FILE ORDER, ties on `recorded_at` order
 // by insertion, and every view orders that way.
 
-/// The `schema` field value for a node's board canon file.
-pub const BOARD_SCHEMA: &str = "intent/board@4.0";
+/// The `schema` field value for a node's board canon file. 4.1 adds the
+/// node's `remit` (ST0092 WP-03).
+pub const BOARD_SCHEMA: &str = "intent/board@4.1";
+
+/// The board file's shape before ST0092 WP-03, with no `remit` on its node.
+/// This build reads it unchanged as the current shape, since the field it lacks
+/// is optional, and the next board write re-renders it at [`BOARD_SCHEMA`].
+pub const BOARD_SCHEMA_V4_0: &str = "intent/board@4.0";
 
 /// The board file's shape before issue 0612, when a message sat with its
 /// RECIPIENT. Read once, by [`boards_from_files`], and never written.
 pub const BOARD_SCHEMA_V3: &str = "intent/board@3.0";
+
+/// The `schema` value of a board's team declaration, `whiteboard/declaration.json`
+/// (ST0092 WP-03).
+pub const DECLARATION_SCHEMA: &str = "intent/team-declaration@1.0";
+
+/// The team a board declares: its base, its layers, its mediator and its human
+/// seat, from the profiles `wb init` applied. One per board, in the store and
+/// as one canon file beside the node directories, so a clone ingests the same
+/// team. The human seat is where every reader takes a seat's driver from: that
+/// seat is the human's, and every other seat is a session's.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct TeamDeclaration {
+  /// Always [`DECLARATION_SCHEMA`].
+  pub schema: String,
+  /// The base profile.
+  pub base: String,
+  /// The layers, in the order they were named.
+  #[serde(default)]
+  pub layers: Vec<String>,
+  /// The seat through which hv is reached.
+  pub mediator: String,
+  /// The seat the human drives.
+  pub human: String,
+  /// The hash the last render of the roster README recorded.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub readme_baseline: Option<String>,
+}
 
 /// One node's whiteboard: `whiteboard/<node>/board.json`.
 ///
@@ -2398,6 +2432,11 @@ pub struct WbNode {
   /// refuses such a node.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub migrated_at: Option<String>,
+  /// The remit this project set for the seat, and only that: a seat with none
+  /// shows its profile's default, read from the installed profile wherever a
+  /// remit is shown, and never written here.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub remit: Option<String>,
 }
 
 /// The whole `wb register` command for `moniker`, as a remedy tells the user to
@@ -3163,6 +3202,7 @@ mod claim_address_tests {
           recorded_at: "2026-09-23T13:00:00.000Z".to_string(),
           authored_at: None,
           migrated_at: migrated.then(|| "2026-09-13T11:03:59.755Z".to_string()),
+          remit: None,
         },
         items: Vec::new(),
         sent: Vec::new(),

@@ -1,5 +1,5 @@
 # INTENT_VER: 3.2.8
-# SCHEMA_SDL_VER: 21
+# SCHEMA_SDL_VER: 22
 
 enum AcKind {
   TEST
@@ -720,6 +720,12 @@ type WbNode {
   refuses such a node.
   """
   migratedAt: String
+  """
+  The remit this project set for the seat, and only that: a seat with none
+  shows its profile's default, read from the installed profile wherever a
+  remit is shown, and never written here.
+  """
+  remit: String
 }
 
 enum WbNodeStatus {

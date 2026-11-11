@@ -2238,6 +2238,18 @@ pub enum FacadeError {
     .nodes.join(", ")
   )]
   WbBoardsNotInTheStore { nodes: Vec<String> },
+  /// A moniker the board's declared profiles name, registered or corrected
+  /// with other values (ST0092 WP-03, AC-03.6). It names the profile's.
+  #[error(
+    "`{node}` is declared by this board's profiles as `{declared_name}` ({declared_role}), not `{name}` ({role})"
+  )]
+  WbRegisterNotAsDeclared {
+    node: String,
+    name: String,
+    role: String,
+    declared_name: String,
+    declared_role: String,
+  },
   /// A moniker already registered, named again with other values.
   #[error("`{node}` is registered as `{held_name}` ({held_role}), not `{name}` ({role})")]
   WbRegisteredDifferently {
@@ -2701,6 +2713,21 @@ impl BoardRead {
   }
 }
 
+/// What `wb init` would do, or did (ST0092 WP-03): the resolved profiles,
+/// each seat's verdict, whether the declaration moves, and, after an apply,
+/// how many roster rows moved.
+#[derive(Debug, Clone)]
+pub struct WbInit {
+  pub resolved: crate::teams::Resolved,
+  pub seats: Vec<crate::teams::SeatPlan>,
+  pub declaration_moves: bool,
+  pub applied: bool,
+  pub moved: usize,
+  /// For a dry run, every whiteboard file the apply would write, rendered by
+  /// the apply's own code on a shadow store and never landed.
+  pub would_write: Vec<String>,
+}
+
 /// The files one board verb landed, split by whose they are to commit (issue
 /// 0612): `wrote` is the acting node's own -- its `board.json` and `wip.md`,
 /// every inbox view it is the sender of, and the event the verb recorded --
@@ -2849,6 +2876,14 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WbCorrectUnregistered { node } => format!(
         "`--correct` changes a node that exists and never creates one: `{}` registers it",
         crate::model::register_form(node)
+      ),
+      Self::WbRegisterNotAsDeclared {
+        node,
+        declared_name,
+        declared_role,
+        ..
+      } => format!(
+        "a declared seat takes its profile's name and role, and leaves them only when the profile changes: `intent wb init --apply` registers or corrects every declared seat to its profile, and `intent wb register {node} --name \"{declared_name}\" --role {declared_role}` registers this one where it is absent"
       ),
       Self::WbNotMigrated { node } => format!(
         "`intent wb migrate {node}` carries its hand-authored board into the model first. A board write renders the board from the store, so writing before the carry would replace the markdown with a render of a board that holds none of it"
@@ -4905,6 +4940,7 @@ impl Facade {
         issues: issues.clone(),
         sections: Vec::new(),
         boards: Vec::new(),
+        declaration: None,
       };
       let leftovers = crate::legacy::leftovers(project, &converted);
       let mut pruned = Vec::new();
@@ -7970,6 +8006,7 @@ impl Facade {
     name: &str,
     role: &str,
   ) -> Result<usize, FacadeError> {
+    self.refuse_unless_as_declared(moniker, name, role)?;
     if let Some(held) = self
       .boards()?
       .into_iter()
@@ -8067,6 +8104,9 @@ impl Facade {
         node: moniker.to_string(),
       });
     };
+    // The same door as `register`, so the same declaration holds it (vc's
+    // ruling (i) on ST0092 WP-03): the way off a profile is to change it.
+    self.refuse_unless_as_declared(moniker, name, role)?;
     if held.node.name == name && held.node.role == role {
       return Ok(false);
     }
@@ -8097,6 +8137,250 @@ impl Facade {
       self.land_event_files()?;
     }
     Ok(true)
+  }
+
+  /// Refuse a name or role for a moniker the board's declared profiles name
+  /// unless it is the profile's (ST0092 WP-03, AC-03.6), so the role typed in as
+  /// the moniker stops where it starts. **ONE CHECK FOR EVERY IDENTITY DOOR**:
+  /// `wb register` and its `--correct` (vc's ruling (i)), so the way off a
+  /// profile is to change the profile. `wb init` writes the profile's values and
+  /// so never meets it. A moniker the profiles do not name passes.
+  fn refuse_unless_as_declared(
+    &self,
+    moniker: &str,
+    name: &str,
+    role: &str,
+  ) -> Result<(), FacadeError> {
+    match self.declared_identity(moniker)? {
+      Some((declared_name, declared_role)) if declared_name != name || declared_role != role => {
+        Err(FacadeError::WbRegisterNotAsDeclared {
+          node: moniker.to_string(),
+          name: name.to_string(),
+          role: role.to_string(),
+          declared_name,
+          declared_role,
+        })
+      }
+      _ => Ok(()),
+    }
+  }
+
+  /// The identity this board's declared profiles give a moniker, or `None`
+  /// where the board declares no profile or its profiles do not name it
+  /// (ST0092 WP-03, AC-03.6).
+  fn declared_identity(&self, moniker: &str) -> Result<Option<(String, String)>, FacadeError> {
+    let Some(held) = self.store.wb_declaration().map_err(FacadeError::Store)? else {
+      return Ok(None);
+    };
+    let resolved = crate::teams::installed()?.resolve(&[], Some(&held), false)?;
+    Ok(crate::teams::declared_identity(&resolved, moniker))
+  }
+
+  /// `intent wb init [<profile>...] [--apply] [--change]` (ST0092 WP-03).
+  ///
+  /// **A COORDINATOR OVER THE IDENTITY DOOR THAT ALREADY EXISTS.** The profiles
+  /// resolve through [`crate::teams::Teams::resolve`], which holds every
+  /// refusal about them, and [`crate::teams::plan`] gives each seat its
+  /// verdict. Every refusal is met before anything is written, in a dry run as
+  /// in an apply. The apply is one store transaction, one `wb.init` event
+  /// naming every row it moved, and one landing of views, so a running intentd
+  /// meets the result whole (issue 0216).
+  pub fn wb_init(
+    &mut self,
+    names: &[String],
+    apply: bool,
+    change: bool,
+  ) -> Result<WbInit, FacadeError> {
+    let teams = crate::teams::installed()?;
+    let held = self.store.wb_declaration().map_err(FacadeError::Store)?;
+    let resolved = teams.resolve(names, held.as_ref(), change)?;
+    let boards = self.boards()?;
+    let roster: Vec<crate::teams::RosterRow<'_>> = boards
+      .iter()
+      .map(|b| {
+        (
+          b.node.moniker.as_str(),
+          b.node.name.as_str(),
+          b.node.role.as_str(),
+          b.node.remit.as_deref(),
+        )
+      })
+      .collect();
+    let seats = crate::teams::plan(&resolved, &roster);
+    let declaration = resolved.declaration(held.as_ref());
+    let declaration_moves = held.as_ref() != Some(&declaration);
+
+    // **EVERY REFUSAL BEFORE ANY WRITE, AND THE DRY RUN MEETS THEM TOO.** A
+    // board the store has not taken in, and a node whose markdown is still its
+    // board: an apply over either would render the store's empty row over it.
+    self.refuse_if_the_store_lacks_any()?;
+    for seat in &seats {
+      let unmigrated = match seat.verdict {
+        crate::teams::Verdict::Register => self
+          .project
+          .whiteboard_dir()
+          .join(&seat.moniker)
+          .join("wip.md")
+          .is_file(),
+        crate::teams::Verdict::Correct { .. } | crate::teams::Verdict::Unchanged => !self
+          .store
+          .wb_node_migrated(&seat.moniker)
+          .map_err(FacadeError::Store)?,
+        crate::teams::Verdict::Outside => false,
+      };
+      if unmigrated {
+        return Err(FacadeError::WbNotMigrated {
+          node: seat.moniker.clone(),
+        });
+      }
+    }
+
+    let mut report = WbInit {
+      resolved,
+      seats,
+      declaration_moves,
+      applied: false,
+      moved: 0,
+      would_write: Vec::new(),
+    };
+    let register: Vec<(String, String, String)> = report
+      .seats
+      .iter()
+      .filter(|s| s.verdict == crate::teams::Verdict::Register)
+      .map(|s| (s.moniker.clone(), s.name.clone(), s.role.clone()))
+      .collect();
+    let correct: Vec<(String, String, String)> = report
+      .seats
+      .iter()
+      .filter(|s| matches!(s.verdict, crate::teams::Verdict::Correct { .. }))
+      .map(|s| (s.moniker.clone(), s.name.clone(), s.role.clone()))
+      .collect();
+    let recorded = declaration_moves.then_some(&declaration);
+    if !apply {
+      report.would_write = self.wb_init_preview(&register, &correct, recorded)?;
+      return Ok(report);
+    }
+    let event = self.wb_event(
+      "wb.init",
+      &report.resolved.mediator,
+      json!({
+        "base": report.resolved.base,
+        "layers": report.resolved.layers,
+        "registered": register.iter().map(|(m, ..)| m).collect::<Vec<_>>(),
+        "corrected": correct.iter().map(|(m, ..)| m).collect::<Vec<_>>(),
+        "declaration": declaration_moves,
+      }),
+    );
+    let moved = self
+      .store
+      .wb_write(&event, |w| {
+        Self::init_writes(w, &register, &correct, recorded)
+      })
+      .map_err(FacadeError::Store)?;
+    report.applied = true;
+    report.moved = moved;
+    if moved > 0 || declaration_moves {
+      let acting: Vec<&str> = register
+        .iter()
+        .chain(&correct)
+        .map(|(m, ..)| m.as_str())
+        .collect();
+      self.land_board_write_noting(&acting)?;
+    }
+    Ok(report)
+  }
+
+  /// The rows an apply of `wb init` moves, on whichever store it is given: the
+  /// real one for an apply, a shadow for the dry run's preview. **ONE CODE PATH
+  /// FOR BOTH**, so the dry run's list is what the apply writes.
+  fn init_writes(
+    w: &mut crate::store::WbWrite<'_>,
+    register: &[(String, String, String)],
+    correct: &[(String, String, String)],
+    declaration: Option<&crate::model::TeamDeclaration>,
+  ) -> Result<usize, StoreError> {
+    let mut moved = w.register_nodes(register, true)?;
+    for (moniker, name, role) in correct {
+      w.set_identity(moniker, name, role)?;
+      moved += 1;
+    }
+    if let Some(d) = declaration {
+      w.set_declaration(d)?;
+    }
+    Ok(moved)
+  }
+
+  /// The whiteboard files an apply of `wb init` would write, as project-relative
+  /// paths (vc's ruling of 2026-11-10 on AC-03.2): the apply's own writes run on
+  /// a shadow of this store's boards, and the projection the apply lands
+  /// through is rendered from it into a write set that is never committed. So
+  /// no file and no row of this store moves.
+  fn wb_init_preview(
+    &self,
+    register: &[(String, String, String)],
+    correct: &[(String, String, String)],
+    declaration: Option<&crate::model::TeamDeclaration>,
+  ) -> Result<Vec<String>, FacadeError> {
+    let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
+    let mut shadow = Store::open_in_memory().map_err(FacadeError::Store)?;
+    shadow
+      .rebuild(&threads, &issues)
+      .map_err(FacadeError::Store)?;
+    shadow
+      .replace_boards(&self.store.hydrate_boards().map_err(FacadeError::Store)?)
+      .map_err(FacadeError::Store)?;
+    shadow
+      .replace_declaration(
+        self
+          .store
+          .wb_declaration()
+          .map_err(FacadeError::Store)?
+          .as_ref(),
+      )
+      .map_err(FacadeError::Store)?;
+    let event = self.wb_event("wb.init", "preview", json!({}));
+    shadow
+      .wb_write(&event, |w| {
+        Self::init_writes(w, register, correct, declaration)
+      })
+      .map_err(FacadeError::Store)?;
+    let mut canon = self.canon.clone();
+    canon.boards = shadow.hydrate_boards().map_err(FacadeError::Store)?;
+    canon.declaration = shadow.wb_declaration().map_err(FacadeError::Store)?;
+    let seen = shadow.data_version().map_err(FacadeError::Store)?;
+    let preview = Self::over(
+      self.project.clone(),
+      self.ctx.clone(),
+      shadow,
+      canon.clone(),
+      seen,
+    );
+    let Projection { set, .. } = preview.projection(&canon, &[], &[], None, None)?;
+    let whiteboard = self.project.whiteboard_dir();
+    let mut paths: Vec<String> = set
+      .writes()
+      .filter(|(path, _)| path.starts_with(&whiteboard))
+      .filter(|(path, content)| std::fs::read(path).ok().as_deref() != Some(&content[..]))
+      .map(|(path, _)| self.project.relative(path))
+      .collect();
+    paths.sort();
+    Ok(paths)
+  }
+
+  /// `intent wb remit <moniker> (<text> | --default)` (ST0092 WP-03): set the
+  /// remit this project gives a seat, or with `None` remove it, so the seat
+  /// shows its profile's default. Says whether the row moved.
+  pub fn wb_remit(&mut self, moniker: &str, remit: Option<&str>) -> Result<bool, FacadeError> {
+    self.require_migrated(moniker)?;
+    let event = self.wb_event("wb.remit", moniker, json!({ "remit": remit }));
+    let moved = self
+      .store
+      .wb_write(&event, |w| w.set_remit(moniker, remit))
+      .map_err(FacadeError::Store)?;
+    if moved {
+      self.land_board_write_noting(&[moniker])?;
+    }
+    Ok(moved)
   }
 
   /// The event one whiteboard verb records, naming the acting node and the
@@ -8178,6 +8462,9 @@ impl Facade {
   /// the next board write or rebuild derives the whole index again.
   fn reindex_boards(&mut self) -> Result<(), FacadeError> {
     self.canon.boards = self.boards()?;
+    // The team declaration is a board-level row (ST0092 WP-03), so a board
+    // write that moved it renders it from the store as it renders a board.
+    self.canon.declaration = self.store.wb_declaration().map_err(FacadeError::Store)?;
     let sections = ingest::sections_of(
       &self.project,
       &self.canon.threads,
@@ -10530,6 +10817,7 @@ impl Facade {
       issues,
       sections,
       boards,
+      declaration: self.store.wb_declaration().map_err(FacadeError::Store)?,
     };
     self.check_scope(scope, &canon.threads)?;
     let all_threads: Vec<&Thread> = canon
@@ -12389,6 +12677,17 @@ impl Facade {
       set.add(
         path,
         to_canonical_json(board).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+      );
+    }
+    // **THE BOARD'S TEAM DECLARATION, BESIDE THE NODE DIRECTORIES** (ST0092
+    // WP-03), rendered from the store as a board is. Written only where the
+    // board declares a team: a board that declares none has no file.
+    if let Some(declaration) = &canon.declaration {
+      let path = self.project.declaration_json();
+      canon_files.push((path.clone(), "the team declaration".to_string()));
+      set.add(
+        path,
+        to_canonical_json(declaration).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
     // **PROJECT STATE, WRITTEN ON EVERY SYNC AND NOT NARROWED BY A THREAD

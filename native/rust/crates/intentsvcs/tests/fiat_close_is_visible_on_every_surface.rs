@@ -123,6 +123,7 @@ fn rendered(thread: Thread) -> String {
     issues: Vec::new(),
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   };
   views::render_all(&fx.project(), &canon, &ctx())
     .iter()

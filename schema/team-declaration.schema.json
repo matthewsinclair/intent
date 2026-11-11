@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The team a board declares: its base, its layers, its mediator and its human\nseat, from the profiles `wb init` applied. One per board, in the store and\nas one canon file beside the node directories, so a clone ingests the same\nteam. The human seat is where every reader takes a seat's driver from: that\nseat is the human's, and every other seat is a session's.",
+  "properties": {
+    "base": {
+      "description": "The base profile.",
+      "type": "string"
+    },
+    "human": {
+      "description": "The seat the human drives.",
+      "type": "string"
+    },
+    "layers": {
+      "default": [],
+      "description": "The layers, in the order they were named.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "mediator": {
+      "description": "The seat through which hv is reached.",
+      "type": "string"
+    },
+    "readme_baseline": {
+      "description": "The hash the last render of the roster README recorded.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema": {
+      "description": "Always [`DECLARATION_SCHEMA`].",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "base",
+    "mediator",
+    "human"
+  ],
+  "title": "TeamDeclaration",
+  "type": "object",
+  "x-intent-ver": "3.2.8",
+  "x-schema-json-ver": 26
+}

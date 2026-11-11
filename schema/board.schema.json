@@ -143,6 +143,13 @@
           "description": "Written by the service from the clock, once, at the write.",
           "type": "string"
         },
+        "remit": {
+          "description": "The remit this project set for the seat, and only that: a seat with none\nshows its profile's default, read from the installed profile wherever a\nremit is shown, and never written here.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "role": {
           "type": "string"
         },
@@ -279,5 +286,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.8",
-  "x-schema-json-ver": 25
+  "x-schema-json-ver": 26
 }

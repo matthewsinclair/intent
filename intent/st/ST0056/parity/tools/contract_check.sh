@@ -146,7 +146,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
 MODEL="${MODEL:-$REPO_ROOT/intent/st/ST0056/data-model.md}"
-FACES="${FACES:-$REPO_ROOT/schema/thread.schema.json $REPO_ROOT/schema/issue.schema.json $REPO_ROOT/schema/event.schema.json $REPO_ROOT/schema/board.schema.json}"
+FACES="${FACES:-$REPO_ROOT/schema/thread.schema.json $REPO_ROOT/schema/issue.schema.json $REPO_ROOT/schema/event.schema.json $REPO_ROOT/schema/board.schema.json $REPO_ROOT/schema/team-declaration.schema.json}"
 
 [ -f "$MODEL" ] || die "data-model.md not found: $MODEL"
 for f in $FACES; do [ -f "$f" ] || die "published face not found: $f"; done
@@ -175,6 +175,7 @@ WbItem|wb_node#wb_item
 WbSent|wb_node#wb_message
 WbHandled|wb_node#wb_mark
 Board|board
+TeamDeclaration|wb_declaration
 -|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. RATIFIED by vc under the pen, 2026-09-12, on this line's own reasoning. Declared here rather than skipped silently: it is reported every run and it never gates.
 EOF
 )"

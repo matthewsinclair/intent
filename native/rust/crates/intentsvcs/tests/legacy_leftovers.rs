@@ -33,6 +33,7 @@ fn canon_with(attachments: Vec<Attachment>) -> Canon {
     issues: Vec::new(),
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   }
 }
 
@@ -118,6 +119,7 @@ fn a_bucket_thread_absent_from_canon_holds_its_whole_directory() {
     issues: Vec::new(),
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   };
 
   let found = legacy::leftovers(&fx.project(), &canon);
@@ -159,6 +161,7 @@ fn the_v2_issue_estate_and_the_retired_cache_are_leftovers_too() {
     issues: vec![issue],
     sections: Vec::new(),
     boards: Vec::new(),
+    declaration: None,
   };
 
   let found = legacy::leftovers(&fx.project(), &canon);

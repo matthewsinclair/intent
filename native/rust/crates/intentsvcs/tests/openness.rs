@@ -353,14 +353,113 @@ fn carried_paths(ddl: &str) -> Vec<(String, String)> {
   declarations_in(ddl)
     .into_iter()
     .filter_map(|(table, decl)| {
-      let path = decl?
-        .strip_prefix("carried by ")?
-        .split_whitespace()
-        .next()?
-        .to_string();
-      Some((table, path))
+      let decl = decl?;
+      let (path, rest) = carried_parts(&decl)?;
+      (!rest.starts_with(WHEN_DECLARED)).then(|| (table, path.to_string()))
     })
     .collect()
+}
+
+/// A `carried by` declaration's path and what follows it, with the separating
+/// dashes and spaces taken off the remainder.
+fn carried_parts(decl: &str) -> Option<(&str, &str)> {
+  let rest = decl.strip_prefix("carried by ")?;
+  let path = rest.split_whitespace().next()?;
+  let after = rest[rest.find(path)? + path.len()..].trim_start_matches(['-', ' ']);
+  Some((path, after))
+}
+
+/// The qualifier that makes a `carried by` declaration conditional on a board
+/// declaring a team.
+///
+/// **WHY THIS FORM EXISTS.** Some files are carried only by a board that
+/// declares a team: `whiteboard/declaration.json` is written by `wb init` and
+/// by nothing else, so a project whose board declares no team has no such
+/// file, and the repository this face ships with is one. The data still leaves
+/// losslessly wherever there is data, which is the property hv asked for, but
+/// the on-disk proof [`every_carried_by_declaration_resolves_to_something_on_disk`]
+/// gives cannot see it here. So a `when declared` line owes a DIFFERENT proof:
+/// it names a round-trip arm in this file, which drives a fixture that declares
+/// a team through the file and back. The grammar is
+/// `carried by <path> -- when declared, by <arm>`.
+///
+/// **IT IS NOT A WAY TO WAVE A MISSING FILE THROUGH.** A `when declared` line
+/// that names no arm, or an arm this file does not hold as a test, is refused
+/// by [`when_declared_gaps`], and every other `carried by` line keeps the
+/// on-disk proof unchanged.
+const WHEN_DECLARED: &str = "when declared";
+
+/// The `when declared` declarations as (table, path, the arm named, if any).
+fn when_declared_forms(ddl: &str) -> Vec<(String, String, Option<String>)> {
+  declarations_in(ddl)
+    .into_iter()
+    .filter_map(|(table, decl)| {
+      let decl = decl?;
+      let (path, rest) = carried_parts(&decl)?;
+      let clause = rest.strip_prefix(WHEN_DECLARED)?;
+      let arm = clause
+        .trim_start_matches([',', ' '])
+        .strip_prefix("by ")
+        .and_then(|a| a.split_whitespace().next())
+        .map(str::to_string);
+      Some((table, path.to_string(), arm))
+    })
+    .collect()
+}
+
+/// What is wrong with a DDL's `when declared` lines, read against the source
+/// that must hold each named arm. Empty means nothing is.
+fn when_declared_gaps(ddl: &str, source: &str) -> Vec<String> {
+  when_declared_forms(ddl)
+    .into_iter()
+    .filter_map(|(table, path, arm)| match arm {
+      None => Some(format!(
+        "{table}: `carried by {path} -- {WHEN_DECLARED}` names no round-trip arm; write `, by <arm>`"
+      )),
+      Some(arm) if !source.contains(&format!("#[test]\nfn {arm}()")) => Some(format!(
+        "{table}: `carried by {path} -- {WHEN_DECLARED}` names `{arm}`, which is not a test in tests/openness.rs"
+      )),
+      Some(_) => None,
+    })
+    .collect()
+}
+
+/// This file's own source, where every `when declared` arm must be.
+fn this_file() -> String {
+  let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/openness.rs");
+  std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{} is unreadable: {e}", path.display()))
+}
+
+/// Every `when declared` line names a round-trip arm this file holds.
+#[test]
+fn every_when_declared_line_names_an_arm_that_exists() {
+  let gaps = when_declared_gaps(DDL, &this_file());
+  assert!(gaps.is_empty(), "{}", gaps.join("\n"));
+}
+
+/// **THE DISCRIMINATING CASE for the form.** A `when declared` line with no
+/// arm, and one naming an arm that is not here, are each refused.
+#[test]
+fn a_when_declared_line_without_its_arm_is_refused() {
+  let none = "-- openness: carried by x/y.json -- when declared\nCREATE TABLE IF NOT EXISTS t (id INTEGER);\n";
+  let missing = "-- openness: carried by x/y.json -- when declared, by no_such_arm\nCREATE TABLE IF NOT EXISTS t (id INTEGER);\n";
+  let source = this_file();
+  assert!(
+    when_declared_gaps(none, &source)
+      .first()
+      .is_some_and(|g| g.contains("names no round-trip arm")),
+    "a line with no arm passed"
+  );
+  assert!(
+    when_declared_gaps(missing, &source)
+      .first()
+      .is_some_and(|g| g.contains("not a test")),
+    "a line naming a missing arm passed"
+  );
+  assert!(
+    carried_paths(missing).is_empty(),
+    "a `when declared` line was also read as an always-carried path"
+  );
 }
 
 /// AC-01.7: every `carried by` path names something that is really there.
@@ -413,13 +512,16 @@ fn every_carried_by_declaration_resolves_to_something_on_disk() {
     .count();
 
   let on_demand = on_demand_forms(&ddl);
+  // A `when declared` line is proved by its arm, not here (see WHEN_DECLARED).
+  let when_declared = when_declared_forms(&ddl);
   assert_eq!(
-    carried.len() + derived + on_demand.len(),
+    carried.len() + when_declared.len() + derived + on_demand.len(),
     declarations.len(),
-    "the partition does not close: {} carried by + {derived} DERIVED + {} ON DEMAND over {} \
-     declarations -- something declares in a FOURTH form and this test is silently not \
-     looking at it",
+    "the partition does not close: {} carried by + {} carried by when declared + {derived} \
+     DERIVED + {} ON DEMAND over {} declarations -- something declares in another form and \
+     this test is silently not looking at it",
     carried.len(),
+    when_declared.len(),
     on_demand.len(),
     declarations.len()
   );
@@ -737,6 +839,51 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
        every real change invisible in the noise"
     );
   }
+}
+
+/// **A declared team leaves through its file and comes back whole**: the proof
+/// `wb_declaration`'s `when declared` line names (see [`WHEN_DECLARED`]).
+///
+/// The fixture declares a team with `wb init`, so the file exists; a clone of
+/// the extract reads the same row back, a plain JSON parser reads the file, and
+/// re-emitting from the clone writes the same bytes.
+#[test]
+fn a_declared_team_round_trips_through_its_file() {
+  const FILE: &str = "intent/whiteboard/declaration.json";
+  let fx = Fixture::new();
+  let mut facade = fx.facade_on_disk();
+  facade
+    .wb_init(&["team".to_string()], true, false)
+    .expect("the fixture declares a team");
+  let held = |fx: &Fixture| {
+    Store::open(&fx.project().db_path())
+      .expect("the store")
+      .wb_declaration()
+      .expect("the declaration")
+  };
+  let declared = held(&fx).expect("the apply recorded a declaration");
+  let first = fx.read(FILE);
+  let parsed: Value = serde_json::from_str(&first).expect("plain JSON");
+  assert_eq!(parsed["base"], Value::from(declared.base.as_str()));
+
+  let elsewhere = fx.clone_extract();
+  let mut second_pass = elsewhere.facade_on_disk();
+  second_pass
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("read it all back");
+  assert_eq!(
+    held(&elsewhere).as_ref(),
+    Some(&declared),
+    "the clone read back another declaration"
+  );
+  second_pass
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("second emit");
+  assert_eq!(
+    elsewhere.read(FILE),
+    first,
+    "{FILE} changed when nothing did"
+  );
 }
 
 /// **The file forms are readable WITHOUT Intent.**

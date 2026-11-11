@@ -318,6 +318,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A moniker registered with other values: the caller supplied every field,
     // and the remedy is a different moniker rather than one they left out.
     | FacadeError::WbRegisteredDifferently { .. }
+    // A declared seat registered with other values: every field was supplied,
+    // and the remedy is the profile's values (ST0092 WP-03).
+    | FacadeError::WbRegisterNotAsDeclared { .. }
     // Arguments against a board's header, and a correction of a moniker nobody
     // registered: every field was supplied, and the remedy is other VALUES or
     // the plain verb, never a field left out.

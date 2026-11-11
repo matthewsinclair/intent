@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.2.8
--- SCHEMA_DDL_VER: 28
+-- SCHEMA_DDL_VER: 29
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -654,6 +654,9 @@ CREATE TABLE IF NOT EXISTS project (
 -- hand-authored board to carry. Null means the markdown on disk is still the
 -- board, so every board write refuses until the node is migrated. It sits at
 -- the tail, where the rung that added it rebuilds the table to put it.
+--
+-- `remit` is the remit this project set for the seat, and only that: a seat
+-- with none shows its profile's default, read from the install.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -667,7 +670,23 @@ CREATE TABLE IF NOT EXISTS wb_node (
   recorded_at TEXT NOT NULL,
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  migrated_at TEXT
+  migrated_at TEXT,
+  remit TEXT
+);
+-- The board's team declaration: one row, the base and layers
+-- `wb init` applied, the mediator and the human seat they resolve to, and the
+-- hash the roster README's last render recorded. A clone ingests the same team
+-- from the canon file.
+-- openness: carried by intent/whiteboard/declaration.json -- when declared, by
+-- a_declared_team_round_trips_through_its_file
+CREATE TABLE IF NOT EXISTS wb_declaration (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  base TEXT NOT NULL,
+  layers TEXT NOT NULL DEFAULT '[]',
+  mediator TEXT NOT NULL,
+  human TEXT NOT NULL,
+  readme_baseline TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_item (

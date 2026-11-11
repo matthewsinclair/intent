@@ -307,6 +307,7 @@ fn a_rendered_board_reads_back_without_carrying_its_empty_sections() {
       recorded_at: "2026-09-13T10:24:37.071Z".to_string(),
       authored_at: None,
       migrated_at: Some("2026-09-13T10:24:37.071Z".to_string()),
+      remit: None,
     },
     items: vec![intentsvcs::model::WbItem {
       node: "dc".to_string(),

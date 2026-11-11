@@ -1744,6 +1744,17 @@ fn board_shape_advisories(project: &Project) -> Vec<Finding> {
     }
   };
   let mut out = Vec::new();
+  for node in &on_disk.behind {
+    out.push(Finding::new(
+      project.relative(&project.board_json(node)),
+      FindingClass::BoardSchemaBehind,
+      format!(
+        "in `{}`, the shape before a seat's remit: this binary reads it unchanged, and the next board write re-renders it in `{}`",
+        crate::model::BOARD_SCHEMA_V4_0,
+        crate::model::BOARD_SCHEMA
+      ),
+    ));
+  }
   for node in &on_disk.old_shape {
     out.push(Finding::new(
       project.relative(&project.board_json(node)),

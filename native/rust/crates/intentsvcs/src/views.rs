@@ -2081,7 +2081,8 @@ pub(crate) fn whiteboard_writer(project: &Project, path: &std::path::Path) -> Op
 pub(crate) fn is_whiteboard_written(project: &Project, path: &std::path::Path) -> bool {
   let is_board = path.file_name().is_some_and(|f| f == "board.json")
     && path.parent().and_then(std::path::Path::parent) == Some(project.whiteboard_dir().as_path());
-  is_board || whiteboard_owner(project, path).is_some()
+  // The board's team declaration is the whiteboard's too (ST0092 WP-03).
+  is_board || path == project.declaration_json() || whiteboard_owner(project, path).is_some()
 }
 
 /// A stored instant as a board renders it: minute granularity, `Z`-marked.

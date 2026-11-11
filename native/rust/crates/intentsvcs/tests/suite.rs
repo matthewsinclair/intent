@@ -547,6 +547,8 @@ mod wb_archive_frees_the_bound;
 mod wb_ask_re_names_a_message_the_addressee_sent;
 #[path = "wb_edit_keeps_the_old_text_out_of_a_commit.rs"]
 mod wb_edit_keeps_the_old_text_out_of_a_commit;
+#[path = "wb_init.rs"]
+mod wb_init;
 #[path = "wb_migrate_carries_a_board.rs"]
 mod wb_migrate_carries_a_board;
 #[path = "wb_pickup_states_the_session.rs"]

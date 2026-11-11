@@ -356,6 +356,8 @@ mod view_single_writer;
 mod wb_archive_message;
 #[path = "wb_edit_door.rs"]
 mod wb_edit_door;
+#[path = "wb_init_door.rs"]
+mod wb_init_door;
 #[path = "wb_migrate_names_its_kept_copies.rs"]
 mod wb_migrate_names_its_kept_copies;
 #[path = "wb_migrate_reports_the_restamp.rs"]

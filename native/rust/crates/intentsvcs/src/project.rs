@@ -1953,6 +1953,13 @@ impl Project {
   /// that node already opens. The file is still canon in every other sense:
   /// tool-written, validated strictly on ingest, and the durable form the
   /// extract carries.
+  /// The board's team declaration, `whiteboard/declaration.json`, beside the
+  /// node directories (ST0092 WP-03). A file at the top level is never read as a
+  /// node, since a node is a directory holding a `board.json`.
+  pub fn declaration_json(&self) -> PathBuf {
+    self.whiteboard_dir().join("declaration.json")
+  }
+
   pub fn board_json(&self, node: &str) -> PathBuf {
     self.whiteboard_dir().join(node).join("board.json")
   }

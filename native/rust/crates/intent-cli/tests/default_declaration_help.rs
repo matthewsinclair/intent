@@ -69,12 +69,23 @@ fn every_status() -> Vec<(String, ThreadStatus)> {
     .collect()
 }
 
+/// The verb whose `--default` declares the default thread set.
+const DEFAULT_OWNER: &str = "organize";
+
 /// `--default`'s help text, as the binary actually ships it.
+///
+/// **On `organize`'s row, named, and not wherever `--default` is spelled.** The
+/// flag was unique to `organize` until ST0092 WP-03 gave `wb remit` one for an
+/// unrelated purpose, so a walker keyed on the spelling alone would hold one
+/// verb's help to another verb's rule.
 fn default_flag_help() -> String {
   let table: serde_json::Value =
     serde_json::from_str(intent_cli::dispatch::TABLE).expect("the table parses as JSON");
   let mut found = Vec::new();
   let mut visit = |v: &serde_json::Value| {
+    if v.get("path").and_then(|p| p.as_str()) != Some(DEFAULT_OWNER) {
+      return;
+    }
     if let Some(flags) = v.get("flags").and_then(|f| f.as_array()) {
       for f in flags {
         // **The key is `spellings`, a LIST, not `name`.** My first walker asked
