@@ -741,6 +741,11 @@ CREATE TABLE IF NOT EXISTS project (
 --
 -- `remit` is the remit this project set for the seat, and only that: a seat
 -- with none shows its profile's default, read from the install.
+--
+-- `retired_at` and `retired_reason` are the node's retirement from the roster:
+-- when, and why, set together by `wb retire` and cleared
+-- together by `wb register`, which reinstates the same node. A retired node
+-- keeps its board and every message.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -755,7 +760,10 @@ CREATE TABLE IF NOT EXISTS wb_node (
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   migrated_at TEXT,
-  remit TEXT
+  remit TEXT,
+  retired_at TEXT,
+  retired_reason TEXT,
+  CHECK ((retired_at IS NULL) = (retired_reason IS NULL))
 );
 -- The board's team declaration: one row, the base and layers
 -- `wb init` applied, the mediator and the human seat they resolve to, and the
@@ -849,7 +857,7 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 34;
+pub const SCHEMA_VERSION: i32 = 35;
 
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
@@ -2096,6 +2104,41 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        readme_baseline TEXT,
        updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
      );",
+  ),
+  (
+    35,
+    // 34 -> 35: `wb_node.retired_at` and `retired_reason` (ST0092 WP-04), a
+    // node's retirement from the roster. Nothing was retired before this
+    // rung, so both start null.
+    //
+    // **A REBUILD RATHER THAN `ALTER TABLE ADD COLUMN`**, as rung 34 rebuilt
+    // `wb_node`: the CHECK that keeps the two set together is a table
+    // constraint, which `ADD COLUMN` cannot add.
+    "CREATE TABLE wb_node_rebuilt (
+       moniker TEXT PRIMARY KEY,
+       name TEXT NOT NULL,
+       role TEXT NOT NULL,
+       session_id TEXT,
+       heartbeat_at TEXT NOT NULL,
+       status TEXT NOT NULL,
+       focus TEXT NOT NULL,
+       claims TEXT NOT NULL DEFAULT '[]',
+       recorded_at TEXT NOT NULL,
+       authored_at TEXT,
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       migrated_at TEXT,
+       remit TEXT,
+       retired_at TEXT,
+       retired_reason TEXT,
+       CHECK ((retired_at IS NULL) = (retired_reason IS NULL))
+     );
+     INSERT INTO wb_node_rebuilt (moniker, name, role, session_id, heartbeat_at, status, focus,
+       claims, recorded_at, authored_at, updated_at, migrated_at, remit)
+       SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at,
+         authored_at, updated_at, migrated_at, remit
+       FROM wb_node;
+     DROP TABLE wb_node;
+     ALTER TABLE wb_node_rebuilt RENAME TO wb_node;",
   ),
 ];
 
@@ -3380,6 +3423,26 @@ impl WbWrite<'_> {
     Ok(moved > 0)
   }
 
+  /// Retire a node from the roster, or reinstate it with `None` (ST0092 WP-04):
+  /// `wb retire`, `wb init --change`, and `wb register` of a retired moniker.
+  /// Both columns move together, and an unchanged state moves nothing.
+  pub fn set_retired(
+    &mut self,
+    node: &str,
+    retired: Option<&crate::model::WbRetired>,
+  ) -> Result<bool, StoreError> {
+    let at = retired.map(|r| r.at.as_str());
+    let reason = retired.map(|r| r.reason.as_str());
+    let moved = self.tx.execute(
+      "UPDATE wb_node SET retired_at = ?2, retired_reason = ?3, \
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+       WHERE moniker = ?1 AND (retired_at IS NOT ?2 OR retired_reason IS NOT ?3)",
+      params![node, at, reason],
+    )?;
+    self.moved += moved;
+    Ok(moved > 0)
+  }
+
   /// Record the board's team declaration, for `wb init` and the ingest of its
   /// canon file (ST0092 WP-03). A declaration equal to the one held moves no
   /// row.
@@ -3810,7 +3873,8 @@ impl WbWrite<'_> {
           self.moved += self.tx.execute(
             "UPDATE wb_node SET name = ?2, role = ?3, session_id = ?4, heartbeat_at = ?5, \
              status = ?6, focus = ?7, claims = ?8, recorded_at = ?9, authored_at = ?10, \
-             migrated_at = ?11, remit = ?12, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
+             migrated_at = ?11, remit = ?12, retired_at = ?13, retired_reason = ?14, \
+             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') \
              WHERE moniker = ?1",
             params![
               n.moniker,
@@ -3825,6 +3889,8 @@ impl WbWrite<'_> {
               n.authored_at,
               n.migrated_at,
               n.remit,
+              n.retired.as_ref().map(|r| r.at.as_str()),
+              n.retired.as_ref().map(|r| r.reason.as_str()),
             ],
           )?;
         }
@@ -3836,8 +3902,8 @@ impl WbWrite<'_> {
         let n = now.nodes[o];
         self.moved += self.tx.execute(
           "INSERT INTO wb_node (moniker, name, role, session_id, heartbeat_at, status, focus, \
-           claims, recorded_at, authored_at, migrated_at, remit, updated_at) \
-           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, \
+           claims, recorded_at, authored_at, migrated_at, remit, retired_at, retired_reason, updated_at) \
+           VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, \
            strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
           params![
             n.moniker,
@@ -3852,6 +3918,8 @@ impl WbWrite<'_> {
             n.authored_at,
             n.migrated_at,
             n.remit,
+            n.retired.as_ref().map(|r| r.at.as_str()),
+            n.retired.as_ref().map(|r| r.reason.as_str()),
           ],
         )?;
       }
@@ -6071,7 +6139,7 @@ impl Store {
   fn hydrate_boards_on(conn: &rusqlite::Connection) -> Result<Vec<Board>, StoreError> {
     let mut stmt = conn.prepare(
       "SELECT moniker, name, role, session_id, heartbeat_at, status, focus, claims, recorded_at, \
-       authored_at, migrated_at, remit FROM wb_node ORDER BY moniker",
+       authored_at, migrated_at, remit, retired_at, retired_reason FROM wb_node ORDER BY moniker",
     )?;
     let nodes = stmt
       .query_map([], |row| {
@@ -6088,6 +6156,8 @@ impl Store {
           row.get::<_, Option<String>>(9)?,
           row.get::<_, Option<String>>(10)?,
           row.get::<_, Option<String>>(11)?,
+          row.get::<_, Option<String>>(12)?,
+          row.get::<_, Option<String>>(13)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -6106,6 +6176,8 @@ impl Store {
       authored_at,
       migrated_at,
       remit,
+      retired_at,
+      retired_reason,
     ) in nodes
     {
       let node = WbNode {
@@ -6121,6 +6193,10 @@ impl Store {
         authored_at,
         migrated_at,
         remit,
+        retired: match (retired_at, retired_reason) {
+          (Some(at), Some(reason)) => Some(crate::model::WbRetired { at, reason }),
+          _ => None,
+        },
       };
       boards.push(Board {
         schema: BOARD_SCHEMA.to_string(),

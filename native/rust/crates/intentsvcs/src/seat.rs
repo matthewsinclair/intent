@@ -56,6 +56,15 @@ pub fn mediator_given(declaration: Option<&crate::model::TeamDeclaration>) -> St
   declaration.map_or_else(|| UNDECLARED_MEDIATOR.to_string(), |d| d.mediator.clone())
 }
 
+/// The board's human seat: the one its declaration names, or, on a board that
+/// declares no profile, [`crate::model::HYPERVISOR`] by convention, as its
+/// mediator is [`UNDECLARED_MEDIATOR`]. No install is read. The one home for
+/// the question (vc's ruling across ST0092 WP-04 and WP-06): any other moniker
+/// is session-driven.
+pub fn human_seat(declaration: Option<&crate::model::TeamDeclaration>) -> String {
+  declaration.map_or_else(|| crate::model::HYPERVISOR.to_string(), |d| d.human.clone())
+}
+
 /// Where a session sits: its node and that board's mediator.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Seat {

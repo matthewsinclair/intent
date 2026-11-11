@@ -725,6 +725,13 @@ pub enum Verdict {
   Unchanged,
   /// A registered node no profile names. It is left as it is.
   Outside,
+  /// A retired node, declared or not (ST0092 WP-04). An apply leaves it
+  /// retired: it comes back only through `wb register` (vc's ruling (2)), and
+  /// a profile is reconciled without it.
+  Retired { reason: String },
+  /// A seat of the old base that the new one does not declare, which
+  /// `--change` retires (ST0092 WP-04). Nothing else retires a seat.
+  Retire,
 }
 
 /// One seat's line in the plan.
@@ -826,13 +833,27 @@ impl Teams {
 
 /// What an apply would do to each seat, in the profile's order, then each
 /// registered node no profile names. **PURE.**
-pub fn plan(resolved: &Resolved, roster: &[RosterRow<'_>]) -> Vec<SeatPlan> {
+pub fn plan(
+  resolved: &Resolved,
+  roster: &[RosterRow<'_>],
+  retired: &[(&str, &str)],
+  retiring: &[&str],
+) -> Vec<SeatPlan> {
+  let retired_reason = |m: &str| {
+    retired
+      .iter()
+      .find(|(r, _)| *r == m)
+      .map(|(_, reason)| (*reason).to_string())
+  };
   let mut out: Vec<SeatPlan> = resolved
     .seats
     .iter()
     .map(|seat| {
       let held = roster.iter().find(|(m, ..)| *m == seat.moniker);
       let verdict = match held {
+        Some(_) if retired_reason(&seat.moniker).is_some() => Verdict::Retired {
+          reason: retired_reason(&seat.moniker).unwrap_or_default(),
+        },
         None => Verdict::Register,
         Some((_, name, role, _)) if *name == seat.name && *role == seat.role => Verdict::Unchanged,
         Some((_, name, role, _)) => Verdict::Correct {
@@ -855,7 +876,11 @@ pub fn plan(resolved: &Resolved, roster: &[RosterRow<'_>]) -> Vec<SeatPlan> {
         moniker: (*moniker).to_string(),
         name: (*name).to_string(),
         role: (*role).to_string(),
-        verdict: Verdict::Outside,
+        verdict: match retired_reason(moniker) {
+          Some(reason) => Verdict::Retired { reason },
+          None if retiring.contains(moniker) => Verdict::Retire,
+          None => Verdict::Outside,
+        },
         default_remit: false,
       });
     }

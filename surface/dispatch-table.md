@@ -4149,7 +4149,7 @@ The whiteboard: read the node boards, and send between them
 | command       | args               | flags                                     | help                                                                                                      | disposition |
 | ------------- | ------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------- |
 | `wb`          | <command>          | --                                        | The whiteboard: read the node boards, and send between them                                               | new-surface |
-| `wb status`   | --                 | --json                                    | List the registered nodes: role, status, heartbeat, and what each is working on                           | new-surface |
+| `wb status`   | --                 | --all, --json                             | List the registered nodes: role, status, heartbeat, and what each is working on                           | new-surface |
 | `wb show`     | <node>             | --all, --json                             | Read one node's board: its header, its items, the messages still live, and a count of the handled ones    | new-surface |
 | `wb ask`      | <recipient> <body> | --node, --re, --fyi                       | Send one message from the acting node into another node's board                                           | new-surface |
 | `wb announce` | <body>             | --node                                    | Send one message to every registered node but the sender                                                  | new-surface |
@@ -4167,6 +4167,7 @@ The whiteboard: read the node boards, and send between them
 | `wb init`     | [profile]...       | --apply, --change                         | Bring the board to what its Team Profiles declare, and record the declaration                             | new-surface |
 | `wb remit`    | <moniker> [text]   | --default                                 | Set the remit this project gives a seat, or remove it so the seat shows its profile's default             | new-surface |
 | `wb register` | [moniker]          | --name, --role, --correct                 | Register a node from its arguments, or the roster from each node's own board header                       | new-surface |
+| `wb retire`   | <moniker>          | --reason <why>                            | Retire a node from the roster: its board and messages stay, and it is no longer a recipient               | new-surface |
 | `wb migrate`  | <node>             | --drop-uncarried                          | Carry one node's hand-authored board into the model                                                       | new-surface |
 
 ### `wb`
@@ -4189,6 +4190,10 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 
 - **v2:** new-surface
 - **Flags:**
+  - `--all` (bool) -- Include retired seats
+    - **ONE MEANING FOR `--all` IN THE FAMILY: INCLUDE WHAT THE DEFAULT HIDES** (ST0092 WP-04). Here that is retired seats, which the roster omits by default; on `wb show` it is handled messages.
+    - **disposition:** keep
+    - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
@@ -4196,7 +4201,7 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
-- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr.
+- **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk: `hats` null means the desk could not be read, and `intent wb status` names why on stderr.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `status` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4222,7 +4227,7 @@ Read one node's board: its header, its items, the messages still live, and a cou
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
-- **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. BY DEFAULT IT ANSWERS WITH THE LIVE SET: the messages still waiting to be handled are listed, and the handled ones are one line, `handled: N message(s) -- --all lists them`. REACH FOR `--all` only when the archive itself is the question, eg rereading a ruling whose message was already cleared; a status read never needs it. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board.
+- **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. BY DEFAULT IT ANSWERS WITH THE LIVE SET: the messages still waiting to be handled are listed, and the handled ones are one line, `handled: N message(s) -- --all lists them`. REACH FOR `--all` only when the archive itself is the question, eg rereading a ruling whose message was already cleared; a status read never needs it. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board. A retired node's board still reads, with a `retired` line giving when and why.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. Any workstream reads any node's board. `show` is the house spelling for reading one of a kind, as `st show` and `ac show` are.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4554,7 +4559,7 @@ Bring the board to what its Team Profiles declare, and record the declaration
   - `--apply` (bool) -- Make the changes; without it, print the plan and write nothing
     - **disposition:** keep
     - **exposed on mcp:** false
-  - `--change` (bool) -- Move the board to a different base. Seats the new profiles do not declare are left as they are and reported outside the profile
+  - `--change` (bool) -- Move the board to a different base: register the new base's seats and retire the old base's seats the new one does not declare
     - **disposition:** keep
     - **exposed on mcp:** false
 - **Exit codes:**
@@ -4565,7 +4570,7 @@ Bring the board to what its Team Profiles declare, and record the declaration
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit. The human seat keeps one inbox pair, with the mediator, so an apply removes every other pair's view of it and names each on a `removed:` line; while such a pair still holds a live message, the dry run and the apply refuse and name each with its sender and the clear that handles it, and every message stays readable with `--all`.
+- **when to use:** USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. A retired node is reconciled without: it is neither planned for nor counted, a re-apply leaves it retired and lists it as `retired <moniker> (<reason>)`, and only `wb register` brings it back. With `--change` to another base, it registers the new base's seats and retires the old base's seats that the new one does not declare, under `wb retire`'s rules (a claim or the human seat refuses, before anything is written), and its dry run lists both; nothing else in `wb init` retires. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit. The human seat keeps one inbox pair, with the mediator, so an apply removes every other pair's view of it and names each on a `removed:` line; while such a pair still holds a live message, the dry run and the apply refuse and name each with its sender and the clear that handles it, and every message stays readable with `--all`.
 - **basis:** ST0092/WP/03 info.md: `intent wb init <profile>` brings a board to what its profiles declare and touches nothing else on it. There is no v2 antecedent.
 - **owner wp:** ST0092 WP-03
 - **acceptance:** ST0092 AC-03.1 to AC-03.5, AC-03.8
@@ -4625,7 +4630,7 @@ Register a node from its arguments, or the roster from each node's own board hea
 - **stderr:** `error: ...` with a remedy on any refusal (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name "<display name>" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. On a board that declares a team, a moniker its profiles name is taken only with the profile's name and role, `--correct` included: other values are refused, and the refusal prints the profile's. `wb init --apply` brings a seat back to its profile; a seat leaves its profile only when the profile changes. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages.
+- **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name "<display name>" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. On a board that declares a team, a moniker its profiles name is taken only with the profile's name and role, `--correct` included: other values are refused, and the refusal prints the profile's. `wb init --apply` brings a seat back to its profile; a seat leaves its profile only when the profile changes. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages. A retired node is brought back by registering its moniker: the same node returns with its board, items and messages, and on a declared board with the profile's name and role.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The roster is authored configuration a human wrote; this registers it rather than inventing it.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4633,6 +4638,33 @@ Register a node from its arguments, or the roster from each node's own board hea
 - **recoverability anomaly:** IDEMPOTENT AND WITHHELD ANYWAY, AND THE GROUND IS THAT IT IS A PROJECT-SETUP ACT RATHER THAN THAT IT CANNOT BE UNDONE -- recorded here rather than solved by bending the label, which is what this field is for. The MCP withhold list derives from `recoverability` because the usual reason to keep a mutation off the tool tier is irreversibility, and this one is reversible in the only sense that matters: running it twice writes nothing the first run did not. **What it does is decide WHO the participants of this project are, which is a thing a human declares and an agent should not start unasked** -- every board, every item and every message afterwards hangs off the rows it writes, and a roster registered by a passing tool call is a coordination estate nobody chose. The same reasoning `index rebuild` records, arriving at the same answer from a different direction: that one is withheld for contention, this one for authorship. A candidate for exposure on a ruling about who may declare a roster, never on the observation that it is safe to repeat -- which is true and is a different question.
 - **facade:** register_roster
 - **note:** **THE ROSTER IS READ FROM EACH NODE'S OWN `wip.md` HEADER, AND FROM THE README TABLE FOR NOTHING** (vc, 2026-09-12). That table has no `role` column -- its third is a charter sentence -- and the file says of ITSELF that it has no single writer and goes stale, having described one node's lane wrongly through an entire reorganisation with nobody owning the correction. Its own proposed fix is this one, recorded there before this verb existed. **THE REGISTER ROW LANDS WITH THE ARM RATHER THAN BEFORE IT**, an amendment vc made explicitly and only for WP-14: the SSOT cannot precede the arm across two nodes, so cc adds the row in the commit that builds the verb and ic reviews and corrects it in their own. **IT REGISTERS AND DOES NOT MIGRATE** -- the rows carry no items and no messages, so five thin board files are configuration rather than a half-finished migration. **AND A NODE CAN BE NAMED FROM ITS ARGUMENTS** (vc, 2026-09-13, on ic's finding): once headers render from the store, reading them can create nothing, so the explicit form is how a node joins after the cutover; the header form stays beside it until the last hand-authored board has migrated. Both forms reach the store through one insert.
+
+### `wb retire`
+
+Retire a node from the roster: its board and messages stay, and it is no longer a recipient
+
+- **v2:** new-surface
+- **Arguments:**
+  - `moniker` (node, arity `1`) -- The node to retire
+- **Flags:**
+  - `--reason` `<why>` (string) -- Why the node leaves the roster, recorded on its board
+    - **required:** true
+    - **disposition:** keep
+    - **exposed on mcp:** false
+- **Exit codes:**
+  - `0` -- the node was retired, or was already retired
+  - `1` -- a refusal: no `--reason`, a moniker the roster does not carry (the roster named), the board's human seat, its mediator, or a node holding a claim (each claim named)
+- **stdout:** `ok: <moniker> retired`, or `ok: <moniker> was already retired`; then each message addressed to it that it never handled on an `awaiting:` line naming its sender, every file on a `wrote:` or `removed:` line, and the roster-commit `note:`
+- **stderr:** `error: ...` with a remedy on any refusal (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **when to use:** USE IT when a seat leaves the roster for good, eg a hub's `vc` that `sc` replaced, or a seat a reshaped team no longer declares. Retired is a state, never a deletion: the node keeps its board, its items and every message it sent or received, `wb show <moniker>` still reads it and says retired, and `wb status` lists it only with `--all`. A message the leaver sent stays in its recipient's inbox until handled; one addressed to it that it never handled is named in the report, for its sender to send on or archive. It refuses without `--reason`, a node holding a claim (each named, since a node cannot take its claims with it), the board's human seat, and its mediator, which goes only in `wb init <base> --change`. A node already retired is a no-op that says so. DO NOT USE IT to rename a seat: retire the old and register its successor. `wb register` of the same moniker reinstates the same node with its board.
+- **basis:** ST0092/WP/04 info.md: `intent wb retire <moniker> --reason "<why>"` takes a node off the roster as a state, never a deletion. There is no v2 antecedent.
+- **owner wp:** WP-04
+- **acceptance:** AC-04.1
+- **recoverability:** reversible
+- **recoverability anomaly:** Reversible by `wb register` of the same moniker, and withheld from MCP for the reason `wb register`'s row gives: it decides who the participants are.
+- **facade:** wb_retire
 
 ### `wb migrate`
 

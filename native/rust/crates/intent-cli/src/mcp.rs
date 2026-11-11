@@ -1442,7 +1442,7 @@ fn tool_answer(
     "wb status" => {
       // The messages addressed to a node are counted from the store, which
       // joins them with its marks: its own board carries what it sent (0612).
-      let status = f.wb_status()?;
+      let status = f.wb_status(opt_b(path, map, "all")?)?;
       let mut rows = Vec::new();
       for row in &status.rows {
         let b = &row.board;

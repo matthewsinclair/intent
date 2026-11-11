@@ -76,6 +76,13 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::Teams(_)
     | FacadeError::RosterReadme(_)
     | FacadeError::RosterReadmeTemplate { .. }
+    // A retirement's reason is demanded and does reach a face, `wb show`'s
+    // header and `board.json` (ST0092 WP-04, its own arm); this test's faces
+    // are a thread's views, which a board's reason never reaches.
+    | FacadeError::WbRetireNoReason { .. }
+    | FacadeError::WbRetireHuman { .. }
+    | FacadeError::WbRetireMediator { .. }
+    | FacadeError::WbRetireHoldsClaims { .. }
     | FacadeError::RosterReadmeUnreadable { .. }
     | FacadeError::SqlMoreThanOneStatement
     | FacadeError::SqlNoStatement

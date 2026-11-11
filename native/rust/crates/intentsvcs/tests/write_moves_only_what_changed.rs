@@ -487,6 +487,16 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      verb writes back from the store at each step.",
   ),
   (
+    "wb retire",
+    "intentsvcs/tests/wb_retire.rs -- `at_04_1_a_retired_node_keeps_its_board_and_status_lists_it_only_with_all` \
+     holds that a retirement moves the node's `retired` and leaves its board, items and messages \
+     readable; `at_04_2_a_retirement_refuses_no_reason_claims_the_mediator_and_the_human` that each \
+     refusal moves no file; `at_04_4_a_retired_pairs_views_go_only_when_nothing_in_them_is_live` \
+     that the only files it removes are pair views holding nothing live; and \
+     `at_04_5_registering_a_retired_moniker_reinstates_the_same_node` that an already retired \
+     node is a no-op.",
+  ),
+  (
     "index rebuild",
     "intent-cli/tests/the_index_says_what_it_holds.rs -- `a_status_before_a_rebuild_says_the_index_holds_nothing` \
      drives the verb against a real estate and holds the property this file exists for, in the form \

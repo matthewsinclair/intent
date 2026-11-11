@@ -1,5 +1,5 @@
 # INTENT_VER: 3.2.8
-# SCHEMA_SDL_VER: 22
+# SCHEMA_SDL_VER: 23
 
 enum AcKind {
   TEST
@@ -726,11 +726,33 @@ type WbNode {
   remit is shown, and never written here.
   """
   remit: String
+  """
+  Set while the node is retired from the roster: when, and why. A
+  retired node keeps its board and every message, is no longer a
+  recipient, and comes back as itself only through `wb register`.
+  Retirement is roster state, never the session's `status`, which a
+  pickup moves.
+  """
+  retired: WbRetired
 }
 
 enum WbNodeStatus {
   ACTIVE
   PAUSED
+}
+
+"""
+A node's retirement from the roster.
+"""
+type WbRetired {
+  """
+  When the service recorded the retirement.
+  """
+  at: String!
+  """
+  The reason `wb retire --reason` gave.
+  """
+  reason: String!
 }
 
 """

@@ -563,6 +563,8 @@ mod wb_pickup_states_the_session;
 mod wb_profile_drift;
 #[path = "wb_register_names_a_node.rs"]
 mod wb_register_names_a_node;
+#[path = "wb_retire.rs"]
+mod wb_retire;
 #[path = "wb_views_are_generated.rs"]
 mod wb_views_are_generated;
 #[path = "wb_writes_are_recorded.rs"]

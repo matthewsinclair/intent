@@ -2168,6 +2168,23 @@ pub enum FacadeError {
   /// and removes the guess.
   #[error("no node `{node}` is registered in this project; the roster carries {known}")]
   WbNodeNotRegistered { node: String, known: String },
+  /// `wb retire` of the board's human seat (ST0092 WP-04): a human seat is
+  /// only ever registered, as the terms say.
+  #[error(
+    "`{node}` is this board's human seat, and a human seat is only ever registered, never retired"
+  )]
+  WbRetireHuman { node: String },
+  /// `wb retire` of the board's mediator (ST0092 WP-04). It goes only in a
+  /// change of profile that names another.
+  #[error("`{node}` is this board's mediator, the one route to hv, and is not retired while it is")]
+  WbRetireMediator { node: String },
+  /// `wb retire` of a node that holds claims (ST0092 WP-04): a node cannot
+  /// take its claims with it.
+  #[error("`{node}` holds {}, and a node cannot take its claims with it", claims.join(", "))]
+  WbRetireHoldsClaims { node: String, claims: Vec<String> },
+  /// `wb retire` with no reason (ST0092 WP-04): the retirement records why.
+  #[error("retiring `{node}` needs a reason, which the retirement records")]
+  WbRetireNoReason { node: String },
   /// An entry body over the configured bound.
   ///
   /// **THE BOUND IS IN THE MESSAGE BECAUSE THE WRITER HAS TO ACT ON IT.** A
@@ -2800,6 +2817,23 @@ impl BoardRead {
   }
 }
 
+/// What `wb retire` did (ST0092 WP-04): the node, whether this run retired it
+/// (`false` for one already retired), and each message addressed to it that it
+/// never handled, for its sender to send on or archive.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbRetire {
+  pub node: String,
+  pub retired: bool,
+  pub awaiting: Vec<WbAwaiting>,
+}
+
+/// A live message addressed to a retired node: who sent it, and when.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WbAwaiting {
+  pub sender: String,
+  pub recorded_at: String,
+}
+
 /// What `wb init` would do, or did (ST0092 WP-03): the resolved profiles,
 /// each seat's verdict, whether the declaration moves, and, after an apply,
 /// how many roster rows moved.
@@ -2906,6 +2940,16 @@ impl crate::remedy::Remedy for FacadeError {
       // 0609) so every verb that refuses an absent node shows it: the session
       // name `<project>-<node>` is the natural fill-in for a display name, so
       // the remedy shows what one looks like.
+      Self::WbRetireHuman { .. } => "leave the human seat registered; a retirement is for a seat a session drives. Nothing was written.".to_string(),
+      Self::WbRetireMediator { node } => format!(
+        "move the mediator first, with `intent wb init <base> --change --apply` naming a profile whose mediator is another seat, which retires `{node}` if the new base does not declare it. Nothing was written."
+      ),
+      Self::WbRetireHoldsClaims { node, .. } => format!(
+        "drop each claim, or hand it to the node taking the work on, with `intent wb unclaim <id> --node {node}`, then retire it again. Nothing was written."
+      ),
+      Self::WbRetireNoReason { node } => format!(
+        "say why: `intent wb retire {node} --reason \"<why>\"`. Nothing was written."
+      ),
       Self::WbNodeNotRegistered { node, .. } => format!(
         "check the spelling against that roster. A missing node is registered with `{}`, with a display name and a one-word role rather than the session name (eg `--name \"Control Claude\" --role control`); where each node's board is still a hand-authored `wip.md`, `intent wb register` with no arguments registers the roster from those headers. A node registered with the wrong name or role is fixed with `intent wb register <moniker> --name ... --role ... --correct`",
         crate::model::register_form(node)
@@ -8163,7 +8207,22 @@ impl Facade {
       .find(|b| b.node.moniker == moniker)
     {
       if held.node.name == name && held.node.role == role {
-        return Ok(0);
+        // **REGISTERING A RETIRED MONIKER AGAIN REINSTATES IT** (ST0092 WP-04):
+        // the same node, with its board, and never a second one.
+        if held.node.retired.is_none() {
+          return Ok(0);
+        }
+        let event = self.wb_event(
+          "wb.register",
+          moniker,
+          json!({ "name": name, "role": role, "reinstated": true }),
+        );
+        self
+          .store
+          .wb_write(&event, |w| w.set_retired(moniker, None))
+          .map_err(FacadeError::Store)?;
+        self.land_board_write_noting(&[moniker])?;
+        return Ok(1);
       }
       return Err(FacadeError::WbRegisteredDifferently {
         node: moniker.to_string(),
@@ -8230,6 +8289,103 @@ impl Facade {
       self.land_board_write_noting(&[moniker])?;
     }
     Ok(written)
+  }
+
+  /// `intent wb retire <moniker> --reason "<why>"` (ST0092 WP-04): take a node
+  /// off the roster as a state, never a deletion.
+  ///
+  /// **EVERY REFUSAL BEFORE ANY WRITE**: no reason, a moniker the roster does
+  /// not carry, the board's human seat, its mediator, and a node holding a
+  /// claim, each claim named. A node already retired is a no-op the report
+  /// says so. A live message does not refuse: one the leaver sent stays in its
+  /// recipient's inbox until handled, and one addressed to it that it never
+  /// handled is named in the report.
+  pub fn wb_retire(&mut self, moniker: &str, reason: &str) -> Result<WbRetire, FacadeError> {
+    if reason.trim().is_empty() {
+      return Err(FacadeError::WbRetireNoReason {
+        node: moniker.to_string(),
+      });
+    }
+    self.require_registered(moniker)?;
+    let boards = self.boards()?;
+    let Some(leaver) = boards.iter().find(|b| b.node.moniker == moniker) else {
+      return Err(FacadeError::WbNodeNotRegistered {
+        node: moniker.to_string(),
+        known: String::new(),
+      });
+    };
+    let awaiting: Vec<WbAwaiting> = boards
+      .iter()
+      .filter(|b| b.node.moniker != moniker)
+      .flat_map(|b| {
+        b.sent
+          .iter()
+          .filter(|m| {
+            m.recipient == moniker
+              && m.archived_at.is_none()
+              && !leaver
+                .handled
+                .iter()
+                .any(|h| h.id == m.id && h.sender == b.node.moniker)
+          })
+          .map(|m| WbAwaiting {
+            sender: b.node.moniker.clone(),
+            recorded_at: m.recorded_at.clone(),
+          })
+      })
+      .collect();
+    if leaver.node.retired.is_some() {
+      return Ok(WbRetire {
+        node: moniker.to_string(),
+        retired: false,
+        awaiting,
+      });
+    }
+    let (human, mediator) = self.human_and_mediator()?;
+    if human == moniker {
+      return Err(FacadeError::WbRetireHuman {
+        node: moniker.to_string(),
+      });
+    }
+    if mediator == moniker {
+      return Err(FacadeError::WbRetireMediator {
+        node: moniker.to_string(),
+      });
+    }
+    if !leaver.node.claims.is_empty() {
+      return Err(FacadeError::WbRetireHoldsClaims {
+        node: moniker.to_string(),
+        claims: leaver.node.claims.clone(),
+      });
+    }
+    let event = self.wb_event("wb.retire", moniker, json!({ "reason": reason }));
+    let retired = crate::model::WbRetired {
+      at: event.ts.clone(),
+      reason: reason.to_string(),
+    };
+    self
+      .store
+      .wb_write(&event, |w| w.set_retired(moniker, Some(&retired)))
+      .map_err(FacadeError::Store)?;
+    self.land_board_write_noting(&[moniker])?;
+    Ok(WbRetire {
+      node: moniker.to_string(),
+      retired: true,
+      awaiting,
+    })
+  }
+
+  /// The board's human seat and its mediator: the declaration's where the
+  /// board declares a team, and otherwise the undeclared conventions
+  /// ([`crate::seat::human_seat`], [`crate::seat::UNDECLARED_MEDIATOR`]). No
+  /// install is read.
+  fn human_and_mediator(&self) -> Result<(String, String), FacadeError> {
+    let declared = self.store.wb_declaration().map_err(FacadeError::Store)?;
+    let mediator = declared.as_ref().map_or_else(
+      || crate::seat::UNDECLARED_MEDIATOR.to_string(),
+      |d| d.mediator.clone(),
+    );
+    Ok((crate::seat::human_seat(declared.as_ref()), mediator))
   }
 
   /// Correct a registered node's name and role, and say whether they moved
@@ -8439,12 +8595,61 @@ impl Facade {
         )
       })
       .collect();
-    let seats = crate::teams::plan(&resolved, &roster);
+    // **RETIRED NODES ARE NEITHER PLANNED FOR NOR COUNTED** (ST0092 WP-04, vc's
+    // ruling (2)): a re-apply leaves one retired, and only `wb register` brings
+    // it back. `--change` to another base retires the old base's seats the new
+    // one does not declare, and is the only thing in `wb init` that retires.
+    let retired: Vec<(&str, &str)> = boards
+      .iter()
+      .filter_map(|b| {
+        b.node
+          .retired
+          .as_ref()
+          .map(|r| (b.node.moniker.as_str(), r.reason.as_str()))
+      })
+      .collect();
+    let retiring: Vec<String> = match held.as_ref() {
+      Some(old) if change && old.base != resolved.base => teams
+        .resolve(&[], Some(old), false)?
+        .seats
+        .into_iter()
+        .map(|s| s.moniker)
+        .filter(|m| {
+          !resolved.seats.iter().any(|s| &s.moniker == m)
+            && boards
+              .iter()
+              .any(|b| &b.node.moniker == m && b.node.retired.is_none())
+        })
+        .collect(),
+      _ => Vec::new(),
+    };
+    let retiring_refs: Vec<&str> = retiring.iter().map(String::as_str).collect();
+    let seats = crate::teams::plan(&resolved, &roster, &retired, &retiring_refs);
+    for moniker in &retiring {
+      if held.as_ref().is_some_and(|d| &d.human == moniker) {
+        return Err(FacadeError::WbRetireHuman {
+          node: moniker.clone(),
+        });
+      }
+      if let Some(b) = boards.iter().find(|b| &b.node.moniker == moniker)
+        && !b.node.claims.is_empty()
+      {
+        return Err(FacadeError::WbRetireHoldsClaims {
+          node: moniker.clone(),
+          claims: b.node.claims.clone(),
+        });
+      }
+    }
+    let on_the_roster: Vec<crate::teams::RosterRow<'_>> = roster
+      .iter()
+      .filter(|(m, ..)| !retired.iter().any(|(r, _)| r == m) && !retiring.iter().any(|r| r == m))
+      .copied()
+      .collect();
     // **THE ROSTER README IS DECIDED HERE, BEFORE ANY WRITE, AND THE DRY RUN
     // MEETS ITS REFUSALS TOO** (WP-07): a hand edit outside its block and
     // wrong markers refuse now, and the hash the render records rides the
     // declaration.
-    let readme = self.roster_readme(&teams, &resolved, &roster, held.as_ref())?;
+    let readme = self.roster_readme(&teams, &resolved, &on_the_roster, held.as_ref())?;
     let mut declaration = resolved.declaration(held.as_ref());
     declaration.readme_baseline = Some(readme.baseline.clone());
     let declaration_moves = held.as_ref() != Some(&declaration);
@@ -8465,7 +8670,9 @@ impl Facade {
           .store
           .wb_node_migrated(&seat.moniker)
           .map_err(FacadeError::Store)?,
-        crate::teams::Verdict::Outside => false,
+        crate::teams::Verdict::Outside
+        | crate::teams::Verdict::Retired { .. }
+        | crate::teams::Verdict::Retire => false,
       };
       if unmigrated {
         return Err(FacadeError::WbNotMigrated {
@@ -8501,8 +8708,18 @@ impl Facade {
       .map(|s| (s.moniker.clone(), s.name.clone(), s.role.clone()))
       .collect();
     let recorded = declaration_moves.then_some(&declaration);
+    let change_reason = held
+      .as_ref()
+      .map(|d| {
+        format!(
+          "`intent wb init --change` from `{}` to `{}`",
+          d.base, report.resolved.base
+        )
+      })
+      .unwrap_or_default();
     if !apply {
-      report.would_write = self.wb_init_preview(&register, &correct, recorded)?;
+      report.would_write =
+        self.wb_init_preview(&register, &correct, &retiring, &change_reason, recorded)?;
       if readme.plan != crate::roster_readme::Plan::Unchanged {
         report
           .would_write
@@ -8542,13 +8759,21 @@ impl Facade {
         "layers": report.resolved.layers,
         "registered": register.iter().map(|(m, ..)| m).collect::<Vec<_>>(),
         "corrected": correct.iter().map(|(m, ..)| m).collect::<Vec<_>>(),
+        "retired": retiring,
         "declaration": declaration_moves,
       }),
     );
+    let at = event.ts.clone();
     let moved = self
       .store
       .wb_write(&event, |w| {
-        Self::init_writes(w, &register, &correct, recorded)
+        Self::init_writes(
+          w,
+          &register,
+          &correct,
+          (&retiring, &at, &change_reason),
+          recorded,
+        )
       })
       .map_err(FacadeError::Store)?;
     report.applied = true;
@@ -8558,6 +8783,7 @@ impl Facade {
         .iter()
         .chain(&correct)
         .map(|(m, ..)| m.as_str())
+        .chain(retiring.iter().map(String::as_str))
         .collect();
       self.land_board_write_noting(&acting)?;
     }
@@ -8575,12 +8801,22 @@ impl Facade {
     w: &mut crate::store::WbWrite<'_>,
     register: &[(String, String, String)],
     correct: &[(String, String, String)],
+    (retire, at, reason): (&[String], &str, &str),
     declaration: Option<&crate::model::TeamDeclaration>,
   ) -> Result<usize, StoreError> {
     let mut moved = w.register_nodes(register, true)?;
     for (moniker, name, role) in correct {
       w.set_identity(moniker, name, role)?;
       moved += 1;
+    }
+    for moniker in retire {
+      let retired = crate::model::WbRetired {
+        at: at.to_string(),
+        reason: reason.to_string(),
+      };
+      if w.set_retired(moniker, Some(&retired))? {
+        moved += 1;
+      }
     }
     if let Some(d) = declaration {
       w.set_declaration(d)?;
@@ -8653,6 +8889,8 @@ impl Facade {
     &self,
     register: &[(String, String, String)],
     correct: &[(String, String, String)],
+    retire: &[String],
+    reason: &str,
     declaration: Option<&crate::model::TeamDeclaration>,
   ) -> Result<Vec<String>, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
@@ -8673,9 +8911,10 @@ impl Facade {
       )
       .map_err(FacadeError::Store)?;
     let event = self.wb_event("wb.init", "preview", json!({}));
+    let at = event.ts.clone();
     shadow
       .wb_write(&event, |w| {
-        Self::init_writes(w, register, correct, declaration)
+        Self::init_writes(w, register, correct, (retire, &at, reason), declaration)
       })
       .map_err(FacadeError::Store)?;
     let mut canon = self.canon.clone();
@@ -9038,6 +9277,8 @@ impl Facade {
     self.reindex_boards()?;
     let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
     let whiteboard = self.project.whiteboard_dir();
+    let rendered: std::collections::BTreeSet<std::path::PathBuf> =
+      set.writes().map(|(path, _)| path.to_path_buf()).collect();
     let mut boards = WriteSet::new();
     for (path, content) in set
       .writes()
@@ -9059,7 +9300,45 @@ impl Facade {
     self.note_landed(&applied);
     applied.keep();
     self.drop_closed_pair_views()?;
-    self.record_landed(&canon_files, &landed)
+    self.record_landed(&canon_files, &landed)?;
+    self.prune_retired_pair_views(&rendered)
+  }
+
+  /// Remove each inbox view of a pair with a retired node that this render no
+  /// longer writes, because it holds nothing live (ST0092 WP-04, AC-04.4), and
+  /// name each on a `removed:` line. Only such a pair's view is ever pruned:
+  /// every other pair renders, an empty one included.
+  fn prune_retired_pair_views(
+    &mut self,
+    rendered: &std::collections::BTreeSet<std::path::PathBuf>,
+  ) -> Result<(), FacadeError> {
+    let monikers: Vec<(String, bool)> = self
+      .canon
+      .boards
+      .iter()
+      .map(|b| (b.node.moniker.clone(), b.node.retired.is_some()))
+      .collect();
+    let mut stale = Vec::new();
+    for (a, a_retired) in &monikers {
+      for (b, b_retired) in &monikers {
+        if a == b || !(*a_retired || *b_retired) {
+          continue;
+        }
+        let view = self.project.wb_inbox_view(a, b);
+        if view.is_file() && !rendered.contains(&view) {
+          stale.push(view);
+        }
+      }
+    }
+    for view in &stale {
+      std::fs::remove_file(view).map_err(|source| FacadeError::ViewsNotWritten {
+        cause: WriteError::Io {
+          path: view.display().to_string(),
+          source,
+        },
+      })?;
+    }
+    self.note_removed(&stale)
   }
 
   /// Take off disk every inbox view a declared team closes (ST0092 WP-05,
@@ -9438,8 +9717,14 @@ impl Facade {
   /// register`, and from there `sync --to-disk` or `wb migrate` wrote empty
   /// boards over every file. What that store lacks is the boards on disk, and
   /// the refusal names the verb that carries them in.
-  pub fn wb_status(&self) -> Result<WbStatus, FacadeError> {
-    let boards = self.boards()?;
+  pub fn wb_status(&self, all: bool) -> Result<WbStatus, FacadeError> {
+    // **A RETIRED NODE IS LISTED ONLY WITH `--all`** (ST0092 WP-04): `--all`
+    // keeps one meaning in the family, include what the default hides.
+    let boards: Vec<crate::model::Board> = self
+      .boards()?
+      .into_iter()
+      .filter(|b| all || b.node.retired.is_none())
+      .collect();
     if boards.is_empty() {
       self.refuse_if_the_store_lacks_any()?;
     }

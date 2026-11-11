@@ -4453,6 +4453,28 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
       print_written(&f.take_written(&moniker));
       Ok(())
     }
+    Some(("retire", m)) => {
+      let mut f = open()?;
+      let moniker = arg(m, "moniker")?;
+      let reason = m.get_one::<String>("reason").map_or("", String::as_str);
+      let report = f.wb_retire(&moniker, reason).map_err(fail)?;
+      print_notes(&f.take_notes(), "the roster");
+      if report.retired {
+        println!("ok: {moniker} retired");
+      } else {
+        println!("ok: {moniker} was already retired");
+      }
+      // **A MESSAGE THE LEAVER NEVER HANDLED IS NAMED** (ST0092 WP-04): its
+      // sender, that message's one writer, sends it on or archives it.
+      for a in &report.awaiting {
+        println!(
+          "awaiting: a message from {} recorded {} that {moniker} never handled; {} sends it on or archives it",
+          a.sender, a.recorded_at, a.sender
+        );
+      }
+      print_written(&f.take_written_by_the_roster());
+      Ok(())
+    }
     Some(("register", m)) => {
       let mut f = open()?;
       let moniker = m.get_one::<String>("moniker");
@@ -4507,7 +4529,7 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("status", m)) => {
       let f = open()?;
-      let status = f.wb_status().map_err(fail)?;
+      let status = f.wb_status(m.get_flag("all")).map_err(fail)?;
       let live = f.wb_live_counts().map_err(fail)?;
       report_wb_status(&status, &live, m.get_flag("json"))
     }
@@ -5097,6 +5119,11 @@ fn report_wb_board(
   let n = &board.node;
   println!("{} ({}) -- {}", n.moniker, n.role, n.name);
   println!("  status     {}", status_word(&n.status));
+  // **A RETIRED NODE SAYS SO IN ITS HEADER** (ST0092 WP-04), read without
+  // `--all`: retirement is roster state, beside the session's status.
+  if let Some(r) = &n.retired {
+    println!("  retired    {} -- {}", r.at, r.reason);
+  }
   println!("  heartbeat  {}", n.heartbeat_at);
   println!("  focus      {}", n.focus);
   println!(
@@ -15435,6 +15462,14 @@ fn wb_init_report(report: &intentsvcs::facade::WbInit) {
       Verdict::Unchanged => format!("unchanged  {} {} ({})", seat.moniker, seat.name, seat.role),
       Verdict::Outside => format!(
         "outside    {} {} ({}): no declared profile names it, and it is left as it is",
+        seat.moniker, seat.name, seat.role
+      ),
+      Verdict::Retired { reason } => format!(
+        "retired    {} ({reason}): left retired; `intent wb register` brings it back",
+        seat.moniker
+      ),
+      Verdict::Retire => format!(
+        "retire     {} {} ({}): the new base does not declare it",
         seat.moniker, seat.name, seat.role
       ),
     };

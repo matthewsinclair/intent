@@ -174,6 +174,7 @@ WbNode|wb_node#wb_node
 WbItem|wb_node#wb_item
 WbSent|wb_node#wb_message
 WbHandled|wb_node#wb_mark
+WbRetired|wb_node#wb_retired
 Board|board
 TeamDeclaration|wb_declaration
 -|project|never:`intent/.config/config.json` is CONFIGURATION read by `Config`, not a canon entity with a published JSON face. Its contract is the file format itself, and its catch-all row (`Config::extra`, carried verbatim) means a property set could not be closed even in principle. RATIFIED by vc under the pen, 2026-09-12, on this line's own reasoning. Declared here rather than skipped silently: it is reported every run and it never gates.

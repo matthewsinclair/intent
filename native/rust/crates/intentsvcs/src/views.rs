@@ -2477,6 +2477,12 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       if sender == node || !crate::model::pair_open(canon.declaration.as_ref(), sender, node) {
         continue;
       }
+      // **A RETIRED NODE'S PAIR VIEWS GO WHEN THEY HOLD NOTHING LIVE** (ST0092
+      // WP-04): a message stays in its recipient's inbox until that recipient
+      // handles it, so the view stays while one is live and is removed after.
+      if (board.node.retired.is_some() || peer.node.retired.is_some()) && !holds_live(peer, board) {
+        continue;
+      }
       views.push(View {
         path: project.wb_inbox_view(node, sender),
         content: wb_inbox(sender, node, &peer.sent, ctx),
@@ -2485,6 +2491,19 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   }
   views.extend(aggregate_views(project, &canon.threads, ctx));
   views
+}
+
+/// Whether `sender` sent `recipient` a message the sender has not archived and
+/// the recipient has not handled: what keeps a retired node's pair view.
+pub fn holds_live(sender: &crate::model::Board, recipient: &crate::model::Board) -> bool {
+  sender.sent.iter().any(|m| {
+    m.recipient == recipient.node.moniker
+      && m.archived_at.is_none()
+      && !recipient
+        .handled
+        .iter()
+        .any(|h| h.id == m.id && h.sender == sender.node.moniker)
+  })
 }
 
 /// The two estate-wide views, `intent/st/steel_threads.md` and

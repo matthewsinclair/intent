@@ -2326,7 +2326,8 @@ pub fn parse_domain_date(raw: &str) -> Result<String, DateError> {
 // by insertion, and every view orders that way.
 
 /// The `schema` field value for a node's board canon file. 4.1 adds the
-/// node's `remit` (ST0092 WP-03).
+/// node's `remit` (ST0092 WP-03) and its `retired` state (ST0092 WP-04), one
+/// shape for one release (vc's ruling, 2026-11-11).
 pub const BOARD_SCHEMA: &str = "intent/board@4.1";
 
 /// The board file's shape before ST0092 WP-03, with no `remit` on its node.
@@ -2458,6 +2459,24 @@ pub struct WbNode {
   /// remit is shown, and never written here.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub remit: Option<String>,
+  /// Set while the node is retired from the roster: when, and why. A
+  /// retired node keeps its board and every message, is no longer a
+  /// recipient, and comes back as itself only through `wb register`.
+  /// Retirement is roster state, never the session's `status`, which a
+  /// pickup moves.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub retired: Option<WbRetired>,
+}
+
+/// A node's retirement from the roster.
+// ST0092 WP-04.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct WbRetired {
+  /// When the service recorded the retirement.
+  pub at: String,
+  /// The reason `wb retire --reason` gave.
+  pub reason: String,
 }
 
 /// The whole `wb register` command for `moniker`, as a remedy tells the user to
@@ -3234,6 +3253,7 @@ mod claim_address_tests {
           authored_at: None,
           migrated_at: migrated.then(|| "2026-09-13T11:03:59.755Z".to_string()),
           remit: None,
+          retired: None,
         },
         items: Vec::new(),
         sent: Vec::new(),

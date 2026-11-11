@@ -64,6 +64,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   let unreadable = Fixture::new();
   std::fs::create_dir_all(unreadable.root().join("intent/whiteboard/README.md"))
     .expect("a directory where the README goes");
+  // A retirement with no reason is refused before the roster is read (ST0092
+  // WP-04).
+  out.push((
+    "a retirement with no reason",
+    facade.wb_retire("vc", "  ").expect_err("no reason"),
+  ));
   out.push((
     "a roster README that cannot be read",
     unreadable
@@ -1254,6 +1260,10 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Teams(_) => "Teams",
     FacadeError::RosterReadme(_) => "RosterReadme",
     FacadeError::RosterReadmeTemplate { .. } => "RosterReadmeTemplate",
+    FacadeError::WbRetireHuman { .. } => "WbRetireHuman",
+    FacadeError::WbRetireMediator { .. } => "WbRetireMediator",
+    FacadeError::WbRetireHoldsClaims { .. } => "WbRetireHoldsClaims",
+    FacadeError::WbRetireNoReason { .. } => "WbRetireNoReason",
     FacadeError::RosterReadmeUnreadable { .. } => "RosterReadmeUnreadable",
     FacadeError::NoSuchFormat { .. } => "NoSuchFormat",
     FacadeError::LossyFormat { .. } => "LossyFormat",
@@ -1404,6 +1414,10 @@ const ALL_VARIANTS: &[&str] = &[
   "RosterReadme",
   "RosterReadmeTemplate",
   "RosterReadmeUnreadable",
+  "WbRetireHuman",
+  "WbRetireMediator",
+  "WbRetireHoldsClaims",
+  "WbRetireNoReason",
   "NoSuchFormat",
   "LossyFormat",
   "WriteNotAddressable", // PUT to a server-assigned id -- `mutation_create_splits_two_ways.rs`
@@ -1461,6 +1475,12 @@ const ALL_VARIANTS: &[&str] = &[
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **PROVOKED WHERE A ROSTER WITH SEATS IS** (ST0092 WP-04). Each needs a
+  // board with a declared human seat, a mediator or a claim, so `wb_retire.rs`
+  // applies a profile and drives them, and the names each refusal carries.
+  "WbRetireHuman",
+  "WbRetireMediator",
+  "WbRetireHoldsClaims",
   // **PROVOKED WHERE A RENDERED ROSTER README IS** (ST0092 WP-07). Each of its
   // refusals needs a README `wb init --apply` rendered and an edit or a
   // marker over it, so `roster_readme.rs` drives them (AT-07.5, AT-07.7) and

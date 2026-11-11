@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.2.8
--- SCHEMA_DDL_VER: 29
+-- SCHEMA_DDL_VER: 30
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -657,6 +657,11 @@ CREATE TABLE IF NOT EXISTS project (
 --
 -- `remit` is the remit this project set for the seat, and only that: a seat
 -- with none shows its profile's default, read from the install.
+--
+-- `retired_at` and `retired_reason` are the node's retirement from the roster:
+-- when, and why, set together by `wb retire` and cleared
+-- together by `wb register`, which reinstates the same node. A retired node
+-- keeps its board and every message.
 -- openness: carried by intent/whiteboard/<node>/board.json
 CREATE TABLE IF NOT EXISTS wb_node (
   moniker TEXT PRIMARY KEY,
@@ -671,7 +676,10 @@ CREATE TABLE IF NOT EXISTS wb_node (
   authored_at TEXT,
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   migrated_at TEXT,
-  remit TEXT
+  remit TEXT,
+  retired_at TEXT,
+  retired_reason TEXT,
+  CHECK ((retired_at IS NULL) = (retired_reason IS NULL))
 );
 -- The board's team declaration: one row, the base and layers
 -- `wb init` applied, the mediator and the human seat they resolve to, and the

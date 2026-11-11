@@ -52,7 +52,7 @@ fn boards_of(fx: &Fixture) -> Vec<Board> {
 
 /// The boards `wb status` answers, each row's board without its hats.
 fn roster_of(f: &mut intentsvcs::facade::Facade, what: &str) -> Vec<Board> {
-  let status = f.wb_status().expect(what);
+  let status = f.wb_status(false).expect(what);
   status.rows.into_iter().map(|row| row.board).collect()
 }
 
@@ -214,7 +214,7 @@ fn the_reads_name_sync_to_store_and_it_carries_every_board_in() {
   let mut f = clone.facade_on_disk();
 
   let status = f
-    .wb_status()
+    .wb_status(false)
     .expect_err("an empty roster beside migrated boards");
   assert!(lacking(&status).is_some(), "wb status: {status:?}");
   assert!(

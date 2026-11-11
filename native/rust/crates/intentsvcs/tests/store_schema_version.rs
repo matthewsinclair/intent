@@ -355,8 +355,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // remit a project gives a seat and the team its board declares. One rebuild
   // of `wb_node`, for rung 15's reason; existing rows start null, and a store
   // declares no team until `wb init` writes one.
-  const PINNED_SCHEMA_HASH: u64 = 0x811f_3b53_f6de_62cb;
-  const PINNED_FOR_VERSION: i32 = 34;
+  //
+  // 35 is `wb_node.retired_at` and `retired_reason` (ST0092 WP-04), a node's
+  // retirement from the roster, set or null together under a table CHECK. One
+  // rebuild of `wb_node`, for the CHECK's sake; existing rows start null.
+  const PINNED_SCHEMA_HASH: u64 = 0x1cae_1046_2161_5873;
+  const PINNED_FOR_VERSION: i32 = 35;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

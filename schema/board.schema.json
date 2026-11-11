@@ -150,6 +150,17 @@
             "null"
           ]
         },
+        "retired": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WbRetired"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Set while the node is retired from the roster: when, and why. A\nretired node keeps its board and every message, is no longer a\nrecipient, and comes back as itself only through `wb register`.\nRetirement is roster state, never the session's `status`, which a\npickup moves."
+        },
         "role": {
           "type": "string"
         },
@@ -181,6 +192,25 @@
         "paused"
       ],
       "type": "string"
+    },
+    "WbRetired": {
+      "additionalProperties": false,
+      "description": "A node's retirement from the roster.",
+      "properties": {
+        "at": {
+          "description": "When the service recorded the retirement.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "The reason `wb retire --reason` gave.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "reason"
+      ],
+      "type": "object"
     },
     "WbSent": {
       "additionalProperties": false,
@@ -286,5 +316,5 @@
   "title": "Board",
   "type": "object",
   "x-intent-ver": "3.2.8",
-  "x-schema-json-ver": 26
+  "x-schema-json-ver": 27
 }

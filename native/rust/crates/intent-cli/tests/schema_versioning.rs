@@ -346,7 +346,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 29: `remit` on `wb_node` and the new `wb_declaration` (ST0092 WP-03,
     // schema rung 34), a seat's project remit and the board's team
     // declaration. All three faces move for it.
-    ("SCHEMA_DDL_VER", 29, 0xf4e9_158d_d22c_279b),
+    // 30: `retired_at` and `retired_reason` on `wb_node` (ST0092 WP-04, schema
+    // rung 35), a node's retirement from the roster.
+    ("SCHEMA_DDL_VER", 30, 0x0d58_c116_7d76_8feb),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -362,7 +364,8 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // gives way to `sent: [WbSent!]!` and `handled: [WbHandled!]!`.
     // 20 -> 21 is `archivedAt` on `WbSent` and `WbMessage` (issue 0627).
     // 21 -> 22 is `remit` on `WbNode` (ST0092 WP-03).
-    ("SCHEMA_SDL_VER", 22, 0xd37a_f664_e966_d0a2),
+    // 23: `retired` on the board's node and its `WbRetired` (ST0092 WP-04).
+    ("SCHEMA_SDL_VER", 23, 0x6b3f_7892_b8f8_ee7c),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -388,7 +391,8 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // a profile's frontmatter. The DDL and SDL do not move.
     // 25 -> 26 is ST0092 WP-03: `intent/board@4.1`, `remit` on the board's
     // node, and `team-declaration.schema.json` joins the contract.
-    ("SCHEMA_JSON_VER", 26, 0x3cba_6958_2916_d192),
+    // 27: `retired` on a board's node (ST0092 WP-04), carried in board 4.1.
+    ("SCHEMA_JSON_VER", 27, 0x3f5f_689f_ee83_8863),
   ];
 
   let mut moved = Vec::new();
