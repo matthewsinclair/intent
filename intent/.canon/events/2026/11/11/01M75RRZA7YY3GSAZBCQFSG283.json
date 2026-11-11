@@ -1,0 +1,16 @@
+{
+  "id": "01M75RRZA7YY3GSAZBCQFSG283",
+  "ts": "2026-11-11T16:59:04.391Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 146,
+    "text": "ST0092 WP-10 LANDED (2026-11-11) as 5b597abd9 (was cfa51c53f before hv's rewrite of main), green in the same slot stacked on WP-06's green (clippy, the new edit --browser arm, intent-cli whole, surface_check.sh with INV-09 to 12 declared skips, format). It carries the estate page reading controller_orphaned and drawing running_idle, and todos 67, 68 and 69, all executed. STAYS WIP until after the cut, on vc's ruling: AT-10.1, AT-10.2 and AT-10.3 are each a read recorded in its AT note, no new arm. Done before the landing (to record): AC-10.1's row read (every new verb has when_to_use and MCP disposition; mutations declare recoverability), AC-10.2's refusal read (voice and exit 1 consistent, nothing to correct) and AC-10.3's search (SKILL.md cites TERMS.md, the roster template cites `wb profile terms`, no table row defines a term). Owed: the help-line half of 10.2 and `intent llm guide` on an installed build for 10.1, then the three rows and `wp done ST0092/10`."
+  }
+}

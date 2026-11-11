@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-11T14:14:01.509Z",
+    "heartbeat_at": "2026-11-11T16:59:05.450Z",
     "status": "active",
-    "focus": "2026-11-11 14:14Z, back from hv's fourth compact; active, no hold, no slot, nothing banked unlanded. ST0092 WP-06 (b8dffbfe0, rows b12c591fa) and WP-10 (cfa51c53f) are on main and stay WIP on vc's ruling (doing 145 and 146 say what closes each); worktrees tmp/wt-ic-0092-06 and -10 removed after their checks. HOLDING on hv's word via vc: nothing new before the cut, hands off main when vc calls the rewrite. Next: vc's order for the 3.3.0 push.",
+    "focus": "2026-11-11 16:59Z, localfolded for hv's fifth compact (via vc: 'bank, localfold+compact everyone here and then continue on the bounce'). Active, no hold, no slot, nothing banked or uncommitted. Main was reset by hv to 4410d1563; ST0092 WP-06 (eb9e9f6c3, rows b23bd66fa) and WP-10 (5b597abd9) are on it and stay WIP on vc's ruling (doing 145 and 146 say what closes each). The explorer shots for 3.3.0 were taken at 2f33321eb and changed nothing. Until brew 3.3.0 is installed, every intent verb and git commit here runs with native/rust/target/release first on PATH (vc; the store is at schema 35). On the bounce: /in-session, pickup with the dev pair first, then vc's next order; hands off main while the cut is open.",
     "claims": [
       "ST0092/06",
       "ST0092/10"
@@ -2872,10 +2872,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 145,
-      "text": "ST0092 WP-06 LANDED (2026-11-11): red fe689394f, green b8dffbfe0, measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW on 9efb83598 (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP, on vc's ruling: the gate is BLOCKED on AC-06.4 alone, which needs vc to record a seat booting on an installed 3.3.0; `wp done ST0092/06` follows that record. Claim ST0092/06 held until then.",
+      "text": "ST0092 WP-06 LANDED (2026-11-11): red 754f9013d, green eb9e9f6c3, rows b23bd66fa (shas after hv's rewrite of main to 4410d1563; they were fe689394f, b8dffbfe0 and b12c591fa), measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW on 9efb83598 (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP, on vc's ruling: the gate is BLOCKED on AC-06.4 alone, which needs vc to record a seat booting on an installed 3.3.0; `wp done ST0092/06` follows that record. Claim ST0092/06 held until then.",
       "state": "live",
       "recorded_at": "2026-11-11T07:55:36.666Z",
-      "edited_at": "2026-11-11T14:09:44.784Z"
+      "edited_at": "2026-11-11T16:59:03.193Z"
     },
     {
       "node": "ic",
@@ -2901,10 +2901,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 146,
-      "text": "ST0092 WP-10 LANDED (2026-11-11) as cfa51c53f, green in the same slot stacked on WP-06's green (clippy, the new edit --browser arm, intent-cli whole, surface_check.sh with INV-09 to 12 declared skips, format). It carries the estate page reading controller_orphaned and drawing running_idle, and todos 67, 68 and 69, all executed. STAYS WIP until after the cut, on vc's ruling: AT-10.1, AT-10.2 and AT-10.3 are each a read recorded in its AT note, no new arm. Done before the landing (to record): AC-10.1's row read (every new verb has when_to_use and MCP disposition; mutations declare recoverability), AC-10.2's refusal read (voice and exit 1 consistent, nothing to correct) and AC-10.3's search (SKILL.md cites TERMS.md, the roster template cites `wb profile terms`, no table row defines a term). Owed: the help-line half of 10.2 and `intent llm guide` on an installed build for 10.1, then the three rows and `wp done ST0092/10`.",
+      "text": "ST0092 WP-10 LANDED (2026-11-11) as 5b597abd9 (was cfa51c53f before hv's rewrite of main), green in the same slot stacked on WP-06's green (clippy, the new edit --browser arm, intent-cli whole, surface_check.sh with INV-09 to 12 declared skips, format). It carries the estate page reading controller_orphaned and drawing running_idle, and todos 67, 68 and 69, all executed. STAYS WIP until after the cut, on vc's ruling: AT-10.1, AT-10.2 and AT-10.3 are each a read recorded in its AT note, no new arm. Done before the landing (to record): AC-10.1's row read (every new verb has when_to_use and MCP disposition; mutations declare recoverability), AC-10.2's refusal read (voice and exit 1 consistent, nothing to correct) and AC-10.3's search (SKILL.md cites TERMS.md, the roster template cites `wb profile terms`, no table row defines a term). Owed: the help-line half of 10.2 and `intent llm guide` on an installed build for 10.1, then the three rows and `wp done ST0092/10`.",
       "state": "live",
       "recorded_at": "2026-11-11T12:36:35.904Z",
-      "edited_at": "2026-11-11T14:09:46.036Z"
+      "edited_at": "2026-11-11T16:59:04.391Z"
     }
   ],
   "sent": [

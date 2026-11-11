@@ -1,0 +1,16 @@
+{
+  "id": "01M75RRY4SWMXRHTGN0H8XTWRA",
+  "ts": "2026-11-11T16:59:03.193Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 145,
+    "text": "ST0092 WP-06 LANDED (2026-11-11): red 754f9013d, green eb9e9f6c3, rows b23bd66fa (shas after hv's rewrite of main to 4410d1563; they were fe689394f, b8dffbfe0 and b12c591fa), measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW on 9efb83598 (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP, on vc's ruling: the gate is BLOCKED on AC-06.4 alone, which needs vc to record a seat booting on an installed 3.3.0; `wp done ST0092/06` follows that record. Claim ST0092/06 held until then."
+  }
+}
