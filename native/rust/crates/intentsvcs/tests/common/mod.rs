@@ -40,11 +40,11 @@ pub const PROJECT_ID: &str = "00000000-0000-0000-0000-00000000cc03";
 /// a fixture to disagree with the store about what day it is. Formerly
 /// a test never has to freeze one.
 pub fn facade_ctx() -> intentsvcs::facade::FacadeContext {
-  intentsvcs::facade::FacadeContext {
-    principal: "cc".to_string(),
-    project_id: PROJECT_ID.to_string(),
-    version: VERSION.to_string(),
-  }
+  intentsvcs::facade::FacadeContext::for_tests(
+    "cc".to_string(),
+    PROJECT_ID.to_string(),
+    VERSION.to_string(),
+  )
 }
 
 pub struct Fixture {

@@ -100,7 +100,11 @@ pub fn run() -> Result<(), Failure> {
   // spawn would serve every later request from the store as it stood at the
   // first one.
   let open_facade = || {
-    crate::render::context().and_then(|(project, ctx)| {
+    crate::render::context().and_then(|(project, mut ctx)| {
+      // An MCP call is always a session's, inherited from the session that
+      // started this server; without one it is nobody's, never hv's terminal
+      // (ST0092 WP-05, INV-12).
+      ctx.origin = crate::render::origin_of_this_call(intentsvcs::facade::Origin::Unattributed);
       crate::render::engine(project, ctx.clone(), crate::render::StoreNeed::Shared)
         .map(|facade| (facade, ctx))
     })

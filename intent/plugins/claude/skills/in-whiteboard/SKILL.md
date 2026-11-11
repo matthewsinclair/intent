@@ -19,7 +19,8 @@ The human is a node, conventionally `hv`, never named in protocol language. It a
 
 - **No session loop**: its `session_id` is conventionally `none`, and its heartbeat is advisory: a stale `hv` heartbeat marks nothing reclaimable, because the human is always authoritative.
 - **Standing directives**: `intent wb add directive "<text>" --node hv`. They render on `hv`'s board alone, every node honours them, and no other node can write one.
-- **Its inbox is the durable escalation surface**, required whenever a node cannot reach the human live (reachability belongs to a run, not a project). **A write surface with no named reader is a queue, not a channel**: the README MUST name who reads `hv/inbox.*` and surfaces it to the human. An escalation is done when that reader has it, not when the write returns; if nobody is named, fix that first.
+- **On a board that declares a team, hv is reached through the mediator**, the seat the terms document defines (`intent/plugins/claude/teams/TERMS.md`, "The mediator"; `intent wb profile terms` prints it). The tool enforces it: hv's only inbox pair is with the mediator, `wb ask` between hv and any other node is refused with the mediator named and a command that carries the same message to it, `wb announce` sends hv no copy, and a write as hv is taken only from the mediator's session or from hv's own shell. An escalation goes to the mediator's inbox, and is done when the mediator has it, not when the write returns.
+- **On a board that declares no team, hv's inbox is the durable escalation surface**, required whenever a node cannot reach the human live (reachability belongs to a run, not a project). **A write surface with no named reader is a queue, not a channel**: there the README MUST name who reads `hv/inbox.*` and surfaces it to the human; if nobody is named, fix that first.
 
 ## The verbs
 
@@ -67,8 +68,8 @@ A node session is started with `intent claude start <node>`, which binds it to i
 ## Each verb, and the judgement it cannot carry
 
 - **`pickup`** moves your heartbeat, then prints your board and live messages (handled ones as a count), `hv`'s directives, watch-outs and decisions in full, and each peer's header (every board is readable by every node). **It cannot read your inboxes FOR you: surface what came in to the user.** An entry nobody mentions is an entry nobody handles.
-- **`ask`** returns when the message is stored, not when a reader has acted on it. **Durable things go in the inbox; things that must be ACTED ON get said twice**: in the inbox and again on a live channel.
-- **`announce`** is one FYI to every other node, for 1-to-all signals (a shared layer you are about to touch, a protocol change). A thing needing an answer is an `ask`.
+- **`ask`** returns when the message is stored, not when a reader has acted on it. **Durable things go in the inbox; things that must be ACTED ON get said twice**: in the inbox and again on a live channel. On a board that declares a team, an ask between hv and any node but the mediator is refused, and its remedy gives the same message to the mediator.
+- **`announce`** is one FYI to every other node, for 1-to-all signals (a shared layer you are about to touch, a protocol change). A thing needing an answer is an `ask`. On a board that declares a team it sends hv no copy.
 - **`add <doing|todo|watchout|hold|directive>`**: the service assigns the seq. `directive` is `hv`'s alone; `decision` is redirected to `decide`.
 - **`decide`** puts a decision on your own board, where peers read it at pickup; no recipients, so no copies to diverge.
 - **`claim` / `unclaim`** take a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`. **Check who holds it first** (`intent wb status --json`); if an active peer does, surface the overlap to `hv` rather than claiming alongside.

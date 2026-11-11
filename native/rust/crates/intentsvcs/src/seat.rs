@@ -4,10 +4,10 @@
 //! design note). A session's node is the board whose header records its
 //! session id, read through the estate reader's own board read, and a board's
 //! mediator is the seat hv is reached through. WP-05's check of who may write
-//! as hv calls [`session_node`], and the team profiles extend [`mediator_of`]
-//! to read a declared profile. Until then every board is undeclared, and an
-//! undeclared board's mediator is the moniker vc, by the convention every
-//! board on this estate already keeps.
+//! as hv calls [`session_node`], and [`mediator_given`] reads a board's declared
+//! mediator (ST0092 WP-05), which `wb init` resolved from its profiles. An
+//! undeclared board's mediator is the moniker vc, by the convention every board
+//! on this estate already keeps.
 //!
 //! **THE DESK IS READ, NEVER STORED** (AC-08.3, as vc reworded it). Who wears
 //! it is the host's control record, under the user's state dir, and whether
@@ -33,10 +33,27 @@ pub fn session_node(cwd: &Path, session_id: &str) -> Option<String> {
 }
 
 /// The mediator of the board in the project at `cwd`: the seat hv is reached
-/// through. Every board is undeclared until the team profiles land, so this is
-/// [`UNDECLARED_MEDIATOR`].
-pub fn mediator_of(_cwd: &Path) -> String {
-  UNDECLARED_MEDIATOR.to_string()
+/// through, read from the board's team declaration (ST0092 WP-05), and
+/// [`UNDECLARED_MEDIATOR`] on a board that declares none.
+///
+/// A declaration this build cannot read answers as undeclared HERE, and is not
+/// swallowed: `intent doctor` names the file as `schema-invalid`, and every
+/// write that would rely on it reads the store's row instead.
+pub fn mediator_of(cwd: &Path) -> String {
+  let declared = crate::project::Project::discover(cwd)
+    .ok()
+    .and_then(|project| crate::ingest::declaration_on_disk(&project).ok())
+    .and_then(Result::ok)
+    .flatten();
+  mediator_given(declared.as_ref())
+}
+
+/// The mediator a declaration names, which `wb init` resolved from its
+/// profiles (the last layer naming one, else the base), or
+/// [`UNDECLARED_MEDIATOR`] where there is none. **THE ONE RULE**: the facade
+/// asks it with the store's row, [`mediator_of`] with the file's.
+pub fn mediator_given(declaration: Option<&crate::model::TeamDeclaration>) -> String {
+  declaration.map_or_else(|| UNDECLARED_MEDIATOR.to_string(), |d| d.mediator.clone())
 }
 
 /// Where a session sits: its node and that board's mediator.

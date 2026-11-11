@@ -1309,6 +1309,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WbDirectivesOnAnotherBoard { .. } => "WbDirectivesOnAnotherBoard",
     FacadeError::WbRegisteredDifferently { .. } => "WbRegisteredDifferently",
     FacadeError::WbRegisterNotAsDeclared { .. } => "WbRegisterNotAsDeclared",
+    FacadeError::WbPairClosed { .. } => "WbPairClosed",
+    FacadeError::WbHumanSeatNotYours { .. } => "WbHumanSeatNotYours",
+    FacadeError::WbClosedPairHoldsLive { .. } => "WbClosedPairHoldsLive",
     FacadeError::WbRegisterDisagreesWithHeader { .. } => "WbRegisterDisagreesWithHeader",
     FacadeError::WbCorrectUnregistered { .. } => "WbCorrectUnregistered",
     FacadeError::WbUncarried { .. } => "WbUncarried",
@@ -1442,6 +1445,9 @@ const ALL_VARIANTS: &[&str] = &[
   "WbDirectivesOnAnotherBoard",
   "WbRegisteredDifferently",
   "WbRegisterNotAsDeclared",
+  "WbPairClosed",
+  "WbHumanSeatNotYours",
+  "WbClosedPairHoldsLive",
   "WbRegisterDisagreesWithHeader",
   "WbCorrectUnregistered",
   "WbUncarried",
@@ -1468,6 +1474,13 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // board `wb init` has declared, so `wb_init.rs` applies a profile and drives
   // this refusal and the profile's values it prints.
   "WbRegisterNotAsDeclared",
+  // **PROVOKED WHERE A DECLARED TEAM IS** (ST0092 WP-05). Each needs a board
+  // `wb init` has declared, or one it is about to declare, so `wb_hv_typed.rs`
+  // drives them: a closed pair, a write as hv from the wrong door, and a
+  // crossing over a live message.
+  "WbPairClosed",
+  "WbHumanSeatNotYours",
+  "WbClosedPairHoldsLive",
   // **PROVOKED WHERE A CARRIED INBOX IS** (issue 0523). Two messages share a
   // heading minute without depending on the clock only when a carry stamps
   // them with its one instant, so `wb_edit_keeps_the_old_text_out_of_a_commit.rs`

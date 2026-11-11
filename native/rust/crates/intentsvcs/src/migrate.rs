@@ -713,11 +713,7 @@ mod tests {
   }
 
   fn ctx() -> FacadeContext {
-    FacadeContext {
-      principal: "ic".to_string(),
-      project_id: String::new(),
-      version: VERSION.to_string(),
-    }
+    FacadeContext::for_tests("ic".to_string(), String::new(), VERSION.to_string())
   }
 
   fn thread(id: &str) -> Thread {

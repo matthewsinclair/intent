@@ -109,19 +109,17 @@ pub fn project(name: &str) -> PathBuf {
   // EMPTY string as absent -- the same rule, in one home, rather than a second
   // opinion about what counts as having one.
   let project = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: project
-      .config()
-      .identity()
-      .unwrap_or_else(|| {
-        panic!(
-          "the initialiser wrote no usable project_id, so every event-identity assertion downstream would compare empty strings and pass"
-        )
-      })
-      .to_string(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let project_id = project
+    .config()
+    .identity()
+    .unwrap_or_else(|| {
+      panic!(
+        "the initialiser wrote no usable project_id, so every event-identity assertion downstream would compare empty strings and pass"
+      )
+    })
+    .to_string();
+  let ctx =
+    intentsvcs::facade::FacadeContext::for_tests("test", project_id, env!("CARGO_PKG_VERSION"));
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("open the new project");
   facade
     .st_new(&format!("{name} thread"))

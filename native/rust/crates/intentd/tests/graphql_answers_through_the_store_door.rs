@@ -17,11 +17,11 @@ const MINTED: &str = "Minted for the hatch";
 fn project_with_a_thread() -> (std::path::PathBuf, String) {
   let root = project("Hatch");
   let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: opened.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open it");
   let id = facade.st_new(MINTED).expect("mint one thread");
   (root, id)

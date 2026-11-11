@@ -39,7 +39,7 @@ use crate::daemon_log::{elogln, logln};
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 
-use intentsvcs::facade::{Facade, FacadeContext};
+use intentsvcs::facade::{Facade, FacadeContext, Origin};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::wire::{Event, Op, Response, ThreadSummary};
@@ -825,6 +825,10 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
     principal: "intentd".to_string(),
     project_id: project.config().project_id.clone().unwrap_or_default(),
     version: env!("CARGO_PKG_VERSION").to_string(),
+    // No request carries a caller either, so a write the human seat must make
+    // from the mediator's session or hv's terminal is refused here (ST0092
+    // WP-05, INV-12).
+    origin: Origin::Unattributed,
   };
   let facade =
     Facade::open(project, ctx).map_err(|e| Response::error(format!("{e}"), e.remedy()))?;
@@ -1067,5 +1071,56 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
       "the estate is not a project-scoped operation and reached a project's store",
       "this is a routing fault inside intentd. The estate is answered by the daemon itself, not by any project.",
     ),
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::open_facade;
+  use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
+  use intentsvcs::model::WbItemKind;
+  use intentsvcs::project::Project;
+
+  /// ST0092 WP-05 (vc's ruling on INV-12, condition 3): the facade the daemon
+  /// opens carries no caller, so on a board that declares a team a write as the
+  /// human seat through it is refused, with the remedy that says to run it
+  /// without `--daemon`; a write as any other seat is not the check's.
+  #[test]
+  fn the_daemons_facade_refuses_a_write_as_the_human_seat_on_a_declared_board() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path().join("p");
+    std::fs::create_dir_all(&root).expect("mkdir");
+    intentsvcs::init::init(&root, "daemonhv", "test", env!("CARGO_PKG_VERSION"))
+      .expect("the shipped initialiser creates a project");
+    let declared = {
+      let project = Project::open(&root).expect("open");
+      let ctx = FacadeContext::for_tests("test", "", env!("CARGO_PKG_VERSION"));
+      let mut f = Facade::open(project, ctx).expect("a terminal's facade");
+      f.wb_init(&["team".to_string()], true, false)
+        .expect("declare the team");
+      f.canon().declaration.clone().expect("the declaration")
+    };
+    let Ok((mut f, _)) = open_facade(&root) else {
+      panic!("the daemon could not open the project");
+    };
+    let err = f
+      .wb_add(&declared.human, WbItemKind::Todo, "through the daemon")
+      .expect_err("a write as hv through the daemon");
+    assert!(
+      matches!(
+        err,
+        FacadeError::WbHumanSeatNotYours {
+          unattributed: true,
+          ..
+        }
+      ),
+      "{err:?}"
+    );
+    assert!(
+      intentsvcs::remedy::Remedy::remedy(&err).contains("without `--daemon`"),
+      "the remedy names the door that can write it"
+    );
+    f.wb_add(&declared.mediator, WbItemKind::Todo, "the mediator's own")
+      .expect("a write as another seat through the daemon is not the check's");
   }
 }

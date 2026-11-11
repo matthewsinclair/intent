@@ -47,11 +47,11 @@ fn project_with_a_thread(tag: &str) -> (std::path::PathBuf, String) {
 /// writes through a facade this test never touches.
 fn open(root: &std::path::Path) -> Facade {
   let opened = intentsvcs::project::Project::open(root).expect("the project just created");
-  let ctx = FacadeContext {
-    principal: "test".to_string(),
-    project_id: opened.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   Facade::open(opened, ctx).expect("open it")
 }
 

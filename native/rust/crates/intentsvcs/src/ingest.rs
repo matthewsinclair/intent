@@ -388,7 +388,13 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
     // Attachment bytes arrive with `load_blobs` and a caller may carry more in
     // afterwards, so the index is taken from the finished model through the
     // one derivation every other caller uses.
-    canon.sections = sections_of(project, &canon.threads, &canon.issues, &canon.boards);
+    canon.sections = sections_of(
+      project,
+      &canon.threads,
+      &canon.issues,
+      &canon.boards,
+      canon.declaration.as_ref(),
+    );
     Ok(canon)
   } else {
     Err(Refusal::new(findings).into())
@@ -605,7 +611,12 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
     let mut canon = read(project)?;
     store.rebuild(&canon.threads, &canon.issues)?;
     let stored = store.hydrate_boards()?;
-    swap_board_sections(project, &mut canon.sections, &stored);
+    swap_board_sections(
+      project,
+      &mut canon.sections,
+      &stored,
+      canon.declaration.as_ref(),
+    );
     store.replace_doc_sections(&canon.sections)?;
     carry_project_state(project, store)?;
     take_event_files(project, store)?;
@@ -1378,7 +1389,12 @@ fn resync_inner(
     store.replace_declaration(canon.declaration.as_ref())?;
   }
   canon.boards = store.hydrate_boards()?;
-  swap_board_sections(project, &mut canon.sections, &canon.boards);
+  swap_board_sections(
+    project,
+    &mut canon.sections,
+    &canon.boards,
+    canon.declaration.as_ref(),
+  );
   canon.declaration = store.wb_declaration()?;
   store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
@@ -1819,6 +1835,7 @@ pub fn sections_of(
   threads: &[Thread],
   issues: &[Issue],
   boards: &[crate::model::Board],
+  declaration: Option<&crate::model::TeamDeclaration>,
 ) -> Vec<DocSection> {
   let mut out = Vec::new();
   for thread in threads {
@@ -1844,7 +1861,7 @@ pub fn sections_of(
       &issue.body,
     ));
   }
-  out.append(&mut board_sections(project, boards));
+  out.append(&mut board_sections(project, boards, declaration));
   out
 }
 
@@ -1857,7 +1874,11 @@ pub fn sections_of(
 /// The inboxes are indexed under the recipient's board, one file per sender
 /// that has written; an empty inbox has nothing to find. **EACH RENDERS FROM
 /// ITS SENDER'S BOARD** (issue 0612), the bytes its view has.
-pub fn board_sections(project: &Project, boards: &[crate::model::Board]) -> Vec<DocSection> {
+pub fn board_sections(
+  project: &Project,
+  boards: &[crate::model::Board],
+  declaration: Option<&crate::model::TeamDeclaration>,
+) -> Vec<DocSection> {
   let mut out = Vec::new();
   for board in boards {
     let node = &board.node.moniker;
@@ -1870,6 +1891,8 @@ pub fn board_sections(project: &Project, boards: &[crate::model::Board]) -> Vec<
     let mut senders: Vec<&crate::model::Board> = boards
       .iter()
       .filter(|b| b.sent.iter().any(|m| &m.recipient == node))
+      // A pair a declared team closes has no view, so no section either.
+      .filter(|b| crate::model::pair_open(declaration, &b.node.moniker, node))
       .collect();
     senders.sort_by(|a, b| a.node.moniker.cmp(&b.node.moniker));
     for sender in senders {
@@ -1898,9 +1921,10 @@ pub fn swap_board_sections(
   project: &Project,
   sections: &mut Vec<DocSection>,
   boards: &[crate::model::Board],
+  declaration: Option<&crate::model::TeamDeclaration>,
 ) {
   sections.retain(|s| s.owner_type != prose::BOARD_OWNER);
-  sections.append(&mut board_sections(project, boards));
+  sections.append(&mut board_sections(project, boards, declaration));
 }
 
 pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {

@@ -2550,21 +2550,21 @@ mod tests {
     )
     .expect("write config");
     let project = intentsvcs::project::Project::open(dir.path()).expect("open the fixture project");
-    let ctx = FacadeContext {
-      principal: "ic".to_string(),
-      project_id: "00000000-0000-0000-0000-000000000000".to_string(),
-      version: env!("CARGO_PKG_VERSION").to_string(),
-    };
+    let ctx = FacadeContext::for_tests(
+      "ic".to_string(),
+      "00000000-0000-0000-0000-000000000000".to_string(),
+      env!("CARGO_PKG_VERSION").to_string(),
+    );
     let facade = Facade::open_in_memory(project, ctx).expect("open the in-memory facade");
     (dir, facade)
   }
 
   fn drive_ctx() -> FacadeContext {
-    FacadeContext {
-      principal: "ic".to_string(),
-      project_id: "00000000-0000-0000-0000-000000000000".to_string(),
-      version: env!("CARGO_PKG_VERSION").to_string(),
-    }
+    FacadeContext::for_tests(
+      "ic".to_string(),
+      "00000000-0000-0000-0000-000000000000".to_string(),
+      env!("CARGO_PKG_VERSION").to_string(),
+    )
   }
 
   /// **EVERY ROSTER PATH REACHES AN ARM.** Driven through a real in-memory

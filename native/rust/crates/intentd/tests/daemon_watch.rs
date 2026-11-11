@@ -391,11 +391,11 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
 /// A facade on `root`, opened fresh, the way a command-line verb opens one.
 fn facade(root: &Path) -> intentsvcs::facade::Facade {
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: project.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    project.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens")
 }
 

@@ -16,8 +16,8 @@ use intentsvcs::address;
 use intentsvcs::contract::Scope;
 use intentsvcs::daemon;
 use intentsvcs::facade::{
-  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, NextCommit, Note, Outcome,
-  WbEdit,
+  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, NextCommit, Note, Origin,
+  Outcome, WbEdit,
 };
 use intentsvcs::launchagent;
 use intentsvcs::macapp;
@@ -930,7 +930,11 @@ fn context_refusing(
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
   let project = Project::discover(&cwd).map_err(refusal)?;
-  let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
+  let ctx = FacadeContext::for_project(
+    &project,
+    env!("CARGO_PKG_VERSION"),
+    origin_of_this_call(Origin::Terminal),
+  );
   Ok((project, ctx))
 }
 
@@ -4393,6 +4397,9 @@ fn wb(m: &ArgMatches) -> Result<(), Failure> {
         for path in &report.would_write {
           println!("would write: {path}");
         }
+        for path in &report.would_remove {
+          println!("would remove: {path}");
+        }
         println!("ok: a dry run, and nothing was written; `--apply` makes these changes");
         return Ok(());
       }
@@ -4942,6 +4949,19 @@ fn acting_node(m: &ArgMatches) -> Result<String, Failure> {
     Some(n) => Ok(n.clone()),
     None => Err(fail(FacadeError::WbNoActingNode)),
   }
+}
+
+/// Where this call comes from (ST0092 WP-05, INV-12): the Claude Code session
+/// `CLAUDE_CODE_SESSION_ID` names, or `without_session` where none does. The
+/// CLI passes [`Origin::Terminal`], hv's own shell; MCP passes
+/// [`Origin::Unattributed`], so a server that somehow lost its session never
+/// reads as hv's terminal. The read stays in this file, beside
+/// [`pickup_session`], for the reason that one gives.
+pub(crate) fn origin_of_this_call(without_session: Origin) -> Origin {
+  std::env::var("CLAUDE_CODE_SESSION_ID")
+    .ok()
+    .filter(|id| !id.is_empty())
+    .map_or(without_session, Origin::Session)
 }
 
 /// The session a pickup records: `--session`, else the Claude Code session this
@@ -13313,7 +13333,11 @@ fn info_project(cwd: Option<&std::path::Path>) {
       println!("  remedy: {}", pending.remedy());
     }
     intentsvcs::project::Migration::Done => {
-      let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
+      let ctx = FacadeContext::for_project(
+        &project,
+        env!("CARGO_PKG_VERSION"),
+        origin_of_this_call(Origin::Terminal),
+      );
       match engine(project, ctx, StoreNeed::Shared) {
         Ok(facade) => {
           let threads = facade.st_list();
@@ -13555,7 +13579,11 @@ fn issues_open(family: &ArgMatches, answer: Answer) -> Result<(Facade, Option<Na
     Answer::Read => eprintln!("{line}"),
     Answer::Write => println!("{line}"),
   }
-  let ctx = FacadeContext::for_project(&project, env!("CARGO_PKG_VERSION"));
+  let ctx = FacadeContext::for_project(
+    &project,
+    env!("CARGO_PKG_VERSION"),
+    origin_of_this_call(Origin::Terminal),
+  );
   Ok((engine(project, ctx, StoreNeed::Shared)?, Some(named)))
 }
 
@@ -18166,11 +18194,11 @@ mod tests {
   /// dispatch, or another node, has.
   fn facade_at(root: &std::path::Path) -> Facade {
     let project = intentsvcs::project::Project::open(root).expect("the fresh project opens");
-    let ctx = FacadeContext {
-      principal: "local".to_string(),
-      project_id: project.config().project_id.clone().unwrap_or_default(),
-      version: env!("CARGO_PKG_VERSION").to_string(),
-    };
+    let ctx = FacadeContext::for_tests(
+      "local".to_string(),
+      project.config().project_id.clone().unwrap_or_default(),
+      env!("CARGO_PKG_VERSION").to_string(),
+    );
     let Ok(facade) = engine(project, ctx, StoreNeed::Shared) else {
       panic!("the engine refused a fresh project");
     };

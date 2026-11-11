@@ -90,9 +90,46 @@ pub struct FacadeContext {
   pub project_id: String,
   /// The Intent version, for generated banners.
   pub version: String,
+  /// Where the call came from, which decides whether it may write as the
+  /// human seat on a board that declares a team (ST0092 WP-05, INV-12).
+  pub origin: Origin,
+}
+
+/// Where a facade call came from (ST0092 WP-05).
+///
+/// **THERE IS NO DEFAULT, AND THE VARIANT THAT LETS A CALL WRITE AS THE HUMAN
+/// SEAT IS NEVER A FALLBACK** (vc's ruling): a door that cannot say where a call
+/// came from says `Unattributed`, which that write refuses. Not the desk's
+/// `estate::slots::Caller`, which is a session read from its own files.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Origin {
+  /// A Claude Code session, by its id.
+  Session(String),
+  /// A shell with no Claude Code session: hv's own terminal.
+  Terminal,
+  /// A door that carries no caller, the daemon among them.
+  Unattributed,
 }
 
 impl FacadeContext {
+  /// The context a test drives a facade with: a call from hv's terminal.
+  ///
+  /// **FOR TESTS ONLY, AND HELD THERE**: no shipped source calls it, which an
+  /// arm proves by scanning every crate's shipped source, so a shipped door
+  /// always says where its call came from.
+  pub fn for_tests(
+    principal: impl Into<String>,
+    project_id: impl Into<String>,
+    version: impl Into<String>,
+  ) -> Self {
+    Self {
+      principal: principal.into(),
+      project_id: project_id.into(),
+      version: version.into(),
+      origin: Origin::Terminal,
+    }
+  }
+
   /// The context a verb runs with on `project`, its principal the author.
   ///
   /// **ONE CONSTRUCTOR FOR EVERY DOOR THAT ACTS FOR A PERSON** -- the CLI --
@@ -100,11 +137,12 @@ impl FacadeContext {
   /// [`crate::event::author`]: git's `user.name` and `user.email`, else the
   /// project's configured `author`, else `local`. The daemon does not use it:
   /// its own writes are ingests, and its events name the mechanism.
-  pub fn for_project(project: &Project, version: &str) -> Self {
+  pub fn for_project(project: &Project, version: &str, origin: Origin) -> Self {
     Self {
       principal: resolve_author(project),
       project_id: project.config().project_id.clone().unwrap_or_default(),
       version: version.to_string(),
+      origin,
     }
   }
 }
@@ -2262,6 +2300,43 @@ pub enum FacadeError {
     declared_name: String,
     declared_role: String,
   },
+  /// A message between the human seat and a node that is not the mediator, on
+  /// a board that declares a team (ST0092 WP-05, AC-05.2). It names the
+  /// mediator, and the remedy gives the same message to it.
+  #[error(
+    "on this board's declared team `{human}` is reached through `{mediator}` alone, so `{sender}` cannot write to `{recipient}`"
+  )]
+  WbPairClosed {
+    sender: String,
+    recipient: String,
+    human: String,
+    mediator: String,
+    body: String,
+  },
+  /// A write as the human seat from a door that is not the mediator's session
+  /// or hv's own terminal, on a board that declares a team (ST0092 WP-05,
+  /// INV-12). It names the mediator.
+  #[error(
+    "`{human}` is written on this board only from `{mediator}`'s session or from a shell with no Claude Code session{}",
+    if *.unattributed { ", and this call says neither" } else { "" }
+  )]
+  WbHumanSeatNotYours {
+    human: String,
+    mediator: String,
+    unattributed: bool,
+  },
+  /// A declaration that would close a pair still holding a live message
+  /// (ST0092 WP-05, AC-05.6): each as (sender, recipient, id).
+  #[error(
+    "this declaration closes {} message(s) still live on pairs with `{human}`: {}",
+    .live.len(),
+    .live.iter().map(|(s, r, id)| format!("{id} from `{s}` to `{r}`")).collect::<Vec<_>>().join(", ")
+  )]
+  WbClosedPairHoldsLive {
+    human: String,
+    mediator: String,
+    live: Vec<(String, String, String)>,
+  },
   /// A moniker already registered, named again with other values.
   #[error("`{node}` is registered as `{held_name}` ({held_role}), not `{name}` ({role})")]
   WbRegisteredDifferently {
@@ -2740,6 +2815,10 @@ pub struct WbInit {
   pub would_write: Vec<String>,
   /// What the render does to the roster README (WP-07).
   pub readme: crate::roster_readme::Plan,
+  /// On a dry run, the inbox views the apply would take off disk because the
+  /// declaration closes their pair (ST0092 WP-05); empty after an apply,
+  /// whose `removed:` lines name them.
+  pub would_remove: Vec<String>,
 }
 
 /// The files one board verb landed, split by whose they are to commit (issue
@@ -2907,6 +2986,43 @@ impl crate::remedy::Remedy for FacadeError {
         "`--correct` changes a node that exists and never creates one: `{}` registers it",
         crate::model::register_form(node)
       ),
+      Self::WbPairClosed {
+        sender,
+        recipient,
+        human,
+        mediator,
+        body,
+      } => {
+        let carried = crate::model::ask_form(mediator, body, sender);
+        if sender == human {
+          format!("say it to `{recipient}` live, or `{carried}` for `{mediator}` to carry it")
+        } else {
+          format!("`{carried}` gives the same message to `{mediator}`, who reaches `{human}`")
+        }
+      }
+      Self::WbClosedPairHoldsLive { human, mediator, live } => {
+        let mut clears: Vec<String> = live
+          .iter()
+          .map(|(s, r, _)| format!("`intent wb clear {s} --node {r}`"))
+          .collect();
+        clears.sort();
+        clears.dedup();
+        format!(
+          "`{mediator}` surfaces each to `{human}` and it is handled where it landed: {}; then apply again. Nothing was written, and every message stays readable with `--all`",
+          clears.join(", ")
+        )
+      }
+      Self::WbHumanSeatNotYours {
+        human,
+        mediator,
+        unattributed,
+      } => {
+        if *unattributed {
+          format!("run it without `--daemon`, from `{mediator}`'s session or from hv's own terminal; nothing was written")
+        } else {
+          format!("ask `{mediator}` to write it as `{human}`: `intent wb ask {mediator} \"<what to write>\" --node <your node>`; nothing was written")
+        }
+      }
       Self::WbRegisterNotAsDeclared {
         node,
         declared_name,
@@ -4710,6 +4826,7 @@ impl Facade {
       &self.canon.threads,
       &self.canon.issues,
       &self.canon.boards,
+      self.canon.declaration.as_ref(),
     );
     self
       .store
@@ -8198,6 +8315,89 @@ impl Facade {
     }
   }
 
+  /// Refuse a write as the human seat unless it comes from the mediator's
+  /// session or from a shell with no session (ST0092 WP-05, INV-12, AC-05.4).
+  ///
+  /// **THE IDENTITY DOOR, SO EVERY NODE-TAKING WRITE MEETS IT**: each board verb
+  /// that acts as a node calls this first, from the CLI, from MCP and from the
+  /// daemon alike, and no dispatch arm repeats it. The session's node is
+  /// [`crate::seat::session_node`] and the mediator
+  /// [`crate::seat::mediator_given`], the desk's own reads. A board that
+  /// declares no team, and a node that is not the human seat, pass.
+  fn require_writer_as(&self, node: &str) -> Result<(), FacadeError> {
+    let Some(d) = self.store.wb_declaration().map_err(FacadeError::Store)? else {
+      return Ok(());
+    };
+    if node != d.human {
+      return Ok(());
+    }
+    let mediator = crate::seat::mediator_given(Some(&d));
+    let from_the_mediator = |id: &str| {
+      crate::seat::session_node(self.project.root(), id).as_deref() == Some(mediator.as_str())
+    };
+    match &self.ctx.origin {
+      Origin::Terminal => Ok(()),
+      Origin::Session(id) if from_the_mediator(id) => Ok(()),
+      origin => Err(FacadeError::WbHumanSeatNotYours {
+        human: d.human,
+        mediator,
+        unattributed: *origin == Origin::Unattributed,
+      }),
+    }
+  }
+
+  /// Refuse a declaration that would close a pair still holding a live
+  /// message (ST0092 WP-05, AC-05.6), naming each with its sender. A handled
+  /// message holds nothing back, and every one stays readable with `--all`.
+  fn refuse_live_on_closed_pairs(
+    &self,
+    declaration: &crate::model::TeamDeclaration,
+  ) -> Result<(), FacadeError> {
+    let mut live = Vec::new();
+    for recipient in self.store.wb_monikers().map_err(FacadeError::Store)? {
+      for m in self
+        .store
+        .wb_inbox(&recipient)
+        .map_err(FacadeError::Store)?
+      {
+        if m.state == crate::model::WbMessageState::Live
+          && !declaration.pairs(&m.sender, &recipient)
+        {
+          live.push((m.sender, recipient.clone(), m.id));
+        }
+      }
+    }
+    if live.is_empty() {
+      return Ok(());
+    }
+    Err(FacadeError::WbClosedPairHoldsLive {
+      human: declaration.human.clone(),
+      mediator: declaration.mediator.clone(),
+      live,
+    })
+  }
+
+  /// Refuse a message on a pair the board's declared team closes (ST0092
+  /// WP-05, AC-05.2): the human seat and any node but the mediator, either way.
+  /// A board that declares no team closes no pair.
+  fn refuse_closed_pair(
+    &self,
+    sender: &str,
+    recipient: &str,
+    body: &str,
+  ) -> Result<(), FacadeError> {
+    match self.store.wb_declaration().map_err(FacadeError::Store)? {
+      Some(d) if !d.pairs(sender, recipient) => Err(FacadeError::WbPairClosed {
+        sender: sender.to_string(),
+        recipient: recipient.to_string(),
+        human: d.human,
+        mediator: d.mediator,
+        body: body.to_string(),
+      }),
+      _ => Ok(()),
+    }
+  }
+
   /// The identity this board's declared profiles give a moniker, or `None`
   /// where the board declares no profile or its profiles do not name it
   /// (ST0092 WP-03, AC-03.6).
@@ -8273,6 +8473,10 @@ impl Facade {
         });
       }
     }
+    // **THE CROSSING** (ST0092 WP-05, AC-05.6): a pair the declaration closes
+    // loses its view, so a live message on one would be dropped from sight.
+    // Each is named with its sender, and the apply waits until it is handled.
+    self.refuse_live_on_closed_pairs(&declaration)?;
 
     let mut report = WbInit {
       resolved,
@@ -8282,6 +8486,7 @@ impl Facade {
       moved: 0,
       would_write: Vec::new(),
       readme: readme.plan.clone(),
+      would_remove: Vec::new(),
     };
     let register: Vec<(String, String, String)> = report
       .seats
@@ -8304,6 +8509,10 @@ impl Facade {
           .push(self.project.relative(&self.roster_readme_path()));
         report.would_write.sort();
       }
+      report.would_remove = Self::closed_pair_views(&self.project, &boards, &declaration)
+        .iter()
+        .map(|p| self.project.relative(p))
+        .collect();
       return Ok(report);
     }
     // **THE README FIRST, WHOLE, AND THE BASELINE AFTER IT** (vc's ruling on
@@ -8595,6 +8804,7 @@ impl Facade {
       &self.canon.threads,
       &self.canon.issues,
       &self.canon.boards,
+      self.canon.declaration.as_ref(),
     );
     self
       .store
@@ -8848,7 +9058,53 @@ impl Facade {
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.note_landed(&applied);
     applied.keep();
+    self.drop_closed_pair_views()?;
     self.record_landed(&canon_files, &landed)
+  }
+
+  /// Take off disk every inbox view a declared team closes (ST0092 WP-05,
+  /// AC-05.1), naming each on a `removed:` line. Only a migrated node's views
+  /// are generated, so a hand-authored board's files are never touched; and
+  /// `wb init` has already refused a closed pair that holds a live message, so
+  /// what goes is a view of handled messages, each still readable with `--all`.
+  fn drop_closed_pair_views(&mut self) -> Result<(), FacadeError> {
+    let Some(declaration) = self.canon.declaration.clone() else {
+      return Ok(());
+    };
+    let mut gone = Vec::new();
+    for path in Self::closed_pair_views(&self.project, &self.canon.boards, &declaration) {
+      std::fs::remove_file(&path).map_err(|source| FacadeError::ViewsNotWritten {
+        cause: WriteError::Io {
+          path: path.display().to_string(),
+          source,
+        },
+      })?;
+      gone.push(path);
+    }
+    self.note_removed(&gone)
+  }
+
+  /// The inbox views on disk that `declaration` closes: each migrated node's
+  /// `inbox.<sender>.md` for a sender it shares no pair with. **ONE ANSWER FOR
+  /// THE DRY RUN AND THE APPLY**, so `would remove:` names what `removed:` will.
+  fn closed_pair_views(
+    project: &Project,
+    boards: &[crate::model::Board],
+    declaration: &crate::model::TeamDeclaration,
+  ) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    for board in boards.iter().filter(|b| b.node.migrated_at.is_some()) {
+      let node = &board.node.moniker;
+      for sender in boards.iter().map(|b| &b.node.moniker) {
+        if sender != node && !declaration.pairs(sender, node) {
+          let path = project.wb_inbox_view(node, sender);
+          if path.is_file() {
+            out.push(path);
+          }
+        }
+      }
+    }
+    out
   }
 
   /// Wait for, and take, the lock [`Self::land_board_write`] holds (issue
@@ -9268,6 +9524,7 @@ impl Facade {
   /// moment", so a caller-supplied value would be the fabricated stamp with the
   /// model's blessing -- the class this whole model exists to close.
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let event = self.wb_event("wb.touch", node, json!({}));
     self
@@ -9286,6 +9543,7 @@ impl Facade {
   /// telling those apart is the whole point of a heartbeat on a board peers
   /// read.
   pub fn wb_release(&mut self, node: &str) -> Result<(), FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let event = self.wb_event("wb.release", node, json!({}));
     self
@@ -9324,6 +9582,7 @@ impl Facade {
     focus: Option<&str>,
     all: bool,
   ) -> Result<Pickup, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let event = self.wb_event(
       "wb.pickup",
@@ -9491,6 +9750,7 @@ impl Facade {
     kind: WbItemKind,
     text: &str,
   ) -> Result<u32, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     self.check_body_bound(node, text)?;
     let wire = crate::model::enum_str(&kind);
@@ -9967,6 +10227,7 @@ impl Facade {
     kind: WbItemKind,
     seq: u32,
   ) -> Result<bool, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let wire = crate::model::enum_str(&kind);
     let event = self.wb_event("wb.archive", node, json!({ "kind": wire, "seq": seq }));
@@ -10000,6 +10261,7 @@ impl Facade {
     recipient: &str,
     id: &str,
   ) -> Result<bool, FacadeError> {
+    self.require_writer_as(sender)?;
     self.require_migrated(sender)?;
     self.require_migrated(recipient)?;
     let NamedMessage {
@@ -10053,6 +10315,7 @@ impl Facade {
     sender: &str,
     recipient: Option<&str>,
   ) -> Result<WbArchiveSweep, FacadeError> {
+    self.require_writer_as(sender)?;
     self.require_migrated(sender)?;
     if let Some(recipient) = recipient {
       self.require_migrated(recipient)?;
@@ -10113,6 +10376,7 @@ impl Facade {
     seq: u32,
     text: &str,
   ) -> Result<WbEdit, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     if kind == WbItemKind::Directive && node != crate::model::HYPERVISOR {
       return Err(FacadeError::WbDirectiveOffHv {
@@ -10294,6 +10558,7 @@ impl Facade {
     id: &str,
     text: &str,
   ) -> Result<WbMessageEdit, FacadeError> {
+    self.require_writer_as(sender)?;
     self.require_registered(sender)?;
     self.require_migrated(recipient)?;
     self.check_body_bound(sender, text)?;
@@ -10691,6 +10956,7 @@ impl Facade {
   /// way would say a write happened when none did, which is the rule
   /// `wb register` and `wb clear` already answer to.
   pub fn wb_claim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     if !crate::model::is_claim_address(claim) {
       return Err(FacadeError::WbClaimMalformed {
@@ -10718,6 +10984,7 @@ impl Facade {
   /// obvious cleanup -- unclaim everything, whatever the board says -- a script
   /// that has to check first.
   pub fn wb_unclaim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
+    self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
     let kept: Vec<String> = claims.iter().filter(|c| *c != claim).cloned().collect();
@@ -10765,9 +11032,11 @@ impl Facade {
     re: Option<&str>,
     fyi: bool,
   ) -> Result<(), FacadeError> {
+    self.require_writer_as(sender)?;
     self.require_registered(sender)?;
     self.require_migrated(recipient)?;
     self.check_body_bound(sender, body)?;
+    self.refuse_closed_pair(sender, recipient, body)?;
     // Issue 0610: `re` is resolved, never stored as typed. It names a message
     // the addressee sent this node, the one being answered, through the
     // resolver `wb edit message` uses with the direction reversed, and what is
@@ -10822,14 +11091,21 @@ impl Facade {
   /// received it and the nodes that did not both believe they know what was
   /// said.
   pub fn wb_announce(&mut self, sender: &str, body: &str) -> Result<usize, FacadeError> {
+    self.require_writer_as(sender)?;
     self.require_registered(sender)?;
     self.check_body_bound(sender, body)?;
+    // On a board that declares a team an announce reaches every session seat
+    // and never the human's (ST0092 WP-05, AC-05.3), and a closed pair is no
+    // more open to a broadcast than to an ask.
+    let declared = self.store.wb_declaration().map_err(FacadeError::Store)?;
     let recipients: Vec<String> = self
       .store
       .wb_monikers()
       .map_err(FacadeError::Store)?
       .into_iter()
       .filter(|m| m != sender)
+      .filter(|m| declared.as_ref().is_none_or(|d| m != &d.human))
+      .filter(|m| crate::model::pair_open(declared.as_ref(), sender, m))
       .collect();
     // Every recipient is asked before any row is written, for the reason the
     // bounds below are: a broadcast never half-lands.
@@ -10879,6 +11155,7 @@ impl Facade {
   /// [`Self::wb_ask`] for why that is a convention at this layer and what
   /// making it a guarantee would cost.
   pub fn wb_clear(&mut self, recipient: &str, sender: &str) -> Result<usize, FacadeError> {
+    self.require_writer_as(recipient)?;
     self.require_migrated(recipient)?;
     self.require_registered(sender)?;
     let event = self.wb_event("wb.clear", recipient, json!({ "sender": sender }));
@@ -12175,7 +12452,13 @@ impl Facade {
       // shape exactly -- content present and findable by nothing -- so rebuilding
       // the thread sections is part of the carry rather than a tidy-up after it.
       if !canon.threads.is_empty() {
-        canon.sections = ingest::sections_of(project, &canon.threads, &canon.issues, &canon.boards);
+        canon.sections = ingest::sections_of(
+          project,
+          &canon.threads,
+          &canon.issues,
+          &canon.boards,
+          canon.declaration.as_ref(),
+        );
         store.replace_doc_sections(&canon.sections)?;
       }
 
@@ -19067,7 +19350,13 @@ impl Facade {
     // section, so every mutation left one more copy of a thread's prose
     // behind, and issue prose was never derived here at all. `sections_of` has
     // no set to name.
-    let sections = ingest::sections_of(&self.project, &next.threads, &next.issues, &next.boards);
+    let sections = ingest::sections_of(
+      &self.project,
+      &next.threads,
+      &next.issues,
+      &next.boards,
+      next.declaration.as_ref(),
+    );
 
     // THE DATABASE IS THE MUTATION (D01, reversed by hv 2026-08-15: the DB is
     // the SSOT and the files are re-creatable).

@@ -291,11 +291,11 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
   );
 
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   assert_eq!(
     facade.wp_show("ST0001", 1).expect("the work package").body,
@@ -1941,11 +1941,11 @@ fn enter(app: &mut intent_cli::tui::app::App, line: &str) -> intent_cli::tui::ap
 /// The project's facade, opened in this process as the explorer opens it.
 fn facade_of(root: &Path) -> intentsvcs::facade::Facade {
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens")
 }
 

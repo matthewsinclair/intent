@@ -90,11 +90,11 @@ impl Resolver for Handed {
 /// The facade over the project at `root`, in this process.
 pub fn facade(root: &Path) -> Facade {
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   Facade::open(project, ctx).expect("the facade opens")
 }
 

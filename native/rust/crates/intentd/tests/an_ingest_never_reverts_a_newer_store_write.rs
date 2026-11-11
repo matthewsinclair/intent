@@ -149,11 +149,11 @@ const SETTLE: Duration = Duration::from_secs(4);
 /// actor wrote it is the entire question here.
 fn open(root: &Path) -> Facade {
   let opened = intentsvcs::project::Project::open(root).expect("the project exists");
-  let ctx = FacadeContext {
-    principal: "test".to_string(),
-    project_id: opened.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   Facade::open(opened, ctx).expect("open the facade")
 }
 

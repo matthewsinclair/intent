@@ -551,6 +551,8 @@ mod wb_ask_re_names_a_message_the_addressee_sent;
 mod wb_edit_keeps_the_old_text_out_of_a_commit;
 #[path = "wb_hv.rs"]
 mod wb_hv;
+#[path = "wb_hv_typed.rs"]
+mod wb_hv_typed;
 #[path = "wb_init.rs"]
 mod wb_init;
 #[path = "wb_migrate_carries_a_board.rs"]

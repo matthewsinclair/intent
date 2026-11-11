@@ -2366,6 +2366,27 @@ pub struct TeamDeclaration {
   pub readme_baseline: Option<String>,
 }
 
+impl TeamDeclaration {
+  /// Whether `a` and `b` share an inbox pair on the board this declares: the
+  /// human seat pairs with the mediator alone, and every other pair is open.
+  pub fn pairs(&self, a: &str, b: &str) -> bool {
+    let other = match (a == self.human, b == self.human) {
+      (true, _) => b,
+      (_, true) => a,
+      _ => return true,
+    };
+    other == self.mediator
+  }
+}
+
+/// Whether two nodes share an inbox pair (ST0092 WP-05): every pair on a board
+/// that declares no team, as before the profiles, and on a declared board what
+/// [`TeamDeclaration::pairs`] says. **ONE HOME FOR THE RULE**: the views, `ask`,
+/// `announce` and `wb init`'s crossing all read it here.
+pub fn pair_open(declaration: Option<&TeamDeclaration>, a: &str, b: &str) -> bool {
+  declaration.is_none_or(|d| d.pairs(a, b))
+}
+
 /// One node's whiteboard: `whiteboard/<node>/board.json`.
 ///
 /// **EVERY FIELD HAS ONE WRITER, AND IT IS THIS NODE.** Its items, the
@@ -2451,6 +2472,16 @@ pub struct WbNode {
 /// own node lookup.
 pub fn register_form(moniker: &str) -> String {
   format!("intent wb register {moniker} --name \"<display name>\" --role <role>")
+}
+
+/// `intent wb ask` of `body` to `recipient` as `sender`, quoted so a shell
+/// runs it as written whatever the body holds: a refusal's remedy gives the
+/// same message to the node that can take it.
+pub fn ask_form(recipient: &str, body: &str, sender: &str) -> String {
+  format!(
+    "intent wb ask {recipient} '{}' --node {sender}",
+    body.replace('\'', "'\\''")
+  )
 }
 
 /// One line of a node's board.

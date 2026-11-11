@@ -2472,7 +2472,9 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
     });
     for peer in &canon.boards {
       let sender = &peer.node.moniker;
-      if sender == node {
+      // A board that declares a team renders the human seat's one pair, with
+      // the mediator, and no other pair of its (ST0092 WP-05).
+      if sender == node || !crate::model::pair_open(canon.declaration.as_ref(), sender, node) {
         continue;
       }
       views.push(View {

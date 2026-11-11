@@ -144,11 +144,11 @@ fn project() -> PathBuf {
     .expect("the shipped initialiser creates a project");
 
   let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: opened.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
   let id = facade.st_new(MINTED).expect("mint one thread");
   // **STARTED, BECAUSE A FRESH THREAD IS NOT WHAT `st list` SHOWS BY DEFAULT.**

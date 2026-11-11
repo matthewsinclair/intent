@@ -38,19 +38,20 @@
 
 Rules that hold across the whole command surface. They are stated once here rather than repeated on every entry, and WP-05 must honour them at the framework layer -- several are things clap does differently by default, so inheriting the default silently breaks parity.
 
-| id     | invariant                                                                           | v3 target   |
-| ------ | ----------------------------------------------------------------------------------- | ----------- |
-| INV-01 | Voice: lowercase `ok:` / `error:` prefixes, no banners                              | corrected   |
-| INV-02 | Usage errors exit 1, except in `intent critic`, which exits 2                       | corrected   |
-| INV-03 | The project-context gate                                                            | corrected   |
-| INV-04 | Exit codes are 0, 1, 2, 3 and 4                                                     | corrected   |
-| INV-05 | `error ...; usage` -- the second call is unreachable, everywhere                    | pending-hv  |
-| INV-06 | About a fifth of v2 failure paths write to the wrong stream                         | corrected   |
-| INV-07 | `--help` reports failure                                                            | corrected   |
-| INV-08 | Some commands accept an unknown flag silently at exit 0                             | corrected   |
-| INV-09 | Every spelling of one capability agrees about whether it exists                     | new-surface |
-| INV-10 | `edit`'s four output modes are mutually exclusive and the default is the terminal's | new-surface |
-| INV-11 | A valued verb slot publishes on MCP as one tool per value, never as a parameter     | new-surface |
+| id     | invariant                                                                                                        | v3 target   |
+| ------ | ---------------------------------------------------------------------------------------------------------------- | ----------- |
+| INV-01 | Voice: lowercase `ok:` / `error:` prefixes, no banners                                                           | corrected   |
+| INV-02 | Usage errors exit 1, except in `intent critic`, which exits 2                                                    | corrected   |
+| INV-03 | The project-context gate                                                                                         | corrected   |
+| INV-04 | Exit codes are 0, 1, 2, 3 and 4                                                                                  | corrected   |
+| INV-05 | `error ...; usage` -- the second call is unreachable, everywhere                                                 | pending-hv  |
+| INV-06 | About a fifth of v2 failure paths write to the wrong stream                                                      | corrected   |
+| INV-07 | `--help` reports failure                                                                                         | corrected   |
+| INV-08 | Some commands accept an unknown flag silently at exit 0                                                          | corrected   |
+| INV-09 | Every spelling of one capability agrees about whether it exists                                                  | new-surface |
+| INV-10 | `edit`'s four output modes are mutually exclusive and the default is the terminal's                              | new-surface |
+| INV-11 | A valued verb slot publishes on MCP as one tool per value, never as a parameter                                  | new-surface |
+| INV-12 | On a board that declares a team, only the mediator's session or a shell with no session writes as the human seat | new-surface |
 
 ### INV-01 -- Voice: lowercase `ok:` / `error:` prefixes, no banners
 
@@ -182,6 +183,14 @@ A `subcommand` slot is how the table spells a third level, and it is never a pub
 - **v2:** not-applicable -- v2 had no MCP surface
 - **Target:** `new-surface` -- ratified: ic as the dispatch table's owner, 2026-11-10, on cc's shape question for ST0092 WP-02's `wb profile`; vc let it stand the same day and asked that the table say it once
 - **held by:** dispatch::table()'s load checks on `value_facades` and `value_args`, and mcp.rs's expansion test with its positive control, beside a_subcommand_slot_is_not_published
+
+### INV-12 -- On a board that declares a team, only the mediator's session or a shell with no session writes as the human seat
+
+A write that takes `--node <human seat>` on a board that declares a team is refused unless the call comes from the Claude Code session bound to the mediator, or from a shell with no Claude Code session, which is the human's own terminal. The check sits in the facade, so the CLI, every MCP tool that takes a node and the daemon meet the one check and no dispatch arm repeats it. An MCP call always carries its server's session, and with none it is unattributed, never the terminal; a call through the daemon is unattributed, so it is refused. The refusal is exit 1 with `error:`, and its remedy names the mediator. A board that declares no team is unaffected.
+
+- **v2:** not-applicable -- v2 had no declared teams
+- **Target:** `new-surface` -- ratified: vc under the pen, 2026-11-10, on ic's second row read of ST0092 WP-05, and the caller's shape on 2026-11-11 on cc's design question
+- **held by:** Facade::require_writer_as, which every node-taking board verb calls first, with intentsvcs's wb_hv.rs, intent-cli's hv_seat_door.rs and intentd's own store test
 
 ## Family: `st`
 
@@ -4242,13 +4251,13 @@ Send one message from the acting node into another node's board
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT to say something to one node and have it survive the session -- the message lands on the RECIPIENT's board, which is the shape the markdown inboxes already had, so one board is a whole readable conversation. DO NOT USE IT for something every node needs: `wb announce` reaches them all and refuses as a whole rather than half-landing. The sender is the node named by `--node`, so who a message is FROM is a convention this layer trusts rather than a guarantee it makes.
+- **when to use:** USE IT to say something to one node and have it survive the session -- the message lands on the RECIPIENT's board, which is the shape the markdown inboxes already had, so one board is a whole readable conversation. DO NOT USE IT for something every node needs: `wb announce` reaches them all and refuses as a whole rather than half-landing. The sender is the node named by `--node`, so who a message is FROM is a convention this layer trusts rather than a guarantee it makes. On a board that declares a profile, the human seat and a node that is not the mediator share no inbox: an ask between them either way is refused, exit 1, and the remedy gives the same message to the mediator as a command that runs as written. An ask as the human seat is taken only from the mediator's session or a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `ask` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
 - **recoverability:** one-way
 - **facade:** wb_ask
-- **note:** **THE SINGLE-WRITER INVARIANT IS A CONVENTION AT THIS LAYER AND NOT A GUARANTEE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED OTHERWISE** (ic, measured against the surface). `--node` IS the impersonation parameter wearing another name: `intent wb ask --node dc vc ...` lands in vc's board as dc from any session. The markdown form held the rule by the FILESYSTEM -- you wrote your own file -- and moving it into an API moved it to whoever types the flag. Making it structural means taking the acting node from somewhere the caller does not choose, which is a larger design than this cut. What the door does hold is narrower and real: a message reaches only a REGISTERED node and lands on the RECIPIENT's board. **NO PARAMETER TAKES A TIMESTAMP**, so the fabricated-stamp class closes by construction rather than by detection -- nothing to supply, nothing to validate, the store reading the clock at the write. **The migration is the one writer that does take a stamp, by design**: `authored_at` carries verbatim what a board's markdown claimed, a doorway rather than a hole, kept as a claim and never read as a time. The bounds are refusals stating the bound and the remedy, never truncation.
+- **note:** **THE SINGLE-WRITER INVARIANT IS A CONVENTION AT THIS LAYER AND NOT A GUARANTEE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED OTHERWISE** (ic, measured against the surface). `--node` IS the impersonation parameter wearing another name: `intent wb ask --node dc vc ...` lands in vc's board as dc from any session. The markdown form held the rule by the FILESYSTEM -- you wrote your own file -- and moving it into an API moved it to whoever types the flag. Making it structural means taking the acting node from somewhere the caller does not choose, which is a larger design than this cut. What the door does hold is narrower and real: a message reaches only a REGISTERED node and lands on the RECIPIENT's board. **NO PARAMETER TAKES A TIMESTAMP**, so the fabricated-stamp class closes by construction rather than by detection -- nothing to supply, nothing to validate, the store reading the clock at the write. **The migration is the one writer that does take a stamp, by design**: `authored_at` carries verbatim what a board's markdown claimed, a doorway rather than a hole, kept as a claim and never read as a time. The bounds are refusals stating the bound and the remedy, never truncation. On a board that declares a team, a write as the human seat is INV-12's, checked in the facade for this verb as for every node-taking one.
 
 ### `wb announce`
 
@@ -4264,7 +4273,7 @@ Send one message to every registered node but the sender
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT when every node needs the same line -- before touching a shared layer, or to broadcast a ruling. It is marked FYI on every board it reaches, because a broadcast that expected a reply would expect one from everybody. DO NOT USE IT to reach one node: `wb ask` is the door and it threads. It reports how many boards it REACHED rather than the roster's size, so a one-node board is honestly reported as reaching nobody.
+- **when to use:** USE IT when every node needs the same line -- before touching a shared layer, or to broadcast a ruling. It is marked FYI on every board it reaches, because a broadcast that expected a reply would expect one from everybody. DO NOT USE IT to reach one node: `wb ask` is the door and it threads. It reports how many boards it REACHED rather than the roster's size, so a one-node board is honestly reported as reaching nobody. On a board that declares a profile it sends no copy to the human seat, and none on a pair the profile closes.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `announce` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
@@ -4316,7 +4325,7 @@ Move one of the acting node's live items to archived, or a message it sent that 
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so. A MESSAGE is `wb archive message <id> --to <recipient>`, `<id>` being the message's address as `wb edit message` takes it: one message you sent, once its recipient has handled it. It leaves the recipient's inbox view, the file a human reads, while `wb show --all` and the JSON still carry it. A message its recipient still holds live is refused, because only the recipient can say it is handled, and each copy of an announce is archived on its own. `wb archive message --handled` archives every message you sent that its recipient has handled, to `--to` alone where it is given, and names what stays live; it is what a fold runs.
+- **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so. A MESSAGE is `wb archive message <id> --to <recipient>`, `<id>` being the message's address as `wb edit message` takes it: one message you sent, once its recipient has handled it. It leaves the recipient's inbox view, the file a human reads, while `wb show --all` and the JSON still carry it. A message its recipient still holds live is refused, because only the recipient can say it is handled, and each copy of an announce is archived on its own. `wb archive message --handled` archives every message you sent that its recipient has handled, to `--to` alone where it is given, and names what stays live; it is what a fold runs. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds, and AC-14.6 read as vc ruled it 2026-09-12. There is no v2 antecedent. The `message` form is issue 0627 (hv's shape ruling of 2026-10-23, vc's spec in the issue's record): a handled message never left its inbox view, which is the file a human reads, and no verb retired one. Its sender archives it, so the single-writer rule holds.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.6
@@ -4375,7 +4384,7 @@ Start a session: mark this node active, then its board and its peers' state
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat.
+- **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `pickup` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4395,7 +4404,7 @@ Stamp the acting node's heartbeat
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to say this node is still alive without reading anything -- a long turn with no board activity otherwise looks like a node that stopped. DO NOT USE IT at session start: `wb pickup` touches and gives you the board and your peers in one go. No caller supplies the time and there is no flag for one; the service reads the clock at the write.
+- **when to use:** USE IT to say this node is still alive without reading anything -- a long turn with no board activity otherwise looks like a node that stopped. DO NOT USE IT at session start: `wb pickup` touches and gives you the board and your peers in one go. No caller supplies the time and there is no flag for one; the service reads the clock at the write. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `touch` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.4
@@ -4415,7 +4424,7 @@ Pause the acting node, stamping when it stopped
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Picking up again is what makes a node active; registering never does, because a new node registers paused and a registered one is not touched.
+- **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Picking up again is what makes a node active; registering never does, because a new node registers paused and a registered one is not touched. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `release` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4459,7 +4468,7 @@ Add a steel thread, work package or issue to the acting node's claims
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error.
+- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `claim` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4481,7 +4490,7 @@ Drop a steel thread, work package or issue from the acting node's claims
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT when this node no longer has the pen on that work, so the board stops asserting a lane nobody is in. Dropping something that was not claimed is NOT a refusal -- the end state you asked for is the end state you get -- so a cleanup that drops everything need not check the board first. It reports what MOVED, so a no-op says so.
+- **when to use:** USE IT when this node no longer has the pen on that work, so the board stops asserting a lane nobody is in. Dropping something that was not claimed is NOT a refusal -- the end state you asked for is the end state you get -- so a cleanup that drops everything need not check the board first. It reports what MOVED, so a no-op says so. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `unclaim` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4503,7 +4512,7 @@ Mark every live message one sender sent the acting node handled
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT when you have acted on what a node sent you, to take those messages out of the live count -- that count is what the per-inbox bound measures, so clearing is how an inbox that refuses a write starts accepting again. The recipient is the node named by `--node`, so ownership here stands exactly as far as authorship does on `wb ask` and no further. It reports what MOVED, so clearing an already-clear inbox reports nothing rather than its size.
+- **when to use:** USE IT when you have acted on what a node sent you, to take those messages out of the live count -- that count is what the per-inbox bound measures, so clearing is how an inbox that refuses a write starts accepting again. The recipient is the node named by `--node`, so ownership here stands exactly as far as authorship does on `wb ask` and no further. It reports what MOVED, so clearing an already-clear inbox reports nothing rather than its size. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The `intent wb` family covers the `/in-whiteboard` verbs, `clear` among them. There is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.5
@@ -4550,13 +4559,13 @@ Bring the board to what its Team Profiles declare, and record the declaration
     - **exposed on mcp:** false
 - **Exit codes:**
   - `0` -- a dry run the apply would carry out, or an apply that wrote or found nothing to write
-  - `1` -- a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, a node not yet migrated, a roster README edited outside its block, which names the lines, a README whose markers are not one start followed by one end, a README that cannot be read, or a README write that fails
+  - `1` -- a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, a node not yet migrated, a roster README edited outside its block, which names the lines, a README whose markers are not one start followed by one end, a README that cannot be read, a README write that fails, or a live message on a pair the profiles close
   - `2` -- the installed profiles or the roster README's template cannot be read
-- **stdout:** the plan, one line per seat, the declaration and `README:` lines, then `ok:`; a dry run lists every file it would write on `would write:` lines; after an apply, every file on a `wrote:` line and the roster-commit `note:`, and on a first render that drops a frontmatter block, a `note:` naming it
+- **stdout:** the plan, one line per seat, the declaration and `README:` lines, then `ok:`; a dry run lists every file it would write on `would write:` lines and every view it would remove on `would remove:` lines; after an apply, every file on a `wrote:` line, every view it removed on a `removed:` line, and the roster-commit `note:`, and on a first render that drops a frontmatter block, a `note:` naming it
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
-- **when to use:** USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit.
+- **when to use:** USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit. The human seat keeps one inbox pair, with the mediator, so an apply removes every other pair's view of it and names each on a `removed:` line; while such a pair still holds a live message, the dry run and the apply refuse and name each with its sender and the clear that handles it, and every message stays readable with `--all`.
 - **basis:** ST0092/WP/03 info.md: `intent wb init <profile>` brings a board to what its profiles declare and touches nothing else on it. There is no v2 antecedent.
 - **owner wp:** ST0092 WP-03
 - **acceptance:** ST0092 AC-03.1 to AC-03.5, AC-03.8

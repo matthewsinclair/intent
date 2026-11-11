@@ -324,6 +324,13 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A declared seat registered with other values: every field was supplied,
     // and the remedy is the profile's values (ST0092 WP-03).
     | FacadeError::WbRegisterNotAsDeclared { .. }
+    // A message on a pair a declared team closes, a write as hv from a door
+    // that is not the mediator's session or hv's terminal, and a crossing
+    // over live messages: every field was supplied, and the remedy names the
+    // mediator or the clears (ST0092 WP-05).
+    | FacadeError::WbPairClosed { .. }
+    | FacadeError::WbHumanSeatNotYours { .. }
+    | FacadeError::WbClosedPairHoldsLive { .. }
     // Arguments against a board's header, and a correction of a moniker nobody
     // registered: every field was supplied, and the remedy is other VALUES or
     // the plain verb, never a field left out.

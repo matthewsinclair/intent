@@ -26,11 +26,11 @@ fn estate() -> PathBuf {
   intentsvcs::init::init(&root, "Crossing", "test", env!("CARGO_PKG_VERSION"))
     .expect("a fresh project initialises");
   let project = intentsvcs::project::Project::open(&root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   facade
     .st_new("A thread this project carries")

@@ -68,11 +68,11 @@ fn an_estate() -> PathBuf {
     .expect("a fresh project initialises");
 
   let project = intentsvcs::project::Project::open(&root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   facade
     .st_new("A thread to open in a browser")
@@ -96,11 +96,11 @@ fn an_estate() -> PathBuf {
 /// The rows the TERMINAL would draw, computed in this process.
 fn in_process(root: &Path, id: &str) -> Vec<intentsvcs::form::Triple> {
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   let declaration = intentsvcs::form::Loaded::load().expect("the form declaration loads");
   let form = declaration.form("thread").expect("`thread` is declared");
@@ -117,11 +117,11 @@ fn in_process(root: &Path, id: &str) -> Vec<intentsvcs::form::Triple> {
 /// paths agree rather than that one path is reached twice.
 fn in_process_wp(root: &Path, thread: &str, seq: &str) -> Vec<intentsvcs::form::Triple> {
   let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: String::new(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    String::new(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   let declaration = intentsvcs::form::Loaded::load().expect("the form declaration loads");
   let form = declaration.form("wp").expect("`wp` is declared");

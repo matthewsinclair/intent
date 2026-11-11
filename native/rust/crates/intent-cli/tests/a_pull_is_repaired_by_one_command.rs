@@ -431,11 +431,11 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
   );
 
   let project = intentsvcs::project::Project::open(&team.bob).expect("Bob's project");
-  let ctx = intentsvcs::facade::FacadeContext {
-    principal: "test".to_string(),
-    project_id: project.config().project_id.clone().unwrap_or_default(),
-    version: env!("CARGO_PKG_VERSION").to_string(),
-  };
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    project.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   let mut asked = Vec::new();
   let applied = facade
