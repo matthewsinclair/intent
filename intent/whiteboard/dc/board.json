@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "2aba47df-5301-4790-a6b7-e11815afe307",
-    "heartbeat_at": "2026-11-11T08:15:22.292Z",
+    "heartbeat_at": "2026-11-11T09:25:02.761Z",
     "status": "active",
-    "focus": "2026-11-11, localfolded for hv's compact on hv's word via vc ('lets bank, localfold+compact everyone here and then continue on the bounce'); dc stays active and carries on after /in-session with no word needed. Lane in order: (1) WP-04 bank (i): read the green in slot 01M74T4WZM85VYCGKHZ5H8BDFC, release it, bank on 8f3da433f as refs/bank/dc/0092-04/*, send vc and ic (doing 159); (2) the devbin sweep unit on 0.1.22 when devbin-vc says it is on the tap (todo 61, its unjudged 0.1.21 bank as the start); (3) WP-04 bank (ii) after cc's WP-05 (todo 62); (4) F8 docs/reference last before the cut (todo 60). Hold 37 stands. Worktrees: tmp/wt-dc-0092-04, -04b, -04-red (WP-04), tmp/wt-dc-devbin0121 (sweep), tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/progress.md.",
+    "focus": "2026-11-11, back from hv's compact (localfold a3e277aab), active, no slot held. Lane: (1) WP-04 bank (i) is BANKED on 8f3da433f as refs/bank/dc/0092-04/{red,green-on-red,fix}-on-8f3da433f (red: exactly the 5 door arms; green 3619/0); waiting on ic's row read and vc's full judge, then land it per doing 159; (2) the devbin sweep on 0.1.22 when devbin-vc says it is on the tap (todo 61); (3) WP-04 bank (ii) after cc's WP-05 (todo 62); (4) F8 last (todo 60). Hold 37 stands. Worktrees: tmp/wt-dc-0092-04, -04b, -04-red, tmp/wt-dc-devbin0121, tmp/wt-dc-0090-app (hold 37). Notes: scratchpad w04/progress.md.",
     "claims": [
       "ST0090/02",
       "ST0091/01",
@@ -2809,10 +2809,10 @@
       "node": "dc",
       "kind": "doing",
       "seq": 159,
-      "text": "ST0092 WP-04 bank (i), claimed and started at WP-07's landing (1c3001fb2). Code in tmp/wt-dc-0092-04 (warm), rebased onto main as tmp/wt-dc-0092-04b with the data-model row and ST0056 canon redone; red tree tmp/wt-dc-0092-04-red. Red measured: exactly the 5 wb_retire_door.rs arms red on 4dc6a34a7. Green after seat::human_seat running in slot 01M74T4WZM85VYCGKHZ5H8BDFC; bank on 8f3da433f (boards-only since) as refs/bank/dc/0092-04/*, then ic reads the rows and vc runs the full judge. AT rows to mint at landing: AT-04.1 to AT-04.6 (AT-04.3 and AT-04.4 cite wb_retire.rs, their red a compile red, naming at_04_1's door arm).",
+      "text": "ST0092 WP-04 bank (i), claimed and started at WP-07's landing (1c3001fb2). BANKED on 8f3da433f: refs/bank/dc/0092-04/red-on-8f3da433f (blob be2c8f96a8c2), green-on-red-on-8f3da433f (4c5ca634d9fb), fix-on-8f3da433f (26f5a3a27de1, 34 files); red tree ce05b08e3a6e, tip tree 5b4a3885683b. Red: exactly the 5 wb_retire_door.rs arms. Green: check format, clippy, panics, test rust 3619 passed 0 failed (slot 01M74T4WZM85VYCGKHZ5H8BDFC, released). Sent to vc and ic; waiting on ic's row read and vc's full judge. Landing: red commit, mint AT-04.1, 04.2, 04.5, 04.6 citing intent-cli/tests/wb_retire_door.rs and AT-04.3, 04.4 citing intentsvcs/tests/wb_retire.rs (their red a compile red, naming at_04_1's door arm), at red, green, at green with full notes, lint. WP-04 stays WIP for bank (ii). Worktrees tmp/wt-dc-0092-04, -04b, -04-red go after landing.",
       "state": "live",
       "recorded_at": "2026-11-11T07:54:26.461Z",
-      "edited_at": "2026-11-11T08:15:09.697Z"
+      "edited_at": "2026-11-11T09:25:11.315Z"
     },
     {
       "node": "dc",
