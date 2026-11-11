@@ -7,5 +7,5 @@
   "severity": "medium",
   "created": "2026-11-11",
   "reporter": "Matthew Sinclair",
-  "body": "Found in the 3.3.0 estate sweep (ST0092 WP-11), 2026-11-11. On a board at intent/board@4.0, intent wb init --apply re-renders every seat's board.json to intent/board@4.1 but names only the files it changed for the profile on wrote: lines, and prints the rest as re-rendered: or not at all. A commit of exactly what the verb printed leaves the schema line dirty on the other boards, which then needs a second mechanical commit (Conflab, Lamplight, cordee-papillon, Devbin, Webber). The verb should name every file it wrote."
+  "body": "Found in the 3.3.0 estate sweep (ST0092 WP-11), 2026-11-11. On a board at intent/board@4.0, intent wb init --apply re-renders every seat's board.json to intent/board@4.1 but names only the files it changed for the profile on wrote: lines, and prints the rest as re-rendered: or not at all. A commit of exactly what the verb printed leaves the schema line dirty on the other boards, which then needs a second mechanical commit (five boards in the sweep, Devbin and Webber among them). The verb should name every file it wrote."
 }
