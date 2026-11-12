@@ -1,0 +1,15 @@
+{
+  "id": "01M77MKX8WAXQDW3RKAS9T14RW",
+  "ts": "2026-11-12T10:24:53.026Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0689"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent app takes LaunchServices' word for the app's pid: a record of an exited app reads as running, and beside one the running app reads as not running"
+  }
+}

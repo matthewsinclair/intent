@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 689,
+  "slug": "intent-app-takes-launchservices-word-for-the-app",
+  "title": "intent app takes LaunchServices' word for the app's pid: a record of an exited app reads as running, and beside one the running app reads as not running",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-12",
+  "reporter": "Matthew Sinclair",
+  "body": "**`intent app` reads the app's pid from `lsappinfo info -only pid <bundle id>` and never asks whether a process holds it.** LaunchServices keeps the record of an app that has exited while its subordinates live, flagged `(exited-with-subordinates)` in `lsappinfo list`, and a lookup by bundle id can answer from that record.\n\n**Seen by hv on rhadamanth, 2026-11-12.** The record of the 3.2.6 Debug build's pid 1734 outlived its process (`kill -0 1734`: no such process). `intent app start` answered \"running (pid 1734)\" and launched nothing, and `intent app stop` delivered a quit and reported the app \"still running after 2s\". `open /Applications/Intent.app` started the app.\n\n**Measured by cc at 10:22Z the same day, with that app running as pid 12497 beside the stale record.** `lsappinfo info -only pid com.matthewsinclair.intent.macos` printed nothing and exited 0, so 3.3.0's `intent app status` said \"Intent.app is installed at /Applications/Intent.app and is not running\" (exit 1) while it ran. `app stop` would then quit nothing, and `app start` would wait 15s and report the app unregistered. `lsappinfo find bundleid=com.matthewsinclair.intent.macos` listed the live record alone, `ASN:0x0-0x4b96b92-\"Intent\":`, and `lsappinfo info -only pid` asked by that ASN answered `pid = 12497`. Asked by the stale record's ASN, `ASN:0x0-0x82082`, it still answered `pid = 1734`.\n\n**The fix.** `macapp` lists the bundle id's records with `lsappinfo find bundleid=`, reads each record's pid by its ASN, and takes the first whose pid holds a process, with that record's bundle path. A pid holds a process unless `kill(pid, 0)` answers ESRCH. EPERM is a process this caller may not signal, so the hardened-runtime reason for asking LaunchServices rather than the process table stands. `status`, `start`, `stop` and `restart` all read through it.\n"
+}

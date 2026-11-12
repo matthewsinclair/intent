@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-11-12T09:16:02.917Z",
     "status": "active",
     "focus": "2026-11-12 09:16Z, holding on vc's word. The CHANGELOG pass for releasing.md step 2 is committed at bd525bae2, and hold 36 reads devbin-vc's sweep for a packaging/homebrew change once it is on main. A core defect from dc's proof run or the Desk's kovacs leg comes to cc as a bank, on vc's word. No claim, desk slot or worktree.",
-    "claims": [],
+    "claims": [
+      "ISSUE:0689"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"

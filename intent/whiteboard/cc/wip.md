@@ -6,7 +6,7 @@ session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
 heartbeat_at: 2026-11-12 09:16Z
 status: active
 focus: "2026-11-12 09:16Z, holding on vc's word. The CHANGELOG pass for releasing.md step 2 is committed at bd525bae2, and hold 36 reads devbin-vc's sweep for a packaging/homebrew change once it is on main. A core defect from dc's proof run or the Desk's kovacs leg comes to cc as a bank, on vc's word. No claim, desk slot or worktree."
-claims: []
+claims: [ISSUE:0689]
 ---
 
 # Control Claude (cc)
