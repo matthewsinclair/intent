@@ -1285,8 +1285,9 @@ $(printf '%s\n' "$layout" | sed 's/^/       /')
 #
 # THE APP GOES FIRST, AND INSIDE THIS COMMAND (vc, 2026-09-11, ruling (1)). The
 # release ships Intent.app, and the only correct app is one built and notarised
-# from THIS tree: `app_version` stamps the bundle from `git describe --tags` of
-# $ROOT, so an app signed before the tag reports the previous release. Run here,
+# from THIS tree: `app_version` stamps the bundle from the tag a cut hands it as
+# DEVBIN_RELEASE_TARGET_TAG, else from `git describe --tags` of $ROOT, so an app
+# signed before the tag outside a cut reports the previous release. Run here,
 # at the tag on a clean tree -- which `publish` enforces, since it refuses unless
 # the staged commit IS the tag -- the stamp reads the release being cut. Left to
 # the operator as separate commands before this one, the app would be correct only
@@ -1795,9 +1796,19 @@ app_source_tree() {
   if [ -z "$dirt" ]; then printf '%s' "$tree"; else printf '%s-dirty' "$tree"; fi
 }
 
+# THE TAG A CUT IS MAKING WINS OVER THE TAG BEHIND HEAD. devbin's release core
+# runs `macos leg` at the release commit BEFORE it tags, handing the tag it will
+# make as DEVBIN_RELEASE_TARGET_TAG, so describe there reads the previous release
+# and the bundle would report it while the staged CLI reports the new one (the
+# 3.3.1 cut's MACOS stage, refused at staging). source_commit.rs honours the same
+# variable for the pair; outside a cut it is unset and describe answers as before.
 app_version() {
   local v
-  v="$(app_git describe --tags --abbrev=0 2>/dev/null)" || v=""
+  if [ -n "${DEVBIN_RELEASE_TARGET_TAG:-}" ]; then
+    v="$DEVBIN_RELEASE_TARGET_TAG"
+  else
+    v="$(app_git describe --tags --abbrev=0 2>/dev/null)" || v=""
+  fi
   v="${v#v}"
   [ -n "$v" ] && printf '%s' "$v" || printf 'dev'
 }
