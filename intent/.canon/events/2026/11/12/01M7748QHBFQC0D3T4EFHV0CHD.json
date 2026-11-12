@@ -1,0 +1,15 @@
+{
+  "id": "01M7748QHBFQC0D3T4EFHV0CHD",
+  "ts": "2026-11-12T05:39:09.483Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE 0685 banked on 73d2bffb7 for vc to land: refs/bank/cc/0685/red (the arm, patch-id 0fec41d4626c), green-on-red (the fix and its CHANGELOG line, 4747e976bb96), whole (56332b4b1e03) and evidence/run.log. Red then green in desk slot 01M77432245DQ656ZY3P81GGXR, 05:37:22Z to 05:38:01Z. After the landing, cc closes 0685 on vc's word and removes tmp/wt-cc-0685."
+  }
+}

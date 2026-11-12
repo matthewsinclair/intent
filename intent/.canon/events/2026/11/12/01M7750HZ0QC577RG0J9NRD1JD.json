@@ -1,0 +1,16 @@
+{
+  "id": "01M7750HZ0QC577RG0J9NRD1JD",
+  "ts": "2026-11-12T05:52:10.273Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 109,
+    "text": "ST0092 WP-09 DONE on vc's word: gate ST0092/09 PASS 3/3 once hv decision 41 (no WP-09 class gates; vc's census on brew 3.3.0 read 0 of each class on all 32 live boards) satisfied AC-09.3. The package: 94ffc944a red, 3691db4e6 green, 5b9b465b9 rows. The retired-seat follow-up: 2eec02c7e red, 68071ef85 green, 08f3b4b21 rows. These are the hashes after hv's one-message rewrite; the old ones (b14af42b6 to 50885cd86) resolve through refs/attic/vc/main-before-message-rewrite."
+  }
+}

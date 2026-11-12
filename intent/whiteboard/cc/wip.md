@@ -6,14 +6,14 @@ session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
 heartbeat_at: 2026-11-12 04:45Z
 status: active
 focus: "2026-11-11 16:56Z, localfolded for hv's fifth compact (hv via vc: 'lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot, nothing banked. Landed since the last fold: dea2d70c8 (vc remit and 'Proof, and what it costs', rewritten by hv to fabff0806) and 05899acfe (docs/releases/3.3.0/RELEASE_NOTES.md, inside the re-cut). HOLDING: hands off main until vc says the cut is done. After the cut: wp done ST0092/09 once vc's census closes AC-09.3 (doing 109)."
-claims: [ST0092/09, ISSUE:0685]
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0092 WP-09 LANDED whole on vc's word, and stays WIP. The package: b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows. The retired-seat follow-up: f1ca4a7d3 red, 5436963bc green, 50885cd86 rows; AT-09.1, 09.2 and 09.4 green; AC-09.1 and AC-09.2 satisfied. Gate ST0092/09 BLOCKED 2/3 on AC-09.3 alone: vc runs its census (refs/bank/vc/st0092/census-boards.zsh, now four classes with seat-retired) on the released build, and hv rules with the table whether any class gates. Then cc runs ac gate and wp done, after the cut. (edited)
+_(none)_
 
 ## TODO
 

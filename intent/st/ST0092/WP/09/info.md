@@ -2,7 +2,7 @@
 wp_id: WP-09
 title: Doctor reports a board that has left its profile
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-09: Doctor reports a board that has left its profile

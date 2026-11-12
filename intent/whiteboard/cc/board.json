@@ -8,10 +8,7 @@
     "heartbeat_at": "2026-11-12T04:45:52.114Z",
     "status": "active",
     "focus": "2026-11-11 16:56Z, localfolded for hv's fifth compact (hv via vc: 'lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot, nothing banked. Landed since the last fold: dea2d70c8 (vc remit and 'Proof, and what it costs', rewritten by hv to fabff0806) and 05899acfe (docs/releases/3.3.0/RELEASE_NOTES.md, inside the re-cut). HOLDING: hands off main until vc says the cut is done. After the cut: wp done ST0092/09 once vc's census closes AC-09.3 (doing 109).",
-    "claims": [
-      "ST0092/09",
-      "ISSUE:0685"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2340,10 +2337,20 @@
       "node": "cc",
       "kind": "doing",
       "seq": 109,
-      "text": "ST0092 WP-09 LANDED whole on vc's word, and stays WIP. The package: b14af42b6 red, 4c0d27cda green, 6f620ebc0 rows. The retired-seat follow-up: f1ca4a7d3 red, 5436963bc green, 50885cd86 rows; AT-09.1, 09.2 and 09.4 green; AC-09.1 and AC-09.2 satisfied. Gate ST0092/09 BLOCKED 2/3 on AC-09.3 alone: vc runs its census (refs/bank/vc/st0092/census-boards.zsh, now four classes with seat-retired) on the released build, and hv rules with the table whether any class gates. Then cc runs ac gate and wp done, after the cut.",
-      "state": "live",
+      "text": "ST0092 WP-09 DONE on vc's word: gate ST0092/09 PASS 3/3 once hv decision 41 (no WP-09 class gates; vc's census on brew 3.3.0 read 0 of each class on all 32 live boards) satisfied AC-09.3. The package: 94ffc944a red, 3691db4e6 green, 5b9b465b9 rows. The retired-seat follow-up: 2eec02c7e red, 68071ef85 green, 08f3b4b21 rows. These are the hashes after hv's one-message rewrite; the old ones (b14af42b6 to 50885cd86) resolve through refs/attic/vc/main-before-message-rewrite.",
+      "state": "archived",
+      "archived_at": "2026-11-12T05:52:11.282Z",
       "recorded_at": "2026-11-11T10:16:33.675Z",
-      "edited_at": "2026-11-11T13:29:05.813Z"
+      "edited_at": "2026-11-12T05:52:10.273Z"
+    },
+    {
+      "node": "cc",
+      "kind": "doing",
+      "seq": 110,
+      "text": "ISSUE 0685 banked on 73d2bffb7 for vc to land: refs/bank/cc/0685/red (the arm, patch-id 0fec41d4626c), green-on-red (the fix and its CHANGELOG line, 4747e976bb96), whole (56332b4b1e03) and evidence/run.log. Red then green in desk slot 01M77432245DQ656ZY3P81GGXR, 05:37:22Z to 05:38:01Z. After the landing, cc closes 0685 on vc's word and removes tmp/wt-cc-0685.",
+      "state": "archived",
+      "archived_at": "2026-11-12T05:52:12.184Z",
+      "recorded_at": "2026-11-12T05:39:09.483Z"
     }
   ],
   "sent": [
