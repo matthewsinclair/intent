@@ -8,9 +8,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
-  - [x] 01: One level-3 state on every face, and the index report names its reconcile time
-  - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 - [-] ST0093: Why Claudes yak-shave, and faster releases
   - [x] 01: Prune the shared memory to durable facts
   - [-] 02: Sync the installed skills; in-verify leaves the fold
@@ -163,6 +160,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 02: The skills merged, trimmed and completed: in-standards into in-essentials, the detrope section owned once, the trims, CLAUDE_CONFIG_DIR, and the missing items written once
   - [x] 03: The templates, subagents and hooks: the root-file templates trimmed, the critics to their delta over the contract, the dead subagent files and plugin.json culled
   - [x] 04: The measurement: bytes before the first prompt, before and after, on the record, and the installed skills re-synced
+- [x] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
+  - [x] 01: One level-3 state on every face, and the index report names its reconcile time
+  - [x] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
 - [x] ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
   - [x] 01: The cut runs through devbin's core, and Intent's driver retires
   - [x] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
