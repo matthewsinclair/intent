@@ -557,6 +557,14 @@
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 13:02Z on vc's date -u; recorded by vc, the wording of this record vc's) NOBODY STOPS intentd FOR dc'S DRY RUN; hv STOPS IT AT THE CUT. hv quoted vc's line \"nobody stops it for the dry run\" and answered, verbatim: \"Ok\". The line is from vc's recommendation before hv's third compact that day: nobody stops intentd for the dry run, and hv runs intent daemon stop as the first command of the cut and intent daemon start at its end. vc had withdrawn it in the message before hv's answer, on reading that a dry run stops at the pre-flight step while intentd is live; hv's answer came after that message and takes the line as quoted. vc's reading of what follows: intentd stays up through dc's Desk slot and no seat stops it. dc's dry run is expected to stop at the pre-flight step, where every check still runs and every refusal is named, and it passes when the live daemon is the only refusal. The rows after the pre-flight print in hv's own dry run, intent/docs/releasing.md step 3, which hv runs after stopping intentd at step 0; hv starts it again at the end of step 4.",
       "state": "live",
       "recorded_at": "2026-11-12T13:03:31.563Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 47,
+      "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 13:23Z on vc's date -u; recorded by vc, the wording of this record vc's) ic UPDATES THE PUBLIC SITE'S VERSION, AND hv SAYS PUSH. hv quoted vc's recommendation, \"I recommend ic writes the site's version file and runs the --dry-run, then you say \"push\"\", and answered, verbatim: \"Agree. Do it.\" The site is intent.laksa.io, which still named 3.2.7 because the 3.2.8 and 3.3.0 cuts skipped intent/docs/releasing.md step 5. So ic writes db/release.json in ~/Devel/prj/Sites/intent, commits it there, and rehearses the push with bin/devbin sites gitpush --sites=intent --dry-run from ~/Devel/prj/Laksa, whose sites root links to that repository; the push itself, which is the deploy, waits for hv's \"push\", which vc carries to ic; ic then reads the live page for the new version. vc's reading of \"Do it\": now, for 3.3.0, the release that has shipped, and again for 3.3.1 after its cut, as step 5 of that cut.",
+      "state": "live",
+      "recorded_at": "2026-11-12T13:24:14.750Z"
     }
   ],
   "sent": [],

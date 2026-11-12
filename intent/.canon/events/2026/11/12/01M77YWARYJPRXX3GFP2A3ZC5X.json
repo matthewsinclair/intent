@@ -1,0 +1,15 @@
+{
+  "id": "01M77YWARYJPRXX3GFP2A3ZC5X",
+  "ts": "2026-11-12T13:24:14.750Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 13:23Z on vc's date -u; recorded by vc, the wording of this record vc's) ic UPDATES THE PUBLIC SITE'S VERSION, AND hv SAYS PUSH. hv quoted vc's recommendation, \"I recommend ic writes the site's version file and runs the --dry-run, then you say \"push\"\", and answered, verbatim: \"Agree. Do it.\" The site is intent.laksa.io, which still named 3.2.7 because the 3.2.8 and 3.3.0 cuts skipped intent/docs/releasing.md step 5. So ic writes db/release.json in ~/Devel/prj/Sites/intent, commits it there, and rehearses the push with bin/devbin sites gitpush --sites=intent --dry-run from ~/Devel/prj/Laksa, whose sites root links to that repository; the push itself, which is the deploy, waits for hv's \"push\", which vc carries to ic; ic then reads the live page for the new version. vc's reading of \"Do it\": now, for 3.3.0, the release that has shipped, and again for 3.3.1 after its cut, as step 5 of that cut."
+  }
+}
