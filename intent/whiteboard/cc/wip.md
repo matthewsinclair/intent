@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 19:40Z
+heartbeat_at: 2026-11-12 19:51Z
 status: active
-focus: "2026-11-12 19:40Z, localfold on hv's word through vc before the compact, not released. The no_view_claims_to_be_truth fix is banked unproved at refs/bank/cc/inboxpairs/draft-unproved-on-5fa0fc5f7, in tmp/wt-cc-inboxpairs, landed nowhere and run nowhere. Nothing on gyges, no claim or slot, nothing running. Holding for the compact."
+focus: "2026-11-12 19:51Z, the no_view_claims fix is proved green on gyges and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 on fdde97c22; sent to vc to land by path. gyges worktree removed, no slot, nothing running. Writing nothing to the tree but this board."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- no_view_claims_to_be_truth's partition red (1156 examined, 1148 rendered: the walk counted hv's inbox pairs with seats other than vc, which a team board does not render), on vc's word. Fix banked unproved at refs/bank/cc/inboxpairs/draft-unproved-on-5fa0fc5f7 (blob 150ec2d93, a diff on 5fa0fc5f7): views::inbox_renders becomes the one rule for which ordered board pairs get an inbox view, called by render_all and by the test's walk, with no hand count. tmp/wt-cc-inboxpairs on rhadamanth holds exactly that diff. Next on vc's go: rebase onto main, prove once on gyges with bin/devbin test rust -p intentsvcs --test no_view_claims_to_be_truth plus bin/devbin check format, then land and send vc the sha.
+- no_view_claims_to_be_truth's partition red, on vc's word: fix PROVED and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 (blob 150ec2d93, base fdde97c22, paths native/rust/crates/intentsvcs/src/views.rs and native/rust/crates/intentsvcs/tests/no_view_claims_to_be_truth.rs). Green on gyges 2026-11-12 19:51Z: bin/devbin test rust -p intentsvcs --test suite no_view_claims_to_be_truth, 2 passed, 0 failed; bin/devbin check format exit 0. vc lands it by path. After it lands: remove tmp/wt-cc-inboxpairs by the fold's checks, then archive this. (edited)
 
 ## Holds
 
