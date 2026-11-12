@@ -173,11 +173,13 @@ candidate_prefix() {
 #
 #   <local ref> <local sha> <remote ref> <remote sha>
 #
-# MOVED counts the refs this push creates or moves, and CANDIDATES those of them
-# under the candidate prefix. A deletion moves no tree. By hand there are no
-# pairs, and the push is taken to be the release push.
+# MOVED counts the refs this push creates or moves, CANDIDATES those of them
+# under the candidate prefix, and DELETED the refs it deletes. A deletion moves
+# no tree. By hand there are no pairs, and the push is taken to be the release
+# push.
 MOVED=0
 CANDIDATES=0
+DELETED=0
 if [ ! -t 0 ]; then
   prefix=""
   while read -r _lref lsha rref _rsha; do
@@ -186,7 +188,10 @@ if [ ! -t 0 ]; then
     # sha256 repositories read the same.
     case "$lsha" in
       *[!0]*) ;;
-      *) continue ;;
+      *)
+        DELETED=$((DELETED + 1))
+        continue
+        ;;
     esac
     MOVED=$((MOVED + 1))
     if [ -z "$prefix" ]; then
@@ -201,6 +206,16 @@ fi
 
 if [ "$MOVED" -gt 0 ] && [ "$CANDIDATES" -eq "$MOVED" ]; then
   printf 'prepush: this push moves only candidate refs, which the cut'"'"'s legs judge -- no currency verdict asked (F2)\n'
+  exit 0
+fi
+
+# A PUSH THAT ONLY DELETES SENDS NO COMMIT (issue 0683). Every pair it hands the
+# hook carries an all-zero local sha, so it publishes no tree, and the pair's
+# currency says nothing about it. The frozen check above still applies to it,
+# because deleting a ref on a frozen remote is still a write to that remote,
+# and a push that moves any ref as well is judged whole below.
+if [ "$DELETED" -gt 0 ] && [ "$MOVED" -eq 0 ]; then
+  printf 'prepush: ok -- this push only deletes remote refs and sends no commit, so no currency verdict is asked\n'
   exit 0
 fi
 
