@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 09:02Z
+heartbeat_at: 2026-11-12 09:16Z
 status: active
-focus: "2026-11-12 07:48Z, folded and holding on vc's word: nothing on this release's path is cc's. A core defect found by dc's ST0093 WP-06 (c) to (e) proof run or by the Desk's kovacs leg comes to cc as a bank, on vc's word. No claim, desk slot or worktree."
+focus: "2026-11-12 09:16Z, holding on vc's word. The CHANGELOG pass for releasing.md step 2 is committed at bd525bae2, and hold 36 reads devbin-vc's sweep for a packaging/homebrew change once it is on main. A core defect from dc's proof run or the Desk's kovacs leg comes to cc as a bank, on vc's word. No claim, desk slot or worktree."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- Read devbin-vc's sweep of devbin 0.1.23 into Intent's tree for a change to packaging/homebrew, and give any such change a CHANGELOG entry under [Unreleased], since the formula and the cask are read by every brew user (releasing.md step 2). Released when the sweep's commit is on main. On vc's word of 2026-11-12, after the CHANGELOG pass at bd525bae2.
 
 ## Watch-outs
 

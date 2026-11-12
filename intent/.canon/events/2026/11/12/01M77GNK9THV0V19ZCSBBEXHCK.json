@@ -1,0 +1,15 @@
+{
+  "id": "01M77GNK9THV0V19ZCSBBEXHCK",
+  "ts": "2026-11-12T09:15:54.042Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Read devbin-vc's sweep of devbin 0.1.23 into Intent's tree for a change to packaging/homebrew, and give any such change a CHANGELOG entry under [Unreleased], since the formula and the cask are read by every brew user (releasing.md step 2). Released when the sweep's commit is on main. On vc's word of 2026-11-12, after the CHANGELOG pass at bd525bae2."
+  }
+}
