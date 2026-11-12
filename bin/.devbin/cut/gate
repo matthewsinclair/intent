@@ -97,26 +97,93 @@ check_reference() {
 # because it waits on such an event, never because its name looks like these.
 LOAD_SENSITIVE='daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing|the_daemon_lists_the_project_registry|a_daemon_outlives_nobody'
 
-# Issue 0389 (ruled): in a PRIVATE worktree at HEAD under an isolated HOME with
-# that worktree's own target dir, never in the shared checkout beside a live
-# daemon. The cargo steps rust.yml runs beyond build and test run as their
+# gate_kept_target -- the rust gate's cargo target under DEVBIN_GATE_CACHE,
+# printed. The core hands the gates that directory under `release gates`, the
+# cut and each leg, and no run clears it (devbin issue 0335, ST0093 WP-06), so a
+# target kept there lets one cut reuse the dependencies the last one compiled;
+# only the workspace's own crates compile again, their worktree being new each
+# time. Cargo keeps each rustc's build beside the others and removes none, so
+# the target is emptied first when rustc's version is not the one that built it.
+gate_kept_target() {
+  local target="$DEVBIN_GATE_CACHE/rust-target" now
+  now="$(cd "$PROJECT_ROOT/native/rust" && rustc --version 2>&1)" ||
+    refuse "rustc could not say its version, so the target kept at $target cannot be matched to it: $now" "$AGAIN"
+  if [ "$(cat "$target/rustc-version" 2>/dev/null)" = "$now" ]; then
+    printf 'gate rust: building in the target kept at %s, built by %s\n' "$target" "$now" >&2
+  else
+    rm -rf "$target" || refuse "could not empty the target kept at $target for $now" "remove it by hand, $AGAIN"
+    printf 'gate rust: building in a new target at %s, for %s\n' "$target" "$now" >&2
+  fi
+  { mkdir -p "$target" && printf '%s\n' "$now" >"$target/rustc-version"; } ||
+    refuse "could not keep the rust gate's target at $target" "$AGAIN"
+  printf '%s\n' "$target"
+}
+
+# gate_rust_cleanup -- the rust gate's EXIT trap: the kept target renamed back
+# under DEVBIN_GATE_CACHE, then the private worktree and its directory removed.
+# It runs on every exit the shell sees, a refusal's and INT's and TERM's
+# included (check_rust turns those two into exits), so a stopped run neither
+# strands the kept target inside a worktree nor leaves the worktree behind.
+# Only SIGKILL escapes it, and then the next run starts a new target
+# (gate_kept_target), which is slow and never wrong.
+GATE_DIR="" GATE_KEPT="" GATE_TARGET=""
+gate_rust_cleanup() {
+  if [ -n "$GATE_KEPT" ] && [ -d "$GATE_TARGET" ] && [ ! -e "$GATE_KEPT" ]; then
+    mv "$GATE_TARGET" "$GATE_KEPT" ||
+      printf 'warn: gate rust: could not return the kept target from %s to %s; the next run starts a new one\n' "$GATE_TARGET" "$GATE_KEPT" >&2
+  fi
+  [ -n "$GATE_DIR" ] || return 0
+  if [ -d "$GATE_DIR/tree" ]; then
+    git -C "$PROJECT_ROOT" worktree remove --force "$GATE_DIR/tree" >/dev/null 2>&1 ||
+      printf 'warn: gate rust: could not remove its worktree at %s; remove it with `git -C %s worktree remove --force %s`\n' "$GATE_DIR/tree" "$PROJECT_ROOT" "$GATE_DIR/tree" >&2
+  fi
+  rm -rf "$GATE_DIR"
+}
+
+# Issue 0389 (ruled): in a PRIVATE worktree at HEAD under an isolated HOME,
+# never in the shared checkout beside a live daemon. The target is always the
+# worktree's own native/rust/target, because the binaries the tests run find
+# their install by walking up from their own path to lib/templates/
+# (intentsvcs/src/install.rs, which reads no INTENT_HOME): a target outside the
+# tree fails every test that needs the install, as the first run with
+# DEVBIN_GATE_CACHE set showed (issue 0682, 2026-11-12). So where the core hands
+# DEVBIN_GATE_CACHE, the worktree is made under it, beside the kept target
+# (gate_kept_target), and the kept target is renamed into the worktree for the
+# run and back after it (gate_rust_cleanup): one filesystem, so both renames are
+# instant, and TMPDIR holds only the log. Otherwise, as under `bin/devbin gate
+# rust` by hand, the worktree is under TMPDIR and its target is new, cold.
+# The cargo steps rust.yml runs beyond build and test run as their
 # devbin twins, `bin/devbin check <name>`, which tests/unit/devbin_rust_gates.bats
 # holds equal to rust.yml flag for flag, so there is one pair of homes. A red
 # confined to the load-sensitive family re-runs intentd's tests ONCE (issue
 # 0481), because the core re-runs nothing and a red leg stops the cut.
 check_rust() {
-  local log dir native step="" reds twin
+  local log dir native target base="${TMPDIR:-/tmp}" kept="" step="" reds twin
   local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
   command -v cargo >/dev/null 2>&1 || refuse "cargo is not on PATH, and this cut ships a native tree this host cannot test" "install the toolchain rust-toolchain.toml names, $AGAIN"
   log="$(gate_log rust)"
-  dir="$(mktemp -d "${TMPDIR:-/tmp}/intent-gate-tree.XXXXXX")" || refuse "no temporary directory for the gate's worktree under ${TMPDIR:-/tmp}"
+  # Before the worktree is added, so a refusal leaves none behind.
+  if [ -n "${DEVBIN_GATE_CACHE:-}" ]; then
+    kept="$(gate_kept_target)" || exit 1
+    base="$DEVBIN_GATE_CACHE"
+  fi
+  trap gate_rust_cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  dir="$(mktemp -d "$base/intent-gate-tree.XXXXXX")" || refuse "no temporary directory for the gate's worktree under $base"
+  GATE_DIR="$dir"
   git -C "$PROJECT_ROOT" worktree add --quiet --detach "$dir/tree" HEAD >>"$log" 2>&1 ||
     refuse "could not add a private worktree at HEAD under $dir; git's answer is in $log"
   native="$dir/tree/native/rust"
+  target="$native/target"
+  if [ -n "$kept" ]; then
+    mv "$kept" "$target" || refuse "could not rename the target kept at $kept into the worktree at $target" "$AGAIN"
+    GATE_KEPT="$kept" GATE_TARGET="$target"
+  fi
   mkdir -p "$dir/home"
   in_gate() {
     (cd "$1" && shift && HOME="$dir/home" CARGO_HOME="$real_cargo_home" RUSTUP_HOME="$real_rustup_home" \
-      CARGO_TARGET_DIR="$native/target" "$@")
+      CARGO_TARGET_DIR="$target" "$@")
   }
   if ! in_gate "$native" cargo build -p intentd >>"$log" 2>&1; then
     step="cargo build -p intentd"
@@ -137,9 +204,6 @@ check_rust() {
       in_gate "$native" cargo test -p intentd --no-fail-fast >>"$log" 2>&1 && step=""
     fi
   fi
-  git -C "$PROJECT_ROOT" worktree remove --force "$dir/tree" >/dev/null 2>&1 ||
-    printf 'warn: gate rust: could not remove its worktree at %s; remove it with `git -C %s worktree remove --force %s`\n' "$dir/tree" "$PROJECT_ROOT" "$dir/tree" >&2
-  rm -rf "$dir"
   [ -z "$step" ] || refuse "$step failed; the run is in $log" "$AGAIN"
   rm -f "$log"
   printf 'ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace\n'

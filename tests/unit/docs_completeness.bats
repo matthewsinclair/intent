@@ -101,6 +101,13 @@ DELETED_PATHS=(
 # Group 3: agents_sync_idempotent
 # ====================================================================
 
+# SERIAL, BECAUSE IT WRITES INTO THE CHECKOUT. It runs `intent agents sync` in
+# the project root, which rewrites the root's AGENTS.md, and then puts that file
+# back with a plain cp, which truncates it before it writes it. The first two
+# tests of prior_art_route.bats grep the same AGENTS.md for lines it must carry,
+# and a read inside that cp sees a short file. devbin's lanes runner keeps a
+# test tagged `serial` out of its parallel lane (ST0093 WP-06).
+# bats test_tags=serial
 @test "agents_sync_idempotent: two sync runs produce identical AGENTS.md" {
   # Run sync twice in the real Intent project root; second run must produce
   # byte-identical output. Backups created by the sync command are removed

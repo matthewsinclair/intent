@@ -35,7 +35,7 @@ title: Why Claudes yak-shave, and faster releases
 
 ### WP-06 -- The release pipeline, briefed to devbin's core (status: WIP)
 
-- AC-06.1 (non-test) Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with daemon and socket tests serial, and each new or changed leg goes green on its host before the cut. -- satisfied: no
+- AC-06.1 (non-test) Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with every test that cannot share a host serial, and each new or changed leg goes green on its host before the cut. -- satisfied: no
 
 ## Acceptance Tests
 

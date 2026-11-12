@@ -72,6 +72,11 @@ export INTENT_FIXTURE_VERSION="$(cat "$PROJECT_ROOT/VERSION")"
 # Export BATS_LIB_PATH for bats libraries
 export BATS_LIB_PATH="$SCRIPT_DIR/lib"
 
+# devbin's runtime, for its lanes runner below. devbin exports DEVBIN_LIB to
+# every command it runs; run by hand or by CI, the runtime is the copy vendored
+# into this tree, which is the one devbin would export here.
+export DEVBIN_LIB="${DEVBIN_LIB:-$PROJECT_ROOT/bin/.devbin/lib}"
+
 # Set default test path - only run new Intent tests by default
 # To run old STP tests: ./tests/run_tests.sh ../stp/tests
 TEST_PATH="${1:-$SCRIPT_DIR}"
@@ -93,9 +98,21 @@ echo
 # can report a final pass/fail line.
 EXIT_STATUS=0
 if [ -d "$TEST_PATH" ]; then
-  # If directory, run all .bats files in it (excluding lib directory)
+  # A DIRECTORY RUNS THROUGH devbin's LANES RUNNER (devbin issue 0339, ST0093
+  # WP-06): the tests not tagged `serial` several at a time under `bats --jobs`,
+  # then the ones tagged serial one at a time, with one verdict over both, which
+  # also fails when the lanes did not run every test exactly once. Without GNU
+  # parallel it runs one lane, and its first line says why. It runs the .bats
+  # files of one directory, so each directory under the path that holds one,
+  # tests/lib's libraries apart, runs in turn.
   info "Running all tests in directory: $TEST_PATH"
-  find "$TEST_PATH" -name "*.bats" -type f -not -path "*/lib/*" -print0 | sort -z | xargs -0 bats || EXIT_STATUS=$?
+  [ -x "$DEVBIN_LIB/bats-lanes" ] ||
+    error "devbin's lanes runner is not at $DEVBIN_LIB/bats-lanes: this tree vendors a devbin older than 0.1.23"
+  dirs="$(find "$TEST_PATH" -name "*.bats" -type f -not -path "*/lib/*" | sed 's|/[^/]*$||' | sort -u)"
+  [ -n "$dirs" ] || error "No .bats file under $TEST_PATH"
+  while IFS= read -r dir; do
+    "$DEVBIN_LIB/bats-lanes" "$dir" || EXIT_STATUS=$?
+  done <<<"$dirs"
 else
   # If file, run just that file
   info "Running test file: $TEST_PATH"

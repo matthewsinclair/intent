@@ -160,8 +160,9 @@ commands:
         # `test all` went red on an empty suite. The project runner
         # (tests/run_tests.sh) also exports BATS_LIB_PATH, which every suite
         # needs to load its helpers, and INTENT_HOME -- raw bats would find
-        # the files and then fail them.
-        summary: the BATS suite via the project runner (exports INTENT_HOME + BATS_LIB_PATH)
+        # the files and then fail them. It runs each directory of suites
+        # through devbin's lanes runner (devbin issue 0339, ST0093 WP-06).
+        summary: the BATS suite in devbin's two lanes, via the project runner (exports INTENT_HOME + BATS_LIB_PATH)
         run: bin/.devbin/cmd/measured --exec tests/run_tests.sh
 
       # THE CARGO WORKSPACE IS NOT AT THE PROJECT ROOT, AND THE CATALOGUE
@@ -597,3 +598,30 @@ install:
   links:
     intent: native/rust/target/release/intent
     intentd: native/rust/target/release/intentd
+
+# THE PAIR IN devbin's ARTEFACT CACHE (devbin issue 0338, ST0093 WP-06). The two
+# binaries are declared at the STAGING paths where the guarded release build
+# (cmd/shared/releasebuild.lib) builds and verifies them before it renames them
+# into native/rust/target/release, so a pull lands there too. Only a build the
+# release core runs pulls and puts, and a pull is taken only when the pair names
+# HEAD; releasebuild.lib says why. The inputs are the build's, DIRT_SCOPE in
+# native/rust/build-support/source_commit.rs, with native/rust named by its
+# tracked entries, since no artefact's path may lie in an input path.
+build:
+  inputs:
+    - native/rust/Cargo.toml
+    - native/rust/Cargo.lock
+    - native/rust/build-support
+    - native/rust/crates
+    - native/rust/rustfmt.toml
+    - surface
+    - docs/design
+    - lib/templates/llm
+    - lib/templates/prj
+  artefacts:
+    intent:
+      tool: cargo
+      path: native/rust/target/staging/release/intent
+    intentd:
+      tool: cargo
+      path: native/rust/target/staging/release/intentd

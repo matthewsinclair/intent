@@ -65,7 +65,36 @@ case "$1 $2" in
 esac
 EOF
   chmod +x "$STUBS/cargo"
+  printf '#!/usr/bin/env bash\necho "rustc 0.0.0 (stub)"\n' >"$STUBS/rustc"
+  chmod +x "$STUBS/rustc"
   export STUB_LOG
+}
+
+# kept_target_cargo -- a cargo whose `build -p` records where CARGO_TARGET_DIR
+# is and what it holds, and then, when STUB_KILL names a signal, sends it to the
+# gate itself, as a stopped run does.
+kept_target_cargo() {
+  cat >"$STUBS/cargo" <<'EOF'
+#!/usr/bin/env bash
+case "$1 $2" in
+  "build -p")
+    printf 'target %s\nkept %s\n' "$CARGO_TARGET_DIR" "$(cat "$CARGO_TARGET_DIR/kept-marker" 2>/dev/null)" >>"$STUB_LOG"
+    if [ -n "${STUB_KILL:-}" ]; then
+      # The gate is the nearest ancestor running cut/gate: bash may exec the
+      # subshell's last command, so it is not always the parent's parent.
+      p="$PPID"
+      until ps -o command= -p "$p" | grep -q 'cut/gate rust'; do
+        p="$(ps -o ppid= -p "$p" | tr -d ' ')"
+        [ "$p" -gt 1 ] || { echo "stub cargo: no cut/gate ancestor" >&2; exit 2; }
+      done
+      kill -"$STUB_KILL" "$p"
+    fi
+    exit 0 ;;
+  "test --workspace") exit 0 ;;
+  *) echo "stub cargo: unexpected arguments: $*" >&2; exit 2 ;;
+esac
+EOF
+  chmod +x "$STUBS/cargo"
 }
 
 # check <name> -- one gate as the core runs it. $output is its stdout alone;
@@ -140,6 +169,55 @@ write_pair() {
   check rust
   assert_failure
   err_has "bin/devbin check clippy failed"
+}
+
+# Issue 0682: the binaries find their install by walking up from their own path
+# to lib/templates/, so the target must sit inside the worktree. The kept target
+# is renamed in for the run and back after it.
+@test "AT-01.5: rust: with DEVBIN_GATE_CACHE the kept target is the worktree's own for the run, and is kept again after it" {
+  make_repo
+  kept_target_cargo
+  export DEVBIN_GATE_CACHE="${TEST_TEMP_DIR}/gate-cache"
+  mkdir -p "$DEVBIN_GATE_CACHE/rust-target"
+  echo "rustc 0.0.0 (stub)" >"$DEVBIN_GATE_CACHE/rust-target/rustc-version"
+  echo from-last-run >"$DEVBIN_GATE_CACHE/rust-target/kept-marker"
+  check rust
+  assert_success
+  grep -qE "^target $DEVBIN_GATE_CACHE/intent-gate-tree\.[^/]+/tree/native/rust/target$" "$STUB_LOG" ||
+    fail "cargo's target was not the worktree's own under the cache: $(cat "$STUB_LOG")"
+  grep -qx "kept from-last-run" "$STUB_LOG" || fail "the run did not build in the kept target: $(cat "$STUB_LOG")"
+  [ "$(cat "$DEVBIN_GATE_CACHE/rust-target/kept-marker")" = from-last-run ] || fail "the kept target was not returned"
+  [ "$(git -C "$REPO" worktree list | wc -l)" -eq 1 ] || fail "the gate left a worktree: $(git -C "$REPO" worktree list)"
+  run bash -c 'ls -d "$1"/intent-gate-tree.* 2>/dev/null' _ "$DEVBIN_GATE_CACHE"
+  assert_output ""
+}
+
+# The stopped run of 2026-11-12 19:16Z: a gate killed mid-build still returns
+# the kept target and removes its worktree, for TERM and for INT.
+@test "AT-01.5: rust: a gate stopped by TERM or INT mid-build returns the kept target and leaves no worktree" {
+  make_repo
+  kept_target_cargo
+  export DEVBIN_GATE_CACHE="${TEST_TEMP_DIR}/gate-cache"
+  local sig
+  for sig in TERM INT; do
+    mkdir -p "$DEVBIN_GATE_CACHE/rust-target"
+    echo "rustc 0.0.0 (stub)" >"$DEVBIN_GATE_CACHE/rust-target/rustc-version"
+    echo "before-$sig" >"$DEVBIN_GATE_CACHE/rust-target/kept-marker"
+    export STUB_KILL="$sig"
+    # A background job starts with INT ignored, as under the lanes runner, and
+    # bash cannot trap a signal ignored at its entry. A ^C at a terminal is not
+    # ignored, so the gate is started with INT at its default, as it is there.
+    ERR="${TEST_TEMP_DIR}/check.err"
+    run env PROJECT_ROOT="$REPO" PATH="$STUBS:$PATH" perl -e '$SIG{INT} = "DEFAULT"; exec @ARGV or die "exec: $!"' \
+      bash -c '"$1" "$2" 2>"$3"' _ "$GATE" rust "$ERR"
+    assert_failure
+    grep -qx "kept before-$sig" "$STUB_LOG" || fail "the $sig run did not reach its build: $(cat "$STUB_LOG")"
+    [ "$(cat "$DEVBIN_GATE_CACHE/rust-target/kept-marker" 2>/dev/null)" = "before-$sig" ] ||
+      fail "after $sig the kept target was not returned: $(ls -R "$DEVBIN_GATE_CACHE")"
+    [ "$(git -C "$REPO" worktree list | wc -l)" -eq 1 ] || fail "after $sig the gate left a worktree: $(git -C "$REPO" worktree list)"
+    run bash -c 'ls -d "$1"/intent-gate-tree.* 2>/dev/null' _ "$DEVBIN_GATE_CACHE"
+    assert_output ""
+  done
 }
 
 # Issue 0481: the core re-runs nothing, so the one re-run is the gate's own.

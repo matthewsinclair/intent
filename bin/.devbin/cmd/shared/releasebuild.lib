@@ -50,8 +50,68 @@ PRIVATE_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/private/release"
 # needing a new rule somebody has to remember to keep in step.
 STAGING_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/staging/release"
 
-# guarded_release_build -- the dirt verdict, the provenance force, the build,
-# and the pair verification, in that order, as one thing.
+# THE PAIR IN devbin's ARTEFACT CACHE (devbin issue 0338, ST0093 WP-06). The
+# build: block in config.yaml declares intent and intentd at their STAGING paths,
+# so a pull lands where a build would, is verified as a build is, and reaches the
+# shared pair only by promote_pair's renames: `cache get` removes what is at its
+# path before it copies, which in the shared path would reopen 0196's window.
+#
+# ONLY A SHARED BUILD THE RELEASE CORE RUNS, with no cargo arguments of its
+# caller's, which the key cannot see. The core hands DEVBIN_RELEASE_TARGET_TAG to
+# the commands it runs, and there one commit is built more than once: `gate pair`
+# builds and puts, and `build all` after it pulls. Outside a cut a put would
+# record about 40 MB at every commit that moves the inputs, which only that
+# commit could pull and nothing removes (`bin/devbin cache gc` is by hand).
+#
+# A PULL IS TAKEN ONLY WHEN THE PAIR NAMES HEAD. The key is made from the inputs'
+# git objects and holds no commit, and each binary carries the commit it was
+# built at (source_commit.rs), so an entry put at another commit with the same
+# inputs names that commit, which verify_pair and `gate provenance` refuse.
+
+# cache_pull_pair -- pull the pair into the staging dir and return 0 when both
+# binaries came back naming HEAD, for the verification and promotion a build
+# takes; return 1 when the pair must be built, having said why where it is
+# news. `cache get` answers 0 for a pull and 1 for no entry, and anything else
+# is the cache's refusal, which costs a build and nothing else.
+cache_pull_pair() {
+  local b rc head marker
+  for b in intent intentd; do
+    rc=0
+    "$PROJECT_ROOT/bin/devbin" cache get "$b" || rc=$?
+    case "$rc" in
+      0) ;;
+      1) return 1 ;;
+      *)
+        warn "the artefact cache refused $b (exit $rc, above), so the pair is built"
+        return 1
+        ;;
+    esac
+  done
+  head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || return 1
+  rc=0
+  marker="$(artefact_pair_marker "$STAGING_RELEASE_DIR")" || rc=$?
+  if [ "$rc" -eq 0 ] && [ "$marker" = "$head" ]; then
+    return 0
+  fi
+  warn "the cached pair names ${marker:-no one commit}, not HEAD ($head), since the cache's key holds no commit, so the pair is built"
+  return 1
+}
+
+# cache_put_pair -- record the verified staged pair for a later build of this
+# commit to pull, before promote_pair moves it out of the staging dir the cache
+# reads. A put that fails costs that pull and nothing else, so it warns and the
+# build stands.
+cache_put_pair() {
+  local b
+  for b in intent intentd; do
+    "$PROJECT_ROOT/bin/devbin" cache put "$b" ||
+      warn "the artefact cache did not record $b (above), and the build stands"
+  done
+}
+
+# guarded_release_build -- the dirt verdict, the provenance force, the build or
+# a pull from the artefact cache, and the pair verification, in that order, as
+# one thing.
 #
 # ORDER IS THE POINT AND IT IS NOT NEGOTIABLE. AC-11.6 ruled that the shared
 # artefact is protected BEFORE it is overwritten rather than after: `verify_pair`
@@ -61,7 +121,7 @@ STAGING_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/staging/release"
 # a gate that refuses on a peer's half-finished file is one that gets bypassed
 # the first afternoon.
 guarded_release_build() {
-  local verdict build_dir final_dir mode
+  local verdict build_dir final_dir mode cached=no pulled=no
   verdict="$(shared_target_verdict "$PROJECT_ROOT")"
   case "$verdict" in
     ok)
@@ -92,13 +152,24 @@ guarded_release_build() {
   esac
 
   cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
-  step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
-  CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo clean -p intent-cli -p intentd --release
-  step "building every binary in the workspace"
-  CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo build --workspace --bins --release "$@" ||
-    die "the release build failed"
+  if [ "$mode" = shared ] && [ "$#" -eq 0 ] && [ -n "${DEVBIN_RELEASE_TARGET_TAG:-}" ]; then
+    cached=yes
+  fi
+  if [ "$cached" = yes ] && cache_pull_pair; then
+    pulled=yes
+    step "the pair at HEAD came from the artefact cache, so cargo builds nothing"
+  else
+    step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
+    CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo clean -p intent-cli -p intentd --release
+    step "building every binary in the workspace"
+    CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo build --workspace --bins --release "$@" ||
+      die "the release build failed"
+  fi
   step "verifying the SET, which is the check cargo cannot make"
   verify_pair "$build_dir" "$mode"
+  if [ "$cached" = yes ] && [ "$pulled" = no ]; then
+    cache_put_pair
+  fi
 
   # EVERY FAILURE ABOVE NOW LANDS WITH THE SHARED PAIR UNTOUCHED AND WORKING.
   # That is the entire fix: the `cargo clean`, the build and the verification all

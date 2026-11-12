@@ -8,6 +8,14 @@
 # (the concurrent-session corruption source) was removed. These tests must
 # control CLAUDE_CODE_SESSION_ID explicitly -- the ambient value is exported
 # into the bats process and would otherwise leak into every run.
+#
+# SERIAL, BECAUSE ITS TESTS SHARE ONE FILE OUTSIDE THEIR TEMPORARY DIRECTORIES.
+# The script under test always writes /tmp/intent/in-session-unknown.sentinel,
+# the host-wide fallback the gate reads for a session it cannot name, and one
+# test reads that file's first line. Run in parallel, another test's write lands
+# between that test's run and its read. devbin's lanes runner keeps a file
+# tagged `serial` out of its parallel lane (ST0093 WP-06).
+# bats file_tags=serial
 
 load "../lib/test_helper.bash"
 

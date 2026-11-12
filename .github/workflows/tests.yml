@@ -280,8 +280,9 @@ jobs:
           BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
         run: |
           # `run_tests.sh` with no argument runs EVERY .bats under tests/
-          # (excluding tests/lib/) and exits with bats's status, so a failing
-          # test fails the job. It also unsets an inherited PROJECT_ROOT,
+          # (excluding tests/lib/) through devbin's vendored lanes runner, and
+          # exits non-zero when a test fails or does not run, so a failing test
+          # fails the job. It also unsets an inherited PROJECT_ROOT,
           # INTENT_ROOT and BIN_DIR before the suites run.
           #
           # No `|| true` and no fallback runner (IN-AG-NO-SILENT-001): a

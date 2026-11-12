@@ -175,3 +175,35 @@ mark_pair() {
   [ "$status" -ne 0 ]
   [[ "$output" == *"does not name the checkout's HEAD ($HEAD_COMMIT)"* ]]
 }
+
+# A pull from devbin's artefact cache is taken only when the pair names HEAD
+# (ST0093 WP-06): the cache's key is made from the build's inputs and holds no
+# commit, so an entry put at the fixture's input commit is found at HEAD too.
+# The launcher is a stand-in whose `cache get` writes each binary into the
+# staging dir, carrying the marker of the commit it is handed.
+stub_cache() {
+  mkdir -p "$REPO/bin"
+  cat >"$REPO/bin/devbin" <<EOF
+#!/usr/bin/env bash
+[ "\$1 \$2" = "cache get" ] || exit 9
+printf 'binary bytes\n[intent-source-commit:%s]\n' "$1" > "$FROM/\$3"
+echo "pulled \$3"
+EOF
+  chmod +x "$REPO/bin/devbin"
+  STAGING_RELEASE_DIR="$FROM"
+}
+
+@test "cache_pull_pair: a cached pair naming HEAD is taken in place of a build" {
+  pair_repo
+  stub_cache "$HEAD_COMMIT"
+  run cache_pull_pair
+  [ "$status" -eq 0 ]
+}
+
+@test "cache_pull_pair: a cached pair naming another commit with the same inputs is dropped, so the pair is built" {
+  pair_repo
+  stub_cache "$INPUT_COMMIT"
+  run cache_pull_pair
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"names $INPUT_COMMIT, not HEAD ($HEAD_COMMIT)"* ]]
+}

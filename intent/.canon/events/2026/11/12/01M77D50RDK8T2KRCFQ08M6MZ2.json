@@ -1,0 +1,14 @@
+{
+  "id": "01M77D50RDK8T2KRCFQ08M6MZ2",
+  "ts": "2026-11-12T08:14:25.045Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0093/AC-06.1"
+  },
+  "payload": {
+    "text": "Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with every test that cannot share a host serial, and each new or changed leg goes green on its host before the cut."
+  }
+}

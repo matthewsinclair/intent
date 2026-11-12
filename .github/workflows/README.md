@@ -24,7 +24,7 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 - `shellcheck` (Shell Script Analysis): runs `shellcheck` on `bin/devbin`, `bin/int`, and every file under `bin/.devbin/cmd/` and `lib/templates/hooks/` that `file` reports as a shell script; findings never fail the job. The sourced libraries under `bin/.devbin/cmd/shared/` carry no shebang, so `file` reports them as text and they are not checked.
 - `test-summary` (Test Summary): runs after `test-linux`, `test-macos` and `rust` whatever their result. For a candidate or a run by hand it fails unless every one succeeded, so a skipped macOS or rust leg fails a release; elsewhere a skip is no failure. It does not wait on `shellcheck`.
 
-`tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) in one `bats` invocation and exits non-zero if any test fails, so a failing test fails the job.
+`tests/run_tests.sh` with no argument runs every `.bats` file under `tests/` (excluding `tests/lib/`) through devbin's lanes runner, the copy vendored at `bin/.devbin/lib`, and exits non-zero if any test fails or does not run, so a failing test fails the job. On a runner without GNU parallel it runs one lane, one test at a time, and its first line says so.
 
 ### 2. rust (`rust.yml`)
 
