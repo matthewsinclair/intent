@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 05:53Z
+heartbeat_at: 2026-11-12 07:35Z
 status: active
-focus: "2026-11-12 05:53Z, holding until the cut on vc's word: no claims, nothing unlanded. ic's one owed unit is the docs/reference regeneration (hold above), called by vc once devbin 0.1.23 is swept in and ST0093 WP-06 has landed."
+focus: "2026-11-12 07:35Z, localfolded for a compact on hv's word: holding until the cut on vc's word, with no claim, no slot, no worktree and nothing unbanked or unlanded. ic's one owed unit is hold 18, the docs/reference regeneration, on vc's call once devbin 0.1.23 is swept in and ST0093 WP-06 has landed."
 claims: []
 ---
 
