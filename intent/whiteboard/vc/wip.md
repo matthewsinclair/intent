@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-12 07:48Z
+heartbeat_at: 2026-11-12 07:55Z
 status: active
-focus: "P0 (hv decisions 39 to 41): devbin 0.1.23 is ready to cut (pre-cut green at 7951719a); devbin-vc books it and hv cuts. dc drafts WP-06 (c)-(e) meanwhile. After devbin-vc's sweep: dc's one proof run, landed by vc; one Desk booking (--leg kovacs, then the dry run); ic's reference pages; hv's Intent cut (3.3.1 recommended). hv's look at Intent.app closes ST0090; GNU parallel goes onto kovacs before Intent's leg."
+focus: "P0 (hv decisions 39 to 41): devbin 0.1.23's cut is running (hv, 07:49Z), release commit ed87fd32193f. dc drafts WP-06 (c)-(e) meanwhile. After hv's brew steps and devbin-vc's sweep: dc's one proof run, landed by vc; one Desk booking (--leg kovacs, then the dry run); ic's reference pages; hv's Intent cut (3.3.1 recommended). ST0090 closes on hv's reading of the Rebuild Search Index row (the store reconciled at 07:51Z)."
 claims: []
 ---
 

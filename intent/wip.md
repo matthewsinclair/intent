@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-12:v3.70: vc - the pre-cut is one Desk booking; the macOS stage first runs in the cut"
+verblock: "2026-11-12:v3.71: vc - the kovacs line goes: GNU parallel is there, and hv kept the TMPDIR export"
 intent_version: 3.3.0
 ---
 
@@ -16,7 +16,6 @@ intent_version: 3.3.0
 
 - ST0090 AC-02.4: hv looks at the Rebuild Search Index row of /Applications/Intent.app (3.3.0); vc records it, and dc closes WP-02 and issue 0664.
 - After Intent's next cut, one visit to each estate, Intent first (hv decision 41): devbin-vc's sweep of devbin 0.1.23 and `intent claude upgrade --apply`. It replaces the hand fix in Trellis's AGENTS.md, so Trellis moves anything bespoke out of that file first.
-- The kovacs TMPDIR line in ~/.config/molt/env.sh goes once devbin 0334 is in and a leg passes without it; GNU parallel goes onto kovacs before Intent's leg runs (hv decision 40).
 - agentic-engineering's P1, a devvm that bakes both releases from their taps, waits on them: vc tells agentic-engineering-vc when Intent's is installable.
 - Open with hv, off P0: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.
 - Parked for hv and unchanged since 2026-11-10: threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089; Laksa's and Conflab's releases; the items parked on 2026-10-30 and at dc's mark at ST0087; the deferred list; the banks kept off main. Their text is `git show f16dce4a7:intent/wip.md`.

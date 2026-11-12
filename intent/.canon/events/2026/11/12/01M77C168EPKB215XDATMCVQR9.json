@@ -1,0 +1,16 @@
+{
+  "id": "01M77C168EPKB215XDATMCVQR9",
+  "ts": "2026-11-12T07:54:51.023Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 40,
+    "text": "(hv, 2026-11-12, by selection in devbin-vc's TUI, relayed to vc by devbin-vc before devbin-vc's clock read of 05:14Z by date -u; not heard first-hand by vc; the options' wording devbin-vc's, each choice hv's and its recommendation; devbin-vc decision 160) THE GO ON THE ONE PLAN FOR BOTH RELEASES. (1) \"Go as planned\": the plan is devbin-cc's PLAN-20261112, with vc's three corrections: Intent's seats work now beside devbin's batch on what needs no new core; Intent 0682 closes on devbin 0334 plus ST0093 WP-06 (d), with the by-hand gate run on a small /tmp named in its Resolution; 0664 and 0675 close on records now. (2) \"Yes, dc builds 0339\": devbin-dc builds it beside devbin-cc. (3) \"Whole fleet, Intent first\": after hv's brew steps for devbin 0.1.23, devbin-vc's sweep takes Intent's tree first, then every other estate. (4) \"Yes, before Intent's leg\": GNU parallel goes onto kovacs from Homebrew, by kovacs-sysadm on hv's word in its window. (4) WAS ALREADY DONE before this record, and some time before: hv, first-hand in vc's session on 2026-11-12, read by 07:54Z on vc's date -u: \"This is about the third time that I have told you that this has already been done, and some time ago.\" GNU parallel is on kovacs; nothing about it is to do."
+  }
+}
