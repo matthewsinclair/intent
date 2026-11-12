@@ -5,12 +5,13 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T08:01:15.291Z",
+    "heartbeat_at": "2026-11-12T08:45:17.058Z",
     "status": "active",
-    "focus": "2026-11-12 08:01Z, drafting ST0093 WP-06 (c) to (e) on vc's word in tmp/wt-dc-0093-06 off main, reading Devbin at 7951719a; nothing run. Hold 41: the proof run waits on devbin-vc's sweep of 0.1.23 into Intent. Hold 37 waits on hv's look at the 3.3.0 app; todo 63 at the cut.",
+    "focus": "2026-11-12 08:45Z, holding for the sweep's commit with two banks to prove in one run: ST0093 WP-06 (c) to (e) with 0682's close (hold 41, tmp/wt-dc-0093-06) and ISSUE:0687's fix, red and green landing as one commit (hold 42, tmp/wt-dc-0687). hv's menu was a stale 3.2.6 Debug app; vc has put the swap to hv. Hold 37 waits on hv's look at 3.3.0; todo 63 at the cut.",
     "claims": [
       "ST0090/02",
-      "ST0093/06"
+      "ST0093/06",
+      "ISSUE:0687"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2869,6 +2870,14 @@
       "text": "At the next cut, read the formula before the yes: it must keep both Linux musl assets, amd64 and arm64, because agentic-engineering's devvm installs Intent from the tap on both (vc, 2026-11-12).",
       "state": "live",
       "recorded_at": "2026-11-12T05:51:32.591Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 42,
+      "text": "ISSUE:0687's red and green are banked off 7f9064cc3 (refs/bank/dc/0687/red-on-7f9064cc3, then green-on-red-on-7f9064cc3) on vc's word that the fix rides this release. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases both onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands them. A Debug build neither registers the login item nor marks FirstRunDone.",
+      "state": "live",
+      "recorded_at": "2026-11-12T08:44:53.809Z"
     }
   ],
   "sent": [

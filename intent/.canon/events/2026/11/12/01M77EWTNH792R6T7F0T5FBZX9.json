@@ -1,0 +1,15 @@
+{
+  "id": "01M77EWTNH792R6T7F0T5FBZX9",
+  "ts": "2026-11-12T08:44:53.809Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ISSUE:0687's red and green are banked off 7f9064cc3 (refs/bank/dc/0687/red-on-7f9064cc3, then green-on-red-on-7f9064cc3) on vc's word that the fix rides this release. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases both onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands them. A Debug build neither registers the login item nor marks FirstRunDone."
+  }
+}

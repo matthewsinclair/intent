@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-12 08:01Z
+heartbeat_at: 2026-11-12 08:45Z
 status: active
-focus: "2026-11-12 08:01Z, drafting ST0093 WP-06 (c) to (e) on vc's word in tmp/wt-dc-0093-06 off main, reading Devbin at 7951719a; nothing run. Hold 41: the proof run waits on devbin-vc's sweep of 0.1.23 into Intent. Hold 37 waits on hv's look at the 3.3.0 app; todo 63 at the cut."
-claims: [ST0090/02, ST0093/06]
+focus: "2026-11-12 08:45Z, holding for the sweep's commit with two banks to prove in one run: ST0093 WP-06 (c) to (e) with 0682's close (hold 41, tmp/wt-dc-0093-06) and ISSUE:0687's fix, red and green landing as one commit (hold 42, tmp/wt-dc-0687). hv's menu was a stale 3.2.6 Debug app; vc has put the swap to hv. Hold 37 waits on hv's look at 3.3.0; todo 63 at the cut."
+claims: [ST0090/02, ST0093/06, ISSUE:0687]
 ---
 
 # DevX Claude (dc)
@@ -23,6 +23,7 @@ _(none)_
 
 - ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv rebuilds the index in the installed 3.3.0 Intent.app (IntentCommit 1e423060f, which carries a54f2e9e0 and 8406f6a15) and sees the Rebuild Search Index row's second line, reconciled <age> ago, and vc records it (vc, 2026-11-12: no Debug build is needed). Then dc closes WP-02, ST0090 and issue 0664 can close, and dc removes tmp/wt-dc-0090-app after an attic ref. A defect hv sees comes back to dc as a new bank. (edited)
 - ST0093/06 (c) to (e) are drafted on vc's word after the compact, in tmp/wt-dc-0093-06 off main, reading Devbin at 7951719a (the code devbin cuts as 0.1.23). Nothing is run and nothing is written to Devbin's tree. The proof run and the bank wait until devbin-vc's sweep of devbin 0.1.23 lands in Intent and vc sends dc its commit. Then dc rebases the draft onto it, makes one proof run for the batch and banks it, and vc lands it. The draft covers three parts. (c) is a build: block declaring the pair, with its handlers calling cache get and put (0338). (d) points rust's gate target at DEVBIN_GATE_CACHE (0335). (e) moves tests/run_tests.sh onto the core's lanes runner (0339), with the serial tag banked unproved at refs/bank/dc/0093-06/e-serial-unproved-on-d9ec2b0fb. (a) and (b) landed at 6375023ea. (edited)
+- ISSUE:0687's red and green are banked off 7f9064cc3 (refs/bank/dc/0687/red-on-7f9064cc3, then green-on-red-on-7f9064cc3) on vc's word that the fix rides this release. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases both onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands them. A Debug build neither registers the login item nor marks FirstRunDone.
 
 ## Watch-outs
 
