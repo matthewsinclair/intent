@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-12:v3.80: vc - Intent's work before devbin's sweep is done; the rest waits on devbin 0.1.23"
+verblock: "2026-11-12:v3.81: vc - the fold before hv's third compact: one Desk slot for dc after devbin's sweep"
 intent_version: 3.3.0
 ---
 
@@ -8,11 +8,12 @@ intent_version: 3.3.0
 ## DOING
 
 - P0, on hv's word of 2026-11-12 (hv decision 39): the next devbin release, 0.1.23 with issues 0333 to 0339, and the next Intent release, one cut each, on the one plan hv approved (hv decision 40: devbin-cc's PLAN-20261112 with vc's corrections). devbin-vc holds the Desk and lands devbin's units; vc lands Intent's on each builder's evidence.
-- Intent 3.3.1 (hv decision 44) carries everything on main since v3.3.0, ST0093 WP-06 (c) to (e), issue 0689's fix, so `intent app` no longer takes a LaunchServices record of an exited app for the running one, and issue 0690's, so `intent daemon start`'s remedy names a piped stdin over ssh. Now: devbin's one proof run of its last fixes (0334-2, 0341-1, 0340-1 and 0340-2), then hv's history rewrite and cut of devbin 0.1.23, after three cuts went red before any tag; devbin-vc sweeps it into Intent's tree first; dc proves WP-06 (c) to (e), with the serial tags 0.1.23's 24-job floor needs, and 0682 on it, and vc lands them; one Desk booking, dc's, runs `bin/devbin release gates --leg kovacs` and then a dry run for its pre-flight; at the cut's HEAD, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on; dc reads that the formula keeps both Linux musl assets; hv cuts v3.3.1 once. The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
+- Intent 3.3.1 (hv decision 44) carries everything on main since v3.3.0 and ST0093 WP-06 (c) to (e). Now: devbin's one proof run of its last fixes, then hv's history rewrite and cut of devbin 0.1.23, after three cuts went red before any tag; devbin-vc sweeps it into Intent's tree first, and cc reads the sweep for a packaging/homebrew change. Then dc takes one Desk slot on rhadamanth, every step one after the other and none beside a run on kovacs (hv decision 45): the WP-06 (c) to (e) proof, with the serial tags 0.1.23's 24-job floor needs; issue 0682's by-hand `bin/devbin gate rust` on a small TMPDIR; vc's landing of both; `bin/devbin release gates --leg kovacs`; and a dry run for its pre-flight, which runs no gate. Before the dry run, intentd on rhadamanth is stopped and vc freezes the tree: every seat commits its board, and nothing writes to Intent's tree until the cut has finished. At that HEAD, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on; dc reads that the formula keeps both Linux musl assets; hv cuts v3.3.1 once. The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
 - ST0093, why Claudes yak-shave: WP-02's skills sync waits on the next release, and WP-06 is dc's under its hold 41.
 
 ## TODO
 
+- hv says who stops intentd on rhadamanth before the dry run (releasing.md step 0, and the pre-flight refuses a live one): dc, just before it, or hv. It stays down through the cut, and hv starts it again at the end of step 4.
 - hv checks that System Settings' Login Items names /Applications/Intent.app and not the 3.2.6 Debug build, which issue 0687's fix stops a Debug build from registering again.
 - ST0094, the estate's last two boards (moved out of ST0092), is not part of this release (hv decision 42).
 - After Intent's next cut, one visit to each estate, Intent first (hv decision 41): devbin-vc's sweep of devbin 0.1.23 and `intent claude upgrade --apply`. It replaces the hand fix in Trellis's AGENTS.md, so Trellis moves anything bespoke out of that file first.

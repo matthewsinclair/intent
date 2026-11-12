@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "7683276e-e120-4768-84a2-a8267004e72d",
-    "heartbeat_at": "2026-11-12T11:14:00.872Z",
+    "heartbeat_at": "2026-11-12T12:49:45.858Z",
     "status": "active",
-    "focus": "2026-11-12 11:14Z. P0: Intent 3.3.1 (hv decision 44). Intent's work before devbin's sweep is on main: 0689, 0690 and its wording (e05e2d604, b13fcd526, 9500cb77a), and known-defects driven at 52c251f0a. devbin's one proof run started 11:08:23Z (devbin-vc's read); then its landing, hv's rewrite and cut of 0.1.23, the brew steps and the sweep; then dc's WP-06 and 0682, the Desk booking, ic's reads at the cut's HEAD and hv's cut. hv checks Login Items names /Applications/Intent.app.",
+    "focus": "FOLDED for hv's compact (2026-11-12 12:49Z). P0: Intent 3.3.1 (hv decision 44). On main: 0689, 0690 and its wording, and known-defects driven at 52c251f0a. Waiting on devbin 0.1.23: its proof run, landing, hv's rewrite and cut, the brew steps and devbin-vc's sweep. Then dc's one Desk slot on rhadamanth (WP-06 proof, 0682's run, vc's landing, --leg kovacs, the dry run; hv decision 45), with vc's freeze and ic's two reads before the dry run, and hv's cut. Owed by hv: who stops intentd before the dry run, and the Login Items check.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2881,10 +2881,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 79,
-      "text": "NEXT (P0, hv decisions 39 to 44), in order. (1) devbin's one proof run (k340, granted at 11:08:23Z on devbin-vc's read) of 0334-2, 0341-1, 0340-1 and 0340-2, devbin-vc's landing, hv's history rewrite and hv's cut of devbin 0.1.23, hv's brew steps, then devbin-vc's sweep into Intent's tree; cc reads the sweep for a packaging/homebrew change (hold 36). (2) dc rebases WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df, with the two serial tags 0.1.23's 24-job floor needs) onto the sweep and proves it with 0682's by-hand gate run, and vc lands them; ic regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (3) dc's one Desk booking: bin/devbin release gates --leg kovacs, then the dry run. (4) At the cut's HEAD, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on at 52c251f0a; vc tells ic the cut's HEAD. (5) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (6) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate.",
+      "text": "NEXT (P0, hv decisions 39 to 45), in order. (1) devbin's one proof run (k340, granted at 11:08:23Z on devbin-vc's read) of 0334-2, 0341-1, 0340-1 and 0340-2, with the fix for the wait-on-a-process-substitution race its kovacs leg found, then devbin-vc's landing, hv's history rewrite and hv's cut of devbin 0.1.23, hv's brew steps, and devbin-vc's sweep into Intent's tree; cc gives the sweep a diff check for a packaging/homebrew change (hold 36). (2) dc's one Desk slot on rhadamanth, booked from devbin-vc's Desk after the sweep, every step one after the other and none beside a kovacs run (hv decision 45): (a) the WP-06 (c) to (e) proof on refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df rebased onto the sweep, its arms red then green and the bats suite at 24 jobs; (b) 0682's by-hand bin/devbin gate rust with TMPDIR on a 1.7G disk image; (c) dc banks, and vc lands WP-06 with 0682's Resolution and close; (d) bin/devbin release gates --leg kovacs; (e) the dry run, whose pre-flight runs no gate. Before (e): intentd on rhadamanth is stopped (hv's answer is owed: dc stops it just before, or hv does), and vc calls a freeze: every seat commits its board, then nothing writes to Intent's tree until hv's cut has finished, not even a pickup, and vc confirms git status is empty. (3) At that HEAD, which vc sends to ic, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on at 52c251f0a; ic regenerates docs/reference only if a landing moved the register or ALL_VARIANTS. (4) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; hv starts intentd again at the end of releasing.md step 4; then vc tells agentic-engineering-vc it is installable. (5) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate.",
       "state": "live",
       "recorded_at": "2026-11-11T20:03:09.872Z",
-      "edited_at": "2026-11-12T11:13:59.767Z"
+      "edited_at": "2026-11-12T12:49:44.792Z"
     }
   ],
   "sent": [

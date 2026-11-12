@@ -1,0 +1,16 @@
+{
+  "id": "01M77WX5AR1FAEVQZ5BS0JAHBW",
+  "ts": "2026-11-12T12:49:44.792Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "NEXT (P0, hv decisions 39 to 45), in order. (1) devbin's one proof run (k340, granted at 11:08:23Z on devbin-vc's read) of 0334-2, 0341-1, 0340-1 and 0340-2, with the fix for the wait-on-a-process-substitution race its kovacs leg found, then devbin-vc's landing, hv's history rewrite and hv's cut of devbin 0.1.23, hv's brew steps, and devbin-vc's sweep into Intent's tree; cc gives the sweep a diff check for a packaging/homebrew change (hold 36). (2) dc's one Desk slot on rhadamanth, booked from devbin-vc's Desk after the sweep, every step one after the other and none beside a kovacs run (hv decision 45): (a) the WP-06 (c) to (e) proof on refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df rebased onto the sweep, its arms red then green and the bats suite at 24 jobs; (b) 0682's by-hand bin/devbin gate rust with TMPDIR on a 1.7G disk image; (c) dc banks, and vc lands WP-06 with 0682's Resolution and close; (d) bin/devbin release gates --leg kovacs; (e) the dry run, whose pre-flight runs no gate. Before (e): intentd on rhadamanth is stopped (hv's answer is owed: dc stops it just before, or hv does), and vc calls a freeze: every seat commits its board, then nothing writes to Intent's tree until hv's cut has finished, not even a pickup, and vc confirms git status is empty. (3) At that HEAD, which vc sends to ic, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on at 52c251f0a; ic regenerates docs/reference only if a landing moved the register or ALL_VARIANTS. (4) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; hv starts intentd again at the end of releasing.md step 4; then vc tells agentic-engineering-vc it is installable. (5) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate."
+  }
+}
