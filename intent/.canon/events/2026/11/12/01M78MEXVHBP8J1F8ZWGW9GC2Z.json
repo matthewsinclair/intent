@@ -1,0 +1,16 @@
+{
+  "id": "01M78MEXVHBP8J1F8ZWGW9GC2Z",
+  "ts": "2026-11-12T19:41:24.209Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 43,
+    "text": "dc's Desk booking for the rest of the cut's rehearsal, from devbin-vc's Desk on rhadamanth. Steps (1) to (3) are done: WP-06 v6 landed at 7be4d570f on dc's proof, and issue 0682 is closed with its Resolution. What is left waits for three things: cc's fix to intentsvcs/tests/no_view_claims_to_be_truth.rs:292 landing (1156 views counted where 1148 are rendered; vc sent it to cc as cut-blocking, since gate rust goes red on it), vc's freeze, and vc's ask to devbin-vc for dc's slot. Then: (4) bin/devbin release gates --leg kovacs, at a clean HEAD after the freeze. devbin 0.1.23 (its issue 0337) makes the cut's pre-flight refuse kovacs unless that leg went green at a commit whose leg config (release.legs, release.gates and the commands they name) matches the cut's HEAD, so dc touches none of those lines after it. (5) The dry run, whose pre-flight runs no gate, with git status empty, as vc confirms before dc starts. Under the freeze nothing writes to Intent's tree until hv's cut has finished, not even a pickup. intentd stays up and no seat stops it (hv decision 46), so (5) stops at its pre-flight, which still runs every check and names every refusal. It passes when the live daemon is the only refusal, and any other refusal is a finding dc brings to vc. On rhadamanth no step runs beside a kovacs run (hv decision 45). Read by 2026-11-12 19:41Z by date -u."
+  }
+}
