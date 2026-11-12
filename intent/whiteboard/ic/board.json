@@ -4,12 +4,12 @@
     "moniker": "ic",
     "name": "Interface Claude",
     "role": "interface",
-    "session_id": "677e6c35-f820-4993-8ec4-ad639debeb1b",
-    "heartbeat_at": "2026-11-11T20:03:12.283Z",
-    "status": "paused",
-    "focus": "2026-11-11 17:41Z, post-cut pickup on brew 3.3.0 (vc: the cut is done, 3.3.0 released at 1e423060f; the dev-pair PATH prefix is over). Active, no slot, nothing banked. ST0092 WP-06 stays WIP on vc's ruling: AC-06.4 closes at hv's next real `intent claude start <node>` on 3.3.0, recorded by vc by session id. WP-10 closes now on vc's rulings, its three help and guide findings filed as one issue for the next release.",
+    "session_id": "048e4132-f6c2-4374-b561-a659b80bc928",
+    "heartbeat_at": "2026-11-12T05:17:02.350Z",
+    "status": "active",
+    "focus": "2026-11-12 05:16Z, on vc's go after hv reviewed devbin-cc's PLAN-20261112: ST0092 WP-06 done (AC-06.4 on vc's record), issue 0675 closed with it, claim dropped. Now building issue 0681 as one red-then-green arm on devbin-vc's desk, to bank for vc.",
     "claims": [
-      "ST0092/06"
+      "ISSUE:0681"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2873,7 +2873,8 @@
       "kind": "doing",
       "seq": 145,
       "text": "ST0092 WP-06 LANDED (2026-11-11): red 754f9013d, green eb9e9f6c3, rows b23bd66fa, measured green in desk slot 01M75CJJHQ3V40JH19THJ3KRFW (workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed). AT-06.1, .2, .3 and .5 green; AT-06.4 n/a. STAYS WIP on vc's ruling of 2026-11-11: the gate is BLOCKED on AC-06.4 alone. It needs a session launched with `intent claude start <node>` on an installed 3.3.0, to which hv types nothing, recorded by vc by its session id; a resumed session's pickup does not meet it. vc records hv's next real launch, then `wp done ST0092/06`. Claim ST0092/06 held until then.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T05:16:29.393Z",
       "recorded_at": "2026-11-11T07:55:36.666Z",
       "edited_at": "2026-11-11T20:03:08.324Z"
     },
@@ -2906,6 +2907,14 @@
       "archived_at": "2026-11-11T17:44:02.440Z",
       "recorded_at": "2026-11-11T12:36:35.904Z",
       "edited_at": "2026-11-11T16:59:04.391Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 147,
+      "text": "Issue 0681 on vc's go of 2026-11-12 (hv reviewed devbin-cc's PLAN-20261112): the guide prints each row's when_to_use, wb brief's --launch help takes a capital, and <MONIKER> gets argument help. One red-then-green arm on devbin-vc's desk, banked with that run's output for vc to read and land.",
+      "state": "live",
+      "recorded_at": "2026-11-12T05:17:01.386Z"
     }
   ],
   "sent": [

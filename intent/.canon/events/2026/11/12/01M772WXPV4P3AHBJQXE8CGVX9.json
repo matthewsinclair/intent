@@ -1,0 +1,14 @@
+{
+  "id": "01M772WXPV4P3AHBJQXE8CGVX9",
+  "ts": "2026-11-12T05:15:14.015Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0092/AC-06.4"
+  },
+  "payload": {
+    "evidence": "session 7683276e-e120-4768-84a2-a8267004e72d (intent-vc), launched by intent claude start vc on brew 3.3.0 (1e423060f919) at 2026-11-12 04:44:33Z on Intent's converged board. Its launcher gave its seat and its pickup printed role, remit, mediator and route to hv before hv typed anything; recorded by vc"
+  }
+}

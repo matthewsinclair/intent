@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: A session is told its seat at pickup and at launch
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-06: A session is told its seat at pickup and at launch

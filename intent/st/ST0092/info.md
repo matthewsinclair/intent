@@ -72,19 +72,19 @@ The seat names are hv's of 2026-10-21, recorded until now in Molt's roster READM
 
 ## Work Packages
 
-| WP    | Title                                                                                 | Size | Status      |
-| ----- | ------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat | S    | Done        |
-| WP-02 | A Team Profile is a shipped resource: team, solo, supervisor and supervised           | M    | Done        |
-| WP-03 | wb init reconciles a board to its profile, and is a dry run until told to apply       | M    | Done        |
-| WP-04 | A seat can be retired, and a board can change its profile                             | S    | Done        |
-| WP-05 | hv is reached through one node, and the tool enforces it                              | M    | Done        |
-| WP-06 | A session is told its seat at pickup and at launch                                    | S    | WIP         |
-| WP-07 | The roster README is rendered from the profile and keeps the project's own block      | M    | Done        |
-| WP-08 | The Desk is a hat with a written contract                                             | M    | Done        |
-| WP-09 | Doctor reports a board that has left its profile                                      | S    | WIP         |
-| WP-10 | The new surface reads as one                                                          | S    | Done        |
-| WP-11 | Every live board converges, Intent's own first                                        | L    | Not Started |
+| WP    | Title                                                                                 | Size | Status |
+| ----- | ------------------------------------------------------------------------------------- | ---- | ------ |
+| WP-01 | The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat | S    | Done   |
+| WP-02 | A Team Profile is a shipped resource: team, solo, supervisor and supervised           | M    | Done   |
+| WP-03 | wb init reconciles a board to its profile, and is a dry run until told to apply       | M    | Done   |
+| WP-04 | A seat can be retired, and a board can change its profile                             | S    | Done   |
+| WP-05 | hv is reached through one node, and the tool enforces it                              | M    | Done   |
+| WP-06 | A session is told its seat at pickup and at launch                                    | S    | Done   |
+| WP-07 | The roster README is rendered from the profile and keeps the project's own block      | M    | Done   |
+| WP-08 | The Desk is a hat with a written contract                                             | M    | Done   |
+| WP-09 | Doctor reports a board that has left its profile                                      | S    | WIP    |
+| WP-10 | The new surface reads as one                                                          | S    | Done   |
+| WP-11 | Every live board converges, Intent's own first                                        | L    | WIP    |
 
 ## Acceptance
 
