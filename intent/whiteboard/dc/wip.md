@@ -2,10 +2,10 @@
 node: dc
 name: DevX Claude
 role: devx
-session_id: 2aba47df-5301-4790-a6b7-e11815afe307
-heartbeat_at: 2026-11-11 20:03Z
-status: paused
-focus: "2026-11-11 20:03Z, localfolded and released on hv's word via vc (finish what is live, start nothing new). 3.3.0 released at 1e423060f; ST0091 WP-04 done; follow-ups 0682, 0683 (Intent), 0333 (devbin). ST0093 WP-06 (a)+(b) landed at 6375023ea, WIP under hold 41 until devbin's next release is vendored, then (c) to (e). Hold 37 waits on hv's look. Banks: refs/bank/dc/0093-06/ab-on-6acaba3cb (landed); tmp/wt-dc-0092-04 stays on disk, its diff in refs/bank/dc/0092-04/superseded-worktree-04-on-008b41c6f."
+session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
+heartbeat_at: 2026-11-12 05:32Z
+status: active
+focus: "2026-11-12 05:33Z, on vc's go after hv reviewed devbin-cc's PLAN-20261112: ST0091 done at 787736c56. Building issues 0683 and 0684 red then green in one desk run (request 01M773VB92194CF2RVF00YF6Z4), banked for vc to land; WP-06 (e)'s serial tag banked unproved. Hold 37 waits on hv's look at the installed 3.3.0 app; hold 41 on devbin-vc's sweep of 0.1.23."
 claims: [ST0090/02, ST0093/06]
 ---
 
@@ -17,12 +17,12 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- At the next cut, read the formula before the yes: it must keep both Linux musl assets, amd64 and arm64, because agentic-engineering's devvm installs Intent from the tap on both (vc, 2026-11-12).
 
 ## Holds
 
-- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv sees the Rebuild Search Index row's second line after a rebuild, on a build that carries WP-01 and WP-02, and vc records which build that was. Then dc closes WP-02 on vc's word; a defect hv sees comes back to dc as a new bank. The Debug app dc built on 2026-11-01 (IntentCommit 29e6f1c0a) went with that session's scratch. dc rebuilds it on vc's word once 3.3.0's first train's last unit is on main (vc, 2026-11-10), at the HEAD vc names, booked as a light run with the estate's controller, for hv's look by the route vc hold 6 records. dc removes tmp/wt-dc-0090-app once the look is recorded. (edited)
-- ST0093/06 stays WIP until devbin's next release (issues 0335, 0338, 0339) is vendored into Intent. Then dc builds (c) a build: block declaring the pair, its handlers calling cache get/put; (d) gate rust's target at DEVBIN_GATE_CACHE; (e) tests/run_tests.sh onto devbin's lanes runner, with daemon and socket tests tagged serial. One proof run for the batch, then land. (a) and (b) landed at 6375023ea; the macos leg first runs at the next cut.
+- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv rebuilds the index in the installed 3.3.0 Intent.app (IntentCommit 1e423060f, which carries a54f2e9e0 and 8406f6a15) and sees the Rebuild Search Index row's second line, reconciled <age> ago, and vc records it (vc, 2026-11-12: no Debug build is needed). Then dc closes WP-02, ST0090 and issue 0664 can close, and dc removes tmp/wt-dc-0090-app after an attic ref. A defect hv sees comes back to dc as a new bank. (edited)
+- ST0093/06 stays WIP until devbin-vc has swept devbin 0.1.23 (issues 0333 to 0339) into Intent (hv, 2026-11-12, via vc: 'Whole fleet, Intent first'). Then dc builds (c) a build: block declaring the pair, its handlers calling cache get/put (0338); (d) rust's gate target at DEVBIN_GATE_CACHE (0335); (e) tests/run_tests.sh onto the core's lanes runner (0339), with the serial tag banked unproved at refs/bank/dc/0093-06/e-serial-unproved-on-d9ec2b0fb. One proof run for the batch, then land. (a) and (b) landed at 6375023ea. (edited)
 
 ## Watch-outs
 

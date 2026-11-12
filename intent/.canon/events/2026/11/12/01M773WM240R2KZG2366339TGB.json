@@ -1,0 +1,15 @@
+{
+  "id": "01M773WM240R2KZG2366339TGB",
+  "ts": "2026-11-12T05:32:32.708Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issues 0683 and 0684 on vc's go of 2026-11-12 (hv reviewed devbin-cc's PLAN-20261112): red then green in one desk run, request 01M773VB92194CF2RVF00YF6Z4 (05:33:54Z to 05:35:20Z), in tmp/wt-dc-0683-0684 on d9ec2b0fb. Banked for vc to land, in order: refs/bank/dc/0683/red-on-d9ec2b0fb, 0683/green-on-red, 0684/red-v2-on-d9ec2b0fb, 0684/green-on-red-v2, 0683-0684/changelog-on-d9ec2b0fb; the run's seals under refs/bank/dc/0683-0684/run/. The worktree goes after vc lands, with an attic ref first."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M774ZCK3DEZ3TQV9N9401QFY",
+  "ts": "2026-11-12T05:51:32.591Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "At the next cut, read the formula before the yes: it must keep both Linux musl assets, amd64 and arm64, because agentic-engineering's devvm installs Intent from the tap on both (vc, 2026-11-12)."
+  }
+}
