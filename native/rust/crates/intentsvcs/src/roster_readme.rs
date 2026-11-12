@@ -560,4 +560,26 @@ mod tests {
     assert_eq!(widths.len(), 1, "{t}");
     assert!(t.contains("a \\| b"), "{t}");
   }
+
+  /// **A FIRST RENDER SETS THE OLD README OFF FROM ITS MARKERS BY ONE BLANK
+  /// LINE (issue 0684),** as the project's formatter does. Prettier puts a
+  /// blank line between the start marker and a heading after it, and between a
+  /// table or a list and the end marker after it, so a block that hugs its
+  /// markers was rewritten by the first `prettier --write` on every board the
+  /// 3.3.0 sweep converged, and each commit was refused until that ran.
+  #[test]
+  fn a_first_render_sets_the_old_readme_off_from_its_markers_by_one_blank_line() {
+    let rendered = format!("# Roster\n\n{USER_START}\n{USER_END}\n");
+    let old = "# Ours\n\n| a | b |\n| --- | --- |\n| 1   | 2   |";
+    let wanted = format!("# Roster\n\n{USER_START}\n\n{old}\n\n{USER_END}\n");
+    for hand in [format!("{old}\n"), format!("\n\n{old}\n\n\n")] {
+      let decided = decide(Some(&hand), None, &rendered).expect("a first render");
+      assert_eq!(decided.text, wanted, "from {hand:?}");
+    }
+    let empty = decide(Some(""), None, &rendered).expect("a first render");
+    assert_eq!(
+      empty.text, rendered,
+      "an empty README leaves the block empty"
+    );
+  }
 }
