@@ -422,12 +422,17 @@ pub fn decide(
       }
     }
     let (dropped, rest) = frontmatter(existing);
-    let rest = if rest.is_empty() || rest.ends_with('\n') {
-      rest.to_string()
+    // **ONE BLANK LINE SETS THE OLD FILE OFF FROM EACH MARKER**, as the
+    // project's formatter sets one HTML comment off from the block beside it,
+    // so a formatter run changes nothing at either marker. The file's own
+    // leading and trailing blank lines go, and an empty file leaves the block
+    // empty, as the template has it.
+    let body = rest.trim_matches('\n');
+    let wrapped = if body.is_empty() {
+      format!("{USER_START}\n{USER_END}\n")
     } else {
-      format!("{rest}\n")
+      format!("{USER_START}\n\n{body}\n\n{USER_END}\n")
     };
-    let wrapped = format!("{USER_START}\n{rest}{USER_END}\n");
     return decided(
       Plan::First { dropped },
       crate::canon::carry_user_block(&wrapped, rendered),
