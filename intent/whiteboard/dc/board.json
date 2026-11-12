@@ -2879,6 +2879,14 @@
       "state": "live",
       "recorded_at": "2026-11-12T08:44:53.809Z",
       "edited_at": "2026-11-12T09:05:07.313Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 43,
+      "text": "dc's one Desk booking for Intent's cut, bin/devbin release gates --leg kovacs and then the dry run for its pre-flight, waits for three things: ST0093 WP-06 (c) to (e) landed (hold 41), releasing.md step 2's commits in (ic's regeneration of docs/reference, stale against v3.3.0, and cc's CHANGELOG pass), and vc calling the booking. The leg goes after step 2 because gate all's reference arm runs on kovacs too (vc, 2026-11-12).",
+      "state": "live",
+      "recorded_at": "2026-11-12T09:10:44.927Z"
     }
   ],
   "sent": [
