@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 05:17Z
+heartbeat_at: 2026-11-12 05:51Z
 status: active
-focus: "2026-11-12 05:16Z, on vc's go after hv reviewed devbin-cc's PLAN-20261112: ST0092 WP-06 done (AC-06.4 on vc's record), issue 0675 closed with it, claim dropped. Now building issue 0681 as one red-then-green arm on devbin-vc's desk, to bank for vc."
-claims: [ISSUE:0681]
+focus: "2026-11-12 05:51Z, issue 0681 landed by vc (ef88713a4 red, 7636f5b23 green) and closed; ic's worktree removed (attic refs/attic/ic/wt-ic-0681). No claims, nothing banked unlanded. Holding for vc's next word."
+claims: []
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- Issue 0681 on vc's go of 2026-11-12 (hv reviewed devbin-cc's PLAN-20261112): the guide prints each row's when_to_use, wb brief's --launch help takes a capital, and <MONIKER> gets argument help. One red-then-green arm on devbin-vc's desk, banked with that run's output for vc to read and land.
+_(none)_
 
 ## TODO
 
