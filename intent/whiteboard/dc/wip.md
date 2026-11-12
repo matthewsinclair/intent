@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-12 11:01Z
+heartbeat_at: 2026-11-12 12:48Z
 status: active
-focus: "2026-11-12 11:01Z, holding for devbin-vc's sweep of devbin 0.1.23 into Intent. Nothing is live. ST0093 WP-06 (c) to (e) is banked unproved at refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df in tmp/wt-dc-0093-06, which now also tags docs_completeness.bats's agents sync test serial for 0.1.23's 24 at once (vc's read). Its one proof run, then 0682's close, follow the sweep (hold 41). The Desk booking follows on vc's call (hold 43); todo 63 at the cut. The gyges clone of main stays for ic."
+focus: "2026-11-12 12:48Z, folded for hv's compact. Nothing is live and nothing is unbanked. ST0093 WP-06 (c) to (e) is banked unproved at refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df in tmp/wt-dc-0093-06, with both serial tags for devbin 0.1.23's 24 at once. It waits for devbin-vc's sweep of devbin 0.1.23, then hold 43's one slot on rhadamanth on vc's call: the WP-06 proof run, 0682's gate run on a 1.7G image, vc's landing, the kovacs leg, then the dry run under vc's freeze, with intentd stopped only on hv's answer through vc. Todo 63 at the cut. The gyges clone of main stays for ic."
 claims: [ST0093/06]
 ---
 
