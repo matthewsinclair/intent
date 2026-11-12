@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-12:v3.74: vc - the cut's step 2 goes before the Desk booking (ic's finding)"
+verblock: "2026-11-12:v3.75: vc - issue 0688 joins dc's proof run; devbin 0.1.23 cuts again"
 intent_version: 3.3.0
 ---
 
@@ -8,7 +8,7 @@ intent_version: 3.3.0
 ## DOING
 
 - P0, on hv's word of 2026-11-12 (hv decision 39): the next devbin release, 0.1.23 with issues 0333 to 0339, and the next Intent release, one cut each, on the one plan hv approved (hv decision 40: devbin-cc's PLAN-20261112 with vc's corrections). devbin-vc holds the Desk and lands devbin's units; vc lands Intent's on each builder's evidence.
-- Intent's next release carries everything on main since v3.3.0, ST0093 WP-06 (c) to (e), and issue 0687's fix, so a Debug build of the app never registers the login item. The order: now, ic regenerates docs/reference, because gate all's reference arm runs on the kovacs leg too, and cc makes releasing.md step 2's CHANGELOG pass; hv's cut of devbin 0.1.23, run again from 08:54Z after its first stopped in the local leg; devbin-vc sweeps it into Intent's tree first; dc proves WP-06 (c) to (e), 0682 and 0687 on it in one proof run, and vc lands them; ic re-drives docs/known-defects.md on the pair built at HEAD, with the explorer's shots only if something the explorer draws changed; one Desk booking, dc's, runs `bin/devbin release gates --leg kovacs` and then a dry run for its pre-flight; dc reads that the formula keeps both Linux musl assets; hv cuts Intent once, at the number hv sets (vc recommends 3.3.1). The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
+- Intent's next release carries everything on main since v3.3.0, ST0093 WP-06 (c) to (e), issue 0687's fix, so a Debug build of the app never registers the login item, and issue 0688's, a parity tool's unbounded path guard. The order: hv's cut of devbin 0.1.23, whose next run carries three P0 fixes after three cuts went red before any tag; devbin-vc sweeps it into Intent's tree first; dc proves WP-06 (c) to (e), 0682, 0687 and 0688 on it in one proof run, and vc lands them; ic re-drives docs/known-defects.md on the pair built at HEAD, with the explorer's shots only if something the explorer draws changed; one Desk booking, dc's, runs `bin/devbin release gates --leg kovacs` and then a dry run for its pre-flight; dc reads that the formula keeps both Linux musl assets; hv cuts Intent once, at the number hv sets, which the CHANGELOG's open section is then headed with (vc recommends 3.3.1). The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
 - ST0093, why Claudes yak-shave: WP-02's skills sync waits on the next release, and WP-06 is dc's under its hold 41.
 
 ## TODO

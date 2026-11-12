@@ -1,0 +1,16 @@
+{
+  "id": "01M77JVJCVD4CKEDV4QQR8JJC8",
+  "ts": "2026-11-12T09:54:06.875Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "NEXT (P0, hv decisions 39 to 42), in order. (1) Done ahead of the Desk booking, because gate all's reference arm runs on the kovacs leg too (ic's finding, 2026-11-12): ic's docs/reference at def0a8e01 and cc's CHANGELOG pass at bd525bae2; the CHANGELOG heading takes the number hv sets. (2) hv's cut of devbin 0.1.23, then devbin-vc's sweep into Intent's tree. (3) dc rebases its banks onto the sweep and makes one proof run: ST0093 WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, issue 0687 (refs/bank/dc/0687/fix-on-7f9064cc3, red and green as one unit), and issue 0688, no_daemon_required.sh's unbounded inside-the-project guard (refs/bank/dc/0688/fix-unproved-on-923c4c44f); vc lands them. (4) ic re-drives docs/known-defects.md whole on the pair built at HEAD, on one Desk slot, takes the explorer's shots in that slot only if something the explorer draws changed since v3.3.0, and regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (5) dc's one Desk booking: `bin/devbin release gates --leg kovacs`, then the dry run. (6) hv's cut at the number hv sets (vc recommends 3.3.1); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (7) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate."
+  }
+}
