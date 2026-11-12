@@ -674,6 +674,34 @@ mod tests {
     );
   }
 
+  /// **ISSUE 0681: A ROW'S `when_to_use` REACHES THE GUIDE.** Until 0681 the
+  /// field reached only the MCP tool descriptions (`mcp.rs`), so a row that is
+  /// CLI only, such as `wb init`, `wb remit` or `wb retire`, published its
+  /// `when_to_use` nowhere, and an agent reading the guide was never told when
+  /// to reach for a command or which one to use instead.
+  ///
+  /// Asserted over every shipped row that declares one, by the line its block
+  /// renders, so a row added to the table is covered without an edit here.
+  #[test]
+  fn a_rows_when_to_use_reaches_the_guide() {
+    let table = dispatch::table();
+    let text = guide();
+    let missing: Vec<&str> = dispatch::shipped_entries(&table)
+      .iter()
+      .filter(|e| {
+        e.when_to_use
+          .as_deref()
+          .is_some_and(|when| !text.contains(&format!("- **when to use:** {when}\n")))
+      })
+      .map(|e| e.path.as_str())
+      .collect();
+    assert!(
+      missing.is_empty(),
+      "the guide omits the when_to_use of {} row(s) that declare one: {missing:?}",
+      missing.len()
+    );
+  }
+
   /// **`AC-09.4`'s FIRST CLAUSE IS *RENDERS FROM THE DISPATCH TABLE*, AND
   /// NOTHING HERE WAS ASSERTING THAT -- ONLY THAT THE TWO AGREE.**
   ///
