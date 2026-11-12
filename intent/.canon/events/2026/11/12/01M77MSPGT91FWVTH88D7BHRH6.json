@@ -1,0 +1,15 @@
+{
+  "id": "01M77MSPGT91FWVTH88D7BHRH6",
+  "ts": "2026-11-12T10:28:02.714Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Re-drive docs/known-defects.md whole on the pair that includes issue 0689's fix (cc, intentsvcs/src/macapp.rs, which moves DIRT_SCOPE), on vc's word (2026-11-12), as the one drive that counts; the drive at 594422fb4 (1d9e398f3) was its shakedown. Carry main to gyges:~/Devel/prj/Intent as a git bundle and fast-forward it, rebuild the pair there with bin/devbin build all, run the kit at /private/tmp/kd331 (banked at refs/bank/ic/kd331/) with stdin from /dev/null, rebuild the page with mkpage.pl, check it with pagecheck.sh and refcheck.pl, and commit it here. Then, at the cut's HEAD, reference_current_check.sh exits 0 and the diff from the drive's commit over DIRT_SCOPE is empty. Released when vc says 0689 has landed."
+  }
+}

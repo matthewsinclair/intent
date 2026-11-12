@@ -1,0 +1,15 @@
+{
+  "id": "01M77M35MA79SF2N2ZJCYRQ6DY",
+  "ts": "2026-11-12T10:15:44.522Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Re-drive docs/known-defects.md whole for Intent's next cut on gyges, on hv's idea via vc (2026-11-12; hold 19, released by dc's clone): the pair is built at 594422fb4 in gyges:~/Devel/prj/Intent, where no controller grants slots; every entry runs in a fresh scratch project under an isolated HOME with the 3.3.0 drive (refs/bank/dc/kd330/) moved to gyges's paths, except mcp_stale, which carries no claim on the page and needs rust-analyzer, which gyges lacks. The page is rebuilt from the run's log by mkpage.pl, checked by pagecheck.sh against a planted control, and committed here, with the kit and logs banked under refs/bank/ic/kd331/. This cut takes no explorer shots (hold 20's call)."
+  }
+}

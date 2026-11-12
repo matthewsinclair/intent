@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 10:11Z
+heartbeat_at: 2026-11-12 10:28Z
 status: active
-focus: "2026-11-12 10:11Z, on vc's word: docs/reference is committed (def0a8e01). Hold 20's call is made: no explorer shots this cut, since nothing the explorer draws has changed since v3.3.0. Hold 19, the known-defects re-drive, goes to gyges on hv's idea and waits for dc's clone at gyges:~/Devel/prj/Intent; the page is committed here. No claim, slot or worktree."
+focus: "2026-11-12 10:28Z, on vc's word: the known-defects drive on gyges is proved and committed as its shakedown (1d9e398f3, the pair at 594422fb48c0, no verdict moved). The drive that counts runs on the pair with issue 0689's fix once vc says it has landed: an incremental rebuild on gyges, one drive, one commit. docs/reference is committed (def0a8e01) and this cut takes no explorer shots."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says, on hv's idea via vc (2026-11-12): build the pair at the HEAD of gyges:~/Devel/prj/Intent, dc's clone of rhadamanth's main, which needs no rhadamanth slot; drive every entry there in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/); and commit the page in rhadamanth's tree, saying there that this cut takes no explorer shots (hold 20's call). Before hv's cut, read that the diff from the drive's commit to the cut's HEAD over DIRT_SCOPE (native/rust/build-support/source_commit.rs) is still empty. Released when dc says the gyges clone is ready. (edited)
+- Re-drive docs/known-defects.md whole on the pair that includes issue 0689's fix (cc, intentsvcs/src/macapp.rs, which moves DIRT_SCOPE), on vc's word (2026-11-12), as the one drive that counts; the drive at 594422fb4 (1d9e398f3) was its shakedown. Carry main to gyges:~/Devel/prj/Intent as a git bundle and fast-forward it, rebuild the pair there with bin/devbin build all, run the kit at /private/tmp/kd331 (banked at refs/bank/ic/kd331/) with stdin from /dev/null, rebuild the page with mkpage.pl, check it with pagecheck.sh and refcheck.pl, and commit it here. Then, at the cut's HEAD, reference_current_check.sh exits 0 and the diff from the drive's commit over DIRT_SCOPE is empty. Released when vc says 0689 has landed.
 
 ## Watch-outs
 
