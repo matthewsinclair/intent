@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 07:35Z
+heartbeat_at: 2026-11-12 07:48Z
 status: active
-focus: "2026-11-12 07:35Z, localfolded for the compact on hv's word; holding for vc's word until devbin 0.1.23 is swept into Intent. No claim, desk slot or worktree; today's banks (0685, 0686) are landed."
+focus: "2026-11-12 07:48Z, folded and holding on vc's word: nothing on this release's path is cc's. A core defect found by dc's ST0093 WP-06 (c) to (e) proof run or by the Desk's kovacs leg comes to cc as a bank, on vc's word. No claim, desk slot or worktree."
 claims: []
 ---
 
