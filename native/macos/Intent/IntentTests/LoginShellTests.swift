@@ -109,3 +109,23 @@ final class LoginShellTests: XCTestCase {
     XCTAssertNil(IntentCLI.environment(base: [:], shell: unset)["CLAUDE_CONFIG_DIR"])
   }
 }
+
+/// Issue 0687: only a release build's first run registers the app as the login
+/// item. A Debug build shares the release app's bundle identifier, and so its
+/// `FirstRunDone` default and its login item, so a Debug build that registered
+/// was started at every reboot in place of the installed app. Beside the
+/// login-shell tests, the other thing the app takes from the user's login.
+final class LoginItemTests: XCTestCase {
+  func testAReleaseBuildsFirstRunRegistersTheLoginItem() {
+    XCTAssertTrue(AppDelegate.registersLoginItem(debugBuild: false, firstRunDone: false))
+  }
+
+  func testADebugBuildNeverRegistersTheLoginItem() {
+    XCTAssertFalse(AppDelegate.registersLoginItem(debugBuild: true, firstRunDone: false))
+    XCTAssertFalse(AppDelegate.registersLoginItem(debugBuild: true, firstRunDone: true))
+  }
+
+  func testALaterRunRegistersNothing() {
+    XCTAssertFalse(AppDelegate.registersLoginItem(debugBuild: false, firstRunDone: true))
+  }
+}

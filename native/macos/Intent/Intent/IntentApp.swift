@@ -35,6 +35,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
   static let firstRunKey = "FirstRunDone"
 
+  /// Whether this launch registers the app as the login item (issue 0687): a
+  /// release build's first run, and never a Debug build's. The two share the
+  /// bundle identifier, and so the `FirstRunDone` default and the login item, so
+  /// a Debug build that registered, or only marked its first run done, kept the
+  /// login item and was started at every reboot in place of the installed app,
+  /// which then never registered. Pure, so the tests ask it directly.
+  nonisolated static func registersLoginItem(debugBuild: Bool, firstRunDone: Bool) -> Bool {
+    !debugBuild && !firstRunDone
+  }
+
+  /// Whether this binary was compiled as a Debug build.
+  nonisolated static var isDebugBuild: Bool {
+    #if DEBUG
+      return true
+    #else
+      return false
+    #endif
+  }
+
   static func main() {
     let app = NSApplication.shared
     let delegate = AppDelegate()
@@ -75,7 +94,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     Task { [index] in await index.read() }  // the rebuild row's stamp, from the CLI
     startObserving()  // renders the current state immediately, then on every change
 
-    if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
+    let firstRunDone = UserDefaults.standard.bool(forKey: Self.firstRunKey)
+    if Self.registersLoginItem(debugBuild: Self.isDebugBuild, firstRunDone: firstRunDone) {
       UserDefaults.standard.set(true, forKey: Self.firstRunKey)
       enableLaunchAtLoginByDefault()
     }
@@ -88,8 +108,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     observation?.stop()
   }
 
-  /// Registered as a login item on first run so the menubar comes back after a
-  /// reboot. Non-fatal, but never silent.
+  /// Registered as a login item on a release build's first run
+  /// (`registersLoginItem`) so the menubar comes back after a reboot. Non-fatal,
+  /// but never silent.
   private func enableLaunchAtLoginByDefault() {
     guard SMAppService.mainApp.status != .enabled else { return }
     do {
