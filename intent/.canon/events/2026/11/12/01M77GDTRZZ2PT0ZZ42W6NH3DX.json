@@ -1,0 +1,15 @@
+{
+  "id": "01M77GDTRZZ2PT0ZZ42W6NH3DX",
+  "ts": "2026-11-12T09:11:39.552Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Regenerate both halves of docs/reference at HEAD against v3.3.0 and commit them now, ahead of dc's Desk booking (vc, 2026-11-12, restating hold 18): the reference arm of gate all runs on the kovacs leg too, and reference_current_check.sh refused the committed set at 61d71697f."
+  }
+}

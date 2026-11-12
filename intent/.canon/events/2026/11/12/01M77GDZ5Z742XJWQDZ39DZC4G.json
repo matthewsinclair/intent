@@ -1,0 +1,15 @@
+{
+  "id": "01M77GDZ5Z742XJWQDZ39DZC4G",
+  "ts": "2026-11-12T09:11:44.063Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Decide the explorer screenshots on evidence at the post-sweep HEAD (vc, 2026-11-12, restating hold 18): if nothing the explorer draws has changed since v3.3.0, skip gen_explorer_shots.sh and say so in the known-defects commit; otherwise take them in the known-defects slot and commit any PNG that changed with it. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree."
+  }
+}

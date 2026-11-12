@@ -1,0 +1,15 @@
+{
+  "id": "01M77GDWZZX5GWGDFS3B4KY4F0",
+  "ts": "2026-11-12T09:11:41.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says (vc, 2026-11-12, restating hold 18): first run reference_current_check.sh and regenerate docs/reference once more if it exits 1; then build the pair at HEAD on one slot from devbin-vc's Desk, drive every entry in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/), and commit before dc's dry run. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree, which makes DIRT_SCOPE final."
+  }
+}

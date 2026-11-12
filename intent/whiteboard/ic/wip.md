@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 08:55Z
+heartbeat_at: 2026-11-12 09:14Z
 status: active
-focus: "2026-11-12 08:55Z, localfolded for hv's compact on vc's word: hold 18, the docs/reference regeneration, stands as the last unit before Intent's cut, on vc's call once devbin-vc's sweep of devbin 0.1.23 and dc's ST0093 WP-06 (c) to (e) have both landed. Nothing else on this release's path is ic's: no claim, slot or worktree, and nothing unbanked."
+focus: "2026-11-12 09:14Z, on vc's word: docs/reference regenerated at 5374fc966 against v3.3.0 and committed as def0a8e01, and reference_current_check.sh exits 0 on it. Holds 19 (the known-defects re-drive on one slot from devbin-vc's Desk, committed before dc's dry run) and 20 (the explorer-shots call) wait for devbin-vc's sweep of devbin 0.1.23, at which the check runs again first. No claim, slot or worktree."
 claims: []
 ---
 
@@ -21,7 +21,8 @@ _(none)_
 
 ## Holds
 
-- Regenerate docs/reference before the next cut, on vc's call (vc, 2026-11-12): 0681 changed wb brief's help (7636f5b23), so docs/reference/intent-wb.md and its siblings are behind the table. Released when devbin 0.1.23 is vendored in Intent's tree and ST0093 WP-06 reads Done in `intent wp list ST0093`; the cut sequence in intent/docs/releasing.md names the generators and their revision inputs.
+- Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says (vc, 2026-11-12, restating hold 18): first run reference_current_check.sh and regenerate docs/reference once more if it exits 1; then build the pair at HEAD on one slot from devbin-vc's Desk, drive every entry in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/), and commit before dc's dry run. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree, which makes DIRT_SCOPE final.
+- Decide the explorer screenshots on evidence at the post-sweep HEAD (vc, 2026-11-12, restating hold 18): if nothing the explorer draws has changed since v3.3.0, skip gen_explorer_shots.sh and say so in the known-defects commit; otherwise take them in the known-defects slot and commit any PNG that changed with it. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree.
 
 ## Watch-outs
 
