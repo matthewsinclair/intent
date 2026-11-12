@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "7683276e-e120-4768-84a2-a8267004e72d",
-    "heartbeat_at": "2026-11-12T04:44:59.309Z",
+    "heartbeat_at": "2026-11-12T07:38:10.940Z",
     "status": "active",
-    "focus": "3.3.0 RELEASED at 1e423060f (17:35Z). Post-cut closes with cc, dc, ic; then todo 78, the yak-shaving deep dive.",
+    "focus": "P0 (hv decisions 39 to 41): devbin 0.1.23, then Intent's next cut. Waiting on devbin's pre-cut and hv's cut of 0.1.23; then devbin-vc's sweep, dc's WP-06 (c)-(e) landed by vc, one Desk booking (--leg kovacs, then the dry run), ic's reference pages, hv's cut (3.3.1 recommended). hv's look at Intent.app closes ST0090.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2494,10 +2494,10 @@
       "node": "vc",
       "kind": "hold",
       "seq": 6,
-      "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has seen Intent.app's Rebuild Search Index row show its second line, reconciled <age> ago, after a rebuild, on a build at or after a54f2e9e0 whose CLI carries 8406f6a15: the 3.3.0 cut, or a dev app pointed at a dev CLI, which is the maintainer's alone. The dev CLI half: build all at 64cf9e251 promoted intent and intentd (dev, 64cf9e251e56) into native/rust/target/release on 2026-11-01, and the build all that precedes the push makes it again. The app half is a Debug build at HEAD, dc's, by `bin/devbin macos app-build`, and it must be built again: the bundle of 2026-11-01 went with that session's scratch (dc, 2026-11-10). dc builds it on vc's word, and hv sets IntentBinary to that CLI and deletes it after (dc's route, verified by vc). Then vc records that build on AC-02.4 and tells dc to close WP-02.",
+      "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has rebuilt the search index in /Applications/Intent.app (3.3.0) and read the second line of its Rebuild Search Index row, reconciled <age> ago. Then vc satisfies AC-02.4 with hv's reading, and dc closes WP-02, ST0090 and issue 0664.",
       "state": "live",
       "recorded_at": "2026-10-31T15:45:33.835Z",
-      "edited_at": "2026-11-10T12:00:41.233Z"
+      "edited_at": "2026-11-12T07:37:15.369Z"
     },
     {
       "node": "vc",
@@ -2543,7 +2543,8 @@
       "kind": "decision",
       "seq": 105,
       "text": "(hv, 2026-11-01, first-hand by selection in vc's TUI, answered by 10:05Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) TWO RULINGS. (1) Issue 0670 is built after ST0011 ships and rides the release after 3.2.9; vc answers dc's banked shape questions (refs/bank/dc/0670/shape-questions.md) before dc builds. (2) Intent 3.2.9 is cut through devbin's release core, as Intent's first cut through the core (ST0091, Devbin ST0011's WP12), after Devbin 0.1.19 and its sweep into Intent's tree; until then Intent cuts nothing, and the push of the three landed fixes (0666, 0668, 0669) goes ahead on the Linux preflight at 64cf9e251.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:19.525Z",
       "recorded_at": "2026-11-01T10:05:47.742Z"
     },
     {
@@ -2551,7 +2552,8 @@
       "kind": "decision",
       "seq": 106,
       "text": "(hv, 2026-11-01, first-hand in vc's session, read by 10:21Z on vc's date -u) OBVIOUS BUG FIXES ARE NOT \"NEW CODE\" AND RIDE THIS RELEASE. hv, verbatim, on 0671's lasting fix: \"This can be done now.\" and \"That's not 'net new code'. That's fixing an obvious bug. Fixing obvious bugs is what this release needs.\" So 3.2.9 carries 0671's fix (cc) and the testkit race fix (dc), each landing after the push of the three fixes on vc's word naming HEAD. 0670 stays as decision 105 ruled.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:20.495Z",
       "recorded_at": "2026-11-01T10:22:02.008Z"
     },
     {
@@ -2624,7 +2626,8 @@
       "kind": "decision",
       "seq": 109,
       "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 09:06Z on vc's date -u; the scope list and the four readings marked vc's are vc's, under the pen) THE NEXT RELEASE IS 3.3.0 AND IT CARRIES EVERYTHING OUTSTANDING. THERE IS NO 3.2.9. hv, verbatim: \"The current release is 3.2.8. I suggest we just put everything that is currently outstanding into the next release and call it 3.3.0.\" This replaces the release numbering in decisions 105 and 106 and hv's word of 2026-11-06 that nothing moves: the work moves now, as one release (hv directive 1). IN 3.3.0: the three fixes on main (0666, 0668, 0669); the banked fixes for 0671, the testkit race and the sweep order; ST0090's last criterion; ST0091, the cut through devbin's core, with 0667's fix; ST0092, Claude Team profiles; and issues 0670, 0672, 0649, 0650, 0661 and 0665. vc's READINGS, each open to hv's reversal. (1) 0670 rides 3.3.0: hv's ruling of 2026-11-01 put it after Devbin's ST0011, but ST0011 closes only when hv cuts Intent's first release through the core, which is 3.3.0 itself, so \"after ST0011\" and \"in the one next release\" cannot both hold, and today's word is the later one. (2) 0672 is built in the full shape, sized M in the issue: the build and test lines are rendered from what the project declares, `bin/devbin` where the tree has one, else declared commands, else none; cc builds it and vc judges. (3) The four issues that were parked for hv (0649, 0650, 0661, 0665) are in scope, and one that proves larger than it reads comes back to hv with its reason. (4) The Not Started threads ST0060, ST0077, ST0082, ST0084, ST0085 and ST0089 are not outstanding work and stay parked. The cut is hv's, once, through devbin's core (decision 105's second ruling stands on that), and ST0092's sweep runs after it, on the brew-installed release.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:21.449Z",
       "recorded_at": "2026-11-10T09:07:06.589Z"
     },
     {
@@ -2650,16 +2653,19 @@
       "node": "vc",
       "kind": "decision",
       "seq": 110,
-      "text": "(vc, 2026-11-10, under hv's pen) ONE WHOLE-SUITE RUN PER TRAIN. A train's banks are stacked on main and judged once, by vc, on the whole workspace suite with workspace clippy, rustdoc and the app's tests. A builder's own run carries only the arms that prove its bank, red at the base or on its mutant and green with the fix, and does not run the whole suite, clippy or rustdoc again. hv's reasons are two: no overtesting, where one run decides a question (2026-09-13), and the cost of a cut (2026-11-10). A run script that still ends in those legs drops them before its builder asks the desk. A bank that proves itself in one small run of its own, as the testkit race fix did, is judged in that run.",
-      "state": "live",
-      "recorded_at": "2026-11-10T10:31:36.705Z"
+      "text": "(vc, 2026-11-10, under hv's pen; SUPERSEDED on 2026-11-12 by ST0093 at 6acaba3cb: vc lands on each builder's evidence and runs no suite of its own) ONE WHOLE-SUITE RUN PER TRAIN. A train's banks are stacked on main and judged once, by vc, on the whole workspace suite with workspace clippy, rustdoc and the app's tests. A builder's own run carries only the arms that prove its bank, red at the base or on its mutant and green with the fix, and does not run the whole suite, clippy or rustdoc again. hv's reasons are two: no overtesting, where one run decides a question (2026-09-13), and the cost of a cut (2026-11-10). A run script that still ends in those legs drops them before its builder asks the desk. A bank that proves itself in one small run of its own, as the testkit race fix did, is judged in that run.",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:22.394Z",
+      "recorded_at": "2026-11-10T10:31:36.705Z",
+      "edited_at": "2026-11-12T07:37:17.741Z"
     },
     {
       "node": "vc",
       "kind": "decision",
       "seq": 111,
       "text": "(hv, 2026-11-10, first-hand in prose in vc's session, each read by 11:45Z on vc's date -u; the reading marked vc's is vc's, under the pen) INTENT'S OWN BOARD IS NORMALISED TO THE TERMS BY HAND, FIRST, AND THE SEATS TAKE THEIR GO FROM vc. hv, verbatim, on ST0092: \"Let's crack on with ST0092. Might I make a suggestion that we do some auto-encephalopsy (I obvs just made that word up on the spot) on the Intent project itself first of all, to bring all of the Intent Claude config into line with the new way of working, and then we can live-drive it as we go?\" And, after reading vc's tables of the profiles and seats: \"We should normalise Intent so that it follows the canonical rules to the letter.\" And to cc, dc and ic in their own windows as each booted, relayed to vc by each of the three: \"Boot and hold for instructions from VC.\" DONE UNDER IT the same hour, by hand, in the form ST0092 specifies for a board on 3.2.8: ac registered as Authoring Claude with role authoring; dc's role word corrected from worker to devx; the team brief on hv's board as a standing directive, wording vc's; the roster README in the form `intent wb init` will generate; a Your seat section in .claude/restart.md. vc's READING of \"to the letter\", open to hv's reversal: Intent takes the team profile's default remits word for word and sets none of its own, and where each lands in this tree is a project note in the README; by the default remit Intent.app and the TUI are ic's. NOT RULED BY THIS: the terms document is not ratified, and twelve points wait on hv (todo 76). DRIVEN LIVE means on a clone of Intent's board until the cut, on cc's measurement of 2026-11-10: Board and WbNode refuse unknown fields and the store migrates on open, so the first touch of Intent's real store by a build with a newer schema stops every 3.2.8 reader.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:23.416Z",
       "recorded_at": "2026-11-10T12:00:38.144Z"
     },
     {
@@ -2685,7 +2691,8 @@
       "kind": "decision",
       "seq": 113,
       "text": "(hv, 2026-11-10, ruled in devbin-vc's window and relayed to vc by devbin-vc before vc's clock read of 2026-11-10 12:30Z by date -u; not heard first-hand by vc, and the consequences marked vc's are vc's, under the pen) THREE RULINGS ON THE RELEASE CORE, each as devbin-vc recommended. (1) Devbin's next release carries a pre-flight seam for a project's own refusals, a declared release.preflight list of `bin/devbin <words>` lines run by a dry run and a cut alike (devbin 0327), and Intent's 3.3.0 waits for that release to be swept into its tree. (2) Intent's brew smoke runs as an `after:` command, with no core change and no devbin issue. (3) The release commit keeps hv's (C) line through a declared trailer in the core (devbin 0328), which Intent declares at the same sweep. vc's CONSEQUENCES: ST0091's AC-01.3 stands as written and is met through the seam; WP-03 and AC-03.1 are reworded to the core as built, the cask's sum by the sums fill and the smoke Intent's own; and 3.3.0's cut follows Devbin's next cut, which is hv's to fire. devbin-vc also withdrew, the same hour, its claim that a routing of 2026-11-05 put every vc's reports to hv through it: on Intent's board vc is the route to hv (decision 111).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:24.503Z",
       "recorded_at": "2026-11-10T12:30:51.124Z"
     },
     {
@@ -2720,7 +2727,8 @@
       "kind": "decision",
       "seq": 116,
       "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read at 15:54Z on vc's date -u) THE MOVE: INTENT IS MADE READY FOR ITS RELEASE, AND devbin-vc HOLDS THE PEN WHILE hv IS AWAY. hv pasted the message hv had given devbin-vc, which reads in part: \"Please liase with the respective VCs to crack on and get things done. I'm keen to get: UTILZ and INTENT ready for a release. Then a patch for DEVBIN if necessary.\" And hv to vc, verbatim: \"I'll be afk for a while. devbin-vc has the pen. Please cooperate with it and corale any Claudes you are managing accordingly.\" The same message names devbin-vc as managing the Desk. vc's readings, under the pen: hold 9 is lifted and archived, and vc told cc, dc and ic at 15:54Z; while hv is away a ruling that is hv's goes from vc to devbin-vc, and each such ruling is recorded as devbin-vc's under hv's pen, open to hv's reversal; no cut, tag or push to a remote follows from this word, since decision 3 stands and \"ready for a release\" is not a release. vc put the ratification of ST0092's terms and the client-name question to devbin-vc that minute.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:25.489Z",
       "recorded_at": "2026-11-10T15:55:12.658Z"
     },
     {
@@ -2728,7 +2736,8 @@
       "kind": "decision",
       "seq": 117,
       "text": "(hv, 2026-11-10, by selection in devbin-vc's window while devbin-vc holds the pen, relayed to vc by devbin-vc before vc's clock read of 15:58Z on date -u; not heard first-hand by vc, and the consequences marked vc's are vc's, under the pen) FIVE OF THE SIX THINGS OWED IN TODO 77 ARE ANSWERED. (1) A client's name is confidential in Intent's public record: the message of c1d7d163d is rewritten before any push, with every seat held; a history rewrite is run by hv, after a dry run on a copy. (2) ST0092's terms wait for hv, who reads TERMS.md and the twelve points first-hand; no vc ratifies them, and cc writes no ST0092 code until then. (3) A cut pushes to local and upstream alone, which closes watchout 33's question. (4) The contract check is armed as a release gate. (5) Issue 0665 is doctor naming the drift, with nothing reopened. Still owed by hv: the ratification, and whether Intent keeps an AT's own red-then-green. vc's, under the pen: the dry run is done on a clone of main at e4ba91e03, where one phrase of one message changes, 80 commits take new hashes and every tree, author, committer and date is kept; the script and the message are refs/bank/vc/rewrite/rewrite-one-message.sh (blob 54b6b03e8a0e) and refs/bank/vc/rewrite/new.msg (blob a03c7fd39cf2), and the script keeps the old history at refs/attic/vc/main-before-message-rewrite. vc proposes that hv run it just before the push. Two findings went to devbin-vc for hv: upstream already carries the first word of the client's name in 10 tracked files and 3 pushed commit messages, which this rewrite does not touch and which only hv can rule on; and 48 old hashes cited in the range's later messages and 20 in tracked files will resolve only through the attic ref. The same day vc ruled dc's findings F1 and F2 into ST0091's WP-03 and WP-02 bodies, and ruled for cc that issue 0675 builds one status row in the facade that the CLI, its JSON and MCP all render.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:26.461Z",
       "recorded_at": "2026-11-10T15:58:45.064Z"
     },
     {
@@ -2736,7 +2745,8 @@
       "kind": "decision",
       "seq": 118,
       "text": "(vc, 2026-11-10, under hv's pen; open to hv's reversal) ST0091 WP-03 IS RESHAPED, on dc's findings F9 and F10 against the vendored devbin 0.1.20 core, which vc checked in lib/resolve and lib/cmd/macos. The built-in macOS publish is not adopted in 3.3.0: a project handler shadows a built-in of the same name whole, the built-in ships other assets than the four Intent's formula and kegs depend on, and the core signs before the tag, so what it signs reads dev. Intent keeps cmd/macos, its asset names and its packaging. release.formula stays false, and the cut publishes through one after: command that stops at its first failure and is safe to run again at the tag: build the pair at the tag, macos prepare with F1's refusal, macos publish, then the built-in formula publish; the brew smoke follows. It stops because a tap ahead of its assets breaks brew upgrade for every user. AC-03.1 and AC-03.2, the thread objective's item 3 and WP-03's body carry the shape. The built-in macOS publish waits on a devbin that stages after the tag and ships several named assets; dc drafts the devbin issue. The same day: issue 0672 is narrowed to the devbin-or-none shape and declared commands are issue 0678, not built, for hv to place; issue 0677 is its Intent-owned part alone, and the change to the shared catalogue's FMT-02 set belongs to llm-tropes and is parked for hv; issues 0665 and 0649 moved from dc to cc, and 0665's class is shown and never counted.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:28.995Z",
       "recorded_at": "2026-11-10T16:25:21.655Z"
     },
     {
@@ -2744,7 +2754,8 @@
       "kind": "decision",
       "seq": 119,
       "text": "(vc, 2026-11-10, under hv's pen) ST0091's TRAIN IS ON MAIN AND JUDGED: six commits by dc, 51684720a to b43aa6256, the four packages. vc judged the six banks stacked on main 1aada1a66 in one desk run (slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, 24m40s): cargo test --workspace 3514 passed and 0 failed, workspace clippy, lib clippy and rustdoc clean, the release pair, precommit, app tests 79 of 79, release check, the gates contract, pair, provenance, doctor and rust passing and reference refusing as ruled until docs/reference is regenerated before the cut, and each file dc named passing at its bank. One fix came back as wp03-v3 (a shellcheck directive, and every arm's AT id), whose delta vc read and re-ran. dc landed with each row's id lines in the commit that adds its file, since the stale-row gate refuses a to-write row beside its file, and no commit skipped the gate. vc verified main against the judged commit 36b62b9f6e24 on all 42 paths, set AT-01.1 to AT-04.1 green, satisfied AC-03.3 and AC-04.2 by reading, and minted AT-01.6 to-write so that AC-01.3 waits on the sweep of devbin 0327. The gate reads 10 of 12: AC-01.3 waits on that sweep and AC-04.3 on hv's first cut. NOT PROVEN BY vc: the core's dry run, which stopped in the judge's worktree at a detached HEAD; it rests on dc's drive on a scratch clone. NOT THE TRAIN'S: two arms of tests/unit/post_tool_symbol_context.bats fail in the whole tree, and fail the same on main's tree with brew's 3.2.8; ic is asked to find why. ic's train was judged the same hour (slot 01M735CW632WTQF1RHEVDWG187) and came back red on AT-00.17: three shipped files cite Intent's own issue numbers; ic re-banks 0676 and 0677.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:29.952Z",
       "recorded_at": "2026-11-10T17:24:12.693Z"
     },
     {
@@ -2761,7 +2772,8 @@
       "kind": "decision",
       "seq": 121,
       "text": "(vc, 2026-11-10, under the pen; hv's word first-hand in vc's session, read at 19:26:54Z on vc's date -u) THE TRAIN IS VERIFIED AND ST0092's TERMS ARE RATIFIED. THE TRAIN: dc re-banked 0670 as v2 (patch-id 576f8fc56e02), one hunk in intentsvcs' test fixture so each stub line names its thread, on dc's reading that the seed and not the rule was wrong, which vc accepted. vc's light re-judge, desk request 01M73DRMKC5VH49ZB86PTACCGE, 19:08Z to 19:12Z on 2a4274521, tip tree 3c63b67c3743: clippy --all-targets green, intentsvcs 2186 passed and 1 failed, the attachment drift alone. The seats landed in order: a08b6f03e (0665, cc), 03a820eb0 (0670 v2, dc, with ST0056's canon for six tools), cedbc46fe (0649, cc), 3d10b42c0 (issue 0649's record). In dc's landing intentd took two of the six files into the store itself between the attaches, so they have no attachment.put event; canon equals the files on bytes, sha256 and text for all six, and vc accepted it. HEAD differed from the judged tip by canon and records only, and attachment_drift_detected read 7 passed at 43a3d8303 in desk request 01M73EB75QZHTW4QK9NS95DZA5. vc called it verified at 19:35Z and told cc and dc to close 0665, 0649 and 0670 and ST0091 WP-02 and WP-03. THE RATIFICATION: hv, verbatim, \"Ratified as recommended\", recorded as hv decision 34; vc edited TERMS.md, satisfied AC-01.1 to AC-01.5 and closed WP-01 (3ee4da245), wrote the rulings since into WP-02 to WP-09 (47b4ddc91), and gave cc the go for WP-02. devbin-vc reports devbin 0.1.21 red before its tag and re-cut, so Intent's sweep waits on its word.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:31.738Z",
       "recorded_at": "2026-11-10T19:39:58.931Z"
     },
     {
@@ -2769,7 +2781,8 @@
       "kind": "decision",
       "seq": 122,
       "text": "(vc, 2026-11-10; hv's word first-hand in vc's window, between vc's clock reads of 19:47:39Z and 19:50:35Z) hv, verbatim: \"How close are we to cutting the new Intent release?\" and then \"Ok, I'm afk for a while. Please crack on and get intent released.\" devbin-vc relays the same word from its own window and reads it as hv's go to cut and push 3.3.0 once green, within the rules it always had. WHAT vc DRIVES NOW, with hv away: ST0092 WP-02 to WP-10 (cc on WP-02, dc on WP-08 beside it), issue 0667, the sweep of devbin 0.1.21 on devbin-vc's word, dc's release.preflight wiring, the reference pages, and build all at HEAD. WHAT WAITS FOR hv, and why the cut cannot happen before hv returns: the one-message rewrite of c1d7d163d runs as hv (hv decision 35) and rewrites every commit after it, so the tag is made after it; and the kovacs line is hv's to type. devbin-vc queues both for hv as one visit. RULED BY vc UNDER THE PEN, recorded as vc's and open to hv's reversal: (1) dc's shape for 0667, with one change: bootstrap makes the default state dir under HOME always, since that is the dir the service opens, and the resolved one too where XDG_STATE_HOME moves it; the arm cites the issue and carries no AT row. (2) WP-08 is dc's. It builds the session-to-node function and mediator_of(board) that WP-05 shares, in its own file; cc confirms no collision with teams.rs. (3) AC-08.3 reworded: the hat shows in pickup and in wb status, text and json, and not in wip.md, because the control record is one host's state and a committed view would go stale when the hat passes. THE SCRUB (hv decision 35): vc's three archived items that carried the client's name are edited through wb edit (0327e9ec2); cc's two follow in cc's chain. NOT DONE, FOR hv: eight old event files under intent/.canon/events/2026/10/14 to 16 still carry the phrase. The append-only guard refuses any edit to an event file, by design and with no exemption, and vc did not go round it. All eight are already on upstream, measured against upstream/main, so leaving them publishes nothing new.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:33.309Z",
       "recorded_at": "2026-11-10T19:52:24.657Z",
       "edited_at": "2026-11-10T19:52:36.676Z"
     },
@@ -2786,7 +2799,8 @@
       "kind": "decision",
       "seq": 124,
       "text": "(vc, 2026-11-10, judged on the desk) ISSUE 0667 AND ST0092 WP-08 ARE JUDGED GREEN AND ON MAIN. 0667 (dc): light judge on tree 8d8a0ccce362 over 9d19809db, slots 01M73J2S9MAC85M6NHK7ADFDWV and 01M73JQBNP88913VCB7460RR54: fmt, clippy all-targets, intentsvcs 2187 passed 0 failed, intent-cli's bootstrap_door 20 passed 0 failed, brew_formula.bats 6 of 6. Landed as abe9d2773 (red) and abee517c5 (fix), closed at 7c16cffef; vc verified the fix commit's tree equals the bank on its parent. WP-08 (dc): full judge on tree 78028952b20f over 7c16cffef, slot 01M73MB6F43GHCQNPN4DWRDJEC, 21:06:11Z to 21:26:19Z: fmt, critic, prettier, four clippy legs, doc; the Rust workspace 3546 passed 0 failed; the release pair; the commit gate; the bats tree 816 ok 0 not ok; gates contract, pair, provenance, doctor and rust green; gate reference red, expected until the reference pages are regenerated. Landed as v2 (b64665225, 62a5bc24e, 806a81a66, 470e15cd9), which differs from the judged tree by six doc-comment lines in one test file carrying the AT ids, measured by vc; AT-08.1 to AT-08.3 green, lint 3 of 3; AC-08.5 satisfied on vc's read. NOT RUN in WP-08's judge, vc's own fault: the Intent.app test leg met a stale result bundle from vc's earlier run and exited 64 without testing; WP-08 has no Swift and no schema change, the script is fixed, and the leg runs in WP-02's judge on top of it. vc's OTHER MISS: a slot release run from a background driver was refused and vc held cargo idle for 16 minutes before reading the release's own output; the waiter now prints whether end.json was written. RULED under the pen for cc's WP-03: BOARD_SCHEMA goes to 4.1 with 4.0 a read shape and a shown, uncounted advisory (option A); --change ships in WP-03 doing only what it does now; the dry run's view list comes from the projection rendered and not landed. WP-02 (cc): v1 held on ic's seven findings, v2 carries all seven on ic's read, and it is re-banked on WP-08's landing for the full judge.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:34.289Z",
       "recorded_at": "2026-11-10T21:31:22.134Z"
     },
     {
@@ -2794,7 +2808,8 @@
       "kind": "decision",
       "seq": 125,
       "text": "JUDGEMENTS AND RULINGS OF 2026-11-11, 04:51Z to 06:49Z. The desk granted nothing for seven hours from about 22:00Z because devbin-vc had no waiter armed; vc found it when hv asked whether Intent was released. (1) ST0092 WP-08 follow-up (dc): v1 judged in slot 01M74FJ6P8MG9V0TMTF5WYMC4R, the red arm red on tree 4810e0d16cd4; ic found that wb_status dropped the cause main prints for an unreadable desk, vc upheld it, and after one ruling of vc's that could not be built (MCP's answer has no notes key) ruled that both faces keep main's bare array, the CLI's stderr names the cause and MCP gives hats null. v2 judged green in slot 01M74GAE0DJQ7GP1W794BRDQX0 on tree 7494660906bf (intentsvcs 2207 and intent-cli 1288 passed, 0 failed); landed to 2763e1f2b, WP-08 done. vc's first run of the cli suite read 50 daemon arms red because it had not built intentd: the judge's setup, not the bank. (2) ST0092 WP-03 (cc): ic's three findings upheld (an unreadable install exits 2, register's help says refused, and --correct on a declared seat takes only the profile's values); the openness check gains a stated when-declared form proved by a round-trip arm; v2 judged in slot 01M74HQ60YDHF5FYKYED886NR9 on tree 92ef202e2506, green but for the contract gate, which found WbNode.remit with no contract row; v3 added the rows and gave the contract check the declaration face, verified by the check (18 of 18, 121 properties), release_gate.bats and a tree comparison; landed to f9bdbc11d, WP-03 done. vc's fast path skipped the attachment-hash leg, which the commit gate caught at landing. Owed in cc's WP-05 bank: fail maps a Teams error to exit 2 for every verb. (3) Issue 0678 (ic), in 3.3.0 on hv decision 36: shape approved with config set built for commands.build and commands.test alone and withheld from MCP; judged in slot 01M74KNFREKH7YEVM3ZQ5SVRAW on tree 99580de2126f, green but for one bats guard's hand list, fixed in a one-file delta vc verified; landed to 408d60d7b with tree 2e0bac88ae2e, issue closed. (4) The sweep to devbin: 0.1.21 retired formula.bin and @@FINISH@@, so vc reverted its own sweep and gave it to dc; on hv decisions 36 and 37 it is now one bank on devbin 0.1.22 with install.links, install.switch and install.publish, the macOS archive, and the opt manifest's line; MANIFEST_KEYS stays as it is. (5) WP-05 (cc): the caller is an enum of session, terminal and unattributed, never an option, with a Highlander check against WP-08's Caller. (6) WP-07 (dc): a node no profile names shows what is known, and the route's mediator is read from the declaration.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:36.867Z",
       "recorded_at": "2026-11-11T06:50:06.048Z"
     },
     {
@@ -2802,7 +2817,8 @@
       "kind": "decision",
       "seq": 126,
       "text": "JUDGEMENTS AND RULINGS OF 2026-11-11, 06:50Z to 07:56Z. (1) ST0092 WP-07 (dc), the roster README rendered from the profile: ic's read of v1 found the wb init row behind the verb, an unreadable install template exiting 1, and a failed README write that the next apply refused as hand-edited; vc upheld all three and withdrew its judge of v1 before any grant. v2 defines the one predicate FacadeError::build_cannot_answer, read once by fail, carrying the template variant and the Teams variants cc owed from WP-03, writes the README first and atomically, and takes text equal to this build's render as rendered. Full judge in slot 01M74QHVBWBYVXN08M26DKCJNC on tree 2999e4be9802: Rust 3607, bats 816, app 79 of 79, 0 failed. ic's wording delta checked warm in slot 01M74RTFDB5VE1WDMV23611EM5 on tree ac99e2502f44 (intent-cli 1296 passed, the table view equal). Landed to 1c3001fb2, WP-07 done. (2) WP-06 moves to ic whole; its five shape points are ruled, among them that MCP's wb status renames items and messages to live_items and live_messages. (3) WP-04 (dc): retired folds into board 4.1; a re-apply reinstates nothing; the red is a door file red at runtime, with the typed arms a compile red said as such. (4) WP-05 (cc): the red is the arms on main's code, not 3.2.8's behaviour; two arms land green with a note. (5) The refused background release is filed as an issue for 3.3.0.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:37.964Z",
       "recorded_at": "2026-11-11T07:57:01.260Z"
     },
     {
@@ -2810,7 +2826,8 @@
       "kind": "decision",
       "seq": 127,
       "text": "JUDGEMENTS AND RULINGS OF 2026-11-11, 08:07Z to 10:35Z. (1) ST0092 WP-05 (cc), hv reached through one node: full judge in slot 01M74TJVHPMXQQMBJZNYAT76GK on tree 36e400d93151 (Rust 3621, bats 816, app 79 of 79, 0 failed); its table delta checked warm in slot 01M751DMQZYKRWZR52DBMBDZ5C on tree 753a8290e2f8 (intent-cli 1299 passed); landed to 867cad6d3, gate 8 of 8, WP-05 done. (2) WP-04 bank (i) (dc): vc started its judge on 8f3da433f and stopped it at 4 minutes, because WP-05's landing left it conflicting in facade.rs, seat.rs and views.rs and the tree could not land; vc should not have queued it on the old base. dc rebased, keeping WP-05's side, banked unmeasured as refs/bank/dc/0092-04/*-unmeasured-on-867cad6d3 (tip 4cdc6d6fbba4), with bank (ii) drafted on that tip. Rulings: the undeclared board's human seat is seat::human_seat, hv by convention, no install read; ic's three row points folded in. (3) WP-06 (ic): the age function takes the answer's record, never two strings; rebased on WP-05 and green whole, banked as wp06-red and wp06-green-on-red on 867cad6d3; it needs WP-04 on main for the retired-seat arm and the one human_seat. (4) WP-09 (cc): AC-09.1 and AC-09.2 reworded by vc to three classes (fc7c5d1cb); banked on 867cad6d3, tip 66eb6f5eb251; it lands as judged and stays WIP until a follow-up carries the retired-seat arm after WP-04. (5) Issue 0680: cc MEASURED the refused releases to vc's own wrapper unsetting CLAUDE_CONFIG_DIR before the release, and a torn read false; working on it cc found a prune that reads every session as gone when the sessions directory is absent, and a second ORPHANED judgement in the CLI and the page. Ruled size S: four cases told apart, running_idle on the status (idle only, no threshold), no release from start.json; a host that never ran Claude Code stays quiet. The page's halves are ic's WP-10. (6) surface_check.sh refuses on main's own table and nothing runs it: ic's WP-10. (7) The desk declined an overlap with devbin's cut and then granted on vc's showing that the cut only polled GitHub.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:39.144Z",
       "recorded_at": "2026-11-11T10:36:04.079Z"
     },
     {
@@ -2818,7 +2835,8 @@
       "kind": "decision",
       "seq": 128,
       "text": "(2026-11-11, vc under the pen) JUDGED AND LANDED SINCE DECISION 127, AND WHAT WAS RULED. WP-09 (cc): full judge green in slot 01M75299N6BRR3Z88MPCZ0709H, landed b14af42b6 red, 4c0d27cda green, code tree equal to the judged 66eb6f5eb251; it stays WIP, AT-09.4 to-write on AC-09.1 for the retired-seat arm (upheld). WP-04 bank (i) (dc): full judge in slot 01M755213Q9H499VS3AXT70EBF green but for the contract gate, a real red (schema entity WbRetired had no contract row); dc fixed it as a contract-only delta that vc checked warm, landed 56c58ba4d red, 8965685b9 green. The landed tree differs from the judged one in ST0056.json alone, because the delta edited contract_check.sh, itself an ST0056 attachment, and its canon entry was written at landing; vc had read one attachment where the delta touched two, so from here the judge reads every attachment a bank touches. RULED: the retired filter in two places becomes one helper, teams::retirements, in bank (ii); ic todo 68 as ic put it (four declared skips in surface_check.sh, the check stays manual, one new arm for edit --browser with --path or --editor, in WP-10); a brief leaves a retired seat out of its list of other seats, in Facade::seat_brief, and AC-06.1 is reworded to say so (4a4498e6d); a process under an intent-gate-tree temp directory is attributed by its parent chain, and one that ends at a judge holding a desk slot refuses no commit; the proof that bin/devbin use and install refuse for Intent is a bats arm with a scratch HOME in the sweep bank, never a run by a peer of a command another session refused. vc ran brew upgrade devbin to 0.1.22 at 11:40Z on hv earlier word for 0.1.21. WEBBER: on hv word of 12:0xZ in vc window (the new Intent profiles on Webber, to ride its next release) vc briefed webber-vc with the hand form of the team profile; webber-vc makes every write there and had not answered by this fold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:42.592Z",
       "recorded_at": "2026-11-11T12:20:46.429Z"
     },
     {
@@ -2835,7 +2853,8 @@
       "kind": "decision",
       "seq": 129,
       "text": "(2026-11-11 17:00Z on vc's date -u, vc under the pen; hv's words first-hand in vc's session) THE 3.3.0 CUT, WHERE IT STANDS. hv ran the one-message rewrite of c1d7d163d (main 50637ff81 became 4410d1563, old history at refs/attic/vc/main-before-message-rewrite) and then the cut three times; nothing was tagged. Stops: (1) stamp views, the store held an older ST0056 attachment than canon; vc ran intent sync --to-store. (2) legs.kovacs: /tmp there is a 1.7G tmpfs (hv added export TMPDIR to kovacs ~/.config/molt/env.sh, a stopgap still in place), and the leg's tree had no v3.2.8 tag (devbin-vc and dc sent it to the bare repo). (3) legs.kovacs: intentd's test daemons share one socket under XDG_RUNTIME_DIR. (4) legs.kovacs: test shell has no pair in a leg's tree. hv, on a skipped leg or a fix: \"Fix the bloody error!\" dc's bank refs/bank/dc/legpair/patch on 4410d1563 holds both fixes (release.gates gains build all before test shell; intentd's test spawns go through testkit::fixtured_command) and is proving on kovacs, gate all green there, test shell running at this fold. hv reset main to 4410d1563 (the release commit 3447124a0 is gone). On main since: cc's release notes 05899acfe (hv: \"Yes, please\"), folds 1deb99c1b, 4d32c1461, 5984d1433. ALSO THIS SESSION: the real store went to schema 35 when dc's known-defects drive opened it with the dev pair, so every verb and commit here runs with native/rust/target/release first on PATH until brew 3.3.0; hv ruled the vc remit and TERMS \"Proof, and what it costs\" into 3.3.0 (\"Yes, in 3.3.0\", \"It should also batch changes\", \"Ship that in 3.3.0, please\"), landed by cc; webber-vc landed the hand form on Webber (its 5b726b6f). NEXT: dc lands the bank on its kovacs green, build all at the new HEAD, then hv: export PATH with the pair first, bin/devbin release v3.3.0 --dry-run, then the cut. AFTER THE CUT: brew upgrade intent; remove the TMPDIR line on kovacs or give Molt a disk TMPDIR for it; the gate tree's place (cut/gate:112); prepush exempting a delete-only push; the leg sending the previous tag (devbin); hv directive 2 still carries cc's old remit; todo 78.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:44.466Z",
       "recorded_at": "2026-11-11T17:00:13.072Z"
     },
     {
@@ -2843,7 +2862,8 @@
       "kind": "decision",
       "seq": 130,
       "text": "3.3.0 IS RELEASED. hv's fourth run of bin/devbin release v3.3.0 ran 17:13:29Z to 17:35:36Z as one process: every leg green (candidate, local, legs.kovacs), annotated tag v3.3.0 at release commit 1e423060f, pushed to local and upstream, release object with the Linux and macOS assets and SHA256SUMS, tap published, brew smoke green; brew's intent on rhadamanth reads 3.3.0. After the cut: ST0091 WP-04 done (dc), ST0092 WP-10 done (ic, issue 0681 carries three help-text gaps). ST0092 WP-06 stays WIP on AC-06.4 until hv's next real intent claude start on 3.3.0, which vc records by session id. Open with hv: the TMPDIR line in kovacs ~/.config/molt/env.sh, which the leg needs until Molt sets it. Next: ST0092 WP-11, the estate sweep (hv 17:4xZ: 'once this is done, we need to do the estate sweep to roll out the agent profiles for all Intent projects here'), then todo 78.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T07:37:46.185Z",
       "recorded_at": "2026-11-11T17:45:16.794Z"
     },
     {
@@ -2858,9 +2878,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 79,
-      "text": "NEXT SESSION (after hv's close-out of 2026-11-11): (1) ST0093: when devbin's next release (0333-0339) is on the tap, dc re-vendors and lands WP-06 (c)-(e); before the next cut the new macos leg and any changed leg run once on their host. (2) ST0092 WP-06 AC-06.4: record hv's next real intent claude start on 3.3.0 by session id, then wp done. (3) ST0092 WP-11: AC-11.4 and 11.7 wait on arca_supervisor's sc committing its tree; AC-11.6 is molt-vc's (Molt's guide cites Intent's terms). (4) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. Work rides the next release; one cut.",
+      "text": "NEXT (P0, hv decisions 39 to 41): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree: dc builds ST0093 WP-06 (c) to (e) with one proof run and vc lands it; one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run; ic regenerates docs/reference; then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) ST0092 WP-11: AC-11.4 waits on arca_supervisor's sc committing its tree, AC-11.6 on molt-vc (Molt's guide cites Intent's terms), AC-11.7 on agentic-engineering's own vc. (3) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate.",
       "state": "live",
-      "recorded_at": "2026-11-11T20:03:09.872Z"
+      "recorded_at": "2026-11-11T20:03:09.872Z",
+      "edited_at": "2026-11-12T07:37:16.543Z"
     }
   ],
   "sent": [

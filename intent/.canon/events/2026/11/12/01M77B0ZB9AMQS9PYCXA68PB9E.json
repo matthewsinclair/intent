@@ -1,0 +1,16 @@
+{
+  "id": "01M77B0ZB9AMQS9PYCXA68PB9E",
+  "ts": "2026-11-12T07:37:15.369Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 6,
+    "text": "ST0090 AC-02.4, issue 0664's last criterion: held until hv has rebuilt the search index in /Applications/Intent.app (3.3.0) and read the second line of its Rebuild Search Index row, reconciled <age> ago. Then vc satisfies AC-02.4 with hv's reading, and dc closes WP-02, ST0090 and issue 0664."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M77B11NCD51NP4BWG6052E3C",
+  "ts": "2026-11-12T07:37:17.741Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 110,
+    "text": "(vc, 2026-11-10, under hv's pen; SUPERSEDED on 2026-11-12 by ST0093 at 6acaba3cb: vc lands on each builder's evidence and runs no suite of its own) ONE WHOLE-SUITE RUN PER TRAIN. A train's banks are stacked on main and judged once, by vc, on the whole workspace suite with workspace clippy, rustdoc and the app's tests. A builder's own run carries only the arms that prove its bank, red at the base or on its mutant and green with the fix, and does not run the whole suite, clippy or rustdoc again. hv's reasons are two: no overtesting, where one run decides a question (2026-09-13), and the cost of a cut (2026-11-10). A run script that still ends in those legs drops them before its builder asks the desk. A bank that proves itself in one small run of its own, as the testkit race fix did, is judged in that run."
+  }
+}
