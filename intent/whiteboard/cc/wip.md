@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 06:00Z
+heartbeat_at: 2026-11-12 07:35Z
 status: active
-focus: "2026-11-12 06:00Z, holding on vc's word: nothing more for cc until devbin 0.1.23 is swept into Intent, then vc's next word. Today: ST0092 WP-09 done (cee9fcab6); issues 0685 (06dae9c31, c6a24418c) and 0686 (f43de6dbd, dd4157f98) landed by vc and closed. No claim, no desk slot, nothing banked, no worktree."
+focus: "2026-11-12 07:35Z, localfolded for the compact on hv's word; holding for vc's word until devbin 0.1.23 is swept into Intent. No claim, desk slot or worktree; today's banks (0685, 0686) are landed."
 claims: []
 ---
 
