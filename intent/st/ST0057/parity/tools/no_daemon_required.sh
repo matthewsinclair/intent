@@ -43,7 +43,9 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$HERE/../../../../.." && pwd)"
+# Read with pwd -P, as arm A reads its scratch directory, so its guard compares
+# two paths with every symbolic link resolved (issue 0688).
+REPO_ROOT="$(cd "$HERE/../../../../.." && pwd -P)"
 
 BIN="${BIN:-$REPO_ROOT/native/rust/target/release/intent}"
 CLI_MANIFEST="${CLI_MANIFEST:-$REPO_ROOT/native/rust/crates/intent-cli/Cargo.toml}"
@@ -138,8 +140,11 @@ arm_a_behavioural() {
 
   local work; work="$(mktemp -d)" || die "could not create a scratch directory"
   trap 'rm -rf "$work"' RETURN
+  # The root itself or a path below it, bounded at a `/`: a TMPDIR beside the
+  # tree whose path begins with the tree's, such as a remote leg's
+  # <worktree>.tmp, is outside it (issue 0688).
   case "$(cd "$work" && pwd -P)" in
-    "$REPO_ROOT"*) die "the scratch directory resolves inside this project -- refusing to dehydrate in a live tree" ;;
+    "$REPO_ROOT" | "$REPO_ROOT"/*) die "the scratch directory resolves inside this project -- refusing to dehydrate in a live tree" ;;
   esac
 
   local p="$work/p"
