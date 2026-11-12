@@ -2,14 +2,14 @@
 wp_id: WP-01
 title: Prune the shared memory to durable facts
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-01: Prune the shared memory to durable facts
 
 ## Objective
 
-_(not yet written)_
+Prune the memory every seat loads to durable facts, pointers and hv's standing rules, once, by vc on hv's word with hv reading the list first (design.md, the plan's A1).
 
 ## Acceptance
 

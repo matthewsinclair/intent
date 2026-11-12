@@ -2,14 +2,14 @@
 wp_id: WP-04
 title: No chain broadcasts, no bare pickup commits
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-04: No chain broadcasts, no bare pickup commits
 
 ## Objective
 
-_(not yet written)_
+Each seat commits its own paths with git commit --only and broadcasts no start or end around it, and a pickup or heartbeat alone is not committed (design.md, the plan's A4).
 
 ## Acceptance
 

@@ -2,14 +2,14 @@
 wp_id: WP-02
 title: Sync the installed skills; in-verify leaves the fold
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Sync the installed skills; in-verify leaves the fold
 
 ## Objective
 
-_(not yet written)_
+Take in-verify out of in-finish's chain, and sync every machine's installed skills to the release that carries this thread's skill text (design.md, the plan's A2).
 
 ## Acceptance
 

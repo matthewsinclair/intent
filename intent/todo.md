@@ -22,13 +22,13 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 08: The Desk is a hat with a written contract
   - [-] 09: Doctor reports a board that has left its profile
   - [x] 10: The new surface reads as one
-  - [ ] 11: Every live board converges, Intent's own first
+  - [-] 11: Every live board converges, Intent's own first
 - [-] ST0093: Why Claudes yak-shave, and faster releases
-  - [ ] 01: Prune the shared memory to durable facts
-  - [ ] 02: Sync the installed skills; in-verify leaves the fold
-  - [ ] 03: vc stops judging: the mediator reads proof and lands
-  - [ ] 04: No chain broadcasts, no bare pickup commits
-  - [ ] 05: Short messages, and no check without a named catch
+  - [x] 01: Prune the shared memory to durable facts
+  - [-] 02: Sync the installed skills; in-verify leaves the fold
+  - [x] 03: vc stops judging: the mediator reads proof and lands
+  - [x] 04: No chain broadcasts, no bare pickup commits
+  - [x] 05: Short messages, and no check without a named catch
   - [-] 06: The release pipeline, briefed to devbin's core
 
 ## TODO

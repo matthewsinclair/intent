@@ -1,0 +1,14 @@
+{
+  "id": "01M7732QZXQGA67TGD2ZMM7NKJ",
+  "ts": "2026-11-12T05:18:24.769Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0093/AC-01.1"
+  },
+  "payload": {
+    "evidence": "the prune of 2026-11-11 on hv's word ('be _ruthless_'), with the pre-prune notes kept in ~/.config/claude/memory-backups/Intent-20261111T1846Z/; measured by vc 2026-11-12: MEMORY.md 2718 bytes, 31 notes"
+  }
+}

@@ -18,14 +18,14 @@ _(not yet written)_
 
 ## Work Packages
 
-| WP    | Title                                                | Size | Status      |
-| ----- | ---------------------------------------------------- | ---- | ----------- |
-| WP-01 | Prune the shared memory to durable facts             | S    | Not Started |
-| WP-02 | Sync the installed skills; in-verify leaves the fold | S    | Not Started |
-| WP-03 | vc stops judging: the mediator reads proof and lands | S    | Not Started |
-| WP-04 | No chain broadcasts, no bare pickup commits          | S    | Not Started |
-| WP-05 | Short messages, and no check without a named catch   | S    | Not Started |
-| WP-06 | The release pipeline, briefed to devbin's core       | S    | WIP         |
+| WP    | Title                                                | Size | Status |
+| ----- | ---------------------------------------------------- | ---- | ------ |
+| WP-01 | Prune the shared memory to durable facts             | S    | Done   |
+| WP-02 | Sync the installed skills; in-verify leaves the fold | S    | WIP    |
+| WP-03 | vc stops judging: the mediator reads proof and lands | S    | Done   |
+| WP-04 | No chain broadcasts, no bare pickup commits          | S    | Done   |
+| WP-05 | Short messages, and no check without a named catch   | S    | Done   |
+| WP-06 | The release pipeline, briefed to devbin's core       | S    | WIP    |
 
 ## Acceptance
 

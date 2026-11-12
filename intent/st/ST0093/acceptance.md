@@ -13,7 +13,55 @@ title: Why Claudes yak-shave, and faster releases
 
 ## Acceptance Criteria
 
+### WP-01 -- Prune the shared memory to durable facts (status: Done)
+
+- AC-01.1 (non-test) The shared memory holds only durable facts, pointers and hv's standing rules, pruned once by vc on hv's word with hv reading the list first: its index is under 5 KB and its notes number under 50. -- evidence: the prune of 2026-11-11 on hv's word ('be _ruthless_'), with the pre-prune notes kept in ~/.config/claude/memory-backups/Intent-20261111T1846Z/; measured by vc 2026-11-12: MEMORY.md 2718 bytes, 31 notes -- satisfied: yes
+
+### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: WIP)
+
+- AC-02.1 (non-test) in-finish no longer chains in-verify, and every machine's installed skills are synced to the release that carries this thread's skill text. -- satisfied: no
+
+### WP-03 -- vc stops judging: the mediator reads proof and lands (status: Done)
+
+- AC-03.1 (non-test) in-whiteboard's validation node lands work on its builder's evidence, runs no suite of its own, and is measured by the time from a builder's green to main. -- evidence: 6acaba3cb: intent/plugins/claude/skills/in-whiteboard/SKILL.md (Node roles) and intent/plugins/claude/teams/TERMS.md -- satisfied: yes
+
+### WP-04 -- No chain broadcasts, no bare pickup commits (status: Done)
+
+- AC-04.1 (non-test) Each seat commits its own paths with git commit --only, no seat broadcasts a start or an end around a commit, and a pickup or heartbeat alone is not committed. -- evidence: 6acaba3cb: in-whiteboard SKILL.md protocol invariants 9 and 10, and TERMS.md 'Talk, and what it costs' -- satisfied: yes
+
+### WP-05 -- Short messages, and no check without a named catch (status: Done)
+
+- AC-05.1 (non-test) TERMS caps a message to a seat at five lines and a report to hv at ten, and no standing rule adds a check without naming what it catches that the checks in place do not. -- evidence: 6acaba3cb: intent/plugins/claude/teams/TERMS.md, 'Talk, and what it costs' and the rule that a check names what it catches -- satisfied: yes
+
+### WP-06 -- The release pipeline, briefed to devbin's core (status: WIP)
+
+- AC-06.1 (non-test) Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with daemon and socket tests serial, and each new or changed leg goes green on its host before the cut. -- satisfied: no
+
 ## Acceptance Tests
+
+### WP-01 -- Prune the shared memory to durable facts (status: Done)
+
+_(no tests in this group)_
+
+### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: WIP)
+
+_(no tests in this group)_
+
+### WP-03 -- vc stops judging: the mediator reads proof and lands (status: Done)
+
+_(no tests in this group)_
+
+### WP-04 -- No chain broadcasts, no bare pickup commits (status: Done)
+
+_(no tests in this group)_
+
+### WP-05 -- Short messages, and no check without a named catch (status: Done)
+
+_(no tests in this group)_
+
+### WP-06 -- The release pipeline, briefed to devbin's core (status: WIP)
+
+_(no tests in this group)_
 
 ---
 

@@ -9,7 +9,7 @@ status: WIP
 
 ## Objective
 
-_(not yet written)_
+Brief the release pipeline's changes to devbin's core and put Intent's cut on them: new legs rehearsed on their hosts, parallel bats, warm gate trees, the pair built once, and signing and notarising before the tag (design.md, the plan's B).
 
 ## Acceptance
 

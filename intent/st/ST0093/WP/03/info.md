@@ -2,14 +2,14 @@
 wp_id: WP-03
 title: vc stops judging: the mediator reads proof and lands
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-03: vc stops judging: the mediator reads proof and lands
 
 ## Objective
 
-_(not yet written)_
+vc reads a builder's evidence and lands it, runs no suite of its own, and is measured by the time from a builder's green to main (design.md, the plan's A3).
 
 ## Acceptance
 

@@ -1,0 +1,14 @@
+{
+  "id": "01M7732SV4W9813FMFP5AD45EC",
+  "ts": "2026-11-12T05:18:26.664Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0093/AC-04.1"
+  },
+  "payload": {
+    "evidence": "6acaba3cb: in-whiteboard SKILL.md protocol invariants 9 and 10, and TERMS.md 'Talk, and what it costs'"
+  }
+}

@@ -2,14 +2,14 @@
 wp_id: WP-05
 title: Short messages, and no check without a named catch
 scope: S
-status: Not Started
+status: Done
 ---
 
 # WP-05: Short messages, and no check without a named catch
 
 ## Objective
 
-_(not yet written)_
+A message to a seat runs to five lines and a report to hv to ten, and a new check names what it catches that the checks in place do not, or is not added (design.md, the plan's A5 and A6).
 
 ## Acceptance
 
