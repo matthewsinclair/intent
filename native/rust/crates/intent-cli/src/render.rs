@@ -12698,7 +12698,7 @@ fn started_and_not_answering(
   let (out, err) = (out.display(), err.display());
   if stdin_is_its_lifeline {
     format!(
-      "error: intentd was started and is not answering\n  remedy: this command's stdin is a pipe, which intentd takes as its lifeline (ST0073): it stops when the pipe reaches end of file, as it can at once over ssh without a terminal. If `{out}` says the lifeline closed, that is why, and `intent daemon start </dev/null` starts a daemon that stays up. Otherwise it failed to bind or exited, and its output is in `{out}` and `{err}`, which is where the reason will be."
+      "error: intentd was started and is not answering\n  remedy: this command's stdin is a pipe, which intentd takes as its lifeline: it stops when the pipe reaches end of file, as it can at once over ssh without a terminal. If `{out}` says the lifeline closed, that is why, and `intent daemon start </dev/null` starts a daemon that stays up. Otherwise it failed to bind or exited, and its output is in `{out}` and `{err}`, which is where the reason will be."
     )
   } else {
     format!(
@@ -18822,12 +18822,15 @@ mod tests {
     }
     for named in [
       "stdin is a pipe",
-      "lifeline (ST0073)",
+      "takes as its lifeline",
       "end of file",
       "`intent daemon start </dev/null`",
     ] {
       assert!(piped.contains(named), "no `{named}` in:\n{piped}");
     }
+    // A thread id names Intent's own thread, and in a user's project it names
+    // theirs or none, so the text a user reads cites none (ic, issue 0574).
+    assert!(!piped.contains("ST0073"), "{piped}");
     assert!(!unpiped.contains("lifeline"), "{unpiped}");
   }
 }
