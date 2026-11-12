@@ -1,0 +1,16 @@
+{
+  "id": "01M77NT3N0BK1QKNN565QX2NF8",
+  "ts": "2026-11-12T10:45:44.736Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 43,
+    "text": "dc's one Desk booking for Intent's cut, bin/devbin release gates --leg kovacs and then the dry run for its pre-flight, waits for two things: ST0093 WP-06 (c) to (e) landed (hold 41), and vc calling the booking. releasing.md step 2's commits are in (vc, 2026-11-12, each read on main): ic's regeneration of docs/reference at def0a8e01, cc's CHANGELOG pass at bd525bae2 with its [3.3.1] heading at 7c6bfa53d, and no explorer shots this cut (573f817b2). The leg goes after step 2 because gate all's reference arm runs on kovacs too."
+  }
+}
