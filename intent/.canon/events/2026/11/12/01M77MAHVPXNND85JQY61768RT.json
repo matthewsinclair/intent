@@ -1,0 +1,16 @@
+{
+  "id": "01M77MAHVPXNND85JQY61768RT",
+  "ts": "2026-11-12T10:19:46.422Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 44,
+    "text": "ISSUE:0688's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0688/fix-proven-on-594422fb4, and at fix-proven-on-594422fb4-after-0687 to land after 0687: the driver at refs/bank/dc/0688/drive-0688-guard.sh shows the guard at 594422fb4 refusing a directory in <root>.tmp and passing one inside a linked root, and all four cases right with the fix. It waits for vc to land it. Then dc archives this hold, unclaims ISSUE:0688, and removes tmp/wt-dc-0688 here and in gyges's clone."
+  }
+}

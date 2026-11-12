@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T09:53:07.975Z",
+    "heartbeat_at": "2026-11-12T10:19:47.570Z",
     "status": "active",
-    "focus": "2026-11-12 09:53Z, holding for the sweep's commit with three banks for the one proof run: ST0093 WP-06 (c) to (e) with 0682's close, refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df (hold 41); ISSUE:0687, refs/bank/dc/0687/fix-on-7f9064cc3 (hold 42); ISSUE:0688, no_daemon_required.sh's unbounded guard, refs/bank/dc/0688/fix-unproved-on-923c4c44f (hold 44). The Desk booking follows releasing.md step 2 on vc's call (hold 43). Hold 37 waits on hv's look at /Applications/Intent.app; todo 63 at the cut.",
+    "focus": "2026-11-12 10:19Z, 0687 and 0688 proven on gyges in a bundle clone of main at 594422fb4 (hv decision 43) and banked with their closes, waiting for vc to land them (holds 42 and 44). ST0093 WP-06 (c) to (e) with 0682 waits for the sweep's commit and the one proof run (hold 41); the Desk booking follows releasing.md step 2 on vc's call (hold 43). Hold 37 waits on hv's look at /Applications/Intent.app; todo 63 at the cut.",
     "claims": [
       "ST0090/02",
       "ST0093/06",
@@ -2876,10 +2876,10 @@
       "node": "dc",
       "kind": "hold",
       "seq": 42,
-      "text": "ISSUE:0687's fix is banked off 7f9064cc3 as one landing unit, red and green together, at refs/bank/dc/0687/fix-on-7f9064cc3 (the red alone at refs/bank/dc/0687/red-on-7f9064cc3), on vc's word that it rides this release as one commit with no CHANGELOG entry. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases the unit onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands it. A Debug build neither registers the login item nor marks FirstRunDone.",
+      "text": "ISSUE:0687's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0687/fix-proven-on-594422fb4: at 594422fb4 the tests alone do not compile (xcodebuild test exit 65), and with the fix 82 of 82 app tests pass. It waits for vc to land it on rhadamanth, before 0688. Then dc archives this hold, unclaims ISSUE:0687, and removes tmp/wt-dc-0687 here and tmp/wt-dc-0687 with tmp/dc-0687-appstate in gyges's clone.",
       "state": "live",
       "recorded_at": "2026-11-12T08:44:53.809Z",
-      "edited_at": "2026-11-12T09:05:07.313Z"
+      "edited_at": "2026-11-12T10:19:45.220Z"
     },
     {
       "node": "dc",
@@ -2893,9 +2893,10 @@
       "node": "dc",
       "kind": "hold",
       "seq": 44,
-      "text": "ISSUE:0688, no_daemon_required.sh's unbounded inside-the-project guard, is fixed on vc's ruling as its own unit, canon's copy in intent/.canon/st/ST0057.json included, drafted in tmp/wt-dc-0688 and banked unproved. It waits for the same thing as holds 41 and 42: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases it and, in the one proof run, drives the guard's case statement with a <root>.tmp directory (refused at the base, passing after) and a directory inside the root (still refused), closes 0688 in the bank, and vc lands it. No CHANGELOG entry: it is a parity tool.",
+      "text": "ISSUE:0688's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0688/fix-proven-on-594422fb4, and at fix-proven-on-594422fb4-after-0687 to land after 0687: the driver at refs/bank/dc/0688/drive-0688-guard.sh shows the guard at 594422fb4 refusing a directory in <root>.tmp and passing one inside a linked root, and all four cases right with the fix. It waits for vc to land it. Then dc archives this hold, unclaims ISSUE:0688, and removes tmp/wt-dc-0688 here and in gyges's clone.",
       "state": "live",
-      "recorded_at": "2026-11-12T09:49:26.029Z"
+      "recorded_at": "2026-11-12T09:49:26.029Z",
+      "edited_at": "2026-11-12T10:19:46.422Z"
     }
   ],
   "sent": [

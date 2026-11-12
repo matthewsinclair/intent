@@ -1,0 +1,16 @@
+{
+  "id": "01M77MAGP4A5ZM1SWXGVG6WQNR",
+  "ts": "2026-11-12T10:19:45.220Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 42,
+    "text": "ISSUE:0687's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0687/fix-proven-on-594422fb4: at 594422fb4 the tests alone do not compile (xcodebuild test exit 65), and with the fix 82 of 82 app tests pass. It waits for vc to land it on rhadamanth, before 0688. Then dc archives this hold, unclaims ISSUE:0687, and removes tmp/wt-dc-0687 here and tmp/wt-dc-0687 with tmp/dc-0687-appstate in gyges's clone."
+  }
+}
