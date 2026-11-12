@@ -486,3 +486,60 @@ fn at_03_9_a_4_0_board_reads_unchanged_is_named_and_re_renders() {
     "the next board write left the board at 4.0"
   );
 }
+
+/// Issue 0685: a commit of exactly what a roster apply printed leaves nothing
+/// on the whiteboard differing from HEAD, when an earlier verb re-rendered a
+/// board to this build's shape and git still holds it at the shape before.
+/// That is the estate sweep's case: the first board write a newer build makes
+/// re-renders every older board and names it as its owner's, and the apply
+/// then finds the board already right.
+#[test]
+fn an_apply_names_a_board_an_earlier_verb_reshaped_and_git_holds_at_the_old_shape() {
+  let fx = Fixture::new();
+  fx.git_init();
+  fx.write_file(".gitignore", "intent/.cache/\n");
+  let seats = team_seats();
+  let seat = &seats[0];
+  let board_rel = format!("intent/whiteboard/{}/board.json", seat.moniker);
+  {
+    let mut f = fx.facade_on_disk();
+    f.wb_register(&seat.moniker, &seat.name, &seat.role)
+      .expect("one seat of the team");
+  }
+  let reshaped = fx.read(&board_rel);
+  fx.write_file(
+    &board_rel,
+    &reshaped.replace(
+      intentsvcs::model::BOARD_SCHEMA,
+      intentsvcs::model::BOARD_SCHEMA_V4_0,
+    ),
+  );
+  fx.git_commit_all();
+  fx.write_file(&board_rel, &reshaped);
+
+  let mut f = fx.facade_on_disk();
+  apply(&mut f, &[TEAM]);
+  let written = f.take_written_by_the_roster();
+  let named: BTreeSet<String> = written.wrote.into_iter().chain(written.removed).collect();
+  let status = crate::common::git_out(
+    fx.root(),
+    &[
+      "status",
+      "--porcelain=v1",
+      "-uall",
+      "--no-renames",
+      "--",
+      "intent/whiteboard",
+    ],
+  );
+  let unnamed: Vec<&str> = status
+    .lines()
+    .map(|line| &line[3..])
+    .filter(|path| !named.contains(*path))
+    .collect();
+  assert_eq!(
+    unnamed,
+    Vec::<&str>::new(),
+    "these differ from HEAD and the apply did not name them; it named {named:?}"
+  );
+}
