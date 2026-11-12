@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Seats prove a change once, talk less and stop judging each other's greens** (ST0093, hv's diagnosis of why Claudes yak-shave). `in-verify` asks for the one run that decided a change and forbids running it again; `in-finish` no longer chains it, so a fold before a compact runs no verification pass. The `in-whiteboard` skill's validation node lands work on its builder's evidence and runs no suite; seats commit by path with no start or end broadcast, and a bare pickup is not committed. The team terms gain "Talk, and what it costs" (five-line messages to a seat, ten-line reports to hv), and a new or changed release leg runs on its host before the cut.
 
+### Fixed
+
+- **A first render of the whiteboard's roster README is already formatted** (issue 0684). `intent wb init --apply` puts a hand-written README inside its block on the first render, and now sets it off from each marker by one blank line, as prettier does. Every board the 3.3.0 sweep converged needed a `prettier --write` before it could commit; `prettier --check` now passes the file as rendered.
+- **The pre-push gate lets a push that only deletes remote refs through** (issue 0683). Such a push sends no commit, so the delivered pair's currency says nothing about it, and `bin/devbin prepush` now passes it with one `ok:` line rather than refusing it over a stale pair. A push that also moves a ref is still judged whole, and a frozen remote still refuses a deletion.
+
 ## [3.3.0] - 2026-11-11
 
 ### Changed
