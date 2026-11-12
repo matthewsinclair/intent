@@ -1,0 +1,16 @@
+{
+  "id": "01M77PN911CFPS21K95PY23KT3",
+  "ts": "2026-11-12T11:00:35.000Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "NEXT (P0, hv decisions 39 to 44), in order. (1) On gyges, off rhadamanth's Desk (hv decision 43): issue 0689's fix is on main at e05e2d604 and 0690's at b13fcd526, both landed by vc on cc's proofs; ic reads 0690's remedy wording (its remit: CLI text), then its hold 21 drives docs/known-defects.md whole, titled v3.3.1, once, on a pair built at b13fcd526 or later, replacing the shakedown page at 1d9e398f3, and before the cut reads that DIRT_SCOPE has not moved since. (2) hv's cut of devbin 0.1.23 (after devbin's one proof run of 0334-2, 0341-1 and 0340-1, their landing and hv's history rewrite), then devbin-vc's sweep into Intent's tree; cc reads the sweep for a packaging/homebrew change (hold 36). 0.1.23 raises the parallel lane's default to at least 24 jobs: dc reads Intent's suite against it now and puts any serial tag or DEVBIN_TEST_JOBS cap into the WP-06 (e) draft. (3) dc rebases WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df) onto the sweep and proves it with 0682's by-hand gate run, and vc lands them; ic regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (4) dc's one Desk booking: bin/devbin release gates --leg kovacs, then the dry run. (5) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (6) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate."
+  }
+}

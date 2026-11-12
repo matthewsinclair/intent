@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-12:v3.78: vc - the fold before hv's second compact: 0689 and 0690 ride 3.3.1"
+verblock: "2026-11-12:v3.79: vc - 0689's and 0690's fixes are on main; ic's known-defects drive is next"
 intent_version: 3.3.0
 ---
 
@@ -8,7 +8,7 @@ intent_version: 3.3.0
 ## DOING
 
 - P0, on hv's word of 2026-11-12 (hv decision 39): the next devbin release, 0.1.23 with issues 0333 to 0339, and the next Intent release, one cut each, on the one plan hv approved (hv decision 40: devbin-cc's PLAN-20261112 with vc's corrections). devbin-vc holds the Desk and lands devbin's units; vc lands Intent's on each builder's evidence.
-- Intent 3.3.1 (hv decision 44) carries everything on main since v3.3.0, ST0093 WP-06 (c) to (e), issue 0689's fix, so `intent app` no longer takes a LaunchServices record of an exited app for the running one, and issue 0690's, so `intent daemon start`'s remedy names a piped stdin over ssh. Now, on gyges (hv decision 43): cc proves 0689 and then 0690 and vc lands them, then ic drives docs/known-defects.md whole on a pair that includes both, replacing the shakedown page at 1d9e398f3. Then: hv's cut of devbin 0.1.23, whose next run carries three P0 fixes after three cuts went red before any tag; devbin-vc sweeps it into Intent's tree first; dc proves WP-06 (c) to (e) and 0682 on it, and vc lands them; one Desk booking, dc's, runs `bin/devbin release gates --leg kovacs` and then a dry run for its pre-flight; dc reads that the formula keeps both Linux musl assets; hv cuts v3.3.1 once. The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
+- Intent 3.3.1 (hv decision 44) carries everything on main since v3.3.0, ST0093 WP-06 (c) to (e), issue 0689's fix, so `intent app` no longer takes a LaunchServices record of an exited app for the running one, and issue 0690's, so `intent daemon start`'s remedy names a piped stdin over ssh. Now, on gyges (hv decision 43): ic reads 0690's remedy wording, then drives docs/known-defects.md whole once on a pair built at b13fcd526 or later, which carries both fixes, replacing the shakedown page at 1d9e398f3. Then: hv's cut of devbin 0.1.23, whose next run carries three P0 fixes after three cuts went red before any tag; devbin-vc sweeps it into Intent's tree first; dc proves WP-06 (c) to (e) and 0682 on it, and vc lands them; one Desk booking, dc's, runs `bin/devbin release gates --leg kovacs` and then a dry run for its pre-flight; dc reads that the formula keeps both Linux musl assets; hv cuts v3.3.1 once. The macOS sign and notarise stage runs only in a cut, before the tag, so its first run is the cut itself: a failure stops it untagged, and it is cut again. Issue 0682 closes on devbin 0334 plus WP-06 (d).
 - ST0093, why Claudes yak-shave: WP-02's skills sync waits on the next release, and WP-06 is dc's under its hold 41.
 
 ## TODO
