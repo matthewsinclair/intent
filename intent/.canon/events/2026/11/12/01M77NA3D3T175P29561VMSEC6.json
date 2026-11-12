@@ -1,0 +1,16 @@
+{
+  "id": "01M77NA3D3T175P29561VMSEC6",
+  "ts": "2026-11-12T10:37:00.195Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "NEXT (P0, hv decisions 39 to 44), in order. (1) On gyges, off rhadamanth's Desk (hv decision 43): cc proves issue 0689 (intent app taking a stale LaunchServices record for the app) and then 0690 (daemon start's remedy does not name a piped stdin over ssh), each red then green, and vc lands them; then ic's hold 21 drives docs/known-defects.md whole, titled v3.3.1, on a pair that includes both (they move DIRT_SCOPE), replacing the shakedown page at 1d9e398f3, and before the cut reads that DIRT_SCOPE has not moved since. If 0690 moves ALL_VARIANTS, cut-surface.md is regenerated in its landing. (2) hv's cut of devbin 0.1.23, then devbin-vc's sweep into Intent's tree; cc reads the sweep for a packaging/homebrew change. (3) dc rebases WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df) onto the sweep and proves it with 0682's by-hand gate run, and vc lands them; ic regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (4) dc's one Desk booking: `bin/devbin release gates --leg kovacs`, then the dry run. (5) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (6) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate."
+  }
+}
