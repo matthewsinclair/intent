@@ -3013,6 +3013,31 @@ pub fn board_left_unrecorded(
       .is_some_and(|bytes| bytes != rendered && recorded != Some(sha256_hex(bytes).as_str()))
 }
 
+/// Whether a `board.json` on disk differs from the bytes a commit holds for it
+/// by its schema alone, moved to [`BOARD_SCHEMA`] (issue 0685): the re-render a
+/// new board shape forces on every board, which the whiteboard protocol's ninth
+/// invariant gives to one mechanical commit by the coordinating node or hv.
+///
+/// **COMPARED AS JSON, WITH THE SCHEMA SET ASIDE.** Every other key must be
+/// equal, so a board that also carries an act of its node is its node's to
+/// commit and is not taken. Bytes that are not a board's JSON object on either
+/// side are no such re-render.
+///
+/// **PURE**: the caller reads the disk and the commit.
+pub fn board_reshaped_alone(committed: &[u8], on_disk: &[u8]) -> bool {
+  let object = |bytes: &[u8]| match serde_json::from_slice::<serde_json::Value>(bytes) {
+    Ok(serde_json::Value::Object(map)) => Some(map),
+    _ => None,
+  };
+  let (Some(mut committed), Some(mut on_disk)) = (object(committed), object(on_disk)) else {
+    return false;
+  };
+  let (was, is) = (committed.remove("schema"), on_disk.remove("schema"));
+  is.as_ref().and_then(serde_json::Value::as_str) == Some(BOARD_SCHEMA)
+    && was != is
+    && committed == on_disk
+}
+
 /// The difference between the boards the store holds and the boards a restore
 /// offers, by natural key (vc decision 22, issue 0414).
 ///

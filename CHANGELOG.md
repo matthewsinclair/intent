@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A first render of the whiteboard's roster README is already formatted** (issue 0684). `intent wb init --apply` puts a hand-written README inside its block on the first render, and now sets it off from each marker by one blank line, as prettier does. Every board the 3.3.0 sweep converged needed a `prettier --write` before it could commit; `prettier --check` now passes the file as rendered.
 - **The pre-push gate lets a push that only deletes remote refs through** (issue 0683). Such a push sends no commit, so the delivered pair's currency says nothing about it, and `bin/devbin prepush` now passes it with one `ok:` line rather than refusing it over a stale pair. A push that also moves a ref is still judged whole, and a frozen remote still refuses a deletion.
+- **`intent wb init --apply` names a board an earlier verb re-rendered to the new board shape** (issue 0685). The first board write a newer build makes re-renders every board still at an older shape, and names each one that is not its runner's as its owner's, so nobody committed it; the apply then found the board already right and named nothing, and a commit of what it printed left the schema line behind, as five boards of the 3.3.0 estate sweep did. The apply now also names, on `wrote:` lines, each `board.json` whose difference from HEAD is its schema alone, and a git read that fails is a note.
 
 ## [3.3.0] - 2026-11-11
 

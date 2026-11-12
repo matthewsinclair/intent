@@ -4089,6 +4089,11 @@ pub(crate) const BOARD_RERENDER_REMEDY: &str = "the row is safe in the store and
 /// index holds staged (issue 0523).
 const STAGED_UNKNOWN_REMEDY: &str = "the edit is safe in the store and on disk -- do NOT retry it. Before committing, run `git diff --cached --name-only`: a board file or event file staged before the edit still carries the text it replaced, and `git add <path>` stages the correction";
 
+/// The remedy when a roster apply landed and HEAD's boards could not be read
+/// (issue 0685), so a board an earlier verb re-rendered may be missing from its
+/// `wrote:` lines.
+const RESHAPED_UNKNOWN_REMEDY: &str = "the apply is safe in the store and on disk -- do NOT retry it. Nothing was measured, so nothing is claimed: before committing, run `git status -- intent/whiteboard`, because a board.json whose only change is its schema line is the new shape's re-render and goes into this commit";
+
 /// The remedy when an edit landed and what the next commit would carry could
 /// not be read.
 const UNCOMMITTED_UNKNOWN_REMEDY: &str = "the edit is safe in the store and on disk -- do NOT retry it. Nothing was measured, so nothing is claimed: before committing, search the files `git status -- intent/` lists for the old text, because any that still holds it can go into the next commit";
@@ -8879,12 +8884,61 @@ impl Facade {
         .chain(retiring.iter().map(String::as_str))
         .collect();
       self.land_board_write_noting(&acting)?;
+      self.name_boards_reshaped_since_head();
     }
     if readme.plan != crate::roster_readme::Plan::Unchanged {
       self.record_written(std::slice::from_ref(&readme_path))?;
       self.landed.push(readme_path);
     }
     Ok(report)
+  }
+
+  /// Name, for the roster's `wrote:` lines, each `board.json` an earlier verb
+  /// re-rendered to this build's shape while HEAD still holds it at the shape
+  /// before (issue 0685).
+  ///
+  /// **THE APPLY IS THE MECHANICAL COMMIT THE NINTH INVARIANT NAMES, AND IT
+  /// COULD NOT SEE THIS.** The first board write a newer build makes renders
+  /// every older board at the new shape and names it as its owner's, who never
+  /// wrote it and never commits it. The apply then finds the board already
+  /// holding its render, writes nothing to it, and named nothing, so a commit
+  /// of what it printed left the schema line behind.
+  ///
+  /// **ASKED AFTER THE APPLY LANDED, SO A FAILED READ IS A NOTE**, as
+  /// [`Self::note_staged`]'s is. Outside a work tree, or with no HEAD, nothing
+  /// is committed and nothing is owed.
+  fn name_boards_reshaped_since_head(&mut self) {
+    let root = self.project.root().to_path_buf();
+    if !crate::gitstate::is_work_tree(&root) || !crate::gitstate::has_head(&root) {
+      return;
+    }
+    let unnamed: Vec<std::path::PathBuf> = self
+      .canon
+      .boards
+      .iter()
+      .map(|b| self.project.board_json(&b.node.moniker))
+      .filter(|path| path.is_file() && !self.landed.contains(path))
+      .collect();
+    for path in unnamed {
+      let read = Self::read_board_bytes(&path).and_then(|on_disk| {
+        crate::gitstate::blob(&root, "HEAD", &self.project.relative(&path))
+          .map(|committed| (committed, on_disk))
+          .map_err(FacadeError::Git)
+      });
+      match read {
+        Ok((Some(committed), on_disk))
+          if crate::model::board_reshaped_alone(&committed, &on_disk) =>
+        {
+          self.landed.push(path);
+        }
+        Ok(_) => {}
+        Err(cause) => self.after_write.push(Note::after_write(
+          "reading HEAD's boards for a re-render an earlier verb left",
+          &cause,
+          RESHAPED_UNKNOWN_REMEDY,
+        )),
+      }
+    }
   }
 
   /// The rows an apply of `wb init` moves, on whichever store it is given: the
