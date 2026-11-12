@@ -1,0 +1,15 @@
+{
+  "id": "01M77Z2DZPBEPZNK275NYAX1C9",
+  "ts": "2026-11-12T13:27:34.646Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Push intent.laksa.io's 3.3.0 version (hv decision 47, 19c62e806): from ~/Devel/prj/Laksa run bin/devbin sites gitpush --sites=intent, which pushes c14c60e (release: Intent v3.3.0, db/release.json) in ~/Devel/prj/Sites/intent to local, origin and upstream as its --dry-run planned, f3cbfb6..c14c60e on each. Then fetch https://intent.laksa.io/ and read 3.3.0 on it and no laksa-render. Released when vc passes hv's word to push."
+  }
+}
