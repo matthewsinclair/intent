@@ -1,0 +1,15 @@
+{
+  "id": "01M77559PV04H26R7ZR519ECR9",
+  "ts": "2026-11-12T05:54:45.599Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0686"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb init, wb remit and wb retire write ops event::KNOWN_OPS does not declare, so doctor names an advisory on every board they touched"
+  }
+}

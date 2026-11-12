@@ -6,14 +6,14 @@ session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
 heartbeat_at: 2026-11-12 04:45Z
 status: active
 focus: "2026-11-11 16:56Z, localfolded for hv's fifth compact (hv via vc: 'lets bank, localfold+compact everyone here and then continue on the bounce'); active, no hold, no desk slot, nothing banked. Landed since the last fold: dea2d70c8 (vc remit and 'Proof, and what it costs', rewritten by hv to fabff0806) and 05899acfe (docs/releases/3.3.0/RELEASE_NOTES.md, inside the re-cut). HOLDING: hands off main until vc says the cut is done. After the cut: wp done ST0092/09 once vc's census closes AC-09.3 (doing 109)."
-claims: []
+claims: [ISSUE:0686]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- ISSUE 0686 banked on 122766411 for vc to land: refs/bank/cc/0686/red (the arm, patch-id 5ec7ddd656dc), green-on-red (wb.init, wb.remit and wb.retire into event::KNOWN_OPS, with a CHANGELOG line; 20502a744b1a), whole (7e17084ba2f6) and evidence/run.log. Red then green in desk slot 01M775971V8Y8J251D7F3Q9X40, 05:57:18Z to 05:57:56Z. After the landing, cc closes 0686 on vc's word and removes tmp/wt-cc-0686.
 
 ## TODO
 
