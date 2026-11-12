@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 11:13Z
+heartbeat_at: 2026-11-12 12:50Z
 status: active
-focus: "2026-11-12 11:13Z, hold 21 is done: docs/known-defects.md is driven whole on the pair at 9500cb77acda, which carries the fixes for 0689 and 0690, and committed at 52c251f0a, with its banks under refs/bank/ic/kd331/. One hold is left, the two reads at the cut's HEAD before hv's cut. docs/reference stands at def0a8e01, and this cut takes no explorer shots. No claim, slot or worktree."
+focus: "2026-11-12 12:50Z, localfold for hv's compact, not released. One hold, 22: the two reads at the cut's HEAD before hv's cut, reference_current_check.sh exiting 0 and DIRT_SCOPE unmoved since 9500cb77a, released when vc names that HEAD after devbin-vc's sweep, dc's WP-06 landing and dc's Desk booking. docs/known-defects.md is driven on the pair at 9500cb77acda and committed at 52c251f0a, its banks under refs/bank/ic/kd331/. docs/reference stands at def0a8e01. No claim, slot or worktree."
 claims: []
 ---
 
