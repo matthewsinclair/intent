@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "048e4132-f6c2-4374-b561-a659b80bc928",
-    "heartbeat_at": "2026-11-12T14:55:53.035Z",
+    "heartbeat_at": "2026-11-12T19:32:39.279Z",
     "status": "active",
-    "focus": "2026-11-12 14:55Z, the fold's hold is over on hv decision 48 (bab8e458c, devbin-vc has the pen), passed by vc. Two holds stand. 23: intent.laksa.io to 3.3.0, c14c60e committed in ~/Devel/prj/Sites/intent and rehearsed from Laksa (f3cbfb6..c14c60e to local, origin and upstream), pushed only on hv's word through vc and then read live. 22: the two reads at the cut's HEAD, reference_current_check.sh exiting 0 and DIRT_SCOPE unmoved since 9500cb77a, released when vc names that HEAD under the freeze. No claim, slot or worktree.",
+    "focus": "2026-11-12 19:32Z, hold 23 done on hv decision 50: hv ran bin/devbin sites gitpush --sites=intent from ~/Devel/prj/Laksa (f3cbfb6..c14c60e to local and origin; upstream, the same URL as origin, up to date), and https://intent.laksa.io/ reads v3.3.0 (http 200, no laksa-render). Hold 22 stands: the two reads at the cut's HEAD, reference_current_check.sh exiting 0 and DIRT_SCOPE unmoved since 9500cb77a, released when vc names that HEAD under the freeze. The site update repeats for 3.3.1 after its cut. No claim, slot or worktree.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2984,8 +2984,17 @@
       "kind": "hold",
       "seq": 23,
       "text": "Push intent.laksa.io's 3.3.0 version (hv decision 47, 19c62e806): from ~/Devel/prj/Laksa run bin/devbin sites gitpush --sites=intent, which pushes c14c60e (release: Intent v3.3.0, db/release.json) in ~/Devel/prj/Sites/intent to local, origin and upstream as its --dry-run planned, f3cbfb6..c14c60e on each. Then fetch https://intent.laksa.io/ and read 3.3.0 on it and no laksa-render. Released when vc passes hv's word to push.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T19:32:38.303Z",
       "recorded_at": "2026-11-12T13:27:34.646Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 70,
+      "text": "After hv's cut of v3.3.1, releasing.md step 5 for it (hv decision 47, vc's reading): set db/release.json in ~/Devel/prj/Sites/intent to 3.3.1 with its release date, commit there, rehearse bin/devbin sites gitpush --sites=intent --dry-run from ~/Devel/prj/Laksa, and the push waits for hv's word through vc; then read https://intent.laksa.io/ for v3.3.1.",
+      "state": "live",
+      "recorded_at": "2026-11-12T19:32:50.518Z"
     }
   ],
   "sent": [
