@@ -2,7 +2,7 @@
 wp_id: WP-11
 title: Every live board converges, Intent's own first
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-11: Every live board converges, Intent's own first
