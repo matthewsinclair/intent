@@ -3,9 +3,10 @@
   "number": 686,
   "slug": "wb-init-wb-remit-and-wb-retire-write-ops-event-k",
   "title": "wb init, wb remit and wb retire write ops event::KNOWN_OPS does not declare, so doctor names an advisory on every board they touched",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-12",
+  "closed": "2026-11-12",
   "reporter": "Matthew Sinclair",
   "body": "Found by vc on 2026-11-12: every board the 3.3.0 estate sweep (ST0092 WP-11) touched shows one `intent doctor` advisory, \"the event log holds N row(s) under the op `wb.init`, which this build does not declare\".\n\n**THREE OPS, NOT ONE.** Measured by cc against the source at cee9fcab6. ST0092's three new roster verbs each mint an op through `Facade::wb_event`, and none of the three is in `event::KNOWN_OPS`: `wb.init` (`wb init --apply`), `wb.remit` (`wb remit`) and `wb.retire` (`wb retire`). The sweep ran only `wb init`, so `wb.init` is the one its boards show. A board where someone ran `wb remit` or `wb retire` shows those as well.\n\n**NOTHING IS BROKEN, AND THE INSTRUMENT WORKED AS DESIGNED.** The advisory is shown and never counted, so doctor's exit and the commit gate are unchanged, and every row is a true record. `tests/op_roster_and_the_live_log.rs` names this exact corner: a new op added and not put on the roster is caught by no source-side test when it is written, and by doctor's live check the first time it is used.\n\n**THE FIX:** the three ops join `event::KNOWN_OPS` in its whiteboard family. One arm drives `wb init --apply`, `wb remit` and `wb retire` in a fixture and asserts that doctor names no undeclared op. It is red on main and green with the fix.\n"
 }
