@@ -1,0 +1,15 @@
+{
+  "id": "01M773EYQEVTXEJF3CZV98M8BY",
+  "ts": "2026-11-12T05:25:04.882Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0685"
+  },
+  "payload": {
+    "bytes": 2150,
+    "title": "A newer build's first board write re-renders every older-shape board, and the roster apply that is the shape's mechanical commit does not name them"
+  }
+}
