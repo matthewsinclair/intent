@@ -1,0 +1,15 @@
+{
+  "id": "01M78KGCBE24PGDJARE1MRTR0D",
+  "ts": "2026-11-12T19:24:43.246Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, in vc's session, hv's \"1: Yes\" to vc's question) devbin-vc runs Intent's v3.3.1 cut by intent/docs/releasing.md, answering its one confirm step and running step 0's intentd stop and the restart after step 4, once vc sends \"ready to cut\" with the tip and only when green. This confirms for Intent devbin-vc's decision 170 (devbin e01e376c)."
+  }
+}

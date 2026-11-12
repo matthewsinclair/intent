@@ -1,0 +1,15 @@
+{
+  "id": "01M78KGD8SK1PQ79FW234NT99Y",
+  "ts": "2026-11-12T19:24:44.185Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, in vc's session, hv's \"2: Yes\") \"push\" for intent.laksa.io at 3.3.0 (decision 47): ic pushes c14c60e and reads the live page."
+  }
+}
