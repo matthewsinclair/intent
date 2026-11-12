@@ -112,6 +112,7 @@ missing -- and a command declared but not built in this release says so in its \
 - **safety** -- `mutate` if invoking it can change durable state, `read` if not. A mutation also says whether this surface can put the estate back: **reversible** (another command undoes it), **idempotent** (running it again is the same state), or **ONE-WAY** (nothing here undoes it). Treat one-way as needing a human.
 - **call** -- the path and its positional arguments. `<x>` is required, `[x]` optional, `...` repeatable.
 - **does** -- what the command is for.
+- **when to use** -- when to reach for it and what to use instead; omitted when its row declares none.
 - **flags** -- omitted when the command takes none.
 - **mcp** -- whether the MCP tool surface also carries it. This is a note about ROUTING, not permission: the CLI is the precise surface and every command below is on it.
 
@@ -206,6 +207,9 @@ fn entry_block(entry: &Entry) -> String {
     call_takers(entry)
   ));
   out.push_str(&format!("- **does:** {}\n", entry.help));
+  if let Some(when) = &entry.when_to_use {
+    out.push_str(&format!("- **when to use:** {when}\n"));
+  }
 
   let flags: Vec<&Flag> = entry.flags.iter().filter(|f| f.ships()).collect();
   if !flags.is_empty() {

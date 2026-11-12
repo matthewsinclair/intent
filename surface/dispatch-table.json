@@ -8879,7 +8879,14 @@
           "path": "wb brief",
           "help": "Print a seat's brief: its team, its name, role and remit, the mediator and its route to hv, and every other seat",
           "when_to_use": "USE IT to read what a seat is told at pickup without picking up as it: it moves no heartbeat, records no session and writes nothing, so it is safe to ask of any seat, yours or a peer's. `--launch` prints the context `intent claude start` hands a session in that seat, the profile's launch steps included. On a board that declares no Team Profile it answers with the seat's name and role, and its launch is the one `claude start` composed before profiles existed. DO NOT USE IT to start a session: `--launch` launches nothing, and `intent claude start <moniker>` is the verb that does. An unregistered moniker is refused with the roster listed, and `--launch` for the human's seat is refused, since no session is launched in it. A retired seat is refused too, naming its retirement with `wb register` as the remedy, and it is left out of the seats every other brief lists, as `wb status` leaves it out without `--all`.",
-          "args": [{ "name": "moniker", "type": "node", "arity": "1" }],
+          "args": [
+            {
+              "name": "moniker",
+              "type": "node",
+              "arity": "1",
+              "help": "The seat whose brief this prints"
+            }
+          ],
           "v2": "new-surface",
           "basis": "ST0092/WP/06 info.md: the launcher is a script and the brief is computed in the library, so the launcher needs a door to it that is not a pickup, which moves the heartbeat and records a session. There is no v2 antecedent.",
           "owner_wp": "ST0092 WP-06",
@@ -8892,7 +8899,7 @@
             {
               "spellings": ["--launch"],
               "type": "bool",
-              "help": "prints the launch steps; launches nothing",
+              "help": "Print the launch steps; it launches nothing",
               "disposition": "keep",
               "exposed_on_mcp": true
             },

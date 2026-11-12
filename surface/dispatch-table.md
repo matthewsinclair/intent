@@ -4247,9 +4247,9 @@ Print a seat's brief: its team, its name, role and remit, the mediator and its r
 
 - **v2:** new-surface
 - **Arguments:**
-  - `moniker` (node, arity `1`)
+  - `moniker` (node, arity `1`) -- The seat whose brief this prints
 - **Flags:**
-  - `--launch` (bool) -- prints the launch steps; launches nothing
+  - `--launch` (bool) -- Print the launch steps; it launches nothing
     - **disposition:** keep
     - **exposed on mcp:** true
   - `--json` (bool) -- Emit as JSON instead of prose
