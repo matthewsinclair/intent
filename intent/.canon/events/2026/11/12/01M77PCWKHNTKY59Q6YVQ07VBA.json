@@ -1,0 +1,15 @@
+{
+  "id": "01M77PCWKHNTKY59Q6YVQ07VBA",
+  "ts": "2026-11-12T10:56:00.113Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0690 (ic filed it at c4eee9b8f), on vc's go: intent daemon start's 'started and is not answering' remedy names the lifeline when this command's stdin was a pipe (ST0073), and keeps its old text otherwise. The text is a pure fn, started_and_not_answering, in intent-cli's render.rs, with a test in its tests module, and the CHANGELOG entry goes at the top of Fixed in [3.3.1]. ALL_VARIANTS doesn't move. Banked unproved on 52b8fa8bc at refs/bank/cc/0690/ (red, green-on-red, whole). Both patches apply on e05e2d604, where gyges is proving it once, red then green; the proved ref goes to vc. ic's known-defects drive waits for its landing."
+  }
+}

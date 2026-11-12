@@ -3,21 +3,21 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 10:38Z
+heartbeat_at: 2026-11-12 10:43Z
 status: active
 focus: "2026-11-12 10:38Z, folded for hv's compact, not released. ISSUE:0689 is banked unproved (doing 112), and its one proof on gyges is next; ISSUE:0690 follows it (todo 51). Hold 36 reads devbin-vc's sweep for a packaging/homebrew change. tmp/wt-cc-0689 holds 0689; no desk slot."
-claims: [ISSUE:0689, ISSUE:0690]
+claims: [ISSUE:0690]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ISSUE:0689, intent app taking a LaunchServices record of an exited app for the running one: the arm and the fix are built in tmp/wt-cc-0689 on e5c03f777 and banked UNPROVED on hv's fold word, at refs/bank/cc/0689/red-unproved-on-e5c03f777 (the arm alone, patch-id 90cf493f863e), green-on-red-unproved-on-e5c03f777 (the fix, Cargo.toml's libc move and the CHANGELOG entry, 40190e987271) and whole-unproved-on-e5c03f777 (80b01f1f6643), with LaunchServices' reads at refs/bank/cc/0689/evidence/lsappinfo-reads.txt (the exited record had gone by 10:27Z). Next: one proof on gyges (hv decision 43), red then green, then the proven bank to vc.
+- ISSUE:0690 (ic filed it at c4eee9b8f), on vc's go: intent daemon start's 'started and is not answering' remedy names the lifeline when this command's stdin was a pipe (ST0073), and keeps its old text otherwise. The text is a pure fn, started_and_not_answering, in intent-cli's render.rs, with a test in its tests module, and the CHANGELOG entry goes at the top of Fixed in [3.3.1]. ALL_VARIANTS doesn't move. Banked unproved on 52b8fa8bc at refs/bank/cc/0690/ (red, green-on-red, whole). Both patches apply on e05e2d604, where gyges is proving it once, red then green; the proved ref goes to vc. ic's known-defects drive waits for its landing.
 
 ## TODO
 
-- ISSUE:0690 (ic filed it at c4eee9b8f), after 0689 on vc's word: the remedy of intent daemon start's 'started and is not answering' says that a piped stdin at EOF becomes intentd's lifeline (ST0073), as its own bank, proved once; if it moves ALL_VARIANTS, cut-surface.md is regenerated in the same bank (releasing.md:95). The trigger is not fully pinned: one unpiped probe over the same ssh kept its daemon. ic's repro probe is at refs/bank/ic/kd331/, and ic's known-defects drive waits for both landings.
+_(none)_
 
 ## Holds
 
