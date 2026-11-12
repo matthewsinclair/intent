@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "048e4132-f6c2-4374-b561-a659b80bc928",
-    "heartbeat_at": "2026-11-12T10:36:49.791Z",
+    "heartbeat_at": "2026-11-12T11:13:20.612Z",
     "status": "active",
-    "focus": "2026-11-12 10:36Z, localfolded for hv's compact: hold 21, the known-defects drive that counts, waits for cc's fixes for 0689 and 0690, then runs on gyges by refs/bank/ic/kd331/redrive-gyges.sh and commits once; the shakedown page is 1d9e398f3. docs/reference is committed (def0a8e01), and this cut takes no explorer shots. No claim, slot or worktree on rhadamanth, and nothing unbanked; gyges keeps /private/tmp/kd331 for the drive.",
+    "focus": "2026-11-12 11:13Z, hold 21 is done: docs/known-defects.md is driven whole on the pair at 9500cb77acda, which carries the fixes for 0689 and 0690, and committed at 52c251f0a, with its banks under refs/bank/ic/kd331/. One hold is left, the two reads at the cut's HEAD before hv's cut. docs/reference stands at def0a8e01, and this cut takes no explorer shots. No claim, slot or worktree.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -2966,9 +2966,18 @@
       "kind": "hold",
       "seq": 21,
       "text": "Re-drive docs/known-defects.md whole on the pair that includes the fixes for issues 0689 (cc, intentsvcs/src/macapp.rs, which moves DIRT_SCOPE) and 0690 (cc, daemon start's remedy), on vc's word (2026-11-12), as the one drive that counts; the drive at 594422fb4 (1d9e398f3) was its shakedown. refs/bank/ic/kd331/redrive-gyges.sh carries main to gyges:~/Devel/prj/Intent as a git bundle and fast-forwards it, rebuilds the pair with bin/devbin build all, and runs the kit at /private/tmp/kd331 (the rest of refs/bank/ic/kd331/) with stdin from /dev/null. Then mkpage.pl rebuilds the page, pagecheck.sh and refcheck.pl check it, and it is committed here. At the cut's HEAD, reference_current_check.sh exits 0 (cut-surface.md moves with 0690's landing if ALL_VARIANTS does) and the diff from the drive's commit over DIRT_SCOPE is empty. Released when vc says 0689 and 0690 have landed.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T11:13:18.684Z",
       "recorded_at": "2026-11-12T10:28:02.714Z",
       "edited_at": "2026-11-12T10:32:31.206Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 22,
+      "text": "Before hv's cut of v3.3.1, read two things at the cut's HEAD: intent/st/ST0056/parity/tools/reference_current_check.sh exits 0, and the diff over DIRT_SCOPE from 9500cb77a, the pair docs/known-defects.md was driven on (52c251f0a), to that HEAD is empty. A non-empty diff means the page was not driven on the build that is cut, and goes to vc at once; a stale reference is regenerated and committed here. Released when vc names the cut's HEAD.",
+      "state": "live",
+      "recorded_at": "2026-11-12T11:13:19.657Z"
     }
   ],
   "sent": [
