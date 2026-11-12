@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T09:04:15.273Z",
+    "heartbeat_at": "2026-11-12T09:53:07.975Z",
     "status": "active",
-    "focus": "2026-11-12 08:54Z, folded for hv's compact. Two banks wait for the sweep's commit and one proof run: ST0093 WP-06 (c) to (e) with 0682's close, refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df in tmp/wt-dc-0093-06 (hold 41), and ISSUE:0687's fix as one landing unit, refs/bank/dc/0687/fix-on-7f9064cc3 in tmp/wt-dc-0687 (hold 42). Hold 37 waits on hv's look at 3.3.0, after quitting the stale Debug app; todo 63 at the cut.",
+    "focus": "2026-11-12 09:53Z, holding for the sweep's commit with three banks for the one proof run: ST0093 WP-06 (c) to (e) with 0682's close, refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df (hold 41); ISSUE:0687, refs/bank/dc/0687/fix-on-7f9064cc3 (hold 42); ISSUE:0688, no_daemon_required.sh's unbounded guard, refs/bank/dc/0688/fix-unproved-on-923c4c44f (hold 44). The Desk booking follows releasing.md step 2 on vc's call (hold 43). Hold 37 waits on hv's look at /Applications/Intent.app; todo 63 at the cut.",
     "claims": [
       "ST0090/02",
       "ST0093/06",
