@@ -1,0 +1,16 @@
+{
+  "id": "01M77YE1M166C0HHH3DA27FWEQ",
+  "ts": "2026-11-12T13:16:26.625Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 43,
+    "text": "dc's one Desk booking, from devbin-vc's Desk on rhadamanth, once devbin-vc's sweep of devbin 0.1.23 has landed in Intent and vc calls it. On rhadamanth every step runs one after the other and none beside a kovacs run (hv decision 45). dc first rebases the v3 bank onto the sweep and carries main and the bank to gyges by git bundle, then starts (1) and (2) together (vc todo 79, b4b7ec994). (1) Hold 41's WP-06 proof run on rhadamanth: its arms red then green, and the bats suite at N=24 with its serial lane. (2) On gyges, which decision 45 does not bind, in a clone of its own so the clone at 9500cb77a stays for ic: 0682's by-hand bin/devbin gate rust at the sweep with the bank committed, since the gate's private worktree is HEAD's. TMPDIR is on a 1.7G disk image, mounted for the run and then detached and deleted, and DEVBIN_GATE_CACHE is set to the directory the core hands the gates locally, since a by-hand gate is handed none and would build its target inside that TMPDIR. gyges has what (2) needs, read by 2026-11-12 13:16Z by date -u: bash 5.3, Homebrew's rustc 1.99.1 with clippy and rustfmt as on rhadamanth, hdiutil mounting an image over ssh, and 526Gi free; gate rust needs no GNU parallel. (3) Once both are in, dc banks, and vc lands WP-06 with 0682's Resolution and close. (4) bin/devbin release gates --leg kovacs. (5) The dry run, whose pre-flight runs no gate. Before (5), vc calls a freeze: every seat commits its board, and then nothing writes to Intent's tree until hv's cut has finished, not even a pickup, which writes the heartbeat. vc confirms git status is empty before dc starts (5). intentd stays up through the whole slot and no seat stops it (hv decision 46, 5e7ebf01d). So (5) stops at its pre-flight step, which still runs every check and names every refusal. It passes when the live daemon is the only refusal; any other refusal is a finding, and dc brings it to vc. The rows after the pre-flight first print in hv's own dry run at the cut, after hv stops intentd (releasing.md step 0). releasing.md step 2's commits are in: def0a8e01, bd525bae2, 7c6bfa53d and 573f817b2. The booking waits for the sweep's commit and vc's call (vc, 2026-11-12)."
+  }
+}
