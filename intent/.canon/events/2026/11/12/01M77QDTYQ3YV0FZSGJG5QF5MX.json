@@ -1,0 +1,16 @@
+{
+  "id": "01M77QDTYQ3YV0FZSGJG5QF5MX",
+  "ts": "2026-11-12T11:13:59.767Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "NEXT (P0, hv decisions 39 to 44), in order. (1) devbin's one proof run (k340, granted at 11:08:23Z on devbin-vc's read) of 0334-2, 0341-1, 0340-1 and 0340-2, devbin-vc's landing, hv's history rewrite and hv's cut of devbin 0.1.23, hv's brew steps, then devbin-vc's sweep into Intent's tree; cc reads the sweep for a packaging/homebrew change (hold 36). (2) dc rebases WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v3-on-fdd9fa2df, with the two serial tags 0.1.23's 24-job floor needs) onto the sweep and proves it with 0682's by-hand gate run, and vc lands them; ic regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (3) dc's one Desk booking: bin/devbin release gates --leg kovacs, then the dry run. (4) At the cut's HEAD, ic reads that reference_current_check.sh exits 0 and that DIRT_SCOPE has not moved since 9500cb77a, the pair docs/known-defects.md was driven on at 52c251f0a; vc tells ic the cut's HEAD. (5) hv's cut of v3.3.1 (hv decision 44); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (6) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate."
+  }
+}
