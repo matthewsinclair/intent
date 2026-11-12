@@ -1,0 +1,16 @@
+{
+  "id": "01M77KT2BFGM83CSM57SXC3YZQ",
+  "ts": "2026-11-12T10:10:46.255Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 19,
+    "text": "Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says, on hv's idea via vc (2026-11-12): build the pair at the HEAD of gyges:~/Devel/prj/Intent, dc's clone of rhadamanth's main, which needs no rhadamanth slot; drive every entry there in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/); and commit the page in rhadamanth's tree, saying there that this cut takes no explorer shots (hold 20's call). Before hv's cut, read that the diff from the drive's commit to the cut's HEAD over DIRT_SCOPE (native/rust/build-support/source_commit.rs) is still empty. Released when dc says the gyges clone is ready."
+  }
+}

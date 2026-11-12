@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 09:14Z
+heartbeat_at: 2026-11-12 10:11Z
 status: active
-focus: "2026-11-12 09:14Z, on vc's word: docs/reference regenerated at 5374fc966 against v3.3.0 and committed as def0a8e01, and reference_current_check.sh exits 0 on it. Holds 19 (the known-defects re-drive on one slot from devbin-vc's Desk, committed before dc's dry run) and 20 (the explorer-shots call) wait for devbin-vc's sweep of devbin 0.1.23, at which the check runs again first. No claim, slot or worktree."
+focus: "2026-11-12 10:11Z, on vc's word: docs/reference is committed (def0a8e01). Hold 20's call is made: no explorer shots this cut, since nothing the explorer draws has changed since v3.3.0. Hold 19, the known-defects re-drive, goes to gyges on hv's idea and waits for dc's clone at gyges:~/Devel/prj/Intent; the page is committed here. No claim, slot or worktree."
 claims: []
 ---
 
@@ -21,8 +21,7 @@ _(none)_
 
 ## Holds
 
-- Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says (vc, 2026-11-12, restating hold 18): first run reference_current_check.sh and regenerate docs/reference once more if it exits 1; then build the pair at HEAD on one slot from devbin-vc's Desk, drive every entry in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/), and commit before dc's dry run. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree, which makes DIRT_SCOPE final.
-- Decide the explorer screenshots on evidence at the post-sweep HEAD (vc, 2026-11-12, restating hold 18): if nothing the explorer draws has changed since v3.3.0, skip gen_explorer_shots.sh and say so in the known-defects commit; otherwise take them in the known-defects slot and commit any PNG that changed with it. Released when devbin-vc's sweep of devbin 0.1.23 has landed in Intent's tree.
+- Re-drive docs/known-defects.md whole for Intent's next cut and retitle it, as intent/docs/releasing.md step 2 says, on hv's idea via vc (2026-11-12): build the pair at the HEAD of gyges:~/Devel/prj/Intent, dc's clone of rhadamanth's main, which needs no rhadamanth slot; drive every entry there in a fresh scratch project under an isolated HOME (dc's drive scripts are under refs/bank/dc/kd/); and commit the page in rhadamanth's tree, saying there that this cut takes no explorer shots (hold 20's call). Before hv's cut, read that the diff from the drive's commit to the cut's HEAD over DIRT_SCOPE (native/rust/build-support/source_commit.rs) is still empty. Released when dc says the gyges clone is ready. (edited)
 
 ## Watch-outs
 
