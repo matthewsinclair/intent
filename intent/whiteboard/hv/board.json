@@ -541,6 +541,14 @@
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:18Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT'S NEXT RELEASE IS 3.3.1. hv, verbatim: \"3.3.1 is fine\", answering vc's recommendation of 3.3.1, made because nothing on main since v3.3.0 adds a verb: the register's changes since the tag are wording and ratification fields. So the CHANGELOG's open section is headed [3.3.1] - in progress, docs/known-defects.md is titled for v3.3.1, and hv's cut is bin/devbin release v3.3.1.",
       "state": "live",
       "recorded_at": "2026-11-12T10:19:01.534Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 45,
+      "text": "(hv, 2026-11-12, in devbin-vc's window, by 11:48Z on devbin-vc's date -u; relayed to vc by devbin-vc and not heard first-hand by vc; recorded by vc, the wording of this record vc's) A RUN ON RHADAMANTH AND A RUN ON KOVACS ARE NEVER AT THE SAME TIME. hv, verbatim as devbin-vc relayed it: \"we can't run rhad and kovacs at the same time, they need to be serialised\". The kovacs VM shares rhadamanth's CPUs, and in devbin's proof run k340 its kovacs leg went about four times slower beside the local suite, on devbin-vc's account. So Intent's Desk booking runs bin/devbin release gates --leg kovacs and any suite on rhadamanth one after the other, and so does any other kovacs run of Intent's, such as a by-hand gate run there. gyges is separate hardware and is not bound by this.",
+      "state": "live",
+      "recorded_at": "2026-11-12T11:49:27.732Z"
     }
   ],
   "sent": [],

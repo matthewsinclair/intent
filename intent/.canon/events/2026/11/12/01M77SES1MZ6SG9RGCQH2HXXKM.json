@@ -1,0 +1,15 @@
+{
+  "id": "01M77SES1MZ6SG9RGCQH2HXXKM",
+  "ts": "2026-11-12T11:49:27.732Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, in devbin-vc's window, by 11:48Z on devbin-vc's date -u; relayed to vc by devbin-vc and not heard first-hand by vc; recorded by vc, the wording of this record vc's) A RUN ON RHADAMANTH AND A RUN ON KOVACS ARE NEVER AT THE SAME TIME. hv, verbatim as devbin-vc relayed it: \"we can't run rhad and kovacs at the same time, they need to be serialised\". The kovacs VM shares rhadamanth's CPUs, and in devbin's proof run k340 its kovacs leg went about four times slower beside the local suite, on devbin-vc's account. So Intent's Desk booking runs bin/devbin release gates --leg kovacs and any suite on rhadamanth one after the other, and so does any other kovacs run of Intent's, such as a by-hand gate run there. gyges is separate hardware and is not bound by this."
+  }
+}
