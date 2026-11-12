@@ -533,6 +533,14 @@
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:08Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT DOES ITS WORK ON GYGES WHILE devbin 0.1.23 IS CUT, AND IS READY FOR ITS RELEASE. hv, verbatim: \"A thought: why don't you (intent) do your work on gyges now?\" and \"And then be ready for the devbin release?\" vc's reading of the scope: the units that need nothing from devbin 0.1.23 run on gyges now, off rhadamanth's Desk: dc's proofs of issues 0687 and 0688, and ic's re-drive of docs/known-defects.md on the pair built there. They run in a clone at gyges:~/Devel/prj/Intent made from rhadamanth's main by a git bundle, because main is ahead of upstream and gyges cannot reach rhadamanth by ssh, and nothing is installed on gyges. ST0093 WP-06 (c) to (e) and issue 0682 need 0.1.23's core (devbin 0334 and 0335), so they still wait for devbin-vc's sweep. What lands, lands in rhadamanth's tree.",
       "state": "live",
       "recorded_at": "2026-11-12T10:09:00.641Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 44,
+      "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:18Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT'S NEXT RELEASE IS 3.3.1. hv, verbatim: \"3.3.1 is fine\", answering vc's recommendation of 3.3.1, made because nothing on main since v3.3.0 adds a verb: the register's changes since the tag are wording and ratification fields. So the CHANGELOG's open section is headed [3.3.1] - in progress, docs/known-defects.md is titled for v3.3.1, and hv's cut is bin/devbin release v3.3.1.",
+      "state": "live",
+      "recorded_at": "2026-11-12T10:19:01.534Z"
     }
   ],
   "sent": [],

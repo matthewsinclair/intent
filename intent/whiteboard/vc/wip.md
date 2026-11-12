@@ -22,7 +22,7 @@ _(none)_
 
 ## Holds
 
-- ST0090 AC-02.4, issue 0664's last criterion: held until hv has quit the running Intent, opened /Applications/Intent.app (3.3.0, 1e423060f, which carries both halves), rebuilt the search index and read the second line of its Rebuild Search Index row, reconciled <age> ago. hv's look on 2026-11-12 was at a 3.2.6 Debug build of 8c77b10e6, which the login item had started at the reboot (dc's finding, issue 0687), so it says nothing of 3.3.0. Then vc satisfies AC-02.4 with hv's reading and the build, and dc closes WP-02, ST0090 and issue 0664. (edited)
+_(none)_
 
 ## Watch-outs
 

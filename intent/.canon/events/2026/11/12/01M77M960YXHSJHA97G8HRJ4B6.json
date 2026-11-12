@@ -1,0 +1,15 @@
+{
+  "id": "01M77M960YXHSJHA97G8HRJ4B6",
+  "ts": "2026-11-12T10:19:01.534Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:18Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT'S NEXT RELEASE IS 3.3.1. hv, verbatim: \"3.3.1 is fine\", answering vc's recommendation of 3.3.1, made because nothing on main since v3.3.0 adds a verb: the register's changes since the tag are wording and ratification fields. So the CHANGELOG's open section is headed [3.3.1] - in progress, docs/known-defects.md is titled for v3.3.1, and hv's cut is bin/devbin release v3.3.1."
+  }
+}

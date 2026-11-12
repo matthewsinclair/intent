@@ -1,0 +1,14 @@
+{
+  "id": "01M77M96ZHCXM9XQ775GNHCPQF",
+  "ts": "2026-11-12T10:19:02.517Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0090/AC-02.4"
+  },
+  "payload": {
+    "evidence": "hv, 2026-11-12, first-hand in vc's session with a screenshot, read by 10:18Z on vc's date -u: the installed /Applications/Intent.app, whose menu heads \"Intent 3.3.0, 1e423060, release\" and whose Info.plist reads CFBundleShortVersionString 3.3.0 and IntentCommit 1e423060f, shows the Rebuild Search Index row's second line, \"reconciled 21m ago\"; hv: \"Ok, this works\". The build is v3.3.0 at 1e423060f, which carries WP-01 and WP-02. intent index status then read reconciled_at 2026-11-12T10:16:54.822Z, a rebuild after the reading. hv's first look that day was at a 3.2.6 Debug build the login item had started (issue 0687) and is not this evidence."
+  }
+}
