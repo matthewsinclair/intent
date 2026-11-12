@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T10:31:21.482Z",
+    "heartbeat_at": "2026-11-12T10:37:07.880Z",
     "status": "active",
-    "focus": "2026-11-12 10:31Z, holding only for the sweep: ST0093 WP-06 (c) to (e) with 0682's close waits for devbin-vc's sweep of devbin 0.1.23 and the one proof run (hold 41, tmp/wt-dc-0093-06); the Desk booking follows releasing.md step 2 on vc's call (hold 43); todo 63 at the cut. 0687 and 0688 landed at d37ab905c and 87f3f6899; ST0090 and issue 0664 closed at e5c03f777.",
+    "focus": "2026-11-12 10:37Z, folded for hv's compact. Nothing is live and nothing is unbanked. ST0093 WP-06 (c) to (e) with 0682's close is banked unproved at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df in tmp/wt-dc-0093-06 and waits for devbin-vc's sweep of devbin 0.1.23 and the one proof run (hold 41); the Desk booking follows releasing.md step 2 on vc's call (hold 43); todo 63 at the cut. The gyges clone of main stays for ic.",
     "claims": [
       "ST0093/06"
     ],
