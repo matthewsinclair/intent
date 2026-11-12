@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 # `int prepush`, the push gates: a frozen remote, and the delivered pair's
-# currency (issue 0518), asked of every push but a candidate's.
+# currency (issue 0518), asked of every push but a candidate's and one that only
+# deletes.
 #
 # ST0091 AT-02.2 cites this file for AC-02.2.
 #
@@ -158,6 +159,25 @@ refs/heads/main $(at HEAD) refs/heads/main $(at upstream/main)" upstream
   expect_stale
   # The core's default prefix is not the declared one, so it is not exempt.
   run runner "refs/heads/main $(at HEAD) refs/heads/candidate/v3.2.1 $ZERO" upstream
+  expect_stale
+}
+
+# A PUSH THAT ONLY DELETES SENDS NO COMMIT (issue 0683). git hands the hook an
+# all-zero local sha for every ref a push deletes, so a push of nothing else
+# publishes no tree, and the pair's currency says nothing about it. A push that
+# moves a ref as well is still judged whole.
+@test "0683: a push that only deletes remote refs passes over a stale pair in one ok line, and a mixed push is judged whole" {
+  local before
+  before="$(at HEAD)"
+  native_change
+  stamp_pair "$before"
+  run runner "(delete) $ZERO refs/heads/topic $(at HEAD~1)
+(delete) $ZERO refs/tags/v3.2.1 $(at HEAD~1)" upstream
+  [ "$status" -eq 0 ] || fail "expected a delete-only push to pass over a stale pair, got status $status: $output"
+  [[ "$output" == "prepush: ok -- this push only deletes"* ]] || fail "expected one ok line naming the deletion; got: $output"
+  [[ "$output" != *$'\n'* ]] || fail "expected the ok line alone; got: $output"
+  run runner "(delete) $ZERO refs/heads/topic $(at HEAD~1)
+$(refpair "$(at HEAD)" "$(at upstream/main)")" upstream
   expect_stale
 }
 
