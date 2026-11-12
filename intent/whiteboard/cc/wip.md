@@ -6,14 +6,14 @@ session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
 heartbeat_at: 2026-11-12 10:43Z
 status: active
 focus: "2026-11-12 10:38Z, folded for hv's compact, not released. ISSUE:0689 is banked unproved (doing 112), and its one proof on gyges is next; ISSUE:0690 follows it (todo 51). Hold 36 reads devbin-vc's sweep for a packaging/homebrew change. tmp/wt-cc-0689 holds 0689; no desk slot."
-claims: [ISSUE:0690]
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ISSUE:0690 (ic filed it at c4eee9b8f), on vc's go: intent daemon start's 'started and is not answering' remedy names the lifeline when this command's stdin was a pipe (ST0073), and keeps its old text otherwise. The text is a pure fn, started_and_not_answering, in intent-cli's render.rs, with a test in its tests module, and the CHANGELOG entry goes at the top of Fixed in [3.3.1]. ALL_VARIANTS doesn't move. Banked unproved on 52b8fa8bc at refs/bank/cc/0690/ (red, green-on-red, whole). Both patches apply on e05e2d604, where gyges is proving it once, red then green; the proved ref goes to vc. ic's known-defects drive waits for its landing.
+_(none)_
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Read devbin-vc's sweep of devbin 0.1.23 into Intent's tree for a change to packaging/homebrew, and give any such change a CHANGELOG entry under [Unreleased], since the formula and the cask are read by every brew user (releasing.md step 2). Released when the sweep's commit is on main. On vc's word of 2026-11-12, after the CHANGELOG pass at bd525bae2.
+- Read devbin-vc's sweep of devbin 0.1.23 into Intent's tree for a change to what brew users read, and give any such change a CHANGELOG entry in [3.3.1] (releasing.md step 2). Read ahead on vc's word, read only, in ~/Devel/prj/Devbin at its main by 2026-11-12 11:02Z: since v0.1.22 devbin changes no formula, cask or homebrew file. lib/cmd/formula and lib/release.notes are unchanged, and of the other libs the formula built-in sources, lib/config, lib/helpers and lib/release.steps change only for the core-verb refusal (CORE_VERBS, is_core_verb, core_verb) and release_previous_tag, none on the render path. Intent's config declares no cache command for that refusal to catch. So the sweep needs only a diff check: nothing under packaging/homebrew, and nothing on the formula built-in's render path beyond what is read here. Released when the sweep's commit is on main and that check is read. (edited)
 
 ## Watch-outs
 
