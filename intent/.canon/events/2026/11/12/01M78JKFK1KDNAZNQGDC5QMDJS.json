@@ -1,0 +1,16 @@
+{
+  "id": "01M78JKFK1KDNAZNQGDC5QMDJS",
+  "ts": "2026-11-12T19:08:56.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 36,
+    "text": "Read the commit that brings devbin 0.1.23 (released, 7ab219821) into Intent's tree for a change to what brew users read, and give any such change a CHANGELOG entry in [3.3.1] (releasing.md step 2). Intent's gate refused devbin-vc's sweep on arm 10, so dc lands the upgrade instead, in one commit with the arm 10 narrowing and the bin/devbin upgrade seam; vc sends its sha. Read ahead on vc's word, read only, in ~/Devel/prj/Devbin at its main by 2026-11-12 11:02Z: since v0.1.22 devbin changes no formula, cask or homebrew file. lib/cmd/formula and lib/release.notes are unchanged, and of the other libs the formula built-in sources, lib/config, lib/helpers and lib/release.steps change only for the core-verb refusal (CORE_VERBS, is_core_verb, core_verb) and release_previous_tag, none on the render path. Intent's config declares no cache command for that refusal to catch. So the commit needs only a diff check: nothing under packaging/homebrew, and nothing on the formula built-in's render path beyond what is read here. Released when dc's commit is on main and that check is read."
+  }
+}

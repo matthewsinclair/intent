@@ -2365,10 +2365,10 @@
       "node": "cc",
       "kind": "hold",
       "seq": 36,
-      "text": "Read devbin-vc's sweep of devbin 0.1.23 into Intent's tree for a change to what brew users read, and give any such change a CHANGELOG entry in [3.3.1] (releasing.md step 2). Read ahead on vc's word, read only, in ~/Devel/prj/Devbin at its main by 2026-11-12 11:02Z: since v0.1.22 devbin changes no formula, cask or homebrew file. lib/cmd/formula and lib/release.notes are unchanged, and of the other libs the formula built-in sources, lib/config, lib/helpers and lib/release.steps change only for the core-verb refusal (CORE_VERBS, is_core_verb, core_verb) and release_previous_tag, none on the render path. Intent's config declares no cache command for that refusal to catch. So the sweep needs only a diff check: nothing under packaging/homebrew, and nothing on the formula built-in's render path beyond what is read here. Released when the sweep's commit is on main and that check is read.",
+      "text": "Read the commit that brings devbin 0.1.23 (released, 7ab219821) into Intent's tree for a change to what brew users read, and give any such change a CHANGELOG entry in [3.3.1] (releasing.md step 2). Intent's gate refused devbin-vc's sweep on arm 10, so dc lands the upgrade instead, in one commit with the arm 10 narrowing and the bin/devbin upgrade seam; vc sends its sha. Read ahead on vc's word, read only, in ~/Devel/prj/Devbin at its main by 2026-11-12 11:02Z: since v0.1.22 devbin changes no formula, cask or homebrew file. lib/cmd/formula and lib/release.notes are unchanged, and of the other libs the formula built-in sources, lib/config, lib/helpers and lib/release.steps change only for the core-verb refusal (CORE_VERBS, is_core_verb, core_verb) and release_previous_tag, none on the render path. Intent's config declares no cache command for that refusal to catch. So the commit needs only a diff check: nothing under packaging/homebrew, and nothing on the formula built-in's render path beyond what is read here. Released when dc's commit is on main and that check is read.",
       "state": "live",
       "recorded_at": "2026-11-12T09:15:54.042Z",
-      "edited_at": "2026-11-12T11:02:19.623Z"
+      "edited_at": "2026-11-12T19:08:56.289Z"
     },
     {
       "node": "cc",
