@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-12:v3.82: vc - hv decision 46: intentd stays up for dc's dry run, and hv stops it at the cut"
+verblock: "2026-11-12:v3.83: vc - fold for hv's absence: seats bank, fold and hold; site push waits"
 intent_version: 3.3.0
 ---
 
@@ -13,6 +13,7 @@ intent_version: 3.3.0
 
 ## TODO
 
+- hv says "push" for intent.laksa.io at 3.3.0 (hv decision 47): ic's commit c14c60e in ~/Devel/prj/Sites/intent sets db/release.json to 3.3.0, and its `bin/devbin sites gitpush --sites=intent --dry-run` from ~/Devel/prj/Laksa plans main f3cbfb6..c14c60e to local, origin and upstream. On hv's word through vc, ic pushes and reads the live page (ic's hold 23). The same step brings the site to 3.3.1 after its cut.
 - hv checks that System Settings' Login Items names /Applications/Intent.app and not the 3.2.6 Debug build, which issue 0687's fix stops a Debug build from registering again.
 - ST0094, the estate's last two boards (moved out of ST0092), is not part of this release (hv decision 42).
 - After Intent's next cut, one visit to each estate, Intent first (hv decision 41): devbin-vc's sweep of devbin 0.1.23 and `intent claude upgrade --apply`. It replaces the hand fix in Trellis's AGENTS.md, so Trellis moves anything bespoke out of that file first.

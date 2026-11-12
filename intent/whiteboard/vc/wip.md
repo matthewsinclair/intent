@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-12 13:04Z
+heartbeat_at: 2026-11-12 14:00Z
 status: active
-focus: "2026-11-12 13:04Z. P0: Intent 3.3.1 (hv decision 44). cc, dc and ic hold with nothing unbanked. Waiting on devbin 0.1.23: its last proof run k342 (0342-1 and 0344-1), devbin-vc's landing, hv's rewrite and cut, the brew steps and devbin-vc's sweep. Then dc's one Desk slot on rhadamanth (WP-06 proof, 0682's run, vc's landing, --leg kovacs, the dry run; hv decision 45), intentd up throughout (hv decision 46), with vc's freeze and ic's two reads before the dry run, then hv's cut, which starts by stopping intentd. Owed by hv: the Login Items check."
+focus: "FOLDED for hv's absence (2026-11-12 14:00Z), on hv's word: "Please tell all of your Claudes to bank, fold, and hold." Every seat holds until vc or hv says go. P0: Intent 3.3.1. Waiting on devbin 0.1.23: k342, devbin-vc's landing, hv's rewrite and cut, the brew steps and the sweep. Then dc's slot (WP-06 proof on rhadamanth, 0682's gate run on gyges beside it, vc's landing, --leg kovacs, the dry run with intentd up), vc's freeze, ic's two reads, hv's cut. Owed by hv on return: "push" for intent.laksa.io at 3.3.0 (ic's c14c60e, rehearsed; ic hold 23), and the Login Items check."
 claims: []
 ---
 
@@ -32,14 +32,12 @@ _(none)_
 ## Decisions
 
 - (hv, 2026-10-23) Molt never touches Intent on rhadamanth except `intent issues add|edit`, committing only what the verb wrote; no repo commits Python. (edited)
-- (hv confirmed, 2026-10-25) Intent adopts devbin 0227's shared formula renderer after 3.2.7, once it takes the assets shape. (edited)
 - (2026-10-25) Every Intent judge runs `intent critic` on each changed .rs and shell file as a leg; red on warning or above; no planted positives. (edited)
 - (hv, 2026-10-25) Brew by default; dev or opt only while working on that project, and switch back to brew after its release. (edited)
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
 - (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
 - (hv, 2026-11-10, first-hand in prose in vc's session, read by 08:48Z on vc's date -u) THE TREE HOLDS ONLY WHAT IS LIVE OR TO BE DONE. hv, verbatim: "We _should_ tidy things up. If issues and ST/WPs are resolved, then lets clean them out of the tree now. We should only have stuff that is live or to be done, old stuff can be dehydrated." So a resolved artefact's realised files leave the tree, by `intent organize --apply` once its whole preview has been read. vc's reading of the boundary: a Not Started thread is to be done and stays, listed with `intent st hydrate` before the apply; ST0056 and ST0057 are Completed and stay, because tests, the reference docs and the pre-commit guards read their files, until ST0084 relocates them; and before an apply every authored file in the removal list is checked byte for byte against tracked canon. First done on 2026-11-10: 41 closed-issue views and the trees of ST0081, ST0086 and ST0087. Closing an issue or completing a thread unlists it and leaves its files, and no step of a fold reconciles the tree, so views had gathered since 2026-10-23. This replaces the practice of 2026-10-25, when an apply's closed-issue removals were put back as an accident.
-- (vc, 2026-11-10; relayed by devbin-vc from its own window, NOT heard first-hand by vc) hv answered two questions in devbin-vc's menu at about 19:55Z. (1) The eight old event files that carry a client's name: "Leave them (Recommended)". They stay as they are; the scrub of hv decision 35 is done once cc edits its two archived board items. (2) Whether the estate name the rewrite's new message keeps is a client's name: "Fine, keep it". The banked message at refs/bank/vc/rewrite/new.msg stands. devbin-vc read the rewrite script and reports it touches only c1d7d163d's message, guards on main, a clean tree and ancestry, keeps an attic ref, and checks the tip tree unchanged. ALSO, vc's own under the pen: ic read WP-03, 04, 05, 06, 07 and 09 against the dispatch table at d6f56d7e6 and vc ruled each read as ic recommended; the rulings are in each package's body under "Rulings on the second row read". Among them: INV-12 (only the mediator's session or a sessionless shell writes as the human seat on a profiled board) rides cc's WP-05 bank; out-of-date README is its own class, roster-readme-behind, and not StaleRender; finding-class ids live in FindingClass::as_str alone; and the launcher half of WP-06 is ic's, built once cc banks wb brief.
 
 ---
 

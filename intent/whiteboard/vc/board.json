@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "7683276e-e120-4768-84a2-a8267004e72d",
-    "heartbeat_at": "2026-11-12T13:04:18.292Z",
+    "heartbeat_at": "2026-11-12T14:00:37.298Z",
     "status": "active",
-    "focus": "2026-11-12 13:04Z. P0: Intent 3.3.1 (hv decision 44). cc, dc and ic hold with nothing unbanked. Waiting on devbin 0.1.23: its last proof run k342 (0342-1 and 0344-1), devbin-vc's landing, hv's rewrite and cut, the brew steps and devbin-vc's sweep. Then dc's one Desk slot on rhadamanth (WP-06 proof, 0682's run, vc's landing, --leg kovacs, the dry run; hv decision 45), intentd up throughout (hv decision 46), with vc's freeze and ic's two reads before the dry run, then hv's cut, which starts by stopping intentd. Owed by hv: the Login Items check.",
+    "focus": "FOLDED for hv's absence (2026-11-12 14:00Z), on hv's word: \"Please tell all of your Claudes to bank, fold, and hold.\" Every seat holds until vc or hv says go. P0: Intent 3.3.1. Waiting on devbin 0.1.23: k342, devbin-vc's landing, hv's rewrite and cut, the brew steps and the sweep. Then dc's slot (WP-06 proof on rhadamanth, 0682's gate run on gyges beside it, vc's landing, --leg kovacs, the dry run with intentd up), vc's freeze, ic's two reads, hv's cut. Owed by hv on return: \"push\" for intent.laksa.io at 3.3.0 (ic's c14c60e, rehearsed; ic hold 23), and the Login Items check.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2122,7 +2122,8 @@
       "kind": "decision",
       "seq": 78,
       "text": "(hv confirmed, 2026-10-25) Intent adopts devbin 0227's shared formula renderer after 3.2.7, once it takes the assets shape.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T14:00:25.845Z",
       "recorded_at": "2026-10-25T08:55:00.617Z",
       "edited_at": "2026-10-28T19:56:57.076Z"
     },
@@ -2793,7 +2794,8 @@
       "kind": "decision",
       "seq": 123,
       "text": "(vc, 2026-11-10; relayed by devbin-vc from its own window, NOT heard first-hand by vc) hv answered two questions in devbin-vc's menu at about 19:55Z. (1) The eight old event files that carry a client's name: \"Leave them (Recommended)\". They stay as they are; the scrub of hv decision 35 is done once cc edits its two archived board items. (2) Whether the estate name the rewrite's new message keeps is a client's name: \"Fine, keep it\". The banked message at refs/bank/vc/rewrite/new.msg stands. devbin-vc read the rewrite script and reports it touches only c1d7d163d's message, guards on main, a clean tree and ancestry, keeps an attic ref, and checks the tip tree unchanged. ALSO, vc's own under the pen: ic read WP-03, 04, 05, 06, 07 and 09 against the dispatch table at d6f56d7e6 and vc ruled each read as ic recommended; the rulings are in each package's body under \"Rulings on the second row read\". Among them: INV-12 (only the mediator's session or a sessionless shell writes as the human seat on a profiled board) rides cc's WP-05 bank; out-of-date README is its own class, roster-readme-behind, and not StaleRender; finding-class ids live in FindingClass::as_str alone; and the launcher half of WP-06 is ic's, built once cc banks wb brief.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-12T14:00:28.349Z",
       "recorded_at": "2026-11-10T19:58:13.333Z"
     },
     {
