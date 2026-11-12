@@ -1,0 +1,16 @@
+{
+  "id": "01M77SRB9TH7K5Q9DC300N28HG",
+  "ts": "2026-11-12T11:54:41.338Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 43,
+    "text": "dc's one Desk booking, from devbin-vc's Desk on rhadamanth once devbin-vc's sweep of devbin 0.1.23 has landed in Intent and vc calls it. Every step runs one after the other and none beside a kovacs run (hv decision 45). (1) Hold 41's WP-06 proof run: the v3 bank rebased onto the sweep, its arms red then green, and the bats suite at N=24 with its serial lane. (2) 0682's by-hand bin/devbin gate rust with TMPDIR on a 1.7G disk image, mounted for the run and then detached and deleted. (3) dc banks, and vc lands WP-06 with 0682's Resolution and close. (4) bin/devbin release gates --leg kovacs. (5) The dry run. Its pre-flight runs no gate, and it needs no intentd running and every seat's board committed. releasing.md step 2's commits are in: def0a8e01, bd525bae2, 7c6bfa53d and 573f817b2. The booking waits for the sweep's commit and vc's call (vc, 2026-11-12)."
+  }
+}
