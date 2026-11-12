@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-12 10:19Z
+heartbeat_at: 2026-11-12 10:31Z
 status: active
-focus: "2026-11-12 10:19Z, 0687 and 0688 proven on gyges in a bundle clone of main at 594422fb4 (hv decision 43) and banked with their closes, waiting for vc to land them (holds 42 and 44). ST0093 WP-06 (c) to (e) with 0682 waits for the sweep's commit and the one proof run (hold 41); the Desk booking follows releasing.md step 2 on vc's call (hold 43). Hold 37 waits on hv's look at /Applications/Intent.app; todo 63 at the cut."
-claims: [ST0090/02, ST0093/06, ISSUE:0687, ISSUE:0688]
+focus: "2026-11-12 10:31Z, holding only for the sweep: ST0093 WP-06 (c) to (e) with 0682's close waits for devbin-vc's sweep of devbin 0.1.23 and the one proof run (hold 41, tmp/wt-dc-0093-06); the Desk booking follows releasing.md step 2 on vc's call (hold 43); todo 63 at the cut. 0687 and 0688 landed at d37ab905c and 87f3f6899; ST0090 and issue 0664 closed at e5c03f777."
+claims: [ST0093/06]
 ---
 
 # DevX Claude (dc)
@@ -21,11 +21,8 @@ _(none)_
 
 ## Holds
 
-- ST0090/02 stays WIP after its landing at a54f2e9e0 until AC-02.4 is met: hv rebuilds the index in the installed 3.3.0 Intent.app (IntentCommit 1e423060f, which carries a54f2e9e0 and 8406f6a15) and sees the Rebuild Search Index row's second line, reconciled <age> ago, and vc records it (vc, 2026-11-12: no Debug build is needed). Then dc closes WP-02, ST0090 and issue 0664 can close, and dc removes tmp/wt-dc-0090-app after an attic ref. A defect hv sees comes back to dc as a new bank. (edited)
 - ST0093/06 (c) to (e) are drafted on vc's word after the compact, in tmp/wt-dc-0093-06 off main, reading Devbin at 7951719a (the code devbin cuts as 0.1.23). Nothing is run and nothing is written to Devbin's tree. The proof run and the bank wait until devbin-vc's sweep of devbin 0.1.23 lands in Intent and vc sends dc its commit. Then dc rebases the draft onto it, makes one proof run for the batch and banks it, and vc lands it. The draft covers three parts. (c) is a build: block declaring the pair, with its handlers calling cache get and put (0338). (d) points rust's gate target at DEVBIN_GATE_CACHE (0335). (e) moves tests/run_tests.sh onto the core's lanes runner (0339), with the serial tag banked unproved at refs/bank/dc/0093-06/e-serial-unproved-on-d9ec2b0fb. (a) and (b) landed at 6375023ea. (edited)
-- ISSUE:0687's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0687/fix-proven-on-594422fb4: at 594422fb4 the tests alone do not compile (xcodebuild test exit 65), and with the fix 82 of 82 app tests pass. It waits for vc to land it on rhadamanth, before 0688. Then dc archives this hold, unclaims ISSUE:0687, and removes tmp/wt-dc-0687 here and tmp/wt-dc-0687 with tmp/dc-0687-appstate in gyges's clone. (edited)
 - dc's one Desk booking for Intent's cut, bin/devbin release gates --leg kovacs and then the dry run for its pre-flight, waits for three things: ST0093 WP-06 (c) to (e) landed (hold 41), releasing.md step 2's commits in (ic's regeneration of docs/reference, stale against v3.3.0, and cc's CHANGELOG pass), and vc calling the booking. The leg goes after step 2 because gate all's reference arm runs on kovacs too (vc, 2026-11-12).
-- ISSUE:0688's fix is proven on gyges (hv decision 43) and banked with its Resolution and close at refs/bank/dc/0688/fix-proven-on-594422fb4, and at fix-proven-on-594422fb4-after-0687 to land after 0687: the driver at refs/bank/dc/0688/drive-0688-guard.sh shows the guard at 594422fb4 refusing a directory in <root>.tmp and passing one inside a linked root, and all four cases right with the fix. It waits for vc to land it. Then dc archives this hold, unclaims ISSUE:0688, and removes tmp/wt-dc-0688 here and in gyges's clone. (edited)
 
 ## Watch-outs
 
