@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The pre-push gate lets a push that only deletes remote refs through** (issue 0683). Such a push sends no commit, so the delivered pair's currency says nothing about it, and `bin/devbin prepush` now passes it with one `ok:` line rather than refusing it over a stale pair. A push that also moves a ref is still judged whole, and a frozen remote still refuses a deletion.
 - **`intent wb init --apply` names a board an earlier verb re-rendered to the new board shape** (issue 0685). The first board write a newer build makes re-renders every board still at an older shape, and names each one that is not its runner's as its owner's, so nobody committed it; the apply then found the board already right and named nothing, and a commit of what it printed left the schema line behind, as five boards of the 3.3.0 estate sweep did. The apply now also names, on `wrote:` lines, each `board.json` whose difference from HEAD is its schema alone, and a git read that fails is a note.
 
+- **`intent doctor` no longer names `wb.init`, `wb.remit` or `wb.retire` as ops this build does not declare** (issue 0686). The three roster verbs ST0092 added, `wb init --apply`, `wb remit` and `wb retire`, mint these ops, and none was in the event roster, so every board the 3.3.0 estate sweep touched showed one advisory. The advisory was shown and never counted, so doctor's exit and the commit gate were never affected.
+
 ## [3.3.0] - 2026-11-11
 
 ### Changed

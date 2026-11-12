@@ -195,10 +195,16 @@ pub const KNOWN_OPS: &[&str] = &[
   "wb.correct",
   "wb.decide",
   "wb.edit",
+  // Issue 0686: ST0092's roster verbs, `wb init --apply`, `wb remit` and `wb
+  // retire`, minted these from the day they shipped, and doctor's live check
+  // named each on the first board that used it, as this roster's note says.
+  "wb.init",
   "wb.migrate",
   "wb.pickup",
   "wb.register",
   "wb.release",
+  "wb.remit",
+  "wb.retire",
   "wb.touch",
   "wb.unclaim",
 ];
