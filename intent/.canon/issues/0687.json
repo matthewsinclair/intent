@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 687,
+  "slug": "a-debug-build-of-intent-app-registers-itself-as",
+  "title": "A Debug build of Intent.app registers itself as the login item, and a reboot then starts it in place of the installed app",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-12",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-11-12, when hv looked for ST0090 WP-02's second line (AC-02.4) on the installed 3.3.0 app. The Intent in the menu bar was not that app. It was a 3.2.6 Debug build of 8c77b10e6, built 2026-10-26 at `~/.local/state/intent/build/macos/Build/Products/Debug/Intent.app`, which predates WP-02, so its Rebuild Search Index row had no second line. The login item started it at the reboot of 2026-11-11 20:30:00Z (the app at 20:31:55Z), and `/Applications/Intent.app` (3.3.0, its executable written at 17:32Z) had not run since.\n\nThe cause is in `AppDelegate.applicationDidFinishLaunching` (`native/macos/Intent/Intent/IntentApp.swift`). On a launch where the `FirstRunDone` default is unset, the app sets it and registers itself as the login item through `SMAppService.mainApp`. A Debug build and the release build share the bundle identifier `com.matthewsinclair.intent.macos`, so they share that default and that login item. Whichever runs first registers its own bundle, and the other never registers. A Debug build run once from a dev tree therefore keeps the login item, and every reboot starts it in place of the installed app.\n\nThe fix, on vc's ruling of 2026-11-12: a Debug build neither registers the login item nor marks the first run done, so only a release build's first run registers, and a Debug run never uses it up. The decision is a pure function the tests ask directly. The registration already on hv's machine is swapped by hand in System Settings > General > Login Items, which vc has put to hv.\n"
+}
