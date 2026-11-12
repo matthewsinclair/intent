@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-12 08:45Z
+heartbeat_at: 2026-11-12 08:54Z
 status: active
-focus: "2026-11-12 08:45Z, holding for the sweep's commit with two banks to prove in one run: ST0093 WP-06 (c) to (e) with 0682's close (hold 41, tmp/wt-dc-0093-06) and ISSUE:0687's fix, red and green landing as one commit (hold 42, tmp/wt-dc-0687). hv's menu was a stale 3.2.6 Debug app; vc has put the swap to hv. Hold 37 waits on hv's look at 3.3.0; todo 63 at the cut."
+focus: "2026-11-12 08:54Z, folded for hv's compact. Two banks wait for the sweep's commit and one proof run: ST0093 WP-06 (c) to (e) with 0682's close, refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df in tmp/wt-dc-0093-06 (hold 41), and ISSUE:0687's fix as one landing unit, refs/bank/dc/0687/fix-on-7f9064cc3 in tmp/wt-dc-0687 (hold 42). Hold 37 waits on hv's look at 3.3.0, after quitting the stale Debug app; todo 63 at the cut."
 claims: [ST0090/02, ST0093/06, ISSUE:0687]
 ---
 
