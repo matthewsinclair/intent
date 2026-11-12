@@ -1,0 +1,16 @@
+{
+  "id": "01M77N1WQ6K8EE559KX4FMJE7W",
+  "ts": "2026-11-12T10:32:31.206Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 21,
+    "text": "Re-drive docs/known-defects.md whole on the pair that includes the fixes for issues 0689 (cc, intentsvcs/src/macapp.rs, which moves DIRT_SCOPE) and 0690 (cc, daemon start's remedy), on vc's word (2026-11-12), as the one drive that counts; the drive at 594422fb4 (1d9e398f3) was its shakedown. refs/bank/ic/kd331/redrive-gyges.sh carries main to gyges:~/Devel/prj/Intent as a git bundle and fast-forwards it, rebuilds the pair with bin/devbin build all, and runs the kit at /private/tmp/kd331 (the rest of refs/bank/ic/kd331/) with stdin from /dev/null. Then mkpage.pl rebuilds the page, pagecheck.sh and refcheck.pl check it, and it is committed here. At the cut's HEAD, reference_current_check.sh exits 0 (cut-surface.md moves with 0690's landing if ALL_VARIANTS does) and the diff from the drive's commit over DIRT_SCOPE is empty. Released when vc says 0689 and 0690 have landed."
+  }
+}

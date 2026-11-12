@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 690,
+  "slug": "intent-daemon-start-with-a-pipe-on-stdin-can-sta",
+  "title": "`intent daemon start` with a pipe on stdin can start a daemon that stops at once, and its refusal's remedy does not name the lifeline",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-12",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-11-12 while re-driving docs/known-defects.md on gyges for the 3.3.1 cut (hv decision 43), on the pair at 594422fb48c0.\n\n`intent daemon start` hands its own stdin to intentd when that stdin is a pipe (`stdin_is_a_lifeline`, ST0073), and intentd then takes the pipe's writer as its owner and stops when the pipe reaches end of file. Over ssh without a terminal, a command's stdin is a pipe: `stat -L -f %HT /dev/stdin` reads `Fifo File` on gyges, where a Claude Code shell on rhadamanth reads `Character Device`. In the known-defects drive run that way, intentd logged `intentd stopping: the lifeline closed, so whoever started this daemon is gone` at the same millisecond as its `listening` line, and `daemon start` refused with exit 1:\n\n    error: intentd was started and is not answering\n      remedy: it either failed to bind or exited. Its output is in `<state>/intentd.log` and `<state>/intentd.err.log`, which is where the reason will be.\n\nThe remedy names neither stdin nor the lifeline. intentd.err.log is empty, and only intentd.log says why. The same drive with stdin from /dev/null starts a daemon that answers, and the drive's 0443 entry then reproduces as it did at 3.3.0.\n\nNot fully explained: in one probe of the same ssh shape, an unpiped `intent daemon start` started a daemon that stayed up, so when the pipe's writer goes away depends on the session. The failing shape is pinned by refs/bank/ic/kd331/daemon-probe3.sh, which runs `intent daemon start 2>&1 | sed 's/^/  /'` in a scratch project under a short isolated HOME, as the drive's `run` does, and by the drive's first log, refs/bank/ic/kd331/drive-kd331-594422fb48c0-run1-pipedstdin.log, whose 0443 entry searched in-process for this reason.\n\nThe fix, on vc's ruling of 2026-11-12: cc fixes the remedy, so that a daemon stopped by its lifeline is reported as that, after issue 0689, since the remedy's meaning is the core's. It rides 3.3.1 under directive 1.\n"
+}
