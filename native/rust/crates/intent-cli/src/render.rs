@@ -12639,7 +12639,11 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
   // below is deliberate detachment. `daemon_lifecycle.rs` drives this verb nine
   // times; on 2026-09-10 that population, plus the harnesses, reached 64
   // processes and took the machine to load 500.
-  let lifeline = if intentsvcs::daemon::stdin_is_a_lifeline() {
+  //
+  // The answer is kept, because the refusal below names the lifeline only
+  // when there was one (issue 0690).
+  let stdin_is_its_lifeline = intentsvcs::daemon::stdin_is_a_lifeline();
+  let lifeline = if stdin_is_its_lifeline {
     std::process::Stdio::inherit()
   } else {
     std::process::Stdio::null()
@@ -12671,11 +12675,36 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
     }
     std::thread::sleep(START_PAUSE);
   }
-  Err(Failure::Error(format!(
-    "error: intentd was started and is not answering\n  remedy: it either failed to bind or exited. Its output is in `{}` and `{}`, which is where the reason will be.",
-    out.display(),
-    err.display()
+  Err(Failure::Error(started_and_not_answering(
+    &out,
+    &err,
+    stdin_is_its_lifeline,
   )))
+}
+
+/// `intent daemon start`'s refusal when the daemon it spawned never answered.
+///
+/// **A PIPE ON STDIN IS NAMED AS THE LIFELINE IT WAS** (issue 0690). Handed
+/// this command's stdin as its lifeline (`ST0073`), intentd stops when the pipe
+/// reaches end of file, which over ssh without a terminal can be at once. It
+/// says so in `out` alone, so a remedy naming only a failed bind or an exit
+/// sent the reader to `err`, which is empty. Without a pipe there is no
+/// lifeline, and the remedy says what it always said.
+fn started_and_not_answering(
+  out: &std::path::Path,
+  err: &std::path::Path,
+  stdin_is_its_lifeline: bool,
+) -> String {
+  let (out, err) = (out.display(), err.display());
+  if stdin_is_its_lifeline {
+    format!(
+      "error: intentd was started and is not answering\n  remedy: this command's stdin is a pipe, which intentd takes as its lifeline (ST0073): it stops when the pipe reaches end of file, as it can at once over ssh without a terminal. If `{out}` says the lifeline closed, that is why, and `intent daemon start </dev/null` starts a daemon that stays up. Otherwise it failed to bind or exited, and its output is in `{out}` and `{err}`, which is where the reason will be."
+    )
+  } else {
+    format!(
+      "error: intentd was started and is not answering\n  remedy: it either failed to bind or exited. Its output is in `{out}` and `{err}`, which is where the reason will be."
+    )
+  }
 }
 
 /// `intent daemon start --at-login` with a daemon already running as `pid`
@@ -18768,5 +18797,37 @@ mod tests {
     ] {
       assert!(lines.contains(&line), "no `{line}` in:\n{text}");
     }
+  }
+
+  /// **A DAEMON THAT DOES NOT ANSWER IS SAID TO HAVE HAD THIS COMMAND'S PIPE AS
+  /// ITS LIFELINE ONLY WHEN IT DID** (issue 0690). Over ssh without a terminal,
+  /// `daemon start` hands intentd its stdin, a pipe, and intentd stops when the
+  /// pipe reaches end of file. The refusal named a failed bind or an exit, and
+  /// only `intentd.log` said why. Without a pipe there was no lifeline, so
+  /// naming one would send the reader after a cause that cannot be theirs.
+  #[test]
+  fn a_daemon_that_does_not_answer_is_told_of_the_lifeline_only_when_stdin_was_one() {
+    let out = std::path::Path::new("/state/intentd.log");
+    let err = std::path::Path::new("/state/intentd.err.log");
+    let piped = started_and_not_answering(out, err, true);
+    let unpiped = started_and_not_answering(out, err, false);
+    for refusal in [&piped, &unpiped] {
+      assert!(
+        refusal.starts_with("error: intentd was started and is not answering\n  remedy: "),
+        "{refusal}"
+      );
+      for log in ["`/state/intentd.log`", "`/state/intentd.err.log`"] {
+        assert!(refusal.contains(log), "no {log} in:\n{refusal}");
+      }
+    }
+    for named in [
+      "stdin is a pipe",
+      "lifeline (ST0073)",
+      "end of file",
+      "`intent daemon start </dev/null`",
+    ] {
+      assert!(piped.contains(named), "no `{named}` in:\n{piped}");
+    }
+    assert!(!unpiped.contains("lifeline"), "{unpiped}");
   }
 }
