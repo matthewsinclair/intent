@@ -122,22 +122,36 @@ pub fn installed_bundle() -> Option<PathBuf> {
   candidates().into_iter().find(|p| p.is_dir())
 }
 
-/// Ask LaunchServices for one field about the bundle.
+/// What `lsappinfo` printed for `args`, or `None` when it could not be run or
+/// refused.
 ///
 /// **`lsappinfo`, NEVER `pgrep`, AND THE REASON IS NOT STYLE** (geodica's, paid
 /// for there): a hardened-runtime app is not visible in the process table to its
 /// own children, so a `pgrep` shelled from inside `Intent.app` reports the app
 /// dead while it is plainly running. LaunchServices answers the same for every
 /// caller, inside the bundle or out.
-fn ls_field(field: LsField) -> Option<String> {
+fn lsappinfo(args: &[&str]) -> Option<String> {
   let out = Command::new("/usr/bin/lsappinfo")
-    .args(["info", "-only", field.query(), BUNDLE_ID])
+    .args(args)
     .output()
     .ok()?;
   if !out.status.success() {
     return None;
   }
-  parse_ls_field(field, &String::from_utf8_lossy(&out.stdout))
+  Some(String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+/// Ask LaunchServices for one field of one record, by the record's ASN.
+fn ls_field(asn: &str, field: LsField) -> Option<String> {
+  parse_ls_field(field, &lsappinfo(&["info", "-only", field.query(), asn])?)
+}
+
+/// The ASN of every record LaunchServices holds for the bundle id.
+fn records() -> Vec<String> {
+  let query = format!("bundleid={BUNDLE_ID}");
+  lsappinfo(&["find", query.as_str()])
+    .map(|printed| parse_asns(&printed))
+    .unwrap_or_default()
 }
 
 /// The two fields this module asks LaunchServices for.
@@ -208,21 +222,95 @@ fn value_of(text: &str, key: &str) -> Option<String> {
   None
 }
 
-/// The running app's pid, or `None` when nothing holds the bundle id.
+/// Every record `lsappinfo find` printed, as the ASN `lsappinfo info` takes.
+///
+/// It prints `ASN:0x0-0x4b96b92-"Intent":` for each record, separated by a
+/// space and with the name's own spaces written as `_`, and a lone newline
+/// when no app holds the id.
+fn parse_asns(printed: &str) -> Vec<String> {
+  let hex = |half: &str| {
+    half
+      .strip_prefix("0x")
+      .is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_hexdigit()))
+  };
+  printed
+    .split_whitespace()
+    .filter_map(|token| {
+      let mut halves = token.strip_prefix("ASN:")?.splitn(3, '-');
+      let high = halves.next()?;
+      let low = halves.next()?.trim_end_matches(':');
+      (hex(high) && hex(low)).then(|| format!("ASN:{high}-{low}"))
+    })
+    .collect()
+}
+
+/// Whether a process holds `pid`, as `kill(pid, 0)` answers.
+///
+/// **ONLY `ESRCH` IS GONE** (issue 0689). `EPERM` is a process this caller may
+/// not signal, which is still a process, so the hardened-runtime reason for
+/// asking LaunchServices rather than the process table stands. `0`, and a pid
+/// past `pid_t`, hold none: `kill(0, 0)` would ask about the caller's own
+/// process group.
+fn holds_a_process(pid: u32) -> bool {
+  let Ok(pid) = libc::pid_t::try_from(pid) else {
+    return false;
+  };
+  if pid == 0 {
+    return false;
+  }
+  // SAFETY: signal 0 delivers nothing. `kill` only reports whether `pid` could
+  // be signalled, and touches no memory of this process.
+  if unsafe { libc::kill(pid, 0) } == 0 {
+    return true;
+  }
+  std::io::Error::last_os_error().raw_os_error() != Some(libc::ESRCH)
+}
+
+/// The first of `records` whose pid holds a process: that pid, and the bundle
+/// path the record names.
+///
+/// **A RECORD IS NOT A PROCESS** (issue 0689). LaunchServices keeps the record
+/// of an app that has exited while processes it started live on, marked
+/// `exited-with-subordinates` in `lsappinfo list`, and asked by bundle id it
+/// answered from that record: an exited Debug build's pid read as running, and
+/// beside that record the running app read as nothing at all. So each record
+/// is read by its own ASN, and its pid is put to the kernel. **PURE OVER ITS
+/// READERS**, so the verdict is driven by what one machine printed rather than
+/// by whatever runs where the test does.
+fn running_in(
+  records: impl IntoIterator<Item = String>,
+  read: impl Fn(&str, LsField) -> Option<String>,
+  holds: impl Fn(u32) -> bool,
+) -> Option<(u32, Option<PathBuf>)> {
+  records.into_iter().find_map(|asn| {
+    let pid = read(&asn, LsField::Pid)?
+      .parse::<u32>()
+      .ok()
+      .filter(|&pid| holds(pid))?;
+    Some((pid, read(&asn, LsField::BundlePath).map(PathBuf::from)))
+  })
+}
+
+/// The running app's pid and the bundle its record names, or `None` when no
+/// record LaunchServices holds for the bundle id has a process.
+fn running() -> Option<(u32, Option<PathBuf>)> {
+  running_in(records(), ls_field, holds_a_process)
+}
+
+/// The running app's pid, or `None` when no process holds the bundle id.
 pub fn pid() -> Option<u32> {
-  ls_field(LsField::Pid)?.parse().ok()
+  running().map(|(pid, _)| pid)
 }
 
 /// Where the app is, what it is doing, and nothing derived beyond that.
 pub fn status() -> State {
-  match pid() {
-    Some(pid) => {
+  match running() {
+    Some((pid, bundle)) => {
       // **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST.** An app
       // launched from a path this function would not have guessed is still the
       // app that is running, and reporting the guess would name a bundle the
       // operator is not looking at.
-      let bundle = ls_field(LsField::BundlePath)
-        .map(PathBuf::from)
+      let bundle = bundle
         .or_else(installed_bundle)
         .unwrap_or_else(|| PathBuf::from("(unknown)"));
       State::Running { pid, bundle }
@@ -315,11 +403,8 @@ impl crate::remedy::Remedy for AppError {
 /// process with no such registration -- which is why `app-run` exists as a
 /// separate developer verb and is deliberately not what this does.
 pub fn start() -> Result<(u32, PathBuf), AppError> {
-  if let Some(pid) = pid() {
-    let bundle = ls_field(LsField::BundlePath)
-      .map(PathBuf::from)
-      .unwrap_or_else(|| PathBuf::from("(unknown)"));
-    return Ok((pid, bundle));
+  if let Some((pid, bundle)) = running() {
+    return Ok((pid, bundle.unwrap_or_else(|| PathBuf::from("(unknown)"))));
   }
   let bundle = installed_bundle().ok_or(AppError::NotInstalled)?;
   Command::new("/usr/bin/open")
@@ -338,19 +423,14 @@ pub fn start() -> Result<(u32, PathBuf), AppError> {
   // module already knew a quit had to be verified, and applied it to only one of
   // the two directions.
   let readings = std::iter::from_fn(|| {
-    let reading = pid();
+    let reading = running();
     if reading.is_none() {
       std::thread::sleep(SETTLE_POLL_INTERVAL);
     }
     Some(reading)
   });
   match awaited(readings, LAUNCH_DEADLINE, SETTLE_POLL_INTERVAL) {
-    Some(pid) => {
-      let bundle = ls_field(LsField::BundlePath)
-        .map(PathBuf::from)
-        .unwrap_or(bundle);
-      Ok((pid, bundle))
-    }
+    Some((pid, launched)) => Ok((pid, launched.unwrap_or(bundle))),
     None => Err(AppError::NotRegistered {
       bundle,
       waited: LAUNCH_DEADLINE,
@@ -557,5 +637,104 @@ mod tests {
     if let (Some(r), Some(d)) = (rel, dbg) {
       assert!(r < d, "Release must precede Debug: {c:?}");
     }
+  }
+
+  /// Issue 0689: what LaunchServices printed on rhadamanth (macOS 27.2.1) on
+  /// 2026-11-12 between 10:22Z and 10:24Z, while it held the record of the
+  /// 3.2.6 Debug build's exited pid 1734, marked `exited-with-subordinates` in
+  /// `lsappinfo list`, beside the running /Applications/Intent.app at pid 12497.
+  /// Asked by bundle id, `lsappinfo info -only pid` printed nothing; `find`
+  /// listed the live record alone, and each record answered `info` by its own
+  /// ASN. Every string is verbatim.
+  const RHADAMANTH_FIND: &str = "ASN:0x0-0x4b96b92-\"Intent\":\n";
+  const RHADAMANTH_LIVE: &str = "ASN:0x0-0x4b96b92";
+  const RHADAMANTH_EXITED: &str = "ASN:0x0-0x82082";
+  const RHADAMANTH_LIVE_PID: &str = "[ NULL ]  [ NULL ]  \n    bundleID=[ NULL ] \n    bundle path=[ NULL ] \n    executable path=[ NULL ] \n    pid = 12497 !cgsConnection !signalled type=[ NULL ]  flavor=[ NULL ]  Version=[ NULL ]  Arch=!!none \n\n";
+  const RHADAMANTH_LIVE_BUNDLEPATH: &str = "[ NULL ]  ASN:0x0-0x4b96b92: \n    bundleID=[ NULL ] \n    bundle path=\"/Applications/Intent.app\"\n    executable path=[ NULL ] \n !cgsConnection !signalled type=[ NULL ]  flavor=[ NULL ]  Version=[ NULL ]  Arch=!!none \n\n";
+  const RHADAMANTH_EXITED_PID: &str = "[ NULL ]  [ NULL ]  \n    bundleID=[ NULL ] \n    bundle path=[ NULL ] \n    executable path=[ NULL ] \n    pid = 1734 !cgsConnection !signalled type=[ NULL ]  flavor=[ NULL ]  Version=[ NULL ]  Arch=!!none \n\n";
+
+  /// Each record's answer there to `lsappinfo info -only <field> <ASN>`.
+  fn rhadamanth(asn: &str, field: LsField) -> Option<String> {
+    let printed = match (asn, field) {
+      (RHADAMANTH_LIVE, LsField::Pid) => RHADAMANTH_LIVE_PID,
+      (RHADAMANTH_LIVE, LsField::BundlePath) => RHADAMANTH_LIVE_BUNDLEPATH,
+      (RHADAMANTH_EXITED, LsField::Pid) => RHADAMANTH_EXITED_PID,
+      _ => return None,
+    };
+    parse_ls_field(field, printed)
+  }
+
+  /// `kill -0` there: 12497 answered, and 1734 was "No such process".
+  fn rhadamanth_holds(pid: u32) -> bool {
+    pid == 12497
+  }
+
+  /// Issue 0689: a record whose process has gone is never the running app,
+  /// and the running app's record beside it is.
+  #[test]
+  fn a_record_whose_process_has_gone_is_passed_over_for_the_running_app() {
+    let live = Some((12497, Some(PathBuf::from("/Applications/Intent.app"))));
+    assert_eq!(
+      running_in(parse_asns(RHADAMANTH_FIND), rhadamanth, rhadamanth_holds),
+      live,
+      "the one record `find` listed"
+    );
+    assert_eq!(
+      running_in(
+        [RHADAMANTH_EXITED.to_string(), RHADAMANTH_LIVE.to_string()],
+        rhadamanth,
+        rhadamanth_holds
+      ),
+      live,
+      "both records, the exited one first, as `lsappinfo list` ordered them"
+    );
+    assert_eq!(
+      running_in(
+        [RHADAMANTH_EXITED.to_string()],
+        rhadamanth,
+        rhadamanth_holds
+      ),
+      None,
+      "the exited app's record alone, as hv met it: `app start` must launch"
+    );
+  }
+
+  /// Issue 0689: `find` prints one record per app, separated by a space, and a
+  /// lone newline when no app holds the id. The two records here are the first
+  /// two of the four `lsappinfo find bundleid=com.apple.quicklook.QuickLookUIService`
+  /// printed on rhadamanth, verbatim: a name with parentheses in it, and one
+  /// with `PID_` in it, are still one record each.
+  #[test]
+  fn find_names_each_record_by_its_asn_and_none_when_no_app_holds_the_id() {
+    assert_eq!(parse_asns(RHADAMANTH_FIND), [RHADAMANTH_LIVE]);
+    assert_eq!(
+      parse_asns(
+        "ASN:0x0-0xac0ac-\"QuickLookUIService_(Open_and_Save_Panel_Service_(Safari))\": ASN:0x0-0xa6ba6b-\"QuickLookUIService_(PID_55209)\":\n"
+      ),
+      ["ASN:0x0-0xac0ac", "ASN:0x0-0xa6ba6b"]
+    );
+    assert_eq!(parse_asns("\n"), Vec::<String>::new());
+  }
+
+  /// Issue 0689: a pid holds a process unless `kill(pid, 0)` answers `ESRCH`.
+  #[test]
+  fn a_pid_holds_a_process_unless_kill_finds_none() {
+    assert!(
+      holds_a_process(std::process::id()),
+      "this test's own process"
+    );
+    assert!(
+      holds_a_process(1),
+      "pid 1 is launchd, or init: a caller that may not signal it gets EPERM, and it is still a process"
+    );
+    let mut child = Command::new("true").spawn().expect("spawn true");
+    let gone = child.id();
+    child.wait().expect("reap true");
+    assert!(!holds_a_process(gone), "the reaped child's pid {gone}");
+    assert!(
+      !holds_a_process(0),
+      "kill(0, 0) asks about the caller's process group"
+    );
+    assert!(!holds_a_process(u32::MAX), "past pid_t");
   }
 }
