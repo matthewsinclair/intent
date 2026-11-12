@@ -1,0 +1,16 @@
+{
+  "id": "01M77G1VQH05SNGX60ESFGMZ1B",
+  "ts": "2026-11-12T09:05:07.313Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 42,
+    "text": "ISSUE:0687's fix is banked off 7f9064cc3 as one landing unit, red and green together, at refs/bank/dc/0687/fix-on-7f9064cc3 (the red alone at refs/bank/dc/0687/red-on-7f9064cc3), on vc's word that it rides this release as one commit with no CHANGELOG entry. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases the unit onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands it. A Debug build neither registers the login item nor marks FirstRunDone."
+  }
+}
