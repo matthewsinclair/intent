@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 14:55Z
+heartbeat_at: 2026-11-12 19:14Z
 status: active
-focus: "2026-11-12 14:55Z, the fold's hold is over on hv's word through vc (hv decision 48, bab8e458c: devbin-vc has the pen, its instructions reach cc through vc). cc holds no claim, worktree, scratch dir or slot on either machine. Only hold 36 stands: the diff check of devbin-vc's sweep of devbin 0.1.23 into Intent's tree, once vc sends the commit. Nothing else starts until then."
+focus: "2026-11-12 19:14Z, hold 36 read and archived: dc's a8a59219c (devbin 0.1.22 to 0.1.23, arm 10 narrowed) is clear for brew users, so no CHANGELOG entry; the cut changes it brings (kovacs's rehearsal before a cut, legs one at a time, the gates' cache) went to vc. cc holds no claim, worktree, scratch dir or slot, and nothing runs until vc says go."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Read the commit that brings devbin 0.1.23 (released, 7ab219821) into Intent's tree for a change to what brew users read, and give any such change a CHANGELOG entry in [3.3.1] (releasing.md step 2). Intent's gate refused devbin-vc's sweep on arm 10, so dc lands the upgrade instead, in one commit with the arm 10 narrowing and the bin/devbin upgrade seam; vc sends its sha. Read ahead on vc's word, read only, in ~/Devel/prj/Devbin at its main by 2026-11-12 11:02Z: since v0.1.22 devbin changes no formula, cask or homebrew file. lib/cmd/formula and lib/release.notes are unchanged, and of the other libs the formula built-in sources, lib/config, lib/helpers and lib/release.steps change only for the core-verb refusal (CORE_VERBS, is_core_verb, core_verb) and release_previous_tag, none on the render path. Intent's config declares no cache command for that refusal to catch. So the commit needs only a diff check: nothing under packaging/homebrew, and nothing on the formula built-in's render path beyond what is read here. Released when dc's commit is on main and that check is read. (edited)
+_(none)_
 
 ## Watch-outs
 
