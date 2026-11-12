@@ -92,7 +92,7 @@ title: A Claude Team is declared by a profile: wb init sets up its board, hv is 
 
 - AC-09.1 `intent doctor` reports, each as its own class naming the profile it measured against, with `intent wb init`'s dry run then `--apply` as its remedy: a seat whose name or role differs from its profile's, a seat its profile declares that is not registered, and an inbox view on disk for a pair the declaration closes. A board that declares no profile is no finding. A declared seat that is retired is named as retired, shown and not counted, and is not a seat its profile declares that is not registered. -- satisfied: yes (computed)
 - AC-09.2 None of these classes refuses a commit: the pre-commit gate passes a tree that carries each. -- satisfied: yes (computed)
-- AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv. -- satisfied: no
+- AC-09.3 (non-test) vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv. -- evidence: census of 2026-11-12 05:25Z by vc on brew 3.3.0 (1e423060f919), 32 live boards: seat-differs-from-profile, seat-not-registered, closed-pair-view and seat-retired each 0 on every board (refs/bank/vc/st0092/census-20261112.txt, local); hv ruled none gates, hv decision 41 -- satisfied: yes
 
 ### WP-10 -- The new surface reads as one (status: Done)
 

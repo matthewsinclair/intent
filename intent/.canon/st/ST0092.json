@@ -548,7 +548,8 @@
       "text": "vc has run the banked census against a build that carries this package and recorded the count of each class for each project, and whether any class gates after the sweep is ruled by hv with that table in front of hv.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "census of 2026-11-12 05:25Z by vc on brew 3.3.0 (1e423060f919), 32 live boards: seat-differs-from-profile, seat-not-registered, closed-pair-view and seat-retired each 0 on every board (refs/bank/vc/st0092/census-20261112.txt, local); hv ruled none gates, hv decision 41"
       }
     },
     {
