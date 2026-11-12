@@ -11,18 +11,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0090: The index rebuild says what happened, in the CLI's report and Intent.app's menu
   - [x] 01: One level-3 state on every face, and the index report names its reconcile time
   - [-] 02: Intent.app's Rebuild Search Index row copies Gtools' Refresh Search row
-- [-] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
-  - [x] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
-  - [x] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
-  - [x] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
-  - [x] 04: A seat can be retired, and a board can change its profile
-  - [x] 05: hv is reached through one node, and the tool enforces it
-  - [x] 06: A session is told its seat at pickup and at launch
-  - [x] 07: The roster README is rendered from the profile and keeps the project's own block
-  - [x] 08: The Desk is a hat with a written contract
-  - [x] 09: Doctor reports a board that has left its profile
-  - [x] 10: The new surface reads as one
-  - [-] 11: Every live board converges, Intent's own first
 - [-] ST0093: Why Claudes yak-shave, and faster releases
   - [x] 01: Prune the shared memory to durable facts
   - [-] 02: Sync the installed skills; in-verify leaves the fold
@@ -42,6 +30,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [ ] ST0085: Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
+- [?] ST0094: The estate's last two boards converge to their profiles
 
 ## DONE:2026-09-10T00:00:51Z
 
@@ -179,6 +168,18 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 02: kovacs runs as the cut's remote leg, and prepush keeps only its push gates
   - [x] 03: The tap and the macOS assets publish through the built-ins, with prepare as a shadow
   - [x] 04: The workflows fire on the candidate, and the docs describe the cut as built
+- [x] ST0092: A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges
+  - [x] 01: The terms are defined once: Team, Swarm, profile, the seats, the mediator and the hat
+  - [x] 02: A Team Profile is a shipped resource: team, solo, supervisor and supervised
+  - [x] 03: wb init reconciles a board to its profile, and is a dry run until told to apply
+  - [x] 04: A seat can be retired, and a board can change its profile
+  - [x] 05: hv is reached through one node, and the tool enforces it
+  - [x] 06: A session is told its seat at pickup and at launch
+  - [x] 07: The roster README is rendered from the profile and keeps the project's own block
+  - [x] 08: The Desk is a hat with a written contract
+  - [x] 09: Doctor reports a board that has left its profile
+  - [x] 10: The new surface reads as one
+  - [x] 11: Every live board converges, Intent's own first
 
 ---
 

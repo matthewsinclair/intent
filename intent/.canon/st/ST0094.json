@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0094",
+  "title": "The estate's last two boards converge to their profiles",
+  "slug": "the-estate-s-last-two-boards-converge-to-their-p",
+  "status": "triage",
+  "created": "2026-11-12",
+  "objective": "Finish the convergence ST0092 WP-11 left undone, outside Intent's next release (hv, 2026-11-12): Arca's supervisor commits its own board, molt-vc cites Intent's terms in Molt's guide and roster README, and the census re-runs clean. AC-11.4, AC-11.6 and AC-11.7 moved here from ST0092.",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M77E28Y74KKFBZ079VD9N6P7",
+  "ts": "2026-11-12T08:30:23.687Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, by selection in the TUI in vc's session, answered by 08:28Z on vc's date -u, the option's wording vc's and the choice hv's and vc's recommendation; then hv's own words in prose in the same session) ST0092 CLOSES, AND ARCA IS NO CONCERN OF THIS RELEASE. (1) \"Move the 3 out\": ST0092's AC-11.4, AC-11.6 and AC-11.7 waited on Arca's supervisor committing its board, on molt-vc citing Intent's terms in Molt's guide, and on the census after both. They moved by intent ac descope to ST0094 (The estate's last two boards converge to their profiles), outside Intent's next release, and WP-11 and ST0092 closed on the gate's PASS (62 of 62, 3 descoped). agentic-engineering had already converged through its own vc that morning (its 63ae6fd), which executed decision 41 (2). (2) hv, verbatim: \"Nothing about arca matters today. NOTHING. Whatever it is that is referencing arca SHOULD NOT BE A CONCERN OF THIS RELEASE.\""
+  }
+}

@@ -517,6 +517,14 @@
       "text": "(hv, 2026-11-12, by selection in the TUI in vc's session, answered by 05:40Z on vc's date -u; wording vc's, each choice hv's and vc's recommendation) THREE RULINGS. (1) ST0092 AC-09.3: none of WP-09's four doctor classes (seat-differs-from-profile, seat-not-registered, closed-pair-view, seat-retired) gates; they stay shown and never counted. The census on brew 3.3.0 at 05:25Z read 0 of each on all 32 live boards (refs/bank/vc/st0092/census-20261112.txt, kept local because it names client projects). (2) The one board the 3.3.0 sweep missed, writing/Longform/Courses/agentic-engineering, converges through its own vc on vc's exact steps when its freeze allows, off the P0 path. (3) The fleet's root files, behind 3.3.0's templates in 30 of 32 projects, are upgraded once, after Intent's next cut, in the same visit to each estate as devbin-vc's sweep of devbin 0.1.23.",
       "state": "live",
       "recorded_at": "2026-11-12T05:41:45.150Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 42,
+      "text": "(hv, 2026-11-12, by selection in the TUI in vc's session, answered by 08:28Z on vc's date -u, the option's wording vc's and the choice hv's and vc's recommendation; then hv's own words in prose in the same session) ST0092 CLOSES, AND ARCA IS NO CONCERN OF THIS RELEASE. (1) \"Move the 3 out\": ST0092's AC-11.4, AC-11.6 and AC-11.7 waited on Arca's supervisor committing its board, on molt-vc citing Intent's terms in Molt's guide, and on the census after both. They moved by intent ac descope to ST0094 (The estate's last two boards converge to their profiles), outside Intent's next release, and WP-11 and ST0092 closed on the gate's PASS (62 of 62, 3 descoped). agentic-engineering had already converged through its own vc that morning (its 63ae6fd), which executed decision 41 (2). (2) hv, verbatim: \"Nothing about arca matters today. NOTHING. Whatever it is that is referencing arca SHOULD NOT BE A CONCERN OF THIS RELEASE.\"",
+      "state": "live",
+      "recorded_at": "2026-11-12T08:30:23.687Z"
     }
   ],
   "sent": [],
