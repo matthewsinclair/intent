@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 05:51Z
+heartbeat_at: 2026-11-12 05:53Z
 status: active
-focus: "2026-11-12 05:51Z, issue 0681 landed by vc (ef88713a4 red, 7636f5b23 green) and closed; ic's worktree removed (attic refs/attic/ic/wt-ic-0681). No claims, nothing banked unlanded. Holding for vc's next word."
+focus: "2026-11-12 05:53Z, holding until the cut on vc's word: no claims, nothing unlanded. ic's one owed unit is the docs/reference regeneration (hold above), called by vc once devbin 0.1.23 is swept in and ST0093 WP-06 has landed."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- Regenerate docs/reference before the next cut, on vc's call (vc, 2026-11-12): 0681 changed wb brief's help (7636f5b23), so docs/reference/intent-wb.md and its siblings are behind the table. Released when devbin 0.1.23 is vendored in Intent's tree and ST0093 WP-06 reads Done in `intent wp list ST0093`; the cut sequence in intent/docs/releasing.md names the generators and their revision inputs.
 
 ## Watch-outs
 

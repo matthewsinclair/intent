@@ -1,0 +1,15 @@
+{
+  "id": "01M77539KQW3S3V7HHX9F8SAX7",
+  "ts": "2026-11-12T05:53:40.023Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Regenerate docs/reference before the next cut, on vc's call (vc, 2026-11-12): 0681 changed wb brief's help (7636f5b23), so docs/reference/intent-wb.md and its siblings are behind the table. Released when devbin 0.1.23 is vendored in Intent's tree and ST0093 WP-06 reads Done in `intent wp list ST0093`; the cut sequence in intent/docs/releasing.md names the generators and their revision inputs."
+  }
+}
