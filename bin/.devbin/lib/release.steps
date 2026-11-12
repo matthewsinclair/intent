@@ -7,6 +7,7 @@
 #   release_commit <tag>                         `<sha><TAB>tag|HEAD`: the release commit
 #   release_versions <template>                  every version a matching tag names, newest first
 #   release_resolve <template> <target>          the resolve step: `<version><TAB><tag><TAB>new|resume`
+#   release_previous_tag <template> <tag>        the newest release's tag other than <tag>: a cut's baseline
 #   release_scratch <project-root>               a scratch directory OUTSIDE the project
 #   release_materialise <commit> <dir> <path>... a commit's whole tree, written into <dir>
 #   release_owned <root> <version>               the paths a release owns before derived: runs
@@ -193,6 +194,24 @@ release_versions() {
     return 1
   fi
   [ -z "$versions" ] || printf '%s\n' "$versions"
+}
+
+# release_previous_tag <template> <tag> -- the tag of the newest release other
+# than <tag>, by release_versions, the reading every bump makes: the baseline a
+# cut of <tag> is measured from, which a remote leg is sent beside R (issue
+# 0333). <tag> is the target's own, or empty for none. Nothing, at status 0,
+# when no other tag names a release; status 1 when the tags cannot be read.
+release_previous_tag() {
+  local tpl="$1" own="$2" versions v t
+  versions="$(release_versions "$tpl")" || return 1
+  while IFS= read -r v; do
+    [ -n "$v" ] || continue
+    t="$(release_tag_name "$tpl" "$v")"
+    if [ "$t" != "$own" ]; then
+      printf '%s\n' "$t"
+      return 0
+    fi
+  done <<<"$versions"
 }
 
 # release_resolve <template> <target> -- the resolve step: the version a cut of
@@ -506,7 +525,7 @@ release_lock_own_aside() {
 #
 # READ WITH -z, so a path holding a space or a quote is the path and not git's
 # quoting of it: the owned-set test compares these with notes_paths' spelling.
-# The status is git's, through `wait` on the process substitution.
+# The status is git's, read with its records by nul_read (issue 0342).
 #
 # WITHOUT THE OPTIONAL LOCK, AND NOTHING ELSE (issue 0094): `release check` is
 # read-only, and a plain `git status` rewrites a stale index under that lock. Not
@@ -518,8 +537,10 @@ release_lock_own_aside() {
 # and release_commit's all name the one repository at the project root
 # (ST0011).
 release_dirt() {
-  local entry second=no
-  while IFS= read -r -d '' entry; do
+  local entry second=no rc=0
+  local -a entries=()
+  nul_read entries git --no-optional-locks status --porcelain=v1 -z --untracked-files=all || rc=$?
+  for entry in ${entries[@]+"${entries[@]}"}; do
     if [ "$second" = yes ]; then
       printf '%s\n' "$entry"
       second=no
@@ -527,8 +548,8 @@ release_dirt() {
     fi
     printf '%s\n' "${entry:3}"
     case "${entry:0:1}" in R | C) second=yes ;; esac
-  done < <(git --no-optional-locks status --porcelain=v1 -z --untracked-files=all)
-  wait "$!"
+  done
+  return "$rc"
 }
 
 # release_outside <paths> <owned> -- the lines of <paths> that are not lines of
@@ -2023,8 +2044,11 @@ release_group_start() {
     # and the wrapper alone is signalled: the local gates' stop says so
     # (legs_local_stop), and release_run_bounded's deadline kills the wrapper
     # alone, so a process <cmd> started may run on past it, unnamed.
-    printf '%s\n' "$!" >"$group" || :
-    wait "$!"
+    # The job's pid is named as it starts, so the wait reads that job whatever
+    # runs after it.
+    job=$!
+    printf '%s\n' "$job" >"$group" || :
+    wait "$job"
   ) 2>/dev/null &
 }
 

@@ -308,7 +308,7 @@ _clean_roots() {
   # one a caller passes: it would shadow the caller's array, and the appends
   # below would land in it instead.
   local -n _cr_roots="$4" _cr_inplace="$5"
-  local -a marks=() cands=() keep=() sorted=() crates=()
+  local -a marks=() walked=() cands=() keep=() sorted=() crates=()
   # WHAT THE WALK RUNS IS /bin/sh, NAMED WHOLE, AND NOTHING FOUND THROUGH PATH.
   # find looks -exec's utility up
   # through PATH, and a project's own bin/test first on PATH -- direnv's
@@ -325,8 +325,16 @@ _clean_roots() {
   # issue 0145 gave every walk that descends one detector, find_walk, which
   # names such a directory and fails; its status is this walk's, below.
   [ "$markers" != cargo ] || marks=(-o -type f \( -name CACHEDIR.TAG -o -name .rustc_info.json \) -print0)
+  # find_walk's records, read whole with its status by nul_read (issue 0342).
+  # Any non-zero from find_walk is a partial scan, since its status says only
+  # that it could not do all it was asked -- a directory it could not read or
+  # could not search, each named; a find refusing its own arguments reads the
+  # same, and its error names why.
   # shellcheck disable=SC2016 # the $1 and $2 in the -exec programs are /bin/sh's own
-  while IFS= read -r -d '' line; do
+  nul_read walked find_walk -H "$PROJECT_ROOT" -mindepth 1 -ignore_readdir_race \
+    \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
+    -type d -name "$name" -exec /bin/sh -c '[ ! -f "$1/$2" ]' sh {} "$manifest" \; -prune -print0 ${marks[@]+"${marks[@]}"} || rc=3
+  for line in ${walked[@]+"${walked[@]}"}; do
     case "${line##*/}" in
       CACHEDIR.TAG)
         # A marker that needs no read makes the tree cargo's without the tag, so
@@ -347,19 +355,7 @@ _clean_roots() {
       .rustc_info.json) cands+=("${line%/*}") ;;
       *) cands+=("$line") ;;
     esac
-    # find-status: read by `wait "$!"` below, on this process substitution (issue 0139's scan)
-  done < <(find_walk -H "$PROJECT_ROOT" -mindepth 1 -ignore_readdir_race \
-    \( -name .git -o -name node_modules -o -name .direnv \) -prune -o \
-    -type d -name "$name" -exec /bin/sh -c '[ ! -f "$1/$2" ]' sh {} "$manifest" \; -prune -print0 ${marks[@]+"${marks[@]}"})
-  # find's status, read here because the loop above holds the only process
-  # substitution in this function and runs nothing in the background: any `&`
-  # job or process substitution added to the loop's body, or to anything it
-  # calls, replaces $! and loses find's status, and the scan then reads as
-  # complete. Any non-zero from find_walk is a
-  # partial scan, since its status says only that it could not do all it was
-  # asked -- a directory it could not read or could not search, each named; a
-  # find refusing its own arguments reads the same, and its error names why.
-  wait "$!" || rc=3
+  done
   for d in "${cands[@]}"; do
     if [ "$d" = "$root" ] || [ -f "$d/$manifest" ]; then
       crates+=("$d")
@@ -374,16 +370,20 @@ _clean_roots() {
     esac
   done
   if [ "${#keep[@]}" -gt 0 ]; then
-    mapfile -d '' -t sorted < <(printf '%s\0' "${keep[@]}" | LC_ALL=C sort -z -u)
-    wait "$!" || return 1
+    nul_read sorted _clean_sorted "${keep[@]}" || return 1
   fi
   _clean_drop_nested sorted _cr_roots
   if [ "${#crates[@]}" -gt 0 ]; then
-    mapfile -d '' -t sorted < <(printf '%s\0' "${crates[@]}" | LC_ALL=C sort -z -u)
-    wait "$!" || return 1
+    nul_read sorted _clean_sorted "${crates[@]}" || return 1
     _cr_inplace+=("${sorted[@]}")
   fi
   return "$rc"
+}
+
+# _clean_sorted <path>... -- the paths, each once, NUL-terminated in the C
+# locale's order: _clean_roots's sort, read back with its status by nul_read.
+_clean_sorted() {
+  printf '%s\0' "$@" | LC_ALL=C sort -z -u
 }
 
 # _clean_drop_nested <in-var> <out-var> -- of the paths in the array <in-var>,

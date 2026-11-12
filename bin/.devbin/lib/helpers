@@ -2304,10 +2304,9 @@ cargo_build_dirs() {
   local _cbds_m _cbds_d _cbds_tree _cbds_root _cbds_rc=0 _cbds_cfgname="${4:-}" _cbds_hname="${5:-}" _cbds_hf=""
   local -a _cbds_list=() _cbds_met=()
   _cbds_c=() _cbds_t=() _cbds_r=()
-  # NUL-separated, read whole with its status (issue 0150: read a line at a
-  # time, a crate directory whose name ends in a newline split, its config
-  # unseen, and the cycle read INCONCLUSIVE at rc 0).
-  # find-status: read by `wait "$!"` below, on this process substitution.
+  # NUL-separated, read whole with its status by nul_read (issue 0150: read a
+  # line at a time, a crate directory whose name ends in a newline split, its
+  # config unseen, and the cycle read INCONCLUSIVE at rc 0).
   # A config is one directly in a .cargo directory, never one beneath it, as a
   # project-local CARGO_HOME's .cargo/git/db/<repo>/config is not; a manifest or
   # a config may be a link, which cargo follows.
@@ -2316,10 +2315,9 @@ cargo_build_dirs() {
     # back, and the empty entry below counts one beneath every config.
     _cbds_hf="$(mktemp "${TMPDIR:-/tmp}/devbin-holes.XXXXXX")" || _cbds_hf=""
   fi
-  mapfile -d '' -t _cbds_list < <(FIND_WALK_HOLES="$_cbds_hf" cargo_walk -name target \( -type d -o -type l \) -prune -o \
+  if ! FIND_WALK_HOLES="$_cbds_hf" nul_read _cbds_list cargo_walk -name target \( -type d -o -type l \) -prune -o \
     \( -name Cargo.toml \( -type f -o -type l \) -print0 \) -o \
-    \( \( -path '*/.cargo/config.toml' -o -path '*/.cargo/config' \) \( -type f -o -type l \) -print0 \))
-  if ! wait "$!"; then
+    \( \( -path '*/.cargo/config.toml' -o -path '*/.cargo/config' \) \( -type f -o -type l \) -print0 \); then
     warn "could not read the whole project for its crates (the error above names it), so a crate beneath what it could not read was not asked about"
     _cbds_rc=2
   fi
@@ -2594,11 +2592,11 @@ unset FIND_WALK_HOLES FIND_WALK_QUIET
 #   asked about, and BSD find passes over what is beneath it silently, as
 #   before. clean's page says so. Probing each directory's ACL would cost a
 #   process per directory, which the owner pre-filter exists to avoid.
-# - THE RECORDS reach this function on fd 3, NUL-terminated, through a process
-#   substitution read by mapfile, and find's status by `wait "$!"`, the idiom
-#   find_list and clean's walk use; `$(...)` drops NUL bytes and ran two
-#   records together. find's own stdout goes to the caller through a saved
-#   descriptor.
+# - THE RECORDS reach this function on fd 3, NUL-terminated, read whole with
+#   find's status by nul_read (issue 0342), as find_list and clean's walk read
+#   theirs: `$(...)` drops NUL bytes and ran two records together, and `wait`
+#   on a process substitution lost find's status under load. find's own stdout
+#   goes to the caller through a saved descriptor.
 # - A WALK BOUNDED BY -maxdepth never enters a directory at that depth, so what
 #   one hides is nothing it asked for: such a record is dropped when every
 #   start path it lies under puts it at or beyond -maxdepth, and kept when any
@@ -2731,16 +2729,8 @@ find_walk() {
     _fw_prog='if [ -r "$1" ]; then [ ! -x "$1" ] && printf "%s\0S\0" "$1" >&3; else printf "%s\0U\0" "$1" >&3; exit 1; fi'
     exec {_fw_fd}>&1 {_fw_efd}>&2
   fi
-  mapfile -d '' -t _fw_marks < <(
-    # find-walk: this is find_walk, the one find that carries the clause itself
-    # find-status: read by `wait "$!"` below, on this process substitution
-    find ${_fw_pre[@]+"${_fw_pre[@]}"} "${_fw_paths[@]}" ${_fw_glob[@]+"${_fw_glob[@]}"} \
-      ${_fw_prune[@]+"${_fw_prune[@]}"} \
-      \( "${_fw_sel[@]}" -exec /bin/sh -c "$_fw_prog" sh {} \; -prune -false \) -o \
-      \( "${_fw_expr[@]}" \) 3>&1 >&"$_fw_fd" 2>&"$_fw_efd"
-  )
   _fw_rc=0
-  wait "$!" || _fw_rc=$?
+  nul_read _fw_marks _find_walk_find || _fw_rc=$?
   exec {_fw_fd}>&- {_fw_efd}>&-
   if [ "${FIND_WALK_QUIET:-}" = 1 ]; then
     return "$_fw_rc"
@@ -2804,6 +2794,21 @@ find_walk() {
   return "$_fw_rc"
 }
 
+# _find_walk_find -- find_walk's one find, run by nul_read. Its operands are
+# find_walk's own locals (_fw_pre, _fw_paths, _fw_glob, _fw_prune, _fw_sel,
+# _fw_prog and _fw_expr), reached through bash's dynamic scope. The holes it
+# records go on fd 3, its stdout, which nul_read reads, and what find prints
+# itself goes on the descriptors find_walk saved (_fw_fd, _fw_efd). Called by
+# find_walk alone.
+_find_walk_find() {
+  # find-walk: this is find_walk, the one find that carries the clause itself
+  # find-status: find's own, returned to nul_read in find_walk
+  find ${_fw_pre[@]+"${_fw_pre[@]}"} "${_fw_paths[@]}" ${_fw_glob[@]+"${_fw_glob[@]}"} \
+    ${_fw_prune[@]+"${_fw_prune[@]}"} \
+    \( "${_fw_sel[@]}" -exec /bin/sh -c "$_fw_prog" sh {} \; -prune -false \) -o \
+    \( "${_fw_expr[@]}" \) 3>&1 >&"$_fw_fd" 2>&"$_fw_efd"
+}
+
 # _find_walk_tidy <var> -- the path in <var> with every run of / as one and a
 # trailing / dropped, / itself kept: how find_walk reads a depth, and the one
 # place its paths are tidied. It is spelling only, by design: real_path and
@@ -2819,6 +2824,71 @@ _find_walk_tidy() {
   [ "$_fwt_p" = / ] || _fwt_p="${_fwt_p%/}"
 }
 
+# nul_read <array> <command> [<arg>...] -- the NUL-terminated records <command>
+# prints on its stdout, read whole into the named array, and <command>'s own
+# exit status (issue 0342). A command that prints nothing leaves the array
+# empty. 2, said on stderr, when the records cannot be read: a name that is not
+# a shell variable name or is one of this function's own, no command, an array
+# mapfile cannot fill (an associative or a readonly one), or a command whose
+# status was never written, which only a kill between the two can do.
+#
+# THE STATUS TRAVELS WITH THE RECORDS, AS THE LAST ONE. `mapfile < <(cmd)` and
+# then `wait "$!"` asked bash for a process substitution's status after the
+# fact, and bash had dropped it: under 24 jobs on a 4-CPU leg host, `wait`
+# answered "pid ... is not a child of this shell" at 127, find_walk read a
+# walk as failed, and an install failed with it. Here the substitution writes
+# <command>'s status itself once <command> ends, as one more record carrying
+# this call's own tag, and it is read off the end. Nothing waits, so nothing
+# bash keeps or drops decides it, and it holds with job control on, where
+# lastpipe would not (release_group_start runs <cmd> with `set -m`).
+#
+# <command> runs in a subshell of the substitution under the caller's errexit,
+# as it did before, so a failure inside a function still ends that function
+# where it did, and an `exit` inside it is its status. The substitution itself
+# runs without errexit, so a failed <command> cannot end it before its status
+# is written. The records are read whole before the caller sees any: a reader
+# that must act on each as it comes is not this. An integer array is declared
+# rather than closed, as run_words and find_list declare it.
+nul_read() {
+  if ! is_identifier "${1:-}"; then
+    warn "nul_read: '${1:-}' is not a shell variable name, so there is no array to fill"
+    return 2
+  fi
+  case "$1" in
+    _nr_out | _nr_tag | _nr_e | _nr_n | _nr_last | _nr_rc)
+      warn "nul_read: cannot fill an array named '$1' -- it is one of nul_read's own names"
+      return 2
+      ;;
+  esac
+  if [ "$#" -lt 2 ]; then
+    warn "nul_read: no command to read '$1' from"
+    return 2
+  fi
+  local -n _nr_out="$1"
+  local _nr_tag="nul_read:$BASHPID:$RANDOM$RANDOM:" _nr_e=0 _nr_n _nr_last="" _nr_rc
+  case "$-" in *e*) _nr_e=1 ;; esac
+  if ! mapfile -d '' -t _nr_out < <(
+    set +e
+    (
+      [ "$_nr_e" = 0 ] || set -e
+      "${@:2}"
+    )
+    printf '%s%s\0' "$_nr_tag" "$?"
+  ); then
+    warn "nul_read: could not fill '$1' with the records $2 printed"
+    return 2
+  fi
+  _nr_n="${#_nr_out[@]}"
+  [ "$_nr_n" -eq 0 ] || _nr_last="${_nr_out[_nr_n - 1]}"
+  _nr_rc="${_nr_last#"$_nr_tag"}"
+  if [ "$_nr_rc" = "$_nr_last" ] || ! [[ "$_nr_rc" =~ ^[0-9]+$ ]]; then
+    warn "nul_read: $2 ended before its status was written, so '$1' may hold only part of its records"
+    return 2
+  fi
+  _nr_out=("${_nr_out[@]:0:_nr_n-1}")
+  return "$_nr_rc"
+}
+
 # find_list <array> <find operands and expression> -- find_walk, sorted, read
 # into an array (issue 0145): every path find prints, read whole into the
 # named array in the C locale's order, and find_walk's status
@@ -2829,47 +2899,45 @@ _find_walk_tidy() {
 # 2. The array holds what find did list either way: a caller that acts may act
 # on it and say the list was partial, where a gate refuses.
 #
-# ONE IDIOM FOR A LIST READ WHOLE (issue 0139). 0139's first version
-# wrote the list through a temporary file twice, in check's Swift gate and in
-# dmarc parse. Here the status is taken by `wait` on the process substitution,
-# as release_dirt and clean's walk take theirs, and there is no file to remove.
-# The locals are prefixed because the caller names the array: a local of the
-# same name would shadow it.
+# ONE IDIOM FOR A LIST READ WHOLE (issues 0139 and 0342): nul_read, whose
+# status cannot be lost. 0139's first version wrote the list through a
+# temporary file twice, in check's Swift gate and in dmarc parse; its second
+# took the status by `wait` on a process substitution, which bash dropped under
+# load (0342). This function binds no name of its own, so none can shadow the
+# caller's array: the name goes to nul_read as the caller gave it, and
+# nul_read refuses its own.
 find_list() {
-  # THE NAME AND THE EXPRESSION ARE ASKED BEFORE ANYTHING IS BOUND, as run_words
-  # asks (issue 0082): a name that is not a name makes `local -n` fail and
-  # execution fall through, and this function's own binds to itself, so either
-  # way the caller's array stays empty and a gate passes over nothing; an
-  # expression that does not end in -print0 hands back every path as one
-  # element. Each is a programming error, so the status is 2. The expression
-  # test reads its LAST WORD only: one ending in -print0 passes whatever its
-  # other actions, and one ending otherwise is refused, sound or not. It catches
-  # the caller who forgot -print0; it does not parse find's grammar.
+  # THE NAME AND THE EXPRESSION ARE ASKED BEFORE ANYTHING RUNS, as run_words
+  # asks (issue 0082): a name that is not a name, or one a local shadows, left
+  # the caller's array empty and a gate passing over nothing; an expression
+  # that does not end in -print0 hands back every path as one element. Each is
+  # a programming error, so the status is 2. The expression test reads its
+  # LAST WORD only: one ending in -print0 passes whatever its other actions,
+  # and one ending otherwise is refused, sound or not. It catches the caller
+  # who forgot -print0; it does not parse find's grammar.
   if ! is_identifier "${1:-}"; then
     warn "find_list: '${1:-}' is not a shell variable name, so there is no array to fill"
-    return 2
-  fi
-  if [ "$1" = _fl_out ]; then
-    warn "find_list: cannot fill an array named '$1' -- it is find_list's own name"
     return 2
   fi
   if [ "${!#}" != -print0 ]; then
     warn "find_list: the find expression must end in -print0, or its paths cannot be told apart"
     return 2
   fi
-  local -n _fl_out="$1"
   # MAPFILE'S OWN FAILURE IS NOT FIND'S: a target it cannot fill, an associative
-  # array, was refused only by the writer's SIGPIPE, a status this function
-  # never read. The writer is reaped and the caller told, at 2. An integer array
-  # is declared rather than closed, as run_words declares it: bash's arithmetic
-  # on a path abandons the caller.
-  # find-status: read by `wait "$!"` below, on this process substitution
-  if ! mapfile -d '' -t _fl_out < <(set -o pipefail; find_walk "${@:2}" | LC_ALL=C sort -z); then
-    wait "$!"
-    warn "find_list: could not fill '$1' with the paths find printed"
-    return 2
-  fi
-  wait "$!"
+  # or a readonly array, is nul_read's 2, said, and never find's status. An
+  # integer array is declared rather than closed, as run_words declares it:
+  # bash's arithmetic on a path abandons the caller.
+  nul_read "$1" _find_list_sorted "${@:2}"
+}
+
+# _find_list_sorted <find operands and expression> -- find_list's records,
+# run by nul_read: find_walk's paths sorted in the C locale, and the pipeline's
+# status under pipefail, find_walk's where it failed.
+_find_list_sorted() {
+  local -
+  set -o pipefail
+  # find-status: the pipeline's under pipefail, returned to nul_read in find_list
+  find_walk "$@" | LC_ALL=C sort -z
 }
 
 # dir_has_binary <dir> -- true when <dir> holds at least one executable FILE at
@@ -3670,6 +3738,38 @@ platform_arch() {
   m="$(uname -m 2>/dev/null)" || return 1
   [[ "$m" =~ ^[A-Za-z0-9_]+$ ]] || return 1
   printf '%s\n' "$m"
+}
+
+# CORE_VERBS -- the built-ins devbin's core calls itself, from inside another
+# of its verbs (issue 0335): cache, which the macOS stage pulls and puts its app
+# through, and whose key a cut's RELEASE seal names. Each such call goes through
+# core_verb, by the verb's own path, never through the project's launcher,
+# where a project handler of the same name answers first (resolve_handler,
+# lib/resolve). A project's own build handler calls the verb through its
+# launcher, so doctor fails a project command at one of these names
+# (check_core_verbs), and config validation refuses a `handler:` or `run:` for
+# one: such a command would answer that handler's get with nothing pulled.
+CORE_VERBS=(cache)
+
+# is_core_verb <word> -- true when <word> is one of CORE_VERBS. Pure.
+is_core_verb() {
+  local v
+  for v in "${CORE_VERBS[@]}"; do
+    [ "$v" != "$1" ] || return 0
+  done
+  return 1
+}
+
+# core_verb <verb> <arg>... -- the built-in <verb>, one of CORE_VERBS, run by
+# its own path, $DEVBIN_LIB/cmd/<verb>, with the arguments given and
+# DEVBIN_COMMAND naming it, as the launcher runs it where no project command
+# stands at the name; its output and status are the verb's. A verb not in
+# CORE_VERBS is a defect, so the list stays the whole set of such calls.
+core_verb() {
+  local verb="$1"
+  shift
+  is_core_verb "$verb" || die "devbin defect: core_verb was asked for '$verb', which is not one of the verbs the core calls itself (CORE_VERBS)"
+  DEVBIN_COMMAND="$verb" "${DEVBIN_LIB:?the launcher exports DEVBIN_LIB}/cmd/$verb" "$@"
 }
 
 # cache_root_resolved -- the artefact registry's root (ST0011 WP-16) and how it

@@ -8,7 +8,8 @@
 #   release_leg_dir <root> <host>                    where a host's pairs come back to
 #   release_leg_reach <host>                         whether pre-flight reaches the host, and its platform word
 #   release_leg_project_problem <project>            why the project's name cannot name a host's repository
-#   release_leg_start <root> <host> <project> <sha>  R onto the host, and its gates started there
+#   release_leg_start <root> <host> <project> <sha> [<tag>]
+#                                                    R, and the previous release's tag, onto the host, and its gates started there
 #   release_leg_read <root> <host> <project> <sha>   the leg's word on R, read from its copied pair
 #
 # Reach, start and read each print ONE line, `<word><TAB><detail>`, and
@@ -28,11 +29,12 @@
 # THE HOST is a name this machine reaches by ssh alone, an alias from its ssh
 # config, a plain word (is_host_alias, lib/helpers). What lives on it is this
 # file's recipe, never config: the bare repo work/<project>-leg.git under its
-# home, and each run's worktree work/<project>-leg-<sha12> beside it, with its
-# log and, once its gates have ended, their exit status. The runner installs
-# and adjusts nothing there: the host carries what the project's declared gates
-# need, on the PATH its own startup sets, and a gate that cannot run there is
-# the leg's failed, named in its seal.
+# home, the gates' own cache work/<project>-leg.cache beside it, which no run
+# clears, and each run's worktree work/<project>-leg-<sha12>, with its log, its
+# gates' TMPDIR and, once its gates have ended, their exit status. The
+# runner installs and adjusts nothing there: the host carries what the
+# project's declared gates need, on the PATH its own startup sets, and a gate
+# that cannot run there is the leg's failed, named in its seal.
 #
 # THE REMOTE HALF GOES OVER `ssh <host> 'bash -s'`, never wrapped in `bash -c`
 # or `bash -lc`: the host's own non-interactive startup sets the environment
@@ -176,11 +178,27 @@ _release_leg_remote_init() {
 # at <sha> left beside a worktree since removed is removed first, since it
 # would read as this run's end; and a worktree made here that the gates could
 # not be started in is removed again, since it would read as a run going.
+#
+# THE GATES' TMPDIR IS THE RUN'S OWN, <worktree>.tmp, on the host's disk beside
+# the worktree (issue 0334): a host's /tmp can be a small tmpfs, and a large
+# build filled one. The same for every project's leg. It is made afresh as the
+# last step before the gates start, so a start refused before it leaves none.
+# What an earlier run at <sha> left there goes first, made writable, since a
+# build, or a bats run killed mid-file, can leave read-only directories in it.
+# It is cleared with the worktree.
+#
+# THE GATES' CACHE IS THE PROJECT'S, work/<project>-leg.cache beside the bare
+# repo (issue 0335), handed to the gates as DEVBIN_GATE_CACHE, whatever the
+# host's startup sets, so a gate can keep a build there from one run to the
+# next, eg a private worktree's CARGO_TARGET_DIR. Made when missing, before the
+# TMPDIR; no run clears it, and what goes in it is the project's.
 _release_leg_remote_start() {
-  local project="$1" sha="$2" repo wt log t err why=""
+  local project="$1" sha="$2" repo wt log tmp gcache t err why=""
   repo="$HOME/work/$project-leg.git"
   wt="$HOME/work/$project-leg-${sha:0:12}"
   log="$wt.log"
+  tmp="$wt.tmp"
+  gcache="$HOME/work/$project-leg.cache"
   if [ -e "$wt" ]; then
     printf 'started\ta run at %s was started there before, and its seal is the record\n' "${sha:0:12}"
     return 0
@@ -198,11 +216,17 @@ _release_leg_remote_start() {
   elif ! {
     printf 'leg: %s at %s, started %s\n' "$project" "$sha" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     printf 'PATH: %s\n' "$PATH"
+    printf 'TMPDIR: %s\n' "$tmp"
+    printf 'DEVBIN_GATE_CACHE: %s\n' "$gcache"
     for t in bash git intent bats shellcheck cargo; do
       printf '%s: %s\n' "$t" "$(command -v "$t" || printf 'not on PATH')"
     done
   } >>"$log"; then
     why="the log $log could not be written"
+  elif ! err="$(mkdir -p "$gcache" 2>&1)"; then
+    why="the gates' cache $gcache could not be made: ${err%%$'\n'*}"
+  elif ! err="$({ [ ! -e "$tmp" ] || chmod -R u+w "$tmp"; } 2>&1 && rm -rf "$tmp" 2>&1 && mkdir -p "$tmp" 2>&1)"; then
+    why="the TMPDIR $tmp could not be made afresh for the run: ${err%%$'\n'*}"
   fi
   if [ -n "$why" ]; then
     if err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
@@ -219,6 +243,9 @@ _release_leg_remote_start() {
   # (helpers.bats holds this line in its list of the runtime's mv lines).
   # shellcheck disable=SC2016 # expanded by the shell that runs the gates
   set -- bash -c 'bin/devbin release gates; printf "%s\n" "$?" >"$1.rc.part" && mv -f "$1.rc.part" "$1.rc"' release-leg "$wt"
+  # The run's own TMPDIR and the project's gate cache, exported in this shell,
+  # which ends once the gates start.
+  export TMPDIR="$tmp" DEVBIN_GATE_CACHE="$gcache"
   if command -v setsid >/dev/null 2>&1; then
     setsid nohup "$@" >>"$log" 2>&1 </dev/null &
   else
@@ -252,14 +279,19 @@ _release_leg_remote_probe() {
 }
 
 # _release_leg_remote_clear <project> <sha> -- the ended run's worktree, log,
-# status and ref removed, the bare repo kept; one line, `cleared<TAB><path>` or
-# `refused<TAB><why>`. --force, because the runner made this worktree on a test
-# machine, and what it holds beyond R's tree is the gates' own output, copied
-# back before this runs.
+# status, TMPDIR and ref removed, the bare repo and the gates' cache kept; one
+# line, `cleared<TAB><path>` or `refused<TAB><why>`. --force, because the
+# runner made this worktree on a test machine, and what it holds beyond R's
+# tree is the gates' own output, copied back before this runs. The TMPDIR is
+# made writable first, since a build can leave read-only directories in it.
 _release_leg_remote_clear() {
   local repo="$HOME/work/$1-leg.git" wt="$HOME/work/$1-leg-${2:0:12}" err
   if ! err="$(git -C "$repo" worktree remove --force "$wt" 2>&1 >/dev/null)"; then
     printf 'refused\tgit could not remove the worktree %s: %s\n' "$wt" "${err%%$'\n'*}"
+    return 0
+  fi
+  if ! err="$({ [ ! -e "$wt.tmp" ] || chmod -R u+w "$wt.tmp"; } 2>&1 && rm -rf "$wt.tmp" 2>&1)"; then
+    printf 'refused\tthe TMPDIR %s.tmp could not be removed: %s\n' "$wt" "${err%%$'\n'*}"
     return 0
   fi
   if ! err="$(rm -f "$wt.log" "$wt.rc" "$wt.rc.part" 2>&1)"; then
@@ -367,13 +399,26 @@ _release_leg_finish() {
   fi
 }
 
-# release_leg_start <root> <host> <project> <sha> -- the bare repo on <host>
-# made when missing, R sent into it by git send-pack, and the project's gates
-# started there at R, detached. `pending` once they are started, with where
-# they log; `unknown`, naming it, when any of the three could not be done.
+# release_leg_start <root> <host> <project> <sha> [<tag>] -- the bare repo on
+# <host> made when missing, R sent into it by git send-pack, and the project's
+# gates started there at R, detached. <tag>, where given, is the previous
+# release's tag, the baseline the cut resolves (release_previous_tag), sent in
+# the same send-pack as refs/tags/<tag>, so a gate that reads the last release
+# finds it in a fresh bare repo with no step by hand; forced, since the host's
+# copy of a tag is only ever this machine's. `pending` once they are started,
+# with where they log; `unknown`, naming it, when any of the three could not
+# be done.
 release_leg_start() {
-  local root="$1" host="$2" project="$3" sha="$4" why scratch out rc
+  local root="$1" host="$2" project="$3" sha="$4" tag="${5:-}" why scratch out rc sent
+  local -a refspecs=("$sha:refs/devbin/legs/$sha")
   why="$(_release_leg_names_problem "$host" "$project" "$sha")"
+  if [ -z "$why" ] && [ -n "$tag" ]; then
+    if is_tag_name "$tag" && git -C "$root" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+      refspecs+=("+refs/tags/$tag:refs/tags/$tag")
+    else
+      why="the previous release's tag '$tag' is no tag in $root, so it cannot be sent"
+    fi
+  fi
   if [ -n "$why" ]; then
     printf 'unknown\t%s\n' "$why"
     return 0
@@ -399,9 +444,11 @@ release_leg_start() {
   # the leg's own ssh options as its command: it appends BatchMode, shuts git's
   # prompts and askpass, and gives git no stdin.
   GIT_SSH_COMMAND="ssh $(printf '%q ' "${RELEASE_LEG_SSH_OPTS[@]}")" \
-    git_remote -C "$root" send-pack "$host:work/$project-leg.git" "$sha:refs/devbin/legs/$sha" >"$scratch/out" 2>"$scratch/err" || rc=$?
+    git_remote -C "$root" send-pack "$host:work/$project-leg.git" "${refspecs[@]}" >"$scratch/out" 2>"$scratch/err" || rc=$?
   if [ "$rc" -ne 0 ]; then
-    _release_leg_failed "$host" "$scratch/err" "git send-pack of ${sha:0:12}"
+    sent="${sha:0:12}"
+    [ -z "$tag" ] || sent="$sent and $tag"
+    _release_leg_failed "$host" "$scratch/err" "git send-pack of $sent"
     rm -rf "$scratch"
     return 0
   fi

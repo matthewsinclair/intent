@@ -2,7 +2,8 @@
 #
 # The built-in `test` command. Every option is a catalogue entry -- mix, credo,
 # rust, swift, lua, shell -- so this file has nothing of its own to do beyond
-# handing the option to the shared gate body.
+# handing the option to the shared gate body, and defining the one option
+# whose row is @builtin: shell.
 #
 # `test all` never reaches here: the dispatcher synthesises it from the ACTIVE
 # option list and calls each option in turn, so a project's declared
@@ -12,5 +13,22 @@ set -euo pipefail
 
 # shellcheck source=lib/gatecmd
 . "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# builtin_test_shell [args...] -- the shell option (issue 0339). Handed
+# nothing, which is what `all` hands it, it runs the project's tests/ in two
+# lanes through the core's lanes runner, lib/bats-lanes: the tests not tagged
+# serial N at a time under bats --jobs where GNU parallel is installed, then
+# the serial ones one at a time, and the runner's first line says which it did
+# and why. The runner reads a relative directory from wherever it is called, so
+# it is handed tests/'s absolute path. Handed paths or bats flags, this is a
+# targeted run, and bats gets them after tests/, as the catalogue's line
+# `bats tests` gave them before.
+builtin_test_shell() {
+  if [ "$#" -eq 0 ]; then
+    "$DEVBIN_LIB/bats-lanes" "$PROJECT_ROOT/tests"
+  else
+    bats tests "$@"
+  fi
+}
 
 run_builtin_gate test "$@"

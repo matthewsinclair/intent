@@ -686,6 +686,30 @@ EOF
   return 0
 }
 
+# check_core_verbs -- a project command at a name devbin's core calls itself
+# (CORE_VERBS, lib/helpers; issue 0335). A FAILURE, unlike every other shadow:
+# the core calls its own by its path (core_verb), but a project's build handler
+# calls the verb through the launcher, where the project's command answers
+# first, so a get there would answer with nothing pulled and the build would
+# be skipped. The fix is the project's: its own command takes another name.
+# Its row is said even when none stands there, as check_shadowing's count is.
+check_core_verbs() {
+  local v
+  local -a hits=()
+  for v in "${CORE_VERBS[@]}"; do
+    if project_owns_command "$v"; then hits+=("$v"); fi
+  done
+  if [ "${#hits[@]}" -eq 0 ]; then
+    _pass "core verbs: no project command stands at a name devbin's core calls itself (${CORE_VERBS[*]})"
+    return 0
+  fi
+  _fail "core verbs: the project's own command stands at a name devbin's core calls itself, which a build handler reaches through bin/devbin -- give the project's command another name"
+  for v in "${hits[@]}"; do
+    _detail "$v is the project's own, where devbin's is called"
+  done
+  return 0
+}
+
 # _shadow_hits -- each shadowed name, spelled the way a reader would type it:
 # `<command>` for a whole command, `<command> <option>` for one option of one.
 #
@@ -699,7 +723,9 @@ _shadow_hits() {
     # A NAME devbin ships with nothing behind it is filled, not shadowed (issue
     # 0136): `commands.precommit.run` was reported as shadowing the built-in
     # when devbin has no line, no handler and no option for precommit to lose.
-    if project_owns_command "$cmd" && _ships_behind_name "$cmd"; then
+    # A NAME DEVBIN'S CORE CALLS ITSELF is no supported override (issue 0335):
+    # check_core_verbs fails it, so it is not listed here as one.
+    if project_owns_command "$cmd" && _ships_behind_name "$cmd" && ! is_core_verb "$cmd"; then
       printf '%s\n' "$cmd"
     fi
     # Only options devbin actually IMPLEMENTS can be shadowed. A catalogue row
@@ -1658,6 +1684,7 @@ main() {
   check_commands
   check_handlers
   check_shadowing
+  check_core_verbs
   check_symlinks
   check_source_currency
   check_tree

@@ -1977,8 +1977,8 @@ cfg_validate() {
     ! declare -F is_cache_tool >/dev/null || ! declare -F cache_path_problem >/dev/null ||
     ! declare -F cache_paths_overlap >/dev/null || ! declare -F is_artefact_name >/dev/null ||
     ! declare -F is_platform_word >/dev/null || ! declare -F is_host_alias >/dev/null ||
-    ! declare -F relative_path_problem >/dev/null; then
-    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, the platform words, the toolchain table, has_words, cargo_root_problem, cache_path_problem, relative_path_problem, cache_paths_overlap, is_artefact_name and is_host_alias there\n' >&2
+    ! declare -F relative_path_problem >/dev/null || ! declare -F is_core_verb >/dev/null; then
+    printf 'config: cfg_validate needs lib/helpers sourced first -- it reads the boolean words, the platform words, the toolchain table, has_words, cargo_root_problem, cache_path_problem, relative_path_problem, cache_paths_overlap, is_artefact_name, is_host_alias and is_core_verb there\n' >&2
     return 1
   fi
   if ! cfg_has project.name; then
@@ -1989,6 +1989,13 @@ cfg_validate() {
     [ -n "$k" ] || continue
     if ! _cfg_path_known "$k"; then
       printf 'config: %s: unknown key: %s%s\n' "$_DEVBIN_CFG_FILE" "$k" "$(_cfg_retired_why "$k")" >&2
+      rc=1
+    elif [[ "$k" =~ ^commands\.([^.]+)\.(handler|run)$ ]] && is_core_verb "${BASH_REMATCH[1]}"; then
+      # A COMMAND DEVBIN'S CORE CALLS ITSELF stays devbin's (CORE_VERBS, issue
+      # 0335): a project's build handler reaches it through the launcher, where
+      # a handler: or run: here would answer in its place.
+      printf "config: %s: %s: devbin's core calls its own %s, which a build handler reaches through bin/devbin, so the project cannot take it over -- give the project's command another name\n" \
+        "$_DEVBIN_CFG_FILE" "$k" "${BASH_REMATCH[1]}" >&2
       rc=1
     elif _cfg_path_boolean "$k" && ! is_true_word "$v" && ! is_false_word "$v"; then
       printf 'config: %s: %s: "%s" is not a yes or a no -- use one of: %s (yes) or %s (no)\n' \

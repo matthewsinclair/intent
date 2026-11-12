@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+#
+# lib/bats-lanes <test directory> -- a bats suite, run in two lanes (issue 0190).
+#
+# EXECUTED, NEVER SOURCED: it prints, and exits with the run's one verdict.
+# `test shell` runs it over the project's tests/ when it is handed nothing for
+# bats, which is what `test all` hands it (lib/cmd/test), and through run_gate,
+# so the run is sealed like any gate. A project whose suite has a runner of its
+# own calls it in place of bats, the same way, from any command devbin runs,
+# since the dispatcher exports DEVBIN_LIB to every one (issue 0339):
+#
+#   "$DEVBIN_LIB/bats-lanes" <test directory>
+#
+# IT READS THE DIRECTORY WHERE IT IS CALLED, and never changes to the project
+# root: a runner may drop PROJECT_ROOT before it starts its suite. So a caller
+# hands it a directory it can read from where it stands, and devbin's own
+# callers hand it an absolute one. Every variable the caller exports reaches
+# bats in both lanes, which is how a runner gives its suite what it needs, such
+# as a BATS_LIB_PATH.
+#
+# A SUITE RUN ONE TEST AT A TIME leaves every core but one idle. Where each test
+# runs in its own temp directory, writes nothing into the checkout and depends
+# on no other, bats can run them side by side, through GNU parallel.
+#
+# THE PARALLEL LANE runs every test NOT tagged `serial`, N at a time:
+# `bats --jobs N --filter-tags '!serial'`. THE SERIAL LANE runs the tests that
+# ARE tagged serial afterwards, one at a time, with nothing else of this run
+# beside them: a test that cannot share a host, or whose wall-clock margins
+# contention can eat, goes there, and its tag line gives the reason. A test is
+# tagged on the line before it, and every test of a file by a file tag:
+#
+#   # bats test_tags=serial
+#   # bats file_tags=serial
+#
+# ONE VERDICT. The exit is non-zero when either lane fails, and when the two
+# lanes did not run every test exactly once between them. The second is counted
+# here, not assumed: what ran is counted with the counter the seal uses, and
+# held against an untagged `bats --count` taken while the parallel lane runs. So
+# a lane that lost a test fails the run whatever lost it -- a tag bats read
+# differently, a filter mistyped here, a file the serial lane was not given.
+#
+# ONE LANE, AS BEFORE 0190, when GNU parallel is not installed or
+# DEVBIN_TEST_JOBS is 1: `bats <dir>` runs everything one test at a time, and the
+# first line of the run says why.
+#
+# N IS PRINTED ON THE FIRST LINE and DEVBIN_TEST_JOBS sets it, else DEVBIN_JOBS,
+# a shared desk's one cap for every tool a run starts (issue 0303): a whole
+# number, or `all` for one test per CPU the machine has. The default is half
+# the CPUs and never fewer than _LANES_JOBS_FLOOR (issue 0340), more tests at
+# once than most machines have CPUs: a lane's tests spend most of their time
+# waiting, for their own processes and for bats, which looks for a free slot
+# once a second. A four-CPU host ran the lane about four times as fast at
+# sixteen to twenty-four at once as at two, and a sixteen-CPU macOS host ran it
+# fastest at twenty-four; past that, more at once only added contention. Half
+# the CPUs counts only on a machine with more than twice the floor's. `all`
+# counts with cpu_probe, refusing rather than guessing when nothing can count
+# (ST0011 WP-04).
+#
+# BATS 1.12 AND 1.14 BOTH RUN THIS, and they differ where it matters: on a
+# selection of no tests, 1.12 prints `1..0` and exits 0 while 1.14 exits 1 and
+# offers --allow-empty-suite, which 1.12 does not know. So an empty serial lane
+# is never run at all.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/runlog
+. "${DEVBIN_LIB}/runlog"
+
+# The line bats reads as a test's tags (bats-preprocess), naming `serial` as
+# one of them. Matching more than bats would tag costs nothing, since bats
+# itself decides which tests run; matching less is caught by the count.
+_LANES_SERIAL_TAG='^[[:blank:]]*#[[:blank:]]*bats[[:blank:]]+(test|file)_tags=(.*,)?[[:blank:]]*serial[[:blank:]]*(,.*)?$'
+
+# The fewest tests the parallel lane runs at once by default, however few the
+# CPUs (issue 0340). It is written here and nowhere else, and the lanes' arms
+# read it from this line.
+_LANES_JOBS_FLOOR=24
+
+# lanes_jobs <cpus> <setting> -- how many tests the parallel lane runs at once:
+# <setting> when it is given, which must be a whole number of at least 1, else
+# half of <cpus> and never fewer than _LANES_JOBS_FLOOR. Returns 1 for a
+# setting it cannot use. `all` never reaches it: the caller reads it once, as
+# the probe's count.
+lanes_jobs() {
+  local cpus="$1" set="$2" n
+  if [ -n "$set" ]; then
+    [[ "$set" =~ ^[1-9][0-9]*$ ]] || return 1
+    printf '%s\n' "$set"
+    return 0
+  fi
+  n=$((cpus / 2))
+  [ "$n" -ge "$_LANES_JOBS_FLOOR" ] || n="$_LANES_JOBS_FLOOR"
+  printf '%s\n' "$n"
+}
+
+# gnu_parallel_version <program> -- the first line of `<program> --version` when
+# <program> is GNU parallel, as bats --jobs needs; returns 1 otherwise. A
+# moreutils `parallel` is a different program under the same name.
+gnu_parallel_version() {
+  local v
+  v="$("$1" --version 2>/dev/null </dev/null)" || return 1
+  v="${v%%$'\n'*}"
+  case "$v" in
+    "GNU parallel "*) printf '%s\n' "$v" ;;
+    *) return 1 ;;
+  esac
+}
+
+# serial_files <dir> -- the suite's files that carry a serial tag, one per
+# line, in the order bats runs a directory's files. The serial lane is handed
+# these rather than the whole directory because bats preprocesses every file it
+# is given before it runs one, which costs about 9 s for the whole suite here.
+# Returns 1 when a file could not be read.
+serial_files() {
+  local f rc
+  for f in "$1"/*.bats; do
+    [ -e "$f" ] || continue
+    rc=0
+    grep -qE "$_LANES_SERIAL_TAG" "$f" || rc=$?
+    case "$rc" in
+      0) printf '%s\n' "$f" ;;
+      1) ;;
+      *) return 1 ;;
+    esac
+  done
+}
+
+# tap_plan <tap> -- the count in the first plan line (`1..N`) of a TAP stream,
+# or nothing when it has none.
+tap_plan() {
+  log_awk '/^1\.\.[0-9]+$/ { sub(/^1\.\./, ""); print; exit }' "$1"
+}
+
+# tap_ran <tap> -- how many tests a TAP stream reports, by the seal's own
+# counter (count_for, lib/runlog), so this cannot disagree with the seal about
+# what ran. A stream with no plan line counts 0.
+tap_ran() {
+  local n
+  n="$(log_awk "$(count_for shell)" "$1")"
+  printf '%s\n' "${n:-0}"
+}
+
+# lane <tap> <command> [args...] -- run one lane, its output to this run's
+# stdout and a copy to <tap> for counting; returns the command's own status.
+lane() {
+  local tap="$1"
+  local -a rcs
+  shift
+  "$@" | tee "$tap"
+  rcs=("${PIPESTATUS[@]}")
+  [ "${rcs[1]}" -eq 0 ] ||
+    warn "lanes: could not keep a copy of this lane's output in $tap, so its tests will not be counted"
+  return "${rcs[0]}"
+}
+
+dir="${1:?usage: bats-lanes <test directory>}"
+# `all` IS EVERY CPU THE PROBE COUNTS, never cpu_count's guess of 4: a runner
+# whose CPUs cannot be counted is refused, naming the setting, rather than run
+# at a number nobody measured. It is read here once, and is the probe's count
+# from here on; `every` remembers it was asked for.
+#
+# DEVBIN_TEST_JOBS, ELSE DEVBIN_JOBS (issue 0303): a desk that caps every tool
+# a run starts sets DEVBIN_JOBS once, and the suite takes it where its own
+# setting is unset, which still wins. `var` is the one read, named by every
+# line below that names the setting.
+var=DEVBIN_TEST_JOBS
+setting="${DEVBIN_TEST_JOBS:-}"
+if [ -z "$setting" ] && [ -n "${DEVBIN_JOBS:-}" ]; then
+  var=DEVBIN_JOBS
+  setting="$DEVBIN_JOBS"
+fi
+every=no
+if [ "$setting" = all ]; then
+  cpus="$(cpu_probe)" ||
+    die "$var is 'all', and neither nproc nor getconf could count this machine's CPUs, so every CPU is no number -- set a whole number of jobs instead"
+  setting="$cpus"
+  every=yes
+else
+  cpus="$(cpu_count)"
+fi
+jobs="$(lanes_jobs "$cpus" "$setting")" ||
+  die "$var is '$setting', and it must be a whole number of jobs, 1 or more, or all"
+
+# The program bats --jobs will run, by bats's own setting, so what is probed
+# here is what bats runs.
+parallel_program="${BATS_PARALLEL_BINARY_NAME:-parallel}"
+why="" version=""
+if [ "$jobs" -eq 1 ] && [ "$every" = yes ]; then
+  why="$var is all, and this machine has one CPU"
+elif [ "$jobs" -eq 1 ]; then
+  why="$var is 1"
+elif ! command -v "$parallel_program" >/dev/null 2>&1; then
+  why="GNU parallel is not installed: there is no $parallel_program on PATH (brew install parallel, or apt-get install parallel)"
+elif ! version="$(gnu_parallel_version "$parallel_program")"; then
+  why="the $parallel_program on PATH, $(command -v "$parallel_program"), is not GNU parallel"
+fi
+
+if [ -n "$why" ]; then
+  printf 'lanes: one, serial, because %s: every test runs one at a time\n' "$why"
+  exec bats "$dir"
+fi
+
+printf 'lanes: two. First %s tests at a time under %s (%s CPUs here; %s sets the number), then the tests tagged serial, one at a time\n' \
+  "$jobs" "$version" "$cpus" "$var"
+
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/devbin-lanes.XXXXXX")" || die "lanes: cannot make a scratch directory"
+# shellcheck disable=SC2064 # the path is fixed now, on purpose
+trap "rm -rf '$scratch'" EXIT
+
+# THE DENOMINATOR, untagged, counted beside the parallel lane rather than
+# before it: the count preprocesses the whole suite too, which is seconds.
+bats --count "$dir" >"$scratch/count" 2>"$scratch/count.err" &
+count_pid=$!
+
+# EACH LANE'S OWN STATUS IS KEPT AND NAMED when it is not 0: a lane can fail
+# with no `not ok` line to show for it, and the last line here is what the
+# seal's log tail shows of such a run.
+rc_one=0 rc_two=0
+lane "$scratch/one" bats --jobs "$jobs" --filter-tags '!serial' "$dir" || rc_one=$?
+
+total=""
+if wait "$count_pid"; then
+  total="$(<"$scratch/count")"
+fi
+if ! [[ "$total" =~ ^[0-9]+$ ]]; then
+  printf '\nlanes: bats --count %s gave no count, so this run cannot show that every test ran: %s\n' \
+    "$dir" "$(<"$scratch/count.err")"
+  exit 1
+fi
+
+planned="$(tap_plan "$scratch/one")"
+if [ -z "$planned" ]; then
+  printf '\nlanes: the parallel lane printed no plan and exited %s, so it never ran, and the serial lane is not run either\n' "$rc_one"
+  exit 1
+fi
+
+: >"$scratch/two"
+serial=$((total - planned))
+if [ "$serial" -le 0 ]; then
+  printf '\nlanes: no test is tagged serial, so there is no serial lane\n'
+else
+  if ! serial_files "$dir" >"$scratch/serial"; then
+    printf '\nlanes: a file in %s could not be read for its serial tags\n' "$dir"
+    exit 1
+  fi
+  files=()
+  mapfile -t files <"$scratch/serial"
+  if [ "${#files[@]}" -eq 0 ]; then
+    printf '\nlanes: bats counts %s test(s) outside the parallel lane, but no file in %s carries a serial tag\n' "$serial" "$dir"
+    exit 1
+  fi
+  printf '\nlanes: the serial lane, %s test(s), one at a time\n' "$serial"
+  lane "$scratch/two" bats --jobs 1 --filter-tags serial "${files[@]}" || rc_two=$?
+fi
+
+failed=""
+[ "$rc_one" -eq 0 ] || failed+="; the parallel lane exited $rc_one"
+[ "$rc_two" -eq 0 ] || failed+="; the serial lane exited $rc_two"
+one="$(tap_ran "$scratch/one")"
+two="$(tap_ran "$scratch/two")"
+if [ "$((one + two))" -ne "$total" ]; then
+  printf '\nlanes: %s test(s) ran in parallel and %s serially, %s in all, but bats counts %s in %s: the lanes did not run every test exactly once%s\n' \
+    "$one" "$two" "$((one + two))" "$total" "$dir" "$failed"
+  # bats reports a failed setup_file or teardown_file as a record of its own,
+  # which the count above includes, so on a red lane it can stand for one.
+  [ -z "$failed" ] ||
+    printf 'lanes: a lane that fails in setup_file or teardown_file adds a record for it, which this count includes\n'
+  exit 1
+fi
+printf '\nlanes: %s test(s) ran in parallel and %s serially, all %s that bats counts in %s, each once%s\n' \
+  "$one" "$two" "$total" "$dir" "$failed"
+[ -z "$failed" ] || exit 1
+exit 0

@@ -229,10 +229,9 @@ _wt_list_read() {
   local err="$SCRATCH/list.err" field n=-1
   local -a fields=()
   WT_PATH=() WT_HEAD=() WT_BRANCH=() WT_LOCKED=() WT_LOCK=() WT_PRUNE=() WT_PRUNABLE=()
-  # git's status is read by `wait` on this process substitution, the only one
-  # here, so a list git could not give is never read as an empty one.
-  mapfile -d '' -t fields < <(git_readonly -C "$GITC" worktree list --porcelain -z 2>"$err")
-  if ! wait "$!"; then
+  # git's status is read with its records by nul_read (issue 0342), so a list
+  # git could not give is never read as an empty one.
+  if ! nul_read fields git_readonly -C "$GITC" worktree list --porcelain -z 2>"$err"; then
     warn "worktrees: git cannot list the worktrees of $GITC: $(sed -n 1p "$err")"
     return 1
   fi

@@ -5,7 +5,7 @@
     bin/devbin cache rm <key>
     bin/devbin cache gc [--keep <n>]
 
-Keep this machine's built artefacts under a key made from the inputs a build reads, so a build whose inputs did not change pulls what it built before instead of building again. A project's `build` handler calls `get` before it builds and `put` after.
+Keep this machine's built artefacts under a key made from the inputs a build reads, so a build whose inputs did not change pulls what it built before instead of building again. A project's `build` handler calls `get` before it builds and `put` after. The verb stays devbin's: a project command named `cache`, a handler file or `commands.cache.handler` or `run:`, would answer that handler in its place, so config validation refuses the two keys and `bin/devbin doctor` fails the file. The macOS stage's calls and a cut's reach devbin's own by its path, whatever stands there.
 
 ## The key
 
@@ -24,6 +24,24 @@ An artefact's key is the sha256 of the sorted lines `<path><TAB><object id>` ove
           path: target/release/app
 
 `build.inputs` is the input paths every artefact reads; an artefact's own `inputs` narrows it where it reads fewer. An artefact's name starts with a letter or a digit, so none reads as an option. `tool` is one of the toolchain table's words (`cargo`, `elixir`, `swift`, `xcodebuild`), whose version the key names, so no project writes a version anywhere. `path` is what the build writes, read by `put` and written back by `get`. Every path is relative to the project root and written once, as git names it. A tool word outside the table is refused at config read, and so is a path that is empty, absolute, holds an empty, `.` or `..` segment, or lies in `.git` (in any case of its letters, as a case-folding filesystem reads it), so `get` never writes or removes anything outside the project or over it; and so is an artefact's `path` that is, holds or lies in any input path the block declares, compared in any case too, since a pull replaces what is at the path. With `macos.commit_stamp` declared, an artefact whose `path` is `macos.app`'s is refused at config read too: the app carries the commit it was built at and the key holds no commit, so a copy pulled at a later commit would be another commit's build, which `macos app-sign` refuses, and such an app gains nothing from the cache. An artefact whose `path` is `macos.app`'s is refused at config read as well when its inputs hold no file the app's version is read from (`macos.version_from` where it is declared, else the project's version file): the key reads the declared inputs alone, so a release that moves the version alone would keep it, and a copy pulled then would be at the old version, which `macos app-sign` refuses. Name that file among the artefact's inputs, relative to the project root. `get` also refuses a path the repository tracks files at, in any case of its letters (git folds the ASCII ones).
+
+## A build handler
+
+A project's own `build` handler pulls before it builds and puts after:
+
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rc=0
+    bin/devbin cache get app || rc=$?
+    case "$rc" in
+      0) exit 0 ;;
+      1) ;;
+      *) echo "build: the cache refused (exit $rc), so app builds uncached" >&2 ;;
+    esac
+    cargo build --release
+    bin/devbin cache put app || echo "build: the cache did not record app (above), and the build stands" >&2
+
+`get`'s 0 is a pull, so nothing is built; its 1 is absent, so the build runs; any other exit is the cache's refusal, which costs a build and nothing else. A `put` records the artefact under HEAD's key only when every input path is committed, so a build made before a release's stamp is committed records nothing, and the first build a cut can record is the one at the release commit. A build at the tag reads the release commit's tree, so it pulls. A cut's RELEASE seal names the key at the release commit of every artefact the block declares, and `gc` keeps each one.
 
 ## The registry
 

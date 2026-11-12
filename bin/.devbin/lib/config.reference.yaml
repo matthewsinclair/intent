@@ -645,7 +645,7 @@ release:
     query: bin/devbin ci-state  # the built-in query (bin/devbin help ci-state), or any command run as `<query> <sha>` with DEVBIN_RELEASE_TAG set to the ref the run is read by, a cut's candidate branch (read it as ${DEVBIN_RELEASE_TAG:-}; unset, as when run by hand, every run on the sha): that ref's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
     workflow: tests.yml    # the workflow file in .github/workflows whose runs bin/devbin ci-state reads
     # summary: Test Summary # the job whose verdict is its run's, for bin/devbin ci-state; undeclared: the run's own conclusion
-    wait: 60m              # the legs loop's deadline, from its start, wherever a leg other than the local gates is waited on; the local gates alone run to their end
+    wait: 60m              # each leg's deadline, from its own start, for every leg but the local gates, which run to their end
   object: local              # local | ci | none -- who makes the release object
   title: "{tag}"             # object: local only. {tag} and {version} expand.
   # repo: owner/name         # object: local or ci. Undeclared: read off the url of the first declared remotes entry, else origin, else the only remote

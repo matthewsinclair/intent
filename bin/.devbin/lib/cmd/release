@@ -66,7 +66,7 @@ usage() {
       status) printf '%s %s %s <vX.Y.Z>\n' "$lead" "$me" "$v" ;;
       attach) printf '%s %s %s <vX.Y.Z> [--from <dir>]\n' "$lead" "$me" "$v" ;;
       snapshot) printf '%s %s %s <vX.Y.Z | --commit <rev>> <new-dir> [--no-parent]\n' "$lead" "$me" "$v" ;;
-      gates) printf '%s %s %s [--rerun]\n' "$lead" "$me" "$v" ;;
+      gates) printf '%s %s %s [--rerun] [--leg <host>]\n' "$lead" "$me" "$v" ;;
       *) printf '%s %s %s\n' "$lead" "$me" "$v" ;;
     esac
     lead="      "
@@ -165,6 +165,7 @@ snap_dir=""
 no_parent=0
 snap_words=()
 rerun=0
+leg_host=""
 
 # Every verb but the cut has a word, read from the one list (cfg_release_verbs).
 if [ "$1" != cut ] && grep -qxF -- "$1" <<<"$ALL_VERBS"; then
@@ -242,6 +243,13 @@ while [ $# -gt 0 ]; do
     --rerun)
       [ "$verb" = gates ] || refuse "--rerun applies to release gates, not to release $verb"
       rerun=1
+      ;;
+    --leg)
+      [ "$verb" = gates ] || refuse "--leg applies to release gates, not to release $verb"
+      [ -z "$leg_host" ] || refuse "--leg once only, got $leg_host and ${2:-nothing}"
+      [ $# -ge 2 ] && [ -n "$2" ] || refuse "--leg needs a host release.legs names"
+      leg_host="$2"
+      shift
       ;;
     -*)
       refuse "unknown argument: $1"
@@ -609,6 +617,41 @@ release_one_repository() {
   esac
 }
 
+# gates_cache_dir -- the gates' own directory, handed them as DEVBIN_GATE_CACHE
+# (issue 0335): it lasts from one run to the next and nothing devbin runs clears
+# it, so a gate can keep a build there, eg a private worktree's
+# CARGO_TARGET_DIR; what goes in it is the project's. The one DEVBIN_GATE_CACHE
+# already names, as a remote leg's host names work/<project>-leg.cache for its
+# run (lib/release.legs), else this machine's: .gate-cache in the project's
+# directory under the artefact cache's root (cache_root_resolved), named as a
+# remote host's bare repository is (legs_project_name), a name no artefact can
+# take, so the cache's verbs never read it. Made when missing. Prints the path;
+# status 1, printing why instead, when it cannot be named or made, since a gate
+# handed none could point a build at the filesystem's root.
+gates_cache_dir() {
+  local line d err
+  if [ -n "${DEVBIN_GATE_CACHE:-}" ]; then
+    d="$DEVBIN_GATE_CACHE"
+  elif line="$(cache_root_resolved)"; then
+    d="${line%%$'\t'*}/$(legs_project_name)/.gate-cache"
+  else
+    printf '%s\n' "$line"
+    return 1
+  fi
+  case "$d" in
+    /*) ;;
+    *)
+      printf '%s is not an absolute path\n' "$d"
+      return 1
+      ;;
+  esac
+  if ! err="$(mkdir -p "$d" 2>&1)"; then
+    printf '%s could not be made: %s\n' "$d" "${err%%$'\n'*}"
+    return 1
+  fi
+  printf '%s\n' "$d"
+}
+
 # gates_sealed <sha> <version> <tag> -- the gates in `gl`, release.gates as
 # gates_list read it, in order, in place, under one sealed run of their own,
 # tmp/release/<stamp>.GATES.{out,errors}, standing on <sha>, the commit the
@@ -629,13 +672,20 @@ release_one_repository() {
 # leaves a pass that does not read back; it is kept as the one read that says
 # the record a cut will trust is the one just made. The cut's local leg decides
 # on this status, never on a read of the record while the run writes it.
+#
+# THE GATES ARE HANDED THEIR OWN DIRECTORY, DEVBIN_GATE_CACHE (gates_cache_dir,
+# issue 0335), or the run is refused before any gate starts, saying why.
 gates_sealed() {
-  local sha="$1" why seal verdict
+  local sha="$1" why seal verdict gcache
+  if ! gcache="$(gates_cache_dir)"; then
+    _release_gates_refuse "the gates' own directory cannot be handed them as DEVBIN_GATE_CACHE: $gcache"
+    return 1
+  fi
   # THE RECORD NAMES ITS SCOPE: the list goes in the invocation block's `from:`
   # line, and each gate is an argument of the one command the run ran. The
   # list is the declared one, never the verb's argv, so no flag of devbin's
   # reaches release_gates_run through it.
-  if ! release_target_run "$2" "$3" run_gate --label "release gates" --suffix GATES --grammar generic --purge \
+  if ! DEVBIN_GATE_CACHE="$gcache" release_target_run "$2" "$3" run_gate --label "release gates" --suffix GATES --grammar generic --purge \
     --out-dir "$(gate_out_dir release)" \
     --source "release.gates ($(printf '%s, ' "${gl[@]}" | sed 's/, $//')) -- release_gates_run in this process, not a command line" \
     -- release_gates_run "${gl[@]}"; then
@@ -740,6 +790,152 @@ gates_verb() {
 }
 
 # ---------------------------------------------------------------------------
+# THE LEGS' REHEARSAL (issue 0337). A remote leg first runs at the release
+# commit inside a cut, so a leg new to its host, or reconfigured, meets every
+# fault of that host after the stamp. `release gates --leg <host>` runs the
+# same leg at HEAD before any cut, through the one runner a cut's leg goes
+# through (release_leg_start and release_leg_read, lib/release.legs), its pair
+# kept where a cut's is (release_leg_dir); and a cut's pre-flight refuses a leg
+# that has not gone green since the previous release with the leg config HEAD
+# declares (legs_rehearsal_problem).
+
+# gates_leg_verb <host> -- `release gates --leg <host>`: the remote leg on
+# <host>, a host release.legs names, at HEAD, a clean commit, sent the newest
+# release's tag beside it, as a cut sends its previous one; waited for under
+# ci.wait, each change of its answer said with the clock, as the cut's loop
+# says it (legs_say). 0 only on green. A green pair kept for HEAD answers
+# already and runs nothing, unless --rerun. A host that cannot be reached, a
+# start the host refuses, a red, an unknown and a run not green by the
+# deadline are each 1, saying why; a run still going at the deadline goes on
+# there, and the next run at HEAD reads it.
+gates_leg_verb() {
+  local host="$1" stood list project why tpl base sha secs t0 line word prev="" dir
+  release_one_repository "release gates"
+  stood="$(git_head_identity "$PROJECT_ROOT")"
+  git_identity_clean "$stood" ||
+    die "release gates --leg: the tree is not one commit, clean ($stood), so a run on $host would be a record of no commit -- commit or stash first"
+  list="$(cfg_release_list legs)" || die "release gates --leg: cannot read release.legs"
+  grep -qxF -- "$host" <<<"$list" ||
+    die "release gates --leg: $host is no host release.legs names (${list//$'\n'/, }) -- the rehearsal runs a declared leg"
+  project="$(legs_project_name)"
+  why="$(release_leg_project_problem "$project")"
+  [ -z "$why" ] || die "release gates --leg: $why -- set project.name to one"
+  tpl="$(cfg_release_get tag)" || die "release gates --leg: cannot read release.tag"
+  base="$(release_previous_tag "$tpl" "")" ||
+    die "release gates --leg: the tags cannot be read, so the newest release's tag cannot be sent to $host"
+  secs="$(release_seconds "$(cfg_release_get ci.wait)")" ||
+    die "release gates --leg: release.ci.wait is not a duration (a whole number of s, m or h), so the run has no deadline to wait to"
+  sha="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "release gates --leg: HEAD cannot be read"
+  dir="$(release_leg_dir "$PROJECT_ROOT" "$host")"
+  if [ "$rerun" = 0 ]; then
+    line="$(seal_verdict "$dir" GATES "$sha" "")"
+    if [ "${line%%$'\t'*}" = green ]; then
+      printf 'release: gates: legs.%s is green at %s already, kept at %s, so it is not run again (--rerun runs it)\n' "$host" "${sha:0:12}" "${line#*$'\t'}"
+      return 0
+    fi
+  fi
+  line="$(release_leg_reach "$host")"
+  [ "${line%%$'\t'*}" = reached ] || die "release gates --leg: $host cannot be reached: ${line#*$'\t'}"
+  t0=$SECONDS
+  line="$(release_leg_start "$PROJECT_ROOT" "$host" "$project" "$sha" "$base")"
+  while :; do
+    if [ "$line" != "$prev" ]; then
+      legs_say "legs.$host" "$line"
+      prev="$line"
+    fi
+    word="${line%%$'\t'*}"
+    [ "$word" = pending ] || break
+    if [ $((SECONDS - t0)) -ge "$secs" ]; then
+      printf 'release: gates: legs.%s is not green within %s (ci.wait) at %s, and its run goes on there: %s\n' \
+        "$host" "$(cfg_release_get ci.wait)" "${sha:0:12}" "${line#*$'\t'}"
+      return 1
+    fi
+    sleep "$RELEASE_POLL_SECONDS"
+    line="$(release_leg_read "$PROJECT_ROOT" "$host" "$project" "$sha")"
+  done
+  if [ "$word" = green ]; then
+    printf 'release: gates: legs.%s is green at %s, its pair kept under %s\n' "$host" "${sha:0:12}" "$dir"
+    return 0
+  fi
+  printf 'release: gates: legs.%s at %s is not green: %s, %s\n' "$host" "${sha:0:12}" "$word" "${line#*$'\t'}"
+  return 1
+}
+
+# leg_config_lines <commit> -- the leg config <commit> declares, which a
+# rehearsal stands for: release.legs and release.gates as a cut reads them,
+# and every line of the commands block each gate names by its first word,
+# read from the commit's own config.yaml in a subshell, so this run's config
+# stays as it is. Prints them sorted; status 1 when the commit's config cannot
+# be read.
+leg_config_lines() {
+  local rel text
+  rel="${DEVBIN_DIR#"$PROJECT_ROOT"/}/config.yaml"
+  text="$(git -C "$PROJECT_ROOT" show "$1:$rel" 2>/dev/null)" || return 1
+  (
+    cfg_load_string <<<"$text" || exit 1
+    legs="$(cfg_release_list legs)" || exit 1
+    gates="$(cfg_release_list gates)" || exit 1
+    while IFS= read -r l; do
+      [ -z "$l" ] || printf 'legs\t%s\n' "$l"
+    done <<<"$legs"
+    while IFS= read -r g; do
+      [ -n "$g" ] || continue
+      printf 'gates\t%s\n' "$g"
+      awk -F'\t' -v p="commands.${g%% *}." 'index($1, p) == 1' <<<"$_DEVBIN_CFG"
+    done <<<"$gates"
+  ) | LC_ALL=C sort -u
+  [ "${PIPESTATUS[0]}" -eq 0 ]
+}
+
+# legs_rehearsal_problem <host> <tag> -- why the remote leg on <host> may not
+# run in this cut (issue 0337), one line, or nothing when it has gone green
+# since <tag>, the previous release's, with the leg config HEAD declares. Its
+# kept pairs (release_leg_dir) are read newest first, by the commit each
+# names, and the first whose commit is <tag>'s or descends from it
+# (commit_direction's same or forward), with
+# HEAD's leg config (leg_config_lines), decides: green passes, and any other
+# word refuses, its last run red among them. No such run refuses too, as for a
+# leg added or reconfigured since <tag>; with no <tag>, the first release,
+# every commit counts. Each refusal names the command that rehearses the leg.
+# A change on the host itself is not read: the cut meets it.
+legs_rehearsal_problem() {
+  local host="$1" tag="$2" dir base="" head_cfg stem commit cfg word since fix
+  local -A seen=()
+  since="${tag:-the first release}"
+  fix="run: ${DEVBIN_INVOKE:-bin/devbin} release gates --leg $host"
+  dir="$(release_leg_dir "$PROJECT_ROOT" "$host")"
+  if [ -n "$tag" ] && ! base="$(git -C "$PROJECT_ROOT" rev-parse -q --verify "$tag^{commit}")"; then
+    printf "the previous release's tag %s cannot be read as a commit, so whether the leg has gone green since cannot be said\n" "$tag"
+    return 0
+  fi
+  if ! head_cfg="$(leg_config_lines HEAD)"; then
+    printf 'the leg config at HEAD cannot be read, so whether the leg has gone green with it cannot be said\n'
+    return 0
+  fi
+  while IFS= read -r stem; do
+    [ -n "$stem" ] || continue
+    commit="$(awk '/^devbin\|   commit: [0-9a-f]+$/ { print $3; exit }' "$stem.out" 2>/dev/null)" || commit=""
+    [ -n "$commit" ] && [ -z "${seen[$commit]:-}" ] || continue
+    seen[$commit]=1
+    # At the tag's commit or after it, by the one reader of which way a
+    # commit moved (commit_direction, lib/helpers).
+    if [ -n "$base" ]; then
+      case "$(commit_direction "$PROJECT_ROOT" "$base" "$commit")" in
+        same | forward) ;;
+        *) continue ;;
+      esac
+    fi
+    cfg="$(leg_config_lines "$commit")" || continue
+    [ "$cfg" = "$head_cfg" ] || continue
+    word="$(seal_verdict "$dir" GATES "$commit" "")"
+    [ "${word%%$'\t'*}" != green ] || return 0
+    printf 'its last run since %s with the leg config HEAD declares, at %s, is %s -- %s\n' "$since" "${commit:0:12}" "${word%%$'\t'*}" "$fix"
+    return 0
+  done <<<"$(newest_run_stems "$dir" GATES)"
+  printf 'it has not gone green since %s with the leg config HEAD declares (release.legs, release.gates and the commands they name) -- %s\n' "$since" "$fix"
+}
+
+# ---------------------------------------------------------------------------
 # THE LEGS (ST0011, design.md's leg contract): every leg a cut waits on, behind
 # one pair, leg_start <leg> and leg_read <leg>, each answering one
 # `<word><TAB><detail>` line in ci-state's five words (green, failed, pending,
@@ -756,11 +952,13 @@ gates_verb() {
 # since S is in no other; _leg_cand_git) and LEG_CAND_SHOWN (LEG_CAND_REMOTE as
 # a line names it: the remote's name, or the url as release_url_shown shows
 # it). LEG_VERSION and LEG_TAG are the release's target, which the local leg
-# hands its gates (gates_sealed, issue 0327). A remote leg runs through
+# hands its gates (gates_sealed, issue 0327). LEG_BASE_TAG is the previous
+# release's tag (release_previous_tag), empty when there is none, which each
+# remote leg is sent beside R (issue 0333). A remote leg runs through
 # lib/release.legs and the macOS stage through lib/release.macos, each passed
 # the context it reads, since neither library reads config. A start that finds
 # its leg green already starts nothing.
-LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_VERSION="" LEG_TAG="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
+LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_VERSION="" LEG_TAG="" LEG_BASE_TAG="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
 LEG_CQ=() LEGS=() LEGS_T0=0
 # Pre-flight's reading of release.legs (ST0011 WP-05): each host it reached,
 # a leg of the cut as legs.<host>, and each it could not, `<host><TAB><why>`,
@@ -805,6 +1003,18 @@ declare -gA LEG_LAST=()
 # Each leg's seconds from the legs step's start (LEGS_T0, before any leg
 # starts) to its last change of word, for its seal line.
 declare -gA LEG_SECS=()
+# Each leg's deadline in SECONDS: ci.wait from its own start, set once its
+# start has answered, for every leg but the local gates, which run to their
+# end. A leg held behind the one before it has none until it starts, so it
+# spends none of its wait while it is held (issue 0344).
+declare -gA LEG_DEADLINE=()
+# THE ORDER OF THE REMOTE LEGS (issue 0344): each one's leg before it, the
+# local gates for the first and the remote leg before it in release.legs'
+# order for each after, so a leg host that shares this machine's CPUs, as a
+# VM on it does, never runs its suite beside another. A remote leg is held
+# until that leg reads green (legs_held). The candidate and the macOS stage
+# have none: they start with the local gates.
+declare -gA LEG_AFTER=()
 
 leg_start() {
   case "$1" in
@@ -826,7 +1036,7 @@ _leg_remote_start() {
     printf '%s\n' "$v"
     return 0
   fi
-  release_leg_start "$LEG_ROOT" "${1#legs.}" "$LEG_PROJECT" "$LEG_SHA"
+  release_leg_start "$LEG_ROOT" "${1#legs.}" "$LEG_PROJECT" "$LEG_SHA" "$LEG_BASE_TAG"
 }
 
 leg_read() {
@@ -998,14 +1208,14 @@ legs_show_local() {
 # answer, failed or unknown, which stops the cut before any other leg starts.
 #
 # EVERY READ IS ONE BOUNDED ASK (release_wait, asking once): cut off at the
-# time left to the loop's deadline, LEGS_DEADLINE, and never below
-# RELEASE_ASK_FLOOR_SECONDS, so a query that hangs answers unknown, naming the
-# bound, its whole process group killed and its scratch gone, as every ask of
-# a query is. Before the loop has a deadline the floor is the bound.
-LEGS_DEADLINE=""
+# time left to the candidate's deadline, LEG_DEADLINE[candidate], and never
+# below RELEASE_ASK_FLOOR_SECONDS, so a query that hangs answers unknown,
+# naming the bound, its whole process group killed and its scratch gone, as
+# every ask of a query is. Before its start has answered there is no deadline,
+# and the floor is the bound.
 _leg_candidate_verdict() {
   local left=0
-  [ -z "$LEGS_DEADLINE" ] || left=$((LEGS_DEADLINE - SECONDS))
+  [ -z "${LEG_DEADLINE[candidate]:-}" ] || left=$((LEG_DEADLINE[candidate] - SECONDS))
   [ "$left" -ge 0 ] || left=0
   DEVBIN_RELEASE_PASSED_OVER="$LEG_CAND_PASSED" release_wait "$left" "" unknown release_ci_verdict "$LEG_CAND_SHA" "$LEG_REF" "${LEG_CQ[@]}"
 }
@@ -1193,9 +1403,10 @@ _leg_candidate_read() {
 
 # legs_stop <why> -- the legs step stops red: the local run stopped, its whole
 # group, and its output shown, each remote leg left to finish named with where
-# its seal lands, every leg's line in the RELEASE seal, then the step FAILED
-# with <why>, a stop that deletes the candidate (cut_fail, legs_cand_delete).
-# Nothing is public: no tag exists, and the candidate is gone or named.
+# its seal lands, each remote leg still held named as never started, every
+# leg's line in the RELEASE seal, then the step FAILED with <why>, a stop that
+# deletes the candidate (cut_fail, legs_cand_delete). Nothing is public: no
+# tag exists, and the candidate is gone or named.
 legs_stop() {
   local why="$1" leg leg_word
   legs_local_stop
@@ -1232,10 +1443,18 @@ legs_stop() {
       legs.*)
         # Only a host whose run the loop last read as running has one to
         # finish: not one already green, one whose start failed, or one after
-        # it that never started.
+        # it that never started. One still held behind the leg before it was
+        # sent nothing, and its line says why (issue 0344).
         leg_word="${LEG_LAST[$leg]:-none}"
-        [ "${leg_word%%$'\t'*}" = pending ] || continue
-        printf 'release: legs: %s is left to finish on its host; its seal lands in %s when read\n' "$leg" "$(gate_out_dir release)/legs/${leg#legs.}/"
+        case "${leg_word%%$'\t'*}" in
+          pending)
+            printf 'release: legs: %s is left to finish on its host; its seal lands in %s when read\n' "$leg" "$(gate_out_dir release)/legs/${leg#legs.}/"
+            ;;
+          held)
+            printf 'release: legs: %s was not started, since %s did not read green, so nothing was sent to %s\n' "$leg" "${LEG_AFTER[$leg]}" "${leg#legs.}"
+            LEG_LAST[$leg]="none"$'\t'"not started: ${LEG_AFTER[$leg]} did not read green"
+            ;;
+        esac
         ;;
     esac
   done
@@ -1410,40 +1629,47 @@ legs_lines() {
 }
 
 # legs_cache_lines -- once every leg is green, the RELEASE seal's
-# `cache<TAB><artefact><TAB><key>` line for the artefact the macOS stage
-# caches, through note_line, and one line of the cut's output naming it
-# (ST0011 WP-06): the line cache gc reads to keep the key. The artefact is
-# cfg_macos_artefact's, the one answer app-sign and doctor read too, so it is
-# the one the stage's app-sign pulled or put, and its key at R is the cache's
-# own answer (cache key --commit), the one derivation of a key. A stage that
-# builds no app, or builds it uncached, says so, and a key that cannot be read
-# is said with why, so the seal names no key it does not hold.
+# `cache<TAB><artefact><TAB><key>` line for each artefact the build: block
+# declares, through note_line, and one line of the cut's output naming it
+# (ST0011 WP-06; every artefact, issue 0338): the lines cache gc reads to keep
+# every key a release names, the macOS stage's app's and every other build's
+# alike. Each key at R is the cache's own answer (cache key --commit), the one
+# derivation of a key, asked by its path (core_verb), and one that cannot be
+# read is said with why, so the seal names no key it does not hold. Where the
+# macOS stage runs, the app's artefact is cfg_macos_artefact's, the one answer
+# app-sign and doctor read too, so it is the one the stage pulled or put, and
+# its line says so; a stage that builds no app, or builds it uncached, says
+# that instead.
 legs_cache_lines() {
-  local art key s=0 err="$SCRATCH/cache.key.err"
-  [ "$LEGS_MACOS" = yes ] || return 0
-  art="$(cfg_macos_artefact)" || s=$?
-  case "$s" in
-    0) ;;
-    1)
-      printf "release: cache: the macOS stage builds its app uncached: no build.artefacts entry has macos.app's path\n"
-      return 0
-      ;;
-    *)
-      # Why there is none: macos.build is not declared, two entries name the
-      # app, the app carries its commit (macos.commit_stamp), or the entry's
-      # inputs hold no file the app's version is read from.
-      printf 'release: cache: %s\n' "$art"
-      return 0
-      ;;
-  esac
-  # The verb holds a key to its form before it prints one (lib/cmd/cache).
-  if key="$("$PROJECT_ROOT/bin/devbin" cache key "$art" --commit "$LEG_SHA" 2>"$err")" && [ -n "$key" ]; then
-    note_line "cache"$'\t'"$art"$'\t'"$key"
-    printf 'release: cache: %s %s, the macOS stage'"'"'s app at %s\n' "$art" "$key" "${LEG_SHA:0:12}"
-  else
-    printf 'release: cache: the key of %s at %s could not be read, so the seal names none for it: %s\n' \
-      "$art" "${LEG_SHA:0:12}" "$(one_line "$(cat "$err" 2>/dev/null)")"
+  local art key s=0 err="$SCRATCH/cache.key.err" mac=""
+  if [ "$LEGS_MACOS" = yes ]; then
+    mac="$(cfg_macos_artefact)" || s=$?
+    case "$s" in
+      0) ;;
+      1) printf "release: cache: the macOS stage builds its app uncached: no build.artefacts entry has macos.app's path\n" ;;
+      *)
+        # Why there is none: macos.build is not declared, two entries name the
+        # app, the app carries its commit (macos.commit_stamp), or the entry's
+        # inputs hold no file the app's version is read from.
+        printf 'release: cache: %s\n' "$mac"
+        mac=""
+        ;;
+    esac
   fi
+  for art in $(cfg_list build.artefacts); do
+    # The verb holds a key to its form before it prints one (lib/cmd/cache).
+    if key="$(core_verb cache key "$art" --commit "$LEG_SHA" 2>"$err")" && [ -n "$key" ]; then
+      note_line "cache"$'\t'"$art"$'\t'"$key"
+      if [ "$art" = "$mac" ]; then
+        printf 'release: cache: %s %s, the macOS stage'"'"'s app at %s\n' "$art" "$key" "${LEG_SHA:0:12}"
+      else
+        printf 'release: cache: %s %s at %s\n' "$art" "$key" "${LEG_SHA:0:12}"
+      fi
+    else
+      printf 'release: cache: the key of %s at %s could not be read, so the seal names none for it: %s\n' \
+        "$art" "${LEG_SHA:0:12}" "$(one_line "$(cat "$err" 2>/dev/null)")"
+    fi
+  done
 }
 
 # legs_say <leg> <line> -- one line of the loop's, with the clock: the leg,
@@ -1505,14 +1731,15 @@ legs_gate_unrun() {
 
 # legs_round <now> -- what the legs' last answers decide, as one line: `done`
 # when every leg is green; `red<TAB><leg> is red: <detail>` for the first leg
-# that failed; `timeout<TAB><waiting>` at or past LEGS_DEADLINE while a leg it
-# bounds is not green; else `wait<TAB><waiting>`. <waiting> names each leg the
-# deadline bounds that is not green, with its last answer, and is empty when
-# only the local gates are waited on, which run to their end. THE LOOP'S ONE
-# DECISION: it reads LEGS, LEG_LAST and LEGS_DEADLINE and nothing else, and
+# that failed; `timeout<TAB><late>` once a leg with a deadline is not green at
+# or past it, <late> naming each such leg with its last answer; else
+# `wait<TAB><waiting>`, naming each leg with a deadline that is not green,
+# empty when only the local gates, which run to their end, or legs held behind
+# them, which have no deadline until they start, are waited on. THE LOOP'S ONE
+# DECISION: it reads LEGS, LEG_LAST and LEG_DEADLINE and nothing else, and
 # changes nothing, so legs_step only reads, calls this, and acts.
 legs_round() {
-  local now="$1" leg line word allgreen=yes waiting=""
+  local now="$1" leg line word allgreen=yes waiting="" late=""
   for leg in "${LEGS[@]}"; do
     line="${LEG_LAST[$leg]:-none$'\t'not read}"
     word="${line%%$'\t'*}"
@@ -1524,29 +1751,35 @@ legs_round() {
         ;;
       *)
         allgreen=no
-        [ "$leg" = local ] || waiting+=", $leg ($word: ${line#*$'\t'})"
+        if [ -n "${LEG_DEADLINE[$leg]:-}" ]; then
+          waiting+=", $leg ($word: ${line#*$'\t'})"
+          [ "$now" -lt "${LEG_DEADLINE[$leg]}" ] || late+=", $leg ($word: ${line#*$'\t'})"
+        fi
         ;;
     esac
   done
   if [ "$allgreen" = yes ]; then
     printf 'done\t\n'
-  elif [ -n "$LEGS_DEADLINE" ] && [ -n "$waiting" ] && [ "$now" -ge "$LEGS_DEADLINE" ]; then
-    printf 'timeout\t%s\n' "${waiting#, }"
+  elif [ -n "$late" ]; then
+    printf 'timeout\t%s\n' "${late#, }"
   else
     printf 'wait\t%s\n' "${waiting#, }"
   fi
 }
 
-# legs_pause <waiting> -- the loop's rest between reads: RELEASE_POLL_SECONDS,
-# cut short at the deadline while a leg it bounds is waited on (<waiting> not
-# empty), as release_wait's rest is, and ended within a second of the local
-# gates' run ending, so a cut whose last leg is the local one goes on once it
-# has, as the gates step did, never a poll later.
+# legs_pause -- the loop's rest between reads: RELEASE_POLL_SECONDS, cut short
+# at the nearest deadline of a leg not yet green, as release_wait's rest is,
+# and ended within a second of the local gates' run ending, so the remote leg
+# held behind them starts, or a cut whose last leg is the local one goes on,
+# once they have, as the gates step did, never a poll later.
 legs_pause() {
-  local until=$((SECONDS + RELEASE_POLL_SECONDS))
-  if [ -n "$1" ] && [ -n "$LEGS_DEADLINE" ] && [ "$LEGS_DEADLINE" -lt "$until" ]; then
-    until="$LEGS_DEADLINE"
-  fi
+  local until=$((SECONDS + RELEASE_POLL_SECONDS)) leg d line
+  for leg in "${LEGS[@]}"; do
+    d="${LEG_DEADLINE[$leg]:-}" line="${LEG_LAST[$leg]:-none}"
+    if [ -n "$d" ] && [ "${line%%$'\t'*}" != green ] && [ "$d" -lt "$until" ]; then
+      until="$d"
+    fi
+  done
   while [ "$SECONDS" -lt "$until" ]; do
     if [ "$LEG_LOCAL_STATE" = running ] && ! legs_local_running; then
       return 0
@@ -1555,27 +1788,93 @@ legs_pause() {
   done
 }
 
+# legs_held <leg> -- 0 when <leg> is held: it has a leg before it
+# (LEG_AFTER) whose last answer, by LEG_LAST, is not green. THE ONE TEST of
+# whether a remote leg may start, which the cut's starts and a dry run's
+# prediction both ask (issue 0344).
+legs_held() {
+  local before="${LEG_AFTER[$1]:-}" line
+  [ -n "$before" ] || return 1
+  line="${LEG_LAST[$before]:-none}"
+  [ "${line%%$'\t'*}" != green ]
+}
+
+# legs_then_words <leg>... -- for each held leg among those given that is not
+# green itself, in their order, `, then <leg> once <the leg before it> reads
+# green`: the order a cut starts them in, for a row that says what would run
+# (issue 0344). Nothing when none is held.
+legs_then_words() {
+  local leg line
+  for leg in "$@"; do
+    line="${LEG_LAST[$leg]:-none}"
+    if [ "${line%%$'\t'*}" != green ] && legs_held "$leg"; then
+      printf ', then %s once %s reads green' "$leg" "${LEG_AFTER[$leg]}"
+    fi
+  done
+}
+
+# legs_start_one <leg> <secs> -- <leg> started, in legs_step's scope (its
+# ci_secs and started) and in this shell, never a command substitution: the
+# local leg's run is a background job of the cut's, the cut's to reap and
+# stop, and the candidate's push joins what the stop's sentence names. Its
+# answer is its last, said with the clock, <secs> its seconds from the step's
+# start, and every leg but the local gates gets its deadline, ci.wait from
+# now. A start that answers anything but green sets started; one that fails,
+# or does not answer, stops the cut at once.
+legs_start_one() {
+  local leg="$1" line
+  leg_start "$leg" >"$SCRATCH/leg.line" ||
+    legs_stop "the $leg leg could not be started: its answer could not be written to $SCRATCH/leg.line"
+  line="$(cat "$SCRATCH/leg.line")" || legs_stop "the $leg leg's answer could not be read from $SCRATCH/leg.line"
+  LEG_LAST[$leg]="$line" LEG_SECS[$leg]="$2"
+  legs_say "$leg" "$line"
+  # A remote leg's start sends R to its host, and the macOS stage's run
+  # submits the app to Apple's notary service: acts another machine sees,
+  # which the stop's sentence names (cut_outward).
+  case "$leg:${line%%$'\t'*}" in
+    legs.*:green | macos:green) ;;
+    legs.*:pending) CUT_OUTWARD+=", sent ${LEG_SHA:0:12} to ${leg#legs.} to run its leg" ;;
+    legs.*) CUT_OUTWARD+=", tried to start the $leg leg, which may have sent ${LEG_SHA:0:12} to ${leg#legs.}" ;;
+    macos:*) CUT_OUTWARD+=", started the macOS stage, which submits the app to Apple's notary service" ;;
+  esac
+  # A start that fails, or does not answer, stops the cut at once: no read
+  # after it could turn that leg green, and its read would put the host's
+  # word on an absent run, or an earlier run's red, in place of the cause.
+  case "$leg:${line%%$'\t'*}" in
+    candidate:failed | candidate:unknown) legs_stop "the candidate did not start: ${line#*$'\t'}" ;;
+    legs.*:failed | legs.*:unknown) legs_stop "the $leg leg did not start: ${line#*$'\t'}" ;;
+    *:green) ;;
+    *) started=yes ;;
+  esac
+  [ "$leg" = local ] || LEG_DEADLINE[$leg]=$((SECONDS + ci_secs))
+}
+
 # legs_step -- the cut's legs step, in cut_run's scope (its gl, commit,
 # source, release_made, dry_run, tag, publish_url, cand_remote, cand_ref,
-# cand_shown, and in the publish shape snap and snap_public):
-# every leg started together at the release commit and read by one wait loop
-# (ST0011, AC-2.2). The candidate starts first, since its push is the one start
-# that can be refused, and a refused or unanswered push stops the cut before
-# anything else runs. Then the local gates in the background, and the loop:
-# every RELEASE_POLL_SECONDS, one read of each leg not yet green, a line with
-# the clock when a leg's answer changes, and legs_round's decision: every leg
-# green ends the step done; a failed leg stops the cut; ci.wait from the
-# loop's start is the deadline wherever a leg other than the local gates is
-# waited on, and a leg still not green then is a timeout, named with its last
-# answer. A local run alone waits for its end, as the gates step did. Either
-# stop is legs_stop's. A dry run starts nothing and says what would run, or
-# that every leg is green already.
+# cand_shown, and in the publish shape snap and snap_public): the legs
+# started at the release commit and read by one wait loop (ST0011, AC-2.2).
+# The candidate starts first, since its push is the one start that can be
+# refused, and a refused or unanswered push stops the cut before anything
+# else runs. Then the local gates in the background, and the macOS stage
+# beside them. EACH REMOTE LEG RUNS AFTER THE LOCAL GATES, ONE AT A TIME (issue
+# 0344): held until the leg before it reads green, the local gates for the
+# first and the host before it in release.legs' order for each after, since a
+# leg host may share this machine's CPUs, as a VM on it does. Then the loop:
+# every RELEASE_POLL_SECONDS, one read of each started leg not yet green, a
+# line with the clock when a leg's answer changes, each held leg started once
+# the one before it reads green, and legs_round's decision: every leg green
+# ends the step done; a failed leg stops the cut, and a leg held behind it is
+# never started; ci.wait from a leg's own start is its deadline, the local
+# gates aside, and a leg still not green then is a timeout, named with its
+# last answer. A local run alone waits for its end, as the gates step did.
+# Either stop is legs_stop's. A dry run starts nothing and says what would
+# run, in that order, or that every leg is green already.
 #
 # A LEG THAT HAS READ GREEN IS NOT READ AGAIN: one answer of green is that
 # leg's verdict, so a query that stops answering once the candidate is green
 # cannot time the cut out while the local gates still run.
 legs_step() {
-  local leg line ci_secs decision h
+  local leg line ci_secs decision h before started_now
   LEGS=()
   [ -z "$cand_remote" ] || LEGS+=(candidate)
   [ "${#gl[@]}" -eq 0 ] || LEGS+=(local)
@@ -1583,6 +1882,13 @@ legs_step() {
   # (ST0011 WP-05, WP-06); a host it could not reach is no leg of this cut.
   for h in "${LEGS_REMOTE[@]}"; do LEGS+=("legs.$h"); done
   [ "$LEGS_MACOS" = no ] || LEGS+=(macos)
+  # Each remote leg after the leg before it (issue 0344).
+  before=""
+  [ "${#gl[@]}" -eq 0 ] || before=local
+  for h in "${LEGS_REMOTE[@]}"; do
+    [ -z "$before" ] || LEG_AFTER["legs.$h"]="$before"
+    before="legs.$h"
+  done
   if [ "${#LEGS[@]}" -eq 0 ]; then
     cut_row legs skipped "$(legs_skipped_words)"
     return 0
@@ -1614,11 +1920,21 @@ legs_step() {
     LEGS=(candidate)
   fi
   if [ "$release_made" = no ]; then
-    cut_row legs would "start ${LEGS[*]} together on the release commit the commit step makes, then tag only when every one is green"
+    local now=""
+    for leg in "${LEGS[@]}"; do
+      legs_held "$leg" || now+=" $leg"
+    done
+    cut_row legs would "start${now} together on the release commit the commit step makes$(legs_then_words "${LEGS[@]}"), then tag only when every one is green"
     return 0
   fi
   LEG_ROOT="$PROJECT_ROOT" LEG_SHA="$commit" LEG_VERSION="$v" LEG_TAG="$tag"
   LEG_PROJECT="$(legs_project_name)"
+  # The previous release's tag, read only for a cut with a remote leg, the one
+  # leg it is sent to.
+  if [ "${#LEGS_REMOTE[@]}" -gt 0 ]; then
+    LEG_BASE_TAG="$(release_previous_tag "$tpl" "$tag")" ||
+      cut_fail legs "the previous release's tag cannot be read, so no remote leg could be sent it (above)"
+  fi
   if [ -n "$cand_remote" ]; then
     run_words LEG_CQ release.ci.query "$(cfg_release_get ci.query)" || cut_fail legs "release.ci.query cannot be read as words"
   fi
@@ -1628,13 +1944,16 @@ legs_step() {
       cut_fail legs "release.ci.wait is not a duration (a whole number of s, m or h), so the loop has no deadline to wait to"
   fi
   if [ "$dry_run" = 1 ]; then
-    # Read as a cut reads them at their start (_leg_at_start): a leg green
-    # there is started by none, and every one green is the step already. The
+    # Read as a cut reads them at their start (_leg_at_start), each answer
+    # kept as the leg's last, so legs_held reads it as a cut's starts do: a
+    # leg green there is started by none, a remote leg whose leg before it is
+    # not green waits for it, and every one green is the step already. The
     # local gates' record is worded as release gates and status word it.
     local said="" starts=""
     for leg in "${LEGS[@]}"; do
       line="$(_leg_at_start "$leg")" || cut_fail legs "reading the $leg leg at its start failed (exit $?)"
-      [ "${line%%$'\t'*}" = green ] || starts+=" $leg"
+      LEG_LAST[$leg]="$line"
+      [ "${line%%$'\t'*}" = green ] || legs_held "$leg" || starts+=" $leg"
       if [ "$leg" = local ]; then
         line="$(release_gates_word "$commit" "$line")" || cut_fail legs "wording the local gates' record failed (exit $?)"
       fi
@@ -1643,44 +1962,26 @@ legs_step() {
     if [ -z "$starts" ]; then
       cut_row legs already "every leg green at ${commit:0:12} already, so none would run again${said}"
     else
-      cut_row legs would "start${starts} at ${commit:0:12}, then tag only when every leg is green${said}"
+      cut_row legs would "start${starts} at ${commit:0:12}$(legs_then_words "${LEGS[@]}"), then tag only when every leg is green${said}"
     fi
     return 0
   fi
   LEGS_T0=$SECONDS
   local started=no
   for leg in "${LEGS[@]}"; do
-    # In this shell, never a command substitution: the local leg's run is a
-    # background job of the cut's, the cut's to reap and stop, and the
-    # candidate's push joins what the stop's sentence names.
-    leg_start "$leg" >"$SCRATCH/leg.line" ||
-      legs_stop "the $leg leg could not be started: its answer could not be written to $SCRATCH/leg.line"
-    line="$(cat "$SCRATCH/leg.line")" || legs_stop "the $leg leg's answer could not be read from $SCRATCH/leg.line"
-    LEG_LAST[$leg]="$line" LEG_SECS[$leg]=0
-    legs_say "$leg" "$line"
-    # A remote leg's start sends R to its host, and the macOS stage's run
-    # submits the app to Apple's notary service: acts another machine sees,
-    # which the stop's sentence names (cut_outward).
-    case "$leg:${line%%$'\t'*}" in
-      legs.*:green | macos:green) ;;
-      legs.*:pending) CUT_OUTWARD+=", sent ${LEG_SHA:0:12} to ${leg#legs.} to run its leg" ;;
-      legs.*) CUT_OUTWARD+=", tried to start the $leg leg, which may have sent ${LEG_SHA:0:12} to ${leg#legs.}" ;;
-      macos:*) CUT_OUTWARD+=", started the macOS stage, which submits the app to Apple's notary service" ;;
-    esac
-    # A start that fails, or does not answer, stops the cut at once: no read
-    # after it could turn that leg green, and its read would put the host's
-    # word on an absent run, or an earlier run's red, in place of the cause.
-    case "$leg:${line%%$'\t'*}" in
-      candidate:failed | candidate:unknown) legs_stop "the candidate did not start: ${line#*$'\t'}" ;;
-      legs.*:failed | legs.*:unknown) legs_stop "the $leg leg did not start: ${line#*$'\t'}" ;;
-      *:green) ;;
-      *) started=yes ;;
-    esac
+    # A remote leg whose leg before it has not read green waits for it, said
+    # as held, with no deadline yet (issue 0344).
+    if legs_held "$leg"; then
+      LEG_LAST[$leg]="held"$'\t'"starts once ${LEG_AFTER[$leg]} reads green"
+      LEG_SECS[$leg]=0
+      legs_say "$leg" "${LEG_LAST[$leg]}"
+    else
+      legs_start_one "$leg" 0
+    fi
   done
-  [ "${LEGS[*]}" = local ] || LEGS_DEADLINE=$((SECONDS + ci_secs))
   while :; do
     for leg in "${LEGS[@]}"; do
-      [ "${LEG_LAST[$leg]%%$'\t'*}" != green ] || continue
+      case "${LEG_LAST[$leg]%%$'\t'*}" in green | held) continue ;; esac
       [ "$leg" != local ] || legs_local_reap
       [ "$leg" != macos ] || release_macos_reap
       line="$(leg_read "$leg")" || legs_stop "reading the $leg leg failed (exit $?)"
@@ -1697,9 +1998,22 @@ legs_step() {
     case "${decision%%$'\t'*}" in
       done) break ;;
       red) legs_stop "${decision#*$'\t'}" ;;
-      timeout) legs_stop "a timeout: not green within $(cfg_release_get ci.wait) (ci.wait) of the loop's start: ${decision#*$'\t'}" ;;
+      timeout) legs_stop "a timeout: not green within $(cfg_release_get ci.wait) (ci.wait) of its own start: ${decision#*$'\t'}" ;;
     esac
-    legs_pause "${decision#*$'\t'}"
+    # Only a round that stops nothing starts a held leg: each one whose leg
+    # before it reads green now, in their order, so a host green at its start
+    # lets the one after it start in the same round. A round that started one
+    # is read again at once, with no pause, so a leg green at its start can
+    # end the step there.
+    started_now=no
+    for leg in "${LEGS[@]}"; do
+      if [ "${LEG_LAST[$leg]%%$'\t'*}" = held ] && ! legs_held "$leg"; then
+        legs_start_one "$leg" $((SECONDS - LEGS_T0))
+        started_now=yes
+      fi
+    done
+    [ "$started_now" = no ] || continue
+    legs_pause
   done
   legs_lines
   legs_cache_lines
@@ -2587,8 +2901,11 @@ cut_run() {
   # The macOS stage, where declared, is a leg of the cut, and on a host whose
   # platform word is not macos it is refused, naming the stage and the host's
   # word, as a gate active on no leg is: a release that ships a signed app is
-  # never cut without it.
-  local legs_list legs_host legs_reach legs_word legs_said="" legs_a legs_why
+  # never cut without it. A HOST REACHED IS A LEG OF THE CUT ONLY ONCE IT HAS
+  # GONE GREEN since the previous release with the leg config HEAD declares
+  # (legs_rehearsal_problem, issue 0337): one new, reconfigured, or red at its
+  # last run is refused, naming the rehearsal that runs it.
+  local legs_list legs_host legs_reach legs_word legs_said="" legs_a legs_why legs_prev
   # Each reached host with its platform word, `<host><TAB><word>`, empty for
   # a host with none: the words the gate check below reads.
   local -a legs_reached=()
@@ -2600,6 +2917,10 @@ cut_run() {
       legs_why=""
       [ -z "$legs_list" ] || legs_why="$(release_leg_project_problem "$(legs_project_name)")"
       [ -z "$legs_why" ] || refusals+=("release.legs: $legs_why -- set project.name to one")
+      legs_prev=""
+      if [ -n "$legs_list" ] && ! legs_prev="$(release_previous_tag "$tpl" "$tag")"; then
+        refusals+=("release.legs: the tags cannot be read, so the previous release a leg must have gone green since cannot be named")
+      fi
       while IFS= read -r legs_host; do
         [ -n "$legs_host" ] || continue
         legs_reach="$(release_leg_reach "$legs_host")"
@@ -2607,6 +2928,8 @@ cut_run() {
           reached)
             LEGS_REMOTE+=("$legs_host")
             legs_reached+=("$legs_host"$'\t'"${legs_reach#*$'\t'}")
+            legs_why="$(legs_rehearsal_problem "$legs_host" "$legs_prev")"
+            [ -z "$legs_why" ] || refusals+=("release.legs: $legs_host: $legs_why")
             ;;
           absent) LEGS_ABSENT+=("$legs_host"$'\t'"${legs_reach#*$'\t'}") ;;
           *) refusals+=("release.legs: $legs_host cannot be read as a leg: ${legs_reach#*$'\t'}") ;;
@@ -2996,12 +3319,13 @@ cut_run() {
   fi
 
   # --- legs --------------------------------------------------------
-  # EVERY LEG AT ONCE, THEN ONE WAIT LOOP (ST0011, AC-2.2; legs_step): the
-  # local gates in place at the release commit, under one seal of their own,
-  # and, unless ci.query is -, the opt-out, the candidate's matrix on its ref.
-  # The tag and push come only after every leg is green. A leg already green
-  # for this commit is not started again (the local gates' seal, WP01); a dry
-  # run starts nothing.
+  # THE LEGS, THEN ONE WAIT LOOP (ST0011, AC-2.2; legs_step): the local gates
+  # in place at the release commit, under one seal of their own, and, unless
+  # ci.query is -, the opt-out, the candidate's matrix on its ref, started
+  # together, with each remote leg after the local gates, one at a time
+  # (issue 0344). The tag and push come only after every leg is green. A leg
+  # already green for this commit is not started again (the local gates'
+  # seal, WP01); a dry run starts nothing.
   #
   # THE SNAPSHOT, ONCE THE RELEASE COMMIT EXISTS (publish shape): S, made of R
   # alone (snapshot_build), in the run's scratch, on the tip of the publish
@@ -5428,6 +5752,10 @@ case "$verb" in
     # Validated first, as every verb is: a malformed block would name another
     # list of gates.
     cfg_validate || die "release gates: $DEVBIN_DIR/config.yaml does not validate (above)"
-    gates_verb || exit 1
+    if [ -n "$leg_host" ]; then
+      gates_leg_verb "$leg_host" || exit 1
+    else
+      gates_verb || exit 1
+    fi
     ;;
 esac

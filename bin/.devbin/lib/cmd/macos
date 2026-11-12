@@ -1388,16 +1388,17 @@ cmd_store_creds() {
 # macos.build, then the app put under the commit's key. The cache's own lines
 # say what it did, and a refusal costs the build alone: a get it refuses
 # builds, and a put it refuses, or that fails, leaves the build standing. With
-# no such artefact the app builds uncached, as it did before.
+# no such artefact the app builds uncached, as it did before. The cache is
+# devbin's own, by its own path (core_verb), never a project command at its name.
 app_build_cached() {
   local -a words=()
-  local art s=0 rc=0 launcher="$ROOT/bin/devbin"
+  local art s=0 rc=0
   run_words words macos.build "$APP_BUILD" || die "macos: macos.build holds no command to run"
   art="$(cfg_macos_artefact)" || s=$?
   case "$s" in
     0)
       step "pulling $art from the artefact cache at ${APP_RELEASE_COMMIT:0:12}"
-      "$launcher" cache get "$art" --commit "$APP_RELEASE_COMMIT" || rc=$?
+      core_verb cache get "$art" --commit "$APP_RELEASE_COMMIT" || rc=$?
       if [ "$rc" -eq 0 ]; then
         printf '  pulled, so macos.build is not run\n'
         return 0
@@ -1410,7 +1411,7 @@ app_build_cached() {
   "${words[@]}" || die "macos: macos.build failed (exit $?) -- nothing signed"
   [ "$s" -eq 0 ] || return 0
   step "putting $art into the artefact cache at ${APP_RELEASE_COMMIT:0:12}"
-  "$launcher" cache put "$art" || warn "macos: cache put $art did not record the app (above); the build stands"
+  core_verb cache put "$art" || warn "macos: cache put $art did not record the app (above); the build stands"
 }
 
 # app-sign: refused unless HEAD is the release's commit in a clean tree, the
@@ -1799,25 +1800,41 @@ cmd_bin_publish() {
 }
 
 # leg: what a cut's macOS stage runs, before the tag, for what the project
-# declares: app-sign then app-notarize where macos.app is declared, and
-# bin-sign then bin-notarize where macos.binaries is declared and the release
-# object is the project's own (release.object local), each through the
-# project's launcher, the first that fails ending the leg.
+# declares: app-sign where macos.app is declared, and bin-sign where
+# macos.binaries is declared and the release object is the project's own
+# (release.object local), the first that fails ending the leg; then
+# app-notarize and bin-notarize AT ONCE (issue 0336), so the leg waits out
+# Apple's two round trips together, not one after the other. Each runs
+# through the project's launcher, as run alone, and each notarisation's output
+# goes to a file of its own, printed whole once both have ended, the app's
+# first, so the stage's seal reads as two blocks. One that fails fails the
+# leg with its status once both have ended, the app's first; a stop's kill of
+# the stage's process group takes both.
 cmd_leg() {
-  local launcher="$ROOT/bin/devbin" ran=no
+  local launcher="$ROOT/bin/devbin" app=no bins=no out app_pid="" bin_pid="" app_rc=0 bin_rc=0
   [ -x "$launcher" ] || die "macos: no launcher at $launcher -- the leg runs each step through it"
-  if [ -n "$APP_SRC" ]; then
-    "$launcher" macos app-sign || exit
-    "$launcher" macos app-notarize || exit
-    ran=yes
-  fi
-  if [ -n "$(bin_labels)" ] && [ "$(cfg_release_get object)" = local ]; then
-    "$launcher" macos bin-sign || exit
-    "$launcher" macos bin-notarize || exit
-    ran=yes
-  fi
-  [ "$ran" = yes ] ||
+  [ -z "$APP_SRC" ] || app=yes
+  if [ -n "$(bin_labels)" ] && [ "$(cfg_release_get object)" = local ]; then bins=yes; fi
+  [ "$app" = yes ] || [ "$bins" = yes ] ||
     die "macos: $DEVBIN_DIR/config.yaml declares no macos.app, and no macos.binaries under release.object local -- the macOS stage has nothing to sign"
+  if [ "$app" = yes ]; then "$launcher" macos app-sign || exit; fi
+  if [ "$bins" = yes ]; then "$launcher" macos bin-sign || exit; fi
+  out="$(mktemp -d)" || die "macos: could not make a dir for the notarisations' output -- nothing submitted"
+  if [ "$app" = yes ]; then
+    "$launcher" macos app-notarize >"$out/app" 2>&1 &
+    app_pid=$!
+  fi
+  if [ "$bins" = yes ]; then
+    "$launcher" macos bin-notarize >"$out/bins" 2>&1 &
+    bin_pid=$!
+  fi
+  [ -z "$app_pid" ] || wait "$app_pid" || app_rc=$?
+  [ -z "$bin_pid" ] || wait "$bin_pid" || bin_rc=$?
+  [ ! -f "$out/app" ] || cat "$out/app"
+  [ ! -f "$out/bins" ] || cat "$out/bins"
+  rm -rf "$out"
+  [ "$app_rc" -eq 0 ] || exit "$app_rc"
+  [ "$bin_rc" -eq 0 ] || exit "$bin_rc"
 }
 
 case "$sub" in

@@ -123,7 +123,7 @@ test.credo       elixir  credo       CREDO      -         mix credo --strict | S
 test.rust        rust    cargo       RUST       -         cargo test | Cargo suites
 test.swift       swift   xcodebuild  SWIFT      -         xcodebuild test | Swift suites
 test.lua         lua     lua         LUA        -         busted | Lua suites
-test.shell       shell   shell       SHELL      -         bats tests | BATS suites
+test.shell       shell   shell       SHELL      -         @builtin | BATS suites
 db.setup         elixir  generic     DBSETUP    -         mix ecto.setup | Create, migrate and seed
 db.migrate       elixir  generic     DBMIGRATE  -         mix ecto.migrate | Run pending migrations
 db.reset         elixir  generic     DBRESET    -         mix ecto.reset | Drop, create, migrate, seed

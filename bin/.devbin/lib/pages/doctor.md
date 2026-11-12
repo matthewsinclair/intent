@@ -45,7 +45,12 @@ In this order:
                     <name> beside it (doctor.d/ excepted)
     shadowing       project names standing where devbin ships its own, as
                     a whole command or as one option; overriding is
-                    supported, so each is a note
+                    supported, so each is a note, but at a name the core
+                    calls itself (core verbs)
+    core verbs      a project command at a name devbin's core calls itself,
+                    cache, fails: a build handler reaches that verb through
+                    bin/devbin, so it would reach the project's command
+                    instead; give the project's command another name
     launcher        bin/devbin is executable; a bin/<project.name> link to
                     devbin is noted as a retired alias, and a
                     project.alias shortcut chained through that link is

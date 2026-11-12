@@ -927,6 +927,15 @@ guard_evidence() {
 step_cargo_census() {
   local f numbered lineno line stmt bad="" total=0 inert_set
   while IFS= read -r f; do
+    # A help page under lib/pages/ is prose that `bin/devbin help <cmd>` prints
+    # (lib/help reads it for a built-in's long form), and nothing sources or
+    # runs it, so a `cargo build --release` in it is an example, not an
+    # entrance. devbin 0.1.23's cache.md shows one in a recipe and refused the
+    # sweep. The exclusion is the directory, not the `.md` suffix: a script
+    # named *.md anywhere else is still read. Arm 11's page fixture holds it.
+    case "$f" in
+      "$ROOT"/bin/.devbin/lib/pages/*) continue ;;
+    esac
     # Heredoc state is a property of the FILE, not of the line, so it is
     # computed once here and consulted below. See prose_stripped for why no
     # per-line regex can answer it.
@@ -1099,20 +1108,40 @@ build_one() {
 }
 FIXTURE
 
+  # GREEN 4. A help page under lib/pages/ is printed by `bin/devbin help`, never
+  # run, so its recipe's bare release build is inert. devbin 0.1.23's cache.md
+  # carries exactly this form, indented as a Markdown code block.
+  mkdir -p "$base/help_page/bin/.devbin/lib/pages"
+  cat > "$base/help_page/bin/.devbin/lib/pages/cache.md" <<'FIXTURE'
+## A recipe
+
+    bin/devbin cache get app || cargo build --release
+FIXTURE
+
+  # RED 5. The same text in a file OUTSIDE lib/pages/ is still read, so the
+  # exclusion is the directory and not the suffix.
+  mkdir -p "$base/md_outside_pages/bin/.devbin/lib"
+  cat > "$base/md_outside_pages/bin/.devbin/lib/build.md" <<'FIXTURE'
+    bin/devbin cache get app || cargo build --release
+FIXTURE
+
+  local reds=0 greens=0
   for spec in live_backtick:RED live_heredoc:RED crossfunction_token:RED \
-              stray_apostrophe:RED escaped_backtick:GREEN inert_heredoc:GREEN \
-              filescope_token:GREEN; do
+              stray_apostrophe:RED md_outside_pages:RED \
+              escaped_backtick:GREEN inert_heredoc:GREEN \
+              filescope_token:GREEN help_page:GREEN; do
     n="${spec%%:*}"
     want="${spec#*:}"
     got="$(census_verdict "$base/$n")"
     checked=$((checked + 1))
+    case "$want" in RED) reds=$((reds + 1)) ;; GREEN) greens=$((greens + 1)) ;; esac
     [ "$got" = "$want" ] || bad="$bad $n(want $want, got $got)"
   done
 
   if [ -n "$bad" ]; then
     fail "arm 11 -- the census misreads its own fixtures:$bad. An arm that cannot be driven to BOTH verdicts is not evidence about the tree; it is a number that has never been wrong in front of anyone."
   else
-    ok "arm 11 -- the census is driven to BOTH verdicts on planted fixtures ($checked examined: 4 live entrances RED, 3 inert forms GREEN)"
+    ok "arm 11 -- the census is driven to BOTH verdicts on planted fixtures ($checked examined: $reds live entrances RED, $greens inert forms GREEN)"
   fi
 }
 step_census_selftest

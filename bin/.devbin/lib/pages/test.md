@@ -8,10 +8,24 @@ The project's test gates. Each option devbin ships exits non-zero when it fails 
     rust     rust    cargo test
     swift    swift   xcodebuild test
     lua      lua     busted
-    shell    shell   bats tests
+    shell    shell   bats tests, in two lanes (below)
     all      every active option in one pass
 
 Arguments after one of these options are added to its command line, apart from devbin's own flags: `bin/devbin test mix --trace` runs `mix test --trace`. Each runs at the project root, apart from `rust`, which runs at `project.cargo_root` when the config names one.
+
+## shell runs in two lanes
+
+Handed nothing, which is what `all` hands it, `shell` runs the project's test directory in two lanes: every test not tagged `serial`, N at a time under `bats --jobs N`, then the tests tagged `serial`, one at a time. Its first line names N and the GNU parallel it found. Without GNU parallel, or with `DEVBIN_TEST_JOBS=1`, it runs one lane, one test at a time, and says why. N is half the CPUs and never fewer than twenty-four. `DEVBIN_TEST_JOBS` sets it, to a whole number or to `all`, every CPU the machine has, and where it is unset `DEVBIN_JOBS` does. The run fails when either lane fails, and when the lanes did not run every test `bats --count` counts, each exactly once. Handed paths or bats flags, `shell` runs `bats tests` with them, in one lane.
+
+A test that cannot share a host with another, eg one that binds a fixed port or writes outside its own temp directory, takes bats's `serial` tag, on the line before it or, for every test in its file, as a file tag:
+
+    # bats test_tags=serial
+    # bats file_tags=serial
+
+A project whose suite has a runner of its own, declared as the option's `run:`, calls the same lanes runner in place of bats, once it has exported what its suite needs. devbin exports `DEVBIN_LIB` to every command it runs, and the runner reads a relative directory from wherever it is called, so hand it an absolute one:
+
+    export BATS_LIB_PATH=<your bats library>
+    "$DEVBIN_LIB/bats-lanes" <your test directory>
 
 ## The verdict is a file
 
