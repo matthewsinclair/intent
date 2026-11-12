@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- NEXT (P0, hv decisions 39 to 42): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree, dc makes one proof run of ST0093 WP-06 (c) to (e) (drafted at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, and issue 0687, so a Debug build never registers the login item (red and green land as one commit, refs/bank/dc/0687/green-on-red-on-7f9064cc3), and vc lands them. Then one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run. Then ic regenerates docs/reference, then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
+- NEXT (P0, hv decisions 39 to 42): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree, dc makes one proof run of ST0093 WP-06 (c) to (e) (drafted at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, and issue 0687, so a Debug build never registers the login item (red and green as one unit, refs/bank/dc/0687/fix-on-7f9064cc3), and vc lands them. Then one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run. Then ic regenerates docs/reference, then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
 
 ## Holds
 
