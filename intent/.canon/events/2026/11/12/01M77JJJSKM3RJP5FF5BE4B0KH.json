@@ -1,0 +1,15 @@
+{
+  "id": "01M77JJJSKM3RJP5FF5BE4B0KH",
+  "ts": "2026-11-12T09:49:12.377Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0688"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "no_daemon_required.sh's inside-the-project guard is an unbounded prefix, so it refuses a scratch directory beside the tree"
+  }
+}

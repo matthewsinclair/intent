@@ -6,7 +6,7 @@ session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
 heartbeat_at: 2026-11-12 09:04Z
 status: active
 focus: "2026-11-12 08:54Z, folded for hv's compact. Two banks wait for the sweep's commit and one proof run: ST0093 WP-06 (c) to (e) with 0682's close, refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df in tmp/wt-dc-0093-06 (hold 41), and ISSUE:0687's fix as one landing unit, refs/bank/dc/0687/fix-on-7f9064cc3 in tmp/wt-dc-0687 (hold 42). Hold 37 waits on hv's look at 3.3.0, after quitting the stale Debug app; todo 63 at the cut."
-claims: [ST0090/02, ST0093/06, ISSUE:0687]
+claims: [ST0090/02, ST0093/06, ISSUE:0687, ISSUE:0688]
 ---
 
 # DevX Claude (dc)
@@ -25,6 +25,7 @@ _(none)_
 - ST0093/06 (c) to (e) are drafted on vc's word after the compact, in tmp/wt-dc-0093-06 off main, reading Devbin at 7951719a (the code devbin cuts as 0.1.23). Nothing is run and nothing is written to Devbin's tree. The proof run and the bank wait until devbin-vc's sweep of devbin 0.1.23 lands in Intent and vc sends dc its commit. Then dc rebases the draft onto it, makes one proof run for the batch and banks it, and vc lands it. The draft covers three parts. (c) is a build: block declaring the pair, with its handlers calling cache get and put (0338). (d) points rust's gate target at DEVBIN_GATE_CACHE (0335). (e) moves tests/run_tests.sh onto the core's lanes runner (0339), with the serial tag banked unproved at refs/bank/dc/0093-06/e-serial-unproved-on-d9ec2b0fb. (a) and (b) landed at 6375023ea. (edited)
 - ISSUE:0687's fix is banked off 7f9064cc3 as one landing unit, red and green together, at refs/bank/dc/0687/fix-on-7f9064cc3 (the red alone at refs/bank/dc/0687/red-on-7f9064cc3), on vc's word that it rides this release as one commit with no CHANGELOG entry. It waits for the same thing as hold 41: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases the unit onto it and shows the red at 7f9064cc3's code and the green in the one proof run, and vc lands it. A Debug build neither registers the login item nor marks FirstRunDone. (edited)
 - dc's one Desk booking for Intent's cut, bin/devbin release gates --leg kovacs and then the dry run for its pre-flight, waits for three things: ST0093 WP-06 (c) to (e) landed (hold 41), releasing.md step 2's commits in (ic's regeneration of docs/reference, stale against v3.3.0, and cc's CHANGELOG pass), and vc calling the booking. The leg goes after step 2 because gate all's reference arm runs on kovacs too (vc, 2026-11-12).
+- ISSUE:0688, no_daemon_required.sh's unbounded inside-the-project guard, is fixed on vc's ruling as its own unit, canon's copy in intent/.canon/st/ST0057.json included, drafted in tmp/wt-dc-0688 and banked unproved. It waits for the same thing as holds 41 and 42: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases it and, in the one proof run, drives the guard's case statement with a <root>.tmp directory (refused at the base, passing after) and a directory inside the root (still refused), closes 0688 in the bank, and vc lands it. No CHANGELOG entry: it is a parity tool.
 
 ## Watch-outs
 

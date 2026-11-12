@@ -11,7 +11,8 @@
     "claims": [
       "ST0090/02",
       "ST0093/06",
-      "ISSUE:0687"
+      "ISSUE:0687",
+      "ISSUE:0688"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2887,6 +2888,14 @@
       "text": "dc's one Desk booking for Intent's cut, bin/devbin release gates --leg kovacs and then the dry run for its pre-flight, waits for three things: ST0093 WP-06 (c) to (e) landed (hold 41), releasing.md step 2's commits in (ic's regeneration of docs/reference, stale against v3.3.0, and cc's CHANGELOG pass), and vc calling the booking. The leg goes after step 2 because gate all's reference arm runs on kovacs too (vc, 2026-11-12).",
       "state": "live",
       "recorded_at": "2026-11-12T09:10:44.927Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 44,
+      "text": "ISSUE:0688, no_daemon_required.sh's unbounded inside-the-project guard, is fixed on vc's ruling as its own unit, canon's copy in intent/.canon/st/ST0057.json included, drafted in tmp/wt-dc-0688 and banked unproved. It waits for the same thing as holds 41 and 42: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases it and, in the one proof run, drives the guard's case statement with a <root>.tmp directory (refused at the base, passing after) and a directory inside the root (still refused), closes 0688 in the bank, and vc lands it. No CHANGELOG entry: it is a parity tool.",
+      "state": "live",
+      "recorded_at": "2026-11-12T09:49:26.029Z"
     }
   ],
   "sent": [

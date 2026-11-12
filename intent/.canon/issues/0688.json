@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 688,
+  "slug": "no-daemon-required-sh-s-inside-the-project-guard",
+  "title": "no_daemon_required.sh's inside-the-project guard is an unbounded prefix, so it refuses a scratch directory beside the tree",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-12",
+  "reporter": "Matthew Sinclair",
+  "body": "Found on 2026-11-12, in a read of Intent's tests that devbin-vc asked for through vc. Since devbin 0334, a remote leg runs its gates with TMPDIR at `<worktree>.tmp`, beside the worktree. devbin's own guard at `harness.bats:198`, an unbounded `\"$DEVBIN_HOME\"*)`, read that directory as inside the checkout, and the kovacs leg went red. Nothing that Intent's `gate all`, `build all` or `test shell` runs carries such a guard. One parity instrument does: `intent/st/ST0057/parity/tools/no_daemon_required.sh`, which no test or gate runs (`runner_roster_check.sh` lists it as manual, for ST0057 AT-07.5).\n\nIts arm A makes a scratch project with `mktemp -d`, then refuses to go on when that directory resolves inside the project: `case \"$(cd \"$work\" && pwd -P)\" in \"$REPO_ROOT\"*) die ...`. The pattern has no `/` boundary, so a scratch directory under a TMPDIR whose path begins with the tree's own path, such as a leg's `<worktree>.tmp`, is refused as inside the project. The guard also compares a path read with `pwd -P` against a `REPO_ROOT` read with plain `pwd`, so in a tree reached through a symbolic link a scratch directory inside it is not refused.\n\nThe fix, on vc's ruling of 2026-11-12: `REPO_ROOT` is read with `pwd -P`, as the scratch path is, and the guard matches the root itself or a path below it, `\"$REPO_ROOT\" | \"$REPO_ROOT\"/*)`. Canon's copy of the attachment, in `intent/.canon/st/ST0057.json`, moves with it. The proof drives the guard's own case statement: a directory in `<root>.tmp` is refused at the base and passes after the fix, and a directory inside the root is still refused. The instrument cannot show it end to end while an intentd runs, because arm A refuses a live daemon before it reaches the guard. It is a parity tool, so the fix takes no CHANGELOG entry.\n"
+}

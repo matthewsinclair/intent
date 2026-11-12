@@ -1,0 +1,15 @@
+{
+  "id": "01M77JK04D7XW8EMWHERBD1Z4B",
+  "ts": "2026-11-12T09:49:26.029Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ISSUE:0688, no_daemon_required.sh's unbounded inside-the-project guard, is fixed on vc's ruling as its own unit, canon's copy in intent/.canon/st/ST0057.json included, drafted in tmp/wt-dc-0688 and banked unproved. It waits for the same thing as holds 41 and 42: devbin-vc's sweep of devbin 0.1.23 landing in Intent and vc sending its commit. Then dc rebases it and, in the one proof run, drives the guard's case statement with a <root>.tmp directory (refused at the base, passing after) and a directory inside the root (still refused), closes 0688 in the bank, and vc lands it. No CHANGELOG entry: it is a parity tool."
+  }
+}
