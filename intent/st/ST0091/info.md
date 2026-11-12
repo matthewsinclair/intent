@@ -1,9 +1,9 @@
 ---
 st_id: ST0091
 title: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire
-status: WIP
+status: Completed
 created: 2026-10-31
-completed:
+completed: 2026-11-12
 ---
 
 # ST0091: Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire

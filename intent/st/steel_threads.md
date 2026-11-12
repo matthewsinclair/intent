@@ -6,7 +6,6 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
 | ST0093 | Why Claudes yak-shave, and faster releases                                                                                                      | WIP         | 2026-11-11 |                      |
 | ST0092 | A Claude Team is declared by a profile: wb init sets up its board, hv is reached through one node, and the fleet converges                      | WIP         | 2026-11-10 |                      |
-| ST0091 | Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire                                                   | WIP         | 2026-10-31 |                      |
 | ST0090 | The index rebuild says what happened, in the CLI's report and Intent.app's menu                                                                 | WIP         | 2026-10-31 |                      |
 | ST0089 | Localfold+Compact Policy (when to fold, /clear and /compact)                                                                                    | Not Started | 2026-10-27 |                      |
 | ST0085 | Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live                                                   | Not Started | 2026-10-23 |                      |
@@ -14,6 +13,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0082 | Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port                                                              | Not Started | 2026-10-14 |                      |
 | ST0077 | Level 3 stores the references only the toolchain sees, and a roster of the targets it defines                                                   | Not Started | 2026-09-17 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Not Started | 2026-08-25 |                      |
+| ST0091 | Intent releases through devbin's core: its driver, kovacs preflight and pre-push build retire                                                   | Completed   | 2026-10-31 | 2026-11-12           |
 | ST0088 | Intent's prompt corpus is culled to what a session needs: one home per instruction, nothing it does not invoke, nothing the tool already does   | Completed   | 2026-10-25 | 2026-10-25           |
 | ST0087 | Intent conforms to the dev, opt and brew contract                                                                                               | Completed   | 2026-10-25 | 2026-10-30           |
 | ST0086 | Add an 'Estate' page to intentd that all intent-using Claudes on an estate can use to post status                                               | Completed   | 2026-10-24 | 2026-10-27           |
