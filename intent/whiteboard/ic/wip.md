@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-12 14:00Z
+heartbeat_at: 2026-11-12 14:55Z
 status: active
-focus: "2026-11-12 14:00Z, localfold on hv's word through vc to bank, fold and hold; not released, holding with nothing running until vc or hv says go. Two holds. 23: intent.laksa.io to 3.3.0 (hv decision 47), c14c60e committed in ~/Devel/prj/Sites/intent and rehearsed from Laksa (f3cbfb6..c14c60e to local, origin and upstream, the dry run banked at refs/bank/ic/site330/), pushed only on hv's word through vc and then read live. 22: the two reads at the cut's HEAD before hv's cut, reference_current_check.sh exiting 0 and DIRT_SCOPE unmoved since 9500cb77a, released when vc names that HEAD under the freeze. No claim, slot or worktree."
+focus: "2026-11-12 14:55Z, the fold's hold is over on hv decision 48 (bab8e458c, devbin-vc has the pen), passed by vc. Two holds stand. 23: intent.laksa.io to 3.3.0, c14c60e committed in ~/Devel/prj/Sites/intent and rehearsed from Laksa (f3cbfb6..c14c60e to local, origin and upstream), pushed only on hv's word through vc and then read live. 22: the two reads at the cut's HEAD, reference_current_check.sh exiting 0 and DIRT_SCOPE unmoved since 9500cb77a, released when vc names that HEAD under the freeze. No claim, slot or worktree."
 claims: []
 ---
 
