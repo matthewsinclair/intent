@@ -256,10 +256,12 @@ fn no_generated_view_names_a_generated_artefact_as_truth() {
       views::wb_board(board, &context),
     )];
     for peer in &canon.boards {
-      let sender = &peer.node.moniker;
-      if sender == node {
+      // The generator's own rule for which pairs have an inbox view, so the
+      // walk examines exactly the inboxes it renders.
+      if !views::inbox_renders(&canon, peer, board) {
         continue;
       }
+      let sender = &peer.node.moniker;
       per_board.push((
         project.wb_inbox_view(node, sender),
         views::wb_inbox(sender, node, &peer.sent, &context),

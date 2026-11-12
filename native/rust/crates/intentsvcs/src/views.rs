@@ -2458,7 +2458,7 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       content: self::issue(issue, ctx),
     });
   }
-  // **FIVE NODES ARE FIVE BOARDS AND TWENTY INBOXES**, one per ordered pair,
+  // **EVERY BOARD, AND AN INBOX FOR EACH ORDERED PAIR `inbox_renders` OPENS**,
   // an empty one included: an inbox that exists and says `_(empty)_` reads
   // differently from one that is missing, and only the first is true.
   // **AN INBOX RENDERS FROM ITS SENDER'S BOARD ALONE** (issue 0612), so the
@@ -2472,15 +2472,7 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
     });
     for peer in &canon.boards {
       let sender = &peer.node.moniker;
-      // A board that declares a team renders the human seat's one pair, with
-      // the mediator, and no other pair of its (ST0092 WP-05).
-      if sender == node || !crate::model::pair_open(canon.declaration.as_ref(), sender, node) {
-        continue;
-      }
-      // **A RETIRED NODE'S PAIR VIEWS GO WHEN THEY HOLD NOTHING LIVE** (ST0092
-      // WP-04): a message stays in its recipient's inbox until that recipient
-      // handles it, so the view stays while one is live and is removed after.
-      if (board.node.retired.is_some() || peer.node.retired.is_some()) && !holds_live(peer, board) {
+      if !inbox_renders(canon, peer, board) {
         continue;
       }
       views.push(View {
@@ -2491,6 +2483,27 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
   }
   views.extend(aggregate_views(project, &canon.threads, ctx));
   views
+}
+
+/// Whether the generator renders `recipient`'s inbox from `sender`: the one
+/// rule for which ordered pairs of boards have an inbox view, read by
+/// `render_all` and by whatever must account for every view it renders.
+pub fn inbox_renders(
+  canon: &Canon,
+  sender: &crate::model::Board,
+  recipient: &crate::model::Board,
+) -> bool {
+  let (from, to) = (&sender.node.moniker, &recipient.node.moniker);
+  // A board that declares a team renders the human seat's one pair, with the
+  // mediator, and no other pair of its (ST0092 WP-05).
+  if from == to || !crate::model::pair_open(canon.declaration.as_ref(), from, to) {
+    return false;
+  }
+  // **A RETIRED NODE'S PAIR VIEWS GO WHEN THEY HOLD NOTHING LIVE** (ST0092
+  // WP-04): a message stays in its recipient's inbox until that recipient
+  // handles it, so the view stays while one is live and is removed after.
+  let retired = recipient.node.retired.is_some() || sender.node.retired.is_some();
+  !retired || holds_live(sender, recipient)
 }
 
 /// Whether `sender` sent `recipient` a message the sender has not archived and
