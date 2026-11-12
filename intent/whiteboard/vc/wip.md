@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-12 07:55Z
+heartbeat_at: 2026-11-12 08:54Z
 status: active
-focus: "P0 (hv decisions 39 to 41): devbin 0.1.23's cut is running (hv, 07:49Z), release commit ed87fd32193f. dc drafts WP-06 (c)-(e) meanwhile. After hv's brew steps and devbin-vc's sweep: dc's one proof run, landed by vc; one Desk booking (--leg kovacs, then the dry run); ic's reference pages; hv's Intent cut (3.3.1 recommended). ST0090 closes on hv's reading of the Rebuild Search Index row (the store reconciled at 07:51Z)."
+focus: "P0 (hv decisions 39 to 42): devbin 0.1.23's cut is running (hv, from 07:49Z). Intent waits on it and devbin-vc's sweep; then dc's one proof run (WP-06 (c)-(e), 0682, 0687), landed by vc; one Desk booking (--leg kovacs, then the dry run); ic's reference pages; hv's Intent cut (3.3.1 recommended). ST0090 closes on hv's look at /Applications/Intent.app once the Debug build is quit."
 claims: []
 ---
 
@@ -18,11 +18,11 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- NEXT (P0, hv decisions 39 to 42): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree, dc runs one proof run of ST0093 WP-06 (c) to (e) (drafted at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run and its fix for ST0090's row, and vc lands them. Then one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run. Then ic regenerates docs/reference, then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
+- NEXT (P0, hv decisions 39 to 42): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree, dc makes one proof run of ST0093 WP-06 (c) to (e) (drafted at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, and issue 0687, so a Debug build never registers the login item (red and green land as one commit, refs/bank/dc/0687/green-on-red-on-7f9064cc3), and vc lands them. Then one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run. Then ic regenerates docs/reference, then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
 
 ## Holds
 
-- ST0090 AC-02.4, issue 0664's last criterion: held until Intent's next cut ships dc's fix for the row's missing second line, and hv sees that line, reconciled <age> ago, in the installed app. On 2026-11-12 hv rebuilt the index in the installed 3.3.0 app (1e423060f, which carries both halves); the store reconciled at 07:51:19Z, but the Rebuild Search Index row showed no second line. Then vc satisfies AC-02.4 with hv's reading and the build, and dc closes WP-02, ST0090 and issue 0664. (edited)
+- ST0090 AC-02.4, issue 0664's last criterion: held until hv has quit the running Intent, opened /Applications/Intent.app (3.3.0, 1e423060f, which carries both halves), rebuilt the search index and read the second line of its Rebuild Search Index row, reconciled <age> ago. hv's look on 2026-11-12 was at a 3.2.6 Debug build of 8c77b10e6, which the login item had started at the reboot (dc's finding, issue 0687), so it says nothing of 3.3.0. Then vc satisfies AC-02.4 with hv's reading and the build, and dc closes WP-02, ST0090 and issue 0664. (edited)
 
 ## Watch-outs
 
