@@ -88,6 +88,7 @@ _(none)_
 - (hv, 2026-11-12, in vc's session, hv's "1: Yes" to vc's question) devbin-vc runs Intent's v3.3.1 cut by intent/docs/releasing.md, answering its one confirm step and running step 0's intentd stop and the restart after step 4, once vc sends "ready to cut" with the tip and only when green. This confirms for Intent devbin-vc's decision 170 (devbin e01e376c).
 - (hv, 2026-11-12, in vc's session, hv's "2: Yes") "push" for intent.laksa.io at 3.3.0 (decision 47): ic pushes c14c60e and reads the live page.
 - (hv, 2026-11-12, in vc's session, hv's "3: Yes") Login Items checked: System Settings names /Applications/Intent.app and not the 3.2.6 Debug build.
+- (2026-11-12 19:47Z, hv first-hand to vc in the live channel, hv's wording) hv is AFK for a while. P0: "getting everything done and dusted for devbin, intent, molt, etc so that we can build the next/latest version of devbm [the devvm, agentic-engineering's P1] first thing tomorrow morning ... Work with devbin-vc to get this done." vc works it with devbin-vc under decisions 48 and 49; nothing hv keeps is decided in hv's absence.
 
 ---
 

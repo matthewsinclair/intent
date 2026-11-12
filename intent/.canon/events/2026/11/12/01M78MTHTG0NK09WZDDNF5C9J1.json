@@ -1,0 +1,15 @@
+{
+  "id": "01M78MTHTG0NK09WZDDNF5C9J1",
+  "ts": "2026-11-12T19:47:45.104Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-11-12 19:47Z, hv first-hand to vc in the live channel, hv's wording) hv is AFK for a while. P0: \"getting everything done and dusted for devbin, intent, molt, etc so that we can build the next/latest version of devbm [the devvm, agentic-engineering's P1] first thing tomorrow morning ... Work with devbin-vc to get this done.\" vc works it with devbin-vc under decisions 48 and 49; nothing hv keeps is decided in hv's absence."
+  }
+}

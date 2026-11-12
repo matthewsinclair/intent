@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-12 19:40Z
+heartbeat_at: 2026-11-12 19:47Z
 status: active
-focus: "LOCALFOLD for hv's compact (2026-11-12 19:40Z by date -u): WP-06 landed 7be4d570f; waiting on cc's no_view_claims fix, then the freeze, kovacs rehearsal, dry run, ic's reads, and "ready to cut" to devbin-vc (hv decision 49)."
+focus: "BOUNCE (2026-11-12 19:47Z by date -u): cc rebases and proves its no_view_claims fix on main; vc lands it, freezes, then kovacs rehearsal, dry run, ic's reads, "ready to cut" to devbin-vc (hv decision 49)."
 claims: []
 ---
 
