@@ -1,0 +1,15 @@
+{
+  "id": "01M77KPV71W8EBBSS1PY2P9AW9",
+  "ts": "2026-11-12T10:09:00.641Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:08Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT DOES ITS WORK ON GYGES WHILE devbin 0.1.23 IS CUT, AND IS READY FOR ITS RELEASE. hv, verbatim: \"A thought: why don't you (intent) do your work on gyges now?\" and \"And then be ready for the devbin release?\" vc's reading of the scope: the units that need nothing from devbin 0.1.23 run on gyges now, off rhadamanth's Desk: dc's proofs of issues 0687 and 0688, and ic's re-drive of docs/known-defects.md on the pair built there. They run in a clone at gyges:~/Devel/prj/Intent made from rhadamanth's main by a git bundle, because main is ahead of upstream and gyges cannot reach rhadamanth by ssh, and nothing is installed on gyges. ST0093 WP-06 (c) to (e) and issue 0682 need 0.1.23's core (devbin 0334 and 0335), so they still wait for devbin-vc's sweep. What lands, lands in rhadamanth's tree."
+  }
+}
