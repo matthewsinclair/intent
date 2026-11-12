@@ -182,6 +182,51 @@ fn a_log_of_declared_ops_only_says_nothing() {
   );
 }
 
+/// Issue 0686: the roster verbs ST0092 added write only declared ops. `wb init
+/// --apply`, `wb remit` and `wb retire` each mint an op through
+/// `Facade::wb_event`, none of the three was in the roster, and doctor named an
+/// advisory on every board the 3.3.0 estate sweep touched. Driven through the
+/// verbs, as the silence test above is, so the ops are the ones they write.
+#[test]
+fn the_roster_verbs_st0092_added_write_only_declared_ops() {
+  let fx = Fixture::new();
+  let team = intentsvcs::teams::Teams::new(&testkit::repo_root())
+    .resolve(&["team".to_string()], None, false)
+    .expect("the shipped team profile resolves");
+  let seat = team
+    .seats
+    .iter()
+    .map(|s| s.moniker.as_str())
+    .find(|m| *m != team.mediator && *m != team.human)
+    .expect("a seat that is neither the mediator nor the human seat");
+  {
+    let mut facade = fx.facade_on_disk();
+    facade
+      .wb_init(&["team".to_string()], true, false)
+      .expect("wb init --apply");
+    facade
+      .wb_remit(seat, Some("the project's own remit"))
+      .expect("wb remit");
+    facade
+      .wb_retire(seat, "its work moved to another seat")
+      .expect("wb retire");
+  }
+  let census = fx.facade_on_disk().store().op_census().expect("census");
+  let written: BTreeSet<&str> = census.iter().map(|(op, _)| op.as_str()).collect();
+  assert!(
+    ["wb.init", "wb.remit", "wb.retire"]
+      .iter()
+      .all(|op| written.contains(op)),
+    "the verbs must have written their ops, or the silence below is about an \
+     empty log: {census:?}"
+  );
+  assert_eq!(
+    undeclared(&fx),
+    Vec::<String>::new(),
+    "every op these verbs write is in the roster, so nothing is owed: {census:?}"
+  );
+}
+
 /// **THE ADVISORY MUST NOT MOVE THE VERDICT.**
 ///
 /// Every estate with history would otherwise start failing `doctor` for holding
