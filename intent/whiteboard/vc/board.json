@@ -2887,6 +2887,14 @@
       "state": "live",
       "recorded_at": "2026-11-11T20:03:09.872Z",
       "edited_at": "2026-11-12T19:40:39.516Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 80,
+      "text": "For hv on return (devbin-vc, 2026-11-12 19:4xZ by its read): devbin 0.1.23 is final and on the tap; the fleet sweep to 0.1.23 is committed in all 24 estates and none of it is pushed (Molt's is f06f164). Whether the devvm build takes Molt from a pushed repo, so that f06f164 must be pushed, is hv's go; agentic-engineering-vc asks it tomorrow morning. agentic-engineering-vc waits for \"Intent's version + desk free\" from devbin-vc.",
+      "state": "live",
+      "recorded_at": "2026-11-12T19:49:00.535Z"
     }
   ],
   "sent": [

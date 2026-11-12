@@ -605,6 +605,14 @@
       "text": "(2026-11-12 19:47Z, hv first-hand to vc in the live channel, hv's wording) hv is AFK for a while. P0: \"getting everything done and dusted for devbin, intent, molt, etc so that we can build the next/latest version of devbm [the devvm, agentic-engineering's P1] first thing tomorrow morning ... Work with devbin-vc to get this done.\" vc works it with devbin-vc under decisions 48 and 49; nothing hv keeps is decided in hv's absence.",
       "state": "live",
       "recorded_at": "2026-11-12T19:47:45.104Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 53,
+      "text": "(2026-11-12 19:51Z, hv first-hand to vc in the live channel, hv's wording) \"You can use both rhad and gyges now that devbin is done.\" Intent's seats may run on rhadamanth and gyges both; kovacs and rhadamanth runs stay serialised.",
+      "state": "live",
+      "recorded_at": "2026-11-12T19:51:32.319Z"
     }
   ],
   "sent": [],

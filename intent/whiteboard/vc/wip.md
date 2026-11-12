@@ -19,6 +19,7 @@ _(none)_
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
 - P0, Intent 3.3.1 tonight (hv decisions 39 to 51; devbin-vc cuts it on vc's "ready to cut", decision 49). Done: devbin 0.1.23 swept at a8a59219c; WP-06 (c) to (e) landed at 7be4d570f; intent.laksa.io live at 3.3.0. Next: (1) cc's fix of no_view_claims_to_be_truth.rs:292 (1156 against 1148: the walk counts inboxes between hv and seats other than vc that the team board never renders), red on main and cut-blocking; vc reads and lands it. (2) The freeze. (3) dc on devbin-vc's Desk: release gates --leg kovacs at the frozen HEAD (devbin 0337), then the dry run; no leg-config line moves after. (4) ic's two reads (hold 22). (5) "ready to cut" to devbin-vc with the full sha and releasing.md's commands (already sent); a keychain or notary prompt may need hv. (6) ic brings the site to 3.3.1 (ic todo 70); tell agentic-engineering-vc. (7) The memory prune. (edited)
+- For hv on return (devbin-vc, 2026-11-12 19:4xZ by its read): devbin 0.1.23 is final and on the tap; the fleet sweep to 0.1.23 is committed in all 24 estates and none of it is pushed (Molt's is f06f164). Whether the devvm build takes Molt from a pushed repo, so that f06f164 must be pushed, is hv's go; agentic-engineering-vc asks it tomorrow morning. agentic-engineering-vc waits for "Intent's version + desk free" from devbin-vc.
 
 ## Holds
 
