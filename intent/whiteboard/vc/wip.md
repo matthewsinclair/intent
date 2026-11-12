@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-12 08:54Z
+heartbeat_at: 2026-11-12 09:10Z
 status: active
-focus: "P0 (hv decisions 39 to 42): devbin 0.1.23's cut is running (hv, from 07:49Z). Intent waits on it and devbin-vc's sweep; then dc's one proof run (WP-06 (c)-(e), 0682, 0687), landed by vc; one Desk booking (--leg kovacs, then the dry run); ic's reference pages; hv's Intent cut (3.3.1 recommended). ST0090 closes on hv's look at /Applications/Intent.app once the Debug build is quit."
+focus: "P0 (hv decisions 39 to 42): devbin 0.1.23's cut runs again from release commit c13c101a (08:54Z), after its first stopped in the local leg. Now: ic's docs/reference and cc's CHANGELOG pass. Then devbin-vc's sweep; dc's one proof run (WP-06 (c)-(e), 0682, 0687), landed by vc; ic's known-defects re-drive; dc's one Desk booking (--leg kovacs, then the dry run); hv's Intent cut (3.3.1 recommended). ST0090 closes on hv's look at /Applications/Intent.app once the Debug build is quit."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- NEXT (P0, hv decisions 39 to 42): (1) Once hv has cut devbin 0.1.23 and devbin-vc has swept it into Intent's tree, dc makes one proof run of ST0093 WP-06 (c) to (e) (drafted at refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, and issue 0687, so a Debug build never registers the login item (red and green as one unit, refs/bank/dc/0687/fix-on-7f9064cc3), and vc lands them. Then one Desk booking, dc's: `bin/devbin release gates --leg kovacs`, then a dry run. Then ic regenerates docs/reference, then hv's cut (vc recommends 3.3.1), and vc tells agentic-engineering-vc when it is installable. The macOS stage first runs in the cut, before the tag. (2) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
+- NEXT (P0, hv decisions 39 to 42), in order. (1) Now, with no slot: ic regenerates docs/reference at HEAD against v3.3.0, because gate all's reference arm runs on the kovacs leg too (ic's finding, 2026-11-12), and cc makes releasing.md step 2's CHANGELOG pass. (2) hv's cut of devbin 0.1.23, then devbin-vc's sweep into Intent's tree. (3) dc rebases its two banks onto the sweep and makes one proof run: ST0093 WP-06 (c) to (e) (refs/bank/dc/0093-06/cde-draft-unproved-v2-on-fdd9fa2df), 0682's by-hand gate run, and issue 0687 (refs/bank/dc/0687/fix-on-7f9064cc3, red and green as one unit); vc lands them. (4) ic re-drives docs/known-defects.md whole on the pair built at HEAD, on one Desk slot, takes the explorer's shots in that slot only if something the explorer draws changed since v3.3.0, and regenerates docs/reference again only if a landing moved the register or ALL_VARIANTS. (5) dc's one Desk booking: `bin/devbin release gates --leg kovacs`, then the dry run. (6) hv's cut at the number hv sets (vc recommends 3.3.1); the macOS stage first runs in the cut, before the tag; then vc tells agentic-engineering-vc it is installable. (7) Other projects' memory folders get ST0093 WP-01's prune when the plan rolls out to the estate. (edited)
 
 ## Holds
 
