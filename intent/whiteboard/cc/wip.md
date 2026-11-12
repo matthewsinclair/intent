@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 10:43Z
+heartbeat_at: 2026-11-12 12:48Z
 status: active
-focus: "2026-11-12 10:38Z, folded for hv's compact, not released. ISSUE:0689 is banked unproved (doing 112), and its one proof on gyges is next; ISSUE:0690 follows it (todo 51). Hold 36 reads devbin-vc's sweep for a packaging/homebrew change. tmp/wt-cc-0689 holds 0689; no desk slot."
+focus: "2026-11-12 12:48Z, folded for hv's compact, not released. ISSUE:0689 landed at e05e2d604 and ISSUE:0690 at b13fcd526, with ic's wording change at 9500cb77a, each on cc's proof on gyges. cc holds no claim, worktree, scratch dir or slot on either machine, and nothing is unbanked. Only hold 36 stands: devbin 0.1.23's sweep needs just a diff check, read ahead at 11:02Z."
 claims: []
 ---
 
