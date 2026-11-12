@@ -1,0 +1,15 @@
+{
+  "id": "01M77NCVRF5Y7HR8KWDJMFJQDA",
+  "ts": "2026-11-12T10:38:30.671Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ISSUE:0690 (ic filed it at c4eee9b8f), after 0689 on vc's word: the remedy of intent daemon start's 'started and is not answering' says that a piped stdin at EOF becomes intentd's lifeline (ST0073), as its own bank, proved once; if it moves ALL_VARIANTS, cut-surface.md is regenerated in the same bank (releasing.md:95). The trigger is not fully pinned: one unpiped probe over the same ssh kept its daemon. ic's repro probe is at refs/bank/ic/kd331/, and ic's known-defects drive waits for both landings."
+  }
+}
