@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T05:32:40.907Z",
+    "heartbeat_at": "2026-11-12T07:37:18.639Z",
     "status": "active",
-    "focus": "2026-11-12 05:33Z, on vc's go after hv reviewed devbin-cc's PLAN-20261112: ST0091 done at 787736c56. Building issues 0683 and 0684 red then green in one desk run (request 01M773VB92194CF2RVF00YF6Z4), banked for vc to land; WP-06 (e)'s serial tag banked unproved. Hold 37 waits on hv's look at the installed 3.3.0 app; hold 41 on devbin-vc's sweep of 0.1.23.",
+    "focus": "2026-11-12 07:37Z, folded for hv's compact. 0683 and 0684 closed at f349bc8cb. tmp/wt-dc-0092-04 removed (attic ref first, its run outputs banked as refs/bank/dc/0092-04/superseded-worktree-04-runs.tar). Holding for vc's word. Hold 37 waits on hv's look at the installed 3.3.0 app; hold 41 on devbin-vc's sweep of devbin 0.1.23; todo 63 at the cut.",
     "claims": [
       "ST0090/02",
       "ST0093/06"
