@@ -1060,7 +1060,8 @@ pub fn ask_op(daemon: &RealDaemon, body: &str) -> (String, String) {
 }
 
 /// Build a fake Intent install root in `dir`: the marker, `bin/`, and a COPY of
-/// the `intent` binary. Returns the copied binary's path (issue 0279).
+/// the `intent` binary. Returns the copy as a [`CopiedIntent`], whose one run
+/// path retries while Linux reports it busy (issue 0279).
 ///
 /// **THE MARKER COMES FROM [`intentsvcs::install::MARKER`], NOT FROM A
 /// LITERAL.** `install::is_install` is exactly `dir.join(MARKER).is_dir()`, so
@@ -1076,12 +1077,35 @@ pub fn ask_op(daemon: &RealDaemon, body: &str) -> (String, String) {
 /// seeding is [`seed_plugin`], deliberately a separate call: the two callers
 /// differed by exactly that step and folding it in would give one of them a
 /// directory it never wanted.
-pub fn fake_install(dir: &Path) -> PathBuf {
+pub fn fake_install(dir: &Path) -> CopiedIntent {
   std::fs::create_dir_all(dir.join(intentsvcs::install::MARKER)).expect("marker");
   std::fs::create_dir_all(dir.join("bin")).expect("bin");
   let exe = dir.join("bin/intent");
   std::fs::copy(intent_path(), &exe).expect("copy the binary");
-  exe
+  CopiedIntent(exe)
+}
+
+/// The `intent` a [`fake_install`] copied, run only through
+/// [`testkit::output_retrying_busy`].
+///
+/// **THE RETRY IS THE TYPE'S, NOT EACH CALLER'S.** Exec of a just-copied binary
+/// meets ETXTBSY on Linux when a sibling test's fork still holds the copy's
+/// write fd (the helper's own doc says why). The helper was applied caller by
+/// caller twice, and each time a caller it did not reach lost the race on CI
+/// (candidate/v3.3.1, run 43296840034, `wb_init_door`). The path is private, so
+/// a new caller cannot reach a bare `.output()` on the copy.
+pub struct CopiedIntent(PathBuf);
+
+impl CopiedIntent {
+  /// Run the copy: `build` is handed its path and returns the command, built
+  /// again for each attempt; `what` names the run in a panic.
+  pub fn output(
+    &self,
+    mut build: impl FnMut(&Path) -> Command,
+    what: &str,
+  ) -> std::process::Output {
+    testkit::output_retrying_busy(|| build(&self.0), what)
+  }
 }
 
 /// Seed a file inside a fake install at `rel`, creating its parent. Returns the

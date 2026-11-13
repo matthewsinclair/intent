@@ -86,12 +86,16 @@ fn an_install_whose_profiles_cannot_be_read_exits_2() {
     &["wb", "init", "team"][..],
     &["wb", "init", "team", "--apply"],
   ] {
-    let out = testkit::fixtured_command(&exe)
-      .current_dir(dir.path())
-      .args(args)
-      .stdin(testkit::lifeline_for(args))
-      .output()
-      .expect("spawn the fixture install's intent");
+    let out = exe.output(
+      |p| {
+        let mut c = testkit::fixtured_command(p);
+        c.current_dir(dir.path())
+          .args(args)
+          .stdin(testkit::lifeline_for(args));
+        c
+      },
+      "spawn the fixture install's intent",
+    );
     let err = String::from_utf8_lossy(&out.stderr);
     assert_eq!(
       out.status.code(),
@@ -175,7 +179,7 @@ fn at_07_3_a_first_render_says_it_carried_the_readme_and_names_the_dropped_verbl
 
 /// A fixture install carrying this repository's Team Profiles and nothing
 /// else under its templates: no roster README template.
-fn install_without_the_readme_template(root: &Path) -> std::path::PathBuf {
+fn install_without_the_readme_template(root: &Path) -> crate::common::CopiedIntent {
   let exe = crate::common::fake_install(root);
   let profiles = testkit::repo_root().join(intentsvcs::teams::CANON_TEAMS);
   let into = root.join(intentsvcs::teams::CANON_TEAMS);
@@ -196,13 +200,17 @@ fn install_without_the_readme_template(root: &Path) -> std::path::PathBuf {
 
 /// Run `args` with the fixture install's `intent` in `dir`: its exit code and
 /// stderr.
-fn run_with(exe: &Path, dir: &Path, args: &[&str]) -> (Option<i32>, String) {
-  let out = testkit::fixtured_command(exe)
-    .current_dir(dir)
-    .args(args)
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .expect("spawn the fixture install's intent");
+fn run_with(exe: &crate::common::CopiedIntent, dir: &Path, args: &[&str]) -> (Option<i32>, String) {
+  let out = exe.output(
+    |p| {
+      let mut c = testkit::fixtured_command(p);
+      c.current_dir(dir)
+        .args(args)
+        .stdin(testkit::lifeline_for(args));
+      c
+    },
+    "spawn the fixture install's intent",
+  );
   (
     out.status.code(),
     String::from_utf8_lossy(&out.stderr).into_owned(),

@@ -190,14 +190,15 @@ fn at_02_6_an_unknown_profile_is_refused_and_ext_is_not_read() {
 }
 
 /// One run of a copied binary in a fixture install.
-fn run_install(exe: &Path, cwd: &Path, args: &[&str]) -> Output {
-  testkit::fixtured_command(exe)
-    .current_dir(cwd)
-    .arg("wb")
-    .arg("profile")
-    .args(args)
-    .output()
-    .expect("spawn the fixture install's intent")
+fn run_install(exe: &crate::common::CopiedIntent, cwd: &Path, args: &[&str]) -> Output {
+  exe.output(
+    |p| {
+      let mut c = testkit::fixtured_command(p);
+      c.current_dir(cwd).arg("wb").arg("profile").args(args);
+      c
+    },
+    "spawn the fixture install's intent",
+  )
 }
 
 /// The exit codes the row declares that no shipped install reaches, driven on

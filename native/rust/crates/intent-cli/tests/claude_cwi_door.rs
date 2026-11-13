@@ -46,6 +46,8 @@
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use crate::common::CopiedIntent;
+
 /// The launcher, as it sits in the repository this test runs from.
 fn real_script() -> PathBuf {
   testkit::repo_root().join("intent/plugins/claude/bin/intent_claude_cwi")
@@ -60,15 +62,31 @@ fn real_script() -> PathBuf {
 /// `CARGO_BIN_EXE_intent` resolves to a real install is a fact about where
 /// `CARGO_TARGET_DIR` points. Copying the binary into a tree this file controls
 /// makes the install a property of the fixture rather than of the caller.
-fn fixture_install() -> tempfile::TempDir {
+fn fixture_install() -> Fixture {
   let dir = tempfile::tempdir().expect("tempdir");
-  crate::common::fake_install(dir.path());
+  let exe = crate::common::fake_install(dir.path());
   crate::common::seed_plugin(
     dir.path(),
     "intent/plugins/claude/bin/intent_claude_cwi",
     &real_script(),
   );
-  dir
+  Fixture { dir, exe }
+}
+
+/// The fixture install's tree and the `intent` copied into it.
+struct Fixture {
+  dir: tempfile::TempDir,
+  exe: CopiedIntent,
+}
+
+impl Fixture {
+  fn path(&self) -> &Path {
+    self.dir.path()
+  }
+
+  fn exe(&self) -> &CopiedIntent {
+    &self.exe
+  }
 }
 
 /// A fixture `claude`: records its physical working directory and every
@@ -118,14 +136,18 @@ impl Claude {
 
 /// Run the fixture install's binary from `cwd`, under the fixture HOME, with
 /// the fixture `claude` first on PATH.
-fn run(exe: &Path, args: &[&str], cwd: &Path, claude: &Claude) -> (String, i32) {
-  let out = testkit::fixtured_command(exe)
-    .args(args)
-    .current_dir(cwd)
-    .env("PATH", claude.path())
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .expect("run the binary");
+fn run(exe: &CopiedIntent, args: &[&str], cwd: &Path, claude: &Claude) -> (String, i32) {
+  let out = exe.output(
+    |p| {
+      let mut c = testkit::fixtured_command(p);
+      c.args(args)
+        .current_dir(cwd)
+        .env("PATH", claude.path())
+        .stdin(testkit::lifeline_for(args));
+      c
+    },
+    "run the binary",
+  );
   let text = format!(
     "{}{}",
     String::from_utf8_lossy(&out.stdout),
@@ -136,7 +158,7 @@ fn run(exe: &Path, args: &[&str], cwd: &Path, claude: &Claude) -> (String, i32) 
 
 /// A scratch project with `cc` registered through the verb, so its board is the
 /// model's from the start.
-fn project(exe: &Path, claude: &Claude) -> tempfile::TempDir {
+fn project(exe: &CopiedIntent, claude: &Claude) -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   let (text, code) = run(exe, &["init", "cwi-fixture"], dir.path(), claude);
   assert_eq!(code, 0, "init: {text}");
@@ -168,7 +190,7 @@ fn project(exe: &Path, claude: &Claude) -> tempfile::TempDir {
 #[test]
 fn start_runs_the_launcher_from_the_root_with_the_display_name() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let project = project(&exe, &claude);
 
@@ -217,7 +239,7 @@ fn start_runs_the_launcher_from_the_root_with_the_display_name() {
 #[test]
 fn an_unmigrated_node_is_launched() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let project = project(&exe, &claude);
   let board = project.path().join("intent/whiteboard/dc");
@@ -264,7 +286,7 @@ fn an_unmigrated_node_is_launched() {
 #[test]
 fn an_absent_node_is_refused_and_told_where_to_register_it() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let project = project(&exe, &claude);
 
@@ -295,7 +317,7 @@ fn an_absent_node_is_refused_and_told_where_to_register_it() {
 #[test]
 fn a_bare_repository_is_refused_before_anything_launches() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let project = project(&exe, &claude);
   let status = std::process::Command::new("git")
@@ -323,7 +345,7 @@ fn a_bare_repository_is_refused_before_anything_launches() {
 #[test]
 fn an_absent_launcher_refuses_by_name() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let launcher = install
     .path()
     .join("intent/plugins/claude/bin/intent_claude_cwi");
@@ -351,7 +373,7 @@ fn an_absent_launcher_refuses_by_name() {
 
 /// A fixture install that also carries the shipped Team Profiles and the roster
 /// README's template, so `wb init` can declare a board under it.
-fn fixture_install_with_profiles() -> tempfile::TempDir {
+fn fixture_install_with_profiles() -> Fixture {
   let install = fixture_install();
   let teams = testkit::repo_root().join("intent/plugins/claude/teams");
   for entry in std::fs::read_dir(&teams).expect("the shipped profiles") {
@@ -376,7 +398,7 @@ fn fixture_install_with_profiles() -> tempfile::TempDir {
 }
 
 /// The composed context `claude start <ws>` handed the fixture `claude`.
-fn launched_context(exe: &Path, ws: &str, cwd: &Path, claude: &Claude) -> String {
+fn launched_context(exe: &CopiedIntent, ws: &str, cwd: &Path, claude: &Claude) -> String {
   let (text, code) = run(exe, &["claude", "start", ws], cwd, claude);
   assert_eq!(code, 0, "`claude start {ws}` should launch: {text}");
   let argv = claude
@@ -416,7 +438,7 @@ fn profile_section(heading: &str) -> String {
 #[test]
 fn start_hands_the_seat_its_brief_and_the_profiles_launch_steps() {
   let install = fixture_install_with_profiles();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let dir = tempfile::tempdir().expect("tempdir");
   let (text, code) = run(&exe, &["init", "cwi-team"], dir.path(), &claude);
@@ -462,7 +484,7 @@ fn start_hands_the_seat_its_brief_and_the_profiles_launch_steps() {
 #[test]
 fn start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing() {
   let install = fixture_install_with_profiles();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let dir = tempfile::tempdir().expect("tempdir");
   let (text, code) = run(&exe, &["init", "cwi-retired"], dir.path(), &claude);
@@ -510,7 +532,7 @@ fn start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing() {
 #[test]
 fn an_unprofiled_launch_reads_exactly_as_it_did() {
   let install = fixture_install();
-  let exe = install.path().join("bin/intent");
+  let exe = install.exe();
   let claude = Claude::new();
   let project = project(&exe, &claude);
   let context = launched_context(&exe, "cc", project.path(), &claude);

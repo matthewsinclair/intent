@@ -46,6 +46,8 @@ use std::process::Command;
 
 use testkit::repo_root;
 
+use crate::common::CopiedIntent;
+
 /// An install tree carrying the marker and nothing else -- the shipped keg's
 /// shape, which is what every estate is running.
 /// Copy a rule tree wholesale, returning the number of `RULE.md` files placed.
@@ -76,13 +78,17 @@ fn copy_tree(src: &Path, dest: &Path) -> usize {
 /// **A TEST THAT CONCATENATES THEM CANNOT ASK WHICH ONE SAID IT**, and that is
 /// exactly the question below: a refusal on stderr and an `ok:` on stdout read
 /// as one output to a human and as two very different things to a consumer.
-fn run_streams(exe: &Path, args: &[&str]) -> (i32, String, String) {
-  let out = Command::new(exe)
-    .args(args)
-    .current_dir(repo_root())
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .expect("run the fixture binary");
+fn run_streams(exe: &CopiedIntent, args: &[&str]) -> (i32, String, String) {
+  let out = exe.output(
+    |p| {
+      let mut c = Command::new(p);
+      c.args(args)
+        .current_dir(repo_root())
+        .stdin(testkit::lifeline_for(args));
+      c
+    },
+    "run the fixture binary",
+  );
   (
     out.status.code().unwrap_or(-1),
     String::from_utf8_lossy(&out.stdout).into_owned(),
@@ -90,12 +96,12 @@ fn run_streams(exe: &Path, args: &[&str]) -> (i32, String, String) {
   )
 }
 
-fn run_args(exe: &Path, args: &[&str]) -> (i32, String) {
+fn run_args(exe: &CopiedIntent, args: &[&str]) -> (i32, String) {
   let (rc, stdout, stderr) = run_streams(exe, args);
   (rc, format!("{stderr}{stdout}"))
 }
 
-fn run(exe: &Path) -> (i32, String) {
+fn run(exe: &CopiedIntent) -> (i32, String) {
   run_args(exe, &["critic", "shell", "--files", "README.md"])
 }
 
