@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-13:v3.90: vc - 3.3.2 released; the estate visit is next"
+verblock: "2026-11-13:v3.91: vc - night fold after 3.3.2"
 intent_version: 3.3.2
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.3.2
 
 ## DOING
 
-- ST0093, why Claudes yak-shave: WP-06 (Intent's cut on devbin's core) is due to close now that 3.3.2 is cut; WP-02 (the skills sync) runs in the estate visit.
+- ST0093, why Claudes yak-shave: WP-06 is done (408a102f1); WP-02 closes when gyges and kovacs sync their installed skills at the estate visit (rhadamanth is synced), then the thread signs off.
 - The next Intent release carries issues 0694 (banking.md's worktree-commit line) and 0695 (wb init team's first render), and anything else found before it.
 
 ## TODO

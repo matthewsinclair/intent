@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-13 18:12Z
+heartbeat_at: 2026-11-13 20:43Z
 status: active
-focus: "Intent 3.3.2 released (7282d3bfc), CI green on main; post-release done; next release carries 0694 and 0695. vc holds."
+focus: "Night fold (hv, by 20:43Z 2026-11-13 by date -u): 3.3.2 shipped; boards lean; all seats hold. Next: the estate visit (ST0093 WP-02), then 0694 and 0695."
 claims: []
 ---
 
