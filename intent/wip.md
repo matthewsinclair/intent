@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-13:v3.86: vc - Intent 3.3.1 released; follow-ups and the devvm"
+verblock: "2026-11-13:v3.87: vc - 3.3.1 done: estate swept, CI pinned and green"
 intent_version: 3.3.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.3.1
 
 ## DOING
 
-- After Intent 3.3.1 (released 2026-11-13, tag v3.3.1 at c64a42e29, cut by devbin-vc under hv decisions 49, 54 and 55): agentic-engineering-vc builds the devvm from both taps, on devbin-vc's word that Intent's version is out and the desk is free. vc's todo 79 carries the follow-ups: ic brings intent.laksa.io to 3.3.1, its push hv's word (ic todo 70); dc banks the stale config.yaml comment on CI's toolchain and the actions/checkout@v4 bump; releasing.md's tag check reads `vX.Y.Z^{commit}`; main's CI at the tag and the first run under the fleet-Rust pin (4e6fb844a) are read.
+- Intent 3.3.1 is released and the estate is on it: tag v3.3.1 at c64a42e29; CI follows the fleet's Rust 1.99.1 and checkout@v7, green on main. The post-release fixes ride into the next release.
 - ST0093, why Claudes yak-shave: WP-02's skills sync waits on 3.3.1's sweep.
 
 ## TODO

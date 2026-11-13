@@ -1,0 +1,16 @@
+{
+  "id": "01M7A37DVE09AW0AYWNP3E1GXG",
+  "ts": "2026-11-13T09:18:41.518Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "After Intent 3.3.1 (released 2026-11-13; tag v3.3.1 at c64a42e29). Done (2026-11-13 09:18Z by date -u): the site is live at 3.3.1; CI pinned to the fleet's Rust 1.99.1 (4e6fb844a) and moved to checkout and upload-artifact @v7 (a394fa05a), green on main at bdc67e897, on rustc 1.99.1 with no Node 20 warning; releasing.md's ^{commit} check (3f75fe2f9); every Intent estate on rhadamanth on 3.3.1, committed and pushed to local (Cards has no remote; hv: ignore it). These ride into the next release. Left: the memory prune."
+  }
+}

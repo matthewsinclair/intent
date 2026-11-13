@@ -2883,10 +2883,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 79,
-      "text": "After Intent 3.3.1 (released 2026-11-13 06:31Z by date -u; tag v3.3.1 at c64a42e29, cut 3 by devbin-vc under hv decisions 49, 54 and 55): (1) ic brings intent.laksa.io to 3.3.1 (ic todo 70); its push is hv's word. (2) dc banks the stale config.yaml:326-336 comment that says CI floats on @stable (the pin landed at 4e6fb844a); vc lands it. (3) releasing.md's check `git rev-parse --short=9 vX.Y.Z` names the annotated tag's object; it should read vX.Y.Z^{commit} (devbin-vc's note). (4) Read main's CI at the tag (rust 43378893908, Intent Tests 43378893904) and the first run under the pin. (5) agentic-engineering-vc builds the devvm (devbin-vc tells it). (6) The memory prune.",
+      "text": "After Intent 3.3.1 (released 2026-11-13; tag v3.3.1 at c64a42e29). Done (2026-11-13 09:18Z by date -u): the site is live at 3.3.1; CI pinned to the fleet's Rust 1.99.1 (4e6fb844a) and moved to checkout and upload-artifact @v7 (a394fa05a), green on main at bdc67e897, on rustc 1.99.1 with no Node 20 warning; releasing.md's ^{commit} check (3f75fe2f9); every Intent estate on rhadamanth on 3.3.1, committed and pushed to local (Cards has no remote; hv: ignore it). These ride into the next release. Left: the memory prune.",
       "state": "live",
       "recorded_at": "2026-11-11T20:03:09.872Z",
-      "edited_at": "2026-11-13T06:31:29.376Z"
+      "edited_at": "2026-11-13T09:18:41.518Z"
     },
     {
       "node": "vc",
