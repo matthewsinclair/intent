@@ -21,7 +21,14 @@ CONFIG="${INTENT_PROJECT_ROOT}/bin/.devbin/config.yaml"
 # whose `check <twin>` fails for STUB_TWIN_RED alone. The twin is committed
 # because the rust gate runs it in a worktree it adds at HEAD. And the stub
 # cargo, first on PATH for `check`.
+#
+# It unsets DEVBIN_GATE_CACHE, because devbin's release legs hand the gates their
+# real kept cache in that variable, and this suite runs as one of those gates.
+# Inherited, it makes the stubbed gate rename the leg's own kept target into a
+# test worktree, where it is lost with the test. A test about the cache exports
+# its own after this.
 make_repo() {
+  unset DEVBIN_GATE_CACHE
   REPO="${TEST_TEMP_DIR}/repo"
   local tools="$REPO/intent/st/ST0056/parity/tools"
   mkdir -p "$tools" "$REPO/native/rust" "$REPO/bin"
