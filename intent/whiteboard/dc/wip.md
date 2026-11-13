@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-13 18:11Z
+heartbeat_at: 2026-11-13 20:43Z
 status: active
-focus: "2026-11-13 18:11Z by date -u: Intent 3.3.2 is cut; hold 46 done, intentd's estate read went from about 1.3 CPU-s to below ps's floor; nothing open, holding for vc."
-claims: [ST0093/06]
+focus: "2026-11-13 20:43Z by date -u: folded for the night on hv's word. Nothing open, nothing banked, no slot, no worktree; holding for vc or hv."
+claims: []
 ---
 
 # DevX Claude (dc)
