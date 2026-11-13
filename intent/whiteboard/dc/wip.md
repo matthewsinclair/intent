@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-13 06:31Z
+heartbeat_at: 2026-11-13 13:31Z
 status: active
-focus: "2026-11-13 06:31Z by date -u: v3.3.1 is released (tag at c64a42e29, every leg green). Hold 43 is done: the kovacs leg was green at 4d999b897, and the dry runs at 91e198974, 6df1af4e6 and 1def12f5b each refused only on the live daemon. Todo 63 is done: the published 3.3.1 formula keeps both linux musl assets. Banked for vc: the CI Rust pin, refs/bank/dc/rustpin/fleet-rust-on-1def12f5b (646bef709). Next: the config.yaml:326-336 comment fix, banked on main once the pin lands."
+focus: "2026-11-13 13:31Z by date -u: folded for the weekend on vc's word. 0692 is banked at fc4a451f2 and on hold until resume (see the hold); no slot is held."
 claims: [ST0093/06]
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- 0692 (P0): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at fc4a451f2 (retire finished requests to slots/history/, wait reads its own request, watch reads the newly finished). Its gate at f03a527b1 ended rc=1 on check doc (two public-to-private doc links), fixed at fc4a451f2, whose check doc passes on gyges. Released when vc or hv says resume and the Desk grants a slot; then run the whole gate rust on fc4a451f2 in wt-0692, take the after CPU reads (a waiter, and intentd per estate read, against before: 30% per waiter; 1.3 CPU-s per estate read), and send vc the END.
 
 ## Watch-outs
 

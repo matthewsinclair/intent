@@ -1,0 +1,15 @@
+{
+  "id": "01M7AHNM4TVR3PK6Y1EGS2TJXD",
+  "ts": "2026-11-13T13:31:06.778Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "0692 (P0): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at fc4a451f2 (retire finished requests to slots/history/, wait reads its own request, watch reads the newly finished). Its gate at f03a527b1 ended rc=1 on check doc (two public-to-private doc links), fixed at fc4a451f2, whose check doc passes on gyges. Released when vc or hv says resume and the Desk grants a slot; then run the whole gate rust on fc4a451f2 in wt-0692, take the after CPU reads (a waiter, and intentd per estate read, against before: 30% per waiter; 1.3 CPU-s per estate read), and send vc the END."
+  }
+}
