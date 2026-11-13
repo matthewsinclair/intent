@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-13 15:49Z
+heartbeat_at: 2026-11-13 15:51Z
 status: active
-focus: "2026-11-13 15:49Z, 0691 gated rc=0 at 768c6c77a and banked at refs/bank/cc/0691/gated-on-f773ea797 for vc to land; the slot is released. Holding for vc."
+focus: "2026-11-13 15:51Z, 0691 landed by vc as 89b25ee9f; its clone and superseded ref are removed. Nothing runs and no slot is held. Holding for vc."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Issue 0691 (Intent 3.3.2, P0). GATED and banked for vc to land: refs/bank/cc/0691/gated-on-f773ea797 = 768c6c77a, one commit on main f773ea797 touching intentd/src/census.rs, intentsvcs/src/estate.rs and intentsvcs/src/estate/usage.rs. The whole bin/devbin gate rust ended rc=0 at 768c6c77a in ~/Devel/scratch/cc-0691 on slot 01M7ARGZKME60HC00TVFXJFJQF, now released. Two earlier runs on the slot failed, on check format and on no_function_takes_a_time (D42). The fix for the second: the kept file carries no time, its mtime is when the wait began, and resume takes an elapsed Duration. Done when vc lands it; then archive this and remove the clone. (edited)
+_(none)_
 
 ## TODO
 
