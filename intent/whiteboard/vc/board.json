@@ -4192,6 +4192,13 @@
       "recorded_at": "2026-11-10T09:09:39.720Z",
       "edited_at": "2026-11-10T10:46:03.174Z",
       "archived_at": "2026-11-10T12:00:48.563Z"
+    },
+    {
+      "id": "01M7AA37PYQWXJ5QC1V9H4JABR",
+      "recipient": "dc",
+      "body": "hv, first-hand at 11:18Z: issue 0692 is \"a _ridiculous_ bug. Utterly ridiculous. That needs fixing asap.\" It is P0 for dc now.\n\nThe bug: `intentsvcs::estate::slots::wait` (slots.rs:1667) re-reads the whole estate every 500 ms tick via `read_strict` -> `read` (slots.rs:621). That parses every lane, hold and request file under `slots/`, which on rhadamanth is 4958 files across 1289 requests. Each waiter costs 17-34% CPU. Read `intent issues show 0692`.\n\nThe fix: a waiter reads only its own request, `requests/<id>/`, through the same parse `read` uses for one request (Highlander: one parser, not a second). Then check whether the other per-tick readers (`slots watch`, intentd's slot handling) pay the same O(history) cost. If they do, fix them in the same unit or name each one back to vc; don't leave one silently. Retiring ended requests from the live read is a separate question: name it, don't build it here.\n\nProof: one layer, the cut's own gate. Run the whole `bin/devbin gate rust` on a booked slot, in a clone outside the canon tree. Add one test that pins the property: wait answers from its own request while unrelated requests are present (eg an unreadable unrelated request file doesn't stop it). Before and after, give one CPU read of a live waiter with `ps`, not a benchmark.\n\nBank it for vc to land, as before (refs/bank/dc/...).",
+      "fyi": false,
+      "recorded_at": "2026-11-13T11:18:44.190Z"
     }
   ],
   "handled": [
