@@ -71,7 +71,25 @@ jobs:
           rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
           cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
       - run: bin/int linux doctor
-      - run: bin/int linux build
+      - name: build, as the release a candidate names
+        # A CANDIDATE'S PAIR IS THE RELEASE'S BYTES, AND IT IS BUILT BEFORE THE
+        # TAG EXISTS. source_commit.rs (emit_source_kind) says `release` only
+        # where a tag names the commit or DEVBIN_RELEASE_TARGET_TAG is the tag the
+        # cut will make; the cut hands that variable to its local legs, and this
+        # run is started by the push of `candidate/<tag>`, which hands it nothing.
+        # So 3.3.1's Linux packages said `[intent-source-kind:dev]` while its
+        # macOS assets said `release`, and a Linux install's `intent --version`
+        # read `dev`. On a candidate ref the tag is the branch's last segment, set
+        # here for this step alone; any other ref, a run by hand included, builds
+        # `dev` as before. The build's own version lines below end in the kind.
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/candidate/*)
+              export DEVBIN_RELEASE_TARGET_TAG="${GITHUB_REF#refs/heads/candidate/}"
+              printf 'DEVBIN_RELEASE_TARGET_TAG=%s\n' "$DEVBIN_RELEASE_TARGET_TAG" | tee -a "$GITHUB_STEP_SUMMARY"
+              ;;
+          esac
+          bin/int linux build
       - run: bin/int linux package
       - name: smoke, on the runner
         run: bin/int linux smoke
