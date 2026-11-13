@@ -629,6 +629,14 @@
       "text": "(2026-11-13 06:00Z, hv's TUI selection in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 6df1af4e67c8\") RESET, over vc's fail-forward recommendation: hv reset local main from cut 2's unpushed, untagged release commit 8f210e083 to 6df1af4e67c8, by hv's own command; cut 2 stopped red at gate rust's clippy (24 needless_borrow in claude_cwi_door.rs from 6df1af4e6). Also hv's word through devbin-vc: dc's gate rust proof and the dry run run on rhadamanth this morning, booked on the desk.",
       "state": "live",
       "recorded_at": "2026-11-13T06:00:21.841Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 56,
+      "text": "(2026-11-13 09:36Z, hv first-hand to vc in the live channel) ACCEPT DEV: Intent 3.3.1's published Linux musl binaries keep [intent-source-kind:dev] (right commit c64a42e29, label only; built on candidate/v3.3.1 before the tag) until the next release, whose candidate run carries the linux-release fix landed at 3bcbdb8d8. No 3.3.2 is cut for it; the devvm takes 3.3.1 as published.",
+      "state": "live",
+      "recorded_at": "2026-11-13T09:36:30.996Z"
     }
   ],
   "sent": [],

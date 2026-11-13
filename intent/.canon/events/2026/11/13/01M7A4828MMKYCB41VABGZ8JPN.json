@@ -1,0 +1,15 @@
+{
+  "id": "01M7A4828MMKYCB41VABGZ8JPN",
+  "ts": "2026-11-13T09:36:30.996Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-11-13 09:36Z, hv first-hand to vc in the live channel) ACCEPT DEV: Intent 3.3.1's published Linux musl binaries keep [intent-source-kind:dev] (right commit c64a42e29, label only; built on candidate/v3.3.1 before the tag) until the next release, whose candidate run carries the linux-release fix landed at 3bcbdb8d8. No 3.3.2 is cut for it; the devvm takes 3.3.1 as published."
+  }
+}

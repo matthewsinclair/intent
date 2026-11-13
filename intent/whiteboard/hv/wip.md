@@ -92,6 +92,7 @@ _(none)_
 - (2026-11-12 19:51Z, hv first-hand to vc in the live channel, hv's wording) "You can use both rhad and gyges now that devbin is done." Intent's seats may run on rhadamanth and gyges both; kovacs and rhadamanth runs stay serialised.
 - (2026-11-13 05:47Z, hv's own command in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: "reset: moving to 91e19897410f") Option 1 of vc's question: hv reset local main from the cut's unpushed release commit 209b08f2d to 91e19897410f, so the app_version fix (dc, de63d4167) lands inside the re-cut's release commit. Nothing had been pushed or tagged.
 - (2026-11-13 06:00Z, hv's TUI selection in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: "reset: moving to 6df1af4e67c8") RESET, over vc's fail-forward recommendation: hv reset local main from cut 2's unpushed, untagged release commit 8f210e083 to 6df1af4e67c8, by hv's own command; cut 2 stopped red at gate rust's clippy (24 needless_borrow in claude_cwi_door.rs from 6df1af4e6). Also hv's word through devbin-vc: dc's gate rust proof and the dry run run on rhadamanth this morning, booked on the desk.
+- (2026-11-13 09:36Z, hv first-hand to vc in the live channel) ACCEPT DEV: Intent 3.3.1's published Linux musl binaries keep [intent-source-kind:dev] (right commit c64a42e29, label only; built on candidate/v3.3.1 before the tag) until the next release, whose candidate run carries the linux-release fix landed at 3bcbdb8d8. No 3.3.2 is cut for it; the devvm takes 3.3.1 as published.
 
 ---
 
