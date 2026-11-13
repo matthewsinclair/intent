@@ -6,7 +6,7 @@ session_id: 048e4132-f6c2-4374-b561-a659b80bc928
 heartbeat_at: 2026-11-13 16:06Z
 status: active
 focus: "2026-11-13 16:06Z, 3.3.2 pre-cut done: 0693 landed, known-defects landed as fde39ef27, explorer shots unchanged. Holding on vc's word; wt-install and wt-kd332 go at the next fold."
-claims: [ISSUE:0693]
+claims: []
 ---
 
 # Interface Claude (ic)
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- Issue 0693 (AE ISSUE:0049) LANDED by vc on main as d13b9f57a, 3f0f1d8c2 and f81a638c0, code tree identical to ic's gated 20bb114d2 (refs/bank/ic/install/0693-gated-20bb114d2). Two things left, both vc's word of 2026-11-13: close ISSUE:0693 once Intent 3.3.2 is cut, not before; and remove scratchpad/wt-install at ic's next fold, by the fold's checks (its commits are not main's shas, so check the tree against main rather than ancestry). (edited)
+_(none)_
 
 ## Holds
 
