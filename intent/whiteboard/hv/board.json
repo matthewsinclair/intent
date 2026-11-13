@@ -72,7 +72,8 @@
       "kind": "watchout",
       "seq": 1,
       "text": "**Reading the write-up of a class is not protection from it** (2026-08-22, ic's synthesis, corroborated by all four nodes): every save that day came from a mechanism, none from a rule; a rule is at its least protective in the sentence that asserts it (dc, 2026-08-23); the correct scope of a rule is not visible from the incident that produced it, so a rule is provisional until something on the other side of its boundary has tested it. The full argument is in the snapshot.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:27.750Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -89,7 +90,8 @@
       "kind": "watchout",
       "seq": 3,
       "text": "**The `sync` skip ruling against AC-03.6** (2026-08-23, deliberately not ruled by vc): hv chose among four options dc authored and the four survive nowhere, so only hv can say what was chosen. There is no attachment prune at all and canon-side edits cannot supply one, because attachments live in the store.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:28.682Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -105,7 +107,8 @@
       "kind": "watchout",
       "seq": 5,
       "text": "**hv's rulings reach this board second-hand, dated to the day, and a same-day reversal is invisible** (2026-08-21): either hv's word carries a time, or a reversal is announced.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:29.619Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -113,7 +116,8 @@
       "kind": "watchout",
       "seq": 6,
       "text": "**A benefit reclassified as a side effect escapes the ruling that governs it** (2026-08-21, vc's own, struck at source).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:30.590Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -138,7 +142,8 @@
       "kind": "watchout",
       "seq": 9,
       "text": "**A directive not reachable from the site that needs it is an open question in practice.** This board was a stub for eight weeks while peers were told to read it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:31.589Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -146,7 +151,8 @@
       "kind": "watchout",
       "seq": 10,
       "text": "**Attribute hv's live stamps, never assert them.** The live channel is unguarded; a quoted live stamp launders into the committed record past a guard posted at the wrong door.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:32.549Z",
       "recorded_at": "2026-09-13T10:24:13.664Z"
     },
     {
@@ -235,7 +241,8 @@
       "kind": "decision",
       "seq": 10,
       "text": "(2026-08-21, provenance unverified, advisory until hv confirms) Every node prunes its own `target/<node>` at fold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:08.441Z",
       "recorded_at": "2026-09-13T10:24:13.665Z"
     },
     {
@@ -372,7 +379,8 @@
       "kind": "decision",
       "seq": 26,
       "text": "(2026-09-21, hv's selections in the TUI hv asked for, answering vc's questions between 22:05Z and 22:18Z by vc's clock; wording vc's, each choice hv's; vc's recommendation taken unless marked) ELEVEN RULINGS. (1) ST0079, `intent outstanding` with the alias `outs` and no other spelling: the threads bare `st list` shows, the WIP work packages, the issues bare `issues` shows, in one table with the kind column leftmost; `--show` takes a comma list, defaulting to all; no CLI JSON and no `--daemon`, since no sibling list verb has JSON and neither was asked for. cc builds it. (2) THE NEXT CUT STAYS 3.2.1 although it adds a verb, hv's choice over vc's 3.3.0 recommendation, so decision 24's \"a verb makes a minor\" does not govern this cut; `outs` goes under Added in `## [3.2.1] - in progress`. (3) ST0079/01, hv verbatim: \"a slash-outs[tanding] command added to the Intent TUI Omnibox by intent-ic, but we can do that tomorrow\"; ic's on 2026-09-22, after cc's verb lands. (4) HOLD 18 IS RELEASED: `bin/int hooks` in Intent reported the gate WIRED through `pre-commit.intent` at 22:1xZ, so dc runs the guards adoption pass after 0501 lands, one estate first. (5) THE 3.2.0 APP goes into /Applications (hv quits the running 3.0.3; vc installs from the v3.2.0 release asset after checking its signature), and Conflab's and arca_cli's root files are upgraded from 3.1.0's, one commit each, no push. (6) `.claude/restart.md` is leaned to bare bones, vc's hand, finishing hv's instruction of 2026-09-17 (decision 25). (7) PROLIX'S CARRY GOES, hv first, dc's hand: only the placeholder lines of hv's empty stub board may drop, kept under `.history/pre-migration/`; any other hv line that will not carry comes back to hv. (8) THE CONFLAB AND BAIZE HOLDS \"until hv rules\" are triaged by vc first: re-tested against today's Intent and each estate's tree, the resolved ones struck, the rest brought to hv as TUI questions. (9) BAIZE ST0016 AC-01.2's rationale is corrected to 98/95/92, matching hv's paper-200 ruling and the built tree; the 2% floor is untouched. (10) LAMPLIGHT'S pre-commit hook, which re-stages whole Markdown files after formatting (0498's mechanism), is Lamplight's next session's to fix, on a brief from vc. (11) NO ROSTER IS OWED for Riffle, arca_config or arca_cli: none has an hv node, so no hv inbox needs a named reader.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:09.426Z",
       "recorded_at": "2026-09-21T22:19:22.252Z"
     },
     {
@@ -458,7 +466,8 @@
       "kind": "decision",
       "seq": 34,
       "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read at 19:26:54Z on vc's date -u; recorded by vc, the wording of this record vc's and the ruling hv's) ST0092's TERMS ARE RATIFIED. hv, verbatim: \"Ratified as recommended\". It answered vc's account of how to ratify: read intent/plugins/claude/teams/TERMS.md, answer the twelve points listed with vc's recommendations in ST0092 WP-01 under \"For hv's eye at ratification\", and say so. So all twelve stand as vc recommended, with the two wording fixes. Points 1 to 6 stay as the document had them. Added to the document on this word: cc's default remit is \"The core: the model, its rules, and the back-end services that implement them, in whatever form they take at the time, documents and data included\" (7); where an interface has a contract, cc is authoritative on what it means and ic on its shape and transport, and a change needs both (8); a seat that disagrees with what the mediator has put to hv says so, and the mediator puts it to hv in the seat's own words (9); the pen is a hat whose scope is one whiteboard, worn by the mediator on hv's word, each ruling under it the wearer's and open to hv's reversal, and it does not reach scope, release policy, the ratification of a decision or anything hv has said is hv's alone (10, on which vc told hv its recommendation was an interested one); a session that holds no seat is an unseated session, and `solo` stays the profile's name (11); registered, started and running belong to a seat a session drives, and hv's seat is only ever registered (12); the session name takes the project's name in lower case; and a machine that books its runs on another host's desk is within that desk's scope. ST0092 AC-01.5 is met by this record, and the thread's other packages may start.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:10.399Z",
       "recorded_at": "2026-11-10T19:28:06.339Z"
     },
     {
@@ -466,7 +475,8 @@
       "kind": "decision",
       "seq": 35,
       "text": "(hv, 2026-11-10, by selection in the TUI hv asked for in vc's session, \"give me these as TUI questions with context, options, and a rec\", answered between 19:41Z and 19:43:23Z on vc's date -u; wording vc's, each choice hv's and each vc's recommendation) SIX RULINGS. (1) Issue 0667, intentd's log under brew services, rides 3.3.0. (2) Issue 0678, declared build and test commands, does not: it waits until after 3.3.0. (3) The Desk is worn by a mediator: the terms now read \"One mediator on a host wears it, on hv's word\", in place of \"One vc\". (4) Intent keeps an acceptance test's own red-then-green: a red is the code as it was, never a planted fault, and a regression arm for something already fixed lands green with a note. (5) The client's name already public on upstream is fixed forward only: the tracked files that carry it are scrubbed in an ordinary commit before the push, and public history is not rewritten or force-pushed. (6) The one-message rewrite of the unpushed commit c1d7d163d runs just before the push, with every seat held, as planned.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:11.361Z",
       "recorded_at": "2026-11-10T19:43:51.461Z"
     },
     {
@@ -482,7 +492,8 @@
       "kind": "decision",
       "seq": 37,
       "text": "(hv, 2026-11-11, in vc's session, at about 05:50Z on vc's reading of the exchange, in hv's own word) Intent 3.3.0 packs its macOS release assets as one archive rooted at the install root, as the Linux package is: hv quoted vc's line \"devbin-vc leans towards Intent packing its macOS assets as one archive, as the Linux package already is\" and answered \"Agree\". dc builds it in the same bank as the sweep to devbin 0.1.22, whose render refuses a template that stages assets by hand. dc read that no 3.2.8 reader fetches a macOS asset by its old name.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:12.313Z",
       "recorded_at": "2026-11-11T06:50:05.101Z"
     },
     {
@@ -490,7 +501,8 @@
       "kind": "decision",
       "seq": 38,
       "text": "(hv, 2026-11-11, in vc's session at hv's desk, at about 07:22Z on vc's reading of the exchange, in hv's own words) Intent's macOS archive is packed by Intent's own release handler: \"Leave it on Intent's own handler.\", in answer to vc's question whether 3.3.0 should move onto the built-in publish step devbin 0.1.22 gains for the same archive. Intent's config declares no macos.pack keys.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:13.301Z",
       "recorded_at": "2026-11-11T07:56:59.300Z"
     },
     {
@@ -498,7 +510,8 @@
       "kind": "decision",
       "seq": 39,
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read between vc's date -u reads of 04:45Z and 04:50:44Z, and given the same words in cc's, dc's, ic's and devbin-cc's windows; recorded by vc) THE DESK STAYS WITH devbin-vc, AND P0 IS THE NEXT devbin AND Intent RELEASES. hv, verbatim: \"Ok, devbin-vc retains The Desk. P0 is getting everything sorted for the latest devbin and intent releases. Please liases with devbin-vc and let me know where we are up to. DO NOT START WORK UNTIL I HAVE REVIEWED THE PLAN.\" devbin-vc re-took the Desk's control record by 04:50Z (pid 85456).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:14.238Z",
       "recorded_at": "2026-11-12T05:16:26.068Z"
     },
     {
@@ -506,7 +519,8 @@
       "kind": "decision",
       "seq": 40,
       "text": "(hv, 2026-11-12, by selection in devbin-vc's TUI, relayed to vc by devbin-vc before devbin-vc's clock read of 05:14Z by date -u; not heard first-hand by vc; the options' wording devbin-vc's, each choice hv's and its recommendation; devbin-vc decision 160) THE GO ON THE ONE PLAN FOR BOTH RELEASES. (1) \"Go as planned\": the plan is devbin-cc's PLAN-20261112, with vc's three corrections: Intent's seats work now beside devbin's batch on what needs no new core; Intent 0682 closes on devbin 0334 plus ST0093 WP-06 (d), with the by-hand gate run on a small /tmp named in its Resolution; 0664 and 0675 close on records now. (2) \"Yes, dc builds 0339\": devbin-dc builds it beside devbin-cc. (3) \"Whole fleet, Intent first\": after hv's brew steps for devbin 0.1.23, devbin-vc's sweep takes Intent's tree first, then every other estate. (4) \"Yes, before Intent's leg\": GNU parallel goes onto kovacs from Homebrew, by kovacs-sysadm on hv's word in its window. (4) WAS ALREADY DONE before this record, and some time before: hv, first-hand in vc's session on 2026-11-12, read by 07:54Z on vc's date -u: \"This is about the third time that I have told you that this has already been done, and some time ago.\" GNU parallel is on kovacs; nothing about it is to do.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:15.258Z",
       "recorded_at": "2026-11-12T05:16:51.706Z",
       "edited_at": "2026-11-12T07:54:51.023Z"
     },
@@ -531,7 +545,8 @@
       "kind": "decision",
       "seq": 43,
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:08Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT DOES ITS WORK ON GYGES WHILE devbin 0.1.23 IS CUT, AND IS READY FOR ITS RELEASE. hv, verbatim: \"A thought: why don't you (intent) do your work on gyges now?\" and \"And then be ready for the devbin release?\" vc's reading of the scope: the units that need nothing from devbin 0.1.23 run on gyges now, off rhadamanth's Desk: dc's proofs of issues 0687 and 0688, and ic's re-drive of docs/known-defects.md on the pair built there. They run in a clone at gyges:~/Devel/prj/Intent made from rhadamanth's main by a git bundle, because main is ahead of upstream and gyges cannot reach rhadamanth by ssh, and nothing is installed on gyges. ST0093 WP-06 (c) to (e) and issue 0682 need 0.1.23's core (devbin 0334 and 0335), so they still wait for devbin-vc's sweep. What lands, lands in rhadamanth's tree.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:16.194Z",
       "recorded_at": "2026-11-12T10:09:00.641Z"
     },
     {
@@ -539,7 +554,8 @@
       "kind": "decision",
       "seq": 44,
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 10:18Z on vc's date -u; recorded by vc, the wording of this record vc's) INTENT'S NEXT RELEASE IS 3.3.1. hv, verbatim: \"3.3.1 is fine\", answering vc's recommendation of 3.3.1, made because nothing on main since v3.3.0 adds a verb: the register's changes since the tag are wording and ratification fields. So the CHANGELOG's open section is headed [3.3.1] - in progress, docs/known-defects.md is titled for v3.3.1, and hv's cut is bin/devbin release v3.3.1.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:17.189Z",
       "recorded_at": "2026-11-12T10:19:01.534Z"
     },
     {
@@ -555,7 +571,8 @@
       "kind": "decision",
       "seq": 46,
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 13:02Z on vc's date -u; recorded by vc, the wording of this record vc's) NOBODY STOPS intentd FOR dc'S DRY RUN; hv STOPS IT AT THE CUT. hv quoted vc's line \"nobody stops it for the dry run\" and answered, verbatim: \"Ok\". The line is from vc's recommendation before hv's third compact that day: nobody stops intentd for the dry run, and hv runs intent daemon stop as the first command of the cut and intent daemon start at its end. vc had withdrawn it in the message before hv's answer, on reading that a dry run stops at the pre-flight step while intentd is live; hv's answer came after that message and takes the line as quoted. vc's reading of what follows: intentd stays up through dc's Desk slot and no seat stops it. dc's dry run is expected to stop at the pre-flight step, where every check still runs and every refusal is named, and it passes when the live daemon is the only refusal. The rows after the pre-flight print in hv's own dry run, intent/docs/releasing.md step 3, which hv runs after stopping intentd at step 0; hv starts it again at the end of step 4.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:18.148Z",
       "recorded_at": "2026-11-12T13:03:31.563Z"
     },
     {
@@ -563,7 +580,8 @@
       "kind": "decision",
       "seq": 47,
       "text": "(hv, 2026-11-12, first-hand in prose in vc's session, read by 13:23Z on vc's date -u; recorded by vc, the wording of this record vc's) ic UPDATES THE PUBLIC SITE'S VERSION, AND hv SAYS PUSH. hv quoted vc's recommendation, \"I recommend ic writes the site's version file and runs the --dry-run, then you say \"push\"\", and answered, verbatim: \"Agree. Do it.\" The site is intent.laksa.io, which still named 3.2.7 because the 3.2.8 and 3.3.0 cuts skipped intent/docs/releasing.md step 5. So ic writes db/release.json in ~/Devel/prj/Sites/intent, commits it there, and rehearses the push with bin/devbin sites gitpush --sites=intent --dry-run from ~/Devel/prj/Laksa, whose sites root links to that repository; the push itself, which is the deploy, waits for hv's \"push\", which vc carries to ic; ic then reads the live page for the new version. vc's reading of \"Do it\": now, for 3.3.0, the release that has shipped, and again for 3.3.1 after its cut, as step 5 of that cut.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:19.133Z",
       "recorded_at": "2026-11-12T13:24:14.750Z"
     },
     {
@@ -571,7 +589,8 @@
       "kind": "decision",
       "seq": 48,
       "text": "(hv, 2026-11-12, in vc's session at 14:54Z on vc's date -u; hv's words) \"Ok, we're back. devbin-vc has the pen. Please follow instructions as needed.\" Every seat comes off the fold's hold. devbin-vc wears the pen and Intent's seats take its instructions through vc. What the pen does not reach (scope, release policy, ratification, the cuts) stays hv's.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:20.040Z",
       "recorded_at": "2026-11-12T14:54:58.525Z"
     },
     {
@@ -579,7 +598,8 @@
       "kind": "decision",
       "seq": 49,
       "text": "(hv, 2026-11-12, in vc's session, hv's \"1: Yes\" to vc's question) devbin-vc runs Intent's v3.3.1 cut by intent/docs/releasing.md, answering its one confirm step and running step 0's intentd stop and the restart after step 4, once vc sends \"ready to cut\" with the tip and only when green. This confirms for Intent devbin-vc's decision 170 (devbin e01e376c).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:21.064Z",
       "recorded_at": "2026-11-12T19:24:43.246Z"
     },
     {
@@ -587,7 +607,8 @@
       "kind": "decision",
       "seq": 50,
       "text": "(hv, 2026-11-12, in vc's session, hv's \"2: Yes\") \"push\" for intent.laksa.io at 3.3.0 (decision 47): ic pushes c14c60e and reads the live page.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:22.001Z",
       "recorded_at": "2026-11-12T19:24:44.185Z"
     },
     {
@@ -595,7 +616,8 @@
       "kind": "decision",
       "seq": 51,
       "text": "(hv, 2026-11-12, in vc's session, hv's \"3: Yes\") Login Items checked: System Settings names /Applications/Intent.app and not the 3.2.6 Debug build.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:22.941Z",
       "recorded_at": "2026-11-12T19:24:45.171Z"
     },
     {
@@ -603,7 +625,8 @@
       "kind": "decision",
       "seq": 52,
       "text": "(2026-11-12 19:47Z, hv first-hand to vc in the live channel, hv's wording) hv is AFK for a while. P0: \"getting everything done and dusted for devbin, intent, molt, etc so that we can build the next/latest version of devbm [the devvm, agentic-engineering's P1] first thing tomorrow morning ... Work with devbin-vc to get this done.\" vc works it with devbin-vc under decisions 48 and 49; nothing hv keeps is decided in hv's absence.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:23.909Z",
       "recorded_at": "2026-11-12T19:47:45.104Z"
     },
     {
@@ -619,7 +642,8 @@
       "kind": "decision",
       "seq": 54,
       "text": "(2026-11-13 05:47Z, hv's own command in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 91e19897410f\") Option 1 of vc's question: hv reset local main from the cut's unpushed release commit 209b08f2d to 91e19897410f, so the app_version fix (dc, de63d4167) lands inside the re-cut's release commit. Nothing had been pushed or tagged.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:24.844Z",
       "recorded_at": "2026-11-13T05:47:48.509Z"
     },
     {
@@ -627,7 +651,8 @@
       "kind": "decision",
       "seq": 55,
       "text": "(2026-11-13 06:00Z, hv's TUI selection in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 6df1af4e67c8\") RESET, over vc's fail-forward recommendation: hv reset local main from cut 2's unpushed, untagged release commit 8f210e083 to 6df1af4e67c8, by hv's own command; cut 2 stopped red at gate rust's clippy (24 needless_borrow in claude_cwi_door.rs from 6df1af4e6). Also hv's word through devbin-vc: dc's gate rust proof and the dry run run on rhadamanth this morning, booked on the desk.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:25.814Z",
       "recorded_at": "2026-11-13T06:00:21.841Z"
     },
     {
@@ -635,7 +660,8 @@
       "kind": "decision",
       "seq": 56,
       "text": "(2026-11-13 09:36Z, hv first-hand to vc in the live channel) ACCEPT DEV: Intent 3.3.1's published Linux musl binaries keep [intent-source-kind:dev] (right commit c64a42e29, label only; built on candidate/v3.3.1 before the tag) until the next release, whose candidate run carries the linux-release fix landed at 3bcbdb8d8. No 3.3.2 is cut for it; the devvm takes 3.3.1 as published.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:26.800Z",
       "recorded_at": "2026-11-13T09:36:30.996Z"
     }
   ],

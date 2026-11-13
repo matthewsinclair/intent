@@ -2021,7 +2021,8 @@
       "kind": "watchout",
       "seq": 31,
       "text": "NEVER truncate the output of `git remote -v` (hv, 2026-10-23): read and quote it whole.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:46.484Z",
       "recorded_at": "2026-10-23T12:09:37.810Z",
       "edited_at": "2026-10-28T19:56:54.261Z"
     },
@@ -2132,7 +2133,8 @@
       "kind": "decision",
       "seq": 79,
       "text": "(2026-10-25) Every Intent judge runs `intent critic` on each changed .rs and shell file as a leg; red on warning or above; no planted positives.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:14:47.425Z",
       "recorded_at": "2026-10-25T09:43:13.488Z",
       "edited_at": "2026-10-28T19:56:58.573Z"
     },
@@ -2620,9 +2622,10 @@
       "node": "vc",
       "kind": "decision",
       "seq": 108,
-      "text": "(hv, 2026-11-10, first-hand in prose in vc's session, read by 08:48Z on vc's date -u) THE TREE HOLDS ONLY WHAT IS LIVE OR TO BE DONE. hv, verbatim: \"We _should_ tidy things up. If issues and ST/WPs are resolved, then lets clean them out of the tree now. We should only have stuff that is live or to be done, old stuff can be dehydrated.\" So a resolved artefact's realised files leave the tree, by `intent organize --apply` once its whole preview has been read. vc's reading of the boundary: a Not Started thread is to be done and stays, listed with `intent st hydrate` before the apply; ST0056 and ST0057 are Completed and stay, because tests, the reference docs and the pre-commit guards read their files, until ST0084 relocates them; and before an apply every authored file in the removal list is checked byte for byte against tracked canon. First done on 2026-11-10: 41 closed-issue views and the trees of ST0081, ST0086 and ST0087. Closing an issue or completing a thread unlists it and leaves its files, and no step of a fold reconciles the tree, so views had gathered since 2026-10-23. This replaces the practice of 2026-10-25, when an apply's closed-issue removals were put back as an accident.",
+      "text": "(hv, 2026-11-10) The tree holds only what is live or to be done: a resolved artefact's realised files leave by `intent organize --apply` after its preview is read; Not Started threads, ST0056 and ST0057 stay. Full record: `intent wb show vc --all`, decision 108's earlier text in git.",
       "state": "live",
-      "recorded_at": "2026-11-10T08:48:16.896Z"
+      "recorded_at": "2026-11-10T08:48:16.896Z",
+      "edited_at": "2026-11-13T18:14:48.544Z"
     },
     {
       "node": "vc",
@@ -4209,7 +4212,8 @@
       "recipient": "dc",
       "body": "hv, first-hand at 11:18Z: issue 0692 is \"a _ridiculous_ bug. Utterly ridiculous. That needs fixing asap.\" It is P0 for dc now.\n\nThe bug: `intentsvcs::estate::slots::wait` (slots.rs:1667) re-reads the whole estate every 500 ms tick via `read_strict` -> `read` (slots.rs:621). That parses every lane, hold and request file under `slots/`, which on rhadamanth is 4958 files across 1289 requests. Each waiter costs 17-34% CPU. Read `intent issues show 0692`.\n\nThe fix: a waiter reads only its own request, `requests/<id>/`, through the same parse `read` uses for one request (Highlander: one parser, not a second). Then check whether the other per-tick readers (`slots watch`, intentd's slot handling) pay the same O(history) cost. If they do, fix them in the same unit or name each one back to vc; don't leave one silently. Retiring ended requests from the live read is a separate question: name it, don't build it here.\n\nProof: one layer, the cut's own gate. Run the whole `bin/devbin gate rust` on a booked slot, in a clone outside the canon tree. Add one test that pins the property: wait answers from its own request while unrelated requests are present (eg an unreadable unrelated request file doesn't stop it). Before and after, give one CPU read of a live waiter with `ps`, not a benchmark.\n\nBank it for vc to land, as before (refs/bank/dc/...).",
       "fyi": false,
-      "recorded_at": "2026-11-13T11:18:44.190Z"
+      "recorded_at": "2026-11-13T11:18:44.190Z",
+      "archived_at": "2026-11-13T18:14:49.644Z"
     },
     {
       "id": "01M7ACZXV517X3BH0RBKCSWS2B",
@@ -4223,7 +4227,8 @@
       "recipient": "ic",
       "body": "issue above (claude install defects, AE ISSUE:0049) is yours for Intent 3.3.2 on hv's standing word: (1) install classifies an installed unit as sync does, so an identical unit is settled and exits 0, reusing sync's classifier; (2) sync's help stops offering --all; (3) the install's write stamps installed_at, rather than the copy keeping the source mtime. One test each; the whole bin/devbin gate rust on a booked slot in a clone outside canon, with no slots wait until 0692 lands; bank for vc at refs/bank/ic/install/... Full brief sent live.",
       "fyi": false,
-      "recorded_at": "2026-11-13T12:47:46.905Z"
+      "recorded_at": "2026-11-13T12:47:46.905Z",
+      "archived_at": "2026-11-13T18:14:49.644Z"
     }
   ],
   "handled": [
