@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- Issue 0693 (AE ISSUE:0049) for Intent 3.3.2, resuming on vc's or hv's word after the weekend. The fix is written and banked UNGATED at refs/bank/ic/install/0693-ungated-on-06cb65c54.diff (11 files, +457 -294), and its worktree is scratchpad/wt-install on 06cb65c54, never built. It contains: install decides an installed unit through payload::settle, sync's one classifier, and AlreadyInstalled is deleted; value_flags give each claude skills|subagents verb only the flags it takes, and the parse refusal names those flags and the value_refusals reason; write_copy lets the write stamp installed_at. To finish: book a gate-rust slot (no slots wait until 0692 lands), bin/devbin build all, commit in the worktree, gen_reference.sh --rev HEAD --baseline v3.3.1, the whole bin/devbin gate rust, then rebank and send vc the ref and stat.
+- Issue 0693 (AE ISSUE:0049) LANDED by vc on main as d13b9f57a, 3f0f1d8c2 and f81a638c0, code tree identical to ic's gated 20bb114d2 (refs/bank/ic/install/0693-gated-20bb114d2). Two things left, both vc's word of 2026-11-13: close ISSUE:0693 once Intent 3.3.2 is cut, not before; and remove scratchpad/wt-install at ic's next fold, by the fold's checks (its commits are not main's shas, so check the tree against main rather than ancestry). (edited)
 
 ## Holds
 

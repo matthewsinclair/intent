@@ -1,0 +1,16 @@
+{
+  "id": "01M7AR4Y1X5VF6KHTKM1BMCB7A",
+  "ts": "2026-11-13T15:24:19.901Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "Issue 0693 (AE ISSUE:0049) LANDED by vc on main as d13b9f57a, 3f0f1d8c2 and f81a638c0, code tree identical to ic's gated 20bb114d2 (refs/bank/ic/install/0693-gated-20bb114d2). Two things left, both vc's word of 2026-11-13: close ISSUE:0693 once Intent 3.3.2 is cut, not before; and remove scratchpad/wt-install at ic's next fold, by the fold's checks (its commits are not main's shas, so check the tree against main rather than ancestry)."
+  }
+}
