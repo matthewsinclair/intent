@@ -1,0 +1,16 @@
+{
+  "id": "01M79SN8V0DNJFYH3E63TJE10P",
+  "ts": "2026-11-13T06:31:29.376Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 79,
+    "text": "After Intent 3.3.1 (released 2026-11-13 06:31Z by date -u; tag v3.3.1 at c64a42e29, cut 3 by devbin-vc under hv decisions 49, 54 and 55): (1) ic brings intent.laksa.io to 3.3.1 (ic todo 70); its push is hv's word. (2) dc banks the stale config.yaml:326-336 comment that says CI floats on @stable (the pin landed at 4e6fb844a); vc lands it. (3) releasing.md's check `git rev-parse --short=9 vX.Y.Z` names the annotated tag's object; it should read vX.Y.Z^{commit} (devbin-vc's note). (4) Read main's CI at the tag (rust 43378893908, Intent Tests 43378893904) and the first run under the pin. (5) agentic-engineering-vc builds the devvm (devbin-vc tells it). (6) The memory prune."
+  }
+}
