@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-13 16:23Z
+heartbeat_at: 2026-11-13 18:11Z
 status: active
-focus: "2026-11-13 16:23Z by date -u: 3.3.2 kovacs rehearsal green at 071155289 (16:16:13Z-16:23:22Z), sent to vc; hold 46 (intentd after read post-cut) stands."
+focus: "2026-11-13 18:11Z by date -u: Intent 3.3.2 is cut; hold 46 done, intentd's estate read went from about 1.3 CPU-s to below ps's floor; nothing open, holding for vc."
 claims: [ST0093/06]
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- 0692 after read for intentd: the CPU of one estate-page read by the release intentd on the live estate, by the ps cputime delta, against the before read of 1.3 CPU-s per read at 12:17Z (1301 requests). Released when Intent 3.3.2 is installed on rhadamanth and intentd runs it; then send vc the read (vc accepted this order, read by dc before 15:33Z by date -u). (edited)
+_(none)_
 
 ## Watch-outs
 
