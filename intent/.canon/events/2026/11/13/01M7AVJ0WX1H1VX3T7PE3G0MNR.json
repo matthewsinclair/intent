@@ -1,0 +1,16 @@
+{
+  "id": "01M7AVJ0WX1H1VX3T7PE3G0MNR",
+  "ts": "2026-11-13T16:23:54.525Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 81,
+    "text": "Intent 3.3.2 READY TO CUT at 071155289 (sent to devbin-vc by 16:23Z 2026-11-13 by date -u), who holds it for hv's cut; local pushed, upstream untouched. Landed: 0693 (ic) d13b9f57a..f81a638c0; 0692 plus the asker's withdraw (dc) c9f4e8316, f773ea797; 0691 (cc) 89b25ee9f; CHANGELOG 85f55904d; reference 1f02e6f28; known-defects fde39ef27; bats cache leak 071155289. Kovacs rehearsal green at 071155289. After the cut: close 0691, 0692 and 0693; dc's intentd CPU read (dc hold 46)."
+  }
+}

@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-13 15:03Z
+heartbeat_at: 2026-11-13 16:23Z
 status: active
-focus: "Intent 3.3.2 P0 (hv, 2026-11-13 ~15:03Z): gates run 0693 (ic), then 0692 plus asker-withdraw (dc), then 0691 (cc) on the desk; then kovacs rehearsal, then ready to cut to devbin-vc."
+focus: "Intent 3.3.2 ready to cut at 071155289, held by devbin-vc for hv; vc holds."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- Intent 3.3.2 (hv, 2026-11-13), on resume: three banks, none gated yet. 0692 slot history (dc): refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at fc4a451f2; design accepted; its first gate failed at check doc (private intra-doc links), fixed. 0691 plan usage across a restart (cc): refs/bank/cc/0691/ungated-on-06cb65c54, never compiled. 0693 install verdicts and verb flags (ic): refs/bank/ic/install/0693-ungated-on-06cb65c54.diff. Each lands on its whole gate rust END and vc's read; then the kovacs rehearsal at the final main; then ready to cut, after devbin's release. Release notes: 0692's polling note (requests/<id>/end|deny|revoke.json: use slots wait or history/<id>/; a 3.3.1 binary can't find a retired request). For hv: an asker can't withdraw its own still-asked slot request (seen by ic and cc). (edited)
+- Intent 3.3.2 READY TO CUT at 071155289 (sent to devbin-vc by 16:23Z 2026-11-13 by date -u), who holds it for hv's cut; local pushed, upstream untouched. Landed: 0693 (ic) d13b9f57a..f81a638c0; 0692 plus the asker's withdraw (dc) c9f4e8316, f773ea797; 0691 (cc) 89b25ee9f; CHANGELOG 85f55904d; reference 1f02e6f28; known-defects fde39ef27; bats cache leak 071155289. Kovacs rehearsal green at 071155289. After the cut: close 0691, 0692 and 0693; dc's intentd CPU read (dc hold 46). (edited)
 
 ## Holds
 
