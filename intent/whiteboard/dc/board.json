@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-12T19:47:59.489Z",
+    "heartbeat_at": "2026-11-13T06:31:05.643Z",
     "status": "active",
-    "focus": "2026-11-12 19:41Z, localfolded for the compact on hv's word through vc; not released. WP-06 v6 is landed at 7be4d570f and issue 0682 is closed with its Resolution; both WP-06 worktrees are removed by the fold's checks. Nothing runs and nothing is unbanked. Hold 43 waits for cc's fix to no_view_claims_to_be_truth.rs:292, vc's freeze and dc's Desk slot, then the kovacs leg and the dry run. Todo 63 at the cut. gyges:~/Devel/scratch/dc-0682 keeps the clone and the gate logs as 0682's evidence.",
+    "focus": "2026-11-13 06:31Z by date -u: v3.3.1 is released (tag at c64a42e29, every leg green). Hold 43 is done: the kovacs leg was green at 4d999b897, and the dry runs at 91e198974, 6df1af4e6 and 1def12f5b each refused only on the live daemon. Todo 63 is done: the published 3.3.1 formula keeps both linux musl assets. Banked for vc: the CI Rust pin, refs/bank/dc/rustpin/fleet-rust-on-1def12f5b (646bef709). Next: the config.yaml:326-336 comment fix, banked on main once the pin lands.",
     "claims": [
       "ST0093/06"
     ],
@@ -2868,7 +2868,8 @@
       "kind": "todo",
       "seq": 63,
       "text": "At the next cut, read the formula before the yes: it must keep both Linux musl assets, amd64 and arm64, because agentic-engineering's devvm installs Intent from the tap on both (vc, 2026-11-12).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T06:31:04.651Z",
       "recorded_at": "2026-11-12T05:51:32.591Z"
     },
     {
@@ -2886,7 +2887,8 @@
       "kind": "hold",
       "seq": 43,
       "text": "dc's Desk booking for the rest of the cut's rehearsal, from devbin-vc's Desk on rhadamanth. Steps (1) to (3) are done: WP-06 v6 landed at 7be4d570f on dc's proof, and issue 0682 is closed with its Resolution. What is left waits for three things: cc's fix to intentsvcs/tests/no_view_claims_to_be_truth.rs:292 landing (1156 views counted where 1148 are rendered; vc sent it to cc as cut-blocking, since gate rust goes red on it), vc's freeze, and vc's ask to devbin-vc for dc's slot. Then: (4) bin/devbin release gates --leg kovacs, at a clean HEAD after the freeze. devbin 0.1.23 (its issue 0337) makes the cut's pre-flight refuse kovacs unless that leg went green at a commit whose leg config (release.legs, release.gates and the commands they name) matches the cut's HEAD, so dc touches none of those lines after it. (5) The dry run, whose pre-flight runs no gate, with git status empty, as vc confirms before dc starts. Under the freeze nothing writes to Intent's tree until hv's cut has finished, not even a pickup. intentd stays up and no seat stops it (hv decision 46), so (5) stops at its pre-flight, which still runs every check and names every refusal. It passes when the live daemon is the only refusal, and any other refusal is a finding dc brings to vc. On rhadamanth no step runs beside a kovacs run (hv decision 45). Read by 2026-11-12 19:41Z by date -u.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T06:31:03.659Z",
       "recorded_at": "2026-11-12T09:10:44.927Z",
       "edited_at": "2026-11-12T19:41:24.209Z"
     },
