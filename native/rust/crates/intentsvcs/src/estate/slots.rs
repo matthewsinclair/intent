@@ -1656,8 +1656,10 @@ pub fn start(
   Ok(path)
 }
 
-/// `slots release`: the holder ends a granted or running request. Before a
-/// start, it ends it unrun, which a `--place-of` ask re-asks from.
+/// `slots release`: the asker ends its own request while it is asked, granted
+/// or running. Before a start, a granted one ends unrun, which a `--place-of`
+/// ask re-asks from. One still asked is withdrawn: it ends with no grant, so it
+/// leaves the queue and a re-ask asks afresh (issue 0692).
 pub fn release(
   dirs: &Dirs,
   caller: &Caller,
@@ -1671,7 +1673,7 @@ pub fn release(
   let slots = read_strict(dirs);
   let r = &request_of(dirs, &slots, id)?;
   ensure_asker(r, caller)?;
-  if !r.holding() {
+  if !(r.holding() || r.state() == ReqState::Asked) {
     return Err(wrong_state(r, "released"));
   }
   let path = requests_dir(dirs).join(id).join("end.json");
@@ -1887,18 +1889,22 @@ pub enum Answer {
   Granted,
   Denied,
   Revoked,
+  /// Its asker released it while it was still asked (issue 0692).
+  Withdrawn,
 }
 
 /// The answer a request carries, or `None` while it is still asked.
 ///
 /// **A REVOKE ANSWERS WHENEVER IT LANDS**: the controller may end an ask it
 /// never granted, and the asker learns it the way it learns a denial. A
-/// request that has started or ended was granted first.
+/// request that has started was granted first, and one that ended was granted
+/// first unless its asker withdrew it while it was still asked.
 pub fn answer(r: &Request) -> Option<Answer> {
   match r.state() {
     ReqState::Asked => None,
     ReqState::Denied => Some(Answer::Denied),
     ReqState::Revoked => Some(Answer::Revoked),
+    ReqState::Ended if r.grant.is_none() => Some(Answer::Withdrawn),
     ReqState::Granted | ReqState::Running | ReqState::Ended => Some(Answer::Granted),
   }
 }
@@ -2776,6 +2782,40 @@ mod tests {
       .expect("answered");
     assert_eq!(said, Answer::Granted);
     assert_eq!(answered.id(), a);
+  }
+
+  /// Issue 0692: an asker withdraws its own ask with `release` before any
+  /// answer. It ends with no grant, leaves the queue, and `wait` answers it
+  /// withdrawn rather than granted; nobody else can withdraw it, and a
+  /// withdrawn ask is not a place a re-ask keeps.
+  #[test]
+  fn an_asker_withdraws_its_own_ask_with_release() {
+    let h = host();
+    let _ctl = desk(&h);
+    let me = who("me", "intent-ic", 1);
+    let other = who("other", "intent-cc", 2);
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a gate", AskArgs::default()).expect("ask");
+    assert!(matches!(
+      release(&h.dirs, &other, &a, None, false),
+      Err(SlotError::NotAsker { .. })
+    ));
+    release(&h.dirs, &me, &a, Some("withdrawn"), false).expect("the asker withdraws");
+    let r = read_one(&h.dirs, &a).expect("the request");
+    assert_eq!(r.state(), ReqState::Ended);
+    assert_eq!(answer(&r), Some(Answer::Withdrawn));
+    assert!(waiting(&read_strict(&h.dirs)).is_empty());
+    assert!(matches!(
+      release(&h.dirs, &me, &a, None, false),
+      Err(SlotError::WrongState { .. })
+    ));
+    let again = AskArgs {
+      place_of: Some(a.clone()),
+      ..AskArgs::default()
+    };
+    assert!(matches!(
+      ask(&h.dirs, &me, "heavy", "a gate", again),
+      Err(SlotError::BadPlaceOf { .. })
+    ));
   }
 
   /// Issue 0692: the read that finds a request finished retires it to the

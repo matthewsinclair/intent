@@ -12013,11 +12013,12 @@ fn slots_wait(id: &str, timeout: Option<String>) -> Result<(), Failure> {
     Answer::Granted => Step::Granted,
     Answer::Denied => Step::Denied,
     Answer::Revoked => Step::Revoked,
+    Answer::Withdrawn => Step::Ended,
   };
   println!("{}", slot_line(step, &r, &slot_names(&claude)));
   match said {
     Answer::Granted => Ok(()),
-    Answer::Denied | Answer::Revoked => Err(Failure::Verdict),
+    Answer::Denied | Answer::Revoked | Answer::Withdrawn => Err(Failure::Verdict),
   }
 }
 
