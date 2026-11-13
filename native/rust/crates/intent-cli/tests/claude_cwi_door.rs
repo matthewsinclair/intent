@@ -192,10 +192,10 @@ fn start_runs_the_launcher_from_the_root_with_the_display_name() {
   let install = fixture_install();
   let exe = install.exe();
   let claude = Claude::new();
-  let project = project(&exe, &claude);
+  let project = project(exe, &claude);
 
   let (text, code) = run(
-    &exe,
+    exe,
     &["claude", "start", "cc"],
     &project.path().join("intent"),
     &claude,
@@ -241,7 +241,7 @@ fn an_unmigrated_node_is_launched() {
   let install = fixture_install();
   let exe = install.exe();
   let claude = Claude::new();
-  let project = project(&exe, &claude);
+  let project = project(exe, &claude);
   let board = project.path().join("intent/whiteboard/dc");
   std::fs::create_dir_all(&board).expect("board dir");
   std::fs::write(
@@ -251,11 +251,11 @@ fn an_unmigrated_node_is_launched() {
      claims: []\n---\n# DevX Claude (dc)\n",
   )
   .expect("write the hand-authored board");
-  let (text, code) = run(&exe, &["wb", "register"], project.path(), &claude);
+  let (text, code) = run(exe, &["wb", "register"], project.path(), &claude);
   assert_eq!(code, 0, "register from the header: {text}");
   // The fixture is what it says: the node is on the roster and NOT migrated.
   let (shown, code) = run(
-    &exe,
+    exe,
     &["wb", "show", "dc", "--json"],
     project.path(),
     &claude,
@@ -266,7 +266,7 @@ fn an_unmigrated_node_is_launched() {
     "the fixture node was migrated, so this arm would not test an unmigrated one: {shown}"
   );
 
-  let (text, code) = run(&exe, &["claude", "start", "dc"], project.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", "dc"], project.path(), &claude);
   assert_eq!(code, 0, "an unmigrated node should launch: {text}");
   let argv = claude
     .invocation()
@@ -288,9 +288,9 @@ fn an_absent_node_is_refused_and_told_where_to_register_it() {
   let install = fixture_install();
   let exe = install.exe();
   let claude = Claude::new();
-  let project = project(&exe, &claude);
+  let project = project(exe, &claude);
 
-  let (text, code) = run(&exe, &["claude", "start", "zz"], project.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", "zz"], project.path(), &claude);
   assert_eq!(code, 1, "an absent node must be refused: {text}");
   assert!(
     text.contains("no node `zz` is registered"),
@@ -319,7 +319,7 @@ fn a_bare_repository_is_refused_before_anything_launches() {
   let install = fixture_install();
   let exe = install.exe();
   let claude = Claude::new();
-  let project = project(&exe, &claude);
+  let project = project(exe, &claude);
   let status = std::process::Command::new("git")
     .args(["init", "-q", "--bare"])
     .arg(project.path())
@@ -327,7 +327,7 @@ fn a_bare_repository_is_refused_before_anything_launches() {
     .expect("run git");
   assert!(status.success(), "git init --bare failed");
 
-  let (text, code) = run(&exe, &["claude", "start", "cc"], project.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", "cc"], project.path(), &claude);
   assert_eq!(code, 1, "a bare repository must be refused: {text}");
   assert!(
     text.contains("is a bare git repository"),
@@ -350,16 +350,16 @@ fn an_absent_launcher_refuses_by_name() {
     .path()
     .join("intent/plugins/claude/bin/intent_claude_cwi");
   let claude = Claude::new();
-  let project = project(&exe, &claude);
+  let project = project(exe, &claude);
 
   // Positive control FIRST: with the launcher present this same invocation
   // launches. Without it, a red arm below would be consistent with the fixture
   // simply being broken.
-  let (before, code) = run(&exe, &["claude", "start", "cc"], project.path(), &claude);
+  let (before, code) = run(exe, &["claude", "start", "cc"], project.path(), &claude);
   assert_eq!(code, 0, "the fixture install itself is broken: {before}");
 
   std::fs::remove_file(&launcher).expect("remove the launcher");
-  let (text, code) = run(&exe, &["claude", "start", "cc"], project.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", "cc"], project.path(), &claude);
   assert_ne!(code, 0, "an absent launcher must not succeed: {text}");
   assert!(
     text.contains("whiteboard launcher not found"),
@@ -441,17 +441,12 @@ fn start_hands_the_seat_its_brief_and_the_profiles_launch_steps() {
   let exe = install.exe();
   let claude = Claude::new();
   let dir = tempfile::tempdir().expect("tempdir");
-  let (text, code) = run(&exe, &["init", "cwi-team"], dir.path(), &claude);
+  let (text, code) = run(exe, &["init", "cwi-team"], dir.path(), &claude);
   assert_eq!(code, 0, "init: {text}");
-  let (text, code) = run(
-    &exe,
-    &["wb", "init", "team", "--apply"],
-    dir.path(),
-    &claude,
-  );
+  let (text, code) = run(exe, &["wb", "init", "team", "--apply"], dir.path(), &claude);
   assert_eq!(code, 0, "wb init: {text}");
 
-  let worker = launched_context(&exe, "cc", dir.path(), &claude);
+  let worker = launched_context(exe, "cc", dir.path(), &claude);
   assert!(
     worker.lines().next().is_some_and(|l| l.contains(" seat ")),
     "the opening line does not call the session a seat: {worker}"
@@ -464,13 +459,13 @@ fn start_hands_the_seat_its_brief_and_the_profiles_launch_steps() {
     !worker.contains("STOP and wait for my instructions"),
     "a worker on a declared board is still told to wait on hv: {worker}"
   );
-  let mediator = launched_context(&exe, "vc", dir.path(), &claude);
+  let mediator = launched_context(exe, "vc", dir.path(), &claude);
   assert!(
     mediator.contains(&profile_section(intentsvcs::teams::SECTION_LAUNCH_MEDIATOR)),
     "the mediator's launch steps are not the profile's: {mediator}"
   );
 
-  let (text, code) = run(&exe, &["claude", "start", "zz"], dir.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", "zz"], dir.path(), &claude);
   assert_eq!(code, 1, "an unregistered moniker: {text}");
   assert!(
     text.contains("intent wb init --apply"),
@@ -487,14 +482,9 @@ fn start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing() {
   let exe = install.exe();
   let claude = Claude::new();
   let dir = tempfile::tempdir().expect("tempdir");
-  let (text, code) = run(&exe, &["init", "cwi-retired"], dir.path(), &claude);
+  let (text, code) = run(exe, &["init", "cwi-retired"], dir.path(), &claude);
   assert_eq!(code, 0, "init: {text}");
-  let (text, code) = run(
-    &exe,
-    &["wb", "init", "team", "--apply"],
-    dir.path(),
-    &claude,
-  );
+  let (text, code) = run(exe, &["wb", "init", "team", "--apply"], dir.path(), &claude);
   assert_eq!(code, 0, "wb init: {text}");
   let resolved = intentsvcs::teams::Teams::new(&testkit::repo_root())
     .resolve(&["team".to_string()], None, false)
@@ -507,14 +497,14 @@ fn start_of_a_retired_seat_passes_the_refusal_through_and_launches_nothing() {
     .expect("a seat a retirement may take");
   let reason = "its remit moved to another seat";
   let (text, code) = run(
-    &exe,
+    exe,
     &["wb", "retire", &gone, "--reason", reason],
     dir.path(),
     &claude,
   );
   assert_eq!(code, 0, "wb retire: {text}");
 
-  let (text, code) = run(&exe, &["claude", "start", &gone], dir.path(), &claude);
+  let (text, code) = run(exe, &["claude", "start", &gone], dir.path(), &claude);
   assert_eq!(code, 1, "a retired seat must be refused: {text}");
   assert!(
     text.contains("retired") && text.contains(reason) && text.contains("intent wb register"),
@@ -534,8 +524,8 @@ fn an_unprofiled_launch_reads_exactly_as_it_did() {
   let install = fixture_install();
   let exe = install.exe();
   let claude = Claude::new();
-  let project = project(&exe, &claude);
-  let context = launched_context(&exe, "cc", project.path(), &claude);
+  let project = project(exe, &claude);
+  let context = launched_context(exe, "cc", project.path(), &claude);
   let proj = std::fs::canonicalize(project.path())
     .expect("canonical root")
     .file_name()
