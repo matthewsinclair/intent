@@ -39,6 +39,11 @@ pub const NO_LANE: &str = "none";
 /// How long a finished request stays in `recent`.
 pub(crate) const RECENT_SECONDS: i64 = 3600;
 
+/// The width of one `finished/<bucket>/` directory, in seconds: a bucket is a
+/// finish time's whole hours since the epoch, so the `recent` window, which is
+/// no wider than one bucket, spans at most two of them.
+const BUCKET_SECONDS: i64 = 3600;
+
 /// How long `slots wait` and `slots watch` pause between reads of the
 /// requests (ST0086 AC-04.4).
 pub const PAUSE: Duration = Duration::from_millis(500);
@@ -197,6 +202,23 @@ fn holds_dir(dirs: &Dirs) -> PathBuf {
 
 fn requests_dir(dirs: &Dirs) -> PathBuf {
   slots_dir(dirs).join("requests")
+}
+
+/// Where a finished request's directory goes when it retires (issue 0692):
+/// `history/<id>/`, read by id and never listed.
+fn history_dir(dirs: &Dirs) -> PathBuf {
+  slots_dir(dirs).join("history")
+}
+
+/// `finished/<bucket>/<id>`: an empty file per retired request, in the bucket
+/// of the hour it finished, which is how `recent` finds the requests of its
+/// window without listing the history.
+fn finished_dir(dirs: &Dirs) -> PathBuf {
+  slots_dir(dirs).join("finished")
+}
+
+fn bucket_of(at: OffsetDateTime) -> i64 {
+  at.unix_timestamp().div_euclid(BUCKET_SECONDS)
 }
 
 /// Who runs a verb: the Claude Code session `CLAUDE_CODE_SESSION_ID` names,
@@ -497,8 +519,15 @@ pub struct Slots {
   pub lanes: Vec<LaneRecord>,
   /// Standing holds only, oldest first.
   pub holds: Vec<Stamped<HoldRecord>>,
-  /// Every request, in id order.
+  /// Every request still open, in id order: a finished one is retired out of
+  /// `requests/` by the read that finds it (issue 0692).
   pub requests: Vec<Request>,
+  /// The retired requests an open one names, as its `--place-of` or a
+  /// `not-before` gate: what the queue's order and a grant's gate read.
+  pub referenced: Vec<Request>,
+  /// The retired requests of the `recent` window, read by [`read_recent`] for
+  /// the estate's reading alone; empty for every other reader.
+  pub recent: Vec<Request>,
 }
 
 impl Slots {
@@ -507,8 +536,14 @@ impl Slots {
     self.controller.as_ref().filter(|c| !c.record.released)
   }
 
+  /// The request by id, open, referenced or recent.
   pub fn request(&self, id: &str) -> Option<&Request> {
-    self.requests.iter().find(|r| r.id() == id)
+    self
+      .requests
+      .iter()
+      .chain(&self.referenced)
+      .chain(&self.recent)
+      .find(|r| r.id() == id)
   }
 
   pub fn lane(&self, name: &str) -> Option<&LaneRecord> {
@@ -662,7 +697,8 @@ pub fn read(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Slots {
     .collect();
   holds.sort_by(|a, b| a.at.cmp(&b.at).then_with(|| a.record.id.cmp(&b.record.id)));
   let mut request_errors = Vec::new();
-  let requests = read_requests(&requests_dir(dirs), &mut request_errors);
+  let requests = read_requests(dirs, &mut request_errors);
+  let referenced = read_referenced(dirs, &requests, &mut request_errors);
   unreadable.extend(lane_errors);
   unreadable.extend(hold_errors);
   unreadable.extend(request_errors);
@@ -672,27 +708,129 @@ pub fn read(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Slots {
     lanes,
     holds,
     requests,
+    referenced,
+    recent: Vec::new(),
   }
 }
 
-fn read_requests(dir: &Path, unreadable: &mut Vec<Unreadable>) -> Vec<Request> {
-  let entries = match std::fs::read_dir(dir) {
+/// The open requests under `requests/`, in id order, retiring each finished
+/// one it finds there.
+///
+/// **A FINISHED REQUEST LEAVES THE LIVE READ** (issue 0692). `deny` answers an
+/// ask alone, `revoke` refuses a finished request and `release` one not
+/// holding, so a finished request's files never change again, and every live
+/// question (the queue, the lanes, who holds what, the controller's waiting
+/// asks) is about open ones. The read that finds one finished moves it to
+/// `history/<id>/` ([`retire`]), so what every later read lists and parses is
+/// the open requests, not the estate's history. A step that finishes a
+/// request writes its file into `requests/<id>/` as it always has, and the
+/// next read retires it; an estate written before this is retired by its
+/// first read the same way, with no hand step.
+fn read_requests(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Vec<Request> {
+  let dir = requests_dir(dirs);
+  let entries = match std::fs::read_dir(&dir) {
     Ok(entries) => entries,
     Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
     Err(e) => {
-      unreadable.push(unread(dir, format!("could not be listed: {e}")));
+      unreadable.push(unread(&dir, format!("could not be listed: {e}")));
       return Vec::new();
     }
   };
-  let mut dirs: Vec<PathBuf> = entries
+  let mut paths: Vec<PathBuf> = entries
     .filter_map(Result::ok)
     .map(|e| e.path())
     .filter(|p| p.is_dir())
     .collect();
-  dirs.sort();
-  dirs
+  paths.sort();
+  paths
     .into_iter()
     .filter_map(|d| match read_request(&d) {
+      Ok(Some(r)) if r.finished() => {
+        if let Err(u) = retire(dirs, &d, &r) {
+          unreadable.push(u);
+        }
+        None
+      }
+      Ok(r) => r,
+      // Another reader retired it between the listing and this read.
+      Err(_) if !d.exists() => None,
+      Err(u) => {
+        unreadable.push(u);
+        None
+      }
+    })
+    .collect()
+}
+
+/// Moves a finished request's directory to `history/<id>/`, first writing its
+/// `finished/<bucket>/<id>` marker, so a crash between the two leaves it in
+/// `requests/` for the next read to retire again rather than in the history
+/// with no marker. A rename another reader already made is not a failure.
+fn retire(dirs: &Dirs, dir: &Path, r: &Request) -> Result<(), Unreadable> {
+  let bucket = finished_dir(dirs).join(r.finished_at().map_or(0, bucket_of).to_string());
+  let history = history_dir(dirs);
+  for made in [&bucket, &history] {
+    std::fs::create_dir_all(made).map_err(|e| {
+      unread(
+        made,
+        format!("could not be made to retire `{}`: {e}", r.id()),
+      )
+    })?;
+  }
+  let marker = bucket.join(r.id());
+  std::fs::write(&marker, b"").map_err(|e| {
+    unread(
+      &marker,
+      format!("could not be written to retire `{}`: {e}", r.id()),
+    )
+  })?;
+  match std::fs::rename(dir, history.join(r.id())) {
+    Ok(()) => Ok(()),
+    Err(_) if !dir.exists() && history.join(r.id()).is_dir() => Ok(()),
+    Err(e) => Err(unread(
+      dir,
+      format!(
+        "finished, and could not be retired into `{}`: {e}",
+        history.display()
+      ),
+    )),
+  }
+}
+
+/// A retired request, from `history/<id>/`; `Ok(None)` when there is none.
+fn read_retired(dirs: &Dirs, id: &str) -> Result<Option<Request>, Unreadable> {
+  let dir = history_dir(dirs).join(id);
+  if !valid_name(id) || !dir.is_dir() {
+    return Ok(None);
+  }
+  read_request(&dir)
+}
+
+/// The retired requests the open ones name, as a `--place-of` or a
+/// `not-before` gate: one read by id each, so the cost is the open requests'.
+fn read_referenced(
+  dirs: &Dirs,
+  open: &[Request],
+  unreadable: &mut Vec<Unreadable>,
+) -> Vec<Request> {
+  let live: BTreeSet<&str> = open.iter().map(Request::id).collect();
+  let named: BTreeSet<&str> = open
+    .iter()
+    .flat_map(|r| {
+      let gates = r
+        .ask
+        .record
+        .gates
+        .iter()
+        .filter(|g| g.kind == GATE_NOT_BEFORE)
+        .filter_map(|g| g.reference.as_deref());
+      r.ask.record.place_of.as_deref().into_iter().chain(gates)
+    })
+    .filter(|id| !live.contains(id))
+    .collect();
+  named
+    .into_iter()
+    .filter_map(|id| match read_retired(dirs, id) {
       Ok(r) => r,
       Err(u) => {
         unreadable.push(u);
@@ -700,6 +838,98 @@ fn read_requests(dir: &Path, unreadable: &mut Vec<Unreadable>) -> Vec<Request> {
       }
     })
     .collect()
+}
+
+/// The ids marked finished in one `finished/<bucket>/`, sorted; none when the
+/// bucket is absent.
+fn marked_in(dirs: &Dirs, bucket: i64, unreadable: &mut Vec<Unreadable>) -> Vec<String> {
+  let dir = finished_dir(dirs).join(bucket.to_string());
+  let entries = match std::fs::read_dir(&dir) {
+    Ok(entries) => entries,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
+    Err(e) => {
+      unreadable.push(unread(&dir, format!("could not be listed: {e}")));
+      return Vec::new();
+    }
+  };
+  let mut ids: Vec<String> = entries
+    .filter_map(Result::ok)
+    .filter_map(|e| e.file_name().to_str().map(str::to_string))
+    .collect();
+  ids.sort();
+  ids
+}
+
+/// The request a `finished/` marker names: from the history, or, since a
+/// marker is written before its rename, from `requests/` while it is mid-retire.
+fn read_marked(dirs: &Dirs, id: &str) -> Result<Option<Request>, Unreadable> {
+  match read_retired(dirs, id)? {
+    Some(r) => Ok(Some(r)),
+    None => read_request(&requests_dir(dirs).join(id)),
+  }
+}
+
+/// The ids marked finished in the bucket `requests/` last changed in and the
+/// one before: every request finished within an hour of now.
+///
+/// **THE TIME IS THE DIRECTORY'S OWN STAMP, AND NO CLOCK IS READ** (D42).
+/// `requests/` changes when a request is asked and when one retires, and a
+/// retire comes no sooner than the finish its marker's bucket is taken from.
+/// So a request that finished within the hour, once a read has retired it,
+/// finished no earlier than an hour before that change and no later than it,
+/// which is these two buckets. The read lists their markers' names, the hour's
+/// finished requests, and never the history.
+fn recently_marked(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> BTreeSet<String> {
+  let Some(at) = mtime(&requests_dir(dirs)) else {
+    return BTreeSet::new();
+  };
+  let last = bucket_of(at);
+  (last - 1..=last)
+    .flat_map(|bucket| marked_in(dirs, bucket, unreadable))
+    .collect()
+}
+
+/// The retired requests of the last hour, for the estate's `recent`
+/// (`recently_marked`), each read by id: the window's requests and never the
+/// history (issue 0692). Run it after a [`read`], which retires what has
+/// finished; [`recent_value`] judges each one's finish against the window.
+pub fn read_recent(dirs: &Dirs, unreadable: &mut Vec<Unreadable>) -> Vec<Request> {
+  let mut out = Vec::new();
+  for id in recently_marked(dirs, unreadable) {
+    match read_marked(dirs, &id) {
+      Ok(Some(r)) => out.push(r),
+      Ok(None) => {}
+      Err(u) => unreadable.push(u),
+    }
+  }
+  out
+}
+
+/// One request, read from its own directory alone, through the parse [`read`]
+/// gives every request, under `requests/` or, once retired, `history/`: what
+/// `slots wait` reads each tick, so a waiter's cost does not grow with the
+/// estate's history (issue 0692). An id that is not a name, or names no
+/// request, is [`SlotError::NoRequest`]; a request directory that will not
+/// parse is [`SlotError::Unreadable`].
+pub fn read_one(dirs: &Dirs, id: &str) -> Result<Request, SlotError> {
+  if !valid_name(id) {
+    return Err(SlotError::NoRequest { id: id.to_string() });
+  }
+  let live = requests_dir(dirs).join(id);
+  let read = if live.is_dir() {
+    match read_request(&live) {
+      // Retired between the check and the read.
+      Err(_) if !live.exists() => read_retired(dirs, id),
+      other => other,
+    }
+  } else {
+    read_retired(dirs, id)
+  };
+  match read {
+    Ok(Some(r)) => Ok(r),
+    Ok(None) => Err(SlotError::NoRequest { id: id.to_string() }),
+    Err(u) => Err(unreadable_request(u)),
+  }
 }
 
 fn read_request(dir: &Path) -> Result<Option<Request>, Unreadable> {
@@ -805,10 +1035,26 @@ fn read_strict(dirs: &Dirs) -> Slots {
   read(dirs, &mut ignored)
 }
 
-fn request_of<'a>(slots: &'a Slots, id: &str) -> Result<&'a Request, SlotError> {
-  slots
-    .request(id)
-    .ok_or_else(|| SlotError::NoRequest { id: id.to_string() })
+/// A request directory that will not parse, as a verb's refusal.
+fn unreadable_request(u: Unreadable) -> SlotError {
+  SlotError::Unreadable {
+    path: PathBuf::from(u.path),
+    why: u.why,
+  }
+}
+
+/// The request a verb names: from the read when it is open or one an open
+/// request names, else from the history, so a verb on a retired request is
+/// refused for its state as it always was, not as missing.
+fn request_of(dirs: &Dirs, slots: &Slots, id: &str) -> Result<Request, SlotError> {
+  if let Some(r) = slots.request(id) {
+    return Ok(r.clone());
+  }
+  match read_retired(dirs, id) {
+    Ok(Some(r)) => Ok(r),
+    Ok(None) => Err(SlotError::NoRequest { id: id.to_string() }),
+    Err(u) => Err(unreadable_request(u)),
+  }
 }
 
 fn wrong_state(r: &Request, verb: &str) -> SlotError {
@@ -1128,10 +1374,10 @@ pub fn ask(
   }
   let slots = read_strict(dirs);
   for gate in &args.not_before {
-    request_of(&slots, gate)?;
+    request_of(dirs, &slots, gate)?;
   }
   if let Some(prior) = &args.place_of {
-    let r = request_of(&slots, prior)?;
+    let r = &request_of(dirs, &slots, prior)?;
     // A grant ended before its start keeps its place, whether its holder
     // released it or the controller revoked it (issue 0668).
     let unrun = r.grant.is_some() && r.start.is_none() && (r.end.is_some() || r.revoke.is_some());
@@ -1199,7 +1445,7 @@ pub fn grant(
 ) -> Result<PathBuf, SlotError> {
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "slots grant")?;
-  let r = request_of(&slots, id)?;
+  let r = &request_of(dirs, &slots, id)?;
   if r.state() != ReqState::Asked {
     return Err(wrong_state(r, "granted"));
   }
@@ -1314,7 +1560,7 @@ pub fn deny(dirs: &Dirs, caller: &Caller, id: &str, why: &str) -> Result<PathBuf
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "slots deny")?;
   one_line("reason", why)?;
-  let r = request_of(&slots, id)?;
+  let r = &request_of(dirs, &slots, id)?;
   if r.state() != ReqState::Asked {
     return Err(wrong_state(r, "denied"));
   }
@@ -1337,7 +1583,7 @@ pub fn revoke(dirs: &Dirs, caller: &Caller, id: &str, why: &str) -> Result<PathB
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "slots revoke")?;
   one_line("reason", why)?;
-  let r = request_of(&slots, id)?;
+  let r = &request_of(dirs, &slots, id)?;
   if r.finished() {
     return Err(wrong_state(r, "revoked"));
   }
@@ -1386,7 +1632,7 @@ pub fn start(
   relayed: bool,
 ) -> Result<PathBuf, SlotError> {
   let slots = read_strict(dirs);
-  let r = request_of(&slots, id)?;
+  let r = &request_of(dirs, &slots, id)?;
   ensure_asker(r, caller)?;
   if r.state() != ReqState::Granted {
     return Err(wrong_state(r, "started"));
@@ -1423,7 +1669,7 @@ pub fn release(
     one_line("result", text)?;
   }
   let slots = read_strict(dirs);
-  let r = request_of(&slots, id)?;
+  let r = &request_of(dirs, &slots, id)?;
   ensure_asker(r, caller)?;
   if !r.holding() {
     return Err(wrong_state(r, "released"));
@@ -1619,10 +1865,11 @@ pub fn waiting(slots: &Slots) -> Vec<&Request> {
 /// **THE WINDOW IS THE CALLER'S, AND NO TIME IS HANDED IN** (D42: no
 /// intentsvcs function takes a time). `estate::join` builds `in_window` from
 /// its one reading of the estate's clock, `RECENT_SECONDS` back from it, so
-/// this judges only the moments its own records carry.
+/// this judges only the moments its own records carry. The requests it judges
+/// are `slots.recent`, which [`read_recent`] fills (issue 0692).
 pub fn recent_value(slots: &Slots, in_window: impl Fn(OffsetDateTime) -> bool) -> Value {
   let mut done: Vec<&Request> = slots
-    .requests
+    .recent
     .iter()
     .filter(|r| r.finished_at().is_some_and(&in_window))
     .collect();
@@ -1661,6 +1908,10 @@ pub fn answer(r: &Request) -> Option<Answer> {
 /// `limit` passed with it still asked. An answer already there returns at
 /// once, and with no limit it waits as long as the ask stands.
 ///
+/// **EACH TICK READS THE REQUEST'S OWN DIRECTORY AND NOTHING ELSE**
+/// ([`read_one`]): reading all of `slots/` cost every waiter a parse of the
+/// estate's whole history twice a second (issue 0692).
+///
 /// **NO CLOCK IS READ** (D42): the time waited is the pauses counted, as the
 /// daemon's lock wait counts its own, so `limit` is reached by counting and
 /// the reads in between add a little to it.
@@ -1672,10 +1923,9 @@ pub fn wait(
 ) -> Result<Option<(Request, Answer)>, SlotError> {
   let mut waited = Duration::ZERO;
   loop {
-    let slots = read_strict(dirs);
-    let r = request_of(&slots, id)?;
-    if let Some(said) = answer(r) {
-      return Ok(Some((r.clone(), said)));
+    let r = read_one(dirs, id)?;
+    if let Some(said) = answer(&r) {
+      return Ok(Some((r, said)));
     }
     if limit.is_some_and(|l| waited >= l) {
       return Ok(None);
@@ -1733,9 +1983,14 @@ fn taken(r: &Request) -> Vec<Step> {
 /// change, the controller's own grants, denials and revokes among them, and a
 /// reader filters by the step).
 pub fn steps<'a>(before: &Slots, after: &'a Slots) -> Vec<(Step, &'a Request)> {
+  let had_by_id: BTreeMap<&str, &Request> = before.requests.iter().map(|r| (r.id(), r)).collect();
   let mut out = Vec::new();
   for r in &after.requests {
-    let had = before.request(r.id()).map(taken).unwrap_or_default();
+    let had = had_by_id
+      .get(r.id())
+      .copied()
+      .map(taken)
+      .unwrap_or_default();
     for step in taken(r) {
       if !had.contains(&step) {
         out.push((step, r));
@@ -1745,6 +2000,36 @@ pub fn steps<'a>(before: &Slots, after: &'a Slots) -> Vec<(Step, &'a Request)> {
   out
 }
 
+/// One read for [`watch`]: the open requests, with what they name, and each
+/// request finished since the watch last read that it has not yet seen
+/// finished.
+///
+/// **A REQUEST CAN FINISH AND RETIRE BETWEEN TWO TICKS**, asked and denied
+/// inside one pause and moved to the history by another reader, so the open
+/// read alone would never show it. Its `finished/` marker does
+/// ([`recently_marked`]): the tick reads by id each marker `known` does not
+/// hold, and `known` becomes this tick's markers, so a request is read
+/// finished once and the cost is the hour's finished requests' names, not the
+/// history.
+fn watch_read(dirs: &Dirs, known: &mut BTreeSet<String>) -> Slots {
+  let mut ignored = Vec::new();
+  let mut requests = read_requests(dirs, &mut ignored);
+  let referenced = read_referenced(dirs, &requests, &mut ignored);
+  let marked = recently_marked(dirs, &mut ignored);
+  for id in marked.difference(known) {
+    if let Ok(Some(r)) = read_marked(dirs, id) {
+      requests.push(r);
+    }
+  }
+  *known = marked;
+  requests.sort_by(|a, b| a.id().cmp(b.id()));
+  Slots {
+    requests,
+    referenced,
+    ..Slots::default()
+  }
+}
+
 /// `slots watch`: hands `emit` every state change under `slots/requests/`,
 /// re-reading every `pause`, and returns when `emit` says to stop.
 ///
@@ -1752,8 +2037,12 @@ pub fn steps<'a>(before: &Slots, after: &'a Slots) -> Vec<(Step, &'a Request)> {
 /// first, so a watch armed after an ask still hears of it; from then on every
 /// file a step writes is one call, in [`steps`] order. `emit` returns `false`
 /// when its reader has gone, which is the one way a watch ends by itself.
+///
+/// **A TICK READS THE OPEN REQUESTS AND THE NEWLY FINISHED, NOT THE HISTORY**
+/// (`watch_read`, issue 0692).
 pub fn watch(dirs: &Dirs, pause: Duration, mut emit: impl FnMut(Step, &Request) -> bool) {
-  let mut before = read_strict(dirs);
+  let mut known = BTreeSet::new();
+  let mut before = watch_read(dirs, &mut known);
   for r in waiting(&before) {
     if !emit(Step::Asked, r) {
       return;
@@ -1761,7 +2050,7 @@ pub fn watch(dirs: &Dirs, pause: Duration, mut emit: impl FnMut(Step, &Request) 
   }
   loop {
     std::thread::sleep(pause);
-    let after = read_strict(dirs);
+    let after = watch_read(dirs, &mut known);
     for (step, r) in steps(&before, &after) {
       if !emit(step, r) {
         return;
@@ -1906,10 +2195,7 @@ mod tests {
   }
 
   fn state(h: &Host, id: &str) -> ReqState {
-    read_strict(&h.dirs)
-      .request(id)
-      .map(Request::state)
-      .expect("the request")
+    read_one(&h.dirs, id).expect("the request").state()
   }
 
   fn lanes(names: &[&str]) -> Vec<String> {
@@ -2255,7 +2541,9 @@ mod tests {
       .collect();
     assert_eq!(order, vec![again.as_str(), later.as_str()]);
     let since = super::super::clock::now() - time::Duration::seconds(RECENT_SECONDS);
-    let recent = recent_value(&read_strict(&h.dirs), |at| at >= since);
+    let mut slots = read_strict(&h.dirs);
+    slots.recent = read_recent(&h.dirs, &mut Vec::new());
+    let recent = recent_value(&slots, |at| at >= since);
     assert_eq!(recent[0]["id"], first.as_str());
     assert_eq!(recent[0]["state"], "ended");
   }
@@ -2364,9 +2652,10 @@ mod tests {
     let h = host();
     let ctl = desk(&h);
     let me = who("me", "intent-cc", 1);
-    let mut before = read_strict(&h.dirs);
+    let mut known = BTreeSet::new();
+    let mut before = watch_read(&h.dirs, &mut known);
     let mut changes = |h: &Host| -> Vec<(Step, String)> {
-      let after = read_strict(&h.dirs);
+      let after = watch_read(&h.dirs, &mut known);
       let out = steps(&before, &after)
         .into_iter()
         .map(|(step, r)| (step, r.id().to_string()))
@@ -2406,8 +2695,7 @@ mod tests {
       "nothing new, nothing reported"
     );
 
-    let now = read_strict(&h.dirs);
-    let answer_of = |id: &str| answer(now.request(id).expect("the request"));
+    let answer_of = |id: &str| answer(&read_one(&h.dirs, id).expect("the request"));
     assert_eq!(
       answer_of(a.as_str()),
       Some(Answer::Granted),
@@ -2444,6 +2732,100 @@ mod tests {
       wait(&h.dirs, "01NOSUCHREQUEST", Some(Duration::ZERO), tick),
       Err(SlotError::NoRequest { .. })
     ));
+  }
+
+  /// A FIFO with no writer at `path`: any reader that opens it blocks, so a
+  /// read that must not touch a file is proved by putting one there.
+  fn fifo_at(path: &Path) {
+    let _ = std::fs::remove_file(path);
+    let made = std::process::Command::new("mkfifo")
+      .arg(path)
+      .status()
+      .expect("run mkfifo");
+    assert!(made.success(), "mkfifo {}", path.display());
+  }
+
+  /// `read` run on a thread, and its answer if it comes: a read blocked on a
+  /// FIFO never answers, which is the failure, rather than a hung test.
+  fn answered<T: Send + 'static>(read: impl FnOnce() -> T + Send + 'static) -> T {
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+      let _ = tx.send(read());
+    });
+    rx.recv_timeout(Duration::from_secs(10))
+      .expect("the read answered without opening a file it has no business with")
+  }
+
+  /// Issue 0692: `wait` reads its own request and nothing else. Another
+  /// request's `ask.json` is a FIFO, so a wait that read the rest of `slots/`
+  /// would never answer.
+  #[test]
+  fn wait_reads_its_own_request_and_no_other() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (a, _) = ask(&h.dirs, &me, "heavy", "a judge", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &a, &lanes(&["heavy"]), &quiet).expect("grant");
+    let other = requests_dir(&h.dirs).join("01UNRELATEDREQUEST");
+    std::fs::create_dir_all(&other).expect("mkdir another request");
+    fifo_at(&other.join("ask.json"));
+
+    let (dirs, id) = (h.dirs.clone(), a.clone());
+    let (answered, said) = answered(move || wait(&dirs, &id, None, Duration::from_millis(1)))
+      .expect("wait")
+      .expect("answered");
+    assert_eq!(said, Answer::Granted);
+    assert_eq!(answered.id(), a);
+  }
+
+  /// Issue 0692: the read that finds a request finished retires it to the
+  /// history, and no live read opens it again, while `wait`, a verb and the
+  /// estate's `recent` still find it by id. The retired request's `ask.json`
+  /// then becomes a FIFO, so a live read that opened it would never answer.
+  #[test]
+  fn a_finished_request_retires_and_no_live_read_opens_it_again() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (done, _) = ask(&h.dirs, &me, "heavy", "done", AskArgs::default()).expect("ask done");
+    grant(&h.dirs, &ctl, &done, &lanes(&["heavy"]), &quiet).expect("grant done");
+    let (open, _) = ask(&h.dirs, &me, "heavy", "open", AskArgs::default()).expect("ask open");
+    release(&h.dirs, &me, &done, Some("rc 0"), false).expect("release done");
+    assert!(
+      requests_dir(&h.dirs).join(&done).is_dir(),
+      "a finishing step writes where it always has"
+    );
+
+    let live = read_strict(&h.dirs);
+    let ids: Vec<&str> = live.requests.iter().map(Request::id).collect();
+    assert_eq!(
+      ids,
+      vec![open.as_str()],
+      "the live read holds the open request alone"
+    );
+    assert!(!requests_dir(&h.dirs).join(&done).exists());
+    assert!(history_dir(&h.dirs).join(&done).is_dir());
+    assert_eq!(state(&h, &done), ReqState::Ended);
+    assert!(matches!(
+      release(&h.dirs, &me, &done, None, false),
+      Err(SlotError::WrongState { .. })
+    ));
+    let recent: Vec<String> = read_recent(&h.dirs, &mut Vec::new())
+      .iter()
+      .map(|r| r.id().to_string())
+      .collect();
+    assert_eq!(recent, vec![done.clone()]);
+
+    fifo_at(&history_dir(&h.dirs).join(&done).join("ask.json"));
+    let dirs = h.dirs.clone();
+    let (ids, unreadable) = answered(move || {
+      let mut unreadable = Vec::new();
+      let slots = read(&dirs, &mut unreadable);
+      let ids: Vec<String> = slots.requests.iter().map(|r| r.id().to_string()).collect();
+      (ids, unreadable)
+    });
+    assert_eq!(ids, vec![open]);
+    assert!(unreadable.is_empty(), "nothing unreadable: {unreadable:?}");
   }
 
   /// ST0086 AT-04.4

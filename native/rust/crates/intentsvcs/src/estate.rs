@@ -947,7 +947,8 @@ pub fn status_with(
   let records = read_records(dirs, &mut unreadable);
   let census = census::read(dirs, held.history, &mut unreadable);
   let usage = usage::resolve(&held.endpoint, dirs, &mut unreadable);
-  let slots = slots::read(dirs, &mut unreadable);
+  let mut slots = slots::read(dirs, &mut unreadable);
+  slots.recent = slots::read_recent(dirs, &mut unreadable);
   Ok(join(
     Gathered {
       host,

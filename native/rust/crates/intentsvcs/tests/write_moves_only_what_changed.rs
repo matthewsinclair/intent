@@ -797,7 +797,8 @@ slots/holds/<id>.json and <id>.unheld.json on hold and unhold, and nothing else 
   (
     "estate slots",
     "one file of $XDG_STATE_HOME/intent/estate/slots/requests/<id>/ per verb, written once: \
-ask.json, grant.json, deny.json, revoke.json, start.json or end.json, and nothing else (ST0086 WP-04).",
+ask.json, grant.json, deny.json, revoke.json, start.json or end.json; and the read every slots verb makes moves a request it finds \
+finished to slots/history/<id>/ with an empty slots/finished/<hour>/<id> marker (issue 0692); and nothing else (ST0086 WP-04).",
   ),
   // `estate init` writes no state directory: it renders the directory its
   // caller names, outside every project.
