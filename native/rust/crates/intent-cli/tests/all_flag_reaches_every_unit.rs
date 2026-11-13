@@ -145,16 +145,36 @@ fn all_and_a_named_unit_are_refused_rather_than_silently_resolved() {
   );
 }
 
+/// `sync` already visits every unit this build installed, so `--all` would name
+/// the same set twice. Its help offered the flag and the verb then refused it
+/// (agentic-engineering 0049): the help must not offer it, and typing it is
+/// refused, in both families.
 #[test]
-fn all_is_refused_on_sync_where_it_would_name_the_same_set_twice() {
-  let home = tempfile::tempdir().expect("temp HOME");
-  let (rc, out) = run(home.path(), &["claude", "skills", "sync", "--all"]);
-  assert_ne!(
-    rc, 0,
-    "`sync --all` succeeded; the flag should be refused there:\n{out}"
-  );
-  assert!(
-    out.contains("not available on `sync`"),
-    "the refusal did not name `sync` as the reason:\n{out}"
-  );
+fn sync_neither_offers_nor_takes_all() {
+  for family in ["skills", "subagents"] {
+    let home = tempfile::tempdir().expect("temp HOME");
+    let (rc, help) = run(home.path(), &["claude", family, "sync", "--help"]);
+    assert_eq!(rc, 0, "`claude {family} sync --help` failed:\n{help}");
+    assert!(
+      !help.contains("--all"),
+      "`claude {family} sync --help` offers `--all`, which sync refuses:\n{help}"
+    );
+    let (rc, out) = run(home.path(), &["claude", family, "sync", "--all"]);
+    assert_ne!(
+      rc, 0,
+      "`claude {family} sync --all` succeeded; the flag should be refused there:\n{out}"
+    );
+    assert!(
+      out.contains(&format!(
+        "`--all` is not a flag of `claude {family} sync`: sync already visits every"
+      )),
+      "the refusal did not name the flag, the verb and why:\n{out}"
+    );
+    assert!(
+      out.contains(&format!(
+        "remedy: `claude {family} sync` takes `--force`, `--dry-run`"
+      )),
+      "the remedy did not name the flags sync takes:\n{out}"
+    );
+  }
 }

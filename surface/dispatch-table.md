@@ -2819,7 +2819,7 @@ Manage Claude Code subagents
 - **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
-    - flags by verb: `list`: `-v`; `install`: `--force`, `--dry-run`, `--all`; `sync`: `--force`, `--dry-run`, `--all`; `uninstall`: `--force`, `--dry-run`, `--all`; `show`: none
+    - flags by verb: `list`: `-v`; `install`: `--force`, `--all`; `sync`: `--force`, `--dry-run`; `uninstall`: `--force`, `--all`; `show`: none
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
@@ -2857,7 +2857,7 @@ Manage Claude Code skills
 - **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
-    - flags by verb: `list`: `-v`; `install`: `--force`, `--dry-run`, `--all`; `sync`: `--force`, `--dry-run`, `--all`; `uninstall`: `--force`, `--dry-run`, `--all`; `show`: none
+    - flags by verb: `list`: `-v`; `install`: `--force`, `--all`; `sync`: `--force`, `--dry-run`; `uninstall`: `--force`, `--all`; `show`: none
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`

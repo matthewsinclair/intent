@@ -1,5 +1,5 @@
 ---
-verblock: "24 Sep 2026:v1.3: synced to Intent 3.2.1 as built (3.2.1 doc audit)"
+verblock: "13 Nov 2026:v1.4: ic - install decides an installed subagent as sync does"
 intent_version: 3.2.1
 ---
 
@@ -194,7 +194,7 @@ This copies `agent.md` to `~/.claude/agents/your-agent-name.md` and records the 
 
 - `intent claude subagents install your-agent-name` - Install one or more by name
 - `intent claude subagents install --all` - Every subagent this install carries
-- `-f, --force` - Reinstall a subagent that is already installed, overwriting a copy changed locally and reporting the checksum of what was discarded
+- `-f, --force` - Overwrite an installed subagent that install holds (changed here, conflicted, or with no install record), reporting the checksum of what was discarded. Installing again over an unchanged copy needs no flag: it is `up to date`, or updated when the shipped one is newer
 
 ### 5. Verify Installation
 
@@ -326,7 +326,7 @@ Always evaluate:
 **Installation Fails**
 
 - `no source for this name in this install`: `agent.md` is not at `<install>/intent/plugins/claude/subagents/<name>/`, where `<install>` is the tree the running `intent` binary belongs to (a source checkout's root).
-- `already installed`: add `--force` to overwrite it (the checksum of a locally changed copy is reported).
+- `modified here since it was installed -- HELD`, or another HELD line: install decides an installed subagent as `sync` does, and holds one it cannot replace without losing something. `--force` replaces it and reports the checksum of what it discarded.
 - A name may use only letters, digits, `-` and `_`.
 
 Frontmatter mistakes do not fail the install -- Intent copies `agent.md` without reading it; Claude Code reports them when it loads the agent.

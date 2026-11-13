@@ -999,12 +999,26 @@ fn slot_flag_refusal(
     Some(_) => (dispatch::entry(table, &path.join(" "))?, None),
     None => return None,
   };
-  row.valued_slot()?;
+  let slot = row.valued_slot()?;
   Some(match verb {
+    // **THE REMEDY NAMES WHAT THE VERB DOES TAKE, AND WHY IT DOES NOT TAKE THIS
+    // ONE WHERE THE TABLE SAYS** (agentic-engineering 0049). A refusal that
+    // only points at `--help` leaves the operator to work out the rest.
     Some(verb) => {
       let full = format!("{} {verb}", row.path);
+      let why = slot
+        .refusal_of(row, verb, flag)
+        .map_or(String::new(), |why| format!(": {why}"));
+      let takes = match slot.flags_of(verb) {
+        [] => "no flag".to_string(),
+        flags => flags
+          .iter()
+          .map(|f| format!("`{f}`"))
+          .collect::<Vec<_>>()
+          .join(", "),
+      };
       format!(
-        "error: `{flag}` is not a flag of `{full}`\n  remedy: `intent {full} --help` names the flags it reads"
+        "error: `{flag}` is not a flag of `{full}`{why}\n  remedy: `{full}` takes {takes}; `intent {full} --help` names the flags it reads"
       )
     }
     None => format!(

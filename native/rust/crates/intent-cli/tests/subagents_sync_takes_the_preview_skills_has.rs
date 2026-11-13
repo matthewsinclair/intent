@@ -133,8 +133,8 @@ fn subagents_install_refuses_dry_run_rather_than_writing_under_it() {
   );
   assert_ne!(code, 0, "`install --dry-run` performed a write: {text}");
   assert!(
-    text.contains("--dry-run") && text.contains("sync"),
-    "the refusal must name the flag and where it works: {text}"
+    text.contains("`--dry-run` is not a flag of `claude subagents install`"),
+    "the refusal must name the flag and the verb that does not take it: {text}"
   );
   assert!(
     !home.path().join(".claude/agents/critic-shell.md").exists(),

@@ -5931,10 +5931,15 @@
                  },
                  "value_flags": {
                    "list": ["-v"],
-                   "install": ["--force", "--dry-run", "--all"],
-                   "sync": ["--force", "--dry-run", "--all"],
-                   "uninstall": ["--force", "--dry-run", "--all"],
+                   "install": ["--force", "--all"],
+                   "sync": ["--force", "--dry-run"],
+                   "uninstall": ["--force", "--all"],
                    "show": []
+                 },
+                 "value_refusals": {
+                   "install": {"--dry-run": "install has no preview; `intent claude subagents sync --dry-run` shows what a sync would change without writing"},
+                   "sync": {"--all": "sync already visits every subagent this build installed, so `--all` would name the same set twice"},
+                   "uninstall": {"--dry-run": "uninstall has no preview; `intent claude subagents sync --dry-run` shows what a sync would change without writing"}
                  }
             },
             {
@@ -6050,10 +6055,15 @@
                  },
                  "value_flags": {
                    "list": ["-v"],
-                   "install": ["--force", "--dry-run", "--all"],
-                   "sync": ["--force", "--dry-run", "--all"],
-                   "uninstall": ["--force", "--dry-run", "--all"],
+                   "install": ["--force", "--all"],
+                   "sync": ["--force", "--dry-run"],
+                   "uninstall": ["--force", "--all"],
                    "show": []
+                 },
+                 "value_refusals": {
+                   "install": {"--dry-run": "install has no preview; `intent claude skills sync --dry-run` shows what a sync would change without writing"},
+                   "sync": {"--all": "sync already visits every skill this build installed, so `--all` would name the same set twice"},
+                   "uninstall": {"--dry-run": "uninstall has no preview; `intent claude skills sync --dry-run` shows what a sync would change without writing"}
                  }
             },
             {
@@ -11785,6 +11795,7 @@
         "value_facades",
         "value_flags",
         "value_help",
+        "value_refusals",
         "values"
       ],
       "note": [

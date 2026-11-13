@@ -394,6 +394,19 @@ pub struct Arg {
   /// entry ships flags, and a shipped flag no verb takes.
   #[serde(default)]
   pub value_flags: std::collections::BTreeMap<String, Vec<String>>,
+  /// Why a verb does not take a flag a sibling verb takes, keyed by the verb
+  /// and then by one of the flag's spellings (agentic-engineering 0049).
+  ///
+  /// **THE REASON A REFUSAL USED TO GIVE, KEPT WHERE THE REFUSAL NOW IS.**
+  /// Render refused `sync --all` and `install --dry-run` with a sentence saying
+  /// why; once `value_flags` left those flags off the verbs, the parser refuses
+  /// them first, and this is where that sentence lives so the parse refusal
+  /// still says it (IN-AG-NO-SILENT-001). `check_vocabularies` refuses a key
+  /// that is not a verb, a spelling that is no shipped flag of the entry, and a
+  /// reason for a flag the verb takes.
+  #[serde(default)]
+  pub value_refusals:
+    std::collections::BTreeMap<String, std::collections::BTreeMap<String, String>>,
   /// The positional args each verb takes, keyed by the verb, each named by the
   /// row's own arg name (ST0092 WP-02, ic's ruling of 2026-11-10). Absent, every
   /// verb takes every positional the row declares, as before. Present, the
@@ -504,6 +517,25 @@ impl Arg {
   /// every flag the entry declares.
   pub fn flags_of(&self, verb: &str) -> &[String] {
     self.value_flags.get(verb).map_or(&[], Vec::as_slice)
+  }
+
+  /// Why `verb` does not take `given`, from
+  /// [`value_refusals`](Self::value_refusals), when the table says. `given`
+  /// matches a recorded spelling when one of `entry`'s flags answers to both,
+  /// so `-f` finds a reason recorded under `--force`.
+  pub fn refusal_of(&self, entry: &Entry, verb: &str, given: &str) -> Option<&str> {
+    self
+      .value_refusals
+      .get(verb)?
+      .iter()
+      .find(|(spelling, _)| {
+        spelling.as_str() == given
+          || entry
+            .flags
+            .iter()
+            .any(|f| f.answers_to(spelling) && f.answers_to(given))
+      })
+      .map(|(_, why)| why.as_str())
   }
 
   /// The positionals this verb takes, or `None` when the slot declares no
@@ -1165,6 +1197,30 @@ fn value_flag_defects(entry: &Entry) -> Vec<String> {
       }
     }
   }
+  for (verb, reasons) in &slot.value_refusals {
+    if !slot.values.contains(verb) {
+      bad.push(format!(
+        "`{}` value_refusals names `{verb}`, which is not one of its verbs ({})",
+        entry.path,
+        slot.values.join(", ")
+      ));
+    }
+    for spelling in reasons.keys() {
+      let Some(flag) = shipped.iter().find(|f| f.answers_to(spelling)) else {
+        bad.push(format!(
+          "`{}` value_refusals gives `{verb}` a reason for `{spelling}`, which is no shipped flag of this entry",
+          entry.path
+        ));
+        continue;
+      };
+      if slot.flags_of(verb).iter().any(|s| flag.answers_to(s)) {
+        bad.push(format!(
+          "`{}` value_refusals gives `{verb}` a reason to refuse `{spelling}`, which its value_flags say it takes",
+          entry.path
+        ));
+      }
+    }
+  }
   if shipped.is_empty() {
     return bad;
   }
@@ -1721,6 +1777,7 @@ mod tests {
       default: Some(default.to_string()),
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_refusals: Default::default(),
       value_args: Default::default(),
       value_facades: Default::default(),
       required_unless: None,
@@ -1949,6 +2006,7 @@ mod tests {
       default: None,
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_refusals: Default::default(),
       value_args: Default::default(),
       value_facades: Default::default(),
       required_unless: None,

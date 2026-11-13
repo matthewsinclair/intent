@@ -860,24 +860,24 @@ fn a_missing_source_is_reported_and_does_not_stop_the_batch() {
   ));
 }
 
-/// Re-installing without `--force` reports rather than overwriting. Prompting
-/// belongs to the terminal skin, not to the operation.
+/// Re-installing over a skill edited here holds it without `--force`, exactly
+/// as `sync` does, and `--force` replaces it and reports the discard.
 #[test]
-fn installing_over_an_existing_skill_needs_force() {
+fn installing_over_a_skill_changed_here_needs_force() {
   let f = Fixture::new();
   f.source("in-probe", &[("SKILL.md", "# probe\n")]);
   let s = f.skills();
   s.install(&one("in-probe"), false).unwrap();
-  fs::write(f.canon().join("in-probe/SKILL.md"), "# newer\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# mine\n").unwrap();
 
   assert_eq!(
     outcome(
       &s.install(&one("in-probe"), false).unwrap().steps,
       "in-probe"
     ),
-    Outcome::AlreadyInstalled
+    Outcome::ModifiedLocally
   );
-  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# probe\n");
+  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# mine\n");
 
   assert!(matches!(
     outcome(
@@ -886,7 +886,72 @@ fn installing_over_an_existing_skill_needs_force() {
     ),
     Outcome::Forced { .. }
   ));
-  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# newer\n");
+  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# probe\n");
+}
+
+/// Installing a skill again that is byte-identical to its source and recorded
+/// in the manifest is settled, as `sync` calls it, not a decision
+/// (agentic-engineering 0049: `install --all` twice exited 1 with every unit
+/// needing a decision).
+#[test]
+fn installing_an_unchanged_skill_again_is_up_to_date() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# probe\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  assert_eq!(
+    outcome(
+      &s.install(&one("in-probe"), false).unwrap().steps,
+      "in-probe"
+    ),
+    Outcome::UpToDate
+  );
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::UpToDate
+  );
+}
+
+/// `installed_at` is the mtime of the file the install wrote, so the write
+/// must stamp it: a copy that carries the source's times records when the
+/// shipped file was made, not when it was installed (agentic-engineering 0049).
+#[test]
+fn installed_at_is_stamped_by_the_install_not_carried_from_the_source() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# probe\n")]);
+  let shipped = f.canon().join("in-probe/SKILL.md");
+  let long_ago = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_000_000_000);
+  fs::File::options()
+    .write(true)
+    .open(&shipped)
+    .unwrap()
+    .set_modified(long_ago)
+    .unwrap();
+
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  let installed = f.target.join("in-probe/SKILL.md");
+  let written = fs::metadata(&installed).unwrap().modified().unwrap();
+  assert_ne!(
+    written, long_ago,
+    "the installed file carries the shipped file's mtime, so the install did not stamp it"
+  );
+  let entry = s
+    .manifest()
+    .unwrap()
+    .installed
+    .into_iter()
+    .find(|e| e.name == "in-probe")
+    .expect("in-probe is recorded");
+  assert_eq!(
+    entry.installed_at,
+    time::OffsetDateTime::from(written)
+      .format(&time::format_description::well_known::Rfc3339)
+      .unwrap(),
+    "installed_at is not the mtime of the file the install wrote"
+  );
 }
 
 /// Symlinks are not followed. Copying through one reaches content the source

@@ -946,6 +946,7 @@ mod tests {
       default: None,
       value_help: Default::default(),
       value_flags: Default::default(),
+      value_refusals: Default::default(),
       value_args: Default::default(),
       value_facades: Default::default(),
       required_unless: None,

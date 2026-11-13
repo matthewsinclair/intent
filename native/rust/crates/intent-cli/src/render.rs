@@ -15142,36 +15142,12 @@ fn payload_change(
   // is a different job the same flag name now does honestly.
   let force = given(a, "force");
 
-  // **DECLARED ON THE FAMILY, HONOURED BY `sync`, REFUSED BY THE TWO VERBS THAT
-  // WRITE, AND -- STATED PLAINLY -- SILENTLY ACCEPTED BY THE TWO THAT DO NOT.**
-  // `--dry-run` sits on the `claude skills` row because the family has exactly
-  // one entry and there is no `claude skills sync` row to hang a per-verb flag
-  // on, so clap accepts it on every verb.
-  //
-  // `install` and `uninstall` REFUSE it here: **a `--dry-run` that silently
-  // performs the write is the worst failure available to this flag**, because
-  // the operator typed it precisely to avoid writing and a successful-looking
-  // run then confirms the opposite of what happened (IN-AG-NO-SILENT-001).
-  //
-  // `list` and `show` do not reach this function and therefore IGNORE it. That
-  // is a real inconsistency and it is written down rather than papered over:
-  // they are read-only, so the flag's promise -- nothing is written -- holds
-  // trivially, and the operator's expectation is met even though nothing read
-  // the flag. **The honest description is "ignored where it cannot lie", not
-  // "handled everywhere".** If the table ever grows per-verb entries, this is
-  // the asymmetry to close.
+  // **`--dry-run` IS `sync`'s ALONE, AND THE SPINE ENFORCES IT.** The slot's
+  // `value_flags` declare it on `sync` and on no other verb (issue 0661), so
+  // `install --dry-run` and `uninstall --dry-run` are refused at parse with
+  // `slot_flag_refusal`'s two lines, before any write, and their `--help` does
+  // not offer it. A refusal here as well could not fire.
   let dry_run = given(a, "dry-run");
-  if dry_run && verb != ChangeVerb::Sync {
-    return Err(Failure::Error(format!(
-      "error: `--dry-run` is only available on `sync`\n  remedy: `intent claude {} sync --dry-run` shows what a sync would change without writing; {} has no preview",
-      w.verb,
-      if verb == ChangeVerb::Install {
-        "install"
-      } else {
-        "uninstall"
-      }
-    )));
-  }
 
   // **`--all` IS RESTORED, NOT INVENTED** (issue 0236, high). v2 shipped it
   // working and `usage-rules.md` instructs it four times; v3 declared it on no
@@ -15189,13 +15165,11 @@ fn payload_change(
   // `available()` would have `uninstall --all` try to remove units never
   // installed; resolving both against `installed()` would make `install --all`
   // a no-op on a fresh machine -- **the one machine the flag exists for.**
+  //
+  // `sync` takes no `--all`: it already visits every unit this build
+  // installed. Its `value_flags` leave the flag off, so `sync --help` does not
+  // offer it and `sync --all` is refused at parse.
   let all = given(a, "all");
-  if all && verb == ChangeVerb::Sync {
-    return Err(Failure::Error(format!(
-      "error: `--all` is not available on `sync`\n  remedy: `intent claude {} sync` already visits every {} this build installed, so `--all` would name the same set twice",
-      w.verb, w.noun
-    )));
-  }
   if all && !names.is_empty() {
     return Err(Failure::Error(format!(
       "error: `--all` and a named {} are mutually exclusive\n  remedy: drop the name to reach every {}, or drop `--all` to reach just that one -- guessing which was meant is how a bulk write happens by accident",
@@ -15420,11 +15394,6 @@ fn payload_change(
       Outcome::NotInstalled => {
         settled += 1;
         "not installed".to_string()
-      }
-      Outcome::AlreadyInstalled => {
-        needs_decision += 1;
-        "already installed -- `--force` overwrites it and reports the checksum of what it discarded"
-          .to_string()
       }
       Outcome::ModifiedLocally => {
         needs_decision += 1;

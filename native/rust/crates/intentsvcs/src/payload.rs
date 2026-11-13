@@ -464,10 +464,6 @@ pub enum Outcome {
     /// says what HAPPENED.
     baseline: Baseline,
   },
-  /// Present, and no `--force` given. **The caller decides**, because prompting
-  /// is a property of the terminal skin and not of the operation
-  /// (IN-AG-THIN-COORD-001).
-  AlreadyInstalled,
   /// The installed tree changed and the source did not.
   ModifiedLocally,
   /// **BOTH SIDES MOVED, AND v2 REPORTS IT AS AN ORDINARY UPDATE.**
@@ -948,10 +944,11 @@ impl Payload {
 
   /// Install one or more named skills.
   ///
-  /// `force` governs only the already-installed case; it is not a licence to
-  /// ignore anything else.
+  /// `force` governs only an installed unit that `settle` holds; it is not a
+  /// licence to ignore anything else.
   pub fn install(&self, names: &[String], force: bool) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
+    let scope = manifest.scope();
     let mut steps = Vec::new();
     for name in names {
       let origins = match self.origins(name) {
@@ -968,44 +965,32 @@ impl Payload {
         });
         continue;
       };
-      let already = self.is_installed(name);
-      if already && !force {
+      // **AN INSTALLED UNIT IS DECIDED EXACTLY AS `sync` DECIDES IT**
+      // (agentic-engineering 0049). `install --force` over a moved tree is
+      // still the other door to the destruction `sync --force` reaches, and
+      // `settle` measures and reports the discard the same way for both.
+      if self.is_installed(name) {
+        let outcome = self.settle(name, &origin, scope, force, false, &mut manifest)?;
         steps.push(Step {
           name: name.clone(),
-          outcome: Outcome::AlreadyInstalled,
+          outcome,
           shadowed,
         });
         continue;
       }
-      // **MEASURED BEFORE THE COPY, BECAUSE AFTER IT THERE IS NOTHING LEFT TO
-      // MEASURE.** `install --force` over an existing tree is the other door
-      // to the destruction `sync --force` reaches, and it had no report at all.
-      let discarded = if already {
-        let sum = self.installed_checksum(name)?;
-        // Identical to source: the copy destroys nothing, so naming a discard
-        // would teach the operator to ignore the line that matters.
-        (sum != self.unit_checksum(&origin.dir)?).then_some(sum)
-      } else {
-        None
-      };
       let prior = manifest.find(name).cloned();
       let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
       let files = entry.files.len();
       manifest.upsert(entry);
       steps.push(Step {
         name: name.clone(),
-        outcome: match (discarded, prior.is_some()) {
-          (Some(discarded), _) => Outcome::Forced {
+        outcome: if prior.is_some() {
+          Outcome::Updated {
             written: files,
             removed,
-            discarded,
-            baseline: Baseline::Recorded,
-          },
-          (None, true) => Outcome::Updated {
-            written: files,
-            removed,
-          },
-          (None, false) => Outcome::Installed { files },
+          }
+        } else {
+          Outcome::Installed { files }
         },
         shadowed,
       });
@@ -1077,189 +1062,7 @@ impl Payload {
         continue;
       };
 
-      let source_sum = self.unit_checksum(&origin.dir)?;
-      // **`is_installed`, NOT `is_dir`.** The old test asked whether the
-      // target path was a DIRECTORY, which is true of an installed skill and
-      // false of every installed subagent -- so a single-file payload would
-      // have measured `None` for every row and reported an install as due,
-      // forever, over files that were already correct.
-      let target_sum = if self.is_installed(&name) {
-        Some(self.installed_checksum(&name)?)
-      } else {
-        None
-      };
-
-      // **`old` IS AN `Option` AND AN UNDECLARED SCOPE MAKES IT `None`** --
-      // ruling 3. The recorded string still exists; it just does not answer
-      // this question, and carrying it as a value would invite exactly the
-      // comparison that is meaningless.
-      let old = match scope {
-        // **BOTH DECLARED SCOPES ANSWER, AND THE ARM IS NOT A WILDCARD.** A
-        // manifest whose scope matches THIS payload's kind has a usable
-        // baseline; `Undeclared` is the only value that does not. Written as
-        // two named arms rather than `_ =>` so that a third scope added later
-        // has to be taught rather than inherited silently -- the failure this
-        // module's own ruling 3 is about.
-        Scope::Tree | Scope::File => manifest.find(&name).map(|e| e.checksum.clone()),
-        Scope::Undeclared => None,
-      };
-
-      let outcome = match (&old, &target_sum) {
-        // Nothing installed: this is an install, whatever the manifest says.
-        (_, None) => {
-          let prior = manifest.find(&name).cloned();
-          let (written, removed) = self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
-          Outcome::Updated { written, removed }
-        }
-        // **BOTH SIDES AGREE, SO THERE IS NOTHING TO RESOLVE WHATEVER THE
-        // BASELINE SAYS** (issue 0280).
-        //
-        // This arm is the `old == None` adoption below, applied to the case
-        // where a baseline EXISTS and is merely stale. The reasoning there is
-        // already the right reasoning and it was reachable from only one of the
-        // two states: *the objection to rebaselining is that it discards the
-        // distinction between an upstream change and a local edit; here there
-        // is no distinction to discard.* When the source tree and the installed
-        // tree are byte-identical, no recorded value can make them differ.
-        //
-        // **WITHOUT IT THE VERDICT WAS A LATCH, AND THAT IS WHY THIS IS `high`
-        // RATHER THAN COSMETIC.** A stale `old` makes both limbs true, so the
-        // pair reads as `Conflicted` -- and no held outcome ever calls
-        // `manifest.upsert`, correctly, because nothing was written. So the
-        // stale baseline that caused the hold survives the run that reported
-        // it, and the next sync computes the same thing forever. Measured on
-        // this machine: the manifest was rewritten on 2026-09-05 with three
-        // byte-identical skills left untouched, held since 2026-08-30.
-        //
-        // **AND THE MESSAGE RECRUITED THE CAREFUL OPERATOR INTO INACTION.** The
-        // hold says `--force` will discard their work; an operator who believes
-        // it declines to force, correctly on the evidence shown, and the skill
-        // stays stale permanently. A wrong verdict a user can route around is a
-        // nuisance; one whose safe reading is the wrong action is a trap.
-        //
-        // **WHAT THIS DOES NOT FIX, STATED SO THE SCOPE IS NOT READ AS WIDER
-        // THAN IT IS.** When the source and the installed tree DIFFER and the
-        // baseline matches neither, this changes nothing -- and it must not.
-        // That signature is identical to a genuine conflict, where `old`
-        // described the tree at install time and then both sides moved, so the
-        // two are indistinguishable from the manifest alone. `Conflicted` stays
-        // the honest answer there.
-        (Some(_), Some(target)) if source_sum == *target => {
-          let installed_at = mtime_rfc3339(&self.installed_marker(&name))?;
-          manifest.upsert(Entry {
-            name: name.clone(),
-            source_path: origin.dir.display().to_string(),
-            installed_at,
-            checksum: source_sum.clone(),
-            files: self.installed_files(&name)?,
-          });
-          Outcome::UpToDate
-        }
-        (Some(old), Some(target)) => {
-          let source_moved = *old != source_sum;
-          let target_moved = old != target;
-          match (source_moved, target_moved) {
-            (false, false) => Outcome::UpToDate,
-            (false, true) if !force => Outcome::ModifiedLocally,
-            (true, true) if !force => Outcome::Conflicted,
-            _ => {
-              // **`target_moved` IS THE DISCRIMINATOR, NOT `force`.** A forced
-              // run over a tree that nobody touched is an ordinary update and
-              // says so; only a tree that had MOVED has something to lose.
-              // Keyed on the state rather than on the flag because the flag
-              // says what the operator ASKED FOR and the state says what
-              // actually happened, and only the second is worth reporting.
-              let discarded = target_moved.then(|| target.clone());
-              let prior = manifest.find(&name).cloned();
-              let (written, removed) =
-                self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
-              match discarded {
-                Some(discarded) => Outcome::Forced {
-                  written,
-                  removed,
-                  discarded,
-                  baseline: Baseline::Recorded,
-                },
-                None => Outcome::Updated { written, removed },
-              }
-            }
-          }
-        }
-        // Ruling 4. With no usable baseline, an installed tree that differs
-        // from source is EITHER an upstream change OR the operator's own edit,
-        // and v2 recorded nothing that can tell them apart. Rebaselining does
-        // not recover it: recording the installed tree as the new baseline
-        // makes a locally-modified skill `source != old, target == old`, which
-        // is an update, so the edit dies one command later instead of now.
-        (None, Some(target)) => {
-          if *target == source_sum {
-            // **ADOPTING A BYTE-IDENTICAL TREE IS NOT REBASELINING.** The
-            // objection to rebaselining is that it discards the distinction
-            // between an upstream change and a local edit. Here there is no
-            // distinction to discard: the installed tree and the source agree
-            // exactly, so recording it loses nothing and gives the next sync a
-            // baseline to work from instead of refusing forever.
-            // **NO `dry_run` TEST HERE, DELIBERATELY, AND IT WAS HERE UNTIL
-            // I DROVE IT.** The adoption is a manifest write with no file
-            // write, so withholding it under a preview reads as obviously
-            // right -- and a mutation test showed the guard could be deleted
-            // with every arm still green, because persistence has exactly one
-            // door and it is guarded there. Two sufficient guards mean neither
-            // can be killed by a test, which is how a guard that protects
-            // nothing survives review looking load-bearing
-            // (IN-AG-HIGHLANDER-001).
-            let installed_at = mtime_rfc3339(&self.installed_marker(&name))?;
-            manifest.upsert(Entry {
-              name: name.clone(),
-              source_path: origin.dir.display().to_string(),
-              installed_at,
-              checksum: source_sum.clone(),
-              files: self.installed_files(&name)?,
-            });
-            Outcome::UpToDate
-          } else if force {
-            // **FORCE REACHES THIS STATE TOO (vc, 2026-08-23, under hv's pen),
-            // AND THE GRANT TURNS ON TWO CLAUSES OF AC-07.3 THAT DO NOT
-            // CONFLICT.** (d) says that with `old` absent v3 REPORTS AND REFUSES
-            // TO CHOOSE, because what distinguishes an upstream change from an
-            // operator edit was never recorded and is not recoverable. (e) says
-            // `--force` must exist and must report the discarded checksum,
-            // because **without it a held skill has no CLI remedy at all and
-            // the honest refusal is a dead end.**
-            //
-            // **(d) FORBIDS CHOOSING; (e) LICENSES DESTROYING WITH A RECORD.**
-            // Force does not adjudicate whether the local bytes were an edit --
-            // it DECLINES TO KNOW, discards forward at the operator's explicit
-            // instruction, and records what it destroyed. And (d) creates the
-            // HOLD that (e) was minted to give a remedy to: if force does not
-            // reach here, (d)'s hold IS the dead end (e) exists to close.
-            //
-            // **MY OWN ARGUMENT FOR THIS WAS THE WRONG HALF, AND THE
-            // CORRECTION IS WORTH MORE THAN THE GRANT.** I argued that v3 has
-            // no prompt to override -- which answers the FIRST clause of the
-            // old test's name and leaves the second standing. *Not about
-            // inventing information that was never recorded* is not retired by
-            // anything; it is (d), ratified. **Taking my reasoning would have
-            // retired a live constraint along with a dead one.**
-            //
-            // **SO: NO BASELINE IS INVENTED HERE.** `materialise` writes the
-            // source, and the manifest entry records THE NEW STATE -- never the
-            // discarded tree, which would launder unknown bytes into a
-            // baseline and make the next sync report an update where nobody
-            // knows one happened.
-            let prior = manifest.find(&name).cloned();
-            let (written, removed) = self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
-            Outcome::Forced {
-              written,
-              removed,
-              discarded: target.clone(),
-              baseline: Baseline::Absent,
-            }
-          } else {
-            Outcome::Undecidable
-          }
-        }
-      };
+      let outcome = self.settle(&name, &origin, scope, force, dry_run, &mut manifest)?;
 
       steps.push(Step {
         name,
@@ -1275,6 +1078,210 @@ impl Payload {
       self.write_manifest(&manifest)?;
     }
     Ok(Report { steps, scope })
+  }
+
+  /// Decide one installed-or-recorded unit against its source: the three-way
+  /// comparison `sync` makes, and the one `install` makes for a unit that is
+  /// already installed.
+  ///
+  /// **ONE CLASSIFICATION, TWO VERBS** (agentic-engineering 0049,
+  /// IN-AG-HIGHLANDER-001). `install` used to answer `AlreadyInstalled` for any
+  /// installed unit, so a byte-identical, recorded unit that `list` calls canon
+  /// and `sync` calls settled needed a decision and exited 1. It now asks this
+  /// function, so the two verbs cannot give one unit two verdicts: identical is
+  /// up to date, an upstream change over an untouched tree is an update, and
+  /// only a unit changed here, conflicted or undecidable is held for `--force`.
+  fn settle(
+    &self,
+    name: &str,
+    origin: &Origin,
+    scope: Scope,
+    force: bool,
+    dry_run: bool,
+    manifest: &mut Manifest,
+  ) -> Result<Outcome, PayloadError> {
+    let source_sum = self.unit_checksum(&origin.dir)?;
+    // **`is_installed`, NOT `is_dir`.** The old test asked whether the
+    // target path was a DIRECTORY, which is true of an installed skill and
+    // false of every installed subagent -- so a single-file payload would
+    // have measured `None` for every row and reported an install as due,
+    // forever, over files that were already correct.
+    let target_sum = if self.is_installed(name) {
+      Some(self.installed_checksum(name)?)
+    } else {
+      None
+    };
+
+    // **`old` IS AN `Option` AND AN UNDECLARED SCOPE MAKES IT `None`** --
+    // ruling 3. The recorded string still exists; it just does not answer
+    // this question, and carrying it as a value would invite exactly the
+    // comparison that is meaningless.
+    let old = match scope {
+      // **BOTH DECLARED SCOPES ANSWER, AND THE ARM IS NOT A WILDCARD.** A
+      // manifest whose scope matches THIS payload's kind has a usable
+      // baseline; `Undeclared` is the only value that does not. Written as
+      // two named arms rather than `_ =>` so that a third scope added later
+      // has to be taught rather than inherited silently -- the failure this
+      // module's own ruling 3 is about.
+      Scope::Tree | Scope::File => manifest.find(name).map(|e| e.checksum.clone()),
+      Scope::Undeclared => None,
+    };
+
+    Ok(match (&old, &target_sum) {
+      // Nothing installed: this is an install, whatever the manifest says.
+      (_, None) => {
+        let prior = manifest.find(name).cloned();
+        let (written, removed) = self.apply(origin, prior.as_ref(), dry_run, manifest)?;
+        Outcome::Updated { written, removed }
+      }
+      // **BOTH SIDES AGREE, SO THERE IS NOTHING TO RESOLVE WHATEVER THE
+      // BASELINE SAYS** (issue 0280).
+      //
+      // This arm is the `old == None` adoption below, applied to the case
+      // where a baseline EXISTS and is merely stale. The reasoning there is
+      // already the right reasoning and it was reachable from only one of the
+      // two states: *the objection to rebaselining is that it discards the
+      // distinction between an upstream change and a local edit; here there
+      // is no distinction to discard.* When the source tree and the installed
+      // tree are byte-identical, no recorded value can make them differ.
+      //
+      // **WITHOUT IT THE VERDICT WAS A LATCH, AND THAT IS WHY THIS IS `high`
+      // RATHER THAN COSMETIC.** A stale `old` makes both limbs true, so the
+      // pair reads as `Conflicted` -- and no held outcome ever calls
+      // `manifest.upsert`, correctly, because nothing was written. So the
+      // stale baseline that caused the hold survives the run that reported
+      // it, and the next sync computes the same thing forever. Measured on
+      // this machine: the manifest was rewritten on 2026-09-05 with three
+      // byte-identical skills left untouched, held since 2026-08-30.
+      //
+      // **AND THE MESSAGE RECRUITED THE CAREFUL OPERATOR INTO INACTION.** The
+      // hold says `--force` will discard their work; an operator who believes
+      // it declines to force, correctly on the evidence shown, and the skill
+      // stays stale permanently. A wrong verdict a user can route around is a
+      // nuisance; one whose safe reading is the wrong action is a trap.
+      //
+      // **WHAT THIS DOES NOT FIX, STATED SO THE SCOPE IS NOT READ AS WIDER
+      // THAN IT IS.** When the source and the installed tree DIFFER and the
+      // baseline matches neither, this changes nothing -- and it must not.
+      // That signature is identical to a genuine conflict, where `old`
+      // described the tree at install time and then both sides moved, so the
+      // two are indistinguishable from the manifest alone. `Conflicted` stays
+      // the honest answer there.
+      (Some(_), Some(target)) if source_sum == *target => {
+        let installed_at = mtime_rfc3339(&self.installed_marker(name))?;
+        manifest.upsert(Entry {
+          name: name.to_string(),
+          source_path: origin.dir.display().to_string(),
+          installed_at,
+          checksum: source_sum.clone(),
+          files: self.installed_files(name)?,
+        });
+        Outcome::UpToDate
+      }
+      (Some(old), Some(target)) => {
+        let source_moved = *old != source_sum;
+        let target_moved = old != target;
+        match (source_moved, target_moved) {
+          (false, false) => Outcome::UpToDate,
+          (false, true) if !force => Outcome::ModifiedLocally,
+          (true, true) if !force => Outcome::Conflicted,
+          _ => {
+            // **`target_moved` IS THE DISCRIMINATOR, NOT `force`.** A forced
+            // run over a tree that nobody touched is an ordinary update and
+            // says so; only a tree that had MOVED has something to lose.
+            // Keyed on the state rather than on the flag because the flag
+            // says what the operator ASKED FOR and the state says what
+            // actually happened, and only the second is worth reporting.
+            let discarded = target_moved.then(|| target.clone());
+            let prior = manifest.find(name).cloned();
+            let (written, removed) = self.apply(origin, prior.as_ref(), dry_run, manifest)?;
+            match discarded {
+              Some(discarded) => Outcome::Forced {
+                written,
+                removed,
+                discarded,
+                baseline: Baseline::Recorded,
+              },
+              None => Outcome::Updated { written, removed },
+            }
+          }
+        }
+      }
+      // Ruling 4. With no usable baseline, an installed tree that differs
+      // from source is EITHER an upstream change OR the operator's own edit,
+      // and v2 recorded nothing that can tell them apart. Rebaselining does
+      // not recover it: recording the installed tree as the new baseline
+      // makes a locally-modified skill `source != old, target == old`, which
+      // is an update, so the edit dies one command later instead of now.
+      (None, Some(target)) => {
+        if *target == source_sum {
+          // **ADOPTING A BYTE-IDENTICAL TREE IS NOT REBASELINING.** The
+          // objection to rebaselining is that it discards the distinction
+          // between an upstream change and a local edit. Here there is no
+          // distinction to discard: the installed tree and the source agree
+          // exactly, so recording it loses nothing and gives the next sync a
+          // baseline to work from instead of refusing forever.
+          // **NO `dry_run` TEST HERE, DELIBERATELY, AND IT WAS HERE UNTIL
+          // I DROVE IT.** The adoption is a manifest write with no file
+          // write, so withholding it under a preview reads as obviously
+          // right -- and a mutation test showed the guard could be deleted
+          // with every arm still green, because persistence has exactly one
+          // door and it is guarded there. Two sufficient guards mean neither
+          // can be killed by a test, which is how a guard that protects
+          // nothing survives review looking load-bearing
+          // (IN-AG-HIGHLANDER-001).
+          let installed_at = mtime_rfc3339(&self.installed_marker(name))?;
+          manifest.upsert(Entry {
+            name: name.to_string(),
+            source_path: origin.dir.display().to_string(),
+            installed_at,
+            checksum: source_sum.clone(),
+            files: self.installed_files(name)?,
+          });
+          Outcome::UpToDate
+        } else if force {
+          // **FORCE REACHES THIS STATE TOO (vc, 2026-08-23, under hv's pen),
+          // AND THE GRANT TURNS ON TWO CLAUSES OF AC-07.3 THAT DO NOT
+          // CONFLICT.** (d) says that with `old` absent v3 REPORTS AND REFUSES
+          // TO CHOOSE, because what distinguishes an upstream change from an
+          // operator edit was never recorded and is not recoverable. (e) says
+          // `--force` must exist and must report the discarded checksum,
+          // because **without it a held skill has no CLI remedy at all and
+          // the honest refusal is a dead end.**
+          //
+          // **(d) FORBIDS CHOOSING; (e) LICENSES DESTROYING WITH A RECORD.**
+          // Force does not adjudicate whether the local bytes were an edit --
+          // it DECLINES TO KNOW, discards forward at the operator's explicit
+          // instruction, and records what it destroyed. And (d) creates the
+          // HOLD that (e) was minted to give a remedy to: if force does not
+          // reach here, (d)'s hold IS the dead end (e) exists to close.
+          //
+          // **MY OWN ARGUMENT FOR THIS WAS THE WRONG HALF, AND THE
+          // CORRECTION IS WORTH MORE THAN THE GRANT.** I argued that v3 has
+          // no prompt to override -- which answers the FIRST clause of the
+          // old test's name and leaves the second standing. *Not about
+          // inventing information that was never recorded* is not retired by
+          // anything; it is (d), ratified. **Taking my reasoning would have
+          // retired a live constraint along with a dead one.**
+          //
+          // **SO: NO BASELINE IS INVENTED HERE.** `materialise` writes the
+          // source, and the manifest entry records THE NEW STATE -- never the
+          // discarded tree, which would launder unknown bytes into a
+          // baseline and make the next sync report an update where nobody
+          // knows one happened.
+          let prior = manifest.find(name).cloned();
+          let (written, removed) = self.apply(origin, prior.as_ref(), dry_run, manifest)?;
+          Outcome::Forced {
+            written,
+            removed,
+            discarded: target.clone(),
+            baseline: Baseline::Absent,
+          }
+        } else {
+          Outcome::Undecidable
+        }
+      }
+    })
   }
 
   /// Remove named skills.
@@ -1499,10 +1506,7 @@ impl Payload {
           source,
         })?;
       }
-      std::fs::copy(&from, &dest).map_err(|source| PayloadError::Io {
-        path: dest.clone(),
-        source,
-      })?;
+      write_copy(&from, &dest)?;
       let checksum = self.unit_checksum(&origin.dir)?;
       let installed_at = mtime_rfc3339(&dest)?;
       return Ok((
@@ -1528,10 +1532,7 @@ impl Payload {
           source,
         })?;
       }
-      std::fs::copy(&from, &to).map_err(|source| PayloadError::Io {
-        path: to.clone(),
-        source,
-      })?;
+      write_copy(&from, &to)?;
     }
 
     // Ruling 5: remove only what a previous run of THIS tool recorded writing
@@ -1707,6 +1708,30 @@ fn display(rel: &Path) -> String {
     .map(|c| c.as_os_str().to_string_lossy().to_string())
     .collect::<Vec<_>>()
     .join("/")
+}
+
+/// Write `from`'s bytes to `to`, then give `to` `from`'s permissions.
+///
+/// **THE WRITE STAMPS THE FILE, SO IT CANNOT BE A COPY WITH METADATA**
+/// (agentic-engineering 0049). `installed_at` is the mtime of the file this
+/// command just wrote, and `std::fs::copy` carries the source's times on macOS,
+/// so every installed unit recorded the shipped file's mtime instead of its
+/// install's. Writing the bytes lets the filesystem stamp the write, which is
+/// D42 with no clock read here; the permissions are carried after it, so a
+/// shipped script stays executable, and carrying them leaves the mtime alone.
+fn write_copy(from: &Path, to: &Path) -> Result<(), PayloadError> {
+  let read_err = |source| PayloadError::Io {
+    path: from.to_path_buf(),
+    source,
+  };
+  let write_err = |source| PayloadError::Io {
+    path: to.to_path_buf(),
+    source,
+  };
+  let bytes = std::fs::read(from).map_err(read_err)?;
+  let permissions = std::fs::metadata(from).map_err(read_err)?.permissions();
+  std::fs::write(to, bytes).map_err(write_err)?;
+  std::fs::set_permissions(to, permissions).map_err(write_err)
 }
 
 /// The written file's own mtime, RFC 3339.
