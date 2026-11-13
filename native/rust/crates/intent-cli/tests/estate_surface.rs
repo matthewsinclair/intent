@@ -1063,8 +1063,12 @@ fn a_sibling_verbs_flag_is_refused_with_both_lines_at_exit_1() {
       "{args:?}: {stderr}"
     );
     assert!(
+      stderr.contains(&format!("remedy: `{verb}` takes ")),
+      "{args:?}: {stderr}"
+    );
+    assert!(
       stderr.contains(&format!(
-        "remedy: `intent {verb} --help` names the flags it reads"
+        "; `intent {verb} --help` names the flags it reads"
       )),
       "{args:?}: {stderr}"
     );
