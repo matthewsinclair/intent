@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-13 15:23Z
+heartbeat_at: 2026-11-13 16:06Z
 status: active
-focus: "2026-11-13 15:23Z, 0693 gated green at 20bb114d2 (refs/bank/ic/install/0693-gated-20bb114d2), sent to vc to land; slot released, holding."
+focus: "2026-11-13 16:06Z, 3.3.2 pre-cut done: 0693 landed, known-defects landed as fde39ef27, explorer shots unchanged. Holding on vc's word; wt-install and wt-kd332 go at the next fold."
 claims: [ISSUE:0693]
 ---
 
