@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-13 06:31Z
+heartbeat_at: 2026-11-13 13:29Z
 status: active
-focus: "3.3.1 RELEASED (2026-11-13 06:31Z by date -u, tag at c64a42e29); freeze lifted; follow-ups in todo 79: site, config comment, releasing.md ^{commit}, CI at the tag, devvm."
+focus: "Weekend fold (hv, 2026-11-13 13:29Z by date -u): dc, cc and ic told to bank, lean out, localfold and hold. Intent 3.3.2 waits on banks 0692, 0691 and 0693 (vc todo)."
 claims: []
 ---
 
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- For hv on return (devbin-vc, 2026-11-12 19:4xZ by its read): devbin 0.1.23 is final and on the tap; the fleet sweep to 0.1.23 is committed in all 24 estates and none of it is pushed (Molt's is f06f164). Whether the devvm build takes Molt from a pushed repo, so that f06f164 must be pushed, is hv's go; agentic-engineering-vc asks it tomorrow morning. agentic-engineering-vc waits for "Intent's version + desk free" from devbin-vc.
+- Intent 3.3.2 (hv, 2026-11-13): land three banks, each on its whole gate rust END and vc's read. 0692, slot history (dc): f03a527b1, design accepted. 0691, plan usage across a restart (cc). 0693, install verdicts and verb flags (ic), wider scope accepted, the parse refusal keeps a remedy. Then the kovacs rehearsal at the final main, then ready to cut, after devbin's release. The release notes carry 0692's polling note: a script polling requests/<id>/end|deny|revoke.json must use slots wait or history/<id>/, and a 3.3.1 binary can't find a retired request.
 
 ## Holds
 

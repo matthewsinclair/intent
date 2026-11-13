@@ -1,0 +1,15 @@
+{
+  "id": "01M7AHK913GQRJD2R4FDE2SJR7",
+  "ts": "2026-11-13T13:29:49.859Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Intent 3.3.2 (hv, 2026-11-13): land three banks, each on its whole gate rust END and vc's read. 0692, slot history (dc): f03a527b1, design accepted. 0691, plan usage across a restart (cc). 0693, install verdicts and verb flags (ic), wider scope accepted, the parse refusal keeps a remedy. Then the kovacs rehearsal at the final main, then ready to cut, after devbin's release. The release notes carry 0692's polling note: a script polling requests/<id>/end|deny|revoke.json must use slots wait or history/<id>/, and a 3.3.1 binary can't find a retired request."
+  }
+}
