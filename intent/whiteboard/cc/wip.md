@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-12 19:51Z
+heartbeat_at: 2026-11-13 06:30Z
 status: active
-focus: "2026-11-12 19:51Z, the no_view_claims fix is proved green on gyges and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 on fdde97c22; sent to vc to land by path. gyges worktree removed, no slot, nothing running. Writing nothing to the tree but this board."
+focus: "2026-11-13 06:30Z, the freeze is lifted and v3.3.1 is released. Todo 52 is archived as done: the no_view_claims fix shipped in 3.3.1 at 8514f695e. The board is empty, with no claim, slot, worktree or running work. Holding for vc."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- no_view_claims_to_be_truth's partition red, on vc's word: fix PROVED and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 (blob 150ec2d93, base fdde97c22, paths native/rust/crates/intentsvcs/src/views.rs and native/rust/crates/intentsvcs/tests/no_view_claims_to_be_truth.rs). Green on gyges 2026-11-12 19:51Z: bin/devbin test rust -p intentsvcs --test suite no_view_claims_to_be_truth, 2 passed, 0 failed; bin/devbin check format exit 0. vc lands it by path. After it lands: remove tmp/wt-cc-inboxpairs by the fold's checks, then archive this. (edited)
+_(none)_
 
 ## Holds
 

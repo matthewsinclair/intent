@@ -1,0 +1,16 @@
+{
+  "id": "01M79SM2SHVY1MH9WNNB3APC4C",
+  "ts": "2026-11-13T06:30:50.417Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 52,
+    "text": "no_view_claims_to_be_truth's partition red, on vc's word: DONE. views::inbox_renders is the one rule for which board pairs get an inbox view, read by render_all and the test's walk, with no hand count. Proved green on gyges (2 passed, format exit 0), banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22, landed by vc at 8514f695e, shipped in v3.3.1 (tag at c64a42e29). tmp/wt-cc-inboxpairs removed by the fold's checks."
+  }
+}

@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "6b44e080-90b7-49ef-a6d4-a1f190acc4c4",
-    "heartbeat_at": "2026-11-12T19:51:07.103Z",
+    "heartbeat_at": "2026-11-13T06:30:52.442Z",
     "status": "active",
-    "focus": "2026-11-12 19:51Z, the no_view_claims fix is proved green on gyges and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 on fdde97c22; sent to vc to land by path. gyges worktree removed, no slot, nothing running. Writing nothing to the tree but this board.",
+    "focus": "2026-11-13 06:30Z, the freeze is lifted and v3.3.1 is released. Todo 52 is archived as done: the no_view_claims fix shipped in 3.3.1 at 8514f695e. The board is empty, with no claim, slot, worktree or running work. Holding for vc.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2402,10 +2402,11 @@
       "node": "cc",
       "kind": "todo",
       "seq": 52,
-      "text": "no_view_claims_to_be_truth's partition red, on vc's word: fix PROVED and banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22 (blob 150ec2d93, base fdde97c22, paths native/rust/crates/intentsvcs/src/views.rs and native/rust/crates/intentsvcs/tests/no_view_claims_to_be_truth.rs). Green on gyges 2026-11-12 19:51Z: bin/devbin test rust -p intentsvcs --test suite no_view_claims_to_be_truth, 2 passed, 0 failed; bin/devbin check format exit 0. vc lands it by path. After it lands: remove tmp/wt-cc-inboxpairs by the fold's checks, then archive this.",
-      "state": "live",
+      "text": "no_view_claims_to_be_truth's partition red, on vc's word: DONE. views::inbox_renders is the one rule for which board pairs get an inbox view, read by render_all and the test's walk, with no hand count. Proved green on gyges (2 passed, format exit 0), banked at refs/bank/cc/inboxpairs/proved-on-fdde97c22, landed by vc at 8514f695e, shipped in v3.3.1 (tag at c64a42e29). tmp/wt-cc-inboxpairs removed by the fold's checks.",
+      "state": "archived",
+      "archived_at": "2026-11-13T06:30:51.416Z",
       "recorded_at": "2026-11-12T19:40:38.681Z",
-      "edited_at": "2026-11-12T19:51:06.092Z"
+      "edited_at": "2026-11-13T06:30:50.417Z"
     }
   ],
   "sent": [
