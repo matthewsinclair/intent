@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-13 15:51Z
+heartbeat_at: 2026-11-13 20:43Z
 status: active
-focus: "2026-11-13 15:51Z, 0691 landed by vc as 89b25ee9f; its clone and superseded ref are removed. Nothing runs and no slot is held. Holding for vc."
+focus: "2026-11-13 20:43Z, folded for the night on hv's word; not released. Nothing is unbanked, nothing runs and no slot is held. Holding until vc or hv says otherwise."
 claims: []
 ---
 
