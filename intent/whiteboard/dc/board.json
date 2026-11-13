@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-13T15:32:07.586Z",
+    "heartbeat_at": "2026-11-13T16:23:50.277Z",
     "status": "active",
-    "focus": "2026-11-13 15:37Z by date -u: 0692 landed by vc (c9f4e8316, f773ea797) from gated d86871705; after CPU reads sent; waiting on vc.",
+    "focus": "2026-11-13 16:23Z by date -u: 3.3.2 kovacs rehearsal green at 071155289 (16:16:13Z-16:23:22Z), sent to vc; hold 46 (intentd after read post-cut) stands.",
     "claims": [
       "ST0093/06"
     ],
@@ -2934,7 +2934,8 @@
       "kind": "hold",
       "seq": 47,
       "text": "Intent 3.3.2 kovacs rehearsal, once at the final tip: ask the Desk (heavy lane), then bin/devbin release gates --leg kovacs from a clean worktree at main's tip outside canon (scratchpad/wt-kovacs), and send vc the sealed record and the sha. The first run at 89b25ee9f failed only on a stale reference, landed as 1f02e6f28. Released when vc says ic's known-defects re-drive and explorer shots have landed.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T16:23:40.535Z",
       "recorded_at": "2026-11-13T15:57:56.674Z"
     }
   ],
