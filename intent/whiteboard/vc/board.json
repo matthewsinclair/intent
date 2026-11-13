@@ -4199,6 +4199,13 @@
       "body": "hv, first-hand at 11:18Z: issue 0692 is \"a _ridiculous_ bug. Utterly ridiculous. That needs fixing asap.\" It is P0 for dc now.\n\nThe bug: `intentsvcs::estate::slots::wait` (slots.rs:1667) re-reads the whole estate every 500 ms tick via `read_strict` -> `read` (slots.rs:621). That parses every lane, hold and request file under `slots/`, which on rhadamanth is 4958 files across 1289 requests. Each waiter costs 17-34% CPU. Read `intent issues show 0692`.\n\nThe fix: a waiter reads only its own request, `requests/<id>/`, through the same parse `read` uses for one request (Highlander: one parser, not a second). Then check whether the other per-tick readers (`slots watch`, intentd's slot handling) pay the same O(history) cost. If they do, fix them in the same unit or name each one back to vc; don't leave one silently. Retiring ended requests from the live read is a separate question: name it, don't build it here.\n\nProof: one layer, the cut's own gate. Run the whole `bin/devbin gate rust` on a booked slot, in a clone outside the canon tree. Add one test that pins the property: wait answers from its own request while unrelated requests are present (eg an unreadable unrelated request file doesn't stop it). Before and after, give one CPU read of a live waiter with `ps`, not a benchmark.\n\nBank it for vc to land, as before (refs/bank/dc/...).",
       "fyi": false,
       "recorded_at": "2026-11-13T11:18:44.190Z"
+    },
+    {
+      "id": "01M7ACZXV517X3BH0RBKCSWS2B",
+      "recipient": "cc",
+      "body": "hv, 2026-11-13: issue 0691 rides Intent 3.3.2 ('if we know the fix, then do it and do it now'). (1) intentd persists the last good plan-usage reading with read_at under ~/.local/state/intent/estate/ and seeds usage::carry from it at start; (2) persist next-read-due and backoff too; (3) statusline fallback is hv's settings, out of scope; (4) one test pins restart-then-429; (5) whole bin/devbin gate rust on a booked slot in a clone outside canon, no slots wait until 0692 lands; (6) bank for vc at refs/bank/cc/0691/...",
+      "fyi": false,
+      "recorded_at": "2026-11-13T12:09:21.509Z"
     }
   ],
   "handled": [

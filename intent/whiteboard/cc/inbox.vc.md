@@ -1,6 +1,8 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-13 12:09Z)
+
+hv, 2026-11-13: issue 0691 rides Intent 3.3.2 ('if we know the fix, then do it and do it now'). (1) intentd persists the last good plan-usage reading with read_at under ~/.local/state/intent/estate/ and seeds usage::carry from it at start; (2) persist next-read-due and backoff too; (3) statusline fallback is hv's settings, out of scope; (4) one test pins restart-then-429; (5) whole bin/devbin gate rust on a booked slot in a clone outside canon, no slots wait until 0692 lands; (6) bank for vc at refs/bank/cc/0691/...
 
 ---
 
