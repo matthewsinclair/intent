@@ -51,7 +51,7 @@ jobs:
       # runner's own glibc would not.
       FLOOR: oraclelinux:7-slim
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # The fleet's Rust, as rust.yml takes it and for its reason (rust.yml's
       # toolchain step): CI follows the fleet's Homebrew stable, its version
       # written once in .github/actions/fleet-rust/action.yml. The step after
@@ -77,7 +77,7 @@ jobs:
         run: bin/int linux smoke
       - name: smoke, on the floor (AC-01.2)
         run: bin/int linux smoke --in "$FLOOR"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: intent-${{ matrix.triple }}
           path: native/rust/target/linux-dist/intent-${{ matrix.triple }}.tar.gz

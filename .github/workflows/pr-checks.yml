@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # **THE CHECK ASKS THE v3 BINARY SINCE THE 3.0.1 CUT**, which pruned the v2
       # shell (`bin/intent`) under AC-00.6. It is built here, with the same
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # origin/main exists only in a full fetch. At the default depth of 1 the
           # diff below failed, and piped into grep the step passed silently.
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # origin/main exists only in a full fetch; see check-documentation.
           fetch-depth: 0
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check PR size
         run: |
@@ -206,7 +206,7 @@ jobs:
       XDG_RUNTIME_DIR: ""
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/fleet-rust
       - uses: Swatinem/rust-cache@v2
         with:

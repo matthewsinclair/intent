@@ -92,7 +92,7 @@ jobs:
       run:
         working-directory: native/rust
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # The fleet's Rust, its version written once in the action
       # (.github/actions/fleet-rust/action.yml).
       - uses: ./.github/actions/fleet-rust

@@ -99,7 +99,7 @@ Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also 
 
 ### Dependencies
 
-- **GitHub Actions**: `actions/checkout@v4`, `dtolnay/rust-toolchain@master` (through the local `.github/actions/fleet-rust`, which pins the fleet's version), `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
+- **GitHub Actions**: `actions/checkout@v7`, `dtolnay/rust-toolchain@master` (through the local `.github/actions/fleet-rust`, which pins the fleet's version), `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
 - **Bats**: bats-core v1.12.0 installed with its own `install.sh` from the GitHub source archive on Ubuntu; Homebrew's `bats-core` on macOS
 - **Bats libraries**: bats-support, bats-assert and bats-file, cloned from GitHub into `tests/lib` if not present, retrying a failed clone
 - **Tools**: jq on both bats legs; shellcheck installed on macOS (Ubuntu runners ship it); prettier 3 from npm on every leg of both `tests.yml` and `rust.yml`; Erlang/OTP 29 and Elixir 1.20 on both bats legs; Homebrew's bash on the macOS bats leg

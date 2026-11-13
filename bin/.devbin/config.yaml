@@ -330,9 +330,10 @@ commands:
       # .github/workflows/rust.yml: NO rust-toolchain.toml, because rustup is not
       # installed here and rustc is Homebrew's, so such a file is ignored in
       # silence -- a pin that does not bind is worse than no pin, because it does
-      # not refuse and it misleads. The standing cost is also unchanged: `fmt
-      # --check` and `clippy -D warnings` float on @stable, so CI can go red with
-      # zero code change when a new stable lands.
+      # not refuse and it misleads. CI no longer floats on @stable: every
+      # workflow installs the fleet's Homebrew rustc, its version written once in
+      # .github/actions/fleet-rust/action.yml (hv, 2026-11-13), so `fmt --check`
+      # and `clippy -D warnings` move in CI only when that line moves with brew.
       toolchain:
         enabled: true
 
