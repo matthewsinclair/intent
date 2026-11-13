@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 692,
+  "slug": "estate-slots-wait-re-parses-the-whole-slots-hist",
+  "title": "estate slots wait re-parses the whole slots history every 500 ms tick, so each waiter costs 17-34% CPU",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-13",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported by rhadamanth-sysadm through devbin-vc. At 11:12Z on 2026-11-13 (by date -u), four `intent estate slots wait` pollers were each using 20 to 34% CPU, with intentd at 17%. That load added to a run queue of 250 on 16 cores during devbin's whole gate. vc's read at 11:13Z found three pollers at 17.2, 28.1 and 21.2% (pids 1185, 15523, 76236).\n\nIt is not a busy loop. `intentsvcs::estate::slots::wait` (slots.rs:1667) sleeps `PAUSE`, which is 500 ms, between reads. The cost is what each tick reads: `read_strict` calls `read` (slots.rs:621), which lists and parses every lane, hold and request file under the host's `slots/` dir. On rhadamanth that dir holds 1289 requests in 4958 files. So every waiter parses the estate's whole slot history twice a second, and the cost grows with the history: it's O(history) per tick.\n\nRemedy direction: the wait needs one request's state, not the estate's. Read only `requests/<id>/`, or wait on a watch of that directory and fall back to a slower tick. Retiring ended requests out of the live read would also cut what every other reader of `slots/` pays.\n"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M7A9SXFAECPY39DED6PCNVD3",
+  "ts": "2026-11-13T11:13:40.771Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0692"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "estate slots wait re-parses the whole slots history every 500 ms tick, so each waiter costs 17-34% CPU"
+  }
+}
