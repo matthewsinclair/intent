@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-13 13:30Z
+heartbeat_at: 2026-11-13 15:23Z
 status: active
-focus: "2026-11-13 13:30Z, localfold for hv's weekend compact on vc's word; not released. 0693 is banked ungated (todo 71), slot ask withdrawn, and nothing is running."
+focus: "2026-11-13 15:23Z, 0693 gated green at 20bb114d2 (refs/bank/ic/install/0693-gated-20bb114d2), sent to vc to land; slot released, holding."
 claims: [ISSUE:0693]
 ---
 
