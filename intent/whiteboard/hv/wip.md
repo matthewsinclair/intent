@@ -90,6 +90,7 @@ _(none)_
 - (hv, 2026-11-12, in vc's session, hv's "3: Yes") Login Items checked: System Settings names /Applications/Intent.app and not the 3.2.6 Debug build.
 - (2026-11-12 19:47Z, hv first-hand to vc in the live channel, hv's wording) hv is AFK for a while. P0: "getting everything done and dusted for devbin, intent, molt, etc so that we can build the next/latest version of devbm [the devvm, agentic-engineering's P1] first thing tomorrow morning ... Work with devbin-vc to get this done." vc works it with devbin-vc under decisions 48 and 49; nothing hv keeps is decided in hv's absence.
 - (2026-11-12 19:51Z, hv first-hand to vc in the live channel, hv's wording) "You can use both rhad and gyges now that devbin is done." Intent's seats may run on rhadamanth and gyges both; kovacs and rhadamanth runs stay serialised.
+- (2026-11-13 05:47Z, hv's own command in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: "reset: moving to 91e19897410f") Option 1 of vc's question: hv reset local main from the cut's unpushed release commit 209b08f2d to 91e19897410f, so the app_version fix (dc, de63d4167) lands inside the re-cut's release commit. Nothing had been pushed or tagged.
 
 ---
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M79Q59CXDCDKH3RSN95DWFEP",
+  "ts": "2026-11-13T05:47:48.509Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-11-13 05:47Z, hv's own command in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 91e19897410f\") Option 1 of vc's question: hv reset local main from the cut's unpushed release commit 209b08f2d to 91e19897410f, so the app_version fix (dc, de63d4167) lands inside the re-cut's release commit. Nothing had been pushed or tagged."
+  }
+}
