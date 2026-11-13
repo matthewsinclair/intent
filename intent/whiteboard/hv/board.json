@@ -621,6 +621,14 @@
       "text": "(2026-11-13 05:47Z, hv's own command in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 91e19897410f\") Option 1 of vc's question: hv reset local main from the cut's unpushed release commit 209b08f2d to 91e19897410f, so the app_version fix (dc, de63d4167) lands inside the re-cut's release commit. Nothing had been pushed or tagged.",
       "state": "live",
       "recorded_at": "2026-11-13T05:47:48.509Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 55,
+      "text": "(2026-11-13 06:00Z, hv's TUI selection in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 6df1af4e67c8\") RESET, over vc's fail-forward recommendation: hv reset local main from cut 2's unpushed, untagged release commit 8f210e083 to 6df1af4e67c8, by hv's own command; cut 2 stopped red at gate rust's clippy (24 needless_borrow in claude_cwi_door.rs from 6df1af4e6). Also hv's word through devbin-vc: dc's gate rust proof and the dry run run on rhadamanth this morning, booked on the desk.",
+      "state": "live",
+      "recorded_at": "2026-11-13T06:00:21.841Z"
     }
   ],
   "sent": [],

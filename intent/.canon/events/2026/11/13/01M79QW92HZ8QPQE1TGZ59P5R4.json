@@ -1,0 +1,15 @@
+{
+  "id": "01M79QW92HZ8QPQE1TGZ59P5R4",
+  "ts": "2026-11-13T06:00:21.841Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(2026-11-13 06:00Z, hv's TUI selection in devbin-vc's window, relayed by devbin-vc, read by vc against the reflog: \"reset: moving to 6df1af4e67c8\") RESET, over vc's fail-forward recommendation: hv reset local main from cut 2's unpushed, untagged release commit 8f210e083 to 6df1af4e67c8, by hv's own command; cut 2 stopped red at gate rust's clippy (24 needless_borrow in claude_cwi_door.rs from 6df1af4e6). Also hv's word through devbin-vc: dc's gate rust proof and the dry run run on rhadamanth this morning, booked on the desk."
+  }
+}
