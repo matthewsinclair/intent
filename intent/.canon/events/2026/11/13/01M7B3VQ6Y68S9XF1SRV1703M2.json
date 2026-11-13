@@ -1,0 +1,14 @@
+{
+  "id": "01M7B3VQ6Y68S9XF1SRV1703M2",
+  "ts": "2026-11-13T18:49:00.960Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0093/AC-06.1"
+  },
+  "payload": {
+    "evidence": "Intent v3.3.2's cut, tag v3.3.2 at 7282d3bfc (tmp/release/20261113-1744.RELEASE.out): the macOS sign-and-notarise leg ran before the tag and every leg was green (macos, local, kovacs, candidate run 43476175856); bin/.devbin/cmd/cache is gone; build: block at bin/.devbin/config.yaml:611; gate rust at DEVBIN_GATE_CACHE; test shell on the lanes runner, 820 parallel and 11 serial; the changed kovacs leg green at 071155289 before the cut"
+  }
+}

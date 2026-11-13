@@ -59,7 +59,7 @@
       "seq": 6,
       "title": "The release pipeline, briefed to devbin's core",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "Brief the release pipeline's changes to devbin's core and put Intent's cut on them: new legs rehearsed on their hosts, parallel bats, warm gate trees, the pair built once, and signing and notarising before the tag (design.md, the plan's B).",
       "body": "",
       "preamble": ""
@@ -115,7 +115,8 @@
       "text": "Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with every test that cannot share a host serial, and each new or changed leg goes green on its host before the cut.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "Intent v3.3.2's cut, tag v3.3.2 at 7282d3bfc (tmp/release/20261113-1744.RELEASE.out): the macOS sign-and-notarise leg ran before the tag and every leg was green (macos, local, kovacs, candidate run 43476175856); bin/.devbin/cmd/cache is gone; build: block at bin/.devbin/config.yaml:611; gate rust at DEVBIN_GATE_CACHE; test shell on the lanes runner, 820 parallel and 11 serial; the changed kovacs leg green at 071155289 before the cut"
       }
     }
   ],

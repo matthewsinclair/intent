@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: The release pipeline, briefed to devbin's core
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-06: The release pipeline, briefed to devbin's core

@@ -33,9 +33,9 @@ title: Why Claudes yak-shave, and faster releases
 
 - AC-05.1 (non-test) TERMS caps a message to a seat at five lines and a report to hv at ten, and no standing rule adds a check without naming what it catches that the checks in place do not. -- evidence: 6acaba3cb: intent/plugins/claude/teams/TERMS.md, 'Talk, and what it costs' and the rule that a check names what it catches -- satisfied: yes
 
-### WP-06 -- The release pipeline, briefed to devbin's core (status: WIP)
+### WP-06 -- The release pipeline, briefed to devbin's core (status: Done)
 
-- AC-06.1 (non-test) Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with every test that cannot share a host serial, and each new or changed leg goes green on its host before the cut. -- satisfied: no
+- AC-06.1 (non-test) Intent's cut runs on devbin's core as briefed: it signs and notarises before the tag, cmd/cache no longer shadows devbin's cache verb, a build: block declares the pair, gate rust's target is at DEVBIN_GATE_CACHE, the tests run on devbin's lanes runner with every test that cannot share a host serial, and each new or changed leg goes green on its host before the cut. -- evidence: Intent v3.3.2's cut, tag v3.3.2 at 7282d3bfc (tmp/release/20261113-1744.RELEASE.out): the macOS sign-and-notarise leg ran before the tag and every leg was green (macos, local, kovacs, candidate run 43476175856); bin/.devbin/cmd/cache is gone; build: block at bin/.devbin/config.yaml:611; gate rust at DEVBIN_GATE_CACHE; test shell on the lanes runner, 820 parallel and 11 serial; the changed kovacs leg green at 071155289 before the cut -- satisfied: yes
 
 ## Acceptance Tests
 
@@ -59,7 +59,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-06 -- The release pipeline, briefed to devbin's core (status: WIP)
+### WP-06 -- The release pipeline, briefed to devbin's core (status: Done)
 
 _(no tests in this group)_
 

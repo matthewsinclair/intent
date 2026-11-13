@@ -25,7 +25,7 @@ _(not yet written)_
 | WP-03 | vc stops judging: the mediator reads proof and lands | S    | Done   |
 | WP-04 | No chain broadcasts, no bare pickup commits          | S    | Done   |
 | WP-05 | Short messages, and no check without a named catch   | S    | Done   |
-| WP-06 | The release pipeline, briefed to devbin's core       | S    | WIP    |
+| WP-06 | The release pipeline, briefed to devbin's core       | S    | Done   |
 
 ## Acceptance
 
