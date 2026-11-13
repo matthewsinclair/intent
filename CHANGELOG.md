@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.2] - in progress
+
+### Changed
+
+- **An asker can withdraw its own slot request while it is still asked** (issue 0692). Only the controller could end an ask nobody had answered, by deny or revoke. `intent estate slots release <id>` now takes a request that is still asked, from its own asker, as it takes one granted or running: the request ends, leaves the queue, and `slots wait` answers it withdrawn and exits 1, as it does for denied and revoked. Anyone else's release is still refused, and a withdrawn ask is not a place `--place-of` keeps, so a re-ask asks afresh.
+
+### Fixed
+
+- **A slot read costs the open requests, not the whole history** (issue 0692). Every read of `~/.local/state/intent/estate/slots/` parsed every request the host had ever made, so `intent estate slots wait`, which reads every half second, held about a fifth of a core on an estate of 1309 requests, and every `estate status` and intentd census paid the same. A read now retires each finished request (ended, denied or revoked) to `slots/history/<id>/`, and a lookup by id falls back to it, so a verb on a retired request still answers as before. The same waiter now reads below `time`'s 0.01 s floor. **Two things to know on upgrade.** A script that polls `slots/requests/<id>/end.json`, `deny.json` or `revoke.json` must use `intent estate slots wait <id>` or look under `slots/history/<id>/`, because a finished request moves. And an Intent 3.3.1 or earlier binary cannot find a retired request by id, so restart every MCP server (`intent mcp`) and explorer (`intent expl`) after upgrading, and upgrade every machine that shares the estate.
+- **The plan-usage card keeps its numbers across an intentd restart** (issue 0691). intentd held the last good reading of the account's plan usage, and its backoff from a refusing endpoint, in memory alone, so a restart blanked the card and asked the endpoint at once, and a restart that met a 429 stayed blank until the throttle lifted. intentd now keeps both under the estate state directory after every read, in `intentd.endpoint.json`, and resumes them at start: the card shows the last numbers and the next read waits out what is left of the backoff. A kept file that will not read is logged, and intentd starts as one that kept nothing.
+- **`intent claude skills install` and `subagents install` decide an installed unit as `sync` does, and each verb takes only its own flags** (issue 0693). Install over an installed unit said it was already installed, whatever had changed. It now reads the unit through the same classifier as `sync`: an unchanged one is up to date, one the source moved is updated, and one changed locally is held until `--force`, which reports the checksum of what it discarded. An installed file's `installed_at` is now the install's own time, not the source file's. `install` and `uninstall` take `--force` and `--all`, and `sync` takes `--force` and `--dry-run`; a flag a verb does not take is refused at the parse, with a remedy naming the flags it does take.
+
 ## [3.3.1] - 2026-11-13
 
 ### Changed
