@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- After Intent 3.3.1 (released 2026-11-13; tag v3.3.1 at c64a42e29). Done (2026-11-13 09:18Z by date -u): the site is live at 3.3.1; CI pinned to the fleet's Rust 1.99.1 (4e6fb844a) and moved to checkout and upload-artifact @v7 (a394fa05a), green on main at bdc67e897, on rustc 1.99.1 with no Node 20 warning; releasing.md's ^{commit} check (3f75fe2f9); every Intent estate on rhadamanth on 3.3.1, committed and pushed to local (Cards has no remote; hv: ignore it). These ride into the next release. Left: the memory prune. (edited)
 - For hv on return (devbin-vc, 2026-11-12 19:4xZ by its read): devbin 0.1.23 is final and on the tap; the fleet sweep to 0.1.23 is committed in all 24 estates and none of it is pushed (Molt's is f06f164). Whether the devvm build takes Molt from a pushed repo, so that f06f164 must be pushed, is hv's go; agentic-engineering-vc asks it tomorrow morning. agentic-engineering-vc waits for "Intent's version + desk free" from devbin-vc.
 
 ## Holds
