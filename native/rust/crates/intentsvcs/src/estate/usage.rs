@@ -26,6 +26,11 @@
 //! and backs off after a failure, never sooner than a 429's `Retry-After`,
 //! and [`carry`] keeps the last good reading, still stamped when it was read,
 //! beside the failure that followed it.
+//!
+//! **WHAT IT KEPT OUTLIVES A RESTART** (issue 0691). intentd writes the kept
+//! reading and the read's schedule to [`kept_path`] after every read and
+//! resumes from them at start, so a restart that meets a 429 still shows the
+//! last numbers, and does not ask a refusing endpoint again at once.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -34,6 +39,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use time::OffsetDateTime;
 
 use super::{EstateError, Unreadable, estate_dir, iso, stamped_at, valid_session_id};
 use crate::userstate::Dirs;
@@ -127,7 +133,7 @@ impl EndpointTools {
 }
 
 /// Where a reading came from.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Source {
   /// `endpoint` or `statusline`.
   pub kind: String,
@@ -136,14 +142,14 @@ pub struct Source {
 }
 
 /// One window's reading.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Window {
   pub percent: f64,
   pub resets_at: Option<String>,
 }
 
 /// One model's weekly cap, from the endpoint only.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModelCap {
   pub name: String,
   pub percent: f64,
@@ -151,7 +157,7 @@ pub struct ModelCap {
 }
 
 /// The @1 `usage` key.
-#[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Usage {
   pub source: Option<Source>,
   /// Why the primary failed, or null when it did not.
@@ -196,16 +202,23 @@ pub fn report(dirs: &Dirs, text: &str) -> Result<Option<PathBuf>, EstateError> {
     return Ok(None);
   };
   let path = report_path(dirs, session_id);
-  let unwritable = |cause: WriteError| EstateError::Unwritable {
-    path: path.clone(),
-    cause,
-  };
   let report = Report {
     schema: REPORT_SCHEMA.to_string(),
     session_id: session_id.to_string(),
     rate_limits: rate_limits.clone(),
   };
-  let mut body = serde_json::to_string_pretty(&report).map_err(|e| {
+  write_json(dirs, &path, &report)?;
+  Ok(Some(path))
+}
+
+/// Writes `value` to `path` under the estate directory, pretty and whole, by
+/// atomic rename, making the directory first.
+fn write_json(dirs: &Dirs, path: &Path, value: &impl Serialize) -> Result<(), EstateError> {
+  let unwritable = |cause: WriteError| EstateError::Unwritable {
+    path: path.to_path_buf(),
+    cause,
+  };
+  let mut body = serde_json::to_string_pretty(value).map_err(|e| {
     unwritable(WriteError::Io {
       path: path.display().to_string(),
       source: std::io::Error::other(e),
@@ -218,9 +231,8 @@ pub fn report(dirs: &Dirs, text: &str) -> Result<Option<PathBuf>, EstateError> {
       path: dir.display().to_string(),
       source: e,
     })
-    .and_then(|()| write_atomically(&path, body.as_bytes()))
-    .map_err(unwritable)?;
-  Ok(Some(path))
+    .and_then(|()| write_atomically(path, body.as_bytes()))
+    .map_err(unwritable)
 }
 
 /// One statusline window, `{used_percentage, resets_at}`, or `None` when the
@@ -318,6 +330,102 @@ pub fn next_wait(read: &Endpoint, waited: Duration) -> Duration {
     } => doubled.max(Duration::from_secs(*secs)),
     _ => doubled,
   }
+}
+
+/// The schema of what intentd keeps of the endpoint across a restart.
+pub const KEPT_SCHEMA: &str = "intent/estate-endpoint@1";
+
+/// What intentd keeps of the endpoint across a restart (issue 0691): the
+/// reading [`carry`] holds, when it holds a good one, and the read's
+/// schedule. A restart that meets a 429 then still shows the last numbers,
+/// stamped when they were read, and does not ask the endpoint again before
+/// the wait it was given.
+///
+/// **IT CARRIES NO TIME.** The file is written just after each read, so its
+/// own modification time is when the wait began: a property the filesystem
+/// recorded, read back by [`kept`], never a time this code was handed (D42).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Kept {
+  pub schema: String,
+  /// The last good reading, with any failure after it in `error`; null when
+  /// no read has been good.
+  pub reading: Option<Usage>,
+  /// How long after the file was written the next read is due, in whole
+  /// seconds, as [`next_wait`] gave it, and the wait a further failure
+  /// doubles.
+  pub wait_secs: u64,
+}
+
+/// `<state>/estate/intentd.endpoint.json`. The `.` in its stem keeps it from
+/// the WIP records' reader and the statusline reports' reader, which take
+/// only a session id there.
+pub fn kept_path(dirs: &Dirs) -> PathBuf {
+  estate_dir(dirs).join("intentd.endpoint.json")
+}
+
+/// What to keep after a read: what [`carry`] kept, when it is a reading, and
+/// the wait [`next_wait`] gave. Pure.
+pub fn to_keep(carried: &Endpoint, wait: Duration) -> Kept {
+  Kept {
+    schema: KEPT_SCHEMA.to_string(),
+    reading: carried.as_ref().ok().cloned(),
+    wait_secs: wait.as_secs(),
+  }
+}
+
+/// Writes what intentd keeps, whole, by atomic rename.
+pub fn keep(dirs: &Dirs, kept: &Kept) -> Result<PathBuf, EstateError> {
+  let path = kept_path(dirs);
+  write_json(dirs, &path, kept)?;
+  Ok(path)
+}
+
+/// What intentd kept, with when it was kept, the file's modification time;
+/// or `None` when it has kept nothing yet.
+pub fn kept(dirs: &Dirs) -> Result<Option<(Kept, OffsetDateTime)>, Unreadable> {
+  let path = kept_path(dirs);
+  let unread = |why: String| Unreadable {
+    path: path.display().to_string(),
+    why,
+    pid: None,
+  };
+  let text = match std::fs::read_to_string(&path) {
+    Ok(text) => text,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+    Err(e) => return Err(unread(e.to_string())),
+  };
+  let kept: Kept = serde_json::from_str(&text)
+    .map_err(|e| unread(format!("not intentd's endpoint state: {e}")))?;
+  if kept.schema != KEPT_SCHEMA {
+    return Err(unread(format!(
+      "endpoint state schema `{}` is not `{KEPT_SCHEMA}`",
+      kept.schema
+    )));
+  }
+  let modified = std::fs::metadata(&path)
+    .and_then(|m| m.modified())
+    .map_err(|e| unread(format!("its modification time would not read: {e}")))?;
+  Ok(Some((kept, OffsetDateTime::from(modified))))
+}
+
+/// What a restarted intentd resumes from what it kept, `elapsed` after it was
+/// kept: the reading for [`carry`], the wait a further failure doubles, and
+/// how much of that wait is left, none once it has passed. Pure.
+pub fn resume(kept: &Kept, elapsed: Duration) -> Resumed {
+  let wait = Duration::from_secs(kept.wait_secs);
+  Resumed {
+    reading: kept.reading.clone().map(Ok),
+    wait,
+    left: wait.saturating_sub(elapsed),
+  }
+}
+
+/// What [`resume`] gives a restarted intentd.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Resumed {
+  pub reading: Option<Endpoint>,
+  pub wait: Duration,
+  pub left: Duration,
 }
 
 /// The newest kept report, as usage; with none, no source and the primary's
@@ -734,6 +842,54 @@ mod tests {
     assert_eq!(usage.error, None);
     assert_eq!(usage.source.map(|s| s.kind), Some("statusline".to_string()));
     assert_eq!(usage.five_hour.map(|w| w.percent), Some(20.0));
+    let _ = std::fs::remove_dir_all(&home);
+  }
+
+  /// Issue 0691: a restarted intentd whose first read meets a 429 still
+  /// shows the last good reading, stamped when it was read, and resumes the
+  /// wait the throttle gave the daemon before it, less the time since.
+  #[test]
+  fn a_restart_that_meets_a_429_keeps_the_last_reading_and_its_wait() {
+    let home = std::env::temp_dir().join(format!("estate-usage-0691-{}", std::process::id()));
+    let dirs = Dirs::at_home(&home);
+    let good = Usage {
+      source: Some(Source {
+        kind: "endpoint".to_string(),
+        session_id: None,
+      }),
+      read_at: Some("2026-10-24T15:55:00.000Z".to_string()),
+      five_hour: Some(Window {
+        percent: 42.0,
+        resets_at: Some("2026-10-24T19:00:00.000Z".to_string()),
+      }),
+      ..Usage::default()
+    };
+    let throttled = || EndpointFailure::Throttled {
+      retry_after: Some(WAIT_CAP.as_secs()),
+    };
+
+    // The daemon before the restart: a good read, then a 429 carried over it.
+    let carried = carry(Some(&Ok(good.clone())), Err(throttled()));
+    let wait = next_wait(&Err(throttled()), READ_EVERY);
+    keep(&dirs, &to_keep(&carried, wait)).expect("the state is kept");
+
+    // The restart holds nothing in memory, only what was kept, and comes up
+    // one read's interval after it was kept.
+    let (kept, _) = kept(&dirs).expect("it reads").expect("it was kept");
+    let since = READ_EVERY;
+    let resumed = resume(&kept, since);
+    assert_eq!(resumed.wait, wait);
+    assert_eq!(resumed.left, wait - since);
+
+    // Its first read meets a 429.
+    let read = carry(resumed.reading.as_ref(), Err(throttled()));
+    let mut unreadable = Vec::new();
+    let usage = resolve(&Reading::Read(read), &dirs, &mut unreadable);
+    assert!(unreadable.is_empty(), "{unreadable:?}");
+    assert_eq!(usage.five_hour, good.five_hour);
+    assert_eq!(usage.read_at, good.read_at);
+    assert_eq!(usage.source, good.source);
+    assert_eq!(usage.error, Some(throttled().to_string()));
     let _ = std::fs::remove_dir_all(&home);
   }
 

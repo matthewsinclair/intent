@@ -106,6 +106,10 @@ pub enum EstateError {
   BadPattern { pattern: String, why: String },
   #[error("the statusline input {why}")]
   BadStatusline { why: String },
+  /// What intentd kept of the endpoint across a restart would not read
+  /// (issue 0691).
+  #[error("`{path}` would not read: {why}")]
+  UnreadableKept { path: String, why: String },
   #[error(transparent)]
   Slot(#[from] slots::SlotError),
   #[error(transparent)]
@@ -124,6 +128,7 @@ impl crate::remedy::Remedy for EstateError {
       Self::BadClass { .. } => "name the class with letters, digits, `-` and `_` only: it is the watch file's name. Nothing was written.".to_string(),
       Self::BadPattern { .. } => "give a regular expression in Rust's `regex` syntax, matched against the process's whole command line. Nothing was written.".to_string(),
       Self::BadStatusline { .. } => "hand it the JSON Claude Code gives a statusline command, unchanged, on stdin. Nothing was written.".to_string(),
+      Self::UnreadableKept { .. } => "intentd starts holding no endpoint reading, as a daemon that never kept one does, and its next read writes the file whole again. Nothing was removed.".to_string(),
       Self::Slot(e) => e.remedy(),
       Self::Coordinator(e) => e.remedy(),
       Self::NoSessionsDir { configured, .. } => slots::no_sessions_dir_remedy(*configured),
@@ -1089,6 +1094,32 @@ pub fn host_endpoint() -> Result<usage::Endpoint, EstateError> {
     &crate::userstate::claude_dir()?,
     crate::userstate::claude_dir_configured(),
   ))
+}
+
+/// Keeps what intentd holds of the endpoint just after a read, with the wait
+/// before the next, under the operator's own directories (issue 0691). The
+/// file's modification time is when that wait began.
+pub fn host_keep_endpoint(
+  carried: &usage::Endpoint,
+  wait: std::time::Duration,
+) -> Result<PathBuf, EstateError> {
+  usage::keep(&crate::userstate::dirs()?, &usage::to_keep(carried, wait))
+}
+
+/// What a starting intentd resumes of the endpoint from what it kept under
+/// the operator's own directories, aged against the estate's clock; `None`
+/// when it kept nothing. A file kept after the clock's reading, a clock set
+/// back, has used none of its wait.
+pub fn host_resume_endpoint() -> Result<Option<usage::Resumed>, EstateError> {
+  let dirs = crate::userstate::dirs()?;
+  let kept = usage::kept(&dirs).map_err(|u| EstateError::UnreadableKept {
+    path: u.path,
+    why: u.why,
+  })?;
+  Ok(kept.map(|(k, kept_at)| {
+    let elapsed = u64::try_from((clock::now() - kept_at).whole_seconds()).unwrap_or(0);
+    usage::resume(&k, std::time::Duration::from_secs(elapsed))
+  }))
 }
 
 /// Writes this session's WIP line, or with `None` removes its record.

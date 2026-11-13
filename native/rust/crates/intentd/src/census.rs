@@ -12,7 +12,10 @@
 //! failure (`usage::next_wait`).
 //!
 //! **NOT A RECORD.** The ring and the endpoint reading live in memory, and a
-//! restart starts them empty (design.md). They are one per process by
+//! restart starts the ring empty (design.md). The endpoint reading and its
+//! schedule are also kept on disk after every read, and a restart resumes
+//! them, so it neither blanks the card nor asks a refusing endpoint at once
+//! (issue 0691). They are one per process by
 //! definition, so they are process-wide statics rather than state threaded
 //! through every connection that might ask.
 
@@ -150,6 +153,35 @@ fn ticks_to_wait(waited: Duration) -> u64 {
   waited.as_secs().div_ceil(TICK.as_secs()) + 1
 }
 
+/// Seeds the held reading from what the last daemon kept (issue 0691), and
+/// answers the schedule it resumes: the wait a further failure doubles, and
+/// the whole ticks left of it, none when nothing was kept or the wait has
+/// passed. A kept file that will not read is logged, and the daemon starts as
+/// one that kept nothing.
+fn resume() -> (Duration, u64) {
+  match estate::host_resume_endpoint() {
+    Ok(Some(resumed)) => {
+      *ENDPOINT
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = resumed.reading;
+      let left = if resumed.left.is_zero() {
+        0
+      } else {
+        ticks_to_wait(resumed.left)
+      };
+      (resumed.wait, left)
+    }
+    Ok(None) => (usage::READ_EVERY, 0),
+    Err(e) => {
+      elogln!(
+        "warning: intentd could not resume the account's usage: {e}\n  remedy: {}",
+        e.remedy()
+      );
+      (usage::READ_EVERY, 0)
+    }
+  }
+}
+
 /// Runs the tick for as long as the process runs.
 ///
 /// **A FAILED SAMPLE LEAVES A GAP IN THE RING** rather than a made-up point,
@@ -160,11 +192,15 @@ fn ticks_to_wait(waited: Duration) -> u64 {
 pub async fn tick() {
   let mut every = tokio::time::interval(TICK);
   every.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-  let (mut sampling, mut pruning, mut reading) =
-    (Noted::default(), Noted::default(), Noted::default());
-  // The endpoint's own schedule, in whole ticks left to wait: none at the
-  // start, so the first ask reads at once.
-  let (mut waited, mut ticks_left) = (usage::READ_EVERY, 0u64);
+  let (mut sampling, mut pruning, mut reading, mut keeping) = (
+    Noted::default(),
+    Noted::default(),
+    Noted::default(),
+    Noted::default(),
+  );
+  // The endpoint's own schedule, in whole ticks left to wait, as the last
+  // daemon left it: none when it kept nothing, so the first ask reads at once.
+  let (mut waited, mut ticks_left) = resume();
   loop {
     let whole = tokio::select! {
       _ = every.tick() => true,
@@ -217,11 +253,22 @@ pub async fn tick() {
         reading.ok();
         waited = usage::next_wait(&endpoint, waited);
         ticks_left = ticks_to_wait(waited);
-        let mut kept = ENDPOINT
-          .lock()
-          .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let next = usage::carry(kept.as_ref(), endpoint);
-        *kept = Some(next);
+        let next = {
+          let mut kept = ENDPOINT
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+          let next = usage::carry(kept.as_ref(), endpoint);
+          *kept = Some(next.clone());
+          next
+        };
+        match estate::host_keep_endpoint(&next, waited) {
+          Ok(_) => keeping.ok(),
+          Err(e) => keeping.failed(
+            "keep the account's usage for a restart",
+            e.to_string(),
+            &e.remedy(),
+          ),
+        }
       }
       Some(Err(e)) => reading.failed("read the account's usage", e.to_string(), &e.remedy()),
       None => {}
