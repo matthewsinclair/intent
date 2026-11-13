@@ -503,7 +503,7 @@ doctor-on-the-merge-result:
     XDG_RUNTIME_DIR: ""
 
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
       with:
@@ -521,7 +521,7 @@ intent-doctor:
   name: Intent doctor on the merge result
   runs-on: macos-15
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Install Intent
       run: brew install matthewsinclair/intent/intent
     - name: intent doctor
