@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- After hv's cut of v3.3.1, releasing.md step 5 for it (hv decision 47, vc's reading): set db/release.json in ~/Devel/prj/Sites/intent to 3.3.1 with its release date, commit there, rehearse bin/devbin sites gitpush --sites=intent --dry-run from ~/Devel/prj/Laksa, and the push waits for hv's word through vc; then read https://intent.laksa.io/ for v3.3.1.
+_(none)_
 
 ## Holds
 
