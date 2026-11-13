@@ -22,6 +22,7 @@ _(none)_
 ## Holds
 
 - 0692 after read for intentd: the CPU of one estate-page read by the release intentd on the live estate, by the ps cputime delta, against the before read of 1.3 CPU-s per read at 12:17Z (1301 requests). Released when Intent 3.3.2 is installed on rhadamanth and intentd runs it; then send vc the read (vc accepted this order, read by dc before 15:33Z by date -u). (edited)
+- Intent 3.3.2 kovacs rehearsal, once at the final tip: ask the Desk (heavy lane), then bin/devbin release gates --leg kovacs from a clean worktree at main's tip outside canon (scratchpad/wt-kovacs), and send vc the sealed record and the sha. The first run at 89b25ee9f failed only on a stale reference, landed as 1f02e6f28. Released when vc says ic's known-defects re-drive and explorer shots have landed.
 
 ## Watch-outs
 

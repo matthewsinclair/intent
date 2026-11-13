@@ -1,0 +1,15 @@
+{
+  "id": "01M7AT2FJ20QA5DQBX3GY1PK67",
+  "ts": "2026-11-13T15:57:56.674Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Intent 3.3.2 kovacs rehearsal, once at the final tip: ask the Desk (heavy lane), then bin/devbin release gates --leg kovacs from a clean worktree at main's tip outside canon (scratchpad/wt-kovacs), and send vc the sealed record and the sha. The first run at 89b25ee9f failed only on a stale reference, landed as 1f02e6f28. Released when vc says ic's known-defects re-drive and explorer shots have landed."
+  }
+}

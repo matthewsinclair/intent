@@ -2928,6 +2928,14 @@
       "state": "live",
       "recorded_at": "2026-11-13T15:32:13.255Z",
       "edited_at": "2026-11-13T15:32:18.833Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 47,
+      "text": "Intent 3.3.2 kovacs rehearsal, once at the final tip: ask the Desk (heavy lane), then bin/devbin release gates --leg kovacs from a clean worktree at main's tip outside canon (scratchpad/wt-kovacs), and send vc the sealed record and the sha. The first run at 89b25ee9f failed only on a stale reference, landed as 1f02e6f28. Released when vc says ic's known-defects re-drive and explorer shots have landed.",
+      "state": "live",
+      "recorded_at": "2026-11-13T15:57:56.674Z"
     }
   ],
   "sent": [
