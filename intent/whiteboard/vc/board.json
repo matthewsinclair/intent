@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "7683276e-e120-4768-84a2-a8267004e72d",
-    "heartbeat_at": "2026-11-13T16:23:55.597Z",
+    "heartbeat_at": "2026-11-13T18:12:38.811Z",
     "status": "active",
-    "focus": "Intent 3.3.2 ready to cut at 071155289, held by devbin-vc for hv; vc holds.",
+    "focus": "Intent 3.3.2 released (7282d3bfc), CI green on main; post-release done; next release carries 0694 and 0695. vc holds.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2903,7 +2903,8 @@
       "kind": "todo",
       "seq": 81,
       "text": "Intent 3.3.2 READY TO CUT at 071155289 (sent to devbin-vc by 16:23Z 2026-11-13 by date -u), who holds it for hv's cut; local pushed, upstream untouched. Landed: 0693 (ic) d13b9f57a..f81a638c0; 0692 plus the asker's withdraw (dc) c9f4e8316, f773ea797; 0691 (cc) 89b25ee9f; CHANGELOG 85f55904d; reference 1f02e6f28; known-defects fde39ef27; bats cache leak 071155289. Kovacs rehearsal green at 071155289. After the cut: close 0691, 0692 and 0693; dc's intentd CPU read (dc hold 46).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-13T18:12:37.877Z",
       "recorded_at": "2026-11-13T13:29:49.859Z",
       "edited_at": "2026-11-13T16:24:04.412Z"
     }
