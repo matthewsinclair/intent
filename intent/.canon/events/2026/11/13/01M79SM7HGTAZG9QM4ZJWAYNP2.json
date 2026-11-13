@@ -1,0 +1,15 @@
+{
+  "id": "01M79SM7HGTAZG9QM4ZJWAYNP2",
+  "ts": "2026-11-13T06:30:55.284Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0691"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "the estate page's plan usage blanks on a 429 after an intentd restart: 0658's kept reading lives only in memory"
+  }
+}
