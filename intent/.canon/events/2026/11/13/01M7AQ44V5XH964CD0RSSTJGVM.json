@@ -1,0 +1,15 @@
+{
+  "id": "01M7AQ44V5XH964CD0RSSTJGVM",
+  "ts": "2026-11-13T15:06:25.509Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0692 (P0, Intent 3.3.2): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at c9850d175, fc4a451f2 plus the withdraw fix (an asker ends its own still-asked request with slots release; vc accepted the design 15:05Z). Next: rebase onto main once ic's 0693 lands, regenerate surface/dispatch-table.md, ask the Desk for a cargo slot, run one whole gate rust in a clone outside canon, bank the gated commits, send vc the END."
+  }
+}

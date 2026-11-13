@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-13 13:35Z
+heartbeat_at: 2026-11-13 15:06Z
 status: active
-focus: "2026-11-13 13:31Z by date -u: folded for the weekend on vc's word. 0692 is banked at fc4a451f2 and on hold until resume (see the hold); no slot is held."
+focus: "2026-11-13 15:06Z by date -u: 0692 resumed on vc's word; withdraw fix banked at c9850d175, waiting on 0693's landing to rebase and ask the Desk."
 claims: [ST0093/06]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0093/06]
 
 ## DOING
 
-_(none)_
+- 0692 (P0, Intent 3.3.2): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at c9850d175, fc4a451f2 plus the withdraw fix (an asker ends its own still-asked request with slots release; vc accepted the design 15:05Z). Next: rebase onto main once ic's 0693 lands, regenerate surface/dispatch-table.md, ask the Desk for a cargo slot, run one whole gate rust in a clone outside canon, bank the gated commits, send vc the END.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- 0692 (P0): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at fc4a451f2 (retire finished requests to slots/history/, wait reads its own request, watch reads the newly finished). Its gate at f03a527b1 ended rc=1 on check doc (two public-to-private doc links), fixed at fc4a451f2, whose check doc passes on gyges. Released when vc or hv says resume and the Desk grants a slot; then run the whole gate rust on fc4a451f2 in wt-0692, take the after CPU reads (a waiter, and intentd per estate read, against before: 30% per waiter; 1.3 CPU-s per estate read), and send vc the END.
+_(none)_
 
 ## Watch-outs
 
