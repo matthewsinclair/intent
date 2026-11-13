@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-13 13:29Z
+heartbeat_at: 2026-11-13 15:03Z
 status: active
-focus: "Weekend fold (hv, 2026-11-13 13:29Z by date -u): dc, cc and ic told to bank, lean out, localfold and hold. Intent 3.3.2 waits on banks 0692, 0691 and 0693 (vc todo)."
+focus: "Intent 3.3.2 P0 (hv, 2026-11-13 ~15:03Z): gates run 0693 (ic), then 0692 plus asker-withdraw (dc), then 0691 (cc) on the desk; then kovacs rehearsal, then ready to cut to devbin-vc."
 claims: []
 ---
 
