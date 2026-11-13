@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-13 06:30Z
+heartbeat_at: 2026-11-13 13:30Z
 status: active
-focus: "2026-11-12 19:40Z, localfold for the compact on hv's word through vc; not released. intent.laksa.io is live at v3.3.0 (hold 23 done; live page banked at refs/bank/ic/site330/live-page-20261112T1932Z.html). Hold 22 stands: the two reads at the cut's HEAD, released when vc names it under the freeze. Todo 70: the site update for 3.3.1 after its cut. No claim, slot or worktree."
-claims: []
+focus: "2026-11-13 13:30Z, localfold for hv's weekend compact on vc's word; not released. 0693 is banked ungated (todo 71), slot ask withdrawn, and nothing is running."
+claims: [ISSUE:0693]
 ---
 
 # Interface Claude (ic)
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- Issue 0693 (AE ISSUE:0049) for Intent 3.3.2, resuming on vc's or hv's word after the weekend. The fix is written and banked UNGATED at refs/bank/ic/install/0693-ungated-on-06cb65c54.diff (11 files, +457 -294), and its worktree is scratchpad/wt-install on 06cb65c54, never built. It contains: install decides an installed unit through payload::settle, sync's one classifier, and AlreadyInstalled is deleted; value_flags give each claude skills|subagents verb only the flags it takes, and the parse refusal names those flags and the value_refusals reason; write_copy lets the write stamp installed_at. To finish: book a gate-rust slot (no slots wait until 0692 lands), bin/devbin build all, commit in the worktree, gen_reference.sh --rev HEAD --baseline v3.3.1, the whole bin/devbin gate rust, then rebank and send vc the ref and stat.
 
 ## Holds
 
