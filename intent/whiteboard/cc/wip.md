@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-13 15:04Z
+heartbeat_at: 2026-11-13 15:49Z
 status: active
-focus: "2026-11-13 15:04Z, 0691 resumed on vc's word (P0, Intent 3.3.2). It applies cleanly onto 0692 and the read is clean. Waiting, with no slot, for vc to say 0692 has landed; then rebase, ask the desk and gate third."
+focus: "2026-11-13 15:49Z, 0691 gated rc=0 at 768c6c77a and banked at refs/bank/cc/0691/gated-on-f773ea797 for vc to land; the slot is released. Holding for vc."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Issue 0691 (Intent 3.3.2, P0 tonight, hold 37 released by vc). The fix is banked UNGATED at refs/bank/cc/0691/ungated-on-06cb65c54 (blob 1db2a6668) and ~/Devel/scratch/cc-0691 holds exactly it. It applies cleanly onto dc's 0692 bank fc4a451f2; the two touch different places in estate.rs, and the estate's readers skip the new intentd.endpoint.json. A read found nothing to fix. cc gates THIRD, after ic's 0693 and dc's 0692 land: then rebase onto that main, ask the desk with intent estate slots ask, run one whole bin/devbin gate rust in the clone, bank the gated commit and send vc the END line. The old ask 01M7AD8AMFGGC9FH2XK4X78BK2 is closed (deny.json).
+- Issue 0691 (Intent 3.3.2, P0). GATED and banked for vc to land: refs/bank/cc/0691/gated-on-f773ea797 = 768c6c77a, one commit on main f773ea797 touching intentd/src/census.rs, intentsvcs/src/estate.rs and intentsvcs/src/estate/usage.rs. The whole bin/devbin gate rust ended rc=0 at 768c6c77a in ~/Devel/scratch/cc-0691 on slot 01M7ARGZKME60HC00TVFXJFJQF, now released. Two earlier runs on the slot failed, on check format and on no_function_takes_a_time (D42). The fix for the second: the kept file carries no time, its mtime is when the wait began, and resume takes an elapsed Duration. Done when vc lands it; then archive this and remove the clone. (edited)
 
 ## TODO
 

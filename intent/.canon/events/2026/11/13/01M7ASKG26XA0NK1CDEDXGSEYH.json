@@ -1,0 +1,16 @@
+{
+  "id": "01M7ASKG26XA0NK1CDEDXGSEYH",
+  "ts": "2026-11-13T15:49:45.671Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 114,
+    "text": "Issue 0691 (Intent 3.3.2, P0). GATED and banked for vc to land: refs/bank/cc/0691/gated-on-f773ea797 = 768c6c77a, one commit on main f773ea797 touching intentd/src/census.rs, intentsvcs/src/estate.rs and intentsvcs/src/estate/usage.rs. The whole bin/devbin gate rust ended rc=0 at 768c6c77a in ~/Devel/scratch/cc-0691 on slot 01M7ARGZKME60HC00TVFXJFJQF, now released. Two earlier runs on the slot failed, on check format and on no_function_takes_a_time (D42). The fix for the second: the kept file carries no time, its mtime is when the wait began, and resume takes an elapsed Duration. Done when vc lands it; then archive this and remove the clone."
+  }
+}
