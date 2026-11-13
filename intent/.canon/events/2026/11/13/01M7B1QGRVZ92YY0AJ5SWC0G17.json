@@ -1,0 +1,15 @@
+{
+  "id": "01M7B1QGRVZ92YY0AJ5SWC0G17",
+  "ts": "2026-11-13T18:11:46.079Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0695"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb init team's first --apply rendered the mediator's moniker in the roster README where its display name belongs"
+  }
+}
