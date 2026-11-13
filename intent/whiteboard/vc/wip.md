@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- Intent 3.3.2 (hv, 2026-11-13): land three banks, each on its whole gate rust END and vc's read. 0692, slot history (dc): f03a527b1, design accepted. 0691, plan usage across a restart (cc). 0693, install verdicts and verb flags (ic), wider scope accepted, the parse refusal keeps a remedy. Then the kovacs rehearsal at the final main, then ready to cut, after devbin's release. The release notes carry 0692's polling note: a script polling requests/<id>/end|deny|revoke.json must use slots wait or history/<id>/, and a 3.3.1 binary can't find a retired request.
+- Intent 3.3.2 (hv, 2026-11-13), on resume: three banks, none gated yet. 0692 slot history (dc): refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at fc4a451f2; design accepted; its first gate failed at check doc (private intra-doc links), fixed. 0691 plan usage across a restart (cc): refs/bank/cc/0691/ungated-on-06cb65c54, never compiled. 0693 install verdicts and verb flags (ic): refs/bank/ic/install/0693-ungated-on-06cb65c54.diff. Each lands on its whole gate rust END and vc's read; then the kovacs rehearsal at the final main; then ready to cut, after devbin's release. Release notes: 0692's polling note (requests/<id>/end|deny|revoke.json: use slots wait or history/<id>/; a 3.3.1 binary can't find a retired request). For hv: an asker can't withdraw its own still-asked slot request (seen by ic and cc). (edited)
 
 ## Holds
 
