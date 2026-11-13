@@ -1,0 +1,15 @@
+{
+  "id": "01M7ARKCA7DGBEPVWXM2JBKP1B",
+  "ts": "2026-11-13T15:32:13.255Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "0692 after read for intentd: the CPU of one estate-page read by the release intentd on the live estate, by the ps cputime delta, against the before read of 1.3 CPU-s per read at 12:17Z (1301 requests). Released when Intent 3.3.2 is installed on rhadamanth and intentd runs it; then send vc the read (vc accepted this order, read by dc before 15:33Z by date -u)."
+  }
+}

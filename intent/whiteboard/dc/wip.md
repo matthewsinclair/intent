@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-13 15:06Z
+heartbeat_at: 2026-11-13 15:32Z
 status: active
-focus: "2026-11-13 15:06Z by date -u: 0692 resumed on vc's word; withdraw fix banked at c9850d175, waiting on 0693's landing to rebase and ask the Desk."
+focus: "2026-11-13 15:37Z by date -u: 0692 landed by vc (c9f4e8316, f773ea797) from gated d86871705; after CPU reads sent; waiting on vc."
 claims: [ST0093/06]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0093/06]
 
 ## DOING
 
-- 0692 (P0, Intent 3.3.2): bank refs/bank/dc/0692/slots-retire-and-wait-on-88e936215 at c9850d175, fc4a451f2 plus the withdraw fix (an asker ends its own still-asked request with slots release; vc accepted the design 15:05Z). Next: rebase onto main once ic's 0693 lands, regenerate surface/dispatch-table.md, ask the Desk for a cargo slot, run one whole gate rust in a clone outside canon, bank the gated commits, send vc the END.
+_(none)_
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- 0692 after read for intentd: the CPU of one estate-page read by the release intentd on the live estate, by the ps cputime delta, against the before read of 1.3 CPU-s per read at 12:17Z (1301 requests). Released when Intent 3.3.2 is installed on rhadamanth and intentd runs it; then send vc the read (vc accepted this order, read by dc before 15:33Z by date -u). (edited)
 
 ## Watch-outs
 
