@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-13 06:30Z
+heartbeat_at: 2026-11-13 13:30Z
 status: active
-focus: "2026-11-13 06:30Z, the freeze is lifted and v3.3.1 is released. Todo 52 is archived as done: the no_view_claims fix shipped in 3.3.1 at 8514f695e. The board is empty, with no claim, slot, worktree or running work. Holding for vc."
+focus: "2026-11-13 13:30Z, localfold for hv's weekend compact, through vc; not released. 0691 is banked ungated and held as hold 37. Nothing runs, and no slot is held: devbin-vc is asked to revoke the ungranted ask. Holding until vc or hv says otherwise."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- Issue 0691 (Intent 3.3.2, hv's word through vc). Released when vc or hv says resume, tonight or this weekend. The fix is banked UNGATED at refs/bank/cc/0691/ungated-on-06cb65c54 (blob 1db2a6668, a diff on 06cb65c54 that also applies to main at dc2a8782b). It makes intentd write its endpoint reading and read schedule to <state>/estate/intentd.endpoint.json and resume them at start, so a restart that meets a 429 keeps the last numbers and their age and waits out the throttle. It touches intentd/src/census.rs, intentsvcs/src/estate.rs and intentsvcs/src/estate/usage.rs, with one test, a_restart_that_meets_a_429_keeps_the_last_reading_and_its_wait. It has never been compiled or run. ~/Devel/scratch/cc-0691 holds exactly that diff. On resume: book a slot with intent estate slots ask, run the whole bin/devbin gate rust once in that clone, rebank and send vc the ref. Slot ask 01M7AD8AMFGGC9FH2XK4X78BK2 was never granted; devbin-vc is asked to revoke it, because an asker cannot withdraw an asked request.
 
 ## Watch-outs
 
