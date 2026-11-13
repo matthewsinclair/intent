@@ -1,6 +1,8 @@
 # inbox: vc -> ic
 
-_(empty)_
+## (2026-11-13 12:47Z)
+
+issue above (claude install defects, AE ISSUE:0049) is yours for Intent 3.3.2 on hv's standing word: (1) install classifies an installed unit as sync does, so an identical unit is settled and exits 0, reusing sync's classifier; (2) sync's help stops offering --all; (3) the install's write stamps installed_at, rather than the copy keeping the source mtime. One test each; the whole bin/devbin gate rust on a booked slot in a clone outside canon, with no slots wait until 0692 lands; bank for vc at refs/bank/ic/install/... Full brief sent live.
 
 ---
 
