@@ -28,13 +28,13 @@ This directory holds the workflows GitHub runs for the Intent project: the bats 
 
 ### 2. rust (`rust.yml`)
 
-**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**` or `surface/**`, or is `rust.yml` itself; and `workflow_call` from `tests.yml` for a release candidate or a run by hand, whatever changed.
+**Triggers**: push to `main` and pull requests, only when a changed path is under `native/rust/**`, `schema/**`, `surface/**` or `.github/actions/fleet-rust/**`, or is `rust.yml` itself; and `workflow_call` from `tests.yml` for a release candidate or a run by hand, whatever changed.
 
 **Concurrency**: a newer run of the same workflow for the same event and ref cancels the one in progress.
 
 **Job** `rust`, on a `macos-latest` and `ubuntu-latest` matrix with `fail-fast: false`, working in `native/rust`:
 
-- Installs the stable toolchain with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
+- Installs the fleet's Rust (`.github/actions/fleet-rust`, the one home of the version CI follows) with rustfmt and clippy, restores the cargo cache, and records `rustc --version` and `cargo --version` to the job summary
 - Installs shellcheck (macOS only) and `prettier@3` (both legs); the test suite needs both on PATH
 - Runs `cargo fmt --check`, `cargo clippy --workspace --all-targets -- -D warnings`, IN-RS-CODE-001's own step `cargo clippy -p intentsvcs -p intent-cli --lib -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (the library targets only, never `--all-targets`) and its step over intentd's binary `cargo clippy -p intentd --bins -- -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic` (testkit is left out on purpose), IN-RS-CODE-002's step `cargo clippy --workspace --lib --bins -- -D clippy::needless_pass_by_value` (issue 0649), `cargo doc --no-deps --document-private-items` under `RUSTDOCFLAGS=-Dwarnings` so every intra-doc link must resolve (issue 0451; the same command as devbin's `doc` gate, which `tests/unit/devbin_rust_gates.bats` holds them to), and `cargo test --workspace --no-fail-fast`
 
@@ -61,7 +61,7 @@ No concurrency group: every run completes.
 
 **Job** `package`, on an x86_64 (`ubuntu-latest`) and an aarch64 (`ubuntu-24.04-arm`) leg with `fail-fast: false`:
 
-- Installs the stable toolchain with the leg's musl target and `musl-tools`, and records `rustc --version` and `cargo --version` to the job summary
+- Installs the fleet's Rust (`.github/actions/fleet-rust`) with the leg's musl target and `musl-tools`, and records `rustc --version` and `cargo --version` to the job summary
 - Runs `bin/int linux doctor`, `build`, `package`, `smoke`, and `smoke --in oraclelinux:7-slim`: the same subcommands hv's Ubuntu VM runs by hand, so both prove one set of steps (`bin/.devbin/cmd/linux`)
 - `build` refuses a binary that is not static; `smoke` unpacks the package, reaches `intent` through a link on PATH, and checks that it starts, resolves its install root to the unpacked directory, and runs a hook script from the support tree
 - Uploads `intent-<triple>.tar.gz` as the run's artifact
@@ -99,7 +99,7 @@ Suites that commit through the pre-commit hook (eg `pre_commit_hook.bats`) also 
 
 ### Dependencies
 
-- **GitHub Actions**: `actions/checkout@v4`, `dtolnay/rust-toolchain@stable`, `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
+- **GitHub Actions**: `actions/checkout@v4`, `dtolnay/rust-toolchain@master` (through the local `.github/actions/fleet-rust`, which pins the fleet's version), `Swatinem/rust-cache@v2`, `erlef/setup-beam@v1`
 - **Bats**: bats-core v1.12.0 installed with its own `install.sh` from the GitHub source archive on Ubuntu; Homebrew's `bats-core` on macOS
 - **Bats libraries**: bats-support, bats-assert and bats-file, cloned from GitHub into `tests/lib` if not present, retrying a failed clone
 - **Tools**: jq on both bats legs; shellcheck installed on macOS (Ubuntu runners ship it); prettier 3 from npm on every leg of both `tests.yml` and `rust.yml`; Erlang/OTP 29 and Elixir 1.20 on both bats legs; Homebrew's bash on the macOS bats leg

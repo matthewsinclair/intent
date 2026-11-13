@@ -164,7 +164,7 @@ jobs:
       # 6, with the v2 shell pruned under AC-00.6): `tests/lib/test_helper.bash`
       # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
       # built here first. Same toolchain and cache setup as `rust.yml`.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/fleet-rust
         # `components: rustfmt` IS THE POINT OF THIS BLOCK, and it was missing
         # from BOTH sites in this file while `rust.yml:75-77` has carried it
         # since the job existed -- three lines under a comment here claiming
@@ -178,7 +178,7 @@ jobs:
         # nothing about anything DECLARING it, and what supplies it is the
         # runner image, which this repository does not control.
         #
-        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml:92-97,
+        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml's toolchain step,
         # refusing a `rust-toolchain.toml`: "a pin that does not bind is worse
         # than no pin: it does not refuse, and it misleads". This is that
         # argument's mirror image -- a dependency not declared at all, satisfied
@@ -401,7 +401,7 @@ jobs:
       # 6, with the v2 shell pruned under AC-00.6): `tests/lib/test_helper.bash`
       # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
       # built here first. Same toolchain and cache setup as `rust.yml`.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/fleet-rust
         # `components: rustfmt` IS THE POINT OF THIS BLOCK, and it was missing
         # from BOTH sites in this file while `rust.yml:75-77` has carried it
         # since the job existed -- three lines under a comment here claiming
@@ -415,7 +415,7 @@ jobs:
         # nothing about anything DECLARING it, and what supplies it is the
         # runner image, which this repository does not control.
         #
-        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml:92-97,
+        # THE ARGUMENT AGAINST LEAVING IT IS ALREADY WRITTEN IN rust.yml's toolchain step,
         # refusing a `rust-toolchain.toml`: "a pin that does not bind is worse
         # than no pin: it does not refuse, and it misleads". This is that
         # argument's mirror image -- a dependency not declared at all, satisfied

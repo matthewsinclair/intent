@@ -1,0 +1,36 @@
+# THE FLEET'S RUST, AND THE ONE HOME OF ITS VERSION (hv, 2026-11-13: "We should
+# be on the same everywhere"). Every workflow job that installs Rust calls this
+# action after its checkout, so CI builds, lints and tests on the compiler the
+# fleet runs, and not on whatever `@stable` resolves to on the day.
+#
+# The fleet's rustc is Homebrew's stable: rhadamanth, gyges and kovacs all run
+# `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, and rustup is installed on none of them.
+# That is also why this is not a rust-toolchain.toml: such a file would bind CI
+# alone and be ignored in silence by every machine of the fleet (rust.yml's
+# toolchain step says what was measured). Here the pin binds CI, and the fleet
+# is bound by Homebrew, so the two sides agree only while this line agrees with
+# brew. WHEN BREW MOVES THE FLEET, MOVE `toolchain:` BELOW, and nothing else.
+#
+# `uses:` cannot take an expression, so a version written once has to reach the
+# installer as an input: dtolnay/rust-toolchain@master with `toolchain:`.
+# Each job's "record the toolchain this run actually used" step stays, and is
+# the check that the pin took.
+name: The fleet's Rust
+description: Install the Rust toolchain the fleet runs, with the components and targets a job asks for
+inputs:
+  components:
+    description: Comma-separated components, eg rustfmt, clippy
+    required: false
+    default: ""
+  targets:
+    description: Comma-separated targets, eg a musl triple
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: 1.99.1
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}

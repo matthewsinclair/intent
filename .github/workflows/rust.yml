@@ -31,12 +31,16 @@ on:
       - "schema/**"
       - "surface/**"
       - ".github/workflows/rust.yml"
+      # A move of the fleet's Rust moves fmt and clippy, so it runs this.
+      - ".github/actions/fleet-rust/**"
   pull_request:
     paths:
       - "native/rust/**"
       - "schema/**"
       - "surface/**"
       - ".github/workflows/rust.yml"
+      # A move of the fleet's Rust moves fmt and clippy, so it runs this.
+      - ".github/actions/fleet-rust/**"
   # A RELEASE RUNS THIS FROM tests.yml (ST0091 WP-04), whose run on the cut's
   # candidate is the one verdict the cut reads, so this job's verdict is part of
   # it. Called, it runs whatever the push touched: the caller's trigger decides,
@@ -89,7 +93,9 @@ jobs:
         working-directory: native/rust
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      # The fleet's Rust, its version written once in the action
+      # (.github/actions/fleet-rust/action.yml).
+      - uses: ./.github/actions/fleet-rust
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
@@ -100,18 +106,24 @@ jobs:
           workspaces: native/rust
       - name: record the toolchain this run actually used
         # `fmt --check` and `clippy -D warnings` are both gates and both move
-        # with the compiler, so this job can go red with zero code change when
-        # a new stable lands. That is legitimate -- catching new lints early is
-        # part of why the gate floats on @stable -- but it is only diagnosable
-        # if the version is visible, so it is recorded here rather than left to
-        # be dug out of a `uses:` step's log.
+        # with the compiler. CI USED TO FLOAT ON @stable, and so went red with
+        # zero code change whenever a new stable landed before the fleet had
+        # it: the fleet's local gates and CI then judged one commit by two
+        # compilers. CI NOW FOLLOWS THE FLEET (hv, 2026-11-13: "We should be on
+        # the same everywhere"): the fleet runs Homebrew's stable, and the
+        # fleet-rust action pins CI to that version in its one line. Moving brew
+        # means moving that line. This step records what the run actually used,
+        # so a pin that did not take is visible here rather than dug out of a
+        # `uses:` step's log.
         #
         # DELIBERATELY NOT a rust-toolchain.toml. Measured on the primary dev
         # machine 2026-08-15: cargo/rustc are Homebrew's real binaries, rustup
         # is NOT INSTALLED, and a rust-toolchain.toml pinning 1.70.0 is ignored
         # in silence -- rustc still reported 1.97.1. Such a file would bind CI
         # only, while reading as a project-wide guarantee. A pin that does not
-        # bind is worse than no pin: it does not refuse, and it misleads.
+        # bind is worse than no pin: it does not refuse, and it misleads. The
+        # fleet-rust pin binds CI alone too, but says so where it is written,
+        # and the fleet is bound by brew to the same version.
         run: |
           rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
           cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
@@ -139,10 +151,11 @@ jobs:
         # Homebrew, so a local green does not show the runners lack it.
         #
         # PINNED TO THE MAJOR, NOT THE PATCH, AND THE REASON IS THIS FILE'S OWN.
-        # The rustc step ABOVE records rather than pins, because a pin that
-        # binds CI while the dev machine floats "does not refuse, and it
-        # misleads" -- the rust-toolchain.toml argument. Prettier locally is
-        # Homebrew's and floats the same way, so an exact CI pin would bind one
+        # A pin that binds CI while the dev machine floats "does not refuse,
+        # and it misleads" -- the rust-toolchain.toml argument. Rust is pinned
+        # exactly because hv's ruling holds CI to the fleet's one rustc, which
+        # the fleet-rust action names. Prettier locally is Homebrew's and no
+        # ruling holds it to one version, so an exact CI pin would bind one
         # side of a two-sided gate. `@3` binds the CONTRACT the tests rely on
         # (3.x emphasis normalisation) and leaves both sides in the same
         # regime; this step's own second line records the version to the job

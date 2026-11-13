@@ -52,10 +52,11 @@ jobs:
       FLOOR: oraclelinux:7-slim
     steps:
       - uses: actions/checkout@v4
-      # Stable, unpinned, as rust.yml takes it and for its reason (rust.yml's
-      # toolchain step): a pin would bind CI alone. The step after next records
-      # the version this run used.
-      - uses: dtolnay/rust-toolchain@stable
+      # The fleet's Rust, as rust.yml takes it and for its reason (rust.yml's
+      # toolchain step): CI follows the fleet's Homebrew stable, its version
+      # written once in .github/actions/fleet-rust/action.yml. The step after
+      # next records the version this run used.
+      - uses: ./.github/actions/fleet-rust
         with:
           targets: ${{ matrix.triple }}
       - name: musl-gcc, for the C the build compiles (SQLite and the tree-sitter grammars)

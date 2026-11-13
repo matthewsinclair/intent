@@ -15,7 +15,7 @@ jobs:
       # **THE CHECK ASKS THE v3 BINARY SINCE THE 3.0.1 CUT**, which pruned the v2
       # shell (`bin/intent`) under AC-00.6. It is built here, with the same
       # toolchain and cache setup as `rust.yml`.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/fleet-rust
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
@@ -207,7 +207,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/fleet-rust
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: native/rust
