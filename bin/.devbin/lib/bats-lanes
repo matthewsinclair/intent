@@ -43,6 +43,15 @@
 # DEVBIN_TEST_JOBS is 1: `bats <dir>` runs everything one test at a time, and the
 # first line of the run says why.
 #
+# A SHARD OF THE SUITE (issue 0357): DEVBIN_TEST_SHARD=<i>/<n> runs the i-th of
+# n shards of the directory's files, dealt out by their times in the weights
+# file beside them, <dir>/.lanes-weights, so n machines run the suite between
+# them. Both lanes, the count and the verdict are the shard's. Two more calls
+# serve it, and run no test:
+#
+#   "$DEVBIN_LIB/bats-lanes" --weights <dir> <system>=<log>...   # rewrite the file
+#   "$DEVBIN_LIB/bats-lanes" --plan <dir> <shards>              # each file's shard
+#
 # N IS PRINTED ON THE FIRST LINE and DEVBIN_TEST_JOBS sets it, else DEVBIN_JOBS,
 # a shared desk's one cap for every tool a run starts (issue 0303): a whole
 # number, or `all` for one test per CPU the machine has. The default is half
@@ -240,15 +249,15 @@ gnu_parallel_version() {
   esac
 }
 
-# serial_files <dir> -- the suite's files that carry a serial tag, one per
-# line, in the order bats runs a directory's files. The serial lane is handed
-# these rather than the whole directory because bats preprocesses every file it
-# is given before it runs one, which costs about 9 s for the whole suite here.
+# serial_files <file>... -- those of the files that carry a serial tag, one
+# per line, in the order given: the run gives the directory's files in the
+# order bats runs them, or a shard's (issue 0357). The serial lane is handed
+# these rather than the whole directory because bats preprocesses every file
+# it is given before it runs one, which costs about 9 s for the whole suite.
 # Returns 1 when a file could not be read.
 serial_files() {
   local f rc
-  for f in "$1"/*.bats; do
-    [ -e "$f" ] || continue
+  for f in "$@"; do
     rc=0
     grep -qE "$_LANES_SERIAL_TAG" "$f" || rc=$?
     case "$rc" in
@@ -335,12 +344,241 @@ lanes_times() {
   ' "$1" | LC_ALL=C sort -t "$(printf '\t')" -k1,1nr | LC_ALL=C cut -f 2-
 }
 
+# THE WEIGHTS FILE (issue 0357) sits beside the suite, <dir>/.lanes-weights,
+# and says how long each file took on each kind of machine, so a run can be cut
+# into shards of about equal time. One line per file and system, as
+# `<system>\t<seconds>\t<file>`: the system is `uname -s` where the times were
+# taken (Darwin, Linux), the seconds are the file's wall time in the parallel
+# lane as the times block prints it, and the file is its name in <dir>. Lines
+# starting # are comments. It is written by `bats-lanes --weights`, from the
+# times blocks of runs' logs, and never by hand.
+_LANES_WEIGHTS=.lanes-weights
+
+# lanes_test_counts <file>... -- each file's tests, by its `@test` lines, as
+# `<count>\t<name>`, its name with the directory taken off. bats reads a test
+# from the same line, so the counts are bats's own for any file whose tests are
+# all written as @test lines. Returns 1 when a file cannot be read.
+lanes_test_counts() {
+  local f n rc
+  for f in "$@"; do
+    rc=0
+    n="$(grep -cE '^[[:blank:]]*@test[[:blank:]]' "$f")" || rc=$?
+    [ "$rc" -le 1 ] || return 1
+    printf '%s\t%s\n' "${n:-0}" "${f##*/}"
+  done
+}
+
+# lanes_weight_rows <weights file> <system> -- the file's rows for <system>,
+# as `<seconds>\t<name>`. A missing file has none. Returns 1, printing the
+# first line it cannot read to stderr, for a line that is not a comment and not
+# three fields of a system, a number of seconds and a .bats name.
+lanes_weight_rows() {
+  [ -e "$1" ] || return 0
+  LC_ALL=C awk -F '\t' -v sys="$2" '
+    /^#/ || /^[[:blank:]]*$/ { next }
+    NF != 3 || $1 !~ /^[A-Za-z0-9_-]+$/ || $2 !~ /^[0-9]+(\.[0-9]+)?$/ || $3 !~ /^[^\/]+\.bats$/ {
+      printf "line %d: %s\n", NR, $0 > "/dev/stderr"
+      bad = 1
+      exit 1
+    }
+    $1 == sys { print $2 "\t" $3 }
+  ' "$1"
+}
+
+# lanes_shard_plan <shards> <weights rows> <test counts> -- every file's shard,
+# as `<shard>\t<weight>\t<name>\t<how>`, <how> being `timed` for a file the
+# rows give a time and `counted` for one they do not. Pure: the same three
+# inputs give the same plan on every machine.
+#
+# A file with no time is weighted by its tests, at the seconds per test of the
+# files that have one, so a new file counts for about what it costs; with no
+# time for any file, every file is weighted by its tests alone. The files are
+# then dealt out the heaviest first, ties by name, each to the shard with the
+# least weight so far, the lowest-numbered of equals.
+lanes_shard_plan() {
+  LC_ALL=C awk -F '\t' '
+    NR == FNR { if ($0 != "") secs[$2] = $1; next }
+    { count[$2] = $1; order[++n] = $2 }
+    END {
+      for (i = 1; i <= n; i++) {
+        f = order[i]
+        if (f in secs) { s += secs[f]; c += count[f] }
+      }
+      rate = (s > 0 && c > 0) ? s / c : 1
+      for (i = 1; i <= n; i++) {
+        f = order[i]
+        if (f in secs) printf "%.1f\t%s\ttimed\n", secs[f], f
+        else printf "%.1f\t%s\tcounted\n", count[f] * rate, f
+      }
+    }
+  ' "$2" "$3" | LC_ALL=C sort -t "$(printf '\t')" -k1,1nr -k2,2 |
+    LC_ALL=C awk -F '\t' -v n="$1" '
+      {
+        b = 1
+        for (i = 2; i <= n; i++) if (load[i] < load[b]) b = i
+        load[b] += $1
+        printf "%d\t%s\t%s\t%s\n", b, $1, $2, $3
+      }
+    '
+}
+
+# lanes_dir_plan <dir> <shards> -- lanes_shard_plan over <dir>'s files, by the
+# times in its weights file for this system (`uname -s`), so a shard of the run
+# and `bats-lanes --plan` read one plan. Exits, saying why, when the weights
+# file has a line it cannot read, a file cannot be read for its tests, or <dir>
+# holds no .bats file.
+lanes_dir_plan() {
+  local dir="$1" weights="$1/$_LANES_WEIGHTS" rows counts f
+  local -a files=()
+  for f in "$dir"/*.bats; do
+    if [ -e "$f" ]; then files+=("$f"); fi
+  done
+  [ "${#files[@]}" -gt 0 ] || die "lanes: $dir holds no .bats file to deal into shards"
+  rows="$(lanes_weight_rows "$weights" "$(uname -s)")" ||
+    die "lanes: $weights holds a line that is not <system> <seconds> <file> (above) -- write it again with bats-lanes --weights"
+  counts="$(lanes_test_counts "${files[@]}")" || die "lanes: a file in $dir could not be read for its tests"
+  lanes_shard_plan "$2" <(printf '%s\n' "$rows") <(printf '%s\n' "$counts") ||
+    die "lanes: the files of $dir could not be dealt into $2 shards"
+}
+
+# lanes_plan_basis <dir> -- what lanes_dir_plan weighed <dir>'s files by, in
+# words.
+lanes_plan_basis() {
+  local weights="$1/$_LANES_WEIGHTS" system rows
+  system="$(uname -s)"
+  if [ ! -e "$weights" ]; then
+    printf 'by test count, since there is no %s\n' "$weights"
+  elif rows="$(lanes_weight_rows "$weights" "$system" 2>/dev/null)" && [ -n "$rows" ]; then
+    printf 'by the times for %s in %s\n' "$system" "$weights"
+  else
+    printf 'by test count, since %s has no time for %s\n' "$weights" "$system"
+  fi
+}
+
+# lanes_weights_from_log <log> -- the times block in a run's log as
+# `<seconds>\t<name>`, one line per file that ended; a file that never ended
+# has no time to give. The log is a lanes run's output, as a seal keeps it or
+# as a CI job's log prints it, each line after a timestamp ending in Z. Returns
+# 1, saying why on stderr, unless the log holds exactly one times block whose
+# file lines number what its header says.
+lanes_weights_from_log() {
+  LC_ALL=C awk '
+    {
+      line = $0
+      p = index(line, "Z lanes: ")
+      if (p > 0) line = substr(line, p + 2)
+      else if (substr(line, 1, 7) != "lanes: ") { inblock = 0; next }
+    }
+    line ~ /^lanes: the [0-9]+ file\(s\) of the parallel lane by wall time, the slowest first:$/ {
+      blocks++
+      want = line
+      sub(/^lanes: the /, "", want)
+      sub(/ .*/, "", want)
+      inblock = 1
+      next
+    }
+    inblock && line ~ /^lanes: +[0-9]+\.[0-9]s  / {
+      got++
+      t = line
+      sub(/^lanes: +/, "", t)
+      name = t
+      sub(/s  .*/, "", t)
+      sub(/^[0-9.]+s  /, "", name)
+      sub(/ \(exit .*$/, "", name)
+      rows[name] = t
+      next
+    }
+    inblock && line ~ /^lanes: +no end  / { got++; next }
+    { inblock = 0 }
+    END {
+      if (blocks != 1) { printf "it holds %d times block(s), not one\n", blocks > "/dev/stderr"; exit 1 }
+      if (got != want) { printf "its times block names %d file(s) under a header that counts %d\n", got, want > "/dev/stderr"; exit 1 }
+      for (f in rows) print rows[f] "\t" f
+    }
+  ' "$1"
+}
+
+# lanes_write_weights <dir> <system>=<log>... -- the weights file in <dir>,
+# rewritten from each log's times block for its system: that system's rows
+# are replaced by its logs', which are one run's shards, so a system may be
+# given several logs and each file is timed in one of them; every other
+# system's are kept, and a row whose file is no longer in <dir> is dropped.
+# Nothing is written unless every log reads, and then by replace_file, so a
+# reader never sees half of the file. Prints what it wrote.
+lanes_write_weights() {
+  local dir="$1" pair sys log work dup
+  local -a systems=()
+  shift
+  [ "$#" -gt 0 ] || die "usage: bats-lanes --weights <test directory> <system>=<log>..."
+  [ -d "$dir" ] || die "lanes: --weights: $dir is not a directory"
+  work="$(mktemp -d "${TMPDIR:-/tmp}/devbin-lanes-weights.XXXXXX")" || die "lanes: --weights: cannot make a scratch directory"
+  # shellcheck disable=SC2064 # the path is fixed now, on purpose
+  trap "rm -rf '$work'" EXIT
+  : >"$work/rows"
+  for pair in "$@"; do
+    sys="${pair%%=*}"
+    log="${pair#*=}"
+    [ "$sys" != "$pair" ] && [[ "$sys" =~ ^[A-Za-z0-9_-]+$ ]] && [ -n "$log" ] ||
+      die "lanes: --weights: '$pair' is not <system>=<log>, the system being uname -s where the log's run was, eg Darwin=macos.log"
+    case " ${systems[*]-} " in
+      *" $sys "*) ;;
+      *) systems+=("$sys") ;;
+    esac
+    [ -r "$log" ] || die "lanes: --weights: cannot read $log"
+    lanes_weights_from_log "$log" | LC_ALL=C awk -F '\t' -v s="$sys" '{ print s "\t" $0 }' >>"$work/rows" ||
+      die "lanes: --weights: $log gives no times for $sys (above)"
+  done
+  # A SYSTEM'S LOGS ARE ONE RUN'S SHARDS, so each file has one time among them:
+  # a file timed in two of them is two runs' times, or one shard's log given
+  # twice, and neither is the file's one weight.
+  dup="$(LC_ALL=C awk -F '\t' '{ k = $1 "\t" $3; if (k in seen) { print $1 " " $3; exit } seen[k] = 1 }' "$work/rows")" ||
+    die "lanes: --weights: cannot read the logs' times back"
+  [ -z "$dup" ] ||
+    die "lanes: --weights: ${dup#* } has a time in two of the logs for ${dup%% *}: the logs of one system are one run's shards, each naming a file once"
+  if [ -e "$dir/$_LANES_WEIGHTS" ]; then
+    LC_ALL=C awk -F '\t' -v keep=" ${systems[*]} " '
+      /^#/ || /^[[:blank:]]*$/ { next }
+      index(keep, " " $1 " ") == 0 { print }
+    ' "$dir/$_LANES_WEIGHTS" >>"$work/rows" || die "lanes: --weights: cannot read $dir/$_LANES_WEIGHTS"
+  fi
+  {
+    printf '# bats-lanes weights: <system> <seconds> <file>, one line per file and system.\n'
+    printf '# Written by bats-lanes --weights from runs'"'"' times blocks; never edit it by hand.\n'
+    while IFS=$'\t' read -r sys secs name; do
+      if [ -f "$dir/$name" ]; then printf '%s\t%s\t%s\n' "$sys" "$secs" "$name"; fi
+    done < <(LC_ALL=C sort -t "$(printf '\t')" -k1,1 -k3,3 -u "$work/rows")
+  } >"$work/new"
+  lanes_weight_rows "$work/new" none >/dev/null || die "lanes: --weights: the file it would write does not read back (above)"
+  replace_file "$dir/$_LANES_WEIGHTS" cat "$work/new" || die "lanes: --weights: cannot write $dir/$_LANES_WEIGHTS (above)"
+  printf 'lanes: wrote %s: %s line(s), for %s\n' "$dir/$_LANES_WEIGHTS" "$(grep -c -v '^#' "$dir/$_LANES_WEIGHTS")" "${systems[*]}"
+}
+
+if [ "${1:-}" = --weights ]; then
+  shift
+  lanes_write_weights "$@"
+  exit 0
+fi
+# `bats-lanes --plan <dir> <shards>` prints the plan a sharded run reads,
+# `<shard>\t<weight>\t<file>\t<how>`, so a reader can hold the shards it ran
+# to every file once.
+if [ "${1:-}" = --plan ]; then
+  [ "$#" -eq 3 ] && [[ "$3" =~ ^[1-9][0-9]*$ ]] || die "usage: bats-lanes --plan <test directory> <shards>"
+  lanes_dir_plan "$2" "$3"
+  exit 0
+fi
+
 dir="${1:?usage: bats-lanes <test directory>}"
 # THE GATE'S PROGRESS FILE, when run_gate gave one, is this run's to write and
 # never a run's that a test starts: it is read here and taken out of
 # everything this run starts, then handed to the recorder by a name of its own.
 progress="${DEVBIN_GATE_PROGRESS:-}"
 unset DEVBIN_GATE_PROGRESS
+# THE SHARD SETTING (issue 0357) is this run's too, read here and taken out of
+# everything it starts: a test that runs a lanes runner of its own, over a
+# fixture suite, runs that suite whole, whichever shard of the outer run it is
+# in.
+shard_setting="${DEVBIN_TEST_SHARD:-}"
+unset DEVBIN_TEST_SHARD
 # `all` IS EVERY CPU THE PROBE COUNTS, never cpu_count's guess of 4: a runner
 # whose CPUs cannot be counted is refused, naming the setting, rather than run
 # at a number nobody measured. It is read here once, and is the probe's count
@@ -368,6 +606,41 @@ fi
 jobs="$(lanes_jobs "$cpus" "$setting")" ||
   die "$var is '$setting', and it must be a whole number of jobs, 1 or more, or all"
 
+# THE SHARD (issue 0357). DEVBIN_TEST_SHARD=<i>/<n> runs only the i-th of n
+# shards of the suite's files, so n machines can run the suite between them:
+# CI runs one shard per job. lanes_dir_plan deals the files out, so the same
+# files make the same shards on every machine of one system, and every file is
+# in exactly one shard. Everything below runs over the shard's files alone:
+# both lanes, the count that holds them to every test exactly once, and the
+# verdict, which names the shard. Unset, the run is the whole directory.
+targets=("$dir")
+where="$dir"
+shard_say=()
+suite=()
+for f in "$dir"/*.bats; do
+  if [ -e "$f" ]; then suite+=("$f"); fi
+done
+if [ -n "$shard_setting" ]; then
+  [[ "$shard_setting" =~ ^([1-9][0-9]*)/([1-9][0-9]*)$ ]] && [ "${BASH_REMATCH[1]}" -le "${BASH_REMATCH[2]}" ] ||
+    die "DEVBIN_TEST_SHARD is '$shard_setting', and it must be <i>/<n>, the i-th of n shards, 1 <= i <= n, eg 2/4"
+  shard="${BASH_REMATCH[1]}" shards="${BASH_REMATCH[2]}"
+  plan="$(lanes_dir_plan "$dir" "$shards")" || exit 1
+  mine="$(LC_ALL=C awk -F '\t' -v i="$shard" '$1 == i { print $3 }' <<<"$plan" | LC_ALL=C sort)"
+  [ -n "$mine" ] ||
+    die "DEVBIN_TEST_SHARD is $shard_setting, and shard $shard holds no file: $dir has ${#suite[@]} file(s), fewer than $shards shards"
+  targets=() suite=()
+  while IFS= read -r f; do
+    targets+=("$dir/$f")
+    suite+=("$dir/$f")
+  done <<<"$mine"
+  where="shard $shard of $shards of $dir"
+  read -r w_mine w_all n_counted n_all <<<"$(LC_ALL=C awk -F '\t' -v i="$shard" '
+    { all += $2; n++; if ($1 == i) { mine += $2; if ($4 == "counted") c++ } }
+    END { printf "%.0f %.0f %d %d\n", mine, all, c, n }' <<<"$plan")"
+  shard_say+=("lanes: shard $shard of $shards: ${#targets[@]} of the suite's $n_all file(s), weighted $w_mine of $w_all $(lanes_plan_basis "$dir"); $n_counted of them weighted by test count")
+  shard_say+=("lanes: shard $shard of $shards runs: $(tr '\n' ' ' <<<"$mine" | sed 's/ $//')")
+fi
+
 # The program bats --jobs will run, by bats's own setting, so what is probed
 # here is what bats runs.
 parallel_program="${BATS_PARALLEL_BINARY_NAME:-parallel}"
@@ -384,11 +657,13 @@ fi
 
 if [ -n "$why" ]; then
   printf 'lanes: one, serial, because %s: every test runs one at a time\n' "$why"
-  exec bats "$dir"
+  [ "${#shard_say[@]}" -eq 0 ] || printf '%s\n' "${shard_say[@]}"
+  exec bats "${targets[@]}"
 fi
 
 printf 'lanes: two. First %s tests at a time under %s (%s CPUs here; %s sets the number), then the tests tagged serial, one at a time\n' \
   "$jobs" "$version" "$cpus" "$var"
+[ "${#shard_say[@]}" -eq 0 ] || printf '%s\n' "${shard_say[@]}"
 load_start="$(lanes_load)"
 
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/devbin-lanes.XXXXXX")" || die "lanes: cannot make a scratch directory"
@@ -397,7 +672,7 @@ trap "rm -rf '$scratch'" EXIT
 
 # THE DENOMINATOR, untagged, counted beside the parallel lane rather than
 # before it: the count preprocesses the whole suite too, which is seconds.
-bats --count "$dir" >"$scratch/count" 2>"$scratch/count.err" &
+bats --count "${targets[@]}" >"$scratch/count" 2>"$scratch/count.err" &
 count_pid=$!
 
 # EACH LANE'S OWN STATUS IS KEPT AND NAMED when it is not 0: a lane can fail
@@ -415,7 +690,7 @@ self="$self_dir/$(basename "${BASH_SOURCE[0]}")"
   [ -z "${BATS_PARALLEL_BINARY_NAME+x}" ] || export _LANES_CALLER_PARALLEL="$BATS_PARALLEL_BINARY_NAME"
   export _LANES_AS_PARALLEL="$parallel_program" _LANES_RECORD="$scratch/record" BATS_PARALLEL_BINARY_NAME="$self"
   [ -z "$progress" ] || export _LANES_PROGRESS="$progress"
-  lane "$scratch/one" bats --jobs "$jobs" --filter-tags '!serial' "$dir"
+  lane "$scratch/one" bats --jobs "$jobs" --filter-tags '!serial' "${targets[@]}"
 ) || rc_one=$?
 
 total=""
@@ -424,7 +699,7 @@ if wait "$count_pid"; then
 fi
 if ! [[ "$total" =~ ^[0-9]+$ ]]; then
   printf '\nlanes: bats --count %s gave no count, so this run cannot show that every test ran: %s\n' \
-    "$dir" "$(<"$scratch/count.err")"
+    "$where" "$(<"$scratch/count.err")"
   exit 1
 fi
 
@@ -439,7 +714,7 @@ serial=$((total - planned))
 if [ "$serial" -le 0 ]; then
   printf '\nlanes: no test is tagged serial, so there is no serial lane\n'
 else
-  if ! serial_files "$dir" >"$scratch/serial"; then
+  if ! serial_files ${suite[@]+"${suite[@]}"} >"$scratch/serial"; then
     printf '\nlanes: a file in %s could not be read for its serial tags\n' "$dir"
     exit 1
   fi
@@ -485,7 +760,7 @@ one="$(tap_ran "$scratch/one")"
 two="$(tap_ran "$scratch/two")"
 if [ "$((one + two))" -ne "$total" ]; then
   printf '\nlanes: %s test(s) ran in parallel and %s serially, %s in all, but bats counts %s in %s: the lanes did not run every test exactly once%s\n' \
-    "$one" "$two" "$((one + two))" "$total" "$dir" "$failed"
+    "$one" "$two" "$((one + two))" "$total" "$where" "$failed"
   # bats reports a failed setup_file or teardown_file as a record of its own,
   # which the count above includes, so on a red lane it can stand for one.
   [ -z "$failed" ] ||
@@ -493,6 +768,6 @@ if [ "$((one + two))" -ne "$total" ]; then
   exit 1
 fi
 printf '\nlanes: %s test(s) ran in parallel and %s serially, all %s that bats counts in %s, each once%s\n' \
-  "$one" "$two" "$total" "$dir" "$failed"
+  "$one" "$two" "$total" "$where" "$failed"
 [ -z "$failed" ] || exit 1
 exit 0

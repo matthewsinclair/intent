@@ -1,12 +1,12 @@
 # devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
 # Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
-# devbin_version: 0.1.24
+# devbin_version: 0.1.25
 # source: install
-# source_commit: 0ac94d4d7c93f7cad70e196a242239f11b52d2e8
+# source_commit: 88fe057a16b2e5ed973ef5450f45db15387e8194
 1ce69e209703393dcbd4a0165f6d71db0ca5b78814fcb435949201a157498a17  bin/devbin
 4208a2a0c11e1d35b9d400c456af750883aef846db5d9fc04dbc9d299aebfde2  bin/.devbin/lib/LICENSE.md
-1686ffacb0622b92357597606b1e5f6980fa3d9e070aa9a8357652b0bd36f5c9  bin/.devbin/lib/bats-lanes
+998e326e026fa1e31a9b337c291b87b8bd70bf13ff543a1776fc7be8b59330cb  bin/.devbin/lib/bats-lanes
 19620352a3167b0f2469f2e4694588d380b04378b3064752e613c188f862bbe4  bin/.devbin/lib/builtins
 3feb61f421a110354f1bc0c6160d4548068739459081c3ecaf7c5ee9d3670f08  bin/.devbin/lib/cmd/cache
 58071efd2a273a0636ffc17f8ae499ee92aa3f2b6c8291737a3e7fa8be5fca12  bin/.devbin/lib/cmd/check
