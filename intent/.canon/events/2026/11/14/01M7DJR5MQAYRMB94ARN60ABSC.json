@@ -1,0 +1,15 @@
+{
+  "id": "01M7DJR5MQAYRMB94ARN60ABSC",
+  "ts": "2026-11-14T17:47:42.103Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "3.3.3 kovacs rehearsal: announce the direct ssh to devbin-vc first (decision 91, kovacs-sysadm offline), ask the Desk, then bin/devbin release gates --leg kovacs from a clean worktree at main's tip, and send vc the record and sha. Released when vc says ic's known-defects re-drive has landed."
+  }
+}

@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-14 13:52Z
+heartbeat_at: 2026-11-14 17:47Z
 status: active
-focus: "2026-11-14 13:52Z by date -u: 0694 landed by vc as 2972fb287, closes at the next cut; nothing open, holding."
+focus: "2026-11-14 17:47Z by date -u: 3.3.3 prep; reference banked at 7313ca67a for vc, kovacs rehearsal held behind ic's known-defects."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- 3.3.3 reference: banked at 7313ca67a on cf82ec149 (refs/bank/dc/release/reference-333-on-cf82ec149), check rc=0, sent to vc to land.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- 3.3.3 kovacs rehearsal: announce the direct ssh to devbin-vc first (decision 91, kovacs-sysadm offline), ask the Desk, then bin/devbin release gates --leg kovacs from a clean worktree at main's tip, and send vc the record and sha. Released when vc says ic's known-defects re-drive has landed.
 
 ## Watch-outs
 

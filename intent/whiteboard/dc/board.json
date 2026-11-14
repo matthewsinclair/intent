@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-14T13:52:23.440Z",
+    "heartbeat_at": "2026-11-14T17:47:43.070Z",
     "status": "active",
-    "focus": "2026-11-14 13:52Z by date -u: 0694 landed by vc as 2972fb287, closes at the next cut; nothing open, holding.",
+    "focus": "2026-11-14 17:47Z by date -u: 3.3.3 prep; reference banked at 7313ca67a for vc, kovacs rehearsal held behind ic's known-defects.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2945,6 +2945,22 @@
       "state": "archived",
       "archived_at": "2026-11-14T13:52:21.363Z",
       "recorded_at": "2026-11-14T13:51:30.780Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 164,
+      "text": "3.3.3 reference: banked at 7313ca67a on cf82ec149 (refs/bank/dc/release/reference-333-on-cf82ec149), check rc=0, sent to vc to land.",
+      "state": "live",
+      "recorded_at": "2026-11-14T17:47:41.163Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 48,
+      "text": "3.3.3 kovacs rehearsal: announce the direct ssh to devbin-vc first (decision 91, kovacs-sysadm offline), ask the Desk, then bin/devbin release gates --leg kovacs from a clean worktree at main's tip, and send vc the record and sha. Released when vc says ic's known-defects re-drive has landed.",
+      "state": "live",
+      "recorded_at": "2026-11-14T17:47:42.103Z"
     }
   ],
   "sent": [
