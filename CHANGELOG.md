@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.3] - in progress
+
+### Fixed
+
+- **The first `intent wb init <profile> --apply` names the mediator by its display name in the roster README's route to hv** (issue 0695). Where a seat was registered under its moniker as its name, the first apply corrected its name in the store and in the README's roster table, but the route line still read "hv is reached through the mediator, `vc` (vc)", because the route took the mediator's name from the store as it stood before the apply. A second apply put it right. The route, and the seat brief that reads the same name, now take it from the mediator's own roster row, so the first render is right.
+- **`docs/banking.md` says what a worktree commit does now** (issue 0694). It still said a linked worktree's commit is refused as `GATE ABSENT`, which issue 0644 fixed in 3.2.7. It now says the gate runs in a worktree, that Intent's own repository refuses a worktree that has never been built, and that a bank, not a worktree commit, is the place to park work.
+
 ## [3.3.2] - 2026-11-13
 
 ### Changed
