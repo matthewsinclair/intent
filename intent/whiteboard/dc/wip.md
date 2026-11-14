@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-14 17:47Z
+heartbeat_at: 2026-11-14 17:51Z
 status: active
-focus: "2026-11-14 17:47Z by date -u: 3.3.3 prep; reference banked at 7313ca67a for vc, kovacs rehearsal held behind ic's known-defects."
+focus: "2026-11-14 17:51Z by date -u: 3.3.3 reference landed as 13b37c748; kovacs rehearsal (hold 48) waits on vc's go after ic's re-drive."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.3.3 reference: banked at 7313ca67a on cf82ec149 (refs/bank/dc/release/reference-333-on-cf82ec149), check rc=0, sent to vc to land.
+_(none)_
 
 ## TODO
 
