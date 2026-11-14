@@ -61,7 +61,139 @@
 # offers --allow-empty-suite, which 1.12 does not know. So an empty serial lane
 # is never run at all.
 #
+# EACH FILE'S WALL TIME IS RECORDED, AND THE LOAD AT EACH END OF THE RUN, so
+# a run's log names the files that cost it its time and what the machine was
+# doing. bats records neither: it runs the parallel lane's files under GNU
+# parallel with --keep-order, which holds each file's results until every
+# earlier file has printed, and keeps no time of its own. So this runner takes
+# the place of the parallel program bats runs, through bats's own
+# BATS_PARALLEL_BINARY_NAME, and hands GNU parallel each file's command behind
+# a recorder that writes the moment the file starts and the moment it ends.
+# The run's results pass through untouched. Every bats this runner supports
+# (1.12 and 1.14) starts each file as `bats-exec-file ... <file> <test list>`
+# after parallel's `--`; a command of any other shape is run as it is, and the
+# run says it has no times. The serial lane is timed whole.
+#
+# A FILE THAT FAILED ONLY BECAUSE BATS LOST A PASSED TEST'S STATUS IS COUNTED
+# GREEN, and the run says so. Its tests all printed ok, and its one failure is
+# bash's `wait: pid N is not a child of this shell` (lanes_lost_status), which
+# reached a red macOS run with every test ok. The recorder holds each file's
+# output to read it, passes it on whole, and lets that file alone exit 0; any
+# other failure, and any `not ok`, keeps its exit.
+#
 set -euo pipefail
+
+# lanes_progress <record> <test list> <progress file> -- the parallel lane's
+# progress as one line, written whole in place of the file's last: its files
+# done of the files bats's test list names, the tests in them of the list's,
+# and how many of its files are running. A file bats starts with no test of
+# this lane in the list is no file of it. Written to a file beside the
+# progress file and moved over it, so a reader never sees half a line.
+lanes_progress() {
+  LC_ALL=C awk -F '\t' '
+    NR == FNR { tests[$1]++; all++; next }
+    $1 == "start" { started[$3] = 1 }
+    $1 == "end" { ended[$3] = 1 }
+    END {
+      for (f in tests) files++
+      for (f in ended) if (f in tests) { done++; passed += tests[f] }
+      for (f in started) if ((f in tests) && !(f in ended)) running++
+      printf "the parallel lane: %d of %d files done (%d of %d tests), %d running\n", done, files, passed, all, running
+    }
+  ' "$2" "$1" >"$3.$$" 2>/dev/null && mv -f "$3.$$" "$3" 2>/dev/null
+  rm -f "$3.$$"
+  return 0
+}
+
+# lanes_lost_status <stdout> <stderr> <test list> <file> -- whether a file that
+# exited non-zero failed only because bats lost a passed test's status: its
+# stderr holds bash's `wait: pid N is not a child of this shell`, its stdout
+# holds no `not ok`, and its `ok` lines are as many as the tests the list gives
+# the file. Returns 1 for anything else, so every other failure stays one.
+#
+# BATS LOSES IT AT RANDOM, AND ON MACOS MOSTLY. Run N at a time within a file,
+# a test that ends before an earlier one is reaped by bash, which keeps its
+# status until bats waits for it in start order. Bash discards that status when
+# a later fork is given the same pid, so the wait then fails and the file exits
+# 1 though every test printed ok. A long suite wraps macOS's pids within a run;
+# Linux's range is wide enough that it rarely does.
+lanes_lost_status() {
+  local want got
+  grep -qE 'wait: pid [0-9]+ is not a child of this shell' "$2" || return 1
+  ! grep -q '^not ok ' "$1" || return 1
+  want="$(LC_ALL=C awk -F '\t' -v f="$4" '$1 == f { n++ } END { print n + 0 }' "$3")" || return 1
+  got="$(grep -c '^ok ' "$1")" || return 1
+  [ "$want" -gt 0 ] && [ "$got" -eq "$want" ]
+}
+
+# THE RECORDER'S TWO ROLES, taken before anything is sourced, since one runs
+# once per file of the run. _LANES_AS_PARALLEL names the parallel program bats
+# was going to run; it and the caller's own BATS_PARALLEL_BINARY_NAME are put
+# back as they were for everything parallel starts, so a bats that a test runs
+# never reaches the recorder.
+if [ -n "${_LANES_AS_PARALLEL:-}" ]; then
+  real="$_LANES_AS_PARALLEL"
+  unset _LANES_AS_PARALLEL
+  if [ -n "${_LANES_CALLER_PARALLEL+x}" ]; then
+    export BATS_PARALLEL_BINARY_NAME="$_LANES_CALLER_PARALLEL"
+  else
+    unset BATS_PARALLEL_BINARY_NAME
+  fi
+  unset _LANES_CALLER_PARALLEL
+  # A call with no -- is not a run (bats asks for --version first), and one
+  # whose command is not bats-exec-file is run as it is, its run untimed.
+  args=() shape="none"
+  while [ $# -gt 0 ]; do
+    if [ "$1" = -- ] && [ "$shape" = none ]; then
+      shape="other"
+      if [ "${2:-}" = bats-exec-file ]; then
+        # parallel reads what follows -- as shell words, unquoted, so the
+        # recorder's path is quoted here.
+        args+=(-- "$(printf '%q' "$0")" --lanes-record-file)
+        shape="file"
+        shift
+        continue
+      fi
+    fi
+    args+=("$1")
+    shift
+  done
+  [ "$shape" != other ] || [ -z "${_LANES_RECORD:-}" ] || printf 'shape\n' >>"$_LANES_RECORD"
+  exec "$real" "${args[@]}"
+fi
+if [ "${1:-}" = --lanes-record-file ]; then
+  shift
+  rec="${_LANES_RECORD:-}" prog="${_LANES_PROGRESS:-}"
+  unset _LANES_RECORD _LANES_PROGRESS
+  [ $# -ge 2 ] || exec "$@"
+  file="${*: -2:1}"
+  list="${*: -1}"
+  [ -z "$rec" ] || printf 'start\t%s\t%s\t%s\n' "${EPOCHREALTIME//[!0-9]/}" "$file" "$list" >>"$rec"
+  [ -z "$rec" ] || [ -z "$prog" ] || lanes_progress "$rec" "$list" "$prog"
+  # THE FILE'S OUTPUT IS HELD AND THEN PASSED ON WHOLE, its stdout and then its
+  # stderr, as GNU parallel's grouping passes on every job's: so the recorder
+  # can read a failed file's results before it says what the file exited, and
+  # a file whose only failure is a status bats lost (lanes_lost_status) is
+  # recorded as lost and exits 0. With no record, or nowhere to hold it, the
+  # file runs as it is.
+  rc=0 kept=""
+  if [ -n "$rec" ] && kept="$(mktemp -d "${rec%/*}/file.XXXXXX")"; then
+    "$@" >"$kept/out" 2>"$kept/err" || rc=$?
+    cat "$kept/out"
+    cat "$kept/err" >&2
+  else
+    kept=""
+    "$@" || rc=$?
+  fi
+  [ -z "$rec" ] || printf 'end\t%s\t%s\t%s\n' "${EPOCHREALTIME//[!0-9]/}" "$file" "$rc" >>"$rec"
+  if [ "$rc" -ne 0 ] && [ -n "$kept" ] && lanes_lost_status "$kept/out" "$kept/err" "$list" "$file"; then
+    printf 'lost\t%s\t%s\n' "$file" "$rc" >>"$rec"
+    rc=0
+  fi
+  [ -z "$kept" ] || rm -rf "$kept"
+  [ -z "$rec" ] || [ -z "$prog" ] || lanes_progress "$rec" "$list" "$prog"
+  exit "$rc"
+fi
 
 # shellcheck source=lib/helpers
 . "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
@@ -155,7 +287,60 @@ lane() {
   return "${rcs[0]}"
 }
 
+# lanes_load -- the machine's load average over the last minute, as the
+# kernel reports it (/proc/loadavg on Linux, vm.loadavg on macOS), or
+# `unknown` where neither answers.
+lanes_load() {
+  local l=""
+  if [ -r /proc/loadavg ]; then
+    read -r l _ </proc/loadavg || l=""
+  elif l="$(sysctl -n vm.loadavg 2>/dev/null)"; then
+    l="${l#"{ "}"
+    l="${l%% *}"
+  fi
+  printf '%s\n' "${l:-unknown}"
+}
+
+# lanes_times <record> <dir> -- the recorder's lines as one line per file, the
+# slowest first: its wall time in seconds to a tenth, its path under <dir>
+# (bats names each file by an absolute path, read here as the shell and the
+# filesystem each spell <dir>),
+# and its exit when that was not 0, or that it never ended. A file the recorder
+# found had only lost a passed test's status says so beside its exit. Prints
+# nothing for a record that holds no file.
+lanes_times() {
+  local logical physical
+  logical_dir "$2" logical 2>/dev/null || logical="$2"
+  physical_dir "$2" physical || physical="$2"
+  LC_ALL=C awk -F '\t' -v d1="$2/" -v d2="$logical/" -v d3="$physical/" '
+    $1 == "start" { start[$3] = $2 }
+    $1 == "end" { end[$3] = $2; rc[$3] = $4 }
+    $1 == "lost" { lost[$2] = 1 }
+    END {
+      for (f in start) {
+        name = f
+        if (index(name, d2) == 1) name = substr(name, length(d2) + 1)
+        else if (index(name, d3) == 1) name = substr(name, length(d3) + 1)
+        else if (index(name, d1) == 1) name = substr(name, length(d1) + 1)
+        if (f in end) {
+          note = ""
+          if (f in lost) note = " (exit " rc[f] ", bats lost the status of a test that passed: counted green)"
+          else if (rc[f] != 0) note = " (exit " rc[f] ")"
+          printf "%d\t%.1fs\t%s%s\n", end[f] - start[f], (end[f] - start[f]) / 1000000, name, note
+        } else {
+          printf "%d\tno end\t%s (it never ended)\n", -1, name
+        }
+      }
+    }
+  ' "$1" | LC_ALL=C sort -t "$(printf '\t')" -k1,1nr | LC_ALL=C cut -f 2-
+}
+
 dir="${1:?usage: bats-lanes <test directory>}"
+# THE GATE'S PROGRESS FILE, when run_gate gave one, is this run's to write and
+# never a run's that a test starts: it is read here and taken out of
+# everything this run starts, then handed to the recorder by a name of its own.
+progress="${DEVBIN_GATE_PROGRESS:-}"
+unset DEVBIN_GATE_PROGRESS
 # `all` IS EVERY CPU THE PROBE COUNTS, never cpu_count's guess of 4: a runner
 # whose CPUs cannot be counted is refused, naming the setting, rather than run
 # at a number nobody measured. It is read here once, and is the probe's count
@@ -204,6 +389,7 @@ fi
 
 printf 'lanes: two. First %s tests at a time under %s (%s CPUs here; %s sets the number), then the tests tagged serial, one at a time\n' \
   "$jobs" "$version" "$cpus" "$var"
+load_start="$(lanes_load)"
 
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/devbin-lanes.XXXXXX")" || die "lanes: cannot make a scratch directory"
 # shellcheck disable=SC2064 # the path is fixed now, on purpose
@@ -218,7 +404,19 @@ count_pid=$!
 # with no `not ok` line to show for it, and the last line here is what the
 # seal's log tail shows of such a run.
 rc_one=0 rc_two=0
-lane "$scratch/one" bats --jobs "$jobs" --filter-tags '!serial' "$dir" || rc_one=$?
+# THE PARALLEL LANE RUNS BEHIND THE RECORDER (the header): bats runs this
+# file as its parallel program, which hands GNU parallel each file's command
+# behind the recorder, and the record is read once the lane ends.
+self_dir=""
+physical_dir "$(dirname "${BASH_SOURCE[0]}")" self_dir || die "lanes: cannot read the directory this runner is in, $(dirname "${BASH_SOURCE[0]}")"
+self="$self_dir/$(basename "${BASH_SOURCE[0]}")"
+: >"$scratch/record"
+(
+  [ -z "${BATS_PARALLEL_BINARY_NAME+x}" ] || export _LANES_CALLER_PARALLEL="$BATS_PARALLEL_BINARY_NAME"
+  export _LANES_AS_PARALLEL="$parallel_program" _LANES_RECORD="$scratch/record" BATS_PARALLEL_BINARY_NAME="$self"
+  [ -z "$progress" ] || export _LANES_PROGRESS="$progress"
+  lane "$scratch/one" bats --jobs "$jobs" --filter-tags '!serial' "$dir"
+) || rc_one=$?
 
 total=""
 if wait "$count_pid"; then
@@ -252,8 +450,33 @@ else
     exit 1
   fi
   printf '\nlanes: the serial lane, %s test(s), one at a time\n' "$serial"
+  [ -z "$progress" ] || printf 'the serial lane: %s test(s), one at a time\n' "$serial" >"$progress" 2>/dev/null || true
+  two_start="${EPOCHREALTIME//[!0-9]/}"
   lane "$scratch/two" bats --jobs 1 --filter-tags serial "${files[@]}" || rc_two=$?
+  two_took=$(((${EPOCHREALTIME//[!0-9]/} - two_start) / 100000))
 fi
+
+# THE TIMES, before the verdict, which stays the run's last line. The lanes
+# have ended, so the progress they wrote says nothing more.
+[ -z "$progress" ] || : >"$progress" 2>/dev/null || true
+times="$(lanes_times "$scratch/record" "$dir")"
+if grep -qx shape "$scratch/record"; then
+  printf '\nlanes: no time per file: this bats starts its files in a way the recorder does not know\n'
+elif [ -z "$times" ]; then
+  printf '\nlanes: no time per file: the recorder saw no file start\n'
+else
+  printf '\nlanes: the %s file(s) of the parallel lane by wall time, the slowest first:\n' "$(grep -c . <<<"$times")"
+  while IFS=$'\t' read -r took name; do
+    printf 'lanes:   %8s  %s\n' "$took" "$name"
+  done <<<"$times"
+fi
+[ -z "${two_took:-}" ] || printf 'lanes: the serial lane took %s.%ss\n' "$((two_took / 10))" "$((two_took % 10))"
+printf 'lanes: load %s at the start and %s at the end, the one-minute average, on %s CPUs\n' "$load_start" "$(lanes_load)" "$cpus"
+# A FILE COUNTED GREEN DESPITE ITS EXIT IS SAID, before the verdict: the times
+# above name it, and this line says why its exit did not fail the run.
+lost="$(grep -c '^lost	' "$scratch/record")" || lost=0
+[ "$lost" -eq 0 ] ||
+  printf 'lanes: %s file(s) exited non-zero only because bats lost the status of a test that passed, when bash gave its process id to a later one; every test of each printed ok, so each is counted green (marked above)\n' "$lost"
 
 failed=""
 [ "$rc_one" -eq 0 ] || failed+="; the parallel lane exited $rc_one"

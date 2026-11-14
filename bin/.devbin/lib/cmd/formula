@@ -466,6 +466,16 @@ publish_ruby() {
 # the install runs, so one that holds only bin/ stages as bin's own files, and
 # those go into libexec/bin.
 #
+# AN ARCHIVE PACKED AT THE ROOT IS COPIED INTO libexec, NEVER MOVED (issue
+# 0349). Once the install is done, Homebrew moves the stage's metafiles (a
+# LICENSE, a README, a CHANGELOG, by its own list of names) to the keg's root,
+# and when the keg's root then holds none it moves libexec's own out of it
+# instead. Moved whole, the stage held none, so libexec lost every metafile the
+# manifest names, and doctor's tree row failed the keg. Copied, the stage keeps
+# them for Homebrew's first move, and libexec keeps what the manifest names,
+# as devbin's own publish leaves it. `preserve` keeps each file's mode, as the
+# move did.
+#
 # EACH LINE ANSWERS A WAY A RELEASE-ASSET KEG FAILS. GitHub serves a release
 # asset with no executable bit, and Homebrew's install keeps the mode it is
 # given, so a keg without the chmod installs and nothing in it runs. The
@@ -486,7 +496,7 @@ publish_ruby() {
 assets_ruby() {
   local n
   printf '%s\n' 'if buildpath.basename.to_s == "bin"' '  (libexec/"bin").install Dir["*"]' 'else' \
-    '  libexec.install Dir["*"]' 'end'
+    '  libexec.mkpath' '  cp_r Dir["*"], libexec, preserve: true' 'end'
   for n in "${F_LINKS[@]}"; do
     printf 'chmod 0755, libexec/"bin/%s"\n' "$n"
   done

@@ -2134,6 +2134,13 @@ option_seal_from() {
 #   2. It only beats when a terminal is attached (`[ -t 2 ]`). Redirected output
 #      -- CI, `devbin check all > log 2>&1` -- is unchanged to the byte. The
 #      case being fixed is a human watching a silent screen.
+#      THE ONE EXCEPTION IS A COMMAND THAT SAYS HOW FAR IT HAS GOT. run_gate
+#      hands every command DEVBIN_GATE_PROGRESS, a file, and a command that
+#      writes a line there gets a beat carrying that line with no terminal
+#      too: a test suite whose runner holds its results in file order sat
+#      silent in CI's log for half an hour while most of it had finished,
+#      and a person watching read it as wedged. A gate that writes nothing
+#      there is unchanged to the byte, as before.
 #   3. It beats on SILENCE, not on time. The log's size is what it watches, so a
 #      chatty gate never produces a line: the operator can already see it is
 #      alive, and a timer would be adding noise to the case that does not need
@@ -2142,12 +2149,14 @@ option_seal_from() {
 #      tell a lock wait from a slow link, and a heartbeat that guessed would be
 #      inventing. "Still running, quiet for 4m" is the whole of what is known
 #      and answers the question that was actually being asked.
+#      What the command itself wrote to DEVBIN_GATE_PROGRESS is added after
+#      it, the command's own words, never the heartbeat's guess.
 #
 # It carries no trap: a trap here would displace the caller's, which is the same
 # rule that makes run_gate save and restore errexit rather than forcing it. The
 # loop watches its parent instead and exits when the parent goes away.
 gate_heartbeat_start() {
-  local log="$1" label="$2" interval="${DEVBIN_HEARTBEAT_SECS:-30}" parent=$$
+  local log="$1" label="$2" progress="${3:-}" tty=0 interval="${DEVBIN_HEARTBEAT_SECS:-30}" parent=$$
   _GATE_HEARTBEAT_PID=""
   # A number of seconds, whole or a decimal fraction, from 0.1 up: 30, 0.2, .5
   # (issue 0191). Anything else disables rather than dying -- a malformed
@@ -2163,7 +2172,8 @@ gate_heartbeat_start() {
     *[1-9]*) ;;
     *) case "${interval#*.}" in [1-9]*) ;; *) return 0 ;; esac ;;
   esac
-  [ -t 2 ] || return 0
+  [ -t 2 ] && tty=1
+  [ "$tty" = 1 ] || [ -n "$progress" ] || return 0
   (
     # No `local` here: this is a subshell, not a function, and the subshell is
     # what isolates these.
@@ -2184,7 +2194,14 @@ gate_heartbeat_start() {
       # not how big it is, and BSD's sleep refuses anything above 2147483647.
       # Unchecked, a refusal let the loop spin, its complaint and a beat on
       # every pass.
-      sleep "$interval" 2>/dev/null || exit 0
+      #
+      # THE SLEEP HOLDS NONE OF THE GATE'S OUTPUT (issue 0346). Stopping the
+      # beat ends this subshell, not the sleep it is in, which runs on to the
+      # end of its interval. Holding the gate's stdout and stderr, it kept a
+      # caller that captures the gate's output waiting out that interval after
+      # the gate had ended: a cut's bounded steps were held for 30s. So the
+      # sleep writes to neither.
+      sleep "$interval" >/dev/null 2>&1 || exit 0
       kill -0 "$parent" 2>/dev/null || exit 0
       hb_now="${EPOCHREALTIME//[!0-9]/}"
       hb_size=0
@@ -2193,8 +2210,14 @@ gate_heartbeat_start() {
         # Whole seconds, rounded down, which is what fmt_duration takes.
         hb_quiet=$(((hb_now - hb_since) / 1000000))
         hb_total=$(((hb_now - hb_start) / 1000000))
-        printf '    ... %s still running -- quiet for %s, %s elapsed\n' \
-          "$label" "$(fmt_duration "$hb_quiet")" "$(fmt_duration "$hb_total")" >&2
+        # The command's own line, its first only, read afresh each beat.
+        hb_prog=""
+        [ -z "$progress" ] || hb_prog="$(cat "$progress" 2>/dev/null)" || hb_prog=""
+        hb_prog="${hb_prog%%$'\n'*}"
+        if [ "$tty" = 1 ] || [ -n "$hb_prog" ]; then
+          printf '    ... %s still running -- quiet for %s, %s elapsed%s\n' \
+            "$label" "$(fmt_duration "$hb_quiet")" "$(fmt_duration "$hb_total")" "${hb_prog:+; $hb_prog}" >&2
+        fi
       else
         hb_since="$hb_now"
       fi
@@ -2348,7 +2371,18 @@ run_gate() {
   trap 'caught=INT' INT
   trap 'caught=TERM' TERM
   trap 'caught=HUP' HUP
-  gate_heartbeat_start "$log" "$label"
+  # THE COMMAND'S PROGRESS FILE (the heartbeat's header): made empty here,
+  # read by the beat, removed once the beat has stopped. A run where it cannot
+  # be made runs without one, as before.
+  #
+  # IT LIVES BESIDE THE RUN'S OWN LOG, never at TMPDIR's top (issue 0346): a
+  # cut keeps everything it puts in TMPDIR under one root, and one file per
+  # gate beside that root broke it. The log is already this run's own name,
+  # so the file needs no name of its own, and the readers of a log's
+  # directory read only its .out and .errors.
+  local progress="$log.progress"
+  : 2>/dev/null >"$progress" || progress=""
+  gate_heartbeat_start "$log" "$label" "$progress"
   # A GATED TOOL GETS NO INPUT (issue 0088, row 2, as amended twice). It
   # inherited the caller's stdin, so a tool run from a
   # terminal was handed the person's keyboard: a tool that asks (`Shall I
@@ -2376,12 +2410,13 @@ run_gate() {
   # (release_say), where it would otherwise reach no log at all. This shell
   # catches the signal and seals only once the command has ended, so such a
   # line is in the log before the seal reads it.
-  DEVBIN_GATE_LOG="$log" gate_exec "$@" 2>&1 | tee -a "$log"
+  DEVBIN_GATE_LOG="$log" DEVBIN_GATE_PROGRESS="$progress" gate_exec "$@" 2>&1 | tee -a "$log"
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
   # command to run. Stopping first would hand the gate the heartbeat's verdict.
   rcs=("${PIPESTATUS[@]}")
   gate_heartbeat_stop
+  [ -z "$progress" ] || rm -f "$progress"
   rc="${rcs[0]}"
   [ "$errexit_was_on" = 1 ] && set -e
   # A RUN A SIGNAL ENDED IS RED, whatever its command's own exit: it did not

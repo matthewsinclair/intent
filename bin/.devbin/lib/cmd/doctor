@@ -1349,6 +1349,11 @@ _check_tool_trees() {
 # prints another. A tree in the form written before devbin's
 # core, a keg with no manifest or a manifest with no line, is a NOTE naming
 # brew upgrade in brew, and a FAILURE naming the republish in opt, as T3 has it.
+#
+# THE FORM BEFORE THE BODY (issue 0348). A manifest with no line is the older
+# form, which T3 never reads as a second format, so its body is not checked:
+# read first, an older keg's files Homebrew had moved failed the row, and only
+# then came the note that said only a release could fix it.
 _check_tool_tree() {
   local formula="$1" root="$2" m word fix states line state rel name got mine
   local -a bad=()
@@ -1371,6 +1376,16 @@ _check_tool_tree() {
   if [ ! -f "$root/$m" ]; then
     _note "$formula tree: Homebrew's keg at $root has no manifest, the form written before devbin's core, so its files cannot be checked"
     _detail "run: brew upgrade $formula, once a release that writes the new form is out"
+    return 0
+  fi
+  if [ -r "$root/$m" ] && ! line="$(tool_tree_line "$root")"; then
+    if [ "$word" = brew ]; then
+      _note "$formula tree: Homebrew's keg at $root records no version line, the manifest form written before devbin's core"
+      _detail "run: brew upgrade $formula, once a release that writes the new form is out"
+    else
+      _fail "$formula tree: the opt install at $root records no version line, the manifest form written before devbin's core"
+      _detail "$fix"
+    fi
     return 0
   fi
   if ! states="$(tool_manifest_check "$root" "$m")"; then
@@ -1397,16 +1412,6 @@ _check_tool_tree() {
     _detail "$fix"
   else
     _pass "$formula tree: the $word install at $root, $(nonempty_lines "$states") file(s) as its manifest records"
-  fi
-  if ! line="$(tool_tree_line "$root")"; then
-    if [ "$word" = brew ]; then
-      _note "$formula tree: Homebrew's keg at $root records no version line, the manifest form written before devbin's core"
-      _detail "run: brew upgrade $formula, once a release that writes the new form is out"
-    else
-      _fail "$formula tree: the opt install at $root records no version line, the manifest form written before devbin's core"
-      _detail "$fix"
-    fi
-    return 0
   fi
   while IFS= read -r name; do
     [ -n "$name" ] || continue

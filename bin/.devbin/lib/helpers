@@ -5284,15 +5284,18 @@ tool_install_launcher_root() {
 # is_install_launcher <file> <root> -- rc 0 when <file> is the launcher of the
 # install at <root>, rc 1 otherwise.
 #
-# ONE ANSWER FOR BOTH OF A KEG'S LAYOUTS (issue 0252). A tree's launcher is
-# <root>/bin/devbin, and a file that resolves (real_path) to it is that
+# ONE ANSWER FOR EVERY LAYOUT OF A KEG (issues 0252, 0348). A tree's launcher
+# is <root>/bin/devbin, and a file that resolves (real_path) to it is that
 # launcher: Homebrew's bin link does, through the keg's bin/devbin, when the
-# formula links that into libexec. A formula can instead write the keg's
-# bin/devbin as a script of its own (write_env_script), which resolves to
-# itself and runs libexec's launcher; a plain file at <keg>/bin/devbin, beside
-# <keg>/libexec, is then the launcher too. That second spelling counts only for
-# a root that is a keg's libexec (brew_keg_prefix), so no other tree's
-# neighbour passes for one.
+# formula links that into libexec. For a root that is a keg's libexec
+# (brew_keg_prefix), a file that resolves to what the keg's own bin/devbin
+# resolves to is the launcher too, since that is what Homebrew links: the
+# script a formula writes there (write_env_script), which resolves to itself
+# and runs libexec's launcher, and a link a keg from before the manifest's line
+# makes to a launcher elsewhere in libexec, eg libexec/devbin, where
+# <root>/bin/devbin is not there at all. Read so, that keg's own Homebrew link
+# was named another copy to move aside. Only a keg's libexec is read this way,
+# so no other tree's neighbour passes for its launcher.
 #
 # IN THE CASE THE DISK STORES (issue 0284). Both sides are compared as
 # strings, so each is read in physical_dir's getcwd mode: on a disk that folds
@@ -5305,18 +5308,18 @@ tool_install_launcher_root() {
 # launcher is asked to exist first.
 #
 # tool_is_install_launcher <file> <root> <formula> <link> is the same for any
-# tool's link: <root>/bin/<link>, and for a keg of <formula> the plain file at
-# <keg>/bin/<link>.
+# tool's link: <root>/bin/<link>, and for a keg of <formula> what
+# <keg>/bin/<link> resolves to.
 is_install_launcher() { tool_is_install_launcher "$1" "$2" "$DEVBIN_SELF" "$DEVBIN_SELF"; }
 tool_is_install_launcher() {
   local got want root
-  real_path "$2/bin/$4" want getcwd
-  [ -f "$want" ] || return 1
   real_path "$1" got getcwd
-  [ "$got" = "$want" ] && return 0
+  real_path "$2/bin/$4" want getcwd
+  [ -f "$want" ] && [ "$got" = "$want" ] && return 0
   physical_dir "$2" root getcwd || return 1
   tool_brew_keg_prefix "$root" "$3" >/dev/null || return 1
-  [ "$got" = "${root%/libexec}/bin/$4" ] && [ -f "$got" ] && [ ! -L "$got" ]
+  real_path "${root%/libexec}/bin/$4" want getcwd
+  [ -f "$want" ] && [ "$got" = "$want" ]
 }
 
 # path_absolute_entries <out-array> -- PATH's absolute entries, in order, into
@@ -5838,11 +5841,12 @@ tool_link_shadow() {
 # folds case reads as it, and any devbin whose chain of links passes through
 # it, which would dangle (issue 0247), as well as the empty and relative
 # entries it never reads. Whether the hit, or Homebrew's bin link, is the keg's
-# devbin is is_install_launcher's answer, the one for both of a keg's layouts
-# (issue 0253): a link into libexec, and the script the formula writes at the
-# keg's bin/devbin on macOS (write_env_script), which resolves to itself.
-# Compared by resolved path, that script read as `other`, and `use brew`
-# refused on every macOS brew machine.
+# devbin is is_install_launcher's answer, the one for every layout of a keg
+# (issues 0253, 0348): a link into libexec, the script the formula writes at
+# the keg's bin/devbin on macOS (write_env_script), which resolves to itself,
+# and an older keg's link to a launcher elsewhere in libexec. Compared by
+# resolved path, that script read as `other`, and `use brew` refused on every
+# macOS brew machine.
 #
 # WHAT HOMEBREW'S BIN HOLDS IS READ ONLY ONCE THE LOOKUP FINDS NOTHING THAT
 # RUNS (issue 0249), and offpath is answered only when that bin is not among
@@ -5901,12 +5905,25 @@ tool_brew_answer_state() {
 # without its execute bit still fails with "Permission denied". On Linux the
 # keg's bin/devbin is a link to that launcher, and the two are one file.
 #
+# THE SECOND HOP ONLY BEHIND THE SCRIPT (issue 0348). <root>/bin/devbin is read
+# only where the keg's own bin/devbin is a plain file, the script that runs it.
+# Where that is a link, the first hop's -x follows it to the launcher itself;
+# and a keg from before the manifest's line links a launcher elsewhere in
+# libexec, holding no <root>/bin/devbin, which read as one not executable.
+# The hops are held in _tbli_hops, a name of the function's own: shellcheck -x
+# reads a variable as one type across every file a command sources, and a
+# plain `hops` is a count elsewhere in the runtime.
+#
 # tool_brew_launcher_inert <file> <root> <link> is the same for any of a tool's
 # links, the keg's own being <root>/bin/<link>.
 brew_launcher_inert() { tool_brew_launcher_inert "$1" "$2" "$DEVBIN_SELF"; }
 tool_brew_launcher_inert() {
-  local hop inert
-  for hop in "$1" "$2/bin/$3"; do
+  local hop inert kb="${2%/libexec}/bin/$3"
+  local -a _tbli_hops=("$1")
+  if [ -f "$kb" ] && [ ! -L "$kb" ]; then
+    _tbli_hops+=("$2/bin/$3")
+  fi
+  for hop in "${_tbli_hops[@]}"; do
     [ -x "$hop" ] && continue
     real_path "$hop" inert
     printf '%s\n' "$inert"
