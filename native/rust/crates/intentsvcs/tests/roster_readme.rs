@@ -146,8 +146,8 @@ fn at_07_1_an_apply_renders_the_roster_readme_from_the_profile_and_the_store() {
 }
 
 /// ST0092 AT-07.1, on a board whose mediator is not `vc` (vc's condition on
-/// the route): the route names the declaration's mediator, with the name the
-/// store holds for it, and no other seat.
+/// the route): the route names the declaration's mediator, with its row's name,
+/// and no other seat.
 #[test]
 fn at_07_1_the_route_names_the_declared_mediator_whichever_seat_it_is() {
   const SOLO: &str = "solo";
@@ -182,6 +182,45 @@ fn at_07_1_the_route_names_the_declared_mediator_whichever_seat_it_is() {
   assert!(
     !route.contains(&format!("`{}`", team().mediator)),
     "the route names the team profile's mediator: {route}"
+  );
+}
+
+/// Issue 0695: a mediator registered under a name of its own, before the first
+/// apply. That apply corrects the name to the profile's, and its README names
+/// the mediator in the route as its table row does, not with the name the
+/// store held before the apply.
+#[test]
+fn the_first_apply_names_the_mediator_in_the_route_as_its_row_does() {
+  let resolved = team();
+  let mediator = resolved
+    .seats
+    .iter()
+    .find(|s| s.moniker == resolved.mediator)
+    .expect("the mediator is a seat");
+  let own = mediator.moniker.clone();
+  assert_ne!(
+    own, mediator.name,
+    "the fixture needs a name the profile does not use"
+  );
+
+  let fx = Fixture::new();
+  let mut f = fx.facade_on_disk();
+  f.wb_register(&mediator.moniker, &own, &mediator.role)
+    .expect("the mediator registers under its own name");
+  apply(&mut f);
+  let readme = fx.read(README);
+  let route = readme
+    .split("## Route to hv")
+    .nth(1)
+    .expect("a route to hv section");
+  assert!(
+    route.contains(&format!("`{}` ({})", mediator.moniker, mediator.name)),
+    "the route does not name {} as its row does: {route}",
+    mediator.moniker
+  );
+  assert!(
+    !route.contains(&format!("`{}` ({own})", mediator.moniker)),
+    "the route carries the name the store held before the apply: {route}"
   );
 }
 

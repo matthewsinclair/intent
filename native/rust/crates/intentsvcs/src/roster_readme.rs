@@ -125,19 +125,15 @@ impl Roster {
         });
       }
     }
-    // The mediator as the declaration names it, with the name the store holds
-    // for it, or the profile's where it is not registered yet.
-    let mediator_name = registered
+    // **THE MEDIATOR'S NAME IS ITS ROW'S NAME** (issue 0695): the route and the
+    // table read one row, so they cannot disagree. A first apply renders before
+    // it writes, from the store as it was; the store's name, read here, put a
+    // name the same apply then corrected into the route, while the table
+    // already showed the profile's.
+    let mediator_name = seats
       .iter()
-      .find(|(m, ..)| *m == resolved.mediator)
-      .map(|(_, name, ..)| (*name).to_string())
-      .or_else(|| {
-        resolved
-          .seats
-          .iter()
-          .find(|s| s.moniker == resolved.mediator)
-          .map(|s| s.name.clone())
-      })
+      .find(|s| s.moniker == resolved.mediator)
+      .map(|s| s.name.clone())
       .unwrap_or_default();
     Self {
       base: resolved.base.clone(),
