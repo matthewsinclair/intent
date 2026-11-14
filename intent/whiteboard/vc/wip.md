@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-14 12:18Z
+heartbeat_at: 2026-11-14 18:14Z
 status: active
-focus: "Night fold (hv, by 20:43Z 2026-11-13 by date -u): 3.3.2 shipped; boards lean; all seats hold. Next: the estate visit (ST0093 WP-02), then 0694 and 0695."
+focus: "Intent 3.3.3 READY TO CUT at eebd6af5d (sent to devbin-vc by 18:15Z 2026-11-14 by date -u); the cut waits for hv and kovacs-sysadm. After it: close 0694 and 0695."
 claims: []
 ---
 
