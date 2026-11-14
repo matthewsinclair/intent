@@ -1,0 +1,15 @@
+{
+  "id": "01M7D57PEW49S1Z09DR6Y5X8BF",
+  "ts": "2026-11-14T13:51:30.780Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "0694: docs/banking.md's worktree bullet rewritten for 3.3.2, banked at abe52f3e5 (refs/bank/dc/0694/banking-worktree-on-a5a2f99fc) and sent to vc to land."
+  }
+}
