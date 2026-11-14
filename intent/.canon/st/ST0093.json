@@ -3,8 +3,9 @@
   "id": "ST0093",
   "title": "Why Claudes yak-shave, and faster releases",
   "slug": "why-claudes-yak-shave-and-faster-releases",
-  "status": "wip",
+  "status": "completed",
   "created": "2026-11-11",
+  "completed": "2026-11-14",
   "objective": "Find why Claudes on Intent's estate keep falling into yak-shaving (checks that repeat checks, coordination that outweighs the work), and plan the changes to the prompts, the memory, the seats' roles and the release pipeline that cut release time drastically. hv's todo 78, 2026-11-11.",
   "context": "",
   "body": "",
@@ -23,7 +24,7 @@
       "seq": 2,
       "title": "Sync the installed skills; in-verify leaves the fold",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "Take in-verify out of in-finish's chain, and sync every machine's installed skills to the release that carries this thread's skill text (design.md, the plan's A2).",
       "body": "",
       "preamble": ""
@@ -80,7 +81,8 @@
       "text": "in-finish no longer chains in-verify, and every machine's installed skills are synced to the release that carries this thread's skill text.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "in-finish's canon reads chains_to [\"in-whiteboard\"] since 3.3.1. Installed skills synced to Intent v3.3.2 (7282d3bfc), the release carrying it: rhadamanth 2026-11-13 (sync dry run now 0 would change), gyges and kovacs 2026-11-14 by ssh (in-finish updated; no in-verify left in it). farcaster and pihole could not be reached by ssh from rhadamanth (host key), so are unverified; neither is known to carry Intent."
       }
     },
     {

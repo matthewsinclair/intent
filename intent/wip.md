@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-13:v3.91: vc - night fold after 3.3.2"
+verblock: "2026-11-14:v3.92: vc - ST0093 closed; 0694 and 0695 next"
 intent_version: 3.3.2
 ---
 
@@ -7,12 +7,11 @@ intent_version: 3.3.2
 
 ## DOING
 
-- ST0093, why Claudes yak-shave: WP-06 is done (408a102f1); WP-02 closes when gyges and kovacs sync their installed skills at the estate visit (rhadamanth is synced), then the thread signs off.
 - The next Intent release carries issues 0694 (banking.md's worktree-commit line) and 0695 (wb init team's first render), and anything else found before it.
 
 ## TODO
 
-- One visit to each estate, Intent first (hv decision 41): devbin's sweep and `intent claude upgrade --apply`. Trellis moves anything bespoke out of its AGENTS.md first.
+- The rest of the estate visit (hv decision 41): Intent's is done (devbin 0.1.24 swept, its upgrade writes nothing); the other estates follow. Trellis moves anything bespoke out of its AGENTS.md first.
 - Restart every `intent mcp` and `intent expl` onto 3.3.2 (hv's, put to hv by devbin-vc): 20 still run the 3.3.0 or 3.3.1 kegs.
 - ST0094, the estate's last two boards, is not part of 3.3.2 (hv decision 42).
 - Open with hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.

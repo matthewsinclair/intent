@@ -17,9 +17,9 @@ title: Why Claudes yak-shave, and faster releases
 
 - AC-01.1 (non-test) The shared memory holds only durable facts, pointers and hv's standing rules, pruned once by vc on hv's word with hv reading the list first: its index is under 5 KB and its notes number under 50. -- evidence: the prune of 2026-11-11 on hv's word ('be _ruthless_'), with the pre-prune notes kept in ~/.config/claude/memory-backups/Intent-20261111T1846Z/; measured by vc 2026-11-12: MEMORY.md 2718 bytes, 31 notes -- satisfied: yes
 
-### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: WIP)
+### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: Done)
 
-- AC-02.1 (non-test) in-finish no longer chains in-verify, and every machine's installed skills are synced to the release that carries this thread's skill text. -- satisfied: no
+- AC-02.1 (non-test) in-finish no longer chains in-verify, and every machine's installed skills are synced to the release that carries this thread's skill text. -- evidence: in-finish's canon reads chains_to ["in-whiteboard"] since 3.3.1. Installed skills synced to Intent v3.3.2 (7282d3bfc), the release carrying it: rhadamanth 2026-11-13 (sync dry run now 0 would change), gyges and kovacs 2026-11-14 by ssh (in-finish updated; no in-verify left in it). farcaster and pihole could not be reached by ssh from rhadamanth (host key), so are unverified; neither is known to carry Intent. -- satisfied: yes
 
 ### WP-03 -- vc stops judging: the mediator reads proof and lands (status: Done)
 
@@ -43,7 +43,7 @@ title: Why Claudes yak-shave, and faster releases
 
 _(no tests in this group)_
 
-### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: WIP)
+### WP-02 -- Sync the installed skills; in-verify leaves the fold (status: Done)
 
 _(no tests in this group)_
 

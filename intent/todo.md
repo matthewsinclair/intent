@@ -8,13 +8,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
-- [-] ST0093: Why Claudes yak-shave, and faster releases
-  - [x] 01: Prune the shared memory to durable facts
-  - [-] 02: Sync the installed skills; in-verify leaves the fold
-  - [x] 03: vc stops judging: the mediator reads proof and lands
-  - [x] 04: No chain broadcasts, no bare pickup commits
-  - [x] 05: Short messages, and no check without a named catch
-  - [x] 06: The release pipeline, briefed to devbin's core
+_(none)_
 
 ## TODO
 
@@ -180,6 +174,13 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 09: Doctor reports a board that has left its profile
   - [x] 10: The new surface reads as one
   - [x] 11: Every live board converges, Intent's own first
+- [x] ST0093: Why Claudes yak-shave, and faster releases
+  - [x] 01: Prune the shared memory to durable facts
+  - [x] 02: Sync the installed skills; in-verify leaves the fold
+  - [x] 03: vc stops judging: the mediator reads proof and lands
+  - [x] 04: No chain broadcasts, no bare pickup commits
+  - [x] 05: Short messages, and no check without a named catch
+  - [x] 06: The release pipeline, briefed to devbin's core
 
 ---
 

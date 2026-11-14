@@ -1,9 +1,9 @@
 ---
 st_id: ST0093
 title: Why Claudes yak-shave, and faster releases
-status: WIP
+status: Completed
 created: 2026-11-11
-completed:
+completed: 2026-11-14
 ---
 
 # ST0093: Why Claudes yak-shave, and faster releases
@@ -21,7 +21,7 @@ _(not yet written)_
 | WP    | Title                                                | Size | Status |
 | ----- | ---------------------------------------------------- | ---- | ------ |
 | WP-01 | Prune the shared memory to durable facts             | S    | Done   |
-| WP-02 | Sync the installed skills; in-verify leaves the fold | S    | WIP    |
+| WP-02 | Sync the installed skills; in-verify leaves the fold | S    | Done   |
 | WP-03 | vc stops judging: the mediator reads proof and lands | S    | Done   |
 | WP-04 | No chain broadcasts, no bare pickup commits          | S    | Done   |
 | WP-05 | Short messages, and no check without a named catch   | S    | Done   |

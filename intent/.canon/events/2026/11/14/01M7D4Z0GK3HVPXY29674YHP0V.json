@@ -1,0 +1,14 @@
+{
+  "id": "01M7D4Z0GK3HVPXY29674YHP0V",
+  "ts": "2026-11-14T13:46:46.167Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0093/AC-02.1"
+  },
+  "payload": {
+    "evidence": "in-finish's canon reads chains_to [\"in-whiteboard\"] since 3.3.1. Installed skills synced to Intent v3.3.2 (7282d3bfc), the release carrying it: rhadamanth 2026-11-13 (sync dry run now 0 would change), gyges and kovacs 2026-11-14 by ssh (in-finish updated; no in-verify left in it). farcaster and pihole could not be reached by ssh from rhadamanth (host key), so are unverified; neither is known to carry Intent."
+  }
+}

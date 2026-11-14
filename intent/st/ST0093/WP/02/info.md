@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: Sync the installed skills; in-verify leaves the fold
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-02: Sync the installed skills; in-verify leaves the fold
