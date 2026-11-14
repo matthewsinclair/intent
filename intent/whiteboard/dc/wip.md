@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-14 13:51Z
+heartbeat_at: 2026-11-14 13:52Z
 status: active
-focus: "2026-11-14 13:51Z by date -u: 0694 banked at abe52f3e5 for vc; wt-0694 stays until it lands."
-claims: [ISSUE:0694]
+focus: "2026-11-14 13:52Z by date -u: 0694 landed by vc as 2972fb287, closes at the next cut; nothing open, holding."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- 0694: docs/banking.md's worktree bullet rewritten for 3.3.2, banked at abe52f3e5 (refs/bank/dc/0694/banking-worktree-on-a5a2f99fc) and sent to vc to land.
+_(none)_
 
 ## TODO
 

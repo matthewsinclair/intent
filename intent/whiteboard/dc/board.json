@@ -5,12 +5,10 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-14T13:51:31.762Z",
+    "heartbeat_at": "2026-11-14T13:52:23.440Z",
     "status": "active",
-    "focus": "2026-11-14 13:51Z by date -u: 0694 banked at abe52f3e5 for vc; wt-0694 stays until it lands.",
-    "claims": [
-      "ISSUE:0694"
-    ],
+    "focus": "2026-11-14 13:52Z by date -u: 0694 landed by vc as 2972fb287, closes at the next cut; nothing open, holding.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2944,7 +2942,8 @@
       "kind": "doing",
       "seq": 163,
       "text": "0694: docs/banking.md's worktree bullet rewritten for 3.3.2, banked at abe52f3e5 (refs/bank/dc/0694/banking-worktree-on-a5a2f99fc) and sent to vc to land.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-14T13:52:21.363Z",
       "recorded_at": "2026-11-14T13:51:30.780Z"
     }
   ],
