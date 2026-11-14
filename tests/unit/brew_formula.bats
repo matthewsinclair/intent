@@ -91,7 +91,10 @@ sum_of() { awk -v f="$1" '$2 == f { print $1 }' "$SUMS"; }
   make_release
   render
   assert_success
-  grep -qF 'libexec.install Dir["*"]' "$FORMULA" || fail "the archive is not laid into libexec"
+  # devbin 0.1.25 copies the archive into libexec rather than moving it there
+  # (its issue 0349), so Homebrew keeps the archive's own metafiles at the keg's
+  # root and leaves libexec as the manifest names it.
+  grep -qF 'cp_r Dir["*"], libexec, preserve: true' "$FORMULA" || fail "the archive is not laid into libexec"
   ! grep -qF 'resource(' "$FORMULA" || fail "the formula still stages a resource by hand: $(grep -n 'resource(' "$FORMULA")"
   grep -qF '"# managed_by: brew",' "$FORMULA" || fail "the manifest does not say managed_by brew"
   grep -qF '(libexec/".intent-install").write' "$FORMULA" || fail "the manifest is not written under libexec"
