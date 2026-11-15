@@ -3,9 +3,10 @@
   "number": 695,
   "slug": "wb-init-team-s-first-apply-rendered-the-mediator",
   "title": "wb init team's first --apply rendered the mediator's moniker in the roster README where its display name belongs",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-13",
+  "closed": "2026-11-15",
   "reporter": "Matthew Sinclair",
   "body": "Raised by agentic-engineering-vc on 2026-11-13. In the agentic-engineering project, the first intent wb init team --apply wrote the mediator's moniker into intent/whiteboard/README.md where the display name belongs, and a later re-render put it right (that project's commits 63ae6fd and f71d34c, 2026-11-12, on 3.3.0 or 3.3.1). It has not been reproduced on 3.3.2. First step: reproduce it in a fresh project under an isolated HOME, then fix the first render if it still happens."
 }

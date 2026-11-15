@@ -1,0 +1,15 @@
+{
+  "id": "01M7EXET13RA6RG3VNH9622M08",
+  "ts": "2026-11-15T06:14:04.070Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0696"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest flakes under load"
+  }
+}

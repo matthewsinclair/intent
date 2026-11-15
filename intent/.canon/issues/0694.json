@@ -3,9 +3,10 @@
   "number": 694,
   "slug": "docs-banking-md-says-a-worktree-commit-is-refuse",
   "title": "docs/banking.md says a worktree commit is refused as GATE ABSENT, which 0644 fixed in 3.2.7",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-13",
+  "closed": "2026-11-15",
   "reporter": "Matthew Sinclair",
   "body": "Raised by agentic-engineering-vc on 2026-11-13 after v3.3.2 shipped. docs/banking.md:52 lists 'A worktree commit' among the parking places that lost work, because the hook in a linked worktree refused the commit as GATE ABSENT. Issue 0644 (f6fbf774c, in 3.2.7) made the commit gate's chain block find its carrier under the main checkout from a linked worktree, so that refusal no longer happens. The bullet needs rewriting to what is still true, or removing if a worktree commit is now a safe place to park work. Read only: nobody has run a worktree commit on 3.3.2 to confirm."
 }

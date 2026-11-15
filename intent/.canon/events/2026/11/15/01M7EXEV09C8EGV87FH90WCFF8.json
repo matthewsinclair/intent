@@ -1,0 +1,15 @@
+{
+  "id": "01M7EXEV09C8EGV87FH90WCFF8",
+  "ts": "2026-11-15T06:14:05.069Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0697"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The kept leg target on kovacs (DEVBIN_GATE_CACHE) grows without bound"
+  }
+}

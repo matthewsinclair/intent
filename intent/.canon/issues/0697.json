@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 697,
+  "slug": "the-kept-leg-target-on-kovacs-devbin-gate-cache",
+  "title": "The kept leg target on kovacs (DEVBIN_GATE_CACHE) grows without bound",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-15",
+  "reporter": "Matthew Sinclair",
+  "body": "The kovacs leg keeps its cargo target at ~/work/intent-leg.cache between runs, and nothing bounds it. On 2026-11-15 it filled kovacs's disk (211M free), which turned the 3.3.3 cut's kovacs leg red until hv freed the space. Bound the cache, or prune it before each leg. devbin's side is its todo 218."
+}
