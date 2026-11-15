@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "7683276e-e120-4768-84a2-a8267004e72d",
-    "heartbeat_at": "2026-11-14T18:14:38.668Z",
+    "heartbeat_at": "2026-11-15T06:16:09.245Z",
     "status": "active",
-    "focus": "Intent 3.3.3 READY TO CUT at eebd6af5d (sent to devbin-vc by 18:15Z 2026-11-14 by date -u); the cut waits for hv and kovacs-sysadm. After it: close 0694 and 0695.",
+    "focus": "3.3.3 released 06:13Z; folded for compact, holding for hv's plan on the bounce",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -4220,7 +4220,8 @@
       "recipient": "cc",
       "body": "hv, 2026-11-13: issue 0691 rides Intent 3.3.2 ('if we know the fix, then do it and do it now'). (1) intentd persists the last good plan-usage reading with read_at under ~/.local/state/intent/estate/ and seeds usage::carry from it at start; (2) persist next-read-due and backoff too; (3) statusline fallback is hv's settings, out of scope; (4) one test pins restart-then-429; (5) whole bin/devbin gate rust on a booked slot in a clone outside canon, no slots wait until 0692 lands; (6) bank for vc at refs/bank/cc/0691/...",
       "fyi": false,
-      "recorded_at": "2026-11-13T12:09:21.509Z"
+      "recorded_at": "2026-11-13T12:09:21.509Z",
+      "archived_at": "2026-11-15T06:16:22.523Z"
     },
     {
       "id": "01M7AF696S4QN6160TGA8261ZD",
