@@ -1,0 +1,15 @@
+{
+  "id": "01M7FFC78879YB6N58H1N6NF82",
+  "ts": "2026-11-15T11:27:13.672Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Move Intent's bats suite onto devbin's shared lanes (devbin-vc release review action 2, ~/Devel/scratch/devbin-vc/release-review/REVIEW.md section 8): measure the shell seal against 145 to 290 s for 827 tests, each read with its recorded load; expect a list of serial tags for arms that are not parallel-safe. Intent schedules it."
+  }
+}

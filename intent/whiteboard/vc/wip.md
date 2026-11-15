@@ -18,6 +18,7 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
+- Move Intent's bats suite onto devbin's shared lanes (devbin-vc release review action 2, ~/Devel/scratch/devbin-vc/release-review/REVIEW.md section 8): measure the shell seal against 145 to 290 s for 827 tests, each read with its recorded load; expect a list of serial tags for arms that are not parallel-safe. Intent schedules it.
 
 ## Holds
 
