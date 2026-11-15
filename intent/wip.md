@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-15:v3.95: vc - hv on brew 3.3.3, daemon up; folded for compact"
+verblock: "2026-11-15:v3.96: vc - EOD globalfold; every seat lean and folded"
 intent_version: 3.3.3
 ---
 
@@ -7,12 +7,13 @@ intent_version: 3.3.3
 
 ## DOING
 
-- Nothing is running. Every seat is folded for a compact and holding for hv's plan on the bounce.
+- Nothing is running. EOD 2026-11-15: every seat is lean and folded, holding for hv's plan tomorrow.
 
 ## TODO
 
 - hv: 22 `intent mcp` and `intent expl` processes still run the 3.3.2 keg (11 are on 3.3.3); restart them onto 3.3.3. The daemon and `intent` itself are on brew 3.3.3.
 - Issues 0696 (the sync_to_disk daemon test flakes under load) and 0697 (the kept kovacs leg target grows without bound; devbin todo 218).
+- Move Intent's bats suite onto devbin's shared lanes and measure the shell seal (vc todo 82, from devbin-vc's release review action 2).
 - The rest of the estate visit (hv decision 41): Intent's is done; the other estates follow. Trellis moves anything bespoke out of its AGENTS.md first.
 - ST0094, the estate's last two boards.
 - Open with hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.
