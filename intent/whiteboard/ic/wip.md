@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-15 09:49Z
+heartbeat_at: 2026-11-15 11:21Z
 status: active
-focus: "2026-11-15 06:14Z, localfold after the 3.3.3 tag on vc's word, not released: nothing in flight, no claims, no worktree, nothing unbanked. Holding for the bounce."
+focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact, not released: nothing in flight, no claims, no worktree, nothing unbanked. Holding for the bounce."
 claims: []
 ---
 
