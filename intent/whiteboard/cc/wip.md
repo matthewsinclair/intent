@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-15 06:14Z
+heartbeat_at: 2026-11-15 11:21Z
 status: active
-focus: "2026-11-15 06:14Z, localfold after the 3.3.3 tag on vc's word; not released. Nothing is unbanked, nothing runs, no slot or worktree is held, board has 0 live items. Holding for the bounce."
+focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact; not released. Nothing runs, nothing is unbanked, no slot or worktree is held, board has 0 live items. Holding for the bounce."
 claims: []
 ---
 
