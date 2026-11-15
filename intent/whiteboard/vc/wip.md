@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-15 06:16Z
+heartbeat_at: 2026-11-15 11:21Z
 status: active
-focus: "3.3.3 released 06:13Z; folded for compact, holding for hv's plan on the bounce"
+focus: "hv on brew 3.3.3; folded for compact, holding for hv's plan on the bounce"
 claims: []
 ---
 
