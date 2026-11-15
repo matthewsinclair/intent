@@ -663,6 +663,14 @@
       "state": "archived",
       "archived_at": "2026-11-13T18:14:26.800Z",
       "recorded_at": "2026-11-13T09:36:30.996Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 57,
+      "text": "(hv, 2026-11-15, said directly to dc, relayed by dc to vc and recorded by 09:50Z on vc's date -u) hv, verbatim: \"You can clean up now\". Scope: dc's kovacs diagnostics ~/work/dc-diag-484ea426e* and dc's worktree scratchpad/wt-kovacs (base 484ea426e, off main). Executed by dc: the kovacs paths removed after announcing to devbin-vc, no sudo, nothing of the leg touched; the worktree removed by plain git worktree remove, clean and unstashed.",
+      "state": "live",
+      "recorded_at": "2026-11-15T09:50:23.409Z"
     }
   ],
   "sent": [],

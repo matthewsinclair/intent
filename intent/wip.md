@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-15:v3.93: vc - 3.3.3 released; folded for compact"
+verblock: "2026-11-15:v3.94: vc - kovacs diag and wt-kovacs cleaned up on hv's word"
 intent_version: 3.3.3
 ---
 
@@ -12,7 +12,6 @@ intent_version: 3.3.3
 ## TODO
 
 - hv: `intent daemon start`; `brew upgrade intent` then `intent use brew` once the tap has 3.3.3; restart every `intent mcp` and `intent expl` onto 3.3.3 (20 ran the 3.3.0 or 3.3.1 kegs).
-- hv's word on deleting intent-dc's `~/work/dc-diag-484ea426e*` on kovacs (a delete on a host is hv's).
 - Issues 0696 (the sync_to_disk daemon test flakes under load) and 0697 (the kept kovacs leg target grows without bound; devbin todo 218).
 - The rest of the estate visit (hv decision 41): Intent's is done; the other estates follow. Trellis moves anything bespoke out of its AGENTS.md first.
 - ST0094, the estate's last two boards.
