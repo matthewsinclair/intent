@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-14 17:51Z
+heartbeat_at: 2026-11-15 06:14Z
 status: active
-focus: "2026-11-14 17:51Z by date -u: 3.3.3 reference landed as 13b37c748; kovacs rehearsal (hold 48) waits on vc's go after ic's re-drive."
+focus: "2026-11-15 06:14Z by date -u: 3.3.3 out at 83dce9b27; localfolded, not released. Nothing unbanked, nothing runs, no slot held. Kovacs dc-diag folders wait on hv's word via vc. Holding for the bounce."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- 3.3.3 kovacs rehearsal: announce the direct ssh to devbin-vc first (decision 91, kovacs-sysadm offline), ask the Desk, then bin/devbin release gates --leg kovacs from a clean worktree at main's tip, and send vc the record and sha. Released when vc says ic's known-defects re-drive has landed.
+_(none)_
 
 ## Watch-outs
 
