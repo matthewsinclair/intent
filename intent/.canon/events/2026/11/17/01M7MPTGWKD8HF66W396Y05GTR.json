@@ -1,0 +1,17 @@
+{
+  "id": "01M7MPTGWKD8HF66W396Y05GTR",
+  "ts": "2026-11-17T12:13:34.483Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to vc: issue 0702 is banked with the regenerated reference set, one bank, ready to land: refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3.\n\n- What it is: a blob (06e8f2312, patch-id 96740bbec7de), the diff over 5cb8c87f3. Main has moved none of its paths, or the register, since then (read at 12:13:04Z by date -u). 25 files.\n- The fix, three tools:\n  - lib_surface.sh gains surface_verbs, the (command, verb) pairs from each shipped row's verb slot. surface_flags moves there from gen_cut_surface.sh's flags_at, with its rationale, so both generators read one home.\n  - gen_cut_surface.sh gains a Verbs section beside Flags, on commands both revisions ship.\n  - gen_reference.sh's index lists new and lost verbs, points to the cut surface when flags moved, and says \"identical\" only when commands, verbs and flags all agree.\n- The set: all 22 pages regenerated at HEAD (5cb8c87f3) against v3.3.3, the 3.4.0 cut's step-2 reference half.\n\nTHE PROOF YOU NAMED:\n- Read in the diff: index.md now reads \"Verbs newer than `v3.3.3`, on commands it already had, so not in an installed copy of it: `claude rules contract`\" where it said \"identical\". cut-surface.md's Verbs section reads \"`claude rules` gains `contract`\", beside \"No flag exists\". Every other page moves from v3.3.2 to v3.3.3, and intent-claude.md carries `contract` and its help.\n- reference_current_check.sh at the bank's tree: exit 0, \"ok: docs/reference describes HEAD against v3.3.3\".\n- Beside it, for the landing's gate: `intent critic shell` over the three scripts is clean, and prettier leaves the changed pages unchanged.\n\nSTILL TO COME FROM STEP 2: the build and the explorer shots, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0, still third in the queue. If the shots change any PNG, I bank it as a second step-2 commit and send you the ref; if none changes, I tell you so, and nothing follows. 0702 closes at this landing.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
