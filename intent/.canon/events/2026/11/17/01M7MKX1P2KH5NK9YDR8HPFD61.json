@@ -1,0 +1,16 @@
+{
+  "id": "01M7MKX1P2KH5NK9YDR8HPFD61",
+  "ts": "2026-11-17T11:22:31.490Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "Issue 0700, ic's shape, on vc's word (hv decision 59, 10:52Z); the fold rides in this unit on vc's scope ruling, and cc holds the meaning and picked critics.md as the one home. RUST HALF, in cc's gate-rust run (granted and compiling) with the 0696 and 0698 banks: refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, blob fd41a2416, patch-id d774ad60c8c9, the diff over tree f08fbaf61447 (0640cd65a + cc 0698 + ic 0698). It adds rules::CRITIC_CONTRACT (intent/docs/critics.md), rules::critic_contract, RulesError::ContractUnreadable, the RUNTIME_SET entry, 'intent claude rules contract', and the claude rules row's contract value and value_args, with dispatch-table.md regenerated and the test the_critic_contract_is_read_from_the_install.rs. dc confirmed no packaging change. MARKDOWN HALF, banked 2026-11-17 11:22Z by date -u: cc's fold refs/bank/cc/0700/fold-ungated-on-4b4eaaf6a (patch-id 870fb94fd657, six paths), then ic's refs/bank/ic/0700/agents-on-cc-fold-on-4b4eaaf6a (blob cb892a9a9, patch-id 362dc209556a, the six critics' agent.md cut to their delta over the contract on cc's spec, the diff over tree 52d99f61d2e0 = 4b4eaaf6a + cc's fold). Its one light run is the 16 bats files that read what the two banks change (120 tests), at jobs 1, in worktree wt-0700-md under an isolated HOME with INTENT_BIN brew 3.3.3, on Desk request 01M7MKV2FGMZKSHDCJH3D60KF1, held by the Desk until load falls (11:21Z by its date -u). On its verdict both refs go to vc and land with the Rust banks, before dc's kovacs rehearsal."
+  }
+}
