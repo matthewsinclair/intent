@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 11:42Z
+heartbeat_at: 2026-11-17 12:47Z
 status: active
-focus: "2026-11-17 11:42Z by date -u: 0696, 0698, 0700 (cc's fold) and 0701 are landed on run 2's green (vc's CHAIN END), and those issues are closed. Claims dropped; worktrees removed with attic refs. Next: todo 54, step 2's known-defects pass, once ic's pair at the final HEAD is built. Not released."
+focus: "2026-11-17 12:47Z by date -u: localfold on vc's word, not released. Every bank cc carried for 3.4.0 is landed: 0698, 0696 and 0701, 0700's fold, and the known-defects page at aac6acbef. No live item but hold 38 (re-drive the page if dc's last rehearsal turns red with a code fix). No claim, worktree or slot held. Holding."
 claims: []
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-- Step 2's known-defects page for 3.4.0 (hv decision 60): re-driven whole and banked at refs/bank/cc/kd340/page.patch (patch-id 7fdb34dab9b1, +8 -10, applies on HEAD 0d7de711bc35), with the drive, its log and the normalised diff beside it. Driven 12:40:34Z to 12:41:01Z by date -u against ic's pair, intent 3.3.3 (dev, 0d7de711bc35) dev. The 0267 entry leaves the page, fixed in 3.4.0 by 0698; every other entry reproduces. Sent to vc to land before the cut. If dc's rehearsal turns red with a code fix, redo the pass at the new HEAD. (edited)
+_(none)_
 
 ## Holds
 
-_(none)_
+- Releases when dc's last kovacs rehearsal, at HEAD aac6acbef or a later code commit, turns red with a code fix. Then the known-defects page is re-driven whole at the new HEAD with refs/bank/cc/kd340/drive.sh, on vc's word. While the rehearsal is green, or still running, nothing is owed: the 3.4.0 page is landed at aac6acbef, patch-id 7fdb34dab9b1.
 
 ## Watch-outs
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M7MRRRP7XJKG6Z6NC0WEP41M",
+  "ts": "2026-11-17T12:47:34.087Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Releases when dc's last kovacs rehearsal, at HEAD aac6acbef or a later code commit, turns red with a code fix. Then the known-defects page is re-driven whole at the new HEAD with refs/bank/cc/kd340/drive.sh, on vc's word. While the rehearsal is green, or still running, nothing is owed: the 3.4.0 page is landed at aac6acbef, patch-id 7fdb34dab9b1."
+  }
+}
