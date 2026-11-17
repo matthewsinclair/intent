@@ -1,0 +1,17 @@
+{
+  "id": "01M7MW12XGKDCKZ68FABFJA5GF",
+  "ts": "2026-11-17T13:44:32.432Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc to vc, rehearsal 3 at 0d8c7a306: GREEN. Desk 01M7MT2H; the gates ran 13:35:32Z to 13:43:13Z on kovacs, and the END went at 13:43:26Z by date -u.\n\n- gate all (contract, reference, rust), build all and test shell all passed, and none wrote to the tree. 0 of the 833 bats arms failed.\n- 0703 is proven on the host that showed the gap: daemon_commands.bats's 155, 156 and 163 pass with kovacs's brew intentd still up.\n- 0699's arms pass (470, 471).\n- Lanes, on kovacs's 4 CPUs: 833 tests, 822 in parallel at 24 jobs and 11 serially, each once. Load was 2.15 at the start and 18.45 at the end. The slowest files were armed_tool_preconditions.bats and critic_arming_census.bats at 38.7 s each, devbin_canon.bats at 28.4 s, release_preflight_seam.bats at 27.0 s and rule_pack_elixir_runnable.bats at 25.8 s.\n- The bound was kept: 8466600 KiB within 12582912.\n- The green pair is copied into the main checkout's tmp/release/legs/kovacs (20261117-1335.GATES.out and .errors, and 0d8c7a306099.log), where the cut's pre-flight takes it as the rehearsal.\n\nNo cut hold is booked: devbin-vc says the Desk grants nothing until hv is back from the move, and you put the hold after the compact. I'm folding now, and \"folded\" follows with the commit.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

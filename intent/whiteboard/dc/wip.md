@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 13:10Z
+heartbeat_at: 2026-11-17 13:45Z
 status: active
-focus: "2026-11-17 13:10Z by date -u: on hv decision 58. 0703 landed by vc at 2c5006e23 and closed; its worktree removed (attic refs/attic/dc/wt-0703). Rehearsal 3 asked at the Desk (01M7MT2H, heavy) at 3be400e84, granted after Webber's floor-fix run ENDs; then the cut's Desk hold (todo 65). wt-kovacs held at 3be400e84; no slot or claim held."
+focus: "2026-11-17 13:45Z by date -u: LOCALFOLDED on vc's word for hv's compact and move; not released. Rehearsal 3 GREEN at 0d8c7a306 (verdict and record on todo 65; the green pair is in the main checkout's tmp/release/legs/kovacs). Next, after the compact and hv's return, on vc's word: the Desk's hold of rhadamanth and kovacs for the cut's legs (todo 65). Nothing runs; no bank, slot, claim or worktree held."
 claims: []
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-- After rehearsal 3 is green (vc, 2026-11-17): book the Desk's hold of rhadamanth and kovacs for the cut's legs and tell vc the slot; vc then folds every seat and tells hv the cut is ready.
+- REHEARSAL 3 IS GREEN (2026-11-17, read off its seal): bin/devbin release gates --leg kovacs at 0d8c7a306, Desk 01M7MT2H, gates 13:35:32Z to 13:43:13Z. All three gates passed and none wrote to the tree; 0 of 833 bats arms failed, 0703's three daemon arms included, with kovacs's brew intentd up. The green pair is in the main checkout's tmp/release/legs/kovacs (20261117-1335.GATES.out and .errors, 0d8c7a306099.log), where the cut's pre-flight takes it. NEXT, when hv is back from the move and vc says so after the compact: ask the Desk for the cut's hold of rhadamanth and kovacs and tell vc the slot; vc then folds every seat and tells hv the cut is ready (hv runs intent daemon stop, then bin/devbin release v3.4.0 --dry-run, then bin/devbin release v3.4.0). (edited)
 
 ## Holds
 
-- vc GO item 3 (hv decision 58): REHEARSAL 3, bin/devbin release gates --leg kovacs at the HEAD that carries 0703's landing, from scratchpad/wt-kovacs moved to that HEAD, with kovacs's brew intentd left running (vc, 2026-11-17). Rehearsal 1 (88bb0d88e) was red on stale reference pages only, and rehearsal 2 (aac6acbef) on three daemon_commands.bats arms only (0703). RELEASED WHEN 0703 is on main and the Desk grants the ask after Webber's floor-fix run ENDs, with rhadamanth held quiet. On green: copy the kept pair into the main checkout's tmp/release/legs/kovacs, where the cut's pre-flight reads it, and report to vc. (edited)
+_(none)_
 
 ## Watch-outs
 

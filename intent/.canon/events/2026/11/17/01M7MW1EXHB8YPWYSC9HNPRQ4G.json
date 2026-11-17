@@ -1,0 +1,16 @@
+{
+  "id": "01M7MW1EXHB8YPWYSC9HNPRQ4G",
+  "ts": "2026-11-17T13:44:44.721Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 65,
+    "text": "REHEARSAL 3 IS GREEN (2026-11-17, read off its seal): bin/devbin release gates --leg kovacs at 0d8c7a306, Desk 01M7MT2H, gates 13:35:32Z to 13:43:13Z. All three gates passed and none wrote to the tree; 0 of 833 bats arms failed, 0703's three daemon arms included, with kovacs's brew intentd up. The green pair is in the main checkout's tmp/release/legs/kovacs (20261117-1335.GATES.out and .errors, 0d8c7a306099.log), where the cut's pre-flight takes it. NEXT, when hv is back from the move and vc says so after the compact: ask the Desk for the cut's hold of rhadamanth and kovacs and tell vc the slot; vc then folds every seat and tells hv the cut is ready (hv runs intent daemon stop, then bin/devbin release v3.4.0 --dry-run, then bin/devbin release v3.4.0)."
+  }
+}
