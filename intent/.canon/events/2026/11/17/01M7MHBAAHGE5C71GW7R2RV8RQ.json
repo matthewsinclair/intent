@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHBAAHGE5C71GW7R2RV8RQ",
+  "ts": "2026-11-17T10:37:53.361Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0698, ic's half, on vc's go (2026-11-17 10:37Z by date -u), which is hv decision 58: the plan as written. On the report field cc names and defines (cc's first step, sent to ic on the board), ic prints each drifted row of a Completed thread as an advisory line above the verdict, words the verdict line to say L3 was asked of none of its rows (naming intent doctor --scope closed if it names doctor, since doctor's default scope withholds a closed thread's drift), gives the MCP at lint JSON the same fields, and adds one CLI test in acceptance_surface.rs on the reporter's shape. A live thread prints what it prints today. Banked on top of cc's 0698 bank; cc runs the one proof run over all three banks (0696 and 0698's two) and sends them to vc to land."
+  }
+}

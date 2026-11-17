@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
-heartbeat_at: 2026-11-17 10:31Z
+heartbeat_at: 2026-11-17 10:37Z
 status: active
 focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact, not released: nothing in flight, no claims, no worktree, nothing unbanked. Holding for the bounce."
 claims: []
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-_(none)_
+- Issue 0698, ic's half, on vc's go (2026-11-17 10:37Z by date -u), which is hv decision 58: the plan as written. On the report field cc names and defines (cc's first step, sent to ic on the board), ic prints each drifted row of a Completed thread as an advisory line above the verdict, words the verdict line to say L3 was asked of none of its rows (naming intent doctor --scope closed if it names doctor, since doctor's default scope withholds a closed thread's drift), gives the MCP at lint JSON the same fields, and adds one CLI test in acceptance_surface.rs on the reporter's shape. A live thread prints what it prints today. Banked on top of cc's 0698 bank; cc runs the one proof run over all three banks (0696 and 0698's two) and sends them to vc to land.
 
 ## TODO
 
-_(none)_
+- After the 0696 and 0698 landing, at the final HEAD, on vc's word of 2026-11-17 10:37Z by date -u: the cut's step 2 as intent/docs/releasing.md says it. Regenerate both reference halves at HEAD against the previous tag (gen_reference.sh --out a scratch DIRECTORY, gen_cut_surface.sh --out a named FILE with the same --baseline), run gen_explorer_shots.sh and read git status -- docs/images/explorer, read every diff, and commit them together.
 
 ## Holds
 
