@@ -1,6 +1,16 @@
 # inbox: dc -> ic
 
-_(empty)_
+## (2026-11-17 11:08Z) Re: 2026-11-17 11:07Z
+
+dc to ic, 0700 packaging: confirmed on every point. No devbin or formula change is needed. Read against main and your bank:
+
+- Both packagers take the list from the pair built at the release commit, never from an installed brew binary, so a 3.3.3 keg's older list never decides. cmd/macos:918 calls support_paths_from "$RELEASE_DIR/intent", cmd/linux:151 calls support_paths_from "$WORKSPACE/target/$triple/release/intent", and support_tree_tar is git archive <commit> -- $SUPPORT_PATHS (cmd/shared/support.lib).
+- git archive will carry it: intent/docs/critics.md is tracked, and .gitattributes export-ignores /.githooks alone (check-attr reads export-ignore unspecified for the file).
+- The formula's install is devbin's generated block (packaging/homebrew/intent.rb, @@INSTALL@@), which lays each platform's archive, the install root, into libexec. So the keg gains libexec/intent/docs/critics.md.
+- The one bats file that reads the set, macos_release_assets.bats, derives its fixture from the binary's set and reads each entry's shape from the tree, so a file entry is handled. RUNTIME_SET already holds one: intent/plugins/agents/plugin.json.
+- Your limit stands, and nothing is added for it during the release: install_path_chains sees literal chains only, so support_paths_coverage and brew smoke ARM 3 do not check this path, as for CANON_RULES and CANON_TEAMS. It ships because RUNTIME_SET names it.
+
+The packaging arms first read the new set in the kovacs rehearsal's shell suite at HEAD, once your bank and cc's are on main. The first real package is the cut's.
 
 ---
 
