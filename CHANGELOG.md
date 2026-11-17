@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - in progress
+
+### Added
+
+- **`intent claude rules contract` prints the critic contract** (issue 0700). Every `critic-<lang>` subagent works under one contract, and until now an installed critic could not read it: the contract lived only in Intent's source tree, split across two documents. It now has one home, `intent/docs/critics.md`, which the release ships and the new verb prints whole from the installed Intent, with no project needed. `intent/plugins/claude/rules/_schema/critic-contract.md` is folded into it and removed.
+
+### Changed
+
+- **Each critic subagent carries only what is its own, and reads the rest from the contract** (issue 0700). The six `critic-<lang>` agents open by reading the contract through `intent claude rules contract`, and each `agent.md` holds only its language's part over it, so the shared rules are written once. Run `intent claude subagents sync` to install the new agents.
+
+### Fixed
+
+- **`intent at lint` on a Completed thread names the citations that drifted, and no longer calls every row conforming** (issue 0698). A closed thread is exempt from the check that a row's cited line still carries the row's id (issue 0665), yet the lint reported each of its rows as "examined and conforming", which sent a reader looking for the fault elsewhere. On a Completed thread the lint now prints each drifted row as an `advisory:` line above its verdict, and the verdict line says the id check is advisory there, counts the rows that drifted, and names `intent doctor --scope closed` as the other place they are reported. The verdict, the exit code and a live thread's output do not change. The MCP `at lint` tool carries the same rows in a `closed_contract_drift` field.
+- **The store's write-ahead log no longer keeps the size of its largest burst** (issue 0701). SQLite reuses `intent/.cache/intent.db-wal` after each checkpoint but never shrank it, so the file held the high-water mark of its largest write burst: 296 MB on one machine, and a 559 MB one was truncated by hand in September. The store now sets `journal_size_limit`, so SQLite cuts the file back to 16 MiB at the first commit after each restart of the log.
+
 ## [3.3.3] - 2026-11-15
 
 ### Changed
