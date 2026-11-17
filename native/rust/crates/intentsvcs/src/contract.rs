@@ -1005,18 +1005,21 @@ pub fn contract_report(
   wanted: Option<&str>,
   refs: &dyn References,
 ) -> ContractReport {
-  // L3 is exempt on a closed thread: retrofitting id labels into a completed
-  // thread's tests is archaeology, and v2 says so at `at_row_findings`.
+  // L3 is exempt from the gate on a closed thread: retrofitting id labels into
+  // a completed thread's tests is archaeology, and v2 says so at
+  // `at_row_findings`. It is still asked there, as advice: see
+  // `closed_contract_drift` below (issue 0698).
   let completed = thread.status == ThreadStatus::Completed;
+  let in_scope = |id: &str| match wanted {
+    None => true,
+    Some(group) => group_of(id) == group,
+  };
   let mut out = Vec::new();
   let mut rows = 0;
   let mut examined = 0;
   let mut un = Unexamined::default();
 
-  for t in thread.tests.iter().filter(|t| match wanted {
-    None => true,
-    Some(group) => group_of(&t.id) == group,
-  }) {
+  for t in thread.tests.iter().filter(|t| in_scope(&t.id)) {
     rows += 1;
     // L2/L3 apply to a REAL test row that claims to have been run. `to-write`
     // is exempt because a missing file is the CORRECT state for a test not yet
@@ -1086,11 +1089,21 @@ pub fn contract_report(
       }
     }
   }
+  // The rule's one home answers for a Completed thread, over the rows this walk
+  // took, and the answer stays out of `out`, so nothing that decides on findings
+  // reads it (issue 0698, hv decision 58).
+  let closed_contract_drift = completed.then(|| {
+    completed_thread_drift(thread, refs)
+      .into_iter()
+      .filter(|(at, _)| in_scope(at))
+      .collect()
+  });
   ContractReport {
     findings: out,
     rows,
     examined,
     unexamined: un,
+    closed_contract_drift,
   }
 }
 
@@ -1152,7 +1165,10 @@ pub fn literal_id_finding(
 /// `at lint` and the gate pass such a row forever. That covers tests written
 /// before the label rule, and it also covered a test deleted from a file that
 /// survives, which every surface then read as conforming. This answers the same
-/// question for the rows the exemption skips, and the gate never calls it.
+/// question for the rows the exemption skips. `doctor` calls it, and so does
+/// [`contract_report`], which holds the answer in
+/// [`ContractReport::closed_contract_drift`], apart from `findings`, so the gate
+/// never reads it (issue 0698).
 ///
 /// A missing file is not asked here: L2 still runs after close, so the gate
 /// already names it.
@@ -1196,6 +1212,25 @@ pub struct ContractReport {
   pub examined: usize,
   /// The rest, partitioned by WHY, because the three reasons are not alike.
   pub unexamined: Unexamined,
+  /// **L3 ON A COMPLETED THREAD: ASKED, SHOWN, AND NEVER A FINDING** (issue
+  /// 0698, hv decision 58).
+  ///
+  /// `None` on a thread that is not Completed. L3 gates there, and what it
+  /// finds is in `findings`.
+  ///
+  /// `Some(drift)` on a Completed thread, where the close gate's L3 exemption
+  /// stands (issue 0665). `drift` is what [`completed_thread_drift`], the
+  /// rule's one home and the call `doctor` makes, names for the rows this report
+  /// walked: one `(AT id, finding)` pair per green test row whose cited file
+  /// exists and no longer carries the row's id, and empty when none has
+  /// drifted. It is held apart from `findings`, so the close gate, the
+  /// row-write guard and `at lint`'s exit code never read it. `at lint` shows
+  /// it as advisory lines: the drift `intent doctor --scope closed` names.
+  ///
+  /// Until 0698 the exemption skipped these rows in silence, and `at lint`
+  /// counted them examined and conforming, so its reader could not tell
+  /// checked and true from true at close and unchecked since.
+  pub closed_contract_drift: Option<Vec<(String, String)>>,
 }
 
 /// Why a walked row was never examined. **Three reasons, reported apart,
