@@ -104,11 +104,12 @@ EOF
   chmod +x "$STUBS/cargo"
 }
 
-# check <name> -- one gate as the core runs it. $output is its stdout alone;
-# its stderr is in $ERR.
+# check <name> [<word>...] -- one gate as the core runs it, with any words after
+# the name as devbin hands them on. $output is its stdout alone; its stderr is
+# in $ERR.
 check() {
   ERR="${TEST_TEMP_DIR}/check.err"
-  run env PROJECT_ROOT="$REPO" PATH="$STUBS:$PATH" bash -c '"$1" "$2" 2>"$3"' _ "$GATE" "$1" "$ERR"
+  run env PROJECT_ROOT="$REPO" PATH="$STUBS:$PATH" bash -c 'g="$1" e="$2"; shift 2; "$g" "$@" 2>"$e"' _ "$GATE" "$ERR" "$@"
 }
 
 err_has() {
@@ -302,4 +303,37 @@ write_pair() {
     grep -qx "$opt macos" <<<"$held" || fail "gate $opt is not held to macOS: $held"
   done
   ! grep -qvE '^(pair|provenance|doctor) macos$' <<<"$held" || fail "a gate that does not read the pair is held to a platform: $held"
+}
+
+# Issue 0699: devbin hands every word after the option on to the option's run
+# line, so `bin/devbin gate rust --help` reaches the gate as `rust --help`. The
+# rust gate adds its worktree before any cargo step and runs every twin after
+# the build, so an unchanged worktree list and an empty stub log say that no
+# check ran.
+@test "0699: a word after the check's name is refused, and named, before any check runs" {
+  local before
+  make_repo
+  before="$(git -C "$REPO" worktree list)"
+  check rust --no-such-flag
+  assert_failure
+  err_has "--no-such-flag"
+  [ ! -s "$STUB_LOG" ] || fail "a check ran: $(cat "$STUB_LOG")"
+  [ "$(git -C "$REPO" worktree list)" = "$before" ] || fail "the gate added a worktree: $(git -C "$REPO" worktree list)"
+}
+
+@test "0699: -h and --help answer with the usage wherever they stand, and run no check" {
+  local before
+  make_repo
+  before="$(git -C "$REPO" worktree list)"
+  check --help
+  assert_success
+  assert_output_contains "usage: bin/devbin gate <check>"
+  check rust --help
+  assert_success
+  assert_output_contains "usage: bin/devbin gate <check>"
+  check rust -h
+  assert_success
+  assert_output_contains "usage: bin/devbin gate <check>"
+  [ ! -s "$STUB_LOG" ] || fail "a check ran: $(cat "$STUB_LOG")"
+  [ "$(git -C "$REPO" worktree list)" = "$before" ] || fail "the gate added a worktree: $(git -C "$REPO" worktree list)"
 }

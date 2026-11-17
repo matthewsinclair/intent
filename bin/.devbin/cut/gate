@@ -32,6 +32,35 @@
 #   doctor      the pair's `intent doctor` is clean (macOS only)
 set -euo pipefail
 
+# The checks below, in the order `gate all` runs them. The usage and the
+# unknown-check remedy name them from here.
+CHECKS="contract reference rust pair provenance doctor"
+
+# gate_usage -- what this script takes, on stdout.
+gate_usage() {
+  printf 'usage: bin/devbin gate <check>\n  <check> is one of: %s\n  -h, --help prints this and runs no check\n' "${CHECKS// /, }"
+}
+
+# NO WORD AFTER THE CHECK'S NAME REACHES A RUN (issue 0699). devbin answers -h
+# and --help only in the option's place and hands every word after the option
+# on to this line, so `bin/devbin gate rust --help` arrived as `rust --help`,
+# and read by its first argument alone it ran the whole rust gate: a heavy
+# build with no Desk slot. So -h and --help, wherever they stand, answer with
+# the usage and run nothing, and any other word after the check's name is
+# named and refused before anything else here runs.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      gate_usage
+      exit 0
+      ;;
+  esac
+done
+if [ "$#" -gt 1 ]; then
+  printf "error: gate %s: takes nothing after the check's name, and was given: %s\n  remedy: run \`bin/devbin gate %s\` with nothing after it\n" "$1" "${*:2}" "$1" >&2
+  exit 2
+fi
+
 : "${PROJECT_ROOT:?run this as bin/devbin gate <check>, which exports the project root}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 shared="$here/../cmd/shared"
@@ -271,7 +300,7 @@ case "$CHECK" in
   provenance) check_provenance ;;
   doctor) check_doctor ;;
   *)
-    printf 'error: gate: no check %s\n  remedy: one of contract, reference, rust, pair, provenance, doctor\n' "${CHECK:-<none>}" >&2
+    printf 'error: gate: no check %s\n  remedy: one of %s\n' "${CHECK:-<none>}" "${CHECKS// /, }" >&2
     exit 2
     ;;
 esac
