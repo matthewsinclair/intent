@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 10:37Z
+heartbeat_at: 2026-11-17 11:18Z
 status: active
-focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact; not released. Nothing runs, nothing is unbanked, no slot or worktree is held, board has 0 live items. Holding for the bounce."
+focus: "2026-11-17 11:18Z by date -u: the one gate rust over cc 0696, 0698 and 0701 and ic 0698 and 0700 is running on Desk slot 01M7MK2VTSNNRWXPWWTVEJ7HA9. 0700's fold is banked and its six deltas are with ic. Not released."
 claims: [ISSUE:0698, ISSUE:0696, ISSUE:0701]
 ---
 
@@ -20,7 +20,7 @@ claims: [ISSUE:0698, ISSUE:0696, ISSUE:0701]
 
 ## TODO
 
-- The proof: one whole bin/devbin gate rust over cc's 0696, 0698 and WAL banks with ic's 0698 and 0700 banks, in a clone outside the canon tree, on a Desk slot after estate slots ask, never beside a kovacs run (hv decision 45). Then send vc the refs and the run's verdict line, and vc lands them. (edited)
+- RUNNING since 11:17:57Z by date -u, on Desk slot 01M7MK2VTSNNRWXPWWTVEJ7HA9 (cargo and heavy, devbin-vc's GO): the one whole bin/devbin gate rust in ~/Devel/scratch/intent-cc/gate-0696-0698-0700-0701 at tip 50bc9960a4e0. The tip is main 105e6beff with cc 0698, ic 0698, ic 0700, cc 0696 and cc 0701 applied in that order. No kovacs run beside it (hv decision 45). At the END: release the slot with the result, then send vc the refs and the verdict line. (edited)
 - At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17.
 
 ## Holds
