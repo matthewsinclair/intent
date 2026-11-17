@@ -18,12 +18,17 @@
 # sandbox and are deliberately left to a separate file, so that this one can run
 # on a shared machine without a second writer appearing on it.
 #
-# THE SANDBOXED $HOME IS THE ISOLATION, and it is sound rather than hopeful.
-# `$HOME` is read in exactly ONE module (`userstate.rs`, which says so and is
-# enforced over every `src/**/*.rs`), and the socket path is
-# `daemon_socket_under(home)` = `$HOME/.local/state/intent/run/intentd.sock`. So a
-# fake `$HOME` relocates the address the CLI probes, by construction and not by
-# convention.
+# THE SANDBOXED $HOME IS THE ISOLATION ONCE THE XDG VARIABLES ARE UNSET.
+# `$HOME` and the four `XDG_*` variables are read in exactly ONE module
+# (`userstate.rs`, which says so and is enforced over every `src/**/*.rs`), and
+# the socket path is `daemon_socket_under(dirs)` = `<runtime>/intentd.sock`,
+# where `<runtime>` is `$XDG_RUNTIME_DIR/intent` when that is set, and
+# otherwise `run/` under the state directory, `$XDG_STATE_HOME/intent` before
+# `$HOME/.local/state/intent`. A Linux login session sets `XDG_RUNTIME_DIR`, so a
+# fake `$HOME` alone still probed a live daemon on a leg host (issue 0703).
+# setup() therefore unsets them through the shared `unset_user_dirs`, and the
+# fake `$HOME` then relocates the address the CLI probes, by construction and
+# not by convention.
 #
 # THE ARMS BELOW PIN BEHAVIOUR THAT IS RULED AND WOULD OTHERWISE READ AS A BUG:
 #
@@ -52,6 +57,7 @@ setup() {
   # derived socket path far under the limit, so a failure here is the subject
   # and never the fixture.
   export HOME="$TEST_TEMP_DIR/h"
+  unset_user_dirs
   mkdir -p "$HOME"
   cd "$TEST_TEMP_DIR" || exit 1
 }

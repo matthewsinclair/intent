@@ -50,7 +50,19 @@ teardown() {
   fi
 }
 
-# Redirect HOME into a per-test sandbox so no test can write to the real
+# unset_user_dirs -- unset the four XDG variables Intent reads beside $HOME
+# (intentsvcs::userstate::Dirs::resolve), so a sandboxed $HOME decides every
+# user directory Intent derives: config, data, state and the daemon's runtime
+# directory. Each one that is set wins over $HOME, and a Linux login session
+# sets XDG_RUNTIME_DIR, where a live intentd's socket is, so a sandbox that
+# moved $HOME alone still reached that daemon (issue 0703). A test that wants
+# one of them exports it after the sandbox.
+unset_user_dirs() {
+  unset XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME XDG_RUNTIME_DIR
+}
+
+# Redirect HOME into a per-test sandbox, with every user directory Intent
+# derives from it (unset_user_dirs), so no test can write to the real
 # ~/.claude or ~/.config (ST0042 F-TEST-1/F-TEST-9). Call after TEST_TEMP_DIR
 # exists -- from an overridden setup(), or inline in a test that manages its
 # own temp dir. Pair with teardown_fake_home in teardown() (or before the
@@ -58,6 +70,7 @@ teardown() {
 setup_fake_home() {
   REAL_HOME="$HOME"
   export HOME="${TEST_TEMP_DIR}/fakehome"
+  unset_user_dirs
   mkdir -p "$HOME/.claude/skills" "$HOME/.claude/agents" "$HOME/.config"
 }
 
