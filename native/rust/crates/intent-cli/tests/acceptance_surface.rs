@@ -60,6 +60,25 @@ fn project() -> tempfile::TempDir {
 /// each fixture here is a particular CONTRACT SHAPE, and reaching it through
 /// `ac`/`at` movements would make the setup depend on the surfaces under test.
 fn seed(root: &Path, id: &str, criteria: &str, tests: &str) {
+  write_canon(root, id, r#""status": "wip""#, "wip", criteria, tests);
+}
+
+/// The same thread closed, as `st done` leaves one: Completed, with its close
+/// date and its one package done.
+fn seed_completed(root: &Path, id: &str, criteria: &str, tests: &str) {
+  write_canon(
+    root,
+    id,
+    r#""status": "completed", "completed": "2026-08-20""#,
+    "done",
+    criteria,
+    tests,
+  );
+}
+
+/// `status` is the thread's status field, with its close date when it has one,
+/// and `wp` the status of its one package.
+fn write_canon(root: &Path, id: &str, status: &str, wp: &str, criteria: &str, tests: &str) {
   // Canon is flat under `intent/.canon/st/` after WP-01; the id is the file
   // name, not a directory. `intent/st/` keeps the VIEWS and nothing else.
   let dir = root.join("intent/.canon/st");
@@ -72,11 +91,11 @@ fn seed(root: &Path, id: &str, criteria: &str, tests: &str) {
   "id": "{id}",
   "slug": "a-thread",
   "title": "A thread",
-  "status": "wip",
+  {status},
   "created": "2026-08-17",
   "objective": "",
   "context": "",
-  "wps": [ {{ "seq": 1, "title": "A package", "scope": "S", "status": "wip" }} ],
+  "wps": [ {{ "seq": 1, "title": "A package", "scope": "S", "status": "{wp}" }} ],
   "criteria": [{criteria}],
   "tests": [{tests}]
 }}
@@ -432,6 +451,58 @@ fn an_id_on_a_line_naming_another_thread_is_not_coverage() {
   let (bare, code) = cite("// AT-01.1 -- unqualified, as most of the estate writes it\n");
   assert!(!bare.contains("does not carry"), "got: {bare}");
   assert_eq!(code, Some(0));
+}
+
+/// **0698: on a Completed thread the lint names the drift the close gate does
+/// not ask about, and says that the id check there is advisory.**
+///
+/// The close gate exempts a Completed thread's rows from the id check (0665),
+/// so a row whose cited line moved after the close was counted "examined and
+/// conforming" while `doctor --scope closed` named it, and the reporter
+/// re-checked twenty rows by hand to learn why the two disagreed. This is the
+/// reporter's shape: a green row citing `<file>:<line>` whose id now sits on
+/// another line of the same file.
+///
+/// **Two rows, and only one has drifted**, so a lint that named every green
+/// row, or a verdict that counted the examined rows as drifted, reads wrong
+/// here. The verdict and the exit code stay as 0665 left them.
+#[test]
+fn a_completed_threads_drift_is_named_as_advisory_and_does_not_gate() {
+  let dir = project();
+  let root = dir.path();
+  std::fs::create_dir_all(root.join("t")).expect("mkdir");
+  std::fs::write(
+    root.join("t/kept.rs"),
+    "// ST0001 AT-01.1\n#[test]\nfn kept() {}\n",
+  )
+  .expect("write");
+  std::fs::write(
+    root.join("t/moved.rs"),
+    "// a test added above the arm moved it down\n#[test]\n// ST0001 AT-01.2\nfn moved() {}\n",
+  )
+  .expect("write");
+  seed_completed(
+    root,
+    "ST0001",
+    r#"{ "id": "AC-01.1", "text": "It works", "kind": "test", "state": { "is": "computed" } }"#,
+    &[
+      r#"{ "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "green", "file": "t/kept.rs:1" }"#,
+      r#"{ "id": "AT-01.2", "covers": ["AC-01.1"], "kind": "test", "status": "green", "file": "t/moved.rs:1" }"#,
+    ]
+    .join(", "),
+  );
+
+  let out = run(root, &["at", "lint", "ST0001"]);
+  assert_eq!(
+    stdout(&out),
+    "advisory: t/moved.rs:1 cites line 1, which does not carry AT-01.2; the lines that carry \
+     it are 3, so re-cite the row as `t/moved.rs:<line>` at the line over its own arm\n\
+     lint: ST0001 ok -- 2 of 2 AT row(s) examined and conforming; ST0001 is Completed, so \
+     whether a citation carries its row's id is advisory: 1 row(s) drifted, named above and \
+     by `intent doctor --scope closed`",
+    "the drifted row is named as advisory, and the verdict says why it does not count"
+  );
+  assert_eq!(out.status.code(), Some(0), "the drift gates nothing");
 }
 
 /// **The control the single-fixture test cannot be.** Two threads, two row

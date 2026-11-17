@@ -3722,6 +3722,19 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       for finding in &report.findings {
         println!("{finding}");
       }
+      // **A COMPLETED THREAD'S DRIFT PRINTS WHERE A LIVE THREAD'S FINDING WOULD,
+      // MARKED AS NOT GATING** (issue 0698, hv decision 58). The close gate does
+      // not ask a Completed thread's rows whether their citation still carries
+      // the row's id (0665), and this lint used to say nothing of it: it counted
+      // every such row conforming while `doctor --scope closed` named the ones
+      // that had drifted, and its reader re-checked twenty rows by hand. Each line
+      // is the sentence the same row prints as a finding on a live thread, behind
+      // `advisory:`, because it moves neither the verdict nor the exit code.
+      if let Some(drift) = &report.closed_contract_drift {
+        for (_, finding) in drift {
+          println!("advisory: {finding}");
+        }
+      }
       // **THE VERDICT LINE, WITH ITS DENOMINATOR. Without it a clean lint was
       // zero bytes at exit 0** -- byte-identical to a lint that never ran, on
       // the surface a reader trusts the AT contract on. v2's positive control
@@ -3775,12 +3788,27 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       } else {
         format!("; {} not examined ({})", rows - seen, why.join(", "))
       };
+      // On a Completed thread the line says the id check is advisory, and counts
+      // what it named, zero included: "conforming" alone was the reading that
+      // sent 0698's reporter to a wrong theory. A live thread gains nothing here.
+      let closed = match &report.closed_contract_drift {
+        None => String::new(),
+        Some(drift) if drift.is_empty() => format!(
+          "; {st} is Completed, so whether a citation carries its row's id is advisory: 0 row(s) drifted"
+        ),
+        Some(drift) => format!(
+          "; {st} is Completed, so whether a citation carries its row's id is advisory: {} row(s) drifted, named above and by `intent doctor --scope closed`",
+          drift.len()
+        ),
+      };
       if report.findings.is_empty() {
-        println!("lint: {st} ok -- {seen} of {rows} AT row(s) examined and conforming{tail}");
+        println!(
+          "lint: {st} ok -- {seen} of {rows} AT row(s) examined and conforming{tail}{closed}"
+        );
         Ok(())
       } else {
         println!(
-          "lint: {st} FAILED -- {} finding(s) over {seen} of {rows} AT row(s) examined{tail}",
+          "lint: {st} FAILED -- {} finding(s) over {seen} of {rows} AT row(s) examined{tail}{closed}",
           report.findings.len()
         );
         Err(Failure::Verdict)

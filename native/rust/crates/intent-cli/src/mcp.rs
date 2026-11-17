@@ -1027,6 +1027,17 @@ fn tool_answer(
       // `rows` is the WALKED total and keeps its spelling; the machine surface
       // gains what the human one gained (0273), rather than being left as the
       // one reader still told that walked means examined.
+      //
+      // `closed_contract_drift` is null on a thread that is not Completed, and on
+      // a Completed one the rows whose citation no longer carries their id, one
+      // object each and empty when none has drifted (issue 0698): the advisory
+      // lines `at lint` prints, never among `findings`, which alone gate.
+      let drift = report.closed_contract_drift.as_ref().map(|drifted| {
+        drifted
+          .iter()
+          .map(|(at, finding)| json!({ "at": at, "finding": finding }))
+          .collect::<Vec<_>>()
+      });
       Ok(json!({
         "findings": report.findings,
         "rows": report.rows,
@@ -1036,7 +1047,8 @@ fn tool_answer(
           "not_a_test_with_verdict": report.unexamined.not_a_test_with_verdict,
           "no_verdict": report.unexamined.no_verdict,
           "no_readable_citation": report.unexamined.no_readable_citation,
-        }
+        },
+        "closed_contract_drift": drift,
       }))
     }
     "at green" | "at red" | "at na" => {
