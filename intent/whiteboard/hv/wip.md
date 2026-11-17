@@ -42,7 +42,7 @@ _(none)_
 
 - **This board records what was ruled and never what was done** (2026-08-22): before briefing anyone off a directive here, drive whether it is already built.
 - **`intent sync --to-disk <ID>` is a whole-file second writer over every attachment of that thread** (dc, 2026-08-21): announce the files, not the thread.
-- **Known and shipping as-is unless ruled otherwise** (2026-09-11): `a_daemon_outlives_nobody.rs` flakes roughly 1 in 20 in parallel, mechanism unconfirmed; a SIGTERM'd daemon does not checkpoint its WAL, and a 559 MB WAL was truncated by hand on 2026-09-10.
+- **Known and shipping as-is unless ruled otherwise** (2026-09-11): a_daemon_outlives_nobody.rs flakes roughly 1 in 20 in parallel, mechanism unconfirmed, and the cut's gate carries it with issue 0481's one re-run of intentd's load-sensitive family. Its WAL half is fixed: hv ruled it otherwise on 2026-11-17 (hv decision 59), and issue 0701 (landed at 108bd41aa) has the store set journal_size_limit, so SQLite cuts the WAL file back to 16 MiB instead of keeping its high-water mark (559 MB truncated by hand on 2026-09-10; 296 MB on 2026-11-17). (edited)
 
 ## Decisions
 

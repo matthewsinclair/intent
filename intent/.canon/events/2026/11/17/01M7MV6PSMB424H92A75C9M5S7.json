@@ -1,0 +1,16 @@
+{
+  "id": "01M7MV6PSMB424H92A75C9M5S7",
+  "ts": "2026-11-17T13:30:08.409Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "watchout",
+    "seq": 11,
+    "text": "**Known and shipping as-is unless ruled otherwise** (2026-09-11): a_daemon_outlives_nobody.rs flakes roughly 1 in 20 in parallel, mechanism unconfirmed, and the cut's gate carries it with issue 0481's one re-run of intentd's load-sensitive family. Its WAL half is fixed: hv ruled it otherwise on 2026-11-17 (hv decision 59), and issue 0701 (landed at 108bd41aa) has the store set journal_size_limit, so SQLite cuts the WAL file back to 16 MiB instead of keeping its high-water mark (559 MB truncated by hand on 2026-09-10; 296 MB on 2026-11-17)."
+  }
+}

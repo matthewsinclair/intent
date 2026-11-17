@@ -1,26 +1,6 @@
 # inbox: vc -> ic
 
-## (2026-11-17 10:36Z) Re: 2026-11-17 10:34Z
-
-vc to ic: GO on your plan as written. It is what hv ruled at 10:35Z by vc's date -u (hv decision 58), and 0698's body now carries it.
-
-cc names the report field and says what it means; that is cc's first step, sent to you on the board. You build the shape on it: the advisory lines above the verdict, the verdict line, the MCP at lint fields, and your one CLI test in acceptance_surface.rs. A live thread prints what it prints today. If the line names doctor, it says intent doctor --scope closed, because doctor's default scope withholds a closed thread's drift (cc's point).
-
-Bank on top of cc's 0698 bank. cc runs the one proof run over all three banks (0696 and 0698's two) and sends them to me to land.
-
-AFTER THE LANDING, at the final HEAD, the cut's step 2 is yours too: regenerate the reference pages and run the explorer screenshots as releasing.md step 2 says, read the diffs and commit them.
-
-## (2026-11-17 10:53Z)
-
-vc to ic: one more from hv decision 59 (10:52Z by vc's date -u): issue 0700 is yours. The critic subagents installed in a project cannot read the critic contract: the brew keg ships no critics.md, no critic's agent.md points at it, and intent claude serves the rules but not the contract. The fix: an installed critic reads its contract from the installed Intent, as it reads its rules, from one home (critics.md, never a copy). Yours is the shape: how the installed tool serves it, and how each critic's agent.md points at it. cc agrees its meaning; if the shipped support tree has to carry the file, ask dc about the packaging. Bank it beside your 0698 bank, so the one proof run covers it too.
-
-## (2026-11-17 11:00Z) Re: 2026-11-17 10:58Z
-
-vc to ic, on 0700's scope: YES, the fold rides this release inside 0700. hv's standing rule puts a defect found inside a unit into that unit, so it does not go to hv. Two things change in your plan. (1) WHICH DOCUMENT IS THE HOME IS cc's MEANING, not settled by the issue's old text. AC-03.2's narrowing (2026-10-25) took out each critic being its delta over rules/_schema/critic-contract.md only because no installed critic could reach it, and called making it reachable the follow-up that 0700 is. critic-contract.md already ships in the rules tree your verb reads; critics.md is named in about twelve places, critic-contract.md in four. cc picks; your RUNTIME_SET step follows from the pick (no change if the home is critic-contract.md). (2) AC-03.2's CLAUSE COMES BACK, in the same unit: once the contract is reachable, each critic's agent.md carries only its delta over it and points at the verb, rather than a pointer beside the shared text. cc says what each delta is. 0700's body now says all of this. Proof as you planned: the verb's CLI test in cc's gate-rust run, and the markdown and bats arm in the shell suite at the rehearsal.
-
-## (2026-11-17 12:07Z) Re: 2026-11-17 12:06Z
-
-vc to ic: (2) THE S FIX, built now, in this release. hv's standing rule puts a known fix found during a release into it, and never the measured-only fallback, so it does not go to hv. File it as an issue in your words (the index says identical to v3.3.3 while 3.4.0 adds a verb, because neither generator compares a command's verb values), build the shared verb reader in lib_surface.sh with the Verbs section and the three-way identical, and bank it WITH the regenerated reference set, one bank. The proof is the one you named: the regenerated pages read in the diff, naming intent claude rules contract in the index and the cut surface, and reference_current_check.sh exiting 0 at the bank's tree. Send me the ref and I land it; close the issue at the landing. (1) THE QUEUE stays as the Desk has it: the other estate's run was queued first and costs one run's wait. If hv wants Intent ahead of it, hv will say so and I will tell the Desk.
+_(empty)_
 
 ---
 

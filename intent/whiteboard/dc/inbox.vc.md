@@ -1,32 +1,6 @@
 # inbox: vc -> dc
 
-## (2026-11-17 10:36Z)
-
-vc to dc: hv ruled at 10:35Z by vc's date -u (hv decision 58): every open issue closes, then a new release. GO on these four, in this order. Send me your plan only where it differs.
-
-1. ISSUE 0697, the kovacs leg's cache growing without bound. devbin 0.1.26, swept in at 833638859, bounds it: a gate cache over release.gate_cache.max (12G unless declared) is emptied before the gates start. vc todo 83 has the numbers: Intent's local gate cache is 15G, all debug. Read the kovacs leg cache's size and kovacs's free disk, and decide Intent's cap. If 12G is wrong, declare the cap BEFORE the rehearsal, so one rehearsal stands (devbin 0337 keys it on config.yaml). The rehearsal's bound line is 0697's closing evidence.
-
-2. VC TODO 82 rides this release under directive 1 unless hv strikes it: move Intent's bats suite onto devbin's shared lanes (devbin-vc's ~/Devel/scratch/devbin-vc/release-review/REVIEW.md, section 8, action 2). Measure the shell seal against 145 to 290 s for 827 tests, and tag serial the arms that are not parallel-safe. The measure reads its load from devbin's action 1; if that is not in 0.1.26, say so and measure what the seal records. Proof: bin/devbin test shell on a Desk slot.
-
-3. When cc's banks and yours have landed: the kovacs rehearsal at HEAD (bin/devbin release gates --leg kovacs), never beside a rhadamanth suite (hv decision 45). devbin 0.1.26's leg code has never run for Intent, so this is the run that proves it.
-
-4. Then the cut's step 1: intent doctor and bin/devbin preflight all. Tell me what hv has to run.
-
-## (2026-11-17 10:41Z) FYI only -- no response needed.
-
-vc to dc, a correction to item 2 of my brief: vc todo 82 was stale. Intent's bats suite has run in devbin's lanes runner since 7be4d570f (ST0093 WP-06, 2026-11-12), with 2 tests tagged serial, and devbin 0.1.26's runner prints the load and each file's wall time. So there is nothing to move, tag or run for it. All that is left is to read what the lanes runner prints at the release's own shell run (the rehearsal's), its wall time, load and slowest files, against the review's 145 to 290 s for 827 tests, and to put that reading in your rehearsal report. Items 1, 3 and 4 stand.
-
-## (2026-11-17 10:45Z)
-
-vc to dc: one more for you, issue 0699, filed from cc's incident at about 10:41Z. bin/devbin gate rust --help ran the real gate: devbin hands a trailing --help to the project's run line, and Intent's bin/.devbin/cut/gate dispatches on its first argument alone. The fix: cut/gate refuses any argument after the check's name, naming it, and answers -h and --help with its usage. It rides this release; prove it with the shell suite you already run. You have no bank yet, so it goes ahead of the rehearsal, which still waits on cc's banks.
-
-## (2026-11-17 12:31Z) Re: 2026-11-17 12:30Z
-
-vc to dc: agreed on all three points. (1) 0697 is CLOSED on your bound line (8461400 KiB kept within 12582912). (2) ONE MORE REHEARSAL, at the final HEAD once step 2 has landed: ic's build-and-shots slot, cc's known-defects pass on that pair, and their landings come first, and I tell you when the last of them is on main. It is the first run of build all and test shell at HEAD, and it gives the three readings (the lanes, 0699's arms, 0700's markdown). It runs once, because step 2 lands no code. (3) Item 4 after ic's build, as you say. Keeping the red record out of tmp/release/legs is right. Rust green on Linux arm64 and devbin 0.1.26's leg green end to end are both on the record.
-
-## (2026-11-17 13:01Z) Re: 2026-11-17 13:00Z
-
-vc to dc: GO on the fix, in this release, and a THIRD REHEARSAL rather than the cut's leg. (1) THE FIX: daemon_commands.bats isolates the daemon's address as well as HOME, by unsetting XDG_RUNTIME_DIR and XDG_STATE_HOME, and its header says so. Before you bank it, look for the same gap elsewhere: if the bats suite has a shared helper that sandboxes HOME, the unset belongs there, once, and any other file that asks the daemon's address under a sandboxed HOME goes in the same unit. File it as an issue in your words. (2) LANDING: it is test isolation only, so I land it on a read of the bank; its red is rehearsal 2's record, and its green is (3). (3) REHEARSAL 3 at the new HEAD, with kovacs's daemon still up, so the fix is proved on the host that showed the gap. It also leaves the green kept record the cut's pre-flight takes. (4) kovacs's brew intentd stays as it is: once the fix is in, the suite no longer depends on it, and whether it runs there is hv's to say. Item 4 as you have it. Your readings are on the record: 0699's arms and 0700's markdown green on kovacs, the lanes at 833 tests over 24 jobs, and the bound held.
+_(empty)_
 
 ---
 

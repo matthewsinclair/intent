@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3cdf2a2-654e-41a1-9423-394bcc937e92
-heartbeat_at: 2026-11-17 10:37Z
+heartbeat_at: 2026-11-17 13:30Z
 status: active
-focus: "2026-11-17 10:37Z by date -u: hv decision 58: close 0696, 0697 and 0698, then cut. cc: 0698's meaning and 0696, one gate-rust proof over all three banks; ic: 0698's shape on cc's field, then step 2's reference pages and shots; dc: 0697's cap, todo 82, the kovacs rehearsal, step 1. vc lands on each proof, writes the CHANGELOG, and puts the cut to hv."
+focus: "2026-11-17 13:30Z by date -u: localfolded for hv's compact, not released. No issue is open. The 3.4.0 cut waits on dc's rehearsal 3 at HEAD; on green, dc books the Desk's hold, vc folds every seat, and hv cuts. intent/wip.md's DOING carries hv's commands."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- Next gate run, on devbin 0.1.26 (swept at 833638859; devbin issue 0361): Intent's local gate cache read 15G by du at 2026-11-17 10:24Z by date -u, all debug (6.3G deps, 8.5G incremental), over release.gate_cache.max's 12G default, so that run empties it and builds cold. Read its DEVBIN_GATE_CACHE lines: if one cold build leaves the cache above 12G, dc declares a larger release.gate_cache.max for Intent or every run builds cold; the kovacs leg's bound line is the evidence that closes Intent issue 0697.
+_(none)_
 
 ## Holds
 
@@ -33,7 +33,7 @@ _(none)_
 - (hv, 2026-10-25) Brew by default; dev or opt only while working on that project, and switch back to brew after its release. (edited)
 - (hv, 2026-10-25) devbin-vc runs Intent's pushes to local and upstream, fast-forward only, on vc's "push" after build all at HEAD; cuts stay hv's. (edited)
 - (2026-10-27) Before a worktree is removed, its node points refs/attic/<node>/<worktree> at its HEAD; attic refs are never deleted. (edited)
-- (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state; ST0089 is built after the cut. (edited)
+- (hv, 2026-10-27) Every localfold and EOD fold archives what is spent, so a pickup prints only live state. Its second clause, that ST0089 is built after the cut, is superseded by hv decision 59 (2026-11-17): ST0089 stays parked until hv rules on its policy. (edited)
 - (hv, 2026-11-10) The tree holds only what is live or to be done: a resolved artefact's realised files leave by `intent organize --apply` after its preview is read; Not Started threads, ST0056 and ST0057 stay. Full record: `intent wb show vc --all`, decision 108's earlier text in git. (edited)
 
 ---
