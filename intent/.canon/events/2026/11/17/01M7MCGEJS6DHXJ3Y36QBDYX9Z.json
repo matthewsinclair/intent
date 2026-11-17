@@ -1,0 +1,15 @@
+{
+  "id": "01M7MCGEJS6DHXJ3Y36QBDYX9Z",
+  "ts": "2026-11-17T09:13:18.685Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0698"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "at lint on a Completed thread counts every row examined and conforming though L3 was asked of none, and never points to doctor, which names the drift"
+  }
+}

@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 7683276e-e120-4768-84a2-a8267004e72d
-heartbeat_at: 2026-11-15 14:31Z
+session_id: a3cdf2a2-654e-41a1-9423-394bcc937e92
+heartbeat_at: 2026-11-17 09:13Z
 status: active
-focus: "EOD 2026-11-15: lean and globalfolded; holding for hv's plan tomorrow"
+focus: "2026-11-17 09:13Z by date -u: holding on hv's word after triaging ccusage-vc's lint finding into issue 0698 (not a worktree defect: lint names no L3 exemption on a Completed thread; doctor names the drift). No seat is running; none is sequenced."
 claims: []
 ---
 
