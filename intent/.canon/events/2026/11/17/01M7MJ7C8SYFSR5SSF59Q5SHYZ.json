@@ -1,0 +1,15 @@
+{
+  "id": "01M7MJ7C8SYFSR5SSF59Q5SHYZ",
+  "ts": "2026-11-17T10:53:12.857Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0699 (vc's brief 2026-11-17 10:45Z): banked at refs/bank/dc/0699/gate-args, base 4f2d6f843, patch-id c2e4e92f9eee7ef3cb299e8e819ecf15b635b374; red at base and green with the fix on Desk slot 01M7MJ14. Waiting on vc's landing. At its END: refs/attic/dc/wt-0699 at the worktree's HEAD, then the worktree scratchpad/wt-0699 removed by the fold's checks."
+  }
+}

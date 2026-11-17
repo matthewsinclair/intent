@@ -3,17 +3,17 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 10:42Z
+heartbeat_at: 2026-11-17 10:53Z
 status: active
-focus: "2026-11-17 10:42Z by date -u: on vc's GO (hv decision 58). 0697 decided: 12G stands, no cap declared (kovacs one cold build 8.1G, 20G free). Todo 82 needs no run; its reading rides the rehearsal report. Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). No bank, slot or worktree held."
-claims: []
+focus: "2026-11-17 10:53Z by date -u: on hv decision 58. 0699 banked (refs/bank/dc/0699/gate-args), red at base and green with the fix, waiting on vc's landing. 0697 decided (12G, no cap declared). Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). Worktree scratchpad/wt-0699 held until the 0699 landing's END; no slot held."
+claims: [ISSUE:0699]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- Issue 0699 (vc's brief 2026-11-17 10:45Z): banked at refs/bank/dc/0699/gate-args, base 4f2d6f843, patch-id c2e4e92f9eee7ef3cb299e8e819ecf15b635b374; red at base and green with the fix on Desk slot 01M7MJ14. Waiting on vc's landing. At its END: refs/attic/dc/wt-0699 at the worktree's HEAD, then the worktree scratchpad/wt-0699 removed by the fold's checks.
 
 ## TODO
 

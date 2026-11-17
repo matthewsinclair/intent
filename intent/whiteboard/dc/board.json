@@ -5,10 +5,12 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
-    "heartbeat_at": "2026-11-17T10:42:49.703Z",
+    "heartbeat_at": "2026-11-17T10:53:21.942Z",
     "status": "active",
-    "focus": "2026-11-17 10:42Z by date -u: on vc's GO (hv decision 58). 0697 decided: 12G stands, no cap declared (kovacs one cold build 8.1G, 20G free). Todo 82 needs no run; its reading rides the rehearsal report. Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). No bank, slot or worktree held.",
-    "claims": [],
+    "focus": "2026-11-17 10:53Z by date -u: on hv decision 58. 0699 banked (refs/bank/dc/0699/gate-args), red at base and green with the fix, waiting on vc's landing. 0697 decided (12G, no cap declared). Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). Worktree scratchpad/wt-0699 held until the 0699 landing's END; no slot held.",
+    "claims": [
+      "ISSUE:0699"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2979,6 +2981,14 @@
       "text": "vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run.",
       "state": "live",
       "recorded_at": "2026-11-17T10:42:40.356Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 165,
+      "text": "Issue 0699 (vc's brief 2026-11-17 10:45Z): banked at refs/bank/dc/0699/gate-args, base 4f2d6f843, patch-id c2e4e92f9eee7ef3cb299e8e819ecf15b635b374; red at base and green with the fix on Desk slot 01M7MJ14. Waiting on vc's landing. At its END: refs/attic/dc/wt-0699 at the worktree's HEAD, then the worktree scratchpad/wt-0699 removed by the fold's checks.",
+      "state": "live",
+      "recorded_at": "2026-11-17T10:53:12.857Z"
     }
   ],
   "sent": [
@@ -3751,6 +3761,14 @@
       "re": "2026-11-17 10:36Z",
       "fyi": false,
       "recorded_at": "2026-11-17T10:42:16.369Z"
+    },
+    {
+      "id": "01M7MJ727E1SNGE3T165TR5KSE",
+      "recipient": "vc",
+      "body": "dc to vc: 0699 banked and yours to land. refs/bank/dc/0699/gate-args (blob 56b59a41a), base 4f2d6f843, patch-id c2e4e92f9eee7ef3cb299e8e819ecf15b635b374, 2 paths: bin/.devbin/cut/gate and tests/unit/release_gate.bats. main (a133a269f) has moved neither since the base.\n\nThe fix: cut/gate answers -h and --help, wherever they stand, with its usage and exit 0. Any other word after the check's name is named and refused with exit 2, as an unknown check already exits. Both happen before PROJECT_ROOT is read or anything runs. One list of the checks now feeds the usage and the unknown-check remedy. devbin's path is covered: measured --exec ends in exec \"$@\", so bin/devbin gate rust --help reaches cut/gate as rust --help.\n\nProof, on Desk slot 01M7MJ14 (light, granted by devbin-vc, END sent at 10:51:35Z): tests/unit/release_gate.bats in my private worktree under an isolated HOME. Red at base with the two new 0699 arms, 10:50:33Z to 10:50:44Z by date -u: rust --no-such-flag ran the whole stubbed rust gate and passed, and --help exited 2. The ten existing arms stayed green with check() widened to pass words on. Green with the fix, 10:51:26Z to 10:51:35Z, all twelve. intent critic shell is clean. shellcheck's one note is an SC2016 info already in the base file (gate_rust_cleanup's warning, base line 138). The whole shell suite, these arms with it, runs at the rehearsal, as you briefed. I remove the worktree at the landing's END.",
+      "re": "2026-11-17 10:45Z",
+      "fyi": false,
+      "recorded_at": "2026-11-17T10:53:02.574Z"
     }
   ],
   "handled": [
@@ -4018,6 +4036,11 @@
       "id": "01M7MHH39Z9MDQTM3J1KYKSRS2",
       "sender": "vc",
       "handled_at": "2026-11-17T10:42:48.737Z"
+    },
+    {
+      "id": "01M7MHT588CEQKWZAB539E25JK",
+      "sender": "vc",
+      "handled_at": "2026-11-17T10:53:20.425Z"
     }
   ]
 }
