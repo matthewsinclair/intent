@@ -499,8 +499,32 @@ HDR
       if [ -n "$removed" ]; then
         printf -- '- **Declared in `%s` and retired since.** This is a diff of the two registers, `shipped` against `shipped`, and that population counts rows that are declared and not retired -- it does NOT establish that any of these was ever BUILT. A row can be declared, never implemented, and counted here, which is exactly what happened to `st repair`. So do not read this as "these used to work": check before assuming a script calling one of them ever succeeded. %s\n' "$BASELINE" "$removed"
       fi
-      if [ -z "$added" ] && [ -z "$removed" ]; then
-        printf 'The surface at `%s` is identical to `%s`.\n' "$REV" "$BASELINE"
+      # **A COMMAND THAT SHIPS AT BOTH CAN STILL HAVE CHANGED** (issue 0702):
+      # this said "identical" for 3.4.0, which added `claude rules contract`
+      # to a command v3.3.3 already shipped. Verbs and flags are read through
+      # lib_surface.sh, the pairs the cut surface reads, and "identical" is
+      # said only when commands, verbs and flags all agree. A verb is listed
+      # here only on a command both revisions ship, since a new command brings
+      # its verbs and a retired one takes them; flags are listed once, in the
+      # cut surface.
+      DISPATCH_TABLE="$TMP/rev.json" surface_verbs > "$TMP/rev.verbs"
+      DISPATCH_TABLE="$TMP/base.json" surface_verbs > "$TMP/base.verbs"
+      DISPATCH_TABLE="$TMP/rev.json" surface_flags > "$TMP/rev.flags"
+      DISPATCH_TABLE="$TMP/base.json" surface_flags > "$TMP/base.flags"
+      vadded="$(LC_ALL=C comm -13 "$TMP/base.verbs" "$TMP/rev.verbs" | awk -F'\t' 'NR==FNR{s[$0];next} $1 in s' "$TMP/base.shipped" - | awk -F'\t' '{print "`" $1 " " $2 "`"}' | paste -sd, - | sed 's/,/, /g' || true)"
+      vgone="$(LC_ALL=C comm -23 "$TMP/base.verbs" "$TMP/rev.verbs" | awk -F'\t' 'NR==FNR{s[$0];next} $1 in s' "$TMP/shipped" - | awk -F'\t' '{print "`" $1 " " $2 "`"}' | paste -sd, - | sed 's/,/, /g' || true)"
+      fmoved="$(LC_ALL=C comm -3 "$TMP/base.flags" "$TMP/rev.flags" || true)"
+      if [ -n "$vadded" ]; then
+        printf -- '- **Verbs newer than `%s`, on commands it already had, so not in an installed copy of it:** %s\n' "$BASELINE" "$vadded"
+      fi
+      if [ -n "$vgone" ]; then
+        printf -- '- **Verbs `%s` had that are gone since, on commands that still ship:** %s\n' "$BASELINE" "$vgone"
+      fi
+      if [ -n "$fmoved" ]; then
+        printf -- '- **Flags changed since `%s`:** the Flags section of [what Intent ships at this revision](cut-surface.md) names each one.\n' "$BASELINE"
+      fi
+      if [ -z "$added" ] && [ -z "$removed" ] && [ -z "$vadded" ] && [ -z "$vgone" ] && [ -z "$fmoved" ]; then
+        printf 'The surface at `%s` is identical to `%s`: no command, verb or flag was added or retired.\n' "$REV" "$BASELINE"
       fi
       printf '\n'
     fi

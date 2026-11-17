@@ -187,3 +187,75 @@ surface_table_at() {
     return 1
   fi
 }
+
+# ==========================================================================
+# BELOW THE COMMAND: ITS VERBS AND ITS FLAGS
+# ==========================================================================
+#
+# **A COMMAND THAT SHIPS AT TWO REVISIONS CAN STILL HAVE CHANGED BETWEEN THEM.**
+# The shipped population is paths, so a diff of it is silent on a verb added to a
+# command's verb slot and on a flag added to a command. Issue 0702: the 3.4.0
+# reference called its surface identical to v3.3.3 while issue 0700 had added
+# `claude rules contract`. These two readers are the one answer both generators
+# take to "what sits below each shipped command": tab-separated (command, verb)
+# and (command, flag) pairs, sorted, restricted to the shipped population of
+# whatever table DISPATCH_TABLE names.
+
+# (command, verb) pairs: each value of a shipped row's verb slot, the
+# `subcommand` arg that lists `values` (eg `claude rules`: `list`, `show`,
+# `validate`, `contract`). A family's valueless slot names no verb here: its
+# verbs are rows of their own, already in the shipped population.
+surface_verbs() {
+  local t shipped out
+  t="$(_surface_table)" || return 1
+  shipped="$(surface_shipped)" || return 1
+  out="$(jq -r '[.. | objects | select(has("args") and has("path")) | .path as $p
+    | (.args[]? | select(.type == "subcommand") | .values[]?)
+    | "\($p)\t\(.)"] | unique | .[]' "$t")" || return 1
+  printf '%s\n' "$out" | awk -F'\t' 'NR==FNR{s[$0];next} $1 in s' <(printf '%s\n' "$shipped") - | LC_ALL=C sort
+}
+
+# (command, flag) pairs, moved here from gen_cut_surface.sh so the reference
+# index reads the same pairs the cut surface does.
+#
+# **THE FLAG DELTA IS A SEPARATE QUESTION FROM THE COMMAND DELTA AND WAS THE
+# ONE ACTUALLY BEING ASKED.** The command diff answers "what commands are new";
+# it is silent on a flag added to a command that already shipped, which is
+# exactly the shape of the gap that sent `--note` to hv as an open scope item.
+# Measured 2026-08-31: 13 new commands and 28 new flags, so reporting only the
+# first understates the delivery by more than half.
+#
+# TWO NARROWINGS, BOTH LOAD-BEARING, BOTH MEASURED RATHER THAN ASSUMED:
+#
+#   RESTRICTED TO `shipped`  A row dispositioned `retire` STILL CARRIES ITS
+#                            FLAGS in the register. Unrestricted, `fileindex`'s
+#                            8 flags and `st repair --write` read as present at
+#                            HEAD, and the removal count came out as 1 when the
+#                            true figure is 10. The restriction changed the
+#                            REMOVED set and left the NEW set byte-identical --
+#                            checked, not assumed, because a narrowing that
+#                            moves a number you are not watching is the
+#                            denominator attack.
+#
+#   INTRINSIC EXCLUDED       clap supplies `--help`/`-h` on every command, so
+#                            they appear and disappear with the command and
+#                            carry no delta signal of their own. The register
+#                            already dispositions them `intrinsic`, so this
+#                            reads a DECLARED field rather than matching on the
+#                            spelling -- the inference-from-name that EXP-05
+#                            exists to replace.
+#
+# KNOWN IMPRECISION, STATED BECAUSE IT CANNOT BE FIXED HERE: pairs are keyed on
+# (path, spelling) and `organize` is two different commands sharing one path,
+# so their flags union. It is the same duplicate-spelling trap the cut
+# surface's closing section names for commands, and it is the reason this keys
+# on the pair rather than reporting a bare per-command count.
+surface_flags() {
+  local t shipped out
+  t="$(_surface_table)" || return 1
+  shipped="$(surface_shipped)" || return 1
+  out="$(jq -r '[.. | objects | select(has("flags") and has("path")) | .path as $p
+    | (.flags[]? | select((.disposition // "") != "intrinsic") | .spellings[]? | select(startswith("--")))
+    | "\($p)\t\(.)"] | unique | .[]' "$t")" || return 1
+  printf '%s\n' "$out" | awk -F'\t' 'NR==FNR{s[$0];next} $1 in s' <(printf '%s\n' "$shipped") - | LC_ALL=C sort
+}
