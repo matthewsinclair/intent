@@ -1,0 +1,16 @@
+{
+  "id": "01M7MM7FBX5QCVNQB82NZWDME2",
+  "ts": "2026-11-17T11:28:13.181Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 150,
+    "text": "Issue 0698, ic's half, on vc's go (hv decision 58). GREEN, waiting on vc's landing: cc's first gate-rust run was green on this bank's arm and red only on cc's own 0696 arm (vc's message, read by 2026-11-17 11:27Z by date -u); it lands at cc's green rerun. Bank: refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a, blob 2380ebac7, patch-id eec8796d7b18, the diff over 0640cd65a with cc's refs/bank/cc/0698/ungated-on-0640cd65a applied (tree add5c1173). intent-cli only: render.rs prints each pair of closed_contract_drift as 'advisory: {finding}' and the verdict line gains '; {ST} is Completed, so whether a citation carries its row's id is advisory: N row(s) drifted' (plus ', named above and by intent doctor --scope closed' when N > 0); mcp.rs gives at lint 'closed_contract_drift', null or a list of {at, finding}; acceptance_surface.rs adds a_completed_threads_drift_is_named_as_advisory_and_does_not_gate. Superseded park: refs/bank/ic/0698/shape-v1-on-0640cd65a-needs-cc-field. Worktree scratchpad wt-0698-ic is kept until the landing's END (vc), then removed by the fold's four checks, attic ref first. Next: todo 72."
+  }
+}
