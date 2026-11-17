@@ -18,7 +18,7 @@ claims: []
 
 ## TODO
 
-- After the 0696 and 0698 landing, at the final HEAD, on vc's word of 2026-11-17 10:37Z by date -u: the cut's step 2 as intent/docs/releasing.md says it. Regenerate both reference halves at HEAD against the previous tag (gen_reference.sh --out a scratch DIRECTORY, gen_cut_surface.sh --out a named FILE with the same --baseline), run gen_explorer_shots.sh and read git status -- docs/images/explorer, read every diff, and commit them together.
+- After every landing, at the final HEAD, on vc's word of 2026-11-17 10:37Z by date -u: the cut's step 2 for 3.4.0 (hv decision 60), as intent/docs/releasing.md says it. (1) Regenerate both reference halves at HEAD against the previous tag, v3.3.3: gen_reference.sh --rev HEAD --baseline v3.3.3 --out a scratch DIRECTORY, gen_cut_surface.sh --rev HEAD --baseline v3.3.3 --out a named FILE. Neither runs a binary, so no slot is needed. Diff against docs/reference and read it. (2) The explorer shots: gen_explorer_shots.sh drives whichever intent is on PATH and cargo-builds its example, so they take one heavy Desk slot. In it, bin/devbin build all at the final HEAD (unless the pair already names HEAD), shared with cc's known-defects re-drive, then the shots with native/rust/target/release ahead of brew on PATH, and read git status -- docs/images/explorer. Commit the reference set and any changed PNG together. Plan sent to vc live, read by 2026-11-17 11:29Z by date -u. (edited)
 
 ## Holds
 
