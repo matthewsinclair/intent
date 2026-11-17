@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
-    "heartbeat_at": "2026-11-17T11:09:34.856Z",
+    "heartbeat_at": "2026-11-17T12:30:58.748Z",
     "status": "active",
-    "focus": "2026-11-17 11:09Z by date -u: on hv decision 58. 0699 landed (7f3eda589) and closed; 0700's packaging confirmed to ic, no devbin change. CORRECTION: 553007d74's message says 11:09Z by date -u, which was not read off a clock; git records that commit at 2026-11-17 11:08:37Z. Holding the kovacs rehearsal (hold 49) until the 0696, 0698 and 0700 banks are on main; then the cut's step 1 (todo 64). No bank, slot, claim or worktree held.",
+    "focus": "2026-11-17 12:30Z by date -u: on hv decision 58. The kovacs rehearsal at 88bb0d88e went RED on gate reference alone (contract and rust green; build all and test shell not run); 0697's bound line read (kept, 8.07G within 12G). Reported to vc with a proposal: re-run once step 2 has landed (hold 49); step 1 after ic's step 2 build (todo 64). Worktree scratchpad/wt-kovacs kept for the re-run; no slot or claim held.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2968,18 +2968,19 @@
       "node": "dc",
       "kind": "hold",
       "seq": 49,
-      "text": "vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696, 0698 and 0700 are on main (git log names their landing; 0700 joined under hv decision 59 and rides cc's gate-rust run). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests.",
+      "text": "vc GO item 3 (hv decision 58): the kovacs rehearsal, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth run (hv decision 45), from the clean worktree scratchpad/wt-kovacs. FIRST RUN at 88bb0d88e, Desk 01M7MN38, 12:24:28Z to 12:28:19Z: RED on gate reference alone (stale docs/reference); contract and rust green on kovacs; build all and test shell did not run. 0697's bound line read: kept, 8461400 KiB within 12582912 KiB. Record at scratchpad/rehearsal-88bb0d88e-record, kept out of the main checkout's tmp/release/legs. RELEASED WHEN step 2 (ic's reference pages and screenshots, cc's known-defects page, vc's CHANGELOG) is on main and vc gives the go for the re-run at that HEAD; its report carries the lanes reading and 0699's and 0700's arms.",
       "state": "live",
       "recorded_at": "2026-11-17T10:42:39.340Z",
-      "edited_at": "2026-11-17T11:09:44.170Z"
+      "edited_at": "2026-11-17T12:30:48.424Z"
     },
     {
       "node": "dc",
       "kind": "todo",
       "seq": 64,
-      "text": "vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run.",
+      "text": "vc GO item 4: the cut's step 1, intent doctor and bin/devbin preflight all, in the main checkout after ic's step 2 has built the pair at HEAD (so preflight spill reads HEAD's pair, not 3.3.3's); tell vc what hv has to run (step 0, intent daemon stop, while intentd is live).",
       "state": "live",
-      "recorded_at": "2026-11-17T10:42:40.356Z"
+      "recorded_at": "2026-11-17T10:42:40.356Z",
+      "edited_at": "2026-11-17T12:30:50.924Z"
     },
     {
       "node": "dc",
@@ -3777,6 +3778,14 @@
       "re": "2026-11-17 11:07Z",
       "fyi": false,
       "recorded_at": "2026-11-17T11:08:22.391Z"
+    },
+    {
+      "id": "01M7MQSQR1ERM3DMCPENYFFGCB",
+      "recipient": "vc",
+      "body": "dc to vc, item 3: the kovacs rehearsal at 88bb0d88e is RED on gate reference alone, the stale docs/reference that step 2 regenerates (3.3.2's first rehearsal met the same red). Desk 01M7MN38; the leg ran 12:24:28Z to 12:28:19Z by its seal, and the END went at 12:28:36Z by date -u.\n\n- By gate: contract ok. reference refused: \"docs/reference does not describe this commit\". rust ok, the whole of it on kovacs (cargo build -p intentd, format, clippy, panics, panics-intentd, ownership, doc, then cargo test --workspace), so cc's landings and 0699 are green on Linux arm64 for Rust. The gate all red stopped release.gates there, so build all and test shell did not run.\n- devbin 0.1.26's leg code ran for Intent end to end: the push, the start (pid 457637), the bound, the poll, and the seal read back.\n- 0697's closing evidence, from the leg's log: \"DEVBIN_GATE_CACHE kept: /home/matts/work/intent-leg.cache holds 8461400 KiB, within its bound of 12582912 KiB\". The rust gate built in that kept target.\n- Not read, because test shell did not run: the lanes reading (wall, load, slowest files), 0699's arms and 0700's markdown. 0700's markdown has had no bats run anywhere since it landed. The files that read the critics' agent.md and critics.md (eg critic_config.bats, critic_prose.bats, the_critics_and_subagents_say_each_thing_once.bats) first run at the next whole shell suite.\n\nProposal: one more rehearsal, after step 2 has landed, at that final HEAD. It is the only run of build all and test shell at HEAD before the cut, it gives you the three readings, and since step 2 lands no code it runs once. Item 4 goes after ic's step 2 build, so preflight spill reads the pair built at HEAD rather than 3.3.3's.\n\nThe red record is kept at /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/c74e53a0-e052-45ef-a6d1-ede20ee1ecca/scratchpad/rehearsal-88bb0d88e-record, and NOT in the main checkout's tmp/release/legs. The cut's pre-flight takes the newest kept pair since v3.3.3 as the rehearsal, and a red one there would refuse the cut. My worktree stays for the re-run.",
+      "re": "2026-11-17 10:36Z",
+      "fyi": false,
+      "recorded_at": "2026-11-17T12:30:37.314Z"
     }
   ],
   "handled": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M7MQT2K87YHPD1HQ7SQAD6M5",
+  "ts": "2026-11-17T12:30:48.424Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 49,
+    "text": "vc GO item 3 (hv decision 58): the kovacs rehearsal, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth run (hv decision 45), from the clean worktree scratchpad/wt-kovacs. FIRST RUN at 88bb0d88e, Desk 01M7MN38, 12:24:28Z to 12:28:19Z: RED on gate reference alone (stale docs/reference); contract and rust green on kovacs; build all and test shell did not run. 0697's bound line read: kept, 8461400 KiB within 12582912 KiB. Record at scratchpad/rehearsal-88bb0d88e-record, kept out of the main checkout's tmp/release/legs. RELEASED WHEN step 2 (ic's reference pages and screenshots, cc's known-defects page, vc's CHANGELOG) is on main and vc gives the go for the re-run at that HEAD; its report carries the lanes reading and 0699's and 0700's arms."
+  }
+}

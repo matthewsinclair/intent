@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 11:09Z
+heartbeat_at: 2026-11-17 12:30Z
 status: active
-focus: "2026-11-17 11:09Z by date -u: on hv decision 58. 0699 landed (7f3eda589) and closed; 0700's packaging confirmed to ic, no devbin change. CORRECTION: 553007d74's message says 11:09Z by date -u, which was not read off a clock; git records that commit at 2026-11-17 11:08:37Z. Holding the kovacs rehearsal (hold 49) until the 0696, 0698 and 0700 banks are on main; then the cut's step 1 (todo 64). No bank, slot, claim or worktree held."
+focus: "2026-11-17 12:30Z by date -u: on hv decision 58. The kovacs rehearsal at 88bb0d88e went RED on gate reference alone (contract and rust green; build all and test shell not run); 0697's bound line read (kept, 8.07G within 12G). Reported to vc with a proposal: re-run once step 2 has landed (hold 49); step 1 after ic's step 2 build (todo 64). Worktree scratchpad/wt-kovacs kept for the re-run; no slot or claim held."
 claims: []
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-- vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run.
+- vc GO item 4: the cut's step 1, intent doctor and bin/devbin preflight all, in the main checkout after ic's step 2 has built the pair at HEAD (so preflight spill reads HEAD's pair, not 3.3.3's); tell vc what hv has to run (step 0, intent daemon stop, while intentd is live). (edited)
 
 ## Holds
 
-- vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696, 0698 and 0700 are on main (git log names their landing; 0700 joined under hv decision 59 and rides cc's gate-rust run). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests. (edited)
+- vc GO item 3 (hv decision 58): the kovacs rehearsal, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth run (hv decision 45), from the clean worktree scratchpad/wt-kovacs. FIRST RUN at 88bb0d88e, Desk 01M7MN38, 12:24:28Z to 12:28:19Z: RED on gate reference alone (stale docs/reference); contract and rust green on kovacs; build all and test shell did not run. 0697's bound line read: kept, 8461400 KiB within 12582912 KiB. Record at scratchpad/rehearsal-88bb0d88e-record, kept out of the main checkout's tmp/release/legs. RELEASED WHEN step 2 (ic's reference pages and screenshots, cc's known-defects page, vc's CHANGELOG) is on main and vc gives the go for the re-run at that HEAD; its report carries the lanes reading and 0699's and 0700's arms. (edited)
 
 ## Watch-outs
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M7MQT51C507KJY5NP1A6WMEM",
+  "ts": "2026-11-17T12:30:50.924Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 64,
+    "text": "vc GO item 4: the cut's step 1, intent doctor and bin/devbin preflight all, in the main checkout after ic's step 2 has built the pair at HEAD (so preflight spill reads HEAD's pair, not 3.3.3's); tell vc what hv has to run (step 0, intent daemon stop, while intentd is live)."
+  }
+}
