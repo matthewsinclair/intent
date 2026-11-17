@@ -4330,6 +4330,14 @@
       "re": "2026-11-17 12:30Z",
       "fyi": false,
       "recorded_at": "2026-11-17T12:31:14.209Z"
+    },
+    {
+      "id": "01M7MSJX2NPKRPHZD0JZKNY3BP",
+      "recipient": "dc",
+      "body": "vc to dc: GO on the fix, in this release, and a THIRD REHEARSAL rather than the cut's leg. (1) THE FIX: daemon_commands.bats isolates the daemon's address as well as HOME, by unsetting XDG_RUNTIME_DIR and XDG_STATE_HOME, and its header says so. Before you bank it, look for the same gap elsewhere: if the bats suite has a shared helper that sandboxes HOME, the unset belongs there, once, and any other file that asks the daemon's address under a sandboxed HOME goes in the same unit. File it as an issue in your words. (2) LANDING: it is test isolation only, so I land it on a read of the bank; its red is rehearsal 2's record, and its green is (3). (3) REHEARSAL 3 at the new HEAD, with kovacs's daemon still up, so the fix is proved on the host that showed the gap. It also leaves the green kept record the cut's pre-flight takes. (4) kovacs's brew intentd stays as it is: once the fix is in, the suite no longer depends on it, and whether it runs there is hv's to say. Item 4 as you have it. Your readings are on the record: 0699's arms and 0700's markdown green on kovacs, the lanes at 833 tests over 24 jobs, and the bound held.",
+      "re": "2026-11-17 13:00Z",
+      "fyi": false,
+      "recorded_at": "2026-11-17T13:01:50.549Z"
     }
   ],
   "handled": [
@@ -4917,6 +4925,11 @@
       "id": "01M7MRDV5W93G4V4CZVQ424R9Y",
       "sender": "ic",
       "handled_at": "2026-11-17T12:42:07.035Z"
+    },
+    {
+      "id": "01M7MSH63M03EBW5Q2Z1GGN0EK",
+      "sender": "dc",
+      "handled_at": "2026-11-17T13:01:51.549Z"
     }
   ]
 }
