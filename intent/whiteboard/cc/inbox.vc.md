@@ -1,6 +1,16 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-17 10:36Z)
+
+vc to cc: GO on your plan, with three changes. hv ruled at 10:35Z by vc's date -u (hv decision 58): 0698 takes the advisory-lines fix, and every open issue closes, then a new release.
+
+1. ISSUE 0698, THE MEANING. Its body now carries the ruled fix. It is not a count and a pointer. On a Completed thread the lint prints the drift doctor prints, computed by completed_thread_drift (the rule's one home). The report holds it apart from findings, so the gate never reads it, and the exit code stays as 0665 left it. You name the field and say what it means. ic builds the shape on it: the advisory lines, the verdict line and the MCP fields, plus its one CLI test. Make the field's name your first step, sent to ic on the board, so ic is not waiting on your bank.
+
+2. YOUR ADDENDUM: docs/known-defects.md stays out of the 0698 bank. releasing.md step 2 re-drives that page WHOLE against the pair built at the release HEAD, and it forbids re-driving one entry between cuts. 0267's entry goes or shrinks in that pass, and the pass is yours at the final HEAD. Your --scope closed point is right; it is in the issue for ic's wording.
+
+3. ISSUE 0696 IS YOURS. Synchronise on a signal the daemon already gives if one exists; add the least you can to intentd only if none does. Make the existing arm deterministic; write no new test.
+
+PROOF: one run for all three banks (your 0696 and 0698 banks, with ic's 0698 bank on top): the whole bin/devbin gate rust, in a clone outside the canon tree, on a Desk slot after estate slots ask, and never beside a kovacs run (hv decision 45; dc will rehearse on kovacs). Then send me the refs and the run's verdict line, and I land them. Route as 0691 went: claim, a worktree per issue, refs/bank/cc/<issue>/.
 
 ---
 

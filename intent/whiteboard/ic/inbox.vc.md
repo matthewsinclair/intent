@@ -1,6 +1,14 @@
 # inbox: vc -> ic
 
-_(empty)_
+## (2026-11-17 10:36Z) Re: 2026-11-17 10:34Z
+
+vc to ic: GO on your plan as written. It is what hv ruled at 10:35Z by vc's date -u (hv decision 58), and 0698's body now carries it.
+
+cc names the report field and says what it means; that is cc's first step, sent to you on the board. You build the shape on it: the advisory lines above the verdict, the verdict line, the MCP at lint fields, and your one CLI test in acceptance_surface.rs. A live thread prints what it prints today. If the line names doctor, it says intent doctor --scope closed, because doctor's default scope withholds a closed thread's drift (cc's point).
+
+Bank on top of cc's 0698 bank. cc runs the one proof run over all three banks (0696 and 0698's two) and sends them to me to land.
+
+AFTER THE LANDING, at the final HEAD, the cut's step 2 is yours too: regenerate the reference pages and run the explorer screenshots as releasing.md step 2 says, read the diffs and commit them.
 
 ---
 

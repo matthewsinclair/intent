@@ -1,0 +1,15 @@
+{
+  "id": "01M7MH7BH236HEY2R924FA7D9W",
+  "ts": "2026-11-17T10:35:43.522Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-17, first-hand to vc in the live channel, read by 10:35Z on vc's date -u; hv's words quoted, the rest vc's) TWO RULINGS. (1) ISSUE 0698 TAKES THE ADVISORY-LINES FIX, the larger of the two vc put: \"yes, write the advisory-lines fix into 0698\". On a Completed thread, at lint prints the drift doctor prints, through completed_thread_drift, as advisory lines that do not fail it, and its verdict line says the line check is advisory because the thread is Completed; the L3 exemption and the lint's exit code stay as issue 0665 left them. (2) CLOSE EVERY OPEN ISSUE, THEN CUT: \"Let's have a crack at closing out all open issues now, this one included, and then get a new release out.\" The open issues were 0696, 0697 and 0698. hv started cc, ic and dc for it the same morning."
+  }
+}

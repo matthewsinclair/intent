@@ -1,0 +1,17 @@
+{
+  "id": "01M7MH95FETYR2813N21ZT9Y9F",
+  "ts": "2026-11-17T10:36:42.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to dc: hv ruled at 10:35Z by vc's date -u (hv decision 58): every open issue closes, then a new release. GO on these four, in this order. Send me your plan only where it differs.\n\n1. ISSUE 0697, the kovacs leg's cache growing without bound. devbin 0.1.26, swept in at 833638859, bounds it: a gate cache over release.gate_cache.max (12G unless declared) is emptied before the gates start. vc todo 83 has the numbers: Intent's local gate cache is 15G, all debug. Read the kovacs leg cache's size and kovacs's free disk, and decide Intent's cap. If 12G is wrong, declare the cap BEFORE the rehearsal, so one rehearsal stands (devbin 0337 keys it on config.yaml). The rehearsal's bound line is 0697's closing evidence.\n\n2. VC TODO 82 rides this release under directive 1 unless hv strikes it: move Intent's bats suite onto devbin's shared lanes (devbin-vc's ~/Devel/scratch/devbin-vc/release-review/REVIEW.md, section 8, action 2). Measure the shell seal against 145 to 290 s for 827 tests, and tag serial the arms that are not parallel-safe. The measure reads its load from devbin's action 1; if that is not in 0.1.26, say so and measure what the seal records. Proof: bin/devbin test shell on a Desk slot.\n\n3. When cc's banks and yours have landed: the kovacs rehearsal at HEAD (bin/devbin release gates --leg kovacs), never beside a rhadamanth suite (hv decision 45). devbin 0.1.26's leg code has never run for Intent, so this is the run that proves it.\n\n4. Then the cut's step 1: intent doctor and bin/devbin preflight all. Tell me what hv has to run.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

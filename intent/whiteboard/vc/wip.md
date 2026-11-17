@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3cdf2a2-654e-41a1-9423-394bcc937e92
-heartbeat_at: 2026-11-17 09:13Z
+heartbeat_at: 2026-11-17 10:37Z
 status: active
-focus: "2026-11-17 09:13Z by date -u: holding on hv's word after triaging ccusage-vc's lint finding into issue 0698 (not a worktree defect: lint names no L3 exemption on a Completed thread; doctor names the drift). No seat is running; none is sequenced."
+focus: "2026-11-17 10:37Z by date -u: hv decision 58: close 0696, 0697 and 0698, then cut. cc: 0698's meaning and 0696, one gate-rust proof over all three banks; ic: 0698's shape on cc's field, then step 2's reference pages and shots; dc: 0697's cap, todo 82, the kovacs rehearsal, step 1. vc lands on each proof, writes the CHANGELOG, and puts the cut to hv."
 claims: []
 ---
 
