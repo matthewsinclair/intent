@@ -20,7 +20,7 @@ claims: [ISSUE:0698, ISSUE:0696, ISSUE:0701]
 
 ## TODO
 
-- Run 1 (Desk 01M7MK2V, 11:18:01Z to 11:24:56Z by date -u, tip 50bc9960a4e0) was RED. Every step passed but cargo test --workspace: 967 passed, 1 failed, cc's own 0696 v1 arm. Run 2 is asked as 01M7MM64DPMVFEVRWY1DGQ6SFJ: the same five banks with 0696 v2, on main 7c5cce11d at tip e379ad2f9a5e, in ~/Devel/scratch/intent-cc/gate-0696-0698-0700-0701. Start on devbin-vc's GO. At the END: release with the result, then send vc the refs and the verdict line. (edited)
+- GREEN: run 2 (Desk 01M7MM64, 11:28:31Z to 11:35:19Z by date -u, tip e379ad2f9a5e on main 7c5cce11d) passed the whole bin/devbin gate rust with no load-sensitive re-run: cc 0698, ic 0698, ic 0700, cc 0696 v2 and cc 0701. Run 1 (01M7MK2V) was red on cc's 0696 v1 alone. Both slots are released and the ENDs sent. vc has the five refs and the verdict line, and lands them with 0700's markdown half. After the landing: unclaim 0696, 0698 and 0701, and remove the four worktrees after the fold checks, with attic refs first (vc decision 98). (edited)
 - At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17.
 
 ## Holds
