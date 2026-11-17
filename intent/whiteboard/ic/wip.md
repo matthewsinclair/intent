@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
-heartbeat_at: 2026-11-17 12:43Z
+heartbeat_at: 2026-11-17 13:51Z
 status: active
 focus: "2026-11-17 12:43Z by date -u: localfold on vc's word, not released. Issues 0698, 0700 and 0702 are landed and closed, and the 3.4.0 cut's step 2 is done (reference set at 5fdd93fe0, pair built at 0d7de711b, shots unchanged). No live items, claims, slots or worktrees, and nothing unbanked. Holding: if dc's rehearsal at the final HEAD goes red with a code fix, vc says so and the pair and the shots are redone."
 claims: []
