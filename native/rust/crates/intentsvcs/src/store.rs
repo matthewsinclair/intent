@@ -4032,6 +4032,28 @@ impl Store {
   /// is the one a test could never have given us anyway.
   const BUSY_TIMEOUT_MS: i32 = 5000;
 
+  /// The most write-ahead log a store keeps on disk once its log has been
+  /// checkpointed and restarted.
+  ///
+  /// **SQLITE NEVER SHRINKS A WAL ON ITS OWN, SO WITHOUT THIS THE FILE IS THE
+  /// HIGH-WATER MARK OF EVERY BURST THE STORE HAS EVER TAKEN.** A checkpointed
+  /// log is restarted from its first frame and the file is kept at whatever
+  /// size it once reached; SQLite cuts it back only to a connection's
+  /// `journal_size_limit`, at the first commit after the restart, and deletes it
+  /// only when the last connection closes cleanly, which seldom comes while a
+  /// long-lived daemon and other processes hold the store open. Measured on
+  /// rhadamanth on 2026-11-17: a 296 MB `intent.db-wal` (71,959 frames of 4 KiB)
+  /// whose index header held 220 live frames, its log restarted 12,026 times
+  /// and no reader pinned behind the end. The log was working, and the size was
+  /// a mark left by some past burst (issue 0701).
+  ///
+  /// **FOUR TIMES WHAT AN AUTOCHECKPOINT LETS GATHER** (SQLite's default of
+  /// 1000 pages, 4 MB at this store's 4 KiB pages), so an ordinary write never
+  /// pays to truncate and regrow the file, and a burst such as an index
+  /// rebuild leaves no more than this behind once the next write restarts the
+  /// log. Per connection and not persisted, so every open sets it.
+  const WAL_KEEP_BYTES: i64 = 16 * 1024 * 1024;
+
   /// Open (creating if absent) the DB at `path`, set WAL + foreign keys, and
   /// **check the schema stamp before handing back a usable store**.
   pub fn open(path: &std::path::Path) -> Result<Self, StoreError> {
@@ -4051,6 +4073,7 @@ impl Store {
     };
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
+    conn.pragma_update(None, "journal_size_limit", Self::WAL_KEEP_BYTES)?;
     Self::wait_for_contention(&conn)?;
     let mut store = Self::init(conn, Some(path))?;
     store.cache_marking = marking;
