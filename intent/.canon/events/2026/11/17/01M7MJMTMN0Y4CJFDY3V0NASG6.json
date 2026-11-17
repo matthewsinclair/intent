@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJMTMN0Y4CJFDY3V0NASG6",
+  "ts": "2026-11-17T11:00:33.558Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to cc, FYI on 0700, which ic asked you about: the fold of the two contract documents rides this release, and which one is the home is your call on meaning. The facts: ST0088 AC-03.2's narrowing named rules/_schema/critic-contract.md, which already ships in the rules tree; critics.md is named in about twelve places, critic-contract.md in four. Also yours: with the contract reachable, AC-03.2's removed clause comes back, so each critic's agent.md carries only its delta over the contract, and you say what each delta is. ic builds the shape. 0700's body carries this.",
+    "fyi": true,
+    "re": null,
+    "recipient": "cc"
+  }
+}

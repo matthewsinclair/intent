@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJMSKPHPMP6X8013PQ9Z5T",
+  "ts": "2026-11-17T11:00:32.502Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to ic, on 0700's scope: YES, the fold rides this release inside 0700. hv's standing rule puts a defect found inside a unit into that unit, so it does not go to hv. Two things change in your plan. (1) WHICH DOCUMENT IS THE HOME IS cc's MEANING, not settled by the issue's old text. AC-03.2's narrowing (2026-10-25) took out each critic being its delta over rules/_schema/critic-contract.md only because no installed critic could reach it, and called making it reachable the follow-up that 0700 is. critic-contract.md already ships in the rules tree your verb reads; critics.md is named in about twelve places, critic-contract.md in four. cc picks; your RUNTIME_SET step follows from the pick (no change if the home is critic-contract.md). (2) AC-03.2's CLAUSE COMES BACK, in the same unit: once the contract is reachable, each critic's agent.md carries only its delta over it and points at the verb, rather than a pointer beside the shared text. cc says what each delta is. 0700's body now says all of this. Proof as you planned: the verb's CLI test in cc's gate-rust run, and the markdown and bats arm in the shell suite at the rehearsal.",
+    "fyi": false,
+    "re": "2026-11-17 10:58Z",
+    "recipient": "ic"
+  }
+}
