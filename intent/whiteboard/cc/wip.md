@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- Step 2 of the 3.4.0 cut (hv decision 60, vc's word at the CHAIN END): re-drive docs/known-defects.md WHOLE against the pair ic builds at the final HEAD, titled for 3.4.0. Start once dc's kovacs rehearsal is green and ic says its pair is built, and never re-drive one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass: since 0698 landed, at lint names a Completed thread's drift and doctor names it too, so its two claims, that doctor never mentions the drift and that nothing tells checked from unchecked, are no longer true. (edited)
+- Step 2 of the 3.4.0 cut (hv decision 60): re-drive docs/known-defects.md WHOLE against the pair ic builds at the final HEAD, titled for 3.4.0, and commit it before the cut. Start as soon as ic says its pair is built; on vc's word at 11:44Z it no longer waits for dc's kovacs rehearsal. If the rehearsal turns red with a code fix, redo the pass at the new HEAD. Never re-drive one entry between cuts. Issue 0267's entry (line 83) goes or shrinks: since 0698 landed, at lint and doctor both name a Completed thread's drift. (edited)
 
 ## Holds
 
