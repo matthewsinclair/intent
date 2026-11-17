@@ -1,0 +1,16 @@
+{
+  "id": "01M7MK4M9MV80STYSQ5AQE61PA",
+  "ts": "2026-11-17T11:09:11.348Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 151,
+    "text": "Issue 0700, ic's shape, on vc's word (hv decision 59, 10:52Z); the fold rides in this unit on vc's scope ruling, and cc holds the meaning and picked critics.md as the one home (2026-11-17 11:06Z by date -u). BANK A, the Rust half, is in cc's queued gate-rust run with the 0696 and 0698 banks (vc's live message, read by 2026-11-17 11:10Z by date -u): refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, blob fd41a2416, patch-id d774ad60c8c9, the diff over tree f08fbaf61447 (0640cd65a + cc 0698 + ic 0698). It adds rules::CRITIC_CONTRACT (intent/docs/critics.md), rules::critic_contract and RulesError::ContractUnreadable; puts CRITIC_CONTRACT in install::RUNTIME_SET; adds 'intent claude rules contract', which prints the file whole from plugin_install(); adds contract and value_args (list and contract take no id) to the claude rules row, with dispatch-table.md regenerated; and adds the test the_critic_contract_is_read_from_the_install.rs (a planted contract in a fake_install root). Packaging confirmed by dc: no devbin or formula change. THE MARKDOWN HALF, on vc's word: cc's fold of critics.md (critic-contract.md deleted, its four references moved) plus the six critics' agent.md cut to their delta over the contract and pointing at the verb (AC-03.2's clause). It waits on cc's fold and per-critic deltas; cc has the bats arms the deltas must keep. Then ic banks it, runs the bats files it touches once on a light Desk slot in the worktree under an isolated HOME, as dc did for 0699, and sends it to vc. It lands with the Rust banks, before dc's kovacs rehearsal, whose whole shell suite is the batch proof."
+  }
+}

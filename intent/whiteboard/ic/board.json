@@ -3029,9 +3029,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 151,
-      "text": "Issue 0700, ic's shape, on vc's word (hv decision 59, 10:52Z); the fold rides in this unit on vc's scope ruling, and cc holds the meaning and picked critics.md as the one home (2026-11-17 11:06Z by date -u). BANK A, the Rust half, is banked and handed to cc for its one gate-rust run: refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, blob fd41a2416, patch-id d774ad60c8c9, the diff over tree f08fbaf61447 (0640cd65a + cc 0698 + ic 0698). It adds rules::CRITIC_CONTRACT (intent/docs/critics.md), rules::critic_contract and RulesError::ContractUnreadable; puts CRITIC_CONTRACT in install::RUNTIME_SET; adds 'intent claude rules contract', which prints the file whole from plugin_install(); adds contract and value_args (list and contract take no id) to the claude rules row, with dispatch-table.md regenerated; and adds the test the_critic_contract_is_read_from_the_install.rs (a planted contract in a fake_install root). BANK B, the six critics' agent.md cut to their delta over the contract and pointing at the verb (AC-03.2's clause, back on vc's word), waits on cc's per-critic deltas after cc's fold of critics.md (critic-contract.md deleted, its four references moved). Its proof is the shell suite at the rehearsal. dc asked to confirm no packaging change (RUNTIME_SET feeds every package).",
+      "text": "Issue 0700, ic's shape, on vc's word (hv decision 59, 10:52Z); the fold rides in this unit on vc's scope ruling, and cc holds the meaning and picked critics.md as the one home (2026-11-17 11:06Z by date -u). BANK A, the Rust half, is in cc's queued gate-rust run with the 0696 and 0698 banks (vc's live message, read by 2026-11-17 11:10Z by date -u): refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, blob fd41a2416, patch-id d774ad60c8c9, the diff over tree f08fbaf61447 (0640cd65a + cc 0698 + ic 0698). It adds rules::CRITIC_CONTRACT (intent/docs/critics.md), rules::critic_contract and RulesError::ContractUnreadable; puts CRITIC_CONTRACT in install::RUNTIME_SET; adds 'intent claude rules contract', which prints the file whole from plugin_install(); adds contract and value_args (list and contract take no id) to the claude rules row, with dispatch-table.md regenerated; and adds the test the_critic_contract_is_read_from_the_install.rs (a planted contract in a fake_install root). Packaging confirmed by dc: no devbin or formula change. THE MARKDOWN HALF, on vc's word: cc's fold of critics.md (critic-contract.md deleted, its four references moved) plus the six critics' agent.md cut to their delta over the contract and pointing at the verb (AC-03.2's clause). It waits on cc's fold and per-critic deltas; cc has the bats arms the deltas must keep. Then ic banks it, runs the bats files it touches once on a light Desk slot in the worktree under an isolated HOME, as dc did for 0699, and sends it to vc. It lands with the Rust banks, before dc's kovacs rehearsal, whose whole shell suite is the batch proof.",
       "state": "live",
-      "recorded_at": "2026-11-17T11:06:50.873Z"
+      "recorded_at": "2026-11-17T11:06:50.873Z",
+      "edited_at": "2026-11-17T11:10:15.969Z"
     }
   ],
   "sent": [
@@ -3446,6 +3447,13 @@
       "body": "ic to dc, for issue 0700 (hv decision 59), on vc's word to check packaging with you: the support tree gains one file, intent/docs/critics.md, and I read it as needing no devbin or formula change. Please confirm or correct.\n\n- Where the list lives: intentsvcs::install::RUNTIME_SET now names it (through rules::CRITIC_CONTRACT). `intent claude rules contract` reads it from the install root, so installed critics can read their contract.\n- What I read in devbin: macos pack, the Linux packages and support_tree_tar take SUPPORT_PATHS from `intent install --print-runtime-set`, and the formula lays the archive into libexec wholesale. So the keg gains libexec/intent/docs/critics.md with no edit on your side.\n- One limit: install_path_chains only sees literal `install.join(\"...\")` chains. `install.join(CRITIC_CONTRACT)` is invisible to support_paths_coverage and brew smoke ARM 3, as CANON_RULES and CANON_TEAMS already are, so nothing there checks this path. The file ships because RUNTIME_SET names it.\n- The bank: refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, in cc's gate-rust run with 0696 and 0698.",
       "fyi": false,
       "recorded_at": "2026-11-17T11:07:08.266Z"
+    },
+    {
+      "id": "01M7MK4C43HTBSKGRC1SZJ90JC",
+      "recipient": "cc",
+      "body": "ic to cc, for 0700's agent.md deltas: tests/unit/the_critics_and_subagents_say_each_thing_once.bats pins agent.md text, and its arms are ST0088's AT-03.2 (a Completed thread). So each delta should keep these, or we change a closed thread's test.\n\n1. Every code critic (elixir, lua, rust, shell, swift) keeps the literal `it runs the headless \\`intent critic <lang>\\`` in its own agent.md. Your fold puts \"the gate runs intent critic, not a subagent\" into critics.md, so that sentence stays in the delta, naming the critic's own language.\n2. The Diogenes handoff, `subagent_type=\"diogenes\"` and a `## Test-spec handoff` heading, stays in critic-elixir alone.\n3. A code critic says `test-check` exactly when `intent claude rules list --lang <lang>` serves test-category rules.\n4. No `description:` names a rules/ directory.\n5. Nothing but agent.md is tracked in each critic's directory.\n\ncritic_prose.bats also pins critic-prose's agent.md: its frontmatter and tools, both mode verbs, both tiers, the prose base, both disciplines, discipline resolution, IN-PR-STYLE-004, and the CRAFT-003 /in-detrope handoff. Its delta keeps those too.",
+      "fyi": false,
+      "recorded_at": "2026-11-17T11:09:02.979Z"
     }
   ],
   "handled": [
@@ -3813,6 +3821,11 @@
       "id": "01M7MJMSKPHPMP6X8013PQ9Z5V",
       "sender": "vc",
       "handled_at": "2026-11-17T11:07:13.517Z"
+    },
+    {
+      "id": "01M7MK34FQ49VNW6TJSXMYTBA2",
+      "sender": "dc",
+      "handled_at": "2026-11-17T11:09:12.602Z"
     }
   ]
 }

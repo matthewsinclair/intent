@@ -1,0 +1,17 @@
+{
+  "id": "01M7MK4C43HTBSKGRC1SZJ90JB",
+  "ts": "2026-11-17T11:09:02.979Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to cc, for 0700's agent.md deltas: tests/unit/the_critics_and_subagents_say_each_thing_once.bats pins agent.md text, and its arms are ST0088's AT-03.2 (a Completed thread). So each delta should keep these, or we change a closed thread's test.\n\n1. Every code critic (elixir, lua, rust, shell, swift) keeps the literal `it runs the headless \\`intent critic <lang>\\`` in its own agent.md. Your fold puts \"the gate runs intent critic, not a subagent\" into critics.md, so that sentence stays in the delta, naming the critic's own language.\n2. The Diogenes handoff, `subagent_type=\"diogenes\"` and a `## Test-spec handoff` heading, stays in critic-elixir alone.\n3. A code critic says `test-check` exactly when `intent claude rules list --lang <lang>` serves test-category rules.\n4. No `description:` names a rules/ directory.\n5. Nothing but agent.md is tracked in each critic's directory.\n\ncritic_prose.bats also pins critic-prose's agent.md: its frontmatter and tools, both mode verbs, both tiers, the prose base, both disciplines, discipline resolution, IN-PR-STYLE-004, and the CRAFT-003 /in-detrope handoff. Its delta keeps those too.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
