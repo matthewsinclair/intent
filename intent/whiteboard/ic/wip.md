@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
-heartbeat_at: 2026-11-17 10:37Z
+heartbeat_at: 2026-11-17 11:06Z
 status: active
 focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact, not released: nothing in flight, no claims, no worktree, nothing unbanked. Holding for the bounce."
 claims: []
@@ -14,6 +14,7 @@ claims: []
 ## DOING
 
 - Issue 0698, ic's half, on vc's go (hv decision 58), BANKED at 2026-11-17 10:48Z by date -u and handed to cc for its one gate-rust run over 0696, 0698 and this: refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a, blob 2380ebac7, patch-id eec8796d7b18, the diff over 0640cd65a with cc's refs/bank/cc/0698/ungated-on-0640cd65a applied (tree add5c1173). intent-cli only: render.rs prints each pair of closed_contract_drift as 'advisory: {finding}' and the verdict line gains '; {ST} is Completed, so whether a citation carries its row's id is advisory: N row(s) drifted' (plus ', named above and by intent doctor --scope closed' when N > 0); mcp.rs gives at lint 'closed_contract_drift', null or a list of {at, finding}; acceptance_surface.rs adds a_completed_threads_drift_is_named_as_advisory_and_does_not_gate. Format check clean; not compiled here. The fixture was replayed on brew 3.3.3 under an isolated HOME. Superseded park: refs/bank/ic/0698/shape-v1-on-0640cd65a-needs-cc-field. Worktree: scratchpad wt-0698-ic, removed after the landing. Next: vc lands on cc's green, then todo 72. (edited)
+- Issue 0700, ic's shape, on vc's word (hv decision 59, 10:52Z); the fold rides in this unit on vc's scope ruling, and cc holds the meaning and picked critics.md as the one home (2026-11-17 11:06Z by date -u). BANK A, the Rust half, is banked and handed to cc for its one gate-rust run: refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, blob fd41a2416, patch-id d774ad60c8c9, the diff over tree f08fbaf61447 (0640cd65a + cc 0698 + ic 0698). It adds rules::CRITIC_CONTRACT (intent/docs/critics.md), rules::critic_contract and RulesError::ContractUnreadable; puts CRITIC_CONTRACT in install::RUNTIME_SET; adds 'intent claude rules contract', which prints the file whole from plugin_install(); adds contract and value_args (list and contract take no id) to the claude rules row, with dispatch-table.md regenerated; and adds the test the_critic_contract_is_read_from_the_install.rs (a planted contract in a fake_install root). BANK B, the six critics' agent.md cut to their delta over the contract and pointing at the verb (AC-03.2's clause, back on vc's word), waits on cc's per-critic deltas after cc's fold of critics.md (critic-contract.md deleted, its four references moved). Its proof is the shell suite at the rehearsal. dc asked to confirm no packaging change (RUNTIME_SET feeds every package).
 
 ## TODO
 

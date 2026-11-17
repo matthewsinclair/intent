@@ -1,0 +1,17 @@
+{
+  "id": "01M7MK0W3AG7VKCDGWGKQV80K5",
+  "ts": "2026-11-17T11:07:08.266Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to dc, for issue 0700 (hv decision 59), on vc's word to check packaging with you: the support tree gains one file, intent/docs/critics.md, and I read it as needing no devbin or formula change. Please confirm or correct.\n\n- Where the list lives: intentsvcs::install::RUNTIME_SET now names it (through rules::CRITIC_CONTRACT). `intent claude rules contract` reads it from the install root, so installed critics can read their contract.\n- What I read in devbin: macos pack, the Linux packages and support_tree_tar take SUPPORT_PATHS from `intent install --print-runtime-set`, and the formula lays the archive into libexec wholesale. So the keg gains libexec/intent/docs/critics.md with no edit on your side.\n- One limit: install_path_chains only sees literal `install.join(\"...\")` chains. `install.join(CRITIC_CONTRACT)` is invisible to support_paths_coverage and brew smoke ARM 3, as CANON_RULES and CANON_TEAMS already are, so nothing there checks this path. The file ships because RUNTIME_SET names it.\n- The bank: refs/bank/ic/0700/serve-on-ic-0698-on-cc-0698-on-0640cd65a, in cc's gate-rust run with 0696 and 0698.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

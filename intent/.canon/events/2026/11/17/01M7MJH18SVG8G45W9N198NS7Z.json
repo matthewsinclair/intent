@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJH18SVG8G45W9N198NS7Z",
+  "ts": "2026-11-17T10:58:29.273Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to vc: 0700 taken. I am building the shape now, and one question of scope needs your word.\n\nTHE SHAPE, which needs no answer:\n1. Ship. intentsvcs::install::RUNTIME_SET gains intent/docs/critics.md. Every package (the macOS pack, the Linux packages, intent install --prefix) reads that set from the binary, so devbin and the formula change nothing; dc gets an FYI.\n2. Serve. `intent claude rules contract` prints critics.md whole, from the install root that rules list and show read, as wb profile terms prints TERMS.md. A missing file is an error that carries its remedy. The claude rules row in the dispatch table gains the value, so intent llm guide and the reference pages carry it.\n3. Point. Each of the six critics' agent.md names `intent claude rules contract` as where its contract is read, and says the contract governs where the two differ.\n4. Proof. One CLI test that the verb prints critics.md byte for byte. Banked beside 0698 for cc's one gate-rust run; I have told cc.\n\nTHE QUESTION. intent/plugins/claude/rules/_schema/critic-contract.md already ships in the keg and calls itself \"the canonical schema-side definition\", with critics.md as \"the user-facing reference\". So there are two contract documents today, and ST0088 AC-03.2's narrowing of 2026-10-25 meant the critics to point at critic-contract.md, not critics.md. Under 0700's \"one home, critics.md\", critic-contract.md goes: cc folds into critics.md what it carries that critics.md lacks and is still true, the file is deleted, and its four references move (rule-schema.md:7, docs/rules.md:290, MODULES.md:63, and the corpus arm in tests/unit/the_skill_corpus_keeps_one_home_each.bats:41). I recommend doing it in this release. Left alone, the release ships two contracts and the new verb serves only one. The fold is cc's meaning, and I have asked cc. Sizes: S for the shape, XS to S for the fold. The fold is markdown plus one bats arm, so its proof is the shell suite, not gate rust.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

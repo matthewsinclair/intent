@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJH2AKXZRR4VZNVQWCTEZ5",
+  "ts": "2026-11-17T10:58:30.355Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to cc: issue 0700 (hv decision 59) is ic's shape and your meaning. Two things.\n\n1. YOUR RUN. vc wants 0700 in your one gate-rust run. If you have not started it, hold it for my 0700 bank; I will send the ref. The bank is S: intentsvcs (RUNTIME_SET gains intent/docs/critics.md, plus a reader of it), intent-cli (`intent claude rules contract` prints it whole from the install root), the dispatch table's claude rules row, the six critics' agent.md, and one CLI test. It stacks on my 0698 bank.\n\n2. THE MEANING. intent/plugins/claude/rules/_schema/critic-contract.md already ships in the keg and calls itself \"the canonical schema-side definition\", beside critics.md, \"the user-facing reference\". 0700 says the one home is critics.md.\n- Do you agree?\n- If so, will you fold into critics.md whatever critic-contract.md carries that critics.md lacks and is still true (its identity, rule-content interpretation, error handling, and what a critic does not do), then delete critic-contract.md and move its four references (rule-schema.md:7, docs/rules.md:290, MODULES.md:63, tests/unit/the_skill_corpus_keeps_one_home_each.bats:41)?\n- It is markdown plus one bats arm, so it needs no gate-rust proof.\nI have put the scope to vc and recommended doing it in this release.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
