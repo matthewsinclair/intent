@@ -60,7 +60,7 @@ Single source of truth for rule content. Skills reference by ID; Critic subagent
 | ID scheme                 | `intent/plugins/claude/rules/_schema/id-scheme.md`               | `IN-<LANG>-<CAT>-<NNN>`, rename discipline                                                                     |
 | Attribution policy        | `intent/plugins/claude/rules/_schema/attribution-policy.md`      | Borrowing tiers, `upstream_id:`, MIT notice structure                                                          |
 | CI limitations            | `intent/plugins/claude/rules/_schema/CI-LIMITATIONS.md`          | Runnable (Elixir) vs textual (Rust/Swift/Lua)                                                                  |
-| Critic contract           | `intent/plugins/claude/rules/_schema/critic-contract.md`         | Input/output/rule-loading for `critic-*`                                                                       |
+| Critic contract           | `intent/docs/critics.md`                                         | Input/output/rule-loading for `critic-*`                                                                       |
 | Exemplar rule             | `intent/plugins/claude/rules/elixir/test/strong-assertions/`     | Copy-from template for new rules: RULE.md + good_test.exs + bad_test.exs                                       |
 | Attribution notice        | `intent/plugins/claude/rules/_attribution/elixir-test-critic.md` | MIT notice + pinned commit + derived-rule table                                                                |
 | Agnostic rule pack (WP04) | `intent/plugins/claude/rules/agnostic/`                          | Pattern: Highlander, PFIC, Thin Coordinator, No Silent Errors. Procedural: Red Control, Fiat Close             |

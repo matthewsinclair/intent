@@ -4,7 +4,7 @@ This document is the authoritative reference for the shape of a `RULE.md` file i
 
 The schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, 2026 Manuel Zubieta, pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`). Intent rules use upstream's frontmatter shape plus Intent-specific fields (one of them, `language`, required). Upstream rules do not drop into Intent's discovery unchanged: they have no `language:` and their `ETC-` ids fail the id check.
 
-See `id-scheme.md` for the `IN-<LANG>-<CAT>-<NNN>` format, `attribution-policy.md` for when to use `upstream_id:` and MIT notices, and `critic-contract.md` for how Critics consume rules.
+See `id-scheme.md` for the `IN-<LANG>-<CAT>-<NNN>` format, `attribution-policy.md` for when to use `upstream_id:` and MIT notices, and the critic contract, `intent/docs/critics.md` (`intent claude rules contract` prints it from the install), for how Critics consume rules.
 
 ## File structure
 

@@ -38,7 +38,7 @@ SKILLS="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills"
 # (AT-03.4).
 @test "every skill, subagent and LLM template that names ~/.claude reads CLAUDE_CONFIG_DIR" {
   local files f bad=""
-  files="$(grep -rlE '~/\.claude|\$HOME/\.claude|\$\{HOME\}/\.claude' "${SKILLS}" "${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/_schema/critic-contract.md" || true)"
+  files="$(grep -rlE '~/\.claude|\$HOME/\.claude|\$\{HOME\}/\.claude' "${SKILLS}" "${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/subagents" "${INTENT_PROJECT_ROOT}/intent/docs/critics.md" || true)"
   for f in ${files}; do
     grep -q 'CLAUDE_CONFIG_DIR' "${f}" || bad="${bad} ${f#"${SKILLS}"/}"
   done

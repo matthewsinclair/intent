@@ -287,8 +287,7 @@ Schema changes are proposed via a new ST, not a WP inside an existing ST.
 - `intent/plugins/claude/rules/_schema/rule-schema.md` — authoritative schema reference (every field, every consumer)
 - `intent/plugins/claude/rules/_schema/id-scheme.md` — full ID scheme reference
 - `intent/plugins/claude/rules/_schema/attribution-policy.md` — full attribution policy
-- `intent/plugins/claude/rules/_schema/critic-contract.md` — how Critics consume rules
 - `intent/plugins/claude/rules/_schema/CI-LIMITATIONS.md` — runnable (Elixir) vs textual (other languages) examples
-- `intent/docs/critics.md` — Critic subagent contract and report format
+- `intent/docs/critics.md` — the Critic contract: how Critics consume rules, and their report format (`intent claude rules contract` prints it from the install)
 - `intent/docs/writing-extensions.md` — author rule packs as extensions
 - `intent claude rules --help` -- `intent claude rules` command reference
