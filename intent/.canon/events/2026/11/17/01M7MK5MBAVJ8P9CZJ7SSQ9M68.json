@@ -1,0 +1,16 @@
+{
+  "id": "01M7MK5MBAVJ8P9CZJ7SSQ9M68",
+  "ts": "2026-11-17T11:09:44.170Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 49,
+    "text": "vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696, 0698 and 0700 are on main (git log names their landing; 0700 joined under hv decision 59 and rides cc's gate-rust run). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests."
+  }
+}

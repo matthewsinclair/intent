@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 10:56Z
+heartbeat_at: 2026-11-17 11:09Z
 status: active
-focus: "2026-11-17 10:56Z by date -u: on hv decision 58. 0699 landed by vc at 7f3eda589 and closed; its worktree removed (attic refs/attic/dc/wt-0699). 0697 decided (12G, no cap declared). Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). No bank, slot, claim or worktree held."
+focus: "2026-11-17 11:09Z by date -u: on hv decision 58. 0699 landed (7f3eda589) and closed; 0700's packaging confirmed to ic, no devbin change. CORRECTION: 553007d74's message says 11:09Z by date -u, which was not read off a clock; git records that commit at 2026-11-17 11:08:37Z. Holding the kovacs rehearsal (hold 49) until the 0696, 0698 and 0700 banks are on main; then the cut's step 1 (todo 64). No bank, slot, claim or worktree held."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696 and 0698 are on main (git log names their landing). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests.
+- vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696, 0698 and 0700 are on main (git log names their landing; 0700 joined under hv decision 59 and rides cc's gate-rust run). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests. (edited)
 
 ## Watch-outs
 
