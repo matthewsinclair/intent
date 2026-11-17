@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89). (edited)
-- At the release's own shell run (the rehearsal's or the cut's bin/devbin test shell), read what devbin's lanes runner prints, its wall time, the load and the slowest files, against the review's 145 to 290 s for 827 tests (devbin-vc's REVIEW.md section 8, action 2). That reading is all that is left: the move onto devbin's lanes landed at 7be4d570f (ST0093 WP-06, 2026-11-12) with 2 tests tagged serial, and devbin 0.1.26's runner records the load and per-file times (the review's action 1). Nothing to build and no run of its own. (edited)
 - Next gate run, on devbin 0.1.26 (swept at 833638859; devbin issue 0361): Intent's local gate cache read 15G by du at 2026-11-17 10:24Z by date -u, all debug (6.3G deps, 8.5G incremental), over release.gate_cache.max's 12G default, so that run empties it and builds cold. Read its DEVBIN_GATE_CACHE lines: if one cold build leaves the cache above 12G, dc declares a larger release.gate_cache.max for Intent or every run builds cold; the kovacs leg's bound line is the evidence that closes Intent issue 0697.
 
 ## Holds

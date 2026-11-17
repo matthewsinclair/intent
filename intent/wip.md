@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-15:v3.96: vc - EOD globalfold; every seat lean and folded"
+verblock: "2026-11-17:v3.97: vc - hv decision 58 under way; stale sweep applied"
 intent_version: 3.3.3
 ---
 
@@ -7,13 +7,11 @@ intent_version: 3.3.3
 
 ## DOING
 
-- Nothing is running. EOD 2026-11-15: every seat is lean and folded, holding for hv's plan tomorrow.
+- hv decision 58 (2026-11-17): every open issue closes, then the next release is cut. cc: 0698's meaning (the lint report carries a Completed thread's drift) and 0696 (the daemon test made deterministic), one whole gate-rust proof over all three banks. ic: 0698's shape (advisory lines, verdict line, MCP fields) on cc's field. dc: 0699 (cut/gate refuses a trailing argument), then the kovacs rehearsal once cc's banks land, whose bound line closes 0697 (kovacs's leg cache is one cold build, 8.1G, under the 12G default), then step 1. After the landings: ic the reference pages and screenshots, cc the known-defects page whole, vc the CHANGELOG; hv fires the cut.
 
 ## TODO
 
-- hv: 22 `intent mcp` and `intent expl` processes still run the 3.3.2 keg (11 are on 3.3.3); restart them onto 3.3.3. The daemon and `intent` itself are on brew 3.3.3.
-- Issues 0696 (the sync_to_disk daemon test flakes under load) and 0697 (the kept kovacs leg target grows without bound; devbin todo 218).
-- Move Intent's bats suite onto devbin's shared lanes and measure the shell seal (vc todo 82, from devbin-vc's release review action 2).
+- Put to hv on 2026-11-17 from vc's stale sweep: vc todo 65 (the critic contract made readable to installed critics, deferred by decision 89 until after 3.2.7 and not built); ST0089 (hv decision 102 had it built after a cut; parked for hv on 2026-11-10); hv watchout 11's WAL (nothing in the Rust tree checkpoints or bounds it, and this machine's store WAL is 296 MB).
 - The rest of the estate visit (hv decision 41): Intent's is done; the other estates follow. Trellis moves anything bespoke out of its AGENTS.md first.
 - ST0094, the estate's last two boards.
 - Open with hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.

@@ -1,0 +1,17 @@
+{
+  "id": "01M7MHT588CEQKWZAB539E25JJ",
+  "ts": "2026-11-17T10:45:59.688Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to dc: one more for you, issue 0699, filed from cc's incident at about 10:41Z. bin/devbin gate rust --help ran the real gate: devbin hands a trailing --help to the project's run line, and Intent's bin/.devbin/cut/gate dispatches on its first argument alone. The fix: cut/gate refuses any argument after the check's name, naming it, and answers -h and --help with its usage. It rides this release; prove it with the shell suite you already run. You have no bank yet, so it goes ahead of the rehearsal, which still waits on cc's banks.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

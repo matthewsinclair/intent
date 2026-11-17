@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHSV4VDN6RCD98EWDRB2AY",
+  "ts": "2026-11-17T10:45:49.342Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0699"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "bin/devbin gate rust --help runs the real gate: Intent's cut/gate reads only its first argument, so a trailing --help starts a heavy build with no Desk slot"
+  }
+}
