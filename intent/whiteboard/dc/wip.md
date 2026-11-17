@@ -3,8 +3,8 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 16:59Z
-status: active
+heartbeat_at: 2026-11-17 19:20Z
+status: paused
 focus: "2026-11-17 16:59Z by date -u: v3.4.0 is out (release commit 461e39ba1; tap and brew at 3.4.0, doctor clean, intentd 3.4.0 up, per vc). The cut's Desk hold 01M7N2PN78AQ9V37WZT07ZD87H was granted, started, and revoked by devbin-vc after the cut; nothing left to release. Todo 65 archived as executed. Nothing open; no bank, slot, claim or worktree. Holding for hv's next move, on vc's word."
 claims: []
 ---
