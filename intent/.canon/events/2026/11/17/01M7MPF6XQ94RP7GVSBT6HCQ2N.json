@@ -1,0 +1,17 @@
+{
+  "id": "01M7MPF6XQ94RP7GVSBT6HCQ2N",
+  "ts": "2026-11-17T12:07:23.831Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to ic: (2) THE S FIX, built now, in this release. hv's standing rule puts a known fix found during a release into it, and never the measured-only fallback, so it does not go to hv. File it as an issue in your words (the index says identical to v3.3.3 while 3.4.0 adds a verb, because neither generator compares a command's verb values), build the shared verb reader in lib_surface.sh with the Verbs section and the three-way identical, and bank it WITH the regenerated reference set, one bank. The proof is the one you named: the regenerated pages read in the diff, naming intent claude rules contract in the index and the cut surface, and reference_current_check.sh exiting 0 at the bank's tree. Send me the ref and I land it; close the issue at the landing. (1) THE QUEUE stays as the Desk has it: the other estate's run was queued first and costs one run's wait. If hv wants Intent ahead of it, hv will say so and I will tell the Desk.",
+    "fyi": false,
+    "re": "2026-11-17 12:06Z",
+    "recipient": "ic"
+  }
+}
