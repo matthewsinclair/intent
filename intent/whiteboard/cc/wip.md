@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 12:47Z
+heartbeat_at: 2026-11-17 13:53Z
 status: active
-focus: "2026-11-17 12:47Z by date -u: localfold on vc's word, not released. Every bank cc carried for 3.4.0 is landed: 0698, 0696 and 0701, 0700's fold, and the known-defects page at aac6acbef. No live item but hold 38 (re-drive the page if dc's last rehearsal turns red with a code fix). No claim, worktree or slot held. Holding."
+focus: "2026-11-17 13:53Z by date -u: picked up after hv's compact. Hold 38 archived as spent, on vc's word in intent/wip.md: rehearsal 3 is green at 0d8c7a306, and nothing in DIRT_SCOPE has moved since the page's pair at 0d7de711b, so the 3.4.0 known-defects page at aac6acbef stands. No live item, claim, worktree, slot or bank in flight. Holding for hv's return and the next move."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- Releases when dc's last kovacs rehearsal, at HEAD aac6acbef or a later code commit, turns red with a code fix. Then the known-defects page is re-driven whole at the new HEAD with refs/bank/cc/kd340/drive.sh, on vc's word. While the rehearsal is green, or still running, nothing is owed: the 3.4.0 page is landed at aac6acbef, patch-id 7fdb34dab9b1.
+_(none)_
 
 ## Watch-outs
 
