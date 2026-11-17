@@ -1,6 +1,6 @@
-# Known defects in v3.3.3
+# Known defects in v3.4.0
 
-**Every defect on this page has been run against the build v3.3.3 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.3.2 (dev, 13b37c748ba3) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.4.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.3.3 (dev, 0d7de711bc35) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-14T17:51:22.287Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-14T17:51:22.287Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-14T17:51:22.287Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-14T17:51:22.287Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-14T17:51:22.287Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -39,7 +39,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.3.2, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.3.3, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -79,8 +79,6 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 **The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). A test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed** (`git status` lists it untracked), returns `gate: ST0001 PASS -- 1/1 satisfied` at exit 0 -- and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
 
 Two controls make it sharp. Remove the file from the worktree and the gate flips to `gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): AT-01.1 cites a file that does not exist: tests/probe.rs`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
-
-**The citation check stops at close, with nothing saying so** (`intent#0267`). Close a thread on an honest citation, then remove the id from the cited file: `at lint` answers `lint: ST0001 ok -- 1 of 1 AT row(s) examined and conforming`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_: the lint line calls the row `examined`. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `AT-01.1 cites a file that does not exist: tests/a.rs` at exit 1. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
 
 ## The rule critics
 
