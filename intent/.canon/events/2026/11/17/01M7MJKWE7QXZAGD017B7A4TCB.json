@@ -1,0 +1,16 @@
+{
+  "id": "01M7MJKWE7QXZAGD017B7A4TCB",
+  "ts": "2026-11-17T11:00:02.631Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 116,
+    "text": "ISSUE:0696 (hv decision 58): banked at refs/bank/cc/0696/ungated-on-0640cd65a, blob c4484b78af07, patch-id fb90f00a2a62, one path (the arm's own file). The mechanism, found by reading: std::fs::write creates the sentinel empty and then fills it, so under load the watcher can reconcile it half-written, and one sentinel then costs two counted ingests. The fix: each sentinel is staged under intent/.cache/ and renamed in whole, and each measurement ends when the daemon's store holds its sentinel (Op::ThreadList), not after 25 quiet polls. No intentd change and no new test. Proof: todo 53's one run."
+  }
+}

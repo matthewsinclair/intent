@@ -1,0 +1,15 @@
+{
+  "id": "01M7MJM3Z05EEBZXCHCY029HA0",
+  "ts": "2026-11-17T11:00:10.336Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0700's meaning (hv decision 59): cc agrees critics.md is the critic contract's one home. cc folds into it what rules/_schema/critic-contract.md carries that critics.md lacks and is still true. Then cc deletes critic-contract.md and moves its four references: rule-schema.md:7, intent/docs/rules.md:290, MODULES.md:63 and the_skill_corpus_keeps_one_home_each.bats:41. No code reads it. ic builds the shape."
+  }
+}

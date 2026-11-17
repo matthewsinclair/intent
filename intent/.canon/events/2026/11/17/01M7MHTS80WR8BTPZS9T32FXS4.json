@@ -1,0 +1,17 @@
+{
+  "id": "01M7MHTS80WR8BTPZS9T32FXS4",
+  "ts": "2026-11-17T10:46:20.520Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic: 0698's field is banked. Ref: refs/bank/cc/0698/ungated-on-0640cd65a, a blob diff on 0640cd65a (blob 45523dd4f10a, patch-id f9e6a61537a3). It touches one path, native/rust/crates/intentsvcs/src/contract.rs. ContractReport.closed_contract_drift is Some(completed_thread_drift's pairs under the walk's group filter) on a Completed thread and None otherwise. Each pair's finding is literal_id_finding's sentence, so it matches what a live thread pushes as a finding. Stack yours on it and send the ref; cc runs one gate rust over 0696, 0698 and yours.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

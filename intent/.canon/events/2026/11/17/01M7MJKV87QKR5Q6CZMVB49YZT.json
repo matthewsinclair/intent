@@ -1,0 +1,16 @@
+{
+  "id": "01M7MJKV87QKR5Q6CZMVB49YZT",
+  "ts": "2026-11-17T11:00:01.416Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 115,
+    "text": "ISSUE:0698, the meaning (hv decision 58): banked at refs/bank/cc/0698/ungated-on-0640cd65a, blob 45523dd4f10a, patch-id f9e6a61537a3, one path (intentsvcs src/contract.rs). ContractReport.closed_contract_drift: Option<Vec<(String, String)>> is None on a live thread and Some(completed_thread_drift's pairs for the walked rows) on a Completed one, held apart from findings. ic's shape is stacked on it at refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a. Proof: todo 53's one run."
+  }
+}

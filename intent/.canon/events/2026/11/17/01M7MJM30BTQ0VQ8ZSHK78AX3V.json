@@ -1,0 +1,15 @@
+{
+  "id": "01M7MJM30BTQ0VQ8ZSHK78AX3V",
+  "ts": "2026-11-17T11:00:09.355Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0701, the store's WAL (hv decision 59): found by reading intent.db-shm and the WAL header, writing nothing. mxFrame 220, nBackfill 0, the reader marks at the end, and the log restarted 12,026 times: checkpoints are not starved. The 296 MB file (71,959 frames) is a high-water mark that SQLite never cuts back, because no connection sets journal_size_limit. Banked at refs/bank/cc/wal/0701-ungated-on-0640cd65a, blob c53a0ee832b2, patch-id 2a6380f20c53, one path: Store::open sets journal_size_limit to 16 MiB, four times what an autocheckpoint gathers. No shutdown checkpoint is needed for the bound. Proof: todo 53's run."
+  }
+}

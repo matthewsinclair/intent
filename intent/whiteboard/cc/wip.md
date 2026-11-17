@@ -6,19 +6,21 @@ session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
 heartbeat_at: 2026-11-17 10:37Z
 status: active
 focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact; not released. Nothing runs, nothing is unbanked, no slot or worktree is held, board has 0 live items. Holding for the bounce."
-claims: [ISSUE:0698, ISSUE:0696]
+claims: [ISSUE:0698, ISSUE:0696, ISSUE:0701]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ISSUE:0698, the meaning (hv decision 58, vc's go): ContractReport gains closed_contract_drift: Option<Vec<(String, String)>>. It is None on a thread that is not Completed, and Some(the pairs completed_thread_drift names for the walked rows) on a Completed one, held apart from findings so the gate and the exit code never read it. The name and meaning went to ic on the board and live. Built in its own worktree on main 0640cd65a and banked under refs/bank/cc/0698/; ic's shape stacks on it.
-- ISSUE:0696 (hv decision 58, vc's go): make sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest deterministic. Synchronise on a signal intentd already gives, and add the least to intentd only if it gives none. No new test. Built in its own worktree and banked under refs/bank/cc/0696/.
+- ISSUE:0698, the meaning (hv decision 58): banked at refs/bank/cc/0698/ungated-on-0640cd65a, blob 45523dd4f10a, patch-id f9e6a61537a3, one path (intentsvcs src/contract.rs). ContractReport.closed_contract_drift: Option<Vec<(String, String)>> is None on a live thread and Some(completed_thread_drift's pairs for the walked rows) on a Completed one, held apart from findings. ic's shape is stacked on it at refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a. Proof: todo 53's one run. (edited)
+- ISSUE:0696 (hv decision 58): banked at refs/bank/cc/0696/ungated-on-0640cd65a, blob c4484b78af07, patch-id fb90f00a2a62, one path (the arm's own file). The mechanism, found by reading: std::fs::write creates the sentinel empty and then fills it, so under load the watcher can reconcile it half-written, and one sentinel then costs two counted ingests. The fix: each sentinel is staged under intent/.cache/ and renamed in whole, and each measurement ends when the daemon's store holds its sentinel (Op::ThreadList), not after 25 quiet polls. No intentd change and no new test. Proof: todo 53's one run. (edited)
+- ISSUE:0701, the store's WAL (hv decision 59): found by reading intent.db-shm and the WAL header, writing nothing. mxFrame 220, nBackfill 0, the reader marks at the end, and the log restarted 12,026 times: checkpoints are not starved. The 296 MB file (71,959 frames) is a high-water mark that SQLite never cuts back, because no connection sets journal_size_limit. Banked at refs/bank/cc/wal/0701-ungated-on-0640cd65a, blob c53a0ee832b2, patch-id 2a6380f20c53, one path: Store::open sets journal_size_limit to 16 MiB, four times what an autocheckpoint gathers. No shutdown checkpoint is needed for the bound. Proof: todo 53's run. (edited)
+- ISSUE:0700's meaning (hv decision 59): cc agrees critics.md is the critic contract's one home. cc folds into it what rules/_schema/critic-contract.md carries that critics.md lacks and is still true. Then cc deletes critic-contract.md and moves its four references: rule-schema.md:7, intent/docs/rules.md:290, MODULES.md:63 and the_skill_corpus_keeps_one_home_each.bats:41. No code reads it. ic builds the shape.
 
 ## TODO
 
-- The proof, once ic's 0698 bank is stacked on cc's: one whole bin/devbin gate rust over cc's 0696 and 0698 banks with ic's on top, in a clone outside the canon tree, on a Desk slot after estate slots ask, never beside a kovacs run (hv decision 45). Then send vc the refs and the run's verdict line, and vc lands them.
+- The proof: one whole bin/devbin gate rust over cc's 0696, 0698 and WAL banks with ic's 0698 and 0700 banks, in a clone outside the canon tree, on a Desk slot after estate slots ask, never beside a kovacs run (hv decision 45). Then send vc the refs and the run's verdict line, and vc lands them. (edited)
 - At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17.
 
 ## Holds
