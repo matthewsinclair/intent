@@ -411,6 +411,26 @@ impl Library {
   }
 }
 
+/// The critic contract's path under an install root: the one home of the
+/// contract every `critic-<lang>` works under (issue 0700).
+///
+/// **SHIPPED IN THE RUNTIME SET AND READ FROM THE INSTALL, AS THE RULES ARE.**
+/// [`crate::install::RUNTIME_SET`] lists it, so every package carries it beside
+/// the rule library, and [`critic_contract`] reads this file and nothing else. A
+/// critic installed in another project reads the contract the tool it runs
+/// ships, never a copy of it.
+pub const CRITIC_CONTRACT: &str = "intent/docs/critics.md";
+
+/// The critic contract, whole, from the install rooted at `install`
+/// (`intent claude rules contract`).
+///
+/// Returned verbatim, as [`Library::show`] returns a rule: the reader is shown
+/// the document itself.
+pub fn critic_contract(install: &Path) -> Result<String, RulesError> {
+  let path = install.join(CRITIC_CONTRACT);
+  std::fs::read_to_string(&path).map_err(|source| RulesError::ContractUnreadable { path, source })
+}
+
 /// Every `RULE.md` at or below `dir`.
 fn collect(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), RulesError> {
   let entries = std::fs::read_dir(dir).map_err(|source| RulesError::Io {
@@ -582,6 +602,15 @@ pub enum RulesError {
   /// admits -- two silent, opposite wrongnesses from one missing table.
   #[error("the rule schema at {path} declares no field tables, so no vocabulary could be read")]
   SchemaUnreadable { path: PathBuf },
+  /// The critic contract ships with the tool (issue 0700), so one the install
+  /// cannot read is an incomplete install, said about the contract rather than
+  /// as a failure of the rule library, which is a different set of files.
+  #[error("cannot read the critic contract at {path}: {source}")]
+  ContractUnreadable {
+    path: PathBuf,
+    #[source]
+    source: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for RulesError {
@@ -596,6 +625,10 @@ impl crate::remedy::Remedy for RulesError {
       ),
       Self::SchemaUnreadable { path } => format!(
         "reinstall Intent -- {} ships with the tool and its `### Required fields` and `### Optional fields` tables are what the validator reads the vocabulary from",
+        path.display()
+      ),
+      Self::ContractUnreadable { path, .. } => format!(
+        "reinstall Intent -- {} ships with the tool, beside the rule library, and `intent info` names the install root this binary resolved",
         path.display()
       ),
     }

@@ -812,6 +812,7 @@ pub const RUNTIME_SET: &[&str] = &[
   "lib/templates",
   "intent/plugins/claude",
   "intent/plugins/agents/plugin.json",
+  crate::rules::CRITIC_CONTRACT,
 ];
 
 /// Which tree the running binary belongs to (T4).

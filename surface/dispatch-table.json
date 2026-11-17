@@ -6159,7 +6159,7 @@
         },
         {
           "path": "claude rules",
-          "help": "List and show rule-library rules",
+          "help": "List and show rule-library rules and the critic contract",
           "args": [
             {
               "name": "verb",
@@ -6169,17 +6169,26 @@
               "values": [
                 "list",
                 "show",
-                "validate"
+                "validate",
+                "contract"
               ],
                  "value_help": {
                    "list": "List every rule in the canon rule library",
                    "show": "Print a rule's Markdown body",
-                   "validate": "Validate frontmatter: keys, ids, citations and principle links"
+                   "validate": "Validate frontmatter: keys, ids, citations and principle links",
+                   "contract": "Print the critic contract every critic-<lang> works under, as the installed Intent ships it. It needs no project"
                  },
                  "value_flags": {
                    "list": ["--lang"],
                    "show": [],
-                   "validate": []
+                   "validate": [],
+                   "contract": []
+                 },
+                 "value_args": {
+                   "list": [],
+                   "show": ["id"],
+                   "validate": ["id"],
+                   "contract": []
                  }
             },
             {
@@ -6221,7 +6230,7 @@
           },
           "target": {
             "state": "as-observed",
-            "note": "hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`."
+            "note": "hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`. Issue 0700 (hv decision 59, 2026-11-17) adds `contract`, which prints the critic contract from the install, so a critic installed in another project can read it; and the slot's `value_args` now give the rule id to `show` and `validate` alone, so `list` and `contract` refuse one rather than ignore it."
           },
           "disposition": "keep",
           "exposed_on_mcp": false,

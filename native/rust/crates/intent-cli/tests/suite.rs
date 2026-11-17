@@ -308,6 +308,8 @@ mod sync_to_store_does_not_contradict_itself;
 mod the_binary_under_test_is_the_one_cargo_built;
 #[path = "the_canon_set_is_derived.rs"]
 mod the_canon_set_is_derived;
+#[path = "the_critic_contract_is_read_from_the_install.rs"]
+mod the_critic_contract_is_read_from_the_install;
 #[path = "the_daemon_harness_can_restart.rs"]
 mod the_daemon_harness_can_restart;
 #[path = "the_daemon_takes_the_backup_itself.rs"]

@@ -10086,7 +10086,8 @@ fn plugin(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-/// The install root every plugin path is resolved against.
+/// The install root every plugin path, and the critic contract, is resolved
+/// against.
 ///
 /// Never `$INTENT_HOME`. A v2 value left in the environment would point this
 /// binary at v2's manifests and the output would look completely ordinary --
@@ -15576,17 +15577,19 @@ fn payload_show(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), F
 /// slot.** Bare `intent claude rules` lists, which is what every consumer that
 /// omits the verb already expects.
 ///
-/// **THE VERBS ARE `list`, `show` AND `validate`, AND ALL THREE ARE READS.**
-/// `validate` is wired below. `index` is retired: hv's ruling of 2026-09-15
-/// (issue 0331) took it out with the rules-index trio, because in v3 the rules
-/// are embedded in the binary (WP-07) and `index` had no installation to
-/// mutate. The row's `target.state` is `as-observed` and its `read_or_mutate`
-/// is `read`; an unknown verb still reaches `unwired`.
+/// **THE VERBS ARE `list`, `show`, `validate` AND `contract`, AND ALL FOUR ARE
+/// READS.** `validate` is wired below, and `contract` (issue 0700) prints the
+/// critic contract the rules are applied under. `index` is retired: hv's ruling
+/// of 2026-09-15 (issue 0331) took it out with the rules-index trio, because in
+/// v3 the binary serves the rules from its install and `index` had no index to
+/// regenerate. The row's `target.state` is `as-observed` and its
+/// `read_or_mutate` is `read`; an unknown verb still reaches `unwired`.
 fn rules(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("list", a)) => rules_list(a),
     Some(("show", a)) => rules_show(a),
     Some(("validate", a)) => rules_validate(a),
+    Some(("contract", _)) => rules_contract(),
     Some((verb, _)) => unwired("claude", &format!("rules {verb}")),
     None => rules_list(m),
   }
@@ -16034,6 +16037,25 @@ fn rules_show(m: &ArgMatches) -> Result<(), Failure> {
       "error: no rule with id `{id}`\n  remedy: `intent claude rules list` names every rule this build serves, canon and extension alike"
     ))),
   }
+}
+
+/// `intent claude rules contract`: the critic contract, whole, from the install
+/// that serves the rules (issue 0700).
+///
+/// **A CRITIC RUNS IN A PROJECT THAT HOLDS NO COPY OF ITS CONTRACT**, so it reads
+/// the contract here, from the tool it runs, as `wb profile terms` prints the
+/// terms. The file is printed as it is, with nothing added, so the output is the
+/// document it names. The slot's `value_args` give this verb no rule id, so
+/// `contract rust` is refused by the parser and cannot pass for a contract of
+/// one language.
+fn rules_contract() -> Result<(), Failure> {
+  let text = intentsvcs::rules::critic_contract(&plugin_install()?)
+    .map_err(|e| Failure::Error(e.render()))?;
+  print!("{text}");
+  if !text.ends_with('\n') {
+    println!();
+  }
+  Ok(())
 }
 
 /// A field the frontmatter did not carry, shown rather than left blank.
