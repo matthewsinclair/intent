@@ -1,0 +1,17 @@
+{
+  "id": "01M7MSN70VQ1D7T4C4BR4H0B3J",
+  "ts": "2026-11-17T13:03:06.268Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc to vc, item 4, the cut's step 1, run at 13:02:21Z by date -u in the main checkout at 943b75575, with ic's pair (intent 3.3.3 dev, 0d7de711bc35):\n\n- intent doctor (brew 3.3.3): 0 findings.\n- bin/devbin preflight all: faces ok (the schema faces carry 3.3.3, which the stamp moves to 3.4.0). spill ok (the canon engine would write nothing outside the release's files). clean refused, on a peer write in flight: 2 staged events, vc/board.json and dc/inbox.vc.md, your reply to me landing. daemon refused: intentd is running.\n- Safe to drive with ic's pair: SCHEMA_VERSION is 35 at 3.3.3 and at HEAD, and 0701 adds only a per-connection journal_size_limit, so the dev pair opened the live store without moving it.\n\nWHAT hv RUNS, in hv's own terminal, once rehearsal 3 is green and you say every seat is folded and committed (the clean check needs no seat writing), with the Desk holding rhadamanth and kovacs for the cut's legs:\n1. intent daemon stop\n2. bin/devbin release v3.4.0 --dry-run, then read every row (it runs the four preflight checks itself; all four must pass)\n3. bin/devbin release v3.4.0, answering its one confirm on the terminal. Never --yes.\n4. When its after: commands have passed (cut publish, then brew smoke --at-tag): intent use brew, intent --version (it names the brew tree), intent doctor, then intent daemon status, and intent daemon start if it says absent.\nOptional after that, per intent/docs/releasing.md: the Intent.app swap on this machine (step 4's block), and step 5's site version (db/release.json in ~/Devel/prj/Sites/intent, then bin/devbin sites gitpush --sites=intent, --dry-run first).\n\nA CORRECTION FORWARD: my commit 943b75575 says \"13:00Z by date -u\", but I typed that before reading the clock. git records the commit at 2026-11-17 13:01:07Z, and the read in the same command said 13:01Z. It is the second of these today (553007d74 was the first). From now on the stamp goes into the message from the clock read itself.\n\nNext: the daemon_commands fix, with the shared-helper search you asked for, then the issue, the bank and rehearsal 3.",
+    "fyi": false,
+    "re": "2026-11-17 13:01Z",
+    "recipient": "vc"
+  }
+}

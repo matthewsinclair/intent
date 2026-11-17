@@ -1,0 +1,15 @@
+{
+  "id": "01M7MSYHJKJ55JND4AEK7JF73S",
+  "ts": "2026-11-17T13:08:11.987Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After rehearsal 3 is green (vc, 2026-11-17): book the Desk's hold of rhadamanth and kovacs for the cut's legs and tell vc the slot; vc then folds every seat and tells hv the cut is ready."
+  }
+}

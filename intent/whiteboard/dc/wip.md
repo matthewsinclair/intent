@@ -3,25 +3,25 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 12:30Z
+heartbeat_at: 2026-11-17 13:08Z
 status: active
-focus: "2026-11-17 12:30Z by date -u: on hv decision 58. The kovacs rehearsal at 88bb0d88e went RED on gate reference alone (contract and rust green; build all and test shell not run); 0697's bound line read (kept, 8.07G within 12G). Reported to vc with a proposal: re-run once step 2 has landed (hold 49); step 1 after ic's step 2 build (todo 64). Worktree scratchpad/wt-kovacs kept for the re-run; no slot or claim held."
-claims: []
+focus: "2026-11-17 13:08Z by date -u: on hv decision 58. Item 4 reported (what hv runs). 0703 filed and banked (doing 166), waiting on vc's landing. Rehearsal 3 (hold 49) after 0703 lands and Webber's floor-fix run ENDs at the Desk; then the cut's Desk hold (todo 65). Worktrees wt-0703 and wt-kovacs held; no slot held. CORRECTION: 943b75575 says 13:00Z by date -u, typed before the clock read; git records 13:01:07Z."
+claims: [ISSUE:0703]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- Issue 0703 (vc's GO 2026-11-17 13:01Z): banked at refs/bank/dc/0703/xdg-sandbox, base 54c4854f4, patch-id 568ae409a4f0ec2562f6ea8d8747748cc26bd710, for vc to land on a read. Its red is rehearsal 2's record and its green is rehearsal 3 (hold 49). At the landing's END: refs/attic/dc/wt-0703 at the worktree's HEAD, then scratchpad/wt-0703 removed by the fold's checks.
 
 ## TODO
 
-- vc GO item 4: the cut's step 1, intent doctor and bin/devbin preflight all, in the main checkout after ic's step 2 has built the pair at HEAD (so preflight spill reads HEAD's pair, not 3.3.3's); tell vc what hv has to run (step 0, intent daemon stop, while intentd is live). (edited)
+- After rehearsal 3 is green (vc, 2026-11-17): book the Desk's hold of rhadamanth and kovacs for the cut's legs and tell vc the slot; vc then folds every seat and tells hv the cut is ready.
 
 ## Holds
 
-- vc GO item 3 (hv decision 58): the kovacs rehearsal, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth run (hv decision 45), from the clean worktree scratchpad/wt-kovacs. FIRST RUN at 88bb0d88e, Desk 01M7MN38, 12:24:28Z to 12:28:19Z: RED on gate reference alone (stale docs/reference); contract and rust green on kovacs; build all and test shell did not run. 0697's bound line read: kept, 8461400 KiB within 12582912 KiB. Record at scratchpad/rehearsal-88bb0d88e-record, kept out of the main checkout's tmp/release/legs. RELEASED WHEN step 2 (ic's reference pages and screenshots, cc's known-defects page, vc's CHANGELOG) is on main and vc gives the go for the re-run at that HEAD; its report carries the lanes reading and 0699's and 0700's arms. (edited)
+- vc GO item 3 (hv decision 58): REHEARSAL 3, bin/devbin release gates --leg kovacs at the HEAD that carries 0703's landing, from scratchpad/wt-kovacs moved to that HEAD, with kovacs's brew intentd left running (vc, 2026-11-17). Rehearsal 1 (88bb0d88e) was red on stale reference pages only, and rehearsal 2 (aac6acbef) on three daemon_commands.bats arms only (0703). RELEASED WHEN 0703 is on main and the Desk grants the ask after Webber's floor-fix run ENDs, with rhadamanth held quiet. On green: copy the kept pair into the main checkout's tmp/release/legs/kovacs, where the cut's pre-flight reads it, and report to vc. (edited)
 
 ## Watch-outs
 

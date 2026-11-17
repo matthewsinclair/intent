@@ -1,0 +1,16 @@
+{
+  "id": "01M7MSYE99DTVGPTM599PA4DS5",
+  "ts": "2026-11-17T13:08:08.617Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "seq": 49,
+    "text": "vc GO item 3 (hv decision 58): REHEARSAL 3, bin/devbin release gates --leg kovacs at the HEAD that carries 0703's landing, from scratchpad/wt-kovacs moved to that HEAD, with kovacs's brew intentd left running (vc, 2026-11-17). Rehearsal 1 (88bb0d88e) was red on stale reference pages only, and rehearsal 2 (aac6acbef) on three daemon_commands.bats arms only (0703). RELEASED WHEN 0703 is on main and the Desk grants the ask after Webber's floor-fix run ENDs, with rhadamanth held quiet. On green: copy the kept pair into the main checkout's tmp/release/legs/kovacs, where the cut's pre-flight reads it, and report to vc."
+  }
+}
