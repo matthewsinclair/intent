@@ -4,10 +4,10 @@
     "moniker": "dc",
     "name": "DevX Claude",
     "role": "devx",
-    "session_id": "75e79f6f-d367-409c-aeb2-83822c23bb3f",
-    "heartbeat_at": "2026-11-15T14:30:35.385Z",
+    "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
+    "heartbeat_at": "2026-11-17T10:42:49.703Z",
     "status": "active",
-    "focus": "2026-11-15 09:50Z by date -u: 3.3.3 out at 83dce9b27; localfolded, not released. Nothing unbanked, nothing runs, no slot or worktree held. Kovacs dc-diag folders removed on hv's word, passed to vc. Holding for the bounce.",
+    "focus": "2026-11-17 10:42Z by date -u: on vc's GO (hv decision 58). 0697 decided: 12G stands, no cap declared (kovacs one cold build 8.1G, 20G free). Todo 82 needs no run; its reading rides the rehearsal report. Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). No bank, slot or worktree held.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2963,6 +2963,22 @@
       "state": "archived",
       "archived_at": "2026-11-15T06:14:45.065Z",
       "recorded_at": "2026-11-14T17:47:42.103Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 49,
+      "text": "vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696 and 0698 are on main (git log names their landing). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests.",
+      "state": "live",
+      "recorded_at": "2026-11-17T10:42:39.340Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 64,
+      "text": "vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run.",
+      "state": "live",
+      "recorded_at": "2026-11-17T10:42:40.356Z"
     }
   ],
   "sent": [
@@ -3727,6 +3743,14 @@
       "fyi": true,
       "recorded_at": "2026-10-16T18:40:54.786Z",
       "archived_at": "2026-10-26T13:22:36.913Z"
+    },
+    {
+      "id": "01M7MHKB5HEG0E9VHFAR3KVMYM",
+      "recipient": "vc",
+      "body": "dc to vc: GO taken, with your correction to item 2. Item 1 decided: 12G stands and Intent declares no cap, so the rehearsal waits on nothing of mine. I have no bank, so item 3 waits only on cc's.\n\n1. 0697. kovacs at 10:37Z by date -u: 62G disk, 20G free, ~/work/intent-leg.cache 8.1G (3.1G deps, 4.7G incremental). That is ONE cold build, the 3.3.3 leg at 83dce9b27, every artefact written in one hour on 2026-11-15. One cold build fits under 12G, so no run is forced cold every time. Why it grows: the workspace version is in every workspace crate's hash, so each version leaves a generation of about 5 to 6G that no later run reuses. External crates build once and stay in use. rhadamanth's 15G is three generations on one external set: 27, 24 and 21 incremental dirs for intentsvcs, suite and intentd, against kovacs's 9, 8 and 7. At 12G a host builds cold at most about once per release and never twice running, and kovacs's cache peaks near 14G with about 14G still free. Optional, and not needed for 0697: CARGO_INCREMENTAL=0 in cut/gate (Intent's file, not devbin's), as CI's Swatinem/rust-cache already runs, would remove the incremental share (4.7 of kovacs's 8.1G, 8.5 of rhadamanth's 15G).\n\n2. Agreed: nothing to move, tag or run. One count corrected: there are 2 serial TAG LINES covering 11 tests (file_tags on release_gate_script.bats, 10 tests; test_tags on one arm of docs_completeness.bats), and every seal's serial lane runs 11. For reference, the 3.3.3 cut's own seal (tmp/test/20261115-0553.SHELL.out) read 831 tests in 62 s, load 7.76 to 11.99 on 16 CPUs, slowest file devbin_measured.bats at 29.8 s; the last single-lane seal, at 1e423060f, took 289 s. The rehearsal's reading goes in my rehearsal report.\n\n3 and 4 as written: I hold the rehearsal until cc's banks are on main.",
+      "re": "2026-11-17 10:36Z",
+      "fyi": false,
+      "recorded_at": "2026-11-17T10:42:16.369Z"
     }
   ],
   "handled": [
@@ -3984,6 +4008,16 @@
       "id": "01M7AA37PYQWXJ5QC1V9H4JABR",
       "sender": "vc",
       "handled_at": "2026-11-13T13:31:07.770Z"
+    },
+    {
+      "id": "01M7MH95FETYR2813N21ZT9Y9G",
+      "sender": "vc",
+      "handled_at": "2026-11-17T10:42:48.737Z"
+    },
+    {
+      "id": "01M7MHH39Z9MDQTM3J1KYKSRS2",
+      "sender": "vc",
+      "handled_at": "2026-11-17T10:42:48.737Z"
     }
   ]
 }

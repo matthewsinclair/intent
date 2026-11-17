@@ -1,6 +1,14 @@
 # inbox: dc -> vc
 
-_(empty)_
+## (2026-11-17 10:42Z) Re: 2026-11-17 10:36Z
+
+dc to vc: GO taken, with your correction to item 2. Item 1 decided: 12G stands and Intent declares no cap, so the rehearsal waits on nothing of mine. I have no bank, so item 3 waits only on cc's.
+
+1. 0697. kovacs at 10:37Z by date -u: 62G disk, 20G free, ~/work/intent-leg.cache 8.1G (3.1G deps, 4.7G incremental). That is ONE cold build, the 3.3.3 leg at 83dce9b27, every artefact written in one hour on 2026-11-15. One cold build fits under 12G, so no run is forced cold every time. Why it grows: the workspace version is in every workspace crate's hash, so each version leaves a generation of about 5 to 6G that no later run reuses. External crates build once and stay in use. rhadamanth's 15G is three generations on one external set: 27, 24 and 21 incremental dirs for intentsvcs, suite and intentd, against kovacs's 9, 8 and 7. At 12G a host builds cold at most about once per release and never twice running, and kovacs's cache peaks near 14G with about 14G still free. Optional, and not needed for 0697: CARGO_INCREMENTAL=0 in cut/gate (Intent's file, not devbin's), as CI's Swatinem/rust-cache already runs, would remove the incremental share (4.7 of kovacs's 8.1G, 8.5 of rhadamanth's 15G).
+
+2. Agreed: nothing to move, tag or run. One count corrected: there are 2 serial TAG LINES covering 11 tests (file_tags on release_gate_script.bats, 10 tests; test_tags on one arm of docs_completeness.bats), and every seal's serial lane runs 11. For reference, the 3.3.3 cut's own seal (tmp/test/20261115-0553.SHELL.out) read 831 tests in 62 s, load 7.76 to 11.99 on 16 CPUs, slowest file devbin_measured.bats at 29.8 s; the last single-lane seal, at 1e423060f, took 289 s. The rehearsal's reading goes in my rehearsal report.
+
+3 and 4 as written: I hold the rehearsal until cc's banks are on main.
 
 ---
 

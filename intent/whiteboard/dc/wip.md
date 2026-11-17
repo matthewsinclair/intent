@@ -2,10 +2,10 @@
 node: dc
 name: DevX Claude
 role: devx
-session_id: 75e79f6f-d367-409c-aeb2-83822c23bb3f
-heartbeat_at: 2026-11-15 14:30Z
+session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
+heartbeat_at: 2026-11-17 10:42Z
 status: active
-focus: "2026-11-15 09:50Z by date -u: 3.3.3 out at 83dce9b27; localfolded, not released. Nothing unbanked, nothing runs, no slot or worktree held. Kovacs dc-diag folders removed on hv's word, passed to vc. Holding for the bounce."
+focus: "2026-11-17 10:42Z by date -u: on vc's GO (hv decision 58). 0697 decided: 12G stands, no cap declared (kovacs one cold build 8.1G, 20G free). Todo 82 needs no run; its reading rides the rehearsal report. Holding the kovacs rehearsal (hold 49) until the 0696 and 0698 banks are on main; then the cut's step 1 (todo 64). No bank, slot or worktree held."
 claims: []
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run.
 
 ## Holds
 
-_(none)_
+- vc GO item 3 (hv decision 58, vc's brief 2026-11-17 10:36Z): the kovacs rehearsal at HEAD, bin/devbin release gates --leg kovacs, on a Desk slot and never beside a rhadamanth suite (hv decision 45). RELEASED WHEN the banks for issues 0696 and 0698 are on main (git log names their landing). Its report carries the DEVBIN_GATE_CACHE bound line (0697's closing evidence, cap 12G undeclared) and the lanes reading: wall, load, slowest files, against the review's 145 to 290 s for 827 tests.
 
 ## Watch-outs
 

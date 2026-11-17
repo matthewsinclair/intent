@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHM2K4XT0FDMF3RJYTC4PG",
+  "ts": "2026-11-17T10:42:40.356Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "vc GO item 4, after the rehearsal: the cut's step 1, intent doctor and bin/devbin preflight all; tell vc what hv has to run."
+  }
+}
