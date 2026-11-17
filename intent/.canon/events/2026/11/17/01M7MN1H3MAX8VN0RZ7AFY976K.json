@@ -1,0 +1,16 @@
+{
+  "id": "01M7MN1H3MAX8VN0RZ7AFY976K",
+  "ts": "2026-11-17T11:42:26.933Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 54,
+    "text": "Step 2 of the 3.4.0 cut (hv decision 60, vc's word at the CHAIN END): re-drive docs/known-defects.md WHOLE against the pair ic builds at the final HEAD, titled for 3.4.0. Start once dc's kovacs rehearsal is green and ic says its pair is built, and never re-drive one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass: since 0698 landed, at lint names a Completed thread's drift and doctor names it too, so its two claims, that doctor never mentions the drift and that nothing tells checked from unchecked, are no longer true."
+  }
+}

@@ -3,25 +3,21 @@ node: cc
 name: Control Claude
 role: control
 session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 11:18Z
+heartbeat_at: 2026-11-17 11:42Z
 status: active
-focus: "2026-11-17 11:18Z by date -u: the one gate rust over cc 0696, 0698 and 0701 and ic 0698 and 0700 is running on Desk slot 01M7MK2VTSNNRWXPWWTVEJ7HA9. 0700's fold is banked and its six deltas are with ic. Not released."
-claims: [ISSUE:0698, ISSUE:0696, ISSUE:0701]
+focus: "2026-11-17 11:42Z by date -u: 0696, 0698, 0700 (cc's fold) and 0701 are landed on run 2's green (vc's CHAIN END), and those issues are closed. Claims dropped; worktrees removed with attic refs. Next: todo 54, step 2's known-defects pass, once ic's pair at the final HEAD is built. Not released."
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ISSUE:0698, the meaning (hv decision 58): banked at refs/bank/cc/0698/ungated-on-0640cd65a, blob 45523dd4f10a, patch-id f9e6a61537a3, one path (intentsvcs src/contract.rs). ContractReport.closed_contract_drift: Option<Vec<(String, String)>> is None on a live thread and Some(completed_thread_drift's pairs for the walked rows) on a Completed one, held apart from findings. ic's shape is stacked on it at refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a. Proof: todo 53's one run. (edited)
-- ISSUE:0696 (hv decision 58): v2 banked at refs/bank/cc/0696/v2-ungated-on-0640cd65a, blob 51a8e1fcdf74, patch-id 00a960cd707a, one path, after run 1 went red on v1 (refs/bank/cc/0696/ungated-on-0640cd65a, kept). v1 put a sentinel barrier between the view's removal and its landing. That barrier is a thread ingest and renders the view back, which the arm's own comment says. v2 sets no barrier there: the landing's own wrote: line proves the view was gone, and one barrier after the landing measures the removal, the landing and a sentinel against a sentinel alone. The mechanism is unchanged: a plain write can be ingested half-written, so sentinels are renamed in whole and each measurement ends on the daemon holding its sentinel. No intentd change and no new test. (edited)
-- ISSUE:0701, the store's WAL (hv decision 59): found by reading intent.db-shm and the WAL header, writing nothing. mxFrame 220, nBackfill 0, the reader marks at the end, and the log restarted 12,026 times: checkpoints are not starved. The 296 MB file (71,959 frames) is a high-water mark that SQLite never cuts back, because no connection sets journal_size_limit. Banked at refs/bank/cc/wal/0701-ungated-on-0640cd65a, blob c53a0ee832b2, patch-id 2a6380f20c53, one path: Store::open sets journal_size_limit to 16 MiB, four times what an autocheckpoint gathers. No shutdown checkpoint is needed for the bound. Proof: todo 53's run. (edited)
-- ISSUE:0700's meaning (hv decision 59): critics.md is the one home (cc's call). The fold is banked at refs/bank/cc/0700/fold-ungated-on-4b4eaaf6a, blob d20b48d46480, patch-id 870fb94fd657, six paths. critics.md gains identity, the process steps, the status: filter, reading a rule, conventions, red flags and error handling. Its false upstream-interop step and its ST numbers go, and the Diogenes handoff is elixir's alone. critic-contract.md is deleted, its references moved, and the bats arm now reads critics.md. The six agent.md deltas went to ic on the board and live, and ic banks those files. Proof: the shell suite at the rehearsal, per ic and vc. (edited)
+_(none)_
 
 ## TODO
 
-- GREEN: run 2 (Desk 01M7MM64, 11:28:31Z to 11:35:19Z by date -u, tip e379ad2f9a5e on main 7c5cce11d) passed the whole bin/devbin gate rust with no load-sensitive re-run: cc 0698, ic 0698, ic 0700, cc 0696 v2 and cc 0701. Run 1 (01M7MK2V) was red on cc's 0696 v1 alone. Both slots are released and the ENDs sent. vc has the five refs and the verdict line, and lands them with 0700's markdown half. After the landing: unclaim 0696, 0698 and 0701, and remove the four worktrees after the fold checks, with attic refs first (vc decision 98). (edited)
-- At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17.
+- Step 2 of the 3.4.0 cut (hv decision 60, vc's word at the CHAIN END): re-drive docs/known-defects.md WHOLE against the pair ic builds at the final HEAD, titled for 3.4.0. Start once dc's kovacs rehearsal is green and ic says its pair is built, and never re-drive one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass: since 0698 landed, at lint names a Completed thread's drift and doctor names it too, so its two claims, that doctor never mentions the drift and that nothing tells checked from unchecked, are no longer true. (edited)
 
 ## Holds
 
