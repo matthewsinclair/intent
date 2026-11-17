@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3cdf2a2-654e-41a1-9423-394bcc937e92
-heartbeat_at: 2026-11-17 13:30Z
+heartbeat_at: 2026-11-17 13:52Z
 status: active
-focus: "2026-11-17 13:30Z by date -u: localfolded for hv's compact, not released. No issue is open. The 3.4.0 cut waits on dc's rehearsal 3 at HEAD; on green, dc books the Desk's hold, vc folds every seat, and hv cuts. intent/wip.md's DOING carries hv's commands."
+focus: "2026-11-17 13:52Z by date -u: localfolded for hv's compact and move, not released. No issue is open. Rehearsal 3 is GREEN at 0d8c7a306, its record kept in tmp/release/legs/kovacs for the cut's pre-flight. The 3.4.0 cut waits on hv's return from the move: dc books the Desk's hold of rhadamanth and kovacs, vc folds every seat, hv cuts. intent/wip.md's DOING carries hv's commands."
 claims: []
 ---
 
