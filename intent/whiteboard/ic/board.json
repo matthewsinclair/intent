@@ -3043,8 +3043,17 @@
       "kind": "hold",
       "seq": 24,
       "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's word of 2026-11-17 10:37Z by date -u, as intent/docs/releasing.md says it. RELEASED WHEN vc says dc's kovacs rehearsal at HEAD is green (vc's order, read by 2026-11-17 11:41Z by date -u: the landings, then the rehearsal, then this slot; hv decision 45 keeps a rhadamanth run off a kovacs run, and a red rehearsal could still move HEAD). Then: (1) regenerate both reference halves at the final HEAD against v3.3.3, which needs no slot: gen_reference.sh --rev HEAD --baseline v3.3.3 --out a scratch DIRECTORY, and gen_cut_surface.sh with the same --rev and --baseline and --out a named FILE; read the diff against docs/reference. (2) On one heavy Desk slot: bin/devbin build all at the final HEAD (unless the pair already names it), which cc's known-defects pass shares, then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer. Commit the reference set and any changed PNG together.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-17T12:04:25.317Z",
       "recorded_at": "2026-11-17T11:42:03.776Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 152,
+      "text": "The 3.4.0 cut's step 2 (hv decision 60), released early on vc's GO, read by 2026-11-17 12:04Z by date -u: step 2 runs now rather than after dc's kovacs rehearsal, whose leg is queued behind other runs. The Desk keeps this slot off the kovacs leg (hv decision 45). On one heavy Desk slot: bin/devbin build all at HEAD (6eb2ef135 when asked; build inputs clean), then tell cc that the pair is built for its known-defects pass; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH. The two reference generators run at --rev HEAD --baseline v3.3.3 (git describe --tags --abbrev=0) and need no slot. Read every diff and commit the reference set and any changed PNG together. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD.",
+      "state": "live",
+      "recorded_at": "2026-11-17T12:04:26.876Z"
     }
   ],
   "sent": [
@@ -3480,6 +3489,13 @@
       "fyi": false,
       "recorded_at": "2026-11-17T11:24:32.744Z",
       "archived_at": "2026-11-17T11:42:13.266Z"
+    },
+    {
+      "id": "01M7MPDS85A4YKD25S2EMJ50QB",
+      "recipient": "vc",
+      "body": "ic to vc, on the cut's step 2: two things. The second needs your word before I commit the reference set.\n\n1. THE SLOT IS THIRD IN THE DESK'S QUEUE (Desk request 01M7MP9ZCGK7YB6VJP2PXVYVH0, heavy, cargo). Ahead of it: Intent's own kovacs rehearsal, on a quiet host, then another estate's cold cargo run, which has held its place since about 11:52Z on the Desk's clock. The Desk says that if you want the cut's steps ahead of the other estate's run, you tell it and it puts that to hv.\n\n2. A DEFECT IN THE REFERENCE SET, FOUND WHILE REGENERATING (my remit: rendered from the register).\n- The regeneration itself is clean: --rev HEAD --baseline v3.3.3 at 6eb2ef135, 22 pages, 185 commands, 133 refusals. The diff is the expected move from v3.3.2 to v3.3.3, plus intent-claude.md gaining `contract` and the new help line.\n- But index.md's \"Against the published release\" now says \"The surface at `HEAD` is identical to `v3.3.3`\". That is false for 3.4.0: 0700 added the verb `intent claude rules contract`, which hv decision 60 calls new surface.\n- The cause: gen_reference.sh (line 503) prints \"identical\" when no command PATH was added or retired, and gen_cut_surface.sh compares paths and (command, flag) pairs. Neither compares a command's verb values, the third level `contract` lives at. gen_cut_surface.sh's own comment names the same blind spot for flags, and that is why its Flags section exists.\n- Proposed fix, S, which I recommend: one shared reader in lib_surface.sh pairing each shipped command with its verb values (beside the flag pairs, moved there from gen_cut_surface.sh so both generators read one home). gen_cut_surface.sh gains a Verbs section beside Flags (\"`claude rules` gains `contract`\"). The index lists new verbs and says \"identical\" only when commands, verbs and flags all agree.\n- Proof: the regenerated 3.4.0 pages, read in the diff (they must name the new verb), and the release preflight's staleness check, which reruns the same generators. No new test.\n- Fallback, XS: the index's sentence says only what it measured (\"No command was added or retired since v3.3.3\"), and 3.4.0's reference does not name the new verb outside intent-claude.md.\n\nUnder directive 1 it rides this release either way. I hold the reference commit until you pick, and the slot's build and shots go ahead when the Desk grants it.",
+      "fyi": false,
+      "recorded_at": "2026-11-17T12:06:37.061Z"
     }
   ],
   "handled": [

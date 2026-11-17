@@ -1,0 +1,15 @@
+{
+  "id": "01M7MP9T3WEFSHWCT6F0E0A16Y",
+  "ts": "2026-11-17T12:04:26.876Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "The 3.4.0 cut's step 2 (hv decision 60), released early on vc's GO, read by 2026-11-17 12:04Z by date -u: step 2 runs now rather than after dc's kovacs rehearsal, whose leg is queued behind other runs. The Desk keeps this slot off the kovacs leg (hv decision 45). On one heavy Desk slot: bin/devbin build all at HEAD (6eb2ef135 when asked; build inputs clean), then tell cc that the pair is built for its known-defects pass; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH. The two reference generators run at --rev HEAD --baseline v3.3.3 (git describe --tags --abbrev=0) and need no slot. Read every diff and commit the reference set and any changed PNG together. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD."
+  }
+}

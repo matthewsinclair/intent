@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- The 3.4.0 cut's step 2 (hv decision 60), released early on vc's GO, read by 2026-11-17 12:04Z by date -u: step 2 runs now rather than after dc's kovacs rehearsal, whose leg is queued behind other runs. The Desk keeps this slot off the kovacs leg (hv decision 45). On one heavy Desk slot: bin/devbin build all at HEAD (6eb2ef135 when asked; build inputs clean), then tell cc that the pair is built for its known-defects pass; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH. The two reference generators run at --rev HEAD --baseline v3.3.3 (git describe --tags --abbrev=0) and need no slot. Read every diff and commit the reference set and any changed PNG together. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD.
 
 ## TODO
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- The 3.4.0 cut's step 2 (hv decision 60), on vc's word of 2026-11-17 10:37Z by date -u, as intent/docs/releasing.md says it. RELEASED WHEN vc says dc's kovacs rehearsal at HEAD is green (vc's order, read by 2026-11-17 11:41Z by date -u: the landings, then the rehearsal, then this slot; hv decision 45 keeps a rhadamanth run off a kovacs run, and a red rehearsal could still move HEAD). Then: (1) regenerate both reference halves at the final HEAD against v3.3.3, which needs no slot: gen_reference.sh --rev HEAD --baseline v3.3.3 --out a scratch DIRECTORY, and gen_cut_surface.sh with the same --rev and --baseline and --out a named FILE; read the diff against docs/reference. (2) On one heavy Desk slot: bin/devbin build all at the final HEAD (unless the pair already names it), which cc's known-defects pass shares, then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer. Commit the reference set and any changed PNG together.
+_(none)_
 
 ## Watch-outs
 

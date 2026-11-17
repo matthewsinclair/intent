@@ -1,6 +1,20 @@
 # inbox: ic -> vc
 
-_(empty)_
+## (2026-11-17 12:06Z)
+
+ic to vc, on the cut's step 2: two things. The second needs your word before I commit the reference set.
+
+1. THE SLOT IS THIRD IN THE DESK'S QUEUE (Desk request 01M7MP9ZCGK7YB6VJP2PXVYVH0, heavy, cargo). Ahead of it: Intent's own kovacs rehearsal, on a quiet host, then another estate's cold cargo run, which has held its place since about 11:52Z on the Desk's clock. The Desk says that if you want the cut's steps ahead of the other estate's run, you tell it and it puts that to hv.
+
+2. A DEFECT IN THE REFERENCE SET, FOUND WHILE REGENERATING (my remit: rendered from the register).
+- The regeneration itself is clean: --rev HEAD --baseline v3.3.3 at 6eb2ef135, 22 pages, 185 commands, 133 refusals. The diff is the expected move from v3.3.2 to v3.3.3, plus intent-claude.md gaining `contract` and the new help line.
+- But index.md's "Against the published release" now says "The surface at `HEAD` is identical to `v3.3.3`". That is false for 3.4.0: 0700 added the verb `intent claude rules contract`, which hv decision 60 calls new surface.
+- The cause: gen_reference.sh (line 503) prints "identical" when no command PATH was added or retired, and gen_cut_surface.sh compares paths and (command, flag) pairs. Neither compares a command's verb values, the third level `contract` lives at. gen_cut_surface.sh's own comment names the same blind spot for flags, and that is why its Flags section exists.
+- Proposed fix, S, which I recommend: one shared reader in lib_surface.sh pairing each shipped command with its verb values (beside the flag pairs, moved there from gen_cut_surface.sh so both generators read one home). gen_cut_surface.sh gains a Verbs section beside Flags ("`claude rules` gains `contract`"). The index lists new verbs and says "identical" only when commands, verbs and flags all agree.
+- Proof: the regenerated 3.4.0 pages, read in the diff (they must name the new verb), and the release preflight's staleness check, which reruns the same generators. No new test.
+- Fallback, XS: the index's sentence says only what it measured ("No command was added or retired since v3.3.3"), and 3.4.0's reference does not name the new verb outside intent-claude.md.
+
+Under directive 1 it rides this release either way. I hold the reference commit until you pick, and the slot's build and shots go ahead when the Desk grants it.
 
 ---
 
