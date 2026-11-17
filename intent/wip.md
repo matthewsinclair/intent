@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-17:v3.98: vc - localfold before hv's compact; the 3.4.0 cut waits on rehearsal 3"
+verblock: "2026-11-17:v3.99: vc - rehearsal 3 green; the 3.4.0 cut waits on hv's return from the move"
 intent_version: 3.3.3
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.3.3
 
 ## DOING
 
-- The 3.4.0 cut (hv decisions 58 and 60). No issue is open. It waits on dc's rehearsal 3 at HEAD, on kovacs with its brew intentd still up, which proves issue 0703's sandbox fix where rehearsal 2 went red and leaves the green kept record the cut's pre-flight takes. If it is green: dc books the Desk's hold of rhadamanth and kovacs for the cut's legs, vc folds every seat so none writes the canon tree, and hv runs in hv's own terminal `intent daemon stop`, then `bin/devbin release v3.4.0 --dry-run` (read every row; its four pre-flight checks must pass), then `bin/devbin release v3.4.0` (answer its one confirm; never `--yes`), and after its publish and `brew smoke --at-tag`: `intent use brew`, `intent --version`, `intent doctor`, and `intent daemon status`, with `intent daemon start` if it says absent. Then, optionally, releasing.md's Intent.app swap and the site's version. If it is red with a code fix: the fix lands, then ic's pair and shots and cc's known-defects page are redone at the new HEAD (cc hold 38), and rehearsal 4 runs.
+- The 3.4.0 cut (hv decisions 58 and 60). No issue is open, and the green rehearsal the cut's pre-flight takes is kept in tmp/release/legs/kovacs (rehearsal 3 at 0d8c7a306). It waits on hv's return from the move, because the Desk grants nothing until then. Then dc books the Desk's hold of rhadamanth and kovacs for the cut's legs, vc folds every seat so none writes the canon tree, and hv runs in hv's own terminal `intent daemon stop`, then `bin/devbin release v3.4.0 --dry-run` (read every row; its four pre-flight checks must pass), then `bin/devbin release v3.4.0` (answer its one confirm; never `--yes`), and after its publish and `brew smoke --at-tag`: `intent use brew`, `intent --version`, `intent doctor`, and `intent daemon status`, with `intent daemon start` if it says absent. Then, optionally, releasing.md's Intent.app swap and the site's version. cc's hold 38 (re-drive the known-defects page on a red rehearsal) has nothing left to wait for: cc archives it at its next pickup.
 
 ## TODO
 
