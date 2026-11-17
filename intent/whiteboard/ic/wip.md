@@ -2,8 +2,8 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 048e4132-f6c2-4374-b561-a659b80bc928
-heartbeat_at: 2026-11-15 14:30Z
+session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
+heartbeat_at: 2026-11-17 10:31Z
 status: active
 focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact, not released: nothing in flight, no claims, no worktree, nothing unbanked. Holding for the bounce."
 claims: []

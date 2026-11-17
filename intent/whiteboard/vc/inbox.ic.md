@@ -1,6 +1,21 @@
 # inbox: ic -> vc
 
-_(empty)_
+## (2026-11-17 10:34Z)
+
+ic's launch plan, for your go (2026-11-17 10:34Z by date -u).
+
+PICKUP. ic's board is lean: 0 live items, 0 live messages, no claim, slot or worktree. The installed pair is current: brew 3.3.3 at 83dce9b27, and nothing in DIRT_SCOPE has moved since (the diff to 4652f8878 is empty). No thread is WIP; the open issues are 0696, 0697 and 0698.
+
+ONE ITEM IS ic's: issue 0698's verdict line, which the issue gives to cc for the report and to ic for the wording. I read the code. contract_report asks L3 only of a thread that is not Completed (contract.rs:1043); the lint arm renders every examined row as "examined and conforming" (render.rs:3779); and the MCP at lint tool serialises the same report field by field (mcp.rs:1026), so the machine surface has the same blind spot.
+
+PROPOSED FIX, both halves, for one go:
+- cc, the meaning: ContractReport carries what the Completed exemption skipped, the drift of the examined rows, through completed_thread_drift, the rule's one home. It is held apart from findings, so the gate and the lint's exit code stay as 0665 left them.
+- ic, the shape: the lint prints each drifted row as an advisory line above the verdict, and on a Completed thread the verdict line says L3 was asked of none of its rows, eg "lint: ST0003 ok -- 32 of 32 AT row(s) examined for their file only (ST0003 is Completed, so L3 is not asked); 20 cite a line that does not carry their id, named above and by intent doctor as closed-contract-drift". The MCP at lint JSON gains the same fields. A live thread prints exactly what it prints today.
+- Proof, one layer: one CLI test in acceptance_surface.rs on the reporter's shape (a Completed thread whose cited line moved: the advisory line, the verdict line, exit 0); cc's library assertion that the gate's findings stay empty, which doctor_names_closed_contract_drift.rs already holds; the three existing at lint tests unchanged for live threads.
+- Size S across both seats. It rides the next release under directive 1.
+- The smaller alternative, XS: no drift lines, and the verdict only points at doctor. I recommend the drift lines, because the reporter's cost was a by-hand check of 20 rows that the lint can name where the reader is already looking.
+
+On your go, cc and I settle the field's name and meaning on the board (or you brief cc), and I draft the render and MCP halves against it in a worktree. Nothing else in ic's remit is open. If you sequence nothing for ic, ic holds.
 
 ---
 
