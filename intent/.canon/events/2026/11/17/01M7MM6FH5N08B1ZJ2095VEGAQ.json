@@ -1,0 +1,16 @@
+{
+  "id": "01M7MM6FH5N08B1ZJ2095VEGAQ",
+  "ts": "2026-11-17T11:27:40.581Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 116,
+    "text": "ISSUE:0696 (hv decision 58): v2 banked at refs/bank/cc/0696/v2-ungated-on-0640cd65a, blob 51a8e1fcdf74, patch-id 00a960cd707a, one path, after run 1 went red on v1 (refs/bank/cc/0696/ungated-on-0640cd65a, kept). v1 put a sentinel barrier between the view's removal and its landing. That barrier is a thread ingest and renders the view back, which the arm's own comment says. v2 sets no barrier there: the landing's own wrote: line proves the view was gone, and one barrier after the landing measures the removal, the landing and a sentinel against a sentinel alone. The mechanism is unchanged: a plain write can be ingested half-written, so sentinels are renamed in whole and each measurement ends on the daemon holding its sentinel. No intentd change and no new test."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7MM6GPZDGPAZ624RECYHXQ4",
+  "ts": "2026-11-17T11:27:41.791Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 53,
+    "text": "Run 1 (Desk 01M7MK2V, 11:18:01Z to 11:24:56Z by date -u, tip 50bc9960a4e0) was RED. Every step passed but cargo test --workspace: 967 passed, 1 failed, cc's own 0696 v1 arm. Run 2 is asked as 01M7MM64DPMVFEVRWY1DGQ6SFJ: the same five banks with 0696 v2, on main 7c5cce11d at tip e379ad2f9a5e, in ~/Devel/scratch/intent-cc/gate-0696-0698-0700-0701. Start on devbin-vc's GO. At the END: release with the result, then send vc the refs and the verdict line."
+  }
+}
