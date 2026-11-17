@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: a3cdf2a2-654e-41a1-9423-394bcc937e92
-heartbeat_at: 2026-11-17 17:26Z
-status: active
-focus: "2026-11-17 17:26Z by date -u: localfolded for hv's compact, not released. 3.4.0 is out (release commit 461e39ba1; the tap, brew and intentd carry it; doctor clean). hv struck the optional app swap and site version. Nothing is in flight; intent/wip.md's TODO holds what waits on hv."
+heartbeat_at: 2026-11-17 19:20Z
+status: paused
+focus: "2026-11-17 19:20Z by date -u: released at hv's close. 3.4.0 is out and every after-step is done (publish rerun by hv; brew smoke --reinstall green, devbin-vc 19:13Z). Nothing in flight; intent/wip.md's TODO holds what waits on hv."
 claims: []
 ---
 
