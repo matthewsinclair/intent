@@ -126,14 +126,25 @@ valid_name() {
 # tree, which upgrade does not manage and nothing ever runs. One path covers
 # both shapes, because DEVBIN_LIB is `bin/.devbin/lib` when installed and the
 # checkout's own `lib/` when not.
+#
+# NOR ANOTHER WORK TREE'S, NOR ANOTHER RUNTIME (issue 0353). A linked worktree
+# inside the root, eg tmp/worktrees/<name> or .worktrees/<name>, holds its own
+# runtime and its own suite, and either sorted ahead of tests/: the stub went
+# into the worktree's vendored runtime, in silence, at exit 0. So a hit beneath
+# a directory below the root that holds a `.git`, file or directory, belongs to
+# another work tree or a nested repository and never to this project, and a hit
+# inside any vendored runtime is a template, whoever's runtime it is. Both
+# filter the walk's hits, so a project outside git keeps its walk, and the
+# marker is read by git_marker_above, a stat per directory and no process.
 test_dir() {
-  local f
+  local f rel sorted
   # `| head -n1` was here, and under pipefail that is unsound: head returns after
   # one line, sort takes SIGPIPE on the rest, and pipefail promotes the writer's
   # 141 to the pipeline -- so `set -e` aborted `devbin new` outright rather than
   # falling through to the `return 1` below. Measured at 4000 .bats files: status
-  # 141, every time. The first line is taken in bash instead, where there is no
-  # reader to exit early. Same defect as lib/cmd/doctor's unowned scan.
+  # 141, every time. The sorted hits are read whole and walked in bash instead,
+  # where there is no reader to exit early. Same defect as lib/cmd/doctor's
+  # unowned scan.
   #
   # find READS WHOLE, WITH ITS STATUS (issue 0139): its errors went to
   # /dev/null, so a suite beneath a directory it could not read was a project
@@ -144,11 +155,20 @@ test_dir() {
     -not -path "$DEVBIN_LIB/*" -not -path '*/.git/*' -print)"; then
     warn "could not search all of $PROJECT_ROOT for a bats suite (the error above names it) -- a suite beneath it was not seen"
   fi
-  f="$(printf '%s\n' "$listing" | LC_ALL=C sort)"
-  f="${f%%$'\n'*}"
-  [ -n "$f" ] || return 1
-  printf '%s\n' "$(dirname "$f")"
-  return 0
+  sorted="$(printf '%s\n' "$listing" | LC_ALL=C sort)"
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    rel="${f#"$PROJECT_ROOT"/}"
+    case "/$rel" in
+      */bin/.devbin/lib/*) continue ;;
+    esac
+    if [ "${rel%/*}" != "$rel" ] && git_marker_above "${f%/*}" "$PROJECT_ROOT"; then
+      continue
+    fi
+    printf '%s\n' "${f%/*}"
+    return 0
+  done <<<"$sorted"
+  return 1
 }
 
 main() {

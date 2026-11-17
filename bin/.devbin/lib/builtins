@@ -354,6 +354,48 @@ EOF
   return 0
 }
 
+# is_gate_command <command> -- true for the six gate commands, whose handler is
+# run_builtin_gate (lib/gatecmd) and whose usage line is gate_usage_line: THE
+# LIST, stated once. The dispatcher exports each one's active set and answers
+# its -h and --help in any position (issue 0356) by asking here.
+is_gate_command() {
+  case "$1" in
+    check | clean | db | docs | fmt | test) return 0 ;;
+  esac
+  return 1
+}
+
+# usage_options_for <command> -- the usage line's option list, |-joined.
+#
+# The ACTIVE set the dispatcher exported (issue 0007): the catalogue is the
+# menu, not what resolves in THIS project -- one project's line advertised three
+# arms that refuse, another's advertised four disabled ones and omitted the
+# only one that runs. The derivation (language axis + config enabled: + declared
+# options) lives dispatcher-side as command_options; re-deriving it here would
+# be a second copy, so this reads the export, DEVBIN_ACTIVE_<COMMAND>, named as
+# the dispatcher names it, and falls back to the raw catalogue only when a
+# handler drives gatecmd outside the dispatcher.
+usage_options_for() {
+  local cmd="$1" var active=""
+  if is_gate_command "$cmd"; then
+    printf -v var 'DEVBIN_ACTIVE_%s' "$(upper_snake "$cmd")"
+    active="${!var:-}"
+  fi
+  if [ -n "${active// /}" ]; then
+    printf '%s' "$active" | tr ' ' '\n' | sed '/^$/d' | tr '\n' '|' | sed 's/|$//'
+  else
+    builtin_options_for "$cmd" | tr '\n' '|' | sed 's/|$//'
+  fi
+}
+
+# gate_usage_line <command> -- a gate command's usage line, with the options
+# active here: THE ONE STATEMENT of it, which run_builtin_gate prints for a bare
+# command and for -h or --help in the option's place, and the dispatcher for
+# -h or --help anywhere on a route of devbin's own (issue 0356).
+gate_usage_line() {
+  printf 'usage: %s %s <%s|all>\n' "${DEVBIN_INVOKE:-bin/devbin}" "$1" "$(usage_options_for "$1")"
+}
+
 # is_builtin_command <name>
 is_builtin_command() {
   case " $_DEVBIN_BUILTIN_COMMANDS " in

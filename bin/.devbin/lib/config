@@ -630,6 +630,7 @@ scalar ci.query        cut,status,check               $_DEVBIN_CI_BUILTIN_QUERY
 scalar ci.workflow     cut,check                      tests.yml
 scalar ci.summary      cut,check
 scalar ci.wait         cut                            60m
+scalar gate_cache.max  cut,gates                      12G
 scalar object          cut,status,check,attach local
 scalar title           cut,status                     {tag}
 scalar repo            cut,status,attach
@@ -1390,6 +1391,13 @@ _cfg_release_value_problem() {
     ci.wait | object_wait | assets.wait)
       [[ "$v" =~ ^[0-9]+[smh]$ ]] && return 1
       printf 'must be a whole number of s, m or h, eg 20m'
+      ;;
+    gate_cache.max)
+      # The size the gates' cache is held to before each run (issue 0361), on
+      # this machine and on each leg's host: a size of none would empty it at
+      # every run, so it is refused.
+      [[ "$v" =~ ^[1-9][0-9]*[MG]$ ]] && return 1
+      printf 'must be a whole number of M or G above 0, eg 12G'
       ;;
     preflight.*)
       # A PRE-FLIGHT COMMAND NEVER RUNS release (issue 0327): a cut runs each one

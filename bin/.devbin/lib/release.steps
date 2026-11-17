@@ -1981,6 +1981,22 @@ release_seconds() {
   esac
 }
 
+# release_kib <size> -- a declared size (`gate_cache.max`) in KiB. The config
+# validator admits a whole number of M or G above 0 and nothing else, so
+# anything else here is a caller's mistake, refused naming it.
+release_kib() {
+  local n
+  if [[ ! "$1" =~ ^([1-9][0-9]*)([MG])$ ]]; then
+    printf 'release: "%s" is not a size (a whole number of M or G above 0)\n' "$1" >&2
+    return 1
+  fi
+  n="${BASH_REMATCH[1]}"
+  case "${BASH_REMATCH[2]}" in
+    M) printf '%s\n' "$((n * 1024))" ;;
+    G) printf '%s\n' "$((n * 1024 * 1024))" ;;
+  esac
+}
+
 # release_group_start <out> <err> <group> <cmd>... -- <cmd> started in the
 # background, in a process group of its own, with its stdout in <out>, its
 # stderr in <err>, or beside its stdout in <out> when <err> is empty, and no

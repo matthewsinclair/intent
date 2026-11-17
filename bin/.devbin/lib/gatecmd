@@ -37,32 +37,6 @@ _DEVBIN_GATECMD_LOADED=1
 # Config's own `run:` never reaches here: the dispatcher routes a config-declared
 # option through run_option before a handler is consulted at all, so by the time
 # this runs the option is one devbin ships.
-# usage_options_for <command> -- the usage line's option list, |-joined.
-#
-# The ACTIVE set the dispatcher exported (issue 0007): the catalogue is the
-# menu, not what resolves in THIS project -- one project's line advertised three
-# arms that refuse, another's advertised four disabled ones and omitted the
-# only one that runs. The derivation (language axis + config enabled: + declared
-# options) lives dispatcher-side as command_options; re-deriving it here would
-# be a second copy, so this reads the export and falls back to the raw
-# catalogue only when a handler drives gatecmd outside the dispatcher.
-usage_options_for() {
-  local cmd="$1" active=""
-  case "$cmd" in
-    check) active="${DEVBIN_ACTIVE_CHECK:-}" ;;
-    clean) active="${DEVBIN_ACTIVE_CLEAN:-}" ;;
-    db) active="${DEVBIN_ACTIVE_DB:-}" ;;
-    docs) active="${DEVBIN_ACTIVE_DOCS:-}" ;;
-    fmt) active="${DEVBIN_ACTIVE_FMT:-}" ;;
-    test) active="${DEVBIN_ACTIVE_TEST:-}" ;;
-  esac
-  if [ -n "${active// /}" ]; then
-    printf '%s' "$active" | tr ' ' '\n' | sed '/^$/d' | tr '\n' '|' | sed 's/|$//'
-  else
-    builtin_options_for "$cmd" | tr '\n' '|' | sed 's/|$//'
-  fi
-}
-
 run_builtin_gate() {
   local cmd="$1" opt="${2:-}" run suffix grammar fn dir
   local -a words
@@ -71,8 +45,7 @@ run_builtin_gate() {
 
   case "$opt" in
     -h | --help)
-      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_INVOKE:-bin/devbin}" "$cmd" \
-        "$(usage_options_for "$cmd")"
+      gate_usage_line "$cmd"
       return 0
       ;;
     "")
@@ -80,8 +53,7 @@ run_builtin_gate() {
       # unable to run because no gate was named did NOT, and a gate command that
       # exits 0 having run nothing is a false green -- `devbin test && deploy`
       # deploys. See the longer note in run_command (lib/resolve).
-      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_INVOKE:-bin/devbin}" "$cmd" \
-        "$(usage_options_for "$cmd")"
+      gate_usage_line "$cmd"
       return 1
       ;;
   esac

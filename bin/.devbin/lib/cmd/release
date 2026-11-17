@@ -618,9 +618,9 @@ release_one_repository() {
 }
 
 # gates_cache_dir -- the gates' own directory, handed them as DEVBIN_GATE_CACHE
-# (issue 0335): it lasts from one run to the next and nothing devbin runs clears
-# it, so a gate can keep a build there, eg a private worktree's
-# CARGO_TARGET_DIR; what goes in it is the project's. The one DEVBIN_GATE_CACHE
+# (issue 0335): it lasts from one run to the next, held to a size (below), so a
+# gate can keep a build there, eg a private worktree's CARGO_TARGET_DIR; what
+# goes in it is the project's. The one DEVBIN_GATE_CACHE
 # already names, as a remote leg's host names work/<project>-leg.cache for its
 # run (lib/release.legs), else this machine's: .gate-cache in the project's
 # directory under the artefact cache's root (cache_root_resolved), named as a
@@ -628,12 +628,31 @@ release_one_repository() {
 # take, so the cache's verbs never read it. Made when missing. Prints the path;
 # status 1, printing why instead, when it cannot be named or made, since a gate
 # handed none could point a build at the filesystem's root.
+#
+# THIS MACHINE'S IS HELD TO release.gate_cache.max (issue 0361), as each leg's
+# host holds its own (lib/release.legs), by the one rule, gate_cache_bound,
+# before the gates are handed it: emptied when over it, said on stderr, so the
+# run builds cold; kept, and said nothing of, when within it; a cache that
+# could not be measured or emptied is warned of and handed on as it stands.
+# One DEVBIN_GATE_CACHE names is the caller's, never held here: a leg's host
+# held it before its gates started. Unlike a host, this machine does not ask
+# whether another run is reading the cache: two runs of one project's gates
+# at once here are not a thing a cut or `release gates` makes.
 gates_cache_dir() {
-  local line d err
+  local line d err kib
   if [ -n "${DEVBIN_GATE_CACHE:-}" ]; then
     d="$DEVBIN_GATE_CACHE"
   elif line="$(cache_root_resolved)"; then
     d="${line%%$'\t'*}/$(legs_project_name)/.gate-cache"
+    if ! kib="$(gates_cache_bound_kib)"; then
+      printf '%s\n' "$kib"
+      return 1
+    fi
+    line="$(gate_cache_bound "$d" "$kib")"
+    case "${line%%$'\t'*}" in
+      emptied) printf 'release: gates: %s\n' "${line#*$'\t'}" >&2 ;;
+      refused) warn "release: gates: ${line#*$'\t'}" ;;
+    esac
   else
     printf '%s\n' "$line"
     return 1
@@ -650,6 +669,22 @@ gates_cache_dir() {
     return 1
   fi
   printf '%s\n' "$d"
+}
+
+# gates_cache_bound_kib -- release.gate_cache.max in KiB, the size the gates'
+# cache is held to before each run (issue 0361), this machine's and each leg's
+# host's: the one reader of the key. Status 1, printing why instead, when it
+# cannot be read.
+gates_cache_bound_kib() {
+  local v
+  if ! v="$(cfg_release_get gate_cache.max)"; then
+    printf 'release.gate_cache.max cannot be read\n'
+    return 1
+  fi
+  if ! release_kib "$v" 2>/dev/null; then
+    printf 'release.gate_cache.max is not a size (a whole number of M or G above 0): %s\n' "$v"
+    return 1
+  fi
 }
 
 # gates_sealed <sha> <version> <tag> -- the gates in `gl`, release.gates as
@@ -809,7 +844,7 @@ gates_verb() {
 # deadline are each 1, saying why; a run still going at the deadline goes on
 # there, and the next run at HEAD reads it.
 gates_leg_verb() {
-  local host="$1" stood list project why tpl base sha secs t0 line word prev="" dir
+  local host="$1" stood list project why tpl base sha secs kib t0 line word prev="" dir
   release_one_repository "release gates"
   stood="$(git_head_identity "$PROJECT_ROOT")"
   git_identity_clean "$stood" ||
@@ -825,6 +860,7 @@ gates_leg_verb() {
     die "release gates --leg: the tags cannot be read, so the newest release's tag cannot be sent to $host"
   secs="$(release_seconds "$(cfg_release_get ci.wait)")" ||
     die "release gates --leg: release.ci.wait is not a duration (a whole number of s, m or h), so the run has no deadline to wait to"
+  kib="$(gates_cache_bound_kib)" || die "release gates --leg: $kib"
   sha="$(git -C "$PROJECT_ROOT" rev-parse HEAD)" || die "release gates --leg: HEAD cannot be read"
   dir="$(release_leg_dir "$PROJECT_ROOT" "$host")"
   if [ "$rerun" = 0 ]; then
@@ -837,7 +873,7 @@ gates_leg_verb() {
   line="$(release_leg_reach "$host")"
   [ "${line%%$'\t'*}" = reached ] || die "release gates --leg: $host cannot be reached: ${line#*$'\t'}"
   t0=$SECONDS
-  line="$(release_leg_start "$PROJECT_ROOT" "$host" "$project" "$sha" "$base")"
+  line="$(release_leg_start "$PROJECT_ROOT" "$host" "$project" "$sha" "$base" "$kib")"
   while :; do
     if [ "$line" != "$prev" ]; then
       legs_say "legs.$host" "$line"
@@ -954,11 +990,13 @@ legs_rehearsal_problem() {
 # it). LEG_VERSION and LEG_TAG are the release's target, which the local leg
 # hands its gates (gates_sealed, issue 0327). LEG_BASE_TAG is the previous
 # release's tag (release_previous_tag), empty when there is none, which each
-# remote leg is sent beside R (issue 0333). A remote leg runs through
+# remote leg is sent beside R (issue 0333). LEG_CACHE_KIB is the size in KiB
+# each remote leg's host holds the gates' cache to before its gates start
+# (gates_cache_bound_kib, issue 0361). A remote leg runs through
 # lib/release.legs and the macOS stage through lib/release.macos, each passed
 # the context it reads, since neither library reads config. A start that finds
 # its leg green already starts nothing.
-LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_VERSION="" LEG_TAG="" LEG_BASE_TAG="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
+LEG_ROOT="" LEG_PROJECT="" LEG_SHA="" LEG_VERSION="" LEG_TAG="" LEG_BASE_TAG="" LEG_CACHE_KIB="" LEG_REF="" LEG_CAND_SHA="" LEG_CAND_REMOTE="" LEG_CAND_REPO="" LEG_CAND_SHOWN=""
 LEG_CQ=() LEGS=() LEGS_T0=0
 # Pre-flight's reading of release.legs (ST0011 WP-05): each host it reached,
 # a leg of the cut as legs.<host>, and each it could not, `<host><TAB><why>`,
@@ -1036,7 +1074,7 @@ _leg_remote_start() {
     printf '%s\n' "$v"
     return 0
   fi
-  release_leg_start "$LEG_ROOT" "${1#legs.}" "$LEG_PROJECT" "$LEG_SHA" "$LEG_BASE_TAG"
+  release_leg_start "$LEG_ROOT" "${1#legs.}" "$LEG_PROJECT" "$LEG_SHA" "$LEG_BASE_TAG" "$LEG_CACHE_KIB"
 }
 
 leg_read() {
@@ -1934,6 +1972,7 @@ legs_step() {
   if [ "${#LEGS_REMOTE[@]}" -gt 0 ]; then
     LEG_BASE_TAG="$(release_previous_tag "$tpl" "$tag")" ||
       cut_fail legs "the previous release's tag cannot be read, so no remote leg could be sent it (above)"
+    LEG_CACHE_KIB="$(gates_cache_bound_kib)" || cut_fail legs "$LEG_CACHE_KIB"
   fi
   if [ -n "$cand_remote" ]; then
     run_words LEG_CQ release.ci.query "$(cfg_release_get ci.query)" || cut_fail legs "release.ci.query cannot be read as words"

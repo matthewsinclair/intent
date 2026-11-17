@@ -641,6 +641,8 @@ release:
     - test all
   # legs:                    # ssh host aliases, each running the gates above at the release commit as a leg of the cut, its seal copied back and read by the same reader; a host pre-flight cannot reach is named, recorded as not run, and never waited for
   #   - buildbox
+  gate_cache:
+    max: 12G                 # the size the gates' DEVBIN_GATE_CACHE is held to, on this machine and on each host in legs: one holding more is emptied before the gates start, so that run builds cold; a whole number of M or G above 0
   ci:                        # the candidate's CI, which every cut reads before it tags: query: "-" opts out, and a cut has no candidate
     query: bin/devbin ci-state  # the built-in query (bin/devbin help ci-state), or any command run as `<query> <sha>` with DEVBIN_RELEASE_TAG set to the ref the run is read by, a cut's candidate branch (read it as ${DEVBIN_RELEASE_TAG:-}; unset, as when run by hand, every run on the sha): that ref's runs only, `none` until one exists; first line `<verdict>[TAB<detail>]`, verdict green, failed, pending, none or unknown
     workflow: tests.yml    # the workflow file in .github/workflows whose runs bin/devbin ci-state reads

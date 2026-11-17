@@ -8,7 +8,7 @@
 #   release_leg_dir <root> <host>                    where a host's pairs come back to
 #   release_leg_reach <host>                         whether pre-flight reaches the host, and its platform word
 #   release_leg_project_problem <project>            why the project's name cannot name a host's repository
-#   release_leg_start <root> <host> <project> <sha> [<tag>]
+#   release_leg_start <root> <host> <project> <sha> [<tag>] [<bound>]
 #                                                    R, and the previous release's tag, onto the host, and its gates started there
 #   release_leg_read <root> <host> <project> <sha>   the leg's word on R, read from its copied pair
 #
@@ -29,8 +29,9 @@
 # THE HOST is a name this machine reaches by ssh alone, an alias from its ssh
 # config, a plain word (is_host_alias, lib/helpers). What lives on it is this
 # file's recipe, never config: the bare repo work/<project>-leg.git under its
-# home, the gates' own cache work/<project>-leg.cache beside it, which no run
-# clears, and each run's worktree work/<project>-leg-<sha12>, with its log, its
+# home, the gates' own cache work/<project>-leg.cache beside it, held to the
+# bound each start is handed (gate_cache_bound), and each run's worktree
+# work/<project>-leg-<sha12>, with its log, its
 # gates' TMPDIR and, once its gates have ended, their exit status. The
 # runner installs and adjusts nothing there: the host carries what the
 # project's declared gates need, on the PATH its own startup sets, and a gate
@@ -108,6 +109,12 @@ RELEASE_LEG_ALIVE_INTERVAL=15 RELEASE_LEG_ALIVE_COUNT=4
 RELEASE_LEG_SSH_OPTS=(-o BatchMode=yes -o "ConnectTimeout=$RELEASE_LEG_CONNECT_TIMEOUT"
   -o "ServerAliveInterval=$RELEASE_LEG_ALIVE_INTERVAL" -o "ServerAliveCountMax=$RELEASE_LEG_ALIVE_COUNT")
 
+# The functions every remote half may call, sent over beside it by
+# release_leg_remote, so a rule a host and this machine both apply is stated
+# once, here: gate_cache_bound, which gates_cache_dir (lib/cmd/release) applies
+# to this machine's cache and _release_leg_remote_start to a host's.
+RELEASE_LEG_REMOTE_SHARED=(gate_cache_bound)
+
 # release_leg_dir <root> <host> -- where <host>'s pairs come back to: one
 # directory per host under the release's run logs, so every pair in it names
 # that host's platform.
@@ -170,14 +177,47 @@ _release_leg_remote_init() {
   printf 'ready\t%s\n' "$repo"
 }
 
-# _release_leg_remote_start <project> <sha> -- a worktree of the bare repo at
-# <sha>, and the project's gates started in it, detached, their output in the
-# worktree's log and their exit status written beside it when they end; one
-# line, `started<TAB><detail>` or `refused<TAB><why>`. A worktree already there
-# is a run already started, whose seal is the record. A status an earlier run
-# at <sha> left beside a worktree since removed is removed first, since it
-# would read as this run's end; and a worktree made here that the gates could
-# not be started in is removed again, since it would read as a run going.
+# gate_cache_bound <dir> <bound> -- the gates' cache at <dir> held to <bound>,
+# a whole number of KiB (issue 0361): a cache over it is emptied, made
+# writable first, since a build can leave read-only directories in it, so the
+# run it is about to serve builds cold; one at or under it is kept. Measured
+# by `du -sk`, which every host's du takes. One line, `kept<TAB><detail>`,
+# `emptied<TAB><detail>` or `refused<TAB><why>`, a cache that could not be
+# measured or emptied, which is left as it stands, since the gates run with
+# their cache whatever its size. THE ONE RULE for a gate cache's size: this
+# machine's (gates_cache_dir, lib/cmd/release) and each host's
+# (_release_leg_remote_start) are held to it alike.
+gate_cache_bound() {
+  local d="$1" bound="$2" kib err
+  if [ ! -d "$d" ]; then
+    printf 'kept\t%s is not there yet, and the run makes it\n' "$d"
+    return 0
+  fi
+  if ! kib="$(du -sk "$d" 2>&1)"; then
+    printf 'refused\t%s could not be measured, so it is left as it stands: %s\n' "$d" "${kib%%$'\n'*}"
+    return 0
+  fi
+  kib="${kib%%[[:space:]]*}"
+  if [ "$kib" -le "$bound" ]; then
+    printf 'kept\t%s holds %s KiB, within its bound of %s KiB\n' "$d" "$kib" "$bound"
+    return 0
+  fi
+  if ! err="$({ chmod -R u+w "$d" && rm -rf "$d" && mkdir -p "$d"; } 2>&1)"; then
+    printf 'refused\t%s holds %s KiB, over its bound of %s KiB, and could not be emptied: %s\n' "$d" "$kib" "$bound" "${err%%$'\n'*}"
+    return 0
+  fi
+  printf 'emptied\t%s held %s KiB, over its bound of %s KiB, so it is emptied and this run builds cold\n' "$d" "$kib" "$bound"
+}
+
+# _release_leg_remote_start <project> <sha> [<bound>] -- a worktree of the
+# bare repo at <sha>, and the project's gates started in it, detached, their
+# output in the worktree's log and their exit status written beside it when
+# they end; one line, `started<TAB><detail>` or `refused<TAB><why>`. A worktree
+# already there is a run already started, whose seal is the record. A status
+# an earlier run at <sha> left beside a worktree since removed is removed
+# first, since it would read as this run's end; and a worktree made here that
+# the gates could not be started in is removed again, since it would read as a
+# run going.
 #
 # THE GATES' TMPDIR IS THE RUN'S OWN, <worktree>.tmp, on the host's disk beside
 # the worktree (issue 0334): a host's /tmp can be a small tmpfs, and a large
@@ -191,9 +231,25 @@ _release_leg_remote_init() {
 # repo (issue 0335), handed to the gates as DEVBIN_GATE_CACHE, whatever the
 # host's startup sets, so a gate can keep a build there from one run to the
 # next, eg a private worktree's CARGO_TARGET_DIR. Made when missing, before the
-# TMPDIR; no run clears it, and what goes in it is the project's.
+# TMPDIR, and what goes in it is the project's. HELD TO <bound> KiB (issue
+# 0361), where a bound is given, by gate_cache_bound, before the gates start,
+# its line in the leg's log: a cache a build fills grows without end, and one
+# filled a host's disk. Never while another run of the project is going on the
+# host, a worktree there with no exit status beside it, whose gates may be
+# reading the cache: the log names that run and the cache is left as it is.
+#
+# A RED RUN'S TMPDIR FILES GO INTO ITS LOG (issue 0361): the TMPDIR is removed
+# with the run, and a gate that keeps its failing step's output in a file
+# there, naming the file in its refusal, would leave a kept record naming a
+# path that is gone. So once the gates end with a status other than 0, before
+# that status is written, each regular file at the top of the TMPDIR is
+# appended to the log, under a line naming it, and the log's last line before
+# them is written again after them, since it is the one a run that ended with
+# no pair is named by. A directory there is not read, and a green run appends
+# nothing. The log is the copy that comes back, and the status is written
+# last, so no read copies a log still being written.
 _release_leg_remote_start() {
-  local project="$1" sha="$2" repo wt log tmp gcache t err why=""
+  local project="$1" sha="$2" bound="${3:-}" repo wt log tmp gcache t err why="" other cline script
   repo="$HOME/work/$project-leg.git"
   wt="$HOME/work/$project-leg-${sha:0:12}"
   log="$wt.log"
@@ -211,6 +267,18 @@ _release_leg_remote_start() {
     printf 'refused\tgit could not make a worktree at %s: %s\n' "${sha:0:12}" "$(tail -n 1 "$log")"
     return 0
   fi
+  cline="kept"$'\t'"no bound was given, so $gcache is kept as it stands"
+  if [ -n "$bound" ]; then
+    for other in "$HOME/work/$project-leg-"*; do
+      case "$other" in "$wt" | *.tmp) continue ;; esac
+      if [ -d "$other" ] && [ ! -e "$other.rc" ]; then
+        cline="kept"$'\t'"a run of $project is going in $other, which may be reading $gcache, so it is left as it stands"
+        bound=""
+        break
+      fi
+    done
+  fi
+  [ -z "$bound" ] || cline="$(gate_cache_bound "$gcache" "$bound")"
   if ! cd "$wt"; then
     why="the worktree $wt could not be entered"
   elif ! {
@@ -218,6 +286,7 @@ _release_leg_remote_start() {
     printf 'PATH: %s\n' "$PATH"
     printf 'TMPDIR: %s\n' "$tmp"
     printf 'DEVBIN_GATE_CACHE: %s\n' "$gcache"
+    printf 'DEVBIN_GATE_CACHE %s: %s\n' "${cline%%$'\t'*}" "${cline#*$'\t'}"
     for t in bash git intent bats shellcheck cargo; do
       printf '%s: %s\n' "$t" "$(command -v "$t" || printf 'not on PATH')"
     done
@@ -241,8 +310,23 @@ _release_leg_remote_start() {
   # No -e in it: the status is written whatever the gates returned. mv -f, as
   # every mv in the runtime is, so the rename can never stop on a prompt
   # (helpers.bats holds this line in its list of the runtime's mv lines).
+  # A red run's TMPDIR files are appended to the log first, its output already.
   # shellcheck disable=SC2016 # expanded by the shell that runs the gates
-  set -- bash -c 'bin/devbin release gates; printf "%s\n" "$?" >"$1.rc.part" && mv -f "$1.rc.part" "$1.rc"' release-leg "$wt"
+  script='bin/devbin release gates
+s=$?
+if [ "$s" -ne 0 ]; then
+  last="$(tail -n 1 "$1.log")"
+  kept=0
+  for f in "$1.tmp"/*; do
+    [ -f "$f" ] && [ ! -L "$f" ] || continue
+    printf "\n--- the gates exited %s: %s, kept from their TMPDIR, which is removed with the run ---\n" "$s" "$f"
+    cat "$f"
+    kept=1
+  done
+  [ "$kept" = 0 ] || printf "%s\n" "$last"
+fi
+printf "%s\n" "$s" >"$1.rc.part" && mv -f "$1.rc.part" "$1.rc"'
+  set -- bash -c "$script" release-leg "$wt"
   # The run's own TMPDIR and the project's gate cache, exported in this shell,
   # which ends once the gates start.
   export TMPDIR="$tmp" DEVBIN_GATE_CACHE="$gcache"
@@ -343,17 +427,18 @@ release_leg_reach() {
 
 # release_leg_remote <host> <function> <word>... -- <function>, from this file,
 # run on <host> under `bash -s` with <word>s as its arguments: `set -euo
-# pipefail`, its definition and its call go over ssh's stdin, a here-string,
-# so no pipe can lose a write. Its stdout is the function's; its stderr ssh's
-# and the host's; its status ssh's, 255 when the host could not be reached.
+# pipefail`, its definition, RELEASE_LEG_REMOTE_SHARED's beside it, and its
+# call go over ssh's stdin, a here-string, so no pipe can lose a write. Its
+# stdout is the function's; its stderr ssh's and the host's; its status ssh's,
+# 255 when the host could not be reached.
 # Each <word> has been held to a plain word (_release_leg_names_problem), and
 # they are joined by single spaces whatever IFS the caller holds, so the
 # host's shell reads each as itself.
 release_leg_remote() {
   local host="$1" fn="$2" def IFS=' '
   shift 2
-  if ! def="$(declare -f "$fn")"; then
-    printf 'release: lib/release.legs holds no function %s to send\n' "$fn" >&2
+  if ! def="$(declare -f "$fn" "${RELEASE_LEG_REMOTE_SHARED[@]}")"; then
+    printf 'release: lib/release.legs holds no function %s, or no %s beside it, to send\n' "$fn" "${RELEASE_LEG_REMOTE_SHARED[*]}" >&2
     return 1
   fi
   # shellcheck disable=SC2029 # the words are this side's, plain words, meant for the host's command line
@@ -399,19 +484,24 @@ _release_leg_finish() {
   fi
 }
 
-# release_leg_start <root> <host> <project> <sha> [<tag>] -- the bare repo on
-# <host> made when missing, R sent into it by git send-pack, and the project's
-# gates started there at R, detached. <tag>, where given, is the previous
-# release's tag, the baseline the cut resolves (release_previous_tag), sent in
-# the same send-pack as refs/tags/<tag>, so a gate that reads the last release
-# finds it in a fresh bare repo with no step by hand; forced, since the host's
-# copy of a tag is only ever this machine's. `pending` once they are started,
-# with where they log; `unknown`, naming it, when any of the three could not
-# be done.
+# release_leg_start <root> <host> <project> <sha> [<tag>] [<bound>] -- the
+# bare repo on <host> made when missing, R sent into it by git send-pack, and
+# the project's gates started there at R, detached. <tag>, where given, is the
+# previous release's tag, the baseline the cut resolves (release_previous_tag),
+# sent in the same send-pack as refs/tags/<tag>, so a gate that reads the last
+# release finds it in a fresh bare repo with no step by hand; forced, since the
+# host's copy of a tag is only ever this machine's. <bound>, where given, is
+# the size in KiB the host's gate cache is held to before the gates start
+# (gate_cache_bound), the loop's reading of release.gate_cache.max. `pending`
+# once they are started, with where they log; `unknown`, naming it, when any
+# of the three could not be done.
 release_leg_start() {
-  local root="$1" host="$2" project="$3" sha="$4" tag="${5:-}" why scratch out rc sent
+  local root="$1" host="$2" project="$3" sha="$4" tag="${5:-}" bound="${6:-}" why scratch out rc sent
   local -a refspecs=("$sha:refs/devbin/legs/$sha")
   why="$(_release_leg_names_problem "$host" "$project" "$sha")"
+  if [ -z "$why" ] && [ -n "$bound" ] && [[ ! "$bound" =~ ^[0-9]+$ ]]; then
+    why="the gate cache's bound '$bound' is not a whole number of KiB"
+  fi
   if [ -z "$why" ] && [ -n "$tag" ]; then
     if is_tag_name "$tag" && git -C "$root" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
       refspecs+=("+refs/tags/$tag:refs/tags/$tag")
@@ -453,7 +543,7 @@ release_leg_start() {
     return 0
   fi
   rc=0
-  out="$(release_leg_remote "$host" _release_leg_remote_start "$project" "$sha" 2>"$scratch/err")" || rc=$?
+  out="$(release_leg_remote "$host" _release_leg_remote_start "$project" "$sha" ${bound:+"$bound"} 2>"$scratch/err")" || rc=$?
   if [ "$rc" -ne 0 ]; then
     _release_leg_failed "$host" "$scratch/err" "ssh, starting the gates at ${sha:0:12},"
     rm -rf "$scratch"

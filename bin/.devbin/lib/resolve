@@ -944,6 +944,40 @@ route_word_at() {
 #   handler   the project's handler, handed the whole argument list
 #   command   run_command, handed the whole argument list
 #
+# gate_help_answered <command> <word> <arg>... -- true when devbin answers a
+# -h or --help among <arg>s itself, with gate_usage_line, before anything the
+# route arg_route reads for <word> runs (issue 0356): for a gate command
+# (is_gate_command), in any position, as `<command> -h` has always answered.
+# Without this, `test mix --help` ran the option, handing --help to its tool,
+# since run_builtin_gate reads the flag only in the option's place and
+# gate_split_args gives every other word to the tool. What runs is
+# option_leaf's answer, the one question: where it is the project's own, its
+# handler (handler, mapped or a sub-handler) or its command-level run: line
+# (run), the flag is the project's to read and is left to it; every other
+# leaf is devbin's own route, a shipped option, a declared option's run:,
+# `all`, an option switched off, the command as devbin ships it, and is
+# answered. option_leaf is asked only once a flag is seen, so no other
+# dispatch pays for it.
+gate_help_answered() {
+  local cmd="$1" word="$2" a leaf asked=""
+  shift 2
+  is_gate_command "$cmd" || return 1
+  for a in "$@"; do
+    case "$a" in
+      -h | --help)
+        asked=yes
+        break
+        ;;
+    esac
+  done
+  [ -n "$asked" ] || return 1
+  leaf="$(option_leaf "$cmd" "$word")" || return 1
+  case "$leaf" in
+    handler | mapped | sub-handler | run) return 1 ;;
+  esac
+  return 0
+}
+
 # `all` IS devbin's WHERE THERE ARE OPTIONS TO SWEEP, AND devbin REFUSES IT OVER
 # A COMMAND-LEVEL run: WITH NONE (issue 0128, option (b)). Config-declared
 # options compose with a project handler (each dispatches INTO it), so a handler

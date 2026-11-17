@@ -675,8 +675,9 @@ esac
 #   nope` prints the page rather than refusing the value. Activation reads
 #   config and the tree, never what parse_common_opts exports.
 # - Only where command_unavailable_reason has a reason, which is where help
-#   says why too. An offered command reads its own flag, and an unknown one keeps
-#   the dispatcher's refusal below. The activity check runs only once a flag is
+#   says why too. An offered command reads its own flag, a gate command's
+#   answered below where what runs is devbin's own (issue 0356), and an unknown
+#   one keeps the dispatcher's refusal below. The activity check runs only once a flag is
 #   seen, so no other dispatch pays for it.
 for _devbin_arg in "$@"; do
   case "$_devbin_arg" in
@@ -719,14 +720,12 @@ set -- "${DEVBIN_ARGS[@]+"${DEVBIN_ARGS[@]}"}"
 #
 # Adding `clean` is what made it worth measuring rather than assuming -- a
 # seventh row on a list that was already the most expensive thing in startup.
-case "$command" in
-  check | clean | db | docs | fmt | test)
-    printf -v _devbin_active_var 'DEVBIN_ACTIVE_%s' "$(upper_snake "$command")"
-    printf -v "$_devbin_active_var" '%s' "$(command_options "$command" | tr '\n' ' ')"
-    export "${_devbin_active_var?}"
-    unset _devbin_active_var
-    ;;
-esac
+if is_gate_command "$command"; then
+  printf -v _devbin_active_var 'DEVBIN_ACTIVE_%s' "$(upper_snake "$command")"
+  printf -v "$_devbin_active_var" '%s' "$(command_options "$command" | tr '\n' ' ')"
+  export "${_devbin_active_var?}"
+  unset _devbin_active_var
+fi
 
 # How `check format` may treat each declared language's fmt arm, computed here
 # because the gate handler cannot read config (same reason as every export
@@ -857,6 +856,16 @@ at="$(route_word_at "$command" "$@")"
 if [ "$at" -gt 0 ]; then
   word="${!at}"
   wargs=("${@:1:at-1}" "${@:at+1}")
+fi
+# A GATE COMMAND'S -h OR --help, IN ANY POSITION, IS ITS USAGE LINE where what
+# runs is devbin's own, answered here before the route runs anything (issue
+# 0356): `test mix --help` ran mix's tests with --help handed to the tool. What
+# runs is asked of the route's word, or of the first argument where the route
+# names none, and a project's own handler or run: line reads its own flag
+# (gate_help_answered, lib/resolve).
+if gate_help_answered "$command" "${word:-${1:-}}" "$@"; then
+  gate_usage_line "$command"
+  exit 0
 fi
 case "$route" in
   all)
