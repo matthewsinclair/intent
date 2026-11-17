@@ -1,0 +1,15 @@
+{
+  "id": "01M7MKX4Z8CX58CCHAQWEBMSCQ",
+  "ts": "2026-11-17T11:22:34.856Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-17, by selection in the TUI in vc's session, answered by 11:22Z on vc's date -u; the options' wording vc's, the choice hv's and vc's recommendation) THE RELEASE IS 3.4.0, a minor. Issue 0700 adds a verb, intent claude rules contract, and reshapes the six critic subagents every project installs to read their contract through it, which is new surface under hv's patch-vs-minor rule; the rest of the release (0696, 0697, 0698, 0699, 0701) are fixes. vc's earlier suggestion of 3.3.4 was made before 0700 was in scope."
+  }
+}

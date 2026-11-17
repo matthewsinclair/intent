@@ -687,6 +687,14 @@
       "text": "(hv, 2026-11-17, by selection in the TUI in vc's session, answered by 10:52Z on vc's date -u; the options' wording vc's, each choice hv's and vc's recommendation) THREE RULINGS FROM VC'S STALE SWEEP. (1) vc todo 65 RIDES THIS RELEASE: the critic contract is made readable to the critic subagents installed in other projects (deferred by decision 89 until after 3.2.7, and not built by 3.3.3). It is issue 0700, ic's shape with cc agreeing its meaning. (2) ST0089 (Localfold+Compact Policy) STAYS PARKED: its policy needs hv's call first, because its 'fold at a task boundary, not at a token count' conflicts with hv's compact-at-200-250k rule, and this release does not wait on it. (3) WATCHOUT 11'S WAL IS RULED OTHERWISE: nothing in the Rust tree checkpoints or bounds the store's SQLite WAL (296 MB on rhadamanth today), so cc confirms the mechanism, files it as an issue and fixes it in this release, in the same proof run as 0696.",
       "state": "live",
       "recorded_at": "2026-11-17T10:52:37.334Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 60,
+      "text": "(hv, 2026-11-17, by selection in the TUI in vc's session, answered by 11:22Z on vc's date -u; the options' wording vc's, the choice hv's and vc's recommendation) THE RELEASE IS 3.4.0, a minor. Issue 0700 adds a verb, intent claude rules contract, and reshapes the six critic subagents every project installs to read their contract through it, which is new surface under hv's patch-vs-minor rule; the rest of the release (0696, 0697, 0698, 0699, 0701) are fixes. vc's earlier suggestion of 3.3.4 was made before 0700 was in scope.",
+      "state": "live",
+      "recorded_at": "2026-11-17T11:22:34.856Z"
     }
   ],
   "sent": [],
