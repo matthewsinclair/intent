@@ -1,0 +1,15 @@
+{
+  "id": "01M7MJ69JPSQ3SXZJ1ZFARGDB8",
+  "ts": "2026-11-17T10:52:37.334Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-17, by selection in the TUI in vc's session, answered by 10:52Z on vc's date -u; the options' wording vc's, each choice hv's and vc's recommendation) THREE RULINGS FROM VC'S STALE SWEEP. (1) vc todo 65 RIDES THIS RELEASE: the critic contract is made readable to the critic subagents installed in other projects (deferred by decision 89 until after 3.2.7, and not built by 3.3.3). It is issue 0700, ic's shape with cc agreeing its meaning. (2) ST0089 (Localfold+Compact Policy) STAYS PARKED: its policy needs hv's call first, because its 'fold at a task boundary, not at a token count' conflicts with hv's compact-at-200-250k rule, and this release does not wait on it. (3) WATCHOUT 11'S WAL IS RULED OTHERWISE: nothing in the Rust tree checkpoints or bounds the store's SQLite WAL (296 MB on rhadamanth today), so cc confirms the mechanism, files it as an issue and fixes it in this release, in the same proof run as 0696."
+  }
+}

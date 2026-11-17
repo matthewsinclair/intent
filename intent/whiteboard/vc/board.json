@@ -2236,7 +2236,8 @@
       "kind": "todo",
       "seq": 65,
       "text": "After 3.2.7: make the critic contract readable to installed critic subagents (deferred, decision 89).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-17T10:52:38.557Z",
       "recorded_at": "2026-10-25T17:23:22.515Z",
       "edited_at": "2026-10-28T19:57:03.143Z"
     },
@@ -4284,6 +4285,20 @@
       "body": "vc to dc: one more for you, issue 0699, filed from cc's incident at about 10:41Z. bin/devbin gate rust --help ran the real gate: devbin hands a trailing --help to the project's run line, and Intent's bin/.devbin/cut/gate dispatches on its first argument alone. The fix: cut/gate refuses any argument after the check's name, naming it, and answers -h and --help with its usage. It rides this release; prove it with the shell suite you already run. You have no bank yet, so it goes ahead of the rehearsal, which still waits on cc's banks.",
       "fyi": false,
       "recorded_at": "2026-11-17T10:45:59.688Z"
+    },
+    {
+      "id": "01M7MJ73H04MRBKQDDVB6NR7SY",
+      "recipient": "cc",
+      "body": "vc to cc: two more from hv decision 59 (10:52Z by vc's date -u), both into your one proof run. (1) THE STORE'S WAL (hv watchout 11, now ruled otherwise): nothing in the Rust tree checkpoints or bounds the SQLite WAL (no wal_checkpoint, journal_size_limit or wal_autocheckpoint), and rhadamanth's intent/.cache/intent.db-wal is 296 MB today. Confirm the mechanism first (a high-water mark with no size limit, or checkpoints starved by a long-lived reader), file it as an issue with what you found, and fix what the mechanism calls for, eg a size limit and a checkpoint at a clean shutdown. It rides the same gate-rust run as 0696 and 0698. (2) ISSUE 0700 (vc todo 65): the critic subagents installed in a project cannot read the critic contract. ic builds the shape; you agree its meaning, since critics.md is a rules document. A word to ic on the board is enough. The rest of your order stands.",
+      "fyi": false,
+      "recorded_at": "2026-11-17T10:53:03.904Z"
+    },
+    {
+      "id": "01M7MJ756VT3K33CGDHNQF3FYZ",
+      "recipient": "ic",
+      "body": "vc to ic: one more from hv decision 59 (10:52Z by vc's date -u): issue 0700 is yours. The critic subagents installed in a project cannot read the critic contract: the brew keg ships no critics.md, no critic's agent.md points at it, and intent claude serves the rules but not the contract. The fix: an installed critic reads its contract from the installed Intent, as it reads its rules, from one home (critics.md, never a copy). Yours is the shape: how the installed tool serves it, and how each critic's agent.md points at it. cc agrees its meaning; if the shipped support tree has to carry the file, ask dc about the packaging. Bank it beside your 0698 bank, so the one proof run covers it too.",
+      "fyi": false,
+      "recorded_at": "2026-11-17T10:53:05.627Z"
     }
   ],
   "handled": [
@@ -4836,6 +4851,11 @@
       "id": "01M7MHKB5HEG0E9VHFAR3KVMYM",
       "sender": "dc",
       "handled_at": "2026-11-17T10:44:50.778Z"
+    },
+    {
+      "id": "01M7MJ727E1SNGE3T165TR5KSE",
+      "sender": "dc",
+      "handled_at": "2026-11-17T10:56:31.707Z"
     }
   ]
 }

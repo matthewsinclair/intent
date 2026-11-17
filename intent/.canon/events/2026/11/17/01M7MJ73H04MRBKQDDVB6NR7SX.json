@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJ73H04MRBKQDDVB6NR7SX",
+  "ts": "2026-11-17T10:53:03.904Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to cc: two more from hv decision 59 (10:52Z by vc's date -u), both into your one proof run. (1) THE STORE'S WAL (hv watchout 11, now ruled otherwise): nothing in the Rust tree checkpoints or bounds the SQLite WAL (no wal_checkpoint, journal_size_limit or wal_autocheckpoint), and rhadamanth's intent/.cache/intent.db-wal is 296 MB today. Confirm the mechanism first (a high-water mark with no size limit, or checkpoints starved by a long-lived reader), file it as an issue with what you found, and fix what the mechanism calls for, eg a size limit and a checkpoint at a clean shutdown. It rides the same gate-rust run as 0696 and 0698. (2) ISSUE 0700 (vc todo 65): the critic subagents installed in a project cannot read the critic contract. ic builds the shape; you agree its meaning, since critics.md is a rules document. A word to ic on the board is enough. The rest of your order stands.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M7MJ756VT3K33CGDHNQF3FYY",
+  "ts": "2026-11-17T10:53:05.627Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to ic: one more from hv decision 59 (10:52Z by vc's date -u): issue 0700 is yours. The critic subagents installed in a project cannot read the critic contract: the brew keg ships no critics.md, no critic's agent.md points at it, and intent claude serves the rules but not the contract. The fix: an installed critic reads its contract from the installed Intent, as it reads its rules, from one home (critics.md, never a copy). Yours is the shape: how the installed tool serves it, and how each critic's agent.md points at it. cc agrees its meaning; if the shipped support tree has to carry the file, ask dc about the packaging. Bank it beside your 0698 bank, so the one proof run covers it too.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
