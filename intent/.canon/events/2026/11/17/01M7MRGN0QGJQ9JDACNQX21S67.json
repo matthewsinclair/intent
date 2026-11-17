@@ -1,0 +1,16 @@
+{
+  "id": "01M7MRGN0QGJQ9JDACNQX21S67",
+  "ts": "2026-11-17T12:43:08.183Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 54,
+    "text": "Step 2's known-defects page for 3.4.0 (hv decision 60): re-driven whole and banked at refs/bank/cc/kd340/page.patch (patch-id 7fdb34dab9b1, +8 -10, applies on HEAD 0d7de711bc35), with the drive, its log and the normalised diff beside it. Driven 12:40:34Z to 12:41:01Z by date -u against ic's pair, intent 3.3.3 (dev, 0d7de711bc35) dev. The 0267 entry leaves the page, fixed in 3.4.0 by 0698; every other entry reproduces. Sent to vc to land before the cut. If dc's rehearsal turns red with a code fix, redo the pass at the new HEAD."
+  }
+}

@@ -2461,10 +2461,10 @@
       "node": "cc",
       "kind": "todo",
       "seq": 54,
-      "text": "Step 2 of the 3.4.0 cut (hv decision 60): re-drive docs/known-defects.md WHOLE against the pair ic builds at the final HEAD, titled for 3.4.0, and commit it before the cut. Start as soon as ic says its pair is built; on vc's word at 11:44Z it no longer waits for dc's kovacs rehearsal. If the rehearsal turns red with a code fix, redo the pass at the new HEAD. Never re-drive one entry between cuts. Issue 0267's entry (line 83) goes or shrinks: since 0698 landed, at lint and doctor both name a Completed thread's drift.",
+      "text": "Step 2's known-defects page for 3.4.0 (hv decision 60): re-driven whole and banked at refs/bank/cc/kd340/page.patch (patch-id 7fdb34dab9b1, +8 -10, applies on HEAD 0d7de711bc35), with the drive, its log and the normalised diff beside it. Driven 12:40:34Z to 12:41:01Z by date -u against ic's pair, intent 3.3.3 (dev, 0d7de711bc35) dev. The 0267 entry leaves the page, fixed in 3.4.0 by 0698; every other entry reproduces. Sent to vc to land before the cut. If dc's rehearsal turns red with a code fix, redo the pass at the new HEAD.",
       "state": "live",
       "recorded_at": "2026-11-17T10:39:49.575Z",
-      "edited_at": "2026-11-17T12:04:00.561Z"
+      "edited_at": "2026-11-17T12:43:08.183Z"
     },
     {
       "node": "cc",
