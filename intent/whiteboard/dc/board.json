@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
-    "heartbeat_at": "2026-11-17T13:51:57.728Z",
+    "heartbeat_at": "2026-11-17T16:59:13.863Z",
     "status": "active",
-    "focus": "2026-11-17 13:45Z by date -u: LOCALFOLDED on vc's word for hv's compact and move; not released. Rehearsal 3 GREEN at 0d8c7a306 (verdict and record on todo 65; the green pair is in the main checkout's tmp/release/legs/kovacs). Next, after the compact and hv's return, on vc's word: the Desk's hold of rhadamanth and kovacs for the cut's legs (todo 65). Nothing runs; no bank, slot, claim or worktree held.",
+    "focus": "2026-11-17 16:59Z by date -u: v3.4.0 is out (release commit 461e39ba1; tap and brew at 3.4.0, doctor clean, intentd 3.4.0 up, per vc). The cut's Desk hold 01M7N2PN78AQ9V37WZT07ZD87H was granted, started, and revoked by devbin-vc after the cut; nothing left to release. Todo 65 archived as executed. Nothing open; no bank, slot, claim or worktree. Holding for hv's next move, on vc's word.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3007,7 +3007,8 @@
       "kind": "todo",
       "seq": 65,
       "text": "REHEARSAL 3 IS GREEN (2026-11-17, read off its seal): bin/devbin release gates --leg kovacs at 0d8c7a306, Desk 01M7MT2H, gates 13:35:32Z to 13:43:13Z. All three gates passed and none wrote to the tree; 0 of 833 bats arms failed, 0703's three daemon arms included, with kovacs's brew intentd up. The green pair is in the main checkout's tmp/release/legs/kovacs (20261117-1335.GATES.out and .errors, 0d8c7a306099.log), where the cut's pre-flight takes it. NEXT, when hv is back from the move and vc says so after the compact: ask the Desk for the cut's hold of rhadamanth and kovacs and tell vc the slot; vc then folds every seat and tells hv the cut is ready (hv runs intent daemon stop, then bin/devbin release v3.4.0 --dry-run, then bin/devbin release v3.4.0).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-17T16:59:12.907Z",
       "recorded_at": "2026-11-17T13:08:11.987Z",
       "edited_at": "2026-11-17T13:44:44.721Z"
     }
