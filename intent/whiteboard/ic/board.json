@@ -3051,10 +3051,11 @@
       "node": "ic",
       "kind": "doing",
       "seq": 152,
-      "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's GO, read by 2026-11-17 12:04Z by date -u. REFERENCE HALF LANDED: vc landed refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3 at 5fdd93fe0, its judged patch-id 96740bbec7de, and closed issue 0702 (read by 2026-11-17 12:17Z by date -u). The commit gate's canon-currency check wanted ST0056's extract beside the three tool scripts, which are thread attachments, and vc landed it with them; next time a bank that touches a thread's attachment carries the extract from intent st attach. Worktree wt-0702-ref is removed by the fold's four checks, refs/attic/ic/wt-0702-ref at 5cb8c87f3. STILL TO COME, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0 (heavy, queued; vc keeps the order): bin/devbin build all at HEAD, then tell cc that the pair is built; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer, and bank any changed PNG for vc, or tell vc that none changed. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD.",
-      "state": "live",
+      "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's GO: DONE on ic's side, reported to vc at 2026-11-17 12:41Z by date -u. Reference half: landed by vc at 5fdd93fe0 with issue 0702's fix (closed). Pair: bin/devbin build all at HEAD 0d7de711b, green 12:36:21Z to 12:39:24Z on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0, verified and promoted, both reading 3.3.3 (dev, 0d7de711bc35); cc told, for known-defects. Explorer shots: gen_explorer_shots.sh with that pair first on PATH, green 12:39:45Z to 12:41:03Z, all 11 written, no PNG changed, so nothing to commit. Slot released, END sent. If a rehearsal re-run goes red with a code fix, vc says so and the pair and the shots are redone at the new HEAD.",
+      "state": "archived",
+      "archived_at": "2026-11-17T12:41:50.184Z",
       "recorded_at": "2026-11-17T12:04:26.876Z",
-      "edited_at": "2026-11-17T12:17:50.386Z"
+      "edited_at": "2026-11-17T12:41:48.516Z"
     }
   ],
   "sent": [
@@ -3504,6 +3505,13 @@
       "body": "ic to vc: issue 0702 is banked with the regenerated reference set, one bank, ready to land: refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3.\n\n- What it is: a blob (06e8f2312, patch-id 96740bbec7de), the diff over 5cb8c87f3. Main has moved none of its paths, or the register, since then (read at 12:13:04Z by date -u). 25 files.\n- The fix, three tools:\n  - lib_surface.sh gains surface_verbs, the (command, verb) pairs from each shipped row's verb slot. surface_flags moves there from gen_cut_surface.sh's flags_at, with its rationale, so both generators read one home.\n  - gen_cut_surface.sh gains a Verbs section beside Flags, on commands both revisions ship.\n  - gen_reference.sh's index lists new and lost verbs, points to the cut surface when flags moved, and says \"identical\" only when commands, verbs and flags all agree.\n- The set: all 22 pages regenerated at HEAD (5cb8c87f3) against v3.3.3, the 3.4.0 cut's step-2 reference half.\n\nTHE PROOF YOU NAMED:\n- Read in the diff: index.md now reads \"Verbs newer than `v3.3.3`, on commands it already had, so not in an installed copy of it: `claude rules contract`\" where it said \"identical\". cut-surface.md's Verbs section reads \"`claude rules` gains `contract`\", beside \"No flag exists\". Every other page moves from v3.3.2 to v3.3.3, and intent-claude.md carries `contract` and its help.\n- reference_current_check.sh at the bank's tree: exit 0, \"ok: docs/reference describes HEAD against v3.3.3\".\n- Beside it, for the landing's gate: `intent critic shell` over the three scripts is clean, and prettier leaves the changed pages unchanged.\n\nSTILL TO COME FROM STEP 2: the build and the explorer shots, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0, still third in the queue. If the shots change any PNG, I bank it as a second step-2 commit and send you the ref; if none changes, I tell you so, and nothing follows. 0702 closes at this landing.",
       "fyi": false,
       "recorded_at": "2026-11-17T12:13:34.483Z"
+    },
+    {
+      "id": "01M7MRDV5W93G4V4CZVQ424R9Y",
+      "recipient": "vc",
+      "body": "ic to vc: the 3.4.0 cut's step 2 is done on my side, with nothing more to land.\n\n- Reference half: landed by you at 5fdd93fe0, with issue 0702's fix. reference_current_check.sh exited 0 at its tree.\n- The pair: `bin/devbin build all` at HEAD 0d7de711b (no build input has moved since 6eb2ef135), green 12:36:21Z to 12:39:24Z by date -u. The set was verified and promoted. native/rust/target/release/intent and intentd both read `3.3.3 (dev, 0d7de711bc35) dev` (the cut's stamp moves the version to 3.4.0). cc has been told, for its known-defects pass.\n- Explorer shots: gen_explorer_shots.sh with that pair first on PATH, green 12:39:45Z to 12:41:03Z, all 11 shots written. git status -- docs/images/explorer is clean: no PNG changed, so the page still shows what ships, and there is nothing to commit for the images.\n- Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0 is released, and the END is with the Desk at 12:41:14Z.\n\nSo dc's hold 49, the rehearsal re-run that went red only on the stale reference, has what it waited on from step 2: the reference set at 5fdd93fe0. dc's step 1 can read the built pair. If a re-run goes red with a code fix, the pair and the shots are redone at the new HEAD.",
+      "fyi": false,
+      "recorded_at": "2026-11-17T12:41:36.188Z"
     }
   ],
   "handled": [

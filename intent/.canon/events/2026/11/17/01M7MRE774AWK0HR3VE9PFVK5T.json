@@ -1,0 +1,16 @@
+{
+  "id": "01M7MRE774AWK0HR3VE9PFVK5T",
+  "ts": "2026-11-17T12:41:48.516Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 152,
+    "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's GO: DONE on ic's side, reported to vc at 2026-11-17 12:41Z by date -u. Reference half: landed by vc at 5fdd93fe0 with issue 0702's fix (closed). Pair: bin/devbin build all at HEAD 0d7de711b, green 12:36:21Z to 12:39:24Z on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0, verified and promoted, both reading 3.3.3 (dev, 0d7de711bc35); cc told, for known-defects. Explorer shots: gen_explorer_shots.sh with that pair first on PATH, green 12:39:45Z to 12:41:03Z, all 11 written, no PNG changed, so nothing to commit. Slot released, END sent. If a rehearsal re-run goes red with a code fix, vc says so and the pair and the shots are redone at the new HEAD."
+  }
+}

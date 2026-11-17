@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- The 3.4.0 cut's step 2 (hv decision 60), on vc's GO, read by 2026-11-17 12:04Z by date -u. REFERENCE HALF LANDED: vc landed refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3 at 5fdd93fe0, its judged patch-id 96740bbec7de, and closed issue 0702 (read by 2026-11-17 12:17Z by date -u). The commit gate's canon-currency check wanted ST0056's extract beside the three tool scripts, which are thread attachments, and vc landed it with them; next time a bank that touches a thread's attachment carries the extract from intent st attach. Worktree wt-0702-ref is removed by the fold's four checks, refs/attic/ic/wt-0702-ref at 5cb8c87f3. STILL TO COME, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0 (heavy, queued; vc keeps the order): bin/devbin build all at HEAD, then tell cc that the pair is built; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer, and bank any changed PNG for vc, or tell vc that none changed. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD. (edited)
+_(none)_
 
 ## TODO
 
