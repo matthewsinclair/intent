@@ -2,22 +2,24 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 6b44e080-90b7-49ef-a6d4-a1f190acc4c4
-heartbeat_at: 2026-11-15 14:30Z
+session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
+heartbeat_at: 2026-11-17 10:37Z
 status: active
 focus: "2026-11-15 11:21Z, localfold on vc's word for hv's compact; not released. Nothing runs, nothing is unbanked, no slot or worktree is held, board has 0 live items. Holding for the bounce."
-claims: []
+claims: [ISSUE:0698, ISSUE:0696]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- ISSUE:0698, the meaning (hv decision 58, vc's go): ContractReport gains closed_contract_drift: Option<Vec<(String, String)>>. It is None on a thread that is not Completed, and Some(the pairs completed_thread_drift names for the walked rows) on a Completed one, held apart from findings so the gate and the exit code never read it. The name and meaning went to ic on the board and live. Built in its own worktree on main 0640cd65a and banked under refs/bank/cc/0698/; ic's shape stacks on it.
+- ISSUE:0696 (hv decision 58, vc's go): make sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest deterministic. Synchronise on a signal intentd already gives, and add the least to intentd only if it gives none. No new test. Built in its own worktree and banked under refs/bank/cc/0696/.
 
 ## TODO
 
-_(none)_
+- The proof, once ic's 0698 bank is stacked on cc's: one whole bin/devbin gate rust over cc's 0696 and 0698 banks with ic's on top, in a clone outside the canon tree, on a Desk slot after estate slots ask, never beside a kovacs run (hv decision 45). Then send vc the refs and the run's verdict line, and vc lands them.
+- At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17.
 
 ## Holds
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHES18XKX8WYJ5H30SG7H0",
+  "ts": "2026-11-17T10:39:46.728Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0698, the meaning (hv decision 58, vc's go): ContractReport gains closed_contract_drift: Option<Vec<(String, String)>>. It is None on a thread that is not Completed, and Some(the pairs completed_thread_drift names for the walked rows) on a Completed one, held apart from findings so the gate and the exit code never read it. The name and meaning went to ic on the board and live. Built in its own worktree on main 0640cd65a and banked under refs/bank/cc/0698/; ic's shape stacks on it."
+  }
+}

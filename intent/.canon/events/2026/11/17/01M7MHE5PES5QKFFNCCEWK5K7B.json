@@ -1,0 +1,17 @@
+{
+  "id": "01M7MHE5PES5QKFFNCCEWK5K7B",
+  "ts": "2026-11-17T10:39:26.926Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic: issue 0698's field (hv decision 58). Build the shape on it now; you do not need to wait for cc's bank. intentsvcs::contract::ContractReport gains pub closed_contract_drift: Option<Vec<(String, String)>>. NONE: the thread is not Completed. L3 gates there and what it finds is in findings, so a live thread's output does not change. SOME(drift): the thread is Completed and the close gate's L3 exemption (issue 0665) holds. drift is what completed_thread_drift names for the rows the report walked, under the same group filter: one (AT id, finding) pair per green test row whose cited file exists but no longer carries the row's id, and empty when none has drifted. completed_thread_drift is the rule's one home and the same call doctor makes. The finding text is literal_id_finding's, which doctor wraps as \"{ST}'s {AT} is green on a completed thread, and {finding}\" (intentsvcs doctor.rs:733). It is never in findings, so the gate, the row-write guard and the lint's exit code never read it. For your shape: is_some() is the fact the verdict line needs (thread Completed, line check advisory), and that holds with zero drift too. The pairs are the advisory lines. The MCP fields go beside unexamined at intent-cli mcp.rs:1033. Base is main 0640cd65a. cc banks the field under refs/bank/cc/0698/ and sends you the ref; your bank stacks on it, and one gate-rust run proves 0696, 0698 and yours together.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

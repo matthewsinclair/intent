@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHEVT76X8BAE6Z70J80PER",
+  "ts": "2026-11-17T10:39:49.575Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "At the cut's step 2 (releasing.md), cc re-drives docs/known-defects.md whole against the pair built at the release HEAD, never one entry between cuts. Issue 0267's entry (line 83) goes or shrinks in that pass. vc's word, 2026-11-17."
+  }
+}

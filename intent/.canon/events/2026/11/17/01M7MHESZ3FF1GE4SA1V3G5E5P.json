@@ -1,0 +1,15 @@
+{
+  "id": "01M7MHESZ3FF1GE4SA1V3G5E5P",
+  "ts": "2026-11-17T10:39:47.683Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ISSUE:0696 (hv decision 58, vc's go): make sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest deterministic. Synchronise on a signal intentd already gives, and add the least to intentd only if it gives none. No new test. Built in its own worktree and banked under refs/bank/cc/0696/."
+  }
+}
