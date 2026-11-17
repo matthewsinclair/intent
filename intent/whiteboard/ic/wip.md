@@ -3,8 +3,8 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
-heartbeat_at: 2026-11-17 16:59Z
-status: active
+heartbeat_at: 2026-11-17 19:20Z
+status: paused
 focus: "2026-11-17 16:59Z by date -u: 3.4.0 is out (brew reads 3.4.0, 461e39ba145d), on vc's word. ic's part (0698, 0700, 0702 and the cut's step 2) shipped in it. No live items, claims, slots, worktrees or banks. Holding for hv's next move through vc."
 claims: []
 ---
