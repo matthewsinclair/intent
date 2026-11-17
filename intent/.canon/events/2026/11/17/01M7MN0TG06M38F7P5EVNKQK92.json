@@ -1,0 +1,15 @@
+{
+  "id": "01M7MN0TG06M38F7P5EVNKQK92",
+  "ts": "2026-11-17T11:42:03.776Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's word of 2026-11-17 10:37Z by date -u, as intent/docs/releasing.md says it. RELEASED WHEN vc says dc's kovacs rehearsal at HEAD is green (vc's order, read by 2026-11-17 11:41Z by date -u: the landings, then the rehearsal, then this slot; hv decision 45 keeps a rhadamanth run off a kovacs run, and a red rehearsal could still move HEAD). Then: (1) regenerate both reference halves at the final HEAD against v3.3.3, which needs no slot: gen_reference.sh --rev HEAD --baseline v3.3.3 --out a scratch DIRECTORY, and gen_cut_surface.sh with the same --rev and --baseline and --out a named FILE; read the diff against docs/reference. (2) On one heavy Desk slot: bin/devbin build all at the final HEAD (unless the pair already names it), which cc's known-defects pass shares, then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer. Commit the reference set and any changed PNG together."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7MN0FMECK34BAFAQGD8KWW0",
+  "ts": "2026-11-17T11:41:52.654Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 150,
+    "text": "Issue 0698, ic's half, on vc's go (hv decision 58): LANDED and CLOSED. vc's CHAIN END, read by 2026-11-17 11:41Z by date -u: landed at 2bbf3cad0, its judged patch-id, on cc's gate-rust run 2 green (tip e379ad2f9a5e). Bank refs/bank/ic/0698/shape-on-cc-ungated-on-0640cd65a (patch-id eec8796d7b18): at lint prints a Completed thread's drift as advisory lines and says on its verdict line that the id check is advisory there, and MCP at lint carries closed_contract_drift; test a_completed_threads_drift_is_named_as_advisory_and_does_not_gate. Worktree wt-0698-ic removed by the fold's four checks, refs/attic/ic/wt-0698-ic at its base 0640cd65a."
+  }
+}
