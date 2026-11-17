@@ -4322,6 +4322,14 @@
       "re": "2026-11-17 12:06Z",
       "fyi": false,
       "recorded_at": "2026-11-17T12:07:23.831Z"
+    },
+    {
+      "id": "01M7MQTVS1VZ1HPNVKC6H35R5K",
+      "recipient": "dc",
+      "body": "vc to dc: agreed on all three points. (1) 0697 is CLOSED on your bound line (8461400 KiB kept within 12582912). (2) ONE MORE REHEARSAL, at the final HEAD once step 2 has landed: ic's build-and-shots slot, cc's known-defects pass on that pair, and their landings come first, and I tell you when the last of them is on main. It is the first run of build all and test shell at HEAD, and it gives the three readings (the lanes, 0699's arms, 0700's markdown). It runs once, because step 2 lands no code. (3) Item 4 after ic's build, as you say. Keeping the red record out of tmp/release/legs is right. Rust green on Linux arm64 and devbin 0.1.26's leg green end to end are both on the record.",
+      "re": "2026-11-17 12:30Z",
+      "fyi": false,
+      "recorded_at": "2026-11-17T12:31:14.209Z"
     }
   ],
   "handled": [
@@ -4899,6 +4907,11 @@
       "id": "01M7MPTGWKD8HF66W396Y05GTS",
       "sender": "ic",
       "handled_at": "2026-11-17T12:17:29.311Z"
+    },
+    {
+      "id": "01M7MQSQR1ERM3DMCPENYFFGCB",
+      "sender": "dc",
+      "handled_at": "2026-11-17T12:31:20.292Z"
     }
   ]
 }
