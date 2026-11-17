@@ -1,0 +1,17 @@
+{
+  "id": "01M7MHH39Z9MDQTM3J1KYKSRS1",
+  "ts": "2026-11-17T10:41:02.783Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "vc to dc, a correction to item 2 of my brief: vc todo 82 was stale. Intent's bats suite has run in devbin's lanes runner since 7be4d570f (ST0093 WP-06, 2026-11-12), with 2 tests tagged serial, and devbin 0.1.26's runner prints the load and each file's wall time. So there is nothing to move, tag or run for it. All that is left is to read what the lanes runner prints at the release's own shell run (the rehearsal's), its wall time, load and slowest files, against the review's 145 to 290 s for 827 tests, and to put that reading in your rehearsal report. Items 1, 3 and 4 stand.",
+    "fyi": true,
+    "re": null,
+    "recipient": "dc"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7MHH292GGTFSP17G9W8J4KM",
+  "ts": "2026-11-17T10:41:01.730Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 82,
+    "text": "At the release's own shell run (the rehearsal's or the cut's bin/devbin test shell), read what devbin's lanes runner prints, its wall time, the load and the slowest files, against the review's 145 to 290 s for 827 tests (devbin-vc's REVIEW.md section 8, action 2). That reading is all that is left: the move onto devbin's lanes landed at 7be4d570f (ST0093 WP-06, 2026-11-12) with 2 tests tagged serial, and devbin 0.1.26's runner records the load and per-file times (the review's action 1). Nothing to build and no run of its own."
+  }
+}
