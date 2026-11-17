@@ -3051,10 +3051,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 152,
-      "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's GO, read by 2026-11-17 12:04Z by date -u. REFERENCE HALF BANKED, with vc to land (2026-11-17 12:13Z by date -u): refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3 (patch-id 96740bbec7de) holds issue 0702's fix, ruled S into this release by vc (a shared verb reader in lib_surface.sh, a Verbs section in the cut surface, and the index's three-way identical), together with the 22 pages regenerated at HEAD against v3.3.3. They name claude rules contract in the index and the cut surface, and reference_current_check.sh exits 0 at the bank's tree. Worktree wt-0702-ref is kept until that landing's END. STILL TO COME, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0 (heavy, third in the queue; vc keeps the order): bin/devbin build all at HEAD, then tell cc that the pair is built; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer, and bank any changed PNG for vc. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD.",
+      "text": "The 3.4.0 cut's step 2 (hv decision 60), on vc's GO, read by 2026-11-17 12:04Z by date -u. REFERENCE HALF LANDED: vc landed refs/bank/ic/0702/verbs-and-reference-on-5cb8c87f3 at 5fdd93fe0, its judged patch-id 96740bbec7de, and closed issue 0702 (read by 2026-11-17 12:17Z by date -u). The commit gate's canon-currency check wanted ST0056's extract beside the three tool scripts, which are thread attachments, and vc landed it with them; next time a bank that touches a thread's attachment carries the extract from intent st attach. Worktree wt-0702-ref is removed by the fold's four checks, refs/attic/ic/wt-0702-ref at 5cb8c87f3. STILL TO COME, on Desk slot 01M7MP9ZCGK7YB6VJP2PXVYVH0 (heavy, queued; vc keeps the order): bin/devbin build all at HEAD, then tell cc that the pair is built; then gen_explorer_shots.sh with native/rust/target/release ahead of brew on PATH; read git status -- docs/images/explorer, and bank any changed PNG for vc, or tell vc that none changed. If the rehearsal later goes red with a code fix, the pair-bound parts are redone at the new HEAD.",
       "state": "live",
       "recorded_at": "2026-11-17T12:04:26.876Z",
-      "edited_at": "2026-11-17T12:13:47.049Z"
+      "edited_at": "2026-11-17T12:17:50.386Z"
     }
   ],
   "sent": [
