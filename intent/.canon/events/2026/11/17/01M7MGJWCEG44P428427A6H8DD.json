@@ -1,0 +1,15 @@
+{
+  "id": "01M7MGJWCEG44P428427A6H8DD",
+  "ts": "2026-11-17T10:24:32.654Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Next gate run, on devbin 0.1.26 (swept at 833638859; devbin issue 0361): Intent's local gate cache read 15G by du at 2026-11-17 10:24Z by date -u, all debug (6.3G deps, 8.5G incremental), over release.gate_cache.max's 12G default, so that run empties it and builds cold. Read its DEVBIN_GATE_CACHE lines: if one cold build leaves the cache above 12G, dc declares a larger release.gate_cache.max for Intent or every run builds cold; the kovacs leg's bound line is the evidence that closes Intent issue 0697."
+  }
+}
