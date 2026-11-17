@@ -1,0 +1,16 @@
+{
+  "id": "01M7MKHX79SGYFGC37C6NSCYVR",
+  "ts": "2026-11-17T11:16:26.473Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 118,
+    "text": "ISSUE:0700's meaning (hv decision 59): critics.md is the one home (cc's call). The fold is banked at refs/bank/cc/0700/fold-ungated-on-4b4eaaf6a, blob d20b48d46480, patch-id 870fb94fd657, six paths. critics.md gains identity, the process steps, the status: filter, reading a rule, conventions, red flags and error handling. Its false upstream-interop step and its ST numbers go, and the Diogenes handoff is elixir's alone. critic-contract.md is deleted, its references moved, and the bats arm now reads critics.md. The six agent.md deltas went to ic on the board and live, and ic banks those files. Proof: the shell suite at the rehearsal, per ic and vc."
+  }
+}
