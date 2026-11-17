@@ -5,12 +5,10 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
-    "heartbeat_at": "2026-11-17T13:08:22.907Z",
+    "heartbeat_at": "2026-11-17T13:10:38.770Z",
     "status": "active",
-    "focus": "2026-11-17 13:08Z by date -u: on hv decision 58. Item 4 reported (what hv runs). 0703 filed and banked (doing 166), waiting on vc's landing. Rehearsal 3 (hold 49) after 0703 lands and Webber's floor-fix run ENDs at the Desk; then the cut's Desk hold (todo 65). Worktrees wt-0703 and wt-kovacs held; no slot held. CORRECTION: 943b75575 says 13:00Z by date -u, typed before the clock read; git records 13:01:07Z.",
-    "claims": [
-      "ISSUE:0703"
-    ],
+    "focus": "2026-11-17 13:10Z by date -u: on hv decision 58. 0703 landed by vc at 2c5006e23 and closed; its worktree removed (attic refs/attic/dc/wt-0703). Rehearsal 3 asked at the Desk (01M7MT2H, heavy) at 3be400e84, granted after Webber's floor-fix run ENDs; then the cut's Desk hold (todo 65). wt-kovacs held at 3be400e84; no slot or claim held.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -2999,7 +2997,8 @@
       "kind": "doing",
       "seq": 166,
       "text": "Issue 0703 (vc's GO 2026-11-17 13:01Z): banked at refs/bank/dc/0703/xdg-sandbox, base 54c4854f4, patch-id 568ae409a4f0ec2562f6ea8d8747748cc26bd710, for vc to land on a read. Its red is rehearsal 2's record and its green is rehearsal 3 (hold 49). At the landing's END: refs/attic/dc/wt-0703 at the worktree's HEAD, then scratchpad/wt-0703 removed by the fold's checks.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-17T13:10:36.815Z",
       "recorded_at": "2026-11-17T13:08:07.209Z"
     },
     {
