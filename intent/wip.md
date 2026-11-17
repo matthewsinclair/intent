@@ -1,5 +1,5 @@
 ---
-verblock: "2026-11-17:v4.01: vc - 3.4.0 out; app swap and site version struck"
+verblock: "2026-11-17:v4.02: vc - globalfold at the close; DOING empty"
 intent_version: 3.4.0
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.4.0
 
 ## DOING
 
-- Nothing is in flight. 3.4.0 is out; hv struck releasing.md's optional app swap and site version for it.
+- Nothing is in flight.
 
 ## TODO
 
