@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 16:59Z
-status: active
+heartbeat_at: 2026-11-17 19:20Z
+status: paused
 focus: "2026-11-17 16:59Z by date -u: 3.4.0 is out on vc's word; the freeze is lifted. cc carried 0696, 0698, 0700's meaning and fold, 0701 and the known-defects page into it. No live item, claim, worktree, slot or bank. Holding for hv's next move."
 claims: []
 ---
