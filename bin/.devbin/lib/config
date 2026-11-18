@@ -584,7 +584,7 @@ _cfg_path_known() {
 #
 # THE READERS COLUMN (ST0008 WP-08) names, comma-separated, each verb that
 # reads the key, from `verbs`' own default: a cut (`cut`), `status`, `notes`,
-# `check`, `attach`, `snapshot` and `gates`. A declared key that no verb
+# `check`, `attach`, `snapshot`, `gates` and `target`. A declared key that no verb
 # `release.verbs` offers reads is refused as unread config, issue 0080's class.
 # `<verb>!<key>` reads it only while `release.<key>` is not declared: `attach`
 # reads `remotes` only as `repo`'s fallback (release_repo), so with `repo`
@@ -616,7 +616,7 @@ _cfg_path_known() {
 # built-in.
 _DEVBIN_CI_BUILTIN_QUERY="bin/devbin ci-state"
 _DEVBIN_RELEASE_SCHEMA="
-scalar tag             cut,status,attach,snapshot v{version}
+scalar tag             cut,status,attach,snapshot,gates,target v{version}
 list   remotes         cut,status,attach!repo
 scalar branch          cut,status,snapshot!publish.branch main
 scalar notes.kind      cut,status,notes,check changelog
@@ -625,6 +625,7 @@ list   derived         cut
 list   preflight       cut
 list   trailer         cut
 list   gates           cut,status,gates               check all|test all
+list   unread          cut,status,gates
 list   legs            cut,status
 scalar ci.query        cut,status,check               $_DEVBIN_CI_BUILTIN_QUERY
 scalar ci.workflow     cut,check                      tests.yml
@@ -637,7 +638,7 @@ scalar repo            cut,status,attach
 scalar object_wait     cut                            20m
 scalar formula         cut,status                     false
 list   after           cut,status
-list   verbs           cut,status,notes,check,attach,snapshot,gates cut|status|notes|check|attach|snapshot|gates
+list   verbs           cut,status,notes,check,attach,snapshot,gates,target cut|status|notes|check|attach|snapshot|gates|target
 scalar assets.workflow cut,status,attach
 scalar assets.wait     cut,attach                     30m
 scalar snapshot.list   cut,snapshot
@@ -645,7 +646,7 @@ scalar snapshot.author cut,snapshot
 scalar snapshot.message cut,snapshot                  {name} {version}
 scalar publish.url     cut,status,snapshot,attach
 scalar publish.branch  cut,status,snapshot
-scalar publish.candidate cut,status                   candidate/{tag}
+scalar publish.candidate cut,status,target            candidate/{tag}
 "
 
 # _cfg_release_row <key> -- `<shape><TAB><default>` for a release key, or
@@ -742,6 +743,26 @@ cfg_release_list() {
   def="$(_cfg_release_default "$key")"
   [ -z "$def" ] || printf '%s\n' "${def//|/$'\n'}"
   return 0
+}
+
+# release_unread_load -- release.unread's paths into RELEASE_UNREAD, one a
+# line (issue 0355): THE ONE READER of the list, which each process that
+# reads the tree for a release calls once, at its entry: a cut, release
+# status, release gates and its --leg, and the macos verbs. Every read of the
+# tree there asks git through unread_pathspec (lib/helpers), so the listed
+# paths, which no gate and no pre-flight command reads, are left out of each
+# check that the tree is clean or unchanged, and out of the release commit,
+# and each reader that passed such dirt names it. Declared without the export
+# attribute, so a gate or a build the release starts reads its tree whole.
+# Returns 1 when the list cannot be read.
+release_unread_load() {
+  local list
+  list="$(cfg_release_list unread)" || return 1
+  # Read by unread_pathspec (lib/helpers) and the release core's tree reads,
+  # which shellcheck does not see from here; exporting it to satisfy the
+  # linter would hand it to every gate, which it must never reach.
+  # shellcheck disable=SC2034
+  declare -g +x RELEASE_UNREAD="$list"
 }
 
 # cfg_release_first_remote -- the first declared `remotes` entry, or nothing
@@ -1339,6 +1360,18 @@ cfg_ident() {
   _ci_name="$_ci_n" _ci_email="$_ci_e"
 }
 
+# _cfg_line_runs_release <line> -- true when the first word of <line>, split
+# as run_words splits it, is release. THE ONE READING of a line a cut runs
+# through the project's launcher, release.preflight's and release.gates' (issues
+# 0327, 0364): there the first word is a verb of devbin's, so release names the
+# release verbs, and a cut's own lists would start a cut, or the gates, inside
+# themselves. derived: and after: lines are commands, run as they are written,
+# so their first word names a program, and they are never asked. Pure.
+_cfg_line_runs_release() {
+  local _clr_rest="${1#"${1%%[!$' \t\n']*}"}"
+  [ "${_clr_rest%%[$' \t\n']*}" = release ]
+}
+
 # _cfg_release_value_problem <path> <value> -- print why a release value
 # cannot be read, and succeed; fail when the value is fine. A value it cannot
 # check is accepted, failing, with a line of its own on stderr saying so:
@@ -1349,6 +1382,14 @@ _cfg_release_value_problem() {
     tag)
       if [[ "$v" != *"{version}"* ]]; then
         printf 'must contain {version}, or every release would carry the same tag'
+        return 0
+      fi
+      # {version} ONCE (issue 0371): every reading of a tag back to its version
+      # (release_tag_version) matches the text around the one {version}, so a
+      # tag made from a template holding two is read back by none, and no bump
+      # could find the release it names.
+      if [[ "$v" == *"{version}"*"{version}"* ]]; then
+        printf 'must contain {version} once: a tag made from a template holding it twice is read back to no version, so no bump could find the release it names'
         return 0
       fi
       # THE FILLED TAG IS A NAME GIT TAKES (ST0011 WP-02c): filled with a
@@ -1405,14 +1446,35 @@ _cfg_release_value_problem() {
       # is release would start a cut there, which would run it again, without
       # end. `-` declares none, as leaving the key out does.
       is_no_default "$v" && return 1
-      local pf_first=""
-      IFS=$' \t\n' read -r pf_first _ <<<"$v"
-      [ -n "$pf_first" ] && [ "$pf_first" != release ] && return 1
-      if [ -z "$pf_first" ]; then
+      if ! has_words "$v"; then
         printf 'is empty -- leave the key out to run no pre-flight command'
-      else
+      elif _cfg_line_runs_release "$v"; then
         printf 'runs release, which would start a cut inside the cut'"'"'s own pre-flight, again without end -- name the check itself'
+      else
+        return 1
       fi
+      ;;
+    gates.*)
+      # A GATE NEVER RUNS release (issue 0364), as a pre-flight command never
+      # does: a cut runs each gate through the launcher, in place and under
+      # `release gates` on each leg's host, and `release gates` runs them by
+      # hand, so a gate whose first word is release would run the gates again
+      # from inside themselves, or start a cut inside the cut. Every other
+      # value goes on to the checks below (;;&), so an empty gate is refused
+      # as every empty release value is, and a blank one by cfg_validate's
+      # command-line check, as before.
+      if _cfg_line_runs_release "$v"; then
+        printf 'runs release, which would run the gates again from inside themselves, and a cut would start another cut, without end: name the check itself'
+        return 0
+      fi
+      ;;&
+    unread.*)
+      # A PATH NO GATE READS (issue 0355), below the project root and written
+      # once, as git names it, in relative_path_problem's terms: so `.`, which
+      # would leave the whole tree unread, is refused with the rest. `-`
+      # declares none, as leaving the key out does.
+      is_no_default "$v" && return 1
+      relative_path_problem "$v" "the project root" || return 1
       ;;
     legs.*)
       # A REMOTE LEG IS A HOST ALIAS (ST0011 WP-05): ssh is handed the name as a

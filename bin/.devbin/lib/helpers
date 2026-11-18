@@ -3725,6 +3725,24 @@ release_tag_name() {
   printf '%s\n' "${1//\{version\}/$2}"
 }
 
+# release_tag_version <template> <name> -- the X.Y.Z <name> names, where <name>
+# is a tag <template> makes: release_tag_name of that version gives <name>
+# back. rc 1, printing nothing, for any other name, so one that only looks
+# like a release, eg v1.2.3-rc1 under v{version}, names none. Pure. THE ONE
+# READING OF A TAG BACK TO ITS VERSION (issue 0371): release_versions, which
+# every bump reads, formula's tag_version and release target all read through
+# it, and release.tag's value rule takes {version} once, so no template holds
+# a second for a reading to disagree over.
+release_tag_version() {
+  local pre="${1%%"{version}"*}" post="${1#*"{version}"}" v
+  [[ "$2" == "$pre"*"$post" ]] || return 1
+  v="${2#"$pre"}"
+  v="${v%"$post"}"
+  is_semver "$v" || return 1
+  [ "$(release_tag_name "$1" "$v")" = "$2" ] || return 1
+  printf '%s\n' "$v"
+}
+
 # platform_arch -- this host's CPU architecture, one word, as `uname -m` names
 # it (arm64 or x86_64 on macOS, aarch64 or x86_64 on Linux): the cache key's
 # arch line (ST0011 WP-16), so an artefact built on one architecture is never
@@ -4117,8 +4135,43 @@ version_identity() {
     "$(git_head_identity "$root")" "$digest"
 }
 
+# RELEASE_UNREAD -- the paths release.unread names, one a line: paths no gate
+# and no pre-flight command reads, such as a peer node's board in a shared
+# checkout (issue 0355). Its one reader, release_unread_load (lib/config),
+# sets it at the entry of each process that reads the tree for a release: a
+# cut, release status, release gates and its --leg, and the macos verbs.
+# NEVER TAKEN FROM THE ENVIRONMENT, so it is cleared here as this library
+# loads, and NEVER EXPORTED, so no gate or build a release starts inherits it:
+# each reads its tree whole. Empty, every read below is byte for byte the one
+# it was without it.
+unset RELEASE_UNREAD
+
+# unread_pathspec <array> <in|out> -- git pathspec arguments for RELEASE_UNREAD,
+# into the caller's array, THE ONE RULE for whether a path lies under the list:
+# git's own, a path matching an entry or lying below it a whole segment at a
+# time, read from the top of the work tree, letter for letter (`literal`, so
+# no entry is a glob). `out` leaves the listed paths out (`--`, `.` and one
+# exclude per path); `in` names them alone. Nothing at all when the list is
+# empty: `out` then reads the whole tree, as before it, and a caller asks for
+# `in` only when the list holds a path.
+unread_pathspec() {
+  local -n _up_spec="$1"
+  local p magic
+  _up_spec=()
+  [ -n "${RELEASE_UNREAD:-}" ] || return 0
+  case "$2" in
+    out) _up_spec=(-- .) magic=top,exclude,literal ;;
+    in) _up_spec=(--) magic=top,literal ;;
+    *) die "devbin defect: unread_pathspec was asked for '$2', not in or out" ;;
+  esac
+  while IFS= read -r p; do
+    [ -z "$p" ] || _up_spec+=(":($magic)$p")
+  done <<<"$RELEASE_UNREAD"
+}
+
 git_head_identity() {
   local root="${1:-${PROJECT_ROOT:-.}}" sha state
+  local -a scope=()
   sha="$(git_head_sha "$root" full)"
   if [ "$sha" = unknown ]; then
     printf 'unknown\n'
@@ -4137,7 +4190,13 @@ git_head_identity() {
   # the tree was not, over a file the cut refuses (ST0011). `normal` answers
   # whether there is any untracked file as `all` does, without listing each one
   # inside an untracked directory.
-  if ! state="$(git_readonly -C "$root" status --porcelain --untracked-files=normal 2>/dev/null)"; then
+  #
+  # A RELEASE'S UNREAD PATHS ARE LEFT OUT (issue 0355): in a process whose
+  # entry read release.unread, a change only under those paths is no `+dirty`,
+  # since no gate reads them, so a gates run's seal stands for its commit while
+  # a peer writes its board. Every reader that passes such dirt names it.
+  unread_pathspec scope out
+  if ! state="$(git_readonly -C "$root" status --porcelain --untracked-files=normal ${scope[@]+"${scope[@]}"} 2>/dev/null)"; then
     printf '%s +unreadable\n' "$sha"
   elif [ -n "$state" ]; then
     printf '%s +dirty\n' "$sha"
@@ -5641,6 +5700,73 @@ tool_link_path() {
   home="${home%/}"
   [ -n "$home" ] || return 1
   printf '%s\n' "$home/.local/bin/$1"
+}
+
+# use_links_found <name>... -- for each <name>, `<name><TAB>1` where a PATH
+# search through ~/.local/bin finds a command at its link, the link there and
+# leading to an executable file, else `<name><TAB>0`: one line each, in the
+# order given. rc 1 where there is no home directory to look in.
+use_links_found() {
+  local name p
+  for name in "$@"; do
+    p="$(tool_link_path "$name")" || return 1
+    if [ -f "$p" ] && [ -x "$p" ]; then
+      printf '%s\t1\n' "$name"
+    else
+      printf '%s\t0\n' "$name"
+    fi
+  done
+}
+
+# use_rehash_note <before> <after> -- the lines a switch ends with where it
+# changed whether a PATH search finds a name at its link (issue 0354).
+# <before> and <after> are use_links_found's answers for the same names in the
+# same order, read before and after the switch. Pure.
+#
+# A SHELL REMEMBERS WHERE IT FOUND A COMMAND. zsh and bash keep the path a
+# command was first run from until `rehash` (zsh) or `hash -r` (bash), and no
+# child process can clear its parent's table, so the switch can only say so.
+# It matters only where the place a search finds moves. A link made where none
+# was leaves an open shell that already ran the name on the copy it found
+# before, and a link removed leaves bash looking at the path that is gone,
+# where zsh searches again by itself. Repointing a link that stays moves no
+# path, so nothing is said for it, and a shell that never ran the name is not
+# affected.
+use_rehash_note() {
+  # ITS ARRAYS CARRY THE FUNCTION'S PREFIX: shellcheck follows lib/helpers into
+  # every file that sources it and reads one name as one variable across
+  # functions, so an array named `before`, `after` or `made` here made each
+  # string of that name there (lib/cmd/release's, eg) an array assigned a
+  # string (SC2178, SC2128), and the lint gate read red.
+  local -a _urn_before _urn_after _urn_made=() _urn_gone=()
+  local i
+  mapfile -t _urn_before <<<"$1"
+  mapfile -t _urn_after <<<"$2"
+  for i in "${!_urn_before[@]}"; do
+    case "${_urn_before[$i]##*$'\t'}${_urn_after[$i]:+${_urn_after[$i]##*$'\t'}}" in
+      01) _urn_made+=("${_urn_before[$i]%%$'\t'*}") ;;
+      10) _urn_gone+=("${_urn_before[$i]%%$'\t'*}") ;;
+    esac
+  done
+  if [ "${#_urn_made[@]}" -gt 0 ]; then
+    printf 'use: an open shell that already ran %s still runs the copy it found before, until rehash (zsh) or hash -r (bash) is run there\n' "$(_use_or_list "${_urn_made[@]}")"
+  fi
+  if [ "${#_urn_gone[@]}" -gt 0 ]; then
+    printf 'use: an open bash that already ran %s still looks for it at the removed link, until hash -r is run there; zsh looks again by itself\n' "$(_use_or_list "${_urn_gone[@]}")"
+  fi
+  return 0
+}
+
+# _use_or_list <name>... -- the names as prose: `a`, `a or b`, `a, b or c`.
+_use_or_list() {
+  local out="$1"
+  shift
+  while [ $# -gt 1 ]; do
+    out+=", $1"
+    shift
+  done
+  [ $# -eq 0 ] || out+=" or $1"
+  printf '%s' "$out"
 }
 
 # machine_install_chooser -- which place chose this machine's devbin install, one

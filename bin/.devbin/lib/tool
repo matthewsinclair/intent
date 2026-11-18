@@ -383,9 +383,11 @@ tool_tree_line() {
 # point every link at that tree's copy, refusing a tree that is not there and
 # naming the step that makes it, then report. brew removes every link, and
 # refuses, removing nothing, unless each is a link into one of the tool's trees
-# and Homebrew's copy would answer for each once it is gone.
+# and Homebrew's copy would answer for each once it is gone. A switch that
+# stands ends with use_rehash_note's lines for each link whose place a PATH
+# search finds it moved (issue 0354), as devbin's own switch does.
 tool_use() {
-  local links
+  local links before after
   links="$(cfg_tool_links)" || return 1
   case "${1:-}" in
     "")
@@ -393,16 +395,34 @@ tool_use() {
       _tool_use_shadowed "$links" ""
       ;;
     dev | opt)
+      before="$(_tool_links_found "$links")" || die "there is no home directory to keep the links in"
       _tool_use_point_set "$1" "$links" || return 1
       _tool_use_report "$links" || return 1
-      _tool_use_shadowed "$links" "$1"
+      _tool_use_shadowed "$links" "$1" || return 1
+      after="$(_tool_links_found "$links")" || die "there is no home directory to keep the links in"
+      use_rehash_note "$before" "$after"
       ;;
     brew)
+      before="$(_tool_links_found "$links")" || die "there is no home directory to look for the links in"
       _tool_use_brew "$links" || return 1
-      _tool_use_report "$links"
+      _tool_use_report "$links" || return 1
+      after="$(_tool_links_found "$links")" || die "there is no home directory to look for the links in"
+      use_rehash_note "$before" "$after"
       ;;
     *) die "unknown tree '$1' -- bin/devbin use takes dev, opt or brew" ;;
   esac
+}
+
+# _tool_links_found <links> -- use_links_found over the names of <links>, the
+# tool's link set as cfg_tool_links gives it.
+_tool_links_found() {
+  local name
+  local -a names=()
+  while IFS=$'\t' read -r name _; do
+    [ -n "$name" ] || continue
+    names+=("$name")
+  done <<<"$1"
+  use_links_found "${names[@]}"
 }
 
 # _tool_link_tree_line <root> <name> -- the line the tree at <root> records, as

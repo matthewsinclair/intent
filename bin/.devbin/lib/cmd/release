@@ -67,6 +67,7 @@ usage() {
       attach) printf '%s %s %s <vX.Y.Z> [--from <dir>]\n' "$lead" "$me" "$v" ;;
       snapshot) printf '%s %s %s <vX.Y.Z | --commit <rev>> <new-dir> [--no-parent]\n' "$lead" "$me" "$v" ;;
       gates) printf '%s %s %s [--rerun] [--leg <host>]\n' "$lead" "$me" "$v" ;;
+      target) printf '%s %s %s [--ref <ref>]\n' "$lead" "$me" "$v" ;;
       *) printf '%s %s %s\n' "$lead" "$me" "$v" ;;
     esac
     lead="      "
@@ -102,6 +103,12 @@ usage() {
     printf '  commit the tree stands on and this platform before it runs them again.\n'
     printf '  It reads that record first, as a cut does, and runs nothing where a\n'
     printf '  sealed green stands; --rerun runs them all the same.\n'
+  fi
+  if offered target; then
+    printf '  target: the release'"'"'s target as the tree declares it, the pair a cut\n'
+    printf '  hands its own commands, as DEVBIN_RELEASE_VERSION=<version> and\n'
+    printf '  DEVBIN_RELEASE_TARGET_TAG=<tag>, for a workflow the candidate'"'"'s push starts.\n'
+    printf '  --ref <ref> prints them only for this release'"'"'s candidate or its tag.\n'
   fi
   if cfg_release_declared verbs; then
     printf '  This project'"'"'s release.verbs offers %s.\n' "${OFFERED//$'\n'/, }"
@@ -166,6 +173,7 @@ no_parent=0
 snap_words=()
 rerun=0
 leg_host=""
+ref=""
 
 # Every verb but the cut has a word, read from the one list (cfg_release_verbs).
 if [ "$1" != cut ] && grep -qxF -- "$1" <<<"$ALL_VERBS"; then
@@ -249,6 +257,13 @@ while [ $# -gt 0 ]; do
       [ -z "$leg_host" ] || refuse "--leg once only, got $leg_host and ${2:-nothing}"
       [ $# -ge 2 ] && [ -n "$2" ] || refuse "--leg needs a host release.legs names"
       leg_host="$2"
+      shift
+      ;;
+    --ref)
+      [ "$verb" = target ] || refuse "--ref applies to release target, not to release $verb"
+      [ -z "$ref" ] || refuse "--ref once only, got $ref and ${2:-nothing}"
+      [ $# -ge 2 ] && [ -n "$2" ] || refuse "--ref needs the ref the run was started by, eg \"\$GITHUB_REF\""
+      ref="$2"
       shift
       ;;
     -*)
@@ -716,6 +731,13 @@ gates_sealed() {
     _release_gates_refuse "the gates' own directory cannot be handed them as DEVBIN_GATE_CACHE: $gcache"
     return 1
   fi
+  # THE COMMIT THESE GATES ARE STARTED FOR (issue 0355), which
+  # release_gates_run holds HEAD to before any gate runs: the cut's release
+  # commit, or the clean HEAD release gates read. Unset first, since a local
+  # shadowing an exported value stays exported, so it reaches no gate; then
+  # set here alone, as RELEASE_GATES_WHY is set by its caller alone.
+  unset RELEASE_GATES_AT
+  local RELEASE_GATES_AT="$sha"
   # THE RECORD NAMES ITS SCOPE: the list goes in the invocation block's `from:`
   # line, and each gate is an argument of the one command the run ran. The
   # list is the declared one, never the verb's argv, so no flag of devbin's
@@ -792,14 +814,19 @@ gates_decision_words() {
 #
 # THE RELEASE'S TARGET IS THE TREE'S (issue 0327): the version the tree
 # declares and the tag release.tag makes of it, which on the release commit,
-# carrying the stamp, are the cut's own pair. So a remote leg's host and a run
-# by hand hand the gates what the cut's local leg does, and a sealed green
+# carrying the stamp, are the cut's own pair (release_tree_target, the one
+# derivation, which `release target` prints too). So a remote leg's host and a
+# run by hand hand the gates what the cut's local leg does, and a sealed green
 # stands for one run of them whoever made it. A version that cannot be read is
 # refused before any gate runs, in version_unread's words, never run without.
 gates_verb() {
-  local stood list answer unread ver tpl
+  local stood list answer pair
   unset RELEASE_GATES_WHY
   release_one_repository "release gates"
+  # THE ONE READ OF release.unread HERE (issue 0355): the clean-tree read
+  # below and the gates' seal leave its paths out, and the gates' record
+  # names the list and what is dirty under it.
+  release_unread_load || die "release gates: cannot read release.unread"
   stood="$(git_head_identity "$PROJECT_ROOT")"
   git_identity_clean "$stood" ||
     die "release gates: the tree is not one commit, clean ($stood), so a run here would be a record of no commit -- commit or stash first"
@@ -816,12 +843,71 @@ gates_verb() {
   # The purge after the seal reads RUNLOG_KEEP_RUNS: refused before anything
   # runs, never found after a green.
   runlog_assert_keep_runs
-  if unread="$(version_unread why)"; then
-    die "release gates: the version cannot be read: $unread -- $(version_unread fix); the gates are handed it as DEVBIN_RELEASE_VERSION, so none runs without it"
+  pair="$(release_tree_target)" ||
+    die "release gates: $pair; the gates are handed the release's target as DEVBIN_RELEASE_VERSION and DEVBIN_RELEASE_TARGET_TAG, so none runs without it"
+  gates_sealed "$stood" "${pair%%$'\t'*}" "${pair#*$'\t'}"
+}
+
+# ---------------------------------------------------------------------------
+# THE RELEASE'S TARGET FOR A WORKFLOW (issue 0352). A cut hands the pair to the
+# commands it runs itself (release_target_run), and a CI workflow its
+# candidate's push starts is none of them, so a build there that stamps its
+# kind from the release's tag stamped itself dev. `release target` prints the
+# pair as the tree declares it, by release_tree_target, the derivation `release
+# gates` makes, in the NAME=value lines a CI environment file takes, so the
+# workflow's step is one line:
+#
+#   bin/devbin release target --ref "$GITHUB_REF" >>"$GITHUB_ENV"
+#
+# WITH --ref, ONLY A RELEASE'S OWN REF IS HANDED THE PAIR. <ref> is the ref the
+# run was started by, refs/heads/<branch> or refs/tags/<tag>, a bare name read
+# as a branch's. The pair is printed for this release's candidate,
+# release.publish.candidate filled with the tree's tag (release_candidate_ref),
+# and for that tag. Any other ref prints nothing and exits 0, saying so on
+# stderr, so a push of main builds as dev with no step of its own. A branch
+# release.publish.candidate makes from another release's tag is refused, exit
+# 1, naming both tags: that candidate does not carry the release it names, and
+# a build of it would stamp a release it is not.
+#
+# It writes nothing and takes no lock, and it reads the tree and the config
+# alone, no tag, no history and no remote, so it answers in a shallow checkout
+# detached at a tag, as CI checks one out.
+target_verb() {
+  local pair ver tag ctpl want name pre post mid ttpl
+  pair="$(release_tree_target)" || die "release target: $pair"
+  ver="${pair%%$'\t'*}"
+  tag="${pair#*$'\t'}"
+  if [ -n "$ref" ]; then
+    ctpl="$(cfg_release_get publish.candidate)" || die "release target: release.publish.candidate cannot be read"
+    want="$(release_candidate_ref "$ctpl" "$tag")"
+    case "$ref" in
+      refs/tags/*) name="tags ${ref#refs/tags/}" ;;
+      refs/heads/*) name="heads ${ref#refs/heads/}" ;;
+      refs/*) name="other $ref" ;;
+      *) name="heads $ref" ;;
+    esac
+    case "$name" in
+      "tags $tag" | "heads $want") ;;
+      *)
+        if [ "${name%% *}" = heads ]; then
+          name="${name#heads }"
+          pre="${ctpl%%"{tag}"*}"
+          post="${ctpl#*"{tag}"}"
+          if [[ "$name" == "$pre"*"$post" ]]; then
+            mid="${name#"$pre"}"
+            mid="${mid%"$post"}"
+            ttpl="$(cfg_release_get tag)" || die "release target: release.tag cannot be read"
+            if release_tag_version "$ttpl" "$mid" >/dev/null; then
+              die "release target: $ref is the candidate of $mid, and this tree declares $tag, so a build of it would stamp a release it is not"
+            fi
+          fi
+        fi
+        warn "release target: $ref is neither this release's candidate, $want, nor its tag, $tag, so no target is printed"
+        return 0
+        ;;
+    esac
   fi
-  ver="$(read_version)" || die "release gates: the version cannot be read (exit $?), and the gates are handed it as DEVBIN_RELEASE_VERSION"
-  tpl="$(cfg_release_get tag)" || die "release gates: cannot read release.tag, which names the tag the gates are handed as DEVBIN_RELEASE_TARGET_TAG"
-  gates_sealed "$stood" "$ver" "$(release_tag_name "$tpl" "$ver")"
+  printf 'DEVBIN_RELEASE_VERSION=%s\nDEVBIN_RELEASE_TARGET_TAG=%s\n' "$ver" "$tag"
 }
 
 # ---------------------------------------------------------------------------
@@ -844,11 +930,18 @@ gates_verb() {
 # deadline are each 1, saying why; a run still going at the deadline goes on
 # there, and the next run at HEAD reads it.
 gates_leg_verb() {
-  local host="$1" stood list project why tpl base sha secs kib t0 line word prev="" dir
+  local host="$1" stood list project why tpl base sha secs kib t0 line word prev="" dir udirt
   release_one_repository "release gates"
+  # THE ONE READ OF release.unread HERE (issue 0355): the clean-tree read
+  # leaves its paths out, and what is dirty under it is named, since the host
+  # is sent HEAD's commit alone.
+  release_unread_load || die "release gates --leg: cannot read release.unread"
   stood="$(git_head_identity "$PROJECT_ROOT")"
   git_identity_clean "$stood" ||
     die "release gates --leg: the tree is not one commit, clean ($stood), so a run on $host would be a record of no commit -- commit or stash first"
+  udirt="$(release_dirt in)" || die "release gates --leg: git status failed"
+  [ -z "$udirt" ] ||
+    printf 'release: gates: dirty only under release.unread, which no gate reads, and %s is sent HEAD alone: %s\n' "$host" "${udirt//$'\n'/, }"
   list="$(cfg_release_list legs)" || die "release gates --leg: cannot read release.legs"
   grep -qxF -- "$host" <<<"$list" ||
     die "release gates --leg: $host is no host release.legs names (${list//$'\n'/, }) -- the rehearsal runs a declared leg"
@@ -2533,7 +2626,7 @@ cut_lock_sync() {
 # reported as `would`, and a verdict as the last line when no step failed.
 cut_run() {
   local tpl branch object today launcher line v tag how rc_line commit source
-  local state detail remotes remote answer nremote=0 owned dirt outside="" deferred=""
+  local state detail remotes remote answer nremote=0 owned dirt outside="" deferred="" unread_dirt="" listed owned_listed
   local derived gates pf_list trailer trailer_said="" out written="" have n ignored_rc ignored_why assets_wf after_list lock
   local formula_on formula_step=no
   # The binaries' archive (issue 0323): named at pre-flight where the object
@@ -2590,6 +2683,10 @@ cut_run() {
   # a step runs is: empty would skip the gates in silence.
   gates="$(cfg_release_list gates)" || die "release: cannot read release.gates"
   gates_list "$gates"
+  # THE ONE READ OF release.unread IN A CUT (issue 0355), with its status, as
+  # the gates are read: every read of the tree below, the tree rule's, the
+  # commit's, the gates' and their seal's, leaves its paths out and names them.
+  release_unread_load || die "release: cannot read release.unread"
   # THE ONE READ OF release.preflight IN A CUT (issue 0327), with its status, as
   # the gates are read: empty would pass over the project's own refusals in
   # silence. Pre-flight runs what it reads here.
@@ -2744,14 +2841,30 @@ cut_run() {
       refusals+=("the paths this release owns cannot be listed (above)")
       # What it printed is no list a later read could take.
       owned=""
-    elif ! dirt="$(release_dirt 2>&1)"; then
+    elif ! dirt="$(release_dirt out 2>&1)"; then
       refusals+=("git status failed: $(one_line "$dirt")")
+    elif ! unread_dirt="$(release_dirt in 2>&1)"; then
+      refusals+=("git status failed: $(one_line "$unread_dirt")")
+      unread_dirt=""
     elif ! outside="$(release_outside "$dirt" "$owned")"; then
       refusals+=("which dirty paths lie outside what this release owns cannot be told")
     elif [ -n "$outside" ] && [ -n "$derived" ]; then
       deferred="$outside"
     elif [ -n "$outside" ]; then
       refusals+=("dirty outside what this release owns: ${outside//$'\n'/, } -- commit or stash it first")
+    fi
+    # A PATH THIS RELEASE OWNS IS NEVER UNREAD (issue 0355): the tree rule
+    # above and the commit leave release.unread's paths out, so an owned path
+    # under them would be left out of the release commit. Each file under the
+    # list, by git's rule, is held against the owned set, letter for letter.
+    if [ -n "${RELEASE_UNREAD:-}" ] && [ -n "$owned" ]; then
+      if ! listed="$(release_unread_files 2>&1)"; then
+        refusals+=("the files under release.unread cannot be listed: $(one_line "$listed")")
+      else
+        owned_listed="$(release_inside "$listed" "$owned")"
+        [ -z "$owned_listed" ] ||
+          refusals+=("release.unread names paths this release owns: ${owned_listed//$'\n'/, } -- the release commit must carry them, so name narrower paths in release.unread")
+      fi
     fi
     # THE LOCK'S SYNC IS CARGO'S (issue 0323): where the stamp step will bring
     # the lock in step, a cargo that is not here is refused before anything is
@@ -2982,6 +3095,23 @@ cut_run() {
       legs_word="$(platform_word)" || legs_word=""
       [ "$legs_word" = macos ] ||
         refusals+=("the macOS stage is declared (commands.macos.enabled), and this host is ${legs_word:-one devbin has no platform word for} -- cut the release on a macOS host, where the stage signs and notarises what the macos: block declares at the release commit")
+      # THE STAGE'S INPUTS ARE READ BY macos doctor (issue 0366): the
+      # declaration, the tools, the Developer ID identity with a test-sign and
+      # the notary profile, asked through the launcher the stage's own macos
+      # leg runs through, so an expired identity or a dead notary profile
+      # refuses the cut here, before anything is stamped, and not at the stage
+      # after the release commit. Like the stage, it asks Apple: the
+      # test-sign's timestamp and a notarytool query. The build itself, and the
+      # signing of the release's own commit, are not rehearsed: their first run
+      # is the cut's.
+      if [ "$legs_word" = macos ]; then
+        local doc_out doc_rc=0 doc_said
+        doc_out="$(gate_exec "$launcher" macos doctor 2>&1)" || doc_rc=$?
+        if [ "$doc_rc" -ne 0 ]; then
+          doc_said="$({ grep -E 'MISSING|NOT USABLE|FAILED|REFUSED' <<<"$doc_out" || true; } | sed -E 's/^ +//; s/  +/ /g' | paste -sd ';' - | sed 's/;/; /g')"
+          refusals+=("the macOS stage's inputs are not ready: macos doctor exited $doc_rc${doc_said:+, naming $doc_said} -- ${DEVBIN_INVOKE:-bin/devbin} macos doctor says each")
+        fi
+      fi
       # THE STAGE'S PATHS MUST BE IGNORED BY GIT (issue 0313): macos.app, the
       # bundle the build leaves, which is the path of the build: artefact the
       # stage caches (cfg_macos_artefacts), and macos.build_root where it is
@@ -3151,7 +3281,10 @@ cut_run() {
   local pf_public=""
   [ -z "$publish_url" ] ||
     pf_public="; $shown_pub answers: $pbranch $(publish_at "$pub_branch"), $cand_ref $(publish_at "$pub_cand"), $tag $(publish_at "$pub_tag")"
-  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")$pf_said$legs_said$pf_public"
+  # A listed path's dirt is named, never passed in silence (issue 0355).
+  local pf_unread=""
+  [ -z "$unread_dirt" ] || pf_unread="; dirty only under release.unread, which the release commit leaves out: ${unread_dirt//$'\n'/, }"
+  cut_row pre-flight "done" "on $branch; $nremote remote(s) can take the push; $([ "$source" = HEAD ] && printf 'the tree and the note are ready' || printf '%s carries the release' "$tag")$pf_unread$pf_said$legs_said$pf_public"
   if [ -n "$deferred" ] && [ "$dry_run" = 1 ]; then
     CUT_UNREACHED+=("the stamp step checks ${deferred//$'\n'/, } against what derived: writes, after it runs")
   fi
@@ -3295,8 +3428,11 @@ cut_run() {
         [ -z "$w" ] || norm+="${w#"$PROJECT_ROOT"/}"$'\n'
       done <<<"$written"
       written="$norm"
-      if ! dirt="$(release_dirt 2>&1)"; then
+      if ! dirt="$(release_dirt out 2>&1)"; then
         cut_fail stamp "git status failed: $(one_line "$dirt")"
+      fi
+      if ! unread_dirt="$(release_dirt in 2>&1)"; then
+        cut_fail stamp "git status failed: $(one_line "$unread_dirt")"
       fi
       outside="$(release_outside "$dirt" "$owned"$'\n'"$written")" ||
         cut_fail stamp "which dirty paths lie outside what this release owns cannot be told (exit $?)"
@@ -3307,7 +3443,7 @@ cut_run() {
       # because it is one read, and it holds for a writer that does not.
       answer="$(release_read_stamp "$PROJECT_ROOT" "$v" count)" || cut_fail stamp "reading the stamp back failed (exit $?)"
       [ "${answer%%$'\t'*}" = already ] || cut_fail stamp "the stamp did not take: ${answer#*$'\t'}"
-      cut_row stamp "done" "${answer#*$'\t'}$([ -z "$lock" ] || printf '; %s in step' "$lock")$([ -z "$derived" ] || printf '; derived: ran')"
+      cut_row stamp "done" "${answer#*$'\t'}$([ -z "$lock" ] || printf '; %s in step' "$lock")$([ -z "$derived" ] || printf '; derived: ran')$([ -z "$unread_dirt" ] || printf '; dirty only under release.unread, which the release commit leaves out: %s' "${unread_dirt//$'\n'/, }")"
     fi
   fi
 
@@ -3332,15 +3468,24 @@ cut_run() {
       cut_row commit would "commit the stamp as \"release: $tag\"$trailer_said"
       release_made=no
     else
-      dirt="$(release_dirt)" || cut_fail commit "git status failed"
+      # THE PATHS COMMITTED LEAVE release.unread's OUT (issue 0355), so a peer's
+      # board write in this checkout never rides in the release commit; and an
+      # owned path there, which pre-flight refuses, is refused here too, since
+      # a derived: path is known only now, and an omitted one would ship a
+      # release commit without it.
+      dirt="$(release_dirt out)" || cut_fail commit "git status failed"
+      unread_dirt="$(release_dirt in)" || cut_fail commit "git status failed"
+      owned_listed="$(release_inside "$unread_dirt" "$owned"$'\n'"$written")"
+      [ -z "$owned_listed" ] ||
+        cut_fail commit "release.unread names paths this release owns: ${owned_listed//$'\n'/, } -- the release commit must carry them, so name narrower paths in release.unread"
       [ -n "$dirt" ] || cut_fail commit "${commit:0:12} does not carry the stamp, and there is nothing to commit: ${answer#*$'\t'}"
       local -a paths=()
       mapfile -t paths <<<"$dirt" || cut_fail commit "the dirty paths cannot be read into a list"
       git add -- "${paths[@]}" || cut_fail commit "git add failed (exit $?)"
-      # `--only` is EQUIVALENT here and no arm can tell it gone:
-      # pre-flight and the stamp step refuse any dirt outside the owned
-      # set, staged included, so the index holds nothing these paths do not.
-      # Kept so the commit stays exactly these paths if that rule ever moves.
+      # `--only` KEEPS THE COMMIT TO THESE PATHS: pre-flight and the stamp
+      # step refuse any dirt outside the owned set, staged included, but not
+      # under release.unread (issue 0355), so the index can hold a listed path
+      # a peer staged, and without it that path would ride in the commit.
       git commit -q --only "${commit_msg[@]}" -- "${paths[@]}" </dev/null ||
         cut_fail commit "git commit failed (exit $?, above)"
       commit="$(git rev-parse HEAD)" || cut_fail commit "the new HEAD cannot be read: git rev-parse HEAD exited $?"
@@ -3353,7 +3498,7 @@ cut_run() {
         cut_fail commit "reading the stamp at ${commit:0:12} failed (exit $?)"
       [ "${answer%%$'\t'*}" = already ] || cut_fail commit "${commit:0:12} does not carry the stamp: ${answer#*$'\t'}"
       [ "$(release_read_clean | cut -f1)" = already ] || cut_fail commit "the tree is not clean after the commit: $(release_read_clean | cut -f2-)"
-      cut_row commit "done" "${commit:0:12} \"release: $tag\"$trailer_said, ${#paths[@]} path(s)"
+      cut_row commit "done" "${commit:0:12} \"release: $tag\"$trailer_said, ${#paths[@]} path(s)$([ -z "$unread_dirt" ] || printf '; left out, under release.unread: %s' "${unread_dirt//$'\n'/, }")"
     fi
   fi
 
@@ -5468,10 +5613,14 @@ status_assets() {
 
 status_report() {
   local v="$1" tag rc_line commit source tree state detail unreadable=0
-  local clean tag_row push_state push_detail object gates after
+  local clean tag_row push_state push_detail object gates after udirt
   # One repository, the project root's, for every git read below, as a cut
   # reads it (ST0011).
   release_one_repository "release status"
+  # release.unread, read once as a cut reads it (issue 0355), so the commit
+  # step's row reads the tree clean where a cut would, naming what is dirty
+  # under the list.
+  release_unread_load || die "release status: cannot read release.unread"
   tag="$(release_tag_name "$(cfg_release_get tag)" "$v")"
   rc_line="$(release_commit "$tag")" || exit 1
   commit="${rc_line%%$'\t'*}"
@@ -5630,7 +5779,11 @@ status_report() {
       if [ "$source" = HEAD ]; then
         clean="$(release_read_clean)"
         state="${clean%%$'\t'*}"
-        [ "$state" = already ] || detail="${clean#*$'\t'}"
+        if [ "$state" != already ]; then
+          detail="${clean#*$'\t'}"
+        elif udirt="$(release_dirt in)" && [ -n "$udirt" ]; then
+          detail+="; dirty only under release.unread, which the release commit leaves out: ${udirt//$'\n'/, }"
+        fi
       fi
     elif [ "$state" = pending ]; then
       detail="${commit:0:12} does not carry the stamp: $detail"
@@ -5796,5 +5949,11 @@ case "$verb" in
     else
       gates_verb || exit 1
     fi
+    ;;
+  target)
+    # Validated first, as every verb is: a malformed block would name another
+    # tag or candidate.
+    cfg_validate || die "release target: $DEVBIN_DIR/config.yaml does not validate (above)"
+    target_verb
     ;;
 esac

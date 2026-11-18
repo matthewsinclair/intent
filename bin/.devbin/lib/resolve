@@ -944,24 +944,35 @@ route_word_at() {
 #   handler   the project's handler, handed the whole argument list
 #   command   run_command, handed the whole argument list
 #
-# gate_help_answered <command> <word> <arg>... -- true when devbin answers a
-# -h or --help among <arg>s itself, with gate_usage_line, before anything the
-# route arg_route reads for <word> runs (issue 0356): for a gate command
-# (is_gate_command), in any position, as `<command> -h` has always answered.
-# Without this, `test mix --help` ran the option, handing --help to its tool,
-# since run_builtin_gate reads the flag only in the option's place and
-# gate_split_args gives every other word to the tool. What runs is
-# option_leaf's answer, the one question: where it is the project's own, its
-# handler (handler, mapped or a sub-handler) or its command-level run: line
-# (run), the flag is the project's to read and is left to it; every other
-# leaf is devbin's own route, a shipped option, a declared option's run:,
-# `all`, an option switched off, the command as devbin ships it, and is
-# answered. option_leaf is asked only once a flag is seen, so no other
-# dispatch pays for it.
-gate_help_answered() {
+# help_answered <command> <word> <arg>... -- true when devbin answers a -h or
+# --help among <arg>s itself, in any position, before anything the route
+# arg_route reads for <word> runs (issues 0356 and 0370). Without it, `test
+# mix --help` ran the option, handing --help to its tool, since
+# run_builtin_gate reads the flag only in the option's place and
+# gate_split_args gives every other word to the tool; and a project's own
+# `gate rust --help` ran its whole gate, since a declared option's run: line
+# is handed every word after the option. What runs is option_leaf's answer,
+# the one question:
+#
+#   a gate command (is_gate_command)   every leaf that is devbin's own route: a
+#                                      shipped option, a declared option's run:,
+#                                      `all`, an option switched off, the
+#                                      command as devbin ships it; bin/devbin
+#                                      answers with gate_usage_line, as
+#                                      `<command> -h` has always answered
+#   any other command                  a declared option's run: line
+#                                      (option-run) alone, whose summary is
+#                                      devbin's and which cannot print one;
+#                                      bin/devbin answers with help <command>
+#
+# Where what runs is the project's own, its handler (handler, mapped or a
+# sub-handler) or its command-level run: line (run), the flag is the
+# project's to read and is left to it, and so is every route of devbin's own
+# built-ins that are not gates, which parse their own. option_leaf is asked
+# only once a flag is seen, so no other dispatch pays for it.
+help_answered() {
   local cmd="$1" word="$2" a leaf asked=""
   shift 2
-  is_gate_command "$cmd" || return 1
   for a in "$@"; do
     case "$a" in
       -h | --help)
@@ -972,10 +983,13 @@ gate_help_answered() {
   done
   [ -n "$asked" ] || return 1
   leaf="$(option_leaf "$cmd" "$word")" || return 1
-  case "$leaf" in
-    handler | mapped | sub-handler | run) return 1 ;;
-  esac
-  return 0
+  if is_gate_command "$cmd"; then
+    case "$leaf" in
+      handler | mapped | sub-handler | run) return 1 ;;
+    esac
+    return 0
+  fi
+  [ "$leaf" = option-run ]
 }
 
 # `all` IS devbin's WHERE THERE ARE OPTIONS TO SWEEP, AND devbin REFUSES IT OVER

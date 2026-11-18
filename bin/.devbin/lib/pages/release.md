@@ -5,6 +5,7 @@
     bin/devbin release attach <vX.Y.Z> [--from <dir>]
     bin/devbin release snapshot <vX.Y.Z | --commit <rev>> <new-dir> [--no-parent]
     bin/devbin release gates [--rerun] [--leg <host>]
+    bin/devbin release target [--ref <ref>]
 
 Cut a release: confirm once, then stamp, commit, run every leg (the gates, here and on each host release.legs names, the macOS stage where it is declared, and the candidate's CI) under one wait loop, tag and push once all are green, make the release object and run `after:`, all under that one yes. `release` is opt-in: a project enables it with `commands.release.enabled: true` and declares how it releases in the `release:` block of `bin/.devbin/config.yaml`, where every key has a default. Every `release:` key is annotated in devbin's reference config, and `bin/devbin devbin` names where that file and devbin's releasing guide are.
 
@@ -141,11 +142,21 @@ Every command of the project's own that a cut runs is handed the release's targe
 
 Neither is `DEVBIN_RELEASE_TAG`, which a cut hands `release.ci.query` alone: the ref the query reads its runs by, the candidate's branch, not the tag.
 
+A CI workflow the candidate's push starts is none of the cut's own commands, so it is handed neither variable. It asks with `release target`, which prints the pair as the tree declares it, the derivation `release gates` makes, as `DEVBIN_RELEASE_VERSION=<version>` and `DEVBIN_RELEASE_TARGET_TAG=<tag>`, the lines a CI environment file takes. On the release commit the candidate carries, that is the cut's own pair. `--ref <ref>`, the ref the run was started by, prints them only for this release's candidate, `release.publish.candidate` filled with the tree's tag, or for that tag. Any other ref prints nothing and exits 0, saying so on stderr, so a push of main builds as it would without the step. A candidate branch of another release's tag is refused, exit 1, naming both tags. `release target` writes nothing, and reads the tree and the config alone, no tag and no history, so it answers in a shallow checkout detached at a tag. In a GitHub workflow the step is one line:
+
+    bin/devbin release target --ref "$GITHUB_REF" >>"$GITHUB_ENV"
+
 ## The gates' own directories
 
 The gates are handed `DEVBIN_GATE_CACHE`, a directory of their own that lasts from one run to the next, so a gate can keep a build there, eg a private worktree's `CARGO_TARGET_DIR`. What goes in it is the project's. It is held to `release.gate_cache.max`, 12G unless the project declares another size in M or G: before the gates start, a cache over it is emptied, said on the run's output, so that run builds cold, and one within it is kept. A build grows a cache without end, and one filled a leg host's disk. A project whose one build is larger than the size declares a larger one, or every run builds cold. On this machine it is `.gate-cache` in the project's directory under the artefact cache's root (`DEVBIN_CACHE_HOME`, else the XDG cache directory's `devbin`), a name no artefact can take, so `cache` never reads it, unless the environment names one. It is made when missing, and one that cannot be named or made refuses the gates before any runs, saying why.
 
 On each host `release.legs` names, the gates are handed `work/<project>-leg.cache` under the host's home, beside the bare repository, whatever the host's own startup sets. They run there with a `TMPDIR` of their own too, `<worktree>.tmp` beside the run's worktree on the host's disk, made afresh for each run and removed with it, so a host whose `/tmp` is a small tmpfs runs a large build. The leg's log names both, and what the start did with the cache: kept, naming its size, emptied, naming the size it held, or left as it stands while another run of the project is going on the host, since its gates may be reading it. A run whose gates end red has each file at the top of its `TMPDIR` appended to its log, under a line naming the file, before the `TMPDIR` is removed, so a gate that keeps a failing step's output in a file there, and names that file when it refuses, leaves that output in the log this machine keeps. A directory there is not read. The host is sent the previous release's tag beside the release commit, so a gate that reads the last release finds it in a fresh repository.
+
+## Paths no gate reads
+
+`release.unread` names paths no gate and no pre-flight command reads, such as a board that other sessions write in a checkout several of them share. A cut, `release status`, `release gates` and its `--leg`, and the macOS stage each read it once, and every check that the tree is clean or unchanged leaves those paths out: the tree rule at pre-flight and at the stamp step, the commit, the gates' re-read of the tree and their seal's commit lines, and the clean tree app-sign and bin-sign ask for. So a write there while a cut runs never refuses it, and the release commit never holds a path under the list. Nothing is left out in silence: each row and record that passed such a path names it, and the gates' and pre-flight's records name the list whenever it holds a path. A path is under an entry when it is the entry or lies below it, a whole segment at a time. Entries are written from the project root, as git names them, and none may hold a path the release owns, which pre-flight and the commit step refuse.
+
+A commit is never left out. HEAD moving while the gates or a pre-flight command run refuses the run, and the gates refuse to start when HEAD is not the commit they were started for, the release commit in a cut, naming both commits, so a commit that lands in a shared checkout after the cut chose its release commit stops the local gates before any runs. A change or a commit is named for what it is, never blamed on a gate: two reads of the tree cannot tell a gate's write from another session's.
 
 ## The other forms
 

@@ -90,14 +90,28 @@ infra_resolve_profile() {
   return 1
 }
 
+# infra_handle_dashed <name> -- the form a handle takes of <name>: lowercased,
+# each character outside [a-z0-9_-] a dash, read bytewise. THE ONE STATEMENT
+# OF IT (issue 0363): infra_init_handles writes each handle through it, a
+# domain's first label or, where two domains share that, its whole name, and
+# infra_handle_matches_name accepts the whole name through it, so a profile
+# init wrote draws no advisory. Pure.
+infra_handle_dashed() {
+  local LC_ALL=C
+  local n="${1,,}"
+  printf '%s\n' "${n//[^a-z0-9_-]/-}"
+}
+
 # infra_handle_matches_name <handle> <fqdn> -- is the handle a recognisable
 # derivation of the FQDN? Deliberately loose: the handle is a label, and
 # `prod`/`staging` handles for one FQDN may be wanted later, so a mismatch is
 # a WARNING and never an error. Foreclosing that on a guess would cost more
-# than the confusion it prevents.
+# than the confusion it prevents. The whole name dashed is one, as init writes
+# it for two domains that share a first label (issue 0363).
 infra_handle_matches_name() {
   local handle="$1" fqdn="$2" label="${2%%.*}"
   [ "$handle" = "$label" ] && return 0
+  [ "$handle" = "$(infra_handle_dashed "$fqdn")" ] && return 0
   case "$fqdn" in *"$handle"*) return 0 ;; esac
   return 1
 }

@@ -214,6 +214,12 @@ cfg_load "${DEVBIN_DIR:?}/config.yaml" || die "macos: cannot read $DEVBIN_DIR/co
 # Validated whole, as the release core validates it, so a pair rule such as
 # macos.kind_value's holds here too and not only in doctor.
 cfg_validate || die "macos: $DEVBIN_DIR/config.yaml does not validate (above)"
+# release.unread, read once at this entry as a cut reads it (issue 0355): the
+# clean-tree reads below (read_head_state, through git_head_identity) leave
+# its paths out, which nothing a release builds or checks reads, so a peer's
+# board write in a shared checkout does not stop the stage; a step that
+# passed such dirt names it (say_unread_dirt).
+release_unread_load || die "macos: cannot read release.unread"
 
 # macos_key <key> -- a macos: value, or the command stops naming the read.
 macos_key() { cfg_macos_get "$1" || die "macos: cannot read macos.$1"; }
@@ -1004,6 +1010,7 @@ record_signed_at() {
     rm -rf "$stage"
     die "macos: $why -- the stage is removed and nothing recorded"
   fi
+  say_unread_dirt "the record of $1"
   printf '%s\n' "$APP_RELEASE_COMMIT" >"$record" ||
     die "macos: could not record the commit $1 was signed at in $record, and $publisher ships no copy without one"
 }
@@ -1073,6 +1080,16 @@ require_release_head() {
        cd <dir>, then $ME $steps
        git worktree remove <dir>, once $publisher has run"
   fi
+  say_unread_dirt "$signer"
+}
+
+# say_unread_dirt <step> -- a line naming what is dirty under release.unread,
+# when anything is: read_head_state reads the tree clean outside the list
+# (issue 0355), and dirt a step passed is named, never passed in silence.
+say_unread_dirt() {
+  local d
+  d="$(release_dirt in)" || die "macos: git status could not be read in $ROOT, so what is dirty under release.unread cannot be named"
+  [ -z "$d" ] || printf '  dirty only under release.unread, which nothing a release builds reads, so %s goes on: %s\n' "$1" "${d//$'\n'/, }"
 }
 
 # require_stage_outside -- the stage at or under neither the project root nor

@@ -347,15 +347,11 @@ formula_settings() {
 }
 
 # tag_version <tag> -- the version <tag> names under the release.tag template,
-# read as the release core names a tag (release_tag_name). Dies on a tag the
-# template does not make.
+# read back by release_tag_version, the one reading of a tag the release core
+# names through release_tag_name. Dies on a tag the template does not make.
 tag_version() {
-  local pre="${F_TPL%%"{version}"*}" post="${F_TPL#*"{version}"}" v
-  v="${1#"$pre"}"
-  v="${v%"$post"}"
-  is_semver "$v" && [ "$(release_tag_name "$F_TPL" "$v")" = "$1" ] ||
+  release_tag_version "$F_TPL" "$1" ||
     die "'$1' is not a tag the release tag template '$F_TPL' makes, so it names no release version"
-  printf '%s\n' "$v"
 }
 
 # --- source mode -----------------------------------------------------------

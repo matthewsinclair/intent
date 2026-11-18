@@ -170,7 +170,7 @@ EOF
 }
 
 main() {
-  local word="${1:-}" root p state brew
+  local word="${1:-}" root p state brew before after
   [ $# -le 1 ] || die "unexpected argument '$2' (try: $DEVBIN_INVOKE use --help)"
   # A PROJECT'S OWN TOOL IS SWITCHED HERE (docs/dev-opt-brew.md, T5; issue
   # 0326): in a project whose config declares a tool, `use` points that tool's
@@ -228,6 +228,7 @@ main() {
       ;;
     brew)
       p="$(devbin_link_path)" || die "there is no home directory to look for the link in"
+      before="$(use_links_found "$DEVBIN_SELF")" || die "there is no home directory to look for the link in"
       if [ -L "$p" ]; then
         # Only a link into one of devbin's trees is removed (T5), so a link
         # someone made to anything else is left, and named.
@@ -250,13 +251,22 @@ main() {
         die "$p is not a link, so it is no choice devbin use made -- use brew leaves it: remove it by hand"
       fi
       _use_report || return 1
+      # AN OPEN SHELL KEEPS THE PATH IT FOUND (issue 0354): said once the switch
+      # stands, where it moved the place a PATH search finds devbin.
+      after="$(use_links_found "$DEVBIN_SELF")" || die "there is no home directory to look for the link in"
+      use_rehash_note "$before" "$after"
       return 0
       ;;
     *) die "unknown tree '$word' -- devbin use takes dev, opt or brew (try: $DEVBIN_INVOKE use --help)" ;;
   esac
+  before="$(use_links_found "$DEVBIN_SELF")" || die "there is no home directory to keep the link in"
   _use_point "$root"
   _use_report || return 1
   _use_shadowed "$word" || return 1
+  # Said only once the link is what a login shell runs: under a shadow, a new
+  # search finds the shadowing copy, and the shadow's own refusal is the remedy.
+  after="$(use_links_found "$DEVBIN_SELF")" || die "there is no home directory to keep the link in"
+  use_rehash_note "$before" "$after"
   return 0
 }
 

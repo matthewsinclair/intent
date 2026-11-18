@@ -2251,6 +2251,54 @@ fmt_duration() {
   fi
 }
 
+# run_gate_report <purge> <out-dir> <suffix> <log> <rc> <keep-log> <errors>
+# <label> -- run_gate's report once the seal is written, in its order: the old
+# runs purged where <purge> is 1, the verdict line, and the ledger row. THE ONE
+# STATEMENT of that order, which run_gate runs in its own shell, or in a
+# subshell for a run a signal ended (issue 0360). It sets nothing a caller
+# reads.
+run_gate_report() {
+  [ "$1" != 1 ] || purge_run_logs "$2" "$3" "$4"
+  print_run_verdict "$5" "$6" "$4" "$7"
+  record_seal "$5" "$8" "$7"
+}
+
+# THE SIGNAL HANDLING OF A GATED RUN, as functions (issue 0359): run_gate
+# calls these, and a project's handler that runs a gated tool without
+# run_gate calls the same ones, so a guard can name them and no copy drifts.
+#
+# gate_signals_arm <caught> <saved> -- the arm (issue 0297): the caller's INT,
+# TERM, HUP and PIPE handlers, as `trap -p` prints them, into the variable
+# <saved> names, for traps_restore to put back; then INT, TERM and HUP each
+# noted by its name into the variable <caught> names, and nothing more, so the
+# gated command ends first and the run is sealed red after it. Both are the
+# caller's own variables, set by name: a note runs in the function running
+# when the signal comes, and names the caller's variable there. The caller
+# ignores SIGPIPE for itself just before its pipeline, as run_gate does, each
+# element putting it back for itself (issue 0360).
+gate_signals_arm() {
+  local _gsa_s
+  printf -v "$2" '%s' "$(trap -p INT TERM HUP PIPE)"
+  for _gsa_s in INT TERM HUP; do
+    # shellcheck disable=SC2064 # the note names the caller's variable, now
+    trap "$1=$_gsa_s" "$_gsa_s"
+  done
+}
+
+# gate_progress_file <log> -- the progress file of the run whose log is <log>,
+# the heartbeat's header: beside the log, never at TMPDIR's top (issue 0346).
+# Pure.
+gate_progress_file() { printf '%s.progress\n' "$1"; }
+
+# gate_signal_close <signal> <name> -- the close of the run <name> that the
+# signal <signal> (INT, TERM or HUP) ended: its exit, 128 and the signal's
+# number, a TAB, and the ENDED line that says why its log stops where it
+# does. Pure.
+gate_signal_close() {
+  local rc=$((128 + $(kill -l "$1")))
+  printf '%s\t%s\n' "$rc" "ENDED BY SIG$1 ($2): a signal stopped the run before its command finished, so its verdict is red (exit $rc)"
+}
+
 run_gate() {
   local label="" suffix="" grammar=generic out_dir="tmp/gate" source=""
   local keep_log=1 purge=0 purge_only=0 want_color=auto allow_empty=0
@@ -2340,7 +2388,8 @@ run_gate() {
   # exit code is PIPESTATUS[0]; tee's is checked separately and never becomes
   # the verdict.
   #
-  # The caller's errexit is SAVED AND RESTORED rather than forced back on. In
+  # The caller's errexit is SAVED, held off to the close, AND RESTORED as the
+  # run returns (issue 0360), rather than forced back on. In
   # the corpus this was a bare `set -e`, which was right there -- each runner was
   # a top-level script with errexit as its ambient state. As a library function
   # it is wrong: run_gate would silently switch errexit ON for a caller that had
@@ -2366,11 +2415,8 @@ run_gate() {
   # Ctrl-C, where a gate that returned 130 would have let it run the next one.
   # THE COST: a signal sent to this process alone is acted on only once the
   # gated command ends.
-  local caught="" traps_were said=""
-  traps_were="$(trap -p INT TERM HUP PIPE)"
-  trap 'caught=INT' INT
-  trap 'caught=TERM' TERM
-  trap 'caught=HUP' HUP
+  local caught="" traps_were="" said="" closed
+  gate_signals_arm caught traps_were
   # THE COMMAND'S PROGRESS FILE (the heartbeat's header): made empty here,
   # read by the beat, removed once the beat has stopped. A run where it cannot
   # be made runs without one, as before.
@@ -2380,7 +2426,8 @@ run_gate() {
   # gate beside that root broke it. The log is already this run's own name,
   # so the file needs no name of its own, and the readers of a log's
   # directory read only its .out and .errors.
-  local progress="$log.progress"
+  local progress
+  progress="$(gate_progress_file "$log")"
   : 2>/dev/null >"$progress" || progress=""
   gate_heartbeat_start "$log" "$label" "$progress"
   # A GATED TOOL GETS NO INPUT (issue 0088, row 2, as amended twice). It
@@ -2410,7 +2457,20 @@ run_gate() {
   # (release_say), where it would otherwise reach no log at all. This shell
   # catches the signal and seals only once the command has ended, so such a
   # line is in the log before the seal reads it.
-  DEVBIN_GATE_LOG="$log" DEVBIN_GATE_PROGRESS="$progress" gate_exec "$@" 2>&1 | tee -a "$log"
+  #
+  # SIGPIPE IS IGNORED IN THIS SHELL FROM HERE TO THE CLOSE (issue 0360), and
+  # each element of the pipeline puts it back at the default for itself, so
+  # the gated command and the tee keep it as they always had it, and so does
+  # every process they start. A signal to the whole group can end the reader
+  # of the pipe this shell's output goes to, as it does where the caller sends
+  # both streams into one, and bash writes the ended job's notice to that
+  # stderr while it waits for the pipeline, before any note runs: under the
+  # default this shell died there of SIGPIPE, 141, with no seal, no ledger row
+  # and the progress file left. Ignored, the write fails and the run goes on to
+  # the close. The caller's own SIGPIPE is put back with the rest
+  # (traps_restore, below).
+  trap '' PIPE
+  { trap - PIPE; DEVBIN_GATE_LOG="$log" DEVBIN_GATE_PROGRESS="$progress" gate_exec "$@"; } 2>&1 | { trap - PIPE; tee -a "$log"; }
   # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
   # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
   # command to run. Stopping first would hand the gate the heartbeat's verdict.
@@ -2418,18 +2478,19 @@ run_gate() {
   gate_heartbeat_stop
   [ -z "$progress" ] || rm -f "$progress"
   rc="${rcs[0]}"
-  [ "$errexit_was_on" = 1 ] && set -e
   # A RUN A SIGNAL ENDED IS RED, whatever its command's own exit: it did not
-  # finish. From here to the seal a write may find no reader, the signal having
-  # ended the tee of a pipe this shell's output goes to, and a write to a pipe
-  # with no reader would end this shell with SIGPIPE before the seal, so SIGPIPE
-  # is ignored until the caller's handlers are put back. The signal ended this
-  # run's own tee too, so its exit says nothing of a write that failed, and the
-  # sentence below says why the log stops where it does.
+  # finish. The signal ended this run's own tee too, so its exit says nothing
+  # of a write that failed, and the sentence below says why the log stops
+  # where it does. From here to the close a write may find no reader, which
+  # SIGPIPE ignored (above) makes a failed write, and ERREXIT STAYS OFF TO THE
+  # CLOSE (issue 0360): under a caller's errexit the first such write, the
+  # verdict line's, ended the run there, with no ledger row, the caller's
+  # handlers not put back and the signal not sent on. The caller's errexit
+  # comes back as the run returns.
   if [ -n "$caught" ]; then
-    rc=$((128 + $(kill -l "$caught")))
-    said="ENDED BY SIG$caught (${label:-$suffix}): a signal stopped the run before its command finished, so its verdict is red (exit $rc)"
-    trap '' PIPE
+    closed="$(gate_signal_close "$caught" "${label:-$suffix}")"
+    rc="${closed%%$'\t'*}"
+    said="${closed#*$'\t'}"
   else
     warn_if_tee_failed "${rcs[1]:-0}" "$log"
   fi
@@ -2494,17 +2555,24 @@ run_gate() {
   write_errors_file "$rc" "$log" "$errors" "$(grammar_for "$grammar")"
   [ -z "$said" ] || seal_signal "$errors" "$said"
 
-  if [ "$purge" = 1 ]; then
-    purge_run_logs "$out_dir" "$suffix" "$log"
+  # A RUN A SIGNAL ENDED REPORTS FROM A SUBSHELL (issue 0360). The signal can
+  # have taken the readers of both streams, and each write to them then fails:
+  # bash says so on stderr, which fails too, and stdio keeps those unwritten
+  # bytes and writes them again as the shell exits, once the caller's SIGPIPE
+  # is back, so the caller died of it, 141, after a run that had closed. In a
+  # subshell the failed writes and their bytes end with it, SIGPIPE ignored
+  # there as here. Nothing the report does is read back by this shell.
+  if [ -n "$caught" ]; then
+    (run_gate_report "$purge" "$out_dir" "$suffix" "$log" "$rc" "$keep_log" "$errors" "$label")
+  else
+    run_gate_report "$purge" "$out_dir" "$suffix" "$log" "$rc" "$keep_log" "$errors" "$label"
   fi
-
-  print_run_verdict "$rc" "$keep_log" "$log" "$errors"
-  record_seal "$rc" "$label" "$errors"
   # The caller's handlers back as they were saved, with no default between: a
   # signal the caller handled takes its handler back, and only one it did not
   # goes back to the default. Then the signal this run caught is sent to this
   # process again (above).
   traps_restore "$traps_were" INT TERM HUP PIPE
+  [ "$errexit_was_on" = 0 ] || set -e
   [ -z "$caught" ] || kill -s "$caught" "$BASHPID"
   return "$rc"
 }

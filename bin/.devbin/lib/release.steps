@@ -13,11 +13,13 @@
 #   release_owned <root> <version>               the paths a release owns before derived: runs
 #   release_cargo_lock <version-file>            the Cargo.lock a stamp of a Cargo.toml brings in step (pure)
 #   release_lock_own_aside <lock>                a Cargo.lock with the crate's own version line set aside (pure)
-#   release_dirt                                 every dirty path in the working tree
+#   release_dirt [all|out|in]                    every dirty path in the working tree, or outside or under release.unread
 #   release_outside <paths> <owned>              the paths the owned set does not hold
-#   release_tree_state                           `<hash><TAB><path>` per dirty path, now
+#   release_inside <paths> <owned>               the paths the owned set holds
+#   release_unread_files                         every file under release.unread, tracked or not
+#   release_tree_state [all|out|in]              `<hash><TAB><path>` per dirty path, now
 #   release_tree_changed <before> <after>        the paths two tree states disagree on
-#   release_gates_run <gate>...                  the gates given, in place, failing one that writes or commits
+#   release_gates_run <gate>...                  the gates given, in place, failing a run the tree or HEAD moved under
 #   release_gates_verdict <sha>                  the gates' sealed verdict on <sha> on this platform
 #   release_gates_word <sha> <verdict>           the local gates' state from a verdict, the one mapping (pure)
 #   release_gates_state <sha>                    release_gates_word over a fresh read, for status and release gates
@@ -167,10 +169,10 @@ release_row() {
 # one per line, newest first. A tag matches when it is the template with an
 # X.Y.Z where `{version}` stands; `v1.2`, `v1.2.3-rc1` and another project's
 # `x-1.2.3` do not, so they can neither be the newest release nor be bumped.
+# Each tag is read back by release_tag_version, the one reading of a tag to
+# its version (issue 0371), which a tag no fill of <template> makes fails.
 release_versions() {
-  local tpl="$1" pre post tags t v versions
-  pre="${tpl%%\{version\}*}"
-  post="${tpl#*\{version\}}"
+  local tpl="$1" tags t versions
   if ! tags="$(git tag --list 2>&1)"; then
     warn "release: cannot list this repository's tags: ${tags//$'\n'/ }"
     return 1
@@ -184,10 +186,7 @@ release_versions() {
   if ! versions="$(
     while IFS= read -r t; do
       [ -n "$t" ] || continue
-      [[ "$t" == "$pre"*"$post" ]] || continue
-      v="${t#"$pre"}"
-      v="${v%"$post"}"
-      if is_semver "$v"; then printf '%s\n' "$v"; fi
+      if release_tag_version "$tpl" "$t"; then :; fi
     done <<<"$tags" | LC_ALL=C sort -t. -k1,1nr -k2,2nr -k3,3nr
   )"; then
     warn "release: cannot sort the versions named by the tags matching $tpl"
@@ -519,9 +518,17 @@ release_lock_own_aside() {
   ' "$1"
 }
 
-# release_dirt -- every dirty path in the working tree, one per line: staged,
-# modified, deleted, and untracked but not ignored, which the tree rule counts
-# as dirt too. A rename or copy is both of its paths.
+# release_dirt [all|out|in] -- every dirty path in the working tree, one per
+# line: staged, modified, deleted, and untracked but not ignored, which the
+# tree rule counts as dirt too. A rename or copy is both of its paths.
+#
+# THE SCOPE IS RELEASE_UNREAD'S (issue 0355), through unread_pathspec, the one
+# rule for a path under the list: `out` leaves the listed paths out, as each
+# check that the tree is clean or unchanged reads it, and as the commit step
+# takes its paths, so a listed path is never committed; `in` is the listed
+# paths' dirt alone, which each of those readers names; `all`, the default,
+# is the whole tree. With the list empty, `out` reads what `all` does and `in`
+# reads nothing.
 #
 # READ WITH -z, so a path holding a space or a quote is the path and not git's
 # quoting of it: the owned-set test compares these with notes_paths' spelling.
@@ -537,9 +544,18 @@ release_lock_own_aside() {
 # and release_commit's all name the one repository at the project root
 # (ST0011).
 release_dirt() {
-  local entry second=no rc=0
-  local -a entries=()
-  nul_read entries git --no-optional-locks status --porcelain=v1 -z --untracked-files=all || rc=$?
+  local scope="${1:-all}" entry second=no rc=0
+  local -a entries=() spec=()
+  case "$scope" in
+    all) ;;
+    out) unread_pathspec spec out ;;
+    in)
+      [ -n "${RELEASE_UNREAD:-}" ] || return 0
+      unread_pathspec spec in
+      ;;
+    *) die "devbin defect: release_dirt was asked for the scope '$scope', not all, out or in" ;;
+  esac
+  nul_read entries git --no-optional-locks status --porcelain=v1 -z --untracked-files=all ${spec[@]+"${spec[@]}"} || rc=$?
   for entry in ${entries[@]+"${entries[@]}"}; do
     if [ "$second" = yes ]; then
       printf '%s\n' "$entry"
@@ -554,24 +570,49 @@ release_dirt() {
 
 # release_outside <paths> <owned> -- the lines of <paths> that are not lines of
 # <owned>, each once: the tree rule, asked of the dirt and the owned set.
-# Whole lines, compared as text -- a path is owned, or it is not.
-release_outside() {
-  local p
+# release_inside <paths> <owned> -- the lines of <paths> that are, each once:
+# the owned paths among release.unread's files, which the release commit
+# would leave out (issue 0355). Whole lines, compared as text -- a path is
+# owned, or it is not -- by the one loop both ask.
+release_outside() { _release_lines_of out "$1" "$2"; }
+release_inside() { _release_lines_of in "$1" "$2"; }
+_release_lines_of() {
+  local p side
   while IFS= read -r p; do
     [ -n "$p" ] || continue
-    grep -qxF -- "$p" <<<"$2" || printf '%s\n' "$p"
-  done <<<"$1" | LC_ALL=C sort -u
+    side=out
+    ! grep -qxF -- "$p" <<<"$3" || side=in
+    [ "$side" != "$1" ] || printf '%s\n' "$p"
+  done <<<"$2" | LC_ALL=C sort -u
 }
 
-# release_tree_state -- `<hash><TAB><path>` for every dirty path, the hash of
-# its bytes now (`gone` for a path that is gone). Two states compared by
-# release_tree_changed name every path that changed between them, which is how
-# release_gates_run re-reads the tree after the gates: a path a gate modified,
-# created, deleted or cleaned. A path dirty before the gates and rewritten by
-# them is caught by its hash, where `git status` alone would read the same.
+# release_unread_files -- every file under RELEASE_UNREAD's paths, tracked, or
+# untracked and not ignored, one per line, by git's own rule (unread_pathspec):
+# what pre-flight holds against the paths a release owns (issue 0355). Read
+# with -z, as release_dirt reads, so a path is the path. Nothing when the list
+# is empty.
+release_unread_files() {
+  local e rc=0
+  local -a entries=() spec=()
+  [ -n "${RELEASE_UNREAD:-}" ] || return 0
+  unread_pathspec spec in
+  nul_read entries git ls-files --cached --others --exclude-standard -z "${spec[@]}" || rc=$?
+  for e in ${entries[@]+"${entries[@]}"}; do
+    printf '%s\n' "$e"
+  done
+  return "$rc"
+}
+
+# release_tree_state [all|out|in] -- `<hash><TAB><path>` for every dirty path
+# in release_dirt's scope, the hash of its bytes now (`gone` for a path that
+# is gone). Two states compared by release_tree_changed name every path that
+# changed between them, which is how release_gates_run re-reads the tree after
+# the gates: a path modified, created, deleted or cleaned while they ran. A
+# path dirty before the gates and rewritten under them is caught by its hash,
+# where `git status` alone would read the same.
 release_tree_state() {
   local dirt p h
-  dirt="$(release_dirt)" || return 1
+  dirt="$(release_dirt "${1:-all}")" || return 1
   while IFS= read -r p; do
     [ -n "$p" ] || continue
     if [ -e "$p" ] || [ -L "$p" ]; then
@@ -592,10 +633,27 @@ release_tree_changed() {
 
 # release_gates_run <gate>... -- the gates given, each a release.gates line, in
 # order, in place, through the project's own launcher, stopping at the first
-# that fails; then the tree and HEAD are read again, and a gate that changed or
-# created a path git does not ignore, or that made a commit, fails the run.
-# Exit 0 only when at least one gate ran, every gate passed and nothing moved
-# (ST0011).
+# that fails; then the tree and HEAD are read again, and a path git does not
+# ignore that changed or appeared while they ran, or a commit made while they
+# ran, fails the run. Exit 0 only when at least one gate ran, every gate passed
+# and nothing moved (ST0011).
+#
+# WHAT MOVED IS SAID, NOT WHO MOVED IT (issue 0355): two reads of the tree
+# cannot tell a gate's write from another session's in a checkout several
+# share, so each refusal names the paths or the commits and both causes.
+#
+# THE COMMIT THEY WERE STARTED FOR, RELEASE_GATES_AT where the caller names it
+# (gates_sealed, unexported, as RELEASE_GATES_WHY is), is checked against HEAD
+# before any gate runs (issue 0355): a commit that landed in this checkout
+# after the cut chose its release commit would have the gates examine that
+# commit instead, and the cut would find no record of its own only after the
+# whole run. So no gate runs, and the refusal names both commits.
+#
+# RELEASE_UNREAD'S PATHS, which no gate reads (issue 0355), are read apart:
+# a change there while the gates run, a peer node's board write above all, is
+# named in this run's record and never refused, and the record names the list
+# whenever it holds a path. The seal's commit lines leave them out the same
+# way (git_head_identity), so the run stands for its commit.
 #
 # THE ONE LOOP OVER THE GATES. Its callers each read release.gates once and
 # pass what they read, so this library reads no config (the rule above) and a
@@ -608,10 +666,22 @@ release_tree_changed() {
 # in a pipeline's subshell, where a row it made would be lost.
 release_gates_run() {
   local launcher="${PROJECT_ROOT:?}/bin/devbin" gate before after changed head_before head_after rc n=0
+  local ubefore="" uafter="" uchanged="" udirty=""
   local -a gw=()
   [ "$#" -gt 0 ] || { _release_gates_refuse "release.gates declares no gate, so there is nothing to run"; return 1; }
-  before="$(release_tree_state)" || { _release_gates_refuse "the tree could not be read before the gates"; return 1; }
+  before="$(release_tree_state out)" || { _release_gates_refuse "the tree could not be read before the gates"; return 1; }
   head_before="$(git rev-parse HEAD)" || { _release_gates_refuse "HEAD could not be read before the gates"; return 1; }
+  if [ -n "${RELEASE_GATES_AT:-}" ] && [ "$head_before" != "$RELEASE_GATES_AT" ]; then
+    _release_gates_refuse "HEAD is ${head_before:0:12}, not ${RELEASE_GATES_AT:0:12}, the commit these gates were started for: HEAD moved in this checkout before they ran, so no gate was run"
+    return 1
+  fi
+  if [ -n "${RELEASE_UNREAD:-}" ]; then
+    ubefore="$(release_tree_state in)" ||
+      { _release_gates_refuse "the paths release.unread names could not be read before the gates"; return 1; }
+    udirty="$(cut -f2- <<<"$ubefore")"
+    printf '\nrelease: gates: release.unread names paths no gate reads, so a change there while the gates run is named and not refused: %s%s\n' \
+      "${RELEASE_UNREAD//$'\n'/, }" "${udirty:+; dirty there as they start: ${udirty//$'\n'/, }}"
+  fi
   for gate in "$@"; do
     run_words gw release.gates "$gate" 2>/dev/null || { _release_gates_refuse "the gate '$gate' holds no words"; return 1; }
     printf '\nrelease: gate: %s %s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$gate"
@@ -620,17 +690,29 @@ release_gates_run() {
     [ "$rc" -eq 0 ] || { _release_gates_refuse "gate '$gate' failed (exit $rc)"; return 1; }
     n=$((n + 1))
   done
-  after="$(release_tree_state)" || { _release_gates_refuse "the tree could not be read after the gates"; return 1; }
+  after="$(release_tree_state out)" || { _release_gates_refuse "the tree could not be read after the gates"; return 1; }
   changed="$(release_tree_changed "$before" "$after")" ||
     { _release_gates_refuse "the tree could not be compared after the gates"; return 1; }
+  if [ -n "${RELEASE_UNREAD:-}" ]; then
+    uafter="$(release_tree_state in)" ||
+      { _release_gates_refuse "the paths release.unread names could not be read after the gates"; return 1; }
+    uchanged="$(release_tree_changed "$ubefore" "$uafter")" ||
+      { _release_gates_refuse "the paths release.unread names could not be compared after the gates"; return 1; }
+    [ -z "$uchanged" ] ||
+      printf '\nrelease: gates: changed while the gates ran, under release.unread, so named and not refused: %s\n' "${uchanged//$'\n'/, }"
+  fi
   [ -z "$changed" ] ||
-    { _release_gates_refuse "a gate changed the tree: ${changed//$'\n'/, } -- the gates examine the release commit and must not write to it"; return 1; }
-  # A GATE THAT COMMITS leaves the tree clean and HEAD somewhere else, so the
-  # tree's re-read cannot see it: HEAD is read too (found by WP-05's mutants).
+    { _release_gates_refuse "the tree changed while the gates ran: ${changed//$'\n'/, } -- by a gate, or by another session in this checkout; the gates examine the release commit, so only the paths release.unread names may change while they run"; return 1; }
+  # A COMMIT leaves the tree clean and HEAD somewhere else, so the tree's
+  # re-read cannot see it: HEAD is read too (found by WP-05's mutants).
   head_after="$(git rev-parse HEAD)" || { _release_gates_refuse "HEAD could not be read after the gates"; return 1; }
   [ "$head_after" = "$head_before" ] ||
-    { _release_gates_refuse "a gate moved HEAD from ${head_before:0:12} to ${head_after:0:12} -- the gates examine the release commit and must not commit"; return 1; }
-  printf '\nrelease: gates: %s gate(s) passed on %s, and none wrote to the tree\n' "$n" "${head_before:0:12}"
+    { _release_gates_refuse "HEAD moved from ${head_before:0:12} to ${head_after:0:12} while the gates ran -- by a gate, or by another session in this checkout; the gates examine the release commit, so nothing may commit while they run"; return 1; }
+  if [ -n "$uchanged" ]; then
+    printf '\nrelease: gates: %s gate(s) passed on %s, and the tree changed only under release.unread, which no gate reads\n' "$n" "${head_before:0:12}"
+  else
+    printf '\nrelease: gates: %s gate(s) passed on %s, and none wrote to the tree\n' "$n" "${head_before:0:12}"
+  fi
   return 0
 }
 
@@ -662,6 +744,33 @@ release_target_run() {
   DEVBIN_RELEASE_VERSION="$_rt_version" DEVBIN_RELEASE_TARGET_TAG="$_rt_tag" "$@"
 }
 
+# release_tree_target -- `<version><TAB><tag>`, the release's target as the
+# tree declares it (issue 0327): the version read_version reads and the tag
+# release.tag makes of it, which on the release commit, carrying the stamp,
+# are the cut's own pair. THE ONE DERIVATION OF THE PAIR FROM A TREE: `release
+# gates` hands it to its gates, and `release target` prints it for a workflow
+# the candidate's push starts, which a cut hands nothing (issue 0352). It reads
+# the tree and the config alone, no history and no remote, and writes nothing.
+# rc 1, with why on stdout, where the version or release.tag cannot be read:
+# the version in version_unread's words.
+release_tree_target() {
+  local unread ver tpl rc
+  if unread="$(version_unread why)"; then
+    printf 'the version cannot be read: %s -- %s\n' "$unread" "$(version_unread fix)"
+    return 1
+  fi
+  ver="$(read_version)" || {
+    rc=$?
+    printf 'the version cannot be read (exit %s)\n' "$rc"
+    return 1
+  }
+  tpl="$(cfg_release_get tag)" || {
+    printf 'release.tag cannot be read\n'
+    return 1
+  }
+  printf '%s\t%s\n' "$ver" "$(release_tag_name "$tpl" "$ver")"
+}
+
 # release_preflight_run <why-file> <command>... -- the commands given, each a
 # release.preflight line, in order, in place, through the project's own
 # launcher, with no stdin, since pre-flight asks nobody (issue 0327). EVERY ONE
@@ -670,23 +779,32 @@ release_target_run() {
 # changes or creates a path git does not ignore, or moves HEAD writes one line
 # to <why-file> for each, which the cut adds to pre-flight's own refusals. The
 # tree and HEAD are read around each command, by the readers
-# release_gates_run reads them with, so a line names the command that wrote.
-# 0 when every command ran and passed and none moved anything; 1 when a line
-# was written; 2 when <why-file> could not be written, so a refusal could be
-# lost. The library reads no config: the cut reads release.preflight once and
-# passes it, under release_target_run.
+# release_gates_run reads them with, so a line names the command that was
+# running when the tree or HEAD moved, and says that it, or another session in
+# this checkout, moved it (issue 0355): the two reads cannot tell which.
+# RELEASE_UNREAD's paths are read apart, as the gates read them: a change
+# there is named and never refused, and the list is named once before the
+# first command whenever it holds a path. 0 when every command ran and passed
+# and none moved anything; 1 when a line was written; 2 when <why-file> could
+# not be written, so a refusal could be lost. The library reads no config: the
+# cut reads release.preflight and release.unread once and passes them, the
+# first under release_target_run.
 release_preflight_run() {
   local why="$1" launcher="${PROJECT_ROOT:?}/bin/devbin" cmd before after changed head_before head_after rc n=0 lines=0
+  local ubefore uafter uchanged unread_moved=no
   local -a pw=()
   shift
   : >"$why" || return 2
+  if [ -n "${RELEASE_UNREAD:-}" ] && [ "$#" -gt 0 ]; then
+    printf '\nrelease: pre-flight: release.unread names paths no pre-flight command reads, so a change there while they run is named and not refused: %s\n' "${RELEASE_UNREAD//$'\n'/, }"
+  fi
   for cmd in "$@"; do
     if ! run_words pw release.preflight "$cmd" 2>/dev/null; then
       _release_preflight_refuse "$why" "the pre-flight command '$cmd' holds no words" || return 2
       lines=$((lines + 1))
       continue
     fi
-    if ! before="$(release_tree_state)" || ! head_before="$(git rev-parse HEAD)"; then
+    if ! before="$(release_tree_state out)" || ! head_before="$(git rev-parse HEAD)" || ! ubefore="$(release_tree_state in)"; then
       _release_preflight_refuse "$why" "the tree or HEAD could not be read before the pre-flight command '$cmd', so it was not run" || return 2
       lines=$((lines + 1))
       continue
@@ -699,21 +817,32 @@ release_preflight_run() {
       _release_preflight_refuse "$why" "the pre-flight command '$cmd' failed (exit $rc, above)" || return 2
       lines=$((lines + 1))
     fi
-    if ! after="$(release_tree_state)" || ! changed="$(release_tree_changed "$before" "$after")"; then
+    if ! after="$(release_tree_state out)" || ! changed="$(release_tree_changed "$before" "$after")"; then
       _release_preflight_refuse "$why" "the tree could not be read after the pre-flight command '$cmd', so whether it wrote to it is not known" || return 2
       lines=$((lines + 1))
     elif [ -n "$changed" ]; then
-      _release_preflight_refuse "$why" "the pre-flight command '$cmd' changed the tree: ${changed//$'\n'/, } -- pre-flight commands examine the tree and must not write to it" || return 2
+      _release_preflight_refuse "$why" "the tree changed while the pre-flight command '$cmd' ran: ${changed//$'\n'/, } -- by the command, or by another session in this checkout; pre-flight commands examine the tree, so only the paths release.unread names may change while they run" || return 2
       lines=$((lines + 1))
+    fi
+    if ! uafter="$(release_tree_state in)" || ! uchanged="$(release_tree_changed "$ubefore" "$uafter")"; then
+      _release_preflight_refuse "$why" "the paths release.unread names could not be read after the pre-flight command '$cmd'" || return 2
+      lines=$((lines + 1))
+    elif [ -n "$uchanged" ]; then
+      printf "\nrelease: pre-flight: changed while the pre-flight command '%s' ran, under release.unread, so named and not refused: %s\n" "$cmd" "${uchanged//$'\n'/, }"
+      unread_moved=yes
     fi
     if ! head_after="$(git rev-parse HEAD)"; then
       _release_preflight_refuse "$why" "HEAD could not be read after the pre-flight command '$cmd', so whether it committed is not known" || return 2
       lines=$((lines + 1))
     elif [ "$head_after" != "$head_before" ]; then
-      _release_preflight_refuse "$why" "the pre-flight command '$cmd' moved HEAD from ${head_before:0:12} to ${head_after:0:12} -- pre-flight commands must not commit" || return 2
+      _release_preflight_refuse "$why" "HEAD moved from ${head_before:0:12} to ${head_after:0:12} while the pre-flight command '$cmd' ran -- by the command, or by another session in this checkout; pre-flight commands must not commit, and nothing may commit while they run" || return 2
       lines=$((lines + 1))
     fi
   done
+  if [ "$lines" -eq 0 ] && [ "$unread_moved" = yes ]; then
+    printf '\nrelease: pre-flight: %s command(s) of release.preflight passed, and the tree changed only under release.unread, which no pre-flight command reads\n' "$n"
+    return 0
+  fi
   if [ "$lines" -eq 0 ]; then
     printf '\nrelease: pre-flight: %s command(s) of release.preflight passed, and none wrote to the tree\n' "$n"
     return 0
@@ -770,15 +899,25 @@ release_gates_state() {
 
 # release_read_clean -- the commit step's cleanliness clause over the working tree: no
 # modification and no untracked, non-ignored file (the tree rule counts both).
-# The caller asks it only while the tag is absent.
+# The caller asks it only while the tag is absent. The paths release.unread
+# names are left out of it, since the release commit never holds them, and
+# named in its detail when dirty (issue 0355).
 release_read_clean() {
-  local dirt
-  if ! dirt="$(release_dirt 2>&1)"; then
+  local dirt left
+  if ! dirt="$(release_dirt out 2>&1)"; then
     printf 'UNREADABLE\tgit status failed: %s\n' "${dirt//$'\n'/ }"
     return 0
   fi
-  if [ -z "$dirt" ]; then
+  if ! left="$(release_dirt in 2>&1)"; then
+    printf 'UNREADABLE\tgit status failed: %s\n' "${left//$'\n'/ }"
+    return 0
+  fi
+  if [ -z "$dirt" ] && [ -z "$left" ]; then
     printf 'already\tthe tree is clean\n'
+    return 0
+  fi
+  if [ -z "$dirt" ]; then
+    printf 'already\tthe tree is clean but under release.unread, which the release commit never holds: %s\n' "${left//$'\n'/, }"
     return 0
   fi
   printf 'pending\tthe tree is not clean: %s\n' "${dirt//$'\n'/, }"
@@ -843,8 +982,8 @@ release_tag_reuse_note() {
 # A FILE, NEVER A PIPE. $(...) waits for every holder of its pipe, not for git:
 # a hook's background job holds git's stderr past git's exit, and held a push
 # that had landed until its bound fired. A call killed at its bound
-# (release_run_bounded) prints none of what it said and leaves its file under
-# TMPDIR.
+# (release_run_bounded) prints none of what it said, and its file goes with the
+# TMPDIR that call was given, which release_run_bounded removes (issue 0368).
 release_git_remote() {
   local err said rc=0
   local -a urls=()
@@ -2219,11 +2358,23 @@ release_stopped_status() {
 # The core's own calls never ask -- release_git_remote turns git's prompt off
 # and runs ssh in batch mode, and gh runs with GH_PROMPT_DISABLED -- so only a
 # person's own GIT_SSH program or git hook can reach this.
+#
+# THE CALL HAS A TMPDIR OF ITS OWN (issue 0368), made under the caller's and
+# removed once the call has ended, the deadline's kill included, so what a
+# call killed at its bound left there goes with it: release_git_remote's file
+# for git's words, and any of a hook's or a query's. No caller reads a file
+# under TMPDIR once the call returns: each reads the <out> and <err> it named,
+# and a reader's scratch is its wait's (RELEASE_WAIT_DIR). Where no directory
+# can be made, the call is not made, saying why, as release_git_remote's is.
 release_run_bounded() {
-  local seconds="$1" out="$2" err="$3" fired="$3.deadline" group="$3.group" pid watchdog rc=0
+  local seconds="$1" out="$2" err="$3" fired="$3.deadline" group="$3.group" pid watchdog rc=0 call_tmp
   shift 3
+  if ! call_tmp="$(mktemp -d "${TMPDIR:-/tmp}/devbin-call.XXXXXX")"; then
+    warn "release: cannot make a directory under ${TMPDIR:-/tmp} for the call to run in, so it was not made"
+    return 1
+  fi
   rm -f "$fired"
-  release_group_start "$out" "$err" "$group" "$@"
+  TMPDIR="$call_tmp" release_group_start "$out" "$err" "$group" "$@"
   pid=$!
   (
     sleeper=""
@@ -2246,6 +2397,10 @@ release_run_bounded() {
   kill -TERM "$watchdog" 2>/dev/null || true
   wait "$watchdog" 2>/dev/null || true
   rm -f "$group"
+  # Tolerated: a call may leave a directory it cannot be read or entered in;
+  # the rm that follows is the one that must hold, and says so when it fails.
+  chmod -R u+rwX "$call_tmp" 2>/dev/null || true
+  rm -rf "$call_tmp" || warn "release: the call's directory $call_tmp could not be removed (above)"
   if [ -f "$fired" ]; then
     rm -f "$fired"
     return 124

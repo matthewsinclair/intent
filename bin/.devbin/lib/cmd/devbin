@@ -129,14 +129,36 @@ show_templates() {
 # those of the install its upgrades read. The line said "in docs/ of the devbin
 # source checkout; an install carries none", which named nothing a brew user
 # has. Where there is no place, the line says why.
+#
+# THE LIST IS WHAT THE PLACE HOLDS (issue 0358). It was written out by hand,
+# and named four of the six guides once docs/ held two more; the formula
+# installs docs/ whole, so the guides a reader can open are the ones there.
 show_guides() {
-  local docs
-  printf 'The long-form guides (authoring-commands, configuration, migration, releasing)\n'
-  if docs="$(devbin_docs_place "$PROJECT_ROOT")"; then
-    printf 'are in %s/\n' "$docs"
-  else
-    printf 'are not here: %s.\n' "$docs"
+  local docs names
+  if ! docs="$(devbin_docs_place "$PROJECT_ROOT")"; then
+    printf 'The long-form guides\nare not here: %s.\n' "$docs"
+    return 0
   fi
+  names="$(guide_names "$docs")"
+  if [ -z "$names" ]; then
+    printf 'The long-form guides\nare not here: %s/ holds none.\n' "$docs"
+    return 0
+  fi
+  printf 'The long-form guides (%s)\n' "$names"
+  printf 'are in %s/\n' "$docs"
+}
+
+# guide_names <dir> -- each guide <dir> holds, a `*.md` file by its name less
+# the extension, comma-separated in byte order. Nothing for none.
+guide_names() {
+  local f out=""
+  local LC_ALL=C
+  for f in "$1"/*.md; do
+    [ -f "$f" ] || continue
+    f="${f##*/}"
+    out+="${out:+, }${f%.md}"
+  done
+  printf '%s' "$out"
 }
 
 # show_install_overview -- the overview from a machine install (issue 0251),

@@ -117,15 +117,26 @@ infra_init_majority() {
 # The handle is the first label, which is what a person would type. Where two
 # domains share it, BOTH take their whole name with the dots dashed, rather than
 # the second gaining a suffix: a numbered handle records the order the domains
-# happened to be named in, and nothing in the profile would say so. Pure.
+# happened to be named in, and nothing in the profile would say so. Each form
+# is infra_handle_dashed's, the one infra_handle_matches_name accepts, so a
+# profile init writes draws no handle advisory (issue 0363). Pure.
 infra_init_handles() {
-  printf '%s\n' "$@" | awk '
-    NF { f = tolower($0); l = f; sub(/\..*/, "", l); gsub(/[^a-z0-9_-]/, "-", l)
-         n++; fq[n] = f; lab[n] = l; cnt[l]++ }
-    END { for (i = 1; i <= n; i++) {
-            h = lab[i]
-            if (cnt[h] > 1) { h = fq[i]; gsub(/[^a-z0-9_-]/, "-", h) }
-            printf "%s\t%s\n", h, fq[i] } }'
+  local LC_ALL=C f i h
+  local -a fqs=() labs=()
+  local -A count=()
+  for f in "$@"; do
+    [[ "$f" == *[![:space:]]* ]] || continue
+    f="${f,,}"
+    h="$(infra_handle_dashed "${f%%.*}")"
+    fqs+=("$f")
+    labs+=("$h")
+    count["k$h"]=$((${count["k$h"]:-0} + 1))
+  done
+  for i in "${!fqs[@]}"; do
+    h="${labs[$i]}"
+    [ "${count["k$h"]}" -eq 1 ] || h="$(infra_handle_dashed "${fqs[$i]}")"
+    printf '%s\t%s\n' "$h" "${fqs[$i]}"
+  done
 }
 
 # --- measure (impure) ---------------------------------------------------------

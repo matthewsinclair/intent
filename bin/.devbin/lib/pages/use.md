@@ -31,9 +31,13 @@ The link works only where `~/.local/bin` comes before Homebrew's bin on PATH. A 
 
 The switch governs login shells. A process started without the login PATH, such as an app's hook or an MCP server that names `devbin` by its bare name, may run Homebrew's devbin while the link names another tree, and nothing here can see that.
 
+## A shell that already ran devbin
+
+zsh and bash keep the path they first ran a command from until `rehash` (zsh) or `hash -r` (bash), and `use` cannot clear its caller's table. So when `use dev` or `use opt` makes the link where there was none, an open shell that already ran devbin still runs the copy it found before, and the switch ends saying so, with the remedy. When `use brew` removes the link, an open bash that already ran devbin still looks for it at the link that is gone, and the switch says that too; zsh searches again by itself. Repointing the link from one tree to another moves no path, so nothing is said, and a shell opened after the switch, or one that never ran devbin, is not affected.
+
 ## A project's own tool
 
-In a project whose `bin/.devbin/config.yaml` declares its tool in an `install:` block, `bin/devbin use [dev|opt|brew]`, run in that checkout, switches the tool's link set in `~/.local/bin` the same way: `dev` points every link at the checkout's own copy, refusing one the build has not made, `opt` at the opt install's `bin/<name>`, refusing a prefix with none and naming `bin/devbin install`, and `brew` removes every link once Homebrew's copy would answer for each. A bare `use` reports each link's tree by its line, under the link's own name, and fails a set split across trees and a link a login shell does not run. Where the tool keeps its own switch, `install.switch`, `use` refuses in that checkout, bare or with a tree, naming its command. devbin's own switch stays `devbin use`, run with the devbin on PATH.
+In a project whose `bin/.devbin/config.yaml` declares its tool in an `install:` block, `bin/devbin use [dev|opt|brew]`, run in that checkout, switches the tool's link set in `~/.local/bin` the same way: `dev` points every link at the checkout's own copy, refusing one the build has not made, `opt` at the opt install's `bin/<name>`, refusing a prefix with none and naming `bin/devbin install`, and `brew` removes every link once Homebrew's copy would answer for each. A bare `use` reports each link's tree by its line, under the link's own name, and fails a set split across trees and a link a login shell does not run. A switch that makes or removes a link ends with the same line devbin's own does, naming each such link. Where the tool keeps its own switch, `install.switch`, `use` refuses in that checkout, bare or with a tree, naming its command. devbin's own switch stays `devbin use`, run with the devbin on PATH.
 
 ## See also
 

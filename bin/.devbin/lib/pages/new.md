@@ -17,7 +17,7 @@ All of them are yours: `bin/devbin upgrade` replaces only devbin's own runtime a
 
 It refuses when `bin/.devbin/cmd/<command>` already exists, and keeps a help file or test stub that is already there. A name is lower-case letters, digits, `-` and `_`, starting with a letter; `all` is reserved, because devbin synthesises it.
 
-The test stub goes beside the first `.bats` file found under the project root, in sorted path order, and is skipped when there is none. A directory the search cannot read is named by `find`'s own error, and one it can list but not search, as at mode 0644, as `cannot search <dir> -- nothing beneath it was looked at`; `new` says a suite beneath it was not seen, and the stub still goes beside the first file found: `new` never invents a test directory, and never writes into devbin's runtime, which ships the template the stub is made from.
+The test stub goes beside the first `.bats` file found under the project root, in sorted path order, and is skipped when there is none. The search passes over every copy of devbin's runtime, `bin/.devbin/lib/`, the project's own and any other, and everything beneath a directory below the root that holds a `.git`, file or directory, so a linked worktree or a nested repository is never read as this project's suite, and `new` never writes into one. A directory the search cannot read is named by `find`'s own error, and one it can list but not search, as at mode 0644, as `cannot search <dir> -- nothing beneath it was looked at`; `new` says a suite beneath it was not seen, and the stub still goes beside the first file found: `new` never invents a test directory, and never writes into devbin's runtime, which ships the template the stub is made from.
 
 ## It exits 3 until you write it
 

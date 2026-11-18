@@ -75,9 +75,12 @@
 # timeout, and it is left on the host, to be looked at there. A run that ended
 # is cleared from the host, its worktree, log, status and ref, once its log is
 # copied back beside the pairs, and only then: a log that cannot be copied
-# keeps the run there for the next read. The bare repo is kept for the next
-# run. A run cleared with no pair kept reads unknown here from then on, from
-# its log, so a failure named once is never read later as no run at all.
+# keeps the run there for the next read. Each start clears the project's
+# ended runs at other commits the same way first, so a run no read comes back
+# for, a cut's that stopped red or one whose log could not be copied, is not
+# left there (issue 0367). The bare repo is kept for the next run. A run
+# cleared with no pair kept reads unknown here from then on, from its log, so
+# a failure named once is never read later as no run at all.
 #
 # A MECHANISM FAILURE IS unknown, naming it: an ssh that cannot reach the host,
 # a send-pack or a copy that fails, a host that could not start the run. The
@@ -362,6 +365,30 @@ _release_leg_remote_probe() {
   printf 'exited\t%s\t%s\n' "$rc" "$last"
 }
 
+# _release_leg_remote_ended <project> <sha> -- the whole commit of each run of
+# <project> here that has ended, its exit status beside it, at any commit but
+# <sha>, one per line: the runs a start clears before its own (issue 0367).
+# The runs are the bare repo's own worktrees, read from git, so a directory
+# that only looks like one is never named. A run with no status, still going
+# or killed before it wrote one, is not named, nor is the run at <sha>, the
+# start's own.
+_release_leg_remote_ended() {
+  local repo="$HOME/work/$1-leg.git" list line name=""
+  [ -d "$repo" ] || return 0
+  list="$(git -C "$repo" worktree list --porcelain)"
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) name="${line##*/}" ;;
+      "HEAD "*)
+        case "$name" in
+          "$1-leg-${2:0:12}") ;;
+          "$1-leg-"*) [ ! -e "$HOME/work/$name.rc" ] || printf '%s\n' "${line#HEAD }" ;;
+        esac
+        ;;
+    esac
+  done <<<"$list"
+}
+
 # _release_leg_remote_clear <project> <sha> -- the ended run's worktree, log,
 # status, TMPDIR and ref removed, the bare repo and the gates' cache kept; one
 # line, `cleared<TAB><path>` or `refused<TAB><why>`. --force, because the
@@ -484,6 +511,38 @@ _release_leg_finish() {
   fi
 }
 
+# _release_leg_clear_ended <root> <host> <project> <sha> <err> -- each run of
+# <project> on <host> that has ended at a commit other than <sha> finished as
+# a read finishes one (_release_leg_finish): its log copied back into
+# release_leg_dir, beside that commit's records, and only then the run cleared
+# from the host. A cut that stops red, a run at its deadline and a log that
+# could not be copied back each leave an ended run that no read of its commit
+# may come back for, so the next start on the host clears it (issue 0367). A
+# run with no status, going or killed, and the run at <sha> are left as they
+# stand. A failure is warned of, naming it, and the start goes on: a run left
+# on a host never holds a cut up.
+_release_leg_clear_ended() {
+  local root="$1" host="$2" project="$3" sha="$4" err="$5" out rc=0 ended dir
+  out="$(release_leg_remote "$host" _release_leg_remote_ended "$project" "$sha" 2>"$err")" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    warn "release: the ended runs of $project on $host could not be listed, so none was cleared: $(head -n 1 "$err")"
+    return 0
+  fi
+  [ -n "$out" ] || return 0
+  dir="$(release_leg_dir "$root" "$host")"
+  if ! mkdir -p "$dir" 2>"$err"; then
+    warn "release: $dir could not be made, so no ended run of $project on $host was cleared: $(head -n 1 "$err")"
+    return 0
+  fi
+  while IFS= read -r ended; do
+    if is_commit_sha "$ended" full; then
+      _release_leg_finish "$host" "$project" "$ended" "$dir" "$err"
+    else
+      warn "release: $host named '$ended' as an ended run of $project, which is no whole commit, so it was left there"
+    fi
+  done <<<"$out"
+}
+
 # release_leg_start <root> <host> <project> <sha> [<tag>] [<bound>] -- the
 # bare repo on <host> made when missing, R sent into it by git send-pack, and
 # the project's gates started there at R, detached. <tag>, where given, is the
@@ -492,7 +551,9 @@ _release_leg_finish() {
 # release finds it in a fresh bare repo with no step by hand; forced, since the
 # host's copy of a tag is only ever this machine's. <bound>, where given, is
 # the size in KiB the host's gate cache is held to before the gates start
-# (gate_cache_bound), the loop's reading of release.gate_cache.max. `pending`
+# (gate_cache_bound), the loop's reading of release.gate_cache.max. Before
+# its own run, the start clears the project's ended runs at other commits from
+# the host (_release_leg_clear_ended). `pending`
 # once they are started, with where they log; `unknown`, naming it, when any
 # of the three could not be done.
 release_leg_start() {
@@ -529,6 +590,7 @@ release_leg_start() {
     rm -rf "$scratch"
     return 0
   fi
+  _release_leg_clear_ended "$root" "$host" "$project" "$sha" "$scratch/err"
   rc=0
   # Through git_remote, the one runner of a call that reaches a remote, with
   # the leg's own ssh options as its command: it appends BatchMode, shuts git's

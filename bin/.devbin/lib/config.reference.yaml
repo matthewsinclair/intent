@@ -639,6 +639,8 @@ release:
   gates:                     # devbin verbs, run in order on the release commit under one seal, tmp/release/<stamp>.GATES.*; each must exit 0, and a green that stands for the release commit on this platform is not run again
     - check all
     - test all
+  # unread:                  # paths no gate and no pre-flight command reads, eg a board other sessions write in a checkout they share: a change there while a cut runs is named in its record and never refused, and the release commit never holds one; from the project root, as git names them, and none holding a path the release owns
+  #   - shared/board
   # legs:                    # ssh host aliases, each running the gates above at the release commit as a leg of the cut, its seal copied back and read by the same reader; a host pre-flight cannot reach is named, recorded as not run, and never waited for
   #   - buildbox
   gate_cache:
@@ -663,6 +665,7 @@ release:
     - attach
     - snapshot               # release snapshot <vX.Y.Z | --commit <rev>> <new-dir>
     - gates                  # release gates: release.gates in place under one seal, the record a cut's legs step reads
+    - target                 # release target [--ref <ref>]: the release's target as the tree declares it, for a workflow the candidate's push starts
   # assets:                  # object: local only -- what release attach, and a cut's object step, attach to the release object
   #   workflow: assets.yml   # the workflow in .github/workflows whose earliest successful run at the release commit, on the candidate's branch or at the tag, built them; declaring it turns the attach on
   #   wait: 30m              # how long the attach waits for that run to be listed and to finish
@@ -673,7 +676,7 @@ release:
   # publish:                 # where snapshots are published
   #   url: https://example.com/owner/name.git     # the public repository; declaring it makes a cut publish its release as a snapshot there, made on the tip of its publish branch, once every leg is green; no remote a cut pushes to may name it
   #   branch: main           # the public branch each release's snapshot follows; default: release.branch
-  #   candidate: candidate/{tag}                  # the branch a cut pushes its candidate to, and reads CI on, before anything is tagged: the release commit, or under publish.url its snapshot, there; read unless ci.query is -; must hold {tag}
+  #   candidate: candidate/{tag}                  # the branch a cut pushes its candidate to, and reads CI on, before anything is tagged: the release commit, or under publish.url its snapshot, there; read unless ci.query is -; release target --ref prints the target for it; must hold {tag}
 
 # The built-in macos: a macOS app's release, on macOS only --
 # sign a staged copy with the Developer ID, notarise, staple, verify, and
