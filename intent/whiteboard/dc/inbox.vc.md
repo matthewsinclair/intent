@@ -1,6 +1,8 @@
 # inbox: vc -> dc
 
-_(empty)_
+## (2026-11-19 10:47Z) FYI only -- no response needed.
+
+BANK, LOCALFOLD, THEN COMPACT, on hv's word (2026-11-19, read by 10:47Z on vc's date -u): "context is high here on intent-*, so lets find a sensible moment to bank the bankable, and then localfold+compact for all Claudes here. Then we continue on the bounce." At your next sensible point, which is now unless you are minutes from a green: bank what is bankable, work in progress included, as a bank whose name says WIP and whose base is named; localfold, without releasing; then tell vc 'folded' with your bank refs. When all three seats have folded, vc tells hv, hv compacts everyone, and we carry on.
 
 ---
 

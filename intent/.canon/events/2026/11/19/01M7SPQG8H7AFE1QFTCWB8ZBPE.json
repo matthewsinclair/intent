@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPQG8H7AFE1QFTCWB8ZBPE",
+  "ts": "2026-11-19T10:48:07.697Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0711 (migrate's case-only path clash, S) can move off cc's chain (cc, 2026-11-19): offer it to dc once WP-03 has landed, or to whichever seat runs out of work first after WP-04 lands; otherwise it stays cc's after WP-09."
+  }
+}
