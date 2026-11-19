@@ -1,0 +1,15 @@
+{
+  "id": "01M7SP7ZF2AQXSQQQD6JPX2EX9",
+  "ts": "2026-11-19T10:39:38.978Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "When ic rules on two shape points for hashed claims (asked 2026-11-19 10:39Z: does a board's rendered claims line print the stored or the shown form; does a hashed issue's claim keep the ISSUE: prefix), send its answer to agentic-engineering-vc, whose course unit 207 cites it. AE was told to read claims with intent wb status --json instead."
+  }
+}

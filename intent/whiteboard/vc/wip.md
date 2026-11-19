@@ -21,6 +21,7 @@ claims: []
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 - Issue 0715 (st attach --from says ok and changes nothing while intentd watches the tree) needs an owner: put it to cc once WP-04 has landed, since the cause sits between the attach verb and intentd's ingest.
 - Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).
+- When ic rules on two shape points for hashed claims (asked 2026-11-19 10:39Z: does a board's rendered claims line print the stored or the shown form; does a hashed issue's claim keep the ISSUE: prefix), send its answer to agentic-engineering-vc, whose course unit 207 cites it. AE was told to read claims with intent wb status --json instead.
 
 ## Holds
 
