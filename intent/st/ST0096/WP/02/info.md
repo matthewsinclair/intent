@@ -20,6 +20,7 @@ Seat: ic, with cc on what `intent upgrade` means. Size: M. Lands after nothing; 
 - **The set of generated aggregate views is declared once**, and init, upgrade, doctor and the commit gate (WP-03) read it.
 - **doctor names a project whose lists are still tracked**, with `intent upgrade` as the fix, as an advisory that is not counted, as cc's meaning for a project in today's format says (design.md).
 - **The verbs and `intent sync` keep rendering both lists on disk**, so `intent st list`, `intent todo` and a person reading the files see what they see today.
+- From the Highlander sweep (vc decision 133, report A at `refs/bank/vc/st0095/highlander-A-intentsvcs-20261119`): `todo_update` writes `todo.md` by a second route (`facade.rs:13394`, `13479`). One writer, with cc.
 
 ## Out of scope
 

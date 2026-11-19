@@ -1,0 +1,15 @@
+{
+  "id": "01M7SN8ER66SHXPFHTQ7DKZH13",
+  "ts": "2026-11-19T10:22:26.058Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0713"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Four doors read an id raw instead of through the thread door, so events --subject 94 finds nothing where ST0094 finds its events"
+  }
+}
