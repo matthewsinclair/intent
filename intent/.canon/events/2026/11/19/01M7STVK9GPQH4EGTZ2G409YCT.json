@@ -1,0 +1,15 @@
+{
+  "id": "01M7STVK9GPQH4EGTZ2G409YCT",
+  "ts": "2026-11-19T12:00:17.406Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095 WP-14 (vc, 11:59Z, from cc; next after 0711; claim when starting): kind tags and a path's owner, each in one home. AC-14.1: one enum for the id families, with one wire spelling per surface (issue 0708), extending id.rs's IdKind. AC-14.2: one owner-of-a-path function for plan.rs, sync.rs, project.rs's classify and search, with no st_prefix key. One exchange of meaning with cc for each half. It lands before or after cc's WP-05+06 unit, never inside it; land it first if possible, since cc adds Form's hashed variant to id.rs in that unit."
+  }
+}

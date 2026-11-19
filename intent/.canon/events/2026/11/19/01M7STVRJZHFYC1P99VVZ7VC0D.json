@@ -1,0 +1,15 @@
+{
+  "id": "01M7STVRJZHFYC1P99VVZ7VC0D",
+  "ts": "2026-11-19T12:00:21.599Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0715 (vc, 11:59Z, from cc; after WP-14; claim when starting). cc's meaning, in substance: st attach --from over an existing attachment replaces it in the store, in the canon and, when the thread is realised, in the realised file, all in the one verb, and prints ok only when all three stood. The realised file is the authoring surface, so it is written FIRST: a watching daemon that ingests it in between takes in the new bytes, and the store write that follows agrees. If the realised file already holds bytes the store does not (an unsynced hand edit), the verb refuses before writing anything, naming intent sync --to-store <ID> and editing the file directly. If the store write fails after the file was written, the file's old bytes go back, so a refusal never leaves the file ahead of the store. The code is facade.rs's put_attachment and place_attachment; the CLI wording is ic's."
+  }
+}
