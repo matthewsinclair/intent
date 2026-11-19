@@ -36,7 +36,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 ### WP-04 -- The waist: one module owns an id (status: WIP)
 
 - AC-04.1 (non-test) A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one. -- satisfied: no
-- AC-04.2 The change is behaviour-neutral: an existing project's canon, views and output are byte-for-byte what they were, and intent sync plans nothing. -- satisfied: no (computed)
+- AC-04.2 An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof. -- satisfied: no (computed)
 - AC-04.3 (non-test) intentsvcs::id is registered in intent/llm/MODULES.md before the file exists. -- evidence: fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main -- satisfied: yes
 
 ### WP-05 -- The merge knows both families (status: Not Started)
@@ -98,6 +98,11 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-13.2 (non-test) The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven. -- satisfied: no
 - AC-13.3 (non-test) The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered. -- satisfied: no
 
+### WP-14 -- Kind tags and the owner of a path have one home (status: Not Started)
+
+- AC-14.1 One enum names the id families, with one wire spelling for each surface, and intent search --kind wp finds a work package's prose (issue 0708). -- satisfied: no (computed)
+- AC-14.2 One function answers which thread or issue owns a path, every caller asks it, and the project config carries no st_prefix key. -- satisfied: no (computed)
+
 ## Acceptance Tests
 
 ### ST-level
@@ -153,6 +158,10 @@ _(no tests in this group)_
 _(no tests in this group)_
 
 ### WP-13 -- Docs, skills, rules and templates teach the new ids (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-14 -- Kind tags and the owner of a path have one home (status: Not Started)
 
 _(no tests in this group)_
 

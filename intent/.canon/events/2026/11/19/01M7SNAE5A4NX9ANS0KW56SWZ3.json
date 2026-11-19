@@ -1,0 +1,14 @@
+{
+  "id": "01M7SNAE5A4NX9ANS0KW56SWZ3",
+  "ts": "2026-11-19T10:23:30.990Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-04.2"
+  },
+  "payload": {
+    "text": "An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof."
+  }
+}

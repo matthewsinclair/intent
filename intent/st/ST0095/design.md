@@ -224,6 +224,7 @@ Each is one seat's, with its size, what it lands after, and its criteria in `acc
 | 11  | The TUI, the app and the served page                       | ic   | M    | 10          |
 | 12  | The pipeline asks the waist; the drill; the fleet          | dc   | M    | 03, 10      |
 | 13  | Docs, skills, rules and templates teach the new ids        | ic   | L    | this review |
+| 14  | Kind tags and the owner of a path have one home            | cc   | S    | 04          |
 
 Packages 01 to 04 are behaviour-neutral: they land green on today's ordinals, and after them the scheme touches only the waist and the few tests whose subject is the scheme. Package 05's `classify` change and package 06's mint land as one unit.
 
