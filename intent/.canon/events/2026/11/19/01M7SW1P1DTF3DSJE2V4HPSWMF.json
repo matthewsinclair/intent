@@ -1,0 +1,15 @@
+{
+  "id": "01M7SW1P1DTF3DSJE2V4HPSWMF",
+  "ts": "2026-11-19T12:21:04.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Put to hv after the 13:00Z compact (ic's note with issue 0717, 12:19Z): intent doctor is declared read in the register, yet by default it creates a missing store and migrates an older one, one way. Either re-declare it as a write, or make it never write by default (option 3 of 0717, a change of behaviour). Every fix found rides this release (hv decision 69), so the call is which fix. vc to frame both with ic's and cc's views before putting it."
+  }
+}

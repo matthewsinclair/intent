@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "31169586-8a4c-469f-a9f3-0c18e36af09b",
-    "heartbeat_at": "2026-11-19T12:07:48.944Z",
+    "heartbeat_at": "2026-11-19T12:21:03.179Z",
     "status": "active",
     "focus": "2026-11-19 10:47Z by date -u: localfold before hv's compact of every seat, not released. Waiting for cc, ic and dc to report folded; then hv compacts all, and vc lands the next proof (WP-03, WP-04) on the bounce.",
     "claims": [],
@@ -3016,6 +3016,14 @@
       "state": "archived",
       "archived_at": "2026-11-19T11:42:11.114Z",
       "recorded_at": "2026-11-19T11:34:23.891Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 90,
+      "text": "Put to hv after the 13:00Z compact (ic's note with issue 0717, 12:19Z): intent doctor is declared read in the register, yet by default it creates a missing store and migrates an older one, one way. Either re-declare it as a write, or make it never write by default (option 3 of 0717, a change of behaviour). Every fix found rides this release (hv decision 69), so the call is which fix. vc to frame both with ic's and cc's views before putting it.",
+      "state": "live",
+      "recorded_at": "2026-11-19T12:21:04.173Z"
     }
   ],
   "sent": [
@@ -5244,6 +5252,11 @@
       "id": "01M7SV3ZF762VR586ZF4NH9T3E",
       "sender": "cc",
       "handled_at": "2026-11-19T12:07:43.352Z"
+    },
+    {
+      "id": "01M7SVYHGQKA77ZRYX5VSZN39G",
+      "sender": "ic",
+      "handled_at": "2026-11-19T12:21:05.149Z"
     }
   ]
 }

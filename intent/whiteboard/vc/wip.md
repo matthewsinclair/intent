@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 31169586-8a4c-469f-a9f3-0c18e36af09b
-heartbeat_at: 2026-11-19 12:07Z
+heartbeat_at: 2026-11-19 12:21Z
 status: active
 focus: "2026-11-19 10:47Z by date -u: localfold before hv's compact of every seat, not released. Waiting for cc, ic and dc to report folded; then hv compacts all, and vc lands the next proof (WP-03, WP-04) on the bounce."
 claims: []
@@ -20,6 +20,7 @@ claims: []
 
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 - Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).
+- Put to hv after the 13:00Z compact (ic's note with issue 0717, 12:19Z): intent doctor is declared read in the register, yet by default it creates a missing store and migrates an older one, one way. Either re-declare it as a write, or make it never write by default (option 3 of 0717, a change of behaviour). Every fix found rides this release (hv decision 69), so the call is which fix. vc to frame both with ic's and cc's views before putting it.
 
 ## Holds
 
