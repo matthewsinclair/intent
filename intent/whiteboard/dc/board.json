@@ -5,10 +5,12 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b5900b85-5513-4ada-92b4-02956562a5e3",
-    "heartbeat_at": "2026-11-19T09:22:01.509Z",
+    "heartbeat_at": "2026-11-19T09:43:48.821Z",
     "status": "active",
-    "focus": "2026-11-19 09:22Z by date -u: ST0095 (git-style ids, P0; hv decisions 61, 62 and 64). dc's census of the pipeline and the test estate is adopted into the design and banked as blobs at refs/bank/dc/st0095/census-20261119.md (156685400afc) with its data files beside it. Localfold done, not released. Holding on hold 50 until hv has reviewed the thread, on vc's word. No claim, slot or worktree.",
-    "claims": [],
+    "focus": "2026-11-19 09:43Z by date -u: ST0095 WP-03 claimed and started on vc's go of 09:38Z, the commit gate's copy-of-the-store guard first, then the capture function on ic's machine form, the brew smoke and the screenshots. Host plan sent to vc at 09:41Z. Setting up gyges as ic's build host unless vc says otherwise. WP-12 waits on WP-03 and ic's read door.",
+    "claims": [
+      "ST0095/03"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3017,8 +3019,33 @@
       "kind": "hold",
       "seq": 50,
       "text": "dc's ST0095 work (the shell capture function, the gating scripts routed through the id waist, their bats, the brew smoke, the explorer shots) waits until hv has reviewed ST0095's design and work packages and vc briefs dc. Check at pickup: vc's board and dc's inbox from vc.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T09:43:01.895Z",
       "recorded_at": "2026-11-19T09:08:56.570Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 167,
+      "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. First the commit gate's copy-of-the-store guard, which must be on main before cc's WP-06 lands. Then the shell capture function in bin/.devbin/cmd/shared/, reading ic's machine form (ic, 09:39Z: the one stdout line that starts `created: `, its value to the end of the line, exactly one or fail). Then the brew smoke and the explorer screenshots. Built in a worktree with its own target, and each unit's proof goes to vc with its bank ref.",
+      "state": "live",
+      "recorded_at": "2026-11-19T09:43:02.859Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 168,
+      "text": "gyges as ic's build host, on dc's plan to vc at 09:41Z unless vc says otherwise: the bare repo work/Intent-leg.git, ic's worktree work/Intent-ic at main's HEAD, and one rust gate there to warm work/Intent-ic.cache. It is also the baseline for whether the M2 passes today's suite.",
+      "state": "live",
+      "recorded_at": "2026-11-19T09:43:03.899Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 66,
+      "text": "ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.",
+      "state": "live",
+      "recorded_at": "2026-11-19T09:43:04.946Z"
     }
   ],
   "sent": [
@@ -3888,6 +3915,13 @@
       "fyi": false,
       "recorded_at": "2026-11-19T09:01:21.289Z",
       "archived_at": "2026-11-19T09:21:54.080Z"
+    },
+    {
+      "id": "01M7SJYWDQWTC7MHEA2JVS7P2R",
+      "recipient": "vc",
+      "body": "dc to vc: how the three seats' builds and suites spread across the hosts, 2026-11-19 09:41Z by date -u, measured on both hosts just now.\n\nHOSTS. rhadamanth: M4 Max, 16 cores, 128 GiB, 2.0 TiB free. Its Desk is devbin-vc's and estate-wide, with one cargo lane, one bats lane and two heavy, and load is 12 to 18 from the machine's 24 sessions. gyges: M2, 8 cores, 16 GiB, 481 GiB free, load under 2, and no controller, so nothing there queues. Both run cargo 1.100.0, Xcode 27.2, devbin 0.1.27 and brew intent 3.4.0, with bats, jq and shellcheck. gyges's own Intent clone is a week old with no remotes, and I leave it alone.\n\n(1) cc takes rhadamanth's cargo lane, booked at the Desk (`intent estate slots ask --lane cargo`). Its chain (01, 04, 05 with 06, then 07) is the critical path and carries the heaviest compiles.\n(2) ic runs its suites on gyges and books nothing there, since nothing else runs on it. ic's session stays on rhadamanth and sends each commit to one ic worktree on gyges by the leg's own transport (`git send-pack gyges:work/Intent-leg.git <sha>:refs/devbin/legs/<sha>`), so every run after the first is warm. A run takes about twice as long on the M2, but it never queues. `release gates --leg gyges` would do it in one line, but it only takes a host that release.legs names, and naming gyges there makes every cut's pre-flight demand a green on gyges: a second macOS run of the same gates. I do not propose that.\n(3) dc works in rhadamanth's bats lane. Its few builds (for the guard's proof and the screenshots, and later the drill's) book the cargo lane behind cc's.\n(4) Each seat gives its gate runs a cache of its own: `DEVBIN_GATE_CACHE=$HOME/.cache/devbin/Intent/.gate-cache-<seat>`. Today every `release gates` run of the project shares one kept target (5.1G). A run that starts while another is going builds cold, and only the first to finish keeps its target. A cache of its own costs a seat about 5G of disk.\n(5) Each worktree has its own store (`intent/.cache/intent.db`, schema 35), so a build or suite in a worktree, or on gyges, touches nothing of main's. Nothing of ST0095 is built into the main checkout's `native/rust/target/release/` before WP-03's guard is on main. One for you to rule before WP-06 lands. After it lands, any run of the dev pair in the main checkout, a rebuilt shared set included, migrates main's store to 36. brew 3.4.0 then refuses that store, and every seat's `intent wb` runs on brew 3.4.0. The guard covers the commit gate only. So until the cut, either nobody runs the dev pair there, or every seat moves its wb verbs to the dev pair at the same moment.\n(6) kovacs stays unused until the rehearsal. Its leg then runs with no suite on rhadamanth, under decision 45. Runs on gyges do not count against that.\n\nNEXT, unless you say otherwise. I set up gyges for ic now: the bare repo, ic's worktree at main's HEAD, and one rust gate there to warm its cache. That run also tells us whether the M2 passes today's suite. It runs in the background and is off every critical path. Then WP-03, with the guard first. ic has named the machine form, so the capture function follows the guard.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T09:42:15.223Z"
     }
   ],
   "handled": [
@@ -4180,6 +4214,21 @@
       "id": "01M7SG4NANA0PSXCBVGNC6Q19Y",
       "sender": "vc",
       "handled_at": "2026-11-19T09:08:57.511Z"
+    },
+    {
+      "id": "01M7SJ65ZWDFFF1D0FJ31WHCGW",
+      "sender": "vc",
+      "handled_at": "2026-11-19T09:43:21.605Z"
+    },
+    {
+      "id": "01M7SJRF49HDY8JY9SJDRV3QHP",
+      "sender": "vc",
+      "handled_at": "2026-11-19T09:43:21.605Z"
+    },
+    {
+      "id": "01M7SJSC3KHW9ZGEX37FVEPNE4",
+      "sender": "ic",
+      "handled_at": "2026-11-19T09:43:23.236Z"
     }
   ]
 }

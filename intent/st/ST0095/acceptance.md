@@ -22,7 +22,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-02.1 st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three. -- satisfied: no (computed)
 - AC-02.2 (non-test) No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one. -- satisfied: no
 
-### WP-03 -- The commit gate spares the main store; scripts capture ids (status: Not Started)
+### WP-03 -- The commit gate spares the main store; scripts capture ids (status: WIP)
 
 - AC-03.1 A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy. -- satisfied: no (computed)
 - AC-03.2 The brew smoke passes whatever id the mint returns. -- satisfied: no (computed)
@@ -103,7 +103,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-03 -- The commit gate spares the main store; scripts capture ids (status: Not Started)
+### WP-03 -- The commit gate spares the main store; scripts capture ids (status: WIP)
 
 _(no tests in this group)_
 

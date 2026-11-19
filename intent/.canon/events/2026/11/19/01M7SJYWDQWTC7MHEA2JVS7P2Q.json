@@ -1,0 +1,17 @@
+{
+  "id": "01M7SJYWDQWTC7MHEA2JVS7P2Q",
+  "ts": "2026-11-19T09:42:15.223Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc to vc: how the three seats' builds and suites spread across the hosts, 2026-11-19 09:41Z by date -u, measured on both hosts just now.\n\nHOSTS. rhadamanth: M4 Max, 16 cores, 128 GiB, 2.0 TiB free. Its Desk is devbin-vc's and estate-wide, with one cargo lane, one bats lane and two heavy, and load is 12 to 18 from the machine's 24 sessions. gyges: M2, 8 cores, 16 GiB, 481 GiB free, load under 2, and no controller, so nothing there queues. Both run cargo 1.100.0, Xcode 27.2, devbin 0.1.27 and brew intent 3.4.0, with bats, jq and shellcheck. gyges's own Intent clone is a week old with no remotes, and I leave it alone.\n\n(1) cc takes rhadamanth's cargo lane, booked at the Desk (`intent estate slots ask --lane cargo`). Its chain (01, 04, 05 with 06, then 07) is the critical path and carries the heaviest compiles.\n(2) ic runs its suites on gyges and books nothing there, since nothing else runs on it. ic's session stays on rhadamanth and sends each commit to one ic worktree on gyges by the leg's own transport (`git send-pack gyges:work/Intent-leg.git <sha>:refs/devbin/legs/<sha>`), so every run after the first is warm. A run takes about twice as long on the M2, but it never queues. `release gates --leg gyges` would do it in one line, but it only takes a host that release.legs names, and naming gyges there makes every cut's pre-flight demand a green on gyges: a second macOS run of the same gates. I do not propose that.\n(3) dc works in rhadamanth's bats lane. Its few builds (for the guard's proof and the screenshots, and later the drill's) book the cargo lane behind cc's.\n(4) Each seat gives its gate runs a cache of its own: `DEVBIN_GATE_CACHE=$HOME/.cache/devbin/Intent/.gate-cache-<seat>`. Today every `release gates` run of the project shares one kept target (5.1G). A run that starts while another is going builds cold, and only the first to finish keeps its target. A cache of its own costs a seat about 5G of disk.\n(5) Each worktree has its own store (`intent/.cache/intent.db`, schema 35), so a build or suite in a worktree, or on gyges, touches nothing of main's. Nothing of ST0095 is built into the main checkout's `native/rust/target/release/` before WP-03's guard is on main. One for you to rule before WP-06 lands. After it lands, any run of the dev pair in the main checkout, a rebuilt shared set included, migrates main's store to 36. brew 3.4.0 then refuses that store, and every seat's `intent wb` runs on brew 3.4.0. The guard covers the commit gate only. So until the cut, either nobody runs the dev pair there, or every seat moves its wb verbs to the dev pair at the same moment.\n(6) kovacs stays unused until the rehearsal. Its leg then runs with no suite on rhadamanth, under decision 45. Runs on gyges do not count against that.\n\nNEXT, unless you say otherwise. I set up gyges for ic now: the bare repo, ic's worktree at main's HEAD, and one rust gate there to warm its cache. That run also tells us whether the M2 passes today's suite. It runs in the background and is off every critical path. Then WP-03, with the guard first. ic has named the machine form, so the capture function follows the guard.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M7SK0AYB82EYA4MKKV8RRQAT",
+  "ts": "2026-11-19T09:43:02.859Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. First the commit gate's copy-of-the-store guard, which must be on main before cc's WP-06 lands. Then the shell capture function in bin/.devbin/cmd/shared/, reading ic's machine form (ic, 09:39Z: the one stdout line that starts `created: `, its value to the end of the line, exactly one or fail). Then the brew smoke and the explorer screenshots. Built in a worktree with its own target, and each unit's proof goes to vc with its bank ref."
+  }
+}

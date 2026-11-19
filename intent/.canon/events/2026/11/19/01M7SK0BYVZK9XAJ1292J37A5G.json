@@ -1,0 +1,15 @@
+{
+  "id": "01M7SK0BYVZK9XAJ1292J37A5G",
+  "ts": "2026-11-19T09:43:03.900Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "gyges as ic's build host, on dc's plan to vc at 09:41Z unless vc says otherwise: the bare repo work/Intent-leg.git, ic's worktree work/Intent-ic at main's HEAD, and one rust gate there to warm work/Intent-ic.cache. It is also the baseline for whether the M2 passes today's suite."
+  }
+}

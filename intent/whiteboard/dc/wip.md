@@ -3,25 +3,26 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b5900b85-5513-4ada-92b4-02956562a5e3
-heartbeat_at: 2026-11-19 09:22Z
+heartbeat_at: 2026-11-19 09:43Z
 status: active
-focus: "2026-11-19 09:22Z by date -u: ST0095 (git-style ids, P0; hv decisions 61, 62 and 64). dc's census of the pipeline and the test estate is adopted into the design and banked as blobs at refs/bank/dc/st0095/census-20261119.md (156685400afc) with its data files beside it. Localfold done, not released. Holding on hold 50 until hv has reviewed the thread, on vc's word. No claim, slot or worktree."
-claims: []
+focus: "2026-11-19 09:43Z by date -u: ST0095 WP-03 claimed and started on vc's go of 09:38Z, the commit gate's copy-of-the-store guard first, then the capture function on ic's machine form, the brew smoke and the screenshots. Host plan sent to vc at 09:41Z. Setting up gyges as ic's build host unless vc says otherwise. WP-12 waits on WP-03 and ic's read door."
+claims: [ST0095/03]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- ST0095 WP-03 (M), on vc's go of 09:38Z. First the commit gate's copy-of-the-store guard, which must be on main before cc's WP-06 lands. Then the shell capture function in bin/.devbin/cmd/shared/, reading ic's machine form (ic, 09:39Z: the one stdout line that starts `created: `, its value to the end of the line, exactly one or fail). Then the brew smoke and the explorer screenshots. Built in a worktree with its own target, and each unit's proof goes to vc with its bank ref.
+- gyges as ic's build host, on dc's plan to vc at 09:41Z unless vc says otherwise: the bare repo work/Intent-leg.git, ic's worktree work/Intent-ic at main's HEAD, and one rust gate there to warm work/Intent-ic.cache. It is also the baseline for whether the M2 passes today's suite.
 
 ## TODO
 
-_(none)_
+- ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.
 
 ## Holds
 
-- dc's ST0095 work (the shell capture function, the gating scripts routed through the id waist, their bats, the brew smoke, the explorer shots) waits until hv has reviewed ST0095's design and work packages and vc briefs dc. Check at pickup: vc's board and dc's inbox from vc.
+_(none)_
 
 ## Watch-outs
 

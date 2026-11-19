@@ -25,7 +25,7 @@ _(none)_
 - [?] ST0095: Git-style ids: threads, work packages and issues unique by construction
   - [-] 01: Core tests take ids from the mint
   - [-] 02: The mint verbs say their id, and CLI tests read it
-  - [ ] 03: The commit gate spares the main store; scripts capture ids
+  - [-] 03: The commit gate spares the main store; scripts capture ids
   - [ ] 04: The waist: one module owns an id
   - [ ] 05: The merge knows both families
   - [ ] 06: The hashed family
