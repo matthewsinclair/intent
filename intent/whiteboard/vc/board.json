@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "31169586-8a4c-469f-a9f3-0c18e36af09b",
-    "heartbeat_at": "2026-11-19T08:55:09.312Z",
+    "heartbeat_at": "2026-11-19T09:04:54.337Z",
     "status": "active",
-    "focus": "2026-11-19 08:29Z by date -u: on hv's ask, considering how thread, work package and issue numbers are minted across branches, worktrees and users. Waiting on agentic-engineering-vc's context before the full consideration. No other Intent seat is live.",
+    "focus": "2026-11-19 09:04Z by date -u: writing ST0095 (git-style ids, hv decisions 61 and 62, P0). Draft design attached; waiting on cc's, ic's and dc's census to write the work packages; then hv's review, before any code.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2935,9 +2935,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 62,
-      "text": "Numbering under branches, worktrees and several users (hv, 2026-11-19, first-hand in vc's session): hv asked vc to consider how thread, work package and issue numbers are minted when one repository has open branches, worktrees and more than one user, and said it will not be an isolated incident. Trigger: merge request 8 on an attendee's practice repository, where each new thread minted from main reused a number an open merge request already held, and an issue number collided the same way; each was repaired with st renumber or issues renumber. Read so far: a number is the highest plus one over the checked-out branch's canon (facade.rs next_thread_id, next_issue_number and wp_new), the store follows the checkout, and ST0078's design of 2026-09-18 rejected a change to the minting scheme and made renumber the repair. The full consideration waits on agentic-engineering-vc's context, on hv's word.",
+      "text": "ST0095, git-style ids (hv decisions 61 and 62, P0): vc writes the design and the work packages for hv's review, before any code. Done so far: the incident reproduced on brew 3.4.0 in a scratch repository; the draft design attached (intent/st/ST0095/design.md); issues 0704 to 0707 filed for four defects found beside it; cc, ic and dc briefed for a read-only census each in its remit. Next: fold the three censuses into the design, write the work packages and their criteria, then put the thread to hv. agentic-engineering-vc has the measured merge procedure for the attendee's open merge requests, and waits for the id form hv ratifies.",
       "state": "live",
-      "recorded_at": "2026-11-19T08:29:35.862Z"
+      "recorded_at": "2026-11-19T08:29:35.862Z",
+      "edited_at": "2026-11-19T09:04:53.281Z"
     }
   ],
   "sent": [

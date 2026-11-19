@@ -1,0 +1,16 @@
+{
+  "id": "01M7SGTF11R6E72RV4C0A6K6T1",
+  "ts": "2026-11-19T09:04:53.281Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 and 62, P0): vc writes the design and the work packages for hv's review, before any code. Done so far: the incident reproduced on brew 3.4.0 in a scratch repository; the draft design attached (intent/st/ST0095/design.md); issues 0704 to 0707 filed for four defects found beside it; cc, ic and dc briefed for a read-only census each in its remit. Next: fold the three censuses into the design, write the work packages and their criteria, then put the thread to hv. agentic-engineering-vc has the measured merge procedure for the attendee's open merge requests, and waits for the id form hv ratifies."
+  }
+}
