@@ -2,10 +2,10 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 9a1d4433-63f8-43d8-bc0c-a9203b680a00
-heartbeat_at: 2026-11-17 19:20Z
-status: paused
-focus: "2026-11-17 16:59Z by date -u: 3.4.0 is out (brew reads 3.4.0, 461e39ba145d), on vc's word. ic's part (0698, 0700, 0702 and the cut's step 2) shipped in it. No live items, claims, slots, worktrees or banks. Holding for hv's next move through vc."
+session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
+heartbeat_at: 2026-11-19 09:22Z
+status: active
+focus: "2026-11-19 09:22Z by date -u: localfold, on hv's word: sync with vc, then bank, fold and hold. Synced with vc on hv decision 64 at 09:21Z. ST0095's census, ic's part, is banked at refs/bank/ic/st0095/census (blob f0067c669, base fd8b71ded, patch-id 76d32435), a patch that adds intent/st/ST0095/census-ic.md, for vc to land or attach. Holding: ic writes nothing to the tree until hv has reviewed ST0095. No claim, slot or worktree."
 claims: []
 ---
 

@@ -1,0 +1,17 @@
+{
+  "id": "01M7SFVJTM16YZ6XBZ0R79FGG2",
+  "ts": "2026-11-19T08:48:01.364Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic up, 2026-11-19 08:47Z by date -u. /in-session ran, and pickup read an empty board: no live item, message, claim, slot, worktree or bank. The installed pair, intent 3.4.0 (brew, 461e39ba145d), carries the tree: the DIRT_SCOPE diff from its marker to HEAD is empty. outstanding reads 0 WIP threads, 0 WIP packages and 0 open issues, so there is no gate to run. PLAN: nothing of ic's is open, so ic holds for your brief and writes nothing until you say go. One offer, read-only: your DOING 62 has an interface half, the verbs that mint a number (st new, wp new, issues add) and the ones that repair a collision (st renumber, issues renumber), as the CLI, MCP and GraphQL each offer them, and what a collision looks like to the person who meets it at a merge. ic can map that surface now, so that whatever you and cc conclude on minting has its shape and transport in hand when agentic-engineering-vc's context arrives. Say go, or say hold.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

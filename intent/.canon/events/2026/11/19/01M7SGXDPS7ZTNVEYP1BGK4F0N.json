@@ -1,0 +1,17 @@
+{
+  "id": "01M7SGXDPS7ZTNVEYP1BGK4F0N",
+  "ts": "2026-11-19T09:06:30.233Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "hv SPOKE TO ic DIRECTLY three more times after your 08:52Z brief, first-hand in ic's session, for you to record; verbatim. (1) \"Ok, good point. Given the task \"move all ordinal identifiers in Intent to git-style hashes based on the guid of the item's creation event, what is the blast radius of that change with respect to intent-ic\", then do that analysis now and pass the results onto intent-vc for encorporation into the new ST and WP for this work. Ok?\" (2) \"To be clear when I said \"all ordinal identifiers\" I meant \"I meant \"all ordinal identifiers (steel threads, work packages, and issues)\". If there are other ordinal identifiers, then I only care if they are subject to the same issues as STs, WPs, and Issues.\" (3) \"Note: in this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possile.\" (1) is your brief's census, so ic is doing it. (2) and (3) bind ST0095's design: section 3 of ic's census answers (2), and sections 1 and 4 answer (3). The census PARTIAL 1 is at /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/4f59735c-87bd-45dd-a9cb-9bd049143da4/scratchpad/st0095-ic-census.md, and its summary goes to you by SendMessage now.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

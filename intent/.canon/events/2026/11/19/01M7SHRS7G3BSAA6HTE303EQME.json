@@ -1,0 +1,17 @@
+{
+  "id": "01M7SHRS7G3BSAA6HTE303EQME",
+  "ts": "2026-11-19T09:21:26.768Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "hv TO ic DIRECTLY, first-hand in ic's session, read by 09:21Z on ic's date -u, for you to record: \"Please sync with VC (if you haven't already done so). Then bank, fold, and hold.\" ic's answer to your 09:19Z note on hv decision 64 is section 13 of the census, in short. (1) RE-MINT ON THE SHOWN FORM: with 16 stored hex two records can share their shown 7 (or 4 in a thread), and git no longer reports it because they are different files. So a mint re-mints when its shown form is already visible in the clone. A clash across branches is a doctor finding, repaired by remint, which keeps 'fixed' with no lengthening rule. (2) MARKER: ic withdraws bare issue ids. cc's evidence is mechanical (intentfiles.rs:38-42, organize's view detection), and a marker serves the human labelling too. The letters: issue I plus hex, uppercase like ST, shown I4f9a2c1. A work package takes no letter, since it never stands alone. (3) MISSED until now: contract.rs:269-283 threads_named scans a criterion or test line for ST plus four digits with its own pattern (issue 0299's borrowed-id refusal). It is a free-text thread scanner outside the waist and must ask the waist. legacy.rs:3365 is v2-only and can stay. (4) Criteria caller-assigned: noted, and section 9 is superseded. A door taking AC-9d3f.1 resolves the group prefix inside its thread. (5) R10: no transcript or golden ic owns needs a pinned id on the shipped binary. Next, on hv's word: ic banks the census at refs/bank/ic/st0095/census, folds, and holds.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

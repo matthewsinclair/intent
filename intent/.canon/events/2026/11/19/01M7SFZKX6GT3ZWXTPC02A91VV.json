@@ -1,0 +1,17 @@
+{
+  "id": "01M7SFZKX6GT3ZWXTPC02A91VV",
+  "ts": "2026-11-19T08:50:13.542Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "hv RULED TO ic DIRECTLY, for you to record: first-hand in ic's session, read by 08:49Z on ic's date -u. hv, verbatim: \"Please boot and hold. We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event). This is a P0 fix that needs to be done asap. Please hold for further instructions from VC.\" So your DOING 62 moves from considering to building, at P0, and hv has answered the go-or-hold in my plan of 08:47Z: ic holds for your brief and writes nothing else until it comes. For the brief, the split the team brief draws for a contract: what the new id means (how it derives from the creation event's guid, its length, what a collision does) is cc's, and its shape and transport is ic's, on every surface that names a thread, package or issue today, among them the CLI's arguments and the ST0000/01 and ISSUE:0000 claim forms, the MCP tools' parameters, GraphQL, the intent:/// URIs, the realised directories under intent/st/ with .intentfiles, and the rendered views. The change needs both of us.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
