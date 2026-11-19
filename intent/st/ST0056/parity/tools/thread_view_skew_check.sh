@@ -22,7 +22,9 @@
 # `doctor` prints to the operator -- and the estate has already paid for that
 # shape twice, in a collection verifier carrying its own copy of the classifier's
 # eligibility rules and in a roster that agreed with neither dispatcher beneath
-# it. This parses one verdict; it does not form one.
+# it. This parses one verdict; it does not form one. The one choice it does
+# make, where doctor runs, copies the store's own, and the block that makes
+# it says why.
 #
 # IT READS `doctor --format json`, NEVER DOCTOR'S TEXT (ST0095 WP-03). The text
 # parse it replaces matched `^residue: <path> -- view-skew -- `, and from
@@ -134,6 +136,86 @@ if [ "$CRC" -gt 1 ] ||
   die "CONTROL FAILED: a scratch project that acknowledges $CLASS did not come back with it acknowledged (doctor exited $CRC), so $BIN may not report $CLASS by that name, and reading for it would pass every tree; this commit is unchecked rather than clean. The control's report follows:
 $CONTROL"
 fi
+
+# THIS TOOL NEVER MIGRATES OR MAKES THE STORE IT JUDGES (ST0095 WP-03, AC-03.1).
+# `doctor` opens this checkout's store, and a build whose store schema is newer
+# migrates a store as it opens it, one way: the release installed from brew
+# then refuses it. Every seat in this checkout shares the build above, so one
+# rebuild after a schema bump would migrate the main store at the next commit,
+# whoever made it. The shipped half of the commit gate runs its own `intent
+# doctor` earlier, through PATH: that is the installed release while brew comes
+# first on PATH, and this build after `intent use dev`, which then opens the
+# store before this tool runs and is out of its reach (issue 0717; vc decision
+# 132 keeps the seats on brew).
+#
+# So the store's schema is read from its header, never by opening it, and the
+# build's from the header of the store the control above made. A store older
+# than the build, one whose header does not say, or no store at all, which
+# doctor would make at this build's schema, is judged as a copy of this
+# checkout's intent/ with no store in it, which doctor builds from canon as a
+# fresh clone does, and the checkout's store is neither opened nor made. A
+# newer store is judged in place: this build cannot open it, so doctor reports
+# that as a finding of its own and judges the views with no render record, as
+# on the copy.
+#
+# Measured on this tree on 2026-11-19, at 1184 views: with one thread cover
+# edited by hand, the copy and the store in place both name that view and no
+# other, and without the edit both name none. A copy has no record of what the
+# store rendered, so a view the store re-rendered and nobody has written yet,
+# which reads as store-stale in place and is not this tool's class, reads as
+# view-skew in the copy: on the copy path, a peer's write still landing can
+# block a commit that stages that view. `.backup` and `.cache` stay out of the
+# copy, about 3.4 GB of the store's backups and the search index, which doctor
+# does not read for this verdict. A header is current once its store's last
+# connection has closed: a checkout store whose newer schema still sits in its
+# WAL reads as older, which only sends doctor to the copy, and a control store
+# whose header reads 0 still holds its stamp in its WAL, which is a refusal,
+# since against 0 every store would read as current.
+#
+# THIS IS A SECOND COPY OF `Store::init`'s DECISION (intentsvcs store.rs), kept
+# here for want of a door: the binary cannot say whether opening a store would
+# migrate it without opening it. Issue 0717 is that door. WHEN IT LANDS, DELETE
+# THIS BLOCK AND ASK IT.
+
+# The store's path below a project root, written once.
+STORE_REL="intent/.cache/intent.db"
+
+# schema_in <store> -- the user_version a SQLite header carries (bytes 60 to 63,
+# big-endian), or nothing for a file too short to carry one.
+schema_in() {
+  od -An -tu1 -j60 -N4 "$1" |
+    awk 'NF == 4 { print $1 * 16777216 + $2 * 65536 + $3 * 256 + $4 }'
+}
+
+STORE="$ROOT/$STORE_REL"
+COPY_WHY=""
+if [ ! -f "$STORE" ]; then
+  COPY_WHY="this checkout has no store, and doctor would make one at the schema $BIN writes"
+else
+  BUILT="$(schema_in "$WORK/probe/$STORE_REL")"
+  [ "${BUILT:-0}" -gt 0 ] 2>/dev/null ||
+    die "the store the control made at $WORK/probe/$STORE_REL does not show which schema $BIN writes (its header reads ${BUILT:-nothing}), so this commit is unchecked rather than clean"
+  HELD="$(schema_in "$STORE")"
+  if [ -z "$HELD" ] || [ "$HELD" -lt "$BUILT" ]; then
+    COPY_WHY="$BIN writes store schema $BUILT and this checkout's store is at ${HELD:-a schema its header does not show}"
+  fi
+fi
+
+DOCTOR_ROOT="$ROOT"
+if [ -n "$COPY_WHY" ]; then
+  clone=(cp -R)
+  [ "$(uname -s)" = Darwin ] && clone=(cp -c -R)
+  mkdir -p "$WORK/copy/intent" || die "could not make $WORK/copy/intent to judge a copy in, so this commit is unchecked rather than clean"
+  for entry in "$ROOT"/intent/* "$ROOT"/intent/.[!.]*; do
+    [ -e "$entry" ] || continue
+    case "${entry##*/}" in .backup | .cache) continue ;; esac
+    "${clone[@]}" "$entry" "$WORK/copy/intent/" ||
+      die "could not copy $entry to judge a copy of intent/, so this commit is unchecked rather than clean"
+  done
+  DOCTOR_ROOT="$WORK/copy"
+  echo "thread-view-skew: $COPY_WHY, so doctor judges a copy of intent/, and this checkout's store is neither opened nor made." >&2
+fi
+cd "$DOCTOR_ROOT" || die "could not enter $DOCTOR_ROOT to run doctor there, so this commit is unchecked rather than clean"
 
 OUT="$("$BIN" doctor --format json)"
 RC=$?

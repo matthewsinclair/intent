@@ -29,9 +29,10 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-03 -- The commit gate spares the main store; scripts capture ids (status: WIP)
 
-- AC-03.1 A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy. -- satisfied: no (computed)
+- AC-03.1 A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy. -- WITHDRAWN: Restated as AC-03.4, non-test, with the same text: its proof is a driven run of the guard against a schema-33 store and with no store, which no committed test carries, and a criterion's kind cannot be changed in place. This replaces the withdrawal just before it, whose reason ended in a garbled placeholder. (by vc)
 - AC-03.2 The brew smoke passes whatever id the mint returns. -- satisfied: no (computed)
 - AC-03.3 Two runs of the explorer screenshots write byte-identical images from seeded ids. -- satisfied: no (computed)
+- AC-03.4 (non-test) A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy. -- evidence: dc's proof of refs/bank/dc/st0095/wp03-guard-v3 (3df1d4102), sent to vc 2026-11-19 11:21Z and landed by vc: red at the base ed3fe6361 on the 2026-11-08 store at schema 33, where the gate passed and migrated the store to 35; green on the final code, G2' at 11:18:20Z on that store (the copy path, rc 1 naming the hand-edited view alone, the store byte-identical at 33 with no WAL) and G4 at 11:18:55Z with no store (the copy path, no store made). -- satisfied: yes
 
 ### WP-04 -- The waist: one module owns an id (status: WIP)
 

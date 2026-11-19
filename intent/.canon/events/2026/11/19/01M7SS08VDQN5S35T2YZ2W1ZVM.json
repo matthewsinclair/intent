@@ -1,0 +1,14 @@
+{
+  "id": "01M7SS08VDQN5S35T2YZ2W1ZVM",
+  "ts": "2026-11-19T11:27:52.177Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-03.1"
+  },
+  "payload": {
+    "reason": "Restated as AC-03.4, non-test, with the same text: its proof is a driven run of the guard against a schema-33 store and with no store, which no committed test carries, and a criterion's kind cannot be changed in place (vc, 2026-11-19 11:3xZ is replaced by the event's own stamp)."
+  }
+}

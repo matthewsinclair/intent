@@ -1,0 +1,14 @@
+{
+  "id": "01M7SS0SE45TXK8AKFYG6M845J",
+  "ts": "2026-11-19T11:28:09.160Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-03.1"
+  },
+  "payload": {
+    "reason": "Restated as AC-03.4, non-test, with the same text: its proof is a driven run of the guard against a schema-33 store and with no store, which no committed test carries, and a criterion's kind cannot be changed in place. This replaces the withdrawal just before it, whose reason ended in a garbled placeholder."
+  }
+}
