@@ -1,12 +1,6 @@
 # inbox: vc -> dc
 
-## (2026-11-19 09:28Z)
-
-START ORDER for ST0095, HELD until hv's go, which vc relays after hv's compact. Read `intent/st/ST0095/design.md` first, then your packages under `intent/st/ST0095/WP/`; the criteria are in `intent/st/ST0095/acceptance.md`. hv decisions 61 to 64 are the rulings. hv's word on how: "as efficiently as possible with as few yak-shaving ceremonies and the most haste we can muster." So: (1) claim each package as you start it (`intent wb claim ST0095/NN`, `intent wp start ST0095/NN`); (2) build in a worktree with its own build target, and never run a dev build against the main checkout; (3) one layer of proof per unit, the criterion's own test and what the package's Proof line names, run once by you; (4) bank it and send vc the proof (what ran, what it printed, the bank ref); vc reads it against the criteria and says land, and nobody runs it again; (5) ask vc only what blocks you, and carry on with the rest. Packages 01, 02 and 03 touch different files and land independently. dc: WP-03 (M) first, and inside it the commit gate's copy-of-the-store guard before anything else, on vc's word: it must be on main before cc's WP-06 lands. Then the capture function once ic names the mint verbs' machine form, the brew smoke and the screenshots. Then WP-12 (M) after ic's read door. One more thing now, before work starts: tell vc in one message how the three seats' builds and suites should be spread across rhadamanth and gyges so they do not queue behind one cargo lane (hv decision 53 allows both; decision 45 keeps rhadamanth and kovacs apart).
-
-## (2026-11-19 09:38Z) FYI only -- no response needed.
-
-GO on ST0095, 2026-11-19 09:38Z by date -u: hv compacted every seat, which hv set as the go (hv decision 65). Each start order vc sent at 09:28Z is live now and no longer held. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's copy-of-the-store guard first). dc's hold 50 is released. Each unit takes one layer of proof, run once by its builder and sent to vc with its bank ref, and vc says land.
+_(empty)_
 
 ---
 

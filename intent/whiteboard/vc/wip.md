@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 31169586-8a4c-469f-a9f3-0c18e36af09b
-heartbeat_at: 2026-11-19 09:38Z
+heartbeat_at: 2026-11-19 10:35Z
 status: active
-focus: "2026-11-19 09:38Z by date -u: ST0095 under way on hv's go. WP-01 cc, WP-02 ic, WP-03 dc in parallel; vc reads each unit's proof and says land."
+focus: "2026-11-19 10:35Z by date -u: localfold before a compact, not released. ST0095 under way: WP-01 landed; WP-02 (ic), WP-03 (dc) and WP-04 (cc) in flight; vc reads each unit's proof and says land. ST0096 written for hv's review."
 claims: []
 ---
 
@@ -13,12 +13,14 @@ claims: []
 
 ## DOING
 
-- ST0095, git-style ids (hv decisions 61 to 68, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. WP-01 landed at ae11d9939 and closed at d6c45e915, with intentsvcs::id's registry row at fa86e7e35; WP-02 (ic), WP-03 (dc) and WP-04 (cc) in flight; vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is done, banked under refs/bank/vc/st0095/highlander-*-20261119, and its findings went to cc, ic and dc at 10:20Z, each to be answered per item (AC-00.1); issue 0712 was filed from it, and vc's two dead dehydrate scripts were removed (feb4e56e3). cc's calls: WP-05 drops the .intentfiles set merge (M to S) and issue 0704 is superseded by ST0096. hv decision 68: the tap holds the release until hv's word. Open with hv: the 00046 bend, and cc's first-mint refusal in a project not yet upgraded. agentic-engineering-vc waits for vc todo 84, and for its questions (a), (c), (d) and (e) once the fix is done. (edited)
-- ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05 for hv's review, and nothing is built before it. Four packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M), dc WP-03 and WP-04 (S each). For hv: two merge requests that change one thread (recommended: not this release), and ST0095 WP-05 dropping its .intentfiles set merge (cc's call). cc owes the choice between R1 and R2.
+- ST0095, git-style ids (hv decisions 61 to 68, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. Landed: WP-01 (ae11d9939, closed at d6c45e915) and intentsvcs::id's registry row (fa86e7e35). In flight: WP-02 (ic, its second gate run on gyges after the critic review), WP-03 (dc, the guard's red control still open; dc folded at 2450d11cc, handoff at refs/bank/dc/st0095/handoff-20261119) and WP-04 (cc, id.rs compiling through intentsvcs). WP-14 is split from WP-04 for cc (kind tags, the owner of a path), and AC-04.2 is reworded so WP-04 may change output where an id was spelled two ways, each change listed in its proof. vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is banked under refs/bank/vc/st0095/highlander-*-20261119, and cc, ic and dc have answered every item, each into a named package. Issues from the day: 0712 (cc's WP-04 and WP-09), 0713 (ic's WP-10), 0714 (dc) and 0715 (owner to name, vc todo). hv decision 68: the tap holds the release until hv's word. Open with hv: the 00046 bend, and cc's first-mint refusal in a project not yet upgraded. agentic-engineering-vc waits for vc todo 84, and for its questions (a), (c), (d) and (e) once the fix is done. (edited)
+- ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05 for hv's review, and nothing is built before it. Four packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M), dc WP-03 and WP-04 (S each). cc chose R1, the record carries whether it is realised (AC-01.3 satisfied), and ST0095's WP-05 dropped its .intentfiles set merge, with issue 0704 superseded by this thread. For hv: two merge requests that change one thread (recommended: not this release). (edited)
 
 ## TODO
 
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
+- Issue 0715 (st attach --from says ok and changes nothing while intentd watches the tree) needs an owner: put it to cc once WP-04 has landed, since the cause sits between the attach verb and intentd's ingest.
+- Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).
 
 ## Holds
 

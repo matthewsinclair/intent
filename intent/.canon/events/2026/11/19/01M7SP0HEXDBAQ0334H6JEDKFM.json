@@ -1,0 +1,16 @@
+{
+  "id": "01M7SP0HEXDBAQ0334H6JEDKFM",
+  "ts": "2026-11-19T10:35:35.261Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 68, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. Landed: WP-01 (ae11d9939, closed at d6c45e915) and intentsvcs::id's registry row (fa86e7e35). In flight: WP-02 (ic, its second gate run on gyges after the critic review), WP-03 (dc, the guard's red control still open; dc folded at 2450d11cc, handoff at refs/bank/dc/st0095/handoff-20261119) and WP-04 (cc, id.rs compiling through intentsvcs). WP-14 is split from WP-04 for cc (kind tags, the owner of a path), and AC-04.2 is reworded so WP-04 may change output where an id was spelled two ways, each change listed in its proof. vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is banked under refs/bank/vc/st0095/highlander-*-20261119, and cc, ic and dc have answered every item, each into a named package. Issues from the day: 0712 (cc's WP-04 and WP-09), 0713 (ic's WP-10), 0714 (dc) and 0715 (owner to name, vc todo). hv decision 68: the tap holds the release until hv's word. Open with hv: the 00046 bend, and cc's first-mint refusal in a project not yet upgraded. agentic-engineering-vc waits for vc todo 84, and for its questions (a), (c), (d) and (e) once the fix is done."
+  }
+}
