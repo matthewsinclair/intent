@@ -88,7 +88,7 @@ So a project that holds only ordinals renders every view exactly as it does now,
 - **Anything else of at least 4 hex characters is a hash prefix**, and one made only of digits needs 5. The pure half of this is ic's length rule; which record a prefix names is decided once, against the store, in `resolve.rs`, for the CLI, the TUI and MCP.
 - An ambiguous prefix is refused with its candidates, and none is picked.
 - Every answer prints the id's shown form, and `--json` and the canon carry the stored one.
-- **The one bend in backwards compatibility**: today leading zeros are trimmed, so `00046` reaches ST0046. A five-digit token is a hash prefix now, so that spelling stops. See "For hv at review", point 1.
+- **The one bend in backwards compatibility**: today leading zeros are trimmed, so `00046` reaches ST0046. A five-digit token is a hash prefix now, so that spelling stops. hv accepted the bend (hv decision 70).
 
 ### Existing ordinals: backwards compatible, by hv's ruling
 
@@ -197,13 +197,13 @@ hv asked for this package by name. ic's census: about 90 teaching lines and 221 
 - **Issue 0706** (doctor's advisory on `.claude/settings.json`) and **issue 0707** (closed threads' views on a project made with an older Intent) ride the same release.
 - cc's census found seven defects that exist today. Three are absorbed by its packages here, and cc filed the other four as issues 0708 to 0711.
 
-## For hv at review
+## hv's rulings, and what stays open
 
-1. **The `00046` bend**: a five-digit, over-padded spelling of an ordinal stops resolving. Recommended: accept it. None of the five forms v2 accepted is affected.
-2. **Who writes the docs package**: ic, by hv decision 66, since ac was not started. ic drafts it while it waits for cc's resolver.
-3. **cc's chain is the long pole.** Its part is XL in seven packages that land in order. ic's and dc's parts finish sooner.
-4. **The release's number**, at the cut.
-5. **The first mint in a project not yet upgraded** refuses with `intent upgrade` as its one remedy (cc's meaning, under "Upgrading a project"). The alternative is a mint that runs the upgrade itself, a mechanical rewrite riding inside an unrelated change. Recommended: the refusal.
+1. **The `00046` bend is accepted** (hv decision 70): a five-digit, over-padded spelling of an ordinal stops resolving. None of the five forms v2 accepted is affected.
+2. **ic writes the docs package** (hv decision 66), since ac was not started. ic drafts it while it waits for cc's resolver.
+3. **cc's chain is the long pole, so what can move has moved.** On cc's word of 2026-11-19, WP-08, WP-09 and WP-14, and issues 0711 and 0715, went to dc, each with cc ruling its meaning. cc keeps WP-05 and WP-06 as one unit, then WP-07, then ST0096's WP-01 and WP-05.
+4. **Open: the release's number**, set at the cut.
+5. **The first mint in a project not yet upgraded refuses** with `intent upgrade` as its one remedy (hv decision 70, on cc's meaning under "Upgrading a project"), in the wording ic drafted and hv took as written (hv decision 71).
 
 ## Work packages
 
@@ -218,13 +218,13 @@ Each is one seat's, with its size, what it lands after, and its criteria in `acc
 | 05  | The merge knows both families                              | cc   | S    | 04          |
 | 06  | The hashed family                                          | cc   | L    | 05          |
 | 07  | Prefix resolution                                          | cc   | M    | 06          |
-| 08  | The order                                                  | cc   | S    | 06          |
-| 09  | Criteria follow their package, and doctor verifies         | cc   | S    | 06          |
+| 08  | The order                                                  | dc   | S    | 06          |
+| 09  | Criteria follow their package, and doctor verifies         | dc   | S    | 06          |
 | 10  | Every door takes and shows both families                   | ic   | L    | 02, 07      |
 | 11  | The TUI, the app and the served page                       | ic   | M    | 10          |
 | 12  | The pipeline asks the waist; the drill; the fleet          | dc   | M    | 03, 10      |
 | 13  | Docs, skills, rules and templates teach the new ids        | ic   | L    | this review |
-| 14  | Kind tags and the owner of a path have one home            | cc   | S    | 04          |
+| 14  | Kind tags and the owner of a path have one home            | dc   | S    | 04          |
 
 Packages 01 to 04 are behaviour-neutral: they land green on today's ordinals, and after them the scheme touches only the waist and the few tests whose subject is the scheme. Package 05's `classify` change and package 06's mint land as one unit.
 
