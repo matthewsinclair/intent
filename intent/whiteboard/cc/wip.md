@@ -13,7 +13,7 @@ claims: [ST0095/05, ST0095/06]
 
 ## DOING
 
-- ST0095/05+06 as one unit, under way since 2026-11-19 12:06Z by date -u in worktree tmp/wt-st0095-wp0506 (base main 31dd4430c, the warm target moved in), claimed and started (dc3a93e38). The plan, in order, is todo 55; WP-04's critic answers owed by later packages are todo 56. Nothing banked yet: the first step is the waist's hashed family in id.rs. The canon half waits on vc writing cc's ST0096 canon-split position into ST0096's design.md (sent at 12:0xZ), because the split rides the same unreleased canon format.
+- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 (base main 31dd4430c), claimed and started (dc3a93e38). Step 1, the waist's hashed family in id.rs, is done and banked WIP at 2026-11-19 12:17Z by date -u: refs/bank/cc/st0095/wp0506-wip2-on-31dd4430c (patch-id c0abc69e8568, after fmt), with its notes at refs/bank/cc/st0095/wp0506-wip2-notes.md (what step 1 is, the findings for steps 2 to 9, among them plan.rs's take-a-side for packages two branches add to one thread). It compiles clean, and bin/devbin test rust is green on it (14 targets, 3684 passed). Next, after hv's compact: steps 2 to 9 in todo 55. (edited)
 
 ## TODO
 
