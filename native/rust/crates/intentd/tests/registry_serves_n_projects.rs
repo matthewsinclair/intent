@@ -24,13 +24,6 @@ fn titles(response: &Response) -> Vec<String> {
   }
 }
 
-fn thread_ids(response: &Response) -> Vec<String> {
-  match response {
-    Response::Threads { threads } => threads.iter().map(|t| t.id.clone()).collect(),
-    other => panic!("expected a thread listing, got {other:?}"),
-  }
-}
-
 #[test]
 fn one_daemon_serves_two_projects_and_keeps_them_apart() {
   let daemon = RunningDaemon::start();
@@ -56,11 +49,8 @@ fn one_daemon_serves_two_projects_and_keeps_them_apart() {
     titles(&from_beta),
     "the two answers must differ, or this test cannot tell a registry from a single shared store"
   );
-  assert_eq!(
-    thread_ids(&from_alpha),
-    thread_ids(&from_beta),
-    "both are ST0001, which is exactly why the ID cannot be the discriminator and the title has to be"
-  );
+  // The title discriminates and the id does not: an id is whatever the mint
+  // returned, so this test predicts nothing about it (ST0095 WP-01).
   let listed = daemon.ask(ask(Op::Registry, &alpha));
   match listed {
     Response::Registry { projects } => {

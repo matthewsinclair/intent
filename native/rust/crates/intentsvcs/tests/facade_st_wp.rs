@@ -21,13 +21,13 @@ fn st_new_creates_canon_and_every_view() {
   let id = facade.st_new("Add a Rust-based CLI").expect("st new");
   assert_eq!(id, "ST0001", "the first thread in an empty project");
 
-  assert!(fx.canon_path("ST0001").is_file());
-  assert!(fx.path("intent/st/ST0001/info.md").is_file());
-  assert!(fx.path("intent/st/ST0001/acceptance.md").is_file());
+  assert!(fx.canon_path(&id).is_file());
+  assert!(fx.path(&format!("intent/st/{id}/info.md")).is_file());
+  assert!(fx.path(&format!("intent/st/{id}/acceptance.md")).is_file());
   assert!(fx.path("intent/st/steel_threads.md").is_file());
   assert!(fx.path("intent/todo.md").is_file());
 
-  let thread = facade.st_show("ST0001").expect("show");
+  let thread = facade.st_show(&id).expect("show");
   assert_eq!(thread.status, ThreadStatus::Triage);
   // **The SHAPE, and there is nothing left to pin it to.** `created` is filled
   // by SQLite inside the INSERT and handed back (D42), so nothing in this
@@ -56,21 +56,21 @@ fn ids_continue_from_the_highest_existing_thread() {
 fn the_lifecycle_moves_status_and_stamps_completion() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
-  facade.st_new("a thread").expect("new");
+  let id = facade.st_new("a thread").expect("new");
 
-  facade.st_triage("ST0001").expect("triage");
-  facade.st_start("ST0001").expect("start");
-  assert_eq!(facade.st_show("ST0001").unwrap().status, ThreadStatus::Wip);
+  facade.st_triage(&id).expect("triage");
+  facade.st_start(&id).expect("start");
+  assert_eq!(facade.st_show(&id).unwrap().status, ThreadStatus::Wip);
   assert_eq!(
-    facade.st_show("ST0001").unwrap().completed,
+    facade.st_show(&id).unwrap().completed,
     None,
     "a thread in flight has no completion date"
   );
 
   facade
-    .st_cancel("ST0001", "superseded by the v3 line")
+    .st_cancel(&id, "superseded by the v3 line")
     .expect("cancel");
-  let thread = facade.st_show("ST0001").unwrap();
+  let thread = facade.st_show(&id).unwrap();
   assert_eq!(thread.status, ThreadStatus::Cancelled);
   let completed = thread
     .completed
@@ -86,13 +86,15 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
 fn work_packages_number_from_one_and_move_through_their_states() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
-  facade.st_new("a thread").expect("new");
+  let id = facade.st_new("a thread").expect("new");
 
-  assert_eq!(facade.wp_new("ST0001", "first", TShirt::M).unwrap(), 1);
-  assert_eq!(facade.wp_new("ST0001", "second", TShirt::L).unwrap(), 2);
+  let first = facade.wp_new(&id, "first", TShirt::M).unwrap();
+  let second = facade.wp_new(&id, "second", TShirt::L).unwrap();
+  assert_eq!(first, 1);
+  assert_eq!(second, 2);
 
-  facade.wp_start("ST0001", 2).expect("start");
-  let wps = facade.wp_list("ST0001").expect("list");
+  facade.wp_start(&id, second).expect("start");
+  let wps = facade.wp_list(&id).expect("list");
   assert_eq!(wps[0].status, WpStatus::NotStarted);
   assert_eq!(wps[1].status, WpStatus::Wip);
   assert_eq!(wps[1].scope, Some(TShirt::L));
@@ -280,10 +282,10 @@ fn a_failed_creation_leaves_no_directory_behind() {
   fx.restore_mode("intent", mode);
 
   // Issue 0376: the store holds the thread, so the verb reports it with a note.
-  let (_, notes) = result.expect("the write landed, so the verb reports it rather than refusing");
+  let (id, notes) = result.expect("the write landed, so the verb reports it rather than refusing");
   crate::common::landed_note(&notes);
   assert!(
-    !fx.path("intent/st/ST0001").exists(),
+    !fx.path(&format!("intent/st/{id}")).exists(),
     "no directory survives the write the batch unwound"
   );
   let strays: Vec<String> = walk(fx.root())
@@ -336,12 +338,12 @@ fn an_unknown_thread_is_refused_by_name() {
 fn views_are_regenerated_by_every_mutation() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
-  facade.st_new("a thread").expect("new");
+  let id = facade.st_new("a thread").expect("new");
   let before = fx.read("intent/st/steel_threads.md");
   assert!(before.contains("Triage"));
 
-  facade.st_triage("ST0001").expect("triage");
-  facade.st_start("ST0001").expect("start");
+  facade.st_triage(&id).expect("triage");
+  facade.st_start(&id).expect("start");
   let after = fx.read("intent/st/steel_threads.md");
   assert!(
     after.contains("WIP") && !after.contains("Not Started"),

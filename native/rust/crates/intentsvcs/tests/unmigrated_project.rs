@@ -184,12 +184,12 @@ fn a_real_v3_project_is_not_flagged() {
 fn a_v3_thread_carrying_a_generated_info_md_is_not_evidence() {
   let fixture = Fixture::new();
   let mut facade = fixture.facade();
-  facade.st_new("A thread").expect("st new");
+  let id = facade.st_new("A thread").expect("st new");
   drop(facade);
 
   let project = fixture.project();
   assert!(
-    project.info_view("ST0001").is_file(),
+    project.info_view(&id).is_file(),
     "v3 writes info.md as a generated view -- the premise of this test"
   );
   assert!(

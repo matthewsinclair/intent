@@ -32,23 +32,28 @@ use crate::common::Fixture;
 
 const ORIGINAL: &str = "the original premise, which measurement later disproved";
 
-fn with_an_issue(fx: &Fixture) {
+/// The issue every arm edits, and the number the mint gave it, which each arm
+/// binds rather than predicts (ST0095 WP-01).
+fn with_an_issue(fx: &Fixture) -> u32 {
   fx.facade()
     .issue_add("a filing with a wrong premise", None, None, ORIGINAL)
-    .expect("the create door works");
+    .expect("the create door works")
 }
 
 #[test]
 fn a_correction_replaces_the_prose() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   fx.facade()
-    .issue_edit(1, Some("the corrected premise, measured"), None, None)
+    .issue_edit(number, Some("the corrected premise, measured"), None, None)
     .expect("an issue body can be corrected");
 
   assert_eq!(
-    fx.facade().issue_show(1).expect("the issue is there").body,
+    fx.facade()
+      .issue_show(number)
+      .expect("the issue is there")
+      .body,
     "the corrected premise, measured",
     "the correction did not reach the store, so the verb reports a write it did not do"
   );
@@ -61,11 +66,11 @@ fn a_correction_replaces_the_prose() {
 #[test]
 fn an_empty_body_is_refused_and_the_prose_survives() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   let refused = fx
     .facade()
-    .issue_edit(1, Some("   \n  "), None, None)
+    .issue_edit(number, Some("   \n  "), None, None)
     .expect_err("an empty body erases prose and must be refused");
 
   let said = refused.to_string();
@@ -75,7 +80,7 @@ fn an_empty_body_is_refused_and_the_prose_survives() {
   );
 
   assert_eq!(
-    fx.facade().issue_show(1).expect("still there").body,
+    fx.facade().issue_show(number).expect("still there").body,
     ORIGINAL,
     "the refusal fired AFTER mutating, so the prose is gone and the message says it is not"
   );
@@ -87,10 +92,10 @@ fn an_empty_body_is_refused_and_the_prose_survives() {
 #[test]
 fn the_emptiness_test_is_not_fooled_by_whitespace() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
   assert!(
     fx.facade()
-      .issue_edit(1, Some("\t \n"), None, None)
+      .issue_edit(number, Some("\t \n"), None, None)
       .is_err(),
     "a body of blanks erases the prose as completely as an empty one"
   );
@@ -103,11 +108,11 @@ fn the_emptiness_test_is_not_fooled_by_whitespace() {
 #[test]
 fn identical_prose_is_not_a_write() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   let outcome = fx
     .facade()
-    .issue_edit(1, Some(ORIGINAL), None, None)
+    .issue_edit(number, Some(ORIGINAL), None, None)
     .expect("re-writing the same bytes is not an error");
 
   assert!(
@@ -151,13 +156,13 @@ fn an_absent_issue_is_refused_by_number() {
 #[test]
 fn a_retitle_moves_the_slug_with_it() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   fx.facade()
-    .issue_edit(1, None, Some("the corrected title"), None)
+    .issue_edit(number, None, Some("the corrected title"), None)
     .expect("a title can be corrected");
 
-  let issue = fx.facade().issue_show(1).expect("still there").clone();
+  let issue = fx.facade().issue_show(number).expect("still there").clone();
   assert_eq!(issue.title, "the corrected title");
   assert_eq!(
     issue.slug, "the-corrected-title",
@@ -171,14 +176,14 @@ fn a_retitle_moves_the_slug_with_it() {
 #[test]
 fn a_title_only_edit_leaves_the_prose_alone() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   fx.facade()
-    .issue_edit(1, None, Some("a new title"), None)
+    .issue_edit(number, None, Some("a new title"), None)
     .expect("a title can be corrected on its own");
 
   assert_eq!(
-    fx.facade().issue_show(1).expect("still there").body,
+    fx.facade().issue_show(number).expect("still there").body,
     ORIGINAL,
     "correcting the title erased the prose, which is the exact act Option exists to prevent"
   );
@@ -190,11 +195,11 @@ fn a_title_only_edit_leaves_the_prose_alone() {
 #[test]
 fn an_empty_title_is_refused_and_the_title_survives() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   let said = fx
     .facade()
-    .issue_edit(1, None, Some("  \n "), None)
+    .issue_edit(number, None, Some("  \n "), None)
     .expect_err("an empty title must be refused")
     .to_string();
   assert!(
@@ -203,7 +208,7 @@ fn an_empty_title_is_refused_and_the_title_survives() {
   );
 
   assert_eq!(
-    fx.facade().issue_show(1).expect("still there").title,
+    fx.facade().issue_show(number).expect("still there").title,
     "a filing with a wrong premise",
     "the refusal fired AFTER mutating"
   );
@@ -216,20 +221,20 @@ fn an_empty_title_is_refused_and_the_title_survives() {
 #[test]
 fn one_call_moves_two_fields_together() {
   let fx = Fixture::new();
-  with_an_issue(&fx);
+  let number = with_an_issue(&fx);
 
   fx.facade()
-    .issue_edit(1, None, Some("both at once"), Some("critical"))
+    .issue_edit(number, None, Some("both at once"), Some("critical"))
     .expect("title and severity move together");
 
-  let issue = fx.facade().issue_show(1).expect("still there").clone();
+  let issue = fx.facade().issue_show(number).expect("still there").clone();
   assert_eq!(issue.title, "both at once");
   assert_eq!(issue.severity.as_deref(), Some("critical"));
 
   // And the pair, re-offered, is a no-op rather than a second event.
   let again = fx
     .facade()
-    .issue_edit(1, None, Some("both at once"), Some("critical"))
+    .issue_edit(number, None, Some("both at once"), Some("critical"))
     .expect("re-offering the same pair is not an error");
   assert!(
     matches!(again, intentsvcs::facade::Outcome::AlreadyThere { .. }),

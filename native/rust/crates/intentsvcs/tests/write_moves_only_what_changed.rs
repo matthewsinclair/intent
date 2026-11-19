@@ -1015,6 +1015,41 @@ fn table_path(label: &str) -> &str {
 
 type Case = (&'static str, fn(&Fixture), fn(&Fixture), bool);
 
+/// The thread a case's setup minted, which the setup titles `fresh`: read from
+/// the store by that title, because a test takes an id from the mint and never
+/// predicts the next one (ST0095 WP-01).
+fn minted_fresh(facade: &intentsvcs::facade::Facade) -> String {
+  let ids: Vec<&str> = facade
+    .st_list()
+    .into_iter()
+    .filter(|t| t.title == "fresh")
+    .map(|t| t.id.as_str())
+    .collect();
+  assert_eq!(
+    ids.len(),
+    1,
+    "the setup mints one thread titled `fresh`: {ids:?}"
+  );
+  ids[0].to_string()
+}
+
+/// The issue a case's setup minted, which the setup titles `a defect`, read
+/// from the store by that title for the reason [`minted_fresh`] gives.
+fn minted_defect(facade: &intentsvcs::facade::Facade) -> u32 {
+  let numbers: Vec<u32> = facade
+    .issue_list()
+    .into_iter()
+    .filter(|i| i.title == "a defect")
+    .map(|i| i.number)
+    .collect();
+  assert_eq!(
+    numbers.len(),
+    1,
+    "the setup mints one issue titled `a defect`: {numbers:?}"
+  );
+  numbers[0]
+}
+
 const NOOP: fn(&Fixture) = |_| {};
 
 fn cases() -> Vec<Case> {
@@ -1049,8 +1084,9 @@ fn cases() -> Vec<Case> {
       },
       false,
     ),
-    // -- st. `seeded()` creates ST0001..ST0003, all `wip`, so a thread minted
-    //    in setup is always ST0004.
+    // -- st. `seeded()` creates ST0001..ST0003, all `wip`. A thread minted in
+    //    setup is titled `fresh` and found by that title (`minted_fresh`),
+    //    never by an id predicted from the seed's numbering.
     (
       "st new",
       NOOP,
@@ -1097,7 +1133,9 @@ fn cases() -> Vec<Case> {
         fx.facade().st_new("fresh").expect("mint");
       },
       |fx| {
-        fx.facade().st_triage("ST0004").expect("st triage");
+        let mut facade = fx.facade();
+        let id = minted_fresh(&facade);
+        facade.st_triage(&id).expect("st triage");
       },
       true,
     ),
@@ -1107,7 +1145,9 @@ fn cases() -> Vec<Case> {
         fx.facade().st_new("fresh").expect("mint");
       },
       |fx| {
-        fx.facade().st_start("ST0004").expect("st start");
+        let mut facade = fx.facade();
+        let id = minted_fresh(&facade);
+        facade.st_start(&id).expect("st start");
       },
       true,
     ),
@@ -1382,7 +1422,8 @@ fn cases() -> Vec<Case> {
       },
       true,
     ),
-    // -- issues. The first issue in an empty project is 1.
+    // -- issues. An issue minted in setup is titled `a defect` and found by
+    //    that title (`minted_defect`), never by a predicted number.
     (
       "issues add",
       NOOP,
@@ -1401,8 +1442,10 @@ fn cases() -> Vec<Case> {
           .expect("to exist");
       },
       |fx| {
-        fx.facade()
-          .issue_edit(1, Some("the corrected premise"), None, None)
+        let mut facade = fx.facade();
+        let number = minted_defect(&facade);
+        facade
+          .issue_edit(number, Some("the corrected premise"), None, None)
           .expect("issues edit");
       },
       true,
@@ -1415,7 +1458,9 @@ fn cases() -> Vec<Case> {
           .expect("to exist");
       },
       |fx| {
-        fx.facade().issue_close(1).expect("issues close");
+        let mut facade = fx.facade();
+        let number = minted_defect(&facade);
+        facade.issue_close(number).expect("issues close");
       },
       true,
     ),
@@ -1423,11 +1468,13 @@ fn cases() -> Vec<Case> {
       "issues open",
       |fx| {
         let mut f = fx.facade();
-        f.issue_add("a defect", None, None, "").expect("to exist");
-        f.issue_close(1).expect("to closed");
+        let number = f.issue_add("a defect", None, None, "").expect("to exist");
+        f.issue_close(number).expect("to closed");
       },
       |fx| {
-        fx.facade().issue_open(1).expect("issues open");
+        let mut facade = fx.facade();
+        let number = minted_defect(&facade);
+        facade.issue_open(number).expect("issues open");
       },
       true,
     ),

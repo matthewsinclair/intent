@@ -36,15 +36,15 @@ fn every_mutating_verb_writes_an_envelope() {
   );
 
   // Drive the whole mutating surface.
-  facade.st_new("a second thread").expect("st.new");
+  let second = facade.st_new("a second thread").expect("st.new");
   facade
-    .st_triage("ST0057")
+    .st_triage(&second)
     .expect("st.triage -- `st new` enters at triage");
-  facade.st_start("ST0057").expect("st.start");
-  facade.wp_new("ST0057", "a wp", TShirt::S).expect("wp.new");
-  facade.wp_start("ST0057", 1).expect("wp.start");
+  facade.st_start(&second).expect("st.start");
+  let wp = facade.wp_new(&second, "a wp", TShirt::S).expect("wp.new");
+  facade.wp_start(&second, wp).expect("wp.start");
   facade
-    .st_cancel("ST0057", "superseded by the v3 line")
+    .st_cancel(&second, "superseded by the v3 line")
     .expect("st.cancel");
 
   // Unsatisfy FIRST: the fixture's AC-03.2 is already satisfied, and since the
@@ -63,7 +63,7 @@ fn every_mutating_verb_writes_an_envelope() {
   // either on the wrong one is now a refusal rather than a no-op -- which is
   // how this guard caught the change.
   facade
-    .ac_descope("ST0056", "AC-03.1", "ST0057", None, None)
+    .ac_descope("ST0056", "AC-03.1", &second, None, None)
     .expect("ac.descope");
   facade.ac_rescope("ST0056", "AC-03.1").expect("ac.rescope");
   facade

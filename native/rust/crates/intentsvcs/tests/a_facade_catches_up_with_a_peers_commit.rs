@@ -23,7 +23,7 @@ fn a_peers_commit_reaches_a_facade_that_catches_up() {
   let fx = Fixture::new();
   let mut explorer = fx.facade_on_disk();
   let mut peer = fx.facade_on_disk();
-  peer
+  let id = peer
     .st_new("Written by a peer")
     .expect("the peer lands a thread");
 
@@ -35,7 +35,7 @@ fn a_peers_commit_reaches_a_facade_that_catches_up() {
     explorer.catch_up().expect("the catch-up reads the store"),
     "a peer committed, and the facade did not say it reloaded"
   );
-  assert_eq!(thread_ids(&explorer), vec!["ST0001".to_string()]);
+  assert_eq!(thread_ids(&explorer), vec![id]);
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn a_facade_that_nothing_moved_under_does_not_reload() {
 fn a_facades_own_write_is_not_news_to_it() {
   let fx = Fixture::new();
   let mut explorer = fx.facade_on_disk();
-  explorer
+  let id = explorer
     .st_new("Written by the explorer")
     .expect("the explorer lands a thread");
 
@@ -63,5 +63,5 @@ fn a_facades_own_write_is_not_news_to_it() {
     !explorer.catch_up().expect("the catch-up reads the store"),
     "the facade's own write moved the version it compares against"
   );
-  assert_eq!(thread_ids(&explorer), vec!["ST0001".to_string()]);
+  assert_eq!(thread_ids(&explorer), vec![id]);
 }

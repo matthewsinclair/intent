@@ -165,9 +165,9 @@ fn a_log_of_declared_ops_only_says_nothing() {
   let fx = Fixture::new();
   {
     let mut facade = fx.facade_on_disk();
-    facade.st_new("a thread").expect("st.new");
-    facade.st_triage("ST0001").expect("st.triage");
-    facade.st_start("ST0001").expect("st.start");
+    let id = facade.st_new("a thread").expect("st.new");
+    facade.st_triage(&id).expect("st.triage");
+    facade.st_start(&id).expect("st.start");
   }
   let census = fx.facade_on_disk().store().op_census().expect("census");
   assert!(
