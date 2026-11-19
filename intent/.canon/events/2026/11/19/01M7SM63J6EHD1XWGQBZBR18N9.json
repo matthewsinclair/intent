@@ -1,0 +1,15 @@
+{
+  "id": "01M7SM63J6EHD1XWGQBZBR18N9",
+  "ts": "2026-11-19T10:03:40.486Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11."
+  }
+}

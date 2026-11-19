@@ -17,7 +17,9 @@ claims: [ST0095/02]
 
 ## TODO
 
-_(none)_
+- ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11.
+- ST0096 WP-02 (M), issue 0705: the two generated lists leave git. init writes their ignore lines through the existing .gitignore writer; upgrade untracks them once (cc on what upgrade means); one declared set of generated aggregate views; doctor advisory, not counted. Held until hv reviews ST0096 (design at intent/st/ST0096/design.md, e102ece05); fits before ST0095 WP-10.
+- ST0095 WP-06, with cc: the wording and exit code of doctor advisory that a project is not yet upgraded (not counted). cc meaning: the new build works on its ordinals and refuses only the first mint, with intent upgrade its one remedy. User-visible, so it goes to hv through vc.
 
 ## Holds
 

@@ -1,0 +1,15 @@
+{
+  "id": "01M7SM65E1753TXKXMKDMNCPBF",
+  "ts": "2026-11-19T10:03:42.401Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095 WP-06, with cc: the wording and exit code of doctor advisory that a project is not yet upgraded (not counted). cc meaning: the new build works on its ordinals and refuses only the first mint, with intent upgrade its one remedy. User-visible, so it goes to hv through vc."
+  }
+}

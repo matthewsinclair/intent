@@ -1,0 +1,15 @@
+{
+  "id": "01M7SM64GRATMJBAZ6K7ZK6JSR",
+  "ts": "2026-11-19T10:03:41.464Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0096 WP-02 (M), issue 0705: the two generated lists leave git. init writes their ignore lines through the existing .gitignore writer; upgrade untracks them once (cc on what upgrade means); one declared set of generated aggregate views; doctor advisory, not counted. Held until hv reviews ST0096 (design at intent/st/ST0096/design.md, e102ece05); fits before ST0095 WP-10."
+  }
+}

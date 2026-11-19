@@ -3066,6 +3066,30 @@
       "text": "ST0095 WP-02 (M): the mint verbs say their id in one machine form, `created: <whole id>` (the value MCP answers as created), and intent-cli tests read it only through common::created. Then intent-cli part of cc WP-04 when cc sends it, WP-10 (L) against cc WP-07 resolver, WP-11 (M). On vc start order (inbox, 09:28Z) and its go (09:38Z, vc date -u). Machine form sent to dc, and to cc as FYI on meaning.",
       "state": "live",
       "recorded_at": "2026-11-19T09:39:40.351Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 73,
+      "text": "ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11.",
+      "state": "live",
+      "recorded_at": "2026-11-19T10:03:40.486Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 74,
+      "text": "ST0096 WP-02 (M), issue 0705: the two generated lists leave git. init writes their ignore lines through the existing .gitignore writer; upgrade untracks them once (cc on what upgrade means); one declared set of generated aggregate views; doctor advisory, not counted. Held until hv reviews ST0096 (design at intent/st/ST0096/design.md, e102ece05); fits before ST0095 WP-10.",
+      "state": "live",
+      "recorded_at": "2026-11-19T10:03:41.464Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 75,
+      "text": "ST0095 WP-06, with cc: the wording and exit code of doctor advisory that a project is not yet upgraded (not counted). cc meaning: the new build works on its ordinals and refuses only the first mint, with intent upgrade its one remedy. User-visible, so it goes to hv through vc.",
+      "state": "live",
+      "recorded_at": "2026-11-19T10:03:42.401Z"
     }
   ],
   "sent": [
