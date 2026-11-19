@@ -1,0 +1,16 @@
+{
+  "id": "01M7SV9AZQTMFDHMNDNJP6RHYA",
+  "ts": "2026-11-19T12:07:46.423Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. OPEN: ic's shape call on the views (asked 12:07Z): the cover loses its package table, and acceptance.md leaves git or splits; if a forge reader would lose a thread's criteria and tests, vc puts it to hv before code. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M, in WP-10's gaps), and a views package if acceptance.md splits; dc WP-03 (S, after 02) and WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread."
+  }
+}

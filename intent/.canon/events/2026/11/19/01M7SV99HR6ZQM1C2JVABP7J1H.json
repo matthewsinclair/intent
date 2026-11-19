@@ -1,0 +1,16 @@
+{
+  "id": "01M7SV99HR6ZQM1C2JVABP7J1H",
+  "ts": "2026-11-19T12:07:44.952Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 71, P0): UNDER WAY since 2026-11-19 09:38Z by date -u. DONE: WP-01 (ae11d9939), WP-02 (ed1caeb36), WP-04, the waist (31dd4430c, closed at 06e24ec01, AC-04.2 restated as non-test AC-04.4). WP-03 is landed (fe534431d, 2c909d85e, c5233a0c9; AC-03.1 and AC-03.2 restated as AC-03.4 and AC-03.5) and open only for AC-03.3, its screenshots, after WP-06 and WP-10. IN FLIGHT: cc's WP-05+06 as one unit (mint, format, schema 36, intent upgrade, the first-mint refusal in ic's wording, hv decision 71), started at dc3a93e38; ic's WP-10 first half; dc's issue 0711, then WP-14 (before or after cc's unit, never inside it), issue 0715, the XS on cut/gate's status reading, then WP-08 and WP-09 after WP-06. Moved from cc to dc on cc's word: WP-08, WP-09, WP-14, 0711, 0715 (design at 9e04081fd). Then cc's WP-07, ic's WP-10 second half, WP-11, WP-13, dc's WP-12. Residue on WP-06's list: facade_st_wp.rs:25, 26 and 288 build a thread path by hand. vc reads each unit's proof with its critic review (vc decision 133); vc decision 132: no dev build touches the main checkout's store."
+  }
+}
