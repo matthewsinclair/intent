@@ -6,7 +6,7 @@ session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
 heartbeat_at: 2026-11-19 11:30Z
 status: active
 focus: "2026-11-19 10:49Z by date -u: localfold on hv's word (context high), not released. ST0095 WP-02 is done (landed ed1caeb36, closed at 68a88e2d3), its claim dropped and its worktree removed. Banks: refs/bank/ic/st0095/wp02, wp02-critic-disposition-20261119, wp10-notes-20261119. Next after the compact: cc's WP-04 intent-cli read when it comes, WP-13 draft, issue 0706, then WP-10 on WP-07."
-claims: [ISSUE:0706]
+claims: [ISSUE:0706, ST0095/10]
 ---
 
 # Interface Claude (ic)

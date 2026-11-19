@@ -74,7 +74,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-09.2 doctor reports a hashed id that is not its marker and the hash of its origin. -- satisfied: no (computed)
 - AC-09.3 acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory. -- satisfied: no (computed)
 
-### WP-10 -- Every door takes and shows both families (status: Not Started)
+### WP-10 -- Every door takes and shows both families (status: WIP)
 
 - AC-10.1 Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date. -- satisfied: no (computed)
 - AC-10.2 Every existing spelling of an ordinal keeps its meaning: 46, 0046, ST46, ST0046, s46, i21 and ST0092/09. -- satisfied: no (computed)
@@ -147,7 +147,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-10 -- Every door takes and shows both families (status: Not Started)
+### WP-10 -- Every door takes and shows both families (status: WIP)
 
 _(no tests in this group)_
 

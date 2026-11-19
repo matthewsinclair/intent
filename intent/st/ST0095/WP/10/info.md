@@ -2,7 +2,7 @@
 wp_id: WP-10
 title: Every door takes and shows both families
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-10: Every door takes and shows both families
