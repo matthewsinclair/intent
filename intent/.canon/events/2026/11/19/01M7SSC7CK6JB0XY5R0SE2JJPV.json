@@ -1,0 +1,15 @@
+{
+  "id": "01M7SSC7CK6JB0XY5R0SE2JJPV",
+  "ts": "2026-11-19T11:34:23.891Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "hv's word on ic's wording for ST0095 WP-06 (ic's message of 11:30Z, cc-checked): the first mint's refusal in a project not yet upgraded, and doctor's canon-format-behind advisory. Put to hv in vc's session; record the ruling on hv's board, tell ic and cc, then clear ic's message."
+  }
+}
