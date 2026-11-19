@@ -142,7 +142,7 @@ fn under_dotclaude_claude_upgrade_writes_both_contracts_there_and_seeds_no_usage
     !usage_rules.exists(),
     "dotclaude seeds no usage-rules.md (hv's ruling 9 on ST0083)"
   );
-  assert!(!upgraded.applied.written.contains(&usage_rules));
+  assert!(upgraded.applied.wrote(&usage_rules).is_none());
 }
 
 /// vc's rider (i) on ST0083 WP-02: ruling 9 says not SEEDED, never removed.
@@ -187,8 +187,8 @@ fn under_root_claude_upgrade_writes_the_contracts_at_the_root_and_seeds_usage_ru
   assert!(
     upgraded
       .applied
-      .written
-      .contains(&fx.root().join("usage-rules.md")),
+      .wrote(&fx.root().join("usage-rules.md"))
+      .is_some(),
     "root seeds usage-rules.md as it always has"
   );
 }

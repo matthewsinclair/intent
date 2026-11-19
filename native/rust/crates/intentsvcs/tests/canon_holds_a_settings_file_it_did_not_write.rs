@@ -96,7 +96,7 @@ fn a_settings_file_with_no_intent_hook_door_is_held_not_overwritten() {
     applied.written
   );
   assert!(
-    !applied.written.contains(&path),
+    applied.wrote(&path).is_none(),
     "a held file must not also be reported as written"
   );
 }
@@ -210,7 +210,7 @@ fn an_absent_settings_file_is_still_written() {
   let applied = apply(&fx, &hooks, canon::Options::default());
 
   assert!(
-    applied.written.contains(&path),
+    applied.wrote(&path).is_some(),
     "canon did not write a settings file into a project that had none"
   );
   assert!(

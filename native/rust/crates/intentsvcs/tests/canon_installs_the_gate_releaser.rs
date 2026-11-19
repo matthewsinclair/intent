@@ -101,7 +101,7 @@ fn a_machine_without_in_session_gets_it_before_the_gate_is_wired() {
   );
   let settings = fx.root().join(".claude/settings.json");
   assert!(
-    applied.written.contains(&settings),
+    applied.wrote(&settings).is_some(),
     "the settings were not written beside the install"
   );
 }
@@ -237,8 +237,8 @@ fn a_failed_install_is_reported_and_the_settings_are_still_written() {
   }
   assert!(
     applied
-      .written
-      .contains(&fx.root().join(".claude/settings.json")),
+      .wrote(&fx.root().join(".claude/settings.json"))
+      .is_some(),
     "a failed install aborted the settings write"
   );
 }

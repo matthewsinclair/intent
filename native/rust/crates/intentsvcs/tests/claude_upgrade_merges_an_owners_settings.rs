@@ -118,7 +118,7 @@ fn a_second_upgrade_changes_nothing() {
     "the merge is not idempotent"
   );
   assert!(
-    !applied.written.contains(&path),
+    applied.wrote(&path).is_none(),
     "a no-op merge was reported as written"
   );
 }
@@ -151,5 +151,5 @@ fn an_unparseable_file_carrying_the_door_is_held_and_named() {
     applied.unparseable.contains(&path),
     "the unparseable file was not named: {applied:?}"
   );
-  assert!(!applied.written.contains(&path));
+  assert!(applied.wrote(&path).is_none());
 }

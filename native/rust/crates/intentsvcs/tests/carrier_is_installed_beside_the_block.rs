@@ -398,7 +398,7 @@ fn a_second_run_reports_the_carrier_already_canonical() {
 
   let first = apply(&fx, &hooks);
   assert!(
-    first.written.iter().any(|p| p == &carrier),
+    first.wrote(&carrier).is_some(),
     "the first run writes it: {first:?}"
   );
 
@@ -408,7 +408,7 @@ fn a_second_run_reports_the_carrier_already_canonical() {
     "the second must report it unchanged, not write it again: {second:?}"
   );
   assert!(
-    !second.written.iter().any(|p| p == &carrier),
+    second.wrote(&carrier).is_none(),
     "and must not appear as written: {second:?}"
   );
 }
@@ -436,6 +436,7 @@ fn no_repository_means_no_carrier_and_no_error() {
     !applied
       .written
       .iter()
+      .map(|w| &w.path)
       .chain(applied.unchanged.iter())
       .any(|p| p.ends_with("pre-commit.intent")),
     "no repository, no carrier: {applied:?}"
@@ -508,15 +509,13 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
     !applied
       .written
       .iter()
+      .map(|w| &w.path)
       .chain(applied.unchanged.iter())
       .any(|p| p == &settings),
     "a skipped file must not also report as written or unchanged: {applied:?}"
   );
   assert!(
-    applied
-      .written
-      .iter()
-      .any(|p| p == &hooks.join("pre-commit.intent")),
+    applied.wrote(&hooks.join("pre-commit.intent")).is_some(),
     "skipping the settings must not skip the rest of canon: {applied:?}"
   );
 
@@ -529,10 +528,7 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
     control.skipped.is_empty(),
     "nothing is skipped without the flag: {control:?}"
   );
-  assert!(
-    control.written.iter().any(|p| p == &settings),
-    "{control:?}"
-  );
+  assert!(control.wrote(&settings).is_some(), "{control:?}");
 }
 
 /// **REPORT MODE ANSWERS WHAT `--apply` WOULD DO, AND WRITES NOTHING** (issue
@@ -570,13 +566,18 @@ fn report_mode_answers_what_apply_would_do_and_writes_nothing() {
     !report.written.is_empty(),
     "a fresh fixture has canon to write, so the report must name it: {report:?}"
   );
-  for path in &report.written {
+  for w in &report.written {
     assert!(
-      !path.exists(),
+      !w.path.exists(),
       "report mode wrote {} -- a dry run that writes is not a dry run",
-      path.display()
+      w.path.display()
     );
   }
+  assert_eq!(
+    report.wrote(&hooks.join("pre-commit")),
+    Some(canon::Keeps::LinesOutsideBlock),
+    "a hook's write replaces only Intent's chain block, and says so (issue 0706): {report:?}"
+  );
 
   let applied = run(false);
   assert_eq!(

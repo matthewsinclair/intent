@@ -344,19 +344,21 @@ fn user_block_span(text: &str) -> Option<(usize, usize)> {
 /// file_; it has never meant _discard the project's own directives_, and reading
 /// it that way is how a documented flag grows a second, undocumented effect.
 pub fn carry_user_block(existing: &str, regenerated: &str) -> String {
-  let (es, ee) = match user_block_span(existing) {
-    Some(v) => v,
-    None => return regenerated.to_string(),
-  };
-  let (rs, re) = match user_block_span(regenerated) {
-    Some(v) => v,
-    None => return regenerated.to_string(),
-  };
+  carried_user_block(existing, regenerated).unwrap_or_else(|| regenerated.to_string())
+}
+
+/// The third case of [`carry_user_block`] alone: the regenerated file with the
+/// existing block carried into it, or `None` when either side has no block and
+/// the regenerated file stands whole. [`apply`] labels its `CLAUDE.md` write
+/// from this answer (issue 0706), so the label and the carry are one decision.
+fn carried_user_block(existing: &str, regenerated: &str) -> Option<String> {
+  let (es, ee) = user_block_span(existing)?;
+  let (rs, re) = user_block_span(regenerated)?;
   let mut out = String::with_capacity(regenerated.len() + (ee - es));
   out.push_str(&regenerated[..rs]);
   out.push_str(&existing[es..ee]);
   out.push_str(&regenerated[re..]);
-  out
+  Some(out)
 }
 
 /// How one [`apply`] runs.
@@ -384,12 +386,63 @@ pub struct Options {
   pub report: bool,
 }
 
+/// What one of [`apply`]'s writes keeps of the file it rewrites (issue 0706).
+///
+/// **SAID BY THE WRITE, NOT WORKED OUT FROM THE PATH.** Each call site of the
+/// one writer knows how it builds the file, so it names this there, and doctor
+/// says it for each file it reports behind. Before, doctor said "a hand edit in
+/// it is overwritten" of every file, which was false for the three that keep
+/// the project's own text, and a person who believed it avoided the upgrade.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Keeps {
+  /// Nothing: the file is written whole from its template, as `AGENTS.md`, a
+  /// hook's carrier and a seed are, and `CLAUDE.md` when either it or its
+  /// template has no project block.
+  Nothing,
+  /// `CLAUDE.md`'s project block, carried across by [`carry_user_block`].
+  ProjectBlock,
+  /// Every key and entry of `.claude/settings.json` but Intent's own hook
+  /// entries and deny rules, which [`merge_settings`] brings to the template's.
+  OwnEntries,
+  /// Every line outside Intent's marked block: a git hook's chain block, and
+  /// the export-ignore block in `.gitattributes`.
+  LinesOutsideBlock,
+}
+
+impl Keeps {
+  /// What the write replaces and what it keeps, as the clause after the verb
+  /// that runs it.
+  pub fn clause(self) -> &'static str {
+    match self {
+      Self::Nothing => "writes it whole from the template, so a hand edit in it is overwritten",
+      Self::ProjectBlock => {
+        "regenerates it and carries its project block across, so a hand edit outside that block is overwritten"
+      }
+      Self::OwnEntries => {
+        "brings Intent's own hook entries and deny rules in it to the template's, and keeps every other key and entry"
+      }
+      Self::LinesOutsideBlock => {
+        "replaces Intent's marked block in it, and keeps every line outside that block"
+      }
+    }
+  }
+}
+
+/// One file [`apply`] wrote, or would write under [`Options::report`], with
+/// what that write keeps of the file's own text (issue 0706). The label rides
+/// in the row, so the list of written paths has one home.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Written {
+  pub path: PathBuf,
+  pub keeps: Keeps,
+}
+
 /// What one `apply` did, so the caller can report rather than guess.
 #[derive(Debug, Default)]
 pub struct Applied {
-  /// Paths whose bytes this run changed -- or, under [`Options::report`],
-  /// would change.
-  pub written: Vec<PathBuf>,
+  /// Files whose bytes this run changed -- or, under [`Options::report`],
+  /// would change -- each with what its write keeps.
+  pub written: Vec<Written>,
   /// Paths already canonical -- reported, never silent. A run that says nothing
   /// about a file it examined is indistinguishable from one that skipped it.
   pub unchanged: Vec<PathBuf>,
@@ -428,6 +481,17 @@ pub struct Applied {
   /// will stand does not wire the gate, or when the caller passed no skills
   /// payload (doctor's report-mode comparison does not install skills).
   pub releaser: Option<Releaser>,
+}
+
+impl Applied {
+  /// What the write of `path` keeps, or `None` when this run did not write it.
+  pub fn wrote(&self, path: &Path) -> Option<Keeps> {
+    self
+      .written
+      .iter()
+      .find(|w| w.path == path)
+      .map(|w| w.keeps)
+  }
 }
 
 #[derive(Debug)]
@@ -668,9 +732,14 @@ pub fn strip_settings(settings: &Value, template: &Value) -> Value {
   if let Some(permissions) = out.get_mut("permissions").and_then(Value::as_object_mut) {
     permissions.retain(|_, v| !v.as_array().is_some_and(Vec::is_empty));
   }
-  drop_empty(&mut out, &["hooks", "permissions"]);
+  drop_empty(&mut out, &SETTINGS_CONTAINERS);
   out
 }
+
+/// The two containers Intent's entries live in, in a settings document: the
+/// ones [`strip_settings`] empties and drops, and whose lists
+/// [`merge_settings`] appends to and [`in_one_order`] sorts.
+const SETTINGS_CONTAINERS: [&str; 2] = ["hooks", "permissions"];
 
 /// Remove each of `keys` from `doc` whose value is an empty object.
 pub(crate) fn drop_empty(doc: &mut Value, keys: &[&str]) {
@@ -755,23 +824,73 @@ pub fn merge_settings(existing: &Value, template: &Value) -> Value {
 }
 
 /// What `claude upgrade --apply` writes to a `.claude/settings.json` that
-/// carries Intent's hook door (issue 0606): the template's own bytes when the
-/// merge comes to the template, the file's own bytes when it changes nothing,
-/// and the merge as 2-space JSON otherwise. `None` when the file does not
-/// parse, so the caller holds it as it holds a file that is not Intent's.
-fn settings_merged(current: &str, template_text: &str) -> Option<String> {
+/// carries Intent's hook door (issue 0606): the file's own bytes when the merge
+/// changes none of its entries, the template's own bytes when the merge comes
+/// to the template, and the merge as 2-space JSON otherwise. `None` when the
+/// file does not parse, so the caller holds it as it holds a file that is not
+/// Intent's.
+///
+/// **THE SAME ENTRIES IN ANOTHER ORDER ARE THE SAME FILE** (issue 0706). The
+/// merge puts Intent's entries after the owner's, so a file whose owner added
+/// deny rules after Intent's two, or laid the file out another way, came back
+/// from it reordered: `--apply` rewrote a file it had nothing to change in, and
+/// doctor, which asks this function through [`apply`]'s report mode, called the
+/// file behind on every run and said a hand edit in it would be overwritten.
+/// Claude Code applies every rule in a permission list and runs every matching
+/// hook whatever its place, so the order is not part of what the file says.
+fn settings_merged(current: &str, template: &SettingsTemplate) -> Option<String> {
   let existing: Value = serde_json::from_str(current).ok()?;
-  let Ok(template) = serde_json::from_str::<Value>(template_text) else {
-    return Some(template_text.to_string());
-  };
-  let merged = merge_settings(&existing, &template);
-  Some(if merged == template {
-    template_text.to_string()
-  } else if merged == existing {
+  let merged = merge_settings(&existing, &template.doc);
+  Some(if in_one_order(&merged) == in_one_order(&existing) {
     current.to_string()
+  } else if merged == template.doc {
+    template.text.clone()
   } else {
     render_json(&merged)
   })
+}
+
+/// The install's `.claude/settings.json` template, read and parsed once: its
+/// bytes, which a file the merge brings to the template is written as, and its
+/// document, which [`merge_settings`] and `deinit`'s strip read.
+pub struct SettingsTemplate {
+  pub text: String,
+  pub doc: Value,
+}
+
+/// Read and parse the settings template under `home`.
+///
+/// **A TEMPLATE THAT DOES NOT PARSE IS REFUSED, NEVER WRITTEN** (issue 0706,
+/// critic finding). The merge used to fall back to writing the template's
+/// text whole over a project's file, so a broken install put JSON Claude Code
+/// cannot read into every project it upgraded, under a label that said the
+/// project's entries were kept; and `deinit` read it as `null` and left
+/// Intent's deny rules behind. One reader for both, and both refuse.
+pub fn settings_template(home: &Path) -> Result<SettingsTemplate, CanonError> {
+  let text = template(home, Artefact::Settings.rel())?;
+  let doc = serde_json::from_str(&text).map_err(|e| {
+    CanonError::RootFile(format!(
+      "{}: the install's template does not parse as JSON: {e}",
+      Artefact::Settings.rel()
+    ))
+  })?;
+  Ok(SettingsTemplate { text, doc })
+}
+
+/// `settings` with the lists [`merge_settings`] appends to sorted into one
+/// order: each event's matchers under `hooks` and each kind's rules under
+/// `permissions`. Two documents carrying the same entries are equal through it
+/// however their entries are ordered, and a changed entry still differs.
+fn in_one_order(settings: &Value) -> Value {
+  let mut out = settings.clone();
+  for key in SETTINGS_CONTAINERS {
+    if let Some(lists) = out.get_mut(key).and_then(Value::as_object_mut) {
+      for list in lists.values_mut().filter_map(Value::as_array_mut) {
+        list.sort_by_cached_key(Value::to_string);
+      }
+    }
+  }
+  out
 }
 
 /// Whether a trimmed hook line is preamble: the shebang, a blank line, or shell
@@ -981,7 +1100,8 @@ fn template(install: &Path, rel: &str) -> Result<String, CanonError> {
   std::fs::read_to_string(&path).map_err(|source| CanonError::Unreadable { path, source })
 }
 
-/// Write `content` to `path`, creating parents, unless the bytes already match.
+/// Write `content` to `path`, creating parents, unless the bytes already match,
+/// recording what the write `keeps` of the file beside the path.
 ///
 /// **THE NO-CHANGE CASE DOES NOT WRITE.** A root file whose bytes did not
 /// change must not move its mtime and wake every watcher in the tree -- the
@@ -989,6 +1109,7 @@ fn template(install: &Path, rel: &str) -> Result<String, CanonError> {
 fn write_if_changed(
   path: &Path,
   content: &str,
+  keeps: Keeps,
   report: bool,
   applied: &mut Applied,
 ) -> Result<(), CanonError> {
@@ -998,21 +1119,22 @@ fn write_if_changed(
     applied.unchanged.push(path.to_path_buf());
     return Ok(());
   }
-  if report {
-    applied.written.push(path.to_path_buf());
-    return Ok(());
-  }
-  if let Some(parent) = path.parent() {
-    std::fs::create_dir_all(parent).map_err(|source| CanonError::Unwritable {
-      path: parent.to_path_buf(),
+  if !report {
+    if let Some(parent) = path.parent() {
+      std::fs::create_dir_all(parent).map_err(|source| CanonError::Unwritable {
+        path: parent.to_path_buf(),
+        source,
+      })?;
+    }
+    std::fs::write(path, content).map_err(|source| CanonError::Unwritable {
+      path: path.to_path_buf(),
       source,
     })?;
   }
-  std::fs::write(path, content).map_err(|source| CanonError::Unwritable {
+  applied.written.push(Written {
     path: path.to_path_buf(),
-    source,
-  })?;
-  applied.written.push(path.to_path_buf());
+    keeps,
+  });
   Ok(())
 }
 
@@ -1025,7 +1147,8 @@ fn write_if_changed(
 /// about which bytes are Intent's.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Artefact {
-  /// `.claude/settings.json`, written whole.
+  /// `.claude/settings.json`: written whole when absent, and merged into one
+  /// that carries Intent's hook door (issue 0606).
   Settings,
   /// `.mcp.json`, seeded when absent.
   Mcp,
@@ -1114,7 +1237,7 @@ fn seed_if_absent(
     }
     return Ok(());
   }
-  write_if_changed(dest, &body, report, applied)
+  write_if_changed(dest, &body, Keeps::Nothing, report, applied)
 }
 
 /// What canon would seed for `template`, rendered for this project.
@@ -1365,7 +1488,7 @@ pub fn apply(
     // lifecycle hook would otherwise look identical to one with nothing to do.
     applied.held.push(settings_path);
   } else {
-    let settings = template(home, Artefact::Settings.rel())?;
+    let settings = settings_template(home)?;
     // **A FILE THAT CARRIES THE DOOR IS MERGED, NOT REPLACED** (issue 0606):
     // Intent's entries are brought to the template's and every key the owner
     // added beside them is kept. Absent, or under `--force`, the template is
@@ -1376,9 +1499,21 @@ pub fn apply(
       std::fs::read_to_string(&settings_path).ok()
     };
     match current {
-      None => write_if_changed(&settings_path, &settings, opts.report, &mut applied)?,
+      None => write_if_changed(
+        &settings_path,
+        &settings.text,
+        Keeps::Nothing,
+        opts.report,
+        &mut applied,
+      )?,
       Some(current) => match settings_merged(&current, &settings) {
-        Some(body) => write_if_changed(&settings_path, &body, opts.report, &mut applied)?,
+        Some(body) => write_if_changed(
+          &settings_path,
+          &body,
+          Keeps::OwnEntries,
+          opts.report,
+          &mut applied,
+        )?,
         None => applied.unparseable.push(settings_path),
       },
     }
@@ -1438,12 +1573,18 @@ pub fn apply(
     let mut content = crate::rootfiles::render(home, name, cfg, ctx)
       .map_err(|e| CanonError::RootFile(format!("{name}: {e:?}")))?;
     // The project's own directives are carried across, never regenerated. See
-    // `carry_user_block` -- the template promises this in its own text.
+    // `carry_user_block` -- the template promises this in its own text. The
+    // label is what the carry did, so a file with no block to carry is said to
+    // be written whole (issue 0706).
+    let mut keeps = Keeps::Nothing;
     if name == "CLAUDE.md" && dest.exists() {
       let current = std::fs::read_to_string(&dest).unwrap_or_default();
-      content = carry_user_block(&current, &content);
+      if let Some(carried) = carried_user_block(&current, &content) {
+        content = carried;
+        keeps = Keeps::ProjectBlock;
+      }
     }
-    write_if_changed(&dest, &content, opts.report, &mut applied)?;
+    write_if_changed(&dest, &content, keeps, opts.report, &mut applied)?;
   }
 
   // 3. User-owned. Seeded when absent, preserved otherwise.
@@ -1528,7 +1669,7 @@ fn chain_hook(
 ) -> Result<(), CanonError> {
   let existing = std::fs::read_to_string(hook).unwrap_or_default();
   match insert_chain_block(name, &existing) {
-    Some(updated) => write_if_changed(hook, &updated, report, applied)?,
+    Some(updated) => write_if_changed(hook, &updated, Keeps::LinesOutsideBlock, report, applied)?,
     None => match chain_block_held(&existing) {
       Some(why) => applied.blocks_held.push((hook.to_path_buf(), why)),
       None => applied.unchanged.push(hook.to_path_buf()),
@@ -1674,7 +1815,9 @@ fn keep_hooks_out_of_archives(
     return Ok(());
   }
   match with_archive_block(&existing, &rel) {
-    Ok(Some(updated)) => write_if_changed(&path, &updated, report, applied),
+    Ok(Some(updated)) => {
+      write_if_changed(&path, &updated, Keeps::LinesOutsideBlock, report, applied)
+    }
     Ok(None) => {
       applied.unchanged.push(path);
       Ok(())
@@ -1702,7 +1845,7 @@ fn install_post_pull_carrier(
 ) -> Result<(), CanonError> {
   let carrier = hooks.join(carrier_name(hook));
   let body = template(home, Artefact::PostPullCarrier.rel())?;
-  write_if_changed(&carrier, &body, report, applied)?;
+  write_if_changed(&carrier, &body, Keeps::Nothing, report, applied)?;
   if report {
     return Ok(());
   }
@@ -1746,7 +1889,7 @@ fn install_carrier(
 ) -> Result<(), CanonError> {
   let carrier = hooks.join(carrier_name("pre-commit"));
   let shim = template(home, Artefact::PreCommitCarrier.rel())?;
-  write_if_changed(&carrier, &shim, report, applied)?;
+  write_if_changed(&carrier, &shim, Keeps::Nothing, report, applied)?;
   // **ASKED AT INSTALL TIME BECAUSE THE ALTERNATIVE IS ASKING AT COMMIT TIME.**
   // The carrier is a shim: it does nothing except resolve this pointer and exec
   // what it names. So `written` is a claim about bytes and says nothing about

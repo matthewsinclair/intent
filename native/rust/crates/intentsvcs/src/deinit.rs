@@ -294,16 +294,12 @@ impl Plan {
 }
 
 /// The settings template, the one home of what Intent adds to a project's
-/// `.claude/settings.json`.
+/// `.claude/settings.json`, through canon's one reader: a template that does
+/// not parse is refused, never read as `null` (issue 0706).
 fn template_settings(scope: &Scope<'_>) -> Result<Value, DeinitError> {
-  let text = canon::canon_bytes(
-    Artefact::Settings,
-    scope.install,
-    scope.project.config(),
-    scope.ctx,
-  )
-  .map_err(DeinitError::Canon)?;
-  Ok(serde_json::from_str(&text).unwrap_or(Value::Null))
+  canon::settings_template(scope.install)
+    .map(|template| template.doc)
+    .map_err(DeinitError::Canon)
 }
 
 /// `mcp` without the `intent` server, emptied containers dropped.

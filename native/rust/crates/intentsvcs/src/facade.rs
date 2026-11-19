@@ -6580,10 +6580,12 @@ impl Facade {
     let excluded = if opts.report {
       formatter_exclusion_missing(&self.project)
     } else {
-      self.record_written(&applied.written)?;
+      let written: Vec<std::path::PathBuf> =
+        applied.written.iter().map(|w| w.path.clone()).collect();
+      self.record_written(&written)?;
       // Every path canon changed is the drain's, the hooks and settings the
       // index keeps no row for among them (issue 0632).
-      self.landed.extend(applied.written.iter().cloned());
+      self.landed.extend(written);
       let added = converge_formatter_exclusion(&self.project).map_err(|source| {
         FacadeError::Canon(crate::canon::CanonError::Unwritable {
           path: self.project.root().join(".prettierignore"),

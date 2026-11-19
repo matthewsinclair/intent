@@ -663,7 +663,7 @@ impl FindingClass {
       Self::RootFileBehind => (
         6,
         "root-file-behind",
-        "run `intent claude upgrade --apply --skip-settings` -- or `intent claude upgrade --apply` for `.claude/settings.json` and `.mcp.json`, which `--skip-settings` leaves alone. Either run rewrites the file from the installed templates, so a hand edit in it is overwritten; `intent claude upgrade` without `--apply` lists what it would write. Not counted: a newer Intent reads every project behind until this runs there",
+        "run `intent claude upgrade --apply --skip-settings` -- or `intent claude upgrade --apply` for `.claude/settings.json` and `.mcp.json`, which `--skip-settings` leaves alone. Either run brings the file to the installed templates, and each file's line says what that replaces in it and what it keeps; `intent claude upgrade` without `--apply` lists what it would write. Not counted: a newer Intent reads every project behind until this runs there",
       ),
       Self::StoreTracked => (
         6,

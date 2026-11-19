@@ -67,7 +67,7 @@ fn absent_it_is_seeded_and_names_intent_mcp() {
   let applied = apply(&fx, &hooks, canon::Options::default());
 
   assert!(
-    applied.written.iter().any(|p| p == &path),
+    applied.wrote(&path).is_some(),
     "`.mcp.json` was not reported as written: {:?}",
     applied.written
   );

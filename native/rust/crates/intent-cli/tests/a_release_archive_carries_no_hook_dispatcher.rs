@@ -126,6 +126,14 @@ fn doctor_names_an_undecided_gitattributes_and_an_upgrade_keeps_an_opt_out() {
     out.contains(GITATTRIBUTES_BEHIND),
     "doctor did not name a .gitattributes that lets the dispatchers ride every release archive:\n{out}{err}"
   );
+  let line = out
+    .lines()
+    .find(|line| line.starts_with(GITATTRIBUTES_BEHIND))
+    .unwrap_or_default();
+  assert!(
+    line.ends_with(intentsvcs::canon::Keeps::LinesOutsideBlock.clause()),
+    "the line says the upgrade replaces only Intent's block and keeps the project's lines (issue 0706): {line}"
+  );
 
   let opt_out = "/.githooks -export-ignore\n";
   std::fs::write(&gitattributes, opt_out).expect("write the opt-out");

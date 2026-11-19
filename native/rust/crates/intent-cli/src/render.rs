@@ -14723,8 +14723,8 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // the defect that issue closes. The printer has no word for a write that has
   // not happened, so `would write:` stays.
   if report {
-    for p in &applied.written {
-      println!("would write: {}", rel(root, p));
+    for w in &applied.written {
+      println!("would write: {}", rel(root, &w.path));
     }
   }
   // **REPORTED, NOT SILENT.** A run that says nothing about a file it examined

@@ -2488,18 +2488,21 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
     Err(e) => return unchecked(e.to_string()),
   };
   let carrier = hooks.map(|h| h.join("pre-commit.intent"));
+  // Each written file with what its write keeps, which the write itself
+  // recorded (issue 0706): the line says whether the remedy costs an edit.
   applied
     .written
     .iter()
-    .filter(|path| path.exists() && Some(path.as_path()) != carrier.as_deref())
-    .map(|path| {
+    .filter(|w| w.path.exists() && Some(w.path.as_path()) != carrier.as_deref())
+    .map(|w| {
       Finding::new(
-        project.relative(path),
+        project.relative(&w.path),
         FindingClass::RootFileBehind,
         format!(
-          "differs from what the templates in {} would write -- {} rewrites it, and a hand edit in it is overwritten",
+          "differs from what the templates in {} would write -- {} {}",
           home.display(),
-          upgrade_door(root, path)
+          upgrade_door(root, &w.path),
+          w.keeps.clause()
         ),
       )
     })
