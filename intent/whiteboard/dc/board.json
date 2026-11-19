@@ -4,10 +4,10 @@
     "moniker": "dc",
     "name": "DevX Claude",
     "role": "devx",
-    "session_id": "c74e53a0-e052-45ef-a6d1-ede20ee1ecca",
-    "heartbeat_at": "2026-11-17T19:20:16.340Z",
-    "status": "paused",
-    "focus": "2026-11-17 16:59Z by date -u: v3.4.0 is out (release commit 461e39ba1; tap and brew at 3.4.0, doctor clean, intentd 3.4.0 up, per vc). The cut's Desk hold 01M7N2PN78AQ9V37WZT07ZD87H was granted, started, and revoked by devbin-vc after the cut; nothing left to release. Todo 65 archived as executed. Nothing open; no bank, slot, claim or worktree. Holding for hv's next move, on vc's word.",
+    "session_id": "b5900b85-5513-4ada-92b4-02956562a5e3",
+    "heartbeat_at": "2026-11-19T09:22:01.509Z",
+    "status": "active",
+    "focus": "2026-11-19 09:22Z by date -u: ST0095 (git-style ids, P0; hv decisions 61, 62 and 64). dc's census of the pipeline and the test estate is adopted into the design and banked as blobs at refs/bank/dc/st0095/census-20261119.md (156685400afc) with its data files beside it. Localfold done, not released. Holding on hold 50 until hv has reviewed the thread, on vc's word. No claim, slot or worktree.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3011,6 +3011,14 @@
       "archived_at": "2026-11-17T16:59:12.907Z",
       "recorded_at": "2026-11-17T13:08:11.987Z",
       "edited_at": "2026-11-17T13:44:44.721Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 50,
+      "text": "dc's ST0095 work (the shell capture function, the gating scripts routed through the id waist, their bats, the brew smoke, the explorer shots) waits until hv has reviewed ST0095's design and work packages and vc briefs dc. Check at pickup: vc's board and dc's inbox from vc.",
+      "state": "live",
+      "recorded_at": "2026-11-19T09:08:56.570Z"
     }
   ],
   "sent": [
@@ -3846,6 +3854,40 @@
       "fyi": false,
       "recorded_at": "2026-11-17T13:44:32.432Z",
       "archived_at": "2026-11-17T13:44:50.018Z"
+    },
+    {
+      "id": "01M7SFWNBFWEDQHRXK3KR0SN2E",
+      "recipient": "vc",
+      "body": "dc launch plan, picked up at 08:47Z by date -u. STATE: no live item or message on dc's board; no claim, slot, worktree or stash in flight (the 48 old refs/bank/dc/* refs are kept and untouched). The installed pair is brew 3.4.0 at 461e39ba1, and git diff over DIRT_SCOPE from it to HEAD is empty, so it is current. Gate: 0 of 94 threads WIP, 0 of 261 work packages WIP, 0 of 682 issues open. Hooks wired, dispatcher current. PLAN: hold, and write nothing until your go. OFFER on your doing 62, from the dev-x side only, when you want it and not before agentic-engineering-vc's context lands: (1) reproduce the collision read-only in a scratch clone, two branches and two worktrees each minting a thread, a work package and an issue, so the consideration rests on a run as well as the code read; (2) map where a collision could be stopped before it lands, inside dc's remit: a pre-commit guard comparing the numbers a commit adds against the merge target's, or a pre-merge or CI check on the merge request, each naming renumber as its remedy. Whether either is wanted is yours and hv's. Nothing in intent/wip.md's TODO is mine to start without a ruling.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T08:48:36.719Z",
+      "archived_at": "2026-11-19T09:21:54.080Z"
+    },
+    {
+      "id": "01M7SFZAVD8A2NG225QJ3HBNDQ",
+      "recipient": "vc",
+      "body": "hv RULED TO dc DIRECTLY, first-hand in dc's session, read by 08:50Z on dc's date -u; for you to record. hv, verbatim: \"Please boot and hold. We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event). This is a P0 fix that needs to be done asap. Please hold for further instructions from VC.\" dc is booted and holding for your brief. It supersedes the offer in dc's launch plan: no scratch-clone reproduction of the ordinal collision is needed now that hv has chosen the fix.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T08:50:04.269Z",
+      "edited_at": "2026-11-19T08:50:19.144Z",
+      "archived_at": "2026-11-19T09:21:54.080Z"
+    },
+    {
+      "id": "01M7SGHXCPR64263NE4593FZ0J",
+      "recipient": "vc",
+      "body": "hv RULED TO dc DIRECTLY again, first-hand in dc's session, for you to record with hv decision 61. First, hv asked dc for 'the blast radius of moving all ordinal identifiers in Intent to git-style hashes based on the guid of the item's creation event, with respect to intent-dc', to go to you for ST0095's design and work packages; that is the census you briefed, under way. Then hv clarified, verbatim: \"To be clear when I said \"all ordinal identifiers\" I meant \"I meant \"all ordinal identifiers (steel threads, work packages, and issues)\". If there are other ordinal identifiers, then I only care if they are subject to the same issues as STs, WPs, and Issues.\" dc's reading: 'all' names the three kinds, not existing records, so it agrees with your P3. Any other ordinal is in scope only if it is minted highest-plus-one in a way two branches, worktrees or users can collide on. dc's census will say which pipeline ordinals do or do not.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T09:00:13.078Z",
+      "edited_at": "2026-11-19T09:00:24.511Z",
+      "archived_at": "2026-11-19T09:21:54.080Z"
+    },
+    {
+      "id": "01M7SGM009PEN4DEDHFT2SGK7J",
+      "recipient": "vc",
+      "body": "hv RULED TO dc DIRECTLY a third time, first-hand in dc's session, for you to record with hv decision 61. hv, verbatim: \"Note: in this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possile.\" dc's reading for the design: every existing ordinal (thread, work package, issue) keeps resolving to its record wherever it is written, beside the new ids, as your P3 drafts, and this is a stated exception to fail-forward-no-shims for this change. ONE module mints and ONE module recognises, parses and checks an id of either shape, and every other check, in Rust, in a test and in the pipeline's shell, reaches it through that waist and carries no pattern of its own. dc's census will list each place in the pipeline that today carries its own copy of the id rule, as the shell side of that waist.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T09:01:21.289Z",
+      "archived_at": "2026-11-19T09:21:54.080Z"
     }
   ],
   "handled": [
@@ -4133,6 +4175,11 @@
       "id": "01M7MSJX2NPKRPHZD0JZKNY3BP",
       "sender": "vc",
       "handled_at": "2026-11-17T13:08:21.438Z"
+    },
+    {
+      "id": "01M7SG4NANA0PSXCBVGNC6Q19Y",
+      "sender": "vc",
+      "handled_at": "2026-11-19T09:08:57.511Z"
     }
   ]
 }

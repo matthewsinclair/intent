@@ -1,0 +1,15 @@
+{
+  "id": "01M7SH1WKTGDJB579EMES8P4KF",
+  "ts": "2026-11-19T09:08:56.570Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "dc's ST0095 work (the shell capture function, the gating scripts routed through the id waist, their bats, the brew smoke, the explorer shots) waits until hv has reviewed ST0095's design and work packages and vc briefs dc. Check at pickup: vc's board and dc's inbox from vc."
+  }
+}

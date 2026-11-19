@@ -2,10 +2,10 @@
 node: dc
 name: DevX Claude
 role: devx
-session_id: c74e53a0-e052-45ef-a6d1-ede20ee1ecca
-heartbeat_at: 2026-11-17 19:20Z
-status: paused
-focus: "2026-11-17 16:59Z by date -u: v3.4.0 is out (release commit 461e39ba1; tap and brew at 3.4.0, doctor clean, intentd 3.4.0 up, per vc). The cut's Desk hold 01M7N2PN78AQ9V37WZT07ZD87H was granted, started, and revoked by devbin-vc after the cut; nothing left to release. Todo 65 archived as executed. Nothing open; no bank, slot, claim or worktree. Holding for hv's next move, on vc's word."
+session_id: b5900b85-5513-4ada-92b4-02956562a5e3
+heartbeat_at: 2026-11-19 09:22Z
+status: active
+focus: "2026-11-19 09:22Z by date -u: ST0095 (git-style ids, P0; hv decisions 61, 62 and 64). dc's census of the pipeline and the test estate is adopted into the design and banked as blobs at refs/bank/dc/st0095/census-20261119.md (156685400afc) with its data files beside it. Localfold done, not released. Holding on hold 50 until hv has reviewed the thread, on vc's word. No claim, slot or worktree."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-_(none)_
+- dc's ST0095 work (the shell capture function, the gating scripts routed through the id waist, their bats, the brew smoke, the explorer shots) waits until hv has reviewed ST0095's design and work packages and vc briefs dc. Check at pickup: vc's board and dc's inbox from vc.
 
 ## Watch-outs
 

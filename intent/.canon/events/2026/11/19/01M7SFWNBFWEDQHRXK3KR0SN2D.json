@@ -1,0 +1,17 @@
+{
+  "id": "01M7SFWNBFWEDQHRXK3KR0SN2D",
+  "ts": "2026-11-19T08:48:36.719Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc launch plan, picked up at 08:47Z by date -u. STATE: no live item or message on dc's board; no claim, slot, worktree or stash in flight (the 48 old refs/bank/dc/* refs are kept and untouched). The installed pair is brew 3.4.0 at 461e39ba1, and git diff over DIRT_SCOPE from it to HEAD is empty, so it is current. Gate: 0 of 94 threads WIP, 0 of 261 work packages WIP, 0 of 682 issues open. Hooks wired, dispatcher current. PLAN: hold, and write nothing until your go. OFFER on your doing 62, from the dev-x side only, when you want it and not before agentic-engineering-vc's context lands: (1) reproduce the collision read-only in a scratch clone, two branches and two worktrees each minting a thread, a work package and an issue, so the consideration rests on a run as well as the code read; (2) map where a collision could be stopped before it lands, inside dc's remit: a pre-commit guard comparing the numbers a commit adds against the merge target's, or a pre-merge or CI check on the merge request, each naming renumber as its remedy. Whether either is wanted is yours and hv's. Nothing in intent/wip.md's TODO is mine to start without a ruling.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

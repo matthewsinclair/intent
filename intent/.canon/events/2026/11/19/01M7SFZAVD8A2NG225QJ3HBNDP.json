@@ -1,0 +1,17 @@
+{
+  "id": "01M7SFZAVD8A2NG225QJ3HBNDP",
+  "ts": "2026-11-19T08:50:04.269Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "hv RULED TO dc DIRECTLY, first-hand in dc's session, read by 08:50Z on dc's date -u; for you to record. hv, verbatim: \"Please boot and hold. We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event). This is a P0 fix that needs to be done asap. Please hold for further instructions from VC.\" dc is booted and holding for your brief. It supersedes the offer in dc's launch plan: no scratch-clone reproduction of the ordinal collision is needed now that hv has chosen the fix.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

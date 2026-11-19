@@ -1,0 +1,17 @@
+{
+  "id": "01M7SGM009PEN4DEDHFT2SGK7H",
+  "ts": "2026-11-19T09:01:21.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "hv RULED TO dc DIRECTLY a third time, first-hand in dc's session, for you to record with hv decision 61. hv, verbatim: \"Note: in this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possile.\" dc's reading for the design: every existing ordinal (thread, work package, issue) keeps resolving to its record wherever it is written, beside the new ids, as your P3 drafts, and this is a stated exception to fail-forward-no-shims for this change. ONE module mints and ONE module recognises, parses and checks an id of either shape, and every other check, in Rust, in a test and in the pipeline's shell, reaches it through that waist and carries no pattern of its own. dc's census will list each place in the pipeline that today carries its own copy of the id rule, as the shell side of that waist.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
