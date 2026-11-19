@@ -21,6 +21,17 @@ Seat: dc. Size: M.
 - The drill: in a clone of this repository upgraded with the new build, mint a hashed thread, work package and issue, and commit them through the whole commit gate, with doctor and the pull-request check passing.
 - The fleet's note, for the visit hv decision 41 already plans: every machine upgrades first; `intent upgrade`; `intent claude upgrade --apply`; and a read-only grep for a hand-copied `pr-checks.yml`.
 
+- From vc's Highlander sweep of the existing code (report C, `refs/bank/vc/st0095/highlander-C-non-rust-20261119`), folded in by dc:
+  - The five gated tools that join a canon name, an id and a realised directory by string concatenation ask the binary for the join instead: `absent_at_check.sh:170`, `declared_kind_check.sh:135`, `:294`, `stale_at_check.sh:126-127`, `rulings_check.sh:191-206` and `canon_commit_check.sh:165-176`, which takes its labels from `.id` and its directories from the file name. So WP-10's read door also answers, for an id, its canon file and its realised directory (cluster C).
+  - The gate's other shapes go the same way: `rulings_check.sh:167-215` (an issue as three or four digits), `rulings_check.sh:203` (`WP/[0-9][0-9]/info.md`) and `view_skew_check.sh:241` (the `ST` prefix) (clusters D, E and F).
+  - `stale_at_check.sh:177-210` reads its AT rows from canon, as `absent_at_check.sh` and `declared_kind_check.sh` already do, instead of re-parsing the rendered `acceptance.md` (cluster G).
+  - `thread_view_skew_check.sh:130`, `:134` read doctor's summary and residue lines as text, a workaround that tool's own header dates. They read doctor's machine form once doctor has one (cluster I).
+  - `canon_ignore_guard.bats:102`, whose ignore rule `intent/.canon/st/ST9*` holds only because the guard's probe starts with `ST9`, changes with the guard (cluster K).
+  - This repository's fixtures spell a work package `ST0001/WP-01` (`tests/unit/whiteboard_header_guard.bats:379`, `:390` and `tests/fixtures/whiteboard-header/laksa-ic-a0077c605.md:9`), and take the one spelling. The docs' spellings are WP-13's (cluster F).
+  - The dead `st_prefix` key leaves `intent/.config/config.json:33`, which nothing has read since `dispatch.rs:81-89`, and its copy in `critic_global_rig.sh:96` goes with it (cluster D).
+  - The by-hand probes that assume the mint read the id through `minted_id`, or retire with the by-hand instruments: `canon_race_check.sh:104-108`, `read_claim_probe.sh:76-77`, `inert_arg_check.sh:99`, `:133-138`, `sync_issue_loss.sh:45`, `:64-65`, `fixture_probe.sh:225-227`, `:249` and `no_daemon_required.sh:166-179` (cluster H).
+  - dc's retirement proposal also takes `realise_plan.sh` (its manifest grammar, declaration rule and `printf '%04d'`) and ST0057's `sparse_tree_equals_manifest.sh`, which refuses this repository's own manifest. No gate, CI step or bats test runs either (clusters A, B and E).
+
 ## Order
 
 After WP-03 and WP-10. The drill runs before the rehearsal.

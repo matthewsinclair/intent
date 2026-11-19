@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b5900b85-5513-4ada-92b4-02956562a5e3
-heartbeat_at: 2026-11-19 09:43Z
+heartbeat_at: 2026-11-19 10:32Z
 status: active
-focus: "2026-11-19 09:43Z by date -u: ST0095 WP-03 claimed and started on vc's go of 09:38Z, the commit gate's copy-of-the-store guard first, then the capture function on ic's machine form, the brew smoke and the screenshots. Host plan sent to vc at 09:41Z. Setting up gyges as ic's build host unless vc says otherwise. WP-12 waits on WP-03 and ic's read door."
+focus: "2026-11-19 10:32Z by date -u: ST0095 WP-03, localfold before a compact, not released. Both critic-shell reviews are in. Guard reworked in tmp/wt-st0095-wp03 (copies only for an older or unreadable store, Store::init's rule); its red control is open (a hand-edited view, needing an in-place store that holds the thread). Capture unit's seven critic fixes to do in tmp/wt-st0095-wp03-capture. Neither unit re-banked or sent yet. Handoff at refs/bank/dc/st0095/handoff-20261119. Highlander items answered and accepted by vc; issue 0714 filed."
 claims: [ST0095/03]
 ---
 
@@ -20,6 +20,7 @@ claims: [ST0095/03]
 - ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.
 - ST0096 (issue 0705's thread, e102ece05), held until hv has reviewed it. WP-03 (S), after ic's ST0095 WP-02: the commit gate and the pull-request check work with steel_threads.md and todo.md tracked or untracked, and read their paths from the one declared set; this repository's own lists leave git at its post-cut upgrade, under vc decision 132. WP-04 (S), after cc's WP-01 and ic's WP-02: the proof, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull.
 - hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
+- ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, `intent id <token>...` (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too), which lands in WP-10. The retirement proposal goes to vc file by file.
 
 ## Holds
 

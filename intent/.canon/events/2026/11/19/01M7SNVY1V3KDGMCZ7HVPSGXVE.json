@@ -1,0 +1,15 @@
+{
+  "id": "01M7SNVY1V3KDGMCZ7HVPSGXVE",
+  "ts": "2026-11-19T10:33:04.315Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, `intent id <token>...` (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too), which lands in WP-10. The retirement proposal goes to vc file by file."
+  }
+}
