@@ -24,34 +24,21 @@
 # eligibility rules and in a roster that agreed with neither dispatcher beneath
 # it. This parses one verdict; it does not form one.
 #
-# IT PARSES THE DENOMINATOR AND REFUSES IF IT CANNOT, WHICH IS THE WHOLE
-# DIFFERENCE BETWEEN THIS AND A GREP. A text-scraping gate whose pattern stops
-# matching does not fail: it goes GREEN, forever, and nothing anywhere says so.
-# That is `pre-commit.sh:98` -- *a guard nothing dispatches is indistinguishable
-# from a guard that passes* -- one layer out, and this estate found three
-# instances of the family in one morning. So the summary line is read for its
-# `N view(s)` FIRST, and a summary this script cannot parse is exit 2 and a
-# refusal. **A zero is not a result until the instrument has proven it can
-# produce a non-zero**, and the denominator is that proof carried on every run.
-#
-# FIELD-ANCHORED, NEVER A SUBSTRING. The needle is `^residue: <path> -- view-skew
-# -- `, because a path or a message that MENTIONS the class is not a finding OF
-# it -- the same distinction that had a broadcast match `_(empty)_` inside its
-# own quoted prose and silently drop a node from two sends.
-#
-# THIS PARSE HAS A SHELF LIFE AND THE EXPIRY IS NAMED SO IT DOES NOT OUTLIVE ITS
-# REASON. `render.rs:1668` records that `doctor` has no machine face yet -- *it
-# stays inline until `doctor` has a machine face to carry it, which needs a
-# surface row and is not mine to add*. `Finding` already derives `Serialize` and
-# `FindingClass` is already kebab-case on the wire, so `doctor --json` is a
-# `Serialize` on `Report` plus a surface row. **WHEN THAT LANDS, DELETE THE
-# PARSING IN THIS SCRIPT AND CONSUME THE STRUCTURED OUTPUT -- do not keep both.**
-# A text reader left beside a structured one is a second opinion about what
-# `doctor` said, which is the same shape as the roster that agreed with neither
-# dispatcher beneath it and the verifier that carried its own copy of the
-# classifier's rules. The refusal above is a WORKAROUND for a missing surface,
-# not a preference, and a workaround nobody dated is how the estate acquires
-# permanent ones.
+# IT READS `doctor --format json`, NEVER DOCTOR'S TEXT (ST0095 WP-03). The text
+# parse it replaces matched `^residue: <path> -- view-skew -- `, and from
+# 9331cb11a (2026-09-07), which grouped the report by class, it matched nothing:
+# the summary line still parsed, so its denominator check passed, and this arm
+# answered "match" for every tree until WP-03's red control drove a hand edit
+# past it. A denominator proves the report was read, not that a finding can be,
+# so each field read here refuses when it is missing: `checked.views`, which
+# must be above zero, because an empty population and a clean estate compare
+# equal, and `findings`, which must be a list. A finding is of the class when
+# its `class` field is `view-skew`, compared whole: a path or a message that
+# mentions the class is not a finding of it. A class name the build no longer
+# prints would still select nothing and pass every tree, the same blindness one
+# field over, so a control runs before the read and refuses unless the build
+# reports `view-skew` by that name. A project that acknowledges the class has
+# its findings moved out of `findings`, so that is a refusal too, never a match.
 #
 # `--changed <paths...>` BLOCKS ONLY ON WHAT THIS COMMIT TOUCHES and reports the
 # rest, which is the clock guard's ratified inherited-breakage rule: a guard that
@@ -59,7 +46,8 @@
 # arrived already skewed would otherwise be unable to commit the fix.
 #
 # Exit codes: 0 clean, not applicable, or inherited-only; 1 this commit touches
-# a skewed view; 2 the instrument cannot answer (no verdict, unreadable summary).
+# a skewed view; 2 the instrument cannot answer (no verdict, a report it cannot
+# read, a control that failed, or the class acknowledged).
 
 set -uo pipefail
 
@@ -79,8 +67,8 @@ if [ "${1:-}" = "--changed" ]; then
   TRIGGERED=1
 fi
 
-# THE BINARY IS RESOLVED BY ABSOLUTE PATH BECAUSE v3 IS OFF PATH BY STANDING
-# RULING, and `intent` on PATH is v2, which knows nothing about any of this.
+# THE BINARY IS RESOLVED BY ABSOLUTE PATH because this arm judges the views the
+# tree's own build renders, and `intent` on PATH is the installed release.
 BIN="$ROOT/native/rust/target/release/intent"
 if [ ! -x "$BIN" ]; then
   # REFUSES, IT DOES NOT SKIP (hv ruling 4 as scoped by vc 2026-08-27, authority
@@ -116,22 +104,61 @@ if [ ! -x "$BIN" ]; then
   exit 2
 fi
 
-OUT="$("$BIN" doctor 2>&1)"
+command -v jq >/dev/null 2>&1 ||
+  die "jq is not on PATH, and it is what reads doctor's report, so this commit is unchecked rather than clean"
+
+# The class this arm reads, spelled once: the control and the read both take it
+# from here.
+CLASS="view-skew"
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/thread-view-skew.XXXXXX")" ||
+  die "no temporary directory for the control, so this commit is unchecked rather than clean"
+trap 'rm -rf "$WORK"' EXIT
+
+# THE CONTROL: THE BUILD REPORTS $CLASS BY THAT NAME. doctor checks each key of
+# `doctor.acknowledged` against the class names it prints, and a key it does
+# not print acknowledges nothing and comes back as a setting it cannot honour.
+# So a scratch project carrying this checkout's config, with $CLASS
+# acknowledged, must come back with $CLASS among `acknowledged`.
+if ! {
+  mkdir -p "$WORK/probe/intent/.config" &&
+    jq --arg class "$CLASS" '.doctor.acknowledged[$class] = "the control in thread_view_skew_check.sh"' \
+      "$ROOT/intent/.config/config.json" > "$WORK/probe/intent/.config/config.json"
+}; then
+  die "could not make the control's scratch project at $WORK/probe, so this commit is unchecked rather than clean"
+fi
+CONTROL="$(cd "$WORK/probe" && "$BIN" doctor --format json)"
+CRC=$?
+if [ "$CRC" -gt 1 ] ||
+  ! printf '%s' "$CONTROL" | jq -e --arg class "$CLASS" 'any(.acknowledged[]?; .class == $class)' >/dev/null; then
+  die "CONTROL FAILED: a scratch project that acknowledges $CLASS did not come back with it acknowledged (doctor exited $CRC), so $BIN may not report $CLASS by that name, and reading for it would pass every tree; this commit is unchecked rather than clean. The control's report follows:
+$CONTROL"
+fi
+
+OUT="$("$BIN" doctor --format json)"
 RC=$?
 # `doctor` exits 1 for findings of ANY class, so its exit code is not this
 # instrument's verdict and must not be read as one. Anything above 1 is the
 # command failing rather than reporting, and a failure to run is not a pass.
-[ "$RC" -le 1 ] || die "\`$BIN doctor\` exited $RC -- it did not produce a verdict, so this commit is unchecked rather than clean. Output follows:
+[ "$RC" -le 1 ] || die "\`$BIN doctor --format json\` exited $RC -- it did not produce a verdict, so this commit is unchecked rather than clean. Its report follows:
 $OUT"
 
-SUMMARY="$(printf '%s\n' "$OUT" | grep -E '^doctor: [0-9]+ finding\(s\) across ' | tail -1)"
-[ -n "$SUMMARY" ] || die "\`doctor\` printed no summary line this script can read. Its output shape has changed and the needles below are no longer known to match -- which is the one failure a text-reading gate cannot detect from its own silence, so it refuses instead. Re-derive the needles against the current output before trusting any answer from this script."
+VIEWS="$(printf '%s' "$OUT" | jq -er '.checked.views | numbers')" ||
+  die "\`doctor --format json\` gave no view count at .checked.views, so this script cannot show it read the views, and this commit is unchecked rather than clean"
+[ "$VIEWS" -gt 0 ] || die "\`doctor\` reports $VIEWS views rendered. An empty population and a clean estate compare equal, so this is a refusal and not a pass."
 
-VIEWS="$(printf '%s\n' "$SUMMARY" | sed -n 's/.*, \([0-9][0-9]*\) view(s).*/\1/p')"
-[ -n "$VIEWS" ] || die "the summary line parsed but carries no view denominator: $SUMMARY"
-[ "$VIEWS" -gt 0 ] 2>/dev/null || die "\`doctor\` reports $VIEWS views rendered. An empty population and a clean estate compare equal, so this is a refusal and not a pass."
+# An acknowledged class's findings leave `findings` for `acknowledged` (issue
+# 0065), where the read below does not look, and whether an acknowledged skew
+# blocks a commit is not this arm's to rule.
+if printf '%s' "$OUT" | jq -e --arg class "$CLASS" 'any(.acknowledged[]?; .class == $class)' >/dev/null; then
+  die "this project acknowledges $CLASS in doctor.acknowledged, so doctor reports those findings outside its verdict and this arm cannot say the views match; whether an acknowledged skew blocks a commit needs a ruling"
+fi
 
-SKEWED="$(printf '%s\n' "$OUT" | sed -n 's/^residue: \(.*\) -- view-skew -- .*$/\1/p')"
+SKEWED="$(printf '%s' "$OUT" | jq -r --arg class "$CLASS" '
+  if (.findings | type) != "array" then error("the report carries no findings list") else . end
+  | .findings[] | select(.class == $class)
+  | if (.file | type) == "string" then .file else error("a \($class) finding names no file") end
+')" || die "could not read the $CLASS findings from \`doctor --format json\` (jq's reason is above), so this commit is unchecked rather than clean"
 
 if [ -z "$SKEWED" ]; then
   echo "thread-view-skew: $VIEWS generated view(s) match the model."
@@ -142,7 +169,7 @@ BLOCKING=""
 INHERITED=""
 while IFS= read -r path; do
   [ -n "$path" ] || continue
-  if [ "$TRIGGERED" -eq 1 ] && [ "${CHANGED#* $path }" = "$CHANGED" ]; then
+  if [ "$TRIGGERED" -eq 1 ] && [ "${CHANGED#* "$path" }" = "$CHANGED" ]; then
     INHERITED="${INHERITED}${path}
 "
   else
