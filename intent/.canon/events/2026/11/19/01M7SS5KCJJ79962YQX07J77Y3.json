@@ -1,0 +1,16 @@
+{
+  "id": "01M7SS5KCJJ79962YQX07J77Y3",
+  "ts": "2026-11-19T11:30:46.802Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 (ic), 2026-11-19 11:30Z by date -u: WP-02 done (landed ed1caeb36). cc's WP-04 intent-cli half read (v1 and the v3 delta): nothing for WP-04; four carry-overs into WP-10, in ic's WP-10 notes. WP-13 drafted so far: the upgrade note and the release-notes entry (the rest hangs on WP-10's door shapes). Next: WP-10 (L) on WP-04 once it lands, its resolver half on WP-07; then WP-11 (M); then WP-13's finish."
+  }
+}

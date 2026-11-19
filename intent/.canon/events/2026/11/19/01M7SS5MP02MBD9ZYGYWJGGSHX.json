@@ -1,0 +1,16 @@
+{
+  "id": "01M7SS5MP02MBD9ZYGYWJGGSHX",
+  "ts": "2026-11-19T11:30:48.486Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 75,
+    "text": "ST0095 WP-06, with cc: the wording of the not-yet-upgraded state. Done: cc checked the meaning (2026-11-19 11:30Z), and the wording went to vc for hv (2026-11-19 11:30Z). Every mint refuses, exit 1, and names intent upgrade; doctor gets canon-format-behind, shown and not counted, naming intent/.canon/project.json. Closes when hv rules and cc builds it in WP-06."
+  }
+}

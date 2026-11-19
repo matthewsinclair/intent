@@ -3,23 +3,24 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
-heartbeat_at: 2026-11-19 10:49Z
+heartbeat_at: 2026-11-19 11:30Z
 status: active
 focus: "2026-11-19 10:49Z by date -u: localfold on hv's word (context high), not released. ST0095 WP-02 is done (landed ed1caeb36, closed at 68a88e2d3), its claim dropped and its worktree removed. Banks: refs/bank/ic/st0095/wp02, wp02-critic-disposition-20261119, wp10-notes-20261119. Next after the compact: cc's WP-04 intent-cli read when it comes, WP-13 draft, issue 0706, then WP-10 on WP-07."
-claims: []
+claims: [ISSUE:0706]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- ST0095 (ic): WP-02 done (landed ed1caeb36, closed after AT-02.1 literal 68a88e2d3). Now: read the intent-cli part of cc WP-04 when cc sends it; draft WP-13 (L, docs, hv decision 66) meanwhile; then WP-10 (L) on cc WP-07, its carried notes banked at refs/bank/ic/st0095/wp10-notes-20261119; then WP-11 (M). Plus the hv decision 69 items in todos.
+- ST0095 (ic), 2026-11-19 11:30Z by date -u: WP-02 done (landed ed1caeb36). cc's WP-04 intent-cli half read (v1 and the v3 delta): nothing for WP-04; four carry-overs into WP-10, in ic's WP-10 notes. WP-13 drafted so far: the upgrade note and the release-notes entry (the rest hangs on WP-10's door shapes). Next: WP-10 (L) on WP-04 once it lands, its resolver half on WP-07; then WP-11 (M); then WP-13's finish. (edited)
+- Issue 0706 (ic, hv decision 69), 2026-11-19 11:30Z by date -u: fixed, gated green once on gyges (transport 7e7096893), critic-rust 2 critical + 5 recommendation all fixed, banked at refs/bank/ic/0706/fix (patch-id 55c775ce5a12, base c2344d1dd, 14 paths) with its disposition at refs/bank/ic/0706/critic-disposition-20261119; proof and CHANGELOG line sent to vc. On vc's land: issues close 0706, unclaim ISSUE:0706, remove tmp/wt-0706 after the four checks.
 
 ## TODO
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11.
 - ST0096 WP-02 (M), issue 0705: the two generated lists leave git. init writes their ignore lines through the existing .gitignore writer; upgrade untracks them once (cc on what upgrade means); one declared set of generated aggregate views; doctor advisory, not counted. Held until hv reviews ST0096 (design at intent/st/ST0096/design.md, e102ece05); fits before ST0095 WP-10.
-- ST0095 WP-06, with cc: the wording and exit code of doctor advisory that a project is not yet upgraded (not counted). cc meaning: the new build works on its ordinals and refuses only the first mint, with intent upgrade its one remedy. User-visible, so it goes to hv through vc.
+- ST0095 WP-06, with cc: the wording of the not-yet-upgraded state. Done: cc checked the meaning (2026-11-19 11:30Z), and the wording went to vc for hv (2026-11-19 11:30Z). Every mint refuses, exit 1, and names intent upgrade; doctor gets canon-format-behind, shown and not counted, naming intent/.canon/project.json. Closes when hv rules and cc builds it in WP-06. (edited)
 - hv decision 69 (every fix found rides this release): issue 0706, doctor advisory on .claude/settings.json, small and independent, fit before WP-10; issue 0710, wb claim refusal line, inside WP-10 refusals; issue 0707 doctor half, inside ST0096 WP-02; issue 0713 already in WP-10.
 
 ## Holds

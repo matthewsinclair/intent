@@ -1,0 +1,15 @@
+{
+  "id": "01M7SS5P3NZEG63PZM6ESVK5Q9",
+  "ts": "2026-11-19T11:30:50.163Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0706 (ic, hv decision 69), 2026-11-19 11:30Z by date -u: fixed, gated green once on gyges (transport 7e7096893), critic-rust 2 critical + 5 recommendation all fixed, banked at refs/bank/ic/0706/fix (patch-id 55c775ce5a12, base c2344d1dd, 14 paths) with its disposition at refs/bank/ic/0706/critic-disposition-20261119; proof and CHANGELOG line sent to vc. On vc's land: issues close 0706, unclaim ISSUE:0706, remove tmp/wt-0706 after the four checks."
+  }
+}
