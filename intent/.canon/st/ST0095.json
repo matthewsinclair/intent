@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "The waist: one module owns an id",
       "scope": "L",
-      "status": "wip",
+      "status": "done",
       "objective": "One module, `intentsvcs::id`, owns the ordinal id end to end behind typed ids, with every site in the workspace routed through it and no behaviour changed.",
       "body": "Seat: cc. Size: L.\n\n## Scope\n\n- Register `intentsvcs::id` in `intent/llm/MODULES.md` first. It absorbs `model.rs`'s id section (`:55-60`, `:124-254`, `:296-509`).\n- `ThreadId`, `WpId` and `IssueId`, each over one form that is an ordinal today and can hold a hash later, with no constructor outside the module. They replace `Thread.id: String` (`model.rs:564`), `WorkPackage.seq: u32` (`:1009`), `Issue.number: u32` (`:2065`) and `Related.id` (`:974`).\n- Every site the compiler then lists: about 70 hand formatters in 17 files (ic's census, section 1, banked under `refs/bank/ic/st0095/`), the store's numeric bindings, ingest, export, renumber and doctor (cc's census, section 4, banked under `refs/bank/cc/st0095/`), and intent-cli's `render.rs`, `mcp.rs`, `show.rs` and `tui/app.rs`. cc converts the whole workspace in this one unit, and ic reads intent-cli's part.\n- The module's duties in `design.md`, \"One home: the waist\", for the ordinal family: one stored-form reader, the pure operator reader, one formatter with each rendered form, one order, one text scanner in place of three, and the forms sentence.\n- Two duplicates go first: the fiat cascade's inline copy of `contract::group_of` (`facade.rs:19703-19710`), and an issue's search owner spelled `703` (`ingest.rs:1859`) where everything else spells `0703`.\n- The 37 test files that pass a number where an id is meant change type with it.\n\n## Out of scope\n\n- Any new family, any format change in the canon or the store, any new verb.\n\n## Order\n\nAfter WP-01, and before everything else of cc's.\n\n## Proof\n\nToday's suite passes unchanged through the cut's own gate, and an existing project's `intent sync` plans nothing after the build. `legacy.rs` calls the ordinal predicate and never a widened one.\n",
       "preamble": ""
@@ -231,7 +231,8 @@
       "text": "A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "cc's proof of refs/bank/cc/st0095/wp04-v4-on-566c69e23, sent to vc 2026-11-19 11:55Z and landed at 31dd4430c: critic-rust's checklist found every pre-change id site of the two audits (hl-A, hl-B) now goes through intentsvcs::id; vc's read of the diff: no line it adds outside id.rs formats an id by hand, and 54 such lines go. Its answered findings are owned by WP-06, WP-07, WP-08, WP-09 and ic's WP-10, each named in the proof."
       }
     },
     {
@@ -239,7 +240,9 @@
       "text": "An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof.",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "Restated as AC-04.4, non-test: its proof is a driven smoke on a clone of this project, which no committed test carries, and a criterion's kind cannot be changed in place. AC-04.4 also says what the smoke measured: on this repository sync still plans the one step that brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare, which is the repository's state and ST0096 WP-01's to settle.",
+        "by": "vc"
       }
     },
     {
@@ -249,6 +252,15 @@
       "state": {
         "is": "satisfied",
         "evidence": "fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main"
+      }
+    },
+    {
+      "id": "AC-04.4",
+      "text": "An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing that the release before it does not plan on the same commit, and output changes only where an id was spelled two ways, each change listed in the proof.",
+      "kind": "non-test",
+      "state": {
+        "is": "satisfied",
+        "evidence": "cc's smoke in its proof of 2026-11-19 11:55Z, landed at 31dd4430c: the v4 binary on a fresh clone of this project at 4a831efa7 under an isolated HOME; sync --to-disk left git status empty; sync's one remaining step is byte-identical (cmp) to the one brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare; eleven output changes, each where an id was spelled two ways, are listed in the proof."
       }
     },
     {

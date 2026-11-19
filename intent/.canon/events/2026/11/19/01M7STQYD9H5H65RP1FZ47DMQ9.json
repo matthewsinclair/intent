@@ -1,0 +1,14 @@
+{
+  "id": "01M7STQYD9H5H65RP1FZ47DMQ9",
+  "ts": "2026-11-19T11:58:16.495Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-04.2"
+  },
+  "payload": {
+    "reason": "Restated as AC-04.4, non-test: its proof is a driven smoke on a clone of this project, which no committed test carries, and a criterion's kind cannot be changed in place. AC-04.4 also says what the smoke measured: on this repository sync still plans the one step that brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare, which is the repository's state and ST0096 WP-01's to settle."
+  }
+}

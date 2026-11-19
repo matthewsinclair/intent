@@ -35,11 +35,12 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-03.4 (non-test) A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy. -- evidence: dc's proof of refs/bank/dc/st0095/wp03-guard-v3 (3df1d4102), sent to vc 2026-11-19 11:21Z and landed by vc: red at the base ed3fe6361 on the 2026-11-08 store at schema 33, where the gate passed and migrated the store to 35; green on the final code, G2' at 11:18:20Z on that store (the copy path, rc 1 naming the hand-edited view alone, the store byte-identical at 33 with no WAL) and G4 at 11:18:55Z with no store (the copy path, no store made). -- satisfied: yes
 - AC-03.5 (non-test) The brew smoke passes whatever id the mint returns. -- evidence: dc's proof of refs/bank/dc/st0095/wp03-capture-wip3 (538e58d46), sent to vc 2026-11-19 11:21Z and landed by vc: bin/devbin brew smoke from the capture worktree against the installed 3.4.0 keg (461e39ba145d) at 10:58:02Z, rc 0, every arm ok; arm 7 takes the fixture's id from minted_id in bin/.devbin/cmd/shared/mint.lib and names the thread by its title, so no id is predicted. Only comments changed after the run. 3.4.0's first mint is ST0001, so the base passes too: the first run whose first mint is a hash is the cut's own brew smoke on the release keg. -- satisfied: yes
 
-### WP-04 -- The waist: one module owns an id (status: WIP)
+### WP-04 -- The waist: one module owns an id (status: Done)
 
-- AC-04.1 (non-test) A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one. -- satisfied: no
-- AC-04.2 An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof. -- satisfied: no (computed)
+- AC-04.1 (non-test) A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one. -- evidence: cc's proof of refs/bank/cc/st0095/wp04-v4-on-566c69e23, sent to vc 2026-11-19 11:55Z and landed at 31dd4430c: critic-rust's checklist found every pre-change id site of the two audits (hl-A, hl-B) now goes through intentsvcs::id; vc's read of the diff: no line it adds outside id.rs formats an id by hand, and 54 such lines go. Its answered findings are owned by WP-06, WP-07, WP-08, WP-09 and ic's WP-10, each named in the proof. -- satisfied: yes
+- AC-04.2 An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof. -- WITHDRAWN: Restated as AC-04.4, non-test: its proof is a driven smoke on a clone of this project, which no committed test carries, and a criterion's kind cannot be changed in place. AC-04.4 also says what the smoke measured: on this repository sync still plans the one step that brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare, which is the repository's state and ST0096 WP-01's to settle. (by vc)
 - AC-04.3 (non-test) intentsvcs::id is registered in intent/llm/MODULES.md before the file exists. -- evidence: fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main -- satisfied: yes
+- AC-04.4 (non-test) An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing that the release before it does not plan on the same commit, and output changes only where an id was spelled two ways, each change listed in the proof. -- evidence: cc's smoke in its proof of 2026-11-19 11:55Z, landed at 31dd4430c: the v4 binary on a fresh clone of this project at 4a831efa7 under an isolated HOME; sync --to-disk left git status empty; sync's one remaining step is byte-identical (cmp) to the one brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare; eleven output changes, each where an id was spelled two ways, are listed in the proof. -- satisfied: yes
 
 ### WP-05 -- The merge knows both families (status: Not Started)
 
@@ -123,7 +124,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-04 -- The waist: one module owns an id (status: WIP)
+### WP-04 -- The waist: one module owns an id (status: Done)
 
 _(no tests in this group)_
 

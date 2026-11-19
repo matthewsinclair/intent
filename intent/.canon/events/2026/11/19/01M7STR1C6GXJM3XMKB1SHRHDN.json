@@ -1,0 +1,14 @@
+{
+  "id": "01M7STR1C6GXJM3XMKB1SHRHDN",
+  "ts": "2026-11-19T11:58:19.531Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-04.4"
+  },
+  "payload": {
+    "evidence": "cc's smoke in its proof of 2026-11-19 11:55Z, landed at 31dd4430c: the v4 binary on a fresh clone of this project at 4a831efa7 under an isolated HOME; sync --to-disk left git status empty; sync's one remaining step is byte-identical (cmp) to the one brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare; eleven output changes, each where an id was spelled two ways, are listed in the proof."
+  }
+}

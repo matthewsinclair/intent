@@ -31,7 +31,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Core tests take ids from the mint
   - [x] 02: The mint verbs say their id, and CLI tests read it
   - [-] 03: The commit gate spares the main store; scripts capture ids
-  - [-] 04: The waist: one module owns an id
+  - [x] 04: The waist: one module owns an id
   - [ ] 05: The merge knows both families
   - [ ] 06: The hashed family
   - [ ] 07: Prefix resolution

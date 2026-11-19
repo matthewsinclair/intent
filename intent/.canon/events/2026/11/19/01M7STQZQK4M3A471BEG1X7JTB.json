@@ -1,0 +1,14 @@
+{
+  "id": "01M7STQZQK4M3A471BEG1X7JTB",
+  "ts": "2026-11-19T11:58:17.848Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-04.1"
+  },
+  "payload": {
+    "evidence": "cc's proof of refs/bank/cc/st0095/wp04-v4-on-566c69e23, sent to vc 2026-11-19 11:55Z and landed at 31dd4430c: critic-rust's checklist found every pre-change id site of the two audits (hl-A, hl-B) now goes through intentsvcs::id; vc's read of the diff: no line it adds outside id.rs formats an id by hand, and 54 such lines go. Its answered findings are owned by WP-06, WP-07, WP-08, WP-09 and ic's WP-10, each named in the proof."
+  }
+}
