@@ -1,0 +1,16 @@
+{
+  "id": "01M7SN6BWV9RY2JJG52MA0SS6A",
+  "ts": "2026-11-19T10:21:17.596Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 68, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. WP-01 landed at ae11d9939 and closed at d6c45e915, with intentsvcs::id's registry row at fa86e7e35; WP-02 (ic), WP-03 (dc) and WP-04 (cc) in flight; vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is done, banked under refs/bank/vc/st0095/highlander-*-20261119, and its findings went to cc, ic and dc at 10:20Z, each to be answered per item (AC-00.1); issue 0712 was filed from it, and vc's two dead dehydrate scripts were removed (feb4e56e3). cc's calls: WP-05 drops the .intentfiles set merge (M to S) and issue 0704 is superseded by ST0096. hv decision 68: the tap holds the release until hv's word. Open with hv: the 00046 bend, and cc's first-mint refusal in a project not yet upgraded. agentic-engineering-vc waits for vc todo 84, and for its questions (a), (c), (d) and (e) once the fix is done."
+  }
+}
