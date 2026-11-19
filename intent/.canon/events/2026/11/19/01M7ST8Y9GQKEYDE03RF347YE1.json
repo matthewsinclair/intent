@@ -1,0 +1,16 @@
+{
+  "id": "01M7ST8Y9GQKEYDE03RF347YE1",
+  "ts": "2026-11-19T11:50:04.848Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 169,
+    "text": "Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. Proved and banked as v2 at refs/bank/dc/0714/gate-refuses-v2 (30ac64718, base c2344d1dd), with critic-shell's two Highlander criticals fixed: tool_verdict is the one reading of a guard's exit status, and tool_present the one presence check. The absence refuses by name with the remedy intent st hydrate ST0056. Red at 11:01:55Z (exit 127); D1 to D4 green between 11:46Z and 11:48Z. The proof went to vc at 11:49Z, for vc's word to land."
+  }
+}

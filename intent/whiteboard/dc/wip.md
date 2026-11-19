@@ -14,7 +14,7 @@ claims: [ST0095/03, ISSUE:0714]
 ## DOING
 
 - ST0095 WP-03 (M), on vc's go of 09:38Z. Its two units landed by vc at 11:33Z: the gate fix at fe534431d (closes issue 0716), the store guard at 2c909d85e, and the capture function with the brew smoke at c5233a0c9. AC-03.4 and AC-03.5 replace AC-03.1 and AC-03.2 as non-test criteria and are satisfied. The landed worktrees are removed. WP-03 stays open for AC-03.3, the explorer screenshots with explorer_shots.rs:60, which are dc's after WP-06 (vc, 11:33Z). (edited)
-- Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. The fix is banked at refs/bank/dc/0714/gate-refuses-v1 (51402664f, base c2344d1dd). The absence now refuses by name with the remedy intent st hydrate ST0056, the suite-path step checks for its tool, and the pipefail and suite-path calls no longer end the gate under set -e. Red at 11:01:55Z (exit 127, no summary), green at 11:24:54Z (exit 1, the named refusal). critic-shell is running on its diff. It lands after WP-03, on vc's word.
+- Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. Proved and banked as v2 at refs/bank/dc/0714/gate-refuses-v2 (30ac64718, base c2344d1dd), with critic-shell's two Highlander criticals fixed: tool_verdict is the one reading of a guard's exit status, and tool_present the one presence check. The absence refuses by name with the remedy intent st hydrate ST0056. Red at 11:01:55Z (exit 127); D1 to D4 green between 11:46Z and 11:48Z. The proof went to vc at 11:49Z, for vc's word to land. (edited)
 
 ## TODO
 
