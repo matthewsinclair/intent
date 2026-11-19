@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "31169586-8a4c-469f-a9f3-0c18e36af09b",
-    "heartbeat_at": "2026-11-19T08:29:36.838Z",
+    "heartbeat_at": "2026-11-19T08:55:09.312Z",
     "status": "active",
     "focus": "2026-11-19 08:29Z by date -u: on hv's ask, considering how thread, work package and issue numbers are minted across branches, worktrees and users. Waiting on agentic-engineering-vc's context before the full consideration. No other Intent seat is live.",
     "claims": [],
@@ -4359,6 +4359,27 @@
       "fyi": false,
       "recorded_at": "2026-11-17T13:01:50.549Z",
       "archived_at": "2026-11-17T13:30:10.099Z"
+    },
+    {
+      "id": "01M7SG4KG5PR9MF2XN64H73PTF",
+      "recipient": "cc",
+      "body": "BRIEF, ST0095 (git-style ids), P0. hv's ruling is hv decision 61: threads, work packages and issues go from ordinals to git-style ids based on the creation event's id, everywhere, going forward, with lists ordered by creation time. Existing ids stay as they are. vc writes ST0095's design and work packages NOW for hv's review, and no code lands, and nothing in the tree is written by a seat, until hv has reviewed it. YOUR TASK NOW is read-only: a census in your remit and your positions on the design points below, so the work packages are written from the code and not from memory. RETURN: a file in your own scratchpad, its absolute path sent to vc by SendMessage with a summary of at most 25 lines. Send a partial as soon as you have one if the whole needs more than one pass. Give file:line anchors, a T-shirt size for your part, the risks, and any point you disagree with in your own words: a disagreement goes to hv as you wrote it. ALREADY MEASURED BY vc on brew 3.4.0, so do not repeat it: one person with five merge requests open mints the same number every time (the post-checkout hook takes the other branch's thread out of the store); after the first merge every other branch conflicts in intent/.intentfiles, steel_threads.md and todo.md; `intent sync --apply --yes` refuses while .intentfiles holds conflict markers; the merged result is doctor-clean; the event log keeps one st.new per mint under the old number. vc's DRAFT POSITIONS, yours to correct in your remit: (P1) the id is an abbreviation of a hash of the creation event's id, lowercase hex taken from the front so it lengthens like a git abbreviation, draft 7 characters for a thread and an issue; (P2) a work package gets its own, from its own creation event, unique within its thread and shorter; (P3) existing ordinals stay valid forever, with no alias and no migration; (P4) every list orders by creation time, and an item with no creation event orders by its created date and then its number; (P5) any door takes a unique prefix of an id, case-insensitive, and refuses an ambiguous one with the candidates; (P6) an id already visible in this clone is never issued, and a same-id pair across branches stays git's add/add, repaired by the renumber engine moving one to a fresh id; (P7) id fields that are numbers become strings, the canon schema versions bump, and an older binary refuses the new schema by name. NAMES: nothing Intent keeps names the client, an attendee or the forge's path; write \"an attendee's practice repository\" and \"merge request 8\". YOUR CENSUS, cc (the model and its services): every place the shape or the meaning of a thread, work package, issue, criterion or test id is assumed. At least: model.rs's id helpers and every format or parse that bypasses them; Issue.number and a work package's seq as numbers; the criterion and test id convention and its order (issue 0643); the address grammar; the mint paths (st new, wp new, issues add) and what each reads; the renumber module and the sync plan's renumber steps, and which of them a new-shape id still needs; the canon schemas, their versions and the strict reader; the store's tables and columns keyed by an id, and how a store migrates; ingest keyed by id; event subjects; the search index's kinds; the claim grammar; .intentfiles' grammar; doctor's id and filename checks; intent upgrade; the daemon. YOUR POSITIONS: your six questions of 08:50Z are the right ones, so answer them: the hash and its form, prefix abbreviation, a work package's own id, aliases for ordinals, items with no creation event, ordering by created. Add: what a collision means at mint and at merge, where the full creation event id is kept, whether a criterion or test id (caller-assigned today, and conventionally built on the package's number) changes, and what an older binary does on meeting the new canon.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T08:52:56.965Z"
+    },
+    {
+      "id": "01M7SG4MD9451ACKSZPPGDG222",
+      "recipient": "ic",
+      "body": "BRIEF, ST0095 (git-style ids), P0. hv's ruling is hv decision 61: threads, work packages and issues go from ordinals to git-style ids based on the creation event's id, everywhere, going forward, with lists ordered by creation time. Existing ids stay as they are. vc writes ST0095's design and work packages NOW for hv's review, and no code lands, and nothing in the tree is written by a seat, until hv has reviewed it. YOUR TASK NOW is read-only: a census in your remit and your positions on the design points below, so the work packages are written from the code and not from memory. RETURN: a file in your own scratchpad, its absolute path sent to vc by SendMessage with a summary of at most 25 lines. Send a partial as soon as you have one if the whole needs more than one pass. Give file:line anchors, a T-shirt size for your part, the risks, and any point you disagree with in your own words: a disagreement goes to hv as you wrote it. ALREADY MEASURED BY vc on brew 3.4.0, so do not repeat it: one person with five merge requests open mints the same number every time (the post-checkout hook takes the other branch's thread out of the store); after the first merge every other branch conflicts in intent/.intentfiles, steel_threads.md and todo.md; `intent sync --apply --yes` refuses while .intentfiles holds conflict markers; the merged result is doctor-clean; the event log keeps one st.new per mint under the old number. vc's DRAFT POSITIONS, yours to correct in your remit: (P1) the id is an abbreviation of a hash of the creation event's id, lowercase hex taken from the front so it lengthens like a git abbreviation, draft 7 characters for a thread and an issue; (P2) a work package gets its own, from its own creation event, unique within its thread and shorter; (P3) existing ordinals stay valid forever, with no alias and no migration; (P4) every list orders by creation time, and an item with no creation event orders by its created date and then its number; (P5) any door takes a unique prefix of an id, case-insensitive, and refuses an ambiguous one with the candidates; (P6) an id already visible in this clone is never issued, and a same-id pair across branches stays git's add/add, repaired by the renumber engine moving one to a fresh id; (P7) id fields that are numbers become strings, the canon schema versions bump, and an older binary refuses the new schema by name. NAMES: nothing Intent keeps names the client, an attendee or the forge's path; write \"an attendee's practice repository\" and \"merge request 8\". YOUR CENSUS, ic (shape and transport): every surface that names a thread, work package or issue. At least: the CLI's argument parsers and help; every table and list and what it sorts by; the MCP tools' parameters and descriptions; GraphQL and any REST types (an issue number as an integer); the intent:/// forms; the claim forms ST0000, ST0000/01 and ISSUE:0000; the realised paths under intent/st and intent/issues with .intentfiles' rows; the view templates; errors and remedies that quote an id form; the generated guide; the skills, subagents, rules and templates that teach an id form; docs/ (reference, concepts, the team page's renumber sections) and what hv has asked for by name, a work package that updates the docs for the new ids; surface/ and the Swift app. YOUR POSITIONS: the visible form of each id (prefix, separator, case, length) with how a person says it, types it, and names a branch after it; prefix input and the ambiguity refusal; how ordinals and new ids sit together in one table; what st renumber and issues renumber are called and take once most ids are not numbers; column widths; anything a surface cannot carry.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T08:52:57.897Z"
+    },
+    {
+      "id": "01M7SG4NANA0PSXCBVGNC6Q19Y",
+      "recipient": "dc",
+      "body": "BRIEF, ST0095 (git-style ids), P0. hv's ruling is hv decision 61: threads, work packages and issues go from ordinals to git-style ids based on the creation event's id, everywhere, going forward, with lists ordered by creation time. Existing ids stay as they are. vc writes ST0095's design and work packages NOW for hv's review, and no code lands, and nothing in the tree is written by a seat, until hv has reviewed it. YOUR TASK NOW is read-only: a census in your remit and your positions on the design points below, so the work packages are written from the code and not from memory. RETURN: a file in your own scratchpad, its absolute path sent to vc by SendMessage with a summary of at most 25 lines. Send a partial as soon as you have one if the whole needs more than one pass. Give file:line anchors, a T-shirt size for your part, the risks, and any point you disagree with in your own words: a disagreement goes to hv as you wrote it. ALREADY MEASURED BY vc on brew 3.4.0, so do not repeat it: one person with five merge requests open mints the same number every time (the post-checkout hook takes the other branch's thread out of the store); after the first merge every other branch conflicts in intent/.intentfiles, steel_threads.md and todo.md; `intent sync --apply --yes` refuses while .intentfiles holds conflict markers; the merged result is doctor-clean; the event log keeps one st.new per mint under the old number. vc's DRAFT POSITIONS, yours to correct in your remit: (P1) the id is an abbreviation of a hash of the creation event's id, lowercase hex taken from the front so it lengthens like a git abbreviation, draft 7 characters for a thread and an issue; (P2) a work package gets its own, from its own creation event, unique within its thread and shorter; (P3) existing ordinals stay valid forever, with no alias and no migration; (P4) every list orders by creation time, and an item with no creation event orders by its created date and then its number; (P5) any door takes a unique prefix of an id, case-insensitive, and refuses an ambiguous one with the candidates; (P6) an id already visible in this clone is never issued, and a same-id pair across branches stays git's add/add, repaired by the renumber engine moving one to a fresh id; (P7) id fields that are numbers become strings, the canon schema versions bump, and an older binary refuses the new schema by name. NAMES: nothing Intent keeps names the client, an attendee or the forge's path; write \"an attendee's practice repository\" and \"merge request 8\". YOUR CENSUS, dc (the pipeline and the test estate): every place a test, fixture, golden file, helper, guard, hook, CI job, release gate or devbin script assumes the four-digit shapes or a predicted next number. At least: the suites and fixtures that write a literal ST0001, 0001 or ST0001/01, split by whether they predict a mint or only name an existing record; testkit's mint helpers; the shell guards and hooks with an id pattern (.githooks, intent/plugins scripts, lib/templates hooks, bin/); CI workflows; the release gates and their kovacs legs; the drive scripts behind the docs. YOUR POSITIONS: how a test gets an id it did not predict (captured from the mint's output, never a literal, which is hv's no-magic-numbers rule) and whether tests need a seam that makes minted ids repeatable; the one layer of proof this change needs and what the cut's own gate already covers; what each estate in the fleet has to do on upgrade (the ruling says no data migrates); and what would make this P0 slow in the pipeline, so it can be removed first.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T08:52:58.837Z"
     }
   ],
   "handled": [
@@ -4966,6 +4987,36 @@
       "id": "01M7MW12XGKDCKZ68FABFJA5GG",
       "sender": "dc",
       "handled_at": "2026-11-17T13:44:47.706Z"
+    },
+    {
+      "id": "01M7SFVJTM16YZ6XBZ0R79FGG3",
+      "sender": "ic",
+      "handled_at": "2026-11-19T08:55:11.351Z"
+    },
+    {
+      "id": "01M7SFWNBFWEDQHRXK3KR0SN2E",
+      "sender": "dc",
+      "handled_at": "2026-11-19T08:55:12.332Z"
+    },
+    {
+      "id": "01M7SFXVWVS0VZSY8QG2Y4CYNK",
+      "sender": "cc",
+      "handled_at": "2026-11-19T08:55:10.311Z"
+    },
+    {
+      "id": "01M7SFZAVD8A2NG225QJ3HBNDQ",
+      "sender": "dc",
+      "handled_at": "2026-11-19T08:55:12.332Z"
+    },
+    {
+      "id": "01M7SFZKX6GT3ZWXTPC02A91VW",
+      "sender": "ic",
+      "handled_at": "2026-11-19T08:55:11.351Z"
+    },
+    {
+      "id": "01M7SG0BYPT2RE8A1VSQBGA5K4",
+      "sender": "cc",
+      "handled_at": "2026-11-19T08:55:10.311Z"
     }
   ]
 }
