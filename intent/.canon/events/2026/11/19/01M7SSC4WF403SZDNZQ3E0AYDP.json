@@ -1,0 +1,16 @@
+{
+  "id": "01M7SSC4WF403SZDNZQ3E0AYDP",
+  "ts": "2026-11-19T11:34:21.327Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 70, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. Landed: WP-01 (ae11d9939), the id waist's registry row (fa86e7e35), WP-02 (ed1caeb36, closed at 0922779b1), and WP-03's two units (fe534431d, which closes issue 0716; 2c909d85e; c5233a0c9). AC-03.1 and AC-03.2 were withdrawn for non-test AC-03.4 and AC-03.5, both satisfied, and WP-03 stays open for AC-03.3, the screenshots, after WP-06 and WP-10. In flight: WP-04 (cc, bank wp04-v3, its proof run to be on main at e81e1596e or later, since issue 0706 touched four of its files). Off cc's chain since 11:33Z: issue 0711 offered to dc, and issue 0717 to ic with cc's meaning (its third option, a store that migrates only on an explicit opt-in, comes to hv before code). vc reads each unit's proof with its critic review (vc decision 133). vc decision 132: no dev build touches the main checkout's store."
+  }
+}

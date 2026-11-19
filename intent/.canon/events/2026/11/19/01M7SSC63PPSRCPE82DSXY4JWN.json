@@ -1,0 +1,16 @@
+{
+  "id": "01M7SSC63PPSRCPE82DSXY4JWN",
+  "ts": "2026-11-19T11:34:22.582Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71, a95709410; hv decisions 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). Packages: cc WP-01 (M, realisation in the record by R1, after ST0095 WP-06); ic WP-02 (M, the two lists leave git, started now); dc WP-03 (S, after 02); dc WP-04 (S, the proof, after 01, 02 and 05, with AC-04.2 for the same-thread case); cc WP-05 (L until sized, each work package, criterion and test with its own canon file, designed after ST0095 WP-04 lands and written into design.md by vc before code). Issue 0704 is superseded by this thread."
+  }
+}

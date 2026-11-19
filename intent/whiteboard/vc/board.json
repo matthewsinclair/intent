@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "31169586-8a4c-469f-a9f3-0c18e36af09b",
-    "heartbeat_at": "2026-11-19T11:33:55.951Z",
+    "heartbeat_at": "2026-11-19T11:41:55.331Z",
     "status": "active",
     "focus": "2026-11-19 10:47Z by date -u: localfold before hv's compact of every seat, not released. Waiting for cc, ic and dc to report folded; then hv compacts all, and vc lands the next proof (WP-03, WP-04) on the bounce.",
     "claims": [],
@@ -2960,10 +2960,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 63,
-      "text": "ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05, and nothing is built before hv's go. hv decision 70 (by 11:21Z): the same-thread case is closed in this release, which takes a canon file per work package, criterion and test and thread views none of them share (cc's meaning, ic's views, L to XL on cc's chain); on the design as a whole hv asked for more explanation, which vc gave in prose right after recording decision 70. Packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M, held), dc WP-03 and WP-04 (S each), and cc's same-thread package, designed after ST0095 WP-04 lands and written into the design before code. cc chose R1 (AC-01.3 satisfied); ST0095's WP-05 dropped its .intentfiles set merge, and issue 0704 is superseded by this thread.",
+      "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71, a95709410; hv decisions 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). Packages: cc WP-01 (M, realisation in the record by R1, after ST0095 WP-06); ic WP-02 (M, the two lists leave git, started now); dc WP-03 (S, after 02); dc WP-04 (S, the proof, after 01, 02 and 05, with AC-04.2 for the same-thread case); cc WP-05 (L until sized, each work package, criterion and test with its own canon file, designed after ST0095 WP-04 lands and written into design.md by vc before code). Issue 0704 is superseded by this thread.",
       "state": "live",
       "recorded_at": "2026-11-19T10:03:15.682Z",
-      "edited_at": "2026-11-19T11:34:22.582Z"
+      "edited_at": "2026-11-19T11:42:13.318Z"
     },
     {
       "node": "vc",
@@ -2978,7 +2978,8 @@
       "kind": "todo",
       "seq": 85,
       "text": "Issue 0715 (st attach --from says ok and changes nothing while intentd watches the tree) needs an owner: put it to cc once WP-04 has landed, since the cause sits between the attach verb and intentd's ingest.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:42:05.914Z",
       "recorded_at": "2026-11-19T10:35:37.480Z"
     },
     {
@@ -2994,7 +2995,8 @@
       "kind": "todo",
       "seq": 87,
       "text": "When ic rules on two shape points for hashed claims (asked 2026-11-19 10:39Z: does a board's rendered claims line print the stored or the shown form; does a hashed issue's claim keep the ISSUE: prefix), send its answer to agentic-engineering-vc, whose course unit 207 cites it. AE was told to read claims with intent wb status --json instead.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:42:07.200Z",
       "recorded_at": "2026-11-19T10:39:38.978Z"
     },
     {
@@ -3002,7 +3004,8 @@
       "kind": "todo",
       "seq": 88,
       "text": "Issue 0711 (migrate's case-only path clash, S) can move off cc's chain (cc, 2026-11-19): offer it to dc once WP-03 has landed, or to whichever seat runs out of work first after WP-04 lands; otherwise it stays cc's after WP-09.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:42:08.368Z",
       "recorded_at": "2026-11-19T10:48:07.697Z"
     },
     {
@@ -3010,7 +3013,8 @@
       "kind": "todo",
       "seq": 89,
       "text": "hv's word on ic's wording for ST0095 WP-06 (ic's message of 11:30Z, cc-checked): the first mint's refusal in a project not yet upgraded, and doctor's canon-format-behind advisory. Put to hv in vc's session; record the ruling on hv's board, tell ic and cc, then clear ic's message.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:42:11.114Z",
       "recorded_at": "2026-11-19T11:34:23.891Z"
     }
   ],
@@ -5215,6 +5219,11 @@
       "id": "01M7SRNEMR9J9RZQVBAAXJRAT2",
       "sender": "dc",
       "handled_at": "2026-11-19T11:34:20.119Z"
+    },
+    {
+      "id": "01M7SS48EFQJ3JXJRQRA13SSYD",
+      "sender": "ic",
+      "handled_at": "2026-11-19T11:42:04.467Z"
     }
   ]
 }
