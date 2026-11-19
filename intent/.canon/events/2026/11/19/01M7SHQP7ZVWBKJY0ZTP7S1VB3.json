@@ -1,0 +1,15 @@
+{
+  "id": "01M7SHQP7ZVWBKJY0ZTP7S1VB3",
+  "ts": "2026-11-19T09:20:50.947Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0708"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "search reports a work package's prose hit as kind file: ingest writes owner type work-package, of_owner maps only wp and work_package"
+  }
+}

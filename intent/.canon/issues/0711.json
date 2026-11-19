@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 711,
+  "slug": "migrate-s-duplicate-path-guard-compares-paths-by",
+  "title": "migrate's duplicate-path guard compares paths byte for byte, so a case-only clash passes it on a case-insensitive disk",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-19",
+  "reporter": "Matthew Sinclair",
+  "body": "The migration's collision guard (`migrate.rs:653-665`, `Blocked::Collision`) refuses a batch in which two writes name one path, by comparing `PathBuf`s exactly. On a case-insensitive file system, which is APFS's default on macOS, two attachment paths in one thread that differ only in case (eg `Design.md` and `design.md`) are one file. Both pass the guard, and the disk keeps one file for the two writes, with no finding.\n\nThread and issue canon paths cannot clash this way, because their ids have a fixed case. Attachment paths are authored and can clash, eg in a project brought from a case-sensitive disk.\n\nFound by cc's census for ST0095, 2026-11-19. Not caused by ST0095.\n\nFix: compare a case-folded key, and refuse with both spellings named."
+}

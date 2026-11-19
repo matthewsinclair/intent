@@ -1,0 +1,15 @@
+{
+  "id": "01M7SHR3XN3VJW95GBEA2Q0AYM",
+  "ts": "2026-11-19T09:21:04.953Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0710"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "wb claim's refusal line says a claim must be a steel thread or work package, while its own remedy names issues too"
+  }
+}

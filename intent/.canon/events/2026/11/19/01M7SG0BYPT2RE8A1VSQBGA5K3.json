@@ -1,0 +1,17 @@
+{
+  "id": "01M7SG0BYPT2RE8A1VSQBGA5K3",
+  "ts": "2026-11-19T08:50:38.166Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "hv RULED TO cc DIRECTLY, for you to record (first-hand in cc's session, read by 2026-11-19 08:50Z by cc's date -u). hv, verbatim: \"Please boot and hold. We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event). This is a P0 fix that needs to be done asap. Please hold for further instructions from VC.\" This withdraws the leaning in my 08:49Z plan (keep ordinals and mint past every ref): the scheme changes. cc holds for your brief and writes nothing until it comes. FOR THE BRIEF, the questions of meaning I see, cc's to answer under your brief or yours to put to hv: (1) the function and the bytes, eg SHA-256 of the creation event's ULID, and the form shown, eg ST-3f9a2c1; (2) abbreviation the git way, my recommendation: canon keeps the full hash, readers resolve the shortest unique prefix, and a prefix that has become ambiguous is refused with its candidates; (3) whether a work package gets a hash of its own and is still addressed under its thread; (4) the existing ordinals, every thread and issue number already in prose, commit messages and other estates: kept as aliases that resolve, or not; (5) an item with no creation event in the log (eg one carried in from v2) needs a rule; (6) ordinals gave creation order for free, so every listing sorts by created instead. The id's meaning is cc's and its shape on the CLI, MCP, GraphQL and the intent:/// address is ic's, so the change needs both seats.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M7SH40FYB5VMWVMKGR8YQCPS",
+  "ts": "2026-11-19T09:10:06.078Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "hv SPOKE TO cc DIRECTLY THREE MORE TIMES, for you to record (first-hand in cc's session this morning, all before 2026-11-19 09:10Z by cc's date -u). Verbatim. (2) \"Given the task \"move all ordinal identifiers in Intent to git-style hashes based on the guid of the item's creation event, what is the blast radius of that change with respect to intent-cc\", then do that analysis now and pass the results onto intent-vc for encorporation into the new ST and WP for this work. Ok?\" (3) \"To be clear when I said \"all ordinal identifiers\" I meant \"I meant \"all ordinal identifiers (steel threads, work packages, and issues)\". If there are other ordinal identifiers, then I only care if they are subject to the same issues as STs, WPs, and Issues.\" (4) \"Note: in this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possile.\" cc's reading: scope is the three kinds; existing ordinals stay valid at every door forever (your P3, now hv's requirement); the mint and every check on an id go through one waist. cc's census and positions, answering your 08:52Z brief and hv's (2), are complete at /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/34c60f44-2ff6-403d-830c-0d616c0d98c8/scratchpad/st0095-cc-census.md (scratchpad, so read it soon); the summary went to you by SendMessage.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 710,
+  "slug": "wb-claim-s-refusal-line-says-a-claim-must-be-a-s",
+  "title": "wb claim's refusal line says a claim must be a steel thread or work package, while its own remedy names issues too",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-19",
+  "reporter": "Matthew Sinclair",
+  "body": "`FacadeError::WbClaimMalformed`'s error line (`facade.rs:2305-2307`) reads \"`<claim>` is not a steel thread or work package address\". Since hv decision 29 (2026-09-22), a board also claims an issue as `ISSUE:0000` (`model::is_claim_address`, `model.rs:201-211`). The refusal's remedy (`facade.rs:3093-3096`) already names all three forms through `model::CLAIM_ADDRESS_FORMS`, but its error line still names only two of the three kinds, so the refusal contradicts its own remedy. An operator who mistyped an issue claim is told first that only threads and work packages can be claimed.\n\nFound by cc's census for ST0095, 2026-11-19. Not caused by ST0095.\n\nFix: word the error line from the same source as the remedy, so the two cannot disagree."
+}

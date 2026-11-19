@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 426c771f-0f47-4afb-944d-d2490b10ece1
-heartbeat_at: 2026-11-17 19:20Z
-status: paused
-focus: "2026-11-17 16:59Z by date -u: 3.4.0 is out on vc's word; the freeze is lifted. cc carried 0696, 0698, 0700's meaning and fold, 0701 and the known-defects page into it. No live item, claim, worktree, slot or bank. Holding for hv's next move."
+session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
+heartbeat_at: 2026-11-19 09:22Z
+status: active
+focus: "2026-11-19 09:22Z by date -u: folded and holding for hv's review of ST0095 (git-style ids, hv decisions 61, 62 and 64) through vc. cc's census and positions are banked at refs/bank/cc/st0095/census-20261119.md (anchors read at 4124c99c9); issues 0708 to 0711 filed on vc's ask. Writing nothing in the tree until vc's word. No claim, worktree, slot or live bank work."
 claims: []
 ---
 

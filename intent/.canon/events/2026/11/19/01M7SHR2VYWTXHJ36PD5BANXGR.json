@@ -1,0 +1,15 @@
+{
+  "id": "01M7SHR2VYWTXHJ36PD5BANXGR",
+  "ts": "2026-11-19T09:21:03.874Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0709"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "mid-merge wp.renumber records kind wp with the bare thread id as its subject, so events --subject on the package never finds it"
+  }
+}
