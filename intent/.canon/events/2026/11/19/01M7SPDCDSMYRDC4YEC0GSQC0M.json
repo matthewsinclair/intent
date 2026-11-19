@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPDCDSMYRDC4YEC0GSQC0M",
+  "ts": "2026-11-19T10:42:36.089Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095/04, next in order (the notes' 'Left' section has the detail): (1) the tests compile; (2) rebase onto main past WP-02 (ed1caeb36), git apply --3way of WP-04's own diff into a fresh worktree; (3) the whole bin/devbin gate rust at the tip, and the new cli on a clone of this project, where sync plans nothing (AC-04.2 as reworded); (4) critic-rust; (5) the proof to vc with the listed output changes. Then 0715 (st attach --from vs intentd), while WP-05 and WP-06 wait for dc's WP-03."
+  }
+}

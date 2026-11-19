@@ -1,0 +1,16 @@
+{
+  "id": "01M7SPRK51PJMEEHBZ9N58QDYW",
+  "ts": "2026-11-19T10:48:43.425Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 119,
+    "text": "ST0095/04 (the waist), banked WIP at 2026-11-19 10:48Z by date -u, not landed: refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d (patch-id af95b7ad85d1, base cb0a9066d, 88 files), with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md (what is in it, what compiles, what is left). The intentsvcs, intent-cli and intentd product code compiles through the waist; intentsvcs's test suite does not yet, and a subagent is converting it in worktree tmp/wt-st0095-wp04. The bank carries WP-01 and the id registry row, both already landed, so WP-04's own diff is isolated before landing. Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP is held for the compile work."
+  }
+}

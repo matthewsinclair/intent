@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
-heartbeat_at: 2026-11-19 09:33Z
+heartbeat_at: 2026-11-19 10:48Z
 status: active
-focus: "2026-11-19 09:22Z by date -u: folded and holding for hv's review of ST0095 (git-style ids, hv decisions 61, 62 and 64) through vc. cc's census and positions are banked at refs/bank/cc/st0095/census-20261119.md (anchors read at 4124c99c9); issues 0708 to 0711 filed on vc's ask. Writing nothing in the tree until vc's word. No claim, worktree, slot or live bank work."
+focus: "2026-11-19 10:48Z by date -u: localfolded on hv's word through vc (bank, fold, compact, carry on), not released. ST0095/04 is banked WIP at refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md. Next after the compact: the intentsvcs tests (a subagent), the rebase past WP-02, the gate and the proof. Claim ST0095/04; Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP held."
 claims: [ST0095/04]
 ---
 
@@ -13,11 +13,11 @@ claims: [ST0095/04]
 
 ## DOING
 
-- ST0095/04 (the waist) in worktree tmp/wt-st0095-wp04, base cb0a9066d plus WP-01's bank (landed as ae11d9939). id.rs is written: ThreadId holds its stored string and derefs to &str; WpId and IssueId are Copy over a private Form; serde, schemars, rusqlite and async-graphql faces live in id.rs and keep every face byte-identical (u32 for wp and issue ids). The four model fields are typed and model.rs's id section is moved. Driving the compile errors with bin/devbin check clippy on Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP, which is held. Next: facade.rs and views.rs, then intent-cli, intentd and the tests; then the Highlander folds vc assigned (sweep items 1 to 5, C8, C13 and C14) and WP-01's three critic fixes; then bank, critic-rust and the gate. Proposed to vc: WP-04b for kind tags (C11, issue 0708), path ownership (C6), the registry rows and st_prefix, plus rewording AC-04.2.
+- ST0095/04 (the waist), banked WIP at 2026-11-19 10:48Z by date -u, not landed: refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d (patch-id af95b7ad85d1, base cb0a9066d, 88 files), with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md (what is in it, what compiles, what is left). The intentsvcs, intent-cli and intentd product code compiles through the waist; intentsvcs's test suite does not yet, and a subagent is converting it in worktree tmp/wt-st0095-wp04. The bank carries WP-01 and the id registry row, both already landed, so WP-04's own diff is isolated before landing. Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP is held for the compile work. (edited)
 
 ## TODO
 
-_(none)_
+- ST0095/04, next in order (the notes' 'Left' section has the detail): (1) the tests compile; (2) rebase onto main past WP-02 (ed1caeb36), git apply --3way of WP-04's own diff into a fresh worktree; (3) the whole bin/devbin gate rust at the tip, and the new cli on a clone of this project, where sync plans nothing (AC-04.2 as reworded); (4) critic-rust; (5) the proof to vc with the listed output changes. Then 0715 (st attach --from vs intentd), while WP-05 and WP-06 wait for dc's WP-03. (edited)
 
 ## Holds
 
