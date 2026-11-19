@@ -13,6 +13,11 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ## Acceptance Criteria
 
+### ST-level
+
+- AC-00.1 (non-test) Highlander, as hv decision 67 asks: at the close, an independent sweep of the whole tree finds one home for every id concern (mint, stored-form read, operator read, format, order, validate, scan, criterion and test labels, constants) in every language, and every finding of the sweep of the existing code made at the start (refs/bank/vc/st0095/highlander-*) is resolved in the package that owns it or answered on the record. -- satisfied: no
+- AC-00.2 (non-test) Highlander on every change, as hv decision 67 asks: every unit of this thread lands with a critic-<lang> review of its diff for each language the diff touches, each Highlander finding fixed or answered, read by vc against the diff before land. -- satisfied: no
+
 ### WP-01 -- Core tests take ids from the mint (status: WIP)
 
 - AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- satisfied: no
@@ -94,6 +99,10 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-13.3 (non-test) The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered. -- satisfied: no
 
 ## Acceptance Tests
+
+### ST-level
+
+_(no tests in this group)_
 
 ### WP-01 -- Core tests take ids from the mint (status: WIP)
 

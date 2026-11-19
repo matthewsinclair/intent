@@ -1,0 +1,15 @@
+{
+  "id": "01M7SKDF977P8YNZEBGQSE7DHR",
+  "ts": "2026-11-19T09:50:13.287Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, first-hand in prose in vc's session, read by 09:48Z on vc's date -u; hv's own words) A VERY THOROUGH HIGHLANDER CHECK ON ST0095 AND ON ISSUE 0705's THREAD, OVER EXISTING CODE AND OVER EVERY CHANGE THE WORK BRINGS. hv, verbatim: \"Note: this work will need a very thorough Highlander Violation check both on existing code and any new code or changed code that arrives due to this work.\" How vc runs it is vc's decision 133, on vc's board."
+  }
+}
