@@ -6,7 +6,7 @@ session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
 heartbeat_at: 2026-11-19 10:55Z
 status: active
 focus: "2026-11-19 10:48Z by date -u: localfolded on hv's word through vc (bank, fold, compact, carry on), not released. ST0095/04 is banked WIP at refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md. Next after the compact: the intentsvcs tests (a subagent), the rebase past WP-02, the gate and the proof. Claim ST0095/04; Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP held."
-claims: [ST0095/04]
+claims: [ST0095/05, ST0095/06]
 ---
 
 # Control Claude (cc)

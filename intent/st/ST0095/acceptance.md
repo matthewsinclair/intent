@@ -42,14 +42,14 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-04.3 (non-test) intentsvcs::id is registered in intent/llm/MODULES.md before the file exists. -- evidence: fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main -- satisfied: yes
 - AC-04.4 (non-test) An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing that the release before it does not plan on the same commit, and output changes only where an id was spelled two ways, each change listed in the proof. -- evidence: cc's smoke in its proof of 2026-11-19 11:55Z, landed at 31dd4430c: the v4 binary on a fresh clone of this project at 4a831efa7 under an isolated HOME; sync --to-disk left git status empty; sync's one remaining step is byte-identical (cmp) to the one brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare; eleven output changes, each where an id was spelled two ways, are listed in the proof. -- satisfied: yes
 
-### WP-05 -- The merge knows both families (status: Not Started)
+### WP-05 -- The merge knows both families (status: WIP)
 
 - AC-05.1 A merge of two branches that each minted hashed records plans no step that takes a side. -- satisfied: no (computed)
 - AC-05.2 A merge in which both sides added rows to .intentfiles is resolved by intent sync --apply --yes alone, and the two aggregate views are regenerated. -- WITHDRAWN: Its subject has gone: ST0096 (hv decision 66) takes .intentfiles and the two aggregate views out of git, so ST0095's merge neither merges .intentfiles as a set nor regenerates the lists. A branch still in today's format runs intent upgrade before it merges, and issue 0704 is superseded by ST0096. cc's call, 2026-11-19. (by cc)
 - AC-05.3 An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id. -- satisfied: no (computed)
 - AC-05.4 Two branches that each add a work package to one thread merge with both packages kept and no claim moved. -- satisfied: no (computed)
 
-### WP-06 -- The hashed family (status: Not Started)
+### WP-06 -- The hashed family (status: WIP)
 
 - AC-06.1 Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair. -- satisfied: no (computed)
 - AC-06.2 A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin. -- satisfied: no (computed)
@@ -128,11 +128,11 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-05 -- The merge knows both families (status: Not Started)
+### WP-05 -- The merge knows both families (status: WIP)
 
 _(no tests in this group)_
 
-### WP-06 -- The hashed family (status: Not Started)
+### WP-06 -- The hashed family (status: WIP)
 
 _(no tests in this group)_
 
