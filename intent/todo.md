@@ -22,6 +22,7 @@ _(none)_
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
 - [?] ST0094: The estate's last two boards converge to their profiles
+- [?] ST0095: Git-style ids: threads, work packages and issues unique by construction
 
 ## DONE:2026-09-10T00:00:51Z
 

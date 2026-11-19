@@ -1,0 +1,15 @@
+{
+  "id": "01M7SGJM7QZRN9B405HF25VDQS",
+  "ts": "2026-11-19T09:00:37.152Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0706"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "doctor's root-file-behind advisory says a hand edit in .claude/settings.json is overwritten, and 3.4.0 keeps a project's deny rules"
+  }
+}

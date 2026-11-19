@@ -1,0 +1,15 @@
+{
+  "id": "01M7SGJNWS30ETJNMZXADYA7Z3",
+  "ts": "2026-11-19T09:00:38.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0707"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A project made with an older Intent keeps closed threads' views that sync --apply --yes removes on every branch"
+  }
+}
