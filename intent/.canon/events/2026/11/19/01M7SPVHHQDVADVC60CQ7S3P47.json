@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPVHHQDVADVC60CQ7S3P47",
+  "ts": "2026-11-19T10:50:20.087Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0714 (hv decision 69, via vc at 10:46Z: dc's, in this release): the commit gate passes with every ST0056 parity gate skipped when its tools are not on disk (bin/.devbin/cmd/precommit around line 255, HAVE_TOOLS=0). After WP-03 lands."
+  }
+}

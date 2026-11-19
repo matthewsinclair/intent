@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b5900b85-5513-4ada-92b4-02956562a5e3
-heartbeat_at: 2026-11-19 10:32Z
+heartbeat_at: 2026-11-19 10:50Z
 status: active
-focus: "2026-11-19 10:32Z by date -u: ST0095 WP-03, localfold before a compact, not released. Both critic-shell reviews are in. Guard reworked in tmp/wt-st0095-wp03 (copies only for an older or unreadable store, Store::init's rule); its red control is open (a hand-edited view, needing an in-place store that holds the thread). Capture unit's seven critic fixes to do in tmp/wt-st0095-wp03-capture. Neither unit re-banked or sent yet. Handoff at refs/bank/dc/st0095/handoff-20261119. Highlander items answered and accepted by vc; issue 0714 filed."
+focus: "2026-11-19 10:50Z by date -u: ST0095 WP-03, localfold before a compact, not released. Both units WIP-banked on their bases (guard 21661391e, capture b9d1e8f72). The guard's red control found the ST0056 view-skew gate blind since 2026-09-07 (issue 0716, filed at 58d2d48d6); its fix reads doctor --format json, lands first as its own commit, and the copy path is shown faithful. Next: critic result, the brew smoke re-run, the proofs to vc, then issue 0714. Handoff at refs/bank/dc/st0095/handoff-20261119b."
 claims: [ST0095/03]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0095/03]
 
 ## DOING
 
-- ST0095 WP-03 (M), on vc's go of 09:38Z. Banked, critic-shell reviews running, proof to vc next: the commit gate's store guard (refs/bank/dc/st0095/wp03-guard, AC-03.1, red and green driven on the whole tree over the 2026-11-08 store at schema 33), and the capture function with the brew smoke (refs/bank/dc/st0095/wp03-capture, AC-03.2, smoke green on brew 3.4.0). The screenshots (AC-03.3) wait for WP-06, for cc's fixture (the demo's canon made once with the new build and loaded through intent sync --to-store), and for WP-10, where ic makes every door take the address wp new prints. (edited)
+- ST0095 WP-03 (M), on vc's go of 09:38Z. WIP banks with their bases as parents: the guard unit at refs/bank/dc/st0095/wp03-guard-wip2 (21661391e, base ed3fe6361) and the capture unit at refs/bank/dc/st0095/wp03-capture-wip2 (b9d1e8f72, base 49412f88c). The guard unit lands as two commits on vc's word: first the view-skew gate fix (it reads doctor --format json; it closes issue 0716, the gate blind since 2026-09-07), then the store guard (AC-03.1). Its red control is done, in place and on the copy path; critic-shell over both was running at the compact. The capture unit has its seven critic fixes and needs the brew smoke re-run on a light slot. The screenshots (AC-03.3) wait for WP-06 and WP-10. Handoff: refs/bank/dc/st0095/handoff-20261119b. (edited)
 
 ## TODO
 
@@ -21,6 +21,7 @@ claims: [ST0095/03]
 - ST0096 (issue 0705's thread, e102ece05), held until hv has reviewed it. WP-03 (S), after ic's ST0095 WP-02: the commit gate and the pull-request check work with steel_threads.md and todo.md tracked or untracked, and read their paths from the one declared set; this repository's own lists leave git at its post-cut upgrade, under vc decision 132. WP-04 (S), after cc's WP-01 and ic's WP-02: the proof, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull.
 - hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
 - ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, `intent id <token>...` (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too), which lands in WP-10. The retirement proposal goes to vc file by file.
+- Issue 0714 (hv decision 69, via vc at 10:46Z: dc's, in this release): the commit gate passes with every ST0056 parity gate skipped when its tools are not on disk (bin/.devbin/cmd/precommit around line 255, HAVE_TOOLS=0). After WP-03 lands.
 
 ## Holds
 

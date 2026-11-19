@@ -1,0 +1,16 @@
+{
+  "id": "01M7SPVGF6K63S0Q7JKVMXA5YN",
+  "ts": "2026-11-19T10:50:18.982Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. WIP banks with their bases as parents: the guard unit at refs/bank/dc/st0095/wp03-guard-wip2 (21661391e, base ed3fe6361) and the capture unit at refs/bank/dc/st0095/wp03-capture-wip2 (b9d1e8f72, base 49412f88c). The guard unit lands as two commits on vc's word: first the view-skew gate fix (it reads doctor --format json; it closes issue 0716, the gate blind since 2026-09-07), then the store guard (AC-03.1). Its red control is done, in place and on the copy path; critic-shell over both was running at the compact. The capture unit has its seven critic fixes and needs the brew smoke re-run on a light slot. The screenshots (AC-03.3) wait for WP-06 and WP-10. Handoff: refs/bank/dc/st0095/handoff-20261119b."
+  }
+}
