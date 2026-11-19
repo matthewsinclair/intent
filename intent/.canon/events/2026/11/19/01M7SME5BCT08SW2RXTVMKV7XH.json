@@ -1,0 +1,14 @@
+{
+  "id": "01M7SME5BCT08SW2RXTVMKV7XH",
+  "ts": "2026-11-19T10:08:04.464Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-05.2"
+  },
+  "payload": {
+    "reason": "Its subject has gone: ST0096 (hv decision 66) takes .intentfiles and the two aggregate views out of git, so ST0095's merge neither merges .intentfiles as a set nor regenerates the lists. A branch still in today's format runs intent upgrade before it merges, and issue 0704 is superseded by ST0096. cc's call, 2026-11-19."
+  }
+}

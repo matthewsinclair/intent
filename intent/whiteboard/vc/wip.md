@@ -18,7 +18,7 @@ claims: []
 
 ## TODO
 
-_(none)_
+- When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 
 ## Holds
 

@@ -1,7 +1,7 @@
 ---
 wp_id: WP-05
 title: The merge knows both families
-scope: M
+scope: S
 status: Not Started
 ---
 
@@ -11,14 +11,13 @@ status: Not Started
 
 A merge between branches that each minted is resolved by `intent sync --apply --yes` alone, with no record discarded and no file left to a person that Intent can merge exactly.
 
-Seat: cc. Size: M.
+Seat: cc. Size: S, down from M when cc dropped the `.intentfiles` set merge on 2026-11-19.
 
 ## Scope
 
 - `plan.rs` `classify` (`:608-708`) owns a hashed record's canon, sidecars and realised directory. Today any canon path that is not an ordinal goes to take-a-side, which discards one side's record. Two hashed adds never go there.
 - Two branches that each add a work package to one thread: their ids differ, so both are kept (`:529-567`), with no renumber and no moved claim.
-- `.intentfiles` is merged as a set from the merge's three versions: the base, minus what either side removed, plus what either side added (`intentfiles.rs:424-435`). A line that is not a row is still left to a person. This closes issue 0704.
-- `steel_threads.md` and `todo.md` are regenerated from the merged canon instead of blocking.
+- Not here: `.intentfiles` and the two aggregate views. ST0096 takes all three out of git, so this package neither merges `.intentfiles` as a set nor regenerates the lists. A merge of two branches both still in today's format meets the conflict it meets today, and `intent upgrade` is that state's one remedy. Issue 0704 is superseded by ST0096, and AC-05.2 is withdrawn with that reason (cc, 2026-11-19).
 - The transition: an ordinal both sides minted before the upgrade is repaired by moving this clone's record to a hashed id, from its own creation event where the log holds one, and from an event the repair mints where it does not. `next_free_id` (`facade.rs:12153-12214`) and issue 0555's seq arithmetic retire. The mover is today's `land_renumber` (`facade.rs:15375-15567`), and it is what `st remint` and `issues remint` call.
 - Two defects in the merge path go with it: `issue_seq(..).unwrap_or(0)` (`facade.rs:12658-12661`), and `path.starts_with(old)` with no `/` guard (`:12702-12705`).
 

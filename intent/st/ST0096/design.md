@@ -52,13 +52,14 @@ There are two ways to make it per record, and the choice is cc's call on meaning
 | R1, the record carries it     | whether it is realised                                                        | every verb in the `.intentfiles` column, each on its own record, which all but two already write | nothing: realisation stays state                                                                                            |
 | R2, derived, with an override | an override, only when a person hydrated or dehydrated it against the default | `st hydrate` and `st dehydrate` only                                                             | the default becomes a function of status: a WIP thread or an OPEN issue is realised, as `organize --default` computes today |
 
+- **cc chose R1** on 2026-11-19 (AC-01.3). In cc's words: realisation is state today, not a function of status. Every transition verb edits it, and each takes `ListEdit::{AsDeclared, Suppressed}`, so a caller can move a thread's status and leave its realisation alone. R1 moves that state from one shared file into each record with no change in meaning, and upgrade's fold maps rows to records exactly: a listed record carries `realised: true`, and the field is absent otherwise. R2 would change meaning one of two ways: either an override outlives a transition, so a thread once dehydrated stays dehydrated after `st reopen`, which realises it today, or each transition clears it, which is R1's state under another name. R1's writes all fall on the record each verb already writes, except `st hydrate` and `st dehydrate`, which now write their thread's canon instead of the manifest.
 - **Either way `.intentfiles` goes.** `intent upgrade` folds its rows into the records and removes it. The fold is byte-deterministic, so two branches upgraded apart merge clean.
 - **It rides ST0095's schema bump.** ST0095 already gives the thread and issue canon a new schema version. With this field in the same unreleased version, a project migrates its canon once.
 - **Not taken: keeping `.intentfiles` for overrides only.** A rare conflict is still a hand step.
 
 ### What this changes in ST0095
 
-- **ST0095's WP-05 merges `.intentfiles` as a set, and regenerates the two lists in a conflicted merge**, which closes issue 0704. In a project this thread has upgraded, neither file is in git, so neither conflict occurs. A branch cut before the upgrade upgrades before it merges (ST0095's design, "Upgrading a project", point 3), so the set merge has no case left. Recommended: cc drops both from WP-05, and issue 0704 closes as superseded by this thread. That is cc's call, and it shortens cc's chain.
+- **ST0095's WP-05 merges `.intentfiles` as a set, and regenerates the two lists in a conflicted merge**, which closes issue 0704. In a project this thread has upgraded, neither file is in git, so neither conflict occurs. A branch cut before the upgrade upgrades before it merges (ST0095's design, "Upgrading a project", point 3), so the set merge has no case left. cc dropped both on 2026-11-19 (AC-01.3): WP-05 goes from M to S, AC-05.2 is withdrawn, and issue 0704 is superseded by this thread and closes when it lands. A merge of two branches both still in today's format meets the conflict it meets today, and `intent upgrade` is that state's one remedy.
 - **ST0095's WP-13** (ic) carries this thread's docs: the team page's merge sections are rewritten once, for both threads.
 - **ST0095's brew smoke and drill** (dc's WP-03 and WP-12) run with the two lists untracked once this thread has landed.
 
@@ -90,7 +91,7 @@ Each is one seat's, with its size, what it lands after, and its criteria in `acc
 ## For hv at review
 
 1. **The case that remains**, two merge requests that change one thread. Recommended: not in this release.
-2. **ST0095's WP-05**: drop the `.intentfiles` set merge and the lists' regeneration, and close issue 0704 as superseded. cc's call, and it shortens the critical path.
+2. **Settled by cc on 2026-11-19, for the record**: R1, and ST0095's WP-05 drops its `.intentfiles` set merge and its regeneration of the lists.
 
 ## The proof
 

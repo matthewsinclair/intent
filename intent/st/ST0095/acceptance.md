@@ -42,7 +42,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 ### WP-05 -- The merge knows both families (status: Not Started)
 
 - AC-05.1 A merge of two branches that each minted hashed records plans no step that takes a side. -- satisfied: no (computed)
-- AC-05.2 A merge in which both sides added rows to .intentfiles is resolved by intent sync --apply --yes alone, and the two aggregate views are regenerated. -- satisfied: no (computed)
+- AC-05.2 A merge in which both sides added rows to .intentfiles is resolved by intent sync --apply --yes alone, and the two aggregate views are regenerated. -- WITHDRAWN: Its subject has gone: ST0096 (hv decision 66) takes .intentfiles and the two aggregate views out of git, so ST0095's merge neither merges .intentfiles as a set nor regenerates the lists. A branch still in today's format runs intent upgrade before it merges, and issue 0704 is superseded by ST0096. cc's call, 2026-11-19. (by cc)
 - AC-05.3 An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id. -- satisfied: no (computed)
 - AC-05.4 Two branches that each add a work package to one thread merge with both packages kept and no claim moved. -- satisfied: no (computed)
 

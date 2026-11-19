@@ -22,7 +22,7 @@ title: A forge merges every open merge request: no file that every record shares
 
 - AC-01.1 Every verb in design.md's census table writes no file outside the thread or issue it changes: that record's canon file, its events and its realised views. -- satisfied: no (computed)
 - AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: no (computed)
-- AC-01.3 (non-test) The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704. -- satisfied: no
+- AC-01.3 (non-test) The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704. -- evidence: intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc -- satisfied: yes
 
 ### WP-02 -- The two lists leave git (status: Not Started)
 

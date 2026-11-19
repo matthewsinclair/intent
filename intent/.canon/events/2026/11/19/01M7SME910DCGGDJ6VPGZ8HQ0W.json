@@ -1,0 +1,14 @@
+{
+  "id": "01M7SME910DCGGDJ6VPGZ8HQ0W",
+  "ts": "2026-11-19T10:08:08.228Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0096/AC-01.3"
+  },
+  "payload": {
+    "evidence": "intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc"
+  }
+}

@@ -1,6 +1,6 @@
 # ST0095: Design. Git-style ids for threads, work packages and issues
 
-**Status: for hv's review, 2026-11-19. Nothing here is built, and no code lands before that review.** hv decisions 61 to 64 rule the direction and the two forks the seats raised. Written by vc from its own measurements and from the read-only census cc, ic and dc each made of their remit the same day. A claim says whether it was measured or read. The three censuses are banked under `refs/bank/cc/st0095/`, `refs/bank/ic/st0095/` and `refs/bank/dc/st0095/`, and vc's reproduction under `refs/bank/vc/st0095/`; an anchor in a work package comes from them. The points still open are under "For hv at review".
+**Status: under way since 2026-11-19 09:38Z by vc's date -u, on hv's go (hv decision 65). hv decision 66 adds ST0096 beside it and hv decision 67 the Highlander check.** hv decisions 61 to 64 rule the direction and the two forks the seats raised. Written by vc from its own measurements and from the read-only census cc, ic and dc each made of their remit the same day. A claim says whether it was measured or read. The three censuses are banked under `refs/bank/cc/st0095/`, `refs/bank/ic/st0095/` and `refs/bank/dc/st0095/`, and vc's reproduction under `refs/bank/vc/st0095/`; an anchor in a work package comes from them. The points still open are under "For hv at review".
 
 ## The rulings
 
@@ -12,7 +12,7 @@ hv, 2026-11-19, in hv's words unless marked:
 - Other ordinals count only "if they are subject to the same issues as STs, WPs, and Issues". (62)
 - **The stored id is long, and the short form is how it is shown and typed, as in git.** hv chose cc's position over the first draft. cc's words: "the stored id must be long enough never to collide, and the 7 characters are how it is shown and typed, as in git." (64)
 - **Criterion and test ids stay caller-assigned**, and only their group follows the work package's id. (64)
-- Whiteboard item numbers stay out. Issue 0705 gets its own thread in the same release. (63)
+- Whiteboard item numbers stay out. Issue 0705 gets its own thread in the same release, ST0096. (63, 66)
 
 This reverses one line of ST0078's design (2026-09-18): "Rejected: changing the minting scheme."
 
@@ -126,11 +126,10 @@ This is a standing exception to "fail forward, no shims", on hv's word: acceptin
 
 ### The merge (cc)
 
-Hashed ids do not end the conflicts measured above, because two branches that each mint still each add a row to the same three files. Without this part the attendee's symptom outlives the fix.
+Hashed ids do not end the conflicts measured above, because two branches that each mint still each add a row to the same three files. ST0096 takes those three files out of git (hv decision 66), and this package keeps the merge exact for what stays in git.
 
 - **`plan.rs` learns the hashed family.** Today `classify` sends any canon path that is not an ordinal to take-a-side, which discards one side's record (`plan.rs:608-708`). This lands in the same unit as the mint, never after it.
-- **`.intentfiles` is merged as a set** from the merge's three versions: the base, minus what either side removed, plus what either side added. This closes issue 0704.
-- **The two aggregate views are regenerated** from the merged canon instead of blocking.
+- **`.intentfiles` and the two aggregate views are no longer merged here.** ST0096 moves realisation into each record (cc's R1) and stops tracking the two lists, so in an upgraded project none of the three is in git. A branch cut before the upgrade runs `intent upgrade` before it merges, so a set merge would have no case left. cc dropped both on 2026-11-19, AC-05.2 is withdrawn, and issue 0704 is superseded by ST0096.
 - **Two branches that each add a work package to one thread** have different ids, so both are kept with no repair and no moved claim.
 
 ### Criteria and tests (cc)
@@ -172,6 +171,8 @@ hv asked for this package by name. ic's census: about 90 teaching lines and 221 
 4. **`intent claude upgrade --apply` in each estate**, in the same visit as hv decision 41's sweep, so the hooks and `session-context.sh` re-render.
 5. **The store migration is one way.** A brew 3.4.0 on the same machine refuses a store a newer build has migrated.
 
+**A project not yet upgraded** (cc's meaning, 2026-11-19, put to hv as a change a user sees): the new build reads it and works on its ordinals as 3.4.0 does, and writes canon back in the project's own format, so nothing is rewritten behind the user's back and a machine still on 3.4.0 keeps working beside it. The first mint (`st new`, `wp new`, `issues add`, and the transition's re-mint) refuses and writes nothing, with `intent upgrade` as its one remedy. doctor names the upgrade as an advisory that is not counted. The format is one fact per project, the schema of `.canon/project.json`, which `intent upgrade` writes; 3.4.x already reads that file on every read of the disk and refuses an unknown schema by name, writing and deleting nothing, so it refuses an upgraded project whatever it holds. That closes risk 3.
+
 **While this is being built, that reaches the main checkout by itself** (dc's finding). The repository's own commit gate runs the dev binary's `doctor` on the store of the checkout that is committing (`bin/.devbin/cmd/precommit:302-330`, `thread_view_skew_check.sh:84`), and every seat shares that build target. Once the shared target holds a binary with the new store schema, the next commit in the main checkout migrates the main store, and brew 3.4.0, first on every PATH, then refuses it: every `intent wb` verb and both hook carriers. So the first thing dc builds is a gate that judges a copy of the store whenever the build's store schema is newer than the store's. With that in place the packages land on main one at a time, as usual. A build is still never run by hand against the main checkout, and a worktree has its own store.
 
 ## Risks, the silent ones first
@@ -191,17 +192,18 @@ hv asked for this package by name. ic's census: about 90 teaching lines and 221 
 
 ## Beside this thread
 
-- **Issue 0704** (sync refuses an `.intentfiles` conflict) is closed by this thread's merge package.
-- **Issue 0705**: in a review-gated flow every merge still blocks every other open merge request, because the forge cannot run `intent sync`. It gets its own thread in the same release, and needs hv's ruling on whether the two aggregate views stay in git.
+- **Issue 0704** (sync refuses an `.intentfiles` conflict) is superseded by ST0096, which takes `.intentfiles` out of git (cc, 2026-11-19). It closes when ST0096 lands.
+- **Issue 0705**: in a review-gated flow every merge still blocks every other open merge request, because the forge cannot run `intent sync`. It is ST0096, in the same release (hv decision 66): the two lists leave git, and realisation moves into each record.
 - **Issue 0706** (doctor's advisory on `.claude/settings.json`) and **issue 0707** (closed threads' views on a project made with an older Intent) ride the same release.
 - cc's census found seven defects that exist today. Three are absorbed by its packages here, and cc filed the other four as issues 0708 to 0711.
 
 ## For hv at review
 
 1. **The `00046` bend**: a five-digit, over-padded spelling of an ordinal stops resolving. Recommended: accept it. None of the five forms v2 accepted is affected.
-2. **Who writes the docs package.** By the roster it is ac's seat, which has never been started; ic can take it after its surfaces. Recommended: start ac, so the docs are drafted beside the code.
+2. **Who writes the docs package**: ic, by hv decision 66, since ac was not started. ic drafts it while it waits for cc's resolver.
 3. **cc's chain is the long pole.** Its part is XL in seven packages that land in order. ic's and dc's parts finish sooner.
 4. **The release's number**, at the cut.
+5. **The first mint in a project not yet upgraded** refuses with `intent upgrade` as its one remedy (cc's meaning, under "Upgrading a project"). The alternative is a mint that runs the upgrade itself, a mechanical rewrite riding inside an unrelated change. Recommended: the refusal.
 
 ## Work packages
 
@@ -213,7 +215,7 @@ Each is one seat's, with its size, what it lands after, and its criteria in `acc
 | 02  | The mint verbs say their id, and CLI tests read it         | ic   | M    | -           |
 | 03  | The commit gate spares the main store; scripts capture ids | dc   | M    | -           |
 | 04  | The waist: one module owns an id                           | cc   | L    | 01          |
-| 05  | The merge knows both families                              | cc   | M    | 04          |
+| 05  | The merge knows both families                              | cc   | S    | 04          |
 | 06  | The hashed family                                          | cc   | L    | 05          |
 | 07  | Prefix resolution                                          | cc   | M    | 06          |
 | 08  | The order                                                  | cc   | S    | 06          |
@@ -221,7 +223,7 @@ Each is one seat's, with its size, what it lands after, and its criteria in `acc
 | 10  | Every door takes and shows both families                   | ic   | L    | 02, 07      |
 | 11  | The TUI, the app and the served page                       | ic   | M    | 10          |
 | 12  | The pipeline asks the waist; the drill; the fleet          | dc   | M    | 03, 10      |
-| 13  | Docs, skills, rules and templates teach the new ids        | ac   | L    | this review |
+| 13  | Docs, skills, rules and templates teach the new ids        | ic   | L    | this review |
 
 Packages 01 to 04 are behaviour-neutral: they land green on today's ordinals, and after them the scheme touches only the waist and the few tests whose subject is the scheme. Package 05's `classify` change and package 06's mint land as one unit.
 

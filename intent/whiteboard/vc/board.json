@@ -2963,6 +2963,14 @@
       "text": "ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05 for hv's review, and nothing is built before it. Four packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M), dc WP-03 and WP-04 (S each). For hv: two merge requests that change one thread (recommended: not this release), and ST0095 WP-05 dropping its .intentfiles set merge (cc's call). cc owes the choice between R1 and R2.",
       "state": "live",
       "recorded_at": "2026-11-19T10:03:15.682Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 84,
+      "text": "When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.",
+      "state": "live",
+      "recorded_at": "2026-11-19T10:09:38.454Z"
     }
   ],
   "sent": [

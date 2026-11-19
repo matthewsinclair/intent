@@ -1,0 +1,15 @@
+{
+  "id": "01M7SMH061EBPW1MFD2W2T9JK0",
+  "ts": "2026-11-19T10:09:37.473Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, by selection in agentic-engineering-vc's question dialog, answered between 10:00Z and 10:07Z on agentic-engineering-vc's date -u; relayed to vc by agentic-engineering-vc and not heard first-hand by vc; the question's and the option's wording are agentic-engineering-vc's, the choice hv's) THE TAP HOLDS THE RELEASE THAT CARRIES ST0095 UNTIL hv's WORD. hv chose \"Hold the tap for AE (Recommended)\", whose text read: \"Intent builds and tests 3.5, but the tap's intent formula moves to 3.5 only on your word, once devvm 0.5.3 and AE's course change are ready. The cohort then moves once, with its instructions. Until then, everyone who installs Intent from the tap stays on 3.4.x, and attendees keep the five-step merge procedure.\" (3.5 is agentic-engineering's name for the release; its number is hv's at the cut, hv decision 63.) So the release is built, tested and cut as planned, and the cut's last publish step, the tap's formula, runs only on hv's word, which vc carries when agentic-engineering says devvm 0.5.3 and its course change are ready. vc's reading, not hv's words: until the tap moves, Intent's own estates also stay on 3.4.x from brew, so the fleet sweep after the cut waits for the tap or takes another install route, which dc proposes. Once a release build exists, vc tells agentic-engineering, through the Desk, how its seats install it without the tap. This answers the question vc put to hv in Intent's session the same morning, where vc recommended the same."
+  }
+}
