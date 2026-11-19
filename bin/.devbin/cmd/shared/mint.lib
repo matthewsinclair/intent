@@ -1,0 +1,42 @@
+# shellcheck shell=bash
+#
+# shared/mint.lib -- the id a mint verb made (ST0095 WP-03). SOURCED, never run:
+# it is 0644 so `is_handler` (-f AND -x) cannot mistake it for a command.
+#
+# `st new` and `wp new` each print exactly one stdout line `created: <id>`: the
+# whole stored id the mint produced, as every door takes it (ic's machine form;
+# MCP answers the same value as {"created": ...}). `issues add` prints it from
+# ic's ST0095 WP-02 on; builds before that, the 3.4.0 release among them, name
+# the issue's canon path on that line instead, so no issue mint is read through
+# here against one. THIS IS THE ONE PLACE A SCRIPT LEARNS A MINTED ID. A script
+# that spells the id it expects (ST0001, 0712) breaks the day an id stops being
+# the next ordinal, and after ST0095 no mint is: a new id comes from its
+# creation event, and only the mint knows it. Nor does a script shorten one (hv
+# decision 64): what it captures here is the whole id, and it hands that id back
+# to the verbs unchanged.
+
+# minted_id <stdout> -- the value of the one line in <stdout>, a mint verb's
+# standard output, that starts `created: `, to the end of the line. Zero such
+# lines, more than one, or one with nothing after the colon is a refusal on
+# stderr and status 1, never a guess: an id this cannot be sure of would be
+# handed to the next verb as if it were the record just made.
+minted_id() {
+  local line id="" count=0
+  while IFS= read -r line; do
+    case "$line" in
+      'created: '*)
+        count=$((count + 1))
+        id="${line#created: }"
+        ;;
+    esac
+  done <<<"$1"
+  if [ "$count" -ne 1 ]; then
+    printf 'minted_id: the verb printed %s line(s) that start "created: ", where exactly one names the id it minted\n' "$count" >&2
+    return 1
+  fi
+  if [ -z "$id" ]; then
+    printf 'minted_id: the verb'"'"'s "created: " line names no id\n' >&2
+    return 1
+  fi
+  printf '%s\n' "$id"
+}

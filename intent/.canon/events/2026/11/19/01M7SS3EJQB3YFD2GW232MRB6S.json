@@ -1,0 +1,14 @@
+{
+  "id": "01M7SS3EJQB3YFD2GW232MRB6S",
+  "ts": "2026-11-19T11:29:36.347Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-03.2"
+  },
+  "payload": {
+    "reason": "Restated as AC-03.5, non-test, with the same text: its proof is a driven run of bin/devbin brew smoke against the installed keg, which no committed test carries, and a criterion's kind cannot be changed in place."
+  }
+}
