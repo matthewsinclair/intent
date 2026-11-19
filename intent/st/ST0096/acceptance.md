@@ -36,6 +36,7 @@ title: A forge merges every open merge request: no file that every record shares
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: Not Started)
 
 - AC-04.1 Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no (computed)
+- AC-04.2 (non-test) Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no
 
 ## Acceptance Tests
 

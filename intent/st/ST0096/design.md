@@ -1,6 +1,6 @@
 # Design: a forge merges every open merge request with no hand step
 
-**Status: for hv's review, 2026-11-19. Nothing here is built, and no code lands before that review.** hv decision 66 rules the direction and hv decision 67 the Highlander check. Written by vc from its own measurements on brew 3.4.0. A claim says whether it was measured or read. The defect is issue 0705.
+**Status: under way since 2026-11-19 11:38Z by vc's date -u, on hv's go (hv decision 71).** hv decision 66 rules the direction, hv decision 67 the Highlander check, and hv decision 70 brings the same-thread case into this release. Written by vc from its own measurements on brew 3.4.0. A claim says whether it was measured or read. The defect is issue 0705.
 
 ## The problem, measured
 
@@ -63,12 +63,12 @@ There are two ways to make it per record, and the choice is cc's call on meaning
 - **ST0095's WP-13** (ic) carries this thread's docs: the team page's merge sections are rewritten once, for both threads.
 - **ST0095's brew smoke and drill** (dc's WP-03 and WP-12) run with the two lists untracked once this thread has landed.
 
-### The case that remains: two merge requests that change one thread
+### Two merge requests that change one thread: closed in this release (WP-05)
 
 - **Measured**: `wp new`, `wp start`, `wp done`, the `ac` and `at` verbs and the thread's own lifecycle verbs all write the thread's canon file and its realised views. Two merge requests that change one thread meet there.
-- After ST0095 the ids inside never collide, so `intent sync --apply --yes` keeps both sides. A forge cannot run it, so such a merge request takes one hand step: merge main, run the sync, commit and push.
-- **Closing it by construction** would take a canon file per work package, criterion and test, and thread views that no two of them share. That is a second change to the canon's layout and a rewrite of the thread views, L to XL, on cc's chain.
-- **Recommended: not in this release.** Two people changing one thread at once is a point where they coordinate anyway, and the hand step is reliable. hv decides at review.
+- After ST0095 the ids inside never collide, so `intent sync --apply --yes` keeps both sides. A forge cannot run it, so today such a merge request takes one hand step: merge main, run the sync, commit and push.
+- **hv decision 70 closes it by construction in this release**, against vc's recommendation to leave it: each work package, criterion and test gets its own canon file, and the thread views are laid out so that no two of them share one. That is a second change to the canon's layout and a rewrite of the thread views, L to XL, on cc's chain, so it moves the release.
+- **cc designs it after ST0095 WP-04 lands**: how a thread's canon divides, how the split rides ST0095's schema change so that a project migrates once, and what `intent upgrade` does to an existing thread. ic says how the views divide. vc writes the design here before any code, with WP-05's criteria, its size, and whether the views need a package of their own.
 
 ### Highlander (hv decision 67)
 
@@ -81,18 +81,22 @@ There are two ways to make it per record, and the choice is cc's call on meaning
 
 Each is one seat's, with its size, what it lands after, and its criteria in `acceptance.md`.
 
-| WP  | What                                                    | Seat | Size | Lands after  |
-| --- | ------------------------------------------------------- | ---- | ---- | ------------ |
-| 01  | Realisation lives in the record, and the manifest goes  | cc   | M    | ST0095 WP-06 |
-| 02  | The two lists leave git                                 | ic   | M    | -            |
-| 03  | The commit gate and the pull-request check follow       | dc   | S    | 02           |
-| 04  | The proof: five merge requests through a forge stand-in | dc   | S    | 01, 02       |
+| WP  | What                                                         | Seat | Size | Lands after  |
+| --- | ------------------------------------------------------------ | ---- | ---- | ------------ |
+| 01  | Realisation lives in the record, and the manifest goes       | cc   | M    | ST0095 WP-06 |
+| 02  | The two lists leave git                                      | ic   | M    | -            |
+| 03  | The commit gate and the pull-request check follow            | dc   | S    | 02           |
+| 04  | The proof: five merge requests through a forge stand-in      | dc   | S    | 01, 02, 05   |
+| 05  | Each work package, criterion and test has its own canon file | cc   | L    | ST0095 WP-06 |
 
-## For hv at review
+## hv's rulings
 
-1. **The case that remains**, two merge requests that change one thread. Recommended: not in this release.
-2. **Settled by cc on 2026-11-19, for the record**: R1, and ST0095's WP-05 drops its `.intentfiles` set merge and its regeneration of the lists.
+1. **The same-thread case is closed in this release** (hv decision 70), as WP-05.
+2. **The thread goes ahead as designed** (hv decision 71, 2026-11-19): "Ok, I see. ST0096: Do it."
+3. **Settled by cc on 2026-11-19, for the record**: R1, and ST0095's WP-05 drops its `.intentfiles` set merge and its regeneration of the lists.
 
 ## The proof
 
 Five merge requests are opened from one main, in two clones and two worktrees. Each one creates and starts a thread, adds a work package and adds an issue. They are merged in turn by a bare repository's `git merge-tree`, as a forge merges. No merge conflicts, and after a pull of each one, `intent doctor` is clean and both lists name every record.
+
+Two more merge requests from one main change one thread: one adds a work package, the other a criterion and a test. They merge the same way, with no conflict, and `intent doctor` is clean after each is pulled (AC-04.2).

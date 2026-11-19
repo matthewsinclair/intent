@@ -1,0 +1,15 @@
+{
+  "id": "01M7SSMMKG5B5ZEVQ5K4XHAV7R",
+  "ts": "2026-11-19T11:38:59.568Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, first-hand in prose in vc's session, read by 11:38Z on vc's date -u; hv's own words) ST0096 GOES AHEAD, AND ST0095 WP-06's WORDING IS TAKEN AS WRITTEN. hv decision 70 had left ST0096 unaccepted, hv asking for more explanation. vc explained it in prose, and hv asked again, verbatim: \"What is ST0096? Remind me, please.\" vc answered: the three files every record shares (intent/.intentfiles, intent/st/steel_threads.md, intent/todo.md) make every open merge request but the first conflict; the two lists stop being committed and .intentfiles goes, so each change writes only its own record's files; and the same-thread case hv added in decision 70 takes a file per work package, criterion and test, which pushes the release out. hv, verbatim: \"Ok, I see. ST0096: Do it. Wording: ok\". (1) ST0096 is accepted as designed, with the same-thread case in this release: ic starts WP-02 (the two lists leave git) now; cc's WP-01 follows ST0095 WP-06; cc designs the same-thread package after ST0095 WP-04 lands, and vc writes it into the design before code; dc's WP-03 and WP-04 follow. (2) ic's wording for ST0095 WP-06, which cc checked, is taken as written: in a project not yet upgraded every mint (st new, wp new, issues add, the two re-mints and sync's repair) exits 1, writes nothing, and says its canon is in the ordinal format, with intent upgrade as the remedy; and doctor's new canon-format-behind class is shown by default and not counted. The exact text is in ic's message to vc of 2026-11-19 11:30Z."
+  }
+}
