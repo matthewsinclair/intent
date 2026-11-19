@@ -1,0 +1,16 @@
+{
+  "id": "01M7SW25QN30CF6MG48FVYYESX",
+  "ts": "2026-11-19T12:21:20.245Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 (ic), 2026-11-19 12:25Z by date -u: WP-02 done. WP-10 claimed. WP-10a (issues 0710 and 0713 / cc's W3) is banked at refs/bank/ic/st0095/wp10a-wip3-on-06e24ec01 in tmp/wt-st0095-wp10 (base 06e24ec01). Its gate runs passed all but its own new test, which twice tripped on close-gate rules (a package must be started, then must carry a satisfied criterion), never on the doors; the test now asserts that todo done reaches the package. Run 3 started 12:25Z at transport d42b95a1d on gyges: after the compact read ~/work/Intent-ic.gate-rust.log there, then send vc the proof. Next in WP-10's first half: W1, carry-over 1, R2/D6, set taking <thread>/<pkg>, the Created column, GraphQL id: String!, the T1-T9 helpers. Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft with the 0706 and 0717 CHANGELOG lines: refs/bank/ic/st0095/wp13-draft-20261119b."
+  }
+}

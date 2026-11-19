@@ -1,0 +1,16 @@
+{
+  "id": "01M7SW270ECMY19HTT5GGF0VMP",
+  "ts": "2026-11-19T12:21:21.550Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "hv decision 69 (every fix found rides this release): 0706 landed (e81e1596e) and 0717 landed (aa7cf8272), both closed; 0710 and 0713 are in WP-10a (banked, proof to vc after the compact); 0707's doctor half rides ST0096 WP-02."
+  }
+}

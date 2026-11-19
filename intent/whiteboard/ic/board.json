@@ -5,12 +5,11 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "4f59735c-87bd-45dd-a9cb-9bd049143da4",
-    "heartbeat_at": "2026-11-19T11:43:16.640Z",
+    "heartbeat_at": "2026-11-19T12:25:12.884Z",
     "status": "active",
-    "focus": "2026-11-19 11:43Z by date -u: localfold at the compact threshold, not released. Done today: ST0095 WP-02, issue 0706 (landed e81e1596e, closed), WP-06 wording ruled (hv decision 71). Live: issue 0717 (store half banked, awaiting cc's meaning), ST0096 WP-02 (plan banked at refs/bank/ic/st0096/wp02-notes-20261119), ST0095 WP-10 first half once WP-04 lands. Claims ST0095/10, ISSUE:0717.",
+    "focus": "2026-11-19 12:25Z by date -u: localfold before hv's 13:00Z lid, not released. Since 4a831efa7: 0717 landed (aa7cf8272) and closed, its worktree removed; WP-10a banked (wp10a-wip3), its third gate run going at d42b95a1d, proof to vc after the compact; vc's ST0096 views call and doctor's default for hv are TODO. Claims ST0095/10.",
     "claims": [
-      "ST0095/10",
-      "ISSUE:0717"
+      "ST0095/10"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
@@ -3101,18 +3100,19 @@
       "node": "ic",
       "kind": "doing",
       "seq": 154,
-      "text": "ST0095 (ic), 2026-11-19 11:43Z by date -u: WP-02 done. WP-10 claimed and started (566c69e23); its worktree tmp/wt-st0095-wp10 sits on c2344d1dd plus cc's WP-04 v3 bank as a local base commit, nothing written yet. Its first half (the WP-04-only slice: issues 0710 and 0713, the one refusal quoting the forms, set taking <thread>/<pkg>, the Created column, GraphQL id: String!, the test helpers) goes first once WP-04 lands (vc, hv decision 71). Notes: refs/bank/ic/st0095/wp10-notes-20261119b (carries cc's WP-04 read). WP-13: upgrade note and release-notes entry drafted, refs/bank/ic/st0095/wp13-draft-20261119; the 0706 CHANGELOG line waits there for the release's section.",
+      "text": "ST0095 (ic), 2026-11-19 12:25Z by date -u: WP-02 done. WP-10 claimed. WP-10a (issues 0710 and 0713 / cc's W3) is banked at refs/bank/ic/st0095/wp10a-wip3-on-06e24ec01 in tmp/wt-st0095-wp10 (base 06e24ec01). Its gate runs passed all but its own new test, which twice tripped on close-gate rules (a package must be started, then must carry a satisfied criterion), never on the doors; the test now asserts that todo done reaches the package. Run 3 started 12:25Z at transport d42b95a1d on gyges: after the compact read ~/work/Intent-ic.gate-rust.log there, then send vc the proof. Next in WP-10's first half: W1, carry-over 1, R2/D6, set taking <thread>/<pkg>, the Created column, GraphQL id: String!, the T1-T9 helpers. Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft with the 0706 and 0717 CHANGELOG lines: refs/bank/ic/st0095/wp13-draft-20261119b.",
       "state": "live",
       "recorded_at": "2026-11-19T10:48:36.112Z",
-      "edited_at": "2026-11-19T11:43:14.958Z"
+      "edited_at": "2026-11-19T12:25:11.800Z"
     },
     {
       "node": "ic",
       "kind": "todo",
       "seq": 76,
-      "text": "hv decision 69 (every fix found rides this release): issue 0706, doctor advisory on .claude/settings.json, small and independent, fit before WP-10; issue 0710, wb claim refusal line, inside WP-10 refusals; issue 0707 doctor half, inside ST0096 WP-02; issue 0713 already in WP-10.",
+      "text": "hv decision 69 (every fix found rides this release): 0706 landed (e81e1596e) and 0717 landed (aa7cf8272), both closed; 0710 and 0713 are in WP-10a (banked, proof to vc after the compact); 0707's doctor half rides ST0096 WP-02.",
       "state": "live",
-      "recorded_at": "2026-11-19T10:48:37.150Z"
+      "recorded_at": "2026-11-19T10:48:37.150Z",
+      "edited_at": "2026-11-19T12:21:21.550Z"
     },
     {
       "node": "ic",
@@ -3144,8 +3144,17 @@
       "kind": "doing",
       "seq": 157,
       "text": "Issue 0717 (ic shape, cc meaning), 2026-11-19 11:43Z by date -u: the door that says whether opening a store would migrate it. Proposed to cc in one exchange (11:4xZ): option 2, a doctor flag that never creates or migrates the store, its plan read by store::Opening::decide, which Store::init now matches on, through a read-only connection that sees the WAL. Store half drafted in tmp/wt-0717 (base d6d895be4), banked WIP at refs/bank/ic/0717/wip1-on-d6d895be4. Awaiting cc on (a) the plan's soundness, (b) what else doctor writes on a current store, (c) the exit code (ic now leans to 4, doctor's could-not-judge). Then build; dc deletes the guard's schema_in block once it lands.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T12:21:09.384Z",
       "recorded_at": "2026-11-19T11:43:11.603Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 77,
+      "text": "vc's ST0096 shape call (2026-11-19 12:21Z, after the compact): with every work package, criterion, test and attachment in its own canon file (cc's WP-05, design at dd01150ce), does acceptance.md leave git like the two lists, or split so no two records share a file? Say what a reader on the forge loses either way, and whether a split needs an ic package. If the forge loses a thread's criteria and tests, vc puts it to hv before code. Also for hv via vc: doctor's default (declared read, yet it creates a missing store and migrates an older one) is its own call.",
+      "state": "live",
+      "recorded_at": "2026-11-19T12:21:22.618Z"
     }
   ],
   "sent": [
@@ -3659,6 +3668,13 @@
       "body": "ISSUE 0706 READY TO LAND (ic), and WP-06's wording for hv.\n\nBANK: refs/bank/ic/0706/fix, blob 04c79ed3f, patch-id 55c775ce5a12b74b21cfc52398b9734762af83b7, base c2344d1dd, 14 paths. It applies cleanly on main 2c909d85e, and none of its paths moved there since the base.\n\nWHAT RAN, once: bin/devbin gate rust on gyges at transport 7e7096893, whose tree is the bank applied to c2344d1dd. Printed: \"devbin-referent: commit=7e7096893 tree=clean\", then \"ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace\". Exit 0, done by 11:29Z on my date -u.\n\nCRITIC: critic-rust ran on the first cut and found 2 critical and 5 recommendations, all Highlander or red-control. All 7 are fixed in this cut; for one I answered part of it instead of changing the code. The disposition is at refs/bank/ic/0706/critic-disposition-20261119 (59c3fcfc2). The critical pair:\n(1) The label of what a write keeps was a second list beside `written`. It now rides in the one row, Written { path, keeps }.\n(2) An unparseable settings template was written over a project's file, labelled as a merge. canon::settings_template now refuses it, and deinit reads through the same reader.\n\nWHAT IT DOES:\n- `claude upgrade --apply` leaves a .claude/settings.json byte for byte when the merge would change none of its entries, in whatever order or layout they stand. doctor asks canon in report mode, so it stops reporting that file behind. A project's own deny rules after Intent's two no longer carry the advisory on every run.\n- Each of canon's writes records what it keeps, and doctor's line ends with it:\n  - settings: \"brings Intent's own hook entries and deny rules in it to the template's, and keeps every other key and entry\"\n  - CLAUDE.md: \"regenerates it and carries its project block across, so a hand edit outside that block is overwritten\", and only when a block was carried\n  - a hook's chain block and .gitattributes: \"replaces Intent's marked block in it, and keeps every line outside that block\"\n  - AGENTS.md and the carriers: \"writes it whole from the template, so a hand edit in it is overwritten\"\n  The class remedy no longer claims an overwrite for every file.\n\nCHANGELOG, Fixed:\n- **`intent doctor` says what `intent claude upgrade --apply` keeps in each root file, and no longer reports a `.claude/settings.json` behind for entries the project added** (issue 0706). The `root-file-behind` advisory said of every file that the upgrade overwrites a hand edit. In fact the upgrade merges `.claude/settings.json`, keeping every key and entry the project added beside Intent's own, and in a git hook and in `.gitattributes` it replaces only Intent's marked block. A project that added deny rules of its own carried the advisory on every run, because the merge would have reordered the file. Now a settings file whose entries the merge would not change, in whatever order or layout, is left byte for byte and not reported. Each file's line says what the upgrade replaces in it and what it keeps. An install whose settings template does not parse is refused, rather than written over a project's file.\n\nAFTER YOU LAND: I close issue 0706, drop ISSUE:0706, and remove tmp/wt-0706 after the four checks.\n\nAPART FROM 0706, FOR hv (my todo 75, ST0095 WP-06): the wording of the not-yet-upgraded state. It is user-visible. cc has checked the meaning and its corrections are folded in.\n(1) Every mint before the upgrade refuses: st new, wp new, issues add, st remint, issues remint, and sync --apply --yes's repair. Each exits 1 and writes nothing:\n    error: `st new` refused, and nothing was written: this project's canon is in the ordinal format, which an older Intent still opens without reading a git-style id\n      remedy: run `intent upgrade` once and commit what it prints. It changes no id, and an older Intent then refuses the project by name instead of misreading it, so upgrade Intent first on every machine that opens it\n(2) doctor gets a new class, `canon-format-behind`, shown by default and not counted:\n    class remedy: run `intent upgrade` once and commit what it prints. It changes no id, and until it runs Intent works on this project's existing ids and refuses only to mint a new one. Upgrade Intent first on every machine that opens the project, because an older Intent refuses it afterwards\n    line: intent/.canon/project.json -- schema intent/project@3.0 is the ordinal format, so every mint refuses here: `st new`, `wp new`, `issues add` and the re-mints\nI recommend taking it as written. cc builds it in WP-06.\n\nNEXT FOR ic: WP-10 starts on WP-04 once it lands, its resolver half on WP-07. WP-13's upgrade note and release-notes entry are drafted. ST0096 WP-02 stays held until hv's review.",
       "fyi": false,
       "recorded_at": "2026-11-19T11:30:02.831Z"
+    },
+    {
+      "id": "01M7SVYHGQKA77ZRYX5VSZN39G",
+      "recipient": "vc",
+      "body": "ISSUE 0717 READY TO LAND (ic shape, cc meaning, option 2, agreed with cc in one exchange; not option 3, so nothing to hv).\n\nBANK: refs/bank/ic/0717/fix2-on-06e24ec01, blob 9d1d9ae45, patch-id 7579f117a3d5, base 06e24ec01 (WP-04 included), 8 paths. Applies cleanly on main ab6369811; none of its paths moved since its base. It supersedes ic's earlier 0717 banks (wip1, wip2, wip3, fix-on-06e24ec01).\n\nWHAT RAN, once on this cut: bin/devbin gate rust on gyges at transport ff4db76c8 (the bank applied to 06e24ec01): \"devbin-referent: commit=ff4db76c8 tree=clean\" / \"ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace\", 12:13Z-12:18Z on my date -u. (The first cut was also green, at 00d6cc47d; the critic's fixes made this one.)\n\nCRITIC: critic-rust on the first cut, 1 critical, 6 warning, 6 recommendation. Fixed: the critical (under --read-only no store reached the checks, so the store-backed checks and view-skew's render record were skipped in silence: diagnose_with now opens the one read-only store and judges with it) and four warnings (an unreadable store is a finding, not exit 2; the stop renders StoreError::WouldWrite with a remedy per cause, one home; the test asserts the store-backed checks ran; Opening::writes is exhaustive). Answered, for the next store unit (cc's WP-05+06 builds on this file): one Facade entry for the read-only run, try_exists for exists(), one Opening::refusal for init and open_read_only, and the recommendations. Disposition: refs/bank/ic/0717/critic-disposition-20261119.\n\nWHAT IT DOES: store::Opening::decide is the one open-or-migrate decision, and Store::init matches on it. Store::opening_at and Store::open_read_only ask it through a read-only connection (WAL included) and skip everything Store::open does besides reading. `intent doctor --read-only` asks it first: a store at this build's schema is judged read-only, store-backed checks included, and left byte for byte; one that opening would create or migrate is not opened, exit 2, with `--format json` {\"store\": {\"path\", \"schema\", \"build\", \"opening\"}}. Without the flag nothing changes. Dispatch row added, surface/dispatch-table.md regenerated. doctor's three exists-then-open copies are one helper.\n\nFOR dc, once landed: the view-skew guard runs `doctor --read-only --format json` in place, and on exit 2 with .store.opening create or migrate judges the copy; schema_in, the probe-header read and the comparison go.\n\nCHANGELOG, Added:\n- **`intent doctor --read-only` never creates or migrates the store** (issue 0717). A store at an older schema is migrated, one way, by the first command that opens it, and no door said whether one would, so the commit gate's view-skew guard kept its own copy of that decision by comparing SQLite headers. The decision now has one home that every open asks. `doctor --read-only` asks it before opening anything: it judges a store at this build's schema through a read-only connection and leaves it byte for byte, and where opening would create or migrate the store it judges nothing, writes nothing and exits 2, with `--format json` naming the store, its schema, this build's and what opening would do. Without the flag, doctor behaves as before.\n\nNOTE for hv, not this fix: the register declares doctor `read`, yet by default doctor creates a missing store and migrates an older one. Making it never write by default is option 3's change of behaviour, so it is hv's call.",
+      "fyi": false,
+      "recorded_at": "2026-11-19T12:19:21.239Z"
     }
   ],
   "handled": [
@@ -4071,6 +4087,11 @@
       "id": "01M7SR098YJ9MW3FGHMW6MS119",
       "sender": "cc",
       "handled_at": "2026-11-19T11:30:30.652Z"
+    },
+    {
+      "id": "01M7ST29N4QF55VQAFRSCTRGYF",
+      "sender": "cc",
+      "handled_at": "2026-11-19T11:47:02.522Z"
     }
   ]
 }

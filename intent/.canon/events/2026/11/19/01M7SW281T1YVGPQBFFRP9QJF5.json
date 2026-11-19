@@ -1,0 +1,15 @@
+{
+  "id": "01M7SW281T1YVGPQBFFRP9QJF5",
+  "ts": "2026-11-19T12:21:22.618Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "vc's ST0096 shape call (2026-11-19 12:21Z, after the compact): with every work package, criterion, test and attachment in its own canon file (cc's WP-05, design at dd01150ce), does acceptance.md leave git like the two lists, or split so no two records share a file? Say what a reader on the forge loses either way, and whether a split needs an ic package. If the forge loses a thread's criteria and tests, vc puts it to hv before code. Also for hv via vc: doctor's default (declared read, yet it creates a missing store and migrates an older one) is its own call."
+  }
+}
