@@ -1,0 +1,16 @@
+{
+  "id": "01M7SQKFCWT52M04JDW0VN8YPC",
+  "ts": "2026-11-19T11:03:24.321Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "0714"
+  },
+  "payload": {
+    "bytes": 2741,
+    "severity": "low",
+    "title": "With the ST0056 tools absent, the commit gate refuses by crashing at exit 127, and says the gates were skipped"
+  }
+}
