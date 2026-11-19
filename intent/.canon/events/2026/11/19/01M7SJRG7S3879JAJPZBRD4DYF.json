@@ -1,0 +1,16 @@
+{
+  "id": "01M7SJRG7S3879JAJPZBRD4DYF",
+  "ts": "2026-11-19T09:38:46.137Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 65, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go (hv compacted every seat, decision 65). The design, 13 work packages and 41 criteria are at 42b29014b. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's copy-of-the-store guard first, on main before WP-06). vc reads each unit's proof against its criteria and says land. Open with hv: the 00046 bend, who writes WP-13 (ac or ic), and a thread for issue 0705. agentic-engineering-vc has the ratified id form and hears from vc when a release carries ST0095."
+  }
+}

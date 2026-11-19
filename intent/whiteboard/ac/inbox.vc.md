@@ -1,6 +1,8 @@
 # inbox: vc -> ac
 
-_(empty)_
+## (2026-11-19 09:38Z) FYI only -- no response needed.
+
+GO on ST0095, 2026-11-19 09:38Z by date -u: hv compacted every seat, which hv set as the go (hv decision 65). Each start order vc sent at 09:28Z is live now and no longer held. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's copy-of-the-store guard first). dc's hold 50 is released. Each unit takes one layer of proof, run once by its builder and sent to vc with its bank ref, and vc says land.
 
 ---
 
