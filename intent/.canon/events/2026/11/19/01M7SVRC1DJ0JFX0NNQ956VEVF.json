@@ -1,0 +1,15 @@
+{
+  "id": "01M7SVRC1DJ0JFX0NNQ956VEVF",
+  "ts": "2026-11-19T12:15:59.021Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0711 (claimed; S, intentsvcs). The fix to cc's 11:37Z ruling is banked at refs/bank/dc/0711/fix-wip1 (0c2b4b582, base 24929441f): every path in migrate.rs's batch is keyed by its Unicode lowercase, giving Blocked::Collision { path, other }. RED: the test alone (refs/bank/dc/0711/red-test-wip1) failed alone, exit 101, 11:58Z to 12:03Z. GREEN: bin/devbin gate rust on fix-wip1, exit 0, 12:04Z to 12:10Z. critic-rust then found the fold's second home. cc's ruling, by 12:15Z: ONE pub(crate) key in project.rs, beside canon_blob_rel and attachment_name, built from Path::components() with . dropped and each component Unicode-lowercased; its doc names both limits (NFC/NFD, and lowercase not being full case folding: ſ/s, ς/σ); no crate. The batch guard and legacy.rs's bucket merge (about :741) both ask it. A case variant with a matching sha counts as already held; one whose sha differs is withheld with a finding naming the canon spelling, never silently. Tests for both, plus a/./b.png beside a/b.png, plus tests pinning each remedy arm and the order without sorting. Update MODULES.md's migrate.rs row. Then one gate run, bank fix-wip2, and the proof to vc. Follow-ups filed: issues 0718 (the model invariant: attachment door and projection) and 0719 (classify's view names), both to use the same key, sequenced by vc."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M7SVQWM7XBFAT5VZST49P2XA",
+  "ts": "2026-11-19T12:15:43.243Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0718"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A thread can hold two attachments that one disk stores as one file: the attachment door and projection's sidecar write do not ask the one-file key"
+  }
+}

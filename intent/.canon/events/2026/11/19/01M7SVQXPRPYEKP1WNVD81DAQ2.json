@@ -1,0 +1,15 @@
+{
+  "id": "01M7SVQXPRPYEKP1WNVD81DAQ2",
+  "ts": "2026-11-19T12:15:44.347Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0719"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Project::classify reads a view's name by exact string, so an author's Acceptance.md is carried as an attachment that a case-insensitive disk stores as the view's file"
+  }
+}
