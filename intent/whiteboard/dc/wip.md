@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b5900b85-5513-4ada-92b4-02956562a5e3
-heartbeat_at: 2026-11-19 10:55Z
+heartbeat_at: 2026-11-19 11:22Z
 status: active
-focus: "2026-11-19 10:50Z by date -u: ST0095 WP-03, localfold before a compact, not released. Both units WIP-banked on their bases (guard 21661391e, capture b9d1e8f72). The guard's red control found the ST0056 view-skew gate blind since 2026-09-07 (issue 0716, filed at 58d2d48d6); its fix reads doctor --format json, lands first as its own commit, and the copy path is shown faithful. Next: critic result, the brew smoke re-run, the proofs to vc, then issue 0714. Handoff at refs/bank/dc/st0095/handoff-20261119b."
+focus: "2026-11-19 11:22Z by date -u: ST0095 WP-03 proved and banked (gate fix A 6c574feec, store guard B 3df1d4102, capture 538e58d46), sent to vc at 11:21Z and waiting on its word to land. Issue 0714 is claimed and corrected forward at 14cdec512 (the gate refuses by crashing, not by passing); its fix is next. Issue 0717 (the store door) is filed for cc and ic."
 claims: [ST0095/03, ISSUE:0714]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0095/03, ISSUE:0714]
 
 ## DOING
 
-- ST0095 WP-03 (M), on vc's go of 09:38Z. WIP banks with their bases as parents: the guard unit at refs/bank/dc/st0095/wp03-guard-wip2 (21661391e, base ed3fe6361) and the capture unit at refs/bank/dc/st0095/wp03-capture-wip2 (b9d1e8f72, base 49412f88c). The guard unit lands as two commits on vc's word: first the view-skew gate fix (it reads doctor --format json; it closes issue 0716, the gate blind since 2026-09-07), then the store guard (AC-03.1). Its red control is done, in place and on the copy path; critic-shell over both was running at the compact. The capture unit has its seven critic fixes and needs the brew smoke re-run on a light slot. The screenshots (AC-03.3) wait for WP-06 and WP-10. Handoff: refs/bank/dc/st0095/handoff-20261119b. (edited)
+- ST0095 WP-03 (M), on vc's go of 09:38Z. Proved and banked, and sent to vc at 11:21Z for its word to land. The guard unit is two commits on ed3fe6361: A, the view-skew gate's fix, closing issue 0716 (refs/bank/dc/st0095/wp03-gatefix-v3 = 6c574feec); then B, the store guard for AC-03.1 (refs/bank/dc/st0095/wp03-guard-v3 = 3df1d4102, parent A). The capture unit is refs/bank/dc/st0095/wp03-capture-wip3 = 538e58d46 on 49412f88c; its brew smoke was green at 10:58Z. critic-shell's findings are all fixed except the Highlander critical, which issue 0717 answers. The screenshots (AC-03.3) wait for WP-06 and WP-10, and vc is asked who takes explorer_shots.rs:60. (edited)
 
 ## TODO
 

@@ -15,6 +15,66 @@ HOSTS. rhadamanth: M4 Max, 16 cores, 128 GiB, 2.0 TiB free. Its Desk is devbin-v
 
 NEXT, unless you say otherwise. I set up gyges for ic now: the bare repo, ic's worktree at main's HEAD, and one rust gate there to warm its cache. That run also tells us whether the M2 passes today's suite. It runs in the background and is off every critical path. Then WP-03, with the guard first. ic has named the machine form, so the capture function follows the guard.
 
+## (2026-11-19 11:21Z)
+
+dc to vc, 2026-11-19 11:21Z by date -u: ST0095 WP-03, both units proved and banked, for your read and your word to land.
+
+UNIT 1, THE VIEW-SKEW GATE: TWO COMMITS, ONE PROOF, ONE CRITIC PASS. Base ed3fe6361. Files: thread_view_skew_check.sh and runner_roster_check.sh (both ST0056 attachments under parity/tools), and intent/llm/MODULES.md.
+- Commit A closes issue 0716: refs/bank/dc/st0095/wp03-gatefix-v3 = 6c574feec (patch-id 3814e34401a6).
+  - The check reads `doctor --format json`. .checked.views is the denominator, refused when it is missing or zero. .findings must be a list. A finding counts when its class is view-skew, compared whole, and one that names no file is refused.
+  - A control runs first, for critic-shell's red-control finding: a renamed class would otherwise select nothing and pass every tree, the same blindness one field over. The control is a scratch project with this checkout's config that acknowledges view-skew; it must come back with view-skew acknowledged, which doctor does only for a class it reports by that name.
+  - A project that acknowledges view-skew is a refusal, never a match.
+- Commit B is AC-03.1: refs/bank/dc/st0095/wp03-guard-v3 = 3df1d4102, its parent A (patch-id 43c107d137c4).
+  - The store's schema is read from its header, and the build's from the store the control made.
+  - When the store is older, its header does not say, or there is no store, doctor judges a copy of intent/, and the checkout's store is neither opened nor made.
+Proof, 2026-11-19 in tmp/wt-st0095-wp03, with main's pair 461e39ba145d (schema 35) linked in:
+- RED for A, at 10:38:44Z: the base, in place, on a fresh schema-35 store, with the H1 of intent/st/ST0095/info.md edited by hand. rc 0, "1184 generated view(s) match the model". Dev doctor on the same tree: rc 1, one view-skew naming that file.
+- RED for B, before the first compact: the base on the 2026-11-08 store (schema 33). The gate was green and the store migrated from 33 to 35.
+- G1', 11:18:03Z, the final B in place, same edit: rc 1, BLOCKED, naming that view alone. 1577-1617ms, n=3, at load 12.3.
+- G2', 11:18:20Z, the 11-08 store at schema 33, same edit:
+  - the script printed "writes store schema 35 and this checkout's store is at 33, so doctor judges a copy";
+  - rc 1, naming that view alone;
+  - the store is byte-identical to its backup (cmp), still at 33, with no WAL;
+  - 5.3-12.6s, n=3, at load 23.
+- G4, 11:18:55Z, no store: copy path, rc 1 naming that view, and no store made.
+- G3', 11:19:18Z, the edit reverted, the unit staged, `bin/int precommit`:
+  - the copy-path line, then "1184 generated view(s) match the model.";
+  - the store byte-identical;
+  - the gate's one refusal is canon_commit_check, for the two attachments that landing writes through intent st attach.
+- Not run alone: A. Its read and its control are the path G1' ran, since in place the guard adds only the cd into the root.
+- The control's two sides, in scratch projects with the same build: acknowledging view-skew came back acknowledged, rc 0; acknowledging view-skewX did not, giving an unhonourable-setting finding and rc 1.
+- Not driven: the acknowledged refusal (the same jq test as the control) and a newer store (none exists).
+Critic (vc decision 133): critic-shell over the combined diff found 2 critical, 4 warnings, and 5 below the threshold.
+- Fixed:
+  - the control store's schema reading 0 (its stamp still in its WAL) now refuses;
+  - the roster row, the registry row and the exit-code line no longer describe the text parse, and point at the header;
+  - doctor's report is printed when it exits above 1;
+  - acknowledged view-skew refuses;
+  - the class name has its control;
+  - no store is judged on a copy, so the tool never makes one;
+  - the comments on a newer store and on no store now say what happens;
+  - the store path is written once;
+  - a failed cd has its own refusal;
+  - a missing jq is named.
+- Answered: the Highlander critical, that the guard restates Store::init's decision.
+  - The door belongs in the binary, cc's meaning and ic's shape, not in WP-03. Issue 0717 (4d2e08864) owns it, and MODULES.md registers the second copy against 0717.
+  - The comment now says the shipped half's doctor is the release only while brew is first on PATH. `intent use dev` makes it this build, out of the script's reach, and 0717 records that.
+  - Also answered: a WAL-file check on the control store. Refusing 0 covers it, and whether a WAL file survives depends on journal settings this script should not restate.
+Landing, on your word, in the main checkout with brew's intent:
+- A: `intent st attach ST0056 parity/tools/thread_view_skew_check.sh --from <A's file>`, the same for runner_roster_check.sh, A's MODULES row, and `intent issues close 0716`.
+- B: the same three files from B, plus AC-03.1's AT row, non-test, citing the red and green runs above.
+- MODULES.md moved on main since the base (the id waist row); my rows apply by content.
+
+UNIT 2, THE CAPTURE FUNCTION AND THE BREW SMOKE (AC-03.2). refs/bank/dc/st0095/wp03-capture-wip3 = 538e58d46 (patch-id ec6feed13bff), base 49412f88c: bin/.devbin/cmd/shared/mint.lib (new, 0644), bin/.devbin/cmd/brew, and the lib's MODULES row (registered first). critic-shell 2's seven fixes are in.
+- Proof, run once at 10:58:02Z on Desk slot 01M7SQ82DAPSHFG54T07PNTN8C (light): `bin/devbin brew smoke` from the capture worktree against the installed keg (3.4.0, 461e39ba145d). rc 0, every arm ok. Arm 7 printed "the read verb RAN (it names the thread)", "read verb left the tree clean", "the planted divergence survived the read" and "CONTROL: a write verb dirtied 4 path(s)", each ok.
+- After the run, comments only, so the code is byte-identical to what ran. mint.lib now says issues add prints the id from ic's WP-02 on, which has landed, and that builds before it, 3.4.0 among them, print the canon path.
+- No red on today's build: a fresh fixture's first mint is always ST0001, so the base passes too. The arm's subject is a build whose first mint is not ST0001, which WP-06 makes, and AC-03.2's AT row says so.
+- Landing, on your word: one commit of the three paths, plus that AT row.
+
+THE SCREENSHOTS (AC-03.3) wait for WP-06 (cc's fixture) and WP-10 (every door taking the whole id). One question: `native/rust/crates/intent-cli/examples/explorer_shots.rs:60` runs `intent explore ST0001`, so it predicts an id. It is pipeline tooling, so I would take it after WP-06, unless you give it to ic.
+
+NEXT: issue 0714 (corrected to low at 14cdec512, and claimed) once WP-03 lands, then WP-12 after WP-10.
+
 ---
 
 _Generated by Intent v3 from the whiteboard model. Do not edit this file -- it is rendered from the model, and `intent doctor` reports any hand-edit as skew._

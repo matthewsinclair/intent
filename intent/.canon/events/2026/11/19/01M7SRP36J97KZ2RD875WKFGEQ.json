@@ -1,0 +1,16 @@
+{
+  "id": "01M7SRP36J97KZ2RD875WKFGEQ",
+  "ts": "2026-11-19T11:22:18.706Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. Proved and banked, and sent to vc at 11:21Z for its word to land. The guard unit is two commits on ed3fe6361: A, the view-skew gate's fix, closing issue 0716 (refs/bank/dc/st0095/wp03-gatefix-v3 = 6c574feec); then B, the store guard for AC-03.1 (refs/bank/dc/st0095/wp03-guard-v3 = 3df1d4102, parent A). The capture unit is refs/bank/dc/st0095/wp03-capture-wip3 = 538e58d46 on 49412f88c; its brew smoke was green at 10:58Z. critic-shell's findings are all fixed except the Highlander critical, which issue 0717 answers. The screenshots (AC-03.3) wait for WP-06 and WP-10, and vc is asked who takes explorer_shots.rs:60."
+  }
+}
