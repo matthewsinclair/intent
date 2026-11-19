@@ -1,0 +1,15 @@
+{
+  "id": "01M7STFHBFC91H1GPBN6S27WJP",
+  "ts": "2026-11-19T11:53:40.975Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "XS (vc, 11:52Z, under hv decisions 67 and 69, in this release): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one reporting primitive both gates share; today cut/gate has its own copy with the same meaning (gave no verdict (rc=N)) reported through its own refuse(). File it as an issue when starting. After issue 0711, before ST0096 WP-03."
+  }
+}

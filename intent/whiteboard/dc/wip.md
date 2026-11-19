@@ -6,7 +6,7 @@ session_id: b5900b85-5513-4ada-92b4-02956562a5e3
 heartbeat_at: 2026-11-19 11:22Z
 status: active
 focus: "2026-11-19 11:22Z by date -u: ST0095 WP-03 proved and banked (gate fix A 6c574feec, store guard B 3df1d4102, capture 538e58d46), sent to vc at 11:21Z and waiting on its word to land. Issue 0714 is claimed and corrected forward at 14cdec512 (the gate refuses by crashing, not by passing); its fix is next. Issue 0717 (the store door) is filed for cc and ic."
-claims: [ST0095/03, ISSUE:0714]
+claims: [ST0095/03, ISSUE:0711]
 ---
 
 # DevX Claude (dc)
@@ -14,7 +14,6 @@ claims: [ST0095/03, ISSUE:0714]
 ## DOING
 
 - ST0095 WP-03 (M), on vc's go of 09:38Z. Its two units landed by vc at 11:33Z: the gate fix at fe534431d (closes issue 0716), the store guard at 2c909d85e, and the capture function with the brew smoke at c5233a0c9. AC-03.4 and AC-03.5 replace AC-03.1 and AC-03.2 as non-test criteria and are satisfied. The landed worktrees are removed. WP-03 stays open for AC-03.3, the explorer screenshots with explorer_shots.rs:60, which are dc's after WP-06 (vc, 11:33Z). (edited)
-- Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. Proved and banked as v2 at refs/bank/dc/0714/gate-refuses-v2 (30ac64718, base c2344d1dd), with critic-shell's two Highlander criticals fixed: tool_verdict is the one reading of a guard's exit status, and tool_present the one presence check. The absence refuses by name with the remedy intent st hydrate ST0056. Red at 11:01:55Z (exit 127); D1 to D4 green between 11:46Z and 11:48Z. The proof went to vc at 11:49Z, for vc's word to land. (edited)
 
 ## TODO
 
@@ -23,6 +22,7 @@ claims: [ST0095/03, ISSUE:0714]
 - hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
 - ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, `intent id <token>...` (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too), which lands in WP-10. The retirement proposal goes to vc file by file.
 - Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. cc's meaning (dc's inbox from cc, 2026-11-19 11:37Z): refuse, before anything is written, two writes in one batch that some disk this project lives on would store as one file. (1) Fold with std Unicode lowercase (str::to_lowercase), no new crate, and name the limit in the guard's comment: names that differ only by normalisation (NFC against NFD) are not caught. (2) Refuse on every file system, folding every path in the batch, attachments and canon alike. (3) Blocked::Collision { path, other }, with both spellings as written; the remedy says they are one file on a case-insensitive disk (macOS's default) and to give one of the two attachments another name. Proof: a test red on the base and green on the fix, through the cargo gate on a Desk slot. After issue 0714. (edited)
+- XS (vc, 11:52Z, under hv decisions 67 and 69, in this release): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one reporting primitive both gates share; today cut/gate has its own copy with the same meaning (gave no verdict (rc=N)) reported through its own refuse(). File it as an issue when starting. After issue 0711, before ST0096 WP-03.
 
 ## Holds
 

@@ -10,7 +10,7 @@
     "focus": "2026-11-19 11:22Z by date -u: ST0095 WP-03 proved and banked (gate fix A 6c574feec, store guard B 3df1d4102, capture 538e58d46), sent to vc at 11:21Z and waiting on its word to land. Issue 0714 is claimed and corrected forward at 14cdec512 (the gate refuses by crashing, not by passing); its fix is next. Issue 0717 (the store door) is filed for cc and ic.",
     "claims": [
       "ST0095/03",
-      "ISSUE:0714"
+      "ISSUE:0711"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3097,7 +3097,8 @@
       "kind": "doing",
       "seq": 169,
       "text": "Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. Proved and banked as v2 at refs/bank/dc/0714/gate-refuses-v2 (30ac64718, base c2344d1dd), with critic-shell's two Highlander criticals fixed: tool_verdict is the one reading of a guard's exit status, and tool_present the one presence check. The absence refuses by name with the remedy intent st hydrate ST0056. Red at 11:01:55Z (exit 127); D1 to D4 green between 11:46Z and 11:48Z. The proof went to vc at 11:49Z, for vc's word to land.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:53:37.903Z",
       "recorded_at": "2026-11-19T11:26:59.135Z",
       "edited_at": "2026-11-19T11:50:04.848Z"
     },
@@ -3109,6 +3110,14 @@
       "state": "live",
       "recorded_at": "2026-11-19T11:35:14.139Z",
       "edited_at": "2026-11-19T11:37:26.295Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 72,
+      "text": "XS (vc, 11:52Z, under hv decisions 67 and 69, in this release): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one reporting primitive both gates share; today cut/gate has its own copy with the same meaning (gave no verdict (rc=N)) reported through its own refuse(). File it as an issue when starting. After issue 0711, before ST0096 WP-03.",
+      "state": "live",
+      "recorded_at": "2026-11-19T11:53:40.975Z"
     }
   ],
   "sent": [
