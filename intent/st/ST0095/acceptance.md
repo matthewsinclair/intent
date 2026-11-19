@@ -18,9 +18,9 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-00.1 (non-test) Highlander, as hv decision 67 asks: at the close, an independent sweep of the whole tree finds one home for every id concern (mint, stored-form read, operator read, format, order, validate, scan, criterion and test labels, constants) in every language, and every finding of the sweep of the existing code made at the start (refs/bank/vc/st0095/highlander-*) is resolved in the package that owns it or answered on the record. -- satisfied: no
 - AC-00.2 (non-test) Highlander on every change, as hv decision 67 asks: every unit of this thread lands with a critic-<lang> review of its diff for each language the diff touches, each Highlander finding fixed or answered, read by vc against the diff before land. -- satisfied: no
 
-### WP-01 -- Core tests take ids from the mint (status: WIP)
+### WP-01 -- Core tests take ids from the mint (status: Done)
 
-- AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- satisfied: no
+- AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- evidence: ae11d9939: cc's bank wp01-v1 (patch-id 9a84ec4da587) landed by vc on cc's proof, bin/devbin gate rust green at the base plus the bank, and cc's reading of every predicting site in intentsvcs and intentd -- satisfied: yes
 
 ### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
 
@@ -37,7 +37,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 - AC-04.1 (non-test) A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one. -- satisfied: no
 - AC-04.2 The change is behaviour-neutral: an existing project's canon, views and output are byte-for-byte what they were, and intent sync plans nothing. -- satisfied: no (computed)
-- AC-04.3 (non-test) intentsvcs::id is registered in intent/llm/MODULES.md before the file exists. -- satisfied: no
+- AC-04.3 (non-test) intentsvcs::id is registered in intent/llm/MODULES.md before the file exists. -- evidence: fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main -- satisfied: yes
 
 ### WP-05 -- The merge knows both families (status: Not Started)
 
@@ -104,7 +104,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 _(no tests in this group)_
 
-### WP-01 -- Core tests take ids from the mint (status: WIP)
+### WP-01 -- Core tests take ids from the mint (status: Done)
 
 _(no tests in this group)_
 

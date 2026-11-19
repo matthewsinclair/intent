@@ -1,0 +1,14 @@
+{
+  "id": "01M7SMW6WX2MY4XAAV1VYSS4HT",
+  "ts": "2026-11-19T10:15:44.801Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-04.3"
+  },
+  "payload": {
+    "evidence": "fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main"
+  }
+}

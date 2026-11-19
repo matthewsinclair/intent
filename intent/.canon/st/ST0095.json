@@ -14,7 +14,7 @@
       "seq": 1,
       "title": "Core tests take ids from the mint",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "Every test in intentsvcs and intentd takes a thread, work package or issue id from what the mint returned, so no test predicts the next number.",
       "body": "Seat: cc. Size: S.\n\n## Scope\n\n- The facade's `st_new` already returns the id. `wp_new` and `issue_add` return a number today (`facade.rs:16174`, `19266`). Bind the return value at each site that today names the id it expects.\n- dc's census classes P and H for these two crates (dc's census, section 4, banked under `refs/bank/dc/st0095/`). Class H is read one by one: a helper that mints, or a record a fixture seeded.\n- A record a fixture seeded keeps its literal. That is class N, and it stays valid.\n\n## Out of scope\n\n- The tests whose subject is the ordinal scheme (`facade_st_wp.rs:22`, `:52`, `:91-92`, and the renumber and taken-id tests). They are rewritten with the scheme, in WP-06.\n- intent-cli's tests (WP-02) and the shell (WP-03).\n\n## Order\n\nFirst, beside WP-02 and WP-03. Behaviour-neutral: it lands green on today's ordinals.\n\n## Proof\n\nThe cut's own gate. dc's predict census over the two crates reads no site.\n",
       "preamble": ""
@@ -150,7 +150,8 @@
       "text": "No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ae11d9939: cc's bank wp01-v1 (patch-id 9a84ec4da587) landed by vc on cc's proof, bin/devbin gate rust green at the base plus the bank, and cc's reading of every predicting site in intentsvcs and intentd"
       }
     },
     {
@@ -214,7 +215,8 @@
       "text": "intentsvcs::id is registered in intent/llm/MODULES.md before the file exists.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main"
       }
     },
     {

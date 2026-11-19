@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Core tests take ids from the mint
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: Core tests take ids from the mint
