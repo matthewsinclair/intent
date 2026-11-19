@@ -2935,10 +2935,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 62,
-      "text": "ST0095, git-style ids (hv decisions 61 to 65, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go (hv compacted every seat, decision 65). The design, 13 work packages and 41 criteria are at 42b29014b. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's copy-of-the-store guard first, on main before WP-06). vc reads each unit's proof against its criteria and says land. Open with hv: the 00046 bend, who writes WP-13 (ac or ic), and a thread for issue 0705. agentic-engineering-vc has the ratified id form and hears from vc when a release carries ST0095.",
+      "text": "ST0095, git-style ids (hv decisions 61 to 67, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. WP-01 (cc), WP-02 (ic) and WP-03 (dc) in flight; vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is running (three read-only reviewers, vc decision 133). Open with hv: the 00046 bend; cc's position that the first mint in a project not yet upgraded refuses with intent upgrade as its one remedy; whether the tap publish waits for agentic-engineering's word (AE's question b). agentic-engineering-vc has the ratified id form and waits for (b), then for (a), (c), (d) and (e).",
       "state": "live",
       "recorded_at": "2026-11-19T08:29:35.862Z",
-      "edited_at": "2026-11-19T09:38:46.137Z"
+      "edited_at": "2026-11-19T10:03:14.647Z"
     },
     {
       "node": "vc",
@@ -2955,6 +2955,14 @@
       "text": "(vc, 2026-11-19 09:53Z by date -u, under hv decision 67) HOW ST0095's AND ISSUE 0705's HIGHLANDER CHECK RUNS. (1) EXISTING CODE: an independent sweep of every place the tree mints, reads, formats, orders, validates or scans an id, or reads or writes .intentfiles or the two aggregate views, in every language, run now by three read-only reviewers vc launched (intentsvcs; the other crates and every test; everything that is not Rust), and given none of the seats' censuses. vc compares it with the censuses and sends each finding to the seat whose package owns it, which adds it to that package's scope. The reports are banked under refs/bank/vc/st0095/highlander-*. (2) EVERY CHANGE: each unit's proof carries a critic-<lang> review of its diff for every language the diff touches, with each Highlander finding fixed or answered, and vc reads it against the diff before saying land. From WP-04 on, a unit that handles an id does so through intentsvcs::id and says so. (3) AT THE CLOSE: the same sweep runs again over the whole tree and must find one home for every concern. (1) and (3) are ST0095's AC-00.1 and (2) is its AC-00.2; 0705's thread carries the same.",
       "state": "live",
       "recorded_at": "2026-11-19T09:52:18.441Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 63,
+      "text": "ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05 for hv's review, and nothing is built before it. Four packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M), dc WP-03 and WP-04 (S each). For hv: two merge requests that change one thread (recommended: not this release), and ST0095 WP-05 dropping its .intentfiles set merge (cc's call). cc owes the choice between R1 and R2.",
+      "state": "live",
+      "recorded_at": "2026-11-19T10:03:15.682Z"
     }
   ],
   "sent": [

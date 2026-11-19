@@ -1,0 +1,16 @@
+{
+  "id": "01M7SM5AAPK4JXNAZBK1NHXP0X",
+  "ts": "2026-11-19T10:03:14.647Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 67, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. WP-01 (cc), WP-02 (ic) and WP-03 (dc) in flight; vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is running (three read-only reviewers, vc decision 133). Open with hv: the 00046 bend; cc's position that the first mint in a project not yet upgraded refuses with intent upgrade as its one remedy; whether the tap publish waits for agentic-engineering's word (AE's question b). agentic-engineering-vc has the ratified id form and waits for (b), then for (a), (c), (d) and (e)."
+  }
+}

@@ -13,7 +13,8 @@ claims: []
 
 ## DOING
 
-- ST0095, git-style ids (hv decisions 61 to 65, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go (hv compacted every seat, decision 65). The design, 13 work packages and 41 criteria are at 42b29014b. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's copy-of-the-store guard first, on main before WP-06). vc reads each unit's proof against its criteria and says land. Open with hv: the 00046 bend, who writes WP-13 (ac or ic), and a thread for issue 0705. agentic-engineering-vc has the ratified id form and hears from vc when a release carries ST0095. (edited)
+- ST0095, git-style ids (hv decisions 61 to 67, P0): UNDER WAY since 2026-11-19 09:38Z by date -u, on hv's go. WP-01 (cc), WP-02 (ic) and WP-03 (dc) in flight; vc reads each unit's proof with its critic review (vc decision 133) and says land. vc decision 132: no dev build touches the main checkout's store until the release is installed from brew. The Highlander sweep of the existing code is running (three read-only reviewers, vc decision 133). Open with hv: the 00046 bend; cc's position that the first mint in a project not yet upgraded refuses with intent upgrade as its one remedy; whether the tap publish waits for agentic-engineering's word (AE's question b). agentic-engineering-vc has the ratified id form and waits for (b), then for (a), (c), (d) and (e). (edited)
+- ST0096, issue 0705 (hv decision 66): written 2026-11-19 at e102ece05 for hv's review, and nothing is built before it. Four packages: cc WP-01 (M, after ST0095 WP-06), ic WP-02 (M), dc WP-03 and WP-04 (S each). For hv: two merge requests that change one thread (recommended: not this release), and ST0095 WP-05 dropping its .intentfiles set merge (cc's call). cc owes the choice between R1 and R2.
 
 ## TODO
 
