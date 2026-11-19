@@ -1,0 +1,15 @@
+{
+  "id": "01M7SNA53855ASRD9GN821TE89",
+  "ts": "2026-11-19T10:23:21.965Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0714"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The commit gate passes with every ST0056 parity gate skipped when its tools are not on disk"
+  }
+}

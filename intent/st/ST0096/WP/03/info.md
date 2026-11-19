@@ -19,6 +19,9 @@ Seat: dc. Size: S. Lands after WP-02.
 - **Any check, workflow or smoke that names a list by path** reads the declared set from WP-02 instead of its own copy of the path.
 - **This repository's own lists leave git at its post-cut upgrade**, with every other estate, because vc decision 132 keeps the main checkout in today's format until the release is installed from brew. Nothing here untracks them by hand.
 
+- **The gate's own reader of `.intentfiles` goes with the file** (vc's Highlander sweep, report C, cluster A, folded in by dc). `canon_commit_check.sh:228-233` is gated and live today. It ignores `ISSUE` rows, and it reads a present zero-byte file as everything realised, where the Rust parser and the file's own header read it as keep nothing. It reads the declared set from WP-02 instead.
+- **The by-hand copies are not routed but retired** in dc's separate proposal, since no gate, CI step or bats test runs them: `realise_plan.sh:92-110` (a grammar that accepts region markers no grammar has), `:56-66` and `:176-189` (its own declaration rule), and ST0057's `sparse_tree_equals_manifest.sh:141-160`, which aborts on `ISSUE` rows and so refuses this repository's own manifest (clusters A and B).
+
 ## Out of scope
 
 - The verbs (WP-01, WP-02). The proof rig (WP-04).

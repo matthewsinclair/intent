@@ -1,0 +1,15 @@
+{
+  "id": "01M7SNAN84D6Y592QB0D0KVY9F",
+  "ts": "2026-11-19T10:23:38.244Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84)."
+  }
+}

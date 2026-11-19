@@ -13,12 +13,13 @@ claims: [ST0095/03]
 
 ## DOING
 
-- ST0095 WP-03 (M), on vc's go of 09:38Z. First the commit gate's copy-of-the-store guard, which must be on main before cc's WP-06 lands. Then the shell capture function in bin/.devbin/cmd/shared/, reading ic's machine form (ic, 09:39Z: the one stdout line that starts `created: `, its value to the end of the line, exactly one or fail). Then the brew smoke and the explorer screenshots. Built in a worktree with its own target, and each unit's proof goes to vc with its bank ref.
-- gyges as ic's build host, on dc's plan to vc at 09:41Z unless vc says otherwise: the bare repo work/Intent-leg.git, ic's worktree work/Intent-ic at main's HEAD, and one rust gate there to warm work/Intent-ic.cache. It is also the baseline for whether the M2 passes today's suite.
+- ST0095 WP-03 (M), on vc's go of 09:38Z. Banked, critic-shell reviews running, proof to vc next: the commit gate's store guard (refs/bank/dc/st0095/wp03-guard, AC-03.1, red and green driven on the whole tree over the 2026-11-08 store at schema 33), and the capture function with the brew smoke (refs/bank/dc/st0095/wp03-capture, AC-03.2, smoke green on brew 3.4.0). The screenshots (AC-03.3) wait for WP-06, for cc's fixture (the demo's canon made once with the new build and loaded through intent sync --to-store), and for WP-10, where ic makes every door take the address wp new prints. (edited)
 
 ## TODO
 
 - ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.
+- ST0096 (issue 0705's thread, e102ece05), held until hv has reviewed it. WP-03 (S), after ic's ST0095 WP-02: the commit gate and the pull-request check work with steel_threads.md and todo.md tracked or untracked, and read their paths from the one declared set; this repository's own lists leave git at its post-cut upgrade, under vc decision 132. WP-04 (S), after cc's WP-01 and ic's WP-02: the proof, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull.
+- hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
 
 ## Holds
 
@@ -26,7 +27,7 @@ _(none)_
 
 ## Watch-outs
 
-_(none)_
+- For WP-03's brew smoke (vc, 10:03Z, cc's meaning, going to hv): in a project not yet upgraded, the new build works on its ordinals and refuses only the first mint, with intent upgrade as its one remedy.
 
 ## Decisions
 

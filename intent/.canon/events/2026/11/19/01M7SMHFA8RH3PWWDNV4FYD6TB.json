@@ -1,0 +1,15 @@
+{
+  "id": "01M7SMHFA8RH3PWWDNV4FYD6TB",
+  "ts": "2026-11-19T10:09:52.968Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0096 (issue 0705's thread, e102ece05), held until hv has reviewed it. WP-03 (S), after ic's ST0095 WP-02: the commit gate and the pull-request check work with steel_threads.md and todo.md tracked or untracked, and read their paths from the one declared set; this repository's own lists leave git at its post-cut upgrade, under vc decision 132. WP-04 (S), after cc's WP-01 and ic's WP-02: the proof, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull."
+  }
+}

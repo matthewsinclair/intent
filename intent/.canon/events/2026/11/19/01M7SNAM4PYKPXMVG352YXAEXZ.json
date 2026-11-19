@@ -1,0 +1,16 @@
+{
+  "id": "01M7SNAM4PYKPXMVG352YXAEXZ",
+  "ts": "2026-11-19T10:23:37.110Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. Banked, critic-shell reviews running, proof to vc next: the commit gate's store guard (refs/bank/dc/st0095/wp03-guard, AC-03.1, red and green driven on the whole tree over the 2026-11-08 store at schema 33), and the capture function with the brew smoke (refs/bank/dc/st0095/wp03-capture, AC-03.2, smoke green on brew 3.4.0). The screenshots (AC-03.3) wait for WP-06, for cc's fixture (the demo's canon made once with the new build and loaded through intent sync --to-store), and for WP-10, where ic makes every door take the address wp new prints."
+  }
+}
