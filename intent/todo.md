@@ -24,7 +24,7 @@ _(none)_
 - [?] ST0094: The estate's last two boards converge to their profiles
 - [?] ST0095: Git-style ids: threads, work packages and issues unique by construction
   - [x] 01: Core tests take ids from the mint
-  - [-] 02: The mint verbs say their id, and CLI tests read it
+  - [x] 02: The mint verbs say their id, and CLI tests read it
   - [-] 03: The commit gate spares the main store; scripts capture ids
   - [-] 04: The waist: one module owns an id
   - [ ] 05: The merge knows both families

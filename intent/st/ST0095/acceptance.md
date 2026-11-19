@@ -22,7 +22,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 - AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- evidence: ae11d9939: cc's bank wp01-v1 (patch-id 9a84ec4da587) landed by vc on cc's proof, bin/devbin gate rust green at the base plus the bank, and cc's reading of every predicting site in intentsvcs and intentd -- satisfied: yes
 
-### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
+### WP-02 -- The mint verbs say their id, and CLI tests read it (status: Done)
 
 - AC-02.1 st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three. -- satisfied: yes (computed)
 - AC-02.2 (non-test) No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one. -- evidence: ed1caeb36: ic's bank wp02 (patch-id 97c87b96bb5a) landed by vc on ic's proof; no intent-cli test names an id it expects a mint to produce, and tests/common's created() is the one reader of a minted id -- satisfied: yes
@@ -113,7 +113,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
+### WP-02 -- The mint verbs say their id, and CLI tests read it (status: Done)
 
 - AT-02.1 `native/rust/crates/intent-cli/tests/the_mint_verbs_say_their_id.rs` -- covers AC-02.1 -- status: green -- Written with WP-02's code; the row moves through red as the machine requires. Green in ic's bin/devbin gate rust on gyges at f7780b922, the base plus the landed bank (ed1caeb36).
 

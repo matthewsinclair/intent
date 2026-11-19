@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPRD0YY9WDXSVKH8H52EPB",
+  "ts": "2026-11-19T10:48:37.150Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "hv decision 69 (every fix found rides this release): issue 0706, doctor advisory on .claude/settings.json, small and independent, fit before WP-10; issue 0710, wb claim refusal line, inside WP-10 refusals; issue 0707 doctor half, inside ST0096 WP-02; issue 0713 already in WP-10."
+  }
+}

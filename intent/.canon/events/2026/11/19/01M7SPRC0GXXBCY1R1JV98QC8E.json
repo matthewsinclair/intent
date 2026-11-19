@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPRC0GXXBCY1R1JV98QC8E",
+  "ts": "2026-11-19T10:48:36.112Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0095 (ic): WP-02 done (landed ed1caeb36, closed after AT-02.1 literal 68a88e2d3). Now: read the intent-cli part of cc WP-04 when cc sends it; draft WP-13 (L, docs, hv decision 66) meanwhile; then WP-10 (L) on cc WP-07, its carried notes banked at refs/bank/ic/st0095/wp10-notes-20261119; then WP-11 (M). Plus the hv decision 69 items in todos."
+  }
+}
