@@ -1,0 +1,15 @@
+{
+  "id": "01M7SSDREV2C4RWGT0BQ8K2HBP",
+  "ts": "2026-11-19T11:35:14.139Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs, cc's meaning): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. The fix is a case-folded key that refuses naming both spellings, proved by a test red on the base and green through the cargo gate on a Desk slot. Ask cc first whether the fold is ASCII or Unicode and whether it refuses on every file system. After issue 0714."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M7SRYN1ZY34ZDSHTZE29K4NB",
+  "ts": "2026-11-19T11:26:59.135Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. The fix is banked at refs/bank/dc/0714/gate-refuses-v1 (51402664f, base c2344d1dd). The absence now refuses by name with the remedy intent st hydrate ST0056, the suite-path step checks for its tool, and the pipefail and suite-path calls no longer end the gate under set -e. Red at 11:01:55Z (exit 127, no summary), green at 11:24:54Z (exit 1, the named refusal). critic-shell is running on its diff. It lands after WP-03, on vc's word."
+  }
+}

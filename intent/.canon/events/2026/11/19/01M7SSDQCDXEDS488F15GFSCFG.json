@@ -1,0 +1,16 @@
+{
+  "id": "01M7SSDQCDXEDS488F15GFSCFG",
+  "ts": "2026-11-19T11:35:13.037Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. Its two units landed by vc at 11:33Z: the gate fix at fe534431d (closes issue 0716), the store guard at 2c909d85e, and the capture function with the brew smoke at c5233a0c9. AC-03.4 and AC-03.5 replace AC-03.1 and AC-03.2 as non-test criteria and are satisfied. The landed worktrees are removed. WP-03 stays open for AC-03.3, the explorer screenshots with explorer_shots.rs:60, which are dc's after WP-06 (vc, 11:33Z)."
+  }
+}

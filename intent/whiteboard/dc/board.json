@@ -3028,10 +3028,10 @@
       "node": "dc",
       "kind": "doing",
       "seq": 167,
-      "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. Proved and banked, and sent to vc at 11:21Z for its word to land. The guard unit is two commits on ed3fe6361: A, the view-skew gate's fix, closing issue 0716 (refs/bank/dc/st0095/wp03-gatefix-v3 = 6c574feec); then B, the store guard for AC-03.1 (refs/bank/dc/st0095/wp03-guard-v3 = 3df1d4102, parent A). The capture unit is refs/bank/dc/st0095/wp03-capture-wip3 = 538e58d46 on 49412f88c; its brew smoke was green at 10:58Z. critic-shell's findings are all fixed except the Highlander critical, which issue 0717 answers. The screenshots (AC-03.3) wait for WP-06 and WP-10, and vc is asked who takes explorer_shots.rs:60.",
+      "text": "ST0095 WP-03 (M), on vc's go of 09:38Z. Its two units landed by vc at 11:33Z: the gate fix at fe534431d (closes issue 0716), the store guard at 2c909d85e, and the capture function with the brew smoke at c5233a0c9. AC-03.4 and AC-03.5 replace AC-03.1 and AC-03.2 as non-test criteria and are satisfied. The landed worktrees are removed. WP-03 stays open for AC-03.3, the explorer screenshots with explorer_shots.rs:60, which are dc's after WP-06 (vc, 11:33Z).",
       "state": "live",
       "recorded_at": "2026-11-19T09:43:02.859Z",
-      "edited_at": "2026-11-19T11:22:18.706Z"
+      "edited_at": "2026-11-19T11:35:13.037Z"
     },
     {
       "node": "dc",
@@ -3087,8 +3087,25 @@
       "kind": "todo",
       "seq": 70,
       "text": "Issue 0714 (hv decision 69, via vc at 10:46Z: dc's, in this release): the commit gate passes with every ST0056 parity gate skipped when its tools are not on disk (bin/.devbin/cmd/precommit around line 255, HAVE_TOOLS=0). After WP-03 lands.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-19T11:26:58.063Z",
       "recorded_at": "2026-11-19T10:50:20.087Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 169,
+      "text": "Issue 0714 (hv decision 69, dc's in this release), claimed. Corrected forward at 14cdec512: with the ST0056 tools absent, the gate refused by crashing at 127; it never passed. The fix is banked at refs/bank/dc/0714/gate-refuses-v1 (51402664f, base c2344d1dd). The absence now refuses by name with the remedy intent st hydrate ST0056, the suite-path step checks for its tool, and the pipefail and suite-path calls no longer end the gate under set -e. Red at 11:01:55Z (exit 127, no summary), green at 11:24:54Z (exit 1, the named refusal). critic-shell is running on its diff. It lands after WP-03, on vc's word.",
+      "state": "live",
+      "recorded_at": "2026-11-19T11:26:59.135Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 71,
+      "text": "Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs, cc's meaning): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. The fix is a case-folded key that refuses naming both spellings, proved by a test red on the base and green through the cargo gate on a Desk slot. Ask cc first whether the fold is ASCII or Unicode and whether it refuses on every file system. After issue 0714.",
+      "state": "live",
+      "recorded_at": "2026-11-19T11:35:14.139Z"
     }
   ],
   "sent": [
