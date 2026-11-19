@@ -24,8 +24,8 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
 
-- AC-02.1 st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three. -- satisfied: no (computed)
-- AC-02.2 (non-test) No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one. -- satisfied: no
+- AC-02.1 st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three. -- satisfied: yes (computed)
+- AC-02.2 (non-test) No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one. -- evidence: ed1caeb36: ic's bank wp02 (patch-id 97c87b96bb5a) landed by vc on ic's proof; no intent-cli test names an id it expects a mint to produce, and tests/common's created() is the one reader of a minted id -- satisfied: yes
 
 ### WP-03 -- The commit gate spares the main store; scripts capture ids (status: WIP)
 
@@ -115,7 +115,7 @@ _(no tests in this group)_
 
 ### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intent-cli/tests/the_mint_verbs_say_their_id.rs` -- covers AC-02.1 -- status: green -- Written with WP-02's code; the row moves through red as the machine requires. Green in ic's bin/devbin gate rust on gyges at f7780b922, the base plus the landed bank (ed1caeb36).
 
 ### WP-03 -- The commit gate spares the main store; scripts capture ids (status: WIP)
 

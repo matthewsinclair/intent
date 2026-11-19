@@ -176,7 +176,8 @@
       "text": "No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "ed1caeb36: ic's bank wp02 (patch-id 97c87b96bb5a) landed by vc on ic's proof; no intent-cli test names an id it expects a mint to produce, and tests/common's created() is the one reader of a minted id"
       }
     },
     {
@@ -501,6 +502,18 @@
       "state": {
         "is": "computed"
       }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_mint_verbs_say_their_id.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "green",
+      "note": "Written with WP-02's code; the row moves through red as the machine requires. Green in ic's bin/devbin gate rust on gyges at f7780b922, the base plus the landed bank (ed1caeb36)."
     }
   ],
   "attachments": [

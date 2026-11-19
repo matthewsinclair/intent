@@ -1,0 +1,14 @@
+{
+  "id": "01M7SPHH7MG3V47CE6KJQFB9E8",
+  "ts": "2026-11-19T10:44:52.088Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-02.2"
+  },
+  "payload": {
+    "evidence": "ed1caeb36: ic's bank wp02 (patch-id 97c87b96bb5a) landed by vc on ic's proof; no intent-cli test names an id it expects a mint to produce, and tests/common's created() is the one reader of a minted id"
+  }
+}
