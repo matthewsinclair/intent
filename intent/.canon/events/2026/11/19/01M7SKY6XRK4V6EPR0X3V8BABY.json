@@ -1,0 +1,14 @@
+{
+  "id": "01M7SKY6XRK4V6EPR0X3V8BABY",
+  "ts": "2026-11-19T09:59:22.158Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "st.new",
+  "subject": {
+    "type": "thread",
+    "id": "ST0096"
+  },
+  "payload": {
+    "title": "A forge merges every open merge request: no file that every record shares"
+  }
+}

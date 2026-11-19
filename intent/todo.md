@@ -36,6 +36,11 @@ _(none)_
   - [ ] 11: The TUI, the app and the served page
   - [ ] 12: The pipeline asks the waist; the drill; the fleet
   - [ ] 13: Docs, skills, rules and templates teach the new ids
+- [?] ST0096: A forge merges every open merge request: no file that every record shares
+  - [ ] 01: Realisation lives in the record, and the manifest goes
+  - [ ] 02: The two lists leave git
+  - [ ] 03: The commit gate and the pull-request check follow
+  - [ ] 04: The proof: five merge requests through a forge stand-in
 
 ## DONE:2026-09-10T00:00:51Z
 

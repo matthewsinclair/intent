@@ -1,0 +1,15 @@
+{
+  "id": "01M7SKZXA0AZ86PXWE2BYNY6XG",
+  "ts": "2026-11-19T10:00:17.476Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0096/04"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The proof: five merge requests through a forge stand-in"
+  }
+}

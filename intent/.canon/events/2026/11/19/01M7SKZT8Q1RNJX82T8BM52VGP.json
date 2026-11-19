@@ -1,0 +1,15 @@
+{
+  "id": "01M7SKZT8Q1RNJX82T8BM52VGP",
+  "ts": "2026-11-19T10:00:14.362Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST0096/03"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The commit gate and the pull-request check follow"
+  }
+}
