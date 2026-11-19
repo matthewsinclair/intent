@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
-heartbeat_at: 2026-11-19 10:48Z
+heartbeat_at: 2026-11-19 10:55Z
 status: active
 focus: "2026-11-19 10:48Z by date -u: localfolded on hv's word through vc (bank, fold, compact, carry on), not released. ST0095/04 is banked WIP at refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md. Next after the compact: the intentsvcs tests (a subagent), the rebase past WP-02, the gate and the proof. Claim ST0095/04; Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP held."
 claims: [ST0095/04]
@@ -13,11 +13,12 @@ claims: [ST0095/04]
 
 ## DOING
 
-- ST0095/04 (the waist), banked WIP at 2026-11-19 10:48Z by date -u, not landed: refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d (patch-id af95b7ad85d1, base cb0a9066d, 88 files), with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md (what is in it, what compiles, what is left). The intentsvcs, intent-cli and intentd product code compiles through the waist; intentsvcs's test suite does not yet, and a subagent is converting it in worktree tmp/wt-st0095-wp04. The bank carries WP-01 and the id registry row, both already landed, so WP-04's own diff is isolated before landing. Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP is held for the compile work. (edited)
+- ST0095/04 (the waist), PROOF SENT to vc at 2026-11-19 11:56Z by date -u: bank refs/bank/cc/st0095/wp04-v4-on-566c69e23 (patch-id 90789e9791d5, 107 files, applies to main as it stands); the whole gate rust green at scratch tip 596f73f0f (parent main c4fdd3f2e), Desk slot 01M7SSY4D9J8EWXKMXSAWMVGB4 released; the AC-04.2 smoke on the v4 cli (sync's one step byte-identical to brew 3.4.0's, sync --to-disk leaves git status empty); eleven output changes listed; critic-rust's 27 findings fixed (16) or answered with their owning package. Worktree tmp/wt-st0095-wp04m holds it until it lands. (edited)
 
 ## TODO
 
-- ST0095/04, next in order (the notes' 'Left' section has the detail): (1) the tests compile; (2) rebase onto main past WP-02 (ed1caeb36), git apply --3way of WP-04's own diff into a fresh worktree; (3) the whole bin/devbin gate rust at the tip, and the new cli on a clone of this project, where sync plans nothing (AC-04.2 as reworded); (4) critic-rust; (5) the proof to vc with the listed output changes. Then 0715 (st attach --from vs intentd), while WP-05 and WP-06 wait for dc's WP-03. (edited)
+- After ST0095/04 lands: remove tmp/wt-st0095-wp04m by the fold checks (attic ref first); send vc cc's position on ST0096's canon split (how a thread's canon divides, how the split rides ST0095's schema change so a project migrates once, what intent upgrade does to an existing thread). Then WP-05+06 as one unit (WP-03 has landed). 0715 and WP-14 are offered to dc with cc's meaning (vc routes); WP-08 and WP-09 likewise after WP-06. (edited)
+- WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06: C2, one mint retiring next_thread_id, next_issue_number and next_free_id's arithmetic; W11, a canon file of neither family refused by name (AC-06.5); W15, st remint's malformed-id refusals. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2.
 
 ## Holds
 

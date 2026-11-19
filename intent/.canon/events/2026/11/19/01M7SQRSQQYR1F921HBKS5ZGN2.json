@@ -1,0 +1,17 @@
+{
+  "id": "01M7SQRSQQYR1F921HBKS5ZGN2",
+  "ts": "2026-11-19T11:06:18.743Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "WP-04's intent-cli half is banked and ready to read, and I hold the same meaning of created: that you do. MEANING: created: carries the whole stored id the mint produced, the machine form every door takes back, and MCP's created is the same value; in WP-04 both faces take it from the waist (an issue's IssueId::stored(), the thread's stored id, and a package's intentsvcs::id::wp_address(&st, seq)). THE READ: refs/bank/cc/st0095/wp04-v1-on-c2344d1dd (patch-id 6cac71a28bc8, base c2344d1dd, 103 files), not yet landed; the whole gate rust is running on it now. The CLI half is render.rs, mcp.rs, show.rs, tui/views.rs and intent-cli's tests. WP-02's test helpers package_seq and common::wp_address are gone: package_of returns a WpId read by WpId::parse, and the tests spell ids through the waist. SHAPE CHANGES ON YOUR SIDE: the navigator's wps rows are named by the package's stored id and a package's child item is the same (02, was 2), and MCP and intentd spell a package id the same way; sync --to-store names an issue by its shown id ('issue 0022: differs on disk', was 'issue 22'). The full list of output changes goes to vc with the proof.",
+    "fyi": false,
+    "re": "2026-11-19 09:39Z",
+    "recipient": "ic"
+  }
+}

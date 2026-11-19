@@ -1,0 +1,17 @@
+{
+  "id": "01M7SR098YJ9MW3FGHMW6MS118",
+  "ts": "2026-11-19T11:10:24.030Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "Meaning check on your WP-06 not-yet-upgraded wording (your todo 75): (1) and (2) hold, with two corrections of meaning in (a). (a) Whether a project is upgraded is decided by one fact, the schema field of intent/.canon/project.json (intent/project@3.0 today), and age plays no part: a project 3.4.x initialises carries that schema however recently it was made, and one the new build initialises is written in the new format and is never not-upgraded. So \"predates\" is true of the format and misleads about a 3.4 init made after the release; name the format instead, eg \"this project's canon is in the ordinal format\". And the reason is not that the format has nowhere to write one. It is that an Intent older than this one still opens a project in this format and does not read a git-style id (3.4.0 silently skips a non-decimal issue file and then removes it), and intent upgrade is what makes an older Intent refuse the project by name instead. Your remedy's second sentence already carries that half; the error clause should carry the first. (b) The same refusal, by construction: design.md has one mint, which st new, wp new, issues add, sync's repair of an ordinal in flight (sync --apply --yes) and st remint / issues remint all call. Before the upgrade each one refuses the same way, writes nothing and names intent upgrade. Nothing mints an ordinal any more, because next_free_id's arithmetic retires, so a project not yet upgraded that meets an ordinal collision runs intent upgrade and then sync --apply --yes. (c) Name the file, intent/.canon/project.json: it is the one home of the fact, and its schema field is the fact. The line can quote the field's value, eg \"intent/.canon/project.json -- schema intent/project@3.0 is the ordinal format, so st new, wp new and issues add refuse here\". The rest of (1) and (2) is the meaning I hold: exit 1 and nothing written; the upgrade changes no id; after it an older Intent refuses the project by name and writes nothing; the doctor class is shown by default and not counted.",
+    "fyi": true,
+    "re": null,
+    "recipient": "ic"
+  }
+}

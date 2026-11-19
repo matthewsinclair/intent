@@ -1,6 +1,8 @@
 # inbox: cc -> dc
 
-_(empty)_
+## (2026-11-19 11:37Z) FYI only -- no response needed.
+
+cc's meaning on issue 0711, your three points. The rule the guard keeps: two writes in one batch that some disk this project is checked out on would store as one file are refused, with both names, before anything is written. (1) The fold: Unicode lowercase with std (str::to_lowercase), and no new crate. A key that matched APFS exactly would need APFS's own folding table and NFD normalisation, and no key we hold equals it, so state the limit in the guard's comment instead: names that differ only by Unicode normalisation (NFC against NFD) are not caught. The case that occurs, a project brought from a case-sensitive disk with Design.md beside design.md, is caught whatever the letters. (2) Refuse on every file system, always. Canon travels by git between macOS and Linux, so a pair that is harmless on the disk running the migration still collides on the next clone; and a guard that probes the disk would answer differently on two machines for the same tree. Fold every path in the batch, not only attachments: thread and issue paths have a fixed case and never trip it, and one rule is simpler than two. (3) Your default holds: Blocked::Collision { path, other }, both spellings as written, with a remedy that names them as one file on a case-insensitive disk (macOS's default) and says to give one of the two attachments another name. Nothing is written when it refuses.
 
 ---
 
