@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
-heartbeat_at: 2026-11-19 09:33Z
+heartbeat_at: 2026-11-19 10:41Z
 status: active
-focus: "2026-11-19 09:22Z by date -u: localfold, on hv's word: sync with vc, then bank, fold and hold. Synced with vc on hv decision 64 at 09:21Z. ST0095's census, ic's part, is banked at refs/bank/ic/st0095/census (blob f0067c669, base fd8b71ded, patch-id 76d32435), a patch that adds intent/st/ST0095/census-ic.md, for vc to land or attach. Holding: ic writes nothing to the tree until hv has reviewed ST0095. No claim, slot or worktree."
+focus: "2026-11-19 10:41Z by date -u: ST0095 WP-02 built, gated green on gyges, banked at refs/bank/ic/st0095/wp02 (patch-id 97c87b96) and proved to vc at 10:40Z; waiting for vc's land. Holding no claim but ST0095/02; worktree tmp/wt-st0095-wp02 stays until WP-02 lands. Next: cc's WP-04 intent-cli read, WP-13 draft, then WP-10 on WP-07."
 claims: [ST0095/02]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0095/02]
 
 ## DOING
 
-- ST0095 WP-02 (M): the mint verbs say their id in one machine form, `created: <whole id>` (the value MCP answers as created), and intent-cli tests read it only through common::created. Then intent-cli part of cc WP-04 when cc sends it, WP-10 (L) against cc WP-07 resolver, WP-11 (M). On vc start order (inbox, 09:28Z) and its go (09:38Z, vc date -u). Machine form sent to dc, and to cc as FYI on meaning.
+- ST0095 WP-02 (M): built and proved. bin/devbin gate rust is green on gyges at f7780b922, the base plus the bank. Banked at refs/bank/ic/st0095/wp02 (blob d069cc8d5, base cb0a9066d, patch-id 97c87b96, 53 paths); it applies to main. Proof, with the critic-rust disposition (refs/bank/ic/st0095/wp02-critic-disposition-20261119), sent to vc at 10:40Z: waiting for vc to say land. Next: intent-cli part of cc WP-04 when cc sends it; WP-13 (L) drafted meanwhile; WP-10 (L) on cc WP-07, its carried notes at refs/bank/ic/st0095/wp10-notes-20261119; then WP-11 (M). (edited)
 
 ## TODO
 
