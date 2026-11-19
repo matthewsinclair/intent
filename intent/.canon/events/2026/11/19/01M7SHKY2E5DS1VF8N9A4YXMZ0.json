@@ -1,0 +1,15 @@
+{
+  "id": "01M7SHKY2E5DS1VF8N9A4YXMZ0",
+  "ts": "2026-11-19T09:18:47.886Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, by selection in the TUI in vc's session, answered by 09:18Z on vc's date -u; the options' wording is vc's, each choice is hv's and vc's recommendation, and each takes cc's position as cc put it in its census) TWO RULINGS ON ST0095, BOTH FOR cc's POSITION OVER THE DRAFT OF DECISION 63. (1) THE STORED ID IS LONG AND THE SHORT FORM IS HOW IT IS SHOWN AND TYPED, AS IN GIT. cc, in its own words: \"the stored id must be long enough never to collide, and the 7 characters are how it is shown and typed, as in git.\" hv chose \"Store 16, show 7\" over \"Store 7\": canon files, directories, manifest rows and claims carry 16 hex characters, 8 for a work package; tables and people use the first 7, and 4; two ids cannot collide, so no repair is written for them, and a shared short form is refused with both candidates and never re-pointed. (2) CRITERION AND TEST IDS STAY CALLER-ASSIGNED, which reverses point 2 of decision 63: only their group changes, to the work package's id, because two branches adding one label to one thread is a content conflict git already reports and doctor refuses a duplicate. Also, hv asked whether to use hashes by hand now for ST0095 and its issues, \"to make the point\", and vc answered no: brew 3.4.0 silently skips a non-decimal issue file and then removes it (cc's census), so the test of what might go wrong at release is a criterion of the thread, the new build minting real records in a clone of this repository before the cut."
+  }
+}

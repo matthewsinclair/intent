@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 31169586-8a4c-469f-a9f3-0c18e36af09b
-heartbeat_at: 2026-11-19 09:04Z
+heartbeat_at: 2026-11-19 09:29Z
 status: active
-focus: "2026-11-19 09:04Z by date -u: writing ST0095 (git-style ids, hv decisions 61 and 62, P0). Draft design attached; waiting on cc's, ic's and dc's census to write the work packages; then hv's review, before any code."
+focus: "2026-11-19 09:29Z by date -u: ST0095 (git-style ids, P0) is written: design, 13 work packages, 41 criteria. Every seat has its start order and holds. Waiting for hv to compact and give the go."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- ST0095, git-style ids (hv decisions 61 and 62, P0): vc writes the design and the work packages for hv's review, before any code. Done so far: the incident reproduced on brew 3.4.0 in a scratch repository; the draft design attached (intent/st/ST0095/design.md); issues 0704 to 0707 filed for four defects found beside it; cc, ic and dc briefed for a read-only census each in its remit. Next: fold the three censuses into the design, write the work packages and their criteria, then put the thread to hv. agentic-engineering-vc has the measured merge procedure for the attendee's open merge requests, and waits for the id form hv ratifies. (edited)
+- ST0095, git-style ids (hv decisions 61 to 65, P0): the thread is written and waits for hv's go. Done: the design (intent/st/ST0095/design.md), 13 work packages and 41 criteria, from vc's reproduction on brew 3.4.0 and from cc's, ic's and dc's censuses, all banked under refs/bank/<seat>/st0095/; issues 0704 to 0707 filed by vc and 0708 to 0711 by cc; each seat's start order in its inbox. Next: hv compacts every seat, then gives the go; vc relays it, reads each unit's proof against its criteria and says land. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's guard first). Open with hv: the 00046 bend, who writes WP-13 (ac or ic), and a thread for issue 0705. agentic-engineering-vc waits to hear the ratified id form. (edited)
 
 ## TODO
 

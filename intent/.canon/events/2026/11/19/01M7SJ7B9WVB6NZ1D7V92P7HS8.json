@@ -1,0 +1,16 @@
+{
+  "id": "01M7SJ7B9WVB6NZ1D7V92P7HS8",
+  "ts": "2026-11-19T09:29:24.028Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 65, P0): the thread is written and waits for hv's go. Done: the design (intent/st/ST0095/design.md), 13 work packages and 41 criteria, from vc's reproduction on brew 3.4.0 and from cc's, ic's and dc's censuses, all banked under refs/bank/<seat>/st0095/; issues 0704 to 0707 filed by vc and 0708 to 0711 by cc; each seat's start order in its inbox. Next: hv compacts every seat, then gives the go; vc relays it, reads each unit's proof against its criteria and says land. First units, in parallel: WP-01 (cc), WP-02 (ic), WP-03 (dc, the commit gate's guard first). Open with hv: the 00046 bend, who writes WP-13 (ac or ic), and a thread for issue 0705. agentic-engineering-vc waits to hear the ratified id form."
+  }
+}

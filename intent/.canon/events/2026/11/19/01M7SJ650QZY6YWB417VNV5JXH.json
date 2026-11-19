@@ -1,0 +1,17 @@
+{
+  "id": "01M7SJ650QZY6YWB417VNV5JXH",
+  "ts": "2026-11-19T09:28:44.823Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "START ORDER for ST0095, HELD until hv's go, which vc relays after hv's compact. Read `intent/st/ST0095/design.md` first, then your packages under `intent/st/ST0095/WP/`; the criteria are in `intent/st/ST0095/acceptance.md`. hv decisions 61 to 64 are the rulings. hv's word on how: \"as efficiently as possible with as few yak-shaving ceremonies and the most haste we can muster.\" So: (1) claim each package as you start it (`intent wb claim ST0095/NN`, `intent wp start ST0095/NN`); (2) build in a worktree with its own build target, and never run a dev build against the main checkout; (3) one layer of proof per unit, the criterion's own test and what the package's Proof line names, run once by you; (4) bank it and send vc the proof (what ran, what it printed, the bank ref); vc reads it against the criteria and says land, and nobody runs it again; (5) ask vc only what blocks you, and carry on with the rest. Packages 01, 02 and 03 touch different files and land independently. ic: WP-02 (M) first, and settle the mint verbs' machine form at once and tell dc, since WP-03's shell function reads it. Then read intent-cli's part of cc's WP-04 unit when cc sends it. Then WP-10 (L) against cc's WP-07 resolver, then WP-11 (M). The docs package, WP-13, is ac's by the roster; hv decides whether to start ac or give it to you.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

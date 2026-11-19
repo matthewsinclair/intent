@@ -1,0 +1,15 @@
+{
+  "id": "01M7SJ6SN40MAFMGJQTGP4G1SP",
+  "ts": "2026-11-19T09:29:05.956Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, first-hand in prose in vc's session, read by 09:29Z on vc's date -u, and first-hand to cc, ic and dc, relayed by each by 09:21Z on their date -u; hv's own words) HOW ST0095 IS RUN. To vc: \"Ok, when they're all in, let me know when I can compact everyone, and then on the bounce, we can get underway with the work. Let's do this as efficiently as possible with as few yak-shaving ceremonies and the most haste we can muster.\" To each seat: \"Please sync with VC (if you haven't already done so). Then bank, fold, and hold.\" So each seat has banked its census under refs/bank/<seat>/st0095/ and folded without releasing; vc's start order for each seat is in its inbox, held until hv's go after the compact; and a unit takes one layer of proof, run once by its builder and read by vc."
+  }
+}

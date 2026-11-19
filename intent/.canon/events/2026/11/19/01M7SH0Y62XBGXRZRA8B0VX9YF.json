@@ -1,0 +1,15 @@
+{
+  "id": "01M7SH0Y62XBGXRZRA8B0VX9YF",
+  "ts": "2026-11-19T09:08:25.410Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, first-hand in prose in vc's session, read by 09:08Z on vc's date -u; hv's words, on vc's recommendations as vc put them in the report that preceded it) hv ACCEPTS ST0095's DRAFT DESIGN AND vc's FIVE RECOMMENDATIONS. hv, verbatim: \"Ok, I'm happy with that and your recs. Please proceed.\" What that takes, each in vc's wording as put to hv: (1) a new id is the first 7 lowercase hex characters of the SHA-256 of the creation event's id, with a work package's 4 characters under its thread, subject to cc on meaning and ic on spelling; (2) criterion and test ids come into ST0095 as their own work package, because they have the same problem inside one thread; (3) whiteboard item numbers stay out of ST0095; (4) issue 0705, every merge blocking every other open merge request on three tracked files, gets its own thread in the same release; (5) the release's number is hv's at the cut. \"Proceed\" is to finishing the thread and its work packages: hv's review still comes before any code, as decision 61 says. Where a seat's census differs from the draft, the difference goes to hv at that review in the seat's own words."
+  }
+}

@@ -9,12 +9,461 @@
   "context": "hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted highest-plus-one over the checked-out branch's canon, so it needs a single allocator, and a branch-and-merge flow has none: on an attendee's practice repository, one person with five merge requests open met a collision on every mint. ST0078 (2026-09-18) had rejected a change to the minting scheme and made renumber the repair. This thread reverses that line. vc reproduced the incident on brew 3.4.0 on 2026-11-19. The measurements, the design and the points still for hv are in `design.md`. No code lands before hv has reviewed this thread.",
   "body": "",
   "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "Core tests take ids from the mint",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Every test in intentsvcs and intentd takes a thread, work package or issue id from what the mint returned, so no test predicts the next number.",
+      "body": "Seat: cc. Size: S.\n\n## Scope\n\n- The facade's `st_new` already returns the id. `wp_new` and `issue_add` return a number today (`facade.rs:16174`, `19266`). Bind the return value at each site that today names the id it expects.\n- dc's census classes P and H for these two crates (dc's census, section 4, banked under `refs/bank/dc/st0095/`). Class H is read one by one: a helper that mints, or a record a fixture seeded.\n- A record a fixture seeded keeps its literal. That is class N, and it stays valid.\n\n## Out of scope\n\n- The tests whose subject is the ordinal scheme (`facade_st_wp.rs:22`, `:52`, `:91-92`, and the renumber and taken-id tests). They are rewritten with the scheme, in WP-06.\n- intent-cli's tests (WP-02) and the shell (WP-03).\n\n## Order\n\nFirst, beside WP-02 and WP-03. Behaviour-neutral: it lands green on today's ordinals.\n\n## Proof\n\nThe cut's own gate. dc's predict census over the two crates reads no site.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "The mint verbs say their id, and CLI tests read it",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "`st new`, `wp new` and `issues add` each say the id they minted in one machine-readable form, and every intent-cli test reads it from there.",
+      "body": "Seat: ic. Size: M.\n\n## Scope\n\n- Today `st new` prints `created: ST0001`, and `issues add` prints `created: intent/.canon/issues/0001.json` and then `0001:<title>` (`cli_end_to_end.rs:128-133`, `212-218`). Neither has a machine form. Give the three verbs one, the same for all three. Its shape is ic's call (dc's census, section 2, banked under `refs/bank/dc/st0095/`).\n- One capture helper in `intent-cli/tests/common/mod.rs`, beside `result_lines` (`:1184`), is the only place a CLI test learns a minted id.\n- Convert intent-cli's tests that predict a mint: 54 files drive the binary's mints.\n- Regenerate `docs/reference` in the commit that changes help or the register, or the cut's reference gate refuses.\n\n## Out of scope\n\n- `cli_end_to_end.rs:128-133`, `169-171` and `212-218`, which assert the ordinal scheme itself. They change in WP-10.\n\n## Order\n\nFirst, beside WP-01 and WP-03. Behaviour-neutral.\n\n## Proof\n\nThe cut's own gate.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "The commit gate spares the main store; scripts capture ids",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "The repository's commit gate never migrates the main checkout's store, every script and bats file that mints reads the id from the mint's output through one shell function, and the two cut steps that predict ST0001 stop predicting.",
+      "body": "Seat: dc. Size: M.\n\n## Scope\n\n- First, and before any other package lands: the commit gate judges a copy of the store whenever the build's store schema is newer than the store's. The gate runs the dev binary's `doctor` on the store of the checkout that is committing (`bin/.devbin/cmd/precommit:302-330`, `thread_view_skew_check.sh:84`), and every seat shares that build target, so without this the first commit after WP-06 lands migrates the main store and brew 3.4.0 then refuses it.\n- One shell function in `bin/.devbin/cmd/shared/`, which the devbin commands and bats already source. It reads WP-02's machine form.\n- The brew smoke (`bin/.devbin/cmd/brew:80`, `370-371`, `392`) requires the output to name ST0001 and then triages ST0001. It runs after publish, so a failure lands once the release is public. It is fixed here, before the rehearsal.\n- The explorer screenshots (`gen_explorer_shots.sh:140-163`, `194`) name ST0001, its work packages 01 to 03 and `ST0003/wp/01`. Capture the ids, and seed fixed ids for the demo so two runs still write byte-identical images (issue 0623).\n- No bats file mints today. Keep it so.\n\n## Out of scope\n\n- The scripts that carry an id pattern. They change in WP-12, once the waist's read door exists.\n\n## Order\n\nFirst, beside WP-01 and WP-02. The function follows WP-02's machine form.\n\n## Proof\n\nThe brew smoke and the screenshot step run green on today's ordinals, and the screenshots are byte-identical across two runs. For the gate: a commit made with a build whose store schema is newer leaves the checkout's store at its own schema.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "The waist: one module owns an id",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "One module, `intentsvcs::id`, owns the ordinal id end to end behind typed ids, with every site in the workspace routed through it and no behaviour changed.",
+      "body": "Seat: cc. Size: L.\n\n## Scope\n\n- Register `intentsvcs::id` in `intent/llm/MODULES.md` first. It absorbs `model.rs`'s id section (`:55-60`, `:124-254`, `:296-509`).\n- `ThreadId`, `WpId` and `IssueId`, each over one form that is an ordinal today and can hold a hash later, with no constructor outside the module. They replace `Thread.id: String` (`model.rs:564`), `WorkPackage.seq: u32` (`:1009`), `Issue.number: u32` (`:2065`) and `Related.id` (`:974`).\n- Every site the compiler then lists: about 70 hand formatters in 17 files (ic's census, section 1, banked under `refs/bank/ic/st0095/`), the store's numeric bindings, ingest, export, renumber and doctor (cc's census, section 4, banked under `refs/bank/cc/st0095/`), and intent-cli's `render.rs`, `mcp.rs`, `show.rs` and `tui/app.rs`. cc converts the whole workspace in this one unit, and ic reads intent-cli's part.\n- The module's duties in `design.md`, \"One home: the waist\", for the ordinal family: one stored-form reader, the pure operator reader, one formatter with each rendered form, one order, one text scanner in place of three, and the forms sentence.\n- Two duplicates go first: the fiat cascade's inline copy of `contract::group_of` (`facade.rs:19703-19710`), and an issue's search owner spelled `703` (`ingest.rs:1859`) where everything else spells `0703`.\n- The 37 test files that pass a number where an id is meant change type with it.\n\n## Out of scope\n\n- Any new family, any format change in the canon or the store, any new verb.\n\n## Order\n\nAfter WP-01, and before everything else of cc's.\n\n## Proof\n\nToday's suite passes unchanged through the cut's own gate, and an existing project's `intent sync` plans nothing after the build. `legacy.rs` calls the ordinal predicate and never a widened one.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 5,
+      "title": "The merge knows both families",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "A merge between branches that each minted is resolved by `intent sync --apply --yes` alone, with no record discarded and no file left to a person that Intent can merge exactly.",
+      "body": "Seat: cc. Size: M.\n\n## Scope\n\n- `plan.rs` `classify` (`:608-708`) owns a hashed record's canon, sidecars and realised directory. Today any canon path that is not an ordinal goes to take-a-side, which discards one side's record. Two hashed adds never go there.\n- Two branches that each add a work package to one thread: their ids differ, so both are kept (`:529-567`), with no renumber and no moved claim.\n- `.intentfiles` is merged as a set from the merge's three versions: the base, minus what either side removed, plus what either side added (`intentfiles.rs:424-435`). A line that is not a row is still left to a person. This closes issue 0704.\n- `steel_threads.md` and `todo.md` are regenerated from the merged canon instead of blocking.\n- The transition: an ordinal both sides minted before the upgrade is repaired by moving this clone's record to a hashed id, from its own creation event where the log holds one, and from an event the repair mints where it does not. `next_free_id` (`facade.rs:12153-12214`) and issue 0555's seq arithmetic retire. The mover is today's `land_renumber` (`facade.rs:15375-15567`), and it is what `st remint` and `issues remint` call.\n- Two defects in the merge path go with it: `issue_seq(..).unwrap_or(0)` (`facade.rs:12658-12661`), and `path.starts_with(old)` with no `/` guard (`:12702-12705`).\n\n## Order\n\nAfter WP-04. Its `classify` change lands in the same unit as WP-06's mint: a mint that lands first loses a record at the first merge.\n\n## Proof\n\nThe two-clone rig (`two_clones_that_mint_one_id_are_repaired_by_renumber.rs`), driven for each case above.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 6,
+      "title": "The hashed family",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "Every new thread, work package and issue is minted as a hashed id derived from its creation event, the canon and the store carry it, and no verb mints an ordinal again.",
+      "body": "Seat: cc. Size: L.\n\n## Scope\n\n- The mint: the event envelope first, then the id as its marker plus the front of `sha256_hex(origin)`: 16 hex for a thread and an issue, 8 for a work package. It refuses an id this clone can see (the store, the canon directory, the realised directory, and the ids taken in a plan), and it draws a new event id when the new short form equals that of a visible record of its own kind. The draw is inside the one mint, happens before anything is written, and is bounded: after its last draw the mint refuses loudly. Its test uses a real pair of ULIDs whose hashes share a short form, found by search and kept as a fixture.\n- Canon: `number` and `seq` become `id`; `origin` goes on a thread, a work package and an issue, written for hashed records only; the thread and issue schemas take a new version.\n- The store goes from schema 35 to 36 with two table rebuilds: `issues.number` is the rowid (`store.rs:332-333`), and `wps.seq` is an integer (`:255-275`).\n- `intent upgrade` gains the canon format migration: byte-deterministic, over every issue file and every thread file with a work package, with no id changed.\n- The stored-form reader refuses a canon name of neither family by name. That ends the silent skip (`project.rs:2645-2661`, inherited at `migrate.rs:358-373` and `ingest.rs:370`).\n- The faces and the export bundle take their new versions with ic. WP-10 carries the GraphQL side.\n- The tests whose subject is the ordinal scheme are rewritten here: `facade_st_wp.rs`, and the two-clone test, which becomes the proof.\n\n## Order\n\nAfter WP-05, as one unit with its `classify` change.\n\n## Proof\n\nThe two-clone test: two clones, and two worktrees, each mint a thread, a work package in one shared thread, and an issue from one base, and merge with different ids and no repair.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 7,
+      "title": "Prefix resolution",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "One resolver turns what a person typed into the one record it names, or says which records it could name, and nothing stored is ever a prefix.",
+      "body": "Seat: cc. Size: M.\n\n## Scope\n\n- `resolve.rs` (`:92-135`) takes a spelling and the project's ids, and returns the id, the candidates of an ambiguous prefix, or not found. It is the only place a prefix is expanded, for the CLI, the TUI and MCP.\n- An ordinal-shaped spelling is always the ordinal. A hash prefix is at least 4 hex characters.\n- The facade's verbs take typed ids. Claims (`facade.rs:11454`, `11477`), `events --subject` (`:7138`) and `Scope::selects` (`sync.rs:411-418`) resolve before they compare, and keep comparing whole ids.\n- The pure spelling stays pure: MCP validates its arguments with no store (`mcp.rs:1915`).\n\n## Order\n\nAfter WP-06.\n\n## Proof\n\nThe waist's own tests, with hashed records seeded through the fixture writer, two that share a short form among them.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 8,
+      "title": "The order",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Every listing orders ordinals by number and hashed records by creation, in its present buckets and direction, so a project of ordinals renders exactly as it does today.",
+      "body": "Seat: cc. Size: S.\n\n## Scope\n\n- One comparator in the waist, keyed on the id's family: ordinals first, by number; hashed records after, by `origin`.\n- The store's reads that order by id or number today: `ORDER BY id` (`store.rs:5083`), issues `ORDER BY number` (`:5156-5164`) and work packages `ORDER BY seq` (`:5240-5244`); and the text sorts in ingest (`ingest.rs:1041`, `1144-1150`) and migrate (`migrate.rs:447`).\n- Criteria and tests keep `id_order` in canon. `acceptance.md`'s group order follows the package order.\n\n## Order\n\nAfter WP-06. ic applies the comparator to the views in WP-10.\n\n## Proof\n\n`tests/unit/output_width.bats` and the view goldens are unchanged for a project of ordinals.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 9,
+      "title": "Criteria follow their package, and doctor verifies",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "A hashed work package's criteria and tests are found by its id at every site that reads the group, and doctor proves each hashed id against the event that made it.",
+      "body": "Seat: cc. Size: S.\n\n## Scope\n\n- The group of a criterion or test id is its package's id. Four places read it: the close gate (`contract.rs:19-33`, `59-65`), `wp show` and `wp gate` (`facade.rs:5582-5590`), `acceptance.md` (`views.rs:1301-1318`) and doctor (`doctor.rs:820-830`, `1244-1258`, `1427-1431`).\n- The gate's roll-up (`contract.rs:888-896`): when no criterion matches a package's group, the gate passes. A hashed package whose criteria carry its group must be judged by them. This is the riskiest site in the census.\n- Doctor: `verify(id, origin)`; a duplicate id keyed by the typed id (`doctor.rs:1094-1123`); a canon name of neither family; and an advisory, not counted, that names two records of one kind whose short forms are the same.\n- Check how search stems a hex token before search is relied on for ids.\n\n## Order\n\nAfter WP-06.\n\n## Proof\n\nA test that `wp done` refuses a hashed package with an unsatisfied criterion of its own.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 10,
+      "title": "Every door takes and shows both families",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "Every door a person or an agent uses takes an id of either family or a unique prefix, shows a hashed id by its short form, and carries the whole id wherever one is stored.",
+      "body": "Seat: ic. Size: L.\n\n## Scope\n\n- The CLI's parsers, and the length rule in the pure spelling. Each door resolves through WP-07, and refuses an ambiguous prefix with each candidate's id, kind, title and created date.\n- Both path grammars go through the type: `intent:///` and the navigator's `/thread/<id>/wps/<seq>` (`nav.rs:204-307`).\n- Claim, manifest and URI forms, and a criterion's group, take a prefix at the door and store the whole id.\n- Tables: the shown form, an id column that floors at its content width (`views.rs:156`), and a Created column on the issues table (`render.rs:1051`). The views' headings and frontmatter, eg `WP-c2e4`. ic applies WP-08's comparator to the two thread orders (`views.rs:1454`, `:1696`) and the two issue orders (`facade.rs:5393`, `views.rs:1465`).\n- GraphQL: `issue(number: Int!)`, `Issue.number` and `WorkPackage.seq` become `id: String!` with no alias (`schema.graphql:349`, `:428`, `:818`), with a creation instant added. The faces take their new version with cc.\n- MCP's descriptions (`mcp.rs:277-329`), the dispatch table's help, and the remedy texts (`facade.rs:3479`, `intentfiles.rs:370`, `intentd/src/store.rs:860-878`) quote the waist's forms sentence.\n- `st remint <id>` and `issues remint <id>`, with their dispatch rows (`dispatch-table.json:1244-1284`), replace the two renumber verbs. The old two-argument call is refused with its remedy.\n- One read door on the binary for scripts: is this token an id, of which kind, and which record does it name.\n- The CLI tests whose subject is the ordinal scheme (`cli_end_to_end.rs:128-133`, `169-171`, `212-218`), and the regenerated guide and `docs/reference`.\n\n## Order\n\nAfter WP-02 and WP-07. Its doors can accept both families before WP-06 mints one.\n\n## Proof\n\nThe cut's own gate, with hashed records seeded through the fixture writer.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 11,
+      "title": "The TUI, the app and the served page",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "The TUI lists, opens and moves between hashed threads, work packages and issues, and the app and the served page show them.",
+      "body": "Seat: ic. Size: M.\n\n## Scope\n\n- The TUI's source formats ids from `number` and `seq` (`render.rs:7350`, `:7630`, `:7791-7808`; `tui/views.rs:298`; `outstanding.rs:134`, `:166`). The navigator re-spells a work package through a number, so `0712` becomes `712` (`nav.rs:584`). The loaders parse numbers (`facade.rs:5502`, `:5548`, `:5577`). Two forms declare number widgets (`forms.json:173`, `:232`).\n- The omnibox ranks a complete id or a unique prefix first.\n- The Swift app holds ids as opaque strings: it needs one hashed fixture.\n- The served page: its refusal examples name both families (`intentd/src/store.rs:864`, `:870`), and its `shortId`, which keeps a tail, is not used for ids.\n\n## Order\n\nAfter WP-10.\n\n## Proof\n\nThe cut's own gate, and the explorer screenshots regenerated in the cut's own step.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 12,
+      "title": "The pipeline asks the waist; the drill; the fleet",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "No script, hook, template or workflow carries a pattern for an id, this repository has carried hashed records through its own gates before the cut, and each estate knows what its upgrade is.",
+      "body": "Seat: dc. Size: M.\n\n## Scope\n\n- Each of these asks WP-10's read door in place of its own pattern: `pr-checks.yml:35`, `:37`; `session-context.sh:47` with `_wip.md:7`, which reads the first bold focus line with no id pattern; `rulings_check.sh:194`; `declared_kind_check.sh:175`, `:200`; and `canon-ignore-guard.sh:78-79`, which probes the names the waist gives it. Their bats tests change with them.\n- A guard in the commit gate refuses a new id pattern in a script, hook, template or skill. In Rust the type is the guard.\n- The by-hand ST0056 instruments (dc's census, section 3, items 8, 9 and 11, banked under `refs/bank/dc/st0095/`) are not routed: dc proposes their retirement separately. Items 10 and 12 scan v2 estates, which hold only ordinals, and need no change.\n- The drill: in a clone of this repository upgraded with the new build, mint a hashed thread, work package and issue, and commit them through the whole commit gate, with doctor and the pull-request check passing.\n- The fleet's note, for the visit hv decision 41 already plans: every machine upgrades first; `intent upgrade`; `intent claude upgrade --apply`; and a read-only grep for a hand-copied `pr-checks.yml`.\n\n## Order\n\nAfter WP-03 and WP-10. The drill runs before the rehearsal.\n\n## Proof\n\nThe drill itself.\n",
+      "preamble": ""
+    },
+    {
+      "seq": 13,
+      "title": "Docs, skills, rules and templates teach the new ids",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "Every page, skill, rule and template that teaches an id teaches both families, how to type one, and what a project does on upgrade.",
+      "body": "Seat: ac, or ic if hv does not start ac. Size: L.\n\n## Scope\n\n- About 90 teaching lines and 221 example lines across 21 files (ic's census, section 1, banked under `refs/bank/ic/st0095/`0).\n- `docs/concepts/working-in-a-team.md`: the five collision sections are rewritten from a drive of the new build, the five-open-merge-requests shape among them, and a new section says what a shared short form is and what the door says about it.\n- The shipped skills (`in-essentials`, `in-whiteboard`, `in-plan`), two rules, one subagent, `_AGENTS.md`, and `_wip.md`.\n- An upgrade note: every machine first; `intent upgrade` once per project; an open branch upgrades before it merges; and nothing is renumbered.\n- The release notes' entry.\n- The 21 reference pages, `cut-surface.md` and the screenshots regenerate in the cut's own steps, and are not written by hand.\n\n## Order\n\nThe forms are fixed by this design, so drafting starts at hv's review. The transcripts are driven once WP-10 has landed.\n\n## Proof\n\nEvery command on every changed page has been driven on the new build.\n",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "The brew smoke passes whatever id the mint returns.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.3",
+      "text": "Two runs of the explorer screenshots write byte-identical images from seeded ids.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "The change is behaviour-neutral: an existing project's canon, views and output are byte-for-byte what they were, and intent sync plans nothing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.3",
+      "text": "intentsvcs::id is registered in intent/llm/MODULES.md before the file exists.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "A merge of two branches that each minted hashed records plans no step that takes a side.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "A merge in which both sides added rows to .intentfiles is resolved by intent sync --apply --yes alone, and the two aggregate views are regenerated.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.3",
+      "text": "An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.4",
+      "text": "Two branches that each add a work package to one thread merge with both packages kept and no claim moved.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.1",
+      "text": "Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.2",
+      "text": "A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.3",
+      "text": "No verb mints an ordinal.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.4",
+      "text": "intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.5",
+      "text": "A canon file whose name is neither family is refused by name, and none is skipped.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-06.6",
+      "text": "Brew 3.4.0 refuses an upgraded project by the schema's name and deletes nothing.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-06.7",
+      "text": "A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.1",
+      "text": "A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-07.2",
+      "text": "Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.1",
+      "text": "Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-08.2",
+      "text": "A project that holds only ordinals renders every view as it did before.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-09.1",
+      "text": "wp done refuses a hashed work package while a criterion of its own is unsatisfied.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-09.2",
+      "text": "doctor reports a hashed id that is not its marker and the hash of its origin.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-09.3",
+      "text": "acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.1",
+      "text": "Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.2",
+      "text": "Every existing spelling of an ordinal keeps its meaning: 46, 0046, ST46, ST0046, s46, i21 and ST0092/09.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.3",
+      "text": "A table shows a hashed id by its short form, unclipped, beside ordinals, and the issues table has a Created column.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.4",
+      "text": "GraphQL carries every id as a string, and no URI, claim or manifest row carries a prefix.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.5",
+      "text": "st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-10.6",
+      "text": "One command answers, for a token, whether it is an id, of which kind, and which record it names.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.1",
+      "text": "The TUI lists, opens and moves between hashed threads, work packages and issues, and an all-digit id keeps its leading zero.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-11.2",
+      "text": "The Swift app shows a hashed fixture, and the served page's refusals name both families.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-12.1",
+      "text": "No script, hook, template or workflow carries a pattern for an id, and the commit gate refuses a new one.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-12.2",
+      "text": "The drill: a clone of this repository upgraded with the new build carries a hashed thread, work package and issue through the whole commit gate, doctor and the pull-request check, before the rehearsal.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-12.3",
+      "text": "The fleet's upgrade note says what each estate does, and every machine upgrades before any hashed record is committed there.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-13.1",
+      "text": "No page, skill, rule or template teaches minting or predicting an ordinal, and each that teaches an id teaches both families and the prefix.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-13.2",
+      "text": "The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-13.3",
+      "text": "The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",
-      "text": "# ST0095: Design. Git-style ids for threads, work packages and issues\n\n**Status: DRAFT for hv's review, 2026-11-19. Nothing here is built.** hv decision 61 rules the direction. Each point under \"For hv\" is a recommendation and is not ruled until hv rules it. Written by vc. Where a section says \"census\", it rests on the read-only census cc, ic and dc made of their own remits on 2026-11-19, and each claim says whether it was measured or read.\n\n## The ruling\n\nhv, 2026-11-19 (hv decision 61), in hv's words:\n\n- \"We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event).\"\n- \"Everywhere, going forward.\"\n- \"Ordering needs to be date/time based as the default, rather than ordinally by ST, WP or Issue number.\"\n- On a stop-gap that would let a record be created only on main: \"We can't have that restriction.\"\n- \"I want this documented as a new steel thread with elaborated WPs ... before we write a line of code.\"\n- On scope, to dc: \"If there are other ordinal identifiers, then I only care if they are subject to the same issues as STs, WPs, and Issues.\"\n- \"In this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possible.\"\n\nThis reverses one line of ST0078's design (2026-09-18): \"Rejected: changing the minting scheme.\"\n\n## Why: what was measured\n\n**The incident.** On an attendee's practice repository, one person had five merge requests open for review at once. Each new thread was minted from main and took a number an open merge request already held, four times running. One issue number collided the same way between two branches. Each was repaired by hand with `intent st renumber` or `intent issues renumber`. Merge request 8 there proposes a guidance line telling the agent to check and renumber.\n\n**The reproduction** (vc, 2026-11-19, brew 3.4.0, a scratch repository under an isolated HOME, a second clone standing in for the forge's merge button):\n\n| What was driven                                        | What happened                                                                                        |\n| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |\n| `intent st new` on main while a branch holds ST0003    | ST0003 again, every time: the post-checkout hook had taken the branch's thread out of the store      |\n| `intent issues add` on a branch while another has 0002 | 0002 again                                                                                           |\n| All six branches merged in order, renumbered as above  | `intent doctor` 0 findings, in the working clone and in a fresh clone                                |\n| `intent events --subject ST0003` on the merged result  | Five `st.new` events, one of them real; each renumbered thread's history starts at its `st.renumber` |\n| The forge merging the second branch after the first    | Refused: conflicts in `intent/.intentfiles`, `intent/st/steel_threads.md` and `intent/todo.md`       |\n| `intent sync --apply --yes` in that conflicted merge   | Refused (rc 1) until `.intentfiles` is resolved by hand; then it regenerates both views              |\n\n**Why ST0078's answer does not hold.** ST0078 kept highest-plus-one and made renumber the repair, on the reading that a collision is a rare race between two people. The reproduction shows the steady state of any review-gated flow: one person with several merge requests open collides on every mint. hv's own estates never met it because every seat mints in the one main checkout, against one store, and commits straight to main. That checkout is a single allocator. A merge-request flow has none.\n\n**The structural reason.** A sequential number needs one allocator, and git has none until the merge. Any number handed out on a branch is a guess about what the merge will find. Counting over every ref the clone can see narrows the guess and does nothing for another person's unpushed work. Reserving a number on the shared remote needs the network and a push at every mint. Restricting mints to main is the restriction hv ruled out, and it would not have prevented four of the five collisions, which were minted on main.\n\n## The principle\n\n**An id is minted where its record is born, from nothing but that birth, and it never changes.** No counter, no network, no restriction on where a mint may run. Two mints can never be asked to agree, because neither reads anything the other writes.\n\n## What an id is\n\n### Derivation\n\nEvery mint already writes a creation event, and every event already has a globally unique id: a ULID from the crate's one minter (`event::next_id`, `native/rust/crates/intentsvcs/src/event.rs:381`). The creation ops are `st.new`, `wp.new` and `issues.add`.\n\n**A new record's id is an abbreviation of the SHA-256 of its creation event's id**: the digest of the event id's 26 characters, written as lowercase hex and cut from the front.\n\n- It is hv's wording made exact: a git-style hash, based on the guid of the creation event.\n- It adds no allocator and no second source of randomness. `sha2` and `ulid` are already dependencies.\n- It is checkable: `doctor` can recompute any record's id from the event it names.\n- A hash is used, and not the event id's own trailing characters, because the minter is monotonic within a millisecond: two events minted in one millisecond differ only in their last character, so their tails would be one keystroke apart. A hash makes a one-character typo land on nothing.\n\nThe record keeps the creation event's full id in a new field, `born`. That one value is the proof of the id and the key every list orders by.\n\n### The visible forms\n\n| Family       | Existing form (stays valid) | New form               | Unique within | Example           |\n| ------------ | --------------------------- | ---------------------- | ------------- | ----------------- |\n| Thread       | `ST` + 4 digits, `ST0092`   | `ST-` + 7 hex          | the project   | `ST-4f9a2c1`      |\n| Issue        | 4 digits, `0703`            | 7 hex                  | the project   | `4f9a2c1`         |\n| Work package | 2 digits under its thread   | 4 hex under its thread | its thread    | `ST-4f9a2c1/9d3f` |\n\n- **Seven characters** is git's own default abbreviation: 28 bits. A mint never issues an id this clone can already see, so the only collision left is with a record on a branch this clone has not seen. With 100 such records in flight, that is about 4 in 10 million per mint.\n- **The hyphen** in a thread's new form keeps the two shapes apart at a glance, including the 1 in 27 new ids whose seven characters happen to be all digits.\n- **A work package keeps its place under its thread.** Its id only has to be unique there, so it can be short, and every address, claim and path keeps today's structure: `intent:///threads/ST-4f9a2c1/wp/9d3f`.\n- The exact spelling on each surface (prefix, separator, case, widths) is ic's to settle. cc settles what the id means.\n\n### Order\n\n**Every list orders by creation time.** The key is `born`, which sorts by time and breaks ties within a millisecond. A record with no `born`, which is every record that exists today, orders by its `created` date and then by its number, which is the order it has now. Each list keeps the direction it has today.\n\nClocks on two machines can disagree by seconds. That only reorders records minted within those seconds of each other, and any stable order is as good as another there.\n\n### Typing an id\n\nAny door takes a full id of either form, or a unique prefix of a new one, case-insensitive: `intent st show 4f9a`. An ambiguous prefix is refused with the candidates and their titles. A full ordinal such as `ST0092` always means that ordinal. Every answer prints full ids, so an agent copies the whole thing.\n\n### When two ids do collide\n\n- **At mint**: an id already present in this clone's store or tree is not issued. The verb mints a fresh creation event and derives again.\n- **Across branches**: two different records with the same id is still git's add/add on the canon file, as loud as today, and `intent sync --apply --yes` still moves this clone's record. It moves it to a fresh id. The engine is ST0078's renumber, kept because ordinals minted before the upgrade are still in flight on branches.\n- **Two branches each add a work package to one thread**: the ids differ, so the merge's three versions are read as today (issue 0555) and both packages are kept, with no renumber and no moved claim.\n\n### Existing ordinals: backwards compatible, by hv's ruling\n\n**Every existing id stays exactly as it is, for ever, and keeps working at every door.** No record is renumbered, no alias is added, no history or prose is rewritten. Both forms live in one project, in one table, in one address grammar. A project that never mints again is untouched by this change. After the upgrade no verb mints an ordinal again, in any project.\n\nThis is a standing exception to \"fail forward, no shims\", on hv's word: reading and accepting the ordinal form is a permanent part of the id, not a shim to be retired.\n\n### One home: the waist\n\n**One module owns what an id is, and nothing else may know.** hv's ruling: the minting of new ids and every check on an id go through as tight a waist as possible.\n\n- **One mint.** `st new`, `wp new`, `issues add`, and the repair that moves a record to a fresh id all call the same function: creation event id in, id out, never one this clone can see.\n- **One reader.** Parsing, validating, telling an ordinal from a new id, formatting, the order key and the prefix-matching rule each have one definition, there.\n- **A type, not a string.** An id crosses the model as a value only the waist can construct. The numeric `number` and `seq` fields go, and with them every `format!(\"{:04}\")` that restates the shape. cc's census lists each bypass that exists today.\n- **No pattern outside it.** No other Rust file, and no shell guard, hook, template or test, carries a pattern for an id. A script that needs to know asks the binary. A guard in the commit gate holds this, so a second definition cannot arrive quietly.\n- The waist is registered in `intent/llm/MODULES.md` before it is written.\n\n## What carries the id\n\n### Canon and its schema\n\nRead in the canon on 2026-11-19: a thread's file is `intent/.canon/st/<id>.json` with `id` as a string, at schema `intent/thread@3.0`; its work packages are rows keyed by a numeric `seq`. An issue's file is `intent/.canon/issues/<NNNN>.json` with a numeric `number`, at `intent/issue@3.0`.\n\n- A work package's `seq` and an issue's `number` become a string `id`. An existing `seq: 9` reads as `\"09\"` and an existing `number: 703` as `\"0703\"`.\n- New records gain `born`.\n- Both schemas take a new version. A binary that does not know it refuses by name, which is today's behaviour and the team page's \"Upgrade together\".\n- **Recommended: the reader takes both versions, and a file is written in the new version the next time a verb writes that record.** An eager rewrite of every canon file on upgrade would conflict with every open branch that touched a thread.\n\n### The store, events, and what else is keyed by an id\n\ncc's census sets these out: the store's tables and its migration, ingest keyed by id, event subjects, the search index's kinds, the claim grammar, `.intentfiles`' grammar, and doctor's checks. A new check: a record's id is the abbreviation of the event its `born` names.\n\n### Doors and views\n\nic's census sets these out: the CLI's parsers, the MCP tools' parameters, GraphQL's types (an issue's number is an integer there today), the `intent:///` forms, the claim forms, the realised paths, every table's order and widths, and the docs, skills, rules and templates that teach an id form.\n\n### Tests and the pipeline\n\ndc's census sets these out: the tests and fixtures that predict the next number, the guards and hooks with an id pattern, and what proves the change. A test takes an id from the mint's own output and never from a literal.\n\n## What this thread does not change\n\n- The store is truth on its machine and the canon is what travels (D01 as reversed, D34).\n- One canon file per thread and per issue.\n- Events stay the record of acts. Nothing rebuilds state from them.\n- `st renumber` and `issues renumber` stay, for ordinals in flight and for the rare collision.\n- Whiteboard item numbers, eg \"doing 62\" and \"hv decision 61\". See \"For hv\", point 3.\n\n## Beside this thread: four defects the same reproduction found\n\nEach is filed as an issue so it rides the same release. None is fixed by new ids.\n\n1. **Issue 0704: `intent sync --apply --yes` refuses a merge whose only conflict outside the views is rows both sides added to `.intentfiles`.** Any two branches that each start a thread or add an issue meet it. The rows are a set, and the merge's three versions say which were added and removed.\n2. **Issue 0705: in a review-gated flow, every merge blocks every other open merge request**, because every branch that starts a thread touches `.intentfiles`, `steel_threads.md` and `todo.md`, and the forge cannot run `intent sync`. With new ids this is the one hand step left in the flow the incident came from. Its fix is a design choice of its own: whether the two aggregate views stay tracked, and whether realisation stays a shared manifest.\n3. **Issue 0706: doctor's `root-file-behind` advisory says a hand edit in `.claude/settings.json` is overwritten.** Measured on 3.4.0, `intent claude upgrade --apply` keeps a project's own deny rules. The attendee read the advisory and believed it.\n4. **Issue 0707: a project made with an older Intent keeps closed threads' views that every `intent sync --apply --yes` removes again on each branch**, so every merge request carries the same deletion until main does it once.\n\n## For hv\n\n1. **The derivation and the forms above**: SHA-256 of the creation event's id, lowercase hex, 7 characters for a thread and an issue, 4 for a work package under its thread, `ST-` on a thread. Recommended as written, subject to cc on meaning and ic on spelling.\n2. **Criterion and test ids**, by hv's test: are they subject to the same issue? Yes, inside one thread. They are caller-assigned today (`intent ac new <thread> AC-01.1`), and the convention builds them on the package's number, which is going away. Two branches that each add a criterion to one work package pick the same label, and git reports it only as a content conflict in the thread's file, so a hand merge can leave two criteria under one label. Recommended: Intent mints them the same way, as their own work package in this thread.\n3. **Whiteboard item numbers**, eg \"doing 62\", by the same test: only when one node writes its board in two clones or worktrees at once. A board has one writer, its own node, which is a real single allocator while that node runs in one place, and the tool already refuses a board both sides moved. Recommended: out of this thread, named here as the one ordinal family left.\n4. **Issue 0705.** Recommended: its own thread in the same release, since it needs a ruling on whether aggregate views stay in git.\n5. **The release's number.** A change to the id scheme and the canon schema is not a patch. Yours at the cut.\n\n## Work packages\n\nSet out in the thread, one per row, each with its seat, its size and its criteria. They are written after the census so that each names the files it touches.\n\n## Acceptance sketch\n\nOne row per behaviour a person or an agent meets:\n\n- Two clones, two worktrees and two branches that each mint a thread, a work package in one shared thread, and an issue, merge with no id conflict and no renumber.\n- The five-open-merge-requests shape of the incident, driven on the new build, mints five different ids from main.\n- Every existing ordinal still answers at every door, beside new ids in the same project.\n- Every list orders by creation time, ordinals and new ids together.\n- A unique prefix resolves at every door, and an ambiguous one is refused with its candidates.\n- `doctor` reports a record whose id is not the abbreviation of the event it names.\n- An older binary refuses the new canon by the schema's name.\n- No verb mints an ordinal after the upgrade.\n- No test and no guard compares against a predicted id.\n- Every command on every changed docs page has been driven.\n",
-      "bytes": 16537,
-      "sha256": "e76eebd489db3828e7e3c26a0d1001805935e594f928e08dcadd599cd4bce65a"
+      "text": "# ST0095: Design. Git-style ids for threads, work packages and issues\n\n**Status: for hv's review, 2026-11-19. Nothing here is built, and no code lands before that review.** hv decisions 61 to 64 rule the direction and the two forks the seats raised. Written by vc from its own measurements and from the read-only census cc, ic and dc each made of their remit the same day. A claim says whether it was measured or read. The three censuses are banked under `refs/bank/cc/st0095/`, `refs/bank/ic/st0095/` and `refs/bank/dc/st0095/`, and vc's reproduction under `refs/bank/vc/st0095/`; an anchor in a work package comes from them. The points still open are under \"For hv at review\".\n\n## The rulings\n\nhv, 2026-11-19, in hv's words unless marked:\n\n- \"We need to go all-in a fix to ST, WP, and ISSUE numbering (from ordinals to git-style hashes based on the guid of the creation event). This is a P0 fix that needs to be done asap.\" (decision 61)\n- \"Everywhere, going forward.\" Lists order by \"date/time ... rather than ordinally\". A stop-gap that restricts where a record may be created: \"We can't have that restriction.\" (61)\n- \"In this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering. And we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possible.\" (62)\n- Other ordinals count only \"if they are subject to the same issues as STs, WPs, and Issues\". (62)\n- **The stored id is long, and the short form is how it is shown and typed, as in git.** hv chose cc's position over the first draft. cc's words: \"the stored id must be long enough never to collide, and the 7 characters are how it is shown and typed, as in git.\" (64)\n- **Criterion and test ids stay caller-assigned**, and only their group follows the work package's id. (64)\n- Whiteboard item numbers stay out. Issue 0705 gets its own thread in the same release. (63)\n\nThis reverses one line of ST0078's design (2026-09-18): \"Rejected: changing the minting scheme.\"\n\n## Why: what was measured\n\n**The incident.** On an attendee's practice repository, one person had five merge requests open for review at once. Each new thread was minted from main and took a number an open merge request already held, four times running. One issue number collided the same way. Each was repaired by hand with `intent st renumber` or `intent issues renumber`.\n\n**The reproduction** (vc, brew 3.4.0, a scratch repository under an isolated HOME, a second clone standing in for the forge's merge button):\n\n| What was driven                                        | What happened                                                                                        |\n| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |\n| `intent st new` on main while a branch holds ST0003    | ST0003 again, every time: the post-checkout hook had taken the branch's thread out of the store      |\n| `intent issues add` on a branch while another has 0002 | 0002 again                                                                                           |\n| All six branches merged in order, renumbered as above  | `intent doctor` 0 findings, in the working clone and in a fresh clone                                |\n| `intent events --subject ST0003` on the merged result  | Five `st.new` events, one of them real; each renumbered thread's history starts at its `st.renumber` |\n| The forge merging the second branch after the first    | Refused: conflicts in `intent/.intentfiles`, `intent/st/steel_threads.md` and `intent/todo.md`       |\n| `intent sync --apply --yes` in that conflicted merge   | Refused (rc 1) until `.intentfiles` is resolved by hand; then it regenerates both views              |\n\n**Why ST0078's answer does not hold.** ST0078 kept highest-plus-one and made renumber the repair, reading a collision as a rare race between two people. In a review-gated flow it is the steady state: one person with several merge requests open collides on every mint. hv's own estates never met it because every seat mints in the one main checkout, against one store, and commits straight to main. That checkout is a single allocator. A merge-request flow has none.\n\n**The structural reason.** A sequential number needs one allocator, and git has none until the merge. Any number handed out on a branch is a guess about what the merge will find.\n\n## The principle\n\n**An id is minted where its record is born, from nothing but that birth, and it never changes.** No counter, no network, no restriction on where a mint may run. Two mints are never asked to agree, because neither reads anything the other writes.\n\n## What an id is\n\n### The definition (cc's, as the id's meaning)\n\nEvery mint already writes a creation event, and every event already has a globally unique id: a ULID from the crate's one minter (`event::next_id`, `native/rust/crates/intentsvcs/src/event.rs:381`). The creation ops are `st.new`, `wp.new` and `issues.add`.\n\n**A new id is its kind's marker followed by the lowercase hex SHA-256 of its creation event's id, cut from the front.** The digest is `model::sha256_hex` over the event id exactly as `next_id` returns it. There is no second hasher and no second source of randomness.\n\nThe record carries the creation event's id in a new canon field, `origin`. The id is derived from it and never stored beside it as a second fact: `doctor` verifies that a hashed id is its marker plus the front of `sha256(origin)`. Each creation verb mints its event envelope first and derives the id from it, the order the fiat cascade already uses (`facade.rs:19790`).\n\n### Stored, shown, typed\n\n| Form       | A thread and an issue               | A work package, in its thread | Where it is used                                                                                                       |\n| ---------- | ----------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |\n| **Stored** | marker + 16 hex                     | 8 hex                         | Canon file names, realised directories, `.intentfiles` rows, claims, `related`, criterion groups, event subjects, URIs |\n| **Shown**  | marker + the first 7                | the first 4                   | Every table, view and message. Fixed, so a committed view is the same bytes on every branch                            |\n| **Typed**  | any unique prefix of at least 4 hex | the same                      | Every door, with or without the marker, in any case                                                                    |\n\n- **Sixty-four bits do not collide.** So nothing ever moves a hashed record, and no repair is written for one.\n- **A shared short form is an ambiguity, never a misdirection.** The door refuses it and lists each candidate with its kind, title and created date. With a 7-character stored id, the repair would move one record, and every short reference already written on its branch would then name the other record with no error. That is today's defect made rarer, and it is why hv chose the long stored id.\n- **The mint keeps short forms apart.** It refuses an id equal to one this clone can see, which at 64 bits never fires. It also draws a new creation event id when the new short form equals that of a visible record of its own kind: before anything is written, inside the one mint, and a bounded number of times before it refuses loudly. Without that, a project of 3,000 ids would have about a 1 in 60 chance of two rows showing one short form. With it, two rows share one only if two branches that have not met minted them: about 4 in 10 million per mint, with 100 records in flight. `doctor` then names both as an advisory, and nothing moves.\n- **Nothing stored is a prefix.** Claims, `related`, criterion groups and event subjects compare exact strings today, and they stay correct only if what is stored is whole.\n\n### The forms, by kind\n\n| Kind            | Ordinal form: existing, and valid for ever | Hashed form, stored                         | Shown       |\n| --------------- | ------------------------------------------ | ------------------------------------------- | ----------- |\n| Thread          | `ST0092`                                   | `ST3f9a2c1d4e5f6a7b`                        | `ST3f9a2c1` |\n| Issue           | `0703`                                     | `I3f9a2c1d4e5f6a7b`                         | `I3f9a2c1`  |\n| Work package    | `ST0092/09`                                | `ST3f9a2c1d4e5f6a7b/c2e41a0b`               | `WP-c2e4`   |\n| Criterion, test | `AC-09.3`, caller-assigned                 | `AC-c2e41a0b.3`, the group its package's id | `AC-c2e4.3` |\n\n- **Every hashed id carries a kind marker** (cc, as meaning, and dc from the pipeline): bare hex can be an English word or a plausible file name, three places rely on an id not looking like a word (`intentfiles.rs:38-42`, `legacy.rs:3366`, `contract.rs:267-283`), and `organize` removes a file in `intent/issues/` that it takes for an undeclared view. ic first preferred a bare issue id and withdrew it on cc's evidence. The letters are ic's: a thread is `ST` plus hex, an issue is `I` plus hex, and a work package takes no letter, because it never stands alone.\n- **No spelling is both an ordinal and a hash.** An ordinal is at most 4 decimal digits (2 for a work package). Anything longer is a hash or its prefix.\n- **An existing ordinal thread gains hashed work packages** from the switch on, so one thread carries both families: `ST0094/01` beside `ST0094/c2e41a0b`.\n- A branch or ref takes the lowercase id, as the estate's refs do today.\n\n### Order\n\n**The key is the id's family.** Ordinals come first, by number: that is the order they were minted in, and the order they have today. Hashed records follow, by `origin`, whose first 48 bits are the minting millisecond. Each list keeps its present buckets and direction.\n\nSo a project that holds only ordinals renders every view exactly as it does now, and no committed view in any estate re-renders on upgrade. `created` cannot be the key: it is a date with no time, and a work package has none.\n\n### Typing an id\n\n- **An ordinal-shaped spelling is always the ordinal.** `46`, `0046`, `ST46`, `ST0046`, `s46` and `i21` keep today's meaning.\n- **Anything else of at least 4 hex characters is a hash prefix**, and one made only of digits needs 5. The pure half of this is ic's length rule; which record a prefix names is decided once, against the store, in `resolve.rs`, for the CLI, the TUI and MCP.\n- An ambiguous prefix is refused with its candidates, and none is picked.\n- Every answer prints the id's shown form, and `--json` and the canon carry the stored one.\n- **The one bend in backwards compatibility**: today leading zeros are trimmed, so `00046` reaches ST0046. A five-digit token is a hash prefix now, so that spelling stops. See \"For hv at review\", point 1.\n\n### Existing ordinals: backwards compatible, by hv's ruling\n\n**Every existing id stays exactly as it is, for ever, and keeps working at every door.** No record is renumbered, no alias is added, no history or prose is rewritten, and the event log's subjects stay as written. Both families live in one project, one table and one grammar. After the upgrade no verb mints an ordinal again, in any project.\n\nThis is a standing exception to \"fail forward, no shims\", on hv's word: accepting the ordinal form is a permanent part of the id.\n\n**Ordinals already in flight.** A branch cut before the upgrade can still carry an ordinal that collides when it merges. `intent sync --apply --yes` repairs it by moving this clone's record to a hashed id, derived from its own creation event where the log holds one. `st remint <id>` and `issues remint <id>` do the same by hand, with one argument, and replace `st renumber` and `issues renumber`. `next_free_id`'s arithmetic retires.\n\n### One home: the waist\n\n**One module, `intentsvcs::id`, owns an id end to end, and nothing outside it makes, reads, writes, scans or checks one.** It absorbs `model.rs`'s id section and is registered in `intent/llm/MODULES.md` before it is written.\n\n1. **Types.** `ThreadId`, `WpId` and `IssueId`, each an ordinal or a hash, with no constructor outside the module. They replace `Thread.id: String`, `WorkPackage.seq: u32` and `Issue.number: u32`. A `{:04}` then does not compile against an id, so the compiler lists every site: about 70 hand formatters in 17 files today (ic's count).\n2. **One mint**, called by `st new`, `wp new`, `issues add` and the transition's re-mint, and nowhere else.\n3. **One stored-form reader**, for canon names and contents, `.intentfiles`, claims, `related`, addresses, event subjects and realised paths. It refuses by name anything that is neither family.\n4. **One operator reader**: the pure spelling, and `resolve` above it.\n5. **One formatter**: the stored form, the shown form, and each rendered form a surface needs (claim, manifest row, path stem, URI segment, `WP-` heading, lowercase ref).\n6. **One order**: the family key above.\n7. **One text scanner** for \"which ids does this text name\", replacing three (`legacy.rs:3366`, `contract.rs:267-283`, `contract.rs:351-359`).\n8. **One check**: `verify(id, origin)`, for `doctor`.\n9. **One sentence of forms** that every refusal, help string, MCP description and the guide quote, in place of today's hand-spelled copies.\n10. **One read door on the binary** for scripts: is this token an id, of which kind, and which record does it name. No shell guard, hook, template or workflow carries a pattern of its own, and a guard in the commit gate holds that for everything the compiler cannot see.\n\n## What changes\n\n### The model, the canon and the store (cc)\n\n- **Canon.** `Issue.number` and `WorkPackage.seq` become a string `id`; `origin` is added to a thread, a work package and an issue, written for hashed records only. The thread and issue schemas take a new version, and every canon struct stays `deny_unknown_fields`.\n- **The upgrade rewrites the canon's format once.** `intent upgrade` turns `703` into `\"0703\"` and `1` into `\"01\"` in every issue file and every thread file with a work package. It is byte-deterministic, so a branch upgraded on its own merges cleanly with main upgraded on its own. It changes no id. This is new work in `intent upgrade`, which rewrites nothing today.\n- **Why eager and not as files are next written**: an older binary refuses a canon file by its schema's name and reads nothing, which is the only thing that stops it. Brew 3.4.0 silently skips an issue file whose name is not a decimal number and then deletes it (`project.rs:2645-2661`, `store.rs:5009`). The bumped thread schema is what refuses it first.\n- **The store** goes from schema 35 to 36 with two table rebuilds: `issues.number` is the rowid, and `wps.seq` is an integer that would turn an all-digit id into a number.\n- **The published faces** (JSON Schema, DDL, the GraphQL SDL) and the export bundle take a new version. They are ic's side of the contract, so they need both seats.\n- **The new binary refuses a canon name of neither family by name.** The silent skip is a No Silent Errors defect that exists today.\n\n### The merge (cc)\n\nHashed ids do not end the conflicts measured above, because two branches that each mint still each add a row to the same three files. Without this part the attendee's symptom outlives the fix.\n\n- **`plan.rs` learns the hashed family.** Today `classify` sends any canon path that is not an ordinal to take-a-side, which discards one side's record (`plan.rs:608-708`). This lands in the same unit as the mint, never after it.\n- **`.intentfiles` is merged as a set** from the merge's three versions: the base, minus what either side removed, plus what either side added. This closes issue 0704.\n- **The two aggregate views are regenerated** from the merged canon instead of blocking.\n- **Two branches that each add a work package to one thread** have different ids, so both are kept with no repair and no moved claim.\n\n### Criteria and tests (cc)\n\nTheir ids stay as the caller assigns them. **The group between the dash and the dot is the work package's id**, and four places read it: the close gate (`contract.rs:19-33`, `59-65`), `wp show` and `wp gate` (`facade.rs:5582-5590`), `acceptance.md` (`views.rs:1301-1318`) and `doctor` (`doctor.rs:820-830`, `1244-1258`, `1427-1431`). A door takes a prefix for the group and stores it whole.\n\n**The riskiest site in the census is here.** When no criterion matches a package's group, the gate passes and rolls up to the thread's contract (`contract.rs:888-896`). One missed site would let `wp done` close a hashed package with none of its criteria judged.\n\n### Doors, tables and views (ic)\n\n- The CLI's parsers, the length rule, and prefix resolution at every door, with the ambiguity refusal.\n- Two path grammars go through the type: `intent:///` and the navigator's `/thread/<id>/wps/<seq>` (`nav.rs:204-307`).\n- GraphQL's `issue(number: Int!)`, `Issue.number` and `WorkPackage.seq` become `id: String!` with no alias, and a creation instant is added. The Swift app is the only client and moves in the same cut. MCP passes every id as a string already, so only its descriptions change.\n- Tables fit their id column to its content, never clipped, and the issues table gains a Created column.\n- The three mint verbs print the id they minted in one machine-readable form.\n- `st remint` and `issues remint` replace the two renumber verbs.\n\n### The TUI, the app and the served page (ic)\n\n- **The TUI**: its source formats ids from `number` and `seq` (`render.rs:7350`, `7630`, `7791-7808`); the navigator re-spells a work package through a number, so `0712` becomes `712` (`nav.rs:584`); the loaders parse numbers; and two forms declare number widgets (`forms.json:173`, `232`).\n- **The Swift app** holds ids as opaque strings and needs one hashed fixture. **The served page** treats ids as opaque; its refusal examples name ordinals only.\n\n### Tests and the pipeline (dc)\n\n- **A test takes an id from the mint, never from a literal.** dc's grep found 48 Rust test files that predict a mint (108 functions, 396 sites) and 35 more to read one by one. 266 only name records a fixture seeded, and stay valid.\n- **No flag or environment variable on the shipped binary pins an id.** A facade test binds what the mint returns. A record that needs a known id is seeded through the fixture writer. The explorer screenshots seed fixed ids, which keeps their byte-identical PNGs.\n- **Seven places gate on their own copy of the id rule**, worst first: the brew smoke predicts ST0001 and runs after publish (`bin/.devbin/cmd/brew:80`, `370`, `392`); `rulings_check.sh:194` in the commit gate would refuse a commit that cites a new thread's file; `pr-checks.yml:35` fails a pull request that names a new thread; `session-context.sh:47`, shipped to every estate, misses a new id silently; `declared_kind_check.sh:175`; `canon-ignore-guard.sh:78-79`; and the explorer screenshots, a cut step.\n- **One layer of proof**: one two-clone test, the renumber test's rig inverted, beside the waist's own tests. The cut's gate covers the rest.\n\n### Docs, skills, rules and templates\n\nhv asked for this package by name. ic's census: about 90 teaching lines and 221 example lines across 21 files; the team page's five collision sections, which are rewritten from a drive of the new build; the shipped skills (`in-essentials`, `in-whiteboard`, `in-plan`), two rules, one subagent, `_AGENTS.md`, and `_wip.md` with `session-context.sh`. The 21 reference pages, `cut-surface.md` and the screenshots regenerate in the cut's own steps.\n\n## Upgrading a project, and the fleet\n\n1. **Every machine that opens the project upgrades Intent first.** An older binary refuses the new canon by name, and stops there.\n2. **`intent upgrade` once per project**, committed as one mechanical change. No id changes.\n3. **An open branch upgrades before it merges.** The format migration is deterministic, so the merge is clean.\n4. **`intent claude upgrade --apply` in each estate**, in the same visit as hv decision 41's sweep, so the hooks and `session-context.sh` re-render.\n5. **The store migration is one way.** A brew 3.4.0 on the same machine refuses a store a newer build has migrated.\n\n**While this is being built, that reaches the main checkout by itself** (dc's finding). The repository's own commit gate runs the dev binary's `doctor` on the store of the checkout that is committing (`bin/.devbin/cmd/precommit:302-330`, `thread_view_skew_check.sh:84`), and every seat shares that build target. Once the shared target holds a binary with the new store schema, the next commit in the main checkout migrates the main store, and brew 3.4.0, first on every PATH, then refuses it: every `intent wb` verb and both hook carriers. So the first thing dc builds is a gate that judges a copy of the store whenever the build's store schema is newer than the store's. With that in place the packages land on main one at a time, as usual. A build is still never run by hand against the main checkout, and a worktree has its own store.\n\n## Risks, the silent ones first\n\n1. **A hashed work package closes with its criteria unjudged** (the gate's roll-up, above). It does not ship without a test of exactly that.\n2. **A merge discards a hashed record** if the mint lands before `plan.rs` knows the family.\n3. **Brew 3.4.0 deletes a hashed issue** in a project that has no thread to refuse on. Every project with one thread is protected by the schema bump.\n4. **The brew smoke goes red after the release is public.** It is fixed before the rehearsal.\n5. **Mixed versions across the fleet**: `.intentfiles` fails open in an older build, which then realises everything.\n6. **Search**: how the stemmer treats a hex token is an inference, not a run. cc checks it before search is relied on for ids.\n\n## What this thread does not change\n\n- The store is truth on its machine and the canon is what travels (D01 as reversed, D34). One canon file per thread and per issue.\n- Events stay the record of acts. Nothing rebuilds state from them.\n- Whiteboard item numbers, eg \"doing 62\". A board has one writer, its own node, so they collide only if one seat writes its board in two places. hv ruled them out (decision 63).\n\n## Beside this thread\n\n- **Issue 0704** (sync refuses an `.intentfiles` conflict) is closed by this thread's merge package.\n- **Issue 0705**: in a review-gated flow every merge still blocks every other open merge request, because the forge cannot run `intent sync`. It gets its own thread in the same release, and needs hv's ruling on whether the two aggregate views stay in git.\n- **Issue 0706** (doctor's advisory on `.claude/settings.json`) and **issue 0707** (closed threads' views on a project made with an older Intent) ride the same release.\n- cc's census found seven defects that exist today. Three are absorbed by its packages here, and cc filed the other four as issues 0708 to 0711.\n\n## For hv at review\n\n1. **The `00046` bend**: a five-digit, over-padded spelling of an ordinal stops resolving. Recommended: accept it. None of the five forms v2 accepted is affected.\n2. **Who writes the docs package.** By the roster it is ac's seat, which has never been started; ic can take it after its surfaces. Recommended: start ac, so the docs are drafted beside the code.\n3. **cc's chain is the long pole.** Its part is XL in seven packages that land in order. ic's and dc's parts finish sooner.\n4. **The release's number**, at the cut.\n\n## Work packages\n\nEach is one seat's, with its size, what it lands after, and its criteria in `acceptance.md`.\n\n| WP  | What                                                       | Seat | Size | Lands after |\n| --- | ---------------------------------------------------------- | ---- | ---- | ----------- |\n| 01  | Core tests take ids from the mint                          | cc   | S    | -           |\n| 02  | The mint verbs say their id, and CLI tests read it         | ic   | M    | -           |\n| 03  | The commit gate spares the main store; scripts capture ids | dc   | M    | -           |\n| 04  | The waist: one module owns an id                           | cc   | L    | 01          |\n| 05  | The merge knows both families                              | cc   | M    | 04          |\n| 06  | The hashed family                                          | cc   | L    | 05          |\n| 07  | Prefix resolution                                          | cc   | M    | 06          |\n| 08  | The order                                                  | cc   | S    | 06          |\n| 09  | Criteria follow their package, and doctor verifies         | cc   | S    | 06          |\n| 10  | Every door takes and shows both families                   | ic   | L    | 02, 07      |\n| 11  | The TUI, the app and the served page                       | ic   | M    | 10          |\n| 12  | The pipeline asks the waist; the drill; the fleet          | dc   | M    | 03, 10      |\n| 13  | Docs, skills, rules and templates teach the new ids        | ac   | L    | this review |\n\nPackages 01 to 04 are behaviour-neutral: they land green on today's ordinals, and after them the scheme touches only the waist and the few tests whose subject is the scheme. Package 05's `classify` change and package 06's mint land as one unit.\n\n## The proof\n\n- Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair.\n- The five-open-merge-requests shape of the incident, driven on the new build for the team page, mints five different ids from main.\n- **The drill hv asked for**: in a clone of this repository upgraded with the new build, a hashed thread, work package and issue are minted and committed through the whole commit gate, with `doctor` and the pull-request check passing, before the rehearsal. ST0095 stays an ordinal beside them. Hashes are not used by hand before that: 3.4.0 would skip and then delete them.\n",
+      "bytes": 26218,
+      "sha256": "50abfae90eef15add133fbfef0d11c1b4c6c31c2049d17c33b3b734efcc13132"
     }
   ]
 }

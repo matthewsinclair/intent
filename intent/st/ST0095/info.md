@@ -16,6 +16,24 @@ Give every new steel thread, work package and issue an id that is unique by cons
 
 hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted highest-plus-one over the checked-out branch's canon, so it needs a single allocator, and a branch-and-merge flow has none: on an attendee's practice repository, one person with five merge requests open met a collision on every mint. ST0078 (2026-09-18) had rejected a change to the minting scheme and made renumber the repair. This thread reverses that line. vc reproduced the incident on brew 3.4.0 on 2026-11-19. The measurements, the design and the points still for hv are in `design.md`. No code lands before hv has reviewed this thread.
 
+## Work Packages
+
+| WP    | Title                                                      | Size | Status      |
+| ----- | ---------------------------------------------------------- | ---- | ----------- |
+| WP-01 | Core tests take ids from the mint                          | S    | Not Started |
+| WP-02 | The mint verbs say their id, and CLI tests read it         | M    | Not Started |
+| WP-03 | The commit gate spares the main store; scripts capture ids | M    | Not Started |
+| WP-04 | The waist: one module owns an id                           | L    | Not Started |
+| WP-05 | The merge knows both families                              | M    | Not Started |
+| WP-06 | The hashed family                                          | L    | Not Started |
+| WP-07 | Prefix resolution                                          | M    | Not Started |
+| WP-08 | The order                                                  | S    | Not Started |
+| WP-09 | Criteria follow their package, and doctor verifies         | S    | Not Started |
+| WP-10 | Every door takes and shows both families                   | L    | Not Started |
+| WP-11 | The TUI, the app and the served page                       | M    | Not Started |
+| WP-12 | The pipeline asks the waist; the drill; the fleet          | M    | Not Started |
+| WP-13 | Docs, skills, rules and templates teach the new ids        | L    | Not Started |
+
 ## Acceptance
 
 Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
