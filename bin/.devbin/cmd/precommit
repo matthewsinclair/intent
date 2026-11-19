@@ -173,6 +173,48 @@ FULL=0
 rc=0
 failed=""
 
+# THE ONE READING OF A GUARD'S EXIT STATUS (issue 0714). A guard whose status is
+# read runs as `x=0; bash <tool> || x=$?`, never as a bare call: under `set -e`
+# a bare call's non-zero exit ends the gate where it stands, before the guards
+# after it and before the report at the bottom. Its status then means one thing
+# for every such guard: 0 passes, 1 is the finding its step names, and anything
+# else is no verdict, named by its code and never by a cause it did not
+# establish, since a control that did not fire, a tool's own die() and bash's
+# 126 and 127 all land there.
+# tool_verdict <tool> <status> <finding> -- adds <tool>'s line to the report.
+tool_verdict() {
+  case "$2" in
+    0) ;;
+    1)
+      rc=1
+      failed="${failed}  $1 -- $3
+"
+      ;;
+    *)
+      rc=1
+      failed="${failed}  $1 -- gave no verdict (exit $2); its own message above, if any, says why
+"
+      ;;
+  esac
+}
+
+# THE ONE PRESENCE CHECK FOR A GUARD'S TOOL (issue 0714). A summary that names a
+# cause it did not establish is worse than one that names none, which the
+# guard-home step below records cc meeting on real bytes, so a tool that is not
+# on disk is named as missing and as saying nothing about its subject. When the
+# whole apparatus is missing, its own refusal has already said so, with the
+# remedy, and this adds nothing.
+# tool_present <tool> <subject> -- true when $TOOLS/<tool> is on disk.
+tool_present() {
+  [ -f "$TOOLS/$1" ] && return 0
+  [ "$HAVE_TOOLS" -eq 1 ] || return 1
+  rc=1
+  failed="${failed}  $1 -- THE INSTRUMENT IS MISSING, so nothing was checked. This says
+    NOTHING about $2; the tool is not on disk.
+"
+  return 1
+}
+
 # 0. NO SQLITE DATABASE ENTERS HISTORY.
 #
 # D34 (hv, 2026-08-15): the SQLite db is per-machine durable truth and is NEVER
@@ -236,26 +278,30 @@ if [ -n "$staged_db" ]; then
 ${staged_db}"
 fi
 
-# Named, not silent -- the clock guard's precedent. Apparatus present with no
-# guard behind it is the invisible non-enforcement this mechanism exists to end,
-# and after ST0056 closes this directory will legitimately go away. Either way
-# the operator is told which it is rather than getting a green.
+# A MISSING APPARATUS IS A REFUSAL, NAMED WHERE IT IS FOUND (issue 0714). This
+# directory is a thread's realised tree, so dehydrating, renumbering or
+# re-keying ST0056 takes every guard below with it. It was a warning that the
+# gates were SKIPPED, written for the day ST0056's close would take the
+# directory away legitimately; ST0056 closed and the gate still depends on it.
+# Behind that warning, the two guards that look for their own tools refused the
+# commit, but the suite-path step ran its missing tool as a bare call and `set
+# -e` ended the gate at 127 before the summary naming them printed, so the one
+# line the reader got said the other guards had run.
 #
 # Guard 0 above has already run and its verdict is carried to the report at the
-# bottom: a missing apparatus skips the ST0056 guards, it does not turn a staged
-# database into a pass.
+# bottom: a missing apparatus does not turn a staged database into a pass.
 HAVE_TOOLS=1
 if [ ! -d "$TOOLS" ]; then
   # NO COUNT IN THIS MESSAGE, DELIBERATELY, AND THE ABSENCE IS THE FIX. It
   # carried a literal count from the day dc wrote it (b186a0f3), and the literal
   # rotted silently through every addition behind this branch -- so at the one
   # moment coverage is degraded, the message a human reads understated the gap.
-  #
-  # A count here can only ever be a second copy of the list below, and the copy
-  # is the half nobody updates. Naming the CLASS cannot rot; naming what still
-  # ran is what the reader actually needs, because the danger is reading "gates
-  # skipped" as "no gate ran".
-  warn "no ST0056 parity apparatus at $TOOLS -- every ST0056 parity gate SKIPPED this commit (the database and whiteboard guards still ran)."
+  # A count here, or a list of the guards that did run, can only ever be a second
+  # copy of the roster above, and the copy is the half nobody updates.
+  rc=1
+  failed="${failed}  no ST0056 parity apparatus at $TOOLS -- none of the guards that live there ran, so
+    this commit is unchecked rather than clean. Remedy: \`intent st hydrate ST0056\`.
+"
   HAVE_TOOLS=0
 fi
 
@@ -409,17 +455,9 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # as a clean run. Exit 2 is the tool refusing to report (its own two-sided
   # control did not fire), which is not a finding and must not read as one.
   step "$G_PIPEFAIL"
-  bash "$TOOLS/pipefail_sigpipe_check.sh"
-  pf_rc=$?
-  if [ "$pf_rc" -eq 1 ]; then
-    rc=1
-    failed="${failed}  pipefail_sigpipe_check.sh -- an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line
-"
-  elif [ "$pf_rc" -ne 0 ]; then
-    rc=1
-    failed="${failed}  pipefail_sigpipe_check.sh -- could not measure (exit $pf_rc): its two-sided control did not fire, so it offered no verdict
-"
-  fi
+  pf_rc=0
+  bash "$TOOLS/pipefail_sigpipe_check.sh" || pf_rc=$?
+  tool_verdict pipefail_sigpipe_check.sh "$pf_rc" "an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line"
 
   # The ratified state machines against their transcription. It is here rather
   # than beside the view-skew guards because what it compares is two HAND-KEPT
@@ -500,19 +538,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # disagrees" is a finding the tool never reached (vc's ruling, 2026-09-15).
   sp_rc=0
   bash "$TOOLS/self_provenance_check.sh" || sp_rc=$?
-  case "$sp_rc" in
-    0) ;;
-    2)
-      rc=1
-      failed="${failed}  self_provenance_check.sh -- could not run; its message above names why
-"
-      ;;
-    *)
-      rc=1
-      failed="${failed}  self_provenance_check.sh -- the commit's vendored tree disagrees with the manifest committed beside it
-"
-      ;;
-  esac
+  tool_verdict self_provenance_check.sh "$sp_rc" "the commit's vendored tree disagrees with the manifest committed beside it"
 
   # 12. Canon currency (ST0057 AC-03.6). A commit that carries canon must not name
   #     bytes no commit contains -- canon is committed and never sparse, so a canon
@@ -561,12 +587,7 @@ step "$G_GUARDHOME"
 # A summary that names a cause it did not establish is worse than one that names
 # none: it sends the reader at a file that is fine, with the gate's authority
 # behind it. Same class as `unwired`s leaf remedy pointing at an empty help block.
-if [ ! -f "$TOOLS/guard_home_check.sh" ]; then
-  rc=1
-  failed="${failed}  guard_home_check.sh -- THE INSTRUMENT IS MISSING, so nothing was checked. This says
-    NOTHING about the hook template; the tool that reads it is not on disk.
-"
-elif ! bash "$TOOLS/guard_home_check.sh"; then
+if tool_present guard_home_check.sh "the hook template" && ! bash "$TOOLS/guard_home_check.sh"; then
   rc=1
   failed="${failed}  guard_home_check.sh -- refused; its message above names why
 "
@@ -585,12 +606,7 @@ fi
 # that names a cause it did not establish sends the reader at a file that is
 # fine, with the gate's authority behind it.
 step "$G_SHAREDBUILD"
-if [ ! -f "$TOOLS/shared_artefact_build_guard.sh" ]; then
-  rc=1
-  failed="${failed}  shared_artefact_build_guard.sh -- THE INSTRUMENT IS MISSING, so nothing was checked. This
-    says NOTHING about the build path; the tool that checks it is not on disk.
-"
-elif ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
+if tool_present shared_artefact_build_guard.sh "the build path" && ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
   rc=1
   failed="${failed}  shared_artefact_build_guard.sh -- refused; its message above names why
 "
@@ -600,23 +616,21 @@ fi
 # builds on the machine that has the file and nowhere else. The guard reads the
 # INDEX, and runs its own red and green controls before its verdict.
 step "$G_SUITEPATH"
-bash "$TOOLS/suite_path_check.sh"
-sp_rc=$?
-if [ "$sp_rc" -eq 1 ]; then
-  rc=1
-  failed="${failed}  suite_path_check.sh -- a suite.rs registers a test module this commit does not carry; the finding above names it
-"
-elif [ "$sp_rc" -ne 0 ]; then
-  rc=1
-  failed="${failed}  suite_path_check.sh -- could not measure (exit $sp_rc): a control did not fire, so it offered no verdict
-"
+if tool_present suite_path_check.sh "the suite registrations"; then
+  suite_rc=0
+  bash "$TOOLS/suite_path_check.sh" || suite_rc=$?
+  tool_verdict suite_path_check.sh "$suite_rc" "a suite.rs registers a test module this commit does not carry; the finding above names it"
 fi
 
 if [ "$rc" -ne 0 ]; then
   printf '\n' >&2
   printf 'intent repo-local gate: commit blocked.\n' >&2
   printf '%s' "$failed" >&2
-  printf '  each guard printed the specific artefact above; regenerate it and re-stage.\n' >&2
+  # Where the apparatus is missing, its remedy is the only one, and no guard
+  # printed an artefact to regenerate.
+  if [ "$HAVE_TOOLS" -eq 1 ]; then
+    printf '  each guard printed the specific artefact above; regenerate it and re-stage.\n' >&2
+  fi
   printf '  to bypass (use sparingly): git commit --no-verify\n' >&2
   exit 1
 fi
