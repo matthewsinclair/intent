@@ -3,9 +3,10 @@
   "number": 706,
   "slug": "doctor-s-root-file-behind-advisory-says-a-hand-e",
   "title": "doctor's root-file-behind advisory says a hand edit in .claude/settings.json is overwritten, and 3.4.0 keeps a project's deny rules",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-19",
+  "closed": "2026-11-19",
   "reporter": "Matthew Sinclair",
   "body": "Measured on brew 3.4.0 on 2026-11-19 (vc). A project added three deny rules of its own to `.claude/settings.json`. doctor then prints the `root-file-behind` advisory on every run: the file \"differs from what the templates ... would write -- `intent claude upgrade --apply` rewrites it, and a hand edit in it is overwritten\".\n\nRunning `intent claude upgrade --apply` kept the three rules and merged Intent's own two in beside them. It reformatted the file. The advisory still printed afterwards.\n\nSo the advisory is wrong about deny rules; a person who believes it avoids the upgrade, or passes `--skip-settings` for no reason; and a project with rules of its own carries the advisory for ever. Expected: the advisory says what the upgrade keeps and what it replaces, and a settings file whose only difference is the project's own additions is not reported as behind. Reported by an attendee who read the advisory and concluded the upgrade would remove their rules. ic's.\n"
 }
