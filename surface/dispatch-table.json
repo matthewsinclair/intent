@@ -5269,6 +5269,16 @@
             },
             {
               "spellings": [
+                "--read-only"
+              ],
+              "type": "bool",
+              "help": "Open the store only as it stands: where opening it would create or migrate it, judge nothing, write nothing and exit 2",
+              "disposition": "keep",
+              "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT. Issue 0717, shape ic's and meaning cc's, agreed 2026-11-19 on vc's word: the commit gate's view-skew guard kept a second copy of Store::init's open-or-migrate decision for want of a door that says whether opening a store would write it. Under this flag every store open doctor makes goes through Store::open_read_only, which asks the one decision (store::Opening::decide) and opens only a store at this build's schema, read-only, replaying no schema. Where opening would create or migrate the store, doctor judges nothing, writes nothing and exits 2, INV-04's this-build-cannot-answer, since the store is the truth and cannot be read without writing it; `--format json` names the store, its schema, the build's and the opening. Without the flag nothing changes: doctor still creates a missing store and migrates an older one, and whether it should is hv's call, since the register declares doctor `read`.",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": [
                 "--help",
                 "-h"
               ],

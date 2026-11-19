@@ -8879,7 +8879,33 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // over there. It costs nothing today, because no build produces a daemon to
   // route to; it is the daemon's own work package that makes it reachable, and
   // it belongs to whoever lands the client.
-  let opened = engine(project.clone(), ctx.clone(), StoreNeed::Shared).ok();
+  //
+  // **`--read-only` WRITES NOTHING TO THE STORE** (issue 0717). It asks the
+  // store's one open-or-migrate decision first, and where opening would make or
+  // migrate the store it judges nothing and exits 2, this build being unable to
+  // answer without writing; `--format json` says why. Otherwise the engine,
+  // which would ingest into a cold store, is not opened at all, and every check
+  // that reads the store opens it read-only.
+  let read_only = a.get_flag("read-only");
+  // A store that exists and will not even open read-only is no stop: the
+  // checks open it again and report it unreadable, as a run without the flag
+  // does (issue 0455), rather than this exiting 2 and failing open.
+  if read_only && let Some(stop) = intentsvcs::doctor::read_only_stop(&project).ok().flatten() {
+    if format == "json" {
+      println!("{}", serde_json::json!({ "store": stop }));
+    }
+    return Err(Failure::Unavailable(stop.refusal().render()));
+  }
+  let opened = if read_only {
+    None
+  } else {
+    engine(project.clone(), ctx.clone(), StoreNeed::Shared).ok()
+  };
+  let access = if read_only {
+    intentsvcs::doctor::Access::ReadOnly
+  } else {
+    intentsvcs::doctor::Access::Open
+  };
 
   // **WHAT THIS RUN RESOLVED, WHICH IS v2's `--verbose` AND NOT A NEW IDEA.**
   // v2 emits `INTENT_HOME=...` and `Found at ...` under the flag
@@ -8899,15 +8925,22 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     println!("doctor: canon     {}", project.canon_dir().display());
     println!(
       "doctor: store     {}",
-      match opened {
-        Some(_) => "opened -- the backup check was asked".to_string(),
-        None =>
+      match (read_only, opened.is_some()) {
+        (true, _) => "opened read-only, as --read-only asks -- the store-backed checks read it and write nothing".to_string(),
+        (false, true) => "opened -- the backup check was asked".to_string(),
+        (false, false) =>
           "NOT opened -- the backup check was NOT asked, and its silence is not a pass".to_string(),
       }
     );
   }
 
-  let mut report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()), scope);
+  let mut report = Facade::doctor_with(
+    &project,
+    &ctx,
+    opened.as_ref().map(|f| f.store()),
+    scope,
+    access,
+  );
   // **DOCTOR PRINTS THE VERSION LINE AND ASKS THE TREE FUNCTION** (ST0087
   // WP-01, the contract's T4): an unknown tree, or a dev tree whose git cannot
   // be read, fails; HEAD past the build is said and not counted.

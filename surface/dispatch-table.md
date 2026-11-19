@@ -2465,9 +2465,9 @@ Diagnose common Intent configuration issues
 - Runs outside a project (measured: exit 0), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
 
-| command  | args | flags                                                                                      | help                                        | disposition |
-| -------- | ---- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | ----------- |
-| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --format text/json, --scope live/all/closed, --help/-h | Diagnose common Intent configuration issues | keep        |
+| command  | args | flags                                                                                                   | help                                        | disposition |
+| -------- | ---- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------- |
+| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --format text/json, --scope live/all/closed, --read-only, --help/-h | Diagnose common Intent configuration issues | keep        |
 
 ### `doctor`
 
@@ -2495,6 +2495,10 @@ Diagnose common Intent configuration issues
     - **default:** live
     - **disposition:** keep
     - **disposition basis:** NEW IN v3, NO v2 ANTECEDENT. hv RULED IT 2026-09-07 in these words: a narrow default is sensible, `but you should be able to specify the scope with a --scope param`. THE MEASUREMENT THAT PROMPTED IT, taken across the fleet the same day: a large share of the findings sat on CLOSED threads, on Conflab and Lamplight, and not one was work anybody was going to do -- a completed thread whose work packages predate a field is history, and reporting history as a fault buries the live signal under it. `all` is the behaviour every build before this one had and `closed` is the deliberate history audit, so what the default hides stays reachable without re-reading everything. THE DEFAULT IS ONLY SAFE BECAUSE THE NARROWING ANNOUNCES ITSELF: `0 finding(s)` over live threads is byte-identical to `0 finding(s)` over everything, so `Report` carries `out_of_scope` and the summary prints it whenever it is non-zero. Without that count this flag is a denominator attack wearing a flag, which is the error vc committed on 2026-09-07 by reporting estates pristine off a count that could not see pages of output. SCOPE COVERS THE MODEL CHECKS ONLY: view-skew and unattached files are DISK facts and stay always-reported, because a hand-edited generated view is a divergence `sync --to-disk` repairs whatever its thread's status. CLAP IS DELIBERATELY NOT THE ENFORCER, as on `--format` above: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it.
+    - **exposed on mcp:** false
+  - `--read-only` (bool) -- Open the store only as it stands: where opening it would create or migrate it, judge nothing, write nothing and exit 2
+    - **disposition:** keep
+    - **disposition basis:** NEW IN v3, NO v2 ANTECEDENT. Issue 0717, shape ic's and meaning cc's, agreed 2026-11-19 on vc's word: the commit gate's view-skew guard kept a second copy of Store::init's open-or-migrate decision for want of a door that says whether opening a store would write it. Under this flag every store open doctor makes goes through Store::open_read_only, which asks the one decision (store::Opening::decide) and opens only a store at this build's schema, read-only, replaying no schema. Where opening would create or migrate the store, doctor judges nothing, writes nothing and exits 2, INV-04's this-build-cannot-answer, since the store is the truth and cannot be read without writing it; `--format json` names the store, its schema, the build's and the opening. Without the flag nothing changes: doctor still creates a missing store and migrates an older one, and whether it should is hv's call, since the register declares doctor `read`.
     - **exposed on mcp:** false
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic

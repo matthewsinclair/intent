@@ -14638,6 +14638,19 @@ impl Facade {
     store: Option<&crate::store::Store>,
     scope: crate::doctor::Scope,
   ) -> crate::doctor::Report {
+    Self::doctor_with(project, ctx, store, scope, crate::doctor::Access::Open)
+  }
+
+  /// [`Facade::doctor`], with the checks that read the project's store opening
+  /// it as `access` says: `doctor --read-only` passes
+  /// [`crate::doctor::Access::ReadOnly`] (issue 0717).
+  pub fn doctor_with(
+    project: &Project,
+    ctx: &FacadeContext,
+    store: Option<&crate::store::Store>,
+    scope: crate::doctor::Scope,
+    access: crate::doctor::Access,
+  ) -> crate::doctor::Report {
     // **This used to read the event log, from the store or from the extract,
     // and D44 took away its only reason to.** The watermark was the one thing
     // a render needed that lived in the log, so sourcing it from both places
@@ -14660,7 +14673,7 @@ impl Facade {
       .ok()
       .flatten()
       .and_then(|state| state.todo_watermark);
-    crate::doctor::diagnose(
+    crate::doctor::diagnose_with(
       project,
       &RenderContext {
         version: &ctx.version,
@@ -14669,6 +14682,7 @@ impl Facade {
       },
       store,
       scope,
+      access,
     )
   }
 

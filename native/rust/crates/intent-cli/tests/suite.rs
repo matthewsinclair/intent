@@ -139,6 +139,8 @@ mod deinit_strips_what_intent_wrote;
 mod dispatch_ssot;
 #[path = "doctor_advisory_summary.rs"]
 mod doctor_advisory_summary;
+#[path = "doctor_read_only_never_writes_the_store.rs"]
+mod doctor_read_only_never_writes_the_store;
 #[path = "doctor_reads_layouts_settings_author_and_v2_scripts.rs"]
 mod doctor_reads_layouts_settings_author_and_v2_scripts;
 #[path = "edit_and_browse_reach_one_model.rs"]

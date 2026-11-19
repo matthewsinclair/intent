@@ -859,6 +859,63 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
 pub const SCHEMA_VERSION: i32 = 35;
 
+/// What opening a store does to it, decided once (issue 0717).
+///
+/// **ONE DECISION, TWO ASKERS.** `Store::init` acts on it, and
+/// [`Store::opening_at`] answers with it without opening the store for write,
+/// so a caller that must not change a store's schema asks this binary what it
+/// would do instead of restating the rule. The commit gate's view-skew guard
+/// kept a copy of it, comparing two SQLite headers, for want of this door.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Opening {
+  /// No store, or an empty one: opening makes it at [`SCHEMA_VERSION`].
+  Create,
+  /// A store at [`SCHEMA_VERSION`]: opening changes no shape.
+  Open,
+  /// An older store: opening migrates it from `from`, one way.
+  Migrate { from: i32 },
+  /// Tables written before the stamp existed: refused, since their shape is not
+  /// knowable.
+  RefuseUnstamped,
+  /// A newer store: refused, since no rung could help. The remedy is to move
+  /// the tool forward, never the data back.
+  RefuseNewer { found: i32 },
+}
+
+impl Opening {
+  /// The decision, from a store's stamp (`PRAGMA user_version`) and whether it
+  /// holds any table. A fresh database has written nothing and loses nothing.
+  pub fn decide(found: i32, has_tables: bool) -> Self {
+    match found {
+      0 if !has_tables => Self::Create,
+      0 => Self::RefuseUnstamped,
+      v if v == SCHEMA_VERSION => Self::Open,
+      // An OLDER store is migrated, not refused: migrations are normal.
+      v if v < SCHEMA_VERSION => Self::Migrate { from: v },
+      found => Self::RefuseNewer { found },
+    }
+  }
+
+  /// Whether opening writes the store's shape: makes it, or migrates it.
+  pub fn writes(self) -> bool {
+    match self {
+      Self::Create | Self::Migrate { .. } => true,
+      Self::Open | Self::RefuseUnstamped | Self::RefuseNewer { .. } => false,
+    }
+  }
+
+  /// The word a machine reads for it.
+  pub fn word(self) -> &'static str {
+    match self {
+      Self::Create => "create",
+      Self::Open => "open",
+      Self::Migrate { .. } => "migrate",
+      Self::RefuseUnstamped => "refuse-unstamped",
+      Self::RefuseNewer { .. } => "refuse-newer",
+    }
+  }
+}
+
 /// FTS5 `secure-delete` on both search tables: a `DELETE` takes the row's terms
 /// out of the inverted index rather than writing a tombstone for them.
 ///
@@ -2249,6 +2306,13 @@ pub enum StoreError {
   /// The store predates schema versioning altogether.
   #[error("{store} predates schema versioning and does not record which shape it holds")]
   SchemaUnstamped { store: String },
+  /// A read-only open was asked of a store that opening would write: make it,
+  /// or migrate it (issue 0717). Nothing was opened, and nothing was written.
+  #[error(
+    "opening {store} would {} it, and a read-only open writes nothing, so it was not opened",
+    .opening.word()
+  )]
+  WouldWrite { store: String, opening: Opening },
   /// A migration rebuilt a table and left rows pointing at a parent that is no
   /// longer there. Foreign keys are off for the rebuild and re-checked inside
   /// the same transaction, so this is the check firing and rolling the rung
@@ -2450,6 +2514,13 @@ impl crate::remedy::Remedy for StoreError {
       // that turns an in-memory store into a file.** A remedy proposing one
       // would send an operator looking for a flag that does not exist.
       Self::NoReadOnlyDoor => "the read-only door reads a store on disk, and this process opened one in memory. Run the command in a project, where the store is a file".to_string(),
+      Self::WouldWrite { opening: Opening::Migrate { .. }, .. } => "run the command without \
+        --read-only to migrate the store. A migration is one way, so take `intent backup` first \
+        if an older Intent must go on reading it"
+        .to_string(),
+      Self::WouldWrite { .. } => "run the command without --read-only, or any verb, to make the \
+        store at this build's schema from the committed canon"
+        .to_string(),
       Self::CreateHitAnExistingKey { kind, key } => format!(
         "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
          next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
@@ -4141,6 +4212,13 @@ impl Store {
     let Some(path) = self.path.as_ref() else {
       return Err(StoreError::NoReadOnlyDoor);
     };
+    Self::read_only_at(path)
+  }
+
+  /// A read-only connection to the database at `path`: the one way this module
+  /// opens a store it must not write, for [`Store::read_only_connection`] and
+  /// [`Store::opening_at`].
+  fn read_only_at(path: &std::path::Path) -> Result<Connection, StoreError> {
     let conn = Connection::open_with_flags(
       path,
       rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,
@@ -4152,6 +4230,22 @@ impl Store {
     Self::wait_for_contention(&conn)?;
     conn.pragma_update(None, "query_only", true)?;
     Ok(conn)
+  }
+
+  /// What opening the store at `path` would do to it, answered without opening
+  /// it for write (issue 0717): [`Opening::Create`] where there is no file.
+  ///
+  /// **THE STAMP IS READ THROUGH SQLITE, NOT FROM THE FILE'S HEADER.** A
+  /// read-only connection reads the write-ahead log, so a stamp the last writer
+  /// committed and has not yet checkpointed is seen here, where a header read
+  /// still shows the one before it.
+  pub fn opening_at(path: &std::path::Path) -> Result<Opening, StoreError> {
+    if !path.exists() {
+      return Ok(Opening::Create);
+    }
+    let conn = Self::read_only_at(path)?;
+    let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    Ok(Opening::decide(found, Self::has_tables(&conn)?))
   }
 
   /// An in-memory store, for tests.
@@ -4186,31 +4280,25 @@ impl Store {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
 
-    match found {
-      // A fresh database: nothing has been written and nothing can be lost.
-      0 if !Self::has_tables(&conn)? => {
+    match Opening::decide(found, Self::has_tables(&conn)?) {
+      Opening::Create => {
         let tx = Self::write_tx(&mut conn)?;
         tx.pragma_update(None, "user_version", SCHEMA_VERSION)?;
         tx.execute_batch(DDL)?;
         tx.execute_batch(FTS_SECURE_DELETE)?;
         tx.commit()?;
       }
-      // Written before the stamp existed, so its shape is not knowable.
-      0 => return Err(StoreError::SchemaUnstamped { store }),
-      v if v == SCHEMA_VERSION => {
+      Opening::RefuseUnstamped => return Err(StoreError::SchemaUnstamped { store }),
+      Opening::Open => {
         // Same shape. The apply is a genuine no-op here, and it is what
         // finishes an interrupted create -- see the ordering note above.
         conn.execute_batch(DDL)?;
       }
-      // An OLDER store is migrated, not refused: migrations are normal.
-      v if v < SCHEMA_VERSION => {
-        Self::migrate(&mut conn, v)?;
+      Opening::Migrate { from } => {
+        Self::migrate(&mut conn, from)?;
         conn.execute_batch(DDL)?;
       }
-      // A NEWER store is refused, and there is no rung that could help. The
-      // shape was written by a binary this one has never heard of, so the
-      // remedy is to move the TOOL forward, never the data back.
-      found => {
+      Opening::RefuseNewer { found } => {
         return Err(StoreError::SchemaMismatch {
           store,
           found,
@@ -4218,14 +4306,45 @@ impl Store {
         });
       }
     }
-    Ok(Self {
+    Ok(Self::over(conn, at))
+  }
+
+  /// A store over `conn`, which [`Store::init`] has brought to this build's
+  /// schema or [`Store::open_read_only`] found at it: the one place a `Store`
+  /// is assembled.
+  fn over(conn: Connection, at: Option<&std::path::Path>) -> Self {
+    Self {
       conn,
       path: at.map(std::path::Path::to_path_buf),
       ingest_depth: 0,
       ingest_attempt: None,
       landed_events: std::cell::RefCell::default(),
       cache_marking: None,
-    })
+    }
+  }
+
+  /// The store at `path` opened only as it stands (issue 0717): a read-only
+  /// connection, with no schema replay and none of what [`Store::open`] does
+  /// besides reading (the cache directory, the journal mode, the log's size).
+  ///
+  /// It opens only a store at this build's schema. One that opening would make
+  /// or migrate is refused with [`StoreError::WouldWrite`], and a newer or an
+  /// unstamped one with the refusal [`Store::open`] gives it. Every statement on
+  /// it is a read; a write is refused by SQLite at the statement layer.
+  pub fn open_read_only(path: &std::path::Path) -> Result<Self, StoreError> {
+    let store = path.display().to_string();
+    match Self::opening_at(path)? {
+      Opening::Open => Ok(Self::over(Self::read_only_at(path)?, Some(path))),
+      Opening::RefuseUnstamped => Err(StoreError::SchemaUnstamped { store }),
+      Opening::RefuseNewer { found } => Err(StoreError::SchemaMismatch {
+        store,
+        found,
+        expected: SCHEMA_VERSION,
+      }),
+      opening @ (Opening::Create | Opening::Migrate { .. }) => {
+        Err(StoreError::WouldWrite { store, opening })
+      }
+    }
   }
 
   /// Every table this database actually has, including FTS shadow tables.

@@ -502,10 +502,109 @@ pub fn diagnose(
   store: Option<&crate::store::Store>,
   scope: Scope,
 ) -> Report {
-  let mut report = examine(project, ctx, store, scope);
+  diagnose_with(project, ctx, store, scope, Access::Open)
+}
+
+/// [`diagnose`], with the checks that read the project's store opening it as
+/// `access` says.
+pub fn diagnose_with(
+  project: &Project,
+  ctx: &RenderContext<'_>,
+  store: Option<&crate::store::Store>,
+  scope: Scope,
+  access: Access,
+) -> Report {
+  // **A READ-ONLY RUN JUDGES WITH THE STORE, OPENED READ-ONLY** (issue 0717,
+  // critic finding). With no store handed in, the store-backed checks (the
+  // backup, the search index, the render record view-skew reads) would be
+  // skipped in silence; so a read-only run opens the one store it may, and an
+  // open that fails is left to the checks, which report it.
+  let read_only = match (access, store) {
+    (Access::ReadOnly, None) => store_for_checks(project, access).and_then(Result::ok),
+    _ => None,
+  };
+  let mut report = examine(project, ctx, store.or(read_only.as_ref()), scope, access);
   let config = project.relative(&Project::config_path(project.root()));
   acknowledge(&mut report, &project.config().doctor, &config);
   report
+}
+
+/// How the checks that read the project's store open it (issue 0717).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum Access {
+  /// As every verb opens it, which makes a missing store and migrates an older
+  /// one.
+  #[default]
+  Open,
+  /// Only as it stands: `doctor --read-only`, through
+  /// [`crate::store::Store::open_read_only`], so the run writes nothing to it.
+  ReadOnly,
+}
+
+/// The store `doctor --read-only` did not open, because opening it would
+/// write it (issue 0717): its project-relative path, the schema it holds where
+/// it holds one, the schema this build writes, and what opening would do.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct StoreUnopened {
+  pub path: String,
+  pub schema: Option<i32>,
+  pub build: i32,
+  pub opening: &'static str,
+  /// The decision itself, whose refusal [`crate::store::StoreError::WouldWrite`]
+  /// is what a person reads: the sentence and its remedy have that one home.
+  #[serde(skip)]
+  pub plan: crate::store::Opening,
+}
+
+impl StoreUnopened {
+  /// The refusal a person reads in place of a verdict.
+  pub fn refusal(&self) -> crate::store::StoreError {
+    crate::store::StoreError::WouldWrite {
+      store: self.path.clone(),
+      opening: self.plan,
+    }
+  }
+}
+
+/// Where `doctor --read-only` stops before judging anything: the store that
+/// opening would make or migrate, or `None` when the run may go on. Asked of
+/// the one decision [`crate::store::Opening::decide`], through the read-only
+/// door, so no caller restates when a store migrates.
+pub fn read_only_stop(
+  project: &Project,
+) -> Result<Option<StoreUnopened>, crate::store::StoreError> {
+  let path = project.db_path();
+  let opening = Store::opening_at(&path)?;
+  if !opening.writes() {
+    return Ok(None);
+  }
+  Ok(Some(StoreUnopened {
+    path: project.relative(&path),
+    schema: match opening {
+      crate::store::Opening::Migrate { from } => Some(from),
+      _ => None,
+    },
+    build: crate::store::SCHEMA_VERSION,
+    opening: opening.word(),
+    plan: opening,
+  }))
+}
+
+/// The project's store for a check, or `None` when there is no file: a
+/// diagnosis never makes the store it diagnoses (issue 0454). The one place a
+/// check opens it, as `access` says.
+fn store_for_checks(
+  project: &Project,
+  access: Access,
+) -> Option<Result<crate::store::Store, crate::store::StoreError>> {
+  let path = project.db_path();
+  if !path.exists() {
+    return None;
+  }
+  Some(match access {
+    Access::Open => Store::open(&path),
+    Access::ReadOnly => Store::open_read_only(&path),
+  })
 }
 
 /// Move each acknowledged class's findings out of the verdict and into
@@ -551,6 +650,7 @@ fn examine(
   ctx: &RenderContext<'_>,
   store: Option<&crate::store::Store>,
   scope: Scope,
+  access: Access,
 ) -> Report {
   let mut report = Report {
     scope,
@@ -607,7 +707,7 @@ fn examine(
   } else {
     report
       .findings
-      .extend(index_unreadable_without_a_facade(project));
+      .extend(index_unreadable_without_a_facade(project, access));
   }
   // **OUTSIDE THE STORE BLOCK, BECAUSE THE GATE IS NOT A PROPERTY OF THE
   // STORE.** A project whose store will not open is exactly one whose commit
@@ -668,8 +768,8 @@ fn examine(
   // check that does not run looks the same as one that found nothing.
   status_gate_disagreement(&canon, project, &mut report);
   closed_contract_drift(&canon, project, &mut report);
-  db_checks(&canon, project, &mut report.findings);
-  event_checks(project, &mut report.findings);
+  db_checks(&canon, project, access, &mut report.findings);
+  event_checks(project, access, &mut report.findings);
   // **THE FILE INDEX IS READ BEFORE THE VIEWS** (issue 0630), so a view a
   // peer's write has not reached yet is matched against its renderer's row.
   let before = match store.map(last_renders) {
@@ -1441,7 +1541,7 @@ fn is_empty_snapshot(snapshot: &serde_json::Value) -> bool {
 /// else. It uses an in-memory store so a health check never writes to the
 /// project's own cache -- a doctor that repaired what it was measuring would
 /// report on a state that no longer existed by the time anyone read it.
-fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
+fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Finding>) {
   // Rebuild into a throwaway in-memory store FIRST. If canon cannot be loaded
   // at all -- a duplicate id tripping a UNIQUE constraint is the live case --
   // that is the finding, and it is a far better diagnosis than the constraint
@@ -1477,14 +1577,13 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   // used to return here without one, which was the cache era's reasoning left
   // in place after 0454. Driven: every other verb refused on such a store, and
   // each remedy sent the reader to `doctor`, which printed `0 finding(s)`.
-  let path = project.db_path();
-  if !path.exists() {
+  let Some(opened) = store_for_checks(project, access) else {
     return;
-  }
+  };
   let unreadable = |out: &mut Vec<Finding>, cause: crate::store::StoreError| {
     out.push(store_unreadable_finding(project, &cause));
   };
-  let store = match Store::open(&path) {
+  let store = match opened {
     Ok(store) => store,
     Err(cause) => return unreadable(out, cause),
   };
@@ -1647,7 +1746,7 @@ fn stale_boards(held: &[Board], on_disk: &[Board]) -> Vec<String> {
 /// cold store is skipped for the reason [`db_checks`] gives -- an empty store
 /// is every fresh clone's healthy state -- and so is a store that will not
 /// open, which that function also leaves unreported.
-fn event_checks(project: &Project, out: &mut Vec<Finding>) {
+fn event_checks(project: &Project, access: Access, out: &mut Vec<Finding>) {
   use crate::event::EventFileError;
   let files = match crate::ingest::read_event_files(project) {
     Ok(files) => files,
@@ -1687,11 +1786,7 @@ fn event_checks(project: &Project, out: &mut Vec<Finding>) {
   if committed.is_empty() {
     return;
   }
-  let path = project.db_path();
-  if !path.exists() {
-    return;
-  }
-  let Ok(store) = Store::open(&path) else {
+  let Some(Ok(store)) = store_for_checks(project, access) else {
     return;
   };
   let (Ok(held), Ok(derived)) = (store.event_ids(), store.derived_dump()) else {
@@ -3203,12 +3298,8 @@ fn store_unreadable_finding(project: &Project, cause: &crate::store::StoreError)
 /// EXISTS on disk, it is opened here for this one read. **THIS PROBE NEVER
 /// CREATES ONE**: with no file it returns before opening anything, which is
 /// the rule the store-stale check in `db_checks` now follows too (issue 0454).
-fn index_unreadable_without_a_facade(project: &Project) -> Option<Finding> {
-  let path = project.db_path();
-  if !path.exists() {
-    return None;
-  }
-  let store = crate::store::Store::open(&path).ok()?;
+fn index_unreadable_without_a_facade(project: &Project, access: Access) -> Option<Finding> {
+  let store = store_for_checks(project, access)?.ok()?;
   index_unreadable_finding(project, &store)
 }
 
