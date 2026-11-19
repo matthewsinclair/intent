@@ -143,9 +143,9 @@ fn an_empty_filter_and_an_empty_estate_are_different_answers() {
 fn the_disclosure_names_the_filter_that_was_actually_applied() {
   let dir = project();
   let root = dir.path();
-  run(root, &["st", "new", "one"]);
+  let one = crate::common::created(&run(root, &["st", "new", "one"]).0);
   run(root, &["st", "new", "two"]);
-  run(root, &["st", "start", "ST0001"]);
+  run(root, &["st", "start", one.as_str()]);
 
   let (wip, code) = run(root, &["st", "list", "--width", "120"]);
   assert_eq!(code, 0, "{wip}");
@@ -219,9 +219,9 @@ fn the_json_refusal_does_not_depend_on_having_rows() {
 fn markdown_carries_the_disclosure_too() {
   let dir = project();
   let root = dir.path();
-  run(root, &["st", "new", "one"]);
+  let one = crate::common::created(&run(root, &["st", "new", "one"]).0);
   run(root, &["st", "new", "two"]);
-  run(root, &["st", "start", "ST0001"]);
+  run(root, &["st", "start", one.as_str()]);
 
   let (md, code) = run(root, &["st", "list", "--markdown"]);
   assert_eq!(code, 0, "{md}");
@@ -309,12 +309,12 @@ fn every_status_the_scope_note_can_print_is_one_the_filter_accepts() {
 fn tbc_still_resolves_to_not_started_and_never_to_triage() {
   let dir = project();
   let root = dir.path();
-  run(root, &["st", "new", "fresh"]); // enters at Triage
+  let fresh = crate::common::created(&run(root, &["st", "new", "fresh"]).0); // enters at Triage
 
   let (tbc, code) = run(root, &["st", "list", "--status", "tbc", "--width", "120"]);
   assert_eq!(code, 0, "{tbc}");
   assert!(
-    !tbc.contains("ST0001"),
+    !tbc.contains(fresh.as_str()),
     "`tbc` must not reach a thread at Triage -- v2's abbreviation names \
      Not Started: {tbc}"
   );
@@ -330,7 +330,7 @@ fn tbc_still_resolves_to_not_started_and_never_to_triage() {
   );
   assert_eq!(code, 0, "{triage}");
   assert!(
-    triage.contains("ST0001"),
+    triage.contains(fresh.as_str()),
     "the fixture really is at Triage, so the absence asserted above is a \
      decision the filter made rather than a thread that was never there: {triage}"
   );

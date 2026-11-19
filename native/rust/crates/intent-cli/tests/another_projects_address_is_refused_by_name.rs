@@ -15,12 +15,20 @@ use std::path::{Path, PathBuf};
 
 use crate::common::{mcp_session, short_dir};
 
-const FOREIGN_THREAD: &str = "intent://elsewhere/threads/ST0001";
+/// Another project's address for the thread id `st`.
+fn foreign_thread(st: &str) -> String {
+  format!("intent://elsewhere/threads/{st}")
+}
 
-/// A project carrying thread ST0001 and issue 0001, so every foreign address
-/// below names something this project DOES hold: a door that resolved it here
-/// would succeed, which is what makes a refusal mean something.
-fn estate() -> PathBuf {
+/// A `resources/read` frame for `uri`, with the JSON-RPC id `id`.
+fn resources_read(id: u32, uri: &str) -> String {
+  format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"resources/read","params":{{"uri":"{uri}"}}}}"#)
+}
+
+/// A project carrying one thread and one issue, and their ids, so every foreign
+/// address below names something this project DOES hold: a door that resolved
+/// it here would succeed, which is what makes a refusal mean something.
+fn estate() -> (PathBuf, String, String) {
   let root = short_dir("cross-project");
   std::fs::create_dir_all(&root).expect("the estate directory");
   intentsvcs::init::init(&root, "Crossing", "test", env!("CARGO_PKG_VERSION"))
@@ -32,10 +40,10 @@ fn estate() -> PathBuf {
     env!("CARGO_PKG_VERSION").to_string(),
   );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
-  facade
+  let st = facade
     .st_new("A thread this project carries")
     .expect("a thread is created");
-  facade
+  let issue = facade
     .issue_add(
       "An issue this project carries",
       Some("medium"),
@@ -43,7 +51,7 @@ fn estate() -> PathBuf {
       "issue body prose",
     )
     .expect("an issue is created");
-  root
+  (root, st, intentsvcs::model::issue_id(issue))
 }
 
 /// `intent <args>` in `root` under an isolated HOME: its stderr and exit code.
@@ -67,14 +75,17 @@ fn names_the_address_and_the_project(said: &str, url: &str) -> bool {
 
 #[test]
 fn resources_read_refuses_another_projects_address_by_name() {
-  let root = estate();
+  let (root, st, issue) = estate();
+  let foreign = foreign_thread(&st);
+  let foreign_issue = format!("intent://elsewhere/issues/{issue}");
   let frames = [
-    r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"cross-project","version":"0"}}}"#,
-    r#"{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{"uri":"intent:///threads/ST0001"}}"#,
-    r#"{"jsonrpc":"2.0","id":3,"method":"resources/read","params":{"uri":"intent://elsewhere/threads/ST0001"}}"#,
-    r#"{"jsonrpc":"2.0","id":4,"method":"resources/read","params":{"uri":"intent://elsewhere/issues/0001"}}"#,
+    r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"cross-project","version":"0"}}}"#.to_string(),
+    resources_read(2, &format!("intent:///threads/{st}")),
+    resources_read(3, &foreign),
+    resources_read(4, &foreign_issue),
   ];
-  let (out, parsed) = mcp_session(&root, None, &frames);
+  let sent: Vec<&str> = frames.iter().map(String::as_str).collect();
+  let (out, parsed) = mcp_session(&root, None, &sent);
   assert!(
     out.status.success(),
     "the server did not exit cleanly: {}",
@@ -91,14 +102,11 @@ fn resources_read_refuses_another_projects_address_by_name() {
   // the authority and not about the entity.
   assert!(
     response(2).get("result").is_some(),
-    "this project's own ST0001 did not read: {}",
+    "this project's own {st} did not read: {}",
     response(2)
   );
 
-  for (id, uri) in [
-    (3, "intent://elsewhere/threads/ST0001"),
-    (4, "intent://elsewhere/issues/0001"),
-  ] {
+  for (id, uri) in [(3, foreign.as_str()), (4, foreign_issue.as_str())] {
     let answer = response(id);
     let message = answer["error"]["message"].as_str().unwrap_or_else(|| {
       panic!(
@@ -115,18 +123,19 @@ fn resources_read_refuses_another_projects_address_by_name() {
 
 #[test]
 fn browse_and_edit_browser_refuse_another_projects_address_before_resolving_it() {
-  let root = estate();
+  let (root, st, _) = estate();
   let home = short_dir("cross-project-home");
   std::fs::create_dir_all(&home).expect("an isolated home");
+  let foreign = foreign_thread(&st);
   for args in [
-    vec!["browse", "st", FOREIGN_THREAD],
-    vec!["edit", "st", FOREIGN_THREAD, "--browser"],
+    vec!["browse", "st", foreign.as_str()],
+    vec!["edit", "st", foreign.as_str(), "--browser"],
   ] {
     let (said, code) = cli(&root, &home, &args);
     let spelled = args.join(" ");
     assert_ne!(code, 0, "`intent {spelled}` succeeded: {said}");
     assert!(
-      names_the_address_and_the_project(&said, FOREIGN_THREAD),
+      names_the_address_and_the_project(&said, &foreign),
       "`intent {spelled}` did not refuse the address by name: {said}"
     );
     assert!(
@@ -140,20 +149,21 @@ fn browse_and_edit_browser_refuse_another_projects_address_before_resolving_it()
 
 #[test]
 fn the_terminal_edit_and_set_doors_refuse_another_projects_address_by_name() {
-  let root = estate();
+  let (root, st, _) = estate();
   let home = short_dir("cross-project-home");
   std::fs::create_dir_all(&home).expect("an isolated home");
+  let foreign = foreign_thread(&st);
   let absent = "intent://elsewhere/threads/ST0009";
   for (args, url) in [
     (vec!["edit", absent, "design", "--path"], absent),
     (
       vec![
         "set",
-        FOREIGN_THREAD,
+        foreign.as_str(),
         "title",
         "Renamed from another project",
       ],
-      FOREIGN_THREAD,
+      foreign.as_str(),
     ),
   ] {
     let (said, code) = cli(&root, &home, &args);

@@ -88,9 +88,9 @@ fn project() -> tempfile::TempDir {
 fn a_word_in_authored_thread_prose_is_found() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "Add a Rust-based CLI"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
   std::fs::write(
-    root.join("intent/st/ST0001/design.md"),
+    root.join(format!("intent/st/{st}/design.md")),
     "# Notes\n\nThe kestrel combinator returns its first argument.\n",
   )
   .expect("author prose");
@@ -106,7 +106,7 @@ fn a_word_in_authored_thread_prose_is_found() {
     "the hit names the file it came from: {hits:?}"
   );
   assert!(
-    hits.contains("ST0001"),
+    hits.contains(st.as_str()),
     "and the entity that owns it: {hits:?}"
   );
 }
@@ -150,12 +150,15 @@ fn a_word_in_an_issue_body_is_found() {
 fn a_word_in_a_work_package_title_is_found() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["wp", "new", "ST0001", "Ingest the marmoset corpus"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let wp = crate::common::created(&ok(
+    root,
+    &["wp", "new", st.as_str(), "Ingest the marmoset corpus"],
+  ));
 
   let hits = ok(root, &["search", "marmoset"]);
   assert!(
-    hits.contains("ST0001/01"),
+    hits.contains(wp.as_str()),
     "a work package's text is searchable and the hit names the WP: {hits:?}"
   );
 }
@@ -177,12 +180,12 @@ fn a_word_in_a_work_package_title_is_found() {
 fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
 
   // The body is authored prose in a modelled field (D22/D28), so it is set in
   // canon and brought in through the ingest gate -- not written to a view.
-  let canon_path = root.join("intent/.canon/st/ST0001.json");
+  let canon_path = root.join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(
     "\"body\": \"\"",
@@ -194,7 +197,7 @@ fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
 
   let hits = ok(root, &["search", "capybara"]);
   assert!(
-    hits.contains("ST0001/01"),
+    hits.contains(wp.as_str()),
     "the hit names the WORK PACKAGE, which a title hit could not have proved: {hits:?}"
   );
 }
@@ -214,9 +217,9 @@ fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
 fn no_match_is_exit_zero_and_silent() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
   std::fs::write(
-    root.join("intent/st/ST0001/design.md"),
+    root.join(format!("intent/st/{st}/design.md")),
     "# Design\n\nSomething.\n",
   )
   .expect("author prose");
@@ -250,7 +253,7 @@ fn no_match_is_exit_zero_and_silent() {
 fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
 
   // Nothing has been indexed yet: the same query a populated project would
   // answer with silence.
@@ -295,7 +298,7 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
   // the criterion is about: same query, same exit code, same stdout, and the
   // two invocations must not be the same bytes.
   std::fs::write(
-    root.join("intent/st/ST0001/design.md"),
+    root.join(format!("intent/st/{st}/design.md")),
     "# Design\n\nSomething.\n",
   )
   .expect("author prose");
@@ -378,9 +381,9 @@ fn a_malformed_query_is_refused_with_its_cause_and_a_remedy() {
 fn ordinary_punctuation_is_searched_literally_and_finds_what_it_names() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
   std::fs::write(
-    root.join("intent/st/ST0001/design.md"),
+    root.join(format!("intent/st/{st}/design.md")),
     "# Notes\n\nThe family-root disclaimer lives in render.rs and shipped in v3.0.1.\n",
   )
   .expect("author prose");
@@ -460,11 +463,11 @@ fn a_missing_query_is_a_usage_error_exiting_one() {
 fn a_phrase_in_a_thread_objective_is_found() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
 
   // Authored canon: the objective is a modelled field, so writing it here is
   // writing the same bytes the tool writes, not a v2-style hand edit.
-  let canon = root.join("intent/.canon/st/ST0001.json");
+  let canon = root.join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&canon).expect("read canon");
   let edited = text.replace(
     "\"objective\": \"\"",
@@ -476,7 +479,7 @@ fn a_phrase_in_a_thread_objective_is_found() {
 
   let hits = ok(root, &["search", "quokka"]);
   assert!(
-    hits.contains("ST0001"),
+    hits.contains(st.as_str()),
     "a thread's own objective is searchable: {hits:?}"
   );
 }
@@ -493,8 +496,8 @@ fn a_phrase_in_a_thread_objective_is_found() {
 fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  let design = root.join("intent/st/ST0001/design.md");
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let design = root.join(format!("intent/st/{st}/design.md"));
   std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
   std::fs::write(
     &design,
@@ -534,7 +537,7 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     "a phrase occurring once in one file is ONE row: {hits:?}"
   );
   assert!(
-    rows[0].starts_with(&format!("intent/st/ST0001/design.md:{line}  ")),
+    rows[0].starts_with(&format!("intent/st/{st}/design.md:{line}  ")),
     "the hit names line {line}, where the file has it: {hits:?}"
   );
 
@@ -562,7 +565,7 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     .expect("the phrase survived the edit")
     + 1;
   assert!(
-    hits.starts_with(&format!("intent/st/ST0001/design.md:{moved_line}  ")),
+    hits.starts_with(&format!("intent/st/{st}/design.md:{moved_line}  ")),
     "an edit elsewhere in the file gets a verified line at the phrase's NEW position: {hits:?}"
   );
 
@@ -579,7 +582,9 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
   assert_eq!(
     // Issue 0361: the row carries the matched snippet after the name.
     hits,
-    "intent/st/ST0001/design.md  thread  ST0001  design.md  The kestrel combinator returns its first argument.\n",
+    format!(
+      "intent/st/{st}/design.md  thread  {st}  design.md  The kestrel combinator returns its first argument.\n"
+    ),
     "the indexed bytes are gone, so the hit keeps its file and loses its line: {hits:?}"
   );
 }
@@ -600,8 +605,8 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
 fn a_document_the_store_carries_is_not_indexed_again_from_the_disk() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  let design = root.join("intent/st/ST0001/design.md");
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let design = root.join(format!("intent/st/{st}/design.md"));
   std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
   std::fs::write(
     &design,

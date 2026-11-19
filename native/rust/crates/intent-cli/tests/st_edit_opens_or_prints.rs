@@ -19,11 +19,11 @@
 //! that changed it is a ruling this file's own header already cites: hv ruled
 //! the thread cover OPEN on 2026-08-29, so `project.rs` classifies it
 //! `EditDisposition::OpenRoundTrip` rather than `Refuse`. Driven under this
-//! file's own fixture: `st edit ST0001 info` exits 0 and prints the cover's
-//! path, and so does the bare `st edit ST0001`, whose declared default for
-//! `file` is `info`. The claim that both refuse outlived its basis by two days
-//! -- and it was load-bearing, because it is the stated reason the arms below
-//! route around `info`.
+//! file's own fixture: `st edit <id> info` on its thread exits 0 and prints the
+//! cover's path, and so does the bare `st edit <id>`, whose declared default
+//! for `file` is `info`. The claim that both refuse outlived its basis by two
+//! days -- and it was load-bearing, because it is the stated reason the arms
+//! below route around `info`.
 //!
 //! **So the owed regression is written, as `the_documented_command_substitution
 //! _still_returns_the_covers_path`.** It drives that form directly rather
@@ -67,7 +67,8 @@ fn intent(dir: &Path, args: &[&str]) -> Output {
     .expect("run the v3 binary")
 }
 
-/// A project whose only thread CARRIES `design.md` as an attachment.
+/// A project whose only thread CARRIES `design.md` as an attachment, and that
+/// thread's id as its mint printed it.
 ///
 /// **THE ATTACHMENT IS THE POINT OF THE FIXTURE, NOT SCENERY.** Without it
 /// `design`, `impl` and `tasks` are not carried, so `hydrate` never realises
@@ -80,10 +81,12 @@ fn intent(dir: &Path, args: &[&str]) -> Output {
 /// view. The correction matters here rather than only in the header, because
 /// this is the comment a reader consults when asking why the fixture attaches
 /// anything at all.
-fn seeded() -> tempfile::TempDir {
+fn seeded() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   intent(dir.path(), &["init", "editproj"]);
-  intent(dir.path(), &["st", "new", "A thread"]);
+  let st = crate::common::created(&String::from_utf8_lossy(
+    &intent(dir.path(), &["st", "new", "A thread"]).stdout,
+  ));
   let body = dir.path().join("seed-design.md");
   std::fs::write(&body, "# design\n").expect("write the seed body");
   let out = intent(
@@ -91,7 +94,7 @@ fn seeded() -> tempfile::TempDir {
     &[
       "st",
       "attach",
-      "ST0001",
+      st.as_str(),
       "design.md",
       "--from",
       body.to_str().expect("utf8 path"),
@@ -102,13 +105,13 @@ fn seeded() -> tempfile::TempDir {
     "the fixture attachment must exist, or every arm below tests a refusal: {}",
     String::from_utf8_lossy(&out.stderr)
   );
-  dir
+  (dir, st)
 }
 
-fn expected(dir: &Path) -> String {
+fn expected(dir: &Path, st: &str) -> String {
   dir
     .path_canonical()
-    .join("intent/st/ST0001/design.md")
+    .join(format!("intent/st/{st}/design.md"))
     .display()
     .to_string()
 }
@@ -153,12 +156,12 @@ fn fake_editor(dir: &Path, log: &Path) -> String {
 /// and the reason a `--editor`-only design was not needed.
 #[test]
 fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
   let out = crate::common::intent()
-    .args(["st", "edit", "ST0001", "design"])
+    .args(["st", "edit", st.as_str(), "design"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env_remove("VISUAL")
@@ -174,7 +177,7 @@ fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
   );
   assert_eq!(
     String::from_utf8_lossy(&out.stdout).trim(),
-    expected(dir.path()),
+    expected(dir.path(), &st),
     "a captured stdout must receive the path, and it is what `$EDITOR \"$(intent st edit ...)\"` reads"
   );
   assert!(
@@ -199,8 +202,8 @@ fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
 /// regression.
 #[test]
 fn the_documented_command_substitution_still_returns_the_covers_path() {
-  let dir = seeded();
-  let out = intent(dir.path(), &["st", "edit", "ST0001", "info"]);
+  let (dir, st) = seeded();
+  let out = intent(dir.path(), &["st", "edit", st.as_str(), "info"]);
   assert!(
     out.status.success(),
     "the cover is OpenRoundTrip since hv's 2026-08-29 ruling, so this must hand back a \n            path rather than refuse: {}",
@@ -211,7 +214,7 @@ fn the_documented_command_substitution_still_returns_the_covers_path() {
     dir
       .path()
       .path_canonical()
-      .join("intent/st/ST0001/info.md")
+      .join(format!("intent/st/{st}/info.md"))
       .display()
       .to_string(),
     "a script substitutes this into $EDITOR, so it must be the cover's path and \n            nothing else"
@@ -220,19 +223,19 @@ fn the_documented_command_substitution_still_returns_the_covers_path() {
 
 #[test]
 fn path_forces_the_path_and_editor_forces_the_launch_off_a_terminal() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
-  let out = intent(dir.path(), &["st", "edit", "ST0001", "design", "--path"]);
+  let out = intent(dir.path(), &["st", "edit", st.as_str(), "design", "--path"]);
   assert!(out.status.success());
   assert_eq!(
     String::from_utf8_lossy(&out.stdout).trim(),
-    expected(dir.path())
+    expected(dir.path(), &st)
   );
 
   let out = crate::common::intent()
-    .args(["st", "edit", "ST0001", "design", "--editor"])
+    .args(["st", "edit", st.as_str(), "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env_remove("VISUAL")
@@ -249,7 +252,7 @@ fn path_forces_the_path_and_editor_forces_the_launch_off_a_terminal() {
     std::fs::read_to_string(&log)
       .expect("`--editor` did not launch anything off a terminal")
       .trim(),
-    expected(dir.path()),
+    expected(dir.path(), &st),
     "the editor was handed something other than the resolved path"
   );
 }
@@ -317,13 +320,13 @@ fn on_a_terminal(dir: &Path, args: &[&str], editor: Option<&str>) -> (bool, Stri
 /// decides, and the editor is launched with no `--editor` anywhere.
 #[test]
 fn a_terminal_on_stdout_opens_the_editor_with_no_flag_at_all() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
   let (ok, terminal, stderr) = on_a_terminal(
     dir.path(),
-    &["st", "edit", "ST0001", "design"],
+    &["st", "edit", st.as_str(), "design"],
     Some(&editor),
   );
 
@@ -334,7 +337,7 @@ fn a_terminal_on_stdout_opens_the_editor_with_no_flag_at_all() {
         "nothing was launched with a terminal on stdout, which is the whole behaviour under test"
       )
       .trim(),
-    expected(dir.path())
+    expected(dir.path(), &st)
   );
   assert!(
     terminal.trim().is_empty(),
@@ -348,20 +351,20 @@ fn a_terminal_on_stdout_opens_the_editor_with_no_flag_at_all() {
 /// reader quietly passing.
 #[test]
 fn path_beats_the_terminal_and_proves_the_reader_works() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
   let (ok, terminal, stderr) = on_a_terminal(
     dir.path(),
-    &["st", "edit", "ST0001", "design", "--path"],
+    &["st", "edit", st.as_str(), "design", "--path"],
     Some(&editor),
   );
 
   assert!(ok, "stderr: {stderr}");
   assert_eq!(
     terminal.trim(),
-    expected(dir.path()),
+    expected(dir.path(), &st),
     "`--path` did not print to the terminal it was overriding"
   );
   assert!(
@@ -376,10 +379,10 @@ fn path_beats_the_terminal_and_proves_the_reader_works() {
 
 #[test]
 fn the_two_flags_together_are_refused_rather_than_ranked() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let out = intent(
     dir.path(),
-    &["st", "edit", "ST0001", "design", "--editor", "--path"],
+    &["st", "edit", st.as_str(), "design", "--editor", "--path"],
   );
   assert!(!out.status.success());
   let stderr = String::from_utf8_lossy(&out.stderr);
@@ -400,9 +403,9 @@ fn the_two_flags_together_are_refused_rather_than_ranked() {
 /// refused both pairs; this arm is what holds it (ST0092 WP-10).
 #[test]
 fn browser_with_either_other_override_is_refused_rather_than_ranked() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   for other in ["--editor", "--path"] {
-    let out = intent(dir.path(), &["edit", "st", "ST0001", "--browser", other]);
+    let out = intent(dir.path(), &["edit", "st", st.as_str(), "--browser", other]);
     assert!(!out.status.success(), "`--browser {other}` succeeded");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
@@ -418,8 +421,11 @@ fn browser_with_either_other_override_is_refused_rather_than_ranked() {
 
 #[test]
 fn an_unset_editor_refuses_and_names_the_way_out() {
-  let dir = seeded();
-  let out = intent(dir.path(), &["st", "edit", "ST0001", "design", "--editor"]);
+  let (dir, st) = seeded();
+  let out = intent(
+    dir.path(),
+    &["st", "edit", st.as_str(), "design", "--editor"],
+  );
   assert!(!out.status.success());
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert!(
@@ -437,9 +443,9 @@ fn an_unset_editor_refuses_and_names_the_way_out() {
 /// to say what kind of name is required or the operator has nowhere to go.
 #[test]
 fn an_editor_no_process_can_run_is_refused_by_name() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let out = crate::common::intent()
-    .args(["st", "edit", "ST0001", "design", "--editor"])
+    .args(["st", "edit", st.as_str(), "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env_remove("VISUAL")
@@ -465,12 +471,12 @@ fn an_editor_no_process_can_run_is_refused_by_name() {
 /// a run that consulted the wrong variable reds instead of passing quietly.
 #[test]
 fn visual_is_consulted_before_editor() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let log = dir.path().join("editor.log");
   let editor = fake_editor(dir.path(), &log);
 
   let out = crate::common::intent()
-    .args(["st", "edit", "ST0001", "design", "--editor"])
+    .args(["st", "edit", st.as_str(), "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env("VISUAL", &editor)
@@ -488,7 +494,7 @@ fn visual_is_consulted_before_editor() {
     std::fs::read_to_string(&log)
       .expect("$VISUAL was not launched")
       .trim(),
-    expected(dir.path())
+    expected(dir.path(), &st)
   );
 }
 
@@ -497,9 +503,9 @@ fn visual_is_consulted_before_editor() {
 /// had been made.
 #[test]
 fn a_failing_editor_is_reported_rather_than_swallowed() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let out = crate::common::intent()
-    .args(["st", "edit", "ST0001", "design", "--editor"])
+    .args(["st", "edit", st.as_str(), "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env_remove("VISUAL")
@@ -541,7 +547,7 @@ fn a_failing_editor_is_reported_rather_than_swallowed() {
 ///   file argument silently becomes an editor.
 #[test]
 fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_positional() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let named = dir.path().join("named.log");
   let recorder = fake_editor(dir.path(), &named);
 
@@ -552,7 +558,7 @@ fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_po
     &[
       "edit",
       "st",
-      "ST0001",
+      st.as_str(),
       "design",
       &format!("--editor={recorder}"),
     ],
@@ -566,7 +572,7 @@ fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_po
     std::fs::read_to_string(&named)
       .expect("the named program was never launched")
       .trim(),
-    expected(dir.path()),
+    expected(dir.path(), &st),
     "the named program ran but was handed something other than the resolved path"
   );
 
@@ -575,7 +581,7 @@ fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_po
   let fallback = dir.path().join("fallback.log");
   let resolved = fake_editor(dir.path(), &fallback);
   let out = crate::common::intent()
-    .args(["edit", "st", "ST0001", "design", "--editor"])
+    .args(["edit", "st", st.as_str(), "design", "--editor"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .env_remove("VISUAL")
@@ -592,13 +598,13 @@ fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_po
     std::fs::read_to_string(&fallback)
       .expect("`$EDITOR` was never launched by a bare `--editor`")
       .trim(),
-    expected(dir.path())
+    expected(dir.path(), &st)
   );
 
   // A bare word after `--editor` is the FILE, and it is refused BY NAME.
   let out = intent(
     dir.path(),
-    &["edit", "st", "ST0001", "--editor", "notafile"],
+    &["edit", "st", st.as_str(), "--editor", "notafile"],
   );
   assert!(
     !out.status.success(),

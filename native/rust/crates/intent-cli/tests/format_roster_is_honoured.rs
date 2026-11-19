@@ -26,14 +26,15 @@
 
 use std::path::Path;
 
-/// A project with a thread, a work package and an issue in it.
-fn seeded() -> tempfile::TempDir {
+/// A project with a thread, a work package and an issue in it. It answers the
+/// project, the thread's id and the issue's id, each as its mint printed it.
+fn seeded() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "rosters"]);
-  run(dir.path(), &["st", "new", "a thread"]);
-  run(dir.path(), &["wp", "new", "ST0001", "a package"]);
-  run(dir.path(), &["issues", "add", "an issue"]);
-  dir
+  let thread = crate::common::created(&run(dir.path(), &["st", "new", "a thread"]).0);
+  run(dir.path(), &["wp", "new", thread.as_str(), "a package"]);
+  let issue = crate::common::created(&run(dir.path(), &["issues", "add", "an issue"]).0);
+  (dir, thread, issue)
 }
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
@@ -54,53 +55,56 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
   )
 }
 
-/// The argv for each verb that declares a `--format` roster.
+/// The argv for each verb that declares a `--format` roster, naming the
+/// fixture's thread and issue by the ids their mints printed.
 ///
 /// **An unlisted row FAILS rather than being skipped.** A verb added to the
 /// table with a roster and no entry here is a slot nobody decided about, which
 /// is the same refusal `declared_values_are_enforced.rs` gives an undeclared
 /// disposition.
-const ARGV: &[(&str, &[&str])] = &[
-  // **`--status all`, AND THE BARE FORM WAS VACUOUS HERE FROM THE DAY THIS FILE
-  // WAS WRITTEN.** The fixture seeds a thread, `st new` enters it at `Triage`,
-  // and bare `st list` narrows to WIP -- so every `st list --format <value>`
-  // drive below ran over an EMPTY result set, which is precisely the vacuity
-  // this file's header says the fixture exists to prevent. It rendered as a
-  // header-and-separator rather than as a sentence, so the non-empty control
-  // below could not see it; issue 0121's disclosure made it visible and the
-  // control fired the same hour.
-  // **THIS ENTRY WAS VACUOUS FOR FOURTEEN DAYS AND ITS OWN NOTE SAID SO WHILE
-  // BEING WRONG ABOUT WHY.** The note read: *`daemon status` is DECLARED AND
-  // UNWIRED, it returns the unwired marker at rc=2 for every argv ... it
-  // becomes a real drive the moment cc wires the arm -- nothing here needs
-  // changing then.* **The wiring landed at `e6aba646` and nothing here
-  // changed, because nothing had to**: the verb then answered `ok:` at rc=0
-  // for EVERY value of `--format`, having never read the flag. The pass
-  // condition is *matches neither refusal pattern*, and a wired verb ignoring
-  // its flag matches neither pattern either -- **so the arm went
-  // vacuous-because-UNWIRED to vacuous-because-UNREAD with the same green and
-  // no signal.** The promise did not fire because the sentence *nothing here
-  // needs changing then* was the part that was wrong.
-  //
-  // **IT IS A REAL DRIVE NOW** (cc, 2026-08-31): `daemon_status` reads the
-  // flag through `enum_flag`, the roster is narrowed to `terminal`, and
-  // `the_daemon_status_lookup_resolves_and_refuses_by_name` below drives the
-  // refusal rather than leaving acceptance to stand for both verdicts.
-  ("daemon status", &["daemon", "status"]),
-  // The host estate under the fixture HOME: no sessions, but both formats
-  // render the host header, so neither value passes over an empty answer.
-  ("estate status", &["estate", "status"]),
-  ("st list", &["st", "list", "--status", "all"]),
-  ("st sync", &["st", "sync"]),
-  ("wp list", &["wp", "list", "ST0001"]),
-  ("issues", &["issues"]),
-  ("issues list", &["issues", "list"]),
-  ("issues show", &["issues", "show", "0001"]),
-  ("todo", &["todo"]),
-  ("todo list", &["todo", "list"]),
-  ("doctor", &["doctor"]),
-  ("critic", &["critic", "rust"]),
-];
+fn argv_table<'a>(thread: &'a str, issue: &'a str) -> Vec<(&'static str, Vec<&'a str>)> {
+  vec![
+    // **`--status all`, AND THE BARE FORM WAS VACUOUS HERE FROM THE DAY THIS FILE
+    // WAS WRITTEN.** The fixture seeds a thread, `st new` enters it at `Triage`,
+    // and bare `st list` narrows to WIP -- so every `st list --format <value>`
+    // drive below ran over an EMPTY result set, which is precisely the vacuity
+    // this file's header says the fixture exists to prevent. It rendered as a
+    // header-and-separator rather than as a sentence, so the non-empty control
+    // below could not see it; issue 0121's disclosure made it visible and the
+    // control fired the same hour.
+    // **THIS ENTRY WAS VACUOUS FOR FOURTEEN DAYS AND ITS OWN NOTE SAID SO WHILE
+    // BEING WRONG ABOUT WHY.** The note read: *`daemon status` is DECLARED AND
+    // UNWIRED, it returns the unwired marker at rc=2 for every argv ... it
+    // becomes a real drive the moment cc wires the arm -- nothing here needs
+    // changing then.* **The wiring landed at `e6aba646` and nothing here
+    // changed, because nothing had to**: the verb then answered `ok:` at rc=0
+    // for EVERY value of `--format`, having never read the flag. The pass
+    // condition is *matches neither refusal pattern*, and a wired verb ignoring
+    // its flag matches neither pattern either -- **so the arm went
+    // vacuous-because-UNWIRED to vacuous-because-UNREAD with the same green and
+    // no signal.** The promise did not fire because the sentence *nothing here
+    // needs changing then* was the part that was wrong.
+    //
+    // **IT IS A REAL DRIVE NOW** (cc, 2026-08-31): `daemon_status` reads the
+    // flag through `enum_flag`, the roster is narrowed to `terminal`, and
+    // `the_daemon_status_lookup_resolves_and_refuses_by_name` below drives the
+    // refusal rather than leaving acceptance to stand for both verdicts.
+    ("daemon status", vec!["daemon", "status"]),
+    // The host estate under the fixture HOME: no sessions, but both formats
+    // render the host header, so neither value passes over an empty answer.
+    ("estate status", vec!["estate", "status"]),
+    ("st list", vec!["st", "list", "--status", "all"]),
+    ("st sync", vec!["st", "sync"]),
+    ("wp list", vec!["wp", "list", thread]),
+    ("issues", vec!["issues"]),
+    ("issues list", vec!["issues", "list"]),
+    ("issues show", vec!["issues", "show", issue]),
+    ("todo", vec!["todo"]),
+    ("todo list", vec!["todo", "list"]),
+    ("doctor", vec!["doctor"]),
+    ("critic", vec!["critic", "rust"]),
+  ]
+}
 
 /// Every `(path, declared value)` pair the table carries for `--format`.
 fn declared() -> Vec<(String, String)> {
@@ -127,11 +131,11 @@ fn declared() -> Vec<(String, String)> {
   out
 }
 
-fn argv_for(path: &str) -> &'static [&'static str] {
-  ARGV
-    .iter()
+fn argv_for<'a>(path: &str, thread: &'a str, issue: &'a str) -> Vec<&'a str> {
+  argv_table(thread, issue)
+    .into_iter()
     .find(|(p, _)| *p == path)
-    .map(|(_, a)| *a)
+    .map(|(_, a)| a)
     .unwrap_or_else(|| {
       panic!("`{path}` declares a --format roster and this file has no argv for it -- decide about it rather than skipping it")
     })
@@ -141,7 +145,7 @@ fn argv_for(path: &str) -> &'static [&'static str] {
 /// the whole roster green whatever the binary did.
 #[test]
 fn it_can_fail() {
-  let p = seeded();
+  let (p, _, _) = seeded();
   let (out, code) = run(p.path(), &["issues", "list", "--format", "bogus"]);
   assert_ne!(code, 0, "an undeclared value must be refused: {out}");
   assert!(out.contains("is not a format"), "{out}");
@@ -184,7 +188,7 @@ fn the_estate_status_lookup_resolves_and_refuses_by_name() {
 }
 
 fn lookup_resolves_and_refuses_by_name(path: &str, declared: &str) {
-  let p = seeded();
+  let (p, _, _) = seeded();
   let argv: Vec<&str> = path.split(' ').collect();
   let (out, code) = run(p.path(), &[argv.as_slice(), &["--format", "zzz"]].concat());
 
@@ -222,18 +226,18 @@ fn lookup_resolves_and_refuses_by_name(path: &str, declared: &str) {
 /// rather than returning early. Without this the suite is vacuous.
 #[test]
 fn the_fixture_has_content_to_render() {
-  let p = seeded();
+  let (p, thread, _) = seeded();
   for (what, args) in [
     // The same `--status all` as the roster drive uses, and for the same
     // reason: the bare form narrows away the one thread the fixture seeds.
     ("a thread", &["st", "list", "--status", "all"][..]),
-    ("a package", &["wp", "list", "ST0001"][..]),
+    ("a package", &["wp", "list", thread.as_str()][..]),
     ("an issue", &["issues", "list"][..]),
   ] {
     let (out, code) = run(p.path(), args);
     assert_eq!(code, 0, "{what}: {out}");
     assert!(
-      !out.contains("no ") || out.contains("ST0001"),
+      !out.contains("no ") || out.contains(thread.as_str()),
       "{what}: the fixture rendered nothing, so a --format drive over it proves nothing: {out}"
     );
   }
@@ -241,7 +245,7 @@ fn the_fixture_has_content_to_render() {
 
 #[test]
 fn every_declared_format_value_is_accepted_by_the_verb_that_declares_it() {
-  let p = seeded();
+  let (p, thread, issue) = seeded();
   let mut refused = Vec::new();
   let pairs = declared();
   assert!(
@@ -250,7 +254,7 @@ fn every_declared_format_value_is_accepted_by_the_verb_that_declares_it() {
   );
 
   for (path, value) in &pairs {
-    let mut args: Vec<&str> = argv_for(path).to_vec();
+    let mut args: Vec<&str> = argv_for(path, &thread, &issue);
     args.push("--format");
     args.push(value);
     let (out, code) = run(p.path(), &args);

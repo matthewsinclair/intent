@@ -56,16 +56,18 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
 const TITLE: &str = "Disk as a Sparse Projection of the Store!";
 const SLUG: &str = "disk-as-a-sparse-projection-of-the-store";
 
-fn seeded() -> tempfile::TempDir {
+/// A project holding one thread titled [`TITLE`], and the id `st new` minted
+/// for it.
+fn seeded() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "slugproj"]);
-  run(dir.path(), &["st", "new", TITLE]);
-  dir
+  let st = crate::common::created(&run(dir.path(), &["st", "new", TITLE]).0);
+  (dir, st)
 }
 
 #[test]
 fn the_default_column_is_the_title() {
-  let dir = seeded();
+  let (dir, _) = seeded();
   let (text, code) = run(
     dir.path(),
     &["st", "list", "--status", "all", "--width", "200"],
@@ -83,7 +85,7 @@ fn the_default_column_is_the_title() {
 
 #[test]
 fn the_slug_flag_renders_the_title_uri_safely() {
-  let dir = seeded();
+  let (dir, _) = seeded();
   let (text, code) = run(
     dir.path(),
     &["st", "list", "--slug", "--status", "all", "--width", "200"],
@@ -108,8 +110,8 @@ fn the_slug_flag_renders_the_title_uri_safely() {
 /// must win, because the title is the SSOT and the column is vestigial.
 #[test]
 fn the_slug_is_derived_from_the_title_not_read_from_the_store() {
-  let dir = seeded();
-  let canon = dir.path().join("intent/.canon/st/ST0001.json");
+  let (dir, st) = seeded();
+  let canon = dir.path().join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&canon)
     .unwrap_or_else(|e| panic!("no canon at {}: {e}", canon.display()));
   let mut doc: serde_json::Value = serde_json::from_str(&text).expect("canon is json");

@@ -3891,14 +3891,19 @@
           ],
           "target": {
             "state": "corrected",
-            "ratification": "ic, 2026-08-17 -- CONSEQUENCE OF AN EXISTING RULING, NOT A NEW ONE. The flat issue canon is already ratified in `data-model.md:258` and built in `store.rs:179`, so line 1's path CANNOT reproduce v2's and the deviation is forced by the model rather than chosen -- the same footing as `ac rescope`. Recording the row as `as-observed` asserted a parity that the data model had already made impossible. **This ratifies the LAYOUT half only.** The absoluteness (0060) is a defect and stays one; when it is fixed, line 1 becomes `created: intent/issues/<NNNN>.json`, the row collapses from two deviations to one, and it becomes expressible in the schema that exists today. Fixing 0060 first is therefore the cheaper order. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, on the flat-canon decision recorded at `data-model.md:258` and built at `store.rs:179` -- NOT parity.md, which does not cite this row. Authority, date and an external record, per vc's `ratified_in` grammar.",
-            "open_defect": "0060 -- v3 prints an ABSOLUTE path where v2 prints repo-relative. Separate from the ratified layout change and must not be resolved with it: one line carrying two deviations of opposite legitimacy is unreadable as either.",
+            "ratification": "ic, 2026-11-19, ST0095 WP-02 -- LINE 1 IS THE MINT'S MACHINE FORM, `created: <id>`: the line `st new` and `wp new` print, and the value MCP answers as `created`, so a script or a test reads a minted id from one line on all three verbs. The canon path line 1 named is on the `wrote:` line, so neither deviation the text below describes is on line 1 any more, and 0060 (closed) has nothing left to say about it. Line 2, `<ID>:<TITLE>`, is v2's. The rest is the row's history. ic, 2026-08-17 -- CONSEQUENCE OF AN EXISTING RULING, NOT A NEW ONE. The flat issue canon is already ratified in `data-model.md:258` and built in `store.rs:179`, so line 1's path CANNOT reproduce v2's and the deviation is forced by the model rather than chosen -- the same footing as `ac rescope`. Recording the row as `as-observed` asserted a parity that the data model had already made impossible. **This ratifies the LAYOUT half only.** The absoluteness (0060) is a defect and stays one; when it is fixed, line 1 becomes `created: intent/issues/<NNNN>.json`, the row collapses from two deviations to one, and it becomes expressible in the schema that exists today. Fixing 0060 first is therefore the cheaper order. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, on the flat-canon decision recorded at `data-model.md:258` and built at `store.rs:179` -- NOT parity.md, which does not cite this row. Authority, date and an external record, per vc's `ratified_in` grammar.",
             "rulings": [
               {
                 "state": "ratified",
                 "authority": "ic",
                 "date": "2026-08-17",
                 "record": "data-model.md:258"
+              },
+              {
+                "state": "ratified",
+                "authority": "ic",
+                "date": "2026-11-19",
+                "record": "intent/st/ST0095/WP/02/info.md"
               }
             ]
           },

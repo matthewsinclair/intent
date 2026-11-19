@@ -56,8 +56,8 @@ fn run(cwd: &Path, args: &[&str]) -> (String, String, i32) {
 /// The stored criterion, read out of canon rather than out of a rendering.
 /// **The rendering is the thing under test in half these arms**, so asserting
 /// against it would let a broken write and a broken renderer cancel out.
-fn stored(cwd: &Path, ac: &str) -> serde_json::Value {
-  let text = std::fs::read_to_string(cwd.join("intent/.canon/st/ST0001.json"))
+fn stored(cwd: &Path, st: &str, ac: &str) -> serde_json::Value {
+  let text = std::fs::read_to_string(cwd.join(format!("intent/.canon/st/{st}.json")))
     .expect("the thread's canon file");
   let thread: serde_json::Value = serde_json::from_str(&text).expect("canon is JSON");
   thread["criteria"]
@@ -70,17 +70,17 @@ fn stored(cwd: &Path, ac: &str) -> serde_json::Value {
 }
 
 /// A project with one thread and one TEST-BACKED criterion -- the shape that
-/// has something to lose.
-fn seeded() -> tempfile::TempDir {
+/// has something to lose. Returned with the thread's id as its mint printed it.
+fn seeded() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "acproj"]);
-  run(dir.path(), &["st", "new", "A thread"]);
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "A thread"]).0);
   let (_, err, code) = run(
     dir.path(),
     &[
       "ac",
       "new",
-      "ST0001",
+      st.as_str(),
       "AC-01.1",
       "--text",
       "the original",
@@ -89,18 +89,18 @@ fn seeded() -> tempfile::TempDir {
     ],
   );
   assert_eq!(code, 0, "the fixture criterion must exist: {err}");
-  dir
+  (dir, st)
 }
 
 #[test]
 fn a_first_create_still_says_created() {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "acproj"]);
-  run(dir.path(), &["st", "new", "A thread"]);
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "A thread"]).0);
 
   let (out, err, code) = run(
     dir.path(),
-    &["ac", "new", "ST0001", "AC-01.1", "--text", "first"],
+    &["ac", "new", st.as_str(), "AC-01.1", "--text", "first"],
   );
   assert_eq!(code, 0, "{err}");
   assert!(
@@ -113,12 +113,12 @@ fn a_first_create_still_says_created() {
 /// exit 0 and warned; it now asserts that it does not happen at all.
 #[test]
 fn a_second_create_refuses_and_leaves_the_row_exactly_as_it_was() {
-  let dir = seeded();
-  let before = stored(dir.path(), "AC-01.1");
+  let (dir, st) = seeded();
+  let before = stored(dir.path(), &st, "AC-01.1");
 
   let (out, err, code) = run(
     dir.path(),
-    &["ac", "new", "ST0001", "AC-01.1", "--text", "corrected"],
+    &["ac", "new", st.as_str(), "AC-01.1", "--text", "corrected"],
   );
 
   assert_ne!(code, 0, "a create on a taken id must not succeed: {out:?}");
@@ -132,7 +132,7 @@ fn a_second_create_refuses_and_leaves_the_row_exactly_as_it_was() {
   );
 
   assert_eq!(
-    stored(dir.path(), "AC-01.1"),
+    stored(dir.path(), &st, "AC-01.1"),
     before,
     "the refused create changed canon anyway. The `--kind` default overwriting a stored `test` \
      is issue 0119's exact mechanism, and a refusal that still writes reintroduces it under a \
@@ -145,13 +145,13 @@ fn a_second_create_refuses_and_leaves_the_row_exactly_as_it_was() {
 /// facade's variant name.
 #[test]
 fn the_refusal_tells_the_operator_which_verb_does_what_they_meant() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let (_, err, _) = run(
     dir.path(),
-    &["ac", "new", "ST0001", "AC-01.1", "--text", "corrected"],
+    &["ac", "new", st.as_str(), "AC-01.1", "--text", "corrected"],
   );
   assert!(
-    err.contains("ac edit ST0001 AC-01.1"),
+    err.contains(&format!("ac edit {st} AC-01.1")),
     "the remedy must name the edit verb WITH the ids the caller just typed: {err:?}"
   );
 }
@@ -161,8 +161,8 @@ fn the_refusal_tells_the_operator_which_verb_does_what_they_meant() {
 /// entire difference between this verb and the one that caused issue 0119.
 #[test]
 fn ac_edit_rewords_through_the_binary_and_leaves_kind_and_state_alone() {
-  let dir = seeded();
-  let before = stored(dir.path(), "AC-01.1");
+  let (dir, st) = seeded();
+  let before = stored(dir.path(), &st, "AC-01.1");
   assert_eq!(
     before["kind"], "test",
     "precondition: the fixture criterion is test-backed, which is what has something to lose"
@@ -170,12 +170,12 @@ fn ac_edit_rewords_through_the_binary_and_leaves_kind_and_state_alone() {
 
   let (out, err, code) = run(
     dir.path(),
-    &["ac", "edit", "ST0001", "AC-01.1", "--text", "corrected"],
+    &["ac", "edit", st.as_str(), "AC-01.1", "--text", "corrected"],
   );
   assert_eq!(code, 0, "the edit must succeed: {err:?}");
   assert!(out.contains("reworded"), "{out:?}");
 
-  let after = stored(dir.path(), "AC-01.1");
+  let after = stored(dir.path(), &st, "AC-01.1");
   assert_eq!(after["text"], "corrected", "the reword did not land");
   assert_eq!(
     after["kind"], before["kind"],
@@ -199,10 +199,10 @@ fn ac_edit_rewords_through_the_binary_and_leaves_kind_and_state_alone() {
 /// that updated one face only would fail here.
 #[test]
 fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let root = dir.path();
   for (ac, text) in [("AC-01.2", "an open one"), ("AC-01.3", "a done one")] {
-    let (_, err, code) = run(root, &["ac", "new", "ST0001", ac, "--text", text]);
+    let (_, err, code) = run(root, &["ac", "new", st.as_str(), ac, "--text", text]);
     assert_eq!(code, 0, "the fixture criterion must exist: {err}");
   }
   let (_, err, code) = run(
@@ -210,7 +210,7 @@ fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
     &[
       "ac",
       "satisfy",
-      "ST0001",
+      st.as_str(),
       "AC-01.3",
       "--evidence",
       "checked by hand",
@@ -223,7 +223,7 @@ fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
     &[
       "ac",
       "edit",
-      "ST0001",
+      st.as_str(),
       "AC-01.2",
       "--note",
       "waits on the migrator",
@@ -232,15 +232,15 @@ fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
   assert_eq!(code, 0, "the note must land: {err:?}");
   assert!(out.contains("note written"), "{out:?}");
 
-  let satisfied = stored(root, "AC-01.3");
-  let (_, err, code) = run(root, &["ac", "edit", "ST0001", "AC-01.3", "--note", "x"]);
+  let satisfied = stored(root, &st, "AC-01.3");
+  let (_, err, code) = run(root, &["ac", "edit", st.as_str(), "AC-01.3", "--note", "x"]);
   assert_ne!(code, 0, "a note on a satisfied row must be refused");
   assert!(
     err.contains("`note` cannot be set") && err.contains("satisfied"),
     "the refusal must name the field and the state that holds no note: {err:?}"
   );
   assert_eq!(
-    stored(root, "AC-01.3"),
+    stored(root, &st, "AC-01.3"),
     satisfied,
     "the refused note wrote anyway"
   );
@@ -252,7 +252,7 @@ fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
     env!("CARGO_PKG_VERSION").to_string(),
   );
   let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
-  let thread = facade.st_show("ST0001").expect("the thread");
+  let thread = facade.st_show(&st).expect("the thread");
   let row = thread
     .criteria
     .iter()
@@ -275,7 +275,7 @@ fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
 /// note is the field whose loss was measured at six rows on this repository.
 #[test]
 fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   std::fs::create_dir_all(dir.path().join("tests")).expect("mkdir");
   std::fs::write(dir.path().join("tests/first.rs"), "// AT-01.1\n").expect("write");
   std::fs::write(dir.path().join("tests/moved.rs"), "// AT-01.1\n").expect("write");
@@ -285,7 +285,7 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
     &[
       "at",
       "new",
-      "ST0001",
+      st.as_str(),
       "AT-01.1",
       "--covers",
       "AC-01.1",
@@ -299,7 +299,7 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
   // A create enters at its kind's entry (issue 0339), so the verdict the re-cite
   // must keep is reached the way an operator reaches it: red first, then green.
   for verdict in ["red", "green"] {
-    let (_, err, code) = run(dir.path(), &["at", verdict, "ST0001", "AT-01.1"]);
+    let (_, err, code) = run(dir.path(), &["at", verdict, st.as_str(), "AT-01.1"]);
     assert_eq!(code, 0, "`at {verdict}` must move the fixture row: {err:?}");
   }
 
@@ -308,7 +308,7 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
     &[
       "at",
       "edit",
-      "ST0001",
+      st.as_str(),
       "AT-01.1",
       "--file",
       "tests/moved.rs",
@@ -317,8 +317,8 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
   assert_eq!(code, 0, "the re-cite must succeed: {err:?}");
   assert!(out.contains("re-cited"), "{out:?}");
 
-  let text =
-    std::fs::read_to_string(dir.path().join("intent/.canon/st/ST0001.json")).expect("canon file");
+  let text = std::fs::read_to_string(dir.path().join(format!("intent/.canon/st/{st}.json")))
+    .expect("canon file");
   let thread: serde_json::Value = serde_json::from_str(&text).expect("canon is JSON");
   let row = thread["tests"]
     .as_array()
@@ -345,27 +345,27 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
 /// line would pass on a one-liner. An absent id refuses, as every AC verb does.
 #[test]
 fn ac_show_prints_the_whole_text_and_refuses_an_absent_id() {
-  let dir = seeded();
+  let (dir, st) = seeded();
   let text = "First line of the requirement.\n\n  An indented second paragraph -- with `code`.  \nThird line.";
   let (_, err, code) = run(
     dir.path(),
-    &["ac", "edit", "ST0001", "AC-01.1", "--text", text],
+    &["ac", "edit", st.as_str(), "AC-01.1", "--text", text],
   );
   assert_eq!(code, 0, "the fixture text is written: {err}");
   assert_eq!(
-    stored(dir.path(), "AC-01.1")["text"],
+    stored(dir.path(), &st, "AC-01.1")["text"],
     text,
     "canon holds the text, so the comparison below is against what was stored"
   );
 
-  let (out, err, code) = run(dir.path(), &["ac", "show", "ST0001", "AC-01.1"]);
+  let (out, err, code) = run(dir.path(), &["ac", "show", st.as_str(), "AC-01.1"]);
   assert_eq!(code, 0, "ac show answers: {err}");
   assert!(
-    out.starts_with("ST0001/AC-01.1\n") && out.ends_with(&format!("\n\n{text}\n")),
+    out.starts_with(&format!("{st}/AC-01.1\n")) && out.ends_with(&format!("\n\n{text}\n")),
     "the criterion's whole text follows its header block, byte for byte: {out:?}"
   );
 
-  let (_, err, code) = run(dir.path(), &["ac", "show", "ST0001", "AC-09.9"]);
+  let (_, err, code) = run(dir.path(), &["ac", "show", st.as_str(), "AC-09.9"]);
   assert_eq!(code, 1, "an absent id refuses: {err}");
   assert!(err.contains("AC-09.9"), "the refusal names the id: {err}");
 }

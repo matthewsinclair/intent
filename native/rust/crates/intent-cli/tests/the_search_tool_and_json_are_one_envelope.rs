@@ -34,8 +34,9 @@ fn estate() -> tempfile::TempDir {
   let root = dir.path();
   let (_, err, code) = run(&["init", "search-envelope-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
-  let (_, err, code) = run(&["st", "new", "The indexed thread"], root);
+  let (out, err, code) = run(&["st", "new", "The indexed thread"], root);
   assert_eq!(code, 0, "fixture st new failed: {err}");
+  let st = crate::common::created(&out);
   for (name, body) in [
     ("one.md", "# One\n\nA quokka lives in this section.\n"),
     ("two.md", "# Two\n\nA quokka, and a second quokka.\n"),
@@ -46,7 +47,7 @@ fn estate() -> tempfile::TempDir {
       &[
         "st",
         "attach",
-        "ST0001",
+        st.as_str(),
         name,
         "--from",
         source.to_str().expect("utf8 path"),

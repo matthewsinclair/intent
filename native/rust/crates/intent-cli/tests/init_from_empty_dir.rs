@@ -86,9 +86,10 @@ fn the_project_init_creates_actually_works() {
     code, 0,
     "st new failed in a freshly initialised project: {err}"
   );
+  let st = crate::common::created(&out);
   assert_eq!(
     crate::common::result_lines(&out),
-    "created: ST0001",
+    format!("created: {st}"),
     "{out}"
   );
 }

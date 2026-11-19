@@ -50,12 +50,14 @@ fn the_mcp_organize_door_answers_in_project_relative_paths() {
     out
   };
   run(&["init", "Fixture"]);
-  run(&["st", "new", "A thread to hang an unclaimed file on"]);
+  let st = crate::common::created(&String::from_utf8_lossy(
+    &run(&["st", "new", "A thread to hang an unclaimed file on"]).stdout,
+  ));
 
   // **A FILE NO RENDERER PRODUCES AND NO CANON CLAIMS**, which is organize's
   // fifth row: reported, never acted on. It is the cheapest population that
   // puts a real walked path into the answer.
-  let thread = root.join("intent").join("st").join("ST0001");
+  let thread = root.join("intent").join("st").join(st.as_str());
   std::fs::create_dir_all(&thread).expect("thread dir");
   std::fs::write(thread.join("diagram.png"), b"not a render\n").expect("unclaimed file");
 
@@ -135,10 +137,11 @@ fn the_mcp_organize_door_answers_in_project_relative_paths() {
   // **THE POSITIVE CONTROL ON THE CHECK ITSELF.** Everything above is a run of
   // NEGATIVE assertions, which a door answering empty strings would also pass.
   // This requires the relative form to still name the file.
+  let diagram = format!("intent/st/{st}/diagram.png");
   assert!(
     unclaimed
       .iter()
-      .any(|v| v.as_str() == Some("intent/st/ST0001/diagram.png")),
+      .any(|v| v.as_str() == Some(diagram.as_str())),
     "the relative path must still IDENTIFY the file -- relativising bought by discarding the path is not relativising: {answer}"
   );
 }

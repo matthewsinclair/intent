@@ -46,21 +46,22 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
 }
 
 /// An estate carrying one thread with one criterion and one acceptance test,
-/// so the extract has a field worth disagreeing about.
-fn seeded() -> tempfile::TempDir {
+/// so the extract has a field worth disagreeing about. It answers the project
+/// and the thread's id as its mint printed it.
+fn seeded() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "syncproj"]);
-  run(dir.path(), &["st", "new", "A thread"]);
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "A thread"]).0);
   run(
     dir.path(),
-    &["ac", "new", "ST0001", "AC-01.1", "--text", "a criterion"],
+    &["ac", "new", st.as_str(), "AC-01.1", "--text", "a criterion"],
   );
   run(
     dir.path(),
     &[
       "at",
       "new",
-      "ST0001",
+      st.as_str(),
       "AT-01.1",
       "--covers",
       "AC-01.1",
@@ -68,13 +69,13 @@ fn seeded() -> tempfile::TempDir {
       "test/probe_test.exs",
     ],
   );
-  dir
+  (dir, st)
 }
 
 #[test]
 fn a_run_that_overwrote_nothing_does_not_report_a_replacement() {
-  let dir = seeded();
-  let (out, rc) = run(dir.path(), &["sync", "--to-store", "ST0001"]);
+  let (dir, st) = seeded();
+  let (out, rc) = run(dir.path(), &["sync", "--to-store", st.as_str()]);
 
   assert_eq!(rc, 0, "sync --to-store refused on a healthy estate: {out}");
   assert!(
@@ -92,11 +93,11 @@ fn a_run_that_overwrote_nothing_does_not_report_a_replacement() {
 
 #[test]
 fn a_run_that_did_overwrite_still_says_so() {
-  let dir = seeded();
+  let (dir, st) = seeded();
 
   // Make the extract genuinely differ from the store, which is the only state
   // in which `replaced` is a true word.
-  let extract = dir.path().join("intent/.canon/st/ST0001.json");
+  let extract = dir.path().join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&extract).expect("read the extract");
   assert!(
     text.contains("test/probe_test.exs"),
@@ -109,11 +110,11 @@ fn a_run_that_did_overwrite_still_says_so() {
   )
   .expect("write the extract");
 
-  let (out, rc) = run(dir.path(), &["sync", "--to-store", "ST0001"]);
+  let (out, rc) = run(dir.path(), &["sync", "--to-store", st.as_str()]);
 
   assert_eq!(rc, 0, "sync --to-store refused: {out}");
   assert!(
-    out.contains("OVERWRITES") && out.contains("ST0001: differs on disk"),
+    out.contains("OVERWRITES") && out.contains(&format!("{st}: differs on disk")),
     "a genuine store/extract divergence was not reported -- the warning path is what makes the \
      other test's silence meaningful: {out}"
   );
@@ -139,35 +140,41 @@ fn ok_line(out: &str) -> String {
 /// THREADS, none of which had changed.
 #[test]
 fn the_confirmation_names_its_scope_and_counts_what_changed() {
-  let dir = seeded();
-  run(dir.path(), &["issues", "add", "An issue"]);
+  let (dir, st) = seeded();
+  let issue = crate::common::created(&run(dir.path(), &["issues", "add", "An issue"]).0);
 
-  let thread = dir.path().join("intent/.canon/st/ST0001.json");
+  let thread = dir.path().join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&thread).expect("read the thread's extract");
   std::fs::write(
     &thread,
     text.replace("test/probe_test.exs", "test/changed_test.exs"),
   )
   .expect("write the thread's extract");
-  let (out, rc) = run(dir.path(), &["sync", "--to-store", "ST0001"]);
-  assert_eq!(rc, 0, "sync --to-store ST0001 refused: {out}");
+  let (out, rc) = run(dir.path(), &["sync", "--to-store", st.as_str()]);
+  assert_eq!(rc, 0, "sync --to-store {st} refused: {out}");
   let ok = ok_line(&out);
   assert!(
-    ok.contains("ST0001") && !ok.contains("store replaced"),
+    ok.contains(st.as_str()) && !ok.contains("store replaced"),
     "a run scoped to one thread confirms the whole store: {ok}"
   );
 
-  let issue = dir.path().join("intent/.canon/issues/0001.json");
-  let text = std::fs::read_to_string(&issue).expect("read the issue's extract");
+  let extract = dir
+    .path()
+    .join(format!("intent/.canon/issues/{issue}.json"));
+  let text = std::fs::read_to_string(&extract).expect("read the issue's extract");
   assert!(
     text.contains("An issue"),
     "the issue's title is in its extract"
   );
-  std::fs::write(&issue, text.replace("An issue", "An edited issue")).expect("write the issue");
+  std::fs::write(&extract, text.replace("An issue", "An edited issue")).expect("write the issue");
   let (out, rc) = run(dir.path(), &["sync", "--to-store"]);
   assert_eq!(rc, 0, "sync --to-store refused: {out}");
+  // The warning names the issue by its number, without the id's leading
+  // zeros, so the expected line is built from the minted id as the library
+  // reads it back.
+  let number = intentsvcs::model::normalise_issue_id(&issue).expect("a minted issue id reads back");
   assert!(
-    out.contains("issue 1: differs on disk"),
+    out.contains(&format!("issue {number}: differs on disk")),
     "the fixture's one difference is the issue, or this arm tests nothing: {out}"
   );
   let ok = ok_line(&out);

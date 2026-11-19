@@ -45,7 +45,7 @@ fn doctor(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
   )
 }
 
-/// A project whose store holds ST0001 and has written its canon file.
+/// A project whose store holds a minted thread and has written its canon file.
 fn project(tag: &str) -> (std::path::PathBuf, std::path::PathBuf) {
   let dir = short_dir(tag);
   let root = dir.join("p");

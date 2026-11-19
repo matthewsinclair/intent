@@ -41,7 +41,7 @@ fn ok(dir: &Path, args: &[&str]) -> String {
   String::from_utf8(out.stdout).expect("utf-8 stdout")
 }
 
-fn attach(dir: &Path, name: &str, body: &str) {
+fn attach(dir: &Path, st: &str, name: &str, body: &str) {
   let src = dir.join(format!("seed-{name}"));
   std::fs::write(&src, body).expect("write the seed body");
   ok(
@@ -49,7 +49,7 @@ fn attach(dir: &Path, name: &str, body: &str) {
     &[
       "st",
       "attach",
-      "ST0001",
+      st,
       name,
       "--from",
       src.to_str().expect("utf-8 path"),
@@ -58,41 +58,44 @@ fn attach(dir: &Path, name: &str, body: &str) {
 }
 
 /// One thread carrying `design.md` and `tasks.md`, carrying no `impl.md`, with
-/// one criterion in its contract.
-fn seeded() -> tempfile::TempDir {
+/// one criterion in its contract, and the id the thread was minted with.
+fn seeded() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   ok(dir.path(), &["init", "showproj"]);
-  ok(dir.path(), &["st", "new", "A thread"]);
+  let st = crate::common::created(&ok(dir.path(), &["st", "new", "A thread"]));
   ok(
     dir.path(),
-    &["ac", "new", "--text", CRITERION, "ST0001", "AC-01.1"],
+    &["ac", "new", "--text", CRITERION, st.as_str(), "AC-01.1"],
   );
-  attach(dir.path(), "design.md", DESIGN);
-  attach(dir.path(), "tasks.md", TASKS);
-  dir
+  attach(dir.path(), &st, "design.md", DESIGN);
+  attach(dir.path(), &st, "tasks.md", TASKS);
+  (dir, st)
 }
 
 #[test]
 fn info_prints_the_cover_the_bare_verb_prints() {
-  let dir = seeded();
-  let cover = ok(dir.path(), &["st", "show", "ST0001"]);
+  let (dir, st) = seeded();
+  let cover = ok(dir.path(), &["st", "show", st.as_str()]);
   assert!(
-    cover.starts_with("ST0001: A thread\n"),
+    cover.starts_with(&format!("{st}: A thread\n")),
     "the declared default is the cover: {cover}"
   );
-  assert_eq!(ok(dir.path(), &["st", "show", "ST0001", "info"]), cover);
+  assert_eq!(ok(dir.path(), &["st", "show", st.as_str(), "info"]), cover);
 }
 
 #[test]
 fn design_prints_the_attachment_the_thread_carries() {
-  let dir = seeded();
-  assert_eq!(ok(dir.path(), &["st", "show", "ST0001", "design"]), DESIGN);
+  let (dir, st) = seeded();
+  assert_eq!(
+    ok(dir.path(), &["st", "show", st.as_str(), "design"]),
+    DESIGN
+  );
 }
 
 #[test]
 fn impl_refuses_and_names_the_door_that_attaches_one() {
-  let dir = seeded();
-  let out = intent(dir.path(), &["st", "show", "ST0001", "impl"]);
+  let (dir, st) = seeded();
+  let out = intent(dir.path(), &["st", "show", st.as_str(), "impl"]);
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert_eq!(
     out.status.code(),
@@ -105,15 +108,15 @@ fn impl_refuses_and_names_the_door_that_attaches_one() {
     String::from_utf8_lossy(&out.stdout)
   );
   assert!(
-    stderr.contains("intent st attach ST0001 impl.md"),
+    stderr.contains(&format!("intent st attach {st} impl.md")),
     "the refusal names the verb that attaches one: {stderr}"
   );
 }
 
 #[test]
 fn tasks_prints_the_attachment_the_thread_carries() {
-  let dir = seeded();
-  assert_eq!(ok(dir.path(), &["st", "show", "ST0001", "tasks"]), TASKS);
+  let (dir, st) = seeded();
+  assert_eq!(ok(dir.path(), &["st", "show", st.as_str(), "tasks"]), TASKS);
 }
 
 /// **THE ORACLE IS THE REALISED VIEW, AND ONLY THE ORACLE READS THE DISK.** The
@@ -123,11 +126,11 @@ fn tasks_prints_the_attachment_the_thread_carries() {
 /// touching it.
 #[test]
 fn acceptance_prints_the_rendered_contract() {
-  let dir = seeded();
-  ok(dir.path(), &["st", "edit", "ST0001", "design", "--path"]);
-  let view = std::fs::read_to_string(dir.path().join("intent/st/ST0001/acceptance.md"))
+  let (dir, st) = seeded();
+  ok(dir.path(), &["st", "edit", st.as_str(), "design", "--path"]);
+  let view = std::fs::read_to_string(dir.path().join(format!("intent/st/{st}/acceptance.md")))
     .expect("the realised acceptance view");
-  let contract = ok(dir.path(), &["st", "show", "ST0001", "acceptance"]);
+  let contract = ok(dir.path(), &["st", "show", st.as_str(), "acceptance"]);
   assert!(
     contract.contains(CRITERION),
     "the criterion is in the contract: {contract}"
@@ -137,11 +140,11 @@ fn acceptance_prints_the_rendered_contract() {
 
 #[test]
 fn all_prints_the_cover_then_each_carried_file_under_its_name_in_declared_order() {
-  let dir = seeded();
-  let cover = ok(dir.path(), &["st", "show", "ST0001", "info"]);
-  let contract = ok(dir.path(), &["st", "show", "ST0001", "acceptance"]);
+  let (dir, st) = seeded();
+  let cover = ok(dir.path(), &["st", "show", st.as_str(), "info"]);
+  let contract = ok(dir.path(), &["st", "show", st.as_str(), "acceptance"]);
   assert_eq!(
-    ok(dir.path(), &["st", "show", "ST0001", "all"]),
+    ok(dir.path(), &["st", "show", st.as_str(), "all"]),
     format!(
       "{cover}\n-- design.md\n{design}\n-- tasks.md\n{tasks}\n-- acceptance.md\n{contract}",
       design = DESIGN,
@@ -156,12 +159,15 @@ fn all_prints_the_cover_then_each_carried_file_under_its_name_in_declared_order(
 /// realised, so the read below has the store to answer from and nothing else.
 #[test]
 fn a_store_only_attachment_answers() {
-  let dir = seeded();
-  ok(dir.path(), &["st", "edit", "ST0001", "design", "--path"]);
-  ok(dir.path(), &["st", "dehydrate", "ST0001"]);
+  let (dir, st) = seeded();
+  ok(dir.path(), &["st", "edit", st.as_str(), "design", "--path"]);
+  ok(dir.path(), &["st", "dehydrate", st.as_str()]);
   assert!(
-    !dir.path().join("intent/st/ST0001").exists(),
+    !dir.path().join(format!("intent/st/{st}")).exists(),
     "dehydrate left the thread on disk, so this arm would not be reading the store alone"
   );
-  assert_eq!(ok(dir.path(), &["st", "show", "ST0001", "design"]), DESIGN);
+  assert_eq!(
+    ok(dir.path(), &["st", "show", st.as_str(), "design"]),
+    DESIGN
+  );
 }

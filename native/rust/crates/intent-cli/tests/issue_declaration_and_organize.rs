@@ -95,8 +95,9 @@ fn project() -> tempfile::TempDir {
   dir
 }
 
-fn view(root: &std::path::Path, n: u32) -> std::path::PathBuf {
-  root.join(format!("intent/issues/{n:04}.md"))
+/// The realised view of the issue whose id is `issue`.
+fn view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
+  root.join(format!("intent/issues/{issue}.md"))
 }
 
 // ---------------------------------------------------------------------------
@@ -107,25 +108,23 @@ fn view(root: &std::path::Path, n: u32) -> std::path::PathBuf {
 fn the_manifest_accepts_the_issue_sigil() {
   let dir = project();
   let root = dir.path();
-  assert!(
-    intent(root, &["issues", "add", "A defect"])
-      .status
-      .success()
-  );
+  let out = intent(root, &["issues", "add", "A defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
 
   // Hand-written, because the criterion is about what the GRAMMAR accepts and
   // a manifest this test wrote through a verb would only prove the verb agrees
   // with itself.
   std::fs::write(
     root.join("intent/.intentfiles"),
-    "# hand-written\nISSUE:0001\n",
+    format!("# hand-written\nISSUE:{issue}\n"),
   )
   .expect("write a manifest by hand");
 
   let out = intent(root, &["organize"]);
   assert!(
     out.status.success(),
-    "`ISSUE:0001` must parse, not abort the run: {}",
+    "`ISSUE:{issue}` must parse, not abort the run: {}",
     said(&out)
   );
   assert!(
@@ -139,17 +138,15 @@ fn the_manifest_accepts_the_issue_sigil() {
 fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
   let dir = project();
   let root = dir.path();
-  assert!(
-    intent(root, &["issues", "add", "A defect"])
-      .status
-      .success()
-  );
+  let out = intent(root, &["issues", "add", "A defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
 
   // The projection realises on write, so remove the file to reach the state the
   // criterion is about: DECLARED, and absent.
-  std::fs::remove_file(view(root, 1)).expect("start from declared-and-absent");
+  std::fs::remove_file(view(root, &issue)).expect("start from declared-and-absent");
   assert!(
-    declared(root).contains(&"ISSUE:0001".to_string()),
+    declared(root).contains(&format!("ISSUE:{issue}")),
     "the fixture must leave the issue declared: {:?}",
     declared(root)
   );
@@ -164,7 +161,7 @@ fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
   let out = intent(root, &["organize", "--apply"]);
   assert!(out.status.success(), "apply: {}", said(&out));
   assert!(
-    view(root, 1).is_file(),
+    view(root, &issue).is_file(),
     "apply must put the declared issue's view on disk"
   );
   assert!(
@@ -178,12 +175,10 @@ fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
 fn a_realised_file_whose_issue_is_undeclared_is_dehydrated() {
   let dir = project();
   let root = dir.path();
-  assert!(
-    intent(root, &["issues", "add", "A defect"])
-      .status
-      .success()
-  );
-  assert!(view(root, 1).is_file(), "realised by the write");
+  let out = intent(root, &["issues", "add", "A defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  assert!(view(root, &issue).is_file(), "realised by the write");
 
   // Undeclare it by hand rather than by closing: this arm is about what the
   // MANIFEST says, and closing would also change the record, so a green here
@@ -206,40 +201,40 @@ fn a_realised_file_whose_issue_is_undeclared_is_dehydrated() {
 fn default_declares_exactly_the_wip_threads_and_the_open_issues() {
   let dir = project();
   let root = dir.path();
+  let out = intent(root, &["st", "new", "A thread at triage"]);
+  assert!(out.status.success(), "st new: {}", said(&out));
+  let at_triage = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let out = intent(root, &["st", "new", "A thread to start"]);
+  assert!(out.status.success(), "st new: {}", said(&out));
+  let started = crate::common::created(&String::from_utf8_lossy(&out.stdout));
   assert!(
-    intent(root, &["st", "new", "A thread at triage"])
+    intent(root, &["st", "start", started.as_str()])
       .status
       .success()
   );
+  let out = intent(root, &["issues", "add", "An open defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let open = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let out = intent(root, &["issues", "add", "A closed defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let closed = crate::common::created(&String::from_utf8_lossy(&out.stdout));
   assert!(
-    intent(root, &["st", "new", "A thread to start"])
+    intent(root, &["issues", "close", closed.as_str()])
       .status
       .success()
   );
-  assert!(intent(root, &["st", "start", "ST0002"]).status.success());
-  assert!(
-    intent(root, &["issues", "add", "An open defect"])
-      .status
-      .success()
-  );
-  assert!(
-    intent(root, &["issues", "add", "A closed defect"])
-      .status
-      .success()
-  );
-  assert!(intent(root, &["issues", "close", "0002"]).status.success());
 
   std::fs::remove_file(root.join("intent/.intentfiles")).expect("start from absent");
   let out = intent(root, &["organize", "--default"]);
   assert!(out.status.success(), "--default: {}", said(&out));
 
-  // **ST0001 IS THE DISCRIMINATOR ON THE THREAD SIDE AND 0002 ON THE ISSUE
-  // SIDE.** A fixture of one WIP thread and one open issue cannot tell this
-  // rule from one that declares everything.
+  // **THE TRIAGE THREAD IS THE DISCRIMINATOR ON THE THREAD SIDE AND THE CLOSED
+  // ISSUE ON THE ISSUE SIDE.** A fixture of one WIP thread and one open issue
+  // cannot tell this rule from one that declares everything.
   assert_eq!(
     declared(root),
-    vec!["STEELTHREAD:ST0002".to_string(), "ISSUE:0001".to_string()],
-    "exactly the WIP thread and the OPEN issue: ST0001 is triage and 0002 is closed"
+    vec![format!("STEELTHREAD:{started}"), format!("ISSUE:{open}")],
+    "exactly the WIP thread and the OPEN issue: {at_triage} is triage and {closed} is closed"
   );
 }
 
@@ -248,20 +243,23 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
   let dir = project();
   let root = dir.path();
 
+  let out = intent(root, &["issues", "add", "A defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let declaration = format!("ISSUE:{issue}");
   assert!(
-    intent(root, &["issues", "add", "A defect"])
-      .status
-      .success()
-  );
-  assert!(
-    declared(root).contains(&"ISSUE:0001".to_string()),
+    declared(root).contains(&declaration),
     "`issues add` adds its id: {:?}",
     declared(root)
   );
 
-  assert!(intent(root, &["issues", "close", "0001"]).status.success());
   assert!(
-    !declared(root).contains(&"ISSUE:0001".to_string()),
+    intent(root, &["issues", "close", issue.as_str()])
+      .status
+      .success()
+  );
+  assert!(
+    !declared(root).contains(&declaration),
     "closing removes it: {:?}",
     declared(root)
   );
@@ -269,15 +267,19 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
   let out = intent(root, &["organize", "--apply"]);
   assert!(out.status.success(), "apply: {}", said(&out));
   assert!(
-    !view(root, 1).is_file(),
+    !view(root, &issue).is_file(),
     "a closed issue is undeclared, so its file is dehydrated on apply"
   );
 
   // The round trip, because a removal that cannot be undone is a different
   // feature from a declaration that follows status.
-  assert!(intent(root, &["issues", "open", "0001"]).status.success());
   assert!(
-    declared(root).contains(&"ISSUE:0001".to_string()),
+    intent(root, &["issues", "open", issue.as_str()])
+      .status
+      .success()
+  );
+  assert!(
+    declared(root).contains(&declaration),
     "reopening re-declares it: {:?}",
     declared(root)
   );
@@ -304,18 +306,16 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
 fn an_undeclared_issue_gets_no_view_when_something_writes() {
   let dir = project();
   let root = dir.path();
-  assert!(
-    intent(root, &["issues", "add", "A defect"])
-      .status
-      .success()
-  );
+  let out = intent(root, &["issues", "add", "A defect"]);
+  assert!(out.status.success(), "issues add: {}", said(&out));
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
 
   // Undeclare it and remove the view: the estate's shape, reached deliberately
   // rather than by closing, so the record still says OPEN and only the
   // MANIFEST says undeclared.
   std::fs::write(root.join("intent/.intentfiles"), "# nothing declared\n")
     .expect("undeclare by hand");
-  std::fs::remove_file(view(root, 1)).expect("start from absent");
+  std::fs::remove_file(view(root, &issue)).expect("start from absent");
 
   // Any write at all runs the projection. `st new` is deliberately about a
   // DIFFERENT entity: the issue is untouched, so nothing about this command
@@ -324,7 +324,7 @@ fn an_undeclared_issue_gets_no_view_when_something_writes() {
   assert!(out.status.success(), "st new: {}", said(&out));
 
   assert!(
-    !view(root, 1).is_file(),
+    !view(root, &issue).is_file(),
     "an undeclared issue's view must not be written by the projection -- the manifest \
      is what decides which artefacts are on disk, and `organize` would remove this file \
      immediately after the projection wrote it"

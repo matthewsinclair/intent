@@ -36,48 +36,59 @@ fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
 
 /// Two threads, one realised and closed, the other realised and left alone --
 /// so the case can assert that the note names THIS thread's files and not the
-/// estate's.
-fn estate() -> tempfile::TempDir {
+/// estate's. It answers the project, the id of the thread that closes and the
+/// id of the thread that stays, each as its mint printed it.
+fn estate() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (_, err, code) = run(&["init", "dehydration-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
-  for title in ["The thread that closes", "The thread that stays"] {
-    let (_, err, code) = run(&["st", "new", title], root);
+  let mint = |title: &str| {
+    let (out, err, code) = run(&["st", "new", title], root);
     assert_eq!(code, 0, "fixture st new failed: {err}");
-  }
-  for id in ["ST0001", "ST0002"] {
+    crate::common::created(&out)
+  };
+  let closes = mint("The thread that closes");
+  let stays = mint("The thread that stays");
+  for id in [closes.as_str(), stays.as_str()] {
     let (_, err, code) = run(&["edit", "st", id, "--path"], root);
     assert_eq!(code, 0, "fixture realise failed for {id}: {err}");
   }
-  dir
+  (dir, closes, stays)
 }
 
 #[test]
 fn a_close_names_every_file_the_next_organize_would_remove() {
-  let dir = estate();
+  let (dir, closes, stays) = estate();
   let root = dir.path();
+  let armed = [
+    format!("intent/st/{closes}/info.md"),
+    format!("intent/st/{closes}/acceptance.md"),
+  ];
 
   // THE CONTROL: the files exist and are the ones the claim is about. A case
   // that ran against an unrealised thread would assert over an empty set and
   // pass by naming nothing.
-  for rel in ["intent/st/ST0001/info.md", "intent/st/ST0001/acceptance.md"] {
+  for rel in &armed {
     assert!(
       root.join(rel).exists(),
       "the fixture never realised {rel}, so this case has nothing to name"
     );
   }
 
-  let (out, err, code) = run(&["st", "cancel", "ST0001", "--reason", "a probe"], root);
+  let (out, err, code) = run(
+    &["st", "cancel", closes.as_str(), "--reason", "a probe"],
+    root,
+  );
   assert_eq!(code, 0, "the close itself failed: {err}");
   assert!(
-    out.contains("ok: ST0001 cancelled"),
+    out.contains(&format!("ok: {closes} cancelled")),
     "the result line moved or changed shape: {out:?}"
   );
 
-  for rel in ["intent/st/ST0001/info.md", "intent/st/ST0001/acceptance.md"] {
+  for rel in &armed {
     assert!(
-      err.contains(rel),
+      err.contains(rel.as_str()),
       "closing the thread arms {rel} for removal and the verb did not name it: {err:?}"
     );
   }
@@ -88,7 +99,7 @@ fn a_close_names_every_file_the_next_organize_would_remove() {
   // The OTHER thread stays listed, so nothing of its is armed. A note that
   // named the whole estate would be true of nothing and read as a catastrophe.
   assert!(
-    !err.contains("ST0002"),
+    !err.contains(stays.as_str()),
     "the note named a thread this close did not unlist: {err:?}"
   );
 }
@@ -99,15 +110,22 @@ fn a_close_names_every_file_the_next_organize_would_remove() {
 /// that is not coming is how an operator learns to skim the ones that are.
 #[test]
 fn a_close_that_keeps_the_thread_listed_arms_nothing_and_says_nothing() {
-  let dir = estate();
+  let (dir, closes, _) = estate();
   let root = dir.path();
   let (_, err, code) = run(
-    &["st", "cancel", "ST0001", "--reason", "a probe", "--keep"],
+    &[
+      "st",
+      "cancel",
+      closes.as_str(),
+      "--reason",
+      "a probe",
+      "--keep",
+    ],
     root,
   );
   assert_eq!(code, 0, "the close itself failed: {err}");
   assert!(
-    !err.contains("intent/st/ST0001/info.md"),
+    !err.contains(&format!("intent/st/{closes}/info.md")),
     "a close that unlisted nothing still warned about a removal: {err:?}"
   );
 }

@@ -33,16 +33,19 @@ fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
   )
 }
 
-fn estate() -> tempfile::TempDir {
+/// A project with one realised thread. It answers the project and the thread's
+/// id as its mint printed it.
+fn estate() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (_, err, code) = run(&["init", "creating-verb-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
-  let (_, err, code) = run(&["st", "new", "The thread that exists"], root);
+  let (out, err, code) = run(&["st", "new", "The thread that exists"], root);
   assert_eq!(code, 0, "fixture st new failed: {err}");
-  let (_, err, code) = run(&["edit", "st", "ST0001", "--path"], root);
+  let st = crate::common::created(&out);
+  let (_, err, code) = run(&["edit", "st", st.as_str(), "--path"], root);
   assert_eq!(code, 0, "fixture realise failed: {err}");
-  dir
+  (dir, st)
 }
 
 fn hand_edit(root: &Path, rel: &str) {
@@ -61,10 +64,10 @@ fn gone(root: &Path, rel: &str) {
 
 #[test]
 fn st_attach_names_the_view_whose_bytes_were_not_the_stores_render() {
-  let dir = estate();
+  let (dir, st) = estate();
   let root = dir.path();
-  let edited = "intent/st/ST0001/info.md";
-  hand_edit(root, edited);
+  let edited = format!("intent/st/{st}/info.md");
+  hand_edit(root, &edited);
 
   let source = root.join("attachment-source.md");
   std::fs::write(&source, "notes an operator wrote\n").expect("write the source file");
@@ -72,7 +75,7 @@ fn st_attach_names_the_view_whose_bytes_were_not_the_stores_render() {
     &[
       "st",
       "attach",
-      "ST0001",
+      st.as_str(),
       "notes.md",
       "--from",
       source.to_str().expect("utf-8 path"),
@@ -80,21 +83,21 @@ fn st_attach_names_the_view_whose_bytes_were_not_the_stores_render() {
     root,
   );
   assert_eq!(code, 0, "the attach itself failed: {err}");
-  gone(root, edited);
+  gone(root, &edited);
 
   assert!(
-    out.contains("ok: notes.md written to ST0001"),
+    out.contains(&format!("ok: notes.md written to {st}")),
     "the result line moved or changed shape: {out:?}"
   );
   assert!(
-    err.contains(edited) && err.contains("were not the store's render"),
+    err.contains(edited.as_str()) && err.contains("were not the store's render"),
     "attach overwrote {edited} and did not name it: {err:?}"
   );
 }
 
 #[test]
 fn st_new_names_the_estate_view_whose_bytes_were_not_the_stores_render() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let edited = "intent/st/steel_threads.md";
   hand_edit(root, edited);
@@ -103,8 +106,10 @@ fn st_new_names_the_estate_view_whose_bytes_were_not_the_stores_render() {
   assert_eq!(code, 0, "the create itself failed: {err}");
   gone(root, edited);
 
-  assert!(
-    out.contains("created: ST0002"),
+  let st = crate::common::created(&out);
+  assert_eq!(
+    crate::common::result_lines(&out),
+    format!("created: {st}"),
     "the result line moved or changed shape: {out:?}"
   );
   assert!(
@@ -118,7 +123,7 @@ fn st_new_names_the_estate_view_whose_bytes_were_not_the_stores_render() {
 /// this batch already removed once.
 #[test]
 fn a_create_over_an_estate_that_agrees_says_nothing() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (_, err, code) = run(&["st", "new", "Another thread"], root);
   assert_eq!(code, 0, "the create itself failed: {err}");

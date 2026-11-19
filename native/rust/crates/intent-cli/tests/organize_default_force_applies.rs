@@ -32,7 +32,7 @@
 //! line, same exit code, same declaration on disk. Only the FILES differ, so
 //! every assertion that matters here is about a file appearing or disappearing.
 //!
-//! `ST0003` is the sharpest of them. It is WIP and NOT realised, so a correct
+//! `to_create` is the sharpest of them. It is WIP and NOT realised, so a correct
 //! run CREATES its files -- and creation is ungated, which the removal is not.
 //! On an estate whose preconditions are unmet the removal is held back and a
 //! test resting on removal alone passes under an implementation that applies
@@ -161,14 +161,22 @@ fn declared(root: &Path) -> Vec<String> {
     .collect()
 }
 
+/// The ids `st new` minted for [`project`]'s three threads, by the part each
+/// plays.
+struct Threads {
+  gate: String,
+  to_remove: String,
+  to_create: String,
+}
+
 /// Three threads chosen so that a correct run must both CREATE and REMOVE.
 ///
-/// - `ST0001` carries the estate's precondition declaration and is WIP, so it
+/// - `gate` carries the estate's precondition declaration and is WIP, so it
 ///   is declared and already realised: the unchanged control.
-/// - `ST0002` is realised on disk and stays at `triage`, so the regenerated
+/// - `to_remove` is realised on disk and stays at `triage`, so the regenerated
 ///   declaration does not name it: the removal.
-/// - `ST0003` is WIP and NOT realised, so the regenerated declaration names it
-///   and nothing on disk answers to it yet: the creation.
+/// - `to_create` is WIP and NOT realised, so the regenerated declaration names
+///   it and nothing on disk answers to it yet: the creation.
 ///
 /// **THE DECLARATION IS SINGLE, WHICH THE GATE REQUIRES.** Exactly one
 /// criterion in the estate may carry a `<<PRECONDITIONS ... PRECONDITIONS>>`
@@ -179,26 +187,26 @@ fn declared(root: &Path) -> Vec<String> {
 /// the precondition met the removal proceeds, and with it unmet the removal is
 /// held. **Both are AC-11.6 arms**, so the fixture takes it as a parameter
 /// rather than existing twice.
-fn project(satisfied: bool) -> tempfile::TempDir {
+fn project(satisfied: bool) -> (tempfile::TempDir, Threads) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "Fixture"]);
-  ok(root, &["st", "new", "Gate declaration"]);
-  ok(root, &["st", "new", "To be removed"]);
-  ok(root, &["st", "new", "To be created"]);
+  let gate = crate::common::created(&ok(root, &["st", "new", "Gate declaration"]));
+  let to_remove = crate::common::created(&ok(root, &["st", "new", "To be removed"]));
+  let to_create = crate::common::created(&ok(root, &["st", "new", "To be created"]));
   // **REALISED EXPLICITLY, BECAUSE `st new` NO LONGER DECLARES WHAT IT
   // CREATES** (hv, 2026-08-27). A fixture that inherited its realised state
   // from an unrelated verb would stop saying what it depends on the day that
   // verb was ruled on -- which is exactly what happened to this estate's other
   // fixtures that morning.
-  ok(root, &["st", "hydrate", "ST0001"]);
-  ok(root, &["st", "hydrate", "ST0002"]);
+  ok(root, &["st", "hydrate", gate.as_str()]);
+  ok(root, &["st", "hydrate", to_remove.as_str()]);
   ok(
     root,
     &[
       "ac",
       "new",
-      "ST0001",
+      gate.as_str(),
       "AC-00.1",
       "--text",
       "No dehydration path removes any file while any declared precondition is \
@@ -207,7 +215,14 @@ fn project(satisfied: bool) -> tempfile::TempDir {
   );
   ok(
     root,
-    &["ac", "new", "ST0001", "AC-00.9", "--text", "a precondition"],
+    &[
+      "ac",
+      "new",
+      gate.as_str(),
+      "AC-00.9",
+      "--text",
+      "a precondition",
+    ],
   );
   if satisfied {
     ok(
@@ -215,19 +230,28 @@ fn project(satisfied: bool) -> tempfile::TempDir {
       &[
         "ac",
         "satisfy",
-        "ST0001",
+        gate.as_str(),
         "AC-00.9",
         "--evidence",
         "met by construction in this fixture",
       ],
     );
   }
-  ok(root, &["st", "start", "ST0001"]);
-  ok(root, &["st", "start", "ST0003"]);
-  // `st start` realises the thread it declares since issue 0079; ST0003 must
-  // start UNrealised, so its files are removed rather than never written.
-  std::fs::remove_dir_all(root.join("intent/st/ST0003")).expect("unrealise ST0003");
-  dir
+  ok(root, &["st", "start", gate.as_str()]);
+  ok(root, &["st", "start", to_create.as_str()]);
+  // `st start` realises the thread it declares since issue 0079; the thread to
+  // create must start UNrealised, so its files are removed rather than never
+  // written.
+  std::fs::remove_dir_all(root.join(format!("intent/st/{to_create}")))
+    .expect("unrealise the thread to create");
+  (
+    dir,
+    Threads {
+      gate,
+      to_remove,
+      to_create,
+    },
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -239,20 +263,30 @@ fn project(satisfied: bool) -> tempfile::TempDir {
 /// a preview afterwards with nothing to say.
 #[test]
 fn regenerates_then_applies_in_the_same_run() {
-  let dir = project(true);
+  let (
+    dir,
+    Threads {
+      gate,
+      to_remove,
+      to_create,
+    },
+  ) = project(true);
   let root = dir.path();
+  let to_remove_dir = format!("intent/st/{to_remove}/");
+  let to_create_dir = format!("intent/st/{to_create}/");
 
-  // Before: ST0002 is on disk and ST0003 is not. Asserted rather than assumed,
-  // because every claim below is a claim about a CHANGE, and a change measured
-  // from an unverified start is not measured at all.
+  // Before: the thread to remove is on disk and the thread to create is not.
+  // Asserted rather than assumed, because every claim below is a claim about a
+  // CHANGE, and a change measured from an unverified start is not measured at
+  // all.
   let before = realised(root);
   assert!(
-    before.iter().any(|p| p.starts_with("intent/st/ST0002/")),
-    "the fixture must start with ST0002 realised, or the removal proves nothing: {before:?}"
+    before.iter().any(|p| p.starts_with(&to_remove_dir)),
+    "the fixture must start with {to_remove} realised, or the removal proves nothing: {before:?}"
   );
   assert!(
-    !before.iter().any(|p| p.starts_with("intent/st/ST0003/")),
-    "the fixture must start with ST0003 UNrealised, or the creation proves nothing: {before:?}"
+    !before.iter().any(|p| p.starts_with(&to_create_dir)),
+    "the fixture must start with {to_create} UNrealised, or the creation proves nothing: {before:?}"
   );
 
   let out = intent_on_a_tty(root, &["organize", "--default", "--force"], "y\n");
@@ -265,7 +299,7 @@ fn regenerates_then_applies_in_the_same_run() {
   // The declaration is now status-derived: the two WIP threads and nothing else.
   assert_eq!(
     declared(root),
-    vec!["ST0001".to_string(), "ST0003".to_string()],
+    [gate.as_str(), to_create.as_str()],
     "the regenerated manifest must declare exactly the WIP threads: {said}"
   );
 
@@ -274,15 +308,15 @@ fn regenerates_then_applies_in_the_same_run() {
   // note: removal is gated and hydration is not, so this is the arm that reds
   // under an implementation that regenerates and applies nothing.
   assert!(
-    after.iter().any(|p| p == "intent/st/ST0003/info.md"),
+    after.contains(&format!("intent/st/{to_create}/info.md")),
     "the declared-but-unrealised thread must have been realised in the same run: {after:?}\n{said}"
   );
   assert!(
-    !after.iter().any(|p| p.starts_with("intent/st/ST0002/")),
+    !after.iter().any(|p| p.starts_with(&to_remove_dir)),
     "no file of the undeclared realised thread may survive the destructive arm: {after:?}\n{said}"
   );
   assert!(
-    after.iter().any(|p| p == "intent/st/ST0001/info.md"),
+    after.contains(&format!("intent/st/{gate}/info.md")),
     "the declared and already-realised thread is the unchanged control and must still be here: {after:?}"
   );
 
@@ -307,12 +341,19 @@ fn regenerates_then_applies_in_the_same_run() {
 ///
 /// The hydration half is asserted in the same breath deliberately: the refusal
 /// is estate-wide, and an implementation that answered it by abandoning the
-/// whole run would also leave ST0002 intact. **Survival alone cannot tell a
-/// gate that refused from a run that never happened**, and the created files
-/// are what distinguishes them.
+/// whole run would also leave the thread to remove intact. **Survival alone
+/// cannot tell a gate that refused from a run that never happened**, and the
+/// created files are what distinguishes them.
 #[test]
 fn a_refused_removal_names_the_thread_and_the_precondition() {
-  let dir = project(false);
+  let (
+    dir,
+    Threads {
+      to_remove,
+      to_create,
+      ..
+    },
+  ) = project(false);
   let root = dir.path();
 
   let out = intent_on_a_tty(root, &["organize", "--default", "--force"], "y\n");
@@ -324,19 +365,19 @@ fn a_refused_removal_names_the_thread_and_the_precondition() {
 
   let after = realised(root);
   assert!(
-    after.iter().any(|p| p == "intent/st/ST0002/info.md")
-      && after.iter().any(|p| p == "intent/st/ST0002/acceptance.md"),
+    after.contains(&format!("intent/st/{to_remove}/info.md"))
+      && after.contains(&format!("intent/st/{to_remove}/acceptance.md")),
     "not one file of the blocked thread may be removed: {after:?}\n{said}"
   );
   assert!(
-    after.iter().any(|p| p == "intent/st/ST0003/info.md"),
+    after.contains(&format!("intent/st/{to_create}/info.md")),
     "the ungated half of the run must still have happened, or this test cannot tell a \
      refusal from a run that did nothing: {after:?}\n{said}"
   );
 
   let err = stderr(&out);
   assert!(
-    err.contains("ST0002"),
+    err.contains(&to_remove),
     "the refusal must name the thread whose files are held, which a file COUNT does not: {err}"
   );
   assert!(
@@ -352,7 +393,7 @@ fn a_refused_removal_names_the_thread_and_the_precondition() {
 /// notice.
 #[test]
 fn answering_no_leaves_the_declaration_and_the_tree_alone() {
-  let dir = project(true);
+  let (dir, _) = project(true);
   let root = dir.path();
   let before_files = realised(root);
   let before_declared = declared(root);
@@ -388,7 +429,7 @@ fn answering_no_leaves_the_declaration_and_the_tree_alone() {
 /// printed before the answer is read.
 #[test]
 fn the_confirm_says_what_the_arm_actually_does() {
-  let dir = project(true);
+  let (dir, _) = project(true);
   let out = intent_on_a_tty(dir.path(), &["organize", "--default", "--force"], "n\n");
   let said = stdout(&out);
   assert!(

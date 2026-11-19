@@ -212,6 +212,20 @@ fn copy_tree(from: &Path, to: &Path) {
   }
 }
 
+/// The ids [`pristine`]'s first two `st new` runs printed: the two threads the
+/// cases act on.
+struct Threads {
+  first: String,
+  second: String,
+}
+
+/// A case names a thread by its place in [`pristine`]'s mint order, never by
+/// its id: this argument stands for the first thread minted, and the driver
+/// passes that thread's id in its place.
+const FIRST: &str = "<the first thread>";
+/// The same, for the second thread minted.
+const SECOND: &str = "<the second thread>";
+
 /// **Built by the binary, never by hand.** A hand-written estate says nothing
 /// about what the tool produces, and the verbs driven here re-project exactly
 /// the artefacts `init` and `st new` laid down.
@@ -220,21 +234,27 @@ fn copy_tree(from: &Path, to: &Path) {
 /// verb rewrote everything to change two* -- and on a one-thread estate
 /// "everything" and "what changed" are the same set, so the assertion would
 /// hold against the very defect it exists to catch.
-fn pristine() -> tempfile::TempDir {
+fn pristine() -> (tempfile::TempDir, Threads) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (_, err, code) = run(&["init", "cli-estate-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
+  let mut minted = Vec::new();
   for n in 1..=6 {
     let title = format!("Thread number {n}");
-    let (_, err, code) = run(&["st", "new", &title], root);
+    let (out, err, code) = run(&["st", "new", &title], root);
     assert_eq!(code, 0, "fixture st new failed: {err}");
+    minted.push(crate::common::created(&out));
   }
-  // ST0002 is the closeable one: `todo done` runs the acceptance gate, and a
-  // fresh thread has an empty contract, so without this the verb refuses and
-  // the case would prove nothing about its write.
-  exempt(root, "ST0002");
-  dir
+  let threads = Threads {
+    first: minted[0].clone(),
+    second: minted[1].clone(),
+  };
+  // The second thread is the closeable one: `todo done` runs the acceptance
+  // gate, and a fresh thread has an empty contract, so without this the verb
+  // refuses and the case would prove nothing about its write.
+  exempt(root, &threads.second);
+  (dir, threads)
 }
 
 /// Declare `acceptance: exempt` on one thread through canon + the store, which
@@ -283,7 +303,7 @@ struct Case {
   verb: &'static str,
   args: &'static [&'static str],
   /// Fixture surgery this case needs, run on its own copy of the estate.
-  prep: fn(&Path),
+  prep: fn(&Path, &Threads),
   expect: Expect,
   /// Text the verb must put on stderr.
   ///
@@ -295,12 +315,12 @@ struct Case {
   why: &'static str,
 }
 
-const NOOP: fn(&Path) = |_| {};
+const NOOP: fn(&Path, &Threads) = |_, _| {};
 
 /// Remove `intent/todo.md`, so a verb whose help says *"generates it if
 /// absent"* is driven in the state that claim is about. **Driving it with the
 /// file present proves nothing: the generator and the reader look identical.**
-fn without_todo(root: &Path) {
+fn without_todo(root: &Path, _: &Threads) {
   let p = root.join("intent/todo.md");
   if p.exists() {
     std::fs::remove_file(&p).expect("remove todo.md");
@@ -309,7 +329,7 @@ fn without_todo(root: &Path) {
 
 /// Remove the store, so a verb claimed to read can be checked for
 /// materialising one.
-fn without_store(root: &Path) {
+fn without_store(root: &Path, _: &Threads) {
   let p = root.join("intent/.cache");
   if p.exists() {
     std::fs::remove_dir_all(&p).expect("remove store");
@@ -318,9 +338,9 @@ fn without_store(root: &Path) {
 
 /// Neither the view nor the store, so `todo list` is driven in the state BOTH
 /// of the wrong observables are wrong about at once.
-fn without_todo_or_store(root: &Path) {
-  without_todo(root);
-  without_store(root);
+fn without_todo_or_store(root: &Path, threads: &Threads) {
+  without_todo(root, threads);
+  without_store(root, threads);
 }
 
 /// `st.done` is not a legal transition from `triage`, so a `todo done` case on
@@ -329,27 +349,29 @@ fn without_todo_or_store(root: &Path) {
 /// **This prep exists because the case failed without it and the failure was
 /// the point**: `todo done` was declared a writer, exited 1, and left the
 /// estate untouched -- which a snapshot-only driver reports as a clean pass.
-fn started(root: &Path) {
-  let (_, err, code) = run(&["st", "start", "ST0002"], root);
+fn started(root: &Path, threads: &Threads) {
+  let (_, err, code) = run(&["st", "start", threads.second.as_str()], root);
   assert_eq!(code, 0, "prep st start failed: {err}");
 }
 
-/// `ST0001` into `wip`, for the same reason [`started`] exists one function up.
+/// The first thread into `wip`, for the same reason [`started`] exists one
+/// function up.
 ///
 /// **`st.fc` is declared from `wip` and from nowhere else**, so a fiat-close case
 /// on a fresh `triage` thread would measure the state machine refusing and prove
 /// nothing about the verb. A separate thread from [`started`]'s because the two
 /// cases run against the same fixture and a close is not something to share.
-fn started_first(root: &Path) {
-  let (_, err, code) = run(&["st", "start", "ST0001"], root);
-  assert_eq!(code, 0, "prep st start ST0001 failed: {err}");
+fn started_first(root: &Path, threads: &Threads) {
+  let first = threads.first.as_str();
+  let (_, err, code) = run(&["st", "start", first], root);
+  assert_eq!(code, 0, "prep st start {first} failed: {err}");
 }
 
 /// Make the thread index stale so `st sync --write` has something to do.
 /// **Scribbled rather than deleted**: a deleted file comes back as `created`
 /// and never enters the moved/changed comparison, so the case would assert the
 /// criterion on an empty set.
-fn stale_index(root: &Path) {
+fn stale_index(root: &Path, _: &Threads) {
   std::fs::write(
     root.join("intent/st/steel_threads.md"),
     "# Steel Threads\n\nstale content this file did not have\n",
@@ -378,11 +400,11 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "todo done",
-      args: &["todo", "done", "ST0002"],
+      args: &["todo", "done", SECOND],
       prep: started,
       expect: Expect::Writes,
       must_say: None,
-      why: "closes the thread through st done and regenerates; needs a closeable unit, which is why the fixture declares ST0002 acceptance-exempt",
+      why: "closes the thread through st done and regenerates; needs a closeable unit, which is why the fixture declares the second thread acceptance-exempt",
     },
     // -- classified `mutate`, driven, writes nothing ------------------------
     Case {
@@ -403,7 +425,7 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "at lint",
-      args: &["at", "lint", "ST0001"],
+      args: &["at", "lint", FIRST],
       prep: NOOP,
       expect: Expect::WritesNothing(0),
       must_say: None,
@@ -411,7 +433,7 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "at lint --fix",
-      args: &["at", "lint", "ST0001", "--fix"],
+      args: &["at", "lint", FIRST, "--fix"],
       prep: NOOP,
       expect: Expect::WritesNothing(1),
       must_say: None,
@@ -437,7 +459,7 @@ fn cases() -> Vec<Case> {
       verb: "fc",
       args: &[
         "fc",
-        "ST0001",
+        FIRST,
         "--because",
         "closed on hv's word: unobservable by unit test",
       ],
@@ -466,7 +488,7 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "todo notdone",
-      args: &["todo", "notdone", "ST0002"],
+      args: &["todo", "notdone", SECOND],
       prep: NOOP,
       expect: Expect::WritesNothing(1),
       must_say: None,
@@ -474,7 +496,7 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "todo toggle",
-      args: &["todo", "toggle", "ST0002"],
+      args: &["todo", "toggle", SECOND],
       prep: NOOP,
       expect: Expect::WritesNothing(1),
       must_say: None,
@@ -489,7 +511,7 @@ fn cases() -> Vec<Case> {
 
 #[test]
 fn every_cli_verb_moves_only_what_changed() {
-  let base = pristine();
+  let (base, threads) = pristine();
   let scratch = tempfile::tempdir().expect("tempdir");
   let mut failures: Vec<String> = Vec::new();
   let mut report: Vec<String> = Vec::new();
@@ -497,7 +519,7 @@ fn every_cli_verb_moves_only_what_changed() {
   for (i, case) in cases().iter().enumerate() {
     let root = scratch.path().join(format!("case{i:02}"));
     copy_tree(base.path(), &root);
-    (case.prep)(&root);
+    (case.prep)(&root, &threads);
 
     let store_before = store_present(&root);
     let before = snapshot(&root);
@@ -507,7 +529,16 @@ fn every_cli_verb_moves_only_what_changed() {
       case.verb
     );
 
-    let (out, err, code) = run(case.args, &root);
+    let args: Vec<&str> = case
+      .args
+      .iter()
+      .map(|&arg| match arg {
+        FIRST => threads.first.as_str(),
+        SECOND => threads.second.as_str(),
+        word => word,
+      })
+      .collect();
+    let (out, err, code) = run(&args, &root);
     let v = verdict(&root, &before, store_before);
 
     let mut note = |msg: String| failures.push(format!("  {}: {msg}", case.verb));

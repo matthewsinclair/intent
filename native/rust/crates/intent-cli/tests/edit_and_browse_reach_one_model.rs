@@ -58,10 +58,12 @@ use std::path::{Path, PathBuf};
 
 use crate::common::{RealDaemon, ask_op, get, http, published, short_dir};
 
-/// A project with one thread and one issue in it, at a path short enough for a
-/// unix socket -- `SUN_LEN` is 104 bytes and a temp dir under a long scratch
-/// path exceeds it, which the daemon refuses by name rather than truncating.
-fn an_estate() -> PathBuf {
+/// A project with one thread and one work package in it, at a path short
+/// enough for a unix socket -- `SUN_LEN` is 104 bytes and a temp dir under a
+/// long scratch path exceeds it, which the daemon refuses by name rather than
+/// truncating. Returns the root, the thread's id and the work package's whole
+/// address.
+fn an_estate() -> (PathBuf, String, String) {
   let root = short_dir("browse-estate");
   std::fs::create_dir_all(&root).expect("the estate directory");
   intentsvcs::init::init(&root, "Browse", "test", env!("CARGO_PKG_VERSION"))
@@ -74,23 +76,24 @@ fn an_estate() -> PathBuf {
     env!("CARGO_PKG_VERSION").to_string(),
   );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
-  facade
+  let st = facade
     .st_new("A thread to open in a browser")
     .expect("a thread is created");
   // **A REAL WORK PACKAGE, BECAUSE THE WP LIMB IS NOW LIVE.** Until 2026-09-09
-  // no arm below needed one: a work package could not be browsed at all, so
-  // `ST0001/01` being absent and being refused were indistinguishable and the
+  // no arm below needed one: a work package could not be browsed at all, so a
+  // package being absent and being refused were indistinguishable and the
   // tests read the same either way. With `View::Child` the two answers differ,
   // and an estate with no work package would quietly measure the ABSENT path
   // while claiming to measure the present one.
-  facade
+  let seq = facade
     .wp_new(
-      "ST0001",
+      &st,
       "A work package to open in a browser",
       intentsvcs::model::TShirt::S,
     )
     .expect("a work package is created");
-  root
+  let wp = crate::common::wp_address(&st, seq);
+  (root, st, wp)
 }
 
 /// The rows the TERMINAL would draw, computed in this process.
@@ -142,14 +145,14 @@ fn in_process_wp(root: &Path, thread: &str, seq: &str) -> Vec<intentsvcs::form::
 /// BYTES.** This is `AC-17.6` in one assertion.
 #[test]
 fn the_browser_and_the_terminal_receive_one_derivation() {
-  let root = an_estate();
+  let (root, st, _) = an_estate();
   let daemon = RealDaemon::start();
   daemon.wait_until_it_answers_a_real_op();
 
   let (status, body) = ask_op(
     &daemon,
     &format!(
-      r#"{{"root":"{}","op":"form","view":"/thread/ST0001"}}"#,
+      r#"{{"root":"{}","op":"form","view":"/thread/{st}"}}"#,
       root.display()
     ),
   );
@@ -164,13 +167,14 @@ fn the_browser_and_the_terminal_receive_one_derivation() {
     "the daemon refused the form op: {body}"
   );
   assert_eq!(
-    answer["entity"], "ST0001",
+    answer["entity"],
+    st.as_str(),
     "the answer names the instance, not the kind"
   );
 
   let over_the_wire: Vec<intentsvcs::form::Triple> =
     serde_json::from_value(answer["fields"].clone()).expect("the fields are triples");
-  let in_this_process = in_process(&root, "ST0001");
+  let in_this_process = in_process(&root, &st);
 
   // **THE VACUITY GUARD, AND IT IS NOT DECORATION.** Two empty vectors are
   // equal, so without this the assertion below passes for a daemon that
@@ -251,12 +255,12 @@ fn cli(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
 /// the operator did not ask for.
 #[test]
 fn neither_spelling_starts_a_daemon_and_both_say_the_same_thing() {
-  let root = an_estate();
+  let (root, st, _) = an_estate();
   let home = short_dir("browse-nodaemon");
   std::fs::create_dir_all(&home).expect("an isolated home");
 
-  let (verb, verb_code) = cli(&root, &home, &["browse", "st", "ST0001"]);
-  let (flag, flag_code) = cli(&root, &home, &["edit", "st", "ST0001", "--browser"]);
+  let (verb, verb_code) = cli(&root, &home, &["browse", "st", st.as_str()]);
+  let (flag, flag_code) = cli(&root, &home, &["edit", "st", st.as_str(), "--browser"]);
 
   assert!(
     verb.contains("no `intentd` is answering"),
@@ -281,14 +285,15 @@ fn neither_spelling_starts_a_daemon_and_both_say_the_same_thing() {
 /// criterion's WP limb is then live and wants a real assertion instead.
 #[test]
 fn a_work_package_reaches_one_derivation_through_the_child_rung() {
-  let root = an_estate();
+  let (root, st, wp) = an_estate();
+  let pkg = crate::common::package_of(&wp);
   let daemon = RealDaemon::start();
   daemon.wait_until_it_answers_a_real_op();
 
   let (status, body) = ask_op(
     &daemon,
     &format!(
-      r#"{{"root":"{}","op":"form","view":"/thread/ST0001/wps/01"}}"#,
+      r#"{{"root":"{}","op":"form","view":"/thread/{st}/wps/{pkg}"}}"#,
       root.display()
     ),
   );
@@ -305,7 +310,7 @@ fn a_work_package_reaches_one_derivation_through_the_child_rung() {
 
   let over_the_wire: Vec<intentsvcs::form::Triple> =
     serde_json::from_value(answer["fields"].clone()).expect("the fields are triples");
-  let in_this_process = in_process_wp(&root, "ST0001", "01");
+  let in_this_process = in_process_wp(&root, &st, pkg);
 
   // The same vacuity guard the thread arm carries, for the same reason: two
   // empty vectors are equal.
@@ -330,12 +335,12 @@ fn a_work_package_reaches_one_derivation_through_the_child_rung() {
 /// finally discriminates.
 #[test]
 fn both_spellings_agree_on_a_work_package_and_neither_refuses_it_for_being_one() {
-  let root = an_estate();
+  let (root, _, wp) = an_estate();
   let home = short_dir("browse-wp");
   std::fs::create_dir_all(&home).expect("an isolated home");
 
-  let (verb, _) = cli(&root, &home, &["browse", "wp", "ST0001/01"]);
-  let (flag, _) = cli(&root, &home, &["edit", "wp", "ST0001/01", "--browser"]);
+  let (verb, _) = cli(&root, &home, &["browse", "wp", wp.as_str()]);
+  let (flag, _) = cli(&root, &home, &["edit", "wp", wp.as_str(), "--browser"]);
 
   assert!(
     !verb.contains("cannot open a work package in a browser"),
@@ -368,7 +373,7 @@ fn both_spellings_agree_on_a_work_package_and_neither_refuses_it_for_being_one()
 /// that refused everything would fail here rather than read as a pass.
 #[test]
 fn an_entity_that_does_not_exist_is_refused_before_a_browser_is_opened() {
-  let root = an_estate();
+  let (root, st, _) = an_estate();
   let home = short_dir("browse-absent");
   std::fs::create_dir_all(&home).expect("an isolated home");
 
@@ -392,7 +397,7 @@ fn an_entity_that_does_not_exist_is_refused_before_a_browser_is_opened() {
   assert_eq!(verb_code, flag_code, "and must not exit differently");
 
   // The control: a real thread must reach PAST the check.
-  let (real, _) = cli(&root, &home, &["browse", "st", "ST0001"]);
+  let (real, _) = cli(&root, &home, &["browse", "st", st.as_str()]);
   assert!(
     real.contains("no `intentd` is answering"),
     "a thread that exists must pass the existence check and reach the daemon \
@@ -402,24 +407,26 @@ fn an_entity_that_does_not_exist_is_refused_before_a_browser_is_opened() {
 
 /// **THE PREMISE OF THIS TEST INVERTED ON 2026-09-09, AND THE ASSERTION WITH
 /// IT.** It used to require a present and an absent work package to get the
-/// SAME answer, and the reasoning was sound while it held: *a real WP-01 cannot
-/// be browsed either, so answering `no such work package` for WP-99 would tell
-/// the operator that WP-01 would have worked -- which is false.*
+/// SAME answer, and the reasoning was sound while it held: *a real work package
+/// cannot be browsed either, so answering `no such work package` for WP-99
+/// would tell the operator that the real one would have worked -- which is
+/// false.*
 ///
-/// **WP-01 NOW DOES WORK, so equality has become the wrong assertion and would
-/// pass only if the fix had not landed.** The property the row actually needs
-/// is the one that survived the inversion: an absent work package is refused as
-/// a WORK PACKAGE and never as a typo or a missing daemon. It is now stated
-/// with the discrimination the old shape could not have -- the two answers must
-/// DIFFER, because one of them opens.
+/// **THE REAL ONE NOW DOES WORK, so equality has become the wrong assertion and
+/// would pass only if the fix had not landed.** The property the row actually
+/// needs is the one that survived the inversion: an absent work package is
+/// refused as a WORK PACKAGE and never as a typo or a missing daemon. It is now
+/// stated with the discrimination the old shape could not have -- the two
+/// answers must DIFFER, because one of them opens.
 #[test]
 fn an_absent_work_package_is_refused_as_a_work_package_and_not_as_a_typo() {
-  let root = an_estate();
+  let (root, st, wp) = an_estate();
   let home = short_dir("browse-wp-absent");
   std::fs::create_dir_all(&home).expect("an isolated home");
 
-  let (absent, _) = cli(&root, &home, &["browse", "wp", "ST0001/99"]);
-  let (present, _) = cli(&root, &home, &["browse", "wp", "ST0001/01"]);
+  let missing = crate::common::wp_address(&st, 99);
+  let (absent, _) = cli(&root, &home, &["browse", "wp", missing.as_str()]);
+  let (present, _) = cli(&root, &home, &["browse", "wp", wp.as_str()]);
 
   assert!(
     absent.contains("WP-99"),

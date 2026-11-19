@@ -36,13 +36,14 @@ fn said(out: &Output) -> String {
   )
 }
 
-/// A project with one open issue and nothing else.
+/// A project with one open issue and nothing else, and the id `issues add`
+/// minted for it.
 ///
 /// **`issues add` writes the STORE and does not realise**, exactly as `st new`
 /// does not -- so a test that needs the file on disk has to ask for it. That is
 /// the same laziness threads already have and is not a gap this criterion
 /// closes.
-fn project_with_an_issue() -> tempfile::TempDir {
+fn project_with_an_issue() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   assert!(
@@ -55,11 +56,12 @@ fn project_with_an_issue() -> tempfile::TempDir {
     "issues add must succeed: {}",
     said(&out)
   );
-  dir
+  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  (dir, issue)
 }
 
-fn issue_view(root: &std::path::Path) -> std::path::PathBuf {
-  root.join("intent/issues/0001.md")
+fn issue_view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
+  root.join(format!("intent/issues/{issue}.md"))
 }
 
 // ---------------------------------------------------------------------------
@@ -68,16 +70,16 @@ fn issue_view(root: &std::path::Path) -> std::path::PathBuf {
 
 #[test]
 fn an_open_issue_realises_to_a_generated_view_under_intent_issues() {
-  let dir = project_with_an_issue();
+  let (dir, issue) = project_with_an_issue();
   let root = dir.path();
 
   let out = intent(root, &["organize", "--apply"]);
   assert!(out.status.success(), "organize --apply: {}", said(&out));
 
-  let view = issue_view(root);
+  let view = issue_view(root, &issue);
   assert!(
     view.is_file(),
-    "an open issue must realise to intent/issues/0001.md; the estate holds:\n{}",
+    "an open issue must realise to intent/issues/{issue}.md; the estate holds:\n{}",
     said(&intent(root, &["organize"]))
   );
 
@@ -94,11 +96,11 @@ fn an_open_issue_realises_to_a_generated_view_under_intent_issues() {
 
 #[test]
 fn two_renders_of_one_store_produce_the_same_bytes() {
-  let dir = project_with_an_issue();
+  let (dir, issue) = project_with_an_issue();
   let root = dir.path();
   assert!(intent(root, &["organize", "--apply"]).status.success());
 
-  let view = issue_view(root);
+  let view = issue_view(root, &issue);
   let first = std::fs::read(&view).expect("first render");
 
   // Remove it and realise again from the same store: a second render of
@@ -122,14 +124,15 @@ fn two_renders_of_one_store_produce_the_same_bytes() {
 
 #[test]
 fn a_hand_edited_body_is_reported_by_doctor_as_view_skew() {
-  let dir = project_with_an_issue();
+  let (dir, issue) = project_with_an_issue();
   let root = dir.path();
   assert!(intent(root, &["organize", "--apply"]).status.success());
 
-  let view = issue_view(root);
+  let view = issue_view(root, &issue);
+  let named = format!("issues/{issue}.md");
   let clean = intent(root, &["doctor"]);
   assert!(
-    !said(&clean).contains("issues/0001.md"),
+    !said(&clean).contains(&named),
     "a freshly realised view must not be skewed before anything touches it: {}",
     said(&clean)
   );
@@ -139,7 +142,7 @@ fn a_hand_edited_body_is_reported_by_doctor_as_view_skew() {
 
   let out = intent(root, &["doctor"]);
   assert!(
-    said(&out).contains("issues/0001.md"),
+    said(&out).contains(&named),
     "doctor must report the hand-edited issue view as skew, said:\n{}",
     said(&out)
   );

@@ -126,9 +126,10 @@ fn the_first_command_in_a_fresh_project_succeeds() {
     "precondition: the gitignored cache directory does not exist yet"
   );
   let out = ok(dir.path(), &["st", "new", "Add a Rust-based CLI"]);
+  let st = crate::common::created(&out);
   assert_eq!(
     crate::common::result_lines(&out),
-    "created: ST0001",
+    format!("created: {st}"),
     "{out}"
   );
 }
@@ -165,25 +166,19 @@ fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
 
   let dir = project();
   let root = dir.path();
-  assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "new", "A thread for its work package"])),
-    "created: ST0001"
-  );
+  let out = ok(root, &["st", "new", "A thread for its work package"]);
+  let st = crate::common::created(&out);
+  assert_eq!(crate::common::result_lines(&out), format!("created: {st}"));
 
+  let wp_door = format!("intent wp new {st} -- help");
   let refused: [(&[&str], &str); 4] = [
     (&["st", "new", "start"], "intent st new -- start"),
     (
       &["issues", "add", "severity"],
       "intent issues add -- severity",
     ),
-    (
-      &["wp", "new", "ST0001", "help"],
-      "intent wp new ST0001 -- help",
-    ),
-    (
-      &["wp", "new", "ST0001", "help", "--"],
-      "intent wp new ST0001 -- help",
-    ),
+    (&["wp", "new", st.as_str(), "help"], wp_door.as_str()),
+    (&["wp", "new", st.as_str(), "help", "--"], wp_door.as_str()),
   ];
   for (args, remedy) in refused {
     let before = snapshot(root);
@@ -208,18 +203,21 @@ fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
     );
   }
 
+  let out = ok(root, &["st", "new", "--", "start"]);
+  let second = crate::common::created(&out);
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "new", "--", "start"])),
-    "created: ST0002"
+    crate::common::result_lines(&out),
+    format!("created: {second}")
   );
+  let out = ok(root, &["issues", "add", "--", "severity"]);
+  let issue = crate::common::created(&out);
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["issues", "add", "--", "severity"])),
-    "created: intent/.canon/issues/0001.json\n0001:severity"
+    crate::common::result_lines(&out),
+    format!("created: {issue}\n{issue}:severity")
   );
-  assert_eq!(
-    crate::common::result_lines(&ok(root, &["wp", "new", "ST0001", "--", "help"])),
-    "created: ST0001/01"
-  );
+  let out = ok(root, &["wp", "new", st.as_str(), "--", "help"]);
+  let wp = crate::common::created(&out);
+  assert_eq!(crate::common::result_lines(&out), format!("created: {wp}"));
 }
 
 /// **Issues 0154 and 0185: `intent set` writes one field through
@@ -254,8 +252,12 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
 
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "A thread"]);
-  ok(root, &["wp", "new", "ST0001", "A package"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "A thread"]));
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "A package"]));
+  let pkg = crate::common::package_of(&wp);
+  let seq = crate::common::package_seq(&wp);
+  let wp_address = format!("intent:///threads/{st}/wp/{pkg}");
+  let st_address = format!("intent:///threads/{st}");
 
   let body = "The package's real body.\n\nIt spans lines, which is why it comes from a file.\n";
   let file = root.join("wp-body.md");
@@ -264,16 +266,16 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
     root,
     &[
       "set",
-      "intent:///threads/ST0001/wp/01",
+      wp_address.as_str(),
       "body",
       "--from",
       file.to_str().expect("a utf-8 path"),
     ],
   );
-  ok(root, &["set", "ST0001", "title", "Retitled by set"]);
+  ok(root, &["set", st.as_str(), "title", "Retitled by set"]);
 
   let before = snapshot(root);
-  let out = run(root, &["set", "intent:///threads/ST0001", "status", "done"]);
+  let out = run(root, &["set", st_address.as_str(), "status", "done"]);
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert_eq!(
     out.status.code(),
@@ -298,12 +300,12 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
   );
   let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
   assert_eq!(
-    facade.wp_show("ST0001", 1).expect("the work package").body,
+    facade.wp_show(&st, seq).expect("the work package").body,
     body,
     "the store holds the body set wrote"
   );
   assert_eq!(
-    facade.st_show("ST0001").expect("the thread").title,
+    facade.st_show(&st).expect("the thread").title,
     "Retitled by set",
     "the store holds the title set wrote"
   );
@@ -330,13 +332,13 @@ fn start_is_legal_straight_from_triage() {
   let dir = project();
   let root = dir.path();
 
-  ok(root, &["st", "new", "Add a Rust-based CLI"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "start", "ST0001"])),
-    "ok: ST0001 started"
+    crate::common::result_lines(&ok(root, &["st", "start", st.as_str()])),
+    format!("ok: {st} started")
   );
 
-  let shown = ok(root, &["st", "show", "ST0001"]);
+  let shown = ok(root, &["st", "show", st.as_str()]);
   assert!(
     shown.contains("status: WIP"),
     "two commands, and the thread is where the operator expected it: {shown}"
@@ -349,14 +351,17 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   let dir = project();
   let root = dir.path();
 
-  ok(root, &["st", "new", "Add a Rust-based CLI"]);
-  assert!(root.join("intent/.canon/st/ST0001.json").is_file(), "canon");
+  let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
   assert!(
-    root.join("intent/st/ST0001/info.md").is_file(),
+    root.join(format!("intent/.canon/st/{st}.json")).is_file(),
+    "canon"
+  );
+  assert!(
+    root.join(format!("intent/st/{st}/info.md")).is_file(),
     "cover view"
   );
   assert!(
-    root.join("intent/st/ST0001/acceptance.md").is_file(),
+    root.join(format!("intent/st/{st}/acceptance.md")).is_file(),
     "contract view"
   );
   assert!(root.join("intent/st/steel_threads.md").is_file(), "index");
@@ -369,7 +374,7 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // **`Triage` rather than `Not Started` since the machines were ratified**:
   // `st new` enters at triage and `st triage` accepts it into the backlog.
   let listed = ok(root, &["st", "list", "--status", "all"]);
-  assert!(listed.contains("ST0001"), "{listed}");
+  assert!(listed.contains(st.as_str()), "{listed}");
   assert!(listed.contains("Triage"), "{listed}");
   // **THIS ARM USED TO REQUIRE `header + separator only` AND THAT IS THE
   // DEFECT hv FILED AS 0121.** The bare form narrows to WIP, the fresh thread
@@ -401,36 +406,43 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // own wording is the only shape that distinguishes a wired arm from a
   // present-but-unbuilt one.
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "triage", "ST0001"])),
-    "ok: ST0001 accepted out of triage",
+    crate::common::result_lines(&ok(root, &["st", "triage", st.as_str()])),
+    format!("ok: {st} accepted out of triage"),
     "and the message names where the thread LANDED -- `triage` reads in both directions"
   );
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "start", "ST0001"])),
-    "ok: ST0001 started"
+    crate::common::result_lines(&ok(root, &["st", "start", st.as_str()])),
+    format!("ok: {st} started")
   );
   assert_eq!(
     crate::common::result_lines(&ok(
       root,
-      &["st", "hold", "ST0001", "--reason", "waiting on the fleet"]
+      &[
+        "st",
+        "hold",
+        st.as_str(),
+        "--reason",
+        "waiting on the fleet"
+      ]
     )),
-    "ok: ST0001 on hold"
+    format!("ok: {st} on hold")
   );
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["st", "resume", "ST0001"])),
-    "ok: ST0001 resumed"
+    crate::common::result_lines(&ok(root, &["st", "resume", st.as_str()])),
+    format!("ok: {st} resumed")
   );
 
-  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
-  ok(root, &["wp", "start", "ST0001/01"]);
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
+  ok(root, &["wp", "start", wp.as_str()]);
   assert_eq!(
-    crate::common::result_lines(&ok(root, &["wp", "unstart", "ST0001/01"])),
-    "ok: ST0001/01 back to not started"
+    crate::common::result_lines(&ok(root, &["wp", "unstart", wp.as_str()])),
+    format!("ok: {wp} back to not started")
   );
-  ok(root, &["wp", "start", "ST0001/01"]);
-  let wps = ok(root, &["wp", "list", "ST0001"]);
+  ok(root, &["wp", "start", wp.as_str()]);
+  let wps = ok(root, &["wp", "list", st.as_str()]);
+  let column = format!("{} ", crate::common::package_of(&wp));
   assert!(
-    wps.lines().any(|l| l.starts_with("01 ")),
+    wps.lines().any(|l| l.starts_with(column.as_str())),
     "the WP column is v2's bare sequence number: {wps}"
   );
 
@@ -440,16 +452,16 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   assert_eq!(
     crate::common::result_lines(&ok(
       root,
-      &["st", "cancel", "ST0001", "--reason", "overtaken"]
+      &["st", "cancel", st.as_str(), "--reason", "overtaken"]
     )),
-    "ok: ST0001 cancelled"
+    format!("ok: {st} cancelled")
   );
   assert_eq!(
     crate::common::result_lines(&ok(
       root,
-      &["st", "reinstate", "ST0001", "--reason", "wanted again"]
+      &["st", "reinstate", st.as_str(), "--reason", "wanted again"]
     )),
-    "ok: ST0001 reinstated to the backlog",
+    format!("ok: {st} reinstated to the backlog"),
     "a reinstated thread lands in the BACKLOG, not back at wip, and the message says so"
   );
 }
@@ -469,10 +481,10 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
 fn st_new_start_composes_the_two_transitions_rather_than_constructing_the_end_state() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "A thread", "-s"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "A thread", "-s"]));
 
   assert!(
-    ok(root, &["st", "show", "ST0001"]).contains("status: WIP"),
+    ok(root, &["st", "show", st.as_str()]).contains("status: WIP"),
     "the flag still does what v2's flag did, from the operator's side"
   );
 
@@ -571,16 +583,16 @@ fn a_closed_thread_and_work_package_can_both_be_reopened() {
 fn the_gate_speaks_v2s_contract_through_the_cli() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
 
-  let out = run(root, &["ac", "gate", "ST0001"]);
+  let out = run(root, &["ac", "gate", st.as_str()]);
   assert_eq!(
     out.status.code(),
     Some(1),
     "an empty contract BLOCKS, and `st done` reads that code"
   );
   assert!(
-    stdout(&out).starts_with("gate: ST0001 BLOCKED"),
+    stdout(&out).starts_with(&format!("gate: {st} BLOCKED")),
     "the verdict goes to STDOUT, because machines parse it: {}",
     stdout(&out)
   );
@@ -600,15 +612,15 @@ fn the_gate_speaks_v2s_contract_through_the_cli() {
 fn closing_through_the_cli_is_gated_and_says_why() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["st", "triage", "ST0001"]);
-  ok(root, &["st", "start", "ST0001"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  ok(root, &["st", "triage", st.as_str()]);
+  ok(root, &["st", "start", st.as_str()]);
 
-  let out = run(root, &["st", "done", "ST0001"]);
+  let out = run(root, &["st", "done", st.as_str()]);
   assert_eq!(out.status.code(), Some(1));
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert!(stderr.starts_with("error: "), "the voice: {stderr}");
-  assert!(stderr.contains("gate: ST0001 BLOCKED"), "{stderr}");
+  assert!(stderr.contains(&format!("gate: {st} BLOCKED")), "{stderr}");
   assert!(stderr.contains("remedy: "), "{stderr}");
   assert!(
     stdout(&out).is_empty(),
@@ -637,19 +649,19 @@ fn outside_a_project_the_tool_refuses_with_a_remedy() {
 fn every_wired_verb_takes_its_arguments_without_panicking() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["wp", "new", "ST0001", "a package"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "a package"]));
 
   // Drive every wired verb that takes a positional. A panic exits 101; a
   // legitimate refusal exits 1. Neither may be 101.
   for args in [
-    vec!["st", "show", "ST0001"],
-    vec!["st", "start", "ST0001"],
-    vec!["st", "cancel", "ST0001"],
-    vec!["wp", "list", "ST0001"],
-    vec!["wp", "start", "ST0001/01"],
-    vec!["at", "list", "ST0001"],
-    vec!["ac", "gate", "ST0001"],
+    vec!["st", "show", st.as_str()],
+    vec!["st", "start", st.as_str()],
+    vec!["st", "cancel", st.as_str()],
+    vec!["wp", "list", st.as_str()],
+    vec!["wp", "start", wp.as_str()],
+    vec!["at", "list", st.as_str()],
+    vec!["ac", "gate", st.as_str()],
   ] {
     let out = run(root, &args);
     let code = out.status.code().expect("exited");
@@ -763,10 +775,10 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
 fn the_generated_index_is_written_and_carries_no_render_time() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "Add a Rust-based CLI"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
 
   let index = std::fs::read_to_string(root.join("intent/st/steel_threads.md")).expect("read index");
-  assert!(index.contains("| ST0001 |"), "{index}");
+  assert!(index.contains(&format!("| {st} |")), "{index}");
   assert!(index.contains("Generated by Intent v"), "{index}");
   assert!(
     !index.contains("<!-- BEGIN"),
@@ -842,7 +854,7 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
 fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "A thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "A thread"]));
 
   let written = ok(root, &["sync", "--to-disk"]);
   assert!(
@@ -878,7 +890,7 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   // restore from it. The restore must name the overwrite before taking it --
   // a summary afterwards is a receipt for a loss the operator needed one
   // moment earlier.
-  let canon = root.join("intent/.canon/st/ST0001.json");
+  let canon = root.join(format!("intent/.canon/st/{st}.json"));
   let text = std::fs::read_to_string(&canon).expect("canon");
   std::fs::write(
     &canon,
@@ -890,11 +902,11 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   assert_eq!(restored.status.code(), Some(0));
   let warned = String::from_utf8_lossy(&restored.stderr).to_string();
   assert!(
-    warned.contains("OVERWRITES") && warned.contains("ST0001"),
+    warned.contains("OVERWRITES") && warned.contains(st.as_str()),
     "the destructive direction names WHAT it overwrites, on stderr: {warned:?}"
   );
   assert!(
-    ok(root, &["st", "show", "ST0001"]).contains("A stale title from the extract"),
+    ok(root, &["st", "show", st.as_str()]).contains("A stale title from the extract"),
     "and it really did overwrite -- the warning describes an act, not an intention"
   );
 }
@@ -1124,15 +1136,16 @@ fn st_sync_dry_run_is_the_index_table_not_a_reconciliation_report() {
 fn wp_list_shares_the_table_and_v2s_empty_case() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
 
   // The empty case is a SENTENCE at exit 0 -- deliberately unlike `st list`,
   // which prints its header. Both are v2's, and they differ.
-  let empty = ok(root, &["wp", "list", "ST0001"]);
-  assert_eq!(empty.trim(), "no work packages for ST0001");
+  let empty = ok(root, &["wp", "list", st.as_str()]);
+  assert_eq!(empty.trim(), format!("no work packages for {st}"));
 
-  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
-  let listed = ok(root, &["wp", "list", "ST0001"]);
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
+  let pkg = crate::common::package_of(&wp);
+  let listed = ok(root, &["wp", "list", st.as_str()]);
   let header = listed.lines().next().unwrap_or_default();
   assert!(
     header.starts_with("WP") && header.contains("| Title") && header.contains("| Scope"),
@@ -1142,9 +1155,10 @@ fn wp_list_shares_the_table_and_v2s_empty_case() {
     listed.lines().nth(1).is_some_and(|l| l.contains("---|---")),
     "the shared pipeless separator: {listed:?}"
   );
+  let column = format!("{pkg} ");
   assert!(
-    listed.lines().any(|l| l.starts_with("01 ")),
-    "v2 numbers the column `01`, not `WP-01`: {listed:?}"
+    listed.lines().any(|l| l.starts_with(column.as_str())),
+    "v2 numbers the column `{pkg}`, not `WP-{pkg}`: {listed:?}"
   );
   assert!(
     listed.contains("Not Started"),
@@ -1162,10 +1176,11 @@ fn wp_list_shares_the_table_and_v2s_empty_case() {
 fn wp_new_defaults_to_v2s_template_scope() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["wp", "new", "ST0001", "a package"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  ok(root, &["wp", "new", st.as_str(), "a package"]);
 
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  let canon =
+    std::fs::read_to_string(root.join(format!("intent/.canon/st/{st}.json"))).expect("canon");
   assert!(
     canon.contains("\"scope\": \"S\""),
     "the canon carries S, as v2's template seeds: {canon}"
@@ -1186,10 +1201,12 @@ fn wp_new_defaults_to_v2s_template_scope() {
 fn a_work_package_body_survives_canon_to_view_to_canon() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "a thread"]);
-  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+  let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
+  let pkg = crate::common::package_of(&wp);
 
-  let canon_path = root.join("intent/.canon/st/ST0001.json");
+  let canon_path = root.join(format!("intent/.canon/st/{st}.json"));
+  let view_path = root.join(format!("intent/st/{st}/WP/{pkg}/info.md"));
   let authored = "## Why the incumbents go\n\nA section the template never named, carried verbatim.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.";
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(
@@ -1219,7 +1236,7 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   ok(root, &["st", "sync", "--write"]);
 
   // The view carries the authored sections VERBATIM.
-  let view = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
+  let view = std::fs::read_to_string(&view_path).expect("view");
   for fragment in [
     "## Why the incumbents go",
     "A section the template never named",
@@ -1244,7 +1261,7 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   // Idempotent: rendering twice writes the same bytes (AC-03.2).
   // The projection, via the safe direction -- the bare verb now refuses.
   ok(root, &["st", "sync", "--write"]);
-  let again = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
+  let again = std::fs::read_to_string(&view_path).expect("view");
   assert_eq!(view, again, "the view renders the same bytes twice");
 }
 
@@ -1328,10 +1345,10 @@ fn a_work_package_status_reason_reaches_the_human_face_too() {
 fn sync_narrows_to_the_threads_named_on_the_command_line() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "First"]);
+  let first = crate::common::created(&ok(root, &["st", "new", "First"]));
   ok(root, &["st", "new", "Second"]);
 
-  let scoped = ok(root, &["sync", "--to-disk", "ST0001"]);
+  let scoped = ok(root, &["sync", "--to-disk", first.as_str()]);
   let all = ok(root, &["sync", "--to-disk"]);
 
   assert!(
@@ -1396,7 +1413,9 @@ fn a_sync_scope_naming_no_such_thread_refuses_and_says_which() {
 fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "attachment probe"]);
+  // Seeded rather than minted: the short spellings below (`1`, `s1`) name an
+  // id known in advance, which only a seeded thread has.
+  seed_closeable_thread(root);
 
   let src = root.join("design.md");
   std::fs::write(&src, "# design\n\nthe original\n").expect("write source");
@@ -1556,8 +1575,34 @@ fn at_new_with_no_status_starts_a_non_test_row_at_n_a() {
 fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
   let dir = project();
   let root = dir.path();
-  ok(root, &["st", "new", "the thread that links"]);
-  ok(root, &["st", "new", "the thread it links to"]);
+  // Seeded rather than minted: the short spellings below (`1`, `s2`, `2`)
+  // name ids known in advance, which only seeded threads have.
+  let canon_dir = root.join("intent/.canon/st");
+  std::fs::create_dir_all(&canon_dir).expect("mkdir");
+  for (id, slug, title) in [
+    ("ST0001", "the-thread-that-links", "the thread that links"),
+    ("ST0002", "the-thread-it-links-to", "the thread it links to"),
+  ] {
+    std::fs::write(
+      canon_dir.join(format!("{id}.json")),
+      format!(
+        r#"{{
+  "schema": "intent/thread@3.0",
+  "id": "{id}",
+  "slug": "{slug}",
+  "title": "{title}",
+  "status": "wip",
+  "created": "2026-08-15",
+  "objective": "",
+  "context": "",
+  "wps": [],
+  "criteria": []
+}}
+"#
+      ),
+    )
+    .expect("write canon");
+  }
 
   let said = ok(root, &["st", "relate", "1", "s2", "--note", "builds on it"]);
   assert!(said.contains("ok: ST0001 related to ST0002"), "{said}");
@@ -1601,20 +1646,39 @@ fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
   );
 }
 
+/// The ids `seed_outstanding` minted that its callers name, each as its mint
+/// printed it.
+struct Minted {
+  /// The WIP thread.
+  open: String,
+  /// The thread left in triage.
+  idle: String,
+  /// The WIP package, under the thread left in triage.
+  busy: String,
+  /// The open issue.
+  issue: String,
+}
+
 /// ST0079's estate, made through the real verbs: one outstanding row of each
 /// kind beside one that is not -- a WIP thread and an unstarted one, a WIP
 /// package under the UNSTARTED thread and an unstarted one under the WIP
 /// thread, an open issue and a closed one.
-fn seed_outstanding(root: &Path) {
-  ok(root, &["st", "new", "open thread"]);
-  ok(root, &["st", "start", "ST0001"]);
-  ok(root, &["st", "new", "idle thread"]);
-  ok(root, &["wp", "new", "ST0002", "busy package"]);
-  ok(root, &["wp", "start", "ST0002/01"]);
-  ok(root, &["wp", "new", "ST0001", "waiting package"]);
-  ok(root, &["issues", "add", "an open issue"]);
-  ok(root, &["issues", "add", "a closed issue"]);
-  ok(root, &["issues", "close", "2"]);
+fn seed_outstanding(root: &Path) -> Minted {
+  let open = crate::common::created(&ok(root, &["st", "new", "open thread"]));
+  ok(root, &["st", "start", open.as_str()]);
+  let idle = crate::common::created(&ok(root, &["st", "new", "idle thread"]));
+  let busy = crate::common::created(&ok(root, &["wp", "new", idle.as_str(), "busy package"]));
+  ok(root, &["wp", "start", busy.as_str()]);
+  ok(root, &["wp", "new", open.as_str(), "waiting package"]);
+  let issue = crate::common::created(&ok(root, &["issues", "add", "an open issue"]));
+  let closed = crate::common::created(&ok(root, &["issues", "add", "a closed issue"]));
+  ok(root, &["issues", "close", closed.as_str()]);
+  Minted {
+    open,
+    idle,
+    busy,
+    issue,
+  }
 }
 
 /// A terminal table's rows as their cells, in order: every line below the
@@ -1704,9 +1768,9 @@ fn outstanding_prints_one_table_with_the_kind_leftmost() {
 fn outstanding_lists_what_bare_st_list_and_issues_list() {
   let dir = project();
   let root = dir.path();
-  seed_outstanding(root);
-  ok(root, &["st", "new", "second open thread"]);
-  ok(root, &["st", "start", "ST0003"]);
+  let minted = seed_outstanding(root);
+  let second_open = crate::common::created(&ok(root, &["st", "new", "second open thread"]));
+  ok(root, &["st", "start", second_open.as_str()]);
   ok(root, &["issues", "add", "a second open issue"]);
 
   let rows = kind_id_status(&ok(root, &["outs"]));
@@ -1732,12 +1796,12 @@ fn outstanding_lists_what_bare_st_list_and_issues_list() {
   assert_eq!(ids_where(|(kind, _, _)| kind == "Issue"), issues);
   assert_eq!(
     ids_where(|(kind, _, _)| kind == "WP"),
-    ["ST0002/01"],
+    [minted.busy.as_str()],
     "the WIP package under the thread in triage, never the unstarted one under the WIP thread"
   );
   assert_eq!(
     ids_where(|(kind, _, status)| kind == "ST" && status == "Triage"),
-    ["ST0002"],
+    [minted.idle.as_str()],
     "the thread `st list` hides comes in as its WIP package's parent, with its own status"
   );
 }
@@ -1806,19 +1870,25 @@ fn the_counts_line_says_none_of_n_rather_than_printing_an_empty_table() {
 fn a_work_package_is_listed_directly_under_its_own_thread() {
   let dir = project();
   let root = dir.path();
-  for title in ["first open thread", "held thread", "second open thread"] {
-    ok(root, &["st", "new", title]);
-  }
-  for st in ["ST0001", "ST0002", "ST0003"] {
-    ok(root, &["st", "start", st]);
-    ok(root, &["wp", "new", st, "busy package"]);
-    ok(root, &["wp", "start", &format!("{st}/01")]);
-  }
+  let [first, held, second] = ["first open thread", "held thread", "second open thread"]
+    .map(|title| crate::common::created(&ok(root, &["st", "new", title])));
+  let [first_wp, held_wp, second_wp] = [&first, &held, &second].map(|st| {
+    ok(root, &["st", "start", st.as_str()]);
+    let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "busy package"]));
+    ok(root, &["wp", "start", wp.as_str()]);
+    wp
+  });
   ok(
     root,
-    &["st", "hold", "ST0002", "--reason", "waiting on a ruling"],
+    &[
+      "st",
+      "hold",
+      held.as_str(),
+      "--reason",
+      "waiting on a ruling",
+    ],
   );
-  ok(root, &["issues", "add", "an open issue"]);
+  let issue = crate::common::created(&ok(root, &["issues", "add", "an open issue"]));
 
   let table = ok(root, &["outs"]);
   let row =
@@ -1826,13 +1896,13 @@ fn a_work_package_is_listed_directly_under_its_own_thread() {
   assert_eq!(
     kind_id_status(&table),
     [
-      row("ST", "ST0003", "WIP"),
-      row("WP", "ST0003/01", "WIP"),
-      row("ST", "ST0002", "On Hold"),
-      row("WP", "ST0002/01", "WIP"),
-      row("ST", "ST0001", "WIP"),
-      row("WP", "ST0001/01", "WIP"),
-      row("Issue", "0001", "OPEN"),
+      row("ST", second.as_str(), "WIP"),
+      row("WP", second_wp.as_str(), "WIP"),
+      row("ST", held.as_str(), "On Hold"),
+      row("WP", held_wp.as_str(), "WIP"),
+      row("ST", first.as_str(), "WIP"),
+      row("WP", first_wp.as_str(), "WIP"),
+      row("Issue", issue.as_str(), "OPEN"),
     ]
   );
   let threads_listed: Vec<String> = first_two_cells(&table)
@@ -2053,24 +2123,25 @@ fn enter_on_an_outstanding_row_opens_what_it_names_and_backspace_returns() {
 
   let dir = project();
   let root = dir.path();
-  seed_outstanding(root);
+  let minted = seed_outstanding(root);
   let rows = intent_cli::render::outstanding_view(&facade_of(root));
   let item = |kind: &str, id: &str| View::Item {
     kind: kind.into(),
     id: id.into(),
   };
-  // `1`, the name the thread's own `wps` list gives the package, never `01`:
-  // the child view finds a package by that name.
+  // The name the thread's own `wps` list gives the package is its bare
+  // number, never the zero-padded one its address carries: the child view
+  // finds a package by that name.
   let package = View::Child {
     kind: "thread".into(),
-    id: "ST0002".into(),
+    id: minted.idle.clone(),
     field: "wps".into(),
-    item: "1".into(),
+    item: crate::common::package_seq(&minted.busy).to_string(),
   };
   for (name, opens) in [
-    ("ST0001", item("thread", "ST0001")),
-    ("ST0002/01", package),
-    ("0001", item("issue", "0001")),
+    (minted.open.as_str(), item("thread", minted.open.as_str())),
+    (minted.busy.as_str(), package),
+    (minted.issue.as_str(), item("issue", minted.issue.as_str())),
   ] {
     let at = rows
       .iter()

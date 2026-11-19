@@ -42,7 +42,7 @@
 //! |---|---|---|
 //! | `Mode::Apply` -> `Mode::Preview` in `Facade::dehydrate` | removes nothing, still delists | the middle file assertion -- **and the report test, independently** |
 //! | `if was_listed` -> `if false` | never delists | the middle manifest assertion |
-//! | `set.add(path, after)` -> `String::new()` | wipes the whole manifest | the ST0001-untouched assertion |
+//! | `set.add(path, after)` -> `String::new()` | wipes the whole manifest | the untouched-neighbour assertion |
 //! | `pin(.., None)` -> `pin(.., Some("mutation"))` in `Facade::hydrate` | restores different bytes | the final byte-for-byte comparison |
 //! | `&done.removed` -> `done.removed.iter().skip(1)` in `render.rs` | omits a removed path from the report | the report/disk disagreement assertion |
 //!
@@ -123,17 +123,18 @@ fn ok(dir: &Path, args: &[&str]) -> String {
 }
 
 /// A project with the dehydration gate DECLARED and MET, and a second thread to
-/// be the subject of the trip.
+/// be the subject of the trip. Returned with the two threads' ids as their
+/// mints printed them: the gate's, then the subject's.
 ///
 /// **The declaration is single, which the gate requires**: exactly one
 /// criterion in the estate carries a `<<PRECONDITIONS ... PRECONDITIONS>>`
 /// block, and two carriers anywhere would refuse.
-fn project() -> tempfile::TempDir {
+fn project() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "Fixture"]);
-  ok(root, &["st", "new", "The gate declaration"]);
-  ok(root, &["st", "new", "The round trip subject"]);
+  let gate = crate::common::created(&ok(root, &["st", "new", "The gate declaration"]));
+  let subject = crate::common::created(&ok(root, &["st", "new", "The round trip subject"]));
   // **HYDRATED EXPLICITLY SINCE hv's 2026-08-27 RULING TOOK `st.new` OUT OF THE
   // LIST-EDITING SET.** `st new` used to declare what it created, so this
   // fixture got its realised state for free and never said so. It no longer
@@ -141,14 +142,14 @@ fn project() -> tempfile::TempDir {
   // the verb under test's own inverse, so establishing the realised state with
   // it makes the fixture say what it depends on instead of inheriting it from
   // an unrelated verb.
-  ok(root, &["st", "hydrate", "ST0001"]);
-  ok(root, &["st", "hydrate", "ST0002"]);
+  ok(root, &["st", "hydrate", gate.as_str()]);
+  ok(root, &["st", "hydrate", subject.as_str()]);
   ok(
     root,
     &[
       "ac",
       "new",
-      "ST0001",
+      gate.as_str(),
       "AC-00.1",
       "--text",
       "No dehydration path removes any file while any declared precondition is \
@@ -160,7 +161,7 @@ fn project() -> tempfile::TempDir {
     &[
       "ac",
       "new",
-      "ST0001",
+      gate.as_str(),
       "AC-00.9",
       "--text",
       "a declared precondition",
@@ -171,13 +172,13 @@ fn project() -> tempfile::TempDir {
     &[
       "ac",
       "satisfy",
-      "ST0001",
+      gate.as_str(),
       "AC-00.9",
       "--evidence",
       "met by construction in this fixture",
     ],
   );
-  dir
+  (dir, gate, subject)
 }
 
 /// Every file under the project with its bytes, **except the store**. See the
@@ -225,33 +226,34 @@ fn declares(root: &Path, id: &str) -> bool {
 /// `dehydrate` cannot pass it.
 #[test]
 fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
-  let dir = project();
+  let (dir, gate, subject) = project();
   let root = dir.path();
+  let realised = format!("intent/st/{subject}/");
 
-  ok(root, &["st", "hydrate", "ST0002"]);
+  ok(root, &["st", "hydrate", subject.as_str()]);
   let before = tree(root);
   assert!(
-    declares(root, "ST0002"),
+    declares(root, &subject),
     "the subject must be listed before the trip starts, or the trip has no subject"
   );
   assert!(
-    before.keys().any(|p| p.starts_with("intent/st/ST0002/")),
+    before.keys().any(|p| p.starts_with(&realised)),
     "the subject must be realised before the trip starts, or there is nothing to remove"
   );
 
-  ok(root, &["st", "dehydrate", "ST0002"]);
+  ok(root, &["st", "dehydrate", subject.as_str()]);
 
   // **THE MIDDLE STATE, AND IT IS THE WHOLE DEFENCE AGAINST A DEGENERATE
   // PASS.** Both halves of "is the inverse of hydrate" are checked here --
   // the manifest entry and the files -- because a `dehydrate` that did
   // neither would round-trip perfectly at the end of this test.
   assert!(
-    !declares(root, "ST0002"),
+    !declares(root, &subject),
     "dehydrate left the STEELTHREAD entry in the manifest, so it removed nothing to restore"
   );
   let middle = tree(root);
   assert!(
-    !middle.keys().any(|p| p.starts_with("intent/st/ST0002/")),
+    !middle.keys().any(|p| p.starts_with(&realised)),
     "dehydrate left the thread's files on disk, so the round trip below proves nothing"
   );
 
@@ -265,13 +267,13 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   // one of them, sends the next reader at the wrong fix. The precondition
   // below separates them.
   assert!(
-    declares(root, "ST0001"),
-    "ST0001 is not declared after dehydrating ST0002. Either dehydrate delisted a neighbour, or \
+    declares(root, &gate),
+    "{gate} is not declared after dehydrating {subject}. Either dehydrate delisted a neighbour, or \
      the fixture never declared it -- check the `st hydrate` calls in `project()` before \
      suspecting dehydrate."
   );
 
-  ok(root, &["st", "hydrate", "ST0002"]);
+  ok(root, &["st", "hydrate", subject.as_str()]);
   let after = tree(root);
 
   let changed: std::collections::BTreeSet<&String> = before
@@ -296,12 +298,12 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
 /// report to confirm itself.
 #[test]
 fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
-  let dir = project();
+  let (dir, _, subject) = project();
   let root = dir.path();
 
-  ok(root, &["st", "hydrate", "ST0002"]);
+  ok(root, &["st", "hydrate", subject.as_str()]);
   let before = tree(root);
-  let stdout = ok(root, &["st", "dehydrate", "ST0002"]);
+  let stdout = ok(root, &["st", "dehydrate", subject.as_str()]);
   let after = tree(root);
 
   let vanished: Vec<String> = before
@@ -339,22 +341,23 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
 /// 0632, and only the untouched ones keep the verb's own `exists:` label.
 #[test]
 fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
-  let dir = project();
+  let (dir, _, subject) = project();
   let root = dir.path();
-  std::fs::remove_file(root.join("intent/st/ST0002/acceptance.md"))
+  std::fs::remove_file(root.join(format!("intent/st/{subject}/acceptance.md")))
     .expect("remove a realised file");
 
-  let restored = ok(root, &["st", "hydrate", "ST0002"]);
+  let restored = ok(root, &["st", "hydrate", subject.as_str()]);
   assert!(
-    restored.contains("\nwrote: intent/st/ST0002/acceptance.md\n")
-      && restored.contains("  exists: intent/st/ST0002/info.md\n")
-      && !restored.contains("  exists: intent/st/ST0002/acceptance.md\n"),
+    restored.contains(&format!("\nwrote: intent/st/{subject}/acceptance.md\n"))
+      && restored.contains(&format!("  exists: intent/st/{subject}/info.md\n"))
+      && !restored.contains(&format!("  exists: intent/st/{subject}/acceptance.md\n")),
     "the recreated file is reported as written and the untouched one as existing: {restored}"
   );
 
-  let again = ok(root, &["st", "hydrate", "ST0002"]);
+  let again = ok(root, &["st", "hydrate", subject.as_str()]);
   assert!(
-    again.contains("  exists: intent/st/ST0002/acceptance.md\n") && !again.contains("wrote:"),
+    again.contains(&format!("  exists: intent/st/{subject}/acceptance.md\n"))
+      && !again.contains("wrote:"),
     "a hydrate with nothing to restore writes nothing and says so: {again}"
   );
 }

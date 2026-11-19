@@ -134,10 +134,11 @@ fn identify(root: &Path, name: &str) {
   );
 }
 
-/// Alice's project, initialised and committed, and Bob's clone of it. Neither
-/// machine has bootstrapped, so the config's author is `init`'s placeholder and
-/// each event names the git identity of the clone it was made on.
-fn two_clones(dir: &Path) -> (Clone, Clone) {
+/// Alice's project, initialised with one thread and committed, Bob's clone of
+/// it, and that thread's id. Neither machine has bootstrapped, so the config's
+/// author is `init`'s placeholder and each event names the git identity of the
+/// clone it was made on.
+fn two_clones(dir: &Path) -> (Clone, Clone, String) {
   let alice = Clone {
     root: dir.join("alice"),
     home: dir.join("home-alice"),
@@ -147,8 +148,8 @@ fn two_clones(dir: &Path) -> (Clone, Clone) {
   alice.git(&["init", "-q"]);
   identify(&alice.root, "Alice");
   alice.intent(&["init", "Team"]);
-  alice.intent(&["st", "new", "Onboarding guide"]);
-  alice.commit("alice: init and ST0001");
+  let st = crate::common::created(&alice.intent(&["st", "new", "Onboarding guide"]));
+  alice.commit(&format!("alice: init and {st}"));
 
   let bob = Clone {
     root: dir.join("bob"),
@@ -165,7 +166,7 @@ fn two_clones(dir: &Path) -> (Clone, Clone) {
     ],
   );
   identify(&bob.root, "Bob");
-  (alice, bob)
+  (alice, bob, st)
 }
 
 /// **AC-01.1: an act on one clone is readable on another after a pull, with
@@ -174,7 +175,7 @@ fn two_clones(dir: &Path) -> (Clone, Clone) {
 #[test]
 fn an_act_on_one_clone_is_read_on_another_with_its_author() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, bob) = two_clones(dir.path());
+  let (alice, bob, st) = two_clones(dir.path());
 
   // Each of Alice's events is one file under its day, named by its id.
   let files = alice.event_files();
@@ -199,25 +200,25 @@ fn an_act_on_one_clone_is_read_on_another_with_its_author() {
   }
 
   // Bob's cold clone reads Alice's acts, with her name on them.
-  let read = bob.intent(&["events", "--subject", "ST0001"]);
+  let read = bob.intent(&["events", "--subject", st.as_str()]);
   assert!(
-    read.contains("st.new  ST0001  by Alice <alice@example.com>"),
+    read.contains(&format!("st.new  {st}  by Alice <alice@example.com>")),
     "Alice's act is read on Bob's clone with its author: {read}"
   );
 
   // Bob acts; the event file is in the same working-tree change as the canon
   // it records, so one commit carries both.
-  bob.intent(&["st", "start", "ST0001"]);
+  bob.intent(&["st", "start", st.as_str()]);
   let status = bob.git(&["status", "--porcelain", "--untracked-files=all"]);
   assert!(
-    status.contains("intent/.canon/st/ST0001.json"),
+    status.contains(&format!("intent/.canon/st/{st}.json")),
     "the act's canon changed: {status}"
   );
   let new_event = status
     .lines()
     .find(|l| l.starts_with("??") && l.contains("intent/.canon/events/"))
     .unwrap_or_else(|| panic!("the act's event file lands beside its canon: {status}"));
-  bob.commit("bob: start ST0001");
+  bob.commit(&format!("bob: start {st}"));
 
   // Alice pulls; after the store takes the tree, Bob's act is read with Bob's name.
   alice.git(&[
@@ -228,13 +229,13 @@ fn an_act_on_one_clone_is_read_on_another_with_its_author() {
     "HEAD",
   ]);
   alice.intent(&["sync", "--apply"]);
-  let read = alice.intent(&["events", "--subject", "ST0001"]);
+  let read = alice.intent(&["events", "--subject", st.as_str()]);
   assert!(
-    read.contains("st.start  ST0001  by Bob <bob@example.com>"),
+    read.contains(&format!("st.start  {st}  by Bob <bob@example.com>")),
     "Bob's act ({new_event}) is read on Alice's clone with its author: {read}"
   );
   assert!(
-    read.contains("st.new  ST0001  by Alice <alice@example.com>"),
+    read.contains(&format!("st.new  {st}  by Alice <alice@example.com>")),
     "and her own act is still there: {read}"
   );
 }
@@ -258,7 +259,7 @@ fn the_author_is_git_then_the_config_then_local() {
 #[test]
 fn a_heartbeat_stays_on_the_machine_that_beat() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let before = alice.event_files().len();
 
   alice.intent(&[
@@ -290,9 +291,9 @@ fn a_heartbeat_stays_on_the_machine_that_beat() {
 #[test]
 fn ingest_takes_what_is_missing_and_changes_nothing_else() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, bob) = two_clones(dir.path());
-  bob.intent(&["wp", "new", "ST0001", "Write it"]);
-  bob.commit("bob: WP-01");
+  let (alice, bob, st) = two_clones(dir.path());
+  let wp = crate::common::created(&bob.intent(&["wp", "new", st.as_str(), "Write it"]));
+  bob.commit(&format!("bob: WP-{}", crate::common::package_of(&wp)));
   alice.git(&[
     "pull",
     "-q",
@@ -372,7 +373,7 @@ fn ingest_takes_what_is_missing_and_changes_nothing_else() {
 #[test]
 fn the_sync_plan_names_waiting_event_files_and_apply_takes_them() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let first = alice.event_files().remove(0);
   let mut foreign: serde_json::Value =
     serde_json::from_str(&std::fs::read_to_string(&first).expect("read")).expect("json");
@@ -413,7 +414,7 @@ fn the_sync_plan_names_waiting_event_files_and_apply_takes_them() {
 #[test]
 fn upgrade_backfills_the_history_the_store_held_once() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   alice.intent(&[
     "wb", "register", "al", "--name", "Alice", "--role", "worker",
   ]);
@@ -485,7 +486,7 @@ fn upgrade_backfills_the_history_the_store_held_once() {
 #[test]
 fn upgrade_on_a_migrated_estate_writes_no_event_log_file() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
 
   let out = alice.run(&["upgrade"]);
   assert_eq!(
@@ -535,7 +536,7 @@ fn an_estate_from_before_st0078(alice: &Clone, body: &str) -> String {
 #[test]
 fn upgrade_removes_the_empty_event_log_an_earlier_upgrade_left() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let converged = an_estate_from_before_st0078(&alice, "");
 
   let out = alice.run(&["upgrade"]);
@@ -567,7 +568,7 @@ fn upgrade_removes_the_empty_event_log_an_earlier_upgrade_left() {
 #[test]
 fn upgrade_names_an_event_log_with_content_and_leaves_it() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let body = "{\"op\":\"st.new\"}\n";
   an_estate_from_before_st0078(&alice, body);
 
@@ -592,7 +593,7 @@ fn upgrade_names_an_event_log_with_content_and_leaves_it() {
 #[test]
 fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let first = alice.event_files().remove(0);
   let day = first.parent().expect("day dir").to_path_buf();
   let good: serde_json::Value =
@@ -666,7 +667,7 @@ fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
 #[test]
 fn upgrade_retires_the_ignore_rule_and_export_keeps_one_file() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob) = two_clones(dir.path());
+  let (alice, _bob, _) = two_clones(dir.path());
   let gitignore = alice.root.join(".gitignore");
   let converged = std::fs::read_to_string(&gitignore).expect("read .gitignore");
   assert!(

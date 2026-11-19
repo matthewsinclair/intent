@@ -164,9 +164,10 @@ fn the_offline_project_accepts_the_first_command() {
 
   let (out, err, code) = run_isolated(&bin, &["st", "new", "offline thread"], proj.path());
   assert_eq!(code, 0, "the offline project refused `st new`: {err}");
+  let st = crate::common::created(&out);
   assert_eq!(
     crate::common::result_lines(&out),
-    "created: ST0001",
+    format!("created: {st}"),
     "{out}"
   );
 }

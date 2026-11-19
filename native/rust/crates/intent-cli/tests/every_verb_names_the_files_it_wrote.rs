@@ -36,11 +36,12 @@ fn project() -> tempfile::TempDir {
 }
 
 /// A step an arm stands on rather than one it judges: run it, then commit
-/// what it wrote.
-fn setup(dir: &Path, args: &[&str]) {
+/// what it wrote. Hands back stdout, where a mint names the id it made.
+fn setup(dir: &Path, args: &[&str]) -> String {
   let (out, err, code) = run(dir, args);
   assert_eq!(code, 0, "{args:?}: {out}{err}");
   crate::common::git_commit_all(dir);
+  out
 }
 
 /// The paths a run printed under `wrote:`, from either stream: `edit` prints
@@ -75,28 +76,33 @@ fn names_what_it_wrote(dir: &Path, args: &[&str]) -> String {
 fn the_issue_verbs_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  names_what_it_wrote(d, &["issues", "add", "a probe issue"]);
-  names_what_it_wrote(d, &["issues", "edit", "0001", "--body", "an edited body"]);
-  names_what_it_wrote(d, &["issues", "close", "0001"]);
+  let issue = crate::common::created(&names_what_it_wrote(d, &["issues", "add", "a probe issue"]));
+  names_what_it_wrote(
+    d,
+    &["issues", "edit", issue.as_str(), "--body", "an edited body"],
+  );
+  names_what_it_wrote(d, &["issues", "close", issue.as_str()]);
 }
 
 #[test]
 fn the_thread_verbs_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  names_what_it_wrote(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&names_what_it_wrote(d, &["st", "new", "a probe thread"]));
   // Realising the thread writes its files; with stdout not a terminal, `st
   // edit` prints the path there alone and its `wrote:` lines go to stderr.
-  let path = names_what_it_wrote(d, &["st", "edit", "ST0001"]);
+  let path = names_what_it_wrote(d, &["st", "edit", st.as_str()]);
   assert_eq!(path.lines().count(), 1, "stdout is the one path: {path}");
   assert!(
-    path.trim_end().ends_with("intent/st/ST0001/info.md"),
+    path
+      .trim_end()
+      .ends_with(&format!("intent/st/{st}/info.md")),
     "{path}"
   );
-  names_what_it_wrote(d, &["st", "start", "ST0001"]);
+  names_what_it_wrote(d, &["st", "start", st.as_str()]);
   setup(
     d,
-    &["ac", "new", "--text", "a criterion", "ST0001", "AC-01.1"],
+    &["ac", "new", "--text", "a criterion", st.as_str(), "AC-01.1"],
   );
   setup(
     d,
@@ -105,44 +111,36 @@ fn the_thread_verbs_name_every_file_they_wrote() {
       "satisfy",
       "--evidence",
       "the 0624 arm",
-      "ST0001",
+      st.as_str(),
       "AC-01.1",
     ],
   );
-  names_what_it_wrote(d, &["st", "done", "ST0001"]);
+  names_what_it_wrote(d, &["st", "done", st.as_str()]);
 }
 
 #[test]
 fn set_names_every_file_it_wrote() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  let uri = format!("intent:///threads/{st}");
   // The objective is read from outside the project, so the file it comes from
   // is no change of the verb's.
   let elsewhere = tempfile::tempdir().expect("tempdir");
   let objective = elsewhere.path().join("objective.txt");
   std::fs::write(&objective, "the objective, from a file\n").expect("write the objective");
   let from = objective.to_str().expect("a UTF-8 path");
-  names_what_it_wrote(
-    d,
-    &[
-      "set",
-      "intent:///threads/ST0001",
-      "objective",
-      "--from",
-      from,
-    ],
-  );
+  names_what_it_wrote(d, &["set", uri.as_str(), "objective", "--from", from]);
 }
 
 #[test]
 fn the_work_package_verbs_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   setup(
     d,
-    &["ac", "new", "--text", "a criterion", "ST0001", "AC-01.1"],
+    &["ac", "new", "--text", "a criterion", st.as_str(), "AC-01.1"],
   );
   setup(
     d,
@@ -151,23 +149,26 @@ fn the_work_package_verbs_name_every_file_they_wrote() {
       "satisfy",
       "--evidence",
       "the 0624 arm",
-      "ST0001",
+      st.as_str(),
       "AC-01.1",
     ],
   );
-  names_what_it_wrote(d, &["wp", "new", "ST0001", "a probe package"]);
-  names_what_it_wrote(d, &["wp", "start", "ST0001/01"]);
-  names_what_it_wrote(d, &["wp", "done", "ST0001/01"]);
+  let wp = crate::common::created(&names_what_it_wrote(
+    d,
+    &["wp", "new", st.as_str(), "a probe package"],
+  ));
+  names_what_it_wrote(d, &["wp", "start", wp.as_str()]);
+  names_what_it_wrote(d, &["wp", "done", wp.as_str()]);
 }
 
 #[test]
 fn the_criterion_verbs_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   names_what_it_wrote(
     d,
-    &["ac", "new", "--text", "a criterion", "ST0001", "AC-01.1"],
+    &["ac", "new", "--text", "a criterion", st.as_str(), "AC-01.1"],
   );
   names_what_it_wrote(
     d,
@@ -176,7 +177,7 @@ fn the_criterion_verbs_name_every_file_they_wrote() {
       "edit",
       "--text",
       "a reworded criterion",
-      "ST0001",
+      st.as_str(),
       "AC-01.1",
     ],
   );
@@ -187,7 +188,7 @@ fn the_criterion_verbs_name_every_file_they_wrote() {
       "satisfy",
       "--evidence",
       "the 0624 arm",
-      "ST0001",
+      st.as_str(),
       "AC-01.1",
     ],
   );
@@ -200,7 +201,7 @@ fn the_criterion_verbs_name_every_file_they_wrote() {
       "test",
       "--text",
       "a tested criterion",
-      "ST0001",
+      st.as_str(),
       "AC-01.2",
     ],
   );
@@ -210,7 +211,7 @@ fn the_criterion_verbs_name_every_file_they_wrote() {
 fn the_acceptance_test_verbs_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   setup(
     d,
     &[
@@ -220,7 +221,7 @@ fn the_acceptance_test_verbs_name_every_file_they_wrote() {
       "test",
       "--text",
       "a tested criterion",
-      "ST0001",
+      st.as_str(),
       "AC-01.2",
     ],
   );
@@ -240,12 +241,12 @@ fn the_acceptance_test_verbs_name_every_file_they_wrote() {
       "AC-01.2",
       "--file",
       "tests/probe_test.rs",
-      "ST0001",
+      st.as_str(),
       "AT-01.2",
     ],
   );
-  names_what_it_wrote(d, &["at", "red", "ST0001", "AT-01.2"]);
-  names_what_it_wrote(d, &["at", "green", "ST0001", "AT-01.2"]);
+  names_what_it_wrote(d, &["at", "red", st.as_str(), "AT-01.2"]);
+  names_what_it_wrote(d, &["at", "green", st.as_str(), "AT-01.2"]);
 }
 
 /// **A VERB THAT MOVED NOTHING LANDED NOTHING, SO IT NAMES NOTHING.** Starting
@@ -255,11 +256,11 @@ fn the_acceptance_test_verbs_name_every_file_they_wrote() {
 fn a_verb_that_moves_nothing_names_nothing() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
-  setup(d, &["st", "start", "ST0001"]);
-  let (out, err, code) = run(d, &["st", "start", "ST0001"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  setup(d, &["st", "start", st.as_str()]);
+  let (out, err, code) = run(d, &["st", "start", st.as_str()]);
   assert_eq!(code, 0, "{out}{err}");
-  assert!(out.contains("ok: ST0001 already"), "{out}");
+  assert!(out.contains(&format!("ok: {st} already")), "{out}");
   assert!(
     wrote(&out, &err).is_empty(),
     "a no-op named files:\n{out}{err}"
@@ -335,9 +336,9 @@ fn the_language_verbs_name_the_config_they_wrote() {
 fn hydrate_and_dehydrate_name_what_they_wrote_and_removed() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
-  names_what_it_wrote_and_removed(d, &["st", "hydrate", "ST0001"]);
-  let out = names_what_it_wrote_and_removed(d, &["st", "dehydrate", "ST0001"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  names_what_it_wrote_and_removed(d, &["st", "hydrate", st.as_str()]);
+  let out = names_what_it_wrote_and_removed(d, &["st", "dehydrate", st.as_str()]);
   assert!(
     !removed(&out, "").is_empty(),
     "dehydrating a realised thread removed nothing: {out}"
@@ -348,22 +349,22 @@ fn hydrate_and_dehydrate_name_what_they_wrote_and_removed() {
 fn the_renumbers_name_what_they_moved_as_written_and_removed() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
-  setup(d, &["st", "hydrate", "ST0001"]);
-  names_what_it_wrote_and_removed(d, &["st", "renumber", "ST0001", "ST0002"]);
-  setup(d, &["issues", "add", "a probe issue"]);
-  names_what_it_wrote_and_removed(d, &["issues", "renumber", "0001", "0002"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  setup(d, &["st", "hydrate", st.as_str()]);
+  names_what_it_wrote_and_removed(d, &["st", "renumber", st.as_str(), "ST0002"]);
+  let issue = crate::common::created(&setup(d, &["issues", "add", "a probe issue"]));
+  names_what_it_wrote_and_removed(d, &["issues", "renumber", issue.as_str(), "0002"]);
 }
 
 #[test]
 fn organize_names_what_it_hydrated_and_removed() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   // Declared in the manifest and not on disk: organize realises it.
   let manifest = d.join("intent/.intentfiles");
   let text = std::fs::read_to_string(&manifest).expect("the manifest");
-  std::fs::write(&manifest, format!("{text}STEELTHREAD:ST0001\n")).expect("declare it");
+  std::fs::write(&manifest, format!("{text}STEELTHREAD:{st}\n")).expect("declare it");
   crate::common::git_commit_all(d);
   names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
   // Then undeclared while on disk: organize removes its views.
@@ -380,12 +381,12 @@ fn organize_names_what_it_hydrated_and_removed() {
 fn sync_names_what_it_wrote_in_each_direction() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
-  setup(d, &["st", "hydrate", "ST0001"]);
-  std::fs::remove_file(d.join("intent/st/ST0001/info.md")).expect("remove a view");
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  setup(d, &["st", "hydrate", st.as_str()]);
+  std::fs::remove_file(d.join(format!("intent/st/{st}/info.md"))).expect("remove a view");
   crate::common::git_commit_all(d);
   names_what_it_wrote_and_removed(d, &["sync", "--to-disk"]);
-  let cover = d.join("intent/st/ST0001/info.md");
+  let cover = d.join(format!("intent/st/{st}/info.md"));
   let text = std::fs::read_to_string(&cover).expect("the cover");
   let edited = text.replacen(
     "## Objective\n\n",
@@ -395,7 +396,7 @@ fn sync_names_what_it_wrote_in_each_direction() {
   assert_ne!(edited, text, "the cover has no Objective heading to edit");
   std::fs::write(&cover, edited).expect("hand-edit the objective");
   crate::common::git_commit_all(d);
-  names_what_it_wrote_and_removed(d, &["sync", "--to-store", "ST0001"]);
+  names_what_it_wrote_and_removed(d, &["sync", "--to-store", st.as_str()]);
 }
 
 #[test]
@@ -416,13 +417,16 @@ fn agents_sync_and_claude_upgrade_name_every_file_they_wrote() {
 fn attach_and_detach_name_every_file_they_wrote() {
   let dir = project();
   let d = dir.path();
-  setup(d, &["st", "new", "a probe thread"]);
+  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
   // The source sits outside the project, so the only paths that move are the
   // verb's own.
   let source = tempfile::tempdir().expect("tempdir");
   let from = source.path().join("design.md");
   std::fs::write(&from, "# Design\n\nThe probe's design.\n").expect("write the source");
   let from = from.to_str().expect("a UTF-8 path");
-  names_what_it_wrote(d, &["st", "attach", "ST0001", "design.md", "--from", from]);
-  names_what_it_wrote_and_removed(d, &["st", "detach", "ST0001", "design.md"]);
+  names_what_it_wrote(
+    d,
+    &["st", "attach", st.as_str(), "design.md", "--from", from],
+  );
+  names_what_it_wrote_and_removed(d, &["st", "detach", st.as_str(), "design.md"]);
 }

@@ -45,6 +45,15 @@ fn body_of(root: &Path, number: &str) -> String {
   v["body"].as_str().unwrap_or_default().to_string()
 }
 
+/// Every file in the issue canon, which `project` creates empty: a refusal
+/// that wrote an issue under any id shows here.
+fn issue_canon(root: &Path) -> Vec<std::path::PathBuf> {
+  std::fs::read_dir(root.join("intent/.canon/issues"))
+    .expect("read the issue canon")
+    .map(|entry| entry.expect("an issue canon entry").path())
+    .collect()
+}
+
 /// `--body` reaches the record.
 #[test]
 fn an_inline_body_is_carried() {
@@ -54,7 +63,8 @@ fn an_inline_body_is_carried() {
     &["issues", "add", "A thing", "--body", "the prose"],
   );
   assert!(made.status.success(), "add succeeds");
-  assert_eq!(body_of(dir.path(), "0001"), "the prose");
+  let issue = crate::common::created(&String::from_utf8_lossy(&made.stdout));
+  assert_eq!(body_of(dir.path(), &issue), "the prose");
 }
 
 /// `--from` reads the file, BYTE FOR BYTE -- no trim, because an issue body
@@ -75,7 +85,8 @@ fn a_body_from_a_file_is_carried_whole() {
     ],
   );
   assert!(made.status.success(), "add succeeds");
-  assert_eq!(body_of(dir.path(), "0001"), "# Heading\n\n  ragged  \n\n");
+  let issue = crate::common::created(&String::from_utf8_lossy(&made.stdout));
+  assert_eq!(body_of(dir.path(), &issue), "# Heading\n\n  ragged  \n\n");
 }
 
 /// **THE ARM THE DOOR EXISTS FOR: BOTH TOGETHER REFUSE.**
@@ -105,9 +116,10 @@ fn body_and_from_together_refuse_rather_than_one_winning() {
   // **AND IT CREATED NOTHING.** A refusal that still wrote the issue would be
   // worse than a precedence rule, because the author would have BOTH a refusal
   // and a record.
+  let written = issue_canon(dir.path());
   assert!(
-    !dir.path().join("intent/.canon/issues/0001.json").exists(),
-    "a refused invocation writes no issue"
+    written.is_empty(),
+    "a refused invocation writes no issue: {written:?}"
   );
 }
 
@@ -125,10 +137,8 @@ fn an_unreadable_from_refuses_rather_than_creating_an_empty_body() {
     !out.status.success(),
     "an unreadable --from must not succeed"
   );
-  assert!(
-    !dir.path().join("intent/.canon/issues/0001.json").exists(),
-    "and writes no issue"
-  );
+  let written = issue_canon(dir.path());
+  assert!(written.is_empty(), "and writes no issue: {written:?}");
 }
 
 /// The control: neither flag is the ordinary case, and it still works. Nobody
@@ -138,5 +148,15 @@ fn neither_flag_leaves_the_body_empty_and_still_creates_the_issue() {
   let dir = project();
   let made = run(dir.path(), &["issues", "add", "A thing"]);
   assert!(made.status.success(), "add still works with no body flag");
-  assert_eq!(body_of(dir.path(), "0001"), "");
+  let issue = crate::common::created(&String::from_utf8_lossy(&made.stdout));
+  assert_eq!(
+    issue_canon(dir.path()),
+    vec![
+      dir
+        .path()
+        .join(format!("intent/.canon/issues/{issue}.json"))
+    ],
+    "the helper the refusal arms read sees the one file a real add writes"
+  );
+  assert_eq!(body_of(dir.path(), &issue), "");
 }

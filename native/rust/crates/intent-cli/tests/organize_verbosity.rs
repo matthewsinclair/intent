@@ -86,20 +86,18 @@ fn project() -> tempfile::TempDir {
     intent(root, &["init", "Fixture"]).status.success(),
     "the fixture must initialise"
   );
+  let made = intent(root, &["st", "new", "An open thread"]);
+  assert!(made.status.success(), "st new must succeed");
+  let st = crate::common::created(&stdout(&made));
   assert!(
-    intent(root, &["st", "new", "An open thread"])
-      .status
-      .success(),
-    "st new must succeed"
-  );
-  assert!(
-    intent(root, &["st", "start", "ST0001"]).status.success(),
+    intent(root, &["st", "start", st.as_str()]).status.success(),
     "the thread must reach WIP -- only WIP threads are declared, so a triage \
      thread would leave the manifest empty and the preview with no action lines"
   );
   // `st start` realises the thread it declares since issue 0079; the two
   // action rows this fixture needs are hydrations, so its views are removed.
-  std::fs::remove_dir_all(root.join("intent/st/ST0001")).expect("unrealise ST0001");
+  let realised = root.join(format!("intent/st/{st}"));
+  std::fs::remove_dir_all(&realised).expect("unrealise the thread");
   assert!(
     intent(root, &["organize", "--default"]).status.success(),
     "the declaration must be written, or there is nothing to hydrate"
@@ -122,7 +120,7 @@ fn project() -> tempfile::TempDir {
     ("logs", "d.tap"),
     ("fixtures", "e.tap"),
   ] {
-    let d = root.join("intent/st/ST0001").join(sub);
+    let d = realised.join(sub);
     std::fs::create_dir_all(&d).expect("fixture directory");
     std::fs::write(d.join(name), "x\n").expect("fixture file");
   }

@@ -1169,7 +1169,7 @@ fn tool_answer(
       // environment, and a guess made on the server about a remote agent would
       // be a fabricated attribution. Absent renders as "nobody said".
       let number = f.issue_add(title, severity, None, body)?;
-      Ok(json!({ "created": format!("{number:04}") }))
+      Ok(json!({ "created": intentsvcs::model::issue_id(number) }))
     }
     "issues close" => {
       let number = issue_number(path, need_s(path, map, "id")?)?;

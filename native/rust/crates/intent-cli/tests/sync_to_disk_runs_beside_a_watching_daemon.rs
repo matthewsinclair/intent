@@ -40,7 +40,8 @@ use intentsvcs::wire::{self, Op, Request, Response};
 /// the watch being armed; the same allowance `intentd`'s own tests give it.
 const ARM_ATTEMPTS: u32 = ATTEMPTS * 12;
 
-fn project() -> std::path::PathBuf {
+/// A project carrying one thread and one issue, and the issue's id.
+fn project() -> (std::path::PathBuf, String) {
   let root = short_dir("todisk-proj");
   intentsvcs::init::init(&root, "ToDisk", "test", env!("CARGO_PKG_VERSION"))
     .expect("the shipped initialiser creates a project");
@@ -54,7 +55,7 @@ fn project() -> std::path::PathBuf {
   facade
     .st_new("Landed beside a watcher")
     .expect("mint one thread");
-  facade
+  let issue = facade
     .issue_add(
       "Landed beside a watcher",
       Some("low"),
@@ -62,7 +63,7 @@ fn project() -> std::path::PathBuf {
       "The view this arm lands.",
     )
     .expect("file one issue");
-  root
+  (root, intentsvcs::model::issue_id(issue))
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> std::process::Output {
@@ -166,9 +167,12 @@ fn caught_up(daemon: &RealDaemon, root: &Path, id: &str) -> u64 {
 #[test]
 fn sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest() {
   let daemon = RealDaemon::start();
-  let root = project();
+  let (root, issue) = project();
 
-  let view = root.join("intent").join("issues").join("0001.md");
+  let view = root
+    .join("intent")
+    .join("issues")
+    .join(format!("{issue}.md"));
   assert!(
     view.exists(),
     "the fixture renders no {}, so there is no view to put behind the store",
@@ -219,10 +223,11 @@ fn sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest() {
     "sync --to-disk was refused beside a daemon watching this tree. It is a projection from the store and runs no ingest walk (issue 0500): {}",
     text(&synced)
   );
+  let wrote = format!("wrote: intent/issues/{issue}.md");
   assert!(
     String::from_utf8_lossy(&synced.stdout)
       .lines()
-      .any(|line| line == "wrote: intent/issues/0001.md"),
+      .any(|line| line == wrote),
     "sync --to-disk did not write the removed view back, so the daemon had rendered it already and the arm proves nothing: {}",
     text(&synced)
   );

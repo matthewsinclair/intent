@@ -28,9 +28,10 @@ fn intent(root: &Path, args: &[&str]) -> (bool, String) {
   )
 }
 
-fn step(root: &Path, args: &[&str]) {
+fn step(root: &Path, args: &[&str]) -> String {
   let (ok, out) = intent(root, args);
   assert!(ok, "`intent {}` failed: {out}", args.join(" "));
+  out
 }
 
 #[test]
@@ -38,8 +39,8 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   step(root, &["init", "probe"]);
-  step(root, &["st", "new", "A thread closed early"]);
-  step(root, &["st", "start", "ST0001"]);
+  let st = crate::common::created(&step(root, &["st", "new", "A thread closed early"]));
+  step(root, &["st", "start", st.as_str()]);
   step(root, &["organize", "--apply"]);
   // The close gate wants a met contract, so one criterion is satisfied first.
   step(
@@ -47,7 +48,7 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
     &[
       "ac",
       "new",
-      "ST0001",
+      st.as_str(),
       "AC-00.1",
       "--text",
       "the first requirement",
@@ -55,9 +56,16 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   );
   step(
     root,
-    &["ac", "satisfy", "ST0001", "AC-00.1", "--evidence", "done"],
+    &[
+      "ac",
+      "satisfy",
+      st.as_str(),
+      "AC-00.1",
+      "--evidence",
+      "done",
+    ],
   );
-  step(root, &["st", "done", "ST0001"]);
+  step(root, &["st", "done", st.as_str()]);
 
   // **THE STALE VIEW AN EARLIER BUILD LEFT, RE-CREATED.** Since 0283's half B
   // a change to an unlisted thread refreshes a view that still holds the prior
@@ -65,14 +73,14 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   // can still carry is a view from BEFORE that fix -- an older render the
   // store has moved past. Put the pre-change bytes back after the change, and
   // that is exactly the state.
-  let view = root.join("intent/st/ST0001/acceptance.md");
+  let view = root.join(format!("intent/st/{st}/acceptance.md"));
   let older_render = std::fs::read_to_string(&view).expect("the closed thread's view is on disk");
   step(
     root,
     &[
       "ac",
       "new",
-      "ST0001",
+      st.as_str(),
       "AC-00.2",
       "--text",
       "added after the thread closed",
@@ -83,7 +91,7 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   let (_, before) = intent(root, &["doctor", "--scope", "all"]);
   let line = before
     .lines()
-    .find(|l| l.contains("st/ST0001/acceptance.md") && l.contains("differs from the model"))
+    .find(|l| l.contains(&format!("st/{st}/acceptance.md")) && l.contains("differs from the model"))
     .unwrap_or_else(|| panic!("the stale view was not reported at all:\n{before}"));
   assert!(
     line.contains("the store changed after it was last rendered"),
@@ -103,13 +111,17 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
   // `st hydrate` refuses a view whose bytes differ from the render, which is
   // this finding's exact signature, so the bare verb would send the operator to
   // a refusal. The finding's own text already says what `--overwrite` discards.
-  assert_eq!(command, "intent st hydrate ST0001 --overwrite", "{line}");
+  assert_eq!(
+    command,
+    format!("intent st hydrate {st} --overwrite"),
+    "{line}"
+  );
   let args: Vec<&str> = command.split_whitespace().skip(1).collect();
   step(root, &args);
 
   let (_, after) = intent(root, &["doctor", "--scope", "all"]);
   assert!(
-    !after.contains("st/ST0001/acceptance.md"),
+    !after.contains(&format!("st/{st}/acceptance.md")),
     "running the printed remedy did not clear the finding:\n{after}"
   );
 }
@@ -125,11 +137,14 @@ fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   step(root, &["init", "probe"]);
-  step(root, &["st", "new", "A thread with a hand-typed objective"]);
-  step(root, &["st", "start", "ST0001"]);
+  let st = crate::common::created(&step(
+    root,
+    &["st", "new", "A thread with a hand-typed objective"],
+  ));
+  step(root, &["st", "start", st.as_str()]);
   step(root, &["organize", "--apply"]);
 
-  let cover = root.join("intent/st/ST0001/info.md");
+  let cover = root.join(format!("intent/st/{st}/info.md"));
   let text = std::fs::read_to_string(&cover).expect("the started thread's cover is on disk");
   let from = text
     .find("## Objective\n\n")
@@ -148,7 +163,7 @@ fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
   let (_, before) = intent(root, &["doctor"]);
   let line = before
     .lines()
-    .find(|l| l.contains("st/ST0001/info.md") && l.contains("differs from the model"))
+    .find(|l| l.contains(&format!("st/{st}/info.md")) && l.contains("differs from the model"))
     .unwrap_or_else(|| panic!("the edited cover was not reported at all:\n{before}"));
   let command = line
     .split('`')
@@ -165,14 +180,14 @@ fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
 
   let args: Vec<&str> = command.split_whitespace().skip(1).collect();
   step(root, &args);
-  let (_, shown) = intent(root, &["st", "show", "ST0001"]);
+  let (_, shown) = intent(root, &["st", "show", st.as_str()]);
   assert!(
     shown.contains("Typed by hand into the cover."),
     "the named verb carried the edit into the store:\n{shown}"
   );
   let (_, after) = intent(root, &["doctor"]);
   assert!(
-    !after.contains("st/ST0001/info.md"),
+    !after.contains(&format!("st/{st}/info.md")),
     "running the printed remedy did not clear the finding:\n{after}"
   );
 }

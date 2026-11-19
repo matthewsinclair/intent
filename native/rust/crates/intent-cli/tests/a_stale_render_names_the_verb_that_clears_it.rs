@@ -27,9 +27,10 @@ fn intent(root: &Path, args: &[&str]) -> (bool, String) {
   )
 }
 
-fn step(root: &Path, args: &[&str]) {
+fn step(root: &Path, args: &[&str]) -> String {
   let (ok, out) = intent(root, args);
   assert!(ok, "`intent {}` failed: {out}", args.join(" "));
+  out
 }
 
 /// Rewrite each issue view's footer to name an older Intent.
@@ -67,12 +68,15 @@ fn the_issue_line(root: &Path) -> (String, String) {
   (line, command)
 }
 
-fn three_issues(root: &Path) {
+/// Three issues, raised and realised: their ids, in the order they were raised.
+fn three_issues(root: &Path) -> Vec<String> {
   step(root, &["init", "probe"]);
-  for title in ["the first", "the second", "the third"] {
-    step(root, &["issues", "add", title]);
-  }
+  let issues: Vec<String> = ["the first", "the second", "the third"]
+    .into_iter()
+    .map(|title| crate::common::created(&step(root, &["issues", "add", title])))
+    .collect();
   step(root, &["sync", "--apply", "--yes"]);
+  issues
 }
 
 #[test]
@@ -107,9 +111,9 @@ fn realised_stale_views_are_one_line_naming_the_verb_that_re_renders_them() {
 fn unrealised_stale_views_name_the_verb_that_removes_them() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
-  three_issues(root);
-  for number in ["0001", "0002", "0003"] {
-    step(root, &["issues", "close", number]);
+  let issues = three_issues(root);
+  for issue in &issues {
+    step(root, &["issues", "close", issue.as_str()]);
   }
   let names = age_the_issue_views(root);
   assert_eq!(
@@ -128,7 +132,7 @@ fn unrealised_stale_views_name_the_verb_that_removes_them() {
     !after.contains("stale-render"),
     "the named verb cleared them:\n{after}"
   );
-  let (_, shown) = intent(root, &["issues", "show", "0001"]);
+  let (_, shown) = intent(root, &["issues", "show", issues[0].as_str()]);
   assert!(
     shown.contains("the first"),
     "the store keeps the record:\n{shown}"

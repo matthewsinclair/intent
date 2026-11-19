@@ -121,18 +121,27 @@ impl Team {
     git_ok(&["commit", "-q", "-m", message], clone);
   }
 
-  /// Both clones mint `ST0001`. Bob starts his, so it is realised and
-  /// declared; the merge then stops on the canon add/add.
-  fn both_mint_st0001_and_bob_pulls(&self) -> String {
-    intent_ok(&["st", "new", "Alice's next"], &self.alice, self.home());
-    self.commit(&self.alice, "alice: ST0001");
+  /// Both clones mint their next thread, and both get the same id. Bob starts
+  /// his, so it is realised and declared; the merge then stops on the canon
+  /// add/add. Returns what the merge said and the id Bob's mint printed.
+  fn both_mint_the_same_id_and_bob_pulls(&self) -> (String, String) {
+    let alice_st = crate::common::created(&intent_ok(
+      &["st", "new", "Alice's next"],
+      &self.alice,
+      self.home(),
+    ));
+    self.commit(&self.alice, &format!("alice: {alice_st}"));
     git_ok(&["push", "-q", "origin", "HEAD:main"], &self.alice);
-    intent_ok(&["st", "new", "Bob's next"], &self.bob, self.home());
-    intent_ok(&["st", "start", "ST0001"], &self.bob, self.home());
-    self.commit(&self.bob, "bob: ST0001");
+    let bob_st = crate::common::created(&intent_ok(
+      &["st", "new", "Bob's next"],
+      &self.bob,
+      self.home(),
+    ));
+    intent_ok(&["st", "start", bob_st.as_str()], &self.bob, self.home());
+    self.commit(&self.bob, &format!("bob: {bob_st}"));
     let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &self.bob);
     assert!(!merged, "the fixture needs the merge to stop:\n{merge}");
-    merge
+    (merge, bob_st)
   }
 }
 
@@ -157,12 +166,12 @@ fn digest_of(plan: &str) -> String {
 #[test]
 fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
   let team = Team::new();
-  intent_ok(
+  let st = crate::common::created(&intent_ok(
     &["st", "new", "Release checklist"],
     &team.alice,
     team.home(),
-  );
-  team.commit(&team.alice, "alice: ST0001");
+  ));
+  team.commit(&team.alice, &format!("alice: {st}"));
   git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
   git_ok(&["fetch", "-q"], &team.bob);
 
@@ -259,10 +268,13 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 #[test]
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
   let team = Team::new();
-  let merge = team.both_mint_st0001_and_bob_pulls();
+  let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls();
+  // Where sync's repair moves this clone's thread: the next free ordinal, which
+  // is the behaviour under test here, not a mint (ST0095 WP-05 changes it).
+  let moved = intentsvcs::model::thread_id(2);
   let bob = &team.bob;
   assert!(
-    unmerged(bob).contains("intent/.canon/st/ST0001.json"),
+    unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),
     "the fixture stops on the canon add/add:\n{merge}"
   );
   std::fs::write(bob.join("notes.txt"), "Bob's own file\n").expect("an untracked file");
@@ -271,9 +283,9 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
 
   let plan = intent_ok(&["sync"], bob, team.home());
   assert!(
-    plan.contains(
-      ". renumber (reversible): both sides minted steel thread ST0001: this clone's moves to ST0002"
-    ),
+    plan.contains(&format!(
+      ". renumber (reversible): both sides minted steel thread {minted}: this clone's moves to {moved}"
+    )),
     "{plan}"
   );
   assert!(
@@ -300,7 +312,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     left.text
   );
   assert!(
-    unmerged(bob).contains("intent/.canon/st/ST0001.json"),
+    unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),
     "nothing was resolved without an answer"
   );
   assert!(
@@ -315,9 +327,9 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   // `--yes` answers the reversible steps.
   let repaired = intent(&["sync", "--apply", "--yes"], bob, team.home());
   assert!(
-    repaired
-      .text
-      .contains("ok: renumbered this clone's ST0001 to ST0002, kept the pulled ST0001"),
+    repaired.text.contains(&format!(
+      "ok: renumbered this clone's {minted} to {moved}, kept the pulled {minted}"
+    )),
     "{}",
     repaired.text
   );
@@ -372,11 +384,11 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   git_ok(&["commit", "-q", "--no-edit"], bob);
   let list = intent_ok(&["st", "list", "--status", "all"], bob, team.home());
   assert!(
-    list.contains("ST0001") && list.contains("Alice's next"),
+    list.contains(&minted) && list.contains("Alice's next"),
     "{list}"
   );
   assert!(
-    list.contains("ST0002") && list.contains("Bob's next"),
+    list.contains(moved.as_str()) && list.contains("Bob's next"),
     "{list}"
   );
 }
@@ -389,28 +401,33 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
 #[test]
 fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
   let team = Team::new();
-  intent_ok(&["st", "new", "Shared"], &team.alice, team.home());
-  team.commit(&team.alice, "alice: ST0001");
+  let st = crate::common::created(&intent_ok(
+    &["st", "new", "Shared"],
+    &team.alice,
+    team.home(),
+  ));
+  let canon = format!("intent/.canon/st/{st}.json");
+  team.commit(&team.alice, &format!("alice: {st}"));
   git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
   git_ok(&["pull", "-q", "--no-rebase", "origin", "main"], &team.bob);
   intent_ok(&["sync", "--apply"], &team.bob, team.home());
 
   intent_ok(
-    &["set", "ST0001", "title", "Alice's title"],
+    &["set", st.as_str(), "title", "Alice's title"],
     &team.alice,
     team.home(),
   );
   team.commit(&team.alice, "alice: retitle");
   git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
   intent_ok(
-    &["set", "ST0001", "title", "Bob's title"],
+    &["set", st.as_str(), "title", "Bob's title"],
     &team.bob,
     team.home(),
   );
   team.commit(&team.bob, "bob: retitle");
   let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &team.bob);
   assert!(!merged, "the fixture needs the merge to stop:\n{merge}");
-  assert!(unmerged(&team.bob).contains("intent/.canon/st/ST0001.json"));
+  assert!(unmerged(&team.bob).contains(&canon));
 
   let left = intent(&["sync", "--apply", "--yes"], &team.bob, team.home());
   let line = left
@@ -426,7 +443,7 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
     left.text
   );
   assert!(
-    unmerged(&team.bob).contains("intent/.canon/st/ST0001.json"),
+    unmerged(&team.bob).contains(&canon),
     "and the conflict stands"
   );
 
@@ -465,14 +482,14 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
     applied
       .done
       .iter()
-      .any(|l| l.starts_with("took theirs for intent/.canon/st/ST0001.json")),
+      .any(|l| l.starts_with(&format!("took theirs for {canon}"))),
     "{:?}",
     applied.done
   );
   assert!(
-    !unmerged(&team.bob).contains("intent/.canon/st/ST0001.json"),
+    !unmerged(&team.bob).contains(&canon),
     "the side taken is staged"
   );
-  let shown = intent_ok(&["st", "show", "ST0001"], &team.bob, team.home());
+  let shown = intent_ok(&["st", "show", st.as_str()], &team.bob, team.home());
   assert!(shown.contains("Alice's title"), "{shown}");
 }

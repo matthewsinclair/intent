@@ -335,21 +335,29 @@ fn an_issue_closes_and_reopens_and_the_close_date_follows() {
   );
 }
 
-/// **`add` prints v2's two lines, and the issue it made is readable afterwards.**
+/// **`add` prints two result lines, and the issue it made is readable
+/// afterwards.**
 ///
 /// v2 prints the file it wrote and then `<id>:<title>` (`bin/intent_issues:187`).
-/// The path is v3's own because v2's `issues/OPEN/<NNNN>/` layout retires under
-/// the ratified deviation -- the SHAPE is parity, the path inside it cannot be.
+/// v3's first line is the mint's `created: <id>`, as `st new` and `wp new` print
+/// it, and the file it wrote is on the `wrote:` line after the result.
 ///
 /// **The number is `highest + 1`, checked against a fixture whose issues are not
 /// contiguous** (0007 and 0021, nothing between). A count-plus-one implementation
 /// would answer `0003` here and collide on the next raise; against a contiguous
-/// fixture the two are indistinguishable.
+/// fixture the two are indistinguishable. The ordinal mint retires in ST0095
+/// WP-06, and this check goes with it.
 #[test]
 fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   let dir = project();
   let out = run(dir.path(), &["issues", "add", "A new thing"]);
   let printed = stdout(&out);
+  let issue = crate::common::created(&printed);
+  let number = intentsvcs::model::normalise_issue_id(&issue).expect("a minted issue id reads back");
+  assert!(
+    number > 21,
+    "an issue is numbered past the highest the project holds (0021), not by count: {issue}"
+  );
   // The result, without the `wrote:` lines that follow it (issue 0624), which
   // are the commit rule's rather than part of v2's shape.
   let result = crate::common::result_lines(&printed);
@@ -357,32 +365,23 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   assert_eq!(
     lines.len(),
     2,
-    "v2 prints the path it wrote and then `<id>:<title>`:\n{:?}",
-    lines
+    "the mint's `created:` line and then `<id>:<title>`:\n{lines:?}"
   );
-  // **EXACT, and it was `starts_with(..) && ends_with(..)` until issue 0060.**
-  // That pair is satisfied by an absolute path just as well as by a relative one,
-  // so the assertion could not tell them apart -- and it was written that way
-  // BECAUSE the path was absolute and carried a tmpdir the test could not name.
-  // **A test that accommodates a defect in order to pass is blinded by the
-  // accommodation**, which is the same family as pinning a defect as expected
-  // output and harder to see, because nothing here is wrong on its face.
-  //
-  // The line is now repo-relative, as v2's is, so it can be asserted whole: v2
-  // prints a path built from `$INTENT_DIR`, v3 prints one relativised against the
-  // project root, and neither embeds the machine. The FLAT layout is the ratified
-  // half (`intent/.canon/issues/<NNNN>.json`); the absoluteness was the defect.
-  assert_eq!(
-    lines[0], "created: intent/.canon/issues/0022.json",
-    "the first line names the file this write produced, repo-relative -- an absolute path here \
-     leaks $HOME into a line whose whole purpose is to be copied, and cannot be asserted by any \
-     literal template (issue 0060)"
+  // **EXACT, all three lines.** The first is the mint's id and the second is
+  // v2's `<id>:<title>`. The canon file is named on its `wrote:` line,
+  // repo-relative, so that line is asserted whole: an absolute path there would
+  // leak $HOME into a line meant to be copied (issue 0060).
+  assert_eq!(lines[0], format!("created: {issue}"));
+  assert_eq!(lines[1], format!("{issue}:A new thing"));
+  let wrote = format!("wrote: intent/.canon/issues/{issue}.json");
+  assert!(
+    printed.lines().any(|line| line == wrote),
+    "the file this write produced is named repo-relative, as `{wrote}`:\n{printed}"
   );
-  assert_eq!(lines[1], "0022:A new thing");
 
   let made: serde_json::Value = serde_json::from_str(&stdout(&run(
     dir.path(),
-    &["issues", "show", "22", "--json"],
+    &["issues", "show", issue.as_str(), "--json"],
   )))
   .expect("json");
   assert_eq!(made["status"], "open", "a raised issue enters at Open");
@@ -416,13 +415,13 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
 #[test]
 fn a_given_severity_is_recorded() {
   let dir = project();
-  run(
+  let issue = crate::common::created(&stdout(&run(
     dir.path(),
     &["issues", "add", "Something bad", "--severity", "critical"],
-  );
+  )));
   let made: serde_json::Value = serde_json::from_str(&stdout(&run(
     dir.path(),
-    &["issues", "show", "22", "--json"],
+    &["issues", "show", issue.as_str(), "--json"],
   )))
   .expect("json");
   assert_eq!(made["severity"], "critical");

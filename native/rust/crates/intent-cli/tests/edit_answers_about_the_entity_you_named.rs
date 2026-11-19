@@ -25,12 +25,15 @@ use std::path::Path;
 
 /// A project with one thread and one issue **whose numbers collide** -- which
 /// is the only configuration in which the defect is observable at all.
-fn seeded() -> tempfile::TempDir {
+///
+/// Returned with the thread's id and the issue's, each as its mint printed it.
+/// The issue's id is the number the two share.
+fn seeded() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "kinds"]);
-  run(dir.path(), &["st", "new", "a thread"]);
-  run(dir.path(), &["issues", "add", "an issue"]);
-  dir
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "a thread"]).0);
+  let number = crate::common::created(&run(dir.path(), &["issues", "add", "an issue"]).0);
+  (dir, st, number)
 }
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
@@ -53,15 +56,15 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
 
 #[test]
 fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
-  let dir = seeded();
-  let (thread, rc) = run(dir.path(), &["edit", "st", "0001", "--path"]);
+  let (dir, st, number) = seeded();
+  let (thread, rc) = run(dir.path(), &["edit", "st", number.as_str(), "--path"]);
   assert_eq!(rc, 0, "the thread case must keep working: {thread}");
   assert!(
-    thread.contains("ST0001"),
+    thread.contains(st.as_str()),
     "the fixture's thread did not resolve, so the comparison below proves nothing: {thread}"
   );
 
-  let (issue, rc) = run(dir.path(), &["edit", "issue", "0001", "--path"]);
+  let (issue, rc) = run(dir.path(), &["edit", "issue", number.as_str(), "--path"]);
   // **THE ASSERTION IS THAT IT IS NOT THE THREAD'S ANSWER**, not that it is any
   // particular refusal. An issue's one file is a view rendered from the store,
   // so `edit` has nothing to open and refusing is correct here (`render.rs`,
@@ -69,7 +72,7 @@ fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
   // answering about something else, and that is what must not come back
   // whatever the refusal later says.
   assert!(
-    !issue.contains("ST0001/info.md"),
+    !issue.contains(&format!("{st}/info.md")),
     "naming `issue` returned the THREAD's file -- 0189, the wrong subject at rc={rc}: {issue}"
   );
   // **AND THE REMEDY NAMES THE VERB THAT CORRECTS AN ISSUE** (issue 0334).
@@ -85,7 +88,7 @@ fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
     .find(|l| l.trim_start().starts_with("remedy:"))
     .unwrap_or_default();
   assert!(
-    remedy.contains("intent issues edit 0001"),
+    remedy.contains(&format!("intent issues edit {number}")),
     "the remedy names `intent issues edit <id>`: {issue}"
   );
 }
@@ -95,8 +98,8 @@ fn the_kind_vocabulary_the_table_declares_is_enforced() {
   // `intent edit banana ST0000 --path` printed a path at rc=0: the enum was
   // declared and nothing honoured it, the same gap `--format` carried until
   // `07ad9876`.
-  let dir = seeded();
-  let (out, rc) = run(dir.path(), &["edit", "banana", "0001", "--path"]);
+  let (dir, _, number) = seeded();
+  let (out, rc) = run(dir.path(), &["edit", "banana", number.as_str(), "--path"]);
   assert_ne!(rc, 0, "an undeclared kind was accepted: {out}");
   assert!(
     out.contains("st") && out.contains("wp"),
@@ -119,14 +122,12 @@ fn the_declared_address_or_id_type_accepts_an_address() {
   // Measured 2026-08-31: the two-slash spelling appears ten times across this
   // estate's boards and the canonical one ONCE, because nothing emits it and
   // four parties each reconstructed the same wrong form from intuition.
-  let dir = seeded();
-  let (out, rc) = run(
-    dir.path(),
-    &["edit", "st", "intent:///threads/ST0001", "--path"],
-  );
+  let (dir, st, _) = seeded();
+  let address = format!("intent:///threads/{st}");
+  let (out, rc) = run(dir.path(), &["edit", "st", address.as_str(), "--path"]);
   assert_eq!(rc, 0, "the canonical address form was refused: {out}");
   assert!(
-    out.contains("ST0001"),
+    out.contains(st.as_str()),
     "the address resolved to the wrong thread: {out}"
   );
 }
@@ -135,11 +136,9 @@ fn the_declared_address_or_id_type_accepts_an_address() {
 fn a_kind_that_contradicts_the_address_is_refused_rather_than_resolved() {
   // Naming two entities in one invocation and picking either would be the
   // wrong-subject-silently shape this whole file exists to close.
-  let dir = seeded();
-  let (out, rc) = run(
-    dir.path(),
-    &["edit", "st", "intent:///issues/0001", "--path"],
-  );
+  let (dir, _, number) = seeded();
+  let address = format!("intent:///issues/{number}");
+  let (out, rc) = run(dir.path(), &["edit", "st", address.as_str(), "--path"]);
   assert_ne!(
     rc, 0,
     "a contradiction between kind and address was resolved rather than refused: {out}"
@@ -166,12 +165,16 @@ fn a_kind_that_contradicts_the_address_is_refused_rather_than_resolved() {
 /// branch while the others stay green.
 #[test]
 fn all_three_ruled_spellings_reach_the_same_artefact() {
-  let dir = seeded();
+  let (dir, st, _) = seeded();
+  let address = format!("intent:///threads/{st}");
+  // The thread's bare number, read back by the library's one id reader.
+  let (_, number) = intentsvcs::model::normalise_id(&st).expect("a minted thread id reads back");
+  let bare = number.to_string();
   let mut answers = Vec::new();
   for argv in [
-    ["edit", "intent:///threads/ST0001", "--path"].as_slice(),
-    ["edit", "st", "ST0001", "--path"].as_slice(),
-    ["edit", "st", "1", "--path"].as_slice(),
+    ["edit", address.as_str(), "--path"].as_slice(),
+    ["edit", "st", st.as_str(), "--path"].as_slice(),
+    ["edit", "st", bare.as_str(), "--path"].as_slice(),
   ] {
     let (out, rc) = run(dir.path(), argv);
     assert_eq!(rc, 0, "{argv:?} was refused: {out}");
@@ -198,17 +201,18 @@ fn all_three_ruled_spellings_reach_the_same_artefact() {
 /// outcome, and must change it the same way down both branches.**
 #[test]
 fn the_file_argument_survives_both_branches() {
-  let dir = seeded();
-  let (default_file, rc) = run(dir.path(), &["edit", "st", "ST0001", "--path"]);
+  let (dir, st, _) = seeded();
+  let (default_file, rc) = run(dir.path(), &["edit", "st", st.as_str(), "--path"]);
   assert_eq!(rc, 0, "the default file must resolve: {default_file}");
 
   let (with_kind, _) = run(
     dir.path(),
-    &["edit", "st", "ST0001", "acceptance", "--path"],
+    &["edit", "st", st.as_str(), "acceptance", "--path"],
   );
+  let address = format!("intent:///threads/{st}");
   let (with_address, _) = run(
     dir.path(),
-    &["edit", "intent:///threads/ST0001", "acceptance", "--path"],
+    &["edit", address.as_str(), "acceptance", "--path"],
   );
 
   assert_ne!(
@@ -234,7 +238,7 @@ fn the_file_argument_survives_both_branches() {
 /// No Silent Errors failure rather than a gap.
 #[test]
 fn the_shapes_clap_can_no_longer_refuse_are_refused_here() {
-  let dir = seeded();
+  let (dir, ..) = seeded();
   let (bare, rc) = run(dir.path(), &["edit", "--path"]);
   assert_ne!(rc, 0, "the bare verb was accepted: {bare}");
   assert!(
@@ -257,8 +261,8 @@ fn the_shapes_clap_can_no_longer_refuse_are_refused_here() {
 /// verb must not guess at.
 #[test]
 fn a_bare_id_is_told_what_it_is_ambiguous_between() {
-  let dir = seeded();
-  let (out, rc) = run(dir.path(), &["edit", "0001", "--path"]);
+  let (dir, _, number) = seeded();
+  let (out, rc) = run(dir.path(), &["edit", number.as_str(), "--path"]);
   assert_ne!(rc, 0, "a bare id was resolved without a tie-breaker: {out}");
   assert!(
     out.contains("thread") && out.contains("issue"),
@@ -281,7 +285,7 @@ fn a_bare_id_is_told_what_it_is_ambiguous_between() {
 /// swapped for the fixture's, whose thread and issue numbers collide.
 #[test]
 fn every_form_the_unaddressable_refusal_recommends_is_one_edit_resolves() {
-  let dir = seeded();
+  let (dir, st, number) = seeded();
   let (refusal, rc) = run(dir.path(), &["edit", "nonsense", "--path"]);
   assert_ne!(rc, 0, "precondition: `nonsense` is refused: {refusal}");
   let remedy = refusal
@@ -292,7 +296,7 @@ fn every_form_the_unaddressable_refusal_recommends_is_one_edit_resolves() {
     .split('`')
     .skip(1)
     .step_by(2)
-    .map(|form| form.replace("ST0000", "ST0001").replace("0042", "0001"))
+    .map(|form| form.replace("ST0000", &st).replace("0042", &number))
     .collect();
   assert!(
     forms.iter().any(|f| f.starts_with("intent://")),

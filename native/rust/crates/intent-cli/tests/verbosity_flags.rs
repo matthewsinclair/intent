@@ -134,12 +134,13 @@ fn quiet_is_strictly_less_than_the_default() {
     String::from_utf8_lossy(&made.stderr)
   );
 
-  let thread_dir = std::fs::read_dir(root.join("intent/st"))
-    .expect("st dir")
-    .filter_map(Result::ok)
-    .map(|e| e.path())
-    .find(|p| p.is_dir())
-    .expect("st new made a thread directory");
+  let st = crate::common::created(&String::from_utf8_lossy(&made.stdout));
+  let thread_dir = root.join(format!("intent/st/{st}"));
+  assert!(
+    thread_dir.is_dir(),
+    "st new made no directory for the thread at {}",
+    thread_dir.display()
+  );
   std::fs::write(
     thread_dir.join("huge.png"),
     vec![b'x'; intentsvcs::project::ATTACHMENT_CAP_BYTES as usize + 1],

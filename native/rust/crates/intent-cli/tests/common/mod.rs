@@ -1188,3 +1188,77 @@ pub fn result_lines(out: &str) -> String {
     .collect::<Vec<_>>()
     .join("\n")
 }
+
+/// The id a mint printed on its one `created:` line (ST0095 WP-02): the whole
+/// id as every door takes it back, eg `ST0001`, `ST0001/01` or `0001` today.
+/// This is the only place a CLI test learns an id it did not seed, so no test
+/// names an id it expects a mint to produce. None, or more than one, fails, and
+/// so does an empty id or one with a space in it.
+pub fn created(out: &str) -> String {
+  let ids: Vec<&str> = out
+    .lines()
+    .filter_map(|line| line.strip_prefix("created: "))
+    .collect();
+  assert_eq!(
+    ids.len(),
+    1,
+    "a mint prints exactly one `created:` line, and this printed {}:\n{out}",
+    ids.len()
+  );
+  let id = ids[0];
+  assert!(
+    !id.is_empty() && !id.contains(char::is_whitespace),
+    "a minted id is one word, and this `created:` line carries `{id}`:\n{out}"
+  );
+  id.to_string()
+}
+
+/// A minted work package's own id, the part of its address after its thread's:
+/// what a test needs for the package's directory, its `WP-` heading or its
+/// criteria's group.
+///
+/// This and the two below hold a work package's address grammar on the test
+/// side in one place until the id types reach the tests (ST0095 WP-04).
+pub fn package_of(wp: &str) -> &str {
+  wp.rsplit_once('/')
+    .map(|(_, package)| package)
+    .unwrap_or_else(|| panic!("`{wp}` is not a work package's address"))
+}
+
+/// A work package's number, for a library call that still takes one, and for
+/// the navigator's `wps` child, which spells it without its leading zero.
+pub fn package_seq(wp: &str) -> u32 {
+  package_of(wp)
+    .parse()
+    .unwrap_or_else(|_| panic!("`{wp}` does not end in a package number"))
+}
+
+/// The address of a thread's package `seq`, for a package the library minted
+/// and returned as a number, or one a test names to be absent.
+pub fn wp_address(st: &str, seq: u32) -> String {
+  format!("{st}/{seq:02}")
+}
+
+/// Run the binary under test in `cwd` under the fixture home, with a lifeline
+/// on stdin for a daemon verb: stdout, stderr and the exit code.
+pub fn run(cwd: &Path, args: &[&str]) -> (String, String, i32) {
+  let out = intent()
+    .args(args)
+    .current_dir(cwd)
+    .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
+    .output()
+    .expect("run the v3 binary");
+  (
+    String::from_utf8_lossy(&out.stdout).into_owned(),
+    String::from_utf8_lossy(&out.stderr).into_owned(),
+    out.status.code().unwrap_or(-1),
+  )
+}
+
+/// [`run`], failing the test unless it exits 0: its stdout.
+pub fn ok(cwd: &Path, args: &[&str]) -> String {
+  let (out, err, code) = run(cwd, args);
+  assert_eq!(code, 0, "`intent {}` failed: {err}", args.join(" "));
+  out
+}

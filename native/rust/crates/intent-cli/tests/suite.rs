@@ -324,6 +324,8 @@ mod the_index_report_names_level_three_as_search_does;
 mod the_index_says_what_it_holds;
 #[path = "the_install_verb_prints_the_runtime_set.rs"]
 mod the_install_verb_prints_the_runtime_set;
+#[path = "the_mint_verbs_say_their_id.rs"]
+mod the_mint_verbs_say_their_id;
 #[path = "the_search_pane_is_resident.rs"]
 mod the_search_pane_is_resident;
 #[path = "the_search_tool_and_json_are_one_envelope.rs"]

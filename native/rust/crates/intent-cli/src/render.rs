@@ -2771,7 +2771,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // v2 prints nothing extra for `-s` (`bin/intent_st:377-381`), so neither
       // does this. The new status is one `st list` away and a second line here
       // would be a deviation owed to nobody.
-      println!("created: {id}");
+      print_created(&id);
       print_written(&f.take_landed());
       Ok(())
     }
@@ -3154,7 +3154,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
         .wp_new(&st, &title, intentsvcs::model::DEFAULT_WP_SCOPE)
         .map_err(fail)?;
       print_notes(&f.take_notes(), &st);
-      println!("created: {st}/{seq:02}");
+      print_created(&format!("{st}/{seq:02}"));
       print_written(&f.take_landed());
       Ok(())
     }
@@ -5276,6 +5276,16 @@ fn print_written(written: &intentsvcs::facade::Written) {
   for line in written_lines(written) {
     println!("{line}");
   }
+}
+
+/// The one line a mint prints to say what it made: `created: <id>`, the whole
+/// id as every door takes it back. `st new`, `wp new` and `issues add` print
+/// it, so a script or a test learns a minted id from this line and from
+/// nothing else (ST0095 WP-02). MCP answers the same id as `created`: a thread
+/// and an issue from the library's formatters, and a work package's address
+/// formatted in each face until the id types give it one home (WP-04, WP-10).
+fn print_created(id: &str) {
+  println!("created: {id}");
 }
 
 /// The lines [`print_written`] prints, one per file, in the one format every
@@ -13916,36 +13926,15 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let number = f
         .issue_add(&title, severity.as_deref(), reporter.as_deref(), &body)
         .map_err(fail)?;
-      print_notes(&f.take_notes(), &format!("{number:04}"));
+      let id = intentsvcs::model::issue_id(number);
+      print_notes(&f.take_notes(), &id);
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
-      // then `<id>:<title>`.
-      //
-      // **ONE LINE CARRIED TWO DEVIATIONS OF OPPOSITE LEGITIMACY, WHICH MADE IT
-      // UNREADABLE AS EITHER** -- issue 0060, ic's finding. The LAYOUT is
-      // ratified: v3's issue canon is flat (`intent/issues/<NNNN>.json`,
-      // data-model.md), so v3 cannot print v2's bucketed path because v3 does not
-      // create it. **The ABSOLUTENESS was forced by nothing.** This printed the
-      // fully-qualified path, so the line a user is meant to copy embedded `$HOME`
-      // and the working directory -- and on this project that means agent-session
-      // tmpdirs landing in issue text.
-      //
-      // Neither implementation chose a convention: v2 builds its path from
-      // `$INTENT_DIR` and is relative by construction, v3 held a resolved root and
-      // printed it. **That is what makes this `as-observed` rather than a
-      // deviation to ratify -- there is nothing here that was decided and could be
-      // defended.**
-      //
-      // **And the defect made itself unmeasurable**, which is why it was filed
-      // rather than noted: `literal_stdout_parity.rs` asserts a row against a
-      // literal template, and a template cannot contain a machine's tmpdir. Every
-      // other row's coverage question is whether anyone has written the
-      // declaration; this row's was whether one could be written at all. Relative
-      // now, so it can be.
-      println!(
-        "created: {}",
-        f.project().relative(&f.project().issue_json(number))
-      );
-      println!("{number:04}:{title}");
+      // then `<id>:<title>`. Line 1 is now the mint's machine form, the line
+      // `st new` and `wp new` print (ST0095 WP-02). The canon file it named
+      // until then is on the `wrote:` line below, and the id is what a caller
+      // needs next. Line 2 is v2's, as observed.
+      print_created(&id);
+      println!("{id}:{title}");
       print_written(&f.take_landed());
       Ok(())
     }

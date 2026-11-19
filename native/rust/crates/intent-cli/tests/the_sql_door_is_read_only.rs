@@ -31,17 +31,19 @@ fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
 
 /// Two threads, so a `--limit 1` has something to cap and `matched` differs
 /// from `returned` -- on a one-row estate the two denominators are the same
-/// number and AC-17.4's case cannot be exhibited.
-fn estate() -> tempfile::TempDir {
+/// number and AC-17.4's case cannot be exhibited. It answers the project and
+/// the first thread's id as its mint printed it, the row the cases name.
+fn estate() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (_, err, code) = run(&["init", "sql-door-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
-  for title in ["The first thread", "The second thread"] {
-    let (_, err, code) = run(&["st", "new", title], root);
+  let [first, _] = ["The first thread", "The second thread"].map(|title| {
+    let (out, err, code) = run(&["st", "new", title], root);
     assert_eq!(code, 0, "fixture st new failed: {err}");
-  }
-  dir
+    crate::common::created(&out)
+  });
+  (dir, first)
 }
 
 /// How many threads the store holds, through the door itself.
@@ -62,7 +64,7 @@ fn threads(root: &Path) -> i64 {
 
 #[test]
 fn a_read_statement_answers_rows_and_columns() {
-  let dir = estate();
+  let (dir, first) = estate();
   let root = dir.path();
   let (out, err, code) = run(
     &[
@@ -74,7 +76,7 @@ fn a_read_statement_answers_rows_and_columns() {
   );
   assert_eq!(code, 0, "the read failed: {err}");
   assert!(
-    out.contains("ST0001") && out.contains("The first thread"),
+    out.contains(first.as_str()) && out.contains("The first thread"),
     "{out:?}"
   );
   assert!(
@@ -89,7 +91,7 @@ fn a_read_statement_answers_rows_and_columns() {
 /// **THE HEADLINE REFUSAL, with the estate as its control** (AT-17.1, AC-17.1).
 #[test]
 fn a_write_is_refused_and_the_store_does_not_move() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let before = threads(root);
 
@@ -119,7 +121,7 @@ fn a_write_is_refused_and_the_store_does_not_move() {
 /// SQLite prepares the first and hands back the rest.
 #[test]
 fn a_second_statement_is_refused_and_neither_half_runs() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let before = threads(root);
 
@@ -133,7 +135,7 @@ fn a_second_statement_is_refused_and_neither_half_runs() {
 /// would pass the test above while making an ordinary query unreachable.
 #[test]
 fn a_semicolon_inside_a_literal_is_not_a_second_statement() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (out, err, code) = run(&["search", "--sql", "select ';' as s"], root);
   assert_eq!(code, 0, "an ordinary query was refused: {err}");
@@ -145,7 +147,7 @@ fn a_semicolon_inside_a_literal_is_not_a_second_statement() {
 /// and this door is exposed on MCP.
 #[test]
 fn attach_and_pragma_are_refused_as_out_of_reach() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let elsewhere = dir.path().join("elsewhere.db");
   let attach = format!("attach database '{}' as x", elsewhere.display());
@@ -169,7 +171,7 @@ fn attach_and_pragma_are_refused_as_out_of_reach() {
 /// AT-17.4 / AC-17.4: a capped result is never a silent subset.
 #[test]
 fn a_capped_result_reports_both_denominators() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (out, err, code) = run(
     &[
@@ -204,7 +206,7 @@ fn a_capped_result_reports_both_denominators() {
 /// AT-17.2 / AC-17.2: the envelope carries the store's schema version.
 #[test]
 fn the_envelope_carries_the_stores_schema_version() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (out, err, code) = run(&["search", "--sql", "select 1 as one", "--json"], root);
   assert_eq!(code, 0, "the read failed: {err}");
@@ -220,7 +222,7 @@ fn the_envelope_carries_the_stores_schema_version() {
 /// AT-17.3 / AC-17.3: nothing is auto-detected from the query's first word.
 #[test]
 fn a_bare_query_is_text_even_when_it_begins_with_select() {
-  let dir = estate();
+  let (dir, first) = estate();
   let root = dir.path();
   // A text search for the word `select` is a search, not a statement: it
   // answers as a search does (exit 0, no rows, the unindexed note) rather than
@@ -228,7 +230,7 @@ fn a_bare_query_is_text_even_when_it_begins_with_select() {
   let (out, err, code) = run(&["search", "select id from threads"], root);
   assert_eq!(code, 0, "the text search failed: {err}");
   assert!(
-    !out.contains("ST0001"),
+    !out.contains(first.as_str()),
     "the text query was run as SQL: {out:?}"
   );
 }
@@ -244,7 +246,7 @@ fn a_bare_query_is_text_even_when_it_begins_with_select() {
 /// first place.
 #[test]
 fn a_query_and_sql_together_or_neither_is_a_usage_error() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (_, err, code) = run(&["search", "anything", "--sql", "select 1"], root);
   assert_eq!(code, 1, "both doors at once was accepted: {err}");
@@ -265,7 +267,7 @@ fn a_query_and_sql_together_or_neither_is_a_usage_error() {
 /// also why this case asserts a REFUSAL rather than a duration.
 #[test]
 fn a_statement_that_never_finishes_is_stopped() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
 
   let (_, err, code) = run(
@@ -290,7 +292,7 @@ fn a_statement_that_never_finishes_is_stopped() {
 /// true, and the MCP side is the one nobody reads by eye.
 #[test]
 fn the_mcp_tool_and_json_answer_the_same_envelope() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let statement = "select id, title from threads order by id";
 
@@ -342,7 +344,7 @@ fn the_mcp_tool_and_json_answer_the_same_envelope() {
 /// what it could not read.
 #[test]
 fn an_fts_table_can_be_read_through_the_door() {
-  let dir = estate();
+  let (dir, _) = estate();
   let root = dir.path();
   let (_, err, code) = run(&["index", "rebuild"], root);
   assert_eq!(code, 0, "the fixture index failed: {err}");
@@ -386,7 +388,7 @@ fn an_fts_table_can_be_read_through_the_door() {
 /// outlive the statement that set it.
 #[test]
 fn a_state_changing_pragma_is_still_refused_and_the_store_stays_read_only() {
-  let dir = estate();
+  let (dir, first) = estate();
   let root = dir.path();
   let before = threads(root);
 
@@ -399,11 +401,10 @@ fn a_state_changing_pragma_is_still_refused_and_the_store_stays_read_only() {
 
   // **AND THE NEXT STATEMENT STILL CANNOT WRITE**, which is the half a refusal
   // alone does not establish: the refusal could have fired after the pragma
-  // took effect.
-  let (_, err, code) = run(
-    &["search", "--sql", "delete from threads where id = 'ST0001'"],
-    root,
-  );
+  // took effect. The row it names is one the estate holds, so a write that got
+  // through would move the count.
+  let delete = format!("delete from threads where id = '{first}'");
+  let (_, err, code) = run(&["search", "--sql", delete.as_str()], root);
   assert_eq!(code, 1, "the write was not refused: {err}");
   assert_eq!(
     threads(root),

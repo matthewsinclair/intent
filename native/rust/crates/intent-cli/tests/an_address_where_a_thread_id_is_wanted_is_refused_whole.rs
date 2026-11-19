@@ -11,16 +11,19 @@ use std::path::PathBuf;
 
 use crate::common::{mcp_session, short_dir};
 
-/// Both are addresses and neither is an id: this project's own ST0001, which the
-/// project carries, and another project's.
-const ADDRESSES: [&str; 2] = [
-  "intent:///threads/ST0001",
-  "intent://elsewhere/threads/ST0001",
-];
+/// Both are addresses and neither is an id: this project's own address for the
+/// thread `st`, which the project carries, and another project's.
+fn addresses(st: &str) -> [String; 2] {
+  [
+    format!("intent:///threads/{st}"),
+    format!("intent://elsewhere/threads/{st}"),
+  ]
+}
 
-/// A project carrying ST0001, so a door that resolved either address here would
-/// find a thread, which is what makes a refusal mean something.
-fn estate() -> PathBuf {
+/// A project carrying one thread, and that thread's id, so a door that
+/// resolved either address here would find a thread, which is what makes a
+/// refusal mean something.
+fn estate() -> (PathBuf, String) {
   let root = short_dir("thread-id-door");
   std::fs::create_dir_all(&root).expect("the estate directory");
   intentsvcs::init::init(&root, "Doors", "test", env!("CARGO_PKG_VERSION"))
@@ -32,10 +35,10 @@ fn estate() -> PathBuf {
     env!("CARGO_PKG_VERSION").to_string(),
   );
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
-  facade
+  let st = facade
     .st_new("A thread this project carries")
     .expect("a thread is created");
-  root
+  (root, st)
 }
 
 /// The whole argument, what the verb takes, and an example -- and never the
@@ -49,12 +52,13 @@ fn refuses_it_whole(said: &str, url: &str) -> bool {
 
 #[test]
 fn st_hydrate_and_dehydrate_refuse_an_address_whole() {
-  let root = estate();
+  let (root, st) = estate();
   let home = short_dir("thread-id-door-home");
   std::fs::create_dir_all(&home).expect("an isolated home");
+  let urls = addresses(&st);
   for verb in ["hydrate", "dehydrate"] {
-    for url in ADDRESSES {
-      let args = ["st", verb, url];
+    for url in &urls {
+      let args = ["st", verb, url.as_str()];
       let out = crate::common::intent()
         .args(args)
         .current_dir(&root)
@@ -80,13 +84,14 @@ fn st_hydrate_and_dehydrate_refuse_an_address_whole() {
 
 #[test]
 fn the_mcp_thread_tools_refuse_an_address_whole() {
-  let root = estate();
+  let (root, st) = estate();
+  let urls = addresses(&st);
   let mut frames = vec![
     r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"thread-id-door","version":"0"}}}"#.to_string(),
   ];
   let mut asked = Vec::new();
   for tool in ["intent_st_hydrate", "intent_st_dehydrate", "intent_st_edit"] {
-    for url in ADDRESSES {
+    for url in &urls {
       let id = frames.len() + 1;
       frames.push(
         serde_json::json!({

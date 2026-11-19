@@ -45,22 +45,28 @@ fn run(args: &[&str], cwd: &Path) -> (String, String, i32) {
 /// rewrote a view belonging to a thread it was never asked about*, and on a
 /// one-thread estate the subject's own view and the collateral one are the same
 /// file -- so the case would pass against the very defect it exists to catch.
-fn estate() -> tempfile::TempDir {
+///
+/// It answers the project, the id of the thread that moves and the id of the
+/// thread that is edited, each as its mint printed it.
+fn estate() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (_, err, code) = run(&["init", "rewrote-fixture"], root);
   assert_eq!(code, 0, "fixture init failed: {err}");
-  for title in ["The thread that moves", "The thread that is edited"] {
-    let (_, err, code) = run(&["st", "new", title], root);
+  let mint = |title: &str| {
+    let (out, err, code) = run(&["st", "new", title], root);
     assert_eq!(code, 0, "fixture st new failed: {err}");
-  }
+    crate::common::created(&out)
+  };
+  let moves = mint("The thread that moves");
+  let edited = mint("The thread that is edited");
   // `st new` writes the STORE; the tree is realised lazily, so the views this
   // case is about do not exist until something asks for them.
-  for id in ["ST0001", "ST0002"] {
+  for id in [moves.as_str(), edited.as_str()] {
     let (_, err, code) = run(&["edit", "st", id, "--path"], root);
     assert_eq!(code, 0, "fixture realise failed for {id}: {err}");
   }
-  dir
+  (dir, moves, edited)
 }
 
 fn hand_edit(root: &Path, rel: &str) -> String {
@@ -72,17 +78,17 @@ fn hand_edit(root: &Path, rel: &str) -> String {
 
 #[test]
 fn a_mutation_names_the_unrelated_view_it_overwrote() {
-  let dir = estate();
+  let (dir, moves, edited_thread) = estate();
   let root = dir.path();
-  let edited = "intent/st/ST0002/info.md";
-  hand_edit(root, edited);
+  let edited = format!("intent/st/{edited_thread}/info.md");
+  hand_edit(root, &edited);
 
-  let (out, err, code) = run(&["st", "start", "ST0001"], root);
+  let (out, err, code) = run(&["st", "start", moves.as_str()], root);
   assert_eq!(code, 0, "the mutation itself failed: {err}");
 
   // THE CONTROL. If the hand-edited line survived, no overwrite happened and
   // everything below would be asking whether the verb announced a non-act.
-  let after = std::fs::read_to_string(root.join(edited)).expect("read the view back");
+  let after = std::fs::read_to_string(root.join(edited.as_str())).expect("read the view back");
   assert!(
     !after.contains("A LINE SOMEBODY TYPED"),
     "the hand edit survived, so this run never exercised an overwrite and the \
@@ -90,7 +96,7 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
   );
 
   assert!(
-    err.contains(edited),
+    err.contains(edited.as_str()),
     "the verb overwrote {edited} and did not name it. stdout: {out:?} stderr: {err:?}"
   );
   assert!(
@@ -103,7 +109,7 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
   // matters. They held exactly what the store last rendered, so nobody's work
   // went under with them.
   assert!(
-    !err.contains("intent/st/ST0001/info.md"),
+    !err.contains(&format!("intent/st/{moves}/info.md")),
     "the note named a view the store itself had last written, which is the \
      projection working rather than a loss: {err:?}"
   );
@@ -112,7 +118,7 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
     "the note named the estate views every mutation re-renders: {err:?}"
   );
   assert!(
-    out.contains("ok: ST0001 started"),
+    out.contains(&format!("ok: {moves} started")),
     "the result line moved or changed shape: {out:?}"
   );
 }
@@ -124,12 +130,12 @@ fn a_mutation_names_the_unrelated_view_it_overwrote() {
 /// did not happen, which is how an operator learns to skim the ones that did.
 #[test]
 fn a_mutation_that_rewrites_nothing_names_nothing() {
-  let dir = estate();
+  let (dir, moves, _) = estate();
   let root = dir.path();
-  let (_, err, code) = run(&["st", "start", "ST0001"], root);
+  let (_, err, code) = run(&["st", "start", moves.as_str()], root);
   assert_eq!(code, 0, "the first start failed: {err}");
 
-  let (_, err, code) = run(&["st", "start", "ST0001"], root);
+  let (_, err, code) = run(&["st", "start", moves.as_str()], root);
   assert_eq!(code, 0, "the repeat start failed: {err}");
   assert!(
     !err.contains("were not the store's render"),
@@ -143,9 +149,9 @@ fn a_mutation_that_rewrites_nothing_names_nothing() {
 #[test]
 fn a_view_rendered_by_an_older_intent_is_rewritten_without_a_warning() {
   // Issue 0385: the first write after an upgrade warned for every view whose only difference was the footer's version.
-  let dir = estate();
+  let (dir, moves, edited) = estate();
   let root = dir.path();
-  let path = root.join("intent/st/ST0002/info.md");
+  let path = root.join(format!("intent/st/{edited}/info.md"));
   let rendered = std::fs::read_to_string(&path).expect("read the realised view");
   let marker = "_Generated by Intent v";
   let at = rendered.rfind(marker).expect("the view carries a banner") + marker.len();
@@ -159,7 +165,7 @@ fn a_view_rendered_by_an_older_intent_is_rewritten_without_a_warning() {
   )
   .expect("an older footer");
 
-  let (_, err, code) = run(&["st", "start", "ST0001"], root);
+  let (_, err, code) = run(&["st", "start", moves.as_str()], root);
   assert_eq!(code, 0, "the mutation itself failed: {err}");
   assert_eq!(
     std::fs::read_to_string(&path).expect("read the view back"),
@@ -196,7 +202,7 @@ fn restore(path: &Path, mode: u32) {
 #[test]
 fn a_board_write_whose_view_cannot_land_exits_zero_and_names_the_step() {
   // Issue 0376: the row committed and the view write's failure came back as the verb's own, so a retry doubled the row.
-  let dir = estate();
+  let (dir, _, _) = estate();
   let root = dir.path();
   let (_, err, code) = run(
     &[
@@ -243,9 +249,9 @@ fn a_board_write_whose_view_cannot_land_exits_zero_and_names_the_step() {
 #[test]
 fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
   // Issue 0376: the store committed the edit and the view write's failure came back as the verb's own.
-  let dir = estate();
+  let (dir, _, _) = estate();
   let root = dir.path();
-  let (_, err, code) = run(
+  let (out, err, code) = run(
     &[
       "issues",
       "add",
@@ -256,9 +262,10 @@ fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
     root,
   );
   assert_eq!(code, 0, "precondition: the issue files: {err}");
+  let issue = crate::common::created(&out);
   let issues = root.join("intent/issues");
   assert!(
-    issues.join("0001.md").is_file(),
+    issues.join(format!("{issue}.md")).is_file(),
     "precondition: the issue's view is realised, so the edit has a view to write"
   );
   let mode = read_only(&issues);
@@ -266,7 +273,7 @@ fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
     &[
       "issues",
       "edit",
-      "0001",
+      issue.as_str(),
       "--title",
       "a title after the edit",
     ],
@@ -278,7 +285,7 @@ fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
     err.contains("the write landed"),
     "and the step that did not run is named: {err}"
   );
-  let (out, err, code) = run(&["issues", "show", "0001"], root);
+  let (out, err, code) = run(&["issues", "show", issue.as_str()], root);
   assert_eq!(code, 0, "{err}");
   assert!(
     out.contains("a title after the edit"),

@@ -141,7 +141,7 @@ fn resources_list_names_each_entity_and_nothing_without_a_cli_read() {
   for expected in [
     format!("intent:///threads/{st}"),
     format!("intent:///threads/{st}/wp/{seq}"),
-    format!("intent:///issues/{number:04}"),
+    format!("intent:///issues/{}", intentsvcs::model::issue_id(number)),
   ] {
     assert!(
       uris.contains(&expected),
@@ -177,8 +177,12 @@ fn every_listed_resource_reads_as_exactly_its_cli_show() {
       vec!["wp".into(), "show".into(), format!("{st}/{seq}")],
     ),
     (
-      format!("intent:///issues/{number:04}"),
-      vec!["issues".into(), "show".into(), format!("{number:04}")],
+      format!("intent:///issues/{}", intentsvcs::model::issue_id(number)),
+      vec![
+        "issues".into(),
+        "show".into(),
+        intentsvcs::model::issue_id(number),
+      ],
     ),
   ];
 

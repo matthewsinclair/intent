@@ -26,10 +26,11 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
   assert!(ok, "init: {out}");
   let (ok, out) = intent(root, &["st", "new", "a live thread"]);
   assert!(ok, "st new: {out}");
+  let st = crate::common::created(&out);
 
   // Plant one v2-grammar citation on the live thread, the shape the migration
   // carries whole: no `file`, a `legacy.raw` with `::` in it.
-  let canon = root.join("intent/.canon/st/ST0001.json");
+  let canon = root.join(format!("intent/.canon/st/{st}.json"));
   let mut thread: serde_json::Value =
     serde_json::from_str(&std::fs::read_to_string(&canon).expect("read canon"))
       .expect("canon is json");
@@ -52,8 +53,8 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
   // otherwise, and the arm would be asserting over a project that really
   // does have findings.
   for step in [
-    &["sync", "--to-store", "ST0001"][..],
-    &["sync", "--to-disk", "ST0001"][..],
+    &["sync", "--to-store", st.as_str()][..],
+    &["sync", "--to-disk", st.as_str()][..],
     &["backup"][..],
   ] {
     let (ok, out) = intent(root, step);
@@ -100,7 +101,9 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
     "--verbose heads the group with its class and count: {verbose}"
   );
   assert!(
-    verbose.contains("  intent/.canon/st/ST0001.json -- AT-01.1 carries a legacy reference"),
+    verbose.contains(&format!(
+      "  intent/.canon/st/{st}.json -- AT-01.1 carries a legacy reference"
+    )),
     "--verbose still names every member by artefact: {verbose}"
   );
   assert!(

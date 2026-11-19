@@ -39,7 +39,7 @@ fn text(out: &Output) -> String {
   )
 }
 
-/// A project with ST0001 in a warm store, and a HOME of its own.
+/// A project with one thread in a warm store, and a HOME of its own.
 fn project(tag: &str) -> (PathBuf, PathBuf) {
   let dir = short_dir(tag);
   let root = dir.join("p");
@@ -53,13 +53,17 @@ fn project(tag: &str) -> (PathBuf, PathBuf) {
 }
 
 /// What a pull does: a thread the store never wrote arrives on disk, canon and
-/// views together, copied from a second project that minted it.
-fn a_pull_brings_st0002(root: &Path, home: &Path) {
+/// views together, copied from a second project that minted it. It answers
+/// that thread's id as its mint printed it.
+fn a_pull_brings_a_thread(root: &Path, home: &Path) -> String {
   let (other, _) = project("plan-origin");
   let out = run(home, &other, &["st", "new", "the thread a pull brought"]);
   assert_eq!(out.status.code(), Some(0), "{}", text(&out));
-  let canon = "intent/.canon/st/ST0002.json";
-  std::fs::copy(other.join(canon), root.join(canon)).expect("the pull brings the canon file");
+  let pulled = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let canon = format!("intent/.canon/st/{pulled}.json");
+  std::fs::copy(other.join(canon.as_str()), root.join(canon.as_str()))
+    .expect("the pull brings the canon file");
+  pulled
 }
 
 /// Every file under the project, with its bytes, `.cache/` excluded.
@@ -89,7 +93,7 @@ fn tree(root: &Path) -> Vec<(PathBuf, Vec<u8>)> {
 #[test]
 fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   let (root, home) = project("plan");
-  a_pull_brings_st0002(&root, &home);
+  let pulled = a_pull_brings_a_thread(&root, &home);
   let before = tree(&root);
 
   let plan = run(&home, &root, &["sync"]);
@@ -100,7 +104,9 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
     "{said}"
   );
   assert!(
-    said.contains(". ingest (quiet): take 1 change(s) from the files into the store: ST0002"),
+    said.contains(&format!(
+      ". ingest (quiet): take 1 change(s) from the files into the store: {pulled}"
+    )),
     "the step names what it would take and says it is quiet: {said}"
   );
   assert!(
@@ -111,7 +117,7 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
     "doctor is the last step: {said}"
   );
   assert_eq!(tree(&root), before, "the bare verb wrote nothing on disk");
-  let shown = run(&home, &root, &["st", "show", "ST0002"]);
+  let shown = run(&home, &root, &["st", "show", pulled.as_str()]);
   assert_ne!(
     shown.status.code(),
     Some(0),
@@ -119,10 +125,9 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   );
 
   let applied = run(&home, &root, &["sync", "--apply"]);
+  let took = format!("ok: took 1 change(s) from the files into the store: {pulled}");
   assert!(
-    text(&applied)
-      .lines()
-      .any(|l| l == "ok: took 1 change(s) from the files into the store: ST0002"),
+    text(&applied).lines().any(|l| l == took),
     "the apply takes what the plan named: {}",
     text(&applied)
   );
@@ -134,7 +139,7 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
     "and doctor's verdict is the last word: {}",
     text(&applied)
   );
-  let shown = run(&home, &root, &["st", "show", "ST0002"]);
+  let shown = run(&home, &root, &["st", "show", pulled.as_str()]);
   assert_eq!(shown.status.code(), Some(0), "{}", text(&shown));
 
   let again = run(&home, &root, &["sync"]);

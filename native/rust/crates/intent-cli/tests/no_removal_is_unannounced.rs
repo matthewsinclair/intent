@@ -48,7 +48,7 @@ fn intent(dir: &Path, args: &[&str]) -> Output {
     .expect("run intent")
 }
 
-fn ok(dir: &Path, args: &[&str]) {
+fn ok(dir: &Path, args: &[&str]) -> String {
   let out = intent(dir, args);
   assert!(
     out.status.success(),
@@ -56,6 +56,7 @@ fn ok(dir: &Path, args: &[&str]) {
     String::from_utf8_lossy(&out.stdout),
     String::from_utf8_lossy(&out.stderr)
   );
+  stdout(&out)
 }
 
 fn stdout(out: &Output) -> String {
@@ -102,15 +103,16 @@ fn rel(root: &Path, path: &Path) -> String {
 }
 
 /// A project holding a realised thread the declaration does not name, which is
-/// the state every removing verb here reconciles.
-fn project() -> tempfile::TempDir {
+/// the state every removing verb here reconciles, and the id that thread was
+/// minted with.
+fn project() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "Fixture"]);
-  ok(root, &["st", "new", "Gate declaration"]);
-  ok(root, &["st", "new", "To be removed"]);
-  ok(root, &["st", "hydrate", "ST0001"]);
-  ok(root, &["st", "hydrate", "ST0002"]);
+  let gate = crate::common::created(&ok(root, &["st", "new", "Gate declaration"]));
+  let doomed = crate::common::created(&ok(root, &["st", "new", "To be removed"]));
+  ok(root, &["st", "hydrate", gate.as_str()]);
+  ok(root, &["st", "hydrate", doomed.as_str()]);
   // The estate's own ship gate: exactly one criterion may carry the block, and
   // it must be satisfied or every removal is held and the fixture is vacuous.
   ok(
@@ -118,7 +120,7 @@ fn project() -> tempfile::TempDir {
     &[
       "ac",
       "new",
-      "ST0001",
+      gate.as_str(),
       "AC-00.1",
       "--text",
       "No dehydration path removes any file while any declared precondition is \
@@ -127,30 +129,37 @@ fn project() -> tempfile::TempDir {
   );
   ok(
     root,
-    &["ac", "new", "ST0001", "AC-00.9", "--text", "a precondition"],
+    &[
+      "ac",
+      "new",
+      gate.as_str(),
+      "AC-00.9",
+      "--text",
+      "a precondition",
+    ],
   );
   ok(
     root,
     &[
       "ac",
       "satisfy",
-      "ST0001",
+      gate.as_str(),
       "AC-00.9",
       "--evidence",
       "met by construction in this fixture",
     ],
   );
-  ok(root, &["st", "start", "ST0001"]);
-  dir
+  ok(root, &["st", "start", gate.as_str()]);
+  (dir, doomed)
 }
 
-/// Take ST0002 out of the declaration while its files stay on disk.
-fn undeclare_st0002(root: &Path) {
+/// Take thread `st` out of the declaration while its files stay on disk.
+fn undeclare(root: &Path, st: &str) {
   let path = root.join("intent/.intentfiles");
   let text = std::fs::read_to_string(&path).expect("the declaration is readable");
   let kept: String = text
     .lines()
-    .filter(|l| !l.contains("ST0002"))
+    .filter(|l| !l.contains(st))
     .map(|l| format!("{l}\n"))
     .collect();
   std::fs::write(&path, kept).expect("rewrite the declaration");
@@ -201,9 +210,9 @@ fn assert_named_before_it_went(said: &str, gone: &[String], what: &str) {
 /// `organize --apply` -- the trigger case.
 #[test]
 fn organize_apply_names_every_path_before_it_goes() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
-  undeclare_st0002(root);
+  undeclare(root, &doomed);
 
   let before = tree(root);
   let out = intent(root, &["organize", "--apply"]);
@@ -221,9 +230,9 @@ fn organize_apply_names_every_path_before_it_goes() {
 /// takes away are not reportage.
 #[test]
 fn organize_apply_quiet_names_every_path_before_it_goes() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
-  undeclare_st0002(root);
+  undeclare(root, &doomed);
 
   let before = tree(root);
   let out = intent(root, &["organize", "--apply", "--quiet"]);
@@ -239,11 +248,11 @@ fn organize_apply_quiet_names_every_path_before_it_goes() {
 /// `st dehydrate` -- the same property in the verb that removes one thread.
 #[test]
 fn st_dehydrate_names_every_path_before_it_goes() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
 
   let before = tree(root);
-  let out = intent(root, &["st", "dehydrate", "ST0002"]);
+  let out = intent(root, &["st", "dehydrate", doomed.as_str()]);
   let after = tree(root);
 
   assert_named_before_it_went(&stdout(&out), &vanished(&before, &after), "st dehydrate");
@@ -261,16 +270,16 @@ fn st_dehydrate_names_every_path_before_it_goes() {
 /// alike.
 #[test]
 fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
-  let view = root.join("intent/st/ST0002/info.md");
+  let view = root.join(format!("intent/st/{doomed}/info.md"));
   let edited = format!(
     "{}\nA HAND EDIT THE STORE DOES NOT CARRY\n",
     std::fs::read_to_string(&view).expect("the view is realised")
   );
   std::fs::write(&view, &edited).expect("edit the view");
 
-  let refused = intent(root, &["st", "hydrate", "ST0002"]);
+  let refused = intent(root, &["st", "hydrate", doomed.as_str()]);
   assert!(
     !refused.status.success(),
     "a realisation that would destroy a difference must refuse: {}",
@@ -282,7 +291,7 @@ fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
     String::from_utf8_lossy(&refused.stderr)
   );
   assert!(
-    said.contains("intent/st/ST0002/info.md"),
+    said.contains(&format!("intent/st/{doomed}/info.md")),
     "and it must NAME the view, or the operator diffs a whole thread against a \
      description of it: {said}"
   );
@@ -295,7 +304,7 @@ fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
   // **`--overwrite` IS THE ROUTE, AND IT STILL NAMES WHAT IT DISCARDS FIRST.**
   // The flag is the operator accepting the loss; it is not permission to stop
   // reporting which file takes it.
-  let forced = intent(root, &["st", "hydrate", "ST0002", "--overwrite"]);
+  let forced = intent(root, &["st", "hydrate", doomed.as_str(), "--overwrite"]);
   let told = stdout(&forced);
   assert!(forced.status.success(), "{told}");
   let named = told
@@ -339,16 +348,16 @@ fn st_hydrate_refuses_a_view_it_would_write_over_and_names_it() {
 /// announcing it would make it look intended.
 #[test]
 fn a_realisation_verb_refuses_to_remove_and_names_what_it_would_have_taken() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
   // A view-shaped file under a realised thread that the store does not carry.
-  let stray = root.join("intent/st/ST0002/WP/99/info.md");
+  let stray = root.join(format!("intent/st/{doomed}/WP/99/info.md"));
   std::fs::create_dir_all(stray.parent().expect("parent")).expect("mkdir");
   std::fs::write(&stray, "not anything the store renders\n").expect("plant");
 
   for args in [
-    vec!["st", "hydrate", "ST0002"],
-    vec!["edit", "st", "ST0002", "info", "--path"],
+    vec!["st", "hydrate", doomed.as_str()],
+    vec!["edit", "st", doomed.as_str(), "info", "--path"],
   ] {
     let out = intent(root, &args);
     let said = format!("{}{}", stdout(&out), String::from_utf8_lossy(&out.stderr));
@@ -379,9 +388,9 @@ fn a_realisation_verb_refuses_to_remove_and_names_what_it_would_have_taken() {
 /// that were returned.
 #[test]
 fn the_mcp_organize_tool_refuses_to_apply_a_plan_the_caller_was_not_shown() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
-  undeclare_st0002(root);
+  undeclare(root, &doomed);
 
   // One tool call, answered. **The payload is a JSON document inside the
   // frame's text**, which is the MCP shape: the frame carries a content block
@@ -511,7 +520,7 @@ fn the_measurement_can_see_a_removal() {
 /// which is noise on the default spelling of a routine verb.
 #[test]
 fn a_run_that_removes_nothing_announces_no_removal() {
-  let dir = project();
+  let (dir, doomed) = project();
   let root = dir.path();
 
   let before = tree(root);
@@ -520,7 +529,7 @@ fn a_run_that_removes_nothing_announces_no_removal() {
 
   assert!(
     vanished(&before, &after).is_empty(),
-    "precondition: with ST0002 still declared this run removes nothing"
+    "precondition: with {doomed} still declared this run removes nothing"
   );
   assert!(
     !said

@@ -40,15 +40,27 @@ fn run(cwd: &Path, args: &[&str]) -> (String, String, i32) {
 }
 
 /// A thread in flight whose gate will pass, so a refusal in these tests is
-/// about the DATE and never about the contract.
-fn closable(dir: &Path, id: &str, title: &str) {
-  run(dir, &["st", "new", title]);
-  run(dir, &["st", "start", id]);
-  run(dir, &["ac", "new", id, "AC-01.1", "--text", "it works"]);
+/// about the DATE and never about the contract. Hands back the id `st new`
+/// minted for it.
+fn closable(dir: &Path, title: &str) -> String {
+  let id = crate::common::created(&run(dir, &["st", "new", title]).0);
+  run(dir, &["st", "start", id.as_str()]);
   run(
     dir,
-    &["ac", "satisfy", id, "AC-01.1", "--evidence", "driven"],
+    &["ac", "new", id.as_str(), "AC-01.1", "--text", "it works"],
   );
+  run(
+    dir,
+    &[
+      "ac",
+      "satisfy",
+      id.as_str(),
+      "AC-01.1",
+      "--evidence",
+      "driven",
+    ],
+  );
+  id
 }
 
 fn project() -> tempfile::TempDir {
@@ -67,29 +79,29 @@ fn completed(dir: &Path, id: &str) -> String {
 #[test]
 fn a_stated_date_is_what_the_thread_records() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
 
   let (out, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
   assert_eq!(code, 0, "{err}");
   assert!(out.contains("done"), "{out:?}");
-  assert_eq!(completed(dir.path(), "ST0001"), "2026-02-14");
+  assert_eq!(completed(dir.path(), &st), "2026-02-14");
 }
 
 #[test]
 fn cancel_takes_the_same_flag() {
   let dir = project();
-  run(dir.path(), &["st", "new", "An overtaken thread"]);
-  run(dir.path(), &["st", "start", "ST0001"]);
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "An overtaken thread"]).0);
+  run(dir.path(), &["st", "start", st.as_str()]);
 
   let (_, err, code) = run(
     dir.path(),
     &[
       "st",
       "cancel",
-      "ST0001",
+      st.as_str(),
       "--reason",
       "overtaken",
       "--date",
@@ -97,7 +109,7 @@ fn cancel_takes_the_same_flag() {
     ],
   );
   assert_eq!(code, 0, "{err}");
-  assert_eq!(completed(dir.path(), "ST0001"), "2026-03-01");
+  assert_eq!(completed(dir.path(), &st), "2026-03-01");
   // `--keep` is on both closing verbs for the same reason; a flag on one of two
   // identical acts is a surface to be memorised rather than understood.
 }
@@ -109,12 +121,12 @@ fn cancel_takes_the_same_flag() {
 #[test]
 fn without_the_flag_the_store_still_stamps_the_day() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished today");
+  let st = closable(dir.path(), "A thread finished today");
 
-  let (_, err, code) = run(dir.path(), &["st", "done", "ST0001"]);
+  let (_, err, code) = run(dir.path(), &["st", "done", st.as_str()]);
   assert_eq!(code, 0, "{err}");
 
-  let recorded = completed(dir.path(), "ST0001");
+  let recorded = completed(dir.path(), &st);
   assert_eq!(
     recorded.len(),
     10,
@@ -129,13 +141,13 @@ fn without_the_flag_the_store_still_stamps_the_day() {
 #[test]
 fn a_date_that_is_not_a_day_is_refused_and_nothing_is_written() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread");
+  let st = closable(dir.path(), "A thread");
 
   // Shape-valid and not a date. A checker that only matched `YYYY-MM-DD` would
   // admit it, and canon would hold a value no reader can turn back into a day.
   let (out, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-30"],
+    &["st", "done", st.as_str(), "--date", "2026-02-30"],
   );
 
   assert_ne!(code, 0, "the thirtieth of February is not a day");
@@ -149,8 +161,8 @@ fn a_date_that_is_not_a_day_is_refused_and_nothing_is_written() {
   );
   // **THE HALF THAT MATTERS: the refusal is not partial.** A validation that
   // ran after the transition would leave the thread closed with a null date.
-  assert_eq!(completed(dir.path(), "ST0001"), "");
-  let (shown, _, _) = run(dir.path(), &["st", "show", "ST0001"]);
+  assert_eq!(completed(dir.path(), &st), "");
+  let (shown, _, _) = run(dir.path(), &["st", "show", st.as_str()]);
   assert!(
     shown.contains("WIP") || shown.contains("wip"),
     "the thread must still be open: {shown:?}"
@@ -190,16 +202,16 @@ fn closed_without_a_date(dir: &Path, id: &str) {
 #[test]
 fn a_date_differing_from_the_record_is_refused_and_names_the_door_that_restates_it() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
   let (_, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
   assert_eq!(code, 0, "{err}");
 
   let (out, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-01-15"],
+    &["st", "done", st.as_str(), "--date", "2026-01-15"],
   );
   assert_ne!(code, 0, "a date that differs must not pass as ok: {out:?}");
   assert!(
@@ -207,11 +219,11 @@ fn a_date_differing_from_the_record_is_refused_and_names_the_door_that_restates_
     "the refusal names what is on record: {err:?}"
   );
   assert!(
-    err.contains("intent set ST0001 completed 2026-01-15"),
+    err.contains(&format!("intent set {st} completed 2026-01-15")),
     "the remedy names the door that restates it, with the date given: {err:?}"
   );
   assert_eq!(
-    completed(dir.path(), "ST0001"),
+    completed(dir.path(), &st),
     "2026-02-14",
     "the refusal wrote nothing"
   );
@@ -248,19 +260,19 @@ fn a_closed_thread_with_no_recorded_date_says_so_in_the_refusal() {
 #[test]
 fn the_date_already_on_record_is_still_an_ok_self_loop() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
   run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
 
   let (out, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
   assert_eq!(code, 0, "{err}");
   assert!(out.contains("already Completed"), "{out:?}");
-  assert_eq!(completed(dir.path(), "ST0001"), "2026-02-14");
+  assert_eq!(completed(dir.path(), &st), "2026-02-14");
 }
 
 /// Issue 0503: **a malformed date is refused on a closed thread exactly as it
@@ -269,22 +281,22 @@ fn the_date_already_on_record_is_still_an_ok_self_loop() {
 #[test]
 fn a_malformed_date_on_a_closed_thread_is_refused_as_a_close_refuses_it() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
   run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
 
   let (out, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-30"],
+    &["st", "done", st.as_str(), "--date", "2026-02-30"],
   );
   assert_ne!(code, 0, "{out:?}");
   assert!(
     err.contains("completed") && err.contains("2026-02-30"),
     "the refusal names the field and the value, as the close's does: {err:?}"
   );
-  assert_eq!(completed(dir.path(), "ST0001"), "2026-02-14");
+  assert_eq!(completed(dir.path(), &st), "2026-02-14");
 }
 
 /// Issue 0504: **`intent set` refuses through its door what `st done --date`
@@ -293,20 +305,20 @@ fn a_malformed_date_on_a_closed_thread_is_refused_as_a_close_refuses_it() {
 #[test]
 fn set_refuses_a_completed_value_that_is_not_a_date() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
   run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
 
-  let (out, err, code) = run(dir.path(), &["set", "ST0001", "completed", "not-a-date"]);
+  let (out, err, code) = run(dir.path(), &["set", st.as_str(), "completed", "not-a-date"]);
   assert_ne!(code, 0, "{out:?}");
   assert!(
     err.contains("completed") && err.contains("not-a-date"),
     "the refusal names the field and the value: {err:?}"
   );
   assert_eq!(
-    completed(dir.path(), "ST0001"),
+    completed(dir.path(), &st),
     "2026-02-14",
     "the refusal wrote nothing"
   );
@@ -317,15 +329,15 @@ fn set_refuses_a_completed_value_that_is_not_a_date() {
 #[test]
 fn set_refuses_a_completion_date_on_a_thread_that_is_not_closed() {
   let dir = project();
-  run(dir.path(), &["st", "new", "A thread in triage"]);
+  let st = crate::common::created(&run(dir.path(), &["st", "new", "A thread in triage"]).0);
 
-  let (out, err, code) = run(dir.path(), &["set", "ST0001", "completed", "2026-03-03"]);
+  let (out, err, code) = run(dir.path(), &["set", st.as_str(), "completed", "2026-03-03"]);
   assert_ne!(code, 0, "{out:?}");
   assert!(
     err.contains("records no completion date"),
     "the refusal names the status rule: {err:?}"
   );
-  assert_eq!(completed(dir.path(), "ST0001"), "");
+  assert_eq!(completed(dir.path(), &st), "");
 }
 
 /// **THE CONTROL FOR BOTH REFUSALS ABOVE, and the workaround the triage's C6
@@ -335,25 +347,25 @@ fn set_refuses_a_completion_date_on_a_thread_that_is_not_closed() {
 #[test]
 fn set_still_restates_a_completion_date_on_a_closed_thread() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread finished in February");
+  let st = closable(dir.path(), "A thread finished in February");
   run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "2026-02-14"],
+    &["st", "done", st.as_str(), "--date", "2026-02-14"],
   );
 
-  let (_, err, code) = run(dir.path(), &["set", "ST0001", "completed", "2026-01-15"]);
+  let (_, err, code) = run(dir.path(), &["set", st.as_str(), "completed", "2026-01-15"]);
   assert_eq!(code, 0, "{err}");
-  assert_eq!(completed(dir.path(), "ST0001"), "2026-01-15");
+  assert_eq!(completed(dir.path(), &st), "2026-01-15");
 }
 
 #[test]
 fn a_malformed_date_is_refused_with_a_remedy_about_the_value() {
   let dir = project();
-  closable(dir.path(), "ST0001", "A thread");
+  let st = closable(dir.path(), "A thread");
 
   let (_, err, code) = run(
     dir.path(),
-    &["st", "done", "ST0001", "--date", "14/02/2026"],
+    &["st", "done", st.as_str(), "--date", "14/02/2026"],
   );
   assert_ne!(code, 0);
   // **The remedy has to be about the VALUE.** Before `ValueNotRecordable`

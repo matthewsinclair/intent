@@ -66,23 +66,24 @@ fn intent(dir: &std::path::Path, args: &[&str]) -> Output {
 /// tells the current declaration rule from the one it replaced.
 ///
 /// **AND NEITHER THREAD HAS A VIEW FILE ON DISK.** `st new` writes canon
-/// (`intent/.canon/st/ST0001.json`) and does not realise; only `st hydrate` or
-/// `organize --apply` puts `intent/st/ST0001/*.md` there. Any test that needs a
+/// (`intent/.canon/st/<id>.json`) and does not realise; only `st hydrate` or
+/// `organize --apply` puts `intent/st/<id>/*.md` there. Any test that needs a
 /// REALISED project has to say so.
-fn project() -> tempfile::TempDir {
+///
+/// Returned with the two ids, first and second, as each `st new` printed it.
+fn project() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   assert!(
     intent(root, &["init", "Fixture"]).status.success(),
     "the fixture must initialise"
   );
-  for title in ["An open thread", "A thread to close"] {
-    assert!(
-      intent(root, &["st", "new", title]).status.success(),
-      "st new must succeed"
-    );
-  }
-  dir
+  let [first, second] = ["An open thread", "A thread to close"].map(|title| {
+    let out = intent(root, &["st", "new", title]);
+    assert!(out.status.success(), "st new must succeed");
+    crate::common::created(&String::from_utf8_lossy(&out.stdout))
+  });
+  (dir, first, second)
 }
 
 fn manifest(root: &std::path::Path) -> String {
@@ -145,18 +146,20 @@ fn tree(root: &std::path::Path) -> std::collections::BTreeMap<String, Vec<u8>> {
 
 #[test]
 fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
-  let dir = project();
+  let (dir, first, second) = project();
   let root = dir.path();
   std::fs::remove_file(root.join("intent/.intentfiles")).expect("start from absent");
 
   // **THREE POPULATIONS, NOT TWO, BECAUSE THE PREDICATE CHANGED UNDER THIS
   // TEST.** `--default` declares WIP and nothing else (hv, 2026-08-26), so the
-  // fixture needs a thread that is neither WIP nor closed: `ST0002` stays in
-  // `triage`. A fixture of one open and one closed thread CANNOT TELL THE TWO
-  // RULES APART -- the old `!is_closed()` predicate declared Triage too, and
-  // would pass an assertion written against it.
+  // fixture needs a thread that is neither WIP nor closed: the second thread
+  // stays in `triage`. A fixture of one open and one closed thread CANNOT TELL
+  // THE TWO RULES APART -- the old `!is_closed()` predicate declared Triage
+  // too, and would pass an assertion written against it.
   assert!(
-    intent(root, &["st", "start", "ST0001"]).status.success(),
+    intent(root, &["st", "start", first.as_str()])
+      .status
+      .success(),
     "moving the first thread to WIP must succeed"
   );
 
@@ -165,8 +168,8 @@ fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
 
   assert_eq!(
     declared(&manifest(root)),
-    vec!["STEELTHREAD:ST0001"],
-    "the WIP thread and nothing else -- ST0002 is `triage`, which the old \
+    vec![format!("STEELTHREAD:{first}")],
+    "the WIP thread and nothing else -- {second} is `triage`, which the old \
      `!is_closed()` rule declared and this one does not"
   );
 
@@ -188,7 +191,7 @@ fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
   // declaration.
   assert!(
     said.contains("2 unchanged") || said.contains("2 to hydrate"),
-    "ST0001's two files must be accounted for as unchanged or to-hydrate: {said}"
+    "{first}'s two files must be accounted for as unchanged or to-hydrate: {said}"
   );
 
   // **AND `refused` IS DELIBERATELY NOT ASSERTED HERE, WHICH NEEDS SAYING
@@ -212,7 +215,7 @@ fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
 
 #[test]
 fn a_present_manifest_is_left_byte_identical_and_force_is_named() {
-  let dir = project();
+  let (dir, ..) = project();
   let root = dir.path();
   let before = manifest(root);
 
@@ -234,7 +237,7 @@ fn a_present_manifest_is_left_byte_identical_and_force_is_named() {
 
 #[test]
 fn force_without_a_tty_writes_nothing_and_exits_non_zero() {
-  let dir = project();
+  let (dir, ..) = project();
   let root = dir.path();
   let before = manifest(root);
 
@@ -281,7 +284,7 @@ fn force_without_a_tty_writes_nothing_and_exits_non_zero() {
 
 #[test]
 fn force_on_its_own_is_a_usage_error_rather_than_a_silent_no_op() {
-  let dir = project();
+  let (dir, ..) = project();
   let out = intent(dir.path(), &["organize", "--force"]);
   assert_eq!(
     out.status.code(),
@@ -305,11 +308,12 @@ fn force_on_its_own_is_a_usage_error_rather_than_a_silent_no_op() {
 ///
 /// **THE FIXTURE IS FULLY REALISED, WHICH IT USED TO ONLY LOOK LIKE.** The
 /// earlier version guarded itself with *the UNDECLARED thread must have files
-/// on disk, or this test cannot fail* -- and that guard passed on
-/// `intent/.canon/st/ST0002.json`, a canon file this verb would never remove
-/// under any implementation. **A positive control satisfied by something the
-/// mutation could not touch is decoration**, so the guard now names the
-/// realised view path, which is the population actually at risk.
+/// on disk, or this test cannot fail* -- and that guard passed on the
+/// undeclared thread's `intent/.canon/st/<id>.json`, a canon file this verb
+/// would never remove under any implementation. **A positive control
+/// satisfied by something the mutation could not touch is decoration**, so the
+/// guard now names the realised view path, which is the population actually
+/// at risk.
 ///
 /// Realisation comes from an ordering that reads like it could not matter: the
 /// manifest is removed FIRST, and with it absent nobody has said what is
@@ -318,7 +322,7 @@ fn force_on_its_own_is_a_usage_error_rather_than_a_silent_no_op() {
 /// disk at all.
 #[test]
 fn default_removes_no_file_belonging_to_an_undeclared_thread() {
-  let dir = project();
+  let (dir, first, second) = project();
   let root = dir.path();
 
   // **THE MANIFEST MUST BE ABSENT OR THIS VERB DOES NOTHING AT ALL.** `init`
@@ -330,13 +334,17 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   // **A survival assertion needs a run that could have killed something.**
   std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
   assert!(
-    intent(root, &["st", "start", "ST0001"]).status.success(),
-    "one thread WIP, so the declaration is non-empty and ST0002 is left out of it"
+    intent(root, &["st", "start", first.as_str()])
+      .status
+      .success(),
+    "one thread WIP, so the declaration is non-empty and {second} is left out of it"
   );
 
   let before = tree(root);
   assert!(
-    before.keys().any(|k| k.starts_with("intent/st/ST0002/")),
+    before
+      .keys()
+      .any(|k| k.starts_with(&format!("intent/st/{second}/"))),
     "the UNDECLARED thread must have REALISED files -- not merely canon -- or the \
      survival assertion below is about a population `--default` could never have \
      touched:\n{:?}",
@@ -380,11 +388,11 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
 
   // **WHAT THIS TEST DOES NOT ESTABLISH, RECORDED HERE BECAUSE IT IS NOT
   // RECOVERABLE FROM THE ASSERTIONS.** The blocked count is a COUNT OF FILES,
-  // and no line of the report names ST0002. An operator reading this output
-  // learns that two files are blocked, not which thread they belong to. The
-  // criterion says *reports the non-WIP threads as to remove and blocked*, and
-  // a count satisfies the second half of that only by arithmetic that happens
-  // to be unambiguous when there is exactly one undeclared thread.
+  // and no line of the report names the undeclared thread. An operator reading
+  // this output learns that two files are blocked, not which thread they belong
+  // to. The criterion says *reports the non-WIP threads as to remove and
+  // blocked*, and a count satisfies the second half of that only by arithmetic
+  // that happens to be unambiguous when there is exactly one undeclared thread.
   //
   // **THE SURVIVAL CLAUSE ABOVE WAS HELD UP BY THE DEHYDRATION GATE RATHER THAN
   // BY THIS VERB DECLINING TO ACT, AND THAT PROP IS GONE AS OF 2026-09-07.**
@@ -434,20 +442,25 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
 /// for this test to catch.
 #[test]
 fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
-  let dir = project();
+  let (dir, first, _) = project();
   let root = dir.path();
   assert!(
-    intent(root, &["st", "start", "ST0001"]).status.success(),
+    intent(root, &["st", "start", first.as_str()])
+      .status
+      .success(),
     "WIP while the manifest is present, so the id is declared"
   );
   // `st start` realises the thread it declares since issue 0079, so the
   // declared-and-absent state this test needs is made by removing it.
-  std::fs::remove_dir_all(root.join("intent/st/ST0001")).expect("unrealise ST0001");
+  std::fs::remove_dir_all(root.join(format!("intent/st/{first}")))
+    .expect("unrealise the started thread");
   std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
 
   let before = tree(root);
   assert!(
-    !before.keys().any(|k| k.starts_with("intent/st/ST0001/")),
+    !before
+      .keys()
+      .any(|k| k.starts_with(&format!("intent/st/{first}/"))),
     "the DECLARED thread must be absent from disk, or there is nothing for an applying \
      `--default` to create and this test cannot fail:\n{:?}",
     before.keys().collect::<Vec<_>>()
@@ -489,8 +502,8 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
 
 #[test]
 fn organise_and_organize_are_one_code_path() {
-  let dir_z = project();
-  let dir_s = project();
+  let (dir_z, ..) = project();
+  let (dir_s, ..) = project();
   std::fs::remove_file(dir_z.path().join("intent/.intentfiles")).expect("absent");
   std::fs::remove_file(dir_s.path().join("intent/.intentfiles")).expect("absent");
 
