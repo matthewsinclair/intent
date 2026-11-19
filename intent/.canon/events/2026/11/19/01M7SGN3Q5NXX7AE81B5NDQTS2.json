@@ -1,0 +1,15 @@
+{
+  "id": "01M7SGN3Q5NXX7AE81B5NDQTS2",
+  "ts": "2026-11-19T09:01:57.861Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-19, first-hand in prose in vc's session and to dc in dc's, read by 09:01Z on vc's date -u; hv's own words throughout) THREE ADDITIONS TO DECISION 61 FOR ST0095. (1) SCOPE: \"all ordinal identifiers\" means \"all ordinal identifiers (steel threads, work packages, and issues)\", and \"If there are other ordinal identifiers, then I only care if they are subject to the same issues as STs, WPs, and Issues.\" vc's answer to hv's \"What else is there?\": criterion and test ids, which the caller assigns on the package's number and which collide the same way inside one thread, and whiteboard item numbers, which collide only when one node writes its board in two places; both are put to hv in ST0095's design. (2) BACKWARDS COMPATIBLE: \"in this case we DO NEED TO BE BACKWARDS COMPATIBLE with the old ordinal style numbering.\" Every existing ordinal keeps working at every door, beside the new ids, which is a stated exception to fail forward, no shims. (3) ONE HOME: \"we need to ensure that we highlander both the minting of these new ids and any checks on them into as tight a waist as possile.\" (4) DOCS: \"This will also need a WP to update the docs for the new numbering, too.\""
+  }
+}
