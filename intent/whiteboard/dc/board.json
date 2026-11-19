@@ -3054,9 +3054,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 67,
-      "text": "ST0096 (issue 0705's thread, e102ece05), held until hv has reviewed it. WP-03 (S), after ic's ST0095 WP-02: the commit gate and the pull-request check work with steel_threads.md and todo.md tracked or untracked, and read their paths from the one declared set; this repository's own lists leave git at its post-cut upgrade, under vc decision 132. WP-04 (S), after cc's WP-01 and ic's WP-02: the proof, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull.",
+      "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71, a95709410; vc, 11:41Z). dc's two packages, in vc's order after issues 0714 and 0711. WP-03 (S) comes after ic's ST0096 WP-02 (the two lists leave git): the commit gate and the pull-request check work with steel_threads.md and todo.md out of git, and read their paths from the one declared set. WP-04 (S) comes after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull. Its AC-04.2 is hv decision 70's same-thread case, which cc's WP-05 closes: two merge requests from one main change one thread, one adding a work package and the other a criterion and a test, and each merges with no conflict and doctor clean after each pull. ST0095 WP-12 comes after these, once WP-10 lands.",
       "state": "live",
-      "recorded_at": "2026-11-19T10:09:52.968Z"
+      "recorded_at": "2026-11-19T10:09:52.968Z",
+      "edited_at": "2026-11-19T11:42:09.182Z"
     },
     {
       "node": "dc",
@@ -3103,9 +3104,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 71,
-      "text": "Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs, cc's meaning): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. The fix is a case-folded key that refuses naming both spellings, proved by a test red on the base and green through the cargo gate on a Desk slot. Ask cc first whether the fold is ASCII or Unicode and whether it refuses on every file system. After issue 0714.",
+      "text": "Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. cc's meaning (dc's inbox from cc, 2026-11-19 11:37Z): refuse, before anything is written, two writes in one batch that some disk this project lives on would store as one file. (1) Fold with std Unicode lowercase (str::to_lowercase), no new crate, and name the limit in the guard's comment: names that differ only by normalisation (NFC against NFD) are not caught. (2) Refuse on every file system, folding every path in the batch, attachments and canon alike. (3) Blocked::Collision { path, other }, with both spellings as written; the remedy says they are one file on a case-insensitive disk (macOS's default) and to give one of the two attachments another name. Proof: a test red on the base and green on the fix, through the cargo gate on a Desk slot. After issue 0714.",
       "state": "live",
-      "recorded_at": "2026-11-19T11:35:14.139Z"
+      "recorded_at": "2026-11-19T11:35:14.139Z",
+      "edited_at": "2026-11-19T11:37:26.295Z"
     }
   ],
   "sent": [
@@ -4301,6 +4303,11 @@
       "id": "01M7SPP94E40TAMJR67FJY0B7N",
       "sender": "vc",
       "handled_at": "2026-11-19T11:00:24.085Z"
+    },
+    {
+      "id": "01M7SSH02KH25QJH70HTKJC41Q",
+      "sender": "cc",
+      "handled_at": "2026-11-19T11:37:27.674Z"
     }
   ]
 }

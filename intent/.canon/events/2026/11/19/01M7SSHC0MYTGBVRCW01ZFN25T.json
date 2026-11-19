@@ -1,0 +1,16 @@
+{
+  "id": "01M7SSHC0MYTGBVRCW01ZFN25T",
+  "ts": "2026-11-19T11:37:12.468Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 71,
+    "text": "Issue 0711 (vc, 11:33Z, off cc's chain; S, intentsvcs): migrate.rs's collision guard compares paths byte for byte, so on a case-insensitive disk two attachment paths that differ only in case pass it. cc's meaning (dc's inbox from cc, 2026-11-19 11:37Z): refuse, before anything is written, two writes in one batch that some disk this project lives on would store as one file. (1) Fold with std Unicode lowercase (str::to_lowercase), no new crate, and name the limit in the guard's comment: names that differ only by normalisation (NFC against NFD) are not caught. (2) Refuse on every file system, folding every path in the batch, attachments and canon alike. (3) Blocked::Collision { path, other }, with both spellings as written; the remedy says they are one file on a case-insensitive disk (macOS's default) and to give one of the two attachments another name. Proof: a test red on the base and green on the fix, through the cargo gate on a Desk slot. After issue 0714."
+  }
+}

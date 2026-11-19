@@ -1,0 +1,16 @@
+{
+  "id": "01M7SSTD4JH4HFQ4DNDJBQY8P2",
+  "ts": "2026-11-19T11:42:09.182Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 67,
+    "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71, a95709410; vc, 11:41Z). dc's two packages, in vc's order after issues 0714 and 0711. WP-03 (S) comes after ic's ST0096 WP-02 (the two lists leave git): the commit gate and the pull-request check work with steel_threads.md and todo.md out of git, and read their paths from the one declared set. WP-04 (S) comes after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull. Its AC-04.2 is hv decision 70's same-thread case, which cc's WP-05 closes: two merge requests from one main change one thread, one adding a work package and the other a criterion and a test, and each merges with no conflict and doctor clean after each pull. ST0095 WP-12 comes after these, once WP-10 lands."
+  }
+}
