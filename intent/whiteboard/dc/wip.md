@@ -6,7 +6,7 @@ session_id: b5900b85-5513-4ada-92b4-02956562a5e3
 heartbeat_at: 2026-11-19 10:55Z
 status: active
 focus: "2026-11-19 10:50Z by date -u: ST0095 WP-03, localfold before a compact, not released. Both units WIP-banked on their bases (guard 21661391e, capture b9d1e8f72). The guard's red control found the ST0056 view-skew gate blind since 2026-09-07 (issue 0716, filed at 58d2d48d6); its fix reads doctor --format json, lands first as its own commit, and the copy path is shown faithful. Next: critic result, the brew smoke re-run, the proofs to vc, then issue 0714. Handoff at refs/bank/dc/st0095/handoff-20261119b."
-claims: [ST0095/03]
+claims: [ST0095/03, ISSUE:0714]
 ---
 
 # DevX Claude (dc)

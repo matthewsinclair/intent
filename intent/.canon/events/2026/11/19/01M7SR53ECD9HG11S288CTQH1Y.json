@@ -1,0 +1,15 @@
+{
+  "id": "01M7SR53ECD9HG11S288CTQH1Y",
+  "ts": "2026-11-19T11:13:01.904Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0717"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "No door says whether opening a store would migrate it, so the commit gate's view-skew check keeps a second copy of Store::init's decision"
+  }
+}
