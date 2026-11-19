@@ -1,0 +1,15 @@
+{
+  "id": "01M7SPRN0KY8JW7D2MAPY1Q8ME",
+  "ts": "2026-11-19T10:48:45.592Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0716"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "The ST0056 view-skew gate has passed every tree since doctor grouped its report by class on 2026-09-07"
+  }
+}
