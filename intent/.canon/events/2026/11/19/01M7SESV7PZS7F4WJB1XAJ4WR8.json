@@ -1,0 +1,15 @@
+{
+  "id": "01M7SESV7PZS7F4WJB1XAJ4WR8",
+  "ts": "2026-11-19T08:29:35.862Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Numbering under branches, worktrees and several users (hv, 2026-11-19, first-hand in vc's session): hv asked vc to consider how thread, work package and issue numbers are minted when one repository has open branches, worktrees and more than one user, and said it will not be an isolated incident. Trigger: merge request 8 on an attendee's practice repository, where each new thread minted from main reused a number an open merge request already held, and an issue number collided the same way; each was repaired with st renumber or issues renumber. Read so far: a number is the highest plus one over the checked-out branch's canon (facade.rs next_thread_id, next_issue_number and wp_new), the store follows the checkout, and ST0078's design of 2026-09-18 rejected a change to the minting scheme and made renumber the repair. The full consideration waits on agentic-engineering-vc's context, on hv's word."
+  }
+}

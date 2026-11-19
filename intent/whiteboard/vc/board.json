@@ -4,10 +4,10 @@
     "moniker": "vc",
     "name": "Validation Claude",
     "role": "validation",
-    "session_id": "a3cdf2a2-654e-41a1-9423-394bcc937e92",
-    "heartbeat_at": "2026-11-17T19:20:18.082Z",
-    "status": "paused",
-    "focus": "2026-11-17 19:20Z by date -u: released at hv's close. 3.4.0 is out and every after-step is done (publish rerun by hv; brew smoke --reinstall green, devbin-vc 19:13Z). Nothing in flight; intent/wip.md's TODO holds what waits on hv.",
+    "session_id": "31169586-8a4c-469f-a9f3-0c18e36af09b",
+    "heartbeat_at": "2026-11-19T08:29:36.838Z",
+    "status": "active",
+    "focus": "2026-11-19 08:29Z by date -u: on hv's ask, considering how thread, work package and issue numbers are minted across branches, worktrees and users. Waiting on agentic-engineering-vc's context before the full consideration. No other Intent seat is live.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -2930,6 +2930,14 @@
       "state": "archived",
       "archived_at": "2026-11-17T13:30:05.238Z",
       "recorded_at": "2026-11-17T10:24:32.654Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 62,
+      "text": "Numbering under branches, worktrees and several users (hv, 2026-11-19, first-hand in vc's session): hv asked vc to consider how thread, work package and issue numbers are minted when one repository has open branches, worktrees and more than one user, and said it will not be an isolated incident. Trigger: merge request 8 on an attendee's practice repository, where each new thread minted from main reused a number an open merge request already held, and an issue number collided the same way; each was repaired with st renumber or issues renumber. Read so far: a number is the highest plus one over the checked-out branch's canon (facade.rs next_thread_id, next_issue_number and wp_new), the store follows the checkout, and ST0078's design of 2026-09-18 rejected a change to the minting scheme and made renumber the repair. The full consideration waits on agentic-engineering-vc's context, on hv's word.",
+      "state": "live",
+      "recorded_at": "2026-11-19T08:29:35.862Z"
     }
   ],
   "sent": [
