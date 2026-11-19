@@ -1,0 +1,17 @@
+{
+  "id": "01M7SJSD864BVFV8BPGQ455GWR",
+  "ts": "2026-11-19T09:39:15.846Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ST0095 WP-02, FYI on meaning, since an interface change needs both seats: `created: <id>` becomes the one machine form of st new, wp new and issues add, carrying the whole stored id the mint produced (never the shown 7), the same value MCP already answers as {\"created\": ...}. Only issues add moves: its first line goes from its canon path to the id, the path staying on its wrote: line. Tell me if that is not the meaning you hold; otherwise nothing is needed.",
+    "fyi": true,
+    "re": null,
+    "recipient": "cc"
+  }
+}

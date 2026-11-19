@@ -3,17 +3,17 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
-heartbeat_at: 2026-11-19 09:22Z
+heartbeat_at: 2026-11-19 09:33Z
 status: active
 focus: "2026-11-19 09:22Z by date -u: localfold, on hv's word: sync with vc, then bank, fold and hold. Synced with vc on hv decision 64 at 09:21Z. ST0095's census, ic's part, is banked at refs/bank/ic/st0095/census (blob f0067c669, base fd8b71ded, patch-id 76d32435), a patch that adds intent/st/ST0095/census-ic.md, for vc to land or attach. Holding: ic writes nothing to the tree until hv has reviewed ST0095. No claim, slot or worktree."
-claims: []
+claims: [ST0095/02]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-_(none)_
+- ST0095 WP-02 (M): the mint verbs say their id in one machine form, `created: <whole id>` (the value MCP answers as created), and intent-cli tests read it only through common::created. Then intent-cli part of cc WP-04 when cc sends it, WP-10 (L) against cc WP-07 resolver, WP-11 (M). On vc start order (inbox, 09:28Z) and its go (09:38Z, vc date -u). Machine form sent to dc, and to cc as FYI on meaning.
 
 ## TODO
 

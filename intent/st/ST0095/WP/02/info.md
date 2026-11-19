@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The mint verbs say their id, and CLI tests read it
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-02: The mint verbs say their id, and CLI tests read it

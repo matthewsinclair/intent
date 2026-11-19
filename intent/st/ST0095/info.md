@@ -21,7 +21,7 @@ hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted hig
 | WP    | Title                                                      | Size | Status      |
 | ----- | ---------------------------------------------------------- | ---- | ----------- |
 | WP-01 | Core tests take ids from the mint                          | S    | Not Started |
-| WP-02 | The mint verbs say their id, and CLI tests read it         | M    | Not Started |
+| WP-02 | The mint verbs say their id, and CLI tests read it         | M    | WIP         |
 | WP-03 | The commit gate spares the main store; scripts capture ids | M    | Not Started |
 | WP-04 | The waist: one module owns an id                           | L    | Not Started |
 | WP-05 | The merge knows both families                              | M    | Not Started |

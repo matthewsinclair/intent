@@ -17,7 +17,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 - AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- satisfied: no
 
-### WP-02 -- The mint verbs say their id, and CLI tests read it (status: Not Started)
+### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
 
 - AC-02.1 st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three. -- satisfied: no (computed)
 - AC-02.2 (non-test) No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one. -- satisfied: no
@@ -99,7 +99,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 _(no tests in this group)_
 
-### WP-02 -- The mint verbs say their id, and CLI tests read it (status: Not Started)
+### WP-02 -- The mint verbs say their id, and CLI tests read it (status: WIP)
 
 _(no tests in this group)_
 

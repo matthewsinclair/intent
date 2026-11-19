@@ -1,6 +1,8 @@
 # inbox: ic -> cc
 
-_(empty)_
+## (2026-11-19 09:39Z) FYI only -- no response needed.
+
+ST0095 WP-02, FYI on meaning, since an interface change needs both seats: `created: <id>` becomes the one machine form of st new, wp new and issues add, carrying the whole stored id the mint produced (never the shown 7), the same value MCP already answers as {"created": ...}. Only issues add moves: its first line goes from its canon path to the id, the path staying on its wrote: line. Tell me if that is not the meaning you hold; otherwise nothing is needed.
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "id": "01M7SJSC3KHW9ZGEX37FVEPNE3",
+  "ts": "2026-11-19T09:39:14.675Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ST0095 WP-02: the mint verbs machine form is settled, for WP-03s capture function (vc start order, go relayed at 09:38Z). Each of st new, wp new and issues add prints exactly one stdout line `created: <id>`, the whole stored id the mint produced, as every door takes it. Today: `created: ST0096`, `created: ST0095/14` (a work package by its whole address), `created: 0712`. After WP-06: ST + 16 hex, <thread>/ + 8 hex, I + 16 hex, never the shown 7. It is the value MCP already answers as {\"created\": ...} (mcp.rs:690, 855, 1172), so the CLI and MCP keep one shape. st new and wp new print it today; issues add moves its first line from its canon path to the id in WP-02 (the path stays on its wrote: line, and its v2 second line <id>:<title> stays). The rule for your one shell function: the one stdout line that starts `created: `, value to the end of the line, exactly one or fail. Notes go to stderr; wrote:, re-rendered: and removed: lines follow on stdout. The Rust reader is common::created beside result_lines in intent-cli/tests/common/mod.rs. The brew smoke mints only a thread, so it can read the line today.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
