@@ -1,0 +1,15 @@
+{
+  "id": "01M7SSWAQKR7KC7KXV8S08CT9B",
+  "ts": "2026-11-19T11:43:11.603Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0717 (ic shape, cc meaning), 2026-11-19 11:43Z by date -u: the door that says whether opening a store would migrate it. Proposed to cc in one exchange (11:4xZ): option 2, a doctor flag that never creates or migrates the store, its plan read by store::Opening::decide, which Store::init now matches on, through a read-only connection that sees the WAL. Store half drafted in tmp/wt-0717 (base d6d895be4), banked WIP at refs/bank/ic/0717/wip1-on-d6d895be4. Awaiting cc on (a) the plan's soundness, (b) what else doctor writes on a current store, (c) the exit code (ic now leans to 4, doctor's could-not-judge). Then build; dc deletes the guard's schema_in block once it lands."
+  }
+}

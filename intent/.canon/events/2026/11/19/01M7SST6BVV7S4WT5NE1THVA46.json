@@ -1,0 +1,15 @@
+{
+  "id": "01M7SST6BVV7S4WT5NE1THVA46",
+  "ts": "2026-11-19T11:42:01.595Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0096 WP-02 (M, ic), go from hv decision 71 (2026-11-19 11:42Z by date -u, relayed by vc): the two generated lists leave git. intent init writes both into .gitignore through the writer that writes intent/.cache/; intent upgrade untracks them once; doctor names a project whose lists are still tracked, advisory and not counted (with issue 0707's doctor half). Design intent/st/ST0096/design.md; AC-02.1, AC-02.2. Fits with issue 0717 until ST0095 WP-04 lands, then WP-10's first half goes first."
+  }
+}
