@@ -1,9 +1,9 @@
-//! **`st new`, `wp new` and `issues add` say what they minted in one form**
-//! (ST0095 AC-02.1). Each prints exactly one stdout line, `created: <id>`, and
-//! the value is the whole id that the verbs taking its kind accept back as
-//! printed, so a script or a test that reads it never has to know how an id is
-//! made. `crate::common::created` is the one reader, and it fails unless there
-//! is exactly one such line.
+//! `AT-02.1` (ST0095) / `AC-02.1`: **`st new`, `wp new` and `issues add` say
+//! what they minted in one form.** Each prints exactly one stdout line,
+//! `created: <id>`, and the value is the whole id that the verbs taking its
+//! kind accept back as printed, so a script or a test that reads it never has
+//! to know how an id is made. `crate::common::created` is the one reader, and
+//! it fails unless there is exactly one such line.
 
 use crate::common::ok;
 
