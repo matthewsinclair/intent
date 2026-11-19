@@ -1,0 +1,15 @@
+{
+  "id": "01M7SMYW2YCFTF62WAK19BSZG7",
+  "ts": "2026-11-19T10:17:12.711Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0712"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A work package's gate passes unjudged when its criteria use a one-digit group (AC-1.1)"
+  }
+}
