@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The waist: one module owns an id
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-04: The waist: one module owns an id

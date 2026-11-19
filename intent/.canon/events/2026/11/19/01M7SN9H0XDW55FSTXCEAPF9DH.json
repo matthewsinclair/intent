@@ -1,0 +1,15 @@
+{
+  "id": "01M7SN9H0XDW55FSTXCEAPF9DH",
+  "ts": "2026-11-19T10:23:01.149Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0095/04 (the waist) in worktree tmp/wt-st0095-wp04, base cb0a9066d plus WP-01's bank (landed as ae11d9939). id.rs is written: ThreadId holds its stored string and derefs to &str; WpId and IssueId are Copy over a private Form; serde, schemars, rusqlite and async-graphql faces live in id.rs and keep every face byte-identical (u32 for wp and issue ids). The four model fields are typed and model.rs's id section is moved. Driving the compile errors with bin/devbin check clippy on Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP, which is held. Next: facade.rs and views.rs, then intent-cli, intentd and the tests; then the Highlander folds vc assigned (sweep items 1 to 5, C8, C13 and C14) and WP-01's three critic fixes; then bank, critic-rust and the gate. Proposed to vc: WP-04b for kind tags (C11, issue 0708), path ownership (C6), the registry rows and st_prefix, plus rewording AC-04.2."
+  }
+}

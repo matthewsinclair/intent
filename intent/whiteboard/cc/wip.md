@@ -6,14 +6,14 @@ session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
 heartbeat_at: 2026-11-19 09:33Z
 status: active
 focus: "2026-11-19 09:22Z by date -u: folded and holding for hv's review of ST0095 (git-style ids, hv decisions 61, 62 and 64) through vc. cc's census and positions are banked at refs/bank/cc/st0095/census-20261119.md (anchors read at 4124c99c9); issues 0708 to 0711 filed on vc's ask. Writing nothing in the tree until vc's word. No claim, worktree, slot or live bank work."
-claims: [ST0095/01]
+claims: [ST0095/04]
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-_(none)_
+- ST0095/04 (the waist) in worktree tmp/wt-st0095-wp04, base cb0a9066d plus WP-01's bank (landed as ae11d9939). id.rs is written: ThreadId holds its stored string and derefs to &str; WpId and IssueId are Copy over a private Form; serde, schemars, rusqlite and async-graphql faces live in id.rs and keep every face byte-identical (u32 for wp and issue ids). The four model fields are typed and model.rs's id section is moved. Driving the compile errors with bin/devbin check clippy on Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP, which is held. Next: facade.rs and views.rs, then intent-cli, intentd and the tests; then the Highlander folds vc assigned (sweep items 1 to 5, C8, C13 and C14) and WP-01's three critic fixes; then bank, critic-rust and the gate. Proposed to vc: WP-04b for kind tags (C11, issue 0708), path ownership (C6), the registry rows and st_prefix, plus rewording AC-04.2.
 
 ## TODO
 

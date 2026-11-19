@@ -33,7 +33,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-03.2 The brew smoke passes whatever id the mint returns. -- satisfied: no (computed)
 - AC-03.3 Two runs of the explorer screenshots write byte-identical images from seeded ids. -- satisfied: no (computed)
 
-### WP-04 -- The waist: one module owns an id (status: Not Started)
+### WP-04 -- The waist: one module owns an id (status: WIP)
 
 - AC-04.1 (non-test) A thread, work package or issue id is a typed value that only intentsvcs::id constructs, and no other file formats, parses or scans one. -- satisfied: no
 - AC-04.2 The change is behaviour-neutral: an existing project's canon, views and output are byte-for-byte what they were, and intent sync plans nothing. -- satisfied: no (computed)
@@ -116,7 +116,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-04 -- The waist: one module owns an id (status: Not Started)
+### WP-04 -- The waist: one module owns an id (status: WIP)
 
 _(no tests in this group)_
 
