@@ -25,6 +25,21 @@ Seat: ic. Size: L.
 - One read door on the binary for scripts: is this token an id, of which kind, and which record does it name.
 - The CLI tests whose subject is the ordinal scheme (`cli_end_to_end.rs:128-133`, `169-171`, `212-218`), and the regenerated guide and `docs/reference`.
 
+## From the Highlander sweep (vc decision 133)
+
+vc's sweep of the existing code is banked at `refs/bank/vc/st0095/highlander-B-rust-rest-20261119`, and its clusters are the anchors. Each goes through the waist (WP-04) and cc's operator reader (WP-07):
+
+- D1: a work package's id is formatted inline at 19 sites (`render.rs` 10, `mcp.rs` 8, `show.rs:94`) with no formatter. Every site takes the waist's.
+- D2: one work package has six display spellings (`mcp.rs:2072` emits `.../wp/1`, which a test pins, where `facade.rs:16505` emits `.../wp/01`). Each rendered form has one spelling, from that formatter.
+- D3: the issue id's `{:04}` is inline at 15 sites, `model::issue_id` has no caller in scope, and the CLI says "issue 0021" where MCP says "0021". One formatter and one wording.
+- D4: `<thread>/<NN>` is parsed in five places under three rules (`render.rs:10027`, `scope_of`, takes `+3` and `003` and turns `ST0001/abc` into a thread id). One operator reader.
+- D5: doors that skip the thread door: `todo done`, `todo notdone` and `todo toggle`, `ac descope --to`, `events --subject`, and MCP's `ac list`, `at list` and `at lint`, which drop the `/NN` the CLI passes on. Every one goes through the door. Issue 0713 records the live defects.
+- D6: bad-id refusals have three homes (`mcp.rs:1914` folds every `IdError` into one message, and `render.rs:16444` uses `THREAD_DIGITS` for issues and spells the `s` and `i` tags beside `IdKind::tag()`). One refusal, quoting the waist's sentence of forms.
+- D7 to D10: entity header lines restated for MCP resource names, worked-example ids, criterion and test label handling, and an `Address` for this project built by hand. Each goes to its one home.
+- The dispatch table declares an id type for every argument, and `render.rs` picks its reader from that declaration, not one per arm.
+- `intent set`, and every door that takes a work package, takes the `<thread>/<package>` form `wp new` prints (dc, 2026-11-19: `intent set ST0001/01 objective` is refused today).
+- intent-cli's test helpers (T1 to T9: `.intentfiles` parsed by hand, minimal canon written by hand, worked-example ids as scattered literals) become one set in `tests/common`, on the waist's types. WP-02 left a minted id to `common::created` alone. The tests that search rendered output for a captured id take its shown form here, or their negative checks pass for nothing once the shown form is shorter than the stored one.
+
 ## Order
 
 After WP-02 and WP-07. Its doors can accept both families before WP-06 mints one.

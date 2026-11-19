@@ -21,6 +21,7 @@ Seat: ac, or ic if hv does not start ac. Size: L.
 - An upgrade note: every machine first; `intent upgrade` once per project; an open branch upgrades before it merges; and nothing is renumbered.
 - The release notes' entry.
 - The 21 reference pages, `cut-surface.md` and the screenshots regenerate in the cut's own steps, and are not written by hand.
+- From the Highlander sweep (vc decision 133, report C at `refs/bank/vc/st0095/highlander-C-non-rust-20261119`): `intent/docs/working-with-llms.md:506` copies the claim-forms sentence and no test holds the copy, so it quotes or points at the waist's sentence of forms instead. The dispatch table's help strings feed `--help`, the guide and `docs/reference`, so a form taught there is written once, in the table.
 
 ## Order
 
