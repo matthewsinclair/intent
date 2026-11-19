@@ -306,7 +306,7 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
           "description".into(),
           json!(format!(
             "what a board can claim: {}",
-            intentsvcs::model::CLAIM_ADDRESS_FORMS
+            intentsvcs::id::CLAIM_ADDRESS_FORMS
           )),
         );
       }
@@ -852,27 +852,27 @@ fn tool_answer(
       // S by default, same as the CLI: sizing happens after the package is
       // written (hv, issue 0052), and `wp rescope` is the exit.
       let seq = f.wp_new(&st, title, intentsvcs::model::DEFAULT_WP_SCOPE)?;
-      Ok(json!({ "created": format!("{st}/{seq:02}") }))
+      Ok(json!({ "created": intentsvcs::id::wp_address(&st, seq) }))
     }
     "wp start" => {
       let (st, seq) = wp_scope(path, map)?;
       Ok(outcome_json(
         &f.wp_start(&st, seq)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp done" => {
       let (st, seq) = wp_scope(path, map)?;
       Ok(outcome_json(
         &f.wp_done(&st, seq)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp unstart" => {
       let (st, seq) = wp_scope(path, map)?;
       Ok(outcome_json(
         &f.wp_unstart(&st, seq)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp reopen" => {
@@ -880,7 +880,7 @@ fn tool_answer(
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_reopen(&st, seq, &reason)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp cancel" => {
@@ -888,7 +888,7 @@ fn tool_answer(
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_cancel(&st, seq, &reason)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp reinstate" => {
@@ -896,7 +896,7 @@ fn tool_answer(
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_reinstate(&st, seq, &reason)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp rescope" => {
@@ -905,7 +905,7 @@ fn tool_answer(
       let size = crate::render::t_shirt(raw).map_err(|e| failure_args(path, &e))?;
       Ok(outcome_json(
         &f.wp_rescope(&st, seq, size)?,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp list" => {
@@ -1169,21 +1169,15 @@ fn tool_answer(
       // environment, and a guess made on the server about a remote agent would
       // be a fabricated attribution. Absent renders as "nobody said".
       let number = f.issue_add(title, severity, None, body)?;
-      Ok(json!({ "created": intentsvcs::model::issue_id(number) }))
+      Ok(json!({ "created": number.stored() }))
     }
     "issues close" => {
       let number = issue_number(path, need_s(path, map, "id")?)?;
-      Ok(outcome_json(
-        &f.issue_close(number)?,
-        &format!("{number:04}"),
-      ))
+      Ok(outcome_json(&f.issue_close(number)?, &number.stored()))
     }
     "issues open" => {
       let number = issue_number(path, need_s(path, map, "id")?)?;
-      Ok(outcome_json(
-        &f.issue_open(number)?,
-        &format!("{number:04}"),
-      ))
+      Ok(outcome_json(&f.issue_open(number)?, &number.stored()))
     }
 
     // ----- todo -----
@@ -1899,7 +1893,10 @@ fn spec(path: &str, raw: &str) -> Result<String, ServeError> {
 
 /// A `<ST>/<NN>` spelling resolved to its work-package scope, refusing a bare
 /// thread the way `wp_target` does -- same rule, this face's rendering.
-fn wp_scope(path: &str, map: &Map<String, Value>) -> Result<(String, u32), ServeError> {
+fn wp_scope(
+  path: &str,
+  map: &Map<String, Value>,
+) -> Result<(String, intentsvcs::id::WpId), ServeError> {
   let target = spec(path, need_s(path, map, "specifier")?)?;
   match crate::render::scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
@@ -1910,9 +1907,9 @@ fn wp_scope(path: &str, map: &Map<String, Value>) -> Result<(String, u32), Serve
   }
 }
 
-/// An issue number, through the model's own normaliser.
-fn issue_number(path: &str, raw: &str) -> Result<u32, ServeError> {
-  intentsvcs::model::normalise_issue_id(raw).map_err(|_| {
+/// An issue id, through the waist's own normaliser.
+fn issue_number(path: &str, raw: &str) -> Result<intentsvcs::id::IssueId, ServeError> {
+  intentsvcs::id::normalise_issue_id(raw).map_err(|_| {
     args_err(
       path,
       format!("`{raw}` is not an issue number -- name it as digits, eg 0000"),
@@ -2042,17 +2039,6 @@ impl ResourceError {
   }
 }
 
-/// The `intent://` address of an entity, rendered by `address.rs` -- the one
-/// home for the scheme. `authority: None` is the empty authority: THIS project.
-fn address_of(entity: intentsvcs::address::Entity) -> String {
-  intentsvcs::address::Address {
-    authority: None,
-    entity,
-    format: None,
-  }
-  .to_url()
-}
-
 /// Every concrete resource, enumerated from the facade: one per thread, work
 /// package and issue. The URI is the entity's own `intent://` address; the name
 /// is the first line the CLI read prints, so a listing reads the way `st list`
@@ -2062,25 +2048,27 @@ pub fn resource_list(f: &Facade) -> Vec<Resource> {
   let mut out = Vec::new();
   for t in f.st_list() {
     out.push(Resource {
-      uri: address_of(Entity::Thread { id: t.id.clone() }),
-      name: format!("{}: {}", t.id, t.title),
+      uri: Entity::Thread { id: t.id.stored() }.local_url(),
+      name: format!("{}: {}", t.id.shown(), t.title),
     });
     for wp in &t.wps {
       out.push(Resource {
-        uri: address_of(Entity::Wp {
-          thread: t.id.clone(),
-          wp: wp.seq.to_string(),
-        }),
-        name: format!("{}/WP-{:02}: {}", t.id, wp.seq, wp.title),
+        uri: Entity::Wp {
+          thread: t.id.stored(),
+          wp: wp.seq.stored(),
+        }
+        .local_url(),
+        name: format!("{}/{}: {}", t.id.shown(), wp.seq.heading(), wp.title),
       });
     }
   }
   for i in f.issue_list() {
     out.push(Resource {
-      uri: address_of(Entity::Issue {
-        id: format!("{:04}", i.number),
-      }),
-      name: format!("{:04}: {}", i.number, i.title),
+      uri: Entity::Issue {
+        id: i.number.stored(),
+      }
+      .local_url(),
+      name: format!("{}: {}", i.number.shown(), i.title),
     });
   }
   out
@@ -2106,9 +2094,8 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
   match address.entity {
     Entity::Thread { id } => Ok(crate::show::thread(f.st_show(&id)?)),
     Entity::Wp { thread, wp } => {
-      let seq = wp
-        .parse::<u32>()
-        .map_err(|_| bad("a work-package address ends in a whole-number sequence".to_string()))?;
+      let seq = intentsvcs::id::normalise_wp_id(&wp)
+        .map_err(|_| bad("a work-package address ends in a work package's id".to_string()))?;
       let criteria = f.wp_criteria(&thread, seq)?;
       Ok(crate::show::work_package(
         &thread,
@@ -2117,9 +2104,8 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
       ))
     }
     Entity::Issue { id } => {
-      let number = id
-        .parse::<u32>()
-        .map_err(|_| bad("an issue address ends in a whole number".to_string()))?;
+      let number = intentsvcs::id::IssueId::parse(&id)
+        .map_err(|_| bad("an issue address ends in an issue id".to_string()))?;
       Ok(crate::show::issue(f.issue_show(number)?))
     }
     _ => Err(bad(
@@ -2319,7 +2305,7 @@ mod tests {
   /// constant, and the row explaining the verb must name every form.
   #[test]
   fn every_door_naming_the_claim_forms_names_the_one_home() {
-    let forms = intentsvcs::model::CLAIM_ADDRESS_FORMS;
+    let forms = intentsvcs::id::CLAIM_ADDRESS_FORMS;
     let table = dispatch::table();
     let mut helped: Vec<&str> = Vec::new();
     for entry in dispatch::shipped_entries(&table) {

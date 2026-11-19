@@ -234,14 +234,19 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
     .position(|l| l.starts_with("claims: "))
     .map_or(1, |i| i + 1);
   for claim in claims {
-    if crate::model::is_claim_address(&claim) {
+    if crate::id::is_claim_address(&claim) {
       out.claims.push(claim);
       continue;
     }
-    let spelled = claim
-      .split_once("/WP-")
-      .map(|(thread, seq)| format!("{thread}/{seq}"))
-      .filter(|address| crate::model::is_claim_address(address))
+    // The package is read through the waist, so `ST0112/WP-07` and `ST0112/7`
+    // are both offered back as the one form a claim takes, `ST0112/07`.
+    let spelled = crate::id::split_wp_address(&claim)
+      .and_then(|(thread, wp)| {
+        crate::id::normalise_wp_id(wp)
+          .ok()
+          .map(|wp| crate::id::wp_address(thread, wp))
+      })
+      .filter(|address| crate::id::is_claim_address(address))
       .map(|address| format!(" -- `{address}` here"))
       .unwrap_or_default();
     out.source_items += 1;
@@ -249,7 +254,7 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
       at: format!("{file}:{claims_line}"),
       reason: format!(
         "not a claim address: `wb claim` takes {}{spelled}",
-        crate::model::CLAIM_ADDRESS_FORMS
+        crate::id::CLAIM_ADDRESS_FORMS
       ),
       text: claim,
     });

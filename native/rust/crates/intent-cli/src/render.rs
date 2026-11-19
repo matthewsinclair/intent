@@ -1211,7 +1211,7 @@ fn summarise(f: &Facade) -> Vec<ThreadSummary> {
   f.st_list()
     .into_iter()
     .map(|t| ThreadSummary {
-      id: t.id.clone(),
+      id: t.id.stored(),
       title: t.title.clone(),
       status: t.status,
       created: t.created.clone(),
@@ -2979,7 +2979,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       report_notes(&outcome, &id);
       println!("ok: {path} detached from {id} -- its record is gone from the store and canon");
       print_written(&facade.take_landed());
-      let on_disk = facade.project().st_dir().join(&id).join(&path);
+      let on_disk = facade.project().thread_dir(&id).join(&path);
       if on_disk.exists() {
         println!(
           "note: {} is still on disk and is yours to delete -- until it is, a running intentd or the next `intent sync --to-store` carries it back in as an attachment",
@@ -3154,7 +3154,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
         .wp_new(&st, &title, intentsvcs::model::DEFAULT_WP_SCOPE)
         .map_err(fail)?;
       print_notes(&f.take_notes(), &st);
-      print_created(&format!("{st}/{seq:02}"));
+      print_created(&intentsvcs::id::wp_address(&st, seq));
       print_written(&f.take_landed());
       Ok(())
     }
@@ -3162,14 +3162,24 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let (st, seq) = wp_target(a)?;
       let mut f = open()?;
       let outcome = f.wp_start(&st, seq).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "started");
+      reported(
+        &mut f,
+        &outcome,
+        &intentsvcs::id::wp_address(&st, seq),
+        "started",
+      );
       Ok(())
     }
     Some(("done", a)) => {
       let (st, seq) = wp_target(a)?;
       let mut f = open()?;
       let outcome = f.wp_done(&st, seq).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "done");
+      reported(
+        &mut f,
+        &outcome,
+        &intentsvcs::id::wp_address(&st, seq),
+        "done",
+      );
       Ok(())
     }
     // `wp reopen` is the inverse `wp done` never had, and its absence was
@@ -3183,7 +3193,12 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let reason = opt(a, "reason")?.unwrap_or_default();
       let mut f = open()?;
       let outcome = f.wp_reopen(&st, seq, &reason).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "reopened");
+      reported(
+        &mut f,
+        &outcome,
+        &intentsvcs::id::wp_address(&st, seq),
+        "reopened",
+      );
       Ok(())
     }
     // **The state the model could not express until 2026-08-21.** `wp done`
@@ -3198,7 +3213,12 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let reason = opt(a, "reason")?.unwrap_or_default();
       let mut f = open()?;
       let outcome = f.wp_cancel(&st, seq, &reason).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "cancelled");
+      reported(
+        &mut f,
+        &outcome,
+        &intentsvcs::id::wp_address(&st, seq),
+        "cancelled",
+      );
       Ok(())
     }
     Some(("reinstate", a)) => {
@@ -3206,7 +3226,12 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let reason = opt(a, "reason")?.unwrap_or_default();
       let mut f = open()?;
       let outcome = f.wp_reinstate(&st, seq, &reason).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("{st}/{seq:02}"), "reinstated");
+      reported(
+        &mut f,
+        &outcome,
+        &intentsvcs::id::wp_address(&st, seq),
+        "reinstated",
+      );
       Ok(())
     }
     Some(("unstart", a)) => {
@@ -3216,7 +3241,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
         "back to not started",
       );
       Ok(())
@@ -3249,7 +3274,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &format!("{st}/{seq:02}"),
+        &intentsvcs::id::wp_address(&st, seq),
         &format!("rescoped to {}", enum_str(&size)),
       );
       Ok(())
@@ -3270,7 +3295,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
         .iter()
         .map(|w| {
           vec![
-            format!("{:02}", w.seq),
+            w.seq.shown(),
             w.title.clone(),
             w.scope_display(),
             w.status.display().to_string(),
@@ -3302,7 +3327,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
     // `ac gate <ST>/<NN>` already runs, through the one gate renderer.
     Some(("gate", a)) => {
       let (st, seq) = wp_target(a)?;
-      gate_verdict(&format!("{st}/{seq:02}"))
+      gate_verdict(&intentsvcs::id::wp_address(&st, seq))
     }
     Some((verb, _)) => unwired("wp", verb),
     None => Err("error: a work package command is required".into()),
@@ -5281,9 +5306,9 @@ fn print_written(written: &intentsvcs::facade::Written) {
 /// The one line a mint prints to say what it made: `created: <id>`, the whole
 /// id as every door takes it back. `st new`, `wp new` and `issues add` print
 /// it, so a script or a test learns a minted id from this line and from
-/// nothing else (ST0095 WP-02). MCP answers the same id as `created`: a thread
-/// and an issue from the library's formatters, and a work package's address
-/// formatted in each face until the id types give it one home (WP-04, WP-10).
+/// nothing else (ST0095 WP-02). MCP answers the same id as `created`, and both
+/// faces take its spelling from the id waist (`intentsvcs::id`): the stored
+/// form, and a work package's address from `wp_address` (ST0095 WP-04).
 fn print_created(id: &str) {
   println!("created: {id}");
 }
@@ -7348,16 +7373,16 @@ impl tui::run::Source for Live {
       })
       .collect();
     out.extend(self.facade.st_list().into_iter().map(|t| Entry {
-      id: t.id.clone(),
+      id: t.id.stored(),
       title: t.title.clone(),
       status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
       door: View::Item {
         kind: "thread".into(),
-        id: t.id.clone(),
+        id: t.id.stored(),
       },
     }));
     out.extend(self.facade.issue_list().into_iter().map(|i| {
-      let id = format!("{:04}", i.number);
+      let id = i.number.stored();
       Entry {
         id: id.clone(),
         title: i.title.clone(),
@@ -7621,9 +7646,9 @@ fn rows_for(
       seamed(
         open,
         threads.iter().map(|t| {
-          Row::new(t.id.clone(), t.title.clone(), "button").opening(View::Item {
+          Row::new(t.id.shown(), t.title.clone(), "button").opening(View::Item {
             kind: "thread".into(),
-            id: t.id.clone(),
+            id: t.id.stored(),
           })
         }),
       )
@@ -7637,10 +7662,9 @@ fn rows_for(
       seamed(
         open,
         issues.iter().map(|i| {
-          let id = format!("{:04}", i.number);
-          Row::new(id.clone(), i.title.clone(), "button").opening(View::Item {
+          Row::new(i.number.shown(), i.title.clone(), "button").opening(View::Item {
             kind: "issue".into(),
-            id,
+            id: i.number.stored(),
           })
         }),
       )
@@ -7798,12 +7822,7 @@ fn children_of(
           wps
             .iter()
             .map(|w| {
-              let mut row = Row::named(
-                format!("{}", w.seq),
-                format!("WP-{:02}", w.seq),
-                w.title.clone(),
-                "button",
-              );
+              let mut row = Row::named(w.seq.stored(), w.seq.heading(), w.title.clone(), "button");
               // **THE DOOR IS WHAT MAKES THE NEW LEVEL REACHABLE RATHER THAN
               // MERELY ADDRESSABLE.** A `button` with no door visibly opens
               // nothing (`tui-design.md` section 6), so without this a work
@@ -7814,7 +7833,7 @@ fn children_of(
                 kind: kind.to_string(),
                 id: id.to_string(),
                 field: field.to_string(),
-                item: format!("{}", w.seq),
+                item: w.seq.stored(),
               });
               match (declaration.form("wp"), serde_json::to_value(w).ok()) {
                 (Some(form), Some(entity)) => row.expanding_to(tui::views::rows_for(form, &entity)),
@@ -7900,8 +7919,8 @@ fn children_of(
             .iter()
             .map(|r| {
               Row::named(
-                r.id.clone(),
-                r.id.clone(),
+                r.id.stored(),
+                r.id.shown(),
                 r.note.clone().unwrap_or_default(),
                 "button",
               )
@@ -10035,8 +10054,8 @@ fn gate_verdict(target: &str) -> Result<(), Failure> {
 }
 
 pub(crate) fn scope_of(target: &str) -> (String, Scope) {
-  match target.split_once('/') {
-    Some((st, wp)) => match wp.parse::<u32>() {
+  match intentsvcs::id::split_wp_address(target) {
+    Some((st, wp)) => match intentsvcs::id::normalise_wp_id(wp) {
       Ok(seq) => (st.to_string(), Scope::WorkPackage(seq)),
       Err(_) => (target.to_string(), Scope::Thread),
     },
@@ -10044,7 +10063,7 @@ pub(crate) fn scope_of(target: &str) -> (String, Scope) {
   }
 }
 
-fn wp_target(a: &ArgMatches) -> Result<(String, u32), Failure> {
+fn wp_target(a: &ArgMatches) -> Result<(String, intentsvcs::id::WpId), Failure> {
   let target = thread_arg(a, "specifier")?;
   match scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
@@ -13837,7 +13856,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
         .filter(|i| wanted.is_none_or(|w| i.status == w))
         .map(|i| {
           vec![
-            format!("{:04}", i.number),
+            i.number.shown(),
             i.status.display().to_string(),
             // v2 prints `?` for an issue whose severity was never recorded,
             // and the token is kept: a blank cell reads as a rendering fault,
@@ -13926,15 +13945,14 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let number = f
         .issue_add(&title, severity.as_deref(), reporter.as_deref(), &body)
         .map_err(fail)?;
-      let id = intentsvcs::model::issue_id(number);
-      print_notes(&f.take_notes(), &id);
+      print_notes(&f.take_notes(), &number.shown());
       // v2 prints TWO lines (`bin/intent_issues:187-188`): the path it wrote,
       // then `<id>:<title>`. Line 1 is now the mint's machine form, the line
       // `st new` and `wp new` print (ST0095 WP-02). The canon file it named
       // until then is on the `wrote:` line below, and the id is what a caller
       // needs next. Line 2 is v2's, as observed.
-      print_created(&id);
-      println!("{id}:{title}");
+      print_created(&number.stored());
+      println!("{}:{title}", number.shown());
       print_written(&f.take_landed());
       Ok(())
     }
@@ -13968,8 +13986,9 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       // which is why it is worth stating rather than quietly fixing.
       if !prose_given && title.is_none() && severity.is_none() {
         return Err(Failure::Error(format!(
-          "error: `issues edit` was given nothing to change\n  remedy: name at least one of --body <text>, --from <file>, --title <text> or --severity <{}>, as in `intent issues edit {number:04} --title <text>`",
-          intentsvcs::model::IssueSeverity::SPELLINGS.join("|")
+          "error: `issues edit` was given nothing to change\n  remedy: name at least one of --body <text>, --from <file>, --title <text> or --severity <{}>, as in `intent issues edit {} --title <text>`",
+          intentsvcs::model::IssueSeverity::SPELLINGS.join("|"),
+          number.shown()
         )));
       }
 
@@ -14025,14 +14044,24 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
           severity.as_deref(),
         )
         .map_err(fail)?;
-      reported(&mut f, &outcome, &format!("issue {number:04}"), &written);
+      reported(
+        &mut f,
+        &outcome,
+        &format!("issue {}", number.shown()),
+        &written,
+      );
       Ok(())
     }
     Some(("close", a)) => {
       let number = issue_arg(a, "id")?;
       let mut f = issues_open(m, Answer::Write)?.0;
       let outcome = f.issue_close(number).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("issue {number:04}"), "-> CLOSED");
+      reported(
+        &mut f,
+        &outcome,
+        &format!("issue {}", number.shown()),
+        "-> CLOSED",
+      );
       Ok(())
     }
     // ST0078 WP-02: the issue half of `st renumber`.
@@ -14044,7 +14073,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       print_renumbering(
         &mut f,
         &done,
-        &format!("issue {old:04} renumbered to {new:04}"),
+        &format!("issue {} renumbered to {}", old.shown(), new.shown()),
         "issue",
       );
       Ok(())
@@ -14053,7 +14082,12 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       let number = issue_arg(a, "id")?;
       let mut f = issues_open(m, Answer::Write)?.0;
       let outcome = f.issue_open(number).map_err(fail)?;
-      reported(&mut f, &outcome, &format!("issue {number:04}"), "-> OPEN");
+      reported(
+        &mut f,
+        &outcome,
+        &format!("issue {}", number.shown()),
+        "-> OPEN",
+      );
       Ok(())
     }
     // **`issues hydrate` AND `issues dehydrate` ARE GONE FROM THE SURFACE, AND
@@ -14211,7 +14245,7 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
           Ok(())
         }
         (st, Scope::WorkPackage(seq)) => {
-          let label = format!("{st}/{seq:02}");
+          let label = intentsvcs::id::wp_address(&st, seq);
           let mut f = open()?;
           let outcome = f.wp_fc(&st, seq, &because, by).map_err(fail)?;
           reported(&mut f, &outcome, &label, "fiat-closed");
@@ -16180,18 +16214,15 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   // `intent:`: a fragment nobody had typed as an id. `://` is in every URL and
   // in no id spelling, and the scheme itself stays `address`'s to spell.
   if raw.contains("://") {
-    return Err(address_refusal(raw, model::IdKind::Thread));
+    return Err(address_refusal(raw, intentsvcs::id::IdKind::Thread));
   }
-  let (head, tail) = match raw.split_once('/') {
-    Some((h, t)) => (h, Some(t)),
-    None => (raw, None),
-  };
-  let id =
-    model::normalise_thread_id(head).map_err(|e| id_refusal(head, e, model::IdKind::Thread))?;
-  Ok(match tail {
-    Some(t) => format!("{id}/{t}"),
-    None => id,
-  })
+  let head = intentsvcs::id::split_wp_address(raw).map_or(raw, |(thread, _)| thread);
+  let id = intentsvcs::id::normalise_thread_id(head)
+    .map_err(|e| id_refusal(head, e, intentsvcs::id::IdKind::Thread))?;
+  // The thread half takes its stored spelling, and the rest of `raw`, the
+  // separator and the package's part, passes through as written (nothing when
+  // `raw` names no package), so this function spells no separator of its own.
+  Ok(format!("{}{}", id.as_str(), &raw[head.len()..]))
 }
 
 /// A worked address, RENDERED from the grammar rather than typed.
@@ -16359,7 +16390,7 @@ pub(crate) fn address_of(
     // UNTOUCHED, so the composite arrives as `ST0000/03` and splits here.
     "wp" => {
       let spec = thread_spec(raw)?;
-      let (thread, wp) = spec.split_once('/').ok_or_else(|| {
+      let (thread, wp) = intentsvcs::id::split_wp_address(&spec).ok_or_else(|| {
         Failure::Error(format!(
           "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `<thread>/03`"
         ))
@@ -16370,11 +16401,9 @@ pub(crate) fn address_of(
       }
     }
     _ => Entity::Issue {
-      id: format!(
-        "{:0width$}",
-        model::normalise_issue_id(raw).map_err(|e| id_refusal(raw, e, model::IdKind::Issue))?,
-        width = model::ISSUE_DIGITS
-      ),
+      id: intentsvcs::id::normalise_issue_id(raw)
+        .map_err(|e| id_refusal(raw, e, intentsvcs::id::IdKind::Issue))?
+        .stored(),
     },
   };
   Ok(intentsvcs::address::Address {
@@ -16408,29 +16437,32 @@ fn check_enum(given: &str, verb: &str, name: &str) -> Result<String, Failure> {
 }
 
 /// An operator's spelling of an ISSUE id, as a number.
-fn issue_arg(m: &ArgMatches, name: &str) -> Result<u32, Failure> {
+fn issue_arg(m: &ArgMatches, name: &str) -> Result<intentsvcs::id::IssueId, Failure> {
   let raw = arg(m, name)?;
-  model::normalise_issue_id(&raw).map_err(|e| id_refusal(&raw, e, model::IdKind::Issue))
+  intentsvcs::id::normalise_issue_id(&raw)
+    .map_err(|e| id_refusal(&raw, e, intentsvcs::id::IdKind::Issue))
 }
 
 /// **THE ONE PLACE A BAD ID IS EXPLAINED, AND THE WANTED COLLECTION IS THE
-/// CALLER'S TO SUPPLY.** `model::IdError` is a fact about a spelling and is
+/// CALLER'S TO SUPPLY.** `intentsvcs::id::IdError` is a fact about a spelling and is
 /// deliberately collection-independent -- `i59` is a well-formed id, and whether
 /// that is an error depends entirely on which verb was asked. Putting the
 /// expectation in the error would make the model hold the CLI's context; putting
 /// the message here keeps the fact in one place and the wording in another.
-fn id_refusal(raw: &str, e: model::IdError, wanted: model::IdKind) -> Failure {
+fn id_refusal(raw: &str, e: intentsvcs::id::IdError, wanted: intentsvcs::id::IdKind) -> Failure {
   let what = wanted.as_str();
   Failure::Error(match e {
-    model::IdError::NotAnId => format!(
+    intentsvcs::id::IdError::NotAnId => format!(
       "error: `{raw}` is not {} id\n  remedy: name it as a number, eg `{}`",
       wanted.with_article(),
       example(wanted)
     ),
-    model::IdError::OutOfRange => format!(
+    intentsvcs::id::IdError::OutOfRange => format!(
       "error: `{raw}` is out of range -- {} id is {} digits\n  remedy: name it as a number, eg `{}`",
       wanted.with_article(),
-      model::THREAD_DIGITS,
+      // The width of the kind asked for (the sweep's D6): this said the
+      // thread's for an issue too, and only agreed because both are four.
+      wanted.digits(),
       example(wanted)
     ),
     // **THE REFUSAL THIS CHANGE EXISTS FOR.** Naming the OTHER collection and
@@ -16438,17 +16470,18 @@ fn id_refusal(raw: &str, e: model::IdError, wanted: model::IdKind) -> Failure {
     // a spelling the operator can type is a different object from one that says
     // no. Reporting this as a not-found sends them into the estate looking for
     // something that was never addressed.
-    model::IdError::WrongCollection { named } => format!(
-      "error: `{raw}` names {}, and this verb takes {}\n  remedy: `{}{}` names the {what}",
+    intentsvcs::id::IdError::WrongCollection { named } => format!(
+      "error: `{raw}` names {}, and this verb takes {}\n  remedy: `{}` names the {what}",
       named.with_article(),
       wanted.with_article(),
-      wanted.tag(),
-      raw.trim_start_matches(|c: char| !c.is_ascii_digit())
+      intentsvcs::id::respelled_as(raw, wanted).unwrap_or_else(|| example(wanted).to_string())
     ),
     // Only the collection-agnostic door can raise this: every other caller
     // learns the collection from its own verb.
-    model::IdError::Ambiguous { seq } => format!(
-      "error: `{raw}` names both a steel thread and an issue\n  remedy: `s{seq}` names the steel thread, `i{seq}` the issue"
+    intentsvcs::id::IdError::Ambiguous { thread, issue } => format!(
+      "error: `{raw}` names both a steel thread and an issue\n  remedy: `{}` names the steel thread, `{}` the issue",
+      thread.tagged(),
+      issue.tagged()
     ),
   })
 }
@@ -16456,7 +16489,7 @@ fn id_refusal(raw: &str, e: model::IdError, wanted: model::IdKind) -> Failure {
 /// **AN ADDRESS WHERE THE VERB TAKES AN ID, NAMED WHOLE.** The remedy shows the
 /// id's own spelling from [`example`], never an id read out of the address,
 /// which can name another project's thread (issue 0338).
-fn address_refusal(raw: &str, wanted: model::IdKind) -> Failure {
+fn address_refusal(raw: &str, wanted: intentsvcs::id::IdKind) -> Failure {
   Failure::Error(format!(
     "error: `{raw}` is an address, and this verb takes {} id\n  remedy: name the {} by its id, eg `{}`",
     wanted.with_article(),
@@ -16467,15 +16500,15 @@ fn address_refusal(raw: &str, wanted: model::IdKind) -> Failure {
 
 /// A worked example in the reader's own vocabulary. `ST0000` is the STZero
 /// retrofit id (D37), so it names something in THEIR project rather than ours.
-fn example(kind: model::IdKind) -> &'static str {
+fn example(kind: intentsvcs::id::IdKind) -> &'static str {
   match kind {
     // `0` and `ST0000` are the SAME id in its two spellings, which is the
     // equivalence the example is teaching -- and `ST0000` is the STZero
     // retrofit id, so it names something in the READER's project rather than a
     // thread in ours. `no_pm_state_in_output` enforces exactly that, and caught
     // this line carrying `ST0046` on its first run.
-    model::IdKind::Thread => "0` or `ST0000",
-    model::IdKind::Issue => "21` or `0021",
+    intentsvcs::id::IdKind::Thread => "0` or `ST0000",
+    intentsvcs::id::IdKind::Issue => "21` or `0021",
   }
 }
 

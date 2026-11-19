@@ -271,7 +271,9 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls();
   // Where sync's repair moves this clone's thread: the next free ordinal, which
   // is the behaviour under test here, not a mint (ST0095 WP-05 changes it).
-  let moved = intentsvcs::model::thread_id(2);
+  let moved = intentsvcs::id::ThreadId::from_ordinal(2)
+    .expect("a thread id")
+    .shown();
   let bob = &team.bob;
   assert!(
     unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),

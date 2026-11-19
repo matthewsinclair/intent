@@ -31,7 +31,7 @@ fn warm_with_one_thread() -> Fixture {
 fn stored_ids(fx: &Fixture) -> Vec<String> {
   let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");
   let (threads, _) = store.load_canon().expect("the store reads back");
-  threads.into_iter().map(|t| t.id).collect()
+  threads.into_iter().map(|t| t.id.stored()).collect()
 }
 
 fn stored_title(fx: &Fixture, id: &str) -> String {

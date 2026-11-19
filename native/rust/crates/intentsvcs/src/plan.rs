@@ -507,7 +507,7 @@ pub fn left_line(left: &[Left]) -> Option<String> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkPackagesMintedTwice {
   pub merged: crate::model::Thread,
-  pub moves: Vec<(u32, u32)>,
+  pub moves: Vec<(crate::id::WpId, crate::id::WpId)>,
 }
 
 /// Whether a thread both sides changed is a work package both sides minted,
@@ -526,7 +526,7 @@ pub fn work_packages_minted_twice(
   ours: &crate::model::Thread,
   theirs: &crate::model::Thread,
 ) -> Option<WorkPackagesMintedTwice> {
-  let in_base = |seq: u32| base.wps.iter().any(|wp| wp.seq == seq);
+  let in_base = |seq: crate::id::WpId| base.wps.iter().any(|wp| wp.seq == seq);
   let without_added = |t: &crate::model::Thread| {
     let mut t = t.clone();
     t.wps.retain(|wp| in_base(wp.seq));
@@ -543,22 +543,25 @@ pub fn work_packages_minted_twice(
       .collect()
   };
   let (ours_added, theirs_added) = (added(ours), added(theirs));
-  let collides = |seq: u32| theirs_added.iter().any(|wp| wp.seq == seq);
+  let collides = |seq: crate::id::WpId| theirs_added.iter().any(|wp| wp.seq == seq);
   if !ours_added.iter().any(|wp| collides(wp.seq)) {
     return None;
   }
-  let mut next = ours
+  // The next free package after every id either side holds, from the waist's
+  // one ordinal mint; a thread already at the width's last id has no next, and
+  // the take-a-side step asks a person instead.
+  let mut taken: Vec<crate::id::WpId> = ours
     .wps
     .iter()
     .chain(theirs.wps.iter())
     .map(|wp| wp.seq)
-    .max()
-    .unwrap_or(0);
+    .collect();
   let mut merged = theirs.clone();
   let mut moves = Vec::new();
   for mut wp in ours_added {
     if collides(wp.seq) {
-      next += 1;
+      let next = crate::id::WpId::next_after(taken.iter().copied()).ok()?;
+      taken.push(next);
       moves.push((wp.seq, next));
       wp.seq = next;
     }
@@ -629,12 +632,12 @@ pub fn classify(
       match rest.split_once('/') {
         None => match rest
           .strip_suffix(".json")
-          .filter(|id| crate::model::thread_seq(id).is_some())
+          .filter(|id| crate::id::ThreadId::parse(id).is_ok())
         {
           Some(id) if entry.is_add_add() => out.minted_twice.push((Minted::Thread, id.to_string())),
           _ => out.take_sides.push(path.to_string()),
         },
-        Some((id, _)) if crate::model::thread_seq(id).is_some() => {
+        Some((id, _)) if crate::id::ThreadId::parse(id).is_ok() => {
           sidecars.push((id.to_string(), path.to_string()));
         }
         Some(_) => out.take_sides.push(path.to_string()),
@@ -642,7 +645,7 @@ pub fn classify(
     } else if let Some(rest) = path.strip_prefix(&canon_issues) {
       match rest
         .strip_suffix(".json")
-        .filter(|n| crate::model::issue_seq(n).is_some())
+        .filter(|n| crate::id::IssueId::parse(n).is_ok())
       {
         Some(n) if entry.is_add_add() => out.minted_twice.push((Minted::Issue, n.to_string())),
         _ => out.take_sides.push(path.to_string()),
@@ -654,7 +657,7 @@ pub fn classify(
     } else if let Some((id, _)) = path
       .strip_prefix(&st)
       .and_then(|rest| rest.split_once('/'))
-      .filter(|(id, _)| crate::model::thread_seq(id).is_some())
+      .filter(|(id, _)| crate::id::ThreadId::parse(id).is_ok())
     {
       under_threads.push((id.to_string(), path.to_string()));
     } else {

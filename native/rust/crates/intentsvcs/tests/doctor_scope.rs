@@ -26,7 +26,7 @@
 //! literals: a fixture that stopped producing findings would fail the
 //! precondition instead of passing the conclusion.
 
-use crate::common::{Fixture, ctx};
+use crate::common::{Fixture, ctx, tid, wp};
 use intentsvcs::doctor::{Report, Scope};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::model::{
@@ -71,7 +71,7 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: id.to_string(),
+    id: tid(id),
     title: "A thread with a known shape".to_string(),
     slug: None,
     status,
@@ -88,7 +88,7 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
     context: String::new(),
     related: vec![],
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

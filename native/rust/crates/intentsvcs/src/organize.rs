@@ -697,10 +697,7 @@ pub fn plan(
   // OPEN/CLOSED decision is nowhere near here -- it was made when the verb
   // edited the manifest -- so this loop only asks what the manifest says.
   for issue in &canon.issues {
-    if !realised.declares_artefact(
-      crate::intentfiles::Sigil::Issue,
-      &format!("{:04}", issue.number),
-    ) {
+    if !realised.declares_artefact(crate::intentfiles::Sigil::Issue, &issue.number.stored()) {
       continue;
     }
     declared_paths.insert(project.issue_view(issue.number));
@@ -743,7 +740,7 @@ pub fn plan(
   for thread in &canon.threads {
     let declared_thread = realised.declares(&thread.id);
     for att in &thread.attachments {
-      let path = project.st_dir().join(&thread.id).join(&att.path);
+      let path = project.thread_dir(thread.id.as_str()).join(&att.path);
       attachment_paths.insert(path.clone());
       if !declared_thread {
         // Undeclared and present: row four, through the same gate. The store
@@ -929,7 +926,7 @@ pub fn presence(project: &Project, canon: &Canon, realised: &Realised) -> BTreeS
       std::iter::once(project.thread_dir(&t.id)).chain(
         crate::legacy::V2_STATUS_BUCKETS
           .iter()
-          .map(|bucket| project.st_dir().join(bucket).join(&t.id)),
+          .map(|bucket| project.st_dir().join(bucket).join(t.id.as_str())),
       )
     })
     .flat_map(|dir| crate::realise::walk(&dir))

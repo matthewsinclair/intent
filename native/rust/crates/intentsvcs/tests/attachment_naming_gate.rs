@@ -53,7 +53,7 @@ fn every_attachment_path_in_the_estate_is_acceptable() {
     for att in &thread.attachments {
       checked += 1;
       if let Err(bad) = attachment_name(&thread.id, &att.path) {
-        refused.push(format!("{}/{}: {bad}", thread.id, att.path));
+        refused.push(format!("{}/{}: {bad}", thread.id.shown(), att.path));
       }
     }
   }

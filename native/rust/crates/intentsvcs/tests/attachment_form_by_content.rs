@@ -217,12 +217,14 @@ fn tally(intent_dir: &std::path::Path, canon: &ingest::Canon) -> Tally {
         (false, true) => out.problems.push(format!(
           "{}/{}: TEXT and carried inline, and a sibling file exists at {rel}. Two copies of one \
            file, and nothing declares which is authoritative",
-          thread.id, att.path
+          thread.id.shown(),
+          att.path
         )),
         (true, false) => out.problems.push(format!(
           "{}/{}: OPAQUE, so its bytes are only at {rel}, and that file is not there. Canon names \
            bytes no reader can obtain",
-          thread.id, att.path
+          thread.id.shown(),
+          att.path
         )),
       }
     }

@@ -6,7 +6,7 @@
 //! has no way to learn it was discarded. The check exists so the tool can say
 //! "you edited a generated file" instead of quietly winning.
 
-use crate::common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, issue, sample_thread};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::Canon;
 use intentsvcs::views;
@@ -377,7 +377,7 @@ fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
 
   // Dehydrate the issue's view alone. The thread's views stay, and it stays
   // declared in both arms, so every finding below is about the issue.
-  std::fs::remove_file(project.issue_view(21)).expect("dehydrate the issue view");
+  std::fs::remove_file(project.issue_view(issue(21))).expect("dehydrate the issue view");
 
   let thread_only = Realised::Declared(
     [declared_key(Sigil::SteelThread, "ST0056")]

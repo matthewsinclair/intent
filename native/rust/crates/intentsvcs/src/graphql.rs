@@ -320,11 +320,15 @@ impl Query {
 
   /// One issue by its number; `null` when there is none.
   async fn issue(&self, ctx: &Context<'_>, number: u32) -> async_graphql::Result<Option<Issue>> {
+    // A number no issue id can carry names no issue, which is `null`.
+    let Ok(id) = crate::id::IssueId::from_ordinal(number) else {
+      return Ok(None);
+    };
     Ok(
       snapshot(ctx)?
         .issues
         .iter()
-        .find(|i| i.number == number)
+        .find(|i| i.number == id)
         .cloned(),
     )
   }

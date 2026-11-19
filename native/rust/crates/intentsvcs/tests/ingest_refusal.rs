@@ -6,7 +6,7 @@
 //! decides whether a failed ingest leaves a project queryable-but-wrong, and
 //! it is invisible unless a test looks at the store AFTER the refusal.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, tid};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::{self, IngestError};
 use intentsvcs::store::Store;
@@ -91,7 +91,7 @@ fn malformed_json_is_refused_with_its_line() {
 fn an_id_that_disagrees_with_its_directory_is_refused() {
   let fx = Fixture::new();
   let mut thread = sample_thread("ST0056");
-  thread.id = "ST0099".to_string();
+  thread.id = tid("ST0099");
   // Deliberately write ST0099's content into ST0056's directory.
   fx.write_raw_thread(
     "ST0056",

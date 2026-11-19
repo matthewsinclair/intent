@@ -525,13 +525,17 @@ fn face_properties(face: &str) -> Option<BTreeSet<&'static str>> {
 /// VARIANT; no store is opened and no row is read. Using a real id here would
 /// make the answer look instance-specific when it is not.
 fn probe_entity(entity: &str) -> Option<AddrEntity> {
-  let id = |s: &str| s.to_string();
+  // Spelled by the waist like every other id. Zero and one fit every width, so
+  // none of the `ok()?`s below is how an entity comes to have no probe.
+  let thread = crate::id::ThreadId::from_ordinal(0).ok()?.stored();
   match entity {
-    "thread" => Some(AddrEntity::Thread { id: id("ST0000") }),
-    "issue" => Some(AddrEntity::Issue { id: id("0000") }),
+    "thread" => Some(AddrEntity::Thread { id: thread }),
+    "issue" => Some(AddrEntity::Issue {
+      id: crate::id::IssueId::from_ordinal(0).ok()?.stored(),
+    }),
     "wp" => Some(AddrEntity::Wp {
-      thread: id("ST0000"),
-      wp: id("01"),
+      thread,
+      wp: crate::id::WpId::from_ordinal(1).ok()?.stored(),
     }),
     _ => None,
   }

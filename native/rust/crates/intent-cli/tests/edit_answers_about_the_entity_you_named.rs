@@ -167,9 +167,14 @@ fn a_kind_that_contradicts_the_address_is_refused_rather_than_resolved() {
 fn all_three_ruled_spellings_reach_the_same_artefact() {
   let (dir, st, _) = seeded();
   let address = format!("intent:///threads/{st}");
-  // The thread's bare number, read back by the library's one id reader.
-  let (_, number) = intentsvcs::model::normalise_id(&st).expect("a minted thread id reads back");
-  let bare = number.to_string();
+  // The thread's bare number: its tagged spelling (`s1`) without its tag, both
+  // read from the id waist, so this test writes no id grammar of its own.
+  let thread = intentsvcs::id::ThreadId::parse(&st).expect("a minted thread id reads back");
+  let tagged = thread.tagged();
+  let bare = tagged
+    .strip_prefix(intentsvcs::id::IdKind::Thread.tag())
+    .expect("a thread's tagged spelling starts with its tag")
+    .to_string();
   let mut answers = Vec::new();
   for argv in [
     ["edit", address.as_str(), "--path"].as_slice(),

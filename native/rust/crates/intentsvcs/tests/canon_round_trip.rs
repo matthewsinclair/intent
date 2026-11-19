@@ -95,7 +95,7 @@ fn maximal_thread(id: &str) -> Thread {
 fn issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),
-    number,
+    number: crate::common::issue(number),
     slug: "a-pipe-|-and-a-quote".to_string(),
     title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Closed,
@@ -228,7 +228,7 @@ fn canon_survives_the_store_byte_for_byte() {
       on_disk,
       "{} does not survive the store byte for byte -- the DB is only safe to \
        delete if what it gives back IS the file",
-      thread.id
+      thread.id.shown()
     );
   }
   for issue in &out_issues {
@@ -237,7 +237,7 @@ fn canon_survives_the_store_byte_for_byte() {
       to_canonical_json(issue).expect("serialise"),
       on_disk,
       "issue {}",
-      issue.number
+      issue.number.shown()
     );
   }
 }

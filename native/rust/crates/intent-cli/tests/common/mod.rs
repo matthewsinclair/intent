@@ -1213,30 +1213,16 @@ pub fn created(out: &str) -> String {
   id.to_string()
 }
 
-/// A minted work package's own id, the part of its address after its thread's:
-/// what a test needs for the package's directory, its `WP-` heading or its
-/// criteria's group.
-///
-/// This and the two below hold a work package's address grammar on the test
-/// side in one place until the id types reach the tests (ST0095 WP-04).
-pub fn package_of(wp: &str) -> &str {
-  wp.rsplit_once('/')
-    .map(|(_, package)| package)
-    .unwrap_or_else(|| panic!("`{wp}` is not a work package's address"))
-}
-
-/// A work package's number, for a library call that still takes one, and for
-/// the navigator's `wps` child, which spells it without its leading zero.
-pub fn package_seq(wp: &str) -> u32 {
-  package_of(wp)
-    .parse()
-    .unwrap_or_else(|_| panic!("`{wp}` does not end in a package number"))
-}
-
-/// The address of a thread's package `seq`, for a package the library minted
-/// and returned as a number, or one a test names to be absent.
-pub fn wp_address(st: &str, seq: u32) -> String {
-  format!("{st}/{seq:02}")
+/// A minted work package's own id, read by the id waist from the part of its
+/// address after its thread's: a test takes the package's directory, its `WP-`
+/// heading or its criteria's group from it, and a library call takes it whole.
+/// The address is the waist's `wp_address`, so it is split by the waist's
+/// `split_wp_address` and its stored form is the only one this reads.
+pub fn package_of(wp: &str) -> intentsvcs::id::WpId {
+  let (_, package) = intentsvcs::id::split_wp_address(wp)
+    .unwrap_or_else(|| panic!("`{wp}` is not a work package's address"));
+  intentsvcs::id::WpId::parse(package)
+    .unwrap_or_else(|e| panic!("`{wp}` does not end in a package's stored id: {e}"))
 }
 
 /// Run the binary under test in `cwd` under the fixture home, with a lifeline

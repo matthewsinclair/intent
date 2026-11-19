@@ -31,7 +31,7 @@ fn links(fixture: &Fixture) -> Vec<(String, Option<String>)> {
   legacy::scan(&fixture.project()).expect("scan").threads[0]
     .related
     .iter()
-    .map(|r| (r.id.clone(), r.note.clone()))
+    .map(|r| (r.id.stored(), r.note.clone()))
     .collect()
 }
 

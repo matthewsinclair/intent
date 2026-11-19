@@ -182,7 +182,7 @@ fn the_resolver_answers_the_written_down_location() {
     root.join("intent/.canon/st/ST0001.json")
   );
   assert_eq!(
-    project.issue_json(42),
+    project.issue_json(crate::common::issue(42)),
     root.join("intent/.canon/issues/0042.json")
   );
 
@@ -191,7 +191,10 @@ fn the_resolver_answers_the_written_down_location() {
 
   // The relative forms every other caller composes from.
   assert_eq!(canon_thread_rel("ST0001"), ".canon/st/ST0001.json");
-  assert_eq!(canon_issue_rel(42), ".canon/issues/0042.json");
+  assert_eq!(
+    canon_issue_rel(crate::common::issue(42)),
+    ".canon/issues/0042.json"
+  );
 }
 
 /// **`intent/.canon/` is the ONE deliberate exception to a convention the tree

@@ -734,7 +734,7 @@ fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) 
           FindingClass::ClosedContractDrift,
           format!(
             "{}'s {at} is green on a completed thread, and {finding}",
-            thread.id
+            thread.id.shown()
           ),
         )
       })
@@ -817,11 +817,10 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
       // no contract to have a verdict about.** Three populations, one
       // sentence -- and each was found by driving the arm rather than by
       // reading it, which is why the count went 96, then 8, then this.
-      let group = format!("{:02}", wp.seq);
       let in_scope = thread
         .criteria
         .iter()
-        .filter(|c| crate::contract::group_of(&c.id) == group)
+        .filter(|c| crate::id::group_of(&c.id) == crate::id::Group::Package(wp.seq))
         .count();
       if in_scope == 0 {
         continue;
@@ -836,8 +835,8 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
         (crate::model::WpStatus::Done, crate::contract::Verdict::Blocked { .. }) => (
           FindingClass::StatusGateDisagreement,
           format!(
-            "{}/WP-{:02} is recorded Done and its gate is BLOCKED -- it reads as finished work and would be refused if closed today",
-            thread.id, wp.seq
+            "{} is recorded Done and its gate is BLOCKED -- it reads as finished work and would be refused if closed today",
+            crate::id::wp_address_shown(&thread.id, wp.seq)
           ),
         ),
         (
@@ -866,8 +865,8 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
             (
               FindingClass::StatusGateDisagreementOverFiat,
               format!(
-                "{}/WP-{:02} is recorded {recorded} and its gate PASSES with {fiat} of {in_scope} criterion(s) FIAT-CLOSED rather than satisfied -- the gate is unblocked by a ruling that the work was not worth finishing, which is what a fiat close is FOR, so it is this status field that is stale and not the close that is wrong",
-                thread.id, wp.seq
+                "{} is recorded {recorded} and its gate PASSES with {fiat} of {in_scope} criterion(s) FIAT-CLOSED rather than satisfied -- the gate is unblocked by a ruling that the work was not worth finishing, which is what a fiat close is FOR, so it is this status field that is stale and not the close that is wrong",
+                crate::id::wp_address_shown(&thread.id, wp.seq)
               ),
             )
           } else {
@@ -888,8 +887,8 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
               // says exactly that about this same detail line, and this is the
               // clause it did not catch.
               format!(
-                "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so the status and the contract disagree about it",
-                thread.id, wp.seq
+                "{} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so the status and the contract disagree about it",
+                crate::id::wp_address_shown(&thread.id, wp.seq)
               ),
             )
           }
@@ -1032,8 +1031,8 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if wp.scope.is_some() && wp.scope_legacy.is_some() {
       add(
         format!(
-          "WP-{:02} records a scope AND carries a legacy one ({:?}) -- these are alternatives, not a pair",
-          wp.seq,
+          "{} records a scope AND carries a legacy one ({:?}) -- these are alternatives, not a pair",
+          wp.seq.heading(),
           wp.scope_legacy.as_ref().map(|l| &l.raw)
         ),
         FindingClass::ModelInconsistent,
@@ -1042,8 +1041,8 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if wp.scope_legacy.is_some() && !thread.status.is_closed() {
       add(
         format!(
-          "WP-{:02} carries a legacy scope and its thread is still {} -- well-formed, nothing blocked; worth rewriting in the v3 vocabulary next time the thread is touched",
-          wp.seq,
+          "{} carries a legacy scope and its thread is still {} -- well-formed, nothing blocked; worth rewriting in the v3 vocabulary next time the thread is touched",
+          wp.seq.heading(),
           thread.status.display()
         ),
         FindingClass::Advisory,
@@ -1097,7 +1096,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       thread
         .wps
         .iter()
-        .map(|w| format!("WP-{:02}", w.seq))
+        .map(|w| w.seq.heading())
         .collect::<Vec<_>>(),
     ),
     (
@@ -1113,7 +1112,10 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     for id in &ids {
       if seen.contains(&id) {
         add(
-          format!("{kind} {id} is declared more than once in {}", thread.id),
+          format!(
+            "{kind} {id} is declared more than once in {}",
+            thread.id.shown()
+          ),
           FindingClass::DuplicateId,
         );
       } else {
@@ -1141,7 +1143,8 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
         add(
           format!(
             "{} covers {ac}, which is not a criterion of {}",
-            test.id, thread.id
+            test.id,
+            thread.id.shown()
           ),
           FindingClass::ModelInconsistent,
         );
@@ -1242,16 +1245,17 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // Only `Descoped` and `Withdrawn` -- the two states that mean the requirement
   // stopped being asked for -- go quiet here.
   for criterion in &thread.criteria {
-    if let Some(seq) = group_seq(&criterion.id)
-      && seq != 0
+    if let crate::id::Group::Package(seq) = crate::id::group_of(&criterion.id)
       && criterion.state.in_scope()
       && !thread.wps.is_empty()
       && !thread.wps.iter().any(|w| w.seq == seq)
     {
       add(
         format!(
-          "{} belongs to WP-{seq:02}, which {} does not have",
-          criterion.id, thread.id
+          "{} belongs to {}, which {} does not have",
+          criterion.id,
+          seq.heading(),
+          thread.id.shown()
         ),
         FindingClass::ModelInconsistent,
       );
@@ -1350,7 +1354,8 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       add(
         format!(
           "{} names {} as related, and there is no such steel thread",
-          thread.id, related.id
+          thread.id.shown(),
+          related.id.shown()
         ),
         FindingClass::ModelInconsistent,
       );
@@ -1393,7 +1398,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     (status, None) if status.is_closed() => add(
       format!(
         "{} is {} with no completion date",
-        thread.id,
+        thread.id.shown(),
         status.display()
       ),
       FindingClass::FieldNotRecorded,
@@ -1401,7 +1406,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     (status, Some(date)) if !status.is_closed() => add(
       format!(
         "{} carries a completion date ({date}) while its status is {}",
-        thread.id,
+        thread.id.shown(),
         crate::model::enum_str(&status)
       ),
       FindingClass::ModelInconsistent,
@@ -1421,13 +1426,6 @@ fn is_empty_snapshot(snapshot: &serde_json::Value) -> bool {
       .values()
       .all(|rows| rows.as_array().is_some_and(Vec::is_empty))
   })
-}
-
-/// The `gg` of an `AC-<gg>.<n>` id.
-fn group_seq(id: &str) -> Option<u32> {
-  id.strip_prefix("AC-")
-    .and_then(|rest| rest.split('.').next())
-    .and_then(|gg| gg.parse().ok())
 }
 
 // ---------------------------------------------------------------------------
@@ -3378,21 +3376,4 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
   }
 
   findings
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn a_group_number_is_read_off_a_criterion_id() {
-    assert_eq!(group_seq("AC-06.2"), Some(6));
-    assert_eq!(
-      group_seq("AC-00.1"),
-      Some(0),
-      "00 is the thread-level group"
-    );
-    assert_eq!(group_seq("AT-06.2"), None, "an AT id is not an AC id");
-    assert_eq!(group_seq("nonsense"), None);
-  }
 }

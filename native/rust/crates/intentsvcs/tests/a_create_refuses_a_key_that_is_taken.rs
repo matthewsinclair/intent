@@ -113,7 +113,7 @@ fn two_facades_that_both_think_the_number_is_free_do_not_both_get_it() {
     "the refusal must name the issue it hit, as its own variant: {err:?}"
   );
   assert!(
-    err.to_string().contains(&format!("{landed:04}")),
+    err.to_string().contains(&landed.shown()),
     "and the rendered message must carry the number: {err}"
   );
 }

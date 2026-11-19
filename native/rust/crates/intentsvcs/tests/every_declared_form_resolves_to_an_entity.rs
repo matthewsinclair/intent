@@ -53,7 +53,7 @@ fn addressed(form_entity: &str) -> Option<Entity> {
       wp: WP_SEQ.to_string(),
     }),
     "issue" => Some(Entity::Issue {
-      id: ISSUE.to_string(),
+      id: crate::common::issue(ISSUE).stored(),
     }),
     _ => None,
   }

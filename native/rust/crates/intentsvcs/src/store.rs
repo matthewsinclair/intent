@@ -3077,7 +3077,7 @@ impl IngestRecord {
 /// it can know the date is to be told by the write that set it.
 #[derive(Debug, Clone)]
 pub struct ThreadDates {
-  pub id: String,
+  pub id: crate::id::ThreadId,
   pub created: String,
   pub completed: Option<String>,
 }
@@ -3092,7 +3092,7 @@ pub struct ThreadDates {
 /// the call sites unmixable.
 #[derive(Debug, Clone)]
 pub struct IssueDates {
-  pub number: u32,
+  pub number: crate::id::IssueId,
   pub created: String,
   pub closed: Option<String>,
 }
@@ -3134,8 +3134,8 @@ pub struct StoredDates {
 pub struct Mutation<'a> {
   pub threads: &'a [&'a Thread],
   pub issues: &'a [&'a Issue],
-  pub removed_threads: &'a [String],
-  pub removed_issues: &'a [u32],
+  pub removed_threads: &'a [crate::id::ThreadId],
+  pub removed_issues: &'a [crate::id::IssueId],
   /// The entities this mutation brings into EXISTENCE, as opposed to changes
   /// it makes to entities that already have rows.
   ///
@@ -3143,8 +3143,8 @@ pub struct Mutation<'a> {
   /// verb -- see [`Door`]. Anything named here is written through
   /// [`Door::Create`], so the DATABASE decides, inside this transaction,
   /// whether the key was really free (issue 0131).
-  pub created_threads: &'a [String],
-  pub created_issues: &'a [u32],
+  pub created_threads: &'a [crate::id::ThreadId],
+  pub created_issues: &'a [crate::id::IssueId],
   /// The stored records this mutation's changes were DERIVED FROM, for the
   /// entities it is CHANGING rather than creating (issue 0206).
   ///
@@ -4482,7 +4482,7 @@ impl Store {
       {
         StoreError::CreateHitAnExistingKey {
           kind: EntityKind::Thread,
-          key: t.id.clone(),
+          key: t.id.stored(),
         }
       }
       _ => StoreError::from(e),
@@ -4635,7 +4635,7 @@ impl Store {
       {
         StoreError::CreateHitAnExistingKey {
           kind: EntityKind::Issue,
-          key: format!("{:04}", i.number),
+          key: i.number.stored(),
         }
       }
       _ => StoreError::from(e),
@@ -4772,7 +4772,7 @@ impl Store {
       // stamps it.
       // An id the caller DIFFED as new goes through the create door, where an
       // existing key refuses. Everything else is a change and upserts.
-      let door = if change.created_threads.iter().any(|id| id == &t.id) {
+      let door = if change.created_threads.contains(&t.id) {
         Door::Create
       } else {
         Door::Change
@@ -4882,13 +4882,13 @@ impl Store {
       // this same mutation or was removed by somebody else, and inventing a
       // refusal from a missing row would refuse the ordinary path -- which is
       // how a guard gets disabled rather than fixed.
-      let Some(stored) = Self::hydrate_threads(tx, Some(&expected.id))?.pop() else {
+      let Some(stored) = Self::hydrate_threads(tx, Some(expected.id.as_str()))?.pop() else {
         continue;
       };
       if &stored != *expected {
         return Err(StoreError::RecordMovedUnderTheWrite {
           kind: EntityKind::Thread,
-          key: expected.id.clone(),
+          key: expected.id.stored(),
         });
       }
     }
@@ -4899,7 +4899,7 @@ impl Store {
       if &stored != *expected {
         return Err(StoreError::RecordMovedUnderTheWrite {
           kind: EntityKind::Issue,
-          key: format!("{:04}", expected.number),
+          key: expected.number.stored(),
         });
       }
     }
@@ -5084,7 +5084,7 @@ impl Store {
     )?;
     let rows = stmt.query_map(params![only], |row| {
       Ok((
-        row.get::<_, String>(0)?,
+        row.get::<_, crate::id::ThreadId>(0)?,
         row.get::<_, String>(1)?,
         row.get::<_, Option<String>>(2)?,
         row.get::<_, String>(3)?,
@@ -5153,7 +5153,7 @@ impl Store {
   /// same reason.
   fn hydrate_issues(
     conn: &rusqlite::Connection,
-    only: Option<u32>,
+    only: Option<crate::id::IssueId>,
   ) -> Result<Vec<Issue>, StoreError> {
     let mut stmt = conn.prepare(
       "SELECT number, slug, title, status, severity, created, closed, reporter, body FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
@@ -5161,7 +5161,7 @@ impl Store {
     let issues = stmt
       .query_map(params![only], |row| {
         Ok((
-          row.get::<_, u32>(0)?,
+          row.get::<_, crate::id::IssueId>(0)?,
           row.get::<_, String>(1)?,
           row.get::<_, String>(2)?,
           row.get::<_, String>(3)?,
@@ -5241,7 +5241,7 @@ impl Store {
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
-          row.get::<_, u32>(0)?,
+          row.get::<_, crate::id::WpId>(0)?,
           row.get::<_, String>(1)?,
           row.get::<_, Option<String>>(2)?,
           row.get::<_, Option<String>>(3)?,

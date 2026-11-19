@@ -21,7 +21,7 @@
 //! is provoked and refused by name, and a write whose acting node is unregistered
 //! or unnamed is refused rather than guessed.
 
-use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, issue, sample_thread, v2_estate, v2_thread, wp};
 use intentsvcs::facade::{Facade, FacadeError, ListEdit};
 use intentsvcs::model::{AcKind, AcceptanceTest, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
@@ -484,7 +484,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   out.push((
     "unknown work package",
-    facade.wp_start("ST0056", 99).expect_err("no such wp"),
+    facade.wp_start("ST0056", wp(99)).expect_err("no such wp"),
   ));
   out.push((
     "unknown criterion",
@@ -810,8 +810,27 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
 
   out.push((
     "unknown issue",
-    fx.facade().issue_show(9999).expect_err("no such issue"),
+    fx.facade()
+      .issue_show(issue(9999))
+      .expect_err("no such issue"),
   ));
+  // **ST0095: THE ORDINAL FORM HAS A LAST ID, AND A MINT PAST IT IS REFUSED.**
+  // Its own fixture, because the subject is a project whose highest thread is
+  // the last id the form holds, and the shared fixture's `ST0056` leaves room.
+  // The variant is asserted rather than assumed: before the refusal the mint
+  // formatted `ST10000`, which no reader takes for a thread.
+  let full = Fixture::new();
+  full.write_thread(&sample_thread("ST9999"));
+  let exhausted = full
+    .facade()
+    .st_new("a thread the ordinal form has no id left for")
+    .expect_err("ST9999 is the last id the ordinal form holds");
+  assert_eq!(
+    variant(&exhausted),
+    "IdsExhausted",
+    "this arm must reach the mint's refusal rather than an earlier one: {exhausted}"
+  );
+  out.push(("a mint past the last ordinal id", exhausted));
   out.push((
     "PUT to a server-assigned id",
     facade
@@ -1210,6 +1229,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",
+    FacadeError::IdsExhausted { .. } => "IdsExhausted",
     FacadeError::RenumberTargetTaken { .. } => "RenumberTargetTaken",
     FacadeError::RenumberDiskStep { .. } => "RenumberDiskStep",
     FacadeError::SyncPlanMoved { .. } => "SyncPlanMoved",
@@ -1376,6 +1396,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchThread",
   "ThreadExists",
   "IssueExists",
+  "IdsExhausted",
   "RenumberTargetTaken",
   "RenumberDiskStep",
   "SyncPlanMoved",
@@ -1556,7 +1577,7 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
   // WP-01's `issue_home` turns a manifest id into an issue's view path.
-  // `Sigil::accepts` gates a manifest line on `model::is_issue_id` and
+  // `Sigil::accepts` gates a manifest line on `IssueId::parse` and
   // `Entity::Issue` is minted behind the same predicate, so nothing but four
   // digits reaches the parse -- there is no facade call that provokes this and
   // constructing one here would assert a path the estate cannot take.
@@ -1826,7 +1847,7 @@ fn every_message_names_the_artefact_it_is_about() {
 
   let cases: Vec<(FacadeError, &str)> = vec![
     (facade.st_show("ST9999").unwrap_err(), "ST9999"),
-    (facade.wp_start("ST0056", 42).unwrap_err(), "WP-42"),
+    (facade.wp_start("ST0056", wp(42)).unwrap_err(), "WP-42"),
     (
       facade.ac_satisfy("ST0056", "AC-77.7", "x").unwrap_err(),
       "AC-77.7",

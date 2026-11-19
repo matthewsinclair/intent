@@ -294,8 +294,8 @@ pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
     Kind::WorkPackage => {
       let wp = row.wp.as_ref()?;
       Entity::Wp {
-        thread: wp.thread.clone(),
-        wp: wp.seq.to_string(),
+        thread: wp.thread.stored(),
+        wp: wp.seq.stored(),
       }
     }
   };

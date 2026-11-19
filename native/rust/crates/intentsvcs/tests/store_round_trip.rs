@@ -31,7 +31,7 @@ use intentsvcs::store::Store;
 fn issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),
-    number,
+    number: crate::common::issue(number),
     slug: "a-pipe-|-and-a-quote".to_string(),
     title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Open,

@@ -306,7 +306,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
             .join("; ")
         ))
       })?;
-      if loaded.insert(id.clone()) {
+      if loaded.insert(id.stored()) {
         out.threads.push(thread);
       }
       // **THE BUCKET INGEST (issue 0319), AND ONLY FOR A BUCKET.** The markdown
@@ -320,7 +320,8 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
         let (offered, refused) = accounted_attachments(project, &id, &dir)?;
         let held = out.threads.iter_mut().find(|t| t.id == id).ok_or_else(|| {
           std::io::Error::other(format!(
-            "{id} was loaded from canon and is not in this scan's thread list, so its bucket files at {} have nowhere to go",
+            "{} was loaded from canon and is not in this scan's thread list, so its bucket files at {} have nowhere to go",
+            id.shown(),
             project.relative(&dir)
           ))
         })?;
@@ -334,7 +335,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
             reason,
           }));
       }
-      out.already_migrated.push(id);
+      out.already_migrated.push(id.stored());
       continue;
     }
     let info = dir.join("info.md");
@@ -465,7 +466,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       }
     };
 
-    let heading = title(body).unwrap_or_else(|| id.clone());
+    let heading = title(body).unwrap_or_else(|| id.stored());
     // **A THREAD v2 NEVER SLUGGED GETS THE SLUG `st new` WOULD GIVE IT (0080).**
     // An authored slug is carried as written. Absent, it is derived from the
     // title through the one `slugify` the create door uses, so the two doors
@@ -747,7 +748,8 @@ fn ingest_bucket_attachments(
         path,
         reason: format!(
           "differs from the `{}` {} already carries in canon, and canon wins, so this copy is not ingested",
-          attachment.path, thread.id
+          attachment.path,
+          thread.id.shown()
         ),
       }),
     }
@@ -991,19 +993,19 @@ fn markdown_in(dir: &Path) -> Option<std::path::PathBuf> {
 /// `COMPLETED/`, so a migrator reading only the top level would silently
 /// convert the live threads and lose every finished one -- which on this estate
 /// is 54 of 56.
-fn thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> {
+fn thread_dirs(project: &Project) -> Vec<(ThreadId, std::path::PathBuf)> {
   let root = project.st_dir();
   let mut out = Vec::new();
-  let push_from = |dir: &Path, out: &mut Vec<(String, std::path::PathBuf)>| {
+  let push_from = |dir: &Path, out: &mut Vec<(ThreadId, std::path::PathBuf)>| {
     let Ok(entries) = std::fs::read_dir(dir) else {
       return;
     };
-    let mut found: Vec<(String, std::path::PathBuf)> = entries
+    let mut found: Vec<(ThreadId, std::path::PathBuf)> = entries
       .flatten()
       .filter(|e| e.path().is_dir())
       .filter_map(|e| {
         let name = e.file_name().to_string_lossy().into_owned();
-        is_thread_id(&name).then_some((name, e.path()))
+        ThreadId::parse(&name).ok().map(|id| (id, e.path()))
       })
       .collect();
     found.sort();
@@ -1037,7 +1039,7 @@ fn unwalked_thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> 
     .filter(|p| {
       p.file_name()
         .and_then(|n| n.to_str())
-        .is_some_and(|n| !is_thread_id(n) && !V2_STATUS_BUCKETS.contains(&n))
+        .is_some_and(|n| ThreadId::parse(n).is_err() && !V2_STATUS_BUCKETS.contains(&n))
     })
     .filter_map(|container| std::fs::read_dir(container).ok())
     .flat_map(|children| children.flatten().map(|e| e.path()))
@@ -1059,14 +1061,14 @@ fn unwalked_thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> 
 /// realising a thread beside a copy it would leave behind (issue 0209).
 pub const V2_STATUS_BUCKETS: [&str; 3] = ["COMPLETED", "NOT-STARTED", "CANCELLED"];
 
-use crate::model::is_thread_id;
+use crate::id::ThreadId;
 
 /// **Name a retired config knob the project actually set** (issue 0040, hv).
 ///
 /// `st_prefix` is gone from `Config` and lands in `extra`, so the declaration
 /// survives in the file. What must not survive is v3 reading a project whose
 /// threads are on some other prefix and reporting a clean, empty conversion:
-/// `is_thread_id` recognises nothing, `thread_dirs` yields nothing, and every
+/// `ThreadId::parse` recognises nothing, `thread_dirs` yields nothing, and every
 /// count reconciles perfectly against zero.
 ///
 /// **Blocks rather than carries, and the closed/live split does not apply**,
@@ -1085,14 +1087,14 @@ fn retired_settings(project: &Project, out: &mut Scan) {
   else {
     return;
   };
-  if declared == crate::model::THREAD_PREFIX {
+  if declared == crate::id::THREAD_PREFIX {
     // Declared, and declaring the value v3 fixed it to. Nothing is lost and
     // nothing changes, so saying anything here would be noise on a project
     // that did nothing wrong.
     return;
   }
   let key = crate::project::RETIRED_ST_PREFIX_KEY;
-  let fixed = crate::model::THREAD_PREFIX;
+  let fixed = crate::id::THREAD_PREFIX;
   out.block(Finding::new(
     project.relative(&Project::config_path(project.root())),
     FindingClass::RetiredSetting,
@@ -1266,13 +1268,12 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
 
     let Some(seq) = front
       .get("wp_id")
-      .and_then(|v| v.trim().strip_prefix("WP-"))
-      .and_then(|v| v.trim().parse::<u32>().ok())
+      .and_then(|v| crate::id::normalise_wp_id(v).ok())
       .or_else(|| {
         wp_dir
           .file_name()
           .and_then(|n| n.to_str())
-          .and_then(|n| n.parse::<u32>().ok())
+          .and_then(|n| crate::id::normalise_wp_id(n).ok())
       })
     else {
       out.record(
@@ -3030,8 +3031,8 @@ Acceptance Criteria for this work package live in the steel thread's `acceptance
 /// Only `WP-NN` is applied. The template's other placeholders (`[Title]`,
 /// `[Date]`, `[Author]`) live in the frontmatter and the `# ` title line,
 /// which are outside every `## ` section.
-fn wp_template_sections(seq: u32) -> Vec<(String, String)> {
-  let filled = WP_TEMPLATE_V2.replace("WP-NN", &format!("WP-{seq:02}"));
+fn wp_template_sections(seq: crate::id::WpId) -> Vec<(String, String)> {
+  let filled = WP_TEMPLATE_V2.replace("WP-NN", &seq.heading());
   let (_, body) = frontmatter(&filled);
   sections(body)
 }
@@ -3322,7 +3323,7 @@ fn related_links(sections: &[(String, String)]) -> Vec<Related> {
     };
     let (lead, rest) = split_lead(bullet);
     let note = rest.trim().trim_end_matches(')').trim();
-    for id in thread_ids_in(lead) {
+    for id in crate::id::thread_ids_in(lead) {
       out.push(Related {
         id,
         note: (!note.is_empty()).then(|| note.to_string()),
@@ -3356,27 +3357,6 @@ fn split_lead(bullet: &str) -> (&str, &str) {
     Some((at, len)) => (&bullet[..at], &bullet[at + len..]),
     None => (bullet, ""),
   }
-}
-
-/// Every steel-thread id in `text`, in order, deduplicated.
-///
-/// The width and prefix come from [`crate::model::is_thread_id`]'s vocabulary
-/// rather than a literal `ST\d{4}`, so this cannot disagree with the one place
-/// that decides what an id looks like.
-fn thread_ids_in(text: &str) -> Vec<String> {
-  let width = crate::model::THREAD_PREFIX.len() + crate::model::THREAD_DIGITS;
-  let bytes: Vec<char> = text.chars().collect();
-  let mut out: Vec<String> = Vec::new();
-  for start in 0..bytes.len() {
-    if start + width > bytes.len() {
-      break;
-    }
-    let candidate: String = bytes[start..start + width].iter().collect();
-    if crate::model::is_thread_id(&candidate) && !out.contains(&candidate) {
-      out.push(candidate);
-    }
-  }
-  out
 }
 
 fn section(sections: &[(String, String)], name: &str) -> String {
@@ -3752,7 +3732,7 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
   let Some(id) = parts.next().and_then(|c| c.as_os_str().to_str()) else {
     return Holding::NotHeld("is directly in a status bucket rather than under a thread directory, so no thread's canon can hold it".to_string());
   };
-  if !is_thread_id(id) {
+  if ThreadId::parse(id).is_err() {
     return Holding::NotHeld(format!(
       "`{id}` is not a thread id, so this is not a v2 thread directory and nothing here claims it"
     ));
@@ -3824,8 +3804,8 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
 /// migration carried each issue into the store and then withheld every issue
 /// bucket file as naming no issue -- and one withheld file stops the whole v2
 /// prune. Two spellings of one parse drift; one cannot.
-fn issue_id(raw: &str) -> Option<u32> {
-  raw.trim().trim_matches('"').parse::<u32>().ok()
+fn issue_id(raw: &str) -> Option<crate::id::IssueId> {
+  crate::id::normalise_issue_id(raw.trim().trim_matches('"')).ok()
 }
 
 fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
@@ -3843,14 +3823,16 @@ fn issue_verdict(canon: &Canon, path: &Path) -> Holding {
   };
   let Some(issue) = canon.issues.iter().find(|i| i.number == number) else {
     return Holding::NotHeld(format!(
-      "issue {number:04} is not in canon, so this estate never migrated it"
+      "issue {} is not in canon, so this estate never migrated it",
+      number.shown()
     ));
   };
   if issue.body.trim() == body.trim() {
     Holding::Held
   } else {
     Holding::NotHeld(format!(
-      "differs from the body canon carries for issue {number:04}, so the disk copy is the only one of these bytes"
+      "differs from the body canon carries for issue {}, so the disk copy is the only one of these bytes",
+      number.shown()
     ))
   }
 }

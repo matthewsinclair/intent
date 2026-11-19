@@ -9,7 +9,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::common::{Fixture, gate_open, sample_issue, sample_thread};
+use crate::common::{Fixture, gate_open, issue, sample_issue, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::facade::Facade;
 
@@ -94,7 +94,7 @@ fn issues_renumber_forgets_the_paths_it_moves_away_from() {
   f.take_landed();
   let before = rows(&f);
 
-  f.issue_renumber(21, 22).expect("renumber");
+  f.issue_renumber(issue(21), issue(22)).expect("renumber");
 
   forgotten(&before, &mut f);
 }

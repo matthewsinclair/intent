@@ -51,11 +51,11 @@ fn served_markdown_is_the_render_all_member_at_its_own_path() {
   for thread in &canon.threads {
     for (url, want_path) in [
       (
-        format!("intent:///threads/{}?format=md", thread.id),
+        format!("intent:///threads/{}?format=md", thread.id.stored()),
         project.info_view(&thread.id),
       ),
       (
-        format!("intent:///threads/{}/ac?format=md", thread.id),
+        format!("intent:///threads/{}/ac?format=md", thread.id.stored()),
         project.acceptance_view(&thread.id),
       ),
     ] {

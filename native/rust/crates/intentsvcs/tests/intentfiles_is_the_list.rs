@@ -45,6 +45,7 @@
 //! run that moved files in both directions.
 
 use crate::common::{Fixture, gate_open, sample_thread};
+use intentsvcs::id::ThreadId;
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 
@@ -225,7 +226,8 @@ fn the_realised_set_equals_the_listed_set() {
   let fx = Fixture::new();
   fx.write_thread(&gate_open()); // ST0057
   for n in 1..=9 {
-    fx.write_thread(&sample_thread(&format!("ST{n:04}")));
+    let id = ThreadId::from_ordinal(n).expect("a seeded ordinal fits the thread form");
+    fx.write_thread(&sample_thread(&id));
   }
 
   // Realise the whole estate: ten threads on disk, nothing said about any.

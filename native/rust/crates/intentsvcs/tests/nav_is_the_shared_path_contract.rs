@@ -478,24 +478,31 @@ fn an_item_view_round_trips_to_the_entity_it_came_from() {
   );
 }
 
-/// Issue 0553: `intent:///threads/ST0001/wp/02` names work package 2, and the
-/// `wps` rows are named by the bare sequence, so the view carries `2` rather
-/// than the zero-padded spelling the address was written in.
+/// Issue 0553: `intent:///threads/ST0001/wp/02` and `.../wp/2` both name work
+/// package 02, and the `wps` rows are named by the package's stored id, so the
+/// view carries that id whichever spelling the address was written in (ST0095
+/// WP-04; until then the rows were named by the bare sequence, `2`).
 #[test]
 fn a_zero_padded_wp_address_lands_on_the_row_its_descent_names() {
-  let view = intentsvcs::nav::view_for(&Entity::Wp {
+  let row = Some(View::Child {
+    kind: "thread".to_string(),
+    id: "ST0001".to_string(),
+    field: "wps".to_string(),
+    item: crate::common::wp(2).stored(),
+  });
+  let padded = intentsvcs::nav::view_for(&Entity::Wp {
     thread: "ST0001".to_string(),
     wp: "02".to_string(),
   });
+  let bare = intentsvcs::nav::view_for(&Entity::Wp {
+    thread: "ST0001".to_string(),
+    wp: "2".to_string(),
+  });
   assert_eq!(
-    view,
-    Some(View::Child {
-      kind: "thread".to_string(),
-      id: "ST0001".to_string(),
-      field: "wps".to_string(),
-      item: "2".to_string(),
-    })
+    padded, row,
+    "the zero-padded spelling lands on the package's row"
   );
+  assert_eq!(bare, row, "the bare spelling lands on the same row");
 }
 
 /// ST0086: `/estate/status`, the page's address, is the estate itself, and the

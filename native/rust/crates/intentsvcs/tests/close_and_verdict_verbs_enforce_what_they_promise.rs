@@ -3,7 +3,7 @@
 //! test row and `at green` on a non-test one, `st done` closed a thread with a
 //! work package still open, and a close on an unwritten objective said nothing.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, wp};
 use intentsvcs::facade::Note;
 use intentsvcs::model::{AtKind, AtStatus};
 
@@ -125,14 +125,14 @@ fn a_close_on_an_unwritten_objective_warns() {
   thread
     .wps
     .iter_mut()
-    .find(|w| w.seq == 3)
+    .find(|w| w.seq == wp(3))
     .expect("the fixture has work package 3")
     .objective = String::new();
   fx.write_thread(&thread);
   let mut facade = fx.facade();
 
   let outcome = facade
-    .wp_done("ST0001", 3)
+    .wp_done("ST0001", wp(3))
     .expect("wp done on a WIP package");
   let warned = outcome
     .notes()

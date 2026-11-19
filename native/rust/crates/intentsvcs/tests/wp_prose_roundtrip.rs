@@ -21,7 +21,7 @@
 //! through the real CLI, which is a different question (does the wiring reach
 //! it) from this one (does the rendering preserve it).
 
-use crate::common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread, wp};
 use intentsvcs::model::to_canonical_json;
 use intentsvcs::views;
 
@@ -40,7 +40,7 @@ fn the_view_carries_authored_sections_verbatim() {
   let wp = thread
     .wps
     .iter()
-    .find(|w| w.seq == 3)
+    .find(|w| w.seq == wp(3))
     .expect("the fixture's markup-bearing work package");
   assert!(
     !wp.body.trim().is_empty(),
@@ -70,7 +70,7 @@ fn the_view_carries_authored_sections_verbatim() {
 #[test]
 fn the_cover_points_at_the_contract_and_does_not_restate_it() {
   let thread = sample_thread("ST0001");
-  let wp = thread.wps.iter().find(|w| w.seq == 3).expect("wp");
+  let wp = thread.wps.iter().find(|w| w.seq == wp(3)).expect("wp");
   let view = views::wp_info(&thread, wp, &ctx());
 
   assert!(view.contains("## Acceptance"), "{view}");
@@ -114,7 +114,7 @@ fn rendering_leaves_the_canon_byte_identical() {
     "the round trip must not rewrite a file it merely read"
   );
   assert!(
-    project.wp_info_view("ST0001", 3).is_file(),
+    project.wp_info_view("ST0001", wp(3)).is_file(),
     "and the view it renders is where the model says it goes"
   );
 }
@@ -125,7 +125,7 @@ fn rendering_leaves_the_canon_byte_identical() {
 #[test]
 fn the_view_renders_the_same_bytes_twice() {
   let thread = sample_thread("ST0001");
-  let wp = thread.wps.iter().find(|w| w.seq == 3).expect("wp");
+  let wp = thread.wps.iter().find(|w| w.seq == wp(3)).expect("wp");
   assert_eq!(
     views::wp_info(&thread, wp, &ctx()),
     views::wp_info(&thread, wp, &ctx())

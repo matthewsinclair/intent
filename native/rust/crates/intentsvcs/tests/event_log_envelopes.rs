@@ -10,7 +10,7 @@
 //! fourth quietly wrote nothing, and "every mutation path" is precisely the
 //! claim that cannot be sampled.
 
-use crate::common::{Fixture, PROJECT_ID, sample_thread};
+use crate::common::{Fixture, PROJECT_ID, sample_thread, wp};
 use intentsvcs::model::{AtStatus, TShirt};
 
 /// Every op recorded, in order.
@@ -111,7 +111,7 @@ fn wp_done_and_st_done_log_their_closes() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  facade.wp_done("ST0056", 3).expect("wp.done");
+  facade.wp_done("ST0056", wp(3)).expect("wp.done");
   facade.st_done("ST0056").expect("st.done");
 
   let recorded = ops(&facade);
@@ -153,7 +153,7 @@ fn the_envelope_names_its_subject_and_carries_the_transition() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
   facade
-    .wp_reopen("ST0056", 2, "AC-02.6 was added after the close")
+    .wp_reopen("ST0056", wp(2), "AC-02.6 was added after the close")
     .expect("wp reopen");
 
   let events = facade.store().events().expect("events");
@@ -181,7 +181,7 @@ fn a_refused_mutation_writes_no_envelope() {
     .ac_satisfy("ST0056", "AC-03.1", "x")
     .expect_err("refused");
   let _ = facade.st_show("ST9999").expect_err("refused");
-  let _ = facade.wp_start("ST0056", 99).expect_err("refused");
+  let _ = facade.wp_start("ST0056", wp(99)).expect_err("refused");
 
   assert!(
     ops(&facade).is_empty(),
@@ -203,7 +203,7 @@ fn envelopes_accumulate_across_mutations_rather_than_being_rebuilt_away() {
     .st_hold("ST0056", "waiting on the fleet")
     .expect("a legal mutation from wip");
   facade
-    .wp_reopen("ST0056", 2, "AC-02.6 was added after the close")
+    .wp_reopen("ST0056", wp(2), "AC-02.6 was added after the close")
     .expect("wp reopen -- WP-02 is Done in the fixture, so `wp start` is not a legal edge");
   facade
     .at_set("ST0056", "AT-03.1", AtStatus::Red, None)

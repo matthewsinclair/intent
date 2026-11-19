@@ -424,7 +424,7 @@ pub enum FindingClass {
   /// 0040, hv). Retiring a knob nobody uses is free; retiring it under someone
   /// who DOES use it, silently, is the change this thread exists to prevent --
   /// and here the consequence is total rather than cosmetic. v3 recognises a
-  /// steel thread by `crate::model::is_thread_id`, so a project whose threads
+  /// steel thread by `crate::id::ThreadId::parse`, so a project whose threads
   /// are named on any other prefix has NONE of them recognised: the migration
   /// would report a clean conversion of an empty estate. **That is the
   /// answers-confidently-from-partial-evidence bug with the evidence set to

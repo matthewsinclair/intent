@@ -22,6 +22,8 @@ async fn the_four_reads_answer_what_the_facade_holds() {
   let number = facade
     .issue_add("A hatch issue", None, None, "reported by the hatch test")
     .expect("add an issue");
+  // The number as GraphQL carries it: an issue id's wire face is its ordinal.
+  let number = json!(number);
 
   let answer = facade
     .graphql(

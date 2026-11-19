@@ -132,7 +132,7 @@ fn statuses(facade: &Facade) -> Vec<(String, ThreadStatus)> {
   facade
     .st_list()
     .iter()
-    .map(|t| (t.id.clone(), t.status))
+    .map(|t| (t.id.stored(), t.status))
     .collect()
 }
 

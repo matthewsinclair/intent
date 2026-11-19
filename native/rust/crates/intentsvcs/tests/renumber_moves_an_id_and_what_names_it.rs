@@ -12,7 +12,7 @@
 //! compares the tree before and after -- leaving out the store's own files,
 //! which a read touches; what the store holds is asserted by asking it.
 
-use crate::common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, issue, sample_issue, sample_thread, tid};
 use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::model::Related;
 use intentsvcs::remedy::Remedy;
@@ -32,7 +32,7 @@ fn estate() -> (Fixture, Facade) {
   fx.write_thread(&sample_thread("ST0001"));
   let mut other = sample_thread("ST0005");
   other.related = vec![Related {
-    id: "ST0001".to_string(),
+    id: tid("ST0001"),
     note: None,
   }];
   other.objective = "Build on the design ST0001 settled.".to_string();
@@ -89,7 +89,7 @@ fn a_thread_renumber_moves_the_record_and_everything_that_names_it_structurally(
     .expect("ST0005")
     .related
     .iter()
-    .map(|r| r.id.clone())
+    .map(|r| r.id.stored())
     .collect();
   assert_eq!(related, vec!["ST0003".to_string()]);
   assert_eq!(
@@ -203,18 +203,20 @@ fn an_issue_renumber_moves_its_canon_and_view_and_reports_its_own_heading() {
   let project = fx.project();
 
   let taken = f
-    .issue_renumber(21, 30)
+    .issue_renumber(issue(21), issue(30))
     .expect_err("issue 0030 is in the store");
   assert!(matches!(taken, FacadeError::RenumberTargetTaken { .. }));
 
-  let done = f.issue_renumber(21, 22).expect("renumber");
+  let done = f.issue_renumber(issue(21), issue(22)).expect("renumber");
 
-  assert!(f.issue_show(21).is_err());
-  let moved = f.issue_show(22).expect("the issue under its new number");
+  assert!(f.issue_show(issue(21)).is_err());
+  let moved = f
+    .issue_show(issue(22))
+    .expect("the issue under its new number");
   assert_eq!(moved.title, "prune the dead mechanism");
-  assert!(!project.issue_json(21).exists());
-  assert!(project.issue_json(22).exists());
-  assert!(!project.issue_view(21).exists());
+  assert!(!project.issue_json(issue(21)).exists());
+  assert!(project.issue_json(issue(22)).exists());
+  assert!(!project.issue_view(issue(21)).exists());
   // The body's own `# 0021:` line is authored text: kept, and reported.
   assert!(moved.body.starts_with("# 0021:"));
   assert!(
@@ -258,7 +260,7 @@ fn an_issue_renumber_moves_the_board_claims_that_name_it() {
   f.wb_claim("dc", "ISSUE:0090")
     .expect("a second board claims a different issue");
 
-  let done = f.issue_renumber(21, 22).expect("renumber");
+  let done = f.issue_renumber(issue(21), issue(22)).expect("renumber");
 
   assert_eq!(
     f.store().wb_claims("ic").expect("ic's claims"),

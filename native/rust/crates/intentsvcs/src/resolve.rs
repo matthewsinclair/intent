@@ -23,7 +23,6 @@
 //! three -- and this crate keeps `resolve` testable against a set literal.
 
 use crate::address::{Address, AddressError, Entity};
-use crate::model;
 
 /// What a spelling resolved to.
 ///
@@ -90,13 +89,13 @@ pub enum Resolution {
 /// `promote` produced, in the parser's own words, so a face can carry the
 /// message and remedy that were written where the fact lives.
 pub fn resolve(input: &str, exists: impl Fn(&Address) -> bool) -> Result<Resolution, AddressError> {
-  let seq = match crate::address::promote(input) {
+  let (thread, issue) = match crate::address::promote(input) {
     Ok(address) => return Ok(Resolution::Resolved(address)),
-    Err(AddressError::AmbiguousId { seq, .. }) => seq,
+    Err(AddressError::AmbiguousId { thread, issue, .. }) => (thread, issue),
     Err(refusal) => return Err(refusal),
   };
 
-  let searched = rungs(seq);
+  let searched = rungs(&thread, issue);
   let mut found: Vec<Address> = searched.iter().filter(|a| exists(a)).cloned().collect();
 
   Ok(match found.len() {
@@ -110,20 +109,18 @@ pub fn resolve(input: &str, exists: impl Fn(&Address) -> bool) -> Result<Resolut
 
 /// The rungs a bare number could name, in hv's ladder order.
 ///
-/// **BOTH IDS ARE SPELLED BY [`crate::model`] AND NEITHER IS FORMATTED HERE.**
-/// `model::issue_id` was added for this: before it, the issue spelling existed
-/// inline inside `promote` and nowhere else, so a resolver formatting its own
-/// would have been the second declaration of a width this module does not own.
+/// **BOTH IDS ARE SPELLED BY [`crate::id`] AND NEITHER IS FORMATTED HERE.** The
+/// operator door hands back the two typed candidates a bare number names, so
+/// a resolver formatting its own would be the second declaration of a width
+/// this module does not own.
 /// The [`Entity`] values are CONSTRUCTED rather than built as URL strings and
 /// parsed back, which `address_resolution_single_home` refuses by name.
-fn rungs(seq: u32) -> Vec<Address> {
+fn rungs(thread: &crate::id::ThreadId, issue: crate::id::IssueId) -> Vec<Address> {
   [
     Entity::Thread {
-      id: model::thread_id(seq),
+      id: thread.stored(),
     },
-    Entity::Issue {
-      id: model::issue_id(seq),
-    },
+    Entity::Issue { id: issue.stored() },
   ]
   .into_iter()
   .map(|entity| Address {

@@ -219,7 +219,7 @@ fn unknown_collections_are_refused() {
 }
 
 /// A malformed id is refused by the SAME predicate the rest of the estate
-/// uses -- `model::is_thread_id` and `model::is_issue_id` -- so the scheme
+/// uses -- `id::ThreadId::parse` and `id::IssueId::parse` -- so the scheme
 /// cannot acquire a second opinion about what an id is.
 #[test]
 fn ids_are_checked_by_the_estate_predicate() {

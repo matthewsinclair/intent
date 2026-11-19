@@ -12,7 +12,7 @@
 //! green row would fail the count. The live twin carries the same dropped row,
 //! so an arm that ignored the thread's status would name it too.
 
-use crate::common::{Fixture, ctx};
+use crate::common::{Fixture, ctx, tid, wp};
 use intentsvcs::contract::{RepoFiles, completed_thread_drift, contract_report};
 use intentsvcs::doctor::{Report, Scope};
 use intentsvcs::finding::FindingClass;
@@ -47,7 +47,7 @@ fn thread(id: &str, status: ThreadStatus) -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: id.to_string(),
+    id: tid(id),
     title: "A thread whose test lost its label".to_string(),
     slug: None,
     status,
@@ -60,7 +60,7 @@ fn thread(id: &str, status: ThreadStatus) -> Thread {
     context: String::new(),
     related: vec![],
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

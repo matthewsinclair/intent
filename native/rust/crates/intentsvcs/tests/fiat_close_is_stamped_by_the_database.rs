@@ -242,7 +242,7 @@ fn the_store_and_not_only_the_extract_carries_the_stamp() {
   }
   for w in &thread.wps {
     if let Some(r) = &w.fiat {
-      seen.push((format!("WP-{:02}", w.seq), r.at.clone()));
+      seen.push((w.seq.heading(), r.at.clone()));
     }
   }
   for c in &thread.criteria {

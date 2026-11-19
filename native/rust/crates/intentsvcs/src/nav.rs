@@ -572,16 +572,16 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     // its rows already door into, so nothing new is reachable that was not
     // reachable by hand -- what changes is that the ADDRESS now lands on it.
     //
-    // **THE ITEM IS THE BARE SEQUENCE THE `wps` ROWS ARE NAMED BY** (issue
-    // 0553). An address carries it zero-padded, `wp/02`, and `02` matched no row
-    // named `2`, so a work package that exists opened as an error. Parsed rather
-    // than interpolated, as `address::view_path_of` does; a spelling that is not
-    // a number passes through, and the view says it names nothing.
+    // **THE ITEM IS THE PACKAGE'S STORED ID, WHICH THE `wps` ROWS ARE NAMED BY**
+    // (issue 0553, and the Highlander sweep's C3). An address may carry `wp/2`
+    // or `wp/02`, and both read through the waist to `02`, the name the rows
+    // carry; a spelling that is not a package id passes through, and the view
+    // says it names nothing.
     Entity::Wp { thread, wp } => Some(View::Child {
       kind: "thread".to_string(),
       id: thread.to_string(),
       field: "wps".to_string(),
-      item: wp.parse::<u32>().map_or_else(|_| wp.to_string(), |seq| seq.to_string()),
+      item: crate::id::normalise_wp_id(wp).map_or_else(|_| wp.to_string(), |seq| seq.stored()),
     }),
     // A criterion, a test and an attachment are ROWS INSIDE a collection this
     // surface renders, not items with views of their own.
@@ -656,7 +656,7 @@ pub fn entity_for_item(view: &View) -> Option<Entity> {
 ///
 /// [`crate::address::promote`] tests for the `intent://` scheme itself and
 /// delegates to [`crate::address::parse`], else asks
-/// [`crate::model::normalise_id`]. So both spellings hv named reach the
+/// [`crate::id::normalise_id`]. So both spellings hv named reach the
 /// estate's ONE existing door and this function dispatches between nothing.
 ///
 /// **A `/thread/ST0056` path spelling was considered and refused**:

@@ -40,7 +40,7 @@
 //! tables, and the arm reads a board's item and message back from the restored
 //! store.
 
-use crate::common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, issue, sample_issue, sample_thread, wp};
 use intentsvcs::store::{DDL, Store};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -576,7 +576,7 @@ fn populated() -> (Fixture, Vec<String>) {
   // fixture's own states (WP-02 is Done, so `wp start` is refused) and the
   // third tripped a guard landed hours earlier.
   facade
-    .wp_reopen("ST0056", 2, "reopened for the round trip")
+    .wp_reopen("ST0056", wp(2), "reopened for the round trip")
     .expect("WP-02 is Done, so reopen is the legal verb");
   facade
     .ac_descope("ST0056", "AC-03.2", "ST0057", Some("hv"), Some("moved"))
@@ -907,7 +907,8 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
     thread["criteria"][0]
   );
 
-  let issue: Value = serde_json::from_str(&fx.read(&fx.issue_canon_rel(21))).expect("plain JSON");
+  let issue: Value =
+    serde_json::from_str(&fx.read(&fx.issue_canon_rel(issue(21)))).expect("plain JSON");
   assert_eq!(issue["number"], 21);
 
   // JSONL: one self-describing object per line, no framing to reimplement.

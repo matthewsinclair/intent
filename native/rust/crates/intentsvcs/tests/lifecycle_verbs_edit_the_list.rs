@@ -102,7 +102,7 @@
 //! plausible wrong one, since canon has the list sitting right there -- passes
 //! any test that merely asks whether a path was named. It names two here.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, wp};
 use intentsvcs::facade::{ListEdit, Note};
 use intentsvcs::intentfiles::realised_from;
 use intentsvcs::model::ThreadStatus;
@@ -128,8 +128,8 @@ STEELTHREAD:ST0099
 /// authored `Done` by `sample_thread` the same way.
 fn write_settled(fx: &Fixture, thread: &intentsvcs::model::Thread) {
   let mut thread = thread.clone();
-  for wp in thread.wps.iter_mut().filter(|wp| wp.seq == 3) {
-    wp.status = intentsvcs::model::WpStatus::Done;
+  for package in thread.wps.iter_mut().filter(|w| w.seq == wp(3)) {
+    package.status = intentsvcs::model::WpStatus::Done;
   }
   fx.write_thread(&thread);
 }

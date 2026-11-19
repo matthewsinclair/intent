@@ -223,7 +223,7 @@ fn the_relative_forms_compose_from_the_resolver_and_not_from_a_literal() {
     root.join("workspace/.canon/st/ST0001.json")
   );
   assert_eq!(
-    project.issue_json(7),
+    project.issue_json(crate::common::issue(7)),
     root.join("workspace/.canon/issues/0007.json")
   );
 

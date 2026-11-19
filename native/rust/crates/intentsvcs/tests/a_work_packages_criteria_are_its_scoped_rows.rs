@@ -3,7 +3,7 @@
 //! package by the id group the close gate's `Scope::WorkPackage` reads, so the
 //! listing and the verdict cannot disagree about what is in scope.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, wp};
 
 #[test]
 fn a_packages_criteria_are_the_rows_in_its_group() {
@@ -18,7 +18,7 @@ fn a_packages_criteria_are_the_rows_in_its_group() {
     .map(|r| r.id)
     .collect();
   let in_three: Vec<String> = facade
-    .wp_criteria("ST0001", 3)
+    .wp_criteria("ST0001", wp(3))
     .expect("package 3 exists")
     .into_iter()
     .map(|r| r.id)
@@ -39,7 +39,7 @@ fn a_packages_criteria_are_the_rows_in_its_group() {
 
   assert!(
     facade
-      .wp_criteria("ST0001", 2)
+      .wp_criteria("ST0001", wp(2))
       .expect("package 2 exists")
       .is_empty(),
     "a package with no criteria in its group lists none"
@@ -54,7 +54,7 @@ fn a_package_the_thread_does_not_have_is_refused() {
   let said = format!(
     "{:?}",
     facade
-      .wp_criteria("ST0001", 99)
+      .wp_criteria("ST0001", wp(99))
       .expect_err("package 99 does not exist")
   );
   assert!(said.contains("NoSuchWorkPackage"), "{said}");

@@ -72,6 +72,7 @@ pub mod form;
 pub mod fts;
 pub mod gitstate;
 pub mod graphql;
+pub mod id;
 pub mod index;
 pub mod ingest;
 pub mod init;

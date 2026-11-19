@@ -64,7 +64,8 @@
 
 use std::collections::BTreeSet;
 
-use crate::common::{Fixture, facade_ctx, gate_open, sample_issue, sample_thread};
+use crate::common::{Fixture, facade_ctx, gate_open, issue, sample_issue, sample_thread};
+use intentsvcs::id::{IssueId, ThreadId};
 use intentsvcs::model::ThreadStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::project::Project;
@@ -120,9 +121,10 @@ fn index_ids(project: &Project) -> BTreeSet<String> {
   let text = std::fs::read_to_string(project.steel_threads_view()).expect("index reads");
   text
     .lines()
-    .filter_map(|l| l.strip_prefix("| ST"))
+    .filter_map(|l| l.strip_prefix('|'))
     .filter_map(|rest| rest.split('|').next())
-    .map(|id| format!("ST{}", id.trim()))
+    .filter_map(|cell| ThreadId::parse(cell.trim()).ok())
+    .map(|id| id.stored())
     .collect()
 }
 
@@ -130,7 +132,7 @@ fn index_ids(project: &Project) -> BTreeSet<String> {
 fn store_ids(project: &Project) -> BTreeSet<String> {
   let store = intentsvcs::store::Store::open(&project.db_path()).expect("store opens");
   let (threads, _issues) = store.load_canon().expect("store loads");
-  threads.into_iter().map(|t| t.id).collect()
+  threads.into_iter().map(|t| t.id.stored()).collect()
 }
 
 /// The issue numbers the STORE holds -- `store_ids`' counterpart over the other
@@ -138,7 +140,7 @@ fn store_ids(project: &Project) -> BTreeSet<String> {
 /// view**. That absence is why intent#0070 ran silent: the write set for a
 /// store that has lost its issues is byte-identical to one that has not, so no
 /// diff, no `git status` and no view could have shown it.
-fn store_issue_numbers(project: &Project) -> BTreeSet<u32> {
+fn store_issue_numbers(project: &Project) -> BTreeSet<IssueId> {
   let store = intentsvcs::store::Store::open(&project.db_path()).expect("store opens");
   let (_threads, issues) = store.load_canon().expect("store loads");
   issues.into_iter().map(|i| i.number).collect()
@@ -228,10 +230,11 @@ fn upgrade_realises_only_what_the_manifest_declares() {
 fn upgrade_covers_every_issue_canon_holds_in_the_store() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  let canon_numbers: BTreeSet<u32> = [21, 22, 23].into_iter().collect();
-  for number in &canon_numbers {
-    fx.write_issue(&sample_issue(*number));
+  let ordinals = [21, 22, 23];
+  for number in ordinals {
+    fx.write_issue(&sample_issue(number));
   }
+  let canon_numbers: BTreeSet<IssueId> = ordinals.into_iter().map(issue).collect();
 
   let project = fx.project();
   drop(fx.facade_on_disk());

@@ -29,7 +29,7 @@
 // would be a second home for it -- read it there.
 #![allow(clippy::result_large_err)]
 
-use crate::common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, issue, sample_issue, sample_thread, wp};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, Issue, Thread, ThreadStatus,
@@ -951,7 +951,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let from_state = (from != ABSENT).then(|| parse(from));
       fx.write_thread(&thread_with(|t| t.wps[1].scope = from_state));
       let mut facade = fx.facade();
-      let seq = 3;
+      let seq = wp(3);
       let outcome = match edge.verb {
         "wp.rescope" => facade
           .wp_rescope(ST, seq, parse(edge.to))
@@ -971,7 +971,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let fx = Fixture::new();
       fx.write_thread(&thread_with(|t| t.wps[1].status = parse::<WpStatus>(from)));
       let mut facade = fx.facade();
-      let seq = 3;
+      let seq = wp(3);
       let outcome = match edge.verb {
         "wp.start" => facade.wp_start(ST, seq).expect("wp start"),
         "wp.unstart" => facade.wp_unstart(ST, seq).expect("wp unstart"),
@@ -1118,12 +1118,12 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       });
       let mut facade = fx.facade();
       let outcome = match edge.verb {
-        "issues.close" => facade.issue_close(21).expect("issues close"),
-        "issues.open" => facade.issue_open(21).expect("issues open"),
+        "issues.close" => facade.issue_close(issue(21)).expect("issues close"),
+        "issues.open" => facade.issue_open(issue(21)).expect("issues open"),
         other => panic!("no arm drives {other} on Issue.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
-      enum_str(&facade.issue_show(21).expect("issue").status).to_string()
+      enum_str(&facade.issue_show(issue(21)).expect("issue").status).to_string()
     }
     other => panic!("no arm drives {other:?} -- every State field needs one"),
   }
@@ -2150,7 +2150,7 @@ fn attempt(
     }
     other => panic!("no fixture for {other}"),
   };
-  let seq = 3;
+  let seq = wp(3);
   const AC: &str = "AC-03.2";
   match verb {
     // **THE JUSTIFICATION IS THE `because`, AND THAT IS WHAT MAKES THE BLANK

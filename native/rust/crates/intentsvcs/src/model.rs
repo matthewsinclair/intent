@@ -30,34 +30,14 @@ use async_graphql::{Enum, SimpleObject};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::id::{IssueId, ThreadId, WpId};
+
 /// The `schema` field value for thread canon files.
 pub const THREAD_SCHEMA: &str = "intent/thread@3.0";
 /// The `schema` field value for issue canon files.
 pub const ISSUE_SCHEMA: &str = "intent/issue@3.0";
 /// The `schema` field value for the project-state canon file.
 pub const PROJECT_SCHEMA: &str = "intent/project@3.0";
-
-/// **THE steel-thread id form: `ST` and four digits, in one place.**
-///
-/// hv retired `st_prefix` (issue 0040): the prefix is FIXED. Retiring it turned
-/// out not to be a change of direction -- `st_prefix` appears in no ST0056
-/// spec, so the design had already dropped the knob and the type was behind the
-/// design rather than ahead of it.
-///
-/// **What the retirement is really for is here, not in the deletion.** The
-/// field existed and nothing read it, while the id form was spelled out FOUR
-/// separate times: `facade.rs` allocated with `format!("ST{:04}")` and
-/// recognised with `strip_prefix("ST")`, `legacy.rs` recognised with
-/// `starts_with("ST")` AND a hardcoded `len() == 6`. That `6` is `"ST".len() +
-/// 4` -- the same fact as the prefix, written a second way, in a place that
-/// would not move if the first one did. A config knob nobody read was the
-/// harmless half; four hand-written copies of what it configured was the rest.
-pub const THREAD_PREFIX: &str = "ST";
-/// How many digits follow [`THREAD_PREFIX`]. Zero-padded, fixed width.
-pub const THREAD_DIGITS: usize = 4;
-/// How many digits an issue id carries. Zero-padded, fixed width, no prefix --
-/// `intent/.canon/issues/0001.json` is the on-disk form this describes.
-pub const ISSUE_DIGITS: usize = 4;
 
 /// The finest interval [`Thread::completed`] can distinguish, in hours.
 ///
@@ -120,392 +100,6 @@ impl ProjectState {
   }
 }
 
-/// The canonical id for the nth steel thread.
-pub fn thread_id(seq: u32) -> String {
-  format!("{THREAD_PREFIX}{seq:0THREAD_DIGITS$}")
-}
-
-/// Whether `name` is a steel-thread id.
-///
-/// The width is DERIVED rather than asserted, so this and [`thread_id`] cannot
-/// disagree about what they both describe.
-pub fn is_thread_id(name: &str) -> bool {
-  name.len() == THREAD_PREFIX.len() + THREAD_DIGITS
-    && name.starts_with(THREAD_PREFIX)
-    && name[THREAD_PREFIX.len()..]
-      .bytes()
-      .all(|b| b.is_ascii_digit())
-}
-
-/// How a claim names an ISSUE, as [`crate::intentfiles::Sigil::Issue`] spells
-/// it in the manifest, with its separator.
-///
-/// **DECLARED HERE RATHER THAN READ FROM `intentfiles`, AND THAT IS A LAYERING
-/// CHOICE WITH A TEST BEHIND IT.** This module owns identity and depends on
-/// nothing in the crate -- `intentfiles` depends on IT, calling
-/// [`is_issue_id`] from `Sigil::accepts`. Reaching the other way for the token
-/// would invert that, so the token is declared here and
-/// `the_claim_prefix_is_the_manifests_own_spelling` holds the two identical.
-/// A copy a test cannot let drift is not the failure Highlander names; drift
-/// is.
-pub const CLAIM_ISSUE_PREFIX: &str = "ISSUE:";
-
-/// How a board claims issue `seq`.
-pub fn issue_claim(seq: u32) -> String {
-  format!("{CLAIM_ISSUE_PREFIX}{}", issue_id(seq))
-}
-
-/// The forms [`is_claim_address`] admits, as the sentence a refusal tells the
-/// user to type.
-///
-/// **ONE HOME FOR WHAT EVERY DOOR SAYS, BESIDE THE ONE HOME FOR WHAT IT
-/// ADMITS** (0519). `wb claim`'s `WbClaimMalformed` remedy and `wb migrate`'s
-/// `Uncarried` reason each stated these forms in their own words, and both
-/// were stale together until 0511 found and edited them one at a time. The
-/// validator already stopped the two doors disagreeing about what they
-/// ACCEPT; this stops them disagreeing about what they SAY.
-/// `every_form_the_refusal_names_is_one_the_validator_admits` holds each
-/// example here to the validator, so a sentence naming a form the validator
-/// refuses fails a test. **THE REVERSE IS NOT MECHANICAL**: a widening that
-/// teaches the validator a fourth kind fails nothing until someone edits this
-/// sentence and that test's exact list by hand, so the two change together.
-pub const CLAIM_ADDRESS_FORMS: &str =
-  "a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`";
-
-/// Is this a thing a board can claim: a steel thread, one of its work
-/// packages, or an issue?
-///
-/// **ONE HOME FOR EVERY DOOR THAT ADMITS A CLAIM.** `wb claim` asks it of a
-/// value typed at the verb and `wb migrate` of a value read off a board's
-/// header, and a second spelling at either door would be the one that admits
-/// what the other refuses. The thread half is [`is_thread_id`], not a second
-/// spelling of it, and the issue half is [`is_issue_id`].
-///
-/// **THE ISSUE FORM IS `ISSUE:0512` AND IT IS THE MANIFEST'S OWN SPELLING**
-/// (hv, decision 29, 2026-09-22). `organize --default` already writes
-/// `ISSUE:<NNNN>` per open issue into `intent/.intentfiles`, so the system
-/// records this address kind elsewhere and refused it only at this door --
-/// which left `claims:` EMPTY BY CONSTRUCTION for exactly the work that fills
-/// the time between releases, and therefore silent precisely where two
-/// concurrent sessions would collide. The bare `0512` form is refused: two
-/// spellings of one address is the drift Highlander names, it saves nothing,
-/// and it carries the same renumber consequence either way. Free text is
-/// refused because two claims could then be compared only by string equality,
-/// and the field would stop answering the collision question it exists for.
-///
-/// **ADMITTING THIS FALSIFIED A SENTENCE IN [`crate::renumber::issue`]** --
-/// that nothing structured refers to an issue -- so that function gained the
-/// claim rewriting `renumber::thread` already had. A widening that leaves a
-/// renumber behind does not fail; it silently leaves a board claiming a number
-/// that has moved.
-pub fn is_claim_address(claim: &str) -> bool {
-  if let Some(seq) = claim.strip_prefix(CLAIM_ISSUE_PREFIX) {
-    return is_issue_id(seq);
-  }
-  match claim.split_once('/') {
-    None => is_thread_id(claim),
-    Some((thread, seq)) => {
-      is_thread_id(thread) && seq.len() == 2 && seq.chars().all(|c| c.is_ascii_digit())
-    }
-  }
-}
-
-/// The canonical id for the nth issue.
-///
-/// **THE COUNTERPART [`thread_id`] HAS ALWAYS HAD, AND THE ASYMMETRY WAS THE
-/// DEFECT.** `is_thread_id`/`thread_id` and `is_issue_id` existed; the issue
-/// FORMATTER did not, so the one place that needed it -- [`crate::address::promote`]
-/// -- spelled the zero-padding inline. That was survivable while it was the
-/// only caller and stops being survivable the moment there are two: a resolver
-/// that formats its own issue id is a second declaration of a fact this module
-/// owns, and two spellings of one width agree exactly until one of them moves.
-pub fn issue_id(seq: u32) -> String {
-  format!("{seq:0ISSUE_DIGITS$}")
-}
-
-/// Whether `name` is an issue id.
-///
-/// Width DERIVED from [`ISSUE_DIGITS`] for the same reason [`is_thread_id`]
-/// derives its own: a validator and a formatter that assert the width
-/// separately are two declarations of one fact, and they agree until they do
-/// not.
-pub fn is_issue_id(name: &str) -> bool {
-  name.len() == ISSUE_DIGITS && name.bytes().all(|b| b.is_ascii_digit())
-}
-
-/// The sequence number in an issue id, or `None` if it is not one.
-pub fn issue_seq(name: &str) -> Option<u32> {
-  is_issue_id(name).then(|| name.parse().ok()).flatten()
-}
-
-/// The sequence number in a thread id, or `None` if it is not one.
-pub fn thread_seq(name: &str) -> Option<u32> {
-  is_thread_id(name)
-    .then(|| name[THREAD_PREFIX.len()..].parse().ok())
-    .flatten()
-}
-
-/// The one order for a thread's criterion and test ids (issue 0643): natural,
-/// not lexical. An id compares run by run, a run of digits as a number and any
-/// other run as text, so `AT-01.2` precedes `AT-01.10` and `AC-1.1` precedes
-/// `AC-10.1`. A byte comparison put `AT-01.10` first, and one new row re-sorted
-/// a whole array in canon. Ids that differ only in leading zeros (`AT-1.2`,
-/// `AT-01.2`) fall back to their bytes, so the order is total.
-pub fn id_order(a: &str, b: &str) -> std::cmp::Ordering {
-  fn runs(s: &str) -> impl Iterator<Item = &str> {
-    let mut rest = s;
-    std::iter::from_fn(move || {
-      let first = rest.chars().next()?;
-      let digits = first.is_ascii_digit();
-      let end = rest
-        .find(|c: char| c.is_ascii_digit() != digits)
-        .unwrap_or(rest.len());
-      let (run, tail) = rest.split_at(end);
-      rest = tail;
-      Some(run)
-    })
-  }
-  let number = |run: &str| run.trim_start_matches('0').to_string();
-  let mut left = runs(a);
-  let mut right = runs(b);
-  loop {
-    match (left.next(), right.next()) {
-      (None, None) => return a.cmp(b),
-      (None, Some(_)) => return std::cmp::Ordering::Less,
-      (Some(_), None) => return std::cmp::Ordering::Greater,
-      (Some(x), Some(y)) => {
-        let both_digits = x.starts_with(|c: char| c.is_ascii_digit())
-          && y.starts_with(|c: char| c.is_ascii_digit());
-        let order = if both_digits {
-          let (x, y) = (number(x), number(y));
-          x.len().cmp(&y.len()).then_with(|| x.cmp(&y))
-        } else {
-          x.cmp(y)
-        };
-        if order.is_ne() {
-          return order;
-        }
-      }
-    }
-  }
-}
-
-/// Which collection an operator's spelling names.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IdKind {
-  Thread,
-  Issue,
-}
-
-impl IdKind {
-  /// The word an error message uses. Prose, not a wire form.
-  pub fn as_str(&self) -> &'static str {
-    match self {
-      IdKind::Thread => "steel thread",
-      IdKind::Issue => "issue",
-    }
-  }
-
-  /// The noun WITH its article. **A message that assembles the article at the
-  /// use site says "a issue" the first time somebody adds a vowel**, which is
-  /// what the first driven run of this change did.
-  pub fn with_article(&self) -> &'static str {
-    match self {
-      IdKind::Thread => "a steel thread",
-      IdKind::Issue => "an issue",
-    }
-  }
-
-  /// The tag an operator can type to name this collection explicitly.
-  pub fn tag(&self) -> char {
-    match self {
-      IdKind::Thread => 's',
-      IdKind::Issue => 'i',
-    }
-  }
-}
-
-/// Why a spelling does not name what the caller asked for.
-///
-/// **`WrongCollection` EXISTS SO A CATEGORY ERROR IS NEVER REPORTED AS A
-/// NOT-FOUND.** `st show i59` names an issue, and answering it with *no steel
-/// thread i59 in this project* sends an operator into the estate looking for
-/// something that was never addressed. That is the same refusal
-/// `AddressError::NotAddressable` already makes for the same reason, and the
-/// issue door already makes it in prose -- `issues show s80` says *`s80` is not
-/// an issue id* rather than reporting a missing issue.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IdError {
-  /// Nothing about the spelling is an id: `foo`, `46abc`, `---`, empty.
-  NotAnId,
-  /// Digits, but more of them than the fixed width admits.
-  OutOfRange,
-  /// A well-formed id for the OTHER collection.
-  WrongCollection { named: IdKind },
-  /// Untagged digits at a door that does not know which collection is meant.
-  Ambiguous { seq: u32 },
-}
-
-/// An operator's spelling, decomposed.
-///
-/// **IT CARRIED A `digits` COUNT UNTIL 2026-08-31 AND THE FIELD LEFT WITH ITS
-/// ONLY READER.** That count existed so [`normalise_id`] could assign an
-/// untagged four-digit token to `Issue` by its WIDTH; with the ladder ruled and
-/// that arm gone, nothing asks how many digits were typed, and a field kept
-/// against a rule that no longer exists is how a removed rule comes back.
-struct Spelling {
-  tag: Option<IdKind>,
-  seq: u32,
-}
-
-/// Case-insensitive prefix strip. The CLI door is case-insensitive on purpose
-/// and [`crate::intentfiles::Sigil::parse`] is case-SENSITIVE on purpose; the
-/// two do not disagree because they guard different things. A manifest is
-/// committed and diffed, so one spelling keeps the diff about the change. A
-/// hand-typed argument is neither committed nor diffed, and refusing `st0059`
-/// for its case would be a refusal with nothing behind it.
-fn strip_ci<'a>(s: &'a str, prefix: &str) -> Option<&'a str> {
-  (s.len() >= prefix.len() && s[..prefix.len()].eq_ignore_ascii_case(prefix))
-    .then(|| &s[prefix.len()..])
-}
-
-/// Decompose a spelling into the collection it names (if any) and its sequence.
-///
-/// **THE TAG ORDER IS LOAD-BEARING: `ST` IS TRIED BEFORE `s`.** Both name the
-/// thread collection and `ST0059` starts with `S`, so a one-character test
-/// first would take `T0059` as the digits and refuse a canonical id.
-fn spelling(raw: &str) -> Result<Spelling, IdError> {
-  let t = raw.trim();
-  // `0021.json` and `0021.md` are the same issue as `0021` -- an operator who
-  // copied a padded id out of a filename must not be told it does not exist.
-  let t = t
-    .strip_suffix(".json")
-    .or_else(|| t.strip_suffix(".md"))
-    .unwrap_or(t);
-
-  let (tag, digits) = if let Some(d) = strip_ci(t, THREAD_PREFIX) {
-    (Some(IdKind::Thread), d)
-  } else if let Some(d) = strip_ci(t, "s") {
-    (Some(IdKind::Thread), d)
-  } else if let Some(d) = strip_ci(t, "i") {
-    (Some(IdKind::Issue), d)
-  } else {
-    (None, t)
-  };
-
-  if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-    return Err(IdError::NotAnId);
-  }
-
-  // Trimmed BEFORE parsing, and the reason is a real defect in the shell this
-  // is ported from. v2's `normalise_st_id` carries `10#` because `printf %04d`
-  // under /bin/bash 3.2 reads a leading zero as OCTAL -- measured, `0044`
-  // becomes ST0036, A DIFFERENT REAL THREAD. Rust's `parse` is decimal by
-  // construction, so the workaround is not ported; the PROPERTY it protects is,
-  // and it has a test. Trimming here is for the width check below, not for base.
-  let bare = digits.trim_start_matches('0');
-  let bare = if bare.is_empty() { "0" } else { bare };
-  let seq: u32 = bare.parse().map_err(|_| IdError::OutOfRange)?;
-
-  Ok(Spelling { tag, seq })
-}
-
-/// Whether `seq` fits a fixed-width id.
-///
-/// **`format!("{:0N}")` IS A MINIMUM WIDTH, NOT A MAXIMUM, AND SO IS v2's
-/// `printf "ST%04d"`.** v2 turns `99999` into `ST99999` and then reports a
-/// missing thread; unchecked, this would reproduce it exactly, because
-/// `"99999".parse::<u32>()` is `Ok(99999)`.
-fn fits(seq: u32, width: usize) -> Result<u32, IdError> {
-  (seq.to_string().len() <= width)
-    .then_some(seq)
-    .ok_or(IdError::OutOfRange)
-}
-
-/// An operator's spelling of a THREAD id, canonicalised.
-///
-/// **THE ACCEPTED SET IS v2's, DRIVEN RATHER THAN READ** (`intent_helpers:688`
-/// `normalise_st_id`): `46`, `ST46`, `0046`, `046` and `ST0046` all resolve to
-/// `ST0046` in v2, so the parity contract is five forms. `s46` and `S46` are
-/// additions -- an explicit tag, so the one door that cannot know the
-/// collection from its verb has a short spelling to offer.
-///
-/// **TWO OF v2's BEHAVIOURS ARE DELIBERATELY NOT PORTED, AND BOTH ARE HOLES.**
-/// Its fourth branch echoes anything back with `ST` glued on -- `foo` becomes
-/// `STfoo`, `46abc` becomes `ST46abc` -- after which `st show` reports *File not
-/// found: info.md for steel thread ST46abc*. **So v2's normaliser MANUFACTURES
-/// the not-found-for-a-non-name defect this function exists to prevent**, by
-/// fabricating a plausible id before anything looks it up. The other is the
-/// width hole `fits` documents. **The parity contract is the five accepted
-/// forms, never the function.**
-pub fn normalise_thread_id(raw: &str) -> Result<String, IdError> {
-  let s = spelling(raw)?;
-  match s.tag {
-    Some(IdKind::Issue) => Err(IdError::WrongCollection {
-      named: IdKind::Issue,
-    }),
-    _ => Ok(thread_id(fits(s.seq, THREAD_DIGITS)?)),
-  }
-}
-
-/// An operator's spelling of an ISSUE id, as a number.
-///
-/// **`21`, `0021` and `0021.json` are one issue** -- v2 normalises the same way
-/// (`bin/intent_issues:normalize_id`). `i21` is the explicit-tag addition.
-pub fn normalise_issue_id(raw: &str) -> Result<u32, IdError> {
-  let s = spelling(raw)?;
-  match s.tag {
-    Some(IdKind::Thread) => Err(IdError::WrongCollection {
-      named: IdKind::Thread,
-    }),
-    _ => fits(s.seq, ISSUE_DIGITS),
-  }
-}
-
-/// An operator's spelling at a door that does NOT know which collection is
-/// meant -- `intent edit <address>`, where the argument may name either.
-///
-/// **UNTAGGED DIGITS ARE REFUSED HERE AND NOWHERE ELSE, BECAUSE HERE THEY ARE
-/// GENUINELY AMBIGUOUS.** A verb-scoped door reads the collection off its own
-/// verb; this one has nothing to read it off. Measured in this estate: `59`
-/// names both `ST0059` and issue `0059`, and both exist. The refusal is worth
-/// making only because there is now something to recommend instead -- `s59` and
-/// `i59` -- and a refusal whose remedy is a spelling the operator can type is a
-/// different object from one that just says no.
-///
-/// **THE WIDTH ARM IS GONE, AND ITS REMOVAL IS WHAT MAKES THE AMBIGUITY ARM
-/// REACHABLE AT ALL** (hv, 2026-08-31, executing the resolution ladder). This
-/// function used to read `None if s.digits == ISSUE_DIGITS => Issue`, and the
-/// paragraph here defended it: *`ST0059` is a thread and exactly-`ISSUE_DIGITS`
-/// digits is an issue, and narrowing it would be a regression sold as a fix.*
-///
-/// **THAT SENTENCE ASSIGNED BY WIDTH WHAT IT CLAIMED TO ASSIGN BY FORM.**
-/// [`THREAD_DIGITS`] and [`ISSUE_DIGITS`] are BOTH 4, so `0164` is a
-/// well-formed id in both families and the arm silently handed every one of
-/// them to `Issue`. `0164` is the form this estate writes everywhere -- so the
-/// refusal below, and the whole ladder above it, could never fire on the ids
-/// anyone actually types. **A ruling that cannot reach the common case has not
-/// been executed**, and the arm was the thing stopping it.
-///
-/// **IT WAS ALREADY A LIVE DISAGREEMENT RATHER THAN A LATENT ONE.** Driven
-/// before the change: `intent st show 0164` answered *no steel thread ST0164*
-/// while `promote("0164")` read the same token as an ISSUE -- two resolvers,
-/// one input, two families, both reachable from the command line.
-///
-/// **WHAT THIS DOOR CANNOT DO IS DECIDE, AND IT MUST NOT PRETEND TO.** It is
-/// PURE and never reads the store, so for a bare number it can only report the
-/// ambiguity. [`crate::resolve`] sits above it and asks the project which of
-/// the two exists; the tagged spellings `s59` and `i59` remain the answer for
-/// anyone who wants to settle it in the argument itself.
-pub fn normalise_id(raw: &str) -> Result<(IdKind, u32), IdError> {
-  let s = spelling(raw)?;
-  match s.tag {
-    Some(IdKind::Thread) => Ok((IdKind::Thread, fits(s.seq, THREAD_DIGITS)?)),
-    Some(IdKind::Issue) => Ok((IdKind::Issue, fits(s.seq, ISSUE_DIGITS)?)),
-    None => Err(IdError::Ambiguous { seq: s.seq }),
-  }
-}
-
 /// Render any model enum as its canonical wire string via serde -- the one
 /// naming authority.
 ///
@@ -561,7 +155,7 @@ pub struct Thread {
   // project -- because this line is PUBLISHED into thread.schema.json and the
   // SDL, and a reader cannot look up a thread in our repository (D37).
   /// Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
-  pub id: String,
+  pub id: ThreadId,
   pub title: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub slug: Option<String>,
@@ -971,7 +565,7 @@ pub enum AcceptanceMode {
 #[serde(deny_unknown_fields)]
 pub struct Related {
   /// The related thread's natural id, eg `ST0000`.
-  pub id: String,
+  pub id: ThreadId,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub note: Option<String>,
 }
@@ -1006,7 +600,7 @@ fn authored_section_from<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Strin
 #[serde(deny_unknown_fields)]
 pub struct WorkPackage {
   /// Unique within the thread, and rendered zero-padded as `WP-<seq>`.
-  pub seq: u32,
+  pub seq: WpId,
   pub title: String,
   /// The size, absent only when [`scope_legacy`] carries a v2 value the enum
   /// cannot express.
@@ -2062,7 +1656,7 @@ pub struct Issue {
   /// Always [`ISSUE_SCHEMA`].
   pub schema: String,
   /// Rendered zero-padded, eg `0021`.
-  pub number: u32,
+  pub number: IssueId,
   pub slug: String,
   pub title: String,
   pub status: IssueStatus,
@@ -2245,7 +1839,7 @@ impl IssueSeverity {
 /// applied one domain over, where it is wrong.
 /// What is wrong with a stated date, as a FACT rather than as wording.
 ///
-/// **Mirrors [`IdError`], deliberately: the model holds what is true and the
+/// **Mirrors [`crate::id::IdError`], deliberately: the model holds what is true and the
 /// door holds how it is said.** `IdError` carries no prose and `render.rs`
 /// renders it, because the same wrong spelling needs different words at
 /// different doors. A date is the same shape of thing.
@@ -3178,79 +2772,7 @@ pub enum WbMessageState {
 }
 
 #[cfg(test)]
-mod claim_address_tests {
-  use super::*;
-
-  #[test]
-  fn the_claim_prefix_is_the_manifests_own_spelling() {
-    // **THE TEST THAT MAKES THE COPY LEGITIMATE.** `CLAIM_ISSUE_PREFIX` is
-    // declared here rather than read from `intentfiles`, because this module is
-    // a leaf that `intentfiles` depends on and reaching back would invert the
-    // layering. A copy a test holds identical cannot drift; a copy held by
-    // discipline does, and then two doors disagree about how an issue is named.
-    assert_eq!(
-      CLAIM_ISSUE_PREFIX,
-      format!("{}:", crate::intentfiles::Sigil::Issue.as_str()),
-      "the claim prefix and the manifest sigil are one fact"
-    );
-  }
-
-  #[test]
-  fn every_form_the_refusal_names_is_one_the_validator_admits() {
-    // The examples are read out of the sentence, never retyped here, so the
-    // next edit to it stays under this assertion.
-    let forms: Vec<&str> = CLAIM_ADDRESS_FORMS.split('`').skip(1).step_by(2).collect();
-    // A new kind lands in `is_claim_address`, in `CLAIM_ADDRESS_FORMS` and in
-    // this list TOGETHER; nothing here notices a validator widened alone.
-    assert_eq!(
-      forms,
-      ["ST0000", "ST0000/01", "ISSUE:0000"],
-      "one example per kind the validator admits: thread, work package, issue"
-    );
-    for form in forms {
-      assert!(
-        is_claim_address(form),
-        "the refusal tells the user to type `{form}` and the validator refuses it"
-      );
-    }
-  }
-
-  #[test]
-  fn a_board_claims_an_issue_by_the_manifest_form_and_by_nothing_else() {
-    assert!(is_claim_address("ISSUE:0512"), "hv's decision 29 form");
-    assert_eq!(issue_claim(512), "ISSUE:0512");
-    assert!(is_claim_address(&issue_claim(1)), "the formatter agrees");
-
-    // **REFUSED, EACH FOR ITS OWN STATED REASON**, so a later widening has to
-    // argue with the reason rather than notice a gap.
-    assert!(
-      !is_claim_address("0512"),
-      "the bare form: two spellings of one address is the drift Highlander names"
-    );
-    assert!(
-      !is_claim_address("the pre-commit gate"),
-      "free text: two claims could then be compared only by string equality"
-    );
-    assert!(
-      !is_claim_address("ISSUE:512"),
-      "four digits, derived from ISSUE_DIGITS"
-    );
-    assert!(!is_claim_address("ISSUE:00512"), "five is not four");
-    assert!(!is_claim_address("ISSUE:"), "a prefix is not an address");
-    assert!(!is_claim_address("ISSUE:abcd"), "digits, not a width alone");
-    assert!(
-      !is_claim_address("issue:0512"),
-      "the manifest is case-SENSITIVE"
-    );
-
-    // The thread forms are untouched by the widening, which is the half a
-    // change like this breaks silently.
-    assert!(is_claim_address("ST0079"));
-    assert!(is_claim_address("ST0079/01"));
-    assert!(!is_claim_address("ST0079/1"));
-    assert!(!is_claim_address("ST0079/WP-01"));
-  }
-
+mod tests {
   /// **NESTED IN THIS MODULE, NOT A SECOND TEST MODULE** (issue 0535). A
   /// shipped file carries one test module, at its end: intent-cli's scan for
   /// shipped strings cuts each file at its first test attribute and asserts

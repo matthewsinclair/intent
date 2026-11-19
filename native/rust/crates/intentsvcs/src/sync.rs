@@ -1255,7 +1255,7 @@ fn is_carried_attachment(rel: &str) -> bool {
   };
   match under.split_once('/') {
     Some((id, file)) => {
-      crate::model::is_thread_id(id)
+      crate::id::ThreadId::parse(id).is_ok()
         && crate::project::Project::classify(Path::new(file))
           == crate::project::ThreadFile::Attachment
     }

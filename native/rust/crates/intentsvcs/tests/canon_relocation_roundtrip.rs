@@ -113,7 +113,7 @@ fn compare(before: &ingest::Canon, after: &ingest::Canon) -> (usize, Vec<String>
       .threads
       .iter()
       .find(|t| t.id == original.id)
-      .unwrap_or_else(|| panic!("{} is absent after the round trip", original.id));
+      .unwrap_or_else(|| panic!("{} is absent after the round trip", original.id.shown()));
     check(
       &original.id,
       field_map(&original.id, original),
@@ -122,7 +122,7 @@ fn compare(before: &ingest::Canon, after: &ingest::Canon) -> (usize, Vec<String>
   }
 
   for original in &before.issues {
-    let id = format!("issue-{:04}", original.number);
+    let id = format!("issue-{}", original.number.stored());
     let returned = after
       .issues
       .iter()
@@ -241,7 +241,7 @@ fn a_field_dropped_in_transit_is_reported_by_name() {
     Vec::new(),
   );
   for (rel, body) in export::canon_parts(&bundle).expect("canon serialises") {
-    let body = if rel.contains(&victim.id) {
+    let body = if rel.contains(victim.id.as_str()) {
       let mut value: Value = serde_json::from_str(&body).expect("a canon part is JSON");
       let removed = value
         .as_object_mut()
@@ -274,7 +274,7 @@ fn a_field_dropped_in_transit_is_reported_by_name() {
     differences
   );
   assert!(
-    differences[0].starts_with(&format!("{}.slug: LOST", victim.id)),
+    differences[0].starts_with(&format!("{}.slug: LOST", victim.id.stored())),
     "the loss is reported, but not by the name of the field that was lost: {}",
     differences[0]
   );

@@ -11,7 +11,7 @@
 //! rather than the interleaving: two handles on one on-disk store, as two
 //! processes have, and a warm from a disk that does not carry the peer's write.
 
-use crate::common::{Fixture, sample_issue};
+use crate::common::{Fixture, issue, sample_issue};
 use intentsvcs::store::Store;
 
 #[test]
@@ -31,7 +31,7 @@ fn a_cold_warm_from_a_stale_disk_leaves_a_record_a_peer_wrote_first() {
   let (_, issues) = warmer.load_canon().expect("read the store");
   assert_eq!(
     issues.iter().map(|i| i.number).collect::<Vec<_>>(),
-    vec![1],
+    vec![issue(1)],
     "the warm deleted the record a peer wrote after the store was found empty"
   );
   assert!(

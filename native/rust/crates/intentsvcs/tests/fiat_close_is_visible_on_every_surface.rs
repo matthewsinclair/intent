@@ -77,7 +77,7 @@
 //! is how the harmful case (`ac list`) stayed invisible: nobody re-reads a
 //! sentence they have already accepted.
 
-use crate::common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread, wp};
 use intentsvcs::contract::{Scope, Verdict};
 use intentsvcs::facade::Note;
 use intentsvcs::finding::FindingClass;
@@ -307,7 +307,7 @@ fn wp_scoped(state: AcState) -> Thread {
   t.criteria.clear();
   t.tests.clear();
   t.wps.truncate(1);
-  t.wps[0].seq = 1;
+  t.wps[0].seq = wp(1);
   t.wps[0].status = WpStatus::NotStarted;
   t.criteria.push(Criterion {
     id: "AC-01.1".to_string(),

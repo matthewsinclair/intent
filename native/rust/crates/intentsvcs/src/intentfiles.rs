@@ -36,7 +36,7 @@
 //! **Neither may acquire a second, independent enumeration of files.** Two
 //! declarations of which-files-matter agree for months and then quietly do not.
 //! That is held MECHANICALLY here rather than by convention: an id must satisfy
-//! [`model::is_thread_id`] or [`model::is_issue_id`], and no path satisfies
+//! [`crate::id::ThreadId::parse`] or [`crate::id::IssueId::parse`], and no path satisfies
 //! either -- `/` is not an ascii digit and no path is four digits long. A
 //! file-valued line is therefore UNREPRESENTABLE, not merely discouraged, and
 //! the refusal costs no separate check.
@@ -125,16 +125,16 @@ impl Sigil {
 
   /// Whether `id` is well-formed FOR THIS SIGIL.
   ///
-  /// Delegated to `model`, which owns identity. A shape asserted here as well
-  /// would be a second declaration of one fact.
+  /// Delegated to [`crate::id`], which owns identity. A shape asserted here as
+  /// well would be a second declaration of one fact.
   ///
-  /// `model::is_issue_id` is untouched by the retirement and still has callers:
+  /// The issue id is untouched by the retirement and still has callers:
   /// issues keep their identity in canon and the store. **What ended is the
   /// manifest's claim on them, not the id.**
   pub fn accepts(&self, id: &str) -> bool {
     match self {
-      Sigil::SteelThread => model::is_thread_id(id),
-      Sigil::Issue => model::is_issue_id(id),
+      Sigil::SteelThread => crate::id::ThreadId::parse(id).is_ok(),
+      Sigil::Issue => crate::id::IssueId::parse(id).is_ok(),
     }
   }
 }
@@ -373,8 +373,8 @@ impl Remedy for IntentfilesError {
         "each line is blank, a comment, or `<SIGIL>:<ID>` with an optional trailing `# comment`; `# BEGIN INTENT` and `# END INTENT` are no longer part of the grammar, so delete a marker line and keep the entries around it".into()
       }
       IntentfilesError::MalformedId { sigil, .. } => match *sigil {
-        "STEELTHREAD" => "a steel-thread id is ST followed by four digits, eg ST0000".into(),
-        "ISSUE" => "an issue id is four digits, eg 0001".into(),
+        "STEELTHREAD" => crate::id::THREAD_ID_FORM.into(),
+        "ISSUE" => crate::id::ISSUE_ID_FORM.into(),
         // **STILL NOT A GUESS, AND THE CATCH-ALL EARNS ITS PLACE AGAIN THE DAY
         // A THIRD SIGIL ARRIVES.** This arm briefly covered every sigil but
         // STEELTHREAD, because ISSUE had been retired and the grammar had one
@@ -548,7 +548,7 @@ const DEFAULT_HEADER: &str = "\
 /// keep nothing -- as distinct from ABSENT, which means nobody has said.
 pub fn default_declaration(
   threads: &[(String, model::ThreadStatus)],
-  issues: &[(u32, model::IssueStatus)],
+  issues: &[(crate::id::IssueId, model::IssueStatus)],
 ) -> String {
   // **WIP ONLY, AND THIS WAS `!is_closed()` UNTIL hv SAW WHAT IT PRODUCED.**
   // hv, 2026-08-26, first-hand on a 57-thread realised set: _"Now it has NOT
@@ -580,7 +580,7 @@ pub fn default_declaration(
   // two vocabularies would either sweep every Triage thread back in -- the
   // 2026-08-26 defect hv rejected in as many words -- or exclude open issues
   // for symmetry with a distinction issues do not have.
-  let mut open_issues: Vec<u32> = issues
+  let mut open_issues: Vec<crate::id::IssueId> = issues
     .iter()
     .filter(|(_, status)| *status == model::IssueStatus::Open)
     .map(|(number, _)| *number)
@@ -589,16 +589,13 @@ pub fn default_declaration(
   open_issues.dedup();
 
   let mut out = String::from(DEFAULT_HEADER);
+  // Every row is [`declared_key`]'s, the one spelling of a manifest key.
   for id in open {
-    out.push_str(Sigil::SteelThread.as_str());
-    out.push(':');
-    out.push_str(id);
+    out.push_str(&declared_key(Sigil::SteelThread, id));
     out.push('\n');
   }
-  for number in open_issues {
-    out.push_str(Sigil::Issue.as_str());
-    out.push(':');
-    out.push_str(&format!("{number:04}"));
+  for id in open_issues {
+    out.push_str(&declared_key(Sigil::Issue, &id.stored()));
     out.push('\n');
   }
   out

@@ -24,7 +24,7 @@
 //! of them is a state where the honest thing to return is "I do not know", and
 //! "I do not know" is the answer that has to mean no.
 
-use crate::common::{Fixture, ctx, declaring_thread, gate_open, sample_thread};
+use crate::common::{Fixture, ctx, declaring_thread, gate_open, sample_thread, tid};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::{AcKind, AcState, Criterion, Thread};
@@ -364,7 +364,7 @@ fn the_declaration_is_found_by_its_delimiter_not_by_an_address() {
 #[test]
 fn a_declaration_in_another_thread_is_found_too() {
   let mut carrier = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
-  carrier.id = "ST0099".to_string();
+  carrier.id = tid("ST0099");
   let v = preconditions::check(&canon_of(vec![sample_thread("ST0001"), carrier]));
   assert!(v.permits(), "got: {v}");
 }
@@ -376,7 +376,7 @@ fn two_carriers_anywhere_in_the_estate_refuse() {
   // and says nothing about whether a second exists somewhere else.
   let one = declaring_thread(&[("AC-00.9", AcKind::NonTest, met("landed"))]);
   let mut two = declaring_thread(&[("AC-00.8", AcKind::NonTest, met("landed"))]);
-  two.id = "ST0099".to_string();
+  two.id = tid("ST0099");
   let v = preconditions::check(&canon_of(vec![one, two]));
   assert!(!v.permits());
   assert_eq!(v.unreadable(), Some(&Unreadable::TwoDeclarations));

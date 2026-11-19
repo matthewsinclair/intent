@@ -25,7 +25,7 @@
 
 use std::path::PathBuf;
 
-use crate::contract::{group_of, satisfied_by_tests};
+use crate::contract::satisfied_by_tests;
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
 use crate::model::{
@@ -355,7 +355,7 @@ pub fn banner_version(version: &str) -> &str {
 pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   let mut out = String::new();
   out.push_str("---\n");
-  out.push_str(&kv("st_id", &thread.id));
+  out.push_str(&kv("st_id", &thread.id.shown()));
   out.push_str(&kv("title", &thread.title));
   out.push_str(&kv("status", thread.status.display()));
   // **Only when there is one, unlike `completed` below.** The field exists only
@@ -369,7 +369,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   out.push_str(&kv("completed", thread.completed.as_deref().unwrap_or("")));
   out.push_str("---\n\n");
 
-  out.push_str(&format!("# {}: {}\n\n", thread.id, thread.title));
+  out.push_str(&format!("# {}: {}\n\n", thread.id.shown(), thread.title));
 
   // **ABOVE the first generated section, which is the whole reason this is its
   // own field rather than part of `body`.** `body` renders below `## Context`,
@@ -413,7 +413,7 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
       .iter()
       .map(|wp| {
         vec![
-          format!("WP-{:02}", wp.seq),
+          wp.seq.heading(),
           cell(&wp.title),
           wp.scope_display(),
           wp.status.display().to_string(),
@@ -451,8 +451,8 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
     out.push_str("## Related Steel Threads\n\n");
     for r in &thread.related {
       match &r.note {
-        Some(note) => out.push_str(&format!("- {}: {note}\n", r.id)),
-        None => out.push_str(&format!("- {}\n", r.id)),
+        Some(note) => out.push_str(&format!("- {}: {note}\n", r.id.shown())),
+        None => out.push_str(&format!("- {}\n", r.id.shown())),
       }
     }
     out.push('\n');
@@ -1244,12 +1244,13 @@ const ACCEPTANCE_PREAMBLE: &str = "\
 pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   let mut out = String::new();
   out.push_str("---\n");
-  out.push_str(&kv("st_id", &thread.id));
+  out.push_str(&kv("st_id", &thread.id.shown()));
   out.push_str(&kv("title", &thread.title));
   out.push_str("---\n\n");
   out.push_str(&format!(
     "# {}: {} -- Acceptance\n\n",
-    thread.id, thread.title
+    thread.id.shown(),
+    thread.title
   ));
   out.push_str(ACCEPTANCE_PREAMBLE);
   out.push('\n');
@@ -1258,7 +1259,11 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   for group in groups(thread) {
     out.push_str(&format!("### {}\n\n", group_heading(thread, &group)));
     let mut any = false;
-    for c in thread.criteria.iter().filter(|c| group_of(&c.id) == group) {
+    for c in thread
+      .criteria
+      .iter()
+      .filter(|c| section_of(&c.id) == group)
+    {
       out.push_str(&criterion_line(thread, c));
       any = true;
     }
@@ -1272,7 +1277,7 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   for group in groups(thread) {
     out.push_str(&format!("### {}\n\n", group_heading(thread, &group)));
     let mut any = false;
-    for t in thread.tests.iter().filter(|t| group_of(&t.id) == group) {
+    for t in thread.tests.iter().filter(|t| section_of(&t.id) == group) {
       out.push_str(&test_line(t));
       any = true;
     }
@@ -1285,31 +1290,43 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   finish(out, ctx, "the thread canon")
 }
 
-/// Every AC/AT group present, in id order -- `00` (ST-level) first.
+/// The section a label renders under: the thread's group, a package by its
+/// stored id however the label spells its group (issue 0712), or an unreadable
+/// group by its own text.
+fn section_of(label: &str) -> String {
+  match crate::id::group_of(label) {
+    crate::id::Group::Thread => crate::id::THREAD_GROUP.to_string(),
+    crate::id::Group::Package(wp) => wp.stored(),
+    crate::id::Group::Unreadable => crate::id::group_text(label).to_string(),
+  }
+}
+
+/// Every AC/AT section present, in id order -- `00` (ST-level) first.
 fn groups(thread: &Thread) -> Vec<String> {
   let mut seen: Vec<String> = thread
     .criteria
     .iter()
-    .map(|c| group_of(&c.id))
-    .chain(thread.tests.iter().map(|t| group_of(&t.id)))
+    .map(|c| section_of(&c.id))
+    .chain(thread.tests.iter().map(|t| section_of(&t.id)))
     .collect();
   seen.sort();
   seen.dedup();
   seen
 }
 
+/// A section's heading. `group` is [`section_of`]'s answer, so a package's
+/// group is its stored id and is read back with the stored-form reader.
 fn group_heading(thread: &Thread, group: &str) -> String {
-  if group == "00" {
+  if group == crate::id::THREAD_GROUP {
     return "ST-level".to_string();
   }
-  match group
-    .parse::<u32>()
+  match crate::id::WpId::parse(group)
     .ok()
     .and_then(|seq| thread.wps.iter().find(|w| w.seq == seq))
   {
     Some(wp) => format!(
-      "WP-{:02} -- {} (status: {})",
-      wp.seq,
+      "{} -- {} (status: {})",
+      wp.seq.heading(),
       wp.title,
       wp.status.display()
     ),
@@ -1511,7 +1528,7 @@ fn open_then_newest<T>(
 pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> String {
   let mut out = String::new();
   out.push_str("---\n");
-  out.push_str(&kv("wp_id", &format!("WP-{:02}", wp.seq)));
+  out.push_str(&kv("wp_id", &wp.seq.heading()));
   out.push_str(&kv("title", &wp.title));
   out.push_str(&kv("scope", &wp.scope_display()));
   out.push_str(&kv("status", wp.status.display()));
@@ -1521,7 +1538,7 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   }
   out.push_str("---\n\n");
 
-  out.push_str(&format!("# WP-{:02}: {}\n\n", wp.seq, wp.title));
+  out.push_str(&format!("# {}: {}\n\n", wp.seq.heading(), wp.title));
 
   // Same slot one level down -- above the first generated heading, where its
   // author wrote it. 5 of the canary's 20 regions are work-package ones.
@@ -1569,9 +1586,9 @@ pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> St
   if !carries_heading(&wp.body, "Acceptance") {
     out.push_str("## Acceptance\n\n");
     out.push_str(&format!(
-      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `WP-{:02}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n",
-      thread.id,
-      wp.seq
+      "Acceptance Criteria for this work package are RENDERED into `{}/acceptance.md`, under the `{}` heading. THAT FILE IS A GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in the thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n",
+      thread.id.shown(),
+      wp.seq.heading()
     ));
   }
 
@@ -1600,7 +1617,7 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
     .iter()
     .map(|t| {
       vec![
-        t.id.clone(),
+        t.id.shown(),
         cell(&t.title),
         t.status.display().to_string(),
         t.created.clone(),
@@ -1708,25 +1725,25 @@ pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets 
       .wps
       .iter()
       .map(|wp| TodoItem {
-        id: format!("{}/{:02}", t.id, wp.seq),
+        id: crate::id::wp_address(&t.id, wp.seq),
         kind: "work-package",
         title: wp.title.clone(),
         status: wp.status.display(),
         glyph: wp.status.glyph(),
         // **The thread id is NOT repeated.** The row is already nested under
         // it, and saying it twice is what made the flat view unreadable.
-        label: format!("{:02}: {}", wp.seq, wp.title),
+        label: format!("{}: {}", wp.seq.shown(), wp.title),
         children: Vec::new(),
       })
       .collect();
 
     let item = TodoItem {
-      id: t.id.clone(),
+      id: t.id.stored(),
       kind: "thread",
       title: t.title.clone(),
       status: t.status.display(),
       glyph: t.status.glyph(),
-      label: format!("{}: {}", t.id, t.title),
+      label: format!("{}: {}", t.id.shown(), t.title),
       children,
     };
     // **The THREAD's status alone chooses the bucket**, and it carries its
@@ -1926,7 +1943,7 @@ fn write_row(out: &mut String, row: &TodoItem, depth: usize) {
 pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
   let mut out = String::new();
   out.push_str("---\n");
-  out.push_str(&kv("issue", &format!("{:04}", issue.number)));
+  out.push_str(&kv("issue", &issue.number.shown()));
   out.push_str(&kv("title", &issue.title));
   out.push_str(&kv("status", issue.status.display()));
   if let Some(severity) = &issue.severity {
@@ -1955,7 +1972,11 @@ pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
 /// number could be scraped out of `issues/0021.md` in one line and that is the
 /// spelling that does not survive the directory moving. Comparing against
 /// `Project::issue_view` means the layout is owned in exactly one place.
-pub fn owning_issue(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<u32> {
+pub fn owning_issue(
+  project: &Project,
+  path: &std::path::Path,
+  canon: &Canon,
+) -> Option<crate::id::IssueId> {
   canon
     .issues
     .iter()
@@ -1968,7 +1989,7 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
     .threads
     .iter()
     .find(|t| path.starts_with(project.thread_dir(&t.id)))
-    .map(|t| t.id.clone())
+    .map(|t| t.id.stored())
 }
 
 /// The artefact a view realises, when the manifest says that artefact is NOT
@@ -1976,7 +1997,7 @@ pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Undeclared {
   Thread(String),
-  Issue(u32),
+  Issue(crate::id::IssueId),
   /// A board or inbox view whose node has no migrated `wb_node` row.
   Board(String),
 }
@@ -2014,9 +2035,8 @@ pub fn undeclared_owner(
     return (!realised.declares(&id)).then_some(Undeclared::Thread(id));
   }
   if let Some(number) = owning_issue(project, path, canon) {
-    return (!realised
-      .declares_artefact(crate::intentfiles::Sigil::Issue, &format!("{number:04}")))
-    .then_some(Undeclared::Issue(number));
+    return (!realised.declares_artefact(crate::intentfiles::Sigil::Issue, &number.stored()))
+      .then_some(Undeclared::Issue(number));
   }
   // **A WHITEBOARD VIEW EXISTS FOR EXACTLY THE NODES THE STORE HOLDS** (vc,
   // 2026-09-13), and the manifest has no word for a board: there is no
@@ -2354,7 +2374,7 @@ pub fn wb_inbox_body(sender: &str, recipient: &str, sent: &[crate::model::WbSent
 pub enum ThreadView {
   Info,
   Acceptance,
-  WpInfo(u32),
+  WpInfo(crate::id::WpId),
 }
 
 impl ThreadView {
@@ -2363,7 +2383,10 @@ impl ThreadView {
     match self {
       ThreadView::Info => "info.md".to_string(),
       ThreadView::Acceptance => "acceptance.md".to_string(),
-      ThreadView::WpInfo(seq) => format!("WP/{seq:02}/info.md"),
+      ThreadView::WpInfo(seq) => Project::wp_rel(seq)
+        .join("info.md")
+        .to_string_lossy()
+        .into_owned(),
     }
   }
 
@@ -2817,7 +2840,9 @@ pub fn skew_against(
           // arm used to name exited 0 and left the finding standing. The two
           // routes that DO clear it are removing the file or declaring it.
           (None, Some(Undeclared::Issue(number))) => format!(
-            "issue {number:04} is not declared in `.intentfiles`, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `ISSUE:{number:04}` to `.intentfiles` and run `intent organize --apply`, which rewrites it"
+            "issue {} is not declared in `.intentfiles`, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `{}` to `.intentfiles` and run `intent organize --apply`, which rewrites it",
+            number.shown(),
+            crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, &number.stored())
           ),
           _ => "`intent sync --to-disk` regenerates it from the store".to_string(),
         };
@@ -2925,8 +2950,11 @@ mod tests {
         // serde name is the one `thread()` parses, and hand-copying six of them
         // is how a fixture starts disagreeing with the model it fixtures.
         let spelling = serde_json::to_value(status).expect("a status serialises");
+        let n = u32::try_from(i + 1).expect("a fixture index fits");
         thread(
-          &format!("ST{:04}", i + 1),
+          &crate::id::ThreadId::from_ordinal(n)
+            .expect("an ordinal that fits")
+            .stored(),
           spelling.as_str().expect("a status is a JSON string"),
         )
       })
@@ -2980,8 +3008,11 @@ mod tests {
 
     let ordered = issue_index_order(&issues);
     assert_eq!(
-      ordered.iter().map(|i| i.number).collect::<Vec<_>>(),
-      vec![5, 3, 1, 6, 4, 2],
+      ordered
+        .iter()
+        .map(|i| i.number.stored())
+        .collect::<Vec<_>>(),
+      ["0005", "0003", "0001", "0006", "0004", "0002"],
       "the collection is not open newest first, then closed newest first"
     );
     assert_eq!(

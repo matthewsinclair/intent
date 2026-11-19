@@ -7,7 +7,7 @@
 //! knob and the type was behind the design rather than ahead of it.
 //!
 //! **The half that needed building is what happens to a project that SET it.**
-//! v3 recognises a steel thread by `model::is_thread_id`, which is now the one
+//! v3 recognises a steel thread by `id::ThreadId::parse`, which is now the one
 //! authority on the form. A project whose threads are named `XX0001` has none
 //! of them recognised -- `thread_dirs` yields nothing, the scan finds nothing,
 //! and every count reconciles perfectly against zero. **A migration that
@@ -21,8 +21,8 @@
 
 use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
+use intentsvcs::id::{THREAD_DIGITS, THREAD_PREFIX, ThreadId};
 use intentsvcs::legacy;
-use intentsvcs::model::{THREAD_PREFIX, is_thread_id, thread_id, thread_seq};
 
 /// A v2 estate whose config declares `st_prefix` as `prefix`, carrying one
 /// completed thread named on that prefix.
@@ -154,15 +154,24 @@ fn the_retired_declaration_survives_in_the_config_it_was_written_in() {
 /// **One encoding of the id form, not four.**
 ///
 /// `6` was `"ST".len() + 4` written a second way, in a file that would not move
-/// if the first one did. These three functions are now the only place the form
-/// is decided, and the round trip is what holds them to each other.
+/// if the first one did. `ThreadId` is now the only place the form is decided:
+/// `from_ordinal` makes the stored form and `parse` reads it, and the round
+/// trip is what holds them to each other.
 #[test]
 fn the_id_form_has_exactly_one_authority() {
   for seq in [1u32, 9, 10, 56, 999, 1000, 9999] {
-    let id = thread_id(seq);
-    assert_eq!(id.len(), THREAD_PREFIX.len() + 4, "fixed width: {id}");
-    assert!(is_thread_id(&id), "its own output must be recognised: {id}");
-    assert_eq!(thread_seq(&id), Some(seq), "and read back: {id}");
+    let id = ThreadId::from_ordinal(seq).expect("an ordinal that fits the form");
+    let stored = id.stored();
+    assert_eq!(
+      stored.len(),
+      THREAD_PREFIX.len() + THREAD_DIGITS,
+      "fixed width: {stored}"
+    );
+    assert_eq!(
+      ThreadId::parse(&stored),
+      Ok(id),
+      "its own output must be recognised, and read back as the same ordinal: {stored}"
+    );
   }
 
   // The forms the old hardcoded `len() == 6` accepted or rejected for reasons
@@ -180,7 +189,9 @@ fn the_id_form_has_exactly_one_authority() {
     "0001",     // digits alone
     "STST0001", // the prefix twice
   ] {
-    assert!(!is_thread_id(bad), "must not be a thread id: {bad:?}");
-    assert_eq!(thread_seq(bad), None, "and yields no sequence: {bad:?}");
+    assert!(
+      ThreadId::parse(bad).is_err(),
+      "must not be a thread id, and so yields no sequence: {bad:?}"
+    );
   }
 }

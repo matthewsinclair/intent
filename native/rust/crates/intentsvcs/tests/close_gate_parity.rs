@@ -16,7 +16,7 @@
 //! asserts what I believe v2 says; the differential asserts what it actually
 //! says, and only the second can catch a misremembered format.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, tid, wp};
 use intentsvcs::contract::{AllResolve, RepoFiles, Scope, gate};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
@@ -30,7 +30,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: "ST0001".to_string(),
+    id: tid("ST0001"),
     title: "gate parity".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -43,7 +43,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     context: String::new(),
     related: Vec::new(),
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "one".to_string(),
       scope: Some(TShirt::M),
       scope_legacy: None,
@@ -211,7 +211,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
     vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
   );
   t.wps.push(WorkPackage {
-    seq: 4,
+    seq: wp(4),
     title: "later".to_string(),
     scope: Some(TShirt::S),
     scope_legacy: None,
@@ -224,7 +224,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
     preamble: String::new(),
   });
   assert_eq!(
-    gate(&t, Scope::WorkPackage(4), &AllResolve).line("ST0001/04"),
+    gate(&t, Scope::WorkPackage(wp(4)), &AllResolve).line("ST0001/04"),
     "gate: ST0001/04 PASS -- no ACs in scope; rolls up to the ST0001 contract (1 AC(s))"
   );
 }
@@ -238,7 +238,7 @@ fn a_nonexistent_wp_blocks_rather_than_rolling_up() {
     vec![ac("AC-00.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
   );
-  let line = gate(&t, Scope::WorkPackage(99), &AllResolve).line("ST0001/99");
+  let line = gate(&t, Scope::WorkPackage(wp(99)), &AllResolve).line("ST0001/99");
   assert!(line.contains("BLOCKED"), "{line}");
   assert!(line.contains("nothing to evaluate"), "{line}");
 }
@@ -255,7 +255,7 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   t.wps.push(WorkPackage {
-    seq: 2,
+    seq: wp(2),
     title: "two".to_string(),
     scope: Some(TShirt::M),
     scope_legacy: None,
@@ -269,12 +269,12 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
   });
 
   assert_eq!(
-    gate(&t, Scope::WorkPackage(1), &AllResolve).line("ST0001/01"),
+    gate(&t, Scope::WorkPackage(wp(1)), &AllResolve).line("ST0001/01"),
     "gate: ST0001/01 PASS -- 1/1 satisfied",
     "WP-01 is complete even though the thread is not"
   );
   assert_eq!(
-    gate(&t, Scope::WorkPackage(2), &AllResolve).line("ST0001/02"),
+    gate(&t, Scope::WorkPackage(wp(2)), &AllResolve).line("ST0001/02"),
     "gate: ST0001/02 BLOCKED -- 0/1 satisfied; unsatisfied: AC-02.1"
   );
   assert_eq!(
@@ -778,11 +778,11 @@ fn the_facade_routes_closes_through_the_gate() {
 
   assert!(
     facade
-      .gate("ST0056", Scope::WorkPackage(3))
+      .gate("ST0056", Scope::WorkPackage(wp(3)))
       .unwrap()
       .is_pass()
   );
-  facade.wp_done("ST0056", 3).expect("wp done");
+  facade.wp_done("ST0056", wp(3)).expect("wp done");
 
   facade
     .at_set("ST0056", "AT-03.1", AtStatus::Red, None)
@@ -800,7 +800,7 @@ fn the_facade_routes_closes_through_the_gate() {
   // coverage red AFTER the close and then demanded a refusal.
   assert_eq!(
     facade
-      .wp_done("ST0056", 3)
+      .wp_done("ST0056", wp(3))
       .expect("a self-loop is accepted")
       .already(),
     Some(WpStatus::Done.display()),
@@ -811,10 +811,10 @@ fn the_facade_routes_closes_through_the_gate() {
   // Reopening is what makes the question live again -- which is the point of
   // `wp reopen` existing.
   facade
-    .wp_reopen("ST0056", 3, "the coverage went red")
+    .wp_reopen("ST0056", wp(3), "the coverage went red")
     .expect("reopen");
   assert!(
-    facade.wp_done("ST0056", 3).is_err(),
+    facade.wp_done("ST0056", wp(3)).is_err(),
     "the same gate refuses once the coverage goes red, asked of a package that is open"
   );
 }

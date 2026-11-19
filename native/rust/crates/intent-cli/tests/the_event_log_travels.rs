@@ -293,7 +293,10 @@ fn ingest_takes_what_is_missing_and_changes_nothing_else() {
   let dir = tempfile::tempdir().expect("tempdir");
   let (alice, bob, st) = two_clones(dir.path());
   let wp = crate::common::created(&bob.intent(&["wp", "new", st.as_str(), "Write it"]));
-  bob.commit(&format!("bob: WP-{}", crate::common::package_of(&wp)));
+  bob.commit(&format!(
+    "bob: {}",
+    crate::common::package_of(&wp).heading()
+  ));
   alice.git(&[
     "pull",
     "-q",

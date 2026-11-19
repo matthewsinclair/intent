@@ -43,8 +43,9 @@
 //! that it is right, **passing on a stamp of `banana`**. That is the
 //! five-limbs argument arriving inside a single limb.
 
-use crate::common::{Fixture, facade_ctx, v2_estate_in_git, v2_thread};
+use crate::common::{Fixture, facade_ctx, issue, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
+use intentsvcs::id::IssueId;
 
 /// A clean v2 estate, converted. Panics rather than returning a Result: every
 /// test below is about the *state after* a successful conversion, so a failure
@@ -245,7 +246,7 @@ fn a_clean_estate_builds_a_store_that_holds_it() {
 
   let store = intentsvcs::store::Store::open(&db).expect("the store opens");
   let (threads, _issues) = store.load_canon().expect("the store loads");
-  let mut ids: Vec<String> = threads.into_iter().map(|t| t.id).collect();
+  let mut ids: Vec<String> = threads.into_iter().map(|t| t.id.stored()).collect();
   ids.sort();
   assert_eq!(
     ids,
@@ -291,11 +292,11 @@ fn a_clean_estate_carries_its_issues_into_the_store() {
 
   let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");
   let (_threads, issues) = store.load_canon().expect("the store loads");
-  let mut numbers: Vec<u32> = issues.into_iter().map(|i| i.number).collect();
+  let mut numbers: Vec<IssueId> = issues.into_iter().map(|i| i.number).collect();
   numbers.sort_unstable();
   assert_eq!(
     numbers,
-    vec![1, 2],
+    vec![issue(1), issue(2)],
     "a first migration did not carry the v2 issue estate into the store"
   );
 }
@@ -435,11 +436,11 @@ fn a_converted_closed_issue_is_not_realised_and_organize_names_no_issue_view() {
 
   let project = fx.project();
   assert!(
-    project.issue_view(1).is_file(),
+    project.issue_view(issue(1)).is_file(),
     "the OPEN issue's view was not realised"
   );
   assert!(
-    !project.issue_view(2).exists(),
+    !project.issue_view(issue(2)).exists(),
     "the CLOSED issue's view was realised, and the manifest does not declare it"
   );
 
@@ -451,7 +452,7 @@ fn a_converted_closed_issue_is_not_realised_and_organize_names_no_issue_view() {
     .dehydrated
     .iter()
     .chain(&preview.unclaimed)
-    .filter(|p| *p == &project.issue_view(1) || *p == &project.issue_view(2))
+    .filter(|p| *p == &project.issue_view(issue(1)) || *p == &project.issue_view(issue(2)))
     .collect();
   assert!(
     issue_views.is_empty(),

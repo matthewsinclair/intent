@@ -958,7 +958,12 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
             // instead of lying.
             let instance = match &address.entity {
               Entity::Thread { id } => id.clone(),
-              Entity::Wp { thread, wp } => format!("{thread}/{wp}"),
+              // Read through the waist, so `.../wp/2` is named `ST0056/02`, as
+              // every door names it, and not echoed back as typed.
+              Entity::Wp { thread, wp } => intentsvcs::id::normalise_wp_id(wp).map_or_else(
+                |_| address.entity.form().to_string(),
+                |seq| intentsvcs::id::wp_address(thread, seq),
+              ),
               Entity::Issue { id } => id.clone(),
               other => other.form().to_string(),
             };
@@ -1003,7 +1008,7 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
         .st_list()
         .into_iter()
         .map(|thread| ThreadSummary {
-          id: thread.id.clone(),
+          id: thread.id.stored(),
           title: thread.title.clone(),
           status: thread.status,
           created: thread.created.clone(),

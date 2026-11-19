@@ -16,6 +16,7 @@
 //! rewrite could change what somebody wrote about a different thread that
 //! happened to share the number. The facade reports each one instead.
 
+use crate::id::{IssueId, ThreadId, WpId};
 use crate::ingest::Canon;
 use crate::model::Board;
 
@@ -36,28 +37,33 @@ pub struct Renumbered {
 ///
 /// Whether `new` is free is the caller's question, because the answer depends
 /// on the disk as well as the model.
-pub fn thread(canon: &Canon, old: &str, new: &str) -> Option<Renumbered> {
-  if !canon.threads.iter().any(|t| t.id == old) {
+pub fn thread(canon: &Canon, old: &ThreadId, new: &ThreadId) -> Option<Renumbered> {
+  if !canon.threads.iter().any(|t| t.id == *old) {
     return None;
   }
   let mut next = canon.clone();
   let mut rewritten = Vec::new();
   for thread in &mut next.threads {
-    if thread.id == old {
-      thread.id = new.to_string();
+    if thread.id == *old {
+      thread.id = new.clone();
     }
   }
   for thread in &mut next.threads {
     for related in &mut thread.related {
-      if related.id == old {
-        related.id = new.to_string();
-        rewritten.push(format!("{} related: {old} -> {new}", thread.id));
+      if related.id == *old {
+        related.id = new.clone();
+        rewritten.push(format!(
+          "{} related: {} -> {}",
+          thread.id.shown(),
+          old.shown(),
+          new.shown()
+        ));
       }
     }
   }
   // Every other door hands the renderers the model in id order, so this does.
   next.threads.sort_by(|a, b| a.id.cmp(&b.id));
-  let claims = moved_claims(&canon.boards, old, new, &mut rewritten);
+  let claims = moved_claims(&canon.boards, &old.stored(), &new.stored(), &mut rewritten);
   Some(Renumbered {
     canon: next,
     rewritten,
@@ -81,7 +87,7 @@ pub fn thread(canon: &Canon, old: &str, new: &str) -> Option<Renumbered> {
 /// thread side does. **A widening that had left this behind would not have
 /// failed** -- it would have silently left a board claiming a number that had
 /// moved, which is a dangling reference with nothing to report it.
-pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
+pub fn issue(canon: &Canon, old: IssueId, new: IssueId) -> Option<Renumbered> {
   if !canon.issues.iter().any(|i| i.number == old) {
     return None;
   }
@@ -92,16 +98,11 @@ pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
     }
   }
   next.issues.sort_by_key(|i| i.number);
-  // **THROUGH THE MODEL'S OWN FORMATTER, NEVER `format!("ISSUE:{old:04}")`
-  // HERE.** The width and the prefix are one fact each, owned by `model`; a
-  // second spelling of either in this file agrees until one of them moves.
+  // **THROUGH THE WAIST.S OWN FORM, NEVER A `format!` OF THE CLAIM HERE.** The
+  // width and the prefix are one fact each, owned by `crate::id`; a second
+  // spelling of either in this file agrees until one of them moves.
   let mut rewritten = Vec::new();
-  let claims = moved_claims(
-    &canon.boards,
-    &crate::model::issue_claim(old),
-    &crate::model::issue_claim(new),
-    &mut rewritten,
-  );
+  let claims = moved_claims(&canon.boards, &old.claim(), &new.claim(), &mut rewritten);
   Some(Renumbered {
     canon: next,
     rewritten,
@@ -115,7 +116,7 @@ pub fn issue(canon: &Canon, old: u32, new: u32) -> Option<Renumbered> {
 pub fn work_package_claims(
   boards: &[Board],
   thread: &str,
-  moves: &[(u32, u32)],
+  moves: &[(WpId, WpId)],
 ) -> (Vec<(String, Vec<String>)>, Vec<String>) {
   let mut boards = boards.to_vec();
   let mut rewritten = Vec::new();
@@ -123,8 +124,8 @@ pub fn work_package_claims(
   for (from, to) in moves {
     for (node, claims) in moved_claims(
       &boards,
-      &format!("{thread}/{from:02}"),
-      &format!("{thread}/{to:02}"),
+      &crate::id::wp_address(thread, *from),
+      &crate::id::wp_address(thread, *to),
       &mut rewritten,
     ) {
       if let Some(board) = boards.iter_mut().find(|b| b.node.moniker == node) {
@@ -150,12 +151,13 @@ pub fn work_package_claims(
 /// The claim lists that change, a claim being a thread, one of its packages,
 /// or an issue.
 ///
-/// **THE MATCH IS BY WHOLE ADDRESS OR BY ADDRESS-PLUS-`/`, WHICH IS WHY IT
-/// TOOK THE ISSUE FORM WITHOUT A LINE OF CHANGE.** `moved_claim` refuses a
-/// merely-longer id -- `ST00031` is not `ST0003` -- by requiring a `/` after
-/// the prefix, and that guard holds identically for `ISSUE:0051` against
-/// `ISSUE:0005`. Issue ids are fixed width besides, so the case cannot arise;
-/// the guard is what makes that a belt rather than the only reason.
+/// **THE MATCH IS BY WHOLE ADDRESS, OR BY A PACKAGE ADDRESS WHOSE THREAD IS THE
+/// WHOLE OLD ADDRESS, WHICH IS WHY IT TOOK THE ISSUE FORM WITHOUT A LINE OF
+/// CHANGE.** `moved_claim` refuses a merely-longer id -- `ST00031` is not
+/// `ST0003` -- because the waist splits the claim and the thread part must equal
+/// the old id, and `ISSUE:0051` never equals `ISSUE:0005`. Issue ids are fixed
+/// width besides, so the case cannot arise; the guard is what makes that a belt
+/// rather than the only reason.
 fn moved_claims(
   boards: &[Board],
   old: &str,
@@ -190,10 +192,12 @@ fn moved_claim(claim: &str, old: &str, new: &str) -> Option<String> {
   if claim == old {
     return Some(new.to_string());
   }
-  claim
-    .strip_prefix(old)
-    .and_then(|rest| rest.strip_prefix('/'))
-    .map(|seq| format!("{new}/{seq}"))
+  // A package claim under a moved thread moves with it, split by the waist's
+  // reader of the separator and rebuilt by its writer.
+  crate::id::split_wp_address(claim)
+    .filter(|(thread, _)| *thread == old)
+    .and_then(|(_, package)| crate::id::WpId::parse(package).ok())
+    .map(|wp| crate::id::wp_address(new, wp))
 }
 
 #[cfg(test)]

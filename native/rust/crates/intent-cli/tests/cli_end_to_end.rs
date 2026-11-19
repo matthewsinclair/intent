@@ -254,9 +254,8 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "A thread"]));
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "A package"]));
-  let pkg = crate::common::package_of(&wp);
-  let seq = crate::common::package_seq(&wp);
-  let wp_address = format!("intent:///threads/{st}/wp/{pkg}");
+  let seq = crate::common::package_of(&wp);
+  let wp_address = format!("intent:///threads/{st}/wp/{}", seq.stored());
   let st_address = format!("intent:///threads/{st}");
 
   let body = "The package's real body.\n\nIt spans lines, which is why it comes from a file.\n";
@@ -440,7 +439,7 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   );
   ok(root, &["wp", "start", wp.as_str()]);
   let wps = ok(root, &["wp", "list", st.as_str()]);
-  let column = format!("{} ", crate::common::package_of(&wp));
+  let column = format!("{} ", crate::common::package_of(&wp).shown());
   assert!(
     wps.lines().any(|l| l.starts_with(column.as_str())),
     "the WP column is v2's bare sequence number: {wps}"
@@ -1144,7 +1143,7 @@ fn wp_list_shares_the_table_and_v2s_empty_case() {
   assert_eq!(empty.trim(), format!("no work packages for {st}"));
 
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
-  let pkg = crate::common::package_of(&wp);
+  let pkg = crate::common::package_of(&wp).shown();
   let listed = ok(root, &["wp", "list", st.as_str()]);
   let header = listed.lines().next().unwrap_or_default();
   assert!(
@@ -1203,7 +1202,7 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
-  let pkg = crate::common::package_of(&wp);
+  let pkg = crate::common::package_of(&wp).stored();
 
   let canon_path = root.join(format!("intent/.canon/st/{st}.json"));
   let view_path = root.join(format!("intent/st/{st}/WP/{pkg}/info.md"));
@@ -2129,14 +2128,14 @@ fn enter_on_an_outstanding_row_opens_what_it_names_and_backspace_returns() {
     kind: kind.into(),
     id: id.into(),
   };
-  // The name the thread's own `wps` list gives the package is its bare
-  // number, never the zero-padded one its address carries: the child view
-  // finds a package by that name.
+  // The thread's own `wps` list names a package by its stored id, the one its
+  // address carries, and the child view finds the package by that name
+  // (ST0095 WP-04; until then the list named it by its bare number).
   let package = View::Child {
     kind: "thread".into(),
     id: minted.idle.clone(),
     field: "wps".into(),
-    item: crate::common::package_seq(&minted.busy).to_string(),
+    item: crate::common::package_of(&minted.busy).stored(),
   };
   for (name, opens) in [
     (minted.open.as_str(), item("thread", minted.open.as_str())),

@@ -353,9 +353,9 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   let out = run(dir.path(), &["issues", "add", "A new thing"]);
   let printed = stdout(&out);
   let issue = crate::common::created(&printed);
-  let number = intentsvcs::model::normalise_issue_id(&issue).expect("a minted issue id reads back");
+  let number = intentsvcs::id::IssueId::parse(&issue).expect("a minted issue id reads back");
   assert!(
-    number > 21,
+    number > intentsvcs::id::IssueId::from_ordinal(21).expect("an issue id"),
     "an issue is numbered past the highest the project holds (0021), not by count: {issue}"
   );
   // The result, without the `wrote:` lines that follow it (issue 0624), which

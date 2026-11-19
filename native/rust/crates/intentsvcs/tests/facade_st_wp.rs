@@ -7,7 +7,7 @@
 //! part-way through a batch that has already written other files. A synthetic
 //! seam the production code knows about would prove the seam works.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, wp};
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{FacadeError, ListEdit};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus, WpStatus};
@@ -22,8 +22,8 @@ fn st_new_creates_canon_and_every_view() {
   assert_eq!(id, "ST0001", "the first thread in an empty project");
 
   assert!(fx.canon_path(&id).is_file());
-  assert!(fx.path(&format!("intent/st/{id}/info.md")).is_file());
-  assert!(fx.path(&format!("intent/st/{id}/acceptance.md")).is_file());
+  assert!(fx.project().info_view(&id).is_file());
+  assert!(fx.project().acceptance_view(&id).is_file());
   assert!(fx.path("intent/st/steel_threads.md").is_file());
   assert!(fx.path("intent/todo.md").is_file());
 
@@ -90,8 +90,8 @@ fn work_packages_number_from_one_and_move_through_their_states() {
 
   let first = facade.wp_new(&id, "first", TShirt::M).unwrap();
   let second = facade.wp_new(&id, "second", TShirt::L).unwrap();
-  assert_eq!(first, 1);
-  assert_eq!(second, 2);
+  assert_eq!(first, wp(1));
+  assert_eq!(second, wp(2));
 
   facade.wp_start(&id, second).expect("start");
   let wps = facade.wp_list(&id).expect("list");
@@ -179,7 +179,7 @@ fn a_gate_pass_lets_the_thread_close() {
   );
   // The fixture leaves WP 3 at `wip`, and a thread does not close over an open
   // package (issue 0324), so it is settled through its own verb first.
-  facade.wp_done("ST0056", 3).expect("WP 3 settles");
+  facade.wp_done("ST0056", wp(3)).expect("WP 3 settles");
   facade.st_done("ST0056").expect("done");
   assert_eq!(
     facade.st_show("ST0056").unwrap().status,
@@ -285,7 +285,7 @@ fn a_failed_creation_leaves_no_directory_behind() {
   let (id, notes) = result.expect("the write landed, so the verb reports it rather than refusing");
   crate::common::landed_note(&notes);
   assert!(
-    !fx.path(&format!("intent/st/{id}")).exists(),
+    !fx.project().thread_dir(&id).exists(),
     "no directory survives the write the batch unwound"
   );
   let strays: Vec<String> = walk(fx.root())
@@ -374,8 +374,8 @@ fn a_thread_carrying_attachments_survives_being_mutated_twice() {
   fx.write_thread(&thread);
 
   let mut f = fx.facade();
-  f.wp_start("ST0056", 3).expect("first mutation");
-  f.wp_done("ST0056", 3)
+  f.wp_start("ST0056", wp(3)).expect("first mutation");
+  f.wp_done("ST0056", wp(3))
     .expect("second mutation on the same thread");
 
   let (threads, _) = f.store().load_canon().expect("read back");

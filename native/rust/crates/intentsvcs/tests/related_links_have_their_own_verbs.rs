@@ -11,7 +11,7 @@
 //! refusing is indistinguishable from one that did not by every observation but
 //! that one.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, tid};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::Related;
 use serde_json::json;
@@ -38,7 +38,7 @@ fn estate() -> (Fixture, Facade) {
   fx.write_thread(&unlinked("ST0002"));
   let mut dangling = unlinked("ST0003");
   dangling.related = vec![Related {
-    id: "ST0338".to_string(),
+    id: tid("ST0338"),
     note: Some("adopted as ST0002".to_string()),
   }];
   fx.write_thread(&dangling);
@@ -67,7 +67,7 @@ fn relate_writes_the_link_to_the_store_canon_and_the_view_under_one_event() {
   assert_eq!(
     f.st_show("ST0001").expect("ST0001").related,
     vec![Related {
-      id: "ST0002".to_string(),
+      id: tid("ST0002"),
       note: Some("builds on its design".to_string()),
     }]
   );
@@ -117,7 +117,7 @@ fn a_link_is_a_value_so_the_same_note_writes_nothing_and_another_replaces_it() {
   assert_eq!(
     f.st_show("ST0001").expect("ST0001").related,
     vec![Related {
-      id: "ST0002".to_string(),
+      id: tid("ST0002"),
       note: None,
     }],
     "one link, its note replaced each time and cleared by the last"
@@ -149,7 +149,7 @@ fn unrelate_drops_a_link_to_a_thread_the_project_no_longer_has() {
   assert_eq!(
     fx.facade().st_show("ST0003").expect("ST0003").related,
     vec![Related {
-      id: "ST0002".to_string(),
+      id: tid("ST0002"),
       note: Some("adopted from ST0338".to_string()),
     }]
   );

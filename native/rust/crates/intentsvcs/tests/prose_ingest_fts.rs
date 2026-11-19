@@ -119,7 +119,7 @@ fn a_body_is_retrievable_by_full_text_query() {
   assert_eq!(hits[0].file, "intent/.canon/issues/0056.json");
   assert_eq!(hits[0].heading.as_deref(), Some("Views"));
   assert_eq!(hits[0].owner_type, "issue");
-  assert_eq!(hits[0].owner_id, "56");
+  assert_eq!(hits[0].owner_id, crate::common::issue(56).stored());
 
   // Stemming is on (porter), so the query need not match the surface form.
   assert_eq!(
@@ -200,7 +200,7 @@ fn an_issue_body_is_indexed_against_its_issue() {
   let hits = store.search("enforcement").expect("search");
   assert_eq!(hits.len(), 1);
   assert_eq!(hits[0].owner_type, "issue");
-  assert_eq!(hits[0].owner_id, "21");
+  assert_eq!(hits[0].owner_id, crate::common::issue(21).stored());
   assert_eq!(
     hits[0].file, "intent/.canon/issues/0021.json",
     "the hit addresses the canon that holds the prose, not a markdown file \

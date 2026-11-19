@@ -11,6 +11,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use intentsvcs::id::{IssueId, ThreadId, WpId};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
   Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
@@ -22,6 +23,26 @@ use intentsvcs::views::RenderContext;
 /// build: a view that changed bytes because the crate version bumped would
 /// make every determinism test a version tripwire.
 pub const VERSION: &str = "3.0.0-test";
+
+/// A thread id by its stored form: `tid("ST0001")`.
+///
+/// **A TEST NAMES AN ID A FIXTURE SEEDED, OR ONE IT MEANS TO BE ABSENT; AN ID A
+/// VERB MINTED IS BOUND FROM THE VERB AND NEVER PREDICTED** (ST0095). These
+/// three construct an id through `intentsvcs::id`, which alone formats or
+/// parses one, so no test spells an id by hand.
+pub fn tid(stored: &str) -> ThreadId {
+  ThreadId::parse(stored).expect("a stored thread id")
+}
+
+/// A work package id under its thread, by its ordinal: `wp(3)`.
+pub fn wp(ordinal: u32) -> WpId {
+  WpId::from_ordinal(ordinal).expect("a work package ordinal that fits its width")
+}
+
+/// An issue id by its ordinal: `issue(21)`.
+pub fn issue(ordinal: u32) -> IssueId {
+  IssueId::from_ordinal(ordinal).expect("an issue ordinal that fits its width")
+}
 
 pub fn ctx() -> RenderContext<'static> {
   RenderContext {
@@ -179,10 +200,11 @@ impl Fixture {
       std::collections::BTreeMap::new();
     for test in &thread.tests {
       if let Some(file) = test.file.as_deref() {
-        cited
-          .entry(file)
-          .or_default()
-          .push(format!("// {} {}: a cited test file", thread.id, test.id));
+        cited.entry(file).or_default().push(format!(
+          "// {} {}: a cited test file",
+          thread.id.stored(),
+          test.id
+        ));
       }
     }
     for (file, lines) in cited {
@@ -229,7 +251,7 @@ impl Fixture {
     format!("intent/{}", intentsvcs::project::canon_thread_rel(id))
   }
 
-  pub fn issue_canon_rel(&self, number: u32) -> String {
+  pub fn issue_canon_rel(&self, number: IssueId) -> String {
     format!("intent/{}", intentsvcs::project::canon_issue_rel(number))
   }
 
@@ -388,7 +410,7 @@ pub fn sample_thread(id: &str) -> Thread {
     body: String::new(),
       preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: id.to_string(),
+    id: tid(id),
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -419,17 +441,17 @@ pub fn sample_thread(id: &str) -> Thread {
       .to_string(),
     related: vec![
       Related {
-        id: "ST0043".to_string(),
+        id: tid("ST0043"),
         note: Some("the v2 convergent orchestrator".to_string()),
       },
       Related {
-        id: "ST0044".to_string(),
+        id: tid("ST0044"),
         note: None,
       },
     ],
     wps: vec![
       WorkPackage {
-        seq: 2,
+        seq: wp(2),
         title: "Workspace and reified model".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -442,7 +464,7 @@ pub fn sample_thread(id: &str) -> Thread {
       preamble: String::new(),
       },
       WorkPackage {
-        seq: 3,
+        seq: wp(3),
         title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -539,7 +561,7 @@ pub fn sample_thread(id: &str) -> Thread {
 pub fn sample_issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),
-    number,
+    number: issue(number),
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

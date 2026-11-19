@@ -38,7 +38,12 @@ impl Drop for Fixture {
 
 /// A project carrying one of each resource kind: a thread, a work package under
 /// it, and an issue.
-fn project() -> (Fixture, String, u32, u32) {
+fn project() -> (
+  Fixture,
+  String,
+  intentsvcs::id::WpId,
+  intentsvcs::id::IssueId,
+) {
   let root = short_dir("mcp-resources");
   intentsvcs::init::init(&root, "Resources", "test", env!("CARGO_PKG_VERSION"))
     .expect("the shipped initialiser creates a project");
@@ -140,8 +145,8 @@ fn resources_list_names_each_entity_and_nothing_without_a_cli_read() {
   // (`address_of` / `address::parse`), not spelled here or in `mcp.rs`.
   for expected in [
     format!("intent:///threads/{st}"),
-    format!("intent:///threads/{st}/wp/{seq}"),
-    format!("intent:///issues/{}", intentsvcs::model::issue_id(number)),
+    format!("intent:///threads/{st}/wp/{}", seq.stored()),
+    format!("intent:///issues/{}", number.stored()),
   ] {
     assert!(
       uris.contains(&expected),
@@ -173,16 +178,16 @@ fn every_listed_resource_reads_as_exactly_its_cli_show() {
       vec!["st".into(), "show".into(), st.clone()],
     ),
     (
-      format!("intent:///threads/{st}/wp/{seq}"),
-      vec!["wp".into(), "show".into(), format!("{st}/{seq}")],
+      format!("intent:///threads/{st}/wp/{}", seq.stored()),
+      vec![
+        "wp".into(),
+        "show".into(),
+        intentsvcs::id::wp_address(&st, seq),
+      ],
     ),
     (
-      format!("intent:///issues/{}", intentsvcs::model::issue_id(number)),
-      vec![
-        "issues".into(),
-        "show".into(),
-        intentsvcs::model::issue_id(number),
-      ],
+      format!("intent:///issues/{}", number.stored()),
+      vec!["issues".into(), "show".into(), number.stored()],
     ),
   ];
 

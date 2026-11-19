@@ -15,7 +15,7 @@
 //! running `intent doctor`. A doctor that only works on healthy projects is
 //! not a doctor.
 
-use crate::common::{Fixture, VERSION, ctx};
+use crate::common::{Fixture, VERSION, ctx, tid, wp};
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
@@ -31,7 +31,7 @@ fn clean_thread(id: &str) -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: id.to_string(),
+    id: tid(id),
     title: "A clean thread".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -44,7 +44,7 @@ fn clean_thread(id: &str) -> Thread {
     context: String::new(),
     related: vec![],
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,
@@ -403,7 +403,7 @@ fn a_related_thread_that_does_not_exist_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
   thread.related = vec![intentsvcs::model::Related {
-    id: "ST9999".to_string(),
+    id: tid("ST9999"),
     note: None,
   }];
   seed(&fx, &thread);
@@ -792,7 +792,7 @@ fn every_fault_is_reported_in_one_pass() {
   thread.status = ThreadStatus::Completed;
   thread.tests[0].covers = vec!["AC-99.9".to_string()];
   thread.related = vec![intentsvcs::model::Related {
-    id: "ST9999".to_string(),
+    id: tid("ST9999"),
     note: None,
   }];
   // A descope pointing nowhere, rather than the kind/state mismatch this used
@@ -1177,7 +1177,10 @@ fn a_done_work_package_over_a_blocked_gate_is_found() {
     details(&report.findings)
   );
   assert!(
-    hit[0].detail.contains("ST0001/WP-01") && hit[0].detail.contains("BLOCKED"),
+    hit[0].detail.contains(&intentsvcs::id::wp_address_shown(
+      &crate::common::tid("ST0001"),
+      crate::common::wp(1)
+    )) && hit[0].detail.contains("BLOCKED"),
     "the finding must NAME the unit and the direction -- an operator cannot act on a count: {}",
     hit[0].detail
   );
@@ -1256,7 +1259,7 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
   let fx = Fixture::new();
   let mut vacuous = clean_thread("ST0001");
   vacuous.wps.push(WorkPackage {
-    seq: 9,
+    seq: wp(9),
     title: "A package with no criteria of its own".to_string(),
     scope: Some(TShirt::S),
     scope_legacy: None,

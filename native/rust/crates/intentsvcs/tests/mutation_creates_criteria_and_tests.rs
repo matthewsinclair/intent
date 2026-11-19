@@ -209,7 +209,7 @@ fn ac_new_reaches_what_a_canon_hand_edit_reaches() {
   thread.criteria.push(minted.clone());
   thread
     .criteria
-    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
+    .sort_by(|a, b| intentsvcs::id::id_order(&a.id, &b.id));
   by_hand.write_thread(&thread);
 
   // Route 2: the addressed surface.
@@ -368,7 +368,7 @@ fn at_new_reaches_what_a_canon_hand_edit_reaches() {
   thread.tests.push(minted.clone());
   thread
     .tests
-    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
+    .sort_by(|a, b| intentsvcs::id::id_order(&a.id, &b.id));
   by_hand.write_thread(&thread);
 
   let by_surface = Fixture::new();
@@ -550,7 +550,7 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
   });
   thread
     .tests
-    .sort_by(|a, b| intentsvcs::model::id_order(&a.id, &b.id));
+    .sort_by(|a, b| intentsvcs::id::id_order(&a.id, &b.id));
   fx.write_thread(&thread);
   let mut facade = fx.facade();
 
@@ -750,7 +750,7 @@ fn put_keeps_the_criteria_in_natural_order() {
 #[test]
 fn ids_order_naturally() {
   let mut got = vec!["AT-01.10", "AC-10.1", "AT-01.2", "AC-1.1", "AC-2.1"];
-  got.sort_by(|a, b| intentsvcs::model::id_order(a, b));
+  got.sort_by(|a, b| intentsvcs::id::id_order(a, b));
   assert_eq!(
     got,
     vec!["AC-1.1", "AC-2.1", "AC-10.1", "AT-01.2", "AT-01.10"]

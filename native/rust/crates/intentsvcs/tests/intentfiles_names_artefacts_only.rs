@@ -11,7 +11,7 @@
 //! # This row PINS a mechanism it did not build
 //!
 //! The grammar already refuses paths, and it refuses them **because no path
-//! satisfies [`model::is_thread_id`] or [`model::is_issue_id`]** -- not because
+//! satisfies [`ThreadId::parse`] or [`IssueId::parse`]** -- not because
 //! anything looks for a `/`. There is no path check to test. So the property
 //! under test is not "paths are rejected"; it is **the accepted set IS EXACTLY
 //! the id set**, which is what makes a file-valued line unrepresentable rather
@@ -30,8 +30,8 @@
 //! and that is taken from the ACTUAL FILES ON DISK rather than from nine
 //! invented ones.
 
+use intentsvcs::id::{IssueId, ThreadId};
 use intentsvcs::intentfiles::{Sigil, parse};
-use intentsvcs::model;
 use intentsvcs::project::Project;
 use testkit::repo_root;
 
@@ -42,7 +42,7 @@ fn accepted(line: &str) -> bool {
 /// **The mechanism, stated as an equivalence rather than as a list.**
 ///
 /// For a `STEELTHREAD:` line the manifest accepts exactly what
-/// `is_thread_id` accepts, and for `ISSUE:` exactly what `is_issue_id`
+/// `ThreadId::parse` accepts, and for `ISSUE:` exactly what `IssueId::parse`
 /// accepts. Any implementation that diverges -- a path blacklist, a `/` check,
 /// a length guard spelled a second time -- breaks this on some input, because
 /// the two sides are then two declarations of one rule.
@@ -83,8 +83,8 @@ fn the_accepted_set_is_exactly_the_id_set() {
   for c in candidates {
     assert_eq!(
       accepted(&format!("STEELTHREAD:{c}")),
-      model::is_thread_id(c),
-      "STEELTHREAD:{c} -- the manifest and `is_thread_id` must agree exactly;\n       \
+      ThreadId::parse(c).is_ok(),
+      "STEELTHREAD:{c} -- the manifest and `ThreadId::parse` must agree exactly;\n       \
        a divergence here means the grammar has grown a second id rule"
     );
     // **`ISSUE:` IS ACCEPTED AGAIN, AND ONLY FOR A WELL-FORMED ISSUE ID** --
@@ -96,12 +96,12 @@ fn the_accepted_set_is_exactly_the_id_set() {
     //
     // This assertion was `!accepted(...)` for every id, valid ones included.
     // It is INVERTED rather than dropped: the interesting case is still that
-    // the manifest and `is_issue_id` agree exactly, so a divergence means the
+    // the manifest and `IssueId::parse` agree exactly, so a divergence means the
     // grammar has grown a second id rule.
     assert_eq!(
       accepted(&format!("ISSUE:{c}")),
-      model::is_issue_id(c),
-      "ISSUE:{c} -- the manifest and `is_issue_id` must agree exactly;\n       \
+      IssueId::parse(c).is_ok(),
+      "ISSUE:{c} -- the manifest and `IssueId::parse` must agree exactly;\n       \
        a divergence here means the grammar has grown a second id rule"
     );
   }
@@ -112,7 +112,7 @@ fn the_accepted_set_is_exactly_the_id_set() {
 ///
 /// Stated separately because the equivalence above cannot hold it, and the
 /// first version of this file tried to make it. `STEELTHREAD:ST0056 ` is
-/// accepted while `is_thread_id("ST0056 ")` is false, and that looked like the
+/// accepted while `ThreadId::parse("ST0056 ")` refuses it, and that looked like the
 /// manifest having a second id rule -- it is not. The line is trimmed before
 /// it is split, so the id predicate never sees the space. Two rules operating
 /// at two levels, which is fine; two rules operating at ONE level is the
@@ -162,7 +162,7 @@ fn no_file_in_the_estate_can_be_named_as_an_artefact() {
     let Some(id) = path.file_name().and_then(|n| n.to_str()) else {
       continue;
     };
-    if !model::is_thread_id(id) {
+    if ThreadId::parse(id).is_err() {
       continue;
     }
     for rel in project.thread_files(id) {

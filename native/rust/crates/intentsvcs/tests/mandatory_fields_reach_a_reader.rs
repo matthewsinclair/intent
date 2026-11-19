@@ -112,6 +112,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // thread's date is restated through `intent set` rather than through a
     // close. No field was left out of the call.
     | FacadeError::CompletionDateNotRestated { .. }
+    // ST0095: the mint ran past the last id its form holds. The call left
+    // nothing out, and no fuller call reaches an id the form does not have.
+    | FacadeError::IdsExhausted { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so
@@ -589,7 +592,7 @@ fn the_estate_status_reasons_reach_a_read_face() {
       "{}'s status_reason does not survive to anything a person reads.\n       \
        The reason is:\n{reason}\n       \
        The view rendered was:\n{rendered}",
-      thread.id
+      thread.id.shown()
     );
   }
 }

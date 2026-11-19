@@ -36,7 +36,6 @@
 //! meaning each beats four that drift -- and an entity with two renderings
 //! gains a distinct ADDRESS rather than a `?view=`.
 
-use crate::model;
 use crate::remedy::Remedy;
 use thiserror::Error;
 
@@ -174,6 +173,17 @@ pub enum Entity {
 }
 
 impl Entity {
+  /// This entity's address in THIS project, `intent:///...`, rendered by
+  /// [`Address::to_url`]: the one way a caller holding an entity spells its URL.
+  pub fn local_url(self) -> String {
+    Address {
+      authority: None,
+      entity: self,
+      format: None,
+    }
+    .to_url()
+  }
+
   /// The form's name, for a caller that has to REPORT over the form set.
   ///
   /// **Derived by a match rather than kept as a list, so a tenth form does not
@@ -365,7 +375,11 @@ pub enum AddressError {
   /// `NotAddressable` says the argument named nothing; this says it named two
   /// things, and can hand back the exact spellings that pick one.
   #[error("`{input}` names both a steel thread and an issue")]
-  AmbiguousId { input: String, seq: u32 },
+  AmbiguousId {
+    input: String,
+    thread: crate::id::ThreadId,
+    issue: crate::id::IssueId,
+  },
 }
 
 impl Remedy for AddressError {
@@ -384,8 +398,8 @@ impl Remedy for AddressError {
         format!("name an entity, eg `{SCHEME}/threads/ST0000`")
       }
       AddressError::MalformedId { kind, .. } => match *kind {
-        "thread" => "a thread id is ST followed by four digits, eg ST0000".into(),
-        "issue" => "an issue id is four digits, eg 0042".into(),
+        "thread" => crate::id::THREAD_ID_FORM.into(),
+        "issue" => crate::id::ISSUE_ID_FORM.into(),
         _ => format!("check the {kind} id against the form the estate uses"),
       },
       AddressError::TrailingSegments { .. } => {
@@ -404,8 +418,12 @@ impl Remedy for AddressError {
       AddressError::ViewAddressed { .. } => {
         "address the ENTITY and select a representation: `/threads/ST0000?format=md`".into()
       }
-      AddressError::AmbiguousId { seq, .. } => {
-        format!("`s{seq}` names the steel thread, `i{seq}` the issue")
+      AddressError::AmbiguousId { thread, issue, .. } => {
+        format!(
+          "`{}` names the steel thread, `{}` the issue",
+          thread.tagged(),
+          issue.tagged()
+        )
       }
       // **ONLY FORMS EVERY DOOR ACCEPTS** (0153). This text is shared by
       // `edit`, `set` and `browse`, and it named an issue id -- which `edit`
@@ -592,7 +610,8 @@ fn parse_format(query: Option<&str>) -> Result<Option<Format>, AddressError> {
 }
 
 fn thread(id: &str) -> Result<String, AddressError> {
-  model::is_thread_id(id)
+  crate::id::ThreadId::parse(id)
+    .is_ok()
     .then(|| id.to_string())
     .ok_or_else(|| AddressError::MalformedId {
       kind: "thread",
@@ -642,7 +661,8 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
       thread: thread(id)?,
       path: rest.join("/"),
     }),
-    ["issues", id] => model::is_issue_id(id)
+    ["issues", id] => crate::id::IssueId::parse(id)
+      .is_ok()
       .then(|| Entity::Issue { id: id.to_string() })
       .ok_or_else(|| AddressError::MalformedId {
         kind: "issue",
@@ -782,16 +802,17 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
     Entity::Threads => Some(project.steel_threads_view()),
     Entity::Thread { id } => Some(project.info_view(id)),
     Entity::AcCollection { thread } => Some(project.acceptance_view(thread)),
-    Entity::Wp { thread, wp } => wp
-      .parse::<u32>()
+    Entity::Wp { thread, wp } => crate::id::normalise_wp_id(wp)
       .ok()
       .map(|seq| project.wp_info_view(thread, seq)),
-    // **`id` IS PARSED RATHER THAN INTERPOLATED**, for the reason
+    // **`id` IS READ RATHER THAN INTERPOLATED**, for the reason
     // `canon_issue_rel` records: two ends that each format the same number
     // independently once shipped `issues/46.json` against readers opening
     // `issues/0046.json`. Going through `Project::issue_view` keeps the
-    // zero-padding in the one place that owns it.
-    Entity::Issue { id } => id.parse::<u32>().ok().map(|n| project.issue_view(n)),
+    // stored form in the one place that owns it.
+    Entity::Issue { id } => crate::id::IssueId::parse(id)
+      .ok()
+      .map(|id| project.issue_view(id)),
 
     // **EVERY REMAINING VARIANT IS NAMED, AND THE WILDCARD IS GONE ON PURPOSE.**
     //
@@ -880,8 +901,8 @@ pub fn serve_md(
 ///
 /// # Why the promotion is safe, and it is not because ids "look different"
 ///
-/// **It DELEGATES rather than guesses.** [`model::is_thread_id`] and
-/// [`model::is_issue_id`] own the question of what an id is; `Sigil::accepts`
+/// **It DELEGATES rather than guesses.** [`crate::id::ThreadId::parse`] and
+/// [`crate::id::IssueId::parse`] own the question of what an id is; `Sigil::accepts`
 /// already calls exactly these two, so this adds no second declaration of
 /// identity. An inference from SHAPE that reads a spelling is the class the
 /// dispatch table's `intrinsic` discussion exists to kill; an inference that
@@ -890,7 +911,7 @@ pub fn serve_md(
 /// **IT IS NO LONGER TOTAL OVER WELL-FORMED IDS, AND SAYING SO IS THE POINT.**
 /// This paragraph used to read *the promotion is total and unambiguous over
 /// well-formed ids, and there is no precedence rule to get wrong* -- which was
-/// true only because [`model::normalise_id`] carried a width arm that assigned
+/// true only because [`crate::id::normalise_id`] carried a width arm that assigned
 /// every untagged four-digit token to `Issue`. `THREAD_DIGITS` and
 /// `ISSUE_DIGITS` are both 4, so that arm was a precedence rule: the one this
 /// paragraph claimed did not exist, applied silently, on the majority spelling.
@@ -911,14 +932,13 @@ pub fn promote(input: &str) -> Result<Address, AddressError> {
   if input.starts_with(SCHEME) {
     return parse(input);
   }
-  match model::normalise_id(input) {
-    Ok((model::IdKind::Thread, seq)) => {
-      parse(&format!("{SCHEME}/threads/{}", model::thread_id(seq)))
-    }
-    Ok((model::IdKind::Issue, seq)) => parse(&format!("{SCHEME}/issues/{}", model::issue_id(seq))),
-    Err(model::IdError::Ambiguous { seq }) => Err(AddressError::AmbiguousId {
+  match crate::id::normalise_id(input) {
+    Ok(crate::id::Named::Thread(id)) => parse(&format!("{SCHEME}/threads/{}", id.stored())),
+    Ok(crate::id::Named::Issue(id)) => parse(&format!("{SCHEME}/issues/{}", id.stored())),
+    Err(crate::id::IdError::Ambiguous { thread, issue }) => Err(AddressError::AmbiguousId {
       input: input.to_string(),
-      seq,
+      thread,
+      issue,
     }),
     Err(_) => Err(AddressError::NotAddressable {
       input: input.to_string(),

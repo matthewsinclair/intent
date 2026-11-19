@@ -19,16 +19,18 @@ use crate::model::{AcKind, AcState, AtKind, AtStatus, Criterion, Thread, ThreadS
 pub enum Scope {
   /// The whole thread.
   Thread,
-  /// One work package, by seq. `WP-03` is `WorkPackage(3)`.
-  WorkPackage(u32),
+  /// One work package, by its id under the thread. `WP-03` is the package
+  /// whose id is `03`.
+  WorkPackage(crate::id::WpId),
 }
 
 impl Scope {
-  /// The AC group this scope selects: `00` for ST-level, else the WP seq.
-  fn group(&self) -> Option<String> {
+  /// The group this scope selects: none for the whole thread, else the package,
+  /// which a label names however its group is spelled ([`crate::id::group_of`]).
+  fn group(&self) -> Option<crate::id::Group> {
     match self {
       Self::Thread => None,
-      Self::WorkPackage(seq) => Some(format!("{seq:02}")),
+      Self::WorkPackage(seq) => Some(crate::id::Group::Package(*seq)),
     }
   }
 }
@@ -54,14 +56,6 @@ pub enum Resolved {
   /// unblocking is what a fiat close is FOR -- and is reported separately from
   /// `Satisfied` everywhere it is counted.
   Fiat,
-}
-
-/// `AC-03.1` -> `03`.
-pub fn group_of(id: &str) -> String {
-  id.split_once('-')
-    .and_then(|(_, rest)| rest.split_once('.'))
-    .map(|(group, _)| group.to_string())
-    .unwrap_or_else(|| id.to_string())
 }
 
 /// A test-backed AC is satisfied exactly when it has at least one covering AT
@@ -260,26 +254,8 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
 /// asymmetry is the whole reason this tightening costs nothing: the unqualified
 /// mention is the ordinary form and stays green.
 fn names_another_thread(line: &str, thread: &str) -> bool {
-  let named = threads_named(line);
-  !named.is_empty() && !named.contains(&thread)
-}
-
-/// Every `STnnnn` a line names, in order. The one scanner behind
-/// [`names_another_thread`] and behind the refusal that says WHICH thread a
-/// borrowed id was found under (issue `0299`).
-fn threads_named(line: &str) -> Vec<&str> {
-  let bytes = line.as_bytes();
-  let mut named = Vec::new();
-  for (i, w) in bytes.windows(2).enumerate() {
-    if w != b"ST" {
-      continue;
-    }
-    let digits = &line[i + 2..];
-    if digits.len() >= 4 && digits.as_bytes()[..4].iter().all(u8::is_ascii_digit) {
-      named.push(&line[i..i + 6]);
-    }
-  }
-  named
+  let named = crate::id::thread_ids_in(line);
+  !named.is_empty() && !named.iter().any(|t| *t == thread)
 }
 
 /// What v2's L3 found in a cited file.
@@ -348,16 +324,6 @@ pub fn citation(file: &str) -> Citation<'_> {
   }
 }
 
-/// Whether `line` carries `at_id` as a whole token (issue `0670`): an
-/// occurrence counts only where the character after it is not a digit, so
-/// `AT-3.5` is not found inside `AT-3.50`. The census at `refs/bank/vc/0670/`
-/// measured that this reddens no row.
-fn carries_token(line: &str, at_id: &str) -> bool {
-  line
-    .match_indices(at_id)
-    .any(|(i, _)| !line[i + at_id.len()..].starts_with(|c: char| c.is_ascii_digit()))
-}
-
 /// L3's answer for one file's text: whether it carries `at_id` for `thread`'s
 /// row citing `cited`, given the threads whose green or red row of the same id
 /// cites the same file. Pure: the readers hand it the text and the rivals.
@@ -385,9 +351,9 @@ fn judge_text(
   let others_on = |lines: &[&str]| -> Vec<String> {
     let mut others: Vec<String> = lines
       .iter()
-      .flat_map(|line| threads_named(line))
+      .flat_map(|line| crate::id::thread_ids_in(line))
       .filter(|named| *named != thread)
-      .map(str::to_string)
+      .map(|named| named.stored())
       .collect();
     others.sort();
     others.dedup();
@@ -396,7 +362,7 @@ fn judge_text(
   if let Some(n) = cited.line {
     let asked = text.lines().nth(n - 1);
     return match asked {
-      Some(line) if carries_token(line, at_id) => {
+      Some(line) if crate::id::carries_token(line, at_id) => {
         if names_another_thread(line, thread) {
           Carries::OnlyUnder(others_on(&[line]))
         } else {
@@ -408,7 +374,7 @@ fn judge_text(
         carrying: text
           .lines()
           .enumerate()
-          .filter(|(_, l)| carries_token(l, at_id))
+          .filter(|(_, l)| crate::id::carries_token(l, at_id))
           .map(|(i, _)| i + 1)
           .collect(),
       },
@@ -416,18 +382,21 @@ fn judge_text(
   }
   let carrying: Vec<&str> = text
     .lines()
-    .filter(|line| carries_token(line, at_id))
+    .filter(|line| crate::id::carries_token(line, at_id))
     .collect();
   if carrying.is_empty() {
     return Carries::Absent;
   }
   if carrying
     .iter()
-    .any(|line| threads_named(line).contains(&thread))
+    .any(|line| crate::id::thread_ids_in(line).iter().any(|t| *t == thread))
   {
     return Carries::Yes;
   }
-  if carrying.iter().any(|line| threads_named(line).is_empty()) {
+  if carrying
+    .iter()
+    .any(|line| crate::id::thread_ids_in(line).is_empty())
+  {
     return if rivals.is_empty() {
       Carries::Yes
     } else {
@@ -524,7 +493,7 @@ impl<'a> ProjectRefs<'a> {
         t.tests.iter().filter_map(move |r| {
           let armed = r.kind == AtKind::Test && matches!(r.status, AtStatus::Green | AtStatus::Red);
           let file = r.file.as_deref().filter(|_| armed)?;
-          Some((t.id.clone(), r.id.clone(), citation(file).path.to_string()))
+          Some((t.id.stored(), r.id.clone(), citation(file).path.to_string()))
         })
       })
       .collect();
@@ -799,8 +768,9 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   {
     return Verdict::blocked(
       format!(
-        "WP-{seq:02} does not exist in {} (nothing to evaluate)",
-        thread.id
+        "{} does not exist in {} (nothing to evaluate)",
+        seq.heading(),
+        thread.id.shown()
       ),
       see_the_work_packages(&thread.id),
     );
@@ -825,7 +795,8 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   {
     return Verdict::Exempt {
       detail: Detail::Diagnosis(format!(
-        "WP-{seq:02} is cancelled: its scope was removed, so it has no live contract to verify"
+        "{} is cancelled: its scope was removed, so it has no live contract to verify",
+        seq.heading()
       )),
     };
   }
@@ -863,7 +834,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   // license. Three findings out of three rows and three out of a hundred and
   // fourteen are different situations, and the number was the only thing saying
   // which.
-  let report = contract_report(thread, wanted.as_deref(), refs);
+  let report = contract_report(thread, wanted, refs);
   if !report.findings.is_empty() {
     return Verdict::blocked(
       format!(
@@ -881,7 +852,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     .iter()
     .filter(|c| match &wanted {
       None => true,
-      Some(group) => &group_of(&c.id) == group,
+      Some(group) => crate::id::group_of(&c.id) == *group,
     })
     .collect();
 
@@ -892,7 +863,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
       fiat: 0,
       detail: Detail::Diagnosis(format!(
         "no ACs in scope; rolls up to the {} contract ({thread_total} AC(s))",
-        thread.id
+        thread.id.shown()
       )),
     };
   }
@@ -1002,7 +973,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
 /// v2 moved its own row count inside the filter.
 pub fn contract_report(
   thread: &Thread,
-  wanted: Option<&str>,
+  wanted: Option<crate::id::Group>,
   refs: &dyn References,
 ) -> ContractReport {
   // L3 is exempt from the gate on a closed thread: retrofitting id labels into
@@ -1012,7 +983,7 @@ pub fn contract_report(
   let completed = thread.status == ThreadStatus::Completed;
   let in_scope = |id: &str| match wanted {
     None => true,
-    Some(group) => group_of(id) == group,
+    Some(group) => crate::id::group_of(id) == group,
   };
   let mut out = Vec::new();
   let mut rows = 0;
@@ -1281,6 +1252,10 @@ mod tests {
   use super::*;
   use crate::model::{AcceptanceTest, AtKind, THREAD_SCHEMA, ThreadStatus, WorkPackage};
 
+  fn wp(n: u32) -> crate::id::WpId {
+    crate::id::WpId::from_ordinal(n).expect("a package id")
+  }
+
   fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     Thread {
       // A thread created here has no files beside it yet; the walk that finds
@@ -1289,7 +1264,7 @@ mod tests {
       body: String::new(),
       preamble: String::new(),
       schema: THREAD_SCHEMA.to_string(),
-      id: "ST0056".to_string(),
+      id: crate::id::ThreadId::parse("ST0056").expect("a thread id"),
       title: "t".to_string(),
       slug: None,
       status: ThreadStatus::Wip,
@@ -1303,7 +1278,7 @@ mod tests {
       related: Vec::new(),
       wps: vec![WorkPackage {
         preamble: String::new(),
-        seq: 3,
+        seq: crate::id::WpId::from_ordinal(3).expect("a package id"),
         title: "w".to_string(),
         scope: Some(crate::model::TShirt::L),
         scope_legacy: None,
@@ -1401,7 +1376,7 @@ mod tests {
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
     assert_eq!(
-      gate(&t, Scope::WorkPackage(3), &AllResolve).line("ST0056/03"),
+      gate(&t, Scope::WorkPackage(wp(3)), &AllResolve).line("ST0056/03"),
       "gate: ST0056/03 PASS -- 1/1 satisfied"
     );
   }
@@ -1432,7 +1407,7 @@ mod tests {
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
     assert_eq!(
-      gate(&t, Scope::WorkPackage(3), &AllResolve).line("ST0056/03"),
+      gate(&t, Scope::WorkPackage(wp(3)), &AllResolve).line("ST0056/03"),
       "gate: ST0056/03 PASS -- 1/1 satisfied, 1 descoped, 1 withdrawn"
     );
   }
@@ -1450,7 +1425,7 @@ mod tests {
       )],
       vec![],
     );
-    let verdict = gate(&t, Scope::WorkPackage(3), &AllResolve);
+    let verdict = gate(&t, Scope::WorkPackage(wp(3)), &AllResolve);
     assert!(!verdict.is_pass());
     assert!(
       verdict
@@ -1465,7 +1440,7 @@ mod tests {
       vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
-    let verdict = gate(&t, Scope::WorkPackage(99), &AllResolve);
+    let verdict = gate(&t, Scope::WorkPackage(wp(99)), &AllResolve);
     assert!(!verdict.is_pass(), "a typo must not inherit the rollup");
     assert!(verdict.line("ST0056/99").contains("does not exist"));
   }
@@ -1478,7 +1453,7 @@ mod tests {
     );
     t.wps.push(WorkPackage {
       preamble: String::new(),
-      seq: 7,
+      seq: crate::id::WpId::from_ordinal(7).expect("a package id"),
       title: "later".to_string(),
       scope: Some(crate::model::TShirt::S),
       scope_legacy: None,
@@ -1490,7 +1465,7 @@ mod tests {
       body: String::new(),
     });
     assert_eq!(
-      gate(&t, Scope::WorkPackage(7), &AllResolve).line("ST0056/07"),
+      gate(&t, Scope::WorkPackage(wp(7)), &AllResolve).line("ST0056/07"),
       "gate: ST0056/07 PASS -- no ACs in scope; rolls up to the ST0056 contract (1 AC(s))"
     );
   }
@@ -1590,7 +1565,7 @@ mod tests {
         "missing work package",
         gate(
           &thread(vec![computed("AC-01.1")], vec![]),
-          Scope::WorkPackage(99),
+          Scope::WorkPackage(wp(99)),
           &AllResolve,
         ),
       ),
@@ -1655,7 +1630,7 @@ mod tests {
   fn the_blocked_line_names_every_unsatisfied_ac() {
     let t = thread(vec![computed("AC-03.1"), computed("AC-03.2")], vec![]);
     assert_eq!(
-      gate(&t, Scope::WorkPackage(3), &AllResolve).line("ST0056/03"),
+      gate(&t, Scope::WorkPackage(wp(3)), &AllResolve).line("ST0056/03"),
       "gate: ST0056/03 BLOCKED -- 0/2 satisfied; unsatisfied: AC-03.1 AC-03.2"
     );
   }

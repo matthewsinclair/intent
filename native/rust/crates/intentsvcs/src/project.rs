@@ -746,7 +746,7 @@ pub struct Config {
   ///
   /// **`st_prefix` lands here, and that is the retirement working rather than
   /// a leak** (issue 0040, hv). The field is gone from the type -- the prefix
-  /// is fixed at `crate::model::THREAD_PREFIX` -- so a v2 project that
+  /// is fixed at `crate::id::THREAD_PREFIX` -- so a v2 project that
   /// declared it keeps the declaration in the file, byte for byte, instead of
   /// having it silently dropped on the first rewrite. v3 does not honour it,
   /// and [`crate::legacy`] says so out loud when the value is not the default.
@@ -1649,7 +1649,11 @@ pub fn attachment_name(thread: &str, path: &str) -> Result<(), BadName> {
     return Err(BadName::Collides { would_be: resolved });
   }
 
-  let url = format!("intent:///threads/{thread}/attachments/{path}");
+  let url = crate::address::Entity::Attachment {
+    thread: thread.to_string(),
+    path: path.to_string(),
+  }
+  .local_url();
   match crate::address::parse(&url) {
     Ok(address) => match &address.entity {
       crate::address::Entity::Attachment {
@@ -1686,8 +1690,8 @@ pub fn canon_project_rel() -> String {
   ".canon/project.json".to_string()
 }
 
-pub fn canon_issue_rel(number: u32) -> String {
-  format!(".canon/issues/{number:04}.json")
+pub fn canon_issue_rel(id: crate::id::IssueId) -> String {
+  format!(".canon/issues/{}.json", id.stored())
 }
 
 /// Whether this project's canon is in a form THIS binary can read.
@@ -2227,8 +2231,8 @@ impl Project {
   }
 
   /// The committed structured canon for one issue, `.canon/issues/<nnnn>.json`.
-  pub fn issue_json(&self, number: u32) -> PathBuf {
-    self.intent_dir().join(canon_issue_rel(number))
+  pub fn issue_json(&self, id: crate::id::IssueId) -> PathBuf {
+    self.intent_dir().join(canon_issue_rel(id))
   }
 
   /// The SQLite db (D21) -- gitignored, and the durable SSOT rather than a
@@ -2271,13 +2275,21 @@ impl Project {
     self.thread_dir(id).join("info.md")
   }
 
+  /// A work package's directory relative to its thread's, `WP/<NN>`: the one
+  /// spelling every package path is built from.
+  pub fn wp_rel(seq: crate::id::WpId) -> PathBuf {
+    PathBuf::from("WP").join(seq.stored())
+  }
+
+  /// `intent/st/<ID>/WP/<NN>/` -- a work package's directory, whether or not it
+  /// exists.
+  pub fn wp_dir(&self, id: &str, seq: crate::id::WpId) -> PathBuf {
+    self.thread_dir(id).join(Self::wp_rel(seq))
+  }
+
   /// A work package's generated cover, `st/<ID>/WP/<NN>/info.md`.
-  pub fn wp_info_view(&self, id: &str, seq: u32) -> PathBuf {
-    self
-      .thread_dir(id)
-      .join("WP")
-      .join(format!("{seq:02}"))
-      .join("info.md")
+  pub fn wp_info_view(&self, id: &str, seq: crate::id::WpId) -> PathBuf {
+    self.wp_dir(id, seq).join("info.md")
   }
 
   /// A thread's generated acceptance contract + coverage map.
@@ -2287,14 +2299,13 @@ impl Project {
 
   /// One issue's generated view, `issues/<nnnn>.md` (AC-01.1).
   ///
-  /// **Zero-padded through the same `{:04}` the canon path uses**, and for the
-  /// reason [`canon_issue_rel`] states one directory over: `issues/46.json`
-  /// once shipped where every reader opened `issues/0046.json`, because two
-  /// ends formatted the same number independently. These two spellings are
-  /// still independent `format!` calls and that is the remaining risk, so the
-  /// pair is pinned by a test rather than by this comment.
-  pub fn issue_view(&self, number: u32) -> PathBuf {
-    self.issues_view_dir().join(format!("{number:04}.md"))
+  /// **The same stored form the canon path uses** ([`canon_issue_rel`]):
+  /// `issues/46.json` once shipped where every reader opened
+  /// `issues/0046.json`, because two ends formatted the same number
+  /// independently. Both now ask [`crate::id::IssueId::stored`], and the pair
+  /// is still pinned by a test.
+  pub fn issue_view(&self, id: crate::id::IssueId) -> PathBuf {
+    self.issues_view_dir().join(format!("{}.md", id.stored()))
   }
 
   /// The generated views as formatter-ignore GLOBS, relative to the project
@@ -2319,8 +2330,8 @@ impl Project {
   /// **EACH IS DERIVED FROM THE METHOD THAT PRODUCES THE REAL PATH WHERE A
   /// WILDCARD CAN PASS THROUGH IT**, with `*` standing in for the id, so a view whose path moves
   /// takes its pattern with it and cannot drift silently. The work-package one
-  /// is assembled by hand because [`Self::wp_info_view`] formats its sequence
-  /// as `{seq:02}` and no wildcard can pass through that -- stated rather than
+  /// is assembled by hand because [`Self::wp_info_view`] takes a typed
+  /// [`crate::id::WpId`] and no wildcard can pass through that -- stated rather than
   /// hidden, because it is the one line here that a path change could leave
   /// behind.
   pub fn generated_view_patterns(&self) -> Vec<String> {
@@ -2332,8 +2343,8 @@ impl Project {
       rel(self.acceptance_view("*")),
       rel(self.thread_dir("*").join("WP").join("*").join("info.md")),
       // **Assembled by hand for the reason the work-package one is**:
-      // `issue_view` formats its number as `{:04}` and no wildcard survives
-      // that. Same caveat, same place, so the two sit together.
+      // `issue_view` takes a typed `IssueId` and no wildcard survives that.
+      // Same caveat, same place, so the two sit together.
       rel(self.issues_view_dir().join("*.md")),
       rel(self.wb_board_view("*")),
       rel(self.wb_inbox_view("*", "*")),
@@ -2641,23 +2652,26 @@ impl Project {
     ids
   }
 
-  /// Every issue number with committed canon, sorted.
-  pub fn issue_numbers(&self) -> Result<Vec<u32>, ProjectError> {
+  /// Every issue with committed canon, by id, sorted.
+  ///
+  /// A file whose name is not an issue id is passed over here, as it always
+  /// was; ST0095 WP-06 turns that into a refusal by name.
+  pub fn issue_numbers(&self) -> Result<Vec<crate::id::IssueId>, ProjectError> {
     let Ok(entries) = std::fs::read_dir(self.issues_dir()) else {
       return Ok(Vec::new());
     };
-    let mut numbers: Vec<u32> = entries
+    let mut ids: Vec<crate::id::IssueId> = entries
       .filter_map(Result::ok)
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
       .filter_map(|p| {
         p.file_stem()
           .and_then(|s| s.to_str())
-          .and_then(|s| s.parse().ok())
+          .and_then(|s| crate::id::IssueId::parse(s).ok())
       })
       .collect();
-    numbers.sort_unstable();
-    Ok(numbers)
+    ids.sort_unstable();
+    Ok(ids)
   }
 }
 
@@ -2998,7 +3012,7 @@ mod tests {
       dir.path().join("intent/.canon/st/ST0056.json")
     );
     assert_eq!(
-      project.issue_json(21),
+      project.issue_json(crate::id::IssueId::from_ordinal(21).expect("an issue id")),
       dir.path().join("intent/.canon/issues/0021.json")
     );
     // **The negative arm, beside the positive one (AC-01.6).** Canon moved and

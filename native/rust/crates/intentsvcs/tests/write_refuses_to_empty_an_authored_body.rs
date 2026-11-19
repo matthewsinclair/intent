@@ -26,6 +26,7 @@
 //! field being erased; asking about the size never can.**
 
 use crate::common::Fixture;
+use intentsvcs::id::IssueId;
 
 const BODY: &str =
   "# The issue\n\nProse an author wrote, which no verb here was asked to remove.\n";
@@ -36,7 +37,7 @@ const BODY: &str =
 /// canon by an edit -- there is no `issues add --body`, so on the estate this
 /// is the only route in -- and the running process holds a model that predates
 /// it. That gap is the condition; the verb is only what walks into it.
-fn issue_with_prose_only_on_disk(fx: &Fixture) -> (intentsvcs::facade::Facade, u32) {
+fn issue_with_prose_only_on_disk(fx: &Fixture) -> (intentsvcs::facade::Facade, IssueId) {
   let mut f = fx.facade();
   let number = f.issue_add("A thing", None, None, "").expect("issue added");
 
@@ -65,7 +66,7 @@ fn closing_an_issue_will_not_write_an_empty_body_over_an_authored_one() {
 
   let said = err.to_string();
   assert!(
-    said.contains(&intentsvcs::model::issue_id(number)),
+    said.contains(&number.shown()),
     "the refusal names the subject: {said}"
   );
   assert!(

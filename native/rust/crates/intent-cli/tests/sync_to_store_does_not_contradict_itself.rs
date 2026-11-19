@@ -169,12 +169,12 @@ fn the_confirmation_names_its_scope_and_counts_what_changed() {
   std::fs::write(&extract, text.replace("An issue", "An edited issue")).expect("write the issue");
   let (out, rc) = run(dir.path(), &["sync", "--to-store"]);
   assert_eq!(rc, 0, "sync --to-store refused: {out}");
-  // The warning names the issue by its number, without the id's leading
-  // zeros, so the expected line is built from the minted id as the library
-  // reads it back.
-  let number = intentsvcs::model::normalise_issue_id(&issue).expect("a minted issue id reads back");
+  // The warning names the issue by its shown id, as every message does
+  // (ST0095 WP-04; until then it dropped the leading zeros), so the expected
+  // line is built from the minted id as the id waist reads it back.
+  let number = intentsvcs::id::IssueId::parse(&issue).expect("a minted issue id reads back");
   assert!(
-    out.contains(&format!("issue {number}: differs on disk")),
+    out.contains(&format!("issue {}: differs on disk", number.shown())),
     "the fixture's one difference is the issue, or this arm tests nothing: {out}"
   );
   let ok = ok_line(&out);

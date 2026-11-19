@@ -105,7 +105,7 @@ fn body_of(scan: &legacy::Scan, seq: u32) -> String {
   scan.threads[0]
     .wps
     .iter()
-    .find(|w| w.seq == seq)
+    .find(|w| w.seq == crate::common::wp(seq))
     .unwrap_or_else(|| panic!("work package {seq} is missing from the scan"))
     .body
     .clone()

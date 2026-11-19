@@ -28,13 +28,15 @@
 //! asserting this file's own idea of the source. It is declared in
 //! `Facade::issue_edit` beside the code that holds it.
 
-use crate::common::Fixture;
+use crate::common::{Fixture, issue};
+use intentsvcs::id::IssueId;
 
 const ORIGINAL: &str = "the original premise, which measurement later disproved";
 
-/// The issue every arm edits, and the number the mint gave it, which each arm
-/// binds rather than predicts (ST0095 WP-01).
-fn with_an_issue(fx: &Fixture) -> u32 {
+/// Files the issue the arms edit and returns the number the mint gave it. An
+/// arm that edits it binds that number rather than predicting one (ST0095
+/// WP-01); the absent-issue arm names issue 99 instead and does not use it.
+fn with_an_issue(fx: &Fixture) -> IssueId {
   fx.facade()
     .issue_add("a filing with a wrong premise", None, None, ORIGINAL)
     .expect("the create door works")
@@ -129,7 +131,7 @@ fn an_absent_issue_is_refused_by_number() {
   let said = fx
     .facade()
     .issue_edit(
-      99,
+      issue(99),
       Some("prose for an issue that does not exist"),
       None,
       None,

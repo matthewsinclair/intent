@@ -38,7 +38,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, wp};
+use intentsvcs::id::IssueId;
 use intentsvcs::model::{AtStatus, TShirt};
 
 /// 2001-09-09, and obviously synthetic on sight. An absolute constant makes
@@ -1015,37 +1016,45 @@ fn table_path(label: &str) -> &str {
 
 type Case = (&'static str, fn(&Fixture), fn(&Fixture), bool);
 
-/// The thread a case's setup minted, which the setup titles `fresh`: read from
-/// the store by that title, because a test takes an id from the mint and never
-/// predicts the next one (ST0095 WP-01).
+/// The title a case's setup gives the thread it mints, and the one
+/// [`minted_fresh`] finds it by.
+const FRESH: &str = "fresh";
+
+/// The title a case's setup gives the issue it mints, and the one
+/// [`minted_defect`] finds it by.
+const DEFECT: &str = "a defect";
+
+/// The thread a case's setup minted, titled [`FRESH`]: read from the store by
+/// that title, because a test takes an id from the mint and never predicts the
+/// next one (ST0095 WP-01).
 fn minted_fresh(facade: &intentsvcs::facade::Facade) -> String {
   let ids: Vec<&str> = facade
     .st_list()
     .into_iter()
-    .filter(|t| t.title == "fresh")
+    .filter(|t| t.title == FRESH)
     .map(|t| t.id.as_str())
     .collect();
   assert_eq!(
     ids.len(),
     1,
-    "the setup mints one thread titled `fresh`: {ids:?}"
+    "the setup mints one thread titled `{FRESH}`: {ids:?}"
   );
   ids[0].to_string()
 }
 
-/// The issue a case's setup minted, which the setup titles `a defect`, read
-/// from the store by that title for the reason [`minted_fresh`] gives.
-fn minted_defect(facade: &intentsvcs::facade::Facade) -> u32 {
-  let numbers: Vec<u32> = facade
+/// The issue a case's setup minted, titled [`DEFECT`], read from the store by
+/// that title for the reason [`minted_fresh`] gives.
+fn minted_defect(facade: &intentsvcs::facade::Facade) -> IssueId {
+  let numbers: Vec<IssueId> = facade
     .issue_list()
     .into_iter()
-    .filter(|i| i.title == "a defect")
+    .filter(|i| i.title == DEFECT)
     .map(|i| i.number)
     .collect();
   assert_eq!(
     numbers.len(),
     1,
-    "the setup mints one issue titled `a defect`: {numbers:?}"
+    "the setup mints one issue titled `{DEFECT}`: {numbers:?}"
   );
   numbers[0]
 }
@@ -1085,7 +1094,7 @@ fn cases() -> Vec<Case> {
       false,
     ),
     // -- st. `seeded()` creates ST0001..ST0003, all `wip`. A thread minted in
-    //    setup is titled `fresh` and found by that title (`minted_fresh`),
+    //    setup is titled `FRESH` and found by that title (`minted_fresh`),
     //    never by an id predicted from the seed's numbering.
     (
       "st new",
@@ -1118,7 +1127,7 @@ fn cases() -> Vec<Case> {
       // WP 3 is `wip` in the seed, and a thread does not close over an open
       // package (issue 0324), so it is settled here, outside the measured write.
       |fx| {
-        fx.facade().wp_done("ST0001", 3).expect("WP 3 settles");
+        fx.facade().wp_done("ST0001", wp(3)).expect("WP 3 settles");
       },
       |fx| {
         fx.facade().st_done("ST0001").expect("st done");
@@ -1130,7 +1139,7 @@ fn cases() -> Vec<Case> {
     (
       "st triage",
       |fx| {
-        fx.facade().st_new("fresh").expect("mint");
+        fx.facade().st_new(FRESH).expect("mint");
       },
       |fx| {
         let mut facade = fx.facade();
@@ -1142,7 +1151,7 @@ fn cases() -> Vec<Case> {
     (
       "st start",
       |fx| {
-        fx.facade().st_new("fresh").expect("mint");
+        fx.facade().st_new(FRESH).expect("mint");
       },
       |fx| {
         let mut facade = fx.facade();
@@ -1166,7 +1175,7 @@ fn cases() -> Vec<Case> {
       |fx| {
         // WP 3 is `wip` in the seed and a thread does not close over an open
         // package (issue 0324), so it is settled before the close.
-        fx.facade().wp_done("ST0001", 3).expect("WP 3 settles");
+        fx.facade().wp_done("ST0001", wp(3)).expect("WP 3 settles");
         fx.facade().st_done("ST0001").expect("to done");
       },
       |fx| {
@@ -1206,7 +1215,7 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .wp_rescope("ST0001", 3, TShirt::XL)
+          .wp_rescope("ST0001", wp(3), TShirt::XL)
           .expect("wp rescope");
       },
       true,
@@ -1215,7 +1224,7 @@ fn cases() -> Vec<Case> {
       "wp unstart",
       NOOP,
       |fx| {
-        fx.facade().wp_unstart("ST0001", 3).expect("wp unstart");
+        fx.facade().wp_unstart("ST0001", wp(3)).expect("wp unstart");
       },
       true,
     ),
@@ -1223,7 +1232,7 @@ fn cases() -> Vec<Case> {
       "wp done",
       NOOP,
       |fx| {
-        fx.facade().wp_done("ST0001", 3).expect("wp done");
+        fx.facade().wp_done("ST0001", wp(3)).expect("wp done");
       },
       true,
     ),
@@ -1232,7 +1241,7 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .wp_reopen("ST0001", 2, "more to do")
+          .wp_reopen("ST0001", wp(2), "more to do")
           .expect("wp reopen");
       },
       true,
@@ -1240,10 +1249,12 @@ fn cases() -> Vec<Case> {
     (
       "wp start",
       |fx| {
-        fx.facade().wp_unstart("ST0001", 3).expect("to not-started");
+        fx.facade()
+          .wp_unstart("ST0001", wp(3))
+          .expect("to not-started");
       },
       |fx| {
-        fx.facade().wp_start("ST0001", 3).expect("wp start");
+        fx.facade().wp_start("ST0001", wp(3)).expect("wp start");
       },
       true,
     ),
@@ -1422,14 +1433,14 @@ fn cases() -> Vec<Case> {
       },
       true,
     ),
-    // -- issues. An issue minted in setup is titled `a defect` and found by
+    // -- issues. An issue minted in setup is titled `DEFECT` and found by
     //    that title (`minted_defect`), never by a predicted number.
     (
       "issues add",
       NOOP,
       |fx| {
         fx.facade()
-          .issue_add("a defect", None, None, "")
+          .issue_add(DEFECT, None, None, "")
           .expect("issues add");
       },
       true,
@@ -1438,7 +1449,7 @@ fn cases() -> Vec<Case> {
       "issues edit",
       |fx| {
         fx.facade()
-          .issue_add("a defect", None, None, "the original premise")
+          .issue_add(DEFECT, None, None, "the original premise")
           .expect("to exist");
       },
       |fx| {
@@ -1454,7 +1465,7 @@ fn cases() -> Vec<Case> {
       "issues close",
       |fx| {
         fx.facade()
-          .issue_add("a defect", None, None, "")
+          .issue_add(DEFECT, None, None, "")
           .expect("to exist");
       },
       |fx| {
@@ -1468,7 +1479,7 @@ fn cases() -> Vec<Case> {
       "issues open",
       |fx| {
         let mut f = fx.facade();
-        let number = f.issue_add("a defect", None, None, "").expect("to exist");
+        let number = f.issue_add(DEFECT, None, None, "").expect("to exist");
         f.issue_close(number).expect("to closed");
       },
       |fx| {

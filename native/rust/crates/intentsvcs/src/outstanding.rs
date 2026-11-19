@@ -82,8 +82,8 @@ pub struct Row {
 /// Where a work package sits: its thread, and its sequence under that thread.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct WpRef {
-  pub thread: String,
-  pub seq: u32,
+  pub thread: crate::id::ThreadId,
+  pub seq: crate::id::WpId,
 }
 
 /// How many of one kind are outstanding and shown, of how many exist, and the
@@ -131,7 +131,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
       .filter(|w| with_packages && w.status == WP_STATUS)
       .map(|w| Row {
         kind: Kind::WorkPackage,
-        id: format!("{}/{:02}", t.id, w.seq),
+        id: crate::id::wp_address(&t.id, w.seq),
         status: w.status.display(),
         title: w.title.clone(),
         wp: Some(WpRef {
@@ -144,7 +144,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
     if with_threads && (outstanding || !wip.is_empty()) {
       rows.push(Row {
         kind: Kind::Thread,
-        id: t.id.clone(),
+        id: t.id.stored(),
         status: t.status.display(),
         title: t.title.clone(),
         wp: None,
@@ -163,7 +163,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
     .filter(|i| show.contains(&Kind::Issue) && i.status == ISSUE_STATUS)
     .map(|i| Row {
       kind: Kind::Issue,
-      id: format!("{:04}", i.number),
+      id: i.number.stored(),
       status: i.status.display(),
       title: i.title.clone(),
       wp: None,

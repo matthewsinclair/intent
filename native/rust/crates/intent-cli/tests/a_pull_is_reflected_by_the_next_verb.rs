@@ -742,7 +742,10 @@ fn a_work_package_both_clones_minted_is_renumbered() {
   assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
 
   // Bob's package moves to the next free seq on the thread.
-  let moved = crate::common::wp_address(&onboarding, 2);
+  let moved = intentsvcs::id::wp_address(
+    &onboarding,
+    intentsvcs::id::WpId::from_ordinal(2).expect("a package id"),
+  );
   let plan = team.intent(&bob, &["sync"]);
   assert!(
     plan.said.contains(&format!(
@@ -757,14 +760,17 @@ fn a_work_package_both_clones_minted_is_renumbered() {
   team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
   let listed = team.intent(&bob, &["wp", "list", onboarding.as_str()]);
   for (seq, title) in [
-    (crate::common::package_of(&minted), "Alice's package"),
-    (crate::common::package_of(&moved), "Bob's package"),
+    (
+      crate::common::package_of(&minted).shown(),
+      "Alice's package",
+    ),
+    (crate::common::package_of(&moved).shown(), "Bob's package"),
   ] {
     assert!(
       listed
         .said
         .lines()
-        .any(|l| l.contains(seq) && l.contains(title)),
+        .any(|l| l.contains(seq.as_str()) && l.contains(title)),
       "WP {seq} is not {title}: {}",
       listed.said
     );

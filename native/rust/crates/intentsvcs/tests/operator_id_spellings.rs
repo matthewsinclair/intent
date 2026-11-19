@@ -21,15 +21,16 @@
 //! prevent. They are tested here rather than trusted to the port's good sense
 //! because the shape of a port is to reproduce, and reproducing was wrong twice.
 
-use intentsvcs::model::{self, IdError, IdKind};
+use crate::common::{issue, tid};
+use intentsvcs::id::{self, IdError, IdKind, IssueId, Named, ThreadId};
 
 /// The five forms v2 accepts, driven in the v2 checkout before being pinned.
 #[test]
 fn the_v2_parity_contract_is_five_forms() {
   for raw in ["46", "ST46", "0046", "046", "ST0046"] {
     assert_eq!(
-      model::normalise_thread_id(raw),
-      Ok("ST0046".to_string()),
+      id::normalise_thread_id(raw),
+      Ok(tid("ST0046")),
       "`{raw}` is one of v2's five accepted spellings"
     );
   }
@@ -43,12 +44,12 @@ fn the_v2_parity_contract_is_five_forms() {
 #[test]
 fn a_leading_zero_is_decimal_and_not_octal() {
   assert_eq!(
-    model::normalise_thread_id("0044"),
-    Ok("ST0044".to_string()),
+    id::normalise_thread_id("0044"),
+    Ok(tid("ST0044")),
     "0044 is thread 44 -- read as octal it would be ST0036, which also exists"
   );
-  assert_eq!(model::normalise_thread_id("046"), Ok("ST0046".to_string()));
-  assert_eq!(model::normalise_issue_id("0044"), Ok(44));
+  assert_eq!(id::normalise_thread_id("046"), Ok(tid("ST0046")));
+  assert_eq!(id::normalise_issue_id("0044"), Ok(issue(44)));
 }
 
 /// The explicit tags, which are what give the ambiguous door something to
@@ -57,10 +58,10 @@ fn a_leading_zero_is_decimal_and_not_octal() {
 #[test]
 fn an_explicit_tag_names_the_collection() {
   for raw in ["s59", "S59", "st59", "ST59", "ST0059", "sT0059"] {
-    assert_eq!(model::normalise_thread_id(raw), Ok("ST0059".to_string()));
+    assert_eq!(id::normalise_thread_id(raw), Ok(tid("ST0059")));
   }
   for raw in ["i59", "I59", "0059"] {
-    assert_eq!(model::normalise_issue_id(raw), Ok(59));
+    assert_eq!(id::normalise_issue_id(raw), Ok(issue(59)));
   }
 }
 
@@ -70,19 +71,19 @@ fn an_explicit_tag_names_the_collection() {
 #[test]
 fn a_wrong_collection_tag_is_refused_by_name_and_not_as_a_not_found() {
   assert_eq!(
-    model::normalise_thread_id("i59"),
+    id::normalise_thread_id("i59"),
     Err(IdError::WrongCollection {
       named: IdKind::Issue
     })
   );
   assert_eq!(
-    model::normalise_issue_id("s59"),
+    id::normalise_issue_id("s59"),
     Err(IdError::WrongCollection {
       named: IdKind::Thread
     })
   );
   assert_eq!(
-    model::normalise_issue_id("ST0059"),
+    id::normalise_issue_id("ST0059"),
     Err(IdError::WrongCollection {
       named: IdKind::Thread
     })
@@ -97,7 +98,7 @@ fn a_wrong_collection_tag_is_refused_by_name_and_not_as_a_not_found() {
 fn a_non_id_is_refused_rather_than_having_a_prefix_glued_to_it() {
   for raw in ["foo", "46abc", "---", "", "  ", "ST", "s", "i", "ST-46"] {
     assert_eq!(
-      model::normalise_thread_id(raw),
+      id::normalise_thread_id(raw),
       Err(IdError::NotAnId),
       "`{raw}` names nothing, so it must not become an id"
     );
@@ -112,19 +113,16 @@ fn a_non_id_is_refused_rather_than_having_a_prefix_glued_to_it() {
 fn a_sequence_wider_than_the_fixed_id_is_out_of_range() {
   for raw in ["99999", "ST99999", "s99999", "00099999"] {
     assert_eq!(
-      model::normalise_thread_id(raw),
+      id::normalise_thread_id(raw),
       Err(IdError::OutOfRange),
       "`{raw}` does not fit the fixed four-digit form"
     );
   }
-  assert_eq!(
-    model::normalise_issue_id("i99999"),
-    Err(IdError::OutOfRange)
-  );
+  assert_eq!(id::normalise_issue_id("i99999"), Err(IdError::OutOfRange));
   // A 32-bit overflow is still out of range and not a parse failure: the
   // spelling IS digits, so `NotAnId` would blame the wrong thing.
   assert_eq!(
-    model::normalise_thread_id("99999999999999"),
+    id::normalise_thread_id("99999999999999"),
     Err(IdError::OutOfRange)
   );
 }
@@ -133,11 +131,11 @@ fn a_sequence_wider_than_the_fixed_id_is_out_of_range() {
 /// the zero-run must not change the answer or the width verdict.
 #[test]
 fn leading_zeros_are_spelling_and_not_width() {
-  assert_eq!(model::normalise_thread_id("0000"), Ok("ST0000".to_string()));
-  assert_eq!(model::normalise_issue_id("0000"), Ok(0));
+  assert_eq!(id::normalise_thread_id("0000"), Ok(tid("ST0000")));
+  assert_eq!(id::normalise_issue_id("0000"), Ok(issue(0)));
   assert_eq!(
-    model::normalise_thread_id("000000046"),
-    Ok("ST0046".to_string()),
+    id::normalise_thread_id("000000046"),
+    Ok(tid("ST0046")),
     "nine characters, but the sequence is 46 and fits"
   );
 }
@@ -145,9 +143,9 @@ fn leading_zeros_are_spelling_and_not_width() {
 /// A padded id copied out of a filename is the same issue as the bare number.
 #[test]
 fn a_filename_suffix_is_stripped() {
-  assert_eq!(model::normalise_issue_id("0021.json"), Ok(21));
-  assert_eq!(model::normalise_issue_id("0021.md"), Ok(21));
-  assert_eq!(model::normalise_issue_id(" 0021.json "), Ok(21));
+  assert_eq!(id::normalise_issue_id("0021.json"), Ok(issue(21)));
+  assert_eq!(id::normalise_issue_id("0021.md"), Ok(issue(21)));
+  assert_eq!(id::normalise_issue_id(" 0021.json "), Ok(issue(21)));
 }
 
 /// **EVERY UNTAGGED SPELLING IS AMBIGUOUS HERE, INCLUDING THE FOUR-DIGIT ONE,
@@ -172,53 +170,63 @@ fn a_filename_suffix_is_stripped() {
 #[test]
 fn the_collection_agnostic_door_refuses_every_untagged_spelling() {
   // Tagged, in either family, still resolves without a store.
-  assert_eq!(model::normalise_id("ST0059"), Ok((IdKind::Thread, 59)));
-  assert_eq!(model::normalise_id("s59"), Ok((IdKind::Thread, 59)));
-  assert_eq!(model::normalise_id("i59"), Ok((IdKind::Issue, 59)));
+  assert_eq!(id::normalise_id("ST0059"), Ok(Named::Thread(tid("ST0059"))));
+  assert_eq!(id::normalise_id("s59"), Ok(Named::Thread(tid("ST0059"))));
+  assert_eq!(id::normalise_id("i59"), Ok(Named::Issue(issue(59))));
 
   // **THE CANONICAL ISSUE SPELLING IS AMBIGUOUS TOO, AND IT IS THE ONE THAT
   // MATTERS.** `0164` is the form written throughout this estate; while it
   // resolved by width, the ambiguity arm below could never fire on a real id
   // and the ladder above it was unreachable in practice.
   assert_eq!(
-    model::normalise_id("0059"),
-    Err(IdError::Ambiguous { seq: 59 }),
+    id::normalise_id("0059"),
+    Err(IdError::Ambiguous {
+      thread: tid("ST0059"),
+      issue: issue(59)
+    }),
     "four digits is well formed in BOTH families -- width is not a tie-breaker"
   );
 
   // `59` and `046` name both collections and neither door is named. In THIS
   // estate both ST0059 and issue 0059 exist, so this is not hypothetical.
   assert_eq!(
-    model::normalise_id("59"),
-    Err(IdError::Ambiguous { seq: 59 })
+    id::normalise_id("59"),
+    Err(IdError::Ambiguous {
+      thread: tid("ST0059"),
+      issue: issue(59)
+    })
   );
   assert_eq!(
-    model::normalise_id("046"),
-    Err(IdError::Ambiguous { seq: 46 })
+    id::normalise_id("046"),
+    Err(IdError::Ambiguous {
+      thread: tid("ST0046"),
+      issue: issue(46)
+    })
   );
-  assert_eq!(model::normalise_id("foo"), Err(IdError::NotAnId));
+  assert_eq!(id::normalise_id("foo"), Err(IdError::NotAnId));
 }
 
-/// **THE NORMALISER AGREES WITH THE PREDICATES THAT ALREADY OWN IDENTITY.**
+/// **THE NORMALISER AGREES WITH THE STORED-FORM READERS THAT OWN IDENTITY.**
 /// Two declarations of one fact agree until they do not, so this pins the join
 /// rather than asserting the widths a second time.
 #[test]
 fn every_canonical_output_satisfies_the_existing_predicate() {
   for raw in ["0", "7", "46", "s999", "ST9999", "9999"] {
-    let id = model::normalise_thread_id(raw).expect("in range");
-    assert!(
-      model::is_thread_id(&id),
-      "`{raw}` normalised to `{id}`, which is not a thread id"
-    );
+    let thread = id::normalise_thread_id(raw).expect("in range");
+    let stored = thread.stored();
     assert_eq!(
-      model::thread_seq(&id),
-      model::normalise_thread_id(raw)
-        .ok()
-        .and_then(|i| model::thread_seq(&i))
+      ThreadId::parse(&stored),
+      Ok(thread),
+      "`{raw}` normalised to `{stored}`, which is not read back as the same thread id"
     );
   }
   for raw in ["0", "7", "46", "i999", "9999"] {
-    let n = model::normalise_issue_id(raw).expect("in range");
-    assert!(model::is_issue_id(&format!("{n:04}")));
+    let number = id::normalise_issue_id(raw).expect("in range");
+    let stored = number.stored();
+    assert_eq!(
+      IssueId::parse(&stored),
+      Ok(number),
+      "`{raw}` normalised to `{stored}`, which is not read back as the same issue id"
+    );
   }
 }

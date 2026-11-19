@@ -38,7 +38,7 @@ use intentsvcs::model::{AcState, Criterion, Issue, Thread, WorkPackage};
 /// opens a thread to learn. The rest of the body stays in `info.md`.
 pub fn thread(t: &Thread) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{}: {}", t.id, t.title);
+  let _ = writeln!(s, "{}: {}", t.id.shown(), t.title);
   let _ = writeln!(s, "status: {}", t.status.display());
   if let Some(reason) = &t.status_reason {
     let _ = writeln!(s, "reason: {reason}");
@@ -82,7 +82,7 @@ pub fn thread_all(t: &Thread, files: &[(String, Vec<u8>)]) -> Vec<u8> {
 /// arm, which takes `st` from its argument.
 pub fn work_package(st: &str, wp: &WorkPackage, criteria: &[AcRow]) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{st}/WP-{:02}: {}", wp.seq, wp.title);
+  let _ = writeln!(s, "{st}/{}: {}", wp.seq.heading(), wp.title);
   let _ = writeln!(s, "status: {}", wp.status.display());
   if let Some(reason) = &wp.status_reason {
     let _ = writeln!(s, "reason: {reason}");
@@ -91,7 +91,11 @@ pub fn work_package(st: &str, wp: &WorkPackage, criteria: &[AcRow]) -> String {
   // Issue 0310: the criteria this package is judged on, in `ac list`'s own
   // line, and said outright when there are none rather than left blank.
   if criteria.is_empty() {
-    let _ = writeln!(s, "criteria: none scoped to {st}/{:02}", wp.seq);
+    let _ = writeln!(
+      s,
+      "criteria: none scoped to {}",
+      intentsvcs::id::wp_address(st, wp.seq)
+    );
   }
   for row in criteria {
     let _ = writeln!(s, "{}", ac_row_line(row));
@@ -160,7 +164,7 @@ pub fn criterion(st: &str, c: &Criterion, row: &AcRow) -> String {
 /// line if it is non-empty.
 pub fn issue(i: &Issue) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{:04}: {}", i.number, i.title);
+  let _ = writeln!(s, "{}: {}", i.number.shown(), i.title);
   let _ = writeln!(s, "status: {}", i.status.display());
   if let Some(sev) = &i.severity {
     let _ = writeln!(s, "severity: {sev}");

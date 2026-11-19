@@ -13,7 +13,7 @@
 //! without which "healthy after adding an advisory" would also pass on a
 //! doctor that reports nothing at all.
 
-use crate::common::{Fixture, ctx};
+use crate::common::{Fixture, ctx, tid, wp};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, Legacy, THREAD_SCHEMA, TShirt,
@@ -26,7 +26,7 @@ fn clean_thread(id: &str) -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: id.to_string(),
+    id: tid(id),
     title: "A clean thread".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -39,7 +39,7 @@ fn clean_thread(id: &str) -> Thread {
     context: String::new(),
     related: vec![],
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

@@ -18,7 +18,7 @@
 //! passing-direction finding and that the detail names the direction, and only
 //! then asserts what the sentence stops short of claiming.
 
-use crate::common::{Fixture, ctx};
+use crate::common::{Fixture, ctx, tid, wp};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA, TShirt, Thread,
@@ -34,7 +34,7 @@ fn park_shaped() -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: "ST0001".to_string(),
+    id: tid("ST0001"),
     title: "A thread with a satisfied scope nobody has started".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -47,7 +47,7 @@ fn park_shaped() -> Thread {
     context: String::new(),
     related: vec![],
     wps: vec![WorkPackage {
-      seq: 1,
+      seq: wp(1),
       title: "PARKED -- criteria authored at unpark".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

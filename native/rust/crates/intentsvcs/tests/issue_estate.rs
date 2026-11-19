@@ -88,7 +88,11 @@ fn both_buckets_are_read_and_every_key_finds_its_home() {
 
   assert_eq!(scan.issues.len(), 2, "{:?}", scan.issues);
   let open = &scan.issues[0];
-  assert_eq!(open.number, 7, "the quoted id parses to a number");
+  assert_eq!(
+    open.number,
+    crate::common::issue(7),
+    "the quoted id parses to a number"
+  );
   assert_eq!(open.slug, "a-live-one", "the slug is the filename tail");
   assert_eq!(open.status, IssueStatus::Open);
   assert_eq!(open.created, "2026-08-05", "v2's `date` is the domain date");
@@ -183,7 +187,7 @@ fn an_unquoted_id_parses_too() {
     "## Summary\n\nx\n",
   );
 
-  assert_eq!(scan(&fixture).issues[0].number, 7);
+  assert_eq!(scan(&fixture).issues[0].number, crate::common::issue(7));
 }
 
 /// An id that is not a number has no identity to convert, and says so rather

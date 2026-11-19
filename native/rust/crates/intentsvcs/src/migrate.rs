@@ -104,7 +104,7 @@ pub struct Plan {
   /// thread field carries that warning because a reader might be tempted to
   /// skip re-emitting; nobody can skip these, because re-emitting them IS the
   /// fix.
-  pub already_migrated_issues: Vec<u32>,
+  pub already_migrated_issues: Vec<crate::id::IssueId>,
   /// Sections Phase A dropped as template scaffolding, passed through
   /// untouched. **The third summary bucket beside modelled and carried**: a
   /// drop with no record cannot be told from a section that was never there.
@@ -306,7 +306,7 @@ fn dehydrated(
     match std::fs::read_to_string(&path) {
       Ok(text) => match crate::ingest::read_thread(project, &id, &text) {
         Ok(thread) => {
-          added.push(thread.id.clone());
+          added.push(thread.id.stored());
           threads.push(thread);
         }
         Err(mut found) => residue.append(&mut found),
@@ -355,8 +355,8 @@ fn dehydrated(
 /// down, and the rebuild would run off it.
 fn orphaned_issues(
   project: &Project,
-  seen: &BTreeSet<u32>,
-) -> Result<(Vec<Issue>, Vec<u32>), Blocked> {
+  seen: &BTreeSet<crate::id::IssueId>,
+) -> Result<(Vec<Issue>, Vec<crate::id::IssueId>), Blocked> {
   let Ok(numbers) = project.issue_numbers() else {
     return Ok((Vec::new(), Vec::new()));
   };
@@ -381,8 +381,9 @@ fn orphaned_issues(
         &rel,
         FindingClass::BrokenReference,
         format!(
-          "canon names issue {number} and the file is not readable: {source} -- the migration \
-           would rebuild the store and the views without it"
+          "canon names issue {} and the file is not readable: {source} -- the migration \
+           would rebuild the store and the views without it",
+          number.shown()
         ),
       )),
     }
@@ -423,7 +424,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   // Everything past this point -- `store.rebuild`, `views::render_all`, the
   // canon export -- runs off `threads`, so a thread absent HERE is absent from
   // the SSOT and from the index the migration leaves behind.
-  let seen: BTreeSet<String> = threads.iter().map(|t| t.id.clone()).collect();
+  let seen: BTreeSet<String> = threads.iter().map(|t| t.id.stored()).collect();
   let (extra, extra_ids) = dehydrated(project, &seen)?;
   let mut threads = threads;
   threads.extend(extra);
@@ -432,7 +433,7 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   // `store.rebuild(&threads, &issues)` takes both, so an issue absent here is
   // absent from the SSOT exactly as a thread would be -- and for four days it
   // was, because only one of the two lines existed (intent#0070).
-  let seen_issues: BTreeSet<u32> = issues.iter().map(|i| i.number).collect();
+  let seen_issues: BTreeSet<crate::id::IssueId> = issues.iter().map(|i| i.number).collect();
   let (extra_issues, extra_numbers) = orphaned_issues(project, &seen_issues)?;
   let mut issues = issues;
   issues.extend(extra_issues);
@@ -561,9 +562,9 @@ fn assemble(
       let statuses: Vec<(String, crate::model::ThreadStatus)> = canon
         .threads
         .iter()
-        .map(|t| (t.id.clone(), t.status))
+        .map(|t| (t.id.stored(), t.status))
         .collect();
-      let issues: Vec<(u32, crate::model::IssueStatus)> =
+      let issues: Vec<(crate::id::IssueId, crate::model::IssueStatus)> =
         canon.issues.iter().map(|i| (i.number, i.status)).collect();
       crate::intentfiles::realised_from(&crate::intentfiles::default_declaration(
         &statuses, &issues,
@@ -730,7 +731,7 @@ mod tests {
   fn wp(seq: u32) -> crate::model::WorkPackage {
     serde_json::from_value(serde_json::json!({
       "seq": seq,
-      "title": format!("WP-{seq:02}"),
+      "title": crate::id::WpId::from_ordinal(seq).expect("an ordinal that fits").heading(),
       "status": "not-started",
     }))
     .expect("wp fixture")
@@ -927,7 +928,7 @@ mod tests {
       project.thread_json("ST0001"),
       project.info_view("ST0001"),
       project.acceptance_view("ST0001"),
-      project.issue_json(1),
+      project.issue_json(crate::id::IssueId::from_ordinal(1).expect("an issue id")),
       project.steel_threads_view(),
       project.todo_view(),
     ] {
@@ -982,6 +983,7 @@ mod tests {
 
     let after = tree(dir.path());
     for seq in [1u32, 12] {
+      let seq = crate::id::WpId::from_ordinal(seq).expect("a package id");
       let rel = project.relative(&project.wp_info_view("ST0001", seq));
       assert!(after.contains(&rel), "missing {rel} in {after:?}");
     }
@@ -1014,7 +1016,13 @@ mod tests {
         &ctx(),
         Scan {
           threads: (1..=threads)
-            .map(|n| thread(&format!("ST{n:04}")))
+            .map(|n| {
+              thread(
+                &crate::id::ThreadId::from_ordinal(n)
+                  .expect("an ordinal that fits")
+                  .stored(),
+              )
+            })
             .collect(),
           issues: (1..=issues).map(issue).collect(),
           ..Default::default()

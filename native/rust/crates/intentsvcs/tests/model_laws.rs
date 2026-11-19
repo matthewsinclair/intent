@@ -2,12 +2,20 @@
 //! unknown-field refusal -- an unknown field in canonical JSON is refused by
 //! name, never dropped (design.md D05).
 
+use crate::common::{issue, tid, wp};
+use intentsvcs::id::ThreadId;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion,
   FiatRecord, Invoker, Issue, IssueStatus, Legacy, Related, THREAD_SCHEMA, TShirt, Thread,
   ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use proptest::prelude::*;
+
+/// The thread a generator's ordinal names. Every generator draws its ordinal
+/// below the thread form's width, so none is refused.
+fn generated_thread(ordinal: u32) -> ThreadId {
+  ThreadId::from_ordinal(ordinal).expect("a generated ordinal fits the thread form")
+}
 
 /// Prose as it really is: multi-line markdown inside a JSON string field.
 ///
@@ -98,7 +106,7 @@ fn ac_state() -> impl Strategy<Value = AcState> {
     proptest::option::of("[a-z ,.]{3,40}").prop_map(|note| AcState::Unsatisfied { note }),
     "[a-z/. ]{3,30}".prop_map(|evidence| AcState::Satisfied { evidence }),
     (0u32..9999, proptest::option::of("[a-z]{2,8}")).prop_map(|(n, by)| AcState::Descoped {
-      to: format!("ST{n:04}"),
+      to: generated_thread(n).stored(),
       by,
       reason: None,
     }),
@@ -243,7 +251,7 @@ prop_compose! {
     fiat in fiat_record(),
   ) -> WorkPackage {
     WorkPackage {
-      seq,
+      seq: wp(seq),
       title,
       scope: scope.0,
       scope_legacy: scope.1,
@@ -272,7 +280,7 @@ prop_compose! {
 
 prop_compose! {
   fn related()(n in 0u32..9999, note in proptest::option::of("[A-Za-z ]{1,40}")) -> Related {
-    Related { id: format!("ST{n:04}"), note }
+    Related { id: generated_thread(n), note }
   }
 }
 
@@ -302,7 +310,7 @@ prop_compose! {
       // must be given a model the migration could actually have produced.
       preamble: preamble.trim().to_string(),
       schema: THREAD_SCHEMA.to_string(),
-      id: format!("ST{n:04}"),
+      id: generated_thread(n),
       title,
       slug,
       status,
@@ -405,7 +413,7 @@ fn sample_thread() -> Thread {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: "ST0056".to_string(),
+    id: tid("ST0056"),
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -417,11 +425,11 @@ fn sample_thread() -> Thread {
     objective: "Ship the reified model.\n\nWith a blank line, because prose has them.".to_string(),
     context: "v2 bolted schema onto markdown three times.".to_string(),
     related: vec![Related {
-      id: "ST0044".to_string(),
+      id: tid("ST0044"),
       note: Some("the contract model v3 reifies".to_string()),
     }],
     wps: vec![WorkPackage {
-      seq: 2,
+      seq: wp(2),
       title: "Workspace and reified model".to_string(),
       scope: Some(TShirt::L),
       scope_legacy: None,
@@ -456,7 +464,7 @@ fn sample_thread() -> Thread {
 fn sample_issue() -> Issue {
   Issue {
     schema: intentsvcs::model::ISSUE_SCHEMA.to_string(),
-    number: 21,
+    number: issue(21),
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

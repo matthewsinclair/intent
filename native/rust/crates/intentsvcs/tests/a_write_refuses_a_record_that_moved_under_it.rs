@@ -338,7 +338,7 @@ fn two_facades_holding_one_issue_snapshot_do_not_both_get_to_write() {
     .expect_err("the second write carries the title at its pre-edit value and must be refused");
 
   assert!(
-    matches!(&err, FacadeError::RecordMovedUnderTheWrite { subject } if subject.contains(&format!("{n:04}"))),
+    matches!(&err, FacadeError::RecordMovedUnderTheWrite { subject } if subject.contains(&n.stored())),
     "the refusal must name the issue it hit: {err:?}"
   );
 
@@ -364,7 +364,7 @@ fn a_close_the_locked_store_refuses_leaves_the_manifest_as_it_found_it() {
     .expect("add");
   let before = fx.read("intent/.intentfiles");
   assert!(
-    before.contains(&format!("ISSUE:{number:04}")),
+    before.contains(&number.claim()),
     "precondition: the add declared it: {before:?}"
   );
   let lock = rusqlite::Connection::open(fx.project().db_path()).expect("a second connection");

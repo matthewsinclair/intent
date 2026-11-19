@@ -92,7 +92,7 @@ fn an_estate() -> (PathBuf, String, String) {
       intentsvcs::model::TShirt::S,
     )
     .expect("a work package is created");
-  let wp = crate::common::wp_address(&st, seq);
+  let wp = intentsvcs::id::wp_address(&st, seq);
   (root, st, wp)
 }
 
@@ -286,7 +286,7 @@ fn neither_spelling_starts_a_daemon_and_both_say_the_same_thing() {
 #[test]
 fn a_work_package_reaches_one_derivation_through_the_child_rung() {
   let (root, st, wp) = an_estate();
-  let pkg = crate::common::package_of(&wp);
+  let pkg = crate::common::package_of(&wp).stored();
   let daemon = RealDaemon::start();
   daemon.wait_until_it_answers_a_real_op();
 
@@ -310,7 +310,7 @@ fn a_work_package_reaches_one_derivation_through_the_child_rung() {
 
   let over_the_wire: Vec<intentsvcs::form::Triple> =
     serde_json::from_value(answer["fields"].clone()).expect("the fields are triples");
-  let in_this_process = in_process_wp(&root, &st, pkg);
+  let in_this_process = in_process_wp(&root, &st, &pkg);
 
   // The same vacuity guard the thread arm carries, for the same reason: two
   // empty vectors are equal.
@@ -424,7 +424,10 @@ fn an_absent_work_package_is_refused_as_a_work_package_and_not_as_a_typo() {
   let home = short_dir("browse-wp-absent");
   std::fs::create_dir_all(&home).expect("an isolated home");
 
-  let missing = crate::common::wp_address(&st, 99);
+  let missing = intentsvcs::id::wp_address(
+    &st,
+    intentsvcs::id::WpId::from_ordinal(99).expect("a package id"),
+  );
   let (absent, _) = cli(&root, &home, &["browse", "wp", missing.as_str()]);
   let (present, _) = cli(&root, &home, &["browse", "wp", wp.as_str()]);
 

@@ -179,14 +179,19 @@ pub fn realise(
   for thread in &canon.threads {
     let json = serde_json::to_string_pretty(thread)
       .unwrap_or_else(|e| format!("{{\"unserialisable\": \"{e}\"}}"));
-    set.add(root.join("canon").join(format!("{}.json", thread.id)), json);
+    set.add(
+      root
+        .join("canon")
+        .join(format!("{}.json", thread.id.as_str())),
+      json,
+    );
     counts.threads += 1;
     counts.wps += thread.wps.len();
 
     for att in &thread.attachments {
       let dest = root
         .join("attachments")
-        .join(&thread.id)
+        .join(thread.id.as_str())
         .join(att.path.trim_start_matches('/'));
       // **`as_bytes` IS THE ONE PLACE THE TWO FORMS REJOIN, so this arm never
       // has to know whether it got text or a blob** -- and it cannot get it
@@ -197,7 +202,7 @@ pub fn realise(
       // wearing a fallback's clothes.
       let Some(bytes) = att.as_bytes() else {
         return Err(RealiseError::MissingBytes {
-          thread: thread.id.clone(),
+          thread: thread.id.stored(),
           path: att.path.clone(),
         });
       };
@@ -212,7 +217,7 @@ pub fn realise(
     set.add(
       root
         .join("issues")
-        .join(format!("{:04}.json", issue.number)),
+        .join(format!("{}.json", issue.number.stored())),
       json,
     );
     counts.issues += 1;

@@ -65,7 +65,7 @@
 //! against the live fixture is blind to exactly the two fields nobody has ever
 //! set.
 
-use crate::common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread, tid, wp};
 use intentsvcs::address::{Address, parse};
 use intentsvcs::facade::Facade;
 use intentsvcs::model::{
@@ -1357,7 +1357,7 @@ fn fully_populated_thread(id: &str) -> Thread {
   thread.body = "A load-bearing paragraph nothing else records.".to_string();
   thread.preamble = "Front matter prose.".to_string();
   thread.related = vec![intentsvcs::model::Related {
-    id: "ST0056".to_string(),
+    id: tid("ST0056"),
     note: Some("the rewrite this thread gates".to_string()),
   }];
   thread
@@ -1679,12 +1679,12 @@ fn entity_json(facade: &intentsvcs::facade::Facade, url: &str) -> Value {
       serde_json::to_value(thread).expect("a thread serialises")
     }
     intentsvcs::address::Entity::Wp { wp, .. } => {
-      let seq: u32 = wp.parse().expect("the fixture addresses a numeric wp");
+      let seq = intentsvcs::id::normalise_wp_id(wp).expect("the fixture addresses a numeric wp");
       let row = thread
         .wps
         .iter()
         .find(|w| w.seq == seq)
-        .unwrap_or_else(|| panic!("wp {seq} is in the fixture"));
+        .unwrap_or_else(|| panic!("wp {wp} is in the fixture"));
       serde_json::to_value(row).expect("a work package serialises")
     }
     other => panic!(
@@ -2246,7 +2246,7 @@ fn field_axis(entity: &intentsvcs::address::Entity) -> FieldAxis {
 /// exactly the fields nobody has ever set.
 fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
   intentsvcs::model::WorkPackage {
-    seq: 1,
+    seq: wp(1),
     title: "The field axis".to_string(),
     scope: Some(intentsvcs::model::TShirt::M),
     // Carries `inherited_from`, because the cascade case and the
@@ -3181,7 +3181,7 @@ fn the_work_package_tail_carries_the_same_property() {
   let fx = Fixture::new();
   let mut t = sample_thread("ST0001");
   t.wps = vec![intentsvcs::model::WorkPackage {
-    seq: 1,
+    seq: wp(1),
     title: "one".to_string(),
     scope: Some(intentsvcs::model::TShirt::S),
     scope_legacy: None,
@@ -3198,12 +3198,12 @@ fn the_work_package_tail_carries_the_same_property() {
 
   f.wp_reopen(
     "ST0001",
-    1,
+    wp(1),
     "closed legitimately and its contract grew afterwards",
   )
   .expect("reopen records a reason");
   assert_eq!(
-    f.wp_show("ST0001", 1)
+    f.wp_show("ST0001", wp(1))
       .expect("there")
       .status_reason
       .as_deref(),
@@ -3211,9 +3211,9 @@ fn the_work_package_tail_carries_the_same_property() {
     "the positive control: reopen still SETS the reason"
   );
 
-  f.wp_unstart("ST0001", 1).expect("unstart");
+  f.wp_unstart("ST0001", wp(1)).expect("unstart");
   assert_eq!(
-    f.wp_show("ST0001", 1)
+    f.wp_show("ST0001", wp(1))
       .expect("there")
       .status_reason
       .as_deref(),

@@ -13,8 +13,9 @@
 
 use crate::common::Fixture;
 use intentsvcs::facade::Facade;
+use intentsvcs::id::ThreadId;
 
-fn thread_ids(facade: &Facade) -> Vec<String> {
+fn thread_ids(facade: &Facade) -> Vec<ThreadId> {
   facade.st_list().iter().map(|t| t.id.clone()).collect()
 }
 

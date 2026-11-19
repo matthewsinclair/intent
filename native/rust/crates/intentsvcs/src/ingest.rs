@@ -241,7 +241,11 @@ pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Ve
 /// smuggle issue 7 past a `seen` set that was tested against 3. **Measured
 /// before adding it rather than assumed safe: 51 issue canon files in this
 /// repo, 0 stem/number mismatches** -- it refuses nothing that exists here.
-pub fn read_issue(project: &Project, number: u32, text: &str) -> Result<Issue, Vec<Finding>> {
+pub fn read_issue(
+  project: &Project,
+  number: crate::id::IssueId,
+  text: &str,
+) -> Result<Issue, Vec<Finding>> {
   let rel = project.relative(&project.issue_json(number));
   let issue = parse::<Issue>(&rel, text)?;
   if issue.schema != ISSUE_SCHEMA {
@@ -260,7 +264,7 @@ pub fn read_issue(project: &Project, number: u32, text: &str) -> Result<Issue, V
       FindingClass::DuplicateId,
       format!(
         "issue number {} does not match its file {rel:?}",
-        issue.number
+        issue.number.shown()
       ),
     )]);
   }
@@ -299,7 +303,9 @@ fn load_blobs(project: &Project, thread: &mut Thread) -> Vec<Finding> {
         format!(
           "canon records {} as an opaque attachment of {} carrying {} byte(s), and the file is not \
            readable: {e}",
-          att.path, thread.id, att.bytes
+          att.path,
+          thread.id.shown(),
+          att.bytes
         ),
       )),
     }
@@ -1006,7 +1012,8 @@ pub fn collect_attachments_into(project: &Project, canon: &mut Canon) -> Vec<Fin
 /// the search index describing a thread that no longer exists in that shape --
 /// AC-06.4's failure, content present and findable as something else.
 fn section_of_thread(section: &DocSection, id: &str) -> bool {
-  section.owner_id == id || section.owner_id.starts_with(&format!("{id}/"))
+  crate::id::split_wp_address(&section.owner_id)
+    .map_or(section.owner_id == id, |(thread, _)| thread == id)
 }
 
 /// The canon a SCOPED restore installs: named threads take their value from
@@ -1141,7 +1148,7 @@ fn decide_estate(
     recorded.disk_takes(project, &path, read)
   };
 
-  let mut ids: Vec<String> = held_threads
+  let mut ids: Vec<crate::id::ThreadId> = held_threads
     .iter()
     .map(|t| t.id.clone())
     .chain(disk_threads.iter().map(|t| t.id.clone()))
@@ -1165,7 +1172,7 @@ fn decide_estate(
   if scope.named().is_some() {
     return (threads, held_issues);
   }
-  let mut numbers: Vec<u32> = held_issues
+  let mut numbers: Vec<crate::id::IssueId> = held_issues
     .iter()
     .map(|i| i.number)
     .chain(disk_issues.iter().map(|i| i.number))
@@ -1296,7 +1303,7 @@ fn resync_inner(
     .filter(|t| {
       scope.selects(&t.id) && touched.contains(project.relative(&project.info_view(&t.id)).as_str())
     })
-    .map(|t| (t.id.clone(), t.objective.clone(), t.context.clone()))
+    .map(|t| (t.id.stored(), t.objective.clone(), t.context.clone()))
     .collect();
 
   match load {
@@ -1856,7 +1863,7 @@ pub fn sections_of(
     }
     out.append(&mut prose::split(
       "issue",
-      &issue.number.to_string(),
+      &issue.number.stored(),
       &project.relative(&project.issue_json(issue.number)),
       &issue.body,
     ));
@@ -1954,7 +1961,7 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
   if !thread_body.is_empty() {
     out.push(DocSection {
       owner_type: "thread".to_string(),
-      owner_id: thread.id.clone(),
+      owner_id: thread.id.stored(),
       file: file.clone(),
       seq: 0,
       heading: Some(thread.title.clone()),
@@ -1999,7 +2006,7 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
     }
     out.push(DocSection {
       owner_type: "thread".to_string(),
-      owner_id: thread.id.clone(),
+      owner_id: thread.id.stored(),
       file: project.relative(&project.thread_dir(&thread.id).join(&att.path)),
       seq: 0,
       heading: Some(att.path.clone()),
@@ -2008,12 +2015,14 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
     });
   }
 
-  for wp in &thread.wps {
+  // A package's section sits at its place in the thread's list, which is
+  // the position its number held in a thread numbered without a gap.
+  for (position, wp) in (1u32..).zip(&thread.wps) {
     out.push(DocSection {
       owner_type: "work-package".to_string(),
-      owner_id: format!("{}/{:02}", thread.id, wp.seq),
+      owner_id: crate::id::wp_address(&thread.id, wp.seq),
       file: file.clone(),
-      seq: wp.seq,
+      seq: position,
       heading: Some(wp.title.clone()),
       level: 0,
       // D28: the authored prose, not just the title. AC-06.7 requires `intent

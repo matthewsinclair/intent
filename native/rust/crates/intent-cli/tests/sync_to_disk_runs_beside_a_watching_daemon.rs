@@ -63,7 +63,7 @@ fn project() -> (std::path::PathBuf, String) {
       "The view this arm lands.",
     )
     .expect("file one issue");
-  (root, intentsvcs::model::issue_id(issue))
+  (root, issue.stored())
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> std::process::Output {

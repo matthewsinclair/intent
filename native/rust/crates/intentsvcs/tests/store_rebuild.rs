@@ -9,6 +9,7 @@
 //! one file to carry the old model, and it survived the corrections because it
 //! spells it "disposability" while the grep asked for "disposable".
 
+use crate::common::{issue, tid, wp};
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
@@ -28,7 +29,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     body: String::new(),
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
-    id: "ST0056".to_string(),
+    id: tid("ST0056"),
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -40,12 +41,12 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     objective: "Ship Intent v3.0.0.".to_string(),
     context: "v2 is 12,492 lines of bash.\n\nEvery reader reimplements parsing.".to_string(),
     related: vec![Related {
-      id: "ST0043".to_string(),
+      id: tid("ST0043"),
       note: Some("the v2 convergent orchestrator".to_string()),
     }],
     wps: vec![
       WorkPackage {
-        seq: 1,
+        seq: wp(1),
         title: "Design canon".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -58,7 +59,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         preamble: String::new(),
       },
       WorkPackage {
-        seq: 2,
+        seq: wp(2),
         title: "Workspace".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -103,7 +104,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
   };
   let issue = Issue {
     schema: ISSUE_SCHEMA.to_string(),
-    number: 21,
+    number: issue(21),
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

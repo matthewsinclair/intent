@@ -51,7 +51,7 @@ fn estate() -> (PathBuf, String, String) {
       "issue body prose",
     )
     .expect("an issue is created");
-  (root, st, intentsvcs::model::issue_id(issue))
+  (root, st, issue.stored())
 }
 
 /// `intent <args>` in `root` under an isolated HOME: its stderr and exit code.
