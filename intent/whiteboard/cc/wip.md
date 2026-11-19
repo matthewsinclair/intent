@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
-heartbeat_at: 2026-11-19 09:22Z
+heartbeat_at: 2026-11-19 09:33Z
 status: active
 focus: "2026-11-19 09:22Z by date -u: folded and holding for hv's review of ST0095 (git-style ids, hv decisions 61, 62 and 64) through vc. cc's census and positions are banked at refs/bank/cc/st0095/census-20261119.md (anchors read at 4124c99c9); issues 0708 to 0711 filed on vc's ask. Writing nothing in the tree until vc's word. No claim, worktree, slot or live bank work."
-claims: []
+claims: [ST0095/01]
 ---
 
 # Control Claude (cc)

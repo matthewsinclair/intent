@@ -13,7 +13,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ## Acceptance Criteria
 
-### WP-01 -- Core tests take ids from the mint (status: Not Started)
+### WP-01 -- Core tests take ids from the mint (status: WIP)
 
 - AC-01.1 (non-test) No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned. -- satisfied: no
 
@@ -95,7 +95,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ## Acceptance Tests
 
-### WP-01 -- Core tests take ids from the mint (status: Not Started)
+### WP-01 -- Core tests take ids from the mint (status: WIP)
 
 _(no tests in this group)_
 
