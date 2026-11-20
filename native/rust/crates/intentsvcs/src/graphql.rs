@@ -50,8 +50,11 @@ use async_graphql::{
 };
 use serde_json::Value;
 
-use crate::facade::Facade;
-use crate::model::{AcState, Criterion, Issue, Thread};
+use crate::facade::{Facade, IdRecord};
+use crate::id::{Found, IdKind, IdScope, IssueId, ThreadId, WpId};
+use crate::model::{AcState, Criterion, Issue, Thread, WorkPackage};
+use crate::project::Project;
+use crate::remedy::Remedy;
 
 /// Rendered by [`crate::faces::faces`] as the committed `schema.graphql`.
 ///
@@ -196,6 +199,23 @@ impl From<&AcState> for AcStateView {
 }
 
 #[async_graphql::ComplexObject]
+impl WorkPackage {
+  /// The day the package was created: the day its origin's creation event was
+  /// written in this clone's log. `null` for an ordinal package, which has no
+  /// origin, and where this clone's log does not hold that event.
+  async fn created(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<String>> {
+    let Some(origin) = self.origin.as_deref() else {
+      return Ok(None);
+    };
+    let days = snapshot(ctx)?
+      .wp_days
+      .as_ref()
+      .map_err(|why| Error::new(why.clone()))?;
+    Ok(days.get(origin).cloned())
+  }
+}
+
+#[async_graphql::ComplexObject]
 impl Criterion {
   /// The recorded AC state, flattened -- see [`AcStateView`].
   async fn state(&self) -> AcStateView {
@@ -227,20 +247,76 @@ impl Criterion {
 ///
 /// Reads only, so a snapshot cannot go stale in a way one request can observe:
 /// the document sees one consistent estate from its first field to its last.
+///
+/// **A WORK PACKAGE'S CREATED DAY IS HELD THE SAME WAY** (ST0095 WP-10): it is
+/// read from the log ([`Facade::wp_created_days`]), so a failed read is the
+/// `created` field's error and never a null (issue 0732).
 pub struct Snapshot {
+  project: Project,
   threads: Vec<Thread>,
   issues: Vec<Issue>,
   boards: Result<Vec<crate::model::Board>, String>,
+  wp_days: Result<std::collections::HashMap<String, String>, String>,
 }
 
 impl Snapshot {
   fn of(facade: &Facade) -> Snapshot {
     Snapshot {
+      project: facade.project().clone(),
       threads: facade.st_list().into_iter().cloned().collect(),
       issues: facade.issue_list().into_iter().cloned().collect(),
-      boards: facade.boards().map_err(|e| e.to_string()),
+      boards: facade.boards().map_err(|e| e.render()),
+      wp_days: facade.wp_created_days().map_err(|e| e.render()),
     }
   }
+
+  /// The snapshot's thread `id`, if it holds it.
+  fn thread(&self, id: &ThreadId) -> Option<&Thread> {
+    self.threads.iter().find(|t| t.id == *id)
+  }
+
+  /// The snapshot's issue `id`, if it holds it.
+  fn issue(&self, id: IssueId) -> Option<&Issue> {
+    self.issues.iter().find(|i| i.number == id)
+  }
+}
+
+/// **A PREFIX IS COMPLETED AGAINST THE SNAPSHOT'S OWN RECORDS** (cc, ST0095
+/// WP-10), so a resolver never answers with an id the snapshot does not hold.
+impl IdScope for Snapshot {
+  fn threads(&self) -> Vec<ThreadId> {
+    self.threads.iter().map(|t| t.id.clone()).collect()
+  }
+
+  fn issues(&self) -> Vec<IssueId> {
+    self.issues.iter().map(|i| i.number).collect()
+  }
+
+  fn wps(&self, thread: &ThreadId) -> Vec<WpId> {
+    self
+      .thread(thread)
+      .map(|t| t.wps.iter().map(|w| w.seq).collect())
+      .unwrap_or_default()
+  }
+}
+
+/// **WHAT A TYPED ID ANSWERS** (cc's meaning, ST0095 WP-10): the facade's
+/// one mapping, [`crate::facade::one_found`], with a well-formed spelling that
+/// names nothing here as `null`, and each refusal rendered as every other door
+/// renders it. `record` finds an id in the snapshot and `report` says what an
+/// ambiguity names of it.
+fn answer<T, R>(
+  typed: &str,
+  kind: IdKind,
+  found: Result<Found<T>, crate::id::IdError>,
+  record: impl Fn(&T) -> Option<R>,
+  report: impl Fn(&R) -> IdRecord,
+) -> async_graphql::Result<Option<R>> {
+  crate::facade::one_found(typed, kind, found, |ids| {
+    Ok(ids.iter().filter_map(&record).map(|r| report(&r)).collect())
+  })
+  .map(|one| one.and_then(|id| record(&id)))
+  .map_err(|e| Error::new(e.render()))
 }
 
 /// The boards this request's snapshot read, or the store's refusal as the
@@ -307,10 +383,19 @@ pub struct Query;
 
 #[Object]
 impl Query {
-  /// One steel thread by its natural id, eg `ST0000`; `null` when there is
-  /// none, which is an answer and not an error.
+  /// One steel thread by its id, whole or a unique prefix of a hashed one;
+  /// `null` when it names none, which is an answer and not an error. A
+  /// spelling that is no thread's id, or a prefix several threads begin, is
+  /// refused.
   async fn thread(&self, ctx: &Context<'_>, id: String) -> async_graphql::Result<Option<Thread>> {
-    Ok(snapshot(ctx)?.threads.iter().find(|t| t.id == id).cloned())
+    let s = snapshot(ctx)?;
+    answer(
+      &id,
+      IdKind::Thread,
+      crate::id::resolve_thread(&id, s),
+      |found| s.thread(found).cloned(),
+      |thread| IdRecord::of_thread(&s.project, thread),
+    )
   }
 
   /// Every steel thread in the project, in the order `st list` renders them.
@@ -318,22 +403,21 @@ impl Query {
     Ok(snapshot(ctx)?.threads.clone())
   }
 
-  /// One issue by its number; `null` when there is none.
-  async fn issue(&self, ctx: &Context<'_>, number: u32) -> async_graphql::Result<Option<Issue>> {
-    // A number no issue id can carry names no issue, which is `null`.
-    let Ok(id) = crate::id::IssueId::from_ordinal(number) else {
-      return Ok(None);
-    };
-    Ok(
-      snapshot(ctx)?
-        .issues
-        .iter()
-        .find(|i| i.number == id)
-        .cloned(),
+  /// One issue by its id, whole or a unique prefix of a hashed one; `null`
+  /// when it names none, which is an answer and not an error. A spelling that
+  /// is no issue's id, or a prefix several issues begin, is refused.
+  async fn issue(&self, ctx: &Context<'_>, id: String) -> async_graphql::Result<Option<Issue>> {
+    let s = snapshot(ctx)?;
+    answer(
+      &id,
+      IdKind::Issue,
+      crate::id::resolve_issue(&id, s),
+      |found| s.issue(*found).cloned(),
+      |issue| IdRecord::of_issue(&s.project, issue),
     )
   }
 
-  /// Every issue in the project, in number order.
+  /// Every issue in the project, in the order `issues list` prints them.
   async fn issues(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Issue>> {
     Ok(snapshot(ctx)?.issues.clone())
   }

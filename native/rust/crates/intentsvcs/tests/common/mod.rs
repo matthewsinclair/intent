@@ -1041,3 +1041,15 @@ pub fn landed_note(notes: &[intentsvcs::facade::Note]) -> (String, String, Vec<S
 /// trap from the other side. One home, so the opaque-attachment tests in canon
 /// and in `organize` measure the same bytes.
 pub const NOT_UTF8: &[u8] = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\xff\xdb";
+
+/// Two creation events' ids whose SHA-256s share their first
+/// [`intentsvcs::id::SHOWN_HEX`] hex digits, found by search and kept: two
+/// records minted from them show one short form, which is what two branches
+/// that have not met can mint (ST0095 WP-07). Every test that needs a real
+/// ambiguity seeds its records from these.
+pub const SHARED_A: &str = "01M7W4RVVVQHEPM8G2HC5CTKDH";
+/// See [`SHARED_A`].
+pub const SHARED_B: &str = "01M7WC0P8VR6FFPF2WGDKR2YCZ";
+/// A creation event's id whose hash begins apart from both of [`SHARED_A`]'s
+/// pair.
+pub const APART: &str = "01M7WRV7ZXZZ47FFMJ6E15EWYN";

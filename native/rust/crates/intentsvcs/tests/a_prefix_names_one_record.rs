@@ -6,21 +6,13 @@
 //! mint ids that share their shown form, so an ambiguity is the real thing and
 //! not a constructed one. Every length is read from the waist's constants.
 
-use crate::common::{Fixture, sample_issue, sample_thread};
+use crate::common::{APART, Fixture, SHARED_A, SHARED_B, sample_issue, sample_thread};
 use intentsvcs::facade::{EventFilter, Facade, FacadeError, IdRecord};
 use intentsvcs::id::{
   ISSUE_MARKER, IssueId, MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, ThreadId,
   WP_SHOWN_HEX, WpId, prefix_floor,
 };
 use intentsvcs::model::{AcKind, WorkPackage};
-
-/// Two creation events' ids whose SHA-256s share their first [`SHOWN_HEX`] hex
-/// digits, found by search and kept: two records minted from them show one
-/// short form, which is what two branches that have not met can mint.
-const SHARED_A: &str = "01M7W4RVVVQHEPM8G2HC5CTKDH";
-const SHARED_B: &str = "01M7WC0P8VR6FFPF2WGDKR2YCZ";
-/// A creation event's id whose hash begins apart from both.
-const APART: &str = "01M7WRV7ZXZZ47FFMJ6E15EWYN";
 
 /// A hashed thread's hex, behind its marker.
 fn hex(id: &ThreadId) -> String {

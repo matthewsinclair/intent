@@ -3,9 +3,10 @@
   "number": 732,
   "slug": "day-of-event-folds-a-store-read-failure-into-cre",
   "title": "day_of_event folds a store read failure into created: None, so a missing event and an unreadable store read alike",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-20",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "Found by critic-rust on ST0095 WP-07 (devbin-cc's bank refs/bank/devbin-cc/st0095/wp07-v4-on-d663e3ea6, answer (b)) and ruled by cc on 2026-11-20 as a silent error, accepted for WP-07's land only as this filed issue.\n\n`Facade::day_of_event` (native/rust/crates/intentsvcs/src/facade.rs, `fn day_of_event(&self, id: &str) -> Option<String>`, line 7662 in the bank) gives a work package's `created` as the day of its origin event's ts in the store's log. It folds a store read failure into `None`, the same answer as \"the log has no such event\". So a reader of `IdRecord.created`, eg `intent id`'s candidates or AmbiguousId's, cannot tell an absent event from a store it could not read (IN-AG-NO-SILENT-001).\n\nExpected: the read failure is a typed error carrying a remedy. That means `record_of` returns a Result, which changes WP-10 Part 1's `id_of`. `None` stays only for an event the log does not hold.\n\nOwner: ic, in ST0095 WP-10 Part 2, which calls these functions (cc's ruling). It rides this release (hv decision 69).\n"
 }

@@ -1,5 +1,5 @@
 # INTENT_VER: 3.4.0
-# SCHEMA_SDL_VER: 24
+# SCHEMA_SDL_VER: 25
 
 enum AcKind {
   TEST
@@ -424,8 +424,10 @@ type Legacy {
 
 type Query {
   """
-  One steel thread by its natural id, eg `ST0000`; `null` when there is
-  none, which is an answer and not an error.
+  One steel thread by its id, whole or a unique prefix of a hashed one;
+  `null` when it names none, which is an answer and not an error. A
+  spelling that is no thread's id, or a prefix several threads begin, is
+  refused.
   """
   thread(id: String!): Thread
   """
@@ -433,11 +435,13 @@ type Query {
   """
   threads: [Thread!]!
   """
-  One issue by its number; `null` when there is none.
+  One issue by its id, whole or a unique prefix of a hashed one; `null`
+  when it names none, which is an answer and not an error. A spelling that
+  is no issue's id, or a prefix several issues begin, is refused.
   """
-  issue(number: Int!): Issue
+  issue(id: String!): Issue
   """
-  Every issue in the project, in number order.
+  Every issue in the project, in the order `issues list` prints them.
   """
   issues: [Issue!]!
   """
@@ -914,6 +918,12 @@ type WorkPackage {
   which preserves the bytes and moves them.
   """
   preamble: String!
+  """
+  The day the package was created: the day its origin's creation event was
+  written in this clone's log. `null` for an ordinal package, which has no
+  origin, and where this clone's log does not hold that event.
+  """
+  created: String
 }
 
 enum WpStatus {

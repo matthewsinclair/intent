@@ -434,9 +434,15 @@ impl Remedy for AddressError {
       // **ONLY FORMS EVERY DOOR ACCEPTS** (0153). This text is shared by
       // `edit`, `set` and `browse`, and it named an issue id -- which `edit`
       // refuses in every spelling, so following it earned a second refusal.
-      AddressError::NotAddressable { .. } => {
-        format!("name a thread (`ST0000`) or a full address (`{SCHEME}/threads/ST0000`)")
-      }
+      //
+      // **THE PREFIX FLOOR IS STATED AS A FACT, NOT AS A GUESS** (cc's
+      // condition on ST0095 WP-07's W1): this door does not know the kind, so
+      // it reads `ST3f9` as it reads `stab`, a word, and says what a hashed id
+      // needs rather than what the caller may have meant.
+      AddressError::NotAddressable { .. } => format!(
+        "name a thread (`ST0000`) or a full address (`{SCHEME}/threads/ST0000`); a git-style id, or a prefix of one, has at least {} hex digits after its marker",
+        crate::id::MIN_PREFIX_HEX
+      ),
       AddressError::IdRefused(refused) => refused.remedy.clone(),
       AddressError::PrefixOfEither { hex, .. } => format!(
         "name its kind: `{}` for a steel thread, `{}` for an issue",

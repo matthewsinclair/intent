@@ -172,6 +172,21 @@ fn a_typo_is_a_usage_error_naming_both_forms() {
   );
 }
 
+/// **THE REFUSAL STATES A HASHED ID'S FLOOR, READ FROM THE WAIST** (cc's
+/// condition on ST0095 WP-07's W1): this door cannot tell a word from a short
+/// prefix, so it says what a prefix needs.
+#[test]
+fn a_typo_names_the_prefix_floor_from_the_constant() {
+  let e = promote("banana").expect_err("banana is no id under any spelling");
+  assert!(matches!(e, AddressError::NotAddressable { .. }), "got: {e}");
+  let floor = format!("at least {} hex digits", intentsvcs::id::MIN_PREFIX_HEX);
+  assert!(
+    e.remedy().contains(&floor),
+    "the remedy states the floor, `{floor}`: {}",
+    e.remedy()
+  );
+}
+
 /// **AN EMPTY ARGUMENT IS THE SAME REFUSAL**, not a panic and not a default.
 #[test]
 fn an_empty_argument_is_refused_by_the_same_door() {

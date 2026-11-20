@@ -8650,12 +8650,10 @@ fn id_verb(m: &ArgMatches) -> Result<(), Failure> {
   let format = enum_flag(m, "id", "--format")?;
   let (project, ctx) = context()?;
   let facade = engine(project, ctx, StoreNeed::Shared)?;
-  let answers: Vec<IdAnswer> = m
-    .get_many::<String>("token")
-    .into_iter()
-    .flatten()
-    .map(|token| facade.id_of(token))
-    .collect();
+  let mut answers: Vec<IdAnswer> = Vec::new();
+  for token in m.get_many::<String>("token").into_iter().flatten() {
+    answers.push(facade.id_of(token).map_err(fail)?);
+  }
   if format == "json" {
     println!("{:#}", id_json(&answers));
   } else {

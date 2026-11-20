@@ -5147,6 +5147,98 @@ pub struct IdRecord {
   pub created: Option<String>,
 }
 
+/// **WHAT A TYPED ID ANSWERS AT A DOOR THAT KNOWS ITS KIND** (ST0095 WP-07 and
+/// WP-10): the resolver's finding as the one id it names, `None` where a
+/// well-formed spelling names nothing, and the facade's refusal of a spelling
+/// that is no id of `kind` ([`FacadeError::NotAnId`]) or of a prefix several
+/// records begin ([`FacadeError::AmbiguousId`]). Each door says what `None`
+/// is to it: [`Facade::resolve_thread`] and [`Facade::resolve_issue`] a
+/// refusal, GraphQL's `thread(id:)` and `issue(id:)` a `null`.
+///
+/// `candidates` reports an ambiguity's records as the door's own scope holds
+/// them, so a face with no facade, GraphQL's snapshot, answers in the same
+/// words; a candidate that cannot be read is that read's error instead.
+pub fn one_found<T>(
+  typed: &str,
+  kind: crate::id::IdKind,
+  found: Result<crate::id::Found<T>, crate::id::IdError>,
+  candidates: impl FnOnce(&[T]) -> Result<Vec<IdRecord>, FacadeError>,
+) -> Result<Option<T>, FacadeError> {
+  use crate::id::Found;
+  let found = found.map_err(|e| FacadeError::NotAnId {
+    typed: typed.to_string(),
+    refusal: crate::id::refusal(typed, &e, kind),
+  })?;
+  match found {
+    Found::One(id) => Ok(Some(id)),
+    Found::Nothing => Ok(None),
+    Found::Many(ids) => Err(FacadeError::AmbiguousId {
+      typed: typed.to_string(),
+      candidates: candidates(&ids)?,
+    }),
+  }
+}
+
+/// A record this project holds, as [`Facade::canon_record`] found it.
+enum CanonRecord<'a> {
+  Thread(&'a Thread),
+  Wp(&'a Thread, &'a WorkPackage),
+  Issue(&'a Issue),
+}
+
+/// **EACH RECORD'S REPORT HAS ONE CONSTRUCTOR**, read from the record and from
+/// `project`'s own path methods and nothing else, so `intent id`, a door's
+/// ambiguity refusal and the GraphQL face, which holds no facade, report a
+/// record alike (ST0095 WP-10).
+impl IdRecord {
+  /// A thread's report.
+  pub fn of_thread(project: &Project, thread: &Thread) -> Self {
+    let id = thread.id.stored();
+    IdRecord {
+      kind: crate::id::IdKind::Thread.wire(),
+      shown: thread.id.shown(),
+      canon: project.relative(&project.thread_json(&id)),
+      path: project.relative(&project.thread_dir(&id)),
+      title: thread.title.clone(),
+      created: Some(thread.created.clone()),
+      id,
+    }
+  }
+
+  /// A work package's report under `owner`, its thread. `created` is the
+  /// day [`Facade::wp_created`] reads, which needs the log.
+  pub fn of_wp(
+    project: &Project,
+    owner: &Thread,
+    package: &WorkPackage,
+    created: Option<String>,
+  ) -> Self {
+    let thread = owner.id.stored();
+    IdRecord {
+      kind: crate::id::IdKind::WorkPackage.wire(),
+      id: crate::id::wp_address(&thread, package.seq),
+      shown: crate::id::wp_address_shown(&owner.id, package.seq),
+      canon: project.relative(&project.thread_json(&thread)),
+      path: project.relative(&project.wp_dir(&thread, package.seq)),
+      title: package.title.clone(),
+      created,
+    }
+  }
+
+  /// An issue's report.
+  pub fn of_issue(project: &Project, issue: &Issue) -> Self {
+    IdRecord {
+      kind: crate::id::IdKind::Issue.wire(),
+      id: issue.number.stored(),
+      shown: issue.number.shown(),
+      canon: project.relative(&project.issue_json(issue.number)),
+      path: project.relative(&project.issue_view(issue.number)),
+      title: issue.title.clone(),
+      created: Some(issue.created.clone()),
+    }
+  }
+}
+
 /// An ambiguity's candidates as a refusal names them: each one's id as
 /// shown, kind, title and created day.
 fn candidate_list(candidates: &[IdRecord]) -> String {
@@ -7601,151 +7693,194 @@ impl Facade {
   /// names one record, or several, or none; a tagged spelling or an address
   /// names its one record if it is here. What is reported of a record is read
   /// from it and from the project's own path methods.
-  pub fn id_of(&self, token: &str) -> IdAnswer {
+  ///
+  /// **THE ERROR IS A READ THAT FAILED, NEVER AN ANSWER** (issue 0732): a work
+  /// package's created day comes from the log, and a log that cannot be read
+  /// is refused here rather than reported as a record with no day.
+  pub fn id_of(&self, token: &str) -> Result<IdAnswer, FacadeError> {
     use crate::remedy::Remedy;
     use crate::resolve::Resolution;
     let token_ = token.to_string();
-    let found = |a: &Address| self.record_of(&a.entity);
-    match crate::resolve::resolve(token, |a| found(a).is_some(), self) {
-      Ok(Resolution::Resolved(address)) => match (require_local(&address), found(&address)) {
-        // **ANOTHER PROJECT'S ADDRESS NAMES NOTHING HERE** (issue 0338), asked
-        // first, as every door that takes an address asks it: the entity alone
-        // would answer about this project's record of the same id.
-        (Err(elsewhere), _) => IdAnswer::NotAnId {
-          token: token_,
-          why: elsewhere.to_string(),
-          remedy: elsewhere.remedy(),
-        },
-        (Ok(()), Some(record)) => IdAnswer::Id {
-          token: token_,
-          record,
-        },
-        // A spelling whose record is not here is unknown when it names a
-        // record's form, and no id at all when it names another form.
-        (Ok(()), None) => match address.entity {
-          AddrEntity::Thread { .. } | AddrEntity::Wp { .. } | AddrEntity::Issue { .. } => {
-            IdAnswer::Unknown {
+    Ok(
+      match crate::resolve::resolve(token, |a| self.holds(&a.entity), self) {
+        Ok(Resolution::Resolved(address)) => {
+          // **ANOTHER PROJECT'S ADDRESS NAMES NOTHING HERE** (issue 0338), asked
+          // first, as every door that takes an address asks it, and before the
+          // log is read: the entity alone would answer about this project's
+          // record of the same id.
+          let here = match require_local(&address) {
+            Err(elsewhere) => Err(elsewhere),
+            Ok(()) => Ok(self.record_of(&address.entity)?),
+          };
+          match here {
+            Err(elsewhere) => IdAnswer::NotAnId {
               token: token_,
-              kinds: vec![address.entity.form()],
-            }
+              why: elsewhere.to_string(),
+              remedy: elsewhere.remedy(),
+            },
+            Ok(Some(record)) => IdAnswer::Id {
+              token: token_,
+              record,
+            },
+            // A spelling whose record is not here is unknown when it names a
+            // record's form, and no id at all when it names another form.
+            Ok(None) => match address.entity {
+              AddrEntity::Thread { .. } | AddrEntity::Wp { .. } | AddrEntity::Issue { .. } => {
+                IdAnswer::Unknown {
+                  token: token_,
+                  kinds: vec![address.entity.form()],
+                }
+              }
+              _ => IdAnswer::NotAnId {
+                why: format!(
+                  "`{token}` addresses the `{}` form, and only a thread, a work package or an issue has an id",
+                  address.entity.form()
+                ),
+                remedy: format!(
+                  "name a thread, a work package or an issue: {}; {}; {}",
+                  crate::id::THREAD_ID_FORM,
+                  crate::id::WP_ADDRESS_FORM,
+                  crate::id::ISSUE_ID_FORM
+                ),
+                token: token_,
+              },
+            },
           }
-          _ => IdAnswer::NotAnId {
-            why: format!(
-              "`{token}` addresses the `{}` form, and only a thread, a work package or an issue has an id",
-              address.entity.form()
-            ),
-            remedy: format!(
-              "name a thread, a work package or an issue: {}; {}; {}",
-              crate::id::THREAD_ID_FORM,
-              crate::id::WP_ADDRESS_FORM,
-              crate::id::ISSUE_ID_FORM
-            ),
-            token: token_,
-          },
+        }
+        Ok(Resolution::Ambiguous(addresses)) => IdAnswer::Ambiguous {
+          token: token_,
+          candidates: self.records_of(addresses.iter().map(|a| &a.entity))?,
+        },
+        Ok(Resolution::Unresolvable { searched }) => IdAnswer::Unknown {
+          token: token_,
+          kinds: searched.iter().map(|a| a.entity.form()).collect(),
+        },
+        // The parser's refusal is the reason, in the words written where the
+        // grammar lives.
+        Err(refusal) => IdAnswer::NotAnId {
+          token: token_,
+          why: refusal.to_string(),
+          remedy: refusal.remedy(),
         },
       },
-      Ok(Resolution::Ambiguous(addresses)) => IdAnswer::Ambiguous {
-        token: token_,
-        candidates: addresses.iter().filter_map(found).collect(),
-      },
-      Ok(Resolution::Unresolvable { searched }) => IdAnswer::Unknown {
-        token: token_,
-        kinds: searched.iter().map(|a| a.entity.form()).collect(),
-      },
-      // The parser's refusal is the reason, in the words written where the
-      // grammar lives.
-      Err(refusal) => IdAnswer::NotAnId {
-        token: token_,
-        why: refusal.to_string(),
-        remedy: refusal.remedy(),
-      },
-    }
+    )
   }
 
-  /// The record `entity` names, if it is a thread, a work package or an issue
-  /// this project holds.
+  /// The canon record `entity` names, if this project holds it: **THE ONE
+  /// LOOKUP** both [`Self::holds`] and [`Self::record_of`] read, so the
+  /// resolver's presence question and the report can never disagree.
   ///
-  /// **`None` MEANS NOT HERE, AND NOTHING ELSE.** Each lookup reads the canon
-  /// this facade already holds, whose one refusal is that the record is absent.
-  /// A work package is found by [`Self::wp_of`], the one home for which package
-  /// an address's raw segment names, whose ruling is that a segment spelling no
-  /// package id names no package; so no failure is folded into the answer.
-  fn record_of(&self, entity: &AddrEntity) -> Option<IdRecord> {
-    let rel = |path: std::path::PathBuf| self.project.relative(&path);
+  /// `None` means not here, and nothing else. Each lookup reads the canon this
+  /// facade already holds, whose one refusal is that the record is absent. A
+  /// work package is found by [`Self::wp_of`], the one home for which package
+  /// an address's raw segment names, whose ruling is that a segment spelling
+  /// no package id names no package.
+  fn canon_record(&self, entity: &AddrEntity) -> Option<CanonRecord<'_>> {
     match entity {
-      AddrEntity::Thread { id } => {
-        let thread = self.st_show(id).ok()?;
-        Some(IdRecord {
-          kind: entity.form(),
-          id: thread.id.stored(),
-          shown: thread.id.shown(),
-          canon: rel(self.project.thread_json(id)),
-          path: rel(self.project.thread_dir(id)),
-          title: thread.title.clone(),
-          created: Some(thread.created.clone()),
-        })
-      }
+      AddrEntity::Thread { id } => self.st_show(id).ok().map(CanonRecord::Thread),
       AddrEntity::Wp { thread, wp } => {
-        let owner = self.st_show(thread).ok()?;
-        let package = self.wp_of(thread, wp).ok()?;
-        let seq = package.seq;
-        Some(IdRecord {
-          kind: entity.form(),
-          id: crate::id::wp_address(thread, seq),
-          shown: crate::id::wp_address_shown(&owner.id, seq),
-          canon: rel(self.project.thread_json(thread)),
-          path: rel(self.project.wp_dir(thread, seq)),
-          title: package.title.clone(),
-          created: package
-            .origin
-            .as_deref()
-            .and_then(|origin| self.day_of_event(origin)),
-        })
+        let (Ok(owner), Ok(package)) = (self.st_show(thread), self.wp_of(thread, wp)) else {
+          return None;
+        };
+        Some(CanonRecord::Wp(owner, package))
       }
-      AddrEntity::Issue { id } => {
-        let number = crate::id::IssueId::parse(id).ok()?;
-        let issue = self.issue_show(number).ok()?;
-        Some(IdRecord {
-          kind: entity.form(),
-          id: issue.number.stored(),
-          shown: issue.number.shown(),
-          canon: rel(self.project.issue_json(number)),
-          path: rel(self.project.issue_view(number)),
-          title: issue.title.clone(),
-          created: Some(issue.created.clone()),
-        })
-      }
+      AddrEntity::Issue { id } => crate::id::IssueId::parse(id)
+        .ok()
+        .and_then(|number| self.issue_show(number).ok())
+        .map(CanonRecord::Issue),
       _ => None,
     }
   }
 
-  /// The day an event in this clone's log was written, read from its stamp
-  /// (cc's meaning for a work package's created day, ST0095 WP-07): never from
-  /// the event id's own clock, which is the minting process's (D42). `None`
-  /// where the log does not hold the event.
-  fn day_of_event(&self, id: &str) -> Option<String> {
-    let events = self.store.events().ok()?;
-    let event = events.into_iter().find(|e| e.id == id)?;
-    event.ts.get(..DAY_OF_STAMP).map(str::to_string)
+  /// Whether this project holds the record `entity` names: the canon alone,
+  /// with no log read, for the resolver's presence question.
+  fn holds(&self, entity: &AddrEntity) -> bool {
+    self.canon_record(entity).is_some()
   }
 
-  /// The record a resolver's candidate is, as `intent id` reports it.
-  fn candidate_record(&self, candidate: &crate::id::Candidate) -> Option<IdRecord> {
+  /// The report of the record `entity` names, if this project holds it.
+  ///
+  /// **`Ok(None)` MEANS NOT HERE, AND NOTHING ELSE** (issue 0732): the one read
+  /// that can fail is a package's created day, from the log, and its failure
+  /// is this function's error, never a record reported without its day.
+  fn record_of(&self, entity: &AddrEntity) -> Result<Option<IdRecord>, FacadeError> {
+    let project = &self.project;
+    Ok(match self.canon_record(entity) {
+      None => None,
+      Some(CanonRecord::Thread(thread)) => Some(IdRecord::of_thread(project, thread)),
+      Some(CanonRecord::Wp(owner, package)) => Some(IdRecord::of_wp(
+        project,
+        owner,
+        package,
+        self.wp_created(package)?,
+      )),
+      Some(CanonRecord::Issue(issue)) => Some(IdRecord::of_issue(project, issue)),
+    })
+  }
+
+  /// **A WORK PACKAGE'S CREATED DAY** (cc's meaning, ST0095 WP-07): the day
+  /// the creation event its `origin` names was written in this clone's log,
+  /// read from that event's stamp, never from the event id's own clock, which
+  /// is the minting process's (D42).
+  ///
+  /// `Ok(None)` is an answer, and only two answers are `None`: an ordinal
+  /// package, which has no origin, and an origin this clone's log does not
+  /// hold. A log that cannot be read is the error (issue 0732).
+  pub fn wp_created(&self, package: &WorkPackage) -> Result<Option<String>, FacadeError> {
+    let Some(origin) = package.origin.as_deref() else {
+      return Ok(None);
+    };
+    Ok(
+      self
+        .store
+        .event_stamp(origin)?
+        .map(|stamp| stamp.chars().take(DAY_OF_STAMP).collect()),
+    )
+  }
+
+  /// The created day of every work package in this project that has one, by
+  /// its origin: what a face that holds no facade, GraphQL's snapshot, reads
+  /// once and answers from.
+  pub fn wp_created_days(&self) -> Result<std::collections::HashMap<String, String>, FacadeError> {
+    let mut days = std::collections::HashMap::new();
+    for package in self.canon.threads.iter().flat_map(|t| t.wps.iter()) {
+      if let (Some(origin), Some(day)) = (package.origin.as_ref(), self.wp_created(package)?) {
+        days.insert(origin.clone(), day);
+      }
+    }
+    Ok(days)
+  }
+
+  /// The entity a resolver's candidate names, for [`Self::records_of`].
+  fn candidate_entity(candidate: &crate::id::Candidate) -> AddrEntity {
     use crate::id::Candidate;
-    let entity = match candidate {
+    match candidate {
       Candidate::Thread(id) => AddrEntity::Thread { id: id.stored() },
       Candidate::Wp(thread, wp) => AddrEntity::Wp {
         thread: thread.stored(),
         wp: wp.stored(),
       },
       Candidate::Issue(id) => AddrEntity::Issue { id: id.stored() },
-    };
-    self.record_of(&entity)
+    }
+  }
+
+  /// The records `entities` name here, in order, each one this project holds:
+  /// an ambiguity's candidates, which the resolver found here.
+  fn records_of<'a>(
+    &self,
+    entities: impl IntoIterator<Item = &'a AddrEntity>,
+  ) -> Result<Vec<IdRecord>, FacadeError> {
+    let mut out = Vec::new();
+    for entity in entities {
+      out.extend(self.record_of(entity)?);
+    }
+    Ok(out)
   }
 
   /// Why `typed` names no one record here, as this facade's refusal: the
   /// waist's wording of a bad spelling, the kinds it was looked for as, or
-  /// every record it could name (ST0095 WP-07).
+  /// every record it could name (ST0095 WP-07). A candidate's record that
+  /// cannot be read is that read's error instead, never a shorter list.
   fn unresolved(&self, typed: &str, why: crate::id::Unresolved) -> FacadeError {
     use crate::id::Unresolved;
     let typed = typed.to_string();
@@ -7755,13 +7890,13 @@ impl Facade {
         typed,
         kinds: kinds.iter().map(crate::id::IdKind::wire).collect(),
       },
-      Unresolved::Many(candidates) => FacadeError::AmbiguousId {
-        typed,
-        candidates: candidates
-          .iter()
-          .filter_map(|c| self.candidate_record(c))
-          .collect(),
-      },
+      Unresolved::Many(candidates) => {
+        let entities: Vec<AddrEntity> = candidates.iter().map(Self::candidate_entity).collect();
+        match self.records_of(&entities) {
+          Ok(candidates) => FacadeError::AmbiguousId { typed, candidates },
+          Err(unread) => unread,
+        }
+      }
     }
   }
 
@@ -7771,21 +7906,37 @@ impl Facade {
   /// [`FacadeError::NoSuchThread`]; a prefix is completed against this
   /// project's threads.
   pub fn resolve_thread(&self, typed: &str) -> Result<crate::id::ThreadId, FacadeError> {
-    use crate::id::{Candidate, IdKind};
-    crate::id::resolve_thread(typed, self)
-      .map_err(|e| self.refused(typed, &e, IdKind::Thread))?
-      .one(&[IdKind::Thread], Candidate::Thread)
-      .map_err(|why| self.unresolved(typed, why))
+    use crate::id::IdKind;
+    let found = crate::id::resolve_thread(typed, self);
+    one_found(typed, IdKind::Thread, found, |ids| {
+      let entities: Vec<AddrEntity> = ids
+        .iter()
+        .map(|id| AddrEntity::Thread { id: id.stored() })
+        .collect();
+      self.records_of(&entities)
+    })?
+    .ok_or_else(|| FacadeError::UnknownId {
+      typed: typed.to_string(),
+      kinds: vec![IdKind::Thread.wire()],
+    })
   }
 
   /// The door every face asks for a typed issue, as [`Self::resolve_thread`]
   /// is a thread's.
   pub fn resolve_issue(&self, typed: &str) -> Result<crate::id::IssueId, FacadeError> {
-    use crate::id::{Candidate, IdKind};
-    crate::id::resolve_issue(typed, self)
-      .map_err(|e| self.refused(typed, &e, IdKind::Issue))?
-      .one(&[IdKind::Issue], Candidate::Issue)
-      .map_err(|why| self.unresolved(typed, why))
+    use crate::id::IdKind;
+    let found = crate::id::resolve_issue(typed, self);
+    one_found(typed, IdKind::Issue, found, |ids| {
+      let entities: Vec<AddrEntity> = ids
+        .iter()
+        .map(|id| AddrEntity::Issue { id: id.stored() })
+        .collect();
+      self.records_of(&entities)
+    })?
+    .ok_or_else(|| FacadeError::UnknownId {
+      typed: typed.to_string(),
+      kinds: vec![IdKind::Issue.wire()],
+    })
   }
 
   /// The door every face asks for a typed work package's address,
@@ -7820,6 +7971,10 @@ impl Facade {
   /// whole id is respelled as stored with no lookup (`46` as `ST0046`), so a
   /// reader of the answer reads stored ids; a package segment the waist cannot
   /// read is left as typed, for the lookup to answer as no package.
+  ///
+  /// **IT DOES NOT ASK WHOSE PROJECT THE ADDRESS NAMES.** A caller asks
+  /// [`require_local`] first, or another project's address is completed
+  /// against this one's records (issue 0338).
   pub fn whole_address(&self, address: &Address) -> Result<Address, FacadeError> {
     use crate::resolve::Resolution;
     let completed =
@@ -7831,10 +7986,7 @@ impl Facade {
       Resolution::Resolved(whole) => Ok(whole),
       Resolution::Ambiguous(candidates) => Err(FacadeError::AmbiguousId {
         typed: address.to_url(),
-        candidates: candidates
-          .iter()
-          .filter_map(|a| self.record_of(&a.entity))
-          .collect(),
+        candidates: self.records_of(candidates.iter().map(|a| &a.entity))?,
       }),
       Resolution::Unresolvable { searched } => Err(FacadeError::UnknownId {
         typed: address.to_url(),

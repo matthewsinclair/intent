@@ -370,7 +370,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 23: `retired` on the board's node and its `WbRetired` (ST0092 WP-04).
     // 24: git-style ids (ST0095 WP-06): `Issue.number` and `WorkPackage.seq`
     // are named `id`, and `origin` joins a thread, a work package and an issue.
-    ("SCHEMA_SDL_VER", 24, 0x0d9d_cb4e_7b64_d3f3),
+    // 25: ST0095 WP-10: `Query.issue(number: Int!)` becomes `issue(id: String!)`,
+    // and `WorkPackage.created` joins, the day its origin's event was written.
+    ("SCHEMA_SDL_VER", 25, 0x97be_4044_1378_57cc),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so

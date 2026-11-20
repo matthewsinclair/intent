@@ -1791,7 +1791,10 @@ fn tool_answer(
           "`token` is required: one or more ids, package addresses or addresses",
         ));
       }
-      let answers: Vec<_> = tokens.iter().map(|t| f.id_of(t)).collect();
+      let mut answers = Vec::with_capacity(tokens.len());
+      for token in &tokens {
+        answers.push(f.id_of(token)?);
+      }
       Ok(crate::render::id_json(&answers))
     }
 
@@ -2057,20 +2060,21 @@ pub struct Resource {
   pub name: String,
 }
 
-/// Why a `resources/read` could not be answered. `NotFound` is the facade's own
+/// Why a `resources/read` could not be answered. `Refused` is the facade's own
 /// refusal; the two `BadUri` shapes are the URI never naming a resource.
 #[derive(Debug, thiserror::Error)]
 pub enum ResourceError {
   #[error("`{uri}`: {why}")]
   BadUri { uri: String, why: String },
-  /// Boxed for the reason [`ServeError::Refused`] is.
+  /// The facade refused the read: a record not here, or an id it does not
+  /// name, in its own words. Boxed for the reason [`ServeError::Refused`] is.
   #[error(transparent)]
-  NotFound(Box<FacadeError>),
+  Refused(Box<FacadeError>),
 }
 
 impl From<FacadeError> for ResourceError {
   fn from(e: FacadeError) -> Self {
-    Self::NotFound(Box::new(e))
+    Self::Refused(Box::new(e))
   }
 }
 
@@ -2078,7 +2082,7 @@ impl ResourceError {
   /// The operator-facing text, mirroring [`ServeError::render`].
   pub fn render(&self) -> String {
     match self {
-      Self::NotFound(e) => e.render(),
+      Self::Refused(e) => e.render(),
       other => other.to_string(),
     }
   }

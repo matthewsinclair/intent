@@ -11,31 +11,25 @@
 //! ST0069 AT-14.7 cites this file: any node's board is read over GraphQL through
 //! that one door, `boards` and `board(node)`.
 
-use crate::common::{Fixture, sample_issue};
+use crate::common::{APART, Fixture, SHARED_A, SHARED_B, sample_issue, sample_thread};
+use intentsvcs::id::{IdKind, MIN_PREFIX_HEX, THREAD_PREFIX, ThreadId, WpId};
+use intentsvcs::model::TShirt;
 use serde_json::{Value, json};
 
 #[tokio::test]
 async fn the_four_reads_answer_what_the_facade_holds() {
   let fx = Fixture::new();
-  // **AN ORDINAL ISSUE, SEEDED.** The `issue(number:)` argument still takes an
-  // ordinal's number until ic's ST0095 WP-10 makes it the id, so this read's
-  // issue is seeded through the fixture writer rather than minted, which now
-  // gives a git-style id. The subject here is the four reads, not the mint. An
-  // issue's `id` field answers its stored form, a string, as a thread's does.
+  // An ordinal issue, seeded, beside a minted thread: `issue(id:)` takes
+  // either family's id as a string (ST0095 WP-10), as `thread(id:)` does.
   let seeded = sample_issue(21);
   fx.write_issue(&seeded);
   let mut facade = fx.facade();
   let id = facade.st_new("Hatch fixture").expect("mint a thread");
-  let number = json!(
-    intentsvcs::id::ordinal_face::Ordinal::number(&seeded.number).expect("an ordinal issue id")
-  );
 
   let answer = facade
     .graphql(
-      &format!(
-        "query($id: String!) {{ threads {{ id title }} thread(id: $id) {{ id title }} issues {{ id title }} issue(number: {number}) {{ id }} missing: thread(id: \"ST9999\") {{ id }} }}"
-      ),
-      Some(json!({ "id": id })),
+      "query($id: String!, $issue: String!) { threads { id title } thread(id: $id) { id title } issues { id title } issue(id: $issue) { id } missing: thread(id: \"ST9999\") { id } }",
+      Some(json!({ "id": id, "issue": seeded.number.stored() })),
     )
     .await
     .expect("the answer serialises");
@@ -175,5 +169,177 @@ async fn a_request_built_without_the_snapshot_is_refused_by_name() {
   assert!(
     message.contains("Facade::graphql"),
     "the refusal names the only door: {message}"
+  );
+}
+
+/// The message of the one error an answer carries for the field `alias`.
+fn error_at(answer: &Value, alias: &str) -> String {
+  let errors = answer["errors"].as_array().cloned().unwrap_or_default();
+  let at: Vec<&Value> = errors
+    .iter()
+    .filter(|e| e["path"] == json!([alias]))
+    .collect();
+  assert_eq!(at.len(), 1, "one error on `{alias}`: {answer}");
+  at[0]["message"].as_str().unwrap_or_default().to_string()
+}
+
+#[tokio::test]
+async fn a_typed_id_answers_as_every_door_answers_it() {
+  // **cc's meaning, ST0095 WP-10**: a whole id or a unique prefix names its
+  // record; a well-formed spelling that names nothing is `null`; a prefix two
+  // records begin, and a spelling that is no id of the kind, are refused, each
+  // in the facade's own wording, never `null`. The pair is seeded from the
+  // kept origins whose ids show one short form, so the ambiguity is real.
+  let fx = Fixture::new();
+  let pair = [
+    (
+      ThreadId::from_origin(SHARED_A),
+      SHARED_A,
+      "the first of two",
+    ),
+    (
+      ThreadId::from_origin(SHARED_B),
+      SHARED_B,
+      "the second of two",
+    ),
+  ];
+  for (id, origin, title) in &pair {
+    let mut thread = sample_thread(&id.stored());
+    thread.origin = Some((*origin).to_string());
+    thread.title = (*title).to_string();
+    thread.related.clear();
+    fx.write_thread(&thread);
+  }
+  let mut facade = fx.facade();
+  let minted = facade
+    .st_new("minted, one of a kind")
+    .expect("mint a thread");
+  let issue = facade
+    .issue_add("an issue typed by prefix", None, None, "body")
+    .expect("mint an issue");
+  let thread = ThreadId::parse(&minted).expect("the mint returns a stored thread id");
+  let shared = pair[0].0.shown();
+  // Letters, so the spelling cannot read as an ordinal's digits.
+  let short = format!("{THREAD_PREFIX}{}", "a".repeat(MIN_PREFIX_HEX - 1));
+
+  let answer = facade
+    .graphql(
+      "query($shown: String!, $issue: String!, $shared: String!, $short: String!) { one: thread(id: $shown) { title } issue(id: $issue) { title } none: thread(id: \"ST9999\") { id } both: thread(id: $shared) { id } banana: issue(id: \"banana\") { id } short: thread(id: $short) { id } }",
+      Some(json!({
+        "shown": thread.shown(),
+        "issue": issue.shown(),
+        "shared": shared,
+        "short": short,
+      })),
+    )
+    .await
+    .expect("the answer serialises");
+
+  let data = &answer["data"];
+  assert_eq!(data["one"]["title"], "minted, one of a kind", "{answer}");
+  assert_eq!(
+    data["issue"]["title"], "an issue typed by prefix",
+    "{answer}"
+  );
+  assert_eq!(
+    data["none"],
+    Value::Null,
+    "a well-formed id naming nothing: {answer}"
+  );
+  for refused in ["both", "banana", "short"] {
+    assert_eq!(
+      data[refused],
+      Value::Null,
+      "`{refused}` is refused, so its field is null: {answer}"
+    );
+  }
+  let refused = ["both", "banana", "short"];
+  assert_eq!(
+    answer["errors"].as_array().map(Vec::len),
+    Some(refused.len()),
+    "one error per refused field, none for the answers: {answer}"
+  );
+  let both = error_at(&answer, "both");
+  assert!(
+    pair.iter().all(|(_, _, title)| both.contains(title)),
+    "the ambiguity names both candidates: {both}"
+  );
+  let banana = error_at(&answer, "banana");
+  assert!(
+    banana.contains("`banana`") && banana.contains(IdKind::Issue.with_article()),
+    "a spelling that is no issue's id is refused in the waist's words: {banana}"
+  );
+  let too_short = error_at(&answer, "short");
+  assert!(
+    too_short.contains(&format!("`{short}`")) && too_short.contains("too short"),
+    "hex under the floor is refused as too short: {too_short}"
+  );
+}
+
+#[tokio::test]
+async fn a_work_package_carries_the_day_its_origin_was_written() {
+  // A hashed package's `created` is the facade's answer, the day its origin's
+  // event was written in this log. An ordinal package has no origin, and a
+  // package whose origin this log never wrote has no day to read, so each
+  // `created` is null, which is an answer and not an error (cc's meaning,
+  // ST0095 WP-10; issue 0732 keeps `None` for exactly these two).
+  let fx = Fixture::new();
+  let mut seeded = sample_thread("ST0001");
+  let mut elsewhere = seeded.wps[0].clone();
+  elsewhere.seq = WpId::from_origin(APART);
+  elsewhere.origin = Some(APART.to_string());
+  seeded.wps.push(elsewhere.clone());
+  fx.write_thread(&seeded);
+  let mut facade = fx.facade();
+  let minted = facade
+    .st_new("a thread with a package")
+    .expect("mint a thread");
+  let wp = facade
+    .wp_new(&minted, "a minted package", TShirt::S)
+    .expect("mint a package");
+  let package = facade
+    .st_show(&minted)
+    .expect("the minted thread")
+    .wps
+    .iter()
+    .find(|w| w.seq == wp)
+    .cloned()
+    .expect("the minted package");
+  let day = facade
+    .wp_created(&package)
+    .expect("the log reads")
+    .expect("a minted package's origin is in this log");
+
+  let answer = facade
+    .graphql(
+      "query($id: String!) { minted: thread(id: $id) { wps { id created } } ordinal: thread(id: \"ST0001\") { wps { id created } } }",
+      Some(json!({ "id": minted })),
+    )
+    .await
+    .expect("the answer serialises");
+
+  assert_eq!(answer["errors"], Value::Null, "{answer}");
+  assert_eq!(
+    answer["data"]["minted"]["wps"],
+    json!([{ "id": wp.stored(), "created": day }]),
+    "{answer}"
+  );
+  let seeded_wps = answer["data"]["ordinal"]["wps"]
+    .as_array()
+    .expect("the seeded thread's packages");
+  assert_eq!(
+    seeded_wps.len(),
+    seeded.wps.len(),
+    "every seeded package is read: {answer}"
+  );
+  assert!(
+    seeded_wps.iter().all(|w| w["created"] == Value::Null),
+    "neither an ordinal package nor one whose origin this log never wrote has a day: {answer}"
+  );
+  assert!(
+    seeded_wps
+      .iter()
+      .any(|w| w["id"] == elsewhere.seq.stored().as_str()),
+    "the package from elsewhere is among them: {answer}"
   );
 }

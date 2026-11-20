@@ -318,7 +318,11 @@ fn id_names_the_record_each_spelling_names() {
     [
       format!("ambiguous token={number} kind=thread,issue candidates={st},{first}").as_str(),
       format!("unknown token={no_thread} kind=thread").as_str(),
-      "not-an-id token=banana -- `banana` is neither an address nor an artefact id -- remedy: name a thread (`ST0000`) or a full address (`intent:///threads/ST0000`)",
+      format!(
+        "not-an-id token=banana -- `banana` is neither an address nor an artefact id -- remedy: name a thread (`ST0000`) or a full address (`intent:///threads/ST0000`); a git-style id, or a prefix of one, has at least {} hex digits after its marker",
+        intentsvcs::id::MIN_PREFIX_HEX
+      )
+      .as_str(),
     ],
     "one line per token, its first word the answer:\n{out}{err}"
   );

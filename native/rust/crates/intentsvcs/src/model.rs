@@ -614,8 +614,11 @@ pub(crate) fn authored_section_from<'de, D: serde::Deserializer<'de>>(
 // Work package
 // ---------------------------------------------------------------------------
 
+// `complex`: the SDL adds `created`, the day a hashed package's origin event
+// was written, which the record does not store; `graphql.rs` resolves it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
+#[graphql(complex)]
 pub struct WorkPackage {
   // ST0095 WP-06: the canon key is `id`; the ordinal format (3.4.0's) calls it
   // `seq`, through `crate::canon_format`.

@@ -120,13 +120,15 @@ impl Route {
       // It waits for a child to exit, so a row that never exits blocks it. An
       // `exec` in a CHILD is fine -- the child's image is not this one.
       Route::Binary => &[Hazard::NeverReturns],
-      // It runs the row in THIS process, so all three properties are fatal
-      // here: this process must not be blocked, must not be replaced, and must
-      // not have its author's own machine acted on.
+      // It runs the row in THIS process, so all four properties are fatal
+      // here: this process must not be blocked, must not be replaced, must
+      // not have its author's own machine acted on, and must not read the
+      // stdin its own caller holds.
       Route::InProcess => &[
         Hazard::NeverReturns,
         Hazard::ReplacesTheImage,
         Hazard::ActsOnAmbientUserState,
+        Hazard::ReadsTheCallersStdin,
       ],
     }
   }
@@ -325,6 +327,21 @@ enum Hazard {
   /// per-user state rather than the fixture root* -- and the identifier had
   /// narrowed it to one mechanism.
   ActsOnAmbientUserState,
+  /// The row reads stdin to its end (issue 0734).
+  ///
+  /// **`via_binary` GIVES THE CHILD ITS OWN STDIN AND `via_library` CANNOT.**
+  /// The child reads `/dev/null` ([`testkit::lifeline_for`]), meets EOF and
+  /// answers. In process, the row reads THIS process's fd 0, which belongs to
+  /// whoever started the suite: EOF under `< /dev/null`, a refusal on a
+  /// terminal, and a read that never ends on a socket or a pipe whose writer
+  /// stays open, which is how a Claude Code background shell starts a gate.
+  /// So the two routes would not be answering one question, and the row is
+  /// excluded as the others are. **Not [`Self::NeverReturns`]**, because the
+  /// verb returns, and the hazard says which route it cannot run on. Not a
+  /// closed stdin for `via_library` either, for the reason the `mcp` row
+  /// gives: that is a process-global mutation in a process running every
+  /// other row.
+  ReadsTheCallersStdin,
 }
 
 /// What each row is known to do that a route may not survive.
@@ -464,6 +481,10 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   // whose termination depends on the caller's file descriptors has nothing a
   // route comparison can be about.
   ("mcp", &[Hazard::NeverReturns]),
+  // Issue 0734: the statusline reads its JSON on stdin to the end, so in
+  // process it waits on whatever stdin the suite was started with, and its
+  // answer depends on the caller's fd 0, which no route comparison is about.
+  ("estate statusline", &[Hazard::ReadsTheCallersStdin]),
 ];
 
 /// **ONE TEST FUNCTION, DELIBERATELY.**
