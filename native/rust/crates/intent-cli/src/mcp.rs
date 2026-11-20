@@ -919,10 +919,12 @@ fn tool_answer(
 
     // ----- acceptance criteria -----
     "ac list" => {
+      // The target whole, as the CLI hands it on, so a `/NN` target is refused
+      // here as it is there: this face used to drop the package half and
+      // answer for the whole thread (issue 0713).
       let target = spec(path, need_s(path, map, "stid")?)?;
-      let (st, _) = crate::render::scope_of(&target);
       let rows: Vec<Value> = f
-        .ac_list(&st)?
+        .ac_list(&target)?
         .iter()
         .map(|r| {
           json!({
@@ -991,10 +993,12 @@ fn tool_answer(
     "ac descope" => {
       let st = spec(path, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
-      let to = opt_s(path, map, "to")?.unwrap_or_default();
+      // Read as the CLI reads it (issue 0713).
+      let to = crate::render::descope_target(opt_s(path, map, "to")?.unwrap_or_default())
+        .map_err(|e| failure_args(path, &e))?;
       let by = opt_s(path, map, "by")?;
       let reason = opt_s(path, map, "reason")?;
-      Ok(outcome_json(&f.ac_descope(&st, id, to, by, reason)?, id))
+      Ok(outcome_json(&f.ac_descope(&st, id, &to, by, reason)?, id))
     }
     "ac withdraw" => {
       let st = spec(path, need_s(path, map, "stid")?)?;
@@ -1017,13 +1021,11 @@ fn tool_answer(
     // ----- acceptance tests -----
     "at list" => {
       let target = spec(path, need_s(path, map, "stid")?)?;
-      let (st, _) = crate::render::scope_of(&target);
-      Ok(json!({ "tests": val(path, f.at_list(&st)?)? }))
+      Ok(json!({ "tests": val(path, f.at_list(&target)?)? }))
     }
     "at lint" => {
       let target = spec(path, need_s(path, map, "stid")?)?;
-      let (st, _) = crate::render::scope_of(&target);
-      let report = f.at_lint(&st)?;
+      let report = f.at_lint(&target)?;
       // `rows` is the WALKED total and keeps its spelling; the machine surface
       // gains what the human one gained (0273), rather than being left as the
       // one reader still told that walked means examined.

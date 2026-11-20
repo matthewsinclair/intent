@@ -3500,7 +3500,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // to fix the refusal, not to keep re-checking the flag here:
       // `DescopeTargetRequired` now says a thread was not named, and clap
       // refuses an absent `--to` from the declared `required` before either.
-      let to = opt(a, "to")?.unwrap_or_default();
+      let to = descope_target(&opt(a, "to")?.unwrap_or_default())?;
       let by = arg(a, "by").ok();
       let reason = arg(a, "reason").ok();
       // **ONE OF THE TWO ARMS ISSUE 0050's ENUMERATION MISSED, and the reason is
@@ -9373,13 +9373,21 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
     // what makes it visible rather than a silently missing verb.
     Some((verb @ ("notdone" | "toggle"), a)) => {
       let spec = opt(a, "specifier")?.unwrap_or_default();
-      let target = if spec.is_empty() {
-        "the thread".to_string()
+      // The verb the remedy names is `scope_of`'s answer: `wp reopen` for a
+      // package, which `st reopen` refuses (issue 0713).
+      let reopen = if spec.is_empty() {
+        "`intent st reopen <thread> --reason \"<reason>\"` (or `intent wp reopen <thread>/<package> --reason \"<reason>\"`)".to_string()
       } else {
-        spec
+        match scope_of(&thread_spec(&spec)?) {
+          (st, Scope::Thread) => format!("`intent st reopen {st} --reason \"<reason>\"`"),
+          (st, Scope::WorkPackage(seq)) => format!(
+            "`intent wp reopen {} --reason \"<reason>\"`",
+            intentsvcs::id::wp_address(&st, seq)
+          ),
+        }
       };
       Err(format!(
-        "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run `intent st reopen {target} --reason \"<reason>\"` (or `intent wp reopen <spec> --reason \"<reason>\"`), which records the reason on the thread and in the event log"
+        "error: `todo {verb}` reopens finished work, and a reopen must record why it happened\n  remedy: run {reopen}, which records the reason on the record and in the event log"
       )
       .into())
     }
@@ -9412,11 +9420,16 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
       // `scope_of` already owns "is this a thread or a work package": `ac gate`
       // and `wp_target` both parse specifiers through it, and a second reading
       // of `ST0001/02` here is a second place for the answer to differ.
-      let outcome = match scope_of(&spec) {
-        (st, Scope::Thread) => f.st_done(&st).map_err(fail)?,
-        (st, Scope::WorkPackage(seq)) => f.wp_done(&st, seq).map_err(fail)?,
+      // The answer names what `scope_of` read, spelled as `st done` and `wp
+      // done` spell it, never the specifier as typed (issue 0713).
+      let (outcome, subject) = match scope_of(&thread_spec(&spec)?) {
+        (st, Scope::Thread) => (f.st_done(&st).map_err(fail)?, st),
+        (st, Scope::WorkPackage(seq)) => (
+          f.wp_done(&st, seq).map_err(fail)?,
+          intentsvcs::id::wp_address(&st, seq),
+        ),
       };
-      reported(&mut f, &outcome, &spec, "done");
+      reported(&mut f, &outcome, &subject, "done");
       Ok(())
     }
     (None, true) => {
@@ -16256,6 +16269,17 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   // separator and the package's part, passes through as written (nothing when
   // `raw` names no package), so this function spells no separator of its own.
   Ok(format!("{}{}", id.as_str(), &raw[head.len()..]))
+}
+
+/// `ac descope --to`, as both faces read it (issue 0713): through the one
+/// thread door, so `--to 59` is ST0059 as at every other door. A blank target,
+/// by the facade's own test, passes through as typed, so the facade's
+/// `DescopeTargetRequired` is what refuses it rather than this door's not-an-id.
+pub(crate) fn descope_target(raw: &str) -> Result<String, Failure> {
+  if raw.trim().is_empty() {
+    return Ok(raw.to_string());
+  }
+  thread_spec(raw)
 }
 
 /// A worked address, RENDERED from the grammar rather than typed.

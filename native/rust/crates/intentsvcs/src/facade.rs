@@ -2309,8 +2309,14 @@ pub enum FacadeError {
     recipient: String,
     anchor: String,
   },
-  /// A claim that is not a steel thread or work package address.
-  #[error("`{claim}` is not a steel thread or work package address")]
+  /// A claim that is not an address a board can claim.
+  ///
+  /// **THE LINE NAMES NO KIND, AND THE REMEDY NAMES THEM ALL** (issue 0710).
+  /// It said "a steel thread or work package address" after a board learned to
+  /// claim an issue too (hv decision 29), so it contradicted its own remedy,
+  /// which quotes [`crate::id::CLAIM_ADDRESS_FORMS`]. The forms have that one
+  /// home, and this line no longer restates them.
+  #[error("`{claim}` is not an address a board can claim")]
   WbClaimMalformed { claim: String },
   /// A kind this verb will not write, because another verb owns it.
   #[error("`{kind}` items are not written by this verb")]

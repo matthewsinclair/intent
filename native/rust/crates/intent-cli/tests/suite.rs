@@ -155,6 +155,8 @@ mod error_literal_shape;
 mod estate_surface;
 #[path = "events_are_queryable.rs"]
 mod events_are_queryable;
+#[path = "every_door_reads_an_id_through_the_waist.rs"]
+mod every_door_reads_an_id_through_the_waist;
 #[path = "every_face_says_what_level_three_knows.rs"]
 mod every_face_says_what_level_three_knows;
 #[path = "every_skill_has_a_live_caller.rs"]
