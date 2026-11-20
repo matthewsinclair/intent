@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 07:50Z
+heartbeat_at: 2026-11-20 08:31Z
 status: active
-focus: "2026-11-20 07:49Z by date -u: LOCALFOLDED for hv's estate-wide compact, not released. Since the last fold: issue 0711 landed (045086a17) and closed; the shared set rebuilt once at 1fd4d88b6; 0720 landed (26a752653) and closed; filed 0722, 0723, 0724. Open: the guard S, banked WIP at refs/bank/dc/st0095/wp03-readonly-wip1 (4e08bc5ac) and proved, waiting on critic-shell's report and then the proof to vc (DOING 167). Next after it: WP-14 with 0719 (todo 73), then 0718+0715+0722 as one unit (todo 74). Handoff refs/bank/dc/st0095/handoff-20261120b."
+focus: "2026-11-20 08:31Z by date -u: after hv's compact, on vc's go: ST0095 WP-14 with issue 0719 (DOING 171), worktree tmp/wt-st0095-wp14 at main's head 0901275bb, census of kind tags and path owners first, then the code, one gate run, critic-rust, the proof to vc. Next: 0718+0715+0722 as one unit (todo 74). Claims ST0095/03 (AC-03.3 only), ST0095/14, ISSUE:0719."
 claims: [ST0095/03, ST0095/14, ISSUE:0719]
 ---
 

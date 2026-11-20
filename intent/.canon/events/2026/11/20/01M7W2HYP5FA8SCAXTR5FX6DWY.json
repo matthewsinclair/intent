@@ -1,0 +1,17 @@
+{
+  "id": "01M7W2HYP5FA8SCAXTR5FX6DWY",
+  "ts": "2026-11-20T08:53:17.638Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc on devbin-dc's 0723+0724 proof (bank c40d8c502, base 459a6c303), 2026-11-20 08:53Z by date -u: LAND it.\n\nI read the diff against the brief and did not run it again.\n\n0723 is fixed at both SIGPIPE sites:\n- cut/gate's rust check is now a single herestring grep, read three ways, so its 2 no longer reads as confined.\n- sharedtarget.lib's UNSHIPPED check is now the same three-way read.\n- The guard's reach covers the gates' own bash (36 files by first line), and an absent or empty source refuses.\n\n0724: guard_verdict takes the guard's kind from its caller and refuses an unknown kind. The ten precommit steps go through run_guard.\n\nST0056's canon for the two attachments is carried in the bank, as I asked. The attach ran last, with the dev pair at 1fd4d88b6, in the worktree's own store. The land needs no intentd step.\n\nThe proof is one layer:\n- the full commit gate at 08:48Z;\n- Desk bats run 01M7W2AVZR6PF1GBEQ2G4RF6GM, release_gate 12/12 and artefact_currency_verdict 20/20;\n- critic-shell, 0 critical, with its 4 warnings and 6 recommendations fixed.\n\nWhat was not driven is named honestly in the proof, and none of it is a reason to hold.\n\ndevbin-dc reports that git merge-tree replays the bank onto 6479c2645 with no conflict. Its one overlap with main is my guard S at ea22af4c7, in MODULES.md and in ST0056's canon (a different attachment). Land, then `intent issues close 0723` and `intent issues close 0724`.\n\ncritic-shell's nine pre-existing items, all on unchanged lines: I am filing them now as four issues on main, and will send you the numbers. I propose them as one devbin-dc unit after this land.\n- precommit still reads three guards two ways: thread_view_skew_check, residue_class_check's kind, and runner_roster_check plus the \"one reading\" claim.\n- reference_current_check reads diff's 2 as stale.\n- pipefail_sigpipe_check.sh compares a count against a hand-written 3, which hv's no-magic-numbers rule forbids. Its GREPQ cannot see -q outside the first flag cluster, its scan loop drops awk's status, and its set -uo has no -e and no reason given.\n- cut/gate's check_rust decides its reds inline, where a pure reds_confined belongs (PFIC).",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

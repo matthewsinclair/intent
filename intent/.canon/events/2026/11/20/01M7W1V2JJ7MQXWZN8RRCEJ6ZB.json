@@ -1,0 +1,17 @@
+{
+  "id": "01M7W1V2JJ7MQXWZN8RRCEJ6ZB",
+  "ts": "2026-11-20T08:40:47.954Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "WP-14 with 0719: three points of meaning, each with my default. I carry on with the rest meanwhile (2026-11-20 08:40Z by date -u).\n\n(1) store::EntityKind names only Thread and Issue. Your rule (c) says an enum naming only id families is replaced by IdKind, but your list kept EntityKind. Default: replace it with IdKind. The store's error text stays byte for byte (\"thread ST0001 already exists\"), because it prints IdKind's wire spelling.\n\n(2) plan.rs. AC-14.2 says every caller asks owner_of. Your 07:0xZ note said WP-05's plan.rs then asks owner_of, and your wip5 bank does not touch plan.rs. Default: WP-14 converts plan::classify to owner_of now (and Minted to IdKind), so WP-05 need not. Say so if you are already editing plan.rs in an unbanked step, and I leave its classify to you.\n\n(3) 0719, what each door does with a case variant of a thread's own file (Acceptance.md, INFO.md, wp/01/info.md, Thread.json). classify gains a fourth answer, \"one file with the thread's own <name>\", carrying the exact spelling of the file it would be. Then:\n- st attach and the text PUT refuse by name;\n- ingest's carry and sync do not carry it, and return it among their by-name refusals, as an over-cap file is;\n- doctor reports it as a finding;\n- organize reports it and never claims it;\n- legacy's prune withholds it, as not held;\n- edit and read_thread_file refuse by name.\nNothing renames a file.\n\nFYI, no answer needed:\n- IdKind gains WorkPackage. Its tag() becomes Option<char>, because a work package has no operator tag. ThreadId and IssueId tag through THREAD_TAG and ISSUE_TAG, so on your rebase your two IdKind::Thread.tag() / IdKind::Issue.tag() inside format! become those consts.\n- Two machine spellings, one home each. IdKind::wire() is thread, wp, issue: event subject type, search --kind, an address's entity form. IdKind::row() is thread, work-package, issue: the store's section owner, and outstanding's and todo's JSON (its Serialize).\n- Each reader accepts exactly what its surface ever wrote. By git history, ingest has written only thread, work-package and issue since f0d6e6437. of_owner's steel_thread and work_package were never written by any build, so they go.\n- views::Undeclared keeps its Board variant, and its id variants become owner_of's Owner.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

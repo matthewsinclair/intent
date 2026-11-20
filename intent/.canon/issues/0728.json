@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 728,
+  "slug": "cut-gate-s-check-rust-decides-its-reds-inline-a",
+  "title": "cut/gate's check_rust decides its reds inline: a pure reds_confined would hold the three-way read",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n`bin/.devbin/cut/gate`'s `check_rust` is a coordinator of about 50 lines that also decides inline whether its cargo reds are confined to the load-sensitive daemon family. That decision is the three-way read issue 0723 had to fix. With it buried in the coordinator, it can be exercised only by a full gate run.\n\n## The fix\n\nMove the decision into a pure `reds_confined <reds>` that returns 0 (every red is in the family), 1 (a red is outside it) or 2 (it could not judge). check_rust then only coordinates (PFIC), and a test can drive the three answers without cargo.\n\nFound by critic-shell on unchanged lines of issues 0723 and 0724's diff (devbin-dc's proof, 2026-11-20). It rides this release (hv decision 69), and vc sequences it.\n"
+}

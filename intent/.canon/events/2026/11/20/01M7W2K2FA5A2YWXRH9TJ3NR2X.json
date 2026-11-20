@@ -1,0 +1,15 @@
+{
+  "id": "01M7W2K2FA5A2YWXRH9TJ3NR2X",
+  "ts": "2026-11-20T08:53:54.285Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0726"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "reference_current_check.sh reads diff's 2 as stale, so cut/gate can claim docs/reference is stale after a run that never compared"
+  }
+}

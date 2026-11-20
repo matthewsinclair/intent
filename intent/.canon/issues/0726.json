@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 726,
+  "slug": "reference-current-check-sh-reads-diff-s-2-as-sta",
+  "title": "reference_current_check.sh reads diff's 2 as stale, so cut/gate can claim docs/reference is stale after a run that never compared",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n`reference_current_check.sh` is cut/gate's reference gate, and gating. It folds `diff`'s exit 2 (trouble: a file it could not read, or a comparison that never ran) into its stale branch, and exits 1. So the gate can report that docs/reference does not describe the commit after a run that never compared anything. A finding is then claimed where no measurement was made.\n\n## The fix\n\nRead `diff`'s status three ways: 0 current, 1 stale (the finding), anything else no verdict, so the guard exits 2 with the cause named. guard_verdict then reports it as no verdict, not as a finding.\n\nFound by critic-shell on unchanged lines of issues 0723 and 0724's diff (devbin-dc's proof, 2026-11-20). It rides this release (hv decision 69), and vc sequences it.\n"
+}

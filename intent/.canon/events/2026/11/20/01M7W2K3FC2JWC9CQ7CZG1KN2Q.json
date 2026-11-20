@@ -1,0 +1,15 @@
+{
+  "id": "01M7W2K3FC2JWC9CQ7CZG1KN2Q",
+  "ts": "2026-11-20T08:53:55.312Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0727"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "pipefail_sigpipe_check.sh: a hand-written count, a -q it cannot see, an awk status it drops, and set -uo without a reason"
+  }
+}
