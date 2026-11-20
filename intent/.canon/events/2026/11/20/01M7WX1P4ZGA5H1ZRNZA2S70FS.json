@@ -1,0 +1,16 @@
+{
+  "id": "01M7WX1P4ZGA5H1ZRNZA2S70FS",
+  "ts": "2026-11-20T16:36:16.159Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705 (hv decisions 66, 70, 71 and 74): UNDER WAY since 2026-11-19. LANDED: WP-02 at c7e1cee74 (ic; the aggregate views leave git; 0707's doctor half; 0730 closed); WP-03's shell half of AC-03.1 at 1c45f817c (devbin-dc on dc's brief; the gate reads AT rows from canon; brew smoke keeps init's .gitignore; open on it: vc todo 94). 0707 stays open for cc's upgrade half; 0733 (dc, devbin-dc) is stale_at and absent_at's one canon reading. IN FLIGHT: cc's WP-01, realisation onto the record (bank refs/bank/cc/st0096/wp01-wip7-on-d663e3ea6; gate at 298d27f24 running; it carries the seven ST0095 AT markers and Machines 6 and 7 in ST0056's data-model.md). NEXT: cc's WP-05; dc's WP-04. FOR hv (vc's condition 3 on Machine 6): organize --default and --force set every record's realised from status, which is today's behaviour, kept and not written as an edge; vc recommends accepting it."
+  }
+}

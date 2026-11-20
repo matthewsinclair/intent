@@ -1,0 +1,16 @@
+{
+  "id": "01M7WX1QCPJ4S1V9SHS35JVY06",
+  "ts": "2026-11-20T16:36:17.430Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b), 0731 (fb3a501d1), ST0095 WP-12's guard half (1d3604937) and ST0096 WP-03's shell half (1c45f817c). NOW: issue 0733 on dc's brief. dc reads each proof; vc lands it."
+  }
+}

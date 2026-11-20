@@ -1,0 +1,15 @@
+{
+  "id": "01M7WX13A6VE49CQRXCEED1FQB",
+  "ts": "2026-11-20T16:35:56.870Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0096 WP-03's frozen-pair shape (dc's suggestion, 2026-11-20): once the gate's pair carries WP-02, drive the bare fresh clone with no view on disk through the commit gate again, with Desk run 1's control (01M7WW8B); landed at 1c45f817c, refused then only by e50978ce0's doctor. Also open on WP-03: the brew smoke on a real keg. Issue 0733 (dc, devbin-dc unit) is the shared canon reading for stale_at and absent_at."
+  }
+}
