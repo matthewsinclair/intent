@@ -57,6 +57,8 @@ mod a_due_backup_is_taken_by_whichever_door_asks;
 mod a_facade_catches_up_with_a_peers_commit;
 #[path = "a_fresh_clone_takes_its_boards.rs"]
 mod a_fresh_clone_takes_its_boards;
+#[path = "a_hashed_package_is_judged_by_its_own_criteria.rs"]
+mod a_hashed_package_is_judged_by_its_own_criteria;
 #[path = "a_message_id_from_the_old_shape_is_the_same_everywhere.rs"]
 mod a_message_id_from_the_old_shape_is_the_same_everywhere;
 #[path = "a_mutation_does_not_duplicate_the_prose_index.rs"]
@@ -444,6 +446,8 @@ mod realisation_is_recorded;
 mod realisation_lives_in_the_record;
 #[path = "record_timestamps.rs"]
 mod record_timestamps;
+#[path = "records_list_ordinals_by_number_then_hashed_records_by_creation.rs"]
+mod records_list_ordinals_by_number_then_hashed_records_by_creation;
 #[path = "refused_ingest_blocks_egest.rs"]
 mod refused_ingest_blocks_egest;
 #[path = "related_links.rs"]

@@ -1033,7 +1033,7 @@ fn issues(project: &Project, out: &mut Scan) {
       });
     }
   }
-  out.issues.sort_by_key(|i| i.number);
+  out.issues.sort_by(crate::id::record_order);
 }
 
 /// The one `.md` in an issue directory, if there is exactly one.
@@ -1537,6 +1537,9 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       body: carried_body,
     });
   }
+  // Walked in directory order; held in the one order (ST0095 WP-08), since
+  // `seq` may come from frontmatter that disagrees with the directory's name.
+  wps.sort_by(crate::id::record_order);
   wps
 }
 

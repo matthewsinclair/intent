@@ -500,10 +500,10 @@ impl ThreadId {
     Self::of(digest_front(origin, HASH_HEX))
   }
 
-  /// Whether this is a hashed id minted from `origin`, which doctor asks of a
-  /// record's `origin` field. An ordinal has no origin to answer to.
+  /// Whether this is a hashed id minted from `origin`: [`verify`], the one
+  /// check, which doctor asks. An ordinal has no origin to answer to.
   pub fn derives_from(&self, origin: &str) -> bool {
-    self.form.is_hashed() && Self::from_origin(origin) == *self
+    verify(self, Some(origin))
   }
 
   /// Whether this id is a hash rather than an ordinal.
@@ -597,7 +597,7 @@ impl WpId {
 
   /// Whether this is a hashed id minted from `origin`.
   pub fn derives_from(&self, origin: &str) -> bool {
-    self.0.is_hashed() && Self::from_origin(origin) == *self
+    verify(self, Some(origin))
   }
 
   /// Whether this id is a hash rather than an ordinal.
@@ -655,7 +655,7 @@ impl IssueId {
 
   /// Whether this is a hashed id minted from `origin`.
   pub fn derives_from(&self, origin: &str) -> bool {
-    self.0.is_hashed() && Self::from_origin(origin) == *self
+    verify(self, Some(origin))
   }
 
   /// Whether this id is a hash rather than an ordinal.
@@ -715,6 +715,11 @@ pub trait Mintable: Sized + PartialEq {
   fn minted_from(origin: &str) -> Self;
   /// The form a table prints, which the mint keeps apart.
   fn short(&self) -> String;
+  /// The whole stored spelling, which canon holds and a finding names.
+  fn whole(&self) -> String;
+  /// Whether this id is of the hashed family, which [`record_order`] asks of
+  /// every kind of record id through this one bound (ST0095 WP-08).
+  fn hashed(&self) -> bool;
 }
 
 impl Mintable for ThreadId {
@@ -724,6 +729,12 @@ impl Mintable for ThreadId {
   }
   fn short(&self) -> String {
     self.shown()
+  }
+  fn whole(&self) -> String {
+    self.stored()
+  }
+  fn hashed(&self) -> bool {
+    self.is_hashed()
   }
 }
 
@@ -735,6 +746,12 @@ impl Mintable for WpId {
   fn short(&self) -> String {
     self.shown()
   }
+  fn whole(&self) -> String {
+    self.stored()
+  }
+  fn hashed(&self) -> bool {
+    self.is_hashed()
+  }
 }
 
 impl Mintable for IssueId {
@@ -744,6 +761,12 @@ impl Mintable for IssueId {
   }
   fn short(&self) -> String {
     self.shown()
+  }
+  fn whole(&self) -> String {
+    self.stored()
+  }
+  fn hashed(&self) -> bool {
+    self.is_hashed()
   }
 }
 
@@ -784,6 +807,16 @@ impl crate::remedy::Remedy for MintError {
      in Intent, not in the project: report it with the command that met it"
       .to_string()
   }
+}
+
+/// **THE ONE CHECK OF A HASHED ID** (ST0095 design.md item 8, WP-09): whether
+/// `id` is the hash of `origin`, the creation event its record names, by the
+/// mint's own derivation ([`Mintable::minted_from`]), so no second hasher
+/// exists. A hashed id whose record names no origin does not verify. An
+/// ordinal has no origin to answer to, so it never does either: doctor asks
+/// only of a hashed id.
+pub fn verify<I: Mintable>(id: &I, origin: Option<&str>) -> bool {
+  id.hashed() && origin.is_some_and(|origin| I::minted_from(origin) == *id)
 }
 
 /// **THE ONE MINT** (ST0095 WP-06): a new record's id, and the creation event
@@ -1905,6 +1938,44 @@ pub fn id_order(a: &str, b: &str) -> Ordering {
 }
 
 // ---------------------------------------------------------------------------
+// The order of records: ordinals by number, then hashed records by creation.
+// ---------------------------------------------------------------------------
+
+/// A record a listing orders (ST0095 WP-08): its typed id and the `origin`, the
+/// creation event's ULID, it was minted from.
+pub trait Ordered {
+  type Id: Ord + Mintable;
+  fn order_id(&self) -> &Self::Id;
+  fn order_origin(&self) -> Option<&str>;
+}
+
+/// **THE ONE ORDER FOR A LISTING OF RECORDS** (ST0095 WP-08, design.md
+/// "Order"): ordinals first, by number; then hashed records, by creation, which
+/// is their `origin` read as text, since a ULID's front is its 48-bit
+/// millisecond time. A hashed record with no `origin`, which the mint never
+/// makes, sorts after every one that has one, by its id, and doctor names it
+/// (WP-09); it is never dropped or refused here.
+///
+/// **ASCENDING ONLY** (cc's rider, 2026-11-20). A listing that runs newest first
+/// reverses this at its own site and never asks a second comparator. In an
+/// upgraded project every hashed record is newer than every ordinal, so the
+/// reversed order is still newest first.
+pub fn record_order<R: Ordered>(a: &R, b: &R) -> Ordering {
+  let (x, y) = (a.order_id(), b.order_id());
+  match (x.hashed(), y.hashed()) {
+    (false, false) => x.cmp(y),
+    (false, true) => Ordering::Less,
+    (true, false) => Ordering::Greater,
+    (true, true) => match (a.order_origin(), b.order_origin()) {
+      (Some(p), Some(q)) => p.cmp(q).then_with(|| x.cmp(y)),
+      (Some(_), None) => Ordering::Less,
+      (None, Some(_)) => Ordering::Greater,
+      (None, None) => x.cmp(y),
+    },
+  }
+}
+
+// ---------------------------------------------------------------------------
 // The faces: canon (serde), the published JSON Schema, the store and GraphQL.
 //
 // **EACH ENCODES THE REPRESENTATION ABOVE, SO EACH LIVES HERE.** In canon every
@@ -2578,5 +2649,91 @@ mod tests {
       format!("AC-{}.3", wp.stored())
     );
     assert_eq!(regrouped("AC", wp), "AC", "a label with no group is left");
+  }
+
+  /// A record for [`record_order`]: a thread id and the origin it was minted
+  /// from, or none.
+  struct Rec(ThreadId, Option<&'static str>);
+
+  impl Ordered for Rec {
+    type Id = ThreadId;
+    fn order_id(&self) -> &ThreadId {
+      &self.0
+    }
+    fn order_origin(&self) -> Option<&str> {
+      self.1
+    }
+  }
+
+  /// AT-08.1 (ST0095 AC-08.1): ordinals by number, then hashed records by
+  /// creation, then a hashed record with no origin. The two hashed records are
+  /// chosen so their hashes run against their creation, so an order by hash
+  /// fails here. A descending listing reverses this at its own site.
+  #[test]
+  fn records_order_ordinals_by_number_then_hashed_records_by_creation() {
+    const ORIGINS: [&str; 4] = [
+      "01M7SQ544Q2FK5BNMYAMXV3Z4Z",
+      "01M7SQ544Q2FK5BNMYAMXV3Z50",
+      "01M7SQ544Q2FK5BNMYAMXV3Z51",
+      "01M7SQ544Q2FK5BNMYAMXV3Z52",
+    ];
+    let (early, late) = ORIGINS
+      .iter()
+      .zip(ORIGINS.iter().skip(1))
+      .map(|(e, l)| (*e, *l))
+      .find(|(e, l)| ThreadId::from_origin(e) > ThreadId::from_origin(l))
+      .expect("two origins whose hashes run against their creation");
+    let unborn = ORIGINS
+      .iter()
+      .copied()
+      .find(|o| *o != early && *o != late)
+      .expect("a third origin");
+    let ordinal = |n| ThreadId::from_ordinal(n).expect("an ordinal");
+    let expected = vec![
+      ordinal(2),
+      ordinal(10),
+      ThreadId::from_origin(early),
+      ThreadId::from_origin(late),
+      ThreadId::from_origin(unborn),
+    ];
+    let mut records = [
+      Rec(ThreadId::from_origin(unborn), None),
+      Rec(ThreadId::from_origin(late), Some(late)),
+      Rec(ordinal(10), None),
+      Rec(ThreadId::from_origin(early), Some(early)),
+      Rec(ordinal(2), None),
+    ];
+    records.sort_by(record_order);
+    let ascending: Vec<ThreadId> = records.iter().map(|r| r.0.clone()).collect();
+    assert_eq!(
+      ascending, expected,
+      "ordinals by number, hashed records by creation, one with no origin last"
+    );
+  }
+
+  /// AT-08.2 (ST0095 AC-08.2): for a project that holds only ordinals, the one
+  /// order is the order its ids had before WP-08, by number, origin or none, so
+  /// every listing and every view built from one renders as it did.
+  #[test]
+  fn ordinals_alone_keep_the_order_their_numbers_gave() {
+    let numbers = [1_u32, 2, 9, 10, 59, 100, 9999];
+    let origins = [None, Some("01M7SQ544Q2FK5BNMYAMXV3Z4Z")];
+    for (a, b) in numbers
+      .iter()
+      .flat_map(|a| numbers.iter().map(move |b| (*a, *b)))
+    {
+      for (oa, ob) in origins
+        .iter()
+        .flat_map(|x| origins.iter().map(move |y| (*x, *y)))
+      {
+        let x = Rec(ThreadId::from_ordinal(a).expect("an ordinal"), oa);
+        let y = Rec(ThreadId::from_ordinal(b).expect("an ordinal"), ob);
+        assert_eq!(
+          record_order(&x, &y),
+          a.cmp(&b),
+          "ordinals {a} and {b} order by number, whatever origin they carry"
+        );
+      }
+    }
   }
 }

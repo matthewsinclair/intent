@@ -54,6 +54,16 @@ pub enum FindingClass {
   UnknownFileShape,
   /// Two artefacts claiming one natural id (the 0011 class).
   DuplicateId,
+  /// A hashed id that is not the hash of its record's `origin`, or whose record
+  /// names no origin (ST0095 WP-09, AC-09.2): asked through `id::verify`, the
+  /// design's one check. Counted: an id that does not answer to the event that
+  /// made it was written or edited by hand.
+  IdNotFromOrigin,
+  /// Two records of one kind whose short forms are equal (ST0095 WP-09,
+  /// AC-09.3): two threads, two issues, or two packages of one thread. Each id
+  /// is whole in canon, so nothing is wrong; a door handed that short form
+  /// names both and asks for more. Advisory, never counted.
+  ShortFormShared,
   /// A file in a thread's directory that a disk folding case (macOS's
   /// default) stores as the thread's own file, spelled otherwise:
   /// `Acceptance.md` beside the generated `acceptance.md` (issue 0719). No door
@@ -704,6 +714,16 @@ impl FindingClass {
         "duplicate-id",
         "two artefacts claim one id; rename or remove one of them",
       ),
+      Self::IdNotFromOrigin => (
+        5,
+        "id-not-from-origin",
+        "restore the record from git as it was when its id and origin last agreed: an id is the hash of the event that made its record, and nothing re-derives it, since other records and commits name it",
+      ),
+      Self::ShortFormShared => (
+        11,
+        "short-form-shared",
+        "nothing to do: each id is whole in canon, and a door handed this short form names both records and asks for more of the id",
+      ),
       Self::CaseVariant => (
         5,
         "case-variant",
@@ -1122,6 +1142,7 @@ impl FindingClass {
     !matches!(
       self,
       Self::Advisory
+        | Self::ShortFormShared
         | Self::FieldNotRecorded
         | Self::ModelledNotBuilt
         | Self::StaleRender

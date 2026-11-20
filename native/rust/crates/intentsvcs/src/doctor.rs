@@ -779,6 +779,9 @@ fn examine(
   // check that does not run looks the same as one that found nothing.
   status_gate_disagreement(&canon, project, &mut report);
   closed_contract_drift(&canon, project, &mut report);
+  // The id checks that span records (ST0095 WP-09) read canon only, for the
+  // reason above.
+  id_family_findings(&canon, project, &mut report);
   db_checks(&canon, project, access, &mut report.findings);
   event_checks(project, access, &mut report.findings);
   // **THE FILE INDEX IS READ BEFORE THE VIEWS** (issue 0630), so a view a
@@ -1212,10 +1215,13 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   for (kind, ids) in [
     (
       "work package",
+      // The WHOLE id, never `heading()`'s short form (ST0095 WP-09): two
+      // packages that share a short form are two packages, named as an
+      // advisory below, not one declared twice.
       thread
         .wps
         .iter()
-        .map(|w| w.seq.heading())
+        .map(|w| w.seq.stored())
         .collect::<Vec<_>>(),
     ),
     (
@@ -1241,6 +1247,28 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
         seen.push(id);
       }
     }
+  }
+
+  // **A HASHED ID ANSWERS TO THE EVENT THAT MADE IT** (ST0095 WP-09, AC-09.2),
+  // through `id::verify`, the design's one check: the thread's own id and each
+  // of its packages'. And two of its packages whose short forms are equal are
+  // named, advisory (AC-09.3); a package pair is compared only within its thread.
+  if let Some(detail) = unverified("steel thread", &thread.id, thread.origin.as_deref()) {
+    add(detail, FindingClass::IdNotFromOrigin);
+  }
+  for wp in &thread.wps {
+    if let Some(detail) = unverified("work package", &wp.seq, wp.origin.as_deref()) {
+      add(
+        format!("{} in {}", detail, thread.id.shown()),
+        FindingClass::IdNotFromOrigin,
+      );
+    }
+  }
+  for (detail, _) in shared_short_forms("work packages", thread.wps.iter().map(|wp| &wp.seq)) {
+    add(
+      format!("{detail}, in {}", thread.id.shown()),
+      FindingClass::ShortFormShared,
+    );
   }
 
   // An acceptance test covering a criterion that does not exist. This is the
@@ -2340,6 +2368,94 @@ fn attachment_drift(
         ),
       ));
     }
+  }
+}
+
+/// What doctor says of a hashed id that does not answer to its origin (ST0095
+/// WP-09, AC-09.2), or nothing: `id::verify` is the one check, and an ordinal
+/// has no origin to answer to.
+fn unverified<I: crate::id::Mintable>(kind: &str, id: &I, origin: Option<&str>) -> Option<String> {
+  match (id.hashed() && !crate::id::verify(id, origin), origin) {
+    (false, _) => None,
+    (true, Some(origin)) => Some(format!(
+      "{kind} {} is not the hash of its origin `{origin}`",
+      id.whole()
+    )),
+    (true, None) => Some(format!(
+      "{kind} {} is hashed and names no origin to answer to",
+      id.whole()
+    )),
+  }
+}
+
+/// Every short form two or more hashed records of one kind share (ST0095 WP-09,
+/// AC-09.3), as one line each naming the whole ids. Ordinals are never
+/// shortened, so they never share one.
+fn shared_short_forms<'a, I: crate::id::Mintable + 'a>(
+  kind: &str,
+  ids: impl Iterator<Item = &'a I>,
+) -> Vec<(String, Vec<String>)> {
+  let mut by_short: std::collections::BTreeMap<String, Vec<String>> =
+    std::collections::BTreeMap::new();
+  for id in ids.filter(|id| id.hashed()) {
+    by_short.entry(id.short()).or_default().push(id.whole());
+  }
+  by_short
+    .into_iter()
+    .filter(|(_, whole)| whole.len() > 1)
+    .map(|(short, whole)| {
+      let detail = format!(
+        "{} {kind} share the short form {short}: {}",
+        whole.len(),
+        whole.join(", ")
+      );
+      (detail, whole)
+    })
+    .collect()
+}
+
+/// The id checks that span records (ST0095 WP-09): each issue's id against its
+/// origin, and the short forms threads share and issues share. A thread's own
+/// id and its packages are `model_checks`', under the run's scope.
+fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
+  for issue in &canon.issues {
+    if let Some(detail) = unverified("issue", &issue.number, issue.origin.as_deref()) {
+      report.findings.push(Finding::new(
+        project.relative(&project.issue_json(issue.number)),
+        FindingClass::IdNotFromOrigin,
+        detail,
+      ));
+    }
+  }
+  // **A THREAD PAIR IS ADMITTED BY THE RUN'S SCOPE, AS EVERY THREAD CHECK IS**:
+  // named when any member is in scope, since a door's resolver meets a closed
+  // thread too, and counted out of scope when none is.
+  for (detail, whole) in shared_short_forms("steel threads", canon.threads.iter().map(|t| &t.id)) {
+    let members: Vec<&Thread> = canon
+      .threads
+      .iter()
+      .filter(|t| whole.contains(&t.id.stored()))
+      .collect();
+    let Some(admitting) = members
+      .iter()
+      .find(|t| report.scope.admits(t.status))
+      .or(members.first())
+    else {
+      continue;
+    };
+    let finding = Finding::new(
+      project.relative(&project.st_dir()),
+      FindingClass::ShortFormShared,
+      detail,
+    );
+    report.admit(admitting, vec![finding]);
+  }
+  for (detail, _) in shared_short_forms("issues", canon.issues.iter().map(|i| &i.number)) {
+    report.findings.push(Finding::new(
+      project.relative(&project.issues_view_dir()),
+      FindingClass::ShortFormShared,
+      detail,
+    ));
   }
 }
 

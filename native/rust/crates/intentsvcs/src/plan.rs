@@ -609,7 +609,7 @@ pub fn packages_both_sides_added(
       }
     }
   }
-  merged.wps.sort_by_key(|wp| wp.seq);
+  merged.wps.sort_by(crate::id::record_order);
   Some(PackagesBothSidesAdded { merged, moves })
 }
 

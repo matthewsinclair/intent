@@ -5449,6 +5449,10 @@ impl Store {
         context: crate::model::authored_section(&context),
       });
     }
+    // **IN THE ONE ORDER, NOT SQL'S** (ST0095 WP-08): `ORDER BY id` keeps the
+    // read deterministic and `id::record_order` orders it, ordinals by number
+    // and hashed records by creation.
+    threads.sort_by(crate::id::record_order);
     Ok(threads)
   }
 
@@ -5514,6 +5518,11 @@ impl Store {
         },
       )
       .collect::<Result<Vec<_>, StoreError>>()
+      // **IN THE ONE ORDER, NOT SQL'S** (ST0095 WP-08), as threads are.
+      .map(|mut issues| {
+        issues.sort_by(crate::id::record_order);
+        issues
+      })
   }
   /// One thread's attachments, in the order they were written.
   ///
@@ -5616,8 +5625,10 @@ impl Store {
       // compares the stored text, which for a git-style id is not the order
       // [`crate::id::WpId`] gives, and a thread read back in another order than
       // the one its writer holds is a record that moved under the write.
+      // WP-08 orders hashed packages by creation, their `origin`, through
+      // `id::record_order`, the one order every listing asks.
       .map(|mut wps| {
-        wps.sort_by_key(|wp| wp.seq);
+        wps.sort_by(crate::id::record_order);
         wps
       })
   }

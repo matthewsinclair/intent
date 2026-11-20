@@ -2816,6 +2816,38 @@ pub enum WbMessageState {
   Handled,
 }
 
+// **WHAT A LISTING ORDERS A RECORD BY** (ST0095 WP-08): its typed id and the
+// origin it was minted from, read through `id::record_order`, the one order.
+impl crate::id::Ordered for Thread {
+  type Id = ThreadId;
+  fn order_id(&self) -> &ThreadId {
+    &self.id
+  }
+  fn order_origin(&self) -> Option<&str> {
+    self.origin.as_deref()
+  }
+}
+
+impl crate::id::Ordered for WorkPackage {
+  type Id = WpId;
+  fn order_id(&self) -> &WpId {
+    &self.seq
+  }
+  fn order_origin(&self) -> Option<&str> {
+    self.origin.as_deref()
+  }
+}
+
+impl crate::id::Ordered for Issue {
+  type Id = IssueId;
+  fn order_id(&self) -> &IssueId {
+    &self.number
+  }
+  fn order_origin(&self) -> Option<&str> {
+    self.origin.as_deref()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   /// **NESTED IN THIS MODULE, NOT A SECOND TEST MODULE** (issue 0535). A

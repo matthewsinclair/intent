@@ -202,7 +202,12 @@ impl From<Refusal> for IngestError {
 /// `legacy.rs` has already established the file exists.
 pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
   let rel = project.relative(&project.thread_json(id));
-  let thread = decode_thread(&rel, parse_json(&rel, text)?)?;
+  let mut thread = decode_thread(&rel, parse_json(&rel, text)?)?;
+  // **IN THE ONE ORDER AT THE DISK BOUNDARY** (ST0095 WP-08): a thread file's
+  // packages may be in any order (one written before WP-08 holds hashed ones
+  // by hash), and the store reads them back in `id::record_order`, so a thread
+  // taken from disk holds them in that order too and nothing moves under it.
+  thread.wps.sort_by(crate::id::record_order);
   if thread.id != id {
     return Err(vec![Finding::new(
       &rel,
@@ -423,6 +428,11 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
       Err(mut found) => findings.append(&mut found),
     }
   }
+
+  // The directory walk is in id text order; the records are in the one order
+  // (ST0095 WP-08), as every listing is.
+  canon.threads.sort_by(crate::id::record_order);
+  canon.issues.sort_by(crate::id::record_order);
 
   let on_disk = boards_on_disk(project)?;
   canon.boards = on_disk.boards;
@@ -1141,7 +1151,7 @@ fn compose_scoped(
     .filter(|t| !scoped(&t.id))
     .collect();
   threads.extend(disk.threads.into_iter().filter(|t| scoped(&t.id)));
-  threads.sort_by(|a, b| a.id.cmp(&b.id));
+  threads.sort_by(crate::id::record_order);
 
   // **THE READ-BACK KEEPS ONLY THE CANON HALF** (issue 0605). The store's file
   // and whiteboard sections are not this restore's to write: the canon writer
@@ -1262,6 +1272,9 @@ fn decide_estate(
     };
     threads.extend(chosen.cloned());
   }
+  // **IN THE ONE ORDER** (ST0095 WP-08): the ids above are walked sorted to
+  // dedup them, and the records they chose are ordered as every listing is.
+  threads.sort_by(crate::id::record_order);
 
   // Issues are not threads, so a thread scope names none of them and every
   // issue keeps the store's value under one.
@@ -1286,6 +1299,8 @@ fn decide_estate(
     };
     issues.extend(chosen.cloned());
   }
+  // In the one order, as the threads are above.
+  issues.sort_by(crate::id::record_order);
   (threads, issues)
 }
 

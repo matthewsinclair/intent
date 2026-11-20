@@ -61,8 +61,9 @@ pub fn thread(canon: &Canon, old: &ThreadId, new: &ThreadId) -> Option<Renumbere
       }
     }
   }
-  // Every other door hands the renderers the model in id order, so this does.
-  next.threads.sort_by(|a, b| a.id.cmp(&b.id));
+  // Every other door hands the renderers the model in the one record order
+  // (ST0095 WP-08), so this does.
+  next.threads.sort_by(crate::id::record_order);
   let claims = moved_claims(&canon.boards, &old.stored(), &new.stored(), &mut rewritten);
   Some(Renumbered {
     canon: next,
@@ -97,7 +98,7 @@ pub fn issue(canon: &Canon, old: IssueId, new: IssueId) -> Option<Renumbered> {
       issue.number = new;
     }
   }
-  next.issues.sort_by_key(|i| i.number);
+  next.issues.sort_by(crate::id::record_order);
   // **THROUGH THE WAIST.S OWN FORM, NEVER A `format!` OF THE CLAIM HERE.** The
   // width and the prefix are one fact each, owned by `crate::id`; a second
   // spelling of either in this file agrees until one of them moves.

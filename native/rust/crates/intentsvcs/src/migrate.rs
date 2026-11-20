@@ -474,6 +474,10 @@ pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, 
   let (extra_issues, extra_numbers) = orphaned_issues(project, &seen_issues)?;
   let mut issues = issues;
   issues.extend(extra_issues);
+  // The unions append; a re-run on a v3 project may carry hashed records, so
+  // both are held in the one order (ST0095 WP-08).
+  threads.sort_by(crate::id::record_order);
+  issues.sort_by(crate::id::record_order);
 
   let mut plan = assemble(project, ctx, threads, issues, carried)?;
   // **They ARE already migrated, so the report says so rather than counting

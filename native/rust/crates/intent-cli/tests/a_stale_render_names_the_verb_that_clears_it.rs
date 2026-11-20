@@ -83,9 +83,21 @@ fn three_issues(root: &Path) -> Vec<String> {
 fn realised_stale_views_are_one_line_naming_the_verb_that_re_renders_them() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
-  three_issues(root);
+  let raised = three_issues(root);
   let names = age_the_issue_views(root);
   assert_eq!(names.len(), 3, "three realised issue views: {names:?}");
+  // **IN THE ONE RECORD ORDER** (ST0095 WP-08): hashed issues list by
+  // creation, so the views are named in the order the issues were raised.
+  let names: Vec<String> = raised
+    .iter()
+    .map(|id| {
+      names
+        .iter()
+        .find(|name| name.contains(id.as_str()))
+        .unwrap_or_else(|| panic!("a view for {id}: {names:?}"))
+        .clone()
+    })
+    .collect();
 
   let (line, command) = the_issue_line(root);
   assert!(

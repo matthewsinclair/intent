@@ -5927,14 +5927,14 @@ impl Facade {
     views::index_order(&self.canon.threads)
   }
 
-  /// Every issue, in number order.
+  /// Every issue, in the one record order (ST0095 WP-08).
   ///
   /// **Ordered here rather than at the call site**, so the terminal table, the
   /// generated view and any later consumer agree without each sorting -- which
   /// is the shape `views::index_order` already holds for threads.
   pub fn issue_list(&self) -> Vec<&crate::model::Issue> {
     let mut out: Vec<&crate::model::Issue> = self.canon.issues.iter().collect();
-    out.sort_by_key(|i| i.number);
+    out.sort_by(|a, b| crate::id::record_order(*a, *b));
     out
   }
 
@@ -16425,6 +16425,9 @@ impl Facade {
     };
     let mut next = self.canon.clone();
     next.threads.push(thread);
+    // In the one order, as the store reads it back (ST0095 WP-08): a peer's
+    // origin may be newer than this mint's, so appending is not enough.
+    next.threads.sort_by(crate::id::record_order);
     let created = self.creation_event(
       origin,
       op,
@@ -17727,7 +17730,7 @@ impl Facade {
     });
     // In the waist's order, as the store reads a thread's packages back, so the
     // record this write holds is the one the next write compares against.
-    holder.wps.sort_by_key(|wp| wp.seq);
+    holder.wps.sort_by(crate::id::record_order);
     let created = self.creation_event(
       origin,
       op,
@@ -21013,6 +21016,8 @@ impl Facade {
     self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
+    // In the one order, as threads are above (ST0095 WP-08).
+    next.issues.sort_by(crate::id::record_order);
     self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
     let created = self.creation_event(
       origin,
