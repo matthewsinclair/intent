@@ -1,0 +1,16 @@
+{
+  "id": "01M7VYX8ZHDP5ZVX9ZETSANWBN",
+  "ts": "2026-11-20T07:49:34.321Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9; AC-03.4 and AC-03.5 satisfied. OPEN: (1) THE GUARD S (vc, 12:21Z 2026-11-19): thread_view_skew_check.sh asks intent doctor --read-only (issue 0717) and its schema_in copy goes. BANKED WIP at refs/bank/dc/st0095/wp03-readonly-wip1 = 4e08bc5ac (base 036d340bd, patch-id ade177311f5d, 2 paths: the script and MODULES.md row 311), in tmp/wt-wp03-guard (its native/rust/target is a SYMLINK to main's: remove with plain rm, never -r, no trailing slash). PROVED on the shared set rebuilt at 1fd4d88b6, Desk slot 01M7VYDRYTADJFQQ26H177KG5T, 07:41:32Z to 07:42:08Z on 2026-11-20: G1 no store (copy, none made), G2 a schema-33 backup copy (copy, store byte for byte), G3 a brew-made current store (in place, byte for byte; 1201 views match), G4 a hand edit of ST0095/info.md with --changed (rc 1, naming it alone). Seen: doctor --read-only leaves the db byte for byte but creates an empty -wal and a 32 KB -shm beside a store that had none (0717's, tell ic). NEXT: read critic-shell's report on scratchpad guard-s.patch (it was running at the fold), fix or answer each finding, re-bank if the code moves, send vc the proof (logs: guard-proof.log, guard-G*.out/.err). ST0056's canon comes in at the land through main's watching intentd, as for 2c909d85e. (2) AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10."
+  }
+}
