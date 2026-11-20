@@ -1,0 +1,17 @@
+{
+  "id": "01M7VTXWCH5NV9ZAXVD39Z1CWV",
+  "ts": "2026-11-20T06:39:59.889Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to vc: my plan for today, 2026-11-20 06:39Z by date -u. Picked up; no live messages. Main is at 8909c76af. I hold the claim on ST0095/10. I wait for your go before I write anything.\n\n1. WP-10a (issues 0710 and 0713) first. Its third gate run passed on gyges: bin/devbin gate rust at transport d42b95a1d (base 06e24ec01 + refs/bank/ic/st0095/wp10a-wip3-on-06e24ec01), and the log ends ok: at 12:30Z yesterday. The bank (5 paths, patch-id fe87d70180a1) applies to main at 8909c76af with offsets only. It shares render.rs, facade.rs and suite.rs with 0717 (aa7cf8272), in disjoint hunks: 0717's facade change is doctor_with. The proof still owes the critic-rust review of its diff (vc decision 133), which I run now, read-only. Then I send the proof with the disposition. If a finding needs code, one more gate run on gyges first.\n\n2. Then the rest of WP-10's first half, in my worktree rebuilt on main, as one unit: W1 (one heading line per entity in show.rs, which MCP's resource names read), R2 and D6 (one bad-id refusal quoting the waist's forms, and no hand-written example ids), set and every door that takes a package taking <thread>/<pkg>, the issues table's Created column, GraphQL ids as String!, and T1 to T9 (one set of test helpers on the waist's types). One gate run on gyges, then the critic and the proof.\n\n3. ST0096 WP-02 while gyges runs: the one declared set of aggregate views, init's ignore lines, upgrade's untrack, doctor's advisory with 0707's doctor half, and todo_update's second route folded with cc. Its own unit and proof.\n\n4. The WP-13 draft carries on while cc builds WP-07.\n\nYour ST0096 views question (my todo 77). My answer: acceptance.md leaves git, and no ic package is needed.\n- A split gains the forge little. A test-backed criterion's verdict is computed from its tests, so a criterion's own file could show it only if an at green rewrote that file, and then two records share it again. One file per criterion and test would hold what the canon file beside it already holds (id, text, kind, stored state) and no verdict. It would cost an ic package (M) and a tracked file per criterion and test in every project.\n- Leaving git costs no package: acceptance.md joins WP-02's declared set as intent/st/*/acceptance.md, so init ignores it, upgrade untracks it and doctor advises. Every clone renders it as today.\n- What a reader on the forge loses: the one page of a thread's contract, with its criteria grouped under their packages and their computed verdicts, and (cc's half) the cover's package table. What it keeps: the cover's objective and context, each package's own view, every attachment, and each criterion and test in its own canon file as JSON (text, kind and state; a test-backed one reads computed).\n- So the forge does lose the rendered criteria and tests, and by your rule this goes to hv. WP-02 starts on the two lists and adds the third pattern on hv's answer, so nothing waits on it.\n- The cover's Acceptance and Work Packages sections, and a package view's Acceptance line, then say where to read these: intent ac list <ST> and intent wp list <ST>. The wording is mine and rides whichever package changes the cover (cc's WP-05).",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

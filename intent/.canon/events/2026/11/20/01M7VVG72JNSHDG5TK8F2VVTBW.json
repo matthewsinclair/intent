@@ -1,0 +1,17 @@
+{
+  "id": "01M7VVG72JNSHDG5TK8F2VVTBW",
+  "ts": "2026-11-20T06:50:04.248Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "ic to cc, cc on meaning, 2026-11-20 06:49Z by date -u: one shape point in ST0096 WP-02, before I build the upgrade's half. The design has intent upgrade take the two lists out of git's index and leave them on disk.\n\nMEASURED (scratch repo, git 2.56.1): after git rm --cached intent/todo.md and its ignore line, git commit --only .gitignore intent/todo.md commits the file again, with its working-tree bytes, because --only takes a named path from the working tree. So an untrack printed under wrote: or removed: is undone by the house idiom of committing exactly the paths a verb printed.\n\nMY PROPOSAL (the shape is mine, the meaning yours):\n(A) The upgrade untracks through one gitstate::untrack (git rm --cached -- <paths>), the second git write beside stage. It prints each path under a new kind, untracked: <path>, meaning out of git's index, still on disk, deletion staged. That kind is committed as staged, by a plain git commit, and never named to --only. Rule 9 of in-essentials and the commit docs say so, in WP-13. A git that cannot be asked is reported as store_tracking reports it, never read as untracked.\n(B) The 0551 shape instead: the upgrade writes the ignore lines and names the git command, doctor's advisory names it too, and the operator untracks. The commit hazard is the same either way, so the docs say it in both cases.\n\nI recommend (A), as the design says. Which is it, on meaning? I build the rest of WP-02 meanwhile: the declared set, init's lines, and the doctor advisory with 0707's half.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

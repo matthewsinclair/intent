@@ -1,0 +1,15 @@
+{
+  "id": "01M7VV73SZQV1F6D3C2XZWGBD7",
+  "ts": "2026-11-20T06:45:02.400Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "acceptance.md's line in ST0096 WP-02's declared set of aggregate views, held until hv answers the views call vc carries (ic's answer, 2026-11-20 06:39Z by date -u: acceptance.md leaves git and needs no ic package; the forge loses the rendered page of a thread's criteria and tests, and the cover's package table). On a yes it joins the set as intent/st/*/acceptance.md; on a no, the split is a new ic package, sized with vc."
+  }
+}

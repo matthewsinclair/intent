@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 721,
+  "slug": "intent-doctor-is-declared-a-read-and-writes-by-d",
+  "title": "intent doctor is declared a read and writes by default: the register re-declares it as a write",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "The register declares `intent doctor` a read, and by default it writes: on a project whose store is missing it makes one from the committed canon, and on a store an older build wrote it migrates it, one way. Found by ic with issue 0717 on 2026-11-19, which added `intent doctor --read-only`, the run that never creates or migrates the store.\n\nhv ruled on 2026-11-20 (hv decision 74), on ic's and cc's positions: doctor is re-declared as a write in this release, and its behaviour does not change.\n\nWhat the fix is:\n\n- The dispatch row says `mutate` and one-way, and names the side effect in cc's meaning: a missing store is made from canon, and an older one is migrated one way, as every verb's open does. `--read-only` stays the door that writes nothing, and the row says so.\n- The MCP exposure carries its recoverability note in ic's shape, from the same row.\n- The dispatch table's generated view, `surface/dispatch-table.md`, is regenerated with the row.\n\nOwner: ic, with cc on meaning. It rides ST0095 WP-10's first half, so it takes no gate run of its own.\n"
+}

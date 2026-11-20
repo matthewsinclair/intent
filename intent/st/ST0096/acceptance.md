@@ -24,7 +24,7 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: no (computed)
 - AC-01.3 (non-test) The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704. -- evidence: intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc -- satisfied: yes
 
-### WP-02 -- The two lists leave git (status: Not Started)
+### WP-02 -- The two lists leave git (status: WIP)
 
 - AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md and intent/todo.md on disk and out of git, and the verbs and intent sync keep both current. -- satisfied: no (computed)
 - AC-02.2 doctor names a project whose two lists are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
@@ -48,7 +48,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-02 -- The two lists leave git (status: Not Started)
+### WP-02 -- The two lists leave git (status: WIP)
 
 _(no tests in this group)_
 

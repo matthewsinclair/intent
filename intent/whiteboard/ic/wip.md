@@ -2,25 +2,24 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 4f59735c-87bd-45dd-a9cb-9bd049143da4
-heartbeat_at: 2026-11-19 12:25Z
+session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
+heartbeat_at: 2026-11-20 06:33Z
 status: active
 focus: "2026-11-19 12:25Z by date -u: localfold before hv's 13:00Z lid, not released. Since 4a831efa7: 0717 landed (aa7cf8272) and closed, its worktree removed; WP-10a banked (wp10a-wip3), its third gate run going at d42b95a1d, proof to vc after the compact; vc's ST0096 views call and doctor's default for hv are TODO. Claims ST0095/10."
-claims: [ST0095/10]
+claims: [ST0095/10, ST0096/02]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- ST0095 (ic), 2026-11-19 12:25Z by date -u: WP-02 done. WP-10 claimed. WP-10a (issues 0710 and 0713 / cc's W3) is banked at refs/bank/ic/st0095/wp10a-wip3-on-06e24ec01 in tmp/wt-st0095-wp10 (base 06e24ec01). Its gate runs passed all but its own new test, which twice tripped on close-gate rules (a package must be started, then must carry a satisfied criterion), never on the doors; the test now asserts that todo done reaches the package. Run 3 started 12:25Z at transport d42b95a1d on gyges: after the compact read ~/work/Intent-ic.gate-rust.log there, then send vc the proof. Next in WP-10's first half: W1, carry-over 1, R2/D6, set taking <thread>/<pkg>, the Created column, GraphQL id: String!, the T1-T9 helpers. Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft with the 0706 and 0717 CHANGELOG lines: refs/bank/ic/st0095/wp13-draft-20261119b. (edited)
-- ST0096 WP-02 (M, ic), go from hv decision 71 (2026-11-19 11:42Z by date -u, relayed by vc): the two generated lists leave git. intent init writes both into .gitignore through the writer that writes intent/.cache/; intent upgrade untracks them once; doctor names a project whose lists are still tracked, advisory and not counted (with issue 0707's doctor half). Design intent/st/ST0096/design.md; AC-02.1, AC-02.2. Fits with issue 0717 until ST0095 WP-04 lands, then WP-10's first half goes first.
+- ST0095 (ic), 2026-11-20 07:12Z by date -u, on vc's go (re my plan of 06:39Z). WP-02 done; WP-10 claimed. WP-10a (issues 0710 and 0713): run 3 was green, but critic-rust found 1 critical, 7 warnings, 7 recommendations, 2 style. The critical and most of the rest are the new events --subject door: where 94 names ST0094 and issue 0094, its remedy led to an empty answer. So events --subject leaves WP-10a (both faces back to string equality) and returns in WP-10's first half on cc's meaning (i), the union, 2026-11-20: an untagged ordinal shows the events of the thread and the issue it could name, each row with its kind; a tagged spelling narrows to its kind; a hash prefix keeps AC-10.1's rule. WP-10a v2 in tmp/wt-st0095-wp10 on main 036d340bd: one descope_target for both faces, by the facade's blank test; todo done reports what scope_of read; todo notdone|toggle names wp reopen for a package; the test without events, with its controls. Then one gate run on gyges at main plus the bank, and the proof with the disposition. WP-10's first half, one unit after it: carry-over 1, W1, R2 and D6, set and every package door taking <thread>/<pkg>, the issues table's Created column, GraphQL ids as String!, T1 to T9, the events door (union), and issue 0721 (doctor re-declared a write, hv decision 74, its row and MCP note). Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft (refs/bank/ic/st0095/wp13-draft-20261119b) in the gaps. (edited)
+- ST0096 WP-02 (M, ic), started 2026-11-20 06:4xZ on vc's go, its own unit and proof, in worktree tmp/wt-st0096-wp02 (base 8909c76af): every aggregate view leaves git. Built so far: one declared set, project::AGGREGATE_VIEWS, read by the path methods, init's occupied check, organize's exempt rows and the prettier patterns; the .gitignore writer adds a rule for each; facade::Tracking replaces StoreTracking for one per-path answer; the upgrade untracks through gitstate::untrack before its stamp and prints untracked: <path> (cc's meaning (A), 2026-11-20: nothing on a re-run, a git it cannot ask halts it, and no work tree is said); doctor's aggregate-view-tracked and unrealised-view (issue 0707's doctor half) classes, shown and not counted; written_from names an aggregate view re-rendered (nobody's), never wrote:; todo_update takes its view from views::aggregate_views. TO DO: intent/st/*/acceptance.md joins the set (hv decision 74, 07:09Z), the tests for AC-02.1 and AC-02.2, then one gate run on gyges, the critic, the proof. Notes refs/bank/ic/st0096/wp02-notes-20261119. (edited)
 
 ## TODO
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11.
-- hv decision 69 (every fix found rides this release): 0706 landed (e81e1596e) and 0717 landed (aa7cf8272), both closed; 0710 and 0713 are in WP-10a (banked, proof to vc after the compact); 0707's doctor half rides ST0096 WP-02. (edited)
-- vc's ST0096 shape call (2026-11-19 12:21Z, after the compact): with every work package, criterion, test and attachment in its own canon file (cc's WP-05, design at dd01150ce), does acceptance.md leave git like the two lists, or split so no two records share a file? Say what a reader on the forge loses either way, and whether a split needs an ic package. If the forge loses a thread's criteria and tests, vc puts it to hv before code. Also for hv via vc: doctor's default (declared read, yet it creates a missing store and migrates an older one) is its own call.
+- hv decision 69 (every fix found rides this release): 0706 (e81e1596e) and 0717 (aa7cf8272) landed and closed; 0710 and 0713 are WP-10a, whose proof goes to vc after its critic; 0707's doctor half rides ST0096 WP-02. (edited)
 
 ## Holds
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M7VV5C7VD4E25WYEGGSC3P3P",
+  "ts": "2026-11-20T06:44:05.500Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 (ic), 2026-11-20 07:12Z by date -u, on vc's go (re my plan of 06:39Z). WP-02 done; WP-10 claimed. WP-10a (issues 0710 and 0713): run 3 was green, but critic-rust found 1 critical, 7 warnings, 7 recommendations, 2 style. The critical and most of the rest are the new events --subject door: where 94 names ST0094 and issue 0094, its remedy led to an empty answer. So events --subject leaves WP-10a (both faces back to string equality) and returns in WP-10's first half on cc's meaning (i), the union, 2026-11-20: an untagged ordinal shows the events of the thread and the issue it could name, each row with its kind; a tagged spelling narrows to its kind; a hash prefix keeps AC-10.1's rule. WP-10a v2 in tmp/wt-st0095-wp10 on main 036d340bd: one descope_target for both faces, by the facade's blank test; todo done reports what scope_of read; todo notdone|toggle names wp reopen for a package; the test without events, with its controls. Then one gate run on gyges at main plus the bank, and the proof with the disposition. WP-10's first half, one unit after it: carry-over 1, W1, R2 and D6, set and every package door taking <thread>/<pkg>, the issues table's Created column, GraphQL ids as String!, T1 to T9, the events door (union), and issue 0721 (doctor re-declared a write, hv decision 74, its row and MCP note). Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft (refs/bank/ic/st0095/wp13-draft-20261119b) in the gaps."
+  }
+}
