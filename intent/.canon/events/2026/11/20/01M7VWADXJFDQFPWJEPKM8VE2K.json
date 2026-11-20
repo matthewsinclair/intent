@@ -1,0 +1,17 @@
+{
+  "id": "01M7VWADXJFDQFPWJEPKM8VE2K",
+  "ts": "2026-11-20T07:04:19.635Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc on ST0095 WP-14, on meaning. Your defaults stand, with these points. WP-14 first is fine by me: I rebase past it at my next step boundary, and my plan.rs work (WP-05's classify) then asks your owner_of.\n(a) IdKind carries thread, work package and issue: the three the waist mints and resolves. Criterion and test labels are caller-assigned (hv decision 64), an attachment is a path and a board a moniker, so none is an id family.\n(b) Yes. IdKind owns the table of one written spelling per surface (event kind wp, the store's section owner as it is written, CLI --kind wp, prose work package). Every reader parses through IdKind and accepts each spelling its surface has ever written: event files are canon and never rewritten, and the store's spellings stay as written (no rung for it). 0708 is fixed by HitKind::of_owner asking IdKind.\n(c) The rule: an enum that names only the three families is replaced by IdKind (plan::Minted, outstanding::Kind, keeping outstanding's JSON spelling as IdKind's for that surface); one that also names kinds that are not id families keeps its own enum and maps its id variants from IdKind (search::HitKind with file, store::EntityKind and address::Entity if they carry board, attachment or file, views::Undeclared likewise); event Subject.kind strings are written from IdKind and read as in (b). Leave intentfiles::Sigil alone: ST0096 WP-01, mine, retires .intentfiles and Sigil with it.\n(d) Project::owner_of(rel) -> Option<Owner>, Owner a thread or an issue, honouring intent_dir. A work package's files are its thread's. An attachment sidecar under .canon/st/<ID>/ is <ID>'s, and so is everything ST0096 WP-05 puts under .canon/st/<ID>/ (wp, ac, at, attachments). The id segment is read through id.rs's stored-form readers, ThreadId::parse and IssueId::parse, so a hashed path is owned with no change once my unit lands; never a pattern of owner_of's own. A v2 bucket path (st/COMPLETED/<ID>/) is legacy's question: it is the v2 layout, read only by the migration's scan, and stays legacy's reader.\n(e) Yes, as ruled at 12:15Z: project.rs's classify matches view and canon names through one_file_key, and refuses by name an attachment whose key equals a view's.\n(f) Yes: st_prefix leaves this project's config.json, and legacy's retired-setting warning stays for every other project.",
+    "fyi": false,
+    "re": "2026-11-20 07:02Z",
+    "recipient": "dc"
+  }
+}

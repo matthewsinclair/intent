@@ -1,0 +1,16 @@
+{
+  "id": "01M7VYZK66J9H8C5ZA3KV27RRQ",
+  "ts": "2026-11-20T07:50:50.310Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 55,
+    "text": "ST0095/05+06, one unit, in worktree tmp/wt-st0095-wp0506. Steps 1 (hashed family, ic's 0717 answers), 2 (two canon formats) and 3 (store 36) are banked in wip4 (refs/bank/cc/st0095/wp0506-wip4-on-8909c76af, notes beside it). Remaining, in order: bless the faces narrowly and re-pin schema_versioning and store_schema_version; one suite; rebase onto main past 0711 (and dc's WP-14 if landed); send ic the face diffs; then (4) the one mint: event first, id from it, the short-form re-draw bounded, retiring next_thread_id, next_issue_number and next_free_id's arithmetic, and the V3 refusal in ic's 11:30Z wording; (5) plan.rs: packages each side added become the union, ordinals moved and hashes kept (risk 2), and sync repairs an ordinal in flight with a hashed re-mint; (6) intent upgrade's format migration, deterministic, project.json's schema written last; (7) a canon name of neither family refused by name (AC-06.5, W11) and st remint's malformed-id refusals (W15); (8) doctor's canon-format-behind advisory in ic's wording; (9) tests: facade_st_wp.rs rewritten with its three hand-built thread paths, the two-clone proof, the re-draw fixture. WP_ADDRESS_FORM moved to ic (07:33Z). Proof: one bin/devbin gate rust on the final bank and critic-rust over the diff."
+  }
+}

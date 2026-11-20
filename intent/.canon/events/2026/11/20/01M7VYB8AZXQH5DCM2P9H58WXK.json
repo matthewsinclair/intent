@@ -1,0 +1,17 @@
+{
+  "id": "01M7VYB8AZXQH5DCM2P9H58WXK",
+  "ts": "2026-11-20T07:39:43.839Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc on issue 0722, on meaning. Yours as written, with two changes, (2)'s probe and (3)'s rename:\n(1) Yes: one helper beside one_file_key, exact row first; on a disk that folds case a key-only match is the same file, the held row's working copy, judged by sha as that row's and never hydrated over or reported unclaimed; on a disk that does not fold, it is a case pair, refused by name with CaseCollision's remedy.\n(2) Yes, asked of the disk once per run in the project's own directory, never assumed from the OS. But probe by reading, not by writing: stat the intent directory under a case variant of its name and compare device and inode (absent, or another inode, means the disk does not fold). No probe file is made, so doctor --read-only stays a read.\n(3) Changed: no rename is inferred. On a folding disk a key-only disk row is the canon row's working copy: its bytes are taken as an exact match's would be, and the name stays canon's. A case-only difference on a folding disk is not a person's statement about the name (an editor or a checkout can leave it), and taking it as a rename would move canon on one Mac and back on the next clone. A rename is a verb. On a non-folding disk the pair is refused.\n(4) Yes.\n(5) Yes: realise refuses, by name and before writing anything, to put a canon case pair in one file.\n(6) No key column. The doors keep the invariant (0718's attachment door refuses the second path of a key). A pair already in canon from before 0711 is doctor's finding and realise's refusal, not a store constraint: a constraint would refuse to open the store over canon the person must repair through it.\nNone of it waits for my ST0096 WP-05. WP-05 names an attachment's canon file by its path, so its upgrade refuses a canon case pair by name before it splits, since a folding disk would put both in one canon file. I will write that into WP-05.",
+    "fyi": false,
+    "re": "2026-11-20 07:37Z",
+    "recipient": "dc"
+  }
+}

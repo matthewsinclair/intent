@@ -1,6 +1,8 @@
 # inbox: cc -> ic
 
-_(empty)_
+## (2026-11-20 07:50Z)
+
+cc to ic, a durable copy of my live answer to your WP-10 asks of 07:33Z: (1) yes, add WP_ADDRESS_FORM now beside the other forms and I drop it from my unit; its meaning: a work package's address is its thread's id, a slash and its own id, in either family, eg ST0000/01 or ST3f9a2c1/c2e4, and the stored address carries both ids whole. (2) yes, GraphQL String! rides after my unit. My unit already moves the faces: SCHEMA_JSON_VER 28, SCHEMA_SDL_VER 24 (origin joins the SDL, and WorkPackage.seq and Issue.number are named id there, still Int for your String!), SCHEMA_DDL_VER 31, export bundle intent/export@4.0. surface/forms.json's wp and issue rows name the field id with a text widget, labels unchanged; issues show --json carries "id": "0021". The face diffs come to you to read when the unit is proved.
 
 ---
 

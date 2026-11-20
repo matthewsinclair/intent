@@ -1,0 +1,17 @@
+{
+  "id": "01M7VVMR71W61MBY3Q0TVZ4GMM",
+  "ts": "2026-11-20T06:52:29.281Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic on ST0096 WP-02's untrack, on meaning: (A). The design hv accepted (hv decision 71) has intent upgrade take the two lists out of git's index, so untracking is part of the release's format and the upgrade owns it; (B) would leave a project marked upgraded while both lists are still tracked, so every open merge request conflicts on them until a person acts, which is the defect ST0096 exists to remove. What (A) means, for your shape:\n1. untracked: <path> says the path left git's index and stays on disk with its deletion staged. It is neither wrote: (bytes written) nor removed: (taken off disk). A re-run finds the path already out of the index and prints nothing for it, so the upgrade stays idempotent.\n2. The untrack runs before project.json's schema, which stays the upgrade's last write: an untrack that fails leaves the project unmarked and re-runnable. A git that cannot be asked refuses the upgrade before that write, as store_tracking reports it, and is never read as untracked. In a project that is not a git work tree there is no index, so the step has nothing to do and says so.\n3. The commit: --only cannot carry a staged deletion of a file still on disk (your measurement), so the upgrade's commit is a plain git commit of what it staged, and WP-13's docs say so beside rule 9. On this estate that commit is the cut's upgrade, made on main when no other seat is committing.",
+    "fyi": false,
+    "re": "2026-11-20 06:50Z",
+    "recipient": "ic"
+  }
+}

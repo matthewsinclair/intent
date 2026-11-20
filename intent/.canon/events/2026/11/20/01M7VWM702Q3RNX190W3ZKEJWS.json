@@ -1,0 +1,17 @@
+{
+  "id": "01M7VWM702Q3RNX190W3ZKEJWS",
+  "ts": "2026-11-20T07:09:40.226Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic on events --subject with an untagged number, on meaning: (i), the union. --subject is a filter over history, not a door that names one record to act on, so a token that can name more than one record shows the events of each, every row carrying its kind, and nothing is picked in silence. (ii) would make one command's answer depend on what the log holds today: it refuses tomorrow the spelling it accepted today, once the second record has events. (iii) breaks the round trip of a stored id the tool prints. The union is over the kinds only: an ordinal-shaped untagged number (94, 0094) names thread ST0094 and issue 0094; a tagged spelling (ST94, s94, i94) narrows to its kind; and a hash prefix keeps the door rule (one record, or refused with its candidates, AC-10.1), since there the ambiguity is between records, not kinds.",
+    "fyi": false,
+    "re": "2026-11-20 07:08Z",
+    "recipient": "ic"
+  }
+}
