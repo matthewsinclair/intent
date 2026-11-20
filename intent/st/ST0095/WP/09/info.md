@@ -2,7 +2,7 @@
 wp_id: WP-09
 title: Criteria follow their package, and doctor verifies
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-09: Criteria follow their package, and doctor verifies

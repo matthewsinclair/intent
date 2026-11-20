@@ -64,16 +64,16 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-07.1 A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal. -- satisfied: yes (computed)
 - AC-07.2 Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix. -- satisfied: yes (computed)
 
-### WP-08 -- The order (status: WIP)
+### WP-08 -- The order (status: Done)
 
-- AC-08.1 Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction. -- satisfied: no (computed)
-- AC-08.2 A project that holds only ordinals renders every view as it did before. -- satisfied: no (computed)
+- AC-08.1 Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction. -- satisfied: yes (computed)
+- AC-08.2 A project that holds only ordinals renders every view as it did before. -- satisfied: yes (computed)
 
-### WP-09 -- Criteria follow their package, and doctor verifies (status: WIP)
+### WP-09 -- Criteria follow their package, and doctor verifies (status: Done)
 
-- AC-09.1 wp done refuses a hashed work package while a criterion of its own is unsatisfied. -- satisfied: no (computed)
-- AC-09.2 doctor reports a hashed id that is not its marker and the hash of its origin. -- satisfied: no (computed)
-- AC-09.3 acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory. -- satisfied: no (computed)
+- AC-09.1 wp done refuses a hashed work package while a criterion of its own is unsatisfied. -- satisfied: yes (computed)
+- AC-09.2 doctor reports a hashed id that is not its marker and the hash of its origin. -- satisfied: yes (computed)
+- AC-09.3 acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory. -- satisfied: yes (computed)
 
 ### WP-10 -- Every door takes and shows both families (status: WIP)
 
@@ -148,13 +148,16 @@ _(no tests in this group)_
 - AT-07.3 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:167` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
 - AT-07.4 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:211` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
 
-### WP-08 -- The order (status: WIP)
+### WP-08 -- The order (status: Done)
 
-_(no tests in this group)_
+- AT-08.1 `native/rust/crates/intentsvcs/src/id.rs:2668` -- covers AC-08.1 -- status: green -- Written after the land. Red on the base: it has no id::record_order. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-08.2 `native/rust/crates/intentsvcs/src/id.rs:2714` -- covers AC-08.2 -- status: green -- Written after the land. A regression arm, with no red on the base by construction: ordinals alone order by number before and after WP-08. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 
-### WP-09 -- Criteria follow their package, and doctor verifies (status: WIP)
+### WP-09 -- Criteria follow their package, and doctor verifies (status: Done)
 
-_(no tests in this group)_
+- AT-09.1 `native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:26` -- covers AC-09.1 -- status: green -- Written after the land. A regression arm, with no red on the base: the close gate already reads a group as a typed WpId (issue 0712, ST0095 WP-07). No planted fault (cc, 17:23Z). Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-09.2 `native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:54` -- covers AC-09.2 -- status: green -- Written after the land. Red on the base: doctor has no IdNotFromOrigin check. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-09.3 `native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:87` -- covers AC-09.3 -- status: green -- Written after the land. Red on the base: doctor has no ShortFormShared advisory, and it counted a short-form pair as DuplicateId. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 
 ### WP-10 -- Every door takes and shows both families (status: WIP)
 
@@ -184,7 +187,7 @@ _(no tests in this group)_
 
 ### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
-- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2391` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
+- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2462` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.2 `native/rust/crates/intent-cli/tests/search_surface.rs:184` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.3 `native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:23` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.4 `native/rust/crates/intentsvcs/tests/retired_st_prefix.rs:134` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u

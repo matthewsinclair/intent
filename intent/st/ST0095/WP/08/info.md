@@ -2,7 +2,7 @@
 wp_id: WP-08
 title: The order
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-08: The order
