@@ -1587,6 +1587,164 @@ pub(crate) fn one_file_key(path: &Path) -> String {
     .join("/")
 }
 
+/// How a file on a live disk answers against a thread's attachment rows (issue
+/// 0722, cc's meaning of 2026-11-20). Asked by the `--to-store` carry and by
+/// `organize`, so neither compares two paths for "one file" itself; the
+/// other doors that read a live disk (doctor's attachment drift, the to-store
+/// preview, the attachment reads and realise) are 0722's later sites.
+/// `Project::classify`'s own-file check (issue 0719) asks `one_file_key`
+/// directly, since it answers a name against the thread's own files, not rows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DiskMatch<'a> {
+  /// A row spelled exactly as the file is.
+  Exact(&'a str),
+  /// A row whose spelling differs only as [`one_file_key`] folds, on a disk
+  /// that folds case: the file IS that row's working copy, and the name stays
+  /// the row's, since no rename is ever inferred.
+  WorkingCopy(&'a str),
+  /// A row whose spelling differs only as [`one_file_key`] folds, on a disk
+  /// that does not fold: two files, which collide on the next clone made on a
+  /// Mac. Refused or reported by name, never claimed.
+  CasePair(&'a str),
+  /// No row is this file.
+  New,
+}
+
+/// Answer `disk` (a path relative to the thread's directory) against `rows`,
+/// the thread's attachment paths: the exact row first, then the one-file key.
+/// `folds` is whether the disk folds case ([`Project::disk_folds_case`]).
+/// **PURE**, so both answers of `folds` are driven on any host.
+pub(crate) fn disk_match<'a>(
+  rows: impl IntoIterator<Item = &'a str>,
+  disk: &str,
+  folds: bool,
+) -> DiskMatch<'a> {
+  let key = one_file_key(Path::new(disk));
+  let mut keyed = None;
+  for row in rows {
+    if row == disk {
+      return DiskMatch::Exact(row);
+    }
+    if keyed.is_none() && one_file_key(Path::new(row)) == key {
+      keyed = Some(row);
+    }
+  }
+  match keyed {
+    Some(row) if folds => DiskMatch::WorkingCopy(row),
+    Some(row) => DiskMatch::CasePair(row),
+    None => DiskMatch::New,
+  }
+}
+
+/// The first two of `paths` that are one file on a disk that folds case
+/// (issues 0718 and 0722), as `(held, path)`: `held` the earlier, `path` the
+/// one that would land on it. Asked by the projection's sidecars, realise and
+/// doctor's canon finding, so none of them spells the comparison. Migration's
+/// own collision check (`migrate.rs`, v2 files under v2 tooling) and the
+/// attach door's one-against-many check (`disk_match`'s shape) keep theirs.
+pub(crate) fn key_pair<'a>(paths: impl IntoIterator<Item = &'a str>) -> Option<(&'a str, &'a str)> {
+  let mut seen: std::collections::HashMap<String, &'a str> = std::collections::HashMap::new();
+  paths.into_iter().find_map(|path| {
+    seen
+      .insert(one_file_key(Path::new(path)), path)
+      .map(|held| (held, path))
+  })
+}
+
+/// Whether the disk folds case, as a door that only reports reads it (issue
+/// 0722): the answer, or `None` with the finding that says it could not be
+/// read, which the caller adds to its own. One home for the read, by
+/// [`Project::disk_folds_case`]'s rule.
+pub(crate) fn fold_or_finding(
+  project: &Project,
+) -> (Option<bool>, Option<crate::finding::Finding>) {
+  match project.disk_folds_case() {
+    Ok(folds) => (Some(folds), None),
+    Err(cause) => (
+      None,
+      Some(crate::finding::Finding::new(
+        project.relative(&project.intent_dir()),
+        crate::finding::FindingClass::CaseFoldUnread,
+        format!("whether this disk folds case could not be read: {cause}"),
+      )),
+    ),
+  }
+}
+
+/// What a door that only reports says of `name`, which differs from `other`
+/// only in case, by the fold it read (issue 0722): nothing where the disk folds,
+/// since there they are one file; a case pair where it does not; and the
+/// unread fold's own class where the fold is unknown. Either way neither is
+/// taken for the other. `file` is where the finding points.
+pub(crate) fn case_pair_finding(
+  fold: Option<bool>,
+  file: impl Into<String>,
+  name: &str,
+  other: &str,
+) -> Option<crate::finding::Finding> {
+  let (class, why) = match fold {
+    Some(true) => return None,
+    Some(false) => (
+      crate::finding::FindingClass::CasePair,
+      "and this disk keeps them as two files where a case-insensitive disk (macOS's default) keeps one",
+    ),
+    None => (
+      crate::finding::FindingClass::CaseFoldUnread,
+      "and whether this disk keeps them as one file or two could not be read",
+    ),
+  };
+  Some(crate::finding::Finding::new(
+    file,
+    class,
+    format!("`{name}` and `{other}` differ only in case, {why}, so neither is taken for the other"),
+  ))
+}
+
+/// `path`'s one-file key, read from `root` (issue 0722): the key
+/// [`disk_match`] compares, so a twin that differs in a directory's case
+/// (`wp/01/info.md` beside `WP/01/info.md`) is found as one in a name's. A
+/// path not under `root` has none.
+pub(crate) fn key_from(root: &Path, path: &Path) -> Option<String> {
+  Some(one_file_key(path.strip_prefix(root).ok()?))
+}
+
+/// Paths read from a live disk, by their one-file key (issue 0722): built once
+/// per read of the tree, so finding a path's file spelled in another case is
+/// one lookup rather than a walk of the tree for every row a sparse projection
+/// leaves off disk. Whether a twin it finds is the path's own file or a second
+/// one is the disk's fold, which the caller holds. `organize` keys absolute
+/// paths from the project root, doctor project-relative ones from the empty
+/// path.
+pub(crate) struct DiskKeys<'a, P: AsRef<Path>> {
+  root: &'a Path,
+  by_key: std::collections::BTreeMap<String, Vec<&'a P>>,
+}
+
+impl<'a, P: AsRef<Path>> DiskKeys<'a, P> {
+  pub(crate) fn new(paths: impl IntoIterator<Item = &'a P>, root: &'a Path) -> Self {
+    let mut by_key: std::collections::BTreeMap<String, Vec<&'a P>> =
+      std::collections::BTreeMap::new();
+    for path in paths {
+      if let Some(key) = key_from(root, path.as_ref()) {
+        by_key.entry(key).or_default().push(path);
+      }
+    }
+    Self { root, by_key }
+  }
+
+  /// Every path that is `path`'s by the key alone, spelled otherwise, in the
+  /// order read: all of them, so none of a pair's other spellings is left to
+  /// read as a file nothing carries.
+  pub(crate) fn twins(&self, path: &Path) -> impl Iterator<Item = &'a P> {
+    key_from(self.root, path)
+      .and_then(|key| self.by_key.get(&key))
+      .into_iter()
+      .flatten()
+      .copied()
+      .filter(move |p| p.as_ref() != path)
+  }
+}
+
 /// Why an attachment path cannot be carried (ST0057 AC-03.3).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BadName {
@@ -2110,6 +2268,69 @@ impl Project {
   /// not go on answering from the layout it left.
   pub(crate) fn set_contracts(&mut self, contracts: Contracts) {
     self.config.contracts = contracts;
+  }
+
+  /// Whether the disk holding this project folds case (issue 0722), so two
+  /// names that share `one_file_key` are one file there.
+  ///
+  /// **ASKED BY READING, NEVER BY WRITING** (cc's meaning), so `doctor
+  /// --read-only` stays a read: the nearest directory at or above the intent
+  /// directory whose name has a letter that changes case, on the intent
+  /// directory's own device, is looked up under its own name and under that
+  /// name with its case flipped, and the disk folds when both name one file
+  /// (one device and one inode).
+  ///
+  /// **AN UNREAD FOLD NEVER LICENSES A WRITE ON A GUESS**, and this is the one
+  /// statement of that rule for every door that asks: a door that writes
+  /// refuses (`organize`), and a door that only carries reports and carries
+  /// nothing it cannot place (the `--to-store` carry). Never a guess either way.
+  ///
+  /// **ONE READ PER PROJECT, AND ITS TWO KNOWN LIMITS FAIL TOWARD A REPORTED PAIR,
+  /// NEVER A LOST ROW** (cc's meaning, 2026-11-20, vc's yes). (a) ext4 folds case
+  /// per directory (`chattr +F`), so a folding `intent/st` under a parent that
+  /// does not fold reads as not folding. (b) An intent directory symlinked from
+  /// a case-sensitive volume into a folding one is looked up beside the link,
+  /// and reads as not folding. Both read "does not fold", where nothing is
+  /// written over and nothing is dropped silently: the cost is a pair finding
+  /// the disk would not make. A read per directory comes when a seat meets one.
+  pub fn disk_folds_case(&self) -> std::io::Result<bool> {
+    use std::os::unix::fs::MetadataExt;
+    let dir = self.intent_dir();
+    let device = std::fs::metadata(&dir)?.dev();
+    let flip = |name: &str| -> String {
+      name
+        .chars()
+        .flat_map(|c| -> Vec<char> {
+          match c.is_lowercase() {
+            true => c.to_uppercase().collect(),
+            false => c.to_lowercase().collect(),
+          }
+        })
+        .collect()
+    };
+    let probe = dir.ancestors().find_map(|p| {
+      let name = p.file_name()?.to_str()?;
+      let flipped = flip(name);
+      (flipped != name).then(|| (p.to_path_buf(), p.with_file_name(flipped)))
+    });
+    let Some((real, twin)) = probe else {
+      return Err(std::io::Error::other(format!(
+        "no directory at or above `{}` has a letter whose case can flip, so nothing shows whether this disk folds case",
+        dir.display()
+      )));
+    };
+    let real = std::fs::metadata(&real)?;
+    if real.dev() != device {
+      return Err(std::io::Error::other(format!(
+        "the nearest directory above `{}` whose case can flip is on another device, so it cannot show whether this disk folds case",
+        dir.display()
+      )));
+    }
+    match std::fs::metadata(twin) {
+      Ok(twin) => Ok(twin.dev() == real.dev() && twin.ino() == real.ino()),
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(false),
+      Err(source) => Err(source),
+    }
   }
 
   /// `intent/` -- configurable in v2, so read rather than assumed.
@@ -3543,6 +3764,39 @@ mod tests {
         && at("project_name") < at("languages")
         && at("languages") < at("todo"),
       "the file's own key order is kept: {body}"
+    );
+  }
+
+  /// Issue 0722: a file on disk answers against the rows by its exact row
+  /// first, then by the one-file key, and the fold decides what a key-only
+  /// match is. Pure, so both answers of the fold are driven on every host.
+  #[test]
+  fn a_disk_file_answers_by_its_exact_row_first_then_by_the_key_as_the_disk_folds() {
+    let rows = ["Design.png", "notes.md", "design-old.png"];
+    for folds in [true, false] {
+      assert_eq!(
+        disk_match(rows, "notes.md", folds),
+        DiskMatch::Exact("notes.md"),
+        "folds={folds}"
+      );
+      assert_eq!(
+        disk_match(rows, "plan.md", folds),
+        DiskMatch::New,
+        "folds={folds}"
+      );
+    }
+    assert_eq!(
+      disk_match(rows, "design.png", true),
+      DiskMatch::WorkingCopy("Design.png")
+    );
+    assert_eq!(
+      disk_match(rows, "design.png", false),
+      DiskMatch::CasePair("Design.png")
+    );
+    assert_eq!(
+      disk_match(["design.png", "Design.png"], "Design.png", false),
+      DiskMatch::Exact("Design.png"),
+      "an exact row wins over a keyed one wherever it sits"
     );
   }
 }

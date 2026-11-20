@@ -47,6 +47,8 @@ mod a_cold_warm_leaves_a_peers_write;
 mod a_create_refuses_a_child_id_that_is_taken;
 #[path = "a_create_refuses_a_key_that_is_taken.rs"]
 mod a_create_refuses_a_key_that_is_taken;
+#[path = "a_disk_file_in_another_case_is_one_file_where_the_disk_folds.rs"]
+mod a_disk_file_in_another_case_is_one_file_where_the_disk_folds;
 #[path = "a_drain_takes_only_what_landed_since_the_last.rs"]
 mod a_drain_takes_only_what_landed_since_the_last;
 #[path = "a_due_backup_is_taken_by_whichever_door_asks.rs"]
@@ -59,6 +61,8 @@ mod a_fresh_clone_takes_its_boards;
 mod a_message_id_from_the_old_shape_is_the_same_everywhere;
 #[path = "a_mutation_does_not_duplicate_the_prose_index.rs"]
 mod a_mutation_does_not_duplicate_the_prose_index;
+#[path = "a_name_in_another_case_answers_as_its_row_where_the_disk_folds.rs"]
+mod a_name_in_another_case_answers_as_its_row_where_the_disk_folds;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]
 mod a_re_cite_keeps_what_it_was_not_given;
 #[path = "a_resolved_reference_joins_a_written_one.rs"]

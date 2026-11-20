@@ -1364,6 +1364,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::UnsyncedAttachment { .. } => "UnsyncedAttachment",
     FacadeError::RealisedAttachmentUnreadable { .. } => "RealisedAttachmentUnreadable",
     FacadeError::RealisedAttachmentNotRestored { .. } => "RealisedAttachmentNotRestored",
+    FacadeError::CaseFoldUnread { .. } => "CaseFoldUnread",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
@@ -1439,6 +1440,7 @@ const ALL_VARIANTS: &[&str] = &[
   "UnsyncedAttachment",
   "RealisedAttachmentUnreadable",
   "RealisedAttachmentNotRestored",
+  "CaseFoldUnread",
   "NoSuchEditable",
   "NoSuchAttachment",
   "NoSuchRelatedTarget",
@@ -1832,6 +1834,9 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // Both are properties of the world, as `SyncDiskStep`'s are.
   "RealisedAttachmentUnreadable",
   "RealisedAttachmentNotRestored",
+  // Issue 0722: a name in another case at a read door, when whether the disk
+  // folds case cannot be read. A property of the world, as the two above are.
+  "CaseFoldUnread",
   // **THE SQL DOOR'S OTHER FOUR, ASSERTED IN
   // `intent-cli/tests/the_sql_door_is_read_only.rs` AND NOT MERELY REACHED
   // THERE.** They are cited rather than provoked because each needs a store ON

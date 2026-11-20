@@ -138,6 +138,18 @@ pub enum RealiseError {
     "refusing to realise {thread}/{path}: canon records it as an opaque attachment but carries no bytes for it, so the realisation would name a file it does not contain"
   )]
   MissingBytes { thread: String, path: String },
+  /// Two attachments canon holds for one thread that are one file on a disk
+  /// that folds case (issue 0722): written there, one would land on the other.
+  /// **REFUSED BEFORE ANYTHING IS WRITTEN**, on any disk, since a realisation
+  /// is copied and the next disk may fold.
+  #[error(
+    "refusing to realise {thread}: canon holds `{held}` and `{path}`, which differ only in case, and a disk that folds case would write them to one file"
+  )]
+  CasePair {
+    thread: String,
+    held: String,
+    path: String,
+  },
   #[error("cannot write the realisation at {path}: {source}")]
   Io {
     path: PathBuf,
@@ -156,6 +168,20 @@ pub fn realise(
   ctx: &RenderContext<'_>,
   root: &Path,
 ) -> Result<Realisation, RealiseError> {
+  // **A CANON CASE PAIR IS REFUSED BEFORE THE FIRST WRITE** (issue 0722): the
+  // attachment arm below writes as it goes, so a refusal found there would
+  // leave half a realisation behind.
+  for thread in &canon.threads {
+    if let Some((held, path)) =
+      crate::project::key_pair(thread.attachments.iter().map(|a| a.path.as_str()))
+    {
+      return Err(RealiseError::CasePair {
+        thread: thread.id.stored(),
+        held: held.to_string(),
+        path: path.to_string(),
+      });
+    }
+  }
   let mut set = WriteSet::new();
   let mut counts = Counts::default();
   let mut totals = Counts::of(canon);
@@ -290,6 +316,9 @@ impl crate::remedy::Remedy for RealiseError {
     match self {
       Self::MissingBytes { thread, path } => format!(
         "restore the bytes for `{path}` under `{thread}`, or remove the attachment from canon -- `intent sync --to-store {thread}` takes the disk copy if the file is present. The realisation is the fallback a human reads when the tool cannot help, so it refuses to claim a file it has no bytes for rather than write an empty one."
+      ),
+      Self::CasePair { thread, held, path } => format!(
+        "rename one of `{held}` and `{path}` in {thread} to a name that differs from the other by more than case (`intent st detach {thread} <name>`, then attach the file under its new name), or remove one, then realise again. Nothing was written."
       ),
       Self::Io { path, .. } => format!(
         "check that `{}` is writable and has space -- the realisation writes a fresh directory per run and never overwrites an earlier one, so a previous realisation is still intact and nothing has been lost.",

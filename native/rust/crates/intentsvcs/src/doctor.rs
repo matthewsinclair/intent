@@ -2218,7 +2218,12 @@ fn file_checks(
       for entry in entries.iter().filter(|e| e.state == FileState::Unparsed) {
         report.findings.extend(entry.findings.iter().cloned());
       }
-      attachment_drift(project, canon, &entries, report);
+      // **THE FOLD IS READ HERE, ONCE, AND HANDED IN** (issue 0722), so the
+      // check below stays a function of what it is given; an unread fold is
+      // said, by `Project::disk_folds_case`'s rule, and claims nothing.
+      let (fold, unread) = crate::project::fold_or_finding(project);
+      report.findings.extend(unread);
+      attachment_drift(project, canon, &entries, fold, report);
     }
     Err(e) => report.findings.push(Finding::new(
       project.relative(project.root()),
@@ -2264,24 +2269,68 @@ fn attachment_drift(
   project: &Project,
   canon: &Canon,
   entries: &[crate::sync::FileEntry],
+  fold: Option<bool>,
   report: &mut Report,
 ) {
   let on_disk: std::collections::BTreeMap<&str, &crate::sync::FileEntry> =
     entries.iter().map(|e| (e.path.as_str(), e)).collect();
-
+  // **A ROW'S FILE MAY BE SPELLED IN ANOTHER CASE** (issue 0722): on a disk
+  // that folds it is the row's working copy, and on one that does not, or
+  // where the fold is unread, a pair that is named and never compared.
+  let keyed =
+    crate::project::DiskKeys::new(entries.iter().map(|e| &e.path), std::path::Path::new(""));
   for thread in &canon.threads {
+    // **A PAIR ALREADY IN CANON IS DOCTOR'S FINDING** (issue 0722, cc's meaning):
+    // the store keeps no key column, so this is where one is seen, whatever
+    // this disk does, since the next clone may be made on a Mac.
+    if let Some((held, path)) =
+      crate::project::key_pair(thread.attachments.iter().map(|a| a.path.as_str()))
+    {
+      report.findings.push(Finding::new(
+        project.relative(&project.thread_json(&thread.id)),
+        FindingClass::CasePair,
+        format!(
+          "canon holds `{held}` and `{path}` for {}, which differ only in case, so a case-insensitive disk (macOS's default) would realise them as one file",
+          thread.id.shown()
+        ),
+      ));
+    }
+    let rows: std::collections::BTreeSet<String> = thread
+      .attachments
+      .iter()
+      .map(|a| project.relative(&project.thread_dir(&thread.id).join(&a.path)))
+      .collect();
     for att in &thread.attachments {
-      let path = project.thread_dir(&thread.id).join(&att.path);
-      let rel = project.relative(&path);
-      // Dehydrated, or outside the corpus. Neither is this check's business.
-      let Some(entry) = on_disk.get(rel.as_str()) else {
+      let rel = project.relative(&project.thread_dir(&thread.id).join(&att.path));
+      // A twin that is itself a row is that row's own file, and the pair is
+      // canon's, named once above.
+      let twins: Vec<&String> = keyed
+        .twins(std::path::Path::new(&rel))
+        .filter(|twin| !rows.contains(twin.as_str()))
+        .collect();
+      for twin in &twins {
+        report.findings.extend(crate::project::case_pair_finding(
+          fold,
+          twin.as_str(),
+          twin,
+          &rel,
+        ));
+      }
+      // The row's own spelling first; on a disk that folds, a twin IS the
+      // row's working copy and is compared as it (no rename is inferred).
+      // Dehydrated, or outside the corpus: neither is this check's business.
+      let working_copy = match fold {
+        Some(true) => twins.first().and_then(|twin| on_disk.get(twin.as_str())),
+        _ => None,
+      };
+      let Some(entry) = on_disk.get(rel.as_str()).or(working_copy) else {
         continue;
       };
       if entry.sha256 == att.sha256 {
         continue;
       }
       report.findings.push(Finding::new(
-        &rel,
+        &entry.path,
         FindingClass::AttachmentDrift,
         format!(
           "the working copy hashes to {} and canon records {} for it. An attachment is authored, \

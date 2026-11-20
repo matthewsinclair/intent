@@ -224,6 +224,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::UnsyncedAttachment { .. }
     | FacadeError::RealisedAttachmentUnreadable { .. }
     | FacadeError::RealisedAttachmentNotRestored { .. }
+    // Issue 0722: a read door's refusal over an unread fold. The caller's name
+    // was complete; the disk could not answer.
+    | FacadeError::CaseFoldUnread { .. }
     | FacadeError::NoSuchEditable { .. }
     // The narrow setter's refusal. It is about WHICH DOOR writes a field, not
     // about a value left out of the call -- the caller supplied both the field

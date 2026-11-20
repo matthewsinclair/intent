@@ -1006,8 +1006,17 @@ pub(crate) enum Load {
 /// been shown what it overwrites (AC-03.9).
 pub fn collect_attachments_into(project: &Project, canon: &mut Canon) -> Vec<Finding> {
   let mut findings = Vec::new();
+  // **WHETHER THE DISK FOLDS CASE IS READ ONCE, AND AN UNANSWERED READ IS SAID**
+  // (issue 0722; the rule is `Project::disk_folds_case`'s). Unanswered, a file
+  // named as a held row in another case is carried as neither and reported
+  // under its own class, which loses nothing: the file stays on disk and canon
+  // keeps its row. `None` is that unanswered fold, and it answers as a disk
+  // that does not fold, so nothing is placed on a guess.
+  let (fold, unread) = crate::project::fold_or_finding(project);
+  findings.extend(unread);
+  let folds = fold.unwrap_or(false);
   for thread in &mut canon.threads {
-    let (mut carried, refused) = project.collect_attachments(&thread.id);
+    let (carried, refused) = project.collect_attachments(&thread.id);
 
     // **MERGED, NOT REPLACED, and the reason is the disk model rather than
     // caution.** Disk is a SPARSE projection of the store (ST0057, in the
@@ -1035,8 +1044,43 @@ pub fn collect_attachments_into(project: &Project, canon: &mut Canon) -> Vec<Fin
     // So: canon's known paths keep their authored positions, a file on disk
     // replaces its own entry in place, and only genuinely NEW paths are
     // appended (in the collector's sorted order, which is deterministic).
-    let mut fresh: std::collections::HashMap<String, _> =
-      carried.drain(..).map(|a| (a.path.clone(), a)).collect();
+    //
+    // **A FILE ANSWERS BY ITS EXACT ROW FIRST, THEN BY THE ONE-FILE KEY**
+    // (issue 0722, `project::disk_match`). On a disk that folds case a file
+    // spelled as a held row in another case is that row's working copy, and
+    // its bytes are the row's under canon's name, since no rename is inferred.
+    // On one that does not fold it is a second file, a pair that collides on a
+    // Mac, and is carried as neither. Two NEW files one name apart there: the
+    // first in the collector's sorted order is carried and the second reported.
+    let mut fresh: std::collections::HashMap<String, _> = std::collections::HashMap::new();
+    let mut new_keys: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    for mut from_disk in carried {
+      let rows = thread.attachments.iter().map(|a| a.path.as_str());
+      let held = match crate::project::disk_match(rows, &from_disk.path, folds) {
+        crate::project::DiskMatch::Exact(_) => None,
+        crate::project::DiskMatch::WorkingCopy(row) => {
+          from_disk.path = row.to_string();
+          None
+        }
+        crate::project::DiskMatch::CasePair(row) => Some(row.to_string()),
+        crate::project::DiskMatch::New => new_keys
+          .insert(
+            crate::project::one_file_key(std::path::Path::new(&from_disk.path)),
+            from_disk.path.clone(),
+          )
+          .filter(|_| !folds),
+      };
+      if let Some(other) = held {
+        findings.extend(crate::project::case_pair_finding(
+          fold,
+          project.relative(&project.thread_dir(&thread.id).join(&from_disk.path)),
+          &from_disk.path,
+          &other,
+        ));
+        continue;
+      }
+      fresh.insert(from_disk.path.clone(), from_disk);
+    }
     let mut merged = Vec::with_capacity(thread.attachments.len() + fresh.len());
     for existing in &thread.attachments {
       match fresh.remove(&existing.path) {

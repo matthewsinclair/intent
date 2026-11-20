@@ -60,6 +60,15 @@ pub enum FindingClass {
   /// carries, renames or claims it, and it is counted here because a commit
   /// carries it and a disk that folds case breaks on it.
   CaseVariant,
+  /// Two files under a thread, or a file and an attachment canon holds, whose
+  /// names differ only as `project::one_file_key` folds, on a disk that
+  /// does not fold case (issue 0722). They are two files here and one on the
+  /// next clone made on a Mac, so neither is carried or claimed as the other.
+  CasePair,
+  /// Whether the disk folds case could not be read (issue 0722,
+  /// `Project::disk_folds_case`), so a file spelled as a held row in another
+  /// case was carried as neither: nothing is guessed either way.
+  CaseFoldUnread,
   /// An AC/AT/claims/index row the frozen legacy grammar cannot read
   /// (migration.md).
   UnparseableRow,
@@ -699,6 +708,16 @@ impl FindingClass {
         5,
         "case-variant",
         "rename it to a name that is not the thread's own file's in any case, or remove it",
+      ),
+      Self::CasePair => (
+        5,
+        "case-pair",
+        "rename one of the two to a name that differs from the other by more than case, or remove one",
+      ),
+      Self::CaseFoldUnread => (
+        5,
+        "case-fold-unread",
+        "the read named on the line failed: check that the intent directory and its parent are readable and on one disk, then re-run; until then a file named as a held attachment in another case is not carried",
       ),
       // **THE COMMAND IS ON EACH FINDING'S LINE, NOT HERE** (issue `0283`).
       // This named `intent sync --to-disk` for every view, and that verb does

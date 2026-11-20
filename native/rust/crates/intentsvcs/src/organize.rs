@@ -106,7 +106,16 @@ pub enum Action {
   /// how the file reached the path -- a copy put back at a dehydrated thread's
   /// path and re-declared is protected like any other.
   CoverDiverged,
+  /// A file whose name differs from a declared path's only in case, on a disk
+  /// that does not fold case (issue 0722): two files here and one on the next
+  /// clone made on a Mac. **Reported and refused by name**; neither is written
+  /// or removed, and the declared attachment is not written beside it.
+  CasePair,
 }
+
+/// The one remedy for a case pair (issue 0722), which [`Action::remedy`] and
+/// [`OrganizeError::CasePair`]'s remedy both give, so neither can lose it.
+const CASE_PAIR_REMEDY: &str = "this file's name differs from one the store carries for this thread only in case, so this disk keeps two files where a case-insensitive disk (macOS's default) keeps one. Rename it to a name that differs by more than case, or remove it; organize writes neither beside the other.";
 
 impl Action {
   /// Whether this action removes bytes. Exactly one does, which is why the gate
@@ -131,6 +140,7 @@ impl Action {
       Action::CoverDiverged => Some(
         "a cover's Objective and Context are authored on disk until the store takes them in: `intent sync --to-store <ID>` carries the edit and keeps it. If the store is the one you want, delete the file and re-run, and organize writes the store's cover. organize will not render over it.",
       ),
+      Action::CasePair => Some(CASE_PAIR_REMEDY),
       Action::Unclaimed => Some(
         "nothing renders this and nothing carries it. Leave it, or make it an attachment -- organize is not the thing that decides an unrecognised file is rubbish.",
       ),
@@ -210,6 +220,11 @@ pub struct TreeState {
   /// it decides to render over it; every other view is the renderer's alone,
   /// and its rendered bytes already answer.
   pub covers: BTreeMap<PathBuf, String>,
+  /// Whether this disk folds case (issue 0722, `Project::disk_folds_case`),
+  /// read once by [`observe`]: on a disk that folds, a file named as a declared
+  /// path in another case IS that path's file, and on one that does not it is
+  /// a second file.
+  pub folds: bool,
 }
 
 /// A decided run, not yet applied.
@@ -463,6 +478,22 @@ pub enum OrganizeError {
   #[error("nothing was written to {path}: the store holds no bytes for it")]
   NothingToWrite { path: PathBuf },
 
+  /// Whether this disk folds case could not be read (issue 0722,
+  /// `Project::disk_folds_case`). **Refused rather than guessed**, by that
+  /// function's rule: a guess either way could write a view over its own file
+  /// spelled in another case.
+  #[error("whether the disk holding {path} folds case could not be read: {source}")]
+  CaseFoldUnread {
+    path: PathBuf,
+    #[source]
+    source: std::io::Error,
+  },
+
+  /// A file whose name differs from one the store carries only in case, on a
+  /// disk that does not fold case (issue 0722, `Action::CasePair`).
+  #[error("{path} differs only in case from a file the store carries for its thread")]
+  CasePair { path: PathBuf },
+
   #[error("could not read {path}: {source}")]
   Io {
     path: PathBuf,
@@ -540,6 +571,11 @@ impl crate::remedy::Remedy for OrganizeError {
         "run `intent sync --to-store`, which loads canon again and reads an opaque attachment's bytes from its sidecar under `intent/.canon/st/`; if that sidecar is missing, restore it from git first. Nothing was written to {}.",
         path.display()
       ),
+      Self::CaseFoldUnread { path, .. } => format!(
+        "check that {} and the directories above it are readable and on one disk, then re-run. Nothing was planned or written: organize does not guess whether two names that differ only in case are one file.",
+        path.display()
+      ),
+      Self::CasePair { .. } => CASE_PAIR_REMEDY.to_string(),
       Self::Io { path, .. } => format!(
         "check that {} exists and is readable. This is a file `organize` had already decided about, so the tree moved or a permission changed between the plan and the act.",
         path.display()
@@ -598,6 +634,12 @@ pub fn observe(
   previous: &[crate::sync::FileEntry],
 ) -> Result<(TreeState, String), OrganizeError> {
   let root = project.root();
+  let folds = project
+    .disk_folds_case()
+    .map_err(|source| OrganizeError::CaseFoldUnread {
+      path: project.intent_dir(),
+      source,
+    })?;
   let entries =
     crate::sync::scan(root, previous).map_err(|source| OrganizeError::Scan { source })?;
 
@@ -613,10 +655,14 @@ pub fn observe(
     // layout is spelled once. A cover that is not UTF-8 holds no section the
     // sync could carry back, so it is not recorded and is rendered over as
     // before.
-    let is_cover = matches!(
-      project.owner_of(&path),
-      Some(Named::Thread(id)) if project.info_view(&id) == path
-    );
+    let is_cover = match project.owner_of(&path) {
+      Some(Named::Thread(id)) => {
+        let cover = project.info_view(&id);
+        let key = |p: &Path| crate::project::key_from(root, p);
+        cover == path || (folds && key(&path) == key(&cover))
+      }
+      _ => false,
+    };
     if is_cover {
       let bytes = std::fs::read(&path).map_err(|source| OrganizeError::Io {
         path: path.clone(),
@@ -647,6 +693,7 @@ pub fn observe(
       present,
       sha256,
       covers,
+      folds,
     },
     digest,
   ))
@@ -712,16 +759,45 @@ pub fn plan(
   // 0641). That is asked through `views::carriable_cover`, the predicate
   // doctor's finding, `sync --apply`'s views step and the store's write guard
   // already ask, so the four cannot disagree about which edits are kept.
+  // A declared path's file is the one spelled as it is, or, on a disk that
+  // folds case, one spelled in another case (issue 0722): that is the same
+  // file, so it is verified and its hand edit protected, never hydrated over.
+  //
+  // On a disk that does not fold, the other spelling is a second file, a pair
+  // that collides on the next clone made on a Mac: the view is still the
+  // renderer's and is written, and the other spelling is reported as the pair.
+  let keyed = crate::project::DiskKeys::new(present, project.root());
+  let mut view_twins: BTreeSet<PathBuf> = BTreeSet::new();
+  let mut pairs: BTreeSet<PathBuf> = BTreeSet::new();
   for path in &declared_paths {
     let content = renderable.get(path).cloned();
-    let carriable = tree.covers.get(path).is_some_and(|disk| {
-      views::cover_thread(project, canon, path)
-        .is_some_and(|thread| views::carriable_cover(thread, ctx, disk))
-    });
+    // Every other spelling is the pair on a disk that does not fold, whether or
+    // not the declared spelling is on disk beside it, so a second run names
+    // what the first did.
+    if !tree.folds {
+      pairs.extend(keyed.twins(path).cloned());
+    }
+    let on_disk = if present.contains(path) {
+      Some(path.clone())
+    } else if tree.folds {
+      keyed.twins(path).next().cloned()
+    } else {
+      None
+    };
+    if let Some(twin) = on_disk.as_ref().filter(|twin| *twin != path) {
+      view_twins.insert(twin.clone());
+    }
+    let carriable = on_disk
+      .as_ref()
+      .and_then(|p| tree.covers.get(p))
+      .is_some_and(|disk| {
+        views::cover_thread(project, canon, path)
+          .is_some_and(|thread| views::carriable_cover(thread, ctx, disk))
+      });
     // A `CoverDiverged` step keeps the render, which `run` never writes for it:
     // `st hydrate --overwrite` is the one caller that discards such an edit on
     // the operator's word, and it does so by making the step a `Verify` again.
-    let action = match (present.contains(path), carriable) {
+    let action = match (on_disk.is_some(), carriable) {
       (true, true) => Action::CoverDiverged,
       (true, false) => Action::Verify,
       (false, _) => Action::Hydrate,
@@ -741,7 +817,25 @@ pub fn plan(
   for thread in &canon.threads {
     let declared_thread = realised.declares(&thread.id);
     for att in &thread.attachments {
-      let path = project.thread_dir(thread.id.as_str()).join(&att.path);
+      let mut path = project.thread_dir(thread.id.as_str()).join(&att.path);
+      // **THE ROW'S FILE MAY BE SPELLED IN ANOTHER CASE** (issue 0722). On a disk
+      // that folds case that file IS the row's working copy, verified or
+      // dehydrated under its own spelling. On one that does not it is a second
+      // file, reported below as the pair it makes, and canon's spelling is not
+      // written beside it, which would make the pair on this disk too.
+      if !tree.folds {
+        pairs.extend(keyed.twins(&path).cloned());
+      }
+      let twin = match present.contains(&path) {
+        true => None,
+        false => keyed.twins(&path).next().cloned(),
+      };
+      if let Some(twin) = twin {
+        if !tree.folds {
+          continue;
+        }
+        path = twin;
+      }
       attachment_paths.insert(path.clone());
       if !declared_thread {
         // Undeclared and present: row four, through the same gate. The store
@@ -813,8 +907,17 @@ pub fn plan(
 
   // Rows four and five, over what is actually on disk.
   for path in &tree.present {
-    if declared_paths.contains(path) || attachment_paths.contains(path) {
+    if declared_paths.contains(path) || attachment_paths.contains(path) || view_twins.contains(path)
+    {
       continue; // already decided above
+    }
+    if pairs.contains(path) {
+      steps.push(Step {
+        path: path.clone(),
+        action: Action::CasePair,
+        content: None,
+      });
+      continue;
     }
     if exempt.contains(path) {
       steps.push(Step {
@@ -1576,6 +1679,11 @@ impl Plan {
         Action::Hydrate | Action::HydrateAttachment => {}
         Action::Unclaimed => report.unclaimed.push(step.path.clone()),
         Action::AttachmentDiverged => report.diverged.push(step.path.clone()),
+        // Refused by name, as a cover's divergence is, in both modes: the write
+        // loop passed over it, and nothing was written beside it.
+        Action::CasePair => report.refused.push(OrganizeError::CasePair {
+          path: step.path.clone(),
+        }),
         // **REPORTED IN BOTH MODES**, as every refusal here is: the preview
         // names the path `diverged` and the refusal its `--apply` would make,
         // and neither mode writes it. The write loop above passed over it,

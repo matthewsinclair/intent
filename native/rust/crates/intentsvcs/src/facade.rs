@@ -2147,6 +2147,22 @@ pub enum FacadeError {
     #[source]
     source: std::io::Error,
   },
+  /// A name differs from an attachment the thread carries only in case, and
+  /// whether this disk folds case could not be read (issue 0722), so the name
+  /// is neither answered as that row nor said to be absent: by
+  /// `Project::disk_folds_case`'s rule nothing is placed on a guess. `path` is
+  /// the intent directory, project-relative.
+  #[error(
+    "`{name}` differs only in case from `{row}`, which {thread} carries, and whether the disk holding `{path}` folds case could not be read"
+  )]
+  CaseFoldUnread {
+    thread: String,
+    name: String,
+    row: String,
+    path: String,
+    #[source]
+    source: std::io::Error,
+  },
   /// The store refused an attach after its realised file was written, and the
   /// file's old bytes could not be put back (issue 0715). `refused` is the
   /// store's own refusal, kept whole.
@@ -3803,6 +3819,9 @@ impl crate::remedy::Remedy for FacadeError {
       Self::UnsyncedAttachment { thread, .. } => format!(
         "nothing was written. Carry the file into the store with `intent sync --to-store \
          {thread}`, or move it aside, then attach again"
+      ),
+      Self::CaseFoldUnread { row, path, .. } => format!(
+        "name it as `{row}`, the spelling the thread carries, which answers on any disk; or make `{path}` and the directories above it readable and on one disk, then ask again"
       ),
       Self::RealisedAttachmentUnreadable { path, .. } => format!(
         "nothing was written. Make `{path}` readable (its permissions, or whatever holds it), \
@@ -5968,15 +5987,48 @@ impl Facade {
   /// read answering from the tree would answer for fewer threads than the store
   /// holds, and for the thread the finder met not at all.
   pub fn st_attachment(&self, id: &str, path: &str) -> Result<&Attachment, FacadeError> {
+    let thread = self.st_show(id)?;
     self
-      .st_show(id)?
-      .attachments
-      .iter()
-      .find(|a| a.path == path)
+      .carried_row(thread, path)?
       .ok_or_else(|| FacadeError::NotCarried {
         thread: id.to_string(),
         path: path.to_string(),
       })
+  }
+
+  /// The attachment `name` answers to (issue 0722): the row spelled exactly so;
+  /// else, on a disk that folds case, the row it differs from only in case, the
+  /// same file there, whose name stays the row's. On a disk that does not fold
+  /// that name is not carried, which is the true answer. The fold is read only
+  /// when a row differs only in case, and an unread fold refuses by name.
+  fn carried_row<'t>(
+    &self,
+    thread: &'t Thread,
+    name: &str,
+  ) -> Result<Option<&'t Attachment>, FacadeError> {
+    let rows = || thread.attachments.iter().map(|a| a.path.as_str());
+    let row = match crate::project::disk_match(rows(), name, false) {
+      crate::project::DiskMatch::Exact(row) => {
+        return Ok(thread.attachments.iter().find(|a| a.path == row));
+      }
+      crate::project::DiskMatch::New => return Ok(None),
+      crate::project::DiskMatch::CasePair(row) | crate::project::DiskMatch::WorkingCopy(row) => row,
+    };
+    let folds = self
+      .project
+      .disk_folds_case()
+      .map_err(|source| FacadeError::CaseFoldUnread {
+        thread: thread.id.shown().to_string(),
+        name: name.to_string(),
+        row: row.to_string(),
+        path: self.project.relative(&self.project.intent_dir()),
+        source,
+      })?;
+    Ok(
+      folds
+        .then(|| thread.attachments.iter().find(|a| a.path == row))
+        .flatten(),
+    )
   }
 
   /// A thread's acceptance contract: the bytes its `acceptance.md` is hydrated
@@ -14640,6 +14692,13 @@ impl Facade {
     file: &str,
   ) -> Result<views::ThreadFileRead, FacadeError> {
     let thread = self.st_show(id)?;
+    // An attachment named in another case answers as its row where the disk
+    // folds (issue 0722, `carried_row`); every other name reads as it is.
+    let row = match Project::classify(std::path::Path::new(file)) {
+      crate::project::ThreadFile::Attachment => self.carried_row(thread, file)?,
+      _ => None,
+    };
+    let file = row.map_or(file, |a| a.path.as_str());
     Ok(views::read_thread_file(thread, file, &self.render_ctx()?))
   }
 
@@ -14975,17 +15034,17 @@ impl Facade {
       // **AND NO TWO OF THEM ARE ONE FILE** (issue 0718): a model can carry such
       // a pair from an ingest on a disk that does not fold case, and writing it
       // to one that does would put both sidecars in one file.
-      let mut sidecars: std::collections::HashMap<String, String> =
-        std::collections::HashMap::new();
-      for attachment in thread.attachments.iter().filter(|a| a.blob.is_some()) {
-        let key = crate::project::one_file_key(std::path::Path::new(&attachment.path));
-        if let Some(held) = sidecars.insert(key, attachment.path.clone()) {
-          return Err(FacadeError::OneFileAttachment {
-            thread: thread.id.as_str().to_string(),
-            path: attachment.path.clone(),
-            held,
-          });
-        }
+      let sidecars = thread
+        .attachments
+        .iter()
+        .filter(|a| a.blob.is_some())
+        .map(|a| a.path.as_str());
+      if let Some((held, path)) = crate::project::key_pair(sidecars) {
+        return Err(FacadeError::OneFileAttachment {
+          thread: thread.id.as_str().to_string(),
+          path: path.to_string(),
+          held: held.to_string(),
+        });
       }
       for (rel, raw) in crate::export::thread_blobs(thread) {
         set.add_bytes(self.project.intent_dir().join(rel), raw);
