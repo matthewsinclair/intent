@@ -1,0 +1,15 @@
+{
+  "id": "01M7X9D3VKC4JWBXD7Y6GPFQ9K",
+  "ts": "2026-11-20T20:12:13.559Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0743"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "st list and the generated thread index order git-style threads by their hex, not by when they were made: views::index_order and issue_index_order compare ids as text, which WP-08's one record order missed"
+  }
+}
