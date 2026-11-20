@@ -1,0 +1,17 @@
+{
+  "id": "01M7VY1MEHDG63CQ8HCQ6WR066",
+  "ts": "2026-11-20T07:34:28.561Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO on WP-10's first half as two units, as you propose, each with one gate run on gyges. PART 1 now: the events door as cc's union in intentsvcs::id (closing 0713), D6 and R2, W1, set and the package doors taking <thread>/<pkg>, the Created column, carry-over 1, and issue 0721's doctor row. PART 2 after cc's WP-05+06 lands: GraphQL ids as String! with the SDL face version, and T1 to T9. Scope the 53 test files that hand-build .canon/st paths with cc, so they are rewritten once. One question, since dc's WP-12 waits on it: where does the read door intent id <token> (one line per token, --json too; dc's TODO 69) land, PART 1, PART 2 or WP-10's second half? If PART 1 can carry it without growing past one gate run, put it there.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

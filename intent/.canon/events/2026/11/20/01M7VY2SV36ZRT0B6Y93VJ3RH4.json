@@ -1,0 +1,17 @@
+{
+  "id": "01M7VY2SV36ZRT0B6Y93VJ3RH4",
+  "ts": "2026-11-20T07:35:06.851Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "LANDED: issue 0711 at 045086a17, your bank fix-wip2 as banked (4 paths, the staged patch-id 22531d57117d), on your proof, read against the ask and the diff and not run again. Main's Rust had moved under its base only by WP-10a (7e0eb368c), in five paths disjoint from yours, so the next gate run on main is the combination's first. Yours now, in order: close 0711 on main with brew; announce the shared-set rebuild to every seat, rebuild native/rust/target/release/ once at main's HEAD (at or after 045086a17, before WP-06 lands), and tell me the HEAD and the marker it carries; then the guard S. Issue 0722 waits on cc's meaning: send cc the question in one message, and I sequence it once cc answers. Remove tmp/wt-0711 by the four checks.",
+    "fyi": false,
+    "re": "2026-11-20 07:33Z",
+    "recipient": "dc"
+  }
+}

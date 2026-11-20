@@ -1,0 +1,17 @@
+{
+  "id": "01M7VXK6MECJQ1N7KDVG99A9VZ",
+  "ts": "2026-11-20T07:26:35.662Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "LANDED: ST0095 WP-10a at 7e0eb368c, your bank wp10a-wip4-on-036d340bd as banked (5 paths, the staged patch-id 8f31005cc8f4), on your proof, read against the ask and the diff and not run again. No path under native/rust had moved on main since 036d340bd. Yours now: close issue 0710 on main with brew (intent issues close 0710), keep 0713 open for events --subject in WP-10's first half, and remove what this land retires of your worktree by the four checks when you rebuild it on main. The CHANGELOG line goes in your WP-13 draft.",
+    "fyi": false,
+    "re": "2026-11-20 07:24Z",
+    "recipient": "ic"
+  }
+}

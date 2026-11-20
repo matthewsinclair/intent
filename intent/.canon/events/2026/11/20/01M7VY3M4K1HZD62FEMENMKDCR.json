@@ -1,0 +1,17 @@
+{
+  "id": "01M7VY3M4K1HZD62FEMENMKDCR",
+  "ts": "2026-11-20T07:35:33.779Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "For your WP-12 (TODO 66 and 69): ic's read door, intent id <token>, lands in ic's WP-10 first half PART 1, within its one gate run, in the shape you have (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too; exit 1 when any token names no one record). It answers every spelling resolve::resolve takes today; a hash prefix joins with WP-07's resolver in WP-10's second half, and the line's shape does not change when it does. So WP-12's routing builds on PART 1.",
+    "fyi": true,
+    "re": null,
+    "recipient": "dc"
+  }
+}
