@@ -294,11 +294,16 @@ printf '%s' "$findings" | while IFS= read -r hit; do
   rest="${hit#*:}"
   hline="${rest%%:*}"
   htext="${rest#*:}"
-  if grep -q 'set -[a-z]*o\{0,1\}[[:space:]]*pipefail\|set -o pipefail' "$hpath" 2>/dev/null; then
-    armed="pipefail SET in this file"
-  else
-    armed="pipefail not set in this file -- latent, and one line away from live"
-  fi
+  # grep's status is read three ways (issue 0731): a file it cannot read says so,
+  # where it once read as "pipefail not set". The label is context, never the
+  # verdict, which the finding above has already given.
+  set_rc=0
+  grep -q 'set -[a-z]*o\{0,1\}[[:space:]]*pipefail\|set -o pipefail' "$hpath" 2>/dev/null || set_rc=$?
+  case "$set_rc" in
+    0) armed="pipefail SET in this file" ;;
+    1) armed="pipefail not set in this file -- latent, and one line away from live" ;;
+    *) armed="could not read the file to say whether pipefail is set" ;;
+  esac
   printf '    %s:%s  (%s)\n' "$hpath" "$hline" "$armed"
   printf '      %s\n' "$htext"
 done

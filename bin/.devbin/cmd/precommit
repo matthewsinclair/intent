@@ -112,6 +112,7 @@ G_DECLKIND="declared kind: every AT row whose cited artefact EXISTS cites the ki
 G_ABSENTAT="absent citation: every AT row claiming a VERDICT (green or red) cites an artefact that is actually there"
 G_PIPEFAIL="pipefail/SIGPIPE: no instrument ends a pipeline in an early-exiting reader (it reads FALSE on a TRUE input)"
 G_SUITEPATH="suite paths: every #[path] a staged suite.rs registers is in the commit (issue 0348)"
+G_IDPATTERN="id patterns: no staged line adds a pattern for an id the census does not name (ST0095 AC-12.1)"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -150,6 +151,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_ABSENTAT" "intent/st/ST0056/parity/tools/absent_at_check.sh"
   printf '%s\t%s\n' "$G_PIPEFAIL" "intent/st/ST0056/parity/tools/pipefail_sigpipe_check.sh"
   printf '%s\t%s\n' "$G_SUITEPATH" "intent/st/ST0056/parity/tools/suite_path_check.sh"
+  printf '%s\t%s\n' "$G_IDPATTERN" "intent/st/ST0056/parity/tools/id_pattern_check.sh"
   exit 0
 fi
 
@@ -599,6 +601,15 @@ fi
 step "$G_SUITEPATH"
 if tool_present suite_path_check.sh "the suite registrations"; then
   run_guard "$TOOLS/suite_path_check.sh" gating "a suite.rs registers a test module this commit does not carry; the finding above names it"
+fi
+
+# ST0095 AC-12.1: no script, hook, template or workflow gains a pattern for an
+# id. The guard judges the whole INDEX against HEAD: the sites that carry one
+# are its census, which only shrinks. It runs its own control, in a scratch
+# repository, before its verdict; its header says the rest.
+step "$G_IDPATTERN"
+if tool_present id_pattern_check.sh "the id patterns"; then
+  run_guard "$TOOLS/id_pattern_check.sh" gating "a line spells an id's shape the census does not name, a census row names a site that is gone, or the census grew; the finding above names each"
 fi
 
 if [ "$rc" -ne 0 ]; then

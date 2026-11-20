@@ -35,7 +35,11 @@ set -Eeuo pipefail
 # under `-e` into no verdict, exit 2, naming the command, and `-E` carries it
 # into the functions lib_staged.sh supplies, staged_cleanup on the EXIT trap
 # among them. guard.lib says why, and what a gating guard's 1 cannot rule out.
-trap 'echo "error: residue_class_check: NO VERDICT -- line $LINENO: \`$BASH_COMMAND\` failed, so the sets were not compared" >&2; exit 2' ERR
+# Inside a command substitution the trap only exits, and the shell that reads
+# the substitution names the failure, once (issue 0731): -E runs it in both. A
+# process substitution's status is read by nobody, so a printf failing inside
+# one of the two `<( )` below would go unnamed; those two only print a variable.
+trap '[ "$BASH_SUBSHELL" -gt 0 ] || echo "error: residue_class_check: NO VERDICT -- line $LINENO: \`$BASH_COMMAND\` failed, so the sets were not compared" >&2; exit 2' ERR
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)"
 

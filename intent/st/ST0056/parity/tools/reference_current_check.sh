@@ -43,7 +43,9 @@ no_verdict() {
 # ITS 1 IS "STALE" AND NOTHING ELSE (issue 0726): this trap turns a command
 # failing under `-e` into no verdict, naming the command, and `-E` carries it
 # into `mask`. guard.lib says why, and what a gating guard's 1 cannot rule out.
-trap 'no_verdict "line $LINENO: \`$BASH_COMMAND\` failed"' ERR
+# Inside a command substitution the trap only exits, and the shell that reads
+# the substitution names the failure, once (issue 0731): -E runs it in both.
+trap '[ "$BASH_SUBSHELL" -gt 0 ] && exit 2; no_verdict "line $LINENO: \`$BASH_COMMAND\` failed"' ERR
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
