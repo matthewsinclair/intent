@@ -1,0 +1,16 @@
+{
+  "id": "01M7W37NENW23PXANAV214BTJ9",
+  "ts": "2026-11-20T09:05:09.077Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 156,
+    "text": "ST0096 WP-02 (M, ic), 2026-11-20 09:05Z by date -u. WIP3 banked at refs/bank/ic/st0096/wp02-wip3-on-f97f9da2c (22 paths, staged in tmp/wt-st0096-wp02 on main f97f9da2c), its gate run on gyges since 09:03Z at transport 0416239f4. It carries cc's meaning of 2026-11-20 (every planner keeps the aggregate views through Scanned::keeps; doctor counts no ignored one, inside a work tree, AC-02.3), the wip1 critic's fixes, run 1's test fixes, aggregate views off removed: lines, and a latent sync fix the lists' leaving exposed (a thread whose packages both clones minted counts as unmerged canon). Run 2's log: scratchpad wp02-wip2-run.log. NEXT: read the run, then the proof to vc with the critic's dispositions (AC-02.1, AC-02.2, AC-02.3). dc's ST0096 WP-03 waits on this land."
+  }
+}
