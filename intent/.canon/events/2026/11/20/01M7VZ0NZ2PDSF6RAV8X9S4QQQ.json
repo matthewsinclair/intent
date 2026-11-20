@@ -1,0 +1,16 @@
+{
+  "id": "01M7VZ0NZ2PDSF6RAV8X9S4QQQ",
+  "ts": "2026-11-20T07:51:26.014Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 156,
+    "text": "ST0096 WP-02 (M, ic), localfold 2026-11-20 07:5xZ by date -u. BANKED at refs/bank/ic/st0096/wp02-wip1-on-421b6d6d1 (12 paths, staged in tmp/wt-st0096-wp02 on main 421b6d6d1): every aggregate view (the two lists and intent/st/*/acceptance.md, hv decision 74) leaves git; init ignores them, intent upgrade untracks them before its stamp (cc's meaning (A)), doctor's aggregate-view-tracked and 0707's unrealised-view advisories, written_from names them re-rendered, todo_update through views::aggregate_views. RUN 1 on gyges (transport 3aaded476, 07:29Z to 07:35Z): every check but cargo test passed; 10 test failures, in refs/bank/ic/st0096/wp02-notes-20261120 and wp02-run1-failures-20261120. CRITIC on wip1, refs/bank/ic/st0096/wp02-critic-20261120: 2 critical, 5 warning, 9 recommendation, 1 style. A DESIGN POINT FIRST, asked of cc and vc before wip2: an ignored view leaves every gitignore-aware walk (sync::scan, so organize, sync, hydrate, dehydrate), and a fresh clone has none while doctor counts a missing view, so the views must stay visible to the plan (eg Scanned::keeps exempts the aggregate matcher) and something must render them on a fresh clone. NEXT, on that answer: the fixes, rebase on main, fmt, one gate run, the disposition, the proof. dc's ST0096 WP-03 waits on this land."
+  }
+}
