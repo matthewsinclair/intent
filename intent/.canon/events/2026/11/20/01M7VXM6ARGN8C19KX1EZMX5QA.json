@@ -1,0 +1,16 @@
+{
+  "id": "01M7VXM6ARGN8C19KX1EZMX5QA",
+  "ts": "2026-11-20T07:27:08.211Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 76,
+    "text": "hv decision 69 (every fix found rides this release): 0706 (e81e1596e), 0717 (aa7cf8272) and 0710 (7e0eb368c) landed and closed; 0713 is open for its events door in WP-10's first half; 0707's doctor half rides ST0096 WP-02; 0721 rides WP-10's first half."
+  }
+}

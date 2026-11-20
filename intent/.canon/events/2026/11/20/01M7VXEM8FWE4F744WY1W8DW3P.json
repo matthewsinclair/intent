@@ -1,0 +1,17 @@
+{
+  "id": "01M7VXEM8FWE4F744WY1W8DW3P",
+  "ts": "2026-11-20T07:24:05.775Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "PROOF, ST0095 WP-10a (issues 0710 and 0713), ic, 2026-11-20 07:23Z by date -u. READY to land.\n\nBANK: refs/bank/ic/st0095/wp10a-wip4-on-036d340bd (blob 0f4031c46, patch-id 8f31005cc8f4, base main 036d340bd, 5 paths: intent-cli src/mcp.rs and src/render.rs, tests/every_door_reads_an_id_through_the_waist.rs (new), tests/suite.rs, and intentsvcs src/facade.rs). Since 036d340bd main has moved only by board, issue and design commits; the bank applies as it stands.\n\nWHAT RAN, ONCE: bin/devbin gate rust on gyges at transport f9a5315b4, the bank applied to main 036d340bd, so it covers 0717. Printed \"devbin-referent: commit=f9a5315b4 tree=clean\", then \"ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace\". 07:17Z to 07:23Z on ic's date -u. Nothing WP-10a's code calls changed in 0717's hunks of render.rs (the doctor arm), facade.rs (doctor_with) and suite.rs (one mod line), and this run is on main with 0717 in it.\n\nWHAT IT IS:\n- 0710: the claim refusal names no kind (\"is not an address a board can claim\"), and its remedy quotes id::CLAIM_ADDRESS_FORMS, the forms' one home.\n- 0713, the doors it names, except events --subject: ac descope --to reads a thread through the one thread door on both faces, through one render::descope_target, which uses the facade's blank test so a blank still reaches DescopeTargetRequired. todo done reads its specifier through thread_spec and scope_of, and answers with what it read (the thread, or id::wp_address). todo notdone and toggle name wp reopen for a package. MCP's ac list, at list and at lint pass the target whole, as the CLI does, so a /NN target is refused on both faces rather than widened to the whole thread on MCP.\n- events --subject leaves this unit, and both faces stay at base. It returns in WP-10's first half on cc's meaning (i), the union, 2026-11-20. 0713 stays open for it; 0710 closes with this land.\n- The test: todo done by a short spelling reaches the package (exit 1, and the transition refusal names it); ac descope --to by a bare thread number descopes to the minted thread.\n\nHIGHLANDER (hv decision 67): critic-rust on v1 found 1 critical, 7 warnings, 7 recommendations and 2 style. The critical and most of the rest were on the events door, which left. The rest are fixed in v2 or answered with the package that owns each. Disposition: refs/bank/ic/st0095/wp10a-critic-disposition-20261120 (blob 6ccdb8044).\n\nCHANGELOG line, for the WP-13 draft: \"ac descope --to and todo done read a thread or a package in any spelling every other door reads, and todo done answers with the record it read; MCP's ac list, at list and at lint refuse a work-package target as the CLI does, where they answered for the whole thread (issue 0713). A board claim that is not an address is refused without naming a kind (issue 0710).\"",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7VXM49WZES16HSAW05446HS",
+  "ts": "2026-11-20T07:27:06.044Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 (ic), 2026-11-20 07:3xZ by date -u. WP-02 done; WP-10 claimed. WP-10a (0710 and 0713's other doors) LANDED at 7e0eb368c on ic's proof (gate rust on gyges, f9a5315b4, 07:17Z to 07:23Z), and 0710 is closed; 0713 stays open for events --subject. NEXT, WP-10's first half as one unit with one gate run on gyges, in tmp/wt-st0095-wp10 rebuilt on main: the events door as cc's union (2026-11-20: an untagged ordinal shows the thread's and the issue's events, each row with its kind; a tagged spelling narrows; a hash prefix keeps AC-10.1's rule), read in intentsvcs::id; carry-over 1 (the CLI's package lines in the shown form); W1 (one heading line per entity in show.rs, read by MCP's resource names); R2 and D6 (one bad-id refusal quoting the waist's forms, no hand-written example ids); set and every package door taking <thread>/<pkg>; the issues table's Created column; GraphQL ids as String!; T1 to T9; issue 0721 (doctor re-declared a write, hv decision 74: its dispatch row, MCP note and generated view). Notes: refs/bank/ic/st0095/wp10-notes-20261119c. WP-13 draft: refs/bank/ic/st0095/wp13-draft-20261119b, plus WP-10a's CHANGELOG line."
+  }
+}
