@@ -10,7 +10,6 @@
     "focus": "2026-11-20 18:02Z by date -u: 0722 landed and closed (0ab2a843b); ST0095 WP-08 and WP-09 done (82c45d36b); three worktrees removed. Waiting: devbin-dc's ST0096 WP-04 AC-04.1 proof (GO sent), then dc starts WP-04 and writes AT-04.1. Next for dc: issue 0737 after WP-04 lands; ST0095 WP-03 (DOING 167) and WP-12's routing half wait for the rehearsal's pair.",
     "claims": [
       "ST0095/03",
-      "ISSUE:0737",
       "ISSUE:0742"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
@@ -3237,7 +3236,8 @@
       "kind": "todo",
       "seq": 80,
       "text": "Issue 0737 (dc's, hv decision 69): fold the four two-clone tests' own git and clone helpers onto common's Forge (remint, event log, both pull tests). vc's GO 2026-11-20; devbin-dc builds on 26c4b0ca0 (rebase once if ic's WP-10 T unit lands first); dc reads the proof, vc lands.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T19:33:02.851Z",
       "recorded_at": "2026-11-20T18:01:27.101Z",
       "edited_at": "2026-11-20T18:55:00.912Z"
     },
