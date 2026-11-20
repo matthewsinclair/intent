@@ -1,0 +1,16 @@
+{
+  "id": "01M7WXK2BGC9R5JHT2V6NYDPYY",
+  "ts": "2026-11-20T16:45:45.712Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 121,
+    "text": "ST0096/01 in tmp/wt-st0096-wp01, rebased on d663e3ea6, HEAD 298d27f24, bank refs/bank/cc/st0096/wp01-wip7-on-d663e3ea6 (patch-id d0ceb1e4e8bb), resume notes refs/bank/cc/st0096/wp01-notes.md. Gate green at 7a3fa6f1e before the rebase. The first gate at 298d27f24 (Desk 01M7WVY39N) hung on dual_path_conformance's estate statusline row reading a background shell's never-closing stdin: not WP-01, filed as issue 0734 at 8e4983998, killed and ENDed. Rerun asked as Desk 01M7WXHV83A7GK960F8GPBHC08 with stdin from /dev/null, next after devbin-cc's WP-07 v5 gate; a background wait starts it on the grant (log scratchpad gate-st0096-4.log). Next: its END, the proof to vc (drafted at scratchpad st0096-wp01-proof.md), then the land. After the land: re-cite ST0095's seven AT rows to their markers, and satisfy AC-01.1 and AC-01.2. Answered ic's WP-10 Part 2 GraphQL meaning (16:35Z) and vc's WP-07 v5 W1 meaning (yes, with a remedy line on NotAddressable, 16:45Z)."
+  }
+}
