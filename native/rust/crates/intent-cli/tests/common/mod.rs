@@ -1393,3 +1393,338 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
   assert_eq!(code, 0, "`intent {}` failed: {err}", args.join(" "));
   out
 }
+
+/// **A FORGE STAND-IN** (ST0096 WP-04): a bare repository holding `main`, the
+/// clones and worktrees that open merge requests against it, and the merge a
+/// forge's merge button runs, done in the bare repository by git alone.
+///
+/// Every git here, and every git the binary runs for it, reads one config, the
+/// forge's own HOME's, which carries an identity, no hooks, no signing and no
+/// background maintenance; the system config and every inherited `GIT_*`
+/// variable are kept out ([`Forge::isolate`]). So the fixture's commits are the
+/// commits, and a suite run under a hook or a `rebase -x` cannot point git at
+/// the outer repository. Every `intent` runs under that HOME through
+/// [`intent`]'s door. Everything lives under one tempdir, removed when the
+/// forge drops.
+///
+/// **NO HOOKS, SO A CLEAN `doctor` HERE SAYS NOTHING OF HOOK INSTALLATION.**
+/// `core.hooksPath` is `/dev/null`, which the binary reads too; a test whose
+/// subject is the hooks wires them itself. **BUT A WORKING COPY HERE BEHAVES
+/// AS ONE WITH ITS HOOKS WIRED**: every branch switch and every pull goes
+/// through [`Forge::after_checkout`], which runs what the shipped hook runs.
+/// A fresh checkout, a clone or a new worktree, does not, because the hook
+/// skips one too and leaves the store to the first verb. Without it, a copy
+/// that switches branches keeps the old branch's records in its store and
+/// re-renders them into the new one (issue 0739).
+///
+/// **THE ONE HOME FOR A MULTI-CLONE FIXTURE.** The tests written before it
+/// each carry their own: the remint test's local `git`, the event log's
+/// `Clone`, and a `Team` in each of `a_pull_is_reflected_by_the_next_verb.rs`
+/// and `a_pull_is_repaired_by_one_command.rs`. They stay as they are until they
+/// are folded into this one.
+pub struct Forge {
+  dir: tempfile::TempDir,
+  home: PathBuf,
+}
+
+impl Forge {
+  /// A bare `forge.git`, with `main` not yet born, and the forge's HOME.
+  pub fn new() -> Forge {
+    let dir = tempfile::tempdir().expect("the forge's tempdir");
+    let home = dir.path().join("home");
+    std::fs::create_dir_all(&home).expect("the forge's HOME");
+    std::fs::write(
+      home.join(".gitconfig"),
+      "[user]\n  name = t\n  email = t@example.com\n[core]\n  hooksPath = /dev/null\n\
+       [commit]\n  gpgSign = false\n[init]\n  defaultBranch = main\n[maintenance]\n  auto = false\n",
+    )
+    .expect("git's config for the forge's commits");
+    let forge = Forge { dir, home };
+    forge.git(forge.dir.path(), &["init", "-q", "--bare", "forge.git"]);
+    forge
+  }
+
+  /// The bare repository, where only a merge is ever made.
+  pub fn bare(&self) -> PathBuf {
+    self.dir.path().join("forge.git")
+  }
+
+  /// A clone of the forge, beside it, named `name`. A fresh checkout, so no
+  /// sync, as the hook runs none: its first verb builds its store.
+  pub fn clone_as(&self, name: &str) -> PathBuf {
+    self.git(self.dir.path(), &["clone", "-q", "forge.git", name]);
+    self.dir.path().join(name)
+  }
+
+  /// A worktree of `clone`, beside it, named `name`, detached at the forge's
+  /// `main` as `clone` last fetched it. A fresh checkout, so no sync: the
+  /// hook sees the null previous HEAD `git worktree add` passes and runs
+  /// nothing (post-pull.sh), and the worktree's first verb builds its store.
+  pub fn worktree_of(&self, clone: &Path, name: &str) -> PathBuf {
+    let path = self.dir.path().join(name);
+    let at = path.to_str().expect("a UTF-8 tempdir");
+    self.git(
+      clone,
+      &["worktree", "add", "-q", "--detach", at, "origin/main"],
+    );
+    path
+  }
+
+  /// `git switch <args>` in `copy`, then [`Forge::after_checkout`]: the one
+  /// way a working copy here changes branch.
+  pub fn switch(&self, copy: &Path, args: &[&str]) {
+    let mut switch = vec!["switch", "-q"];
+    switch.extend_from_slice(args);
+    self.git(copy, &switch);
+    self.after_checkout(copy);
+  }
+
+  /// `git pull --ff-only` of the forge's `main` into `copy`, then
+  /// [`Forge::after_checkout`].
+  pub fn pull(&self, copy: &Path) {
+    self.git(copy, &["pull", "-q", "--ff-only", "origin", "main"]);
+    self.after_checkout(copy);
+  }
+
+  /// **WHAT THE SHIPPED HOOK RUNS AFTER A BRANCH SWITCH OR A MERGE**:
+  /// `intent sync --apply`, the one command `lib/templates/hooks/post-pull.sh`
+  /// runs on post-checkout and post-merge. The forge's copies have no hooks,
+  /// so this stands for them, and a copy here is one whose hooks are wired.
+  /// The hookless path is issue 0739: a copy that switches branches without
+  /// it keeps the old branch's records in its store, and its next verb
+  /// re-renders them into the new branch and then refuses the project as
+  /// unmigrated.
+  ///
+  /// **STRICTER THAN THE HOOK, ON PURPOSE: NO HAND STEP IS NEEDED.** The hook
+  /// exits 0 whatever sync says. Here, after the sync, a fresh `intent sync`
+  /// must plan no step but a `(quiet)` one, which the next sync runs with
+  /// nobody asked; doctor must count nothing; and the working copy must be
+  /// clean. Otherwise the test fails at the checkout that caused it. A step
+  /// truly left for a person is not quiet, so this goes red on one. A quiet
+  /// step left is printed, so the lag stays in the run's output.
+  ///
+  /// **TWO THINGS IT DOES NOT HOLD, BOTH ISSUE 0741.** Sync makes one plan
+  /// before its own steps run. So after a pull of records another copy
+  /// minted, it reports a views step `left:` that does nothing when run, and
+  /// after a switch it can miss a quiet index step its own ingest made
+  /// necessary. When 0741 lands, this tightens to "a fresh sync plans
+  /// nothing".
+  fn after_checkout(&self, copy: &Path) {
+    let synced = self.intent_ok(copy, &["sync", "--apply"]);
+    let fresh = self.intent_ok(copy, &["sync"]);
+    let steps: Vec<&str> = fresh
+      .lines()
+      .map(str::trim_start)
+      .filter(|line| {
+        line
+          .split_once(". ")
+          .is_some_and(|(n, _)| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
+      })
+      .collect();
+    let (quiet, for_a_person): (Vec<&str>, Vec<&str>) =
+      steps.iter().partition(|step| step.contains(" (quiet): "));
+    assert!(
+      for_a_person.is_empty(),
+      "after the sync in {}, a fresh plan holds a step that is not quiet:\n{fresh}\n{synced}",
+      copy.display()
+    );
+    for step in &quiet {
+      eprintln!(
+        "left for the next sync in {} (issue 0741): {step}",
+        copy.display()
+      );
+    }
+    let (doctor, err, code) = self.intent(copy, &["doctor"]);
+    assert!(
+      code == 0 && doctor.contains("doctor: 0 finding(s)"),
+      "after the sync in {}, doctor counts a finding:\n{doctor}{err}\n{synced}",
+      copy.display()
+    );
+    let changed = self.git(copy, &["status", "--porcelain", "--untracked-files=all"]);
+    assert!(
+      changed.trim().is_empty(),
+      "the sync after a checkout in {} changed the working copy:\n{changed}\n{synced}",
+      copy.display()
+    );
+  }
+
+  /// The forge's HOME on `command`, with the system git config off and every
+  /// inherited `GIT_*` variable and `XDG_CONFIG_HOME` removed: the one
+  /// isolation both the forge's git and the binary under test get.
+  fn isolate(&self, command: &mut Command) {
+    command
+      .env("HOME", &self.home)
+      .env_remove("XDG_CONFIG_HOME");
+    for (name, _) in std::env::vars_os() {
+      if name.to_string_lossy().starts_with("GIT_") {
+        command.env_remove(name);
+      }
+    }
+    command.env("GIT_CONFIG_NOSYSTEM", "1");
+  }
+
+  /// git in `cwd`: its stdout, its stderr and its exit code.
+  pub fn git_try(&self, cwd: &Path, args: &[&str]) -> (String, String, i32) {
+    let mut command = Command::new("git");
+    command.current_dir(cwd);
+    self.isolate(&mut command);
+    // LIFELINE-EXEMPT: this runs git with a git argv, never the CLI's, so it
+    // starts no daemon whatever the argv holds.
+    command.args(args);
+    let out = command.output().expect("run git");
+    (
+      String::from_utf8_lossy(&out.stdout).into_owned(),
+      String::from_utf8_lossy(&out.stderr).into_owned(),
+      out.status.code().unwrap_or(-1),
+    )
+  }
+
+  /// [`Forge::git_try`], failing the test unless git exits 0: its stdout.
+  pub fn git(&self, cwd: &Path, args: &[&str]) -> String {
+    let (out, err, code) = self.git_try(cwd, args);
+    assert_eq!(
+      code,
+      0,
+      "`git {}` in {} failed:\n{out}{err}",
+      args.join(" "),
+      cwd.display()
+    );
+    out
+  }
+
+  /// The binary under test in `cwd`, isolated as the forge's git is: stdout,
+  /// stderr and the exit code.
+  pub fn intent(&self, cwd: &Path, args: &[&str]) -> (String, String, i32) {
+    let mut command = intent();
+    command.current_dir(cwd);
+    self.isolate(&mut command);
+    let out = command
+      .args(args)
+      .stdin(testkit::lifeline_for(args))
+      .output()
+      .expect("run the v3 binary");
+    (
+      String::from_utf8_lossy(&out.stdout).into_owned(),
+      String::from_utf8_lossy(&out.stderr).into_owned(),
+      out.status.code().unwrap_or(-1),
+    )
+  }
+
+  /// [`Forge::intent`], failing the test unless it exits 0: its stdout.
+  pub fn intent_ok(&self, cwd: &Path, args: &[&str]) -> String {
+    let (out, err, code) = self.intent(cwd, args);
+    assert_eq!(
+      code,
+      0,
+      "`intent {}` in {} failed:\n{out}{err}",
+      args.join(" "),
+      cwd.display()
+    );
+    out
+  }
+
+  /// Commit, in `cwd`, exactly the paths `outs` printed under `wrote:` and
+  /// `removed:`, and nothing else, then hold that nothing was left behind: a
+  /// file a verb wrote and did not name would be missing from the merge
+  /// request, so the working copy must be clean once the named paths are in.
+  pub fn commit_printed(&self, cwd: &Path, outs: &[&str], message: &str) {
+    let paths: std::collections::BTreeSet<&str> = outs
+      .iter()
+      .flat_map(|out| out.lines())
+      .filter_map(|line| {
+        line
+          .strip_prefix("wrote: ")
+          .or_else(|| line.strip_prefix("removed: "))
+      })
+      .collect();
+    assert!(
+      !paths.is_empty(),
+      "the verbs named no file to commit:\n{}",
+      outs.join("\n")
+    );
+    let mut add = vec!["add", "-A", "--"];
+    add.extend(paths.iter().copied());
+    self.git(cwd, &add);
+    self.git(cwd, &["commit", "-q", "-m", message]);
+    let left = self.git(cwd, &["status", "--porcelain", "--untracked-files=all"]);
+    assert!(
+      left.trim().is_empty(),
+      "the verbs wrote files they did not name, left out of `{message}`:\n{left}"
+    );
+  }
+
+  /// Merge `branch` into `main` as a forge's merge button does: in the bare
+  /// repository, by git alone, with no merge driver and no `intent`.
+  /// `merge-tree --write-tree` makes the merged tree, `commit-tree` a commit
+  /// with both tips as its parents, and `update-ref` moves `main` from the tip
+  /// it merged against. A conflict leaves `main` where it was and hands back
+  /// every conflicted path; any other failure of `merge-tree` fails the test
+  /// as itself, never as a conflict.
+  pub fn merge_try(&self, branch: &str) -> Result<(), Vec<String>> {
+    let bare = self.bare();
+    let main = self.git(&bare, &["rev-parse", "refs/heads/main"]);
+    let main = main.trim();
+    let head = format!("refs/heads/{branch}");
+    let tip = self.git(&bare, &["rev-parse", head.as_str()]);
+    let tip = tip.trim();
+    let (out, err, code) = self.git_try(
+      &bare,
+      &[
+        "merge-tree",
+        "--write-tree",
+        "--name-only",
+        "--no-messages",
+        main,
+        tip,
+      ],
+    );
+    // merge-tree's own contract: 0 a clean merge, 1 a conflicted one, and
+    // anything else a merge it could not attempt.
+    assert!(
+      code == 0 || code == 1,
+      "`git merge-tree` could not merge `{branch}` (exit {code}):\n{out}{err}"
+    );
+    let mut lines = out.lines();
+    let tree = lines.next().unwrap_or_default();
+    let conflicted: Vec<String> = lines
+      .filter(|line| !line.is_empty())
+      .map(str::to_string)
+      .collect();
+    assert_eq!(
+      code == 1,
+      !conflicted.is_empty(),
+      "`git merge-tree` exited {code} and named {conflicted:?} for `{branch}`:\n{out}{err}"
+    );
+    conflicted.is_empty().then_some(()).ok_or(conflicted)?;
+    let message = format!("Merge {branch}");
+    let merged = self.git(
+      &bare,
+      &[
+        "commit-tree",
+        tree,
+        "-p",
+        main,
+        "-p",
+        tip,
+        "-m",
+        message.as_str(),
+      ],
+    );
+    self.git(
+      &bare,
+      &["update-ref", "refs/heads/main", merged.trim(), main],
+    );
+    Ok(())
+  }
+
+  /// [`Forge::merge_try`], failing the test on a conflict, naming the branch
+  /// and every conflicted path.
+  pub fn merge(&self, branch: &str) {
+    let merged = self.merge_try(branch);
+    assert!(
+      merged.is_ok(),
+      "merging `{branch}` into main conflicts in: {}",
+      merged.err().unwrap_or_default().join(", ")
+    );
+  }
+}

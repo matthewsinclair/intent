@@ -175,6 +175,8 @@ mod exit_codes;
 mod export_command;
 #[path = "export_md_accepted.rs"]
 mod export_md_accepted;
+#[path = "five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs"]
+mod five_merge_requests_merge_in_turn_as_a_forge_merges_them;
 #[path = "flag_reachability.rs"]
 mod flag_reachability;
 #[path = "format_roster_is_honoured.rs"]
