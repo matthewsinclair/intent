@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 740,
+  "slug": "the-stale-render-findings-weave-their-remedy-int",
+  "title": "The stale-render findings weave their remedy into their prose, so each prints two remedies",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "views.rs's two view-skew findings (~2835, the store's last render still landing; ~2877, the view differs from the model) put their remedy inside the finding's detail (\"... -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI ...\"), and the class remedy prints beneath it, so a reader sees two.\n\nIssue 0738 gave Finding an override (`Finding::with_remedy`) that replaces the class remedy, and moved six doctor sites onto it. These two need wording, which is ic's: the detail says what is wrong, and the override is the one remedy, folding in whatever of the class's still applies (cc's rule on 0738).\n\nProof: doctor on a stale view prints exactly one remedy.\n\nOwner: ic for the wording, on 0738's mechanism. Found by critic-rust on issue 0735 v2. Split from 0738 on cc's ruling (a), 2026-11-20. Filed by cc for devbin-cc, whose loan terms mint nothing in Intent.\n"
+}
