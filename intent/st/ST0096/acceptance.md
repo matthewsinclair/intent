@@ -20,8 +20,8 @@ title: A forge merges every open merge request: no file that every record shares
 
 ### WP-01 -- Realisation lives in the record, and the manifest goes (status: WIP)
 
-- AC-01.1 Every verb in design.md's census table writes no file outside the thread or issue it changes: that record's canon file, its events and its realised views. -- satisfied: no (computed)
-- AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: no (computed)
+- AC-01.1 Every verb in design.md's census table writes no file outside the thread or issue it changes: that record's canon file, its events and its realised views. -- satisfied: yes (computed)
+- AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: yes (computed)
 - AC-01.3 (non-test) The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704. -- evidence: intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc -- satisfied: yes
 
 ### WP-02 -- The two lists leave git (status: WIP)
@@ -53,7 +53,8 @@ _(no tests in this group)_
 
 ### WP-01 -- Realisation lives in the record, and the manifest goes (status: WIP)
 
-_(no tests in this group)_
+- AT-01.1 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:58` -- covers AC-01.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
+- AT-01.2 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:182` -- covers AC-01.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
 
 ### WP-02 -- The two lists leave git (status: WIP)
 
