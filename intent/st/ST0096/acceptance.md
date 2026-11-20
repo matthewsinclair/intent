@@ -18,7 +18,7 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-00.1 (non-test) Highlander, as hv decision 67 asks: at the close, an independent sweep finds one owner of realisation, one writer of the ignore lines and one declared set of generated aggregate views, in every language, and every finding of the sweep of the existing code made at the start (its .intentfiles and aggregate-view sections) is resolved in the package that owns it or answered on the record. -- satisfied: no
 - AC-00.2 (non-test) Highlander on every change, as hv decision 67 asks: every unit of this thread lands with a critic-<lang> review of its diff for each language the diff touches, each Highlander finding fixed or answered, read by vc against the diff before land. -- satisfied: no
 
-### WP-01 -- Realisation lives in the record, and the manifest goes (status: WIP)
+### WP-01 -- Realisation lives in the record, and the manifest goes (status: Done)
 
 - AC-01.1 Every verb in design.md's census table writes no file outside the thread or issue it changes: that record's canon file, its events and its realised views. -- satisfied: yes (computed)
 - AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: yes (computed)
@@ -51,7 +51,7 @@ title: A forge merges every open merge request: no file that every record shares
 
 _(no tests in this group)_
 
-### WP-01 -- Realisation lives in the record, and the manifest goes (status: WIP)
+### WP-01 -- Realisation lives in the record, and the manifest goes (status: Done)
 
 - AT-01.1 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:58` -- covers AC-01.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
 - AT-01.2 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:182` -- covers AC-01.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c

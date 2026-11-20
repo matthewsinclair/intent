@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Realisation lives in the record, and the manifest goes
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-01: Realisation lives in the record, and the manifest goes
