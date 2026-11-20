@@ -143,10 +143,10 @@ _(no tests in this group)_
 
 ### WP-07 -- Prefix resolution (status: Done)
 
-- AT-07.1 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:113` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
-- AT-07.2 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:276` -- covers AC-07.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
-- AT-07.3 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:167` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
-- AT-07.4 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:211` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.1 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:105` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.2 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:270` -- covers AC-07.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.3 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:159` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.4 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:204` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
 
 ### WP-08 -- The order (status: Done)
 
