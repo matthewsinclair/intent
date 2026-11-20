@@ -1,0 +1,16 @@
+{
+  "id": "01M7X3M1YZSRF4GRNAAA5VX3AR",
+  "ts": "2026-11-20T18:31:09.535Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 122,
+    "text": "ST0096/05 (L), split on vc's go into A1 (codec), A2 (writer, removals, moves; AC-05.1/05.2) and B (devbin-cc: upgrade split, closed views removed, refusals, cover; AC-05.3). A1 GREEN at ccb885ea6 (Desk 01M7X37J, 18:30Z), banked refs/bank/cc/st0096/wp05-a1-on-eabd29999 (patch-id 2327baf7b83d), proof sent to vc; worktree tmp/wt-st0096-wp05 branch cc/st0096-wp05-a1 off eabd29999. B's brief banked refs/bank/cc/st0096/wp05-sliceB-brief, sent to devbin-cc. NEXT, A2 on A1: projection() writes through encode_thread_files and removes child files whose record left; renumber/remint moves; ingest's orphan child finding; extend dc's split canon_paths (0739) to child files; sync.rs's canon-path-to-thread mapping; one order for criteria/tests/attachments across store and disk in V4; the AC-05.2 two-branch merge test; data-model.md note (todo 57, hv decision 75). Stay out of Facade::upgrade (B's) and dc's 0741 plan builder."
+  }
+}
