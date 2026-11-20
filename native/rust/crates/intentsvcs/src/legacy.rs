@@ -694,7 +694,14 @@ fn accounted_attachments(
   // the one the carry already reconciles.
   let on_disk = Project::files_in(dir)
     .iter()
-    .filter(|rel| Project::classify(rel) == ThreadFile::Attachment)
+    // A case variant of the thread's own file is one the carry refuses by name
+    // (issue 0719), so it is counted here as the carry counts it.
+    .filter(|rel| {
+      matches!(
+        Project::classify(rel),
+        ThreadFile::Attachment | ThreadFile::CaseVariant { .. }
+      )
+    })
     .count();
   account_attachments(
     &project.relative(dir),
@@ -3810,6 +3817,13 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
     ThreadFile::GeneratedView => Holding::Held,
     // The migrator's own output, superseded by `.canon/st/<ID>.json`.
     ThreadFile::Canon => Holding::Held,
+    // **WITHHELD BY NAME** (issue 0719): the carry refuses it, so canon holds
+    // nothing of it, and removing the bucket would remove its only copy.
+    ThreadFile::CaseVariant { of } => Holding::NotHeld(format!(
+      "{id}'s `{}` {}",
+      within.display(),
+      Project::case_variant_refusal(&of)
+    )),
     ThreadFile::Attachment => {
       let name = within.to_string_lossy().to_string();
       // Read before the lookup, so a file's own bytes find their row before
@@ -4311,6 +4325,22 @@ mod tests {
       bucket_verdict(&canon, Path::new("ST0001/design.png"), &file),
       Holding::Held
     );
+  }
+
+  /// Issue 0719: a case variant of the thread's own file is withheld by name.
+  /// The carry refuses it, so canon holds nothing of it, and pruning the
+  /// bucket would remove its only copy.
+  #[test]
+  fn the_prune_withholds_a_case_variant_of_the_threads_own_file_by_name() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let file = bucket_file(dir.path(), "Acceptance.md", b"# the author's own notes\n");
+    let canon = canon_holding(Vec::new());
+
+    let Holding::NotHeld(reason) = bucket_verdict(&canon, Path::new("ST0001/Acceptance.md"), &file)
+    else {
+      panic!("a case variant of the thread's own file is never held");
+    };
+    assert!(reason.contains("`acceptance.md`"), "{reason}");
   }
 
   /// At other bytes the prune withholds it, and its reason names the spelling

@@ -3,9 +3,10 @@
   "number": 719,
   "slug": "project-classify-reads-a-view-s-name-by-exact-st",
   "title": "Project::classify reads a view's name by exact string, so an author's Acceptance.md is carried as an attachment that a case-insensitive disk stores as the view's file",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-19",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "## What happens\n\n`Project::classify` (`project.rs`) recognises the views it owns by exact name: `info.md`, `acceptance.md`, `WP/<NN>/info.md` and `thread.json`. So an author's `Acceptance.md` or `INFO.md` is carried as an attachment, even though a case-insensitive disk (macOS's default) stores it as the same file as the view.\n\n- On macOS, a migration or a render then overwrites the author's file with the generated view, and its text survives only inline in canon.\n- On Linux, the pair collides on the next clone made on a Mac.\n\nThe one-file guard cannot see this, because one side of the pair is an existing file, not a write.\n\n## The fix\n\ncc's ruling, given to dc on 2026-11-19 by 12:15Z on dc's date -u: `classify` matches view and canon names through the one-file key, and refuses an attachment whose key equals a view's name. The key is the one issue 0711 puts in `project.rs`: path components, with `.` dropped and each component Unicode-lowercased. Use it, never a second copy.\n\nFound by critic-rust on issue 0711's diff. It rides this release (hv decision 69), and vc sequences it.\n"
 }

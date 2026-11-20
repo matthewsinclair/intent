@@ -201,6 +201,27 @@ fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
     hits.contains(wp.as_str()),
     "the hit names the WORK PACKAGE, which a title hit could not have proved: {hits:?}"
   );
+
+  // **ISSUE 0708: THE HIT IS A WORK PACKAGE'S BY KIND AS WELL AS BY OWNER, SO
+  // `--kind wp` FINDS IT.** Ingest wrote the section's owner as `work-package`
+  // and the reader knew only `wp` and `work_package`, so every package's prose
+  // came back a `file` and `--kind wp` answered nothing (ST0095 AC-14.1).
+  let found: serde_json::Value =
+    serde_json::from_str(&ok(root, &["search", "capybara", "--kind", "wp", "--json"]))
+      .expect("the envelope is JSON");
+  let wp_hits: Vec<&serde_json::Value> = found["groups"]
+    .as_array()
+    .expect("groups")
+    .iter()
+    .flat_map(|group| group["hits"].as_array().into_iter().flatten())
+    .collect();
+  assert!(
+    !wp_hits.is_empty()
+      && wp_hits
+        .iter()
+        .all(|hit| hit["kind"] == "wp" && hit["owner"] == wp.as_str()),
+    "`--kind wp` finds the package's prose, as a `wp` hit owned by {wp}: {found}"
+  );
 }
 
 /// A miss is a successful search, not a failure.

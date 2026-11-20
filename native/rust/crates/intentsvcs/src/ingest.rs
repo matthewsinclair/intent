@@ -1929,7 +1929,7 @@ pub fn sections_of(
       continue;
     }
     out.append(&mut prose::split(
-      "issue",
+      crate::id::IdKind::Issue.row(),
       &issue.number.stored(),
       &project.relative(&project.issue_json(issue.number)),
       &issue.body,
@@ -2027,7 +2027,7 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
   };
   if !thread_body.is_empty() {
     out.push(DocSection {
-      owner_type: "thread".to_string(),
+      owner_type: crate::id::IdKind::Thread.row().to_string(),
       owner_id: thread.id.stored(),
       file: file.clone(),
       seq: 0,
@@ -2072,7 +2072,7 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
       continue;
     }
     out.push(DocSection {
-      owner_type: "thread".to_string(),
+      owner_type: crate::id::IdKind::Thread.row().to_string(),
       owner_id: thread.id.stored(),
       file: project.relative(&project.thread_dir(&thread.id).join(&att.path)),
       seq: 0,
@@ -2086,7 +2086,7 @@ pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread
   // the position its number held in a thread numbered without a gap.
   for (position, wp) in (1u32..).zip(&thread.wps) {
     out.push(DocSection {
-      owner_type: "work-package".to_string(),
+      owner_type: crate::id::IdKind::WorkPackage.row().to_string(),
       owner_id: crate::id::wp_address(&thread.id, wp.seq),
       file: file.clone(),
       seq: position,

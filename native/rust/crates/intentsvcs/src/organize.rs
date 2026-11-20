@@ -56,6 +56,7 @@ use std::path::{Path, PathBuf};
 
 use thiserror::Error;
 
+use crate::id::Named;
 use crate::ingest::Canon;
 use crate::intentfiles::Realised;
 use crate::preconditions::{self, Verdict};
@@ -243,6 +244,10 @@ pub struct Plan {
   /// is allowed to touch, exactly as `preconditions` lets it be inspected for
   /// what it is allowed to do.
   pub estate_root: PathBuf,
+  /// The project the plan was decided in, so [`Plan::run`] asks
+  /// [`Project::owner_of`] which thread a step's path belongs to rather than
+  /// reading a name off the path.
+  pub project: Project,
   /// Declared threads this plan will not realise, because a v2 status bucket
   /// still holds their files (issue 0209). Their steps are absent from `steps`,
   /// and [`Plan::run`] reports each one as a refusal.
@@ -270,6 +275,15 @@ pub struct Held {
 }
 
 impl Plan {
+  /// The thread that owns a step's path, as [`Project::owner_of`] answers it.
+  fn thread_of(&self, path: &Path) -> Option<String> {
+    let owner = self.project.owner_of(path);
+    owner
+      .as_ref()
+      .and_then(Named::thread)
+      .map(crate::id::ThreadId::stored)
+  }
+
   /// Steps carrying a given action, in path order.
   /// This plan narrowed to the removals of the paths `keep` names, and nothing
   /// else: no hydration, no v2 prune, no held-thread refusal (issue 0316).
@@ -541,35 +555,22 @@ fn io_err(path: &Path, source: std::io::Error) -> OrganizeError {
   }
 }
 
-/// A path re-based from the project root onto the THREAD directory, which is the
-/// frame [`Project::classify`] reads.
+/// The thread that owns `path`, and the path re-based onto that thread's
+/// directory, which is the frame [`Project::classify`] reads.
 ///
-/// Returns `None` for anything not under `st_dir`, and for `st_dir` itself or a
-/// bare thread directory -- there is no file there to classify, and answering
-/// anyway would put a directory into a population that is counted as files.
-fn thread_relative(project: &Project, path: &Path) -> Option<PathBuf> {
-  let under_st = path.strip_prefix(project.st_dir()).ok()?;
-  let mut comps = under_st.components();
-  comps.next()?; // the thread id
-  let rel: PathBuf = comps.collect();
-  if rel.as_os_str().is_empty() {
+/// **WHICH THREAD OWNS THE PATH IS [`Project::owner_of`]'s ANSWER** (ST0095
+/// WP-14). This used to take the first name under `st_dir` as the id,
+/// unchecked, so a v2 status bucket (`COMPLETED`) came back as a thread.
+/// `None` for a path no thread owns, for a thread's canon (which is not under
+/// its directory), and for a bare thread directory: there is no file there to
+/// classify, and answering anyway would put a directory into a population that
+/// is counted as files.
+fn thread_file(project: &Project, path: &Path) -> Option<PathBuf> {
+  let Some(Named::Thread(id)) = project.owner_of(path) else {
     return None;
-  }
-  Some(rel)
-}
-
-/// The thread id owning `path`, or `None` for anything not under the estate root.
-///
-/// **THE FIRST COMPONENT UNDER THE ROOT, WHICH IS THE SAME FRAME
-/// [`thread_relative`] DISCARDS.** That one throws the id away to get at the
-/// file; this one throws the file away to get at the id. Kept as two functions
-/// rather than one returning a pair, because every caller of each wants exactly
-/// one half and a pair would have both of them destructuring past the part they
-/// do not use.
-fn thread_of(estate_root: &Path, path: &Path) -> Option<String> {
-  let under = path.strip_prefix(estate_root).ok()?;
-  let first = under.components().next()?;
-  Some(first.as_os_str().to_string_lossy().into_owned())
+  };
+  let rel = path.strip_prefix(project.thread_dir(&id)).ok()?;
+  (!rel.as_os_str().is_empty()).then(|| rel.to_path_buf())
 }
 
 /// Read the tree as [`plan`] needs it, and fingerprint it in the same pass.
@@ -603,7 +604,6 @@ pub fn observe(
   let mut present = BTreeSet::new();
   let mut sha256 = BTreeMap::new();
   let mut covers = BTreeMap::new();
-  let st_dir = project.st_dir();
   // Sorted by construction: `scan` walks name-ordered, and both collections are
   // ordered maps. The digest below depends on that and must not depend on it
   // silently, so it re-derives its order from the map rather than the walk.
@@ -613,7 +613,10 @@ pub fn observe(
     // layout is spelled once. A cover that is not UTF-8 holds no section the
     // sync could carry back, so it is not recorded and is rendered over as
     // before.
-    let is_cover = thread_of(&st_dir, &path).is_some_and(|id| project.info_view(&id) == path);
+    let is_cover = matches!(
+      project.owner_of(&path),
+      Some(Named::Thread(id)) if project.info_view(&id) == path
+    );
     if is_cover {
       let bytes = std::fs::read(&path).map_err(|source| OrganizeError::Io {
         path: path.clone(),
@@ -842,10 +845,20 @@ pub fn plan(
       }
       continue;
     }
-    let Some(rel) = thread_relative(project, path) else {
-      // Not under `st_dir` at all, and not an issue view either -- both of
-      // those are decided above. A thread classifier would be a second, wrong,
-      // spelling of whatever layout this path belongs to.
+    let Some(rel) = thread_file(project, path) else {
+      // No thread owns it. An issue view is decided above, and a path outside
+      // `st_dir` is not this loop's: a thread classifier would be a second,
+      // wrong, spelling of whatever layout it belongs to. A file in a directory
+      // under `st_dir` that names no thread (a v2 status bucket, a name that is
+      // not an id) is somebody's only copy: reported, never removed.
+      let under_st = path.strip_prefix(project.st_dir());
+      if under_st.is_ok_and(|under| under.components().count() > 1) {
+        steps.push(Step {
+          path: path.clone(),
+          action: Action::Unclaimed,
+          content: None,
+        });
+      }
       continue;
     };
     match Project::classify(&rel) {
@@ -860,8 +873,11 @@ pub fn plan(
       // An attachment the STORE DOES NOT CARRY. The arm above decided every
       // attachment canon knows about, so reaching here means disk holds a
       // carryable file with no record -- which is an ingest question, not a
-      // realisation one. Reported, never removed: it is the only copy.
-      ThreadFile::Attachment => steps.push(Step {
+      // realisation one. Reported, never removed: it is the only copy. A case
+      // variant of the thread's own file (issue 0719) is the same: no record
+      // carries it, and claiming it would put the author's bytes where the
+      // next render writes, so it is reported and never claimed.
+      ThreadFile::Attachment | ThreadFile::CaseVariant { .. } => steps.push(Step {
         path: path.clone(),
         action: Action::Unclaimed,
         content: None,
@@ -879,6 +895,7 @@ pub fn plan(
     digest,
     preconditions: preconditions::check(canon),
     estate_root: project.st_dir(),
+    project: project.clone(),
     held,
   }
 }
@@ -1371,7 +1388,7 @@ impl Plan {
       // thread contributes one step per file and the refusal wants threads.
       let threads: std::collections::BTreeSet<String> = self
         .with(Action::Dehydrate)
-        .filter_map(|s| thread_of(&self.estate_root, &s.path))
+        .filter_map(|s| self.thread_of(&s.path))
         .collect();
       report.refused.push(OrganizeError::PreconditionsUnmet {
         removals: self.with(Action::Dehydrate).count(),
@@ -1405,14 +1422,17 @@ impl Plan {
       let refused_threads: BTreeSet<String> = gated
         .iter()
         .filter(|(_, verdict)| verdict.is_err())
-        .filter_map(|(step, _)| thread_of(&self.estate_root, &step.path))
+        .filter_map(|(step, _)| self.thread_of(&step.path))
         .collect();
       let mut withheld: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
       for (step, verdict) in gated {
         match verdict {
           Err(refusal) => report.refused.push(refusal),
           Ok(()) => {
-            match thread_of(&self.estate_root, &step.path).filter(|t| refused_threads.contains(t)) {
+            match self
+              .thread_of(&step.path)
+              .filter(|t| refused_threads.contains(t))
+            {
               Some(thread) => withheld.entry(thread).or_default().push(step.path.clone()),
               None => {
                 if mode.performs() {
@@ -1535,11 +1555,11 @@ impl Plan {
         // and neither mode writes it. The write loop above passed over it,
         // because it is neither a write step nor a `Verify`. The path is a
         // cover `plan` matched through `Project::info_view`, so it is under the
-        // estate root by construction and `thread_of` always names its thread.
+        // estate root by construction and [`Plan::thread_of`] always names its thread.
         Action::CoverDiverged => {
           report.diverged.push(step.path.clone());
           report.refused.push(OrganizeError::CoverDiverged {
-            thread: thread_of(&self.estate_root, &step.path).unwrap_or_default(),
+            thread: self.thread_of(&step.path).unwrap_or_default(),
             path: step.path.clone(),
           });
         }

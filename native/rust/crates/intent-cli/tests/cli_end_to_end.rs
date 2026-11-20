@@ -2085,7 +2085,7 @@ fn slash_outs_and_slash_outstanding_open_the_verbs_table_in_the_explorer() {
     "the seed left nothing outstanding, so the loop below would assert nothing"
   );
   let facade = facade_of(root);
-  let found = facade.outstanding(&intentsvcs::outstanding::Kind::ALL);
+  let found = facade.outstanding(&intentsvcs::id::IdKind::ALL);
   let view = intent_cli::render::outstanding_view(&facade);
   let table: Vec<_> = view.iter().take_while(|row| !row.is_rule()).collect();
   assert_eq!(

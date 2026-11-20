@@ -19,6 +19,7 @@
 //! it needs a group, one of the two halves is wrong and it is an argument
 //! rather than a patch.
 
+use crate::id::IdKind;
 use crate::index::corpus::{Corpus, SkipReason};
 use crate::index::resolved::{self, Row, Run};
 use serde::{Deserialize, Serialize};
@@ -827,8 +828,12 @@ impl Tier {
 /// SURFACE.** Without type resolution nothing here can say *caller*, and a
 /// surface that said it would be the confident wrong answer this estate
 /// refuses.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+///
+/// **A THREAD, A WORK PACKAGE AND AN ISSUE ARE [`IdKind`]'s** (ST0095 WP-14):
+/// this enum keeps its own variants for the kinds that are not ids, and its id
+/// variants are spelled by [`IdKind::wire`] and read through it, here and
+/// nowhere else in this file.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HitKind {
   Def,
   Ref,
@@ -841,61 +846,82 @@ pub enum HitKind {
 }
 
 impl HitKind {
+  /// Every kind, in the order a refusal names them.
+  pub const ALL: [HitKind; 8] = [
+    HitKind::Def,
+    HitKind::Ref,
+    HitKind::File,
+    HitKind::Thread,
+    HitKind::Wp,
+    HitKind::Issue,
+    HitKind::Attachment,
+    HitKind::Project,
+  ];
+
+  /// The kind's one spelling on every search surface: `--kind`, a hit's JSON
+  /// and the daemon's wire.
   pub fn as_str(self) -> &'static str {
     match self {
       HitKind::Def => "def",
       HitKind::Ref => "ref",
       HitKind::File => "file",
-      HitKind::Thread => "thread",
-      HitKind::Wp => "wp",
-      HitKind::Issue => "issue",
+      HitKind::Thread => IdKind::Thread.wire(),
+      HitKind::Wp => IdKind::WorkPackage.wire(),
+      HitKind::Issue => IdKind::Issue.wire(),
       HitKind::Attachment => "attachment",
       HitKind::Project => "project",
     }
   }
 
+  /// The hit kind of an id family.
+  pub fn of_id(kind: IdKind) -> Self {
+    match kind {
+      IdKind::Thread => HitKind::Thread,
+      IdKind::WorkPackage => HitKind::Wp,
+      IdKind::Issue => HitKind::Issue,
+    }
+  }
+
   /// The kind an owner_type in the prose index stands for.
+  ///
+  /// **A THREAD'S, A PACKAGE'S AND AN ISSUE'S OWNER IS READ THROUGH
+  /// [`IdKind::of_row`]**, the inverse of the spelling ingest writes. This read
+  /// `wp` and `work_package` while ingest wrote `work-package`, so every work
+  /// package's prose came back a `file` and `--kind wp` found none (issue 0708).
   ///
   /// **AN UNRECOGNISED OWNER IS A `file`, NOT A PANIC AND NOT A DROP.** The
   /// prose index carries whatever the model owns, and a kind this enum has not
   /// met is still a real hit whose path is still the answer.
   pub fn of_owner(owner_type: &str) -> Self {
-    match owner_type {
-      "thread" | "steel_thread" => HitKind::Thread,
-      "wp" | "work_package" => HitKind::Wp,
-      "issue" => HitKind::Issue,
-      "attachment" => HitKind::Attachment,
-      "project" => HitKind::Project,
-      _ => HitKind::File,
+    match (IdKind::of_row(owner_type), owner_type) {
+      (Some(kind), _) => HitKind::of_id(kind),
+      (None, "attachment") => HitKind::Attachment,
+      (None, "project") => HitKind::Project,
+      (None, _) => HitKind::File,
     }
   }
 
-  /// Parse the spelling a caller gives `--kind`.
+  /// Parse the spelling a caller gives `--kind`: the inverse of
+  /// [`HitKind::as_str`].
   pub fn parse(word: &str) -> Option<Self> {
-    Some(match word {
-      "def" => HitKind::Def,
-      "ref" => HitKind::Ref,
-      "file" => HitKind::File,
-      "thread" => HitKind::Thread,
-      "wp" => HitKind::Wp,
-      "issue" => HitKind::Issue,
-      "attachment" => HitKind::Attachment,
-      "project" => HitKind::Project,
-      _ => return None,
-    })
+    HitKind::ALL.into_iter().find(|kind| kind.as_str() == word)
   }
+}
 
-  /// Every spelling `--kind` accepts, for the refusal that names them.
-  pub const ALL: &'static [&'static str] = &[
-    "def",
-    "ref",
-    "file",
-    "thread",
-    "wp",
-    "issue",
-    "attachment",
-    "project",
-  ];
+/// A hit's kind travels as [`HitKind::as_str`] and is read back through
+/// [`HitKind::parse`], so its spelling has one home on every face.
+impl Serialize for HitKind {
+  fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(self.as_str())
+  }
+}
+
+impl<'de> Deserialize<'de> for HitKind {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    let word = String::deserialize(deserializer)?;
+    HitKind::parse(&word)
+      .ok_or_else(|| serde::de::Error::custom(format!("`{word}` is not a kind of hit")))
+  }
 }
 
 /// One hit.
@@ -1327,7 +1353,10 @@ impl FilterWords {
         None => {
           return Err(FilterRefusal {
             problem: format!("`{word}` is not a kind of thing this index holds"),
-            choices: HitKind::ALL.iter().map(|k| k.to_string()).collect(),
+            choices: HitKind::ALL
+              .iter()
+              .map(|k| k.as_str().to_string())
+              .collect(),
           });
         }
       }
@@ -1997,5 +2026,26 @@ mod tests {
   fn an_owner_this_enum_has_not_met_is_a_file_and_not_a_drop() {
     assert_eq!(HitKind::of_owner("thread"), HitKind::Thread);
     assert_eq!(HitKind::of_owner("whiteboard_note"), HitKind::File);
+  }
+
+  /// Issue 0708: ingest writes a work package's section as `work-package`, and
+  /// this read only `wp` and `work_package`, so a package came back a `file`.
+  #[test]
+  fn every_owner_ingest_writes_reads_back_as_its_family() {
+    for kind in IdKind::ALL {
+      assert_eq!(HitKind::of_owner(kind.row()), HitKind::of_id(kind));
+    }
+    assert_eq!(HitKind::of_owner("work-package"), HitKind::Wp);
+  }
+
+  #[test]
+  fn every_kind_reads_back_from_its_own_spelling_on_every_face() {
+    for kind in HitKind::ALL {
+      assert_eq!(HitKind::parse(kind.as_str()), Some(kind));
+      let json = serde_json::to_value(kind).expect("a hit kind serialises");
+      assert_eq!(json, serde_json::Value::from(kind.as_str()));
+      assert_eq!(serde_json::from_value::<HitKind>(json).ok(), Some(kind));
+    }
+    assert_eq!(HitKind::as_str(HitKind::of_id(IdKind::WorkPackage)), "wp");
   }
 }

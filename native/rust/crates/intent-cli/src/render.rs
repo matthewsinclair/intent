@@ -6919,6 +6919,7 @@ fn artefact_rows(table: &crate::dispatch::Table, kind: &str) -> Vec<tui::layout:
         EditDisposition::Refuse { author_with } => {
           format!("generated -- authored with {author_with}")
         }
+        EditDisposition::CaseVariant { of } => Project::case_variant_detail(&of),
       };
       tui::layout::Row::named(file.clone(), format!("{file}.md"), says, "artefact")
     })
@@ -7726,6 +7727,11 @@ fn rows_for(
           Ok(ThreadFileRead::Absent) => format!(
             "{id} carries no `{0}` -- `intent st attach {id} {0} --from <file>` adds one",
             row.title
+          ),
+          Ok(ThreadFileRead::CaseVariant { of }) => format!(
+            "`{}` {}",
+            row.title,
+            intentsvcs::project::Project::case_variant_refusal(&of)
           ),
           Err(e) => format!("{e} -- {}", intentsvcs::remedy::Remedy::remedy(&e)),
         };
@@ -13795,10 +13801,10 @@ fn guards() -> Result<(), Failure> {
 /// The table goes through the list verbs' own output layer, so `--format`,
 /// `--width` and `--markdown` mean here what they mean on `st list`.
 fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
-  use intentsvcs::outstanding::Kind;
+  use intentsvcs::id::IdKind;
   let show = match opt(m, "show")? {
     Some(spec) => show_filter(&spec)?,
-    None => Kind::ALL.to_vec(),
+    None => IdKind::ALL.to_vec(),
   };
   let found = open()?.outstanding(&show);
   let rows: Vec<Vec<String>> = found
@@ -13843,21 +13849,21 @@ pub fn outstanding_cells(r: &intentsvcs::outstanding::Row) -> [String; 4] {
 /// only because a work package under it is WIP carries its own status, so
 /// counting it inside `threads (WIP)` would say something false about it.
 pub fn outstanding_counts(found: &intentsvcs::outstanding::Outstanding) -> String {
-  use intentsvcs::outstanding::Kind;
+  use intentsvcs::id::IdKind;
   found
     .counts
     .iter()
     .map(|c| {
       let parents = match (c.kind, found.parents) {
-        (Kind::Thread, 1) => " and 1 as a parent".to_string(),
-        (Kind::Thread, n) if n > 1 => format!(" and {n} as parents"),
+        (IdKind::Thread, 1) => " and 1 as a parent".to_string(),
+        (IdKind::Thread, n) if n > 1 => format!(" and {n} as parents"),
         _ => String::new(),
       };
       format!(
         "{} of {} {} ({}){parents}",
         c.shown,
         c.total,
-        c.kind.noun(),
+        c.kind.plural(),
         c.statuses.join(", ")
       )
     })
@@ -13874,7 +13880,7 @@ pub fn outstanding_counts(found: &intentsvcs::outstanding::Outstanding) -> Strin
 /// second classifier* one face over: the rows arrive in the order
 /// [`intentsvcs::outstanding`] gives them and are laid out in it.
 pub fn outstanding_view(facade: &Facade) -> Vec<tui::layout::Row> {
-  let found = facade.outstanding(&intentsvcs::outstanding::Kind::ALL);
+  let found = facade.outstanding(&intentsvcs::id::IdKind::ALL);
   let rows: Vec<([String; 4], Option<intentsvcs::nav::View>)> = found
     .rows
     .iter()
@@ -13886,17 +13892,17 @@ pub fn outstanding_view(facade: &Facade) -> Vec<tui::layout::Row> {
 /// `--show`'s vocabulary (hv, 2026-09-21): a comma-separated list of kinds,
 /// `all` among them. An empty item is skipped, as `status_filter` skips one,
 /// but a list naming no kind at all is refused rather than rendering nothing.
-pub(crate) fn show_filter(spec: &str) -> Result<Vec<intentsvcs::outstanding::Kind>, String> {
-  use intentsvcs::outstanding::Kind;
+pub(crate) fn show_filter(spec: &str) -> Result<Vec<intentsvcs::id::IdKind>, String> {
+  use intentsvcs::id::IdKind;
   const REMEDY: &str =
     "remedy: use a comma-separated list of st, wp, is, issue, issues -- or `all`";
   let mut kinds = Vec::new();
   for raw in spec.split(',') {
     match raw.trim().to_ascii_lowercase().as_str() {
-      "all" => kinds.extend(Kind::ALL),
-      "st" => kinds.push(Kind::Thread),
-      "wp" => kinds.push(Kind::WorkPackage),
-      "is" | "issue" | "issues" => kinds.push(Kind::Issue),
+      "all" => kinds.extend(IdKind::ALL),
+      "st" => kinds.push(IdKind::Thread),
+      "wp" => kinds.push(IdKind::WorkPackage),
+      "is" | "issue" | "issues" => kinds.push(IdKind::Issue),
       "" => continue,
       other => {
         return Err(format!(
@@ -18268,6 +18274,16 @@ mod tests {
             "`{}` is generated and the row does not name what authors it: {:?}",
             row.name,
             row.value
+          );
+        }
+        // Every offered file is spelled as the thread's own files are, so none
+        // is a case variant of one (issue 0719); the row says so if one were.
+        EditDisposition::CaseVariant { of } => {
+          assert_eq!(
+            row.value,
+            Project::case_variant_detail(&of),
+            "`{}`",
+            row.name
           );
         }
       }

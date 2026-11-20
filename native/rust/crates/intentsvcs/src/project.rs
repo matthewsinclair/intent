@@ -231,13 +231,19 @@ pub fn attachment_path_fault(rel: &Path, thread: &str) -> Option<PathFault> {
 /// extension we do not carry" and it is now "over the cap", reported with the
 /// byte count. It will be much shorter, and it is now a statement about the
 /// files rather than about a list.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ThreadFile {
   /// Rendered from the model: the thread's cover, its acceptance contract, a
   /// work package's cover.
   GeneratedView,
   /// `thread.json` -- the committed canon itself.
   Canon,
+  /// **ONE FILE WITH THE THREAD'S OWN, SPELLED OTHERWISE** (issue 0719): a
+  /// name a disk that folds case (macOS's default) stores as a generated view
+  /// or the canon file, eg `Acceptance.md` or `wp/01/info.md`. `of` is the
+  /// exact spelling of that file. No door carries, renames or claims it: each
+  /// refuses it by name, and `doctor` counts it.
+  CaseVariant { of: PathBuf },
   /// Anything a human put here. Carried verbatim when it fits under
   /// [`ATTACHMENT_CAP_BYTES`]; reported by name with its size when it does not.
   ///
@@ -1558,10 +1564,10 @@ pub fn canon_blob_rel(id: &str, path: &str) -> String {
 ///   a key: an over-match, which refuses where it should not, and never lets a
 ///   write through.
 ///
-/// **Who asks it.** The migration's batch guard, the legacy bucket merge and
-/// the prune's verdict on a bucket file. Issue 0718 moves the attachment door
-/// and projection's sidecar write onto it, issue 0719 `classify`'s view names,
-/// and issue 0722 the doors that read a live disk (`sync --to-store`'s merge,
+/// **Who asks it.** The migration's batch guard, the legacy bucket merge, the
+/// prune's verdict on a bucket file, and [`Project::classify`] for the thread's
+/// own files (issue 0719). Issue 0718 moves the attachment door and
+/// projection's sidecar write onto it, and issue 0722 the doors that read a live disk (`sync --to-store`'s merge,
 /// `organize`'s plan, doctor's attachment drift and the rest it names). Until
 /// those land, those doors still compare paths byte for byte; a door that
 /// compares two paths for "one file" by itself is a second copy of this.
@@ -2252,36 +2258,71 @@ impl Project {
   /// those are three separate answers, a file can be an attachment to one and
   /// a view to another. Every caller asks here.
   pub fn classify(rel: &Path) -> ThreadFile {
-    let name = rel.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-    let depth = rel.components().count();
+    // **THE THREAD'S OWN FILES ARE MATCHED THROUGH THE ONE-FILE KEY** (issue
+    // 0719), so a name a disk folding case stores as one of them is never an
+    // attachment: matched by exact string, `Acceptance.md` was carried, and the
+    // next render on macOS wrote the view over the author's file.
+    let plain: PathBuf = rel
+      .components()
+      .filter(|part| !matches!(part, std::path::Component::CurDir))
+      .collect();
+    let key = one_file_key(&plain);
+    let own = match key.split('/').collect::<Vec<_>>().as_slice() {
+      // A generated view is checked FIRST and by its full shape, not its name.
+      // `info.md` at the thread root is the generated cover; `WP/01/info.md` is
+      // the work package's. A file called `info.md` three levels down under a
+      // parity directory is neither, and matching on the bare name would take
+      // an author's file and call it ours.
+      ["info.md"] => Some((PathBuf::from("info.md"), ThreadFile::GeneratedView)),
+      ["acceptance.md"] => Some((PathBuf::from("acceptance.md"), ThreadFile::GeneratedView)),
+      ["wp", _, "info.md"] => plain.components().nth(1).map(|seq| {
+        (
+          Path::new("WP").join(seq).join("info.md"),
+          ThreadFile::GeneratedView,
+        )
+      }),
+      // **NOT dead after D57-1's relocation, and worth saying so.** Canon now
+      // lives at `.canon/st/<ID>.json`, so no healthy thread directory holds a
+      // `thread.json` -- but a v2 tree does, and so does a tree caught
+      // mid-move. Classifying it as canon is what keeps it out of the
+      // attachment carry; deleting the arm would make a stale canon file an
+      // ATTACHMENT and carry the migrator's own output back into canon as
+      // though a human wrote it.
+      ["thread.json"] => Some((PathBuf::from("thread.json"), ThreadFile::Canon)),
+      _ => None,
+    };
+    match own {
+      Some((of, file)) if of == plain => file,
+      Some((of, _)) => ThreadFile::CaseVariant { of },
+      // **Everything the renderer does not own is the author's.** No extension
+      // is consulted, because an extension answers a question about a NAME and
+      // the question here is whose file this is. Whether its bytes fit in canon
+      // is a separate question with a separate home
+      // ([`within_attachment_cap`]), asked where the bytes are.
+      None => ThreadFile::Attachment,
+    }
+  }
 
-    // A generated view is checked FIRST and by its full shape, not its name.
-    // `info.md` at the thread root is the generated cover; `WP/01/info.md` is
-    // the work package's. A file called `info.md` three levels down under a
-    // parity directory is neither, and matching on the bare name would take
-    // an author's file and call it ours.
-    if is_thread_info(rel) || (depth == 1 && name == "acceptance.md") {
-      return ThreadFile::GeneratedView;
-    }
-    if depth == 3 && name == "info.md" && rel.starts_with("WP") {
-      return ThreadFile::GeneratedView;
-    }
-    // **NOT dead after D57-1's relocation, and worth saying so.** Canon now
-    // lives at `.canon/st/<ID>.json`, so no healthy thread directory holds a
-    // `thread.json` -- but a v2 tree does, and so does a tree caught mid-move.
-    // Classifying it as canon is what keeps it out of the attachment carry;
-    // deleting the arm would make a stale canon file an ATTACHMENT and carry
-    // the migrator's own output back into canon as though a human wrote it.
-    if depth == 1 && name == "thread.json" {
-      return ThreadFile::Canon;
-    }
+  /// What every door says of a [`ThreadFile::CaseVariant`], after the path it
+  /// names (issue 0719): the one sentence, so doctor's finding, the carry's
+  /// refusal and each door's error cannot describe it two ways. The remedy is
+  /// [`crate::finding::FindingClass::CaseVariant`]'s.
+  pub fn case_variant_detail(of: &Path) -> String {
+    format!(
+      "is one file with the thread's own `{}` on a disk that folds case (macOS's default), so no door carries, renames or claims it",
+      of.display()
+    )
+  }
 
-    // **Everything the renderer does not own is the author's.** No extension is
-    // consulted, because an extension answers a question about a NAME and the
-    // question here is whose file this is. Whether its bytes fit in canon is a
-    // separate question with a separate home ([`within_attachment_cap`]), asked
-    // where the bytes are.
-    ThreadFile::Attachment
+  /// [`Project::case_variant_detail`] with its remedy, the whole refusal a
+  /// door gives that reports it as text rather than as a
+  /// `FacadeError::CaseVariant`: the carry, legacy's prune, the explorer.
+  pub fn case_variant_refusal(of: &Path) -> String {
+    format!(
+      "{} -- {}",
+      Project::case_variant_detail(of),
+      crate::finding::FindingClass::CaseVariant.remedy()
+    )
   }
 
   /// The committed structured canon for one issue, `.canon/issues/<nnnn>.json`.
@@ -2360,6 +2401,52 @@ impl Project {
   /// is still pinned by a test.
   pub fn issue_view(&self, id: crate::id::IssueId) -> PathBuf {
     self.issues_view_dir().join(format!("{}.md", id.stored()))
+  }
+
+  /// **THE ONE ANSWER TO WHICH THREAD OR ISSUE OWNS A PATH** (ST0095 WP-14).
+  ///
+  /// A thread owns its realised directory and everything in it (its cover,
+  /// its acceptance view, its work packages' covers, its attachments), and its
+  /// canon record with everything under `.canon/st/<ID>/` beside it. An issue
+  /// owns its canon record and its view. Nothing else is owned by a thread or
+  /// an issue: a project-level view, a board, a directory that is not an id,
+  /// and a v2 status bucket, whose paths are legacy's to read.
+  ///
+  /// `path` is relative to the project root, or absolute. **The id is read by
+  /// [`crate::id::ThreadId::parse`] and [`crate::id::IssueId::parse`], and a
+  /// record's path is confirmed against the layout methods above**, so no
+  /// pattern of an id and no spelling of the layout is kept here a second time,
+  /// and a configured `intent_dir` is honoured as they honour it. It reads no
+  /// canon: whether the record exists is the caller's question.
+  pub fn owner_of(&self, path: &Path) -> Option<crate::id::Named> {
+    use crate::id::{IssueId, Named, ThreadId};
+    let path = self.root.join(path);
+    // The first name under `dir`, and whether anything lies below it.
+    let head = |dir: PathBuf| -> Option<(String, bool)> {
+      let mut under = path.strip_prefix(dir).ok()?.components();
+      let first = under.next()?.as_os_str().to_str()?.to_string();
+      Some((first, under.next().is_some()))
+    };
+    let stem = |name: &str| Path::new(name).file_stem()?.to_str().map(str::to_string);
+    if let Some((id, _)) = head(self.st_dir()) {
+      return ThreadId::parse(&id).ok().map(Named::Thread);
+    }
+    if let Some((name, beside)) = head(self.canon_st_dir()) {
+      if beside {
+        return ThreadId::parse(&name).ok().map(Named::Thread);
+      }
+      let id = ThreadId::parse(&stem(&name)?).ok()?;
+      return (self.thread_json(&id) == path).then_some(Named::Thread(id));
+    }
+    if let Some((name, false)) = head(self.issues_dir()) {
+      let number = IssueId::parse(&stem(&name)?).ok()?;
+      return (self.issue_json(number) == path).then_some(Named::Issue(number));
+    }
+    if let Some((name, false)) = head(self.issues_view_dir()) {
+      let number = IssueId::parse(&stem(&name)?).ok()?;
+      return (self.issue_view(number) == path).then_some(Named::Issue(number));
+    }
+    None
   }
 
   /// The generated views as formatter-ignore GLOBS, relative to the project
@@ -2479,13 +2566,21 @@ impl Project {
     let mut carried = Vec::new();
     let mut refused = Vec::new();
     for rel in Project::files_in(dir) {
-      // Consumed by the parsers -- carrying them here as well would give one
-      // file two homes in the model.
-      if Project::classify(&rel) != ThreadFile::Attachment {
-        continue;
-      }
       let path = dir.join(&rel);
       let name = self.relative(&path);
+      match Project::classify(&rel) {
+        ThreadFile::Attachment => {}
+        // Consumed by the parsers -- carrying them here as well would give one
+        // file two homes in the model.
+        ThreadFile::GeneratedView | ThreadFile::Canon => continue,
+        // **REFUSED BY NAME, NEVER SKIPPED** (issue 0719): carried, it is the
+        // author's file a disk folding case stores as the thread's own, and the
+        // next render writes over it.
+        ThreadFile::CaseVariant { of } => {
+          refused.push((name, Project::case_variant_refusal(&of)));
+          continue;
+        }
+      }
       // **THE SIZE IS ASKED OF THE METADATA, BEFORE THE READ.** The read below
       // is unbounded, so checking afterwards means loading the file in order to
       // be told it was too big -- harmless for a 2 MiB screenshot and not
@@ -2822,6 +2917,9 @@ pub enum EditDisposition {
   },
   /// Generated from the model. Refuse, and say what authors it.
   Refuse { author_with: &'static str },
+  /// One file with the thread's own `of` on a disk that folds case (issue
+  /// 0719). Refuse, and name both: no door opens it.
+  CaseVariant { of: PathBuf },
 }
 
 impl Project {
@@ -2879,6 +2977,7 @@ impl Project {
       // refuse: the estate holds files Intent does not model and never claimed
       // to, and refusing them would make `edit` narrower than the directory.
       ThreadFile::Attachment => EditDisposition::Open,
+      ThreadFile::CaseVariant { of } => EditDisposition::CaseVariant { of },
     }
   }
 }

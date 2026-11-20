@@ -1338,6 +1338,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::RealisationWouldRemove { .. } => "RealisationWouldRemove",
     FacadeError::DehydrationRefused { .. } => "DehydrationRefused",
     FacadeError::NotEditable { .. } => "NotEditable",
+    FacadeError::CaseVariant { .. } => "CaseVariant",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
@@ -1408,6 +1409,7 @@ const ALL_VARIANTS: &[&str] = &[
   "RealisationWouldRemove",
   "DehydrationRefused",
   "NotEditable",
+  "CaseVariant",
   "NoSuchEditable",
   "NoSuchAttachment",
   "NoSuchRelatedTarget",
@@ -1778,6 +1780,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // succeed at their first step and refuse at their second.
   "NotEditable",
   "NoSuchEditable",
+  // **ASSERTED IN `a_case_variant_of_a_threads_own_file_is_refused_by_name.rs`**,
+  // which matches the attach door's refusal for its exact `path` and the `of`
+  // it is one file with (issue 0719). Cited rather than provoked because the
+  // door refuses only after its address parses and its thread loads.
+  "CaseVariant",
   // **THE SQL DOOR'S OTHER FOUR, ASSERTED IN
   // `intent-cli/tests/the_sql_door_is_read_only.rs` AND NOT MERELY REACHED
   // THERE.** They are cited rather than provoked because each needs a store ON

@@ -39,6 +39,8 @@ mod a_board_git_moved_under_the_store_is_left;
 mod a_board_write_leaves_a_board_nothing_records;
 #[path = "a_board_write_still_landing_refuses_no_commit.rs"]
 mod a_board_write_still_landing_refuses_no_commit;
+#[path = "a_case_variant_of_a_threads_own_file_is_refused_by_name.rs"]
+mod a_case_variant_of_a_threads_own_file_is_refused_by_name;
 #[path = "a_cold_warm_leaves_a_peers_write.rs"]
 mod a_cold_warm_leaves_a_peers_write;
 #[path = "a_create_refuses_a_child_id_that_is_taken.rs"]
@@ -392,6 +394,8 @@ mod a_removed_file_leaves_the_file_index;
 mod no_orphan_suite_member;
 #[path = "no_view_claims_to_be_truth.rs"]
 mod no_view_claims_to_be_truth;
+#[path = "one_answer_to_who_owns_a_path.rs"]
+mod one_answer_to_who_owns_a_path;
 #[path = "one_clock.rs"]
 mod one_clock;
 #[path = "one_definition_is_one_symbol_row.rs"]

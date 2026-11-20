@@ -12,6 +12,7 @@
 //! rows the facade read, in the order their own list verbs print them, and
 //! does no I/O. The table, `--show` and the counts line are intent-cli's.
 
+use crate::id::IdKind;
 use crate::model::{Issue, IssueStatus, Thread, ThreadStatus, WpStatus};
 use serde::Serialize;
 
@@ -28,42 +29,10 @@ pub const WP_STATUS: WpStatus = WpStatus::Wip;
 /// The issue status bare `intent issues` shows.
 pub const ISSUE_STATUS: IssueStatus = IssueStatus::Open;
 
-/// The three kinds, in the order the counts line names them. The rows put
-/// each thread's work packages directly under it, and the issues last.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Kind {
-  Thread,
-  WorkPackage,
-  Issue,
-}
-
-impl Kind {
-  pub const ALL: [Kind; 3] = [Kind::Thread, Kind::WorkPackage, Kind::Issue];
-
-  /// The type column's spelling, as hv wrote it: ST, WP, Issue.
-  pub fn label(self) -> &'static str {
-    match self {
-      Kind::Thread => "ST",
-      Kind::WorkPackage => "WP",
-      Kind::Issue => "Issue",
-    }
-  }
-
-  /// What a count calls this kind.
-  pub fn noun(self) -> &'static str {
-    match self {
-      Kind::Thread => "threads",
-      Kind::WorkPackage => "work packages",
-      Kind::Issue => "issues",
-    }
-  }
-}
-
 /// One outstanding item. `status` is its type's own display spelling.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Row {
-  pub kind: Kind,
+  pub kind: IdKind,
   pub id: String,
   pub status: &'static str,
   pub title: String,
@@ -93,7 +62,7 @@ pub struct WpRef {
 /// is not counted here; [`Outstanding::parents`] counts it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Count {
-  pub kind: Kind,
+  pub kind: IdKind,
   pub shown: usize,
   pub total: usize,
   pub statuses: Vec<&'static str>,
@@ -119,9 +88,9 @@ pub struct Outstanding {
 /// thread in as its parent row, with the thread's own status, where `st list`
 /// orders it. With threads not in `show`, the packages are listed alone, in the
 /// same order.
-pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Outstanding {
-  let with_threads = show.contains(&Kind::Thread);
-  let with_packages = show.contains(&Kind::WorkPackage);
+pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[IdKind]) -> Outstanding {
+  let with_threads = show.contains(&IdKind::Thread);
+  let with_packages = show.contains(&IdKind::WorkPackage);
   let mut rows = Vec::new();
   let (mut open, mut parents, mut packages) = (0, 0, 0);
   for t in threads {
@@ -130,7 +99,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
       .iter()
       .filter(|w| with_packages && w.status == WP_STATUS)
       .map(|w| Row {
-        kind: Kind::WorkPackage,
+        kind: IdKind::WorkPackage,
         id: crate::id::wp_address(&t.id, w.seq),
         status: w.status.display(),
         title: w.title.clone(),
@@ -143,7 +112,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
     let outstanding = THREAD_STATUSES.contains(&t.status);
     if with_threads && (outstanding || !wip.is_empty()) {
       rows.push(Row {
-        kind: Kind::Thread,
+        kind: IdKind::Thread,
         id: t.id.stored(),
         status: t.status.display(),
         title: t.title.clone(),
@@ -160,9 +129,9 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
   }
   let open_issues: Vec<Row> = issues
     .iter()
-    .filter(|i| show.contains(&Kind::Issue) && i.status == ISSUE_STATUS)
+    .filter(|i| show.contains(&IdKind::Issue) && i.status == ISSUE_STATUS)
     .map(|i| Row {
-      kind: Kind::Issue,
+      kind: IdKind::Issue,
       id: i.number.stored(),
       status: i.status.display(),
       title: i.title.clone(),
@@ -171,22 +140,22 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[Kind]) -> Out
     .collect();
   let issues_shown = open_issues.len();
   rows.extend(open_issues);
-  let counts = Kind::ALL
+  let counts = IdKind::ALL
     .into_iter()
     .filter(|k| show.contains(k))
     .map(|kind| {
       let (shown, total, statuses) = match kind {
-        Kind::Thread => (
+        IdKind::Thread => (
           open,
           threads.len(),
           THREAD_STATUSES.iter().map(|s| s.display()).collect(),
         ),
-        Kind::WorkPackage => (
+        IdKind::WorkPackage => (
           packages,
           threads.iter().map(|t| t.wps.len()).sum(),
           vec![WP_STATUS.display()],
         ),
-        Kind::Issue => (issues_shown, issues.len(), vec![ISSUE_STATUS.display()]),
+        IdKind::Issue => (issues_shown, issues.len(), vec![ISSUE_STATUS.display()]),
       };
       Count {
         kind,

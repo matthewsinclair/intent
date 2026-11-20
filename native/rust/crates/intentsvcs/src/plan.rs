@@ -42,6 +42,8 @@
 //! terminal and no `--yes` the quiet steps run and every other is left, which
 //! is what the git hooks run.
 
+use crate::id::IdKind;
+
 /// Whether applying a step may ask a person, and which answer lets it run.
 ///
 /// The field the whiteboard verbs already carry, under the same three words.
@@ -64,15 +66,6 @@ impl Recoverability {
       Self::NonReversible => "non-reversible",
     }
   }
-}
-
-/// What a renumber moves: a steel thread or an issue. A work package is a row
-/// inside its thread's canon file, so git sees a thread both sides changed, and
-/// [`packages_both_sides_added`] tells that apart as [`Action::KeepPackages`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Minted {
-  Thread,
-  Issue,
 }
 
 /// Which side of a merge a person chose.
@@ -108,7 +101,7 @@ pub enum Action {
   /// where this clone's log holds it, so the plan and its apply agree, or a
   /// creation event drawn for the move. The pulled side keeps `from`.
   Renumber {
-    minted: Minted,
+    minted: IdKind,
     from: String,
     to: String,
     origin: String,
@@ -184,7 +177,7 @@ impl Step {
   }
 
   /// A renumber. **REVERSIBLE**: it is staged, so the merge can be redone.
-  pub fn renumber(minted: Minted, from: String, to: String, origin: String) -> Self {
+  pub fn renumber(minted: IdKind, from: String, to: String, origin: String) -> Self {
     Self {
       action: Action::Renumber {
         minted,
@@ -333,10 +326,7 @@ impl Step {
       ),
       Action::Renumber { minted, from, to, .. } => format!(
         "both sides minted {} {from}: this clone's moves to {to} and the pulled one keeps {from}, both staged",
-        match minted {
-          Minted::Thread => "steel thread",
-          Minted::Issue => "issue",
-        }
+        minted.as_str()
       ),
       Action::KeepPackages { thread, moves } => {
         let moved: Vec<String> = moves
@@ -630,7 +620,7 @@ pub fn packages_both_sides_added(
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Conflicts {
   /// Ids both sides minted, each with what it names: canon add/adds.
-  pub minted_twice: Vec<(Minted, String)>,
+  pub minted_twice: Vec<(IdKind, String)>,
   /// Canon files both sides changed, and canon sidecars of a thread that is
   /// not being renumbered.
   pub take_sides: Vec<String>,
@@ -674,100 +664,77 @@ pub fn classify(
   project: &crate::project::Project,
   unmerged: &[crate::gitstate::Unmerged],
 ) -> Conflicts {
-  let rel = |p: std::path::PathBuf| format!("{}/", project.relative(&p));
-  let canon_st = rel(project.canon_st_dir());
-  let canon_issues = rel(project.issues_dir());
-  let canon = rel(project.canon_dir());
-  let st = rel(project.st_dir());
-  let issue_views = rel(project.issues_view_dir());
+  use crate::id::Named;
+  let canon = format!("{}/", project.relative(&project.canon_dir()));
   let is_view = project.generated_view_matcher();
 
   let mut out = Conflicts::default();
   // Paths whose owner is decided once every twice-minted id is known.
   let mut sidecars: Vec<(String, String)> = Vec::new();
   let mut under_threads: Vec<(String, String)> = Vec::new();
-  let mut views: Vec<String> = Vec::new();
+  let mut views: Vec<(Option<Named>, String)> = Vec::new();
 
   for entry in unmerged {
     let path = entry.path.as_str();
-    if let Some(rest) = path.strip_prefix(&canon_st) {
-      match rest.split_once('/') {
-        // **AN ADD/ADD IS A RENUMBER ONLY FOR AN ORDINAL** (ST0095 WP-06): a
-        // git-style id never collides, so nothing ever moves one, and two sides
-        // adding one file under it is a person's choice.
-        None => match rest.strip_suffix(".json").and_then(|id| {
-          crate::id::ThreadId::parse(id)
-            .ok()
-            .map(|parsed| (id, parsed))
-        }) {
-          Some((id, parsed)) if entry.is_add_add() && !parsed.is_hashed() => {
-            out.minted_twice.push((Minted::Thread, id.to_string()));
+    // **WHICH THREAD OR ISSUE OWNS THE PATH IS `Project::owner_of`'s ANSWER**
+    // (ST0095 WP-14), and whether the path is that record's own canon file is
+    // the layout's: neither is spelled here. **AN ADD/ADD IS A RENUMBER ONLY
+    // FOR AN ORDINAL** (ST0095 WP-06): a git-style id never collides, so
+    // nothing ever moves one, and two sides adding one file under it is a
+    // person's choice.
+    let owner = project.owner_of(std::path::Path::new(path));
+    if path.starts_with(&canon) {
+      match owner {
+        Some(Named::Thread(id)) if project.relative(&project.thread_json(&id)) == path => {
+          if entry.is_add_add() && !id.is_hashed() {
+            out.minted_twice.push((IdKind::Thread, id.stored()));
+          } else {
+            out.take_sides.push(path.to_string());
           }
-          _ => out.take_sides.push(path.to_string()),
-        },
-        Some((id, _)) if crate::id::ThreadId::parse(id).is_ok() => {
-          sidecars.push((id.to_string(), path.to_string()));
         }
-        Some(_) => out.take_sides.push(path.to_string()),
-      }
-    } else if let Some(rest) = path.strip_prefix(&canon_issues) {
-      match rest
-        .strip_suffix(".json")
-        .and_then(|n| crate::id::IssueId::parse(n).ok().map(|parsed| (n, parsed)))
-      {
-        Some((n, parsed)) if entry.is_add_add() && !parsed.is_hashed() => {
-          out.minted_twice.push((Minted::Issue, n.to_string()));
+        Some(Named::Issue(number)) if project.relative(&project.issue_json(number)) == path => {
+          if entry.is_add_add() && !number.is_hashed() {
+            out.minted_twice.push((IdKind::Issue, number.stored()));
+          } else {
+            out.take_sides.push(path.to_string());
+          }
         }
-        _ => out.take_sides.push(path.to_string()),
+        Some(Named::Thread(id)) => sidecars.push((id.stored(), path.to_string())),
+        Some(Named::Issue(_)) | None => out.take_sides.push(path.to_string()),
       }
-    } else if path.starts_with(&canon) {
-      out.take_sides.push(path.to_string());
     } else if is_view(path) {
-      views.push(path.to_string());
-    } else if let Some((id, _)) = path
-      .strip_prefix(&st)
-      .and_then(|rest| rest.split_once('/'))
-      .filter(|(id, _)| crate::id::ThreadId::parse(id).is_ok())
-    {
-      under_threads.push((id.to_string(), path.to_string()));
+      views.push((owner, path.to_string()));
+    } else if let Some(Named::Thread(id)) = owner {
+      under_threads.push((id.stored(), path.to_string()));
     } else {
       out.unowned.push(path.to_string());
     }
   }
 
-  let renumbered = |minted: Minted, id: &str| {
+  let renumbered = |minted: IdKind, id: &str| {
     out
       .minted_twice
       .iter()
       .any(|(m, twice)| *m == minted && twice == id)
   };
-  let thread_of_view = |path: &str| {
-    path
-      .strip_prefix(&st)
-      .and_then(|rest| rest.split_once('/'))
-      .map(|(id, _)| id.to_string())
-  };
-  let issue_of_view = |path: &str| {
-    path
-      .strip_prefix(&issue_views)
-      .and_then(|rest| rest.strip_suffix(".md"))
-      .map(str::to_string)
-  };
   let mut take_sides = Vec::new();
   for (id, path) in sidecars {
-    if !renumbered(Minted::Thread, &id) {
+    if !renumbered(IdKind::Thread, &id) {
       take_sides.push(path);
     }
   }
   let mut unowned = Vec::new();
   for (id, path) in under_threads {
-    if !renumbered(Minted::Thread, &id) {
+    if !renumbered(IdKind::Thread, &id) {
       unowned.push(path);
     }
   }
-  for path in views {
-    let covered = thread_of_view(&path).is_some_and(|id| renumbered(Minted::Thread, &id))
-      || issue_of_view(&path).is_some_and(|n| renumbered(Minted::Issue, &n));
+  for (owner, path) in views {
+    let covered = match owner {
+      Some(Named::Thread(id)) => renumbered(IdKind::Thread, &id.stored()),
+      Some(Named::Issue(number)) => renumbered(IdKind::Issue, &number.stored()),
+      None => false,
+    };
     if !covered {
       out.views.push(path);
     }
@@ -816,7 +783,7 @@ mod tests {
     let line = left_line(&[
       Left {
         step: Step::renumber(
-          Minted::Thread,
+          IdKind::Thread,
           "ST0001".into(),
           crate::id::ThreadId::from_origin(MOVED_BY).stored(),
           MOVED_BY.into(),

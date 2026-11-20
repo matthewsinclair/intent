@@ -195,13 +195,13 @@ impl Entity {
       Self::Threads => "threads",
       Self::Issues => "issues",
       Self::WpCollection { .. } => "wp-collection",
-      Self::Thread { .. } => "thread",
+      Self::Thread { .. } => crate::id::IdKind::Thread.wire(),
       Self::AcCollection { .. } => "ac-collection",
-      Self::Wp { .. } => "wp",
+      Self::Wp { .. } => crate::id::IdKind::WorkPackage.wire(),
       Self::Ac { .. } => "ac",
       Self::At { .. } => "at",
       Self::Attachment { .. } => "attachment",
-      Self::Issue { .. } => "issue",
+      Self::Issue { .. } => crate::id::IdKind::Issue.wire(),
       Self::Node { .. } => "node",
       Self::NodeInbox { .. } => "node-inbox",
       Self::Event { .. } => "event",
@@ -323,8 +323,8 @@ pub enum AddressError {
   },
   #[error("`{input}` names no entity -- an address needs a collection and an id")]
   Empty { input: String },
-  #[error("`{id}` is not a valid {kind} id")]
-  MalformedId { kind: &'static str, id: String },
+  #[error("`{id}` is not a valid {} id", .kind.wire())]
+  MalformedId { kind: crate::id::IdKind, id: String },
   #[error("`{input}` has trailing segments after a complete address")]
   TrailingSegments { input: String },
   /// **THE OPPOSITE DEFECT FROM [`AddressError::TrailingSegments`], AND IT USED
@@ -403,11 +403,7 @@ impl Remedy for AddressError {
       AddressError::Empty { .. } => {
         format!("name an entity, eg `{SCHEME}/threads/ST0000`")
       }
-      AddressError::MalformedId { kind, .. } => match *kind {
-        "thread" => crate::id::THREAD_ID_FORM.into(),
-        "issue" => crate::id::ISSUE_ID_FORM.into(),
-        _ => format!("check the {kind} id against the form the estate uses"),
-      },
+      AddressError::MalformedId { kind, .. } => kind.form().into(),
       AddressError::TrailingSegments { .. } => {
         "an address ends at the entity it names; use `?format=` for a representation".into()
       }
@@ -619,7 +615,7 @@ fn thread(id: &str) -> Result<String, AddressError> {
     .is_ok()
     .then(|| id.to_string())
     .ok_or_else(|| AddressError::MalformedId {
-      kind: "thread",
+      kind: crate::id::IdKind::Thread,
       id: id.to_string(),
     })
 }
@@ -670,7 +666,7 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
       .is_ok()
       .then(|| Entity::Issue { id: id.to_string() })
       .ok_or_else(|| AddressError::MalformedId {
-        kind: "issue",
+        kind: crate::id::IdKind::Issue,
         id: id.to_string(),
       }),
     ["nodes", moniker] => Ok(Entity::Node {

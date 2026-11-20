@@ -27,6 +27,7 @@ use std::path::PathBuf;
 
 use crate::contract::satisfied_by_tests;
 use crate::finding::{Finding, FindingClass};
+use crate::id::Named;
 use crate::ingest::Canon;
 use crate::model::{
   AcState, AcceptanceTest, AtKind, Criterion, Issue, Thread, ThreadStatus, WorkPackage,
@@ -762,16 +763,20 @@ pub fn carriable_cover(thread: &Thread, ctx: &RenderContext<'_>, disk: &str) -> 
     .is_ok_and(|carried| carried.objective != thread.objective || carried.context != thread.context)
 }
 
-/// The thread whose cover (`info.md`) `path` is, when it is one.
+/// The thread whose cover (`info.md`) `path` is, when it is one: the thread
+/// [`Project::owner_of`] names, when that thread's cover is this path.
 pub fn cover_thread<'a>(
   project: &Project,
   canon: &'a Canon,
   path: &std::path::Path,
 ) -> Option<&'a Thread> {
+  let Some(Named::Thread(id)) = project.owner_of(path) else {
+    return None;
+  };
   canon
     .threads
     .iter()
-    .find(|t| project.info_view(&t.id) == path)
+    .find(|t| t.id == id && project.info_view(&t.id) == path)
 }
 
 /// The regions of a rendered `info.md` whose bytes belong to the AUTHOR.
@@ -1657,8 +1662,9 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
 pub struct TodoItem {
   /// `ST0001`, or `ST0001/02` for a work package.
   pub id: String,
-  /// `thread` or `work-package`.
-  pub kind: &'static str,
+  /// The family, a thread or a work package. Its JSON is the row spelling,
+  /// [`IdKind::row`](crate::id::IdKind::row): `thread` or `work-package`.
+  pub kind: crate::id::IdKind,
   pub title: String,
   /// The state as a human reads it, from
   /// [`ThreadStatus::display`](crate::model::ThreadStatus::display) or
@@ -1726,7 +1732,7 @@ pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets 
       .iter()
       .map(|wp| TodoItem {
         id: crate::id::wp_address(&t.id, wp.seq),
-        kind: "work-package",
+        kind: crate::id::IdKind::WorkPackage,
         title: wp.title.clone(),
         status: wp.status.display(),
         glyph: wp.status.glyph(),
@@ -1739,7 +1745,7 @@ pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets 
 
     let item = TodoItem {
       id: t.id.stored(),
-      kind: "thread",
+      kind: crate::id::IdKind::Thread,
       title: t.title.clone(),
       status: t.status.display(),
       glyph: t.status.glyph(),
@@ -1916,17 +1922,6 @@ fn write_row(out: &mut String, row: &TodoItem, depth: usize) {
 // Rendering the whole estate, and the skew check
 // ---------------------------------------------------------------------------
 
-/// Which thread owns a view path, if any.
-///
-/// **The single answer, consulted by the write path and the diagnostic path
-/// alike.** `Facade::projection` uses it to decide what to WRITE and
-/// [`skew`] uses it to decide what a missing file MEANS; two copies would let
-/// those two disagree about whether a view should exist, which is exactly the
-/// divergence `.intentfiles` exists to settle.
-///
-/// `None` is a real answer and not a failure: `steel_threads.md` and `todo.md`
-/// are project-level, belong to no artefact, and so are never subject to the
-/// manifest.
 /// Render one issue's `intent/issues/<nnnn>.md` (AC-01.1).
 ///
 /// **THE BODY IS EMITTED VERBATIM AND NOTHING PARSES IT.** `Issue::body` is
@@ -1966,38 +1961,34 @@ pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
   finish(out, ctx, "the issue canon")
 }
 
-/// Which issue a path is the view of, or `None`.
+/// Which thread or issue in canon owns a path, if any.
 ///
-/// **ASKS CANON, LIKE [`owning_thread`], RATHER THAN PARSING THE PATH.** The
-/// number could be scraped out of `issues/0021.md` in one line and that is the
-/// spelling that does not survive the directory moving. Comparing against
-/// `Project::issue_view` means the layout is owned in exactly one place.
-pub fn owning_issue(
-  project: &Project,
-  path: &std::path::Path,
-  canon: &Canon,
-) -> Option<crate::id::IssueId> {
-  canon
-    .issues
-    .iter()
-    .find(|i| project.issue_view(i.number) == path)
-    .map(|i| i.number)
-}
-
-pub fn owning_thread(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<String> {
-  canon
-    .threads
-    .iter()
-    .find(|t| path.starts_with(project.thread_dir(&t.id)))
-    .map(|t| t.id.stored())
+/// **The single answer, consulted by the write path and the diagnostic path
+/// alike.** `Facade::projection` uses it to decide what to WRITE and
+/// [`skew`] uses it to decide what a missing file MEANS; two copies would let
+/// those two disagree about whether a view should exist, which is exactly the
+/// divergence `.intentfiles` exists to settle.
+///
+/// **THE PATH IS READ BY [`Project::owner_of`], AND CANON SAYS WHETHER THE
+/// RECORD IT NAMES EXISTS.** Neither half spells the layout or an id's pattern,
+/// so the answer moves with the directory and with the id's form.
+///
+/// `None` is a real answer and not a failure: `steel_threads.md` and `todo.md`
+/// are project-level, belong to no artefact, and so are never subject to the
+/// manifest.
+pub fn owner(project: &Project, path: &std::path::Path, canon: &Canon) -> Option<Named> {
+  project.owner_of(path).filter(|owner| match owner {
+    Named::Thread(id) => canon.threads.iter().any(|t| t.id == *id),
+    Named::Issue(number) => canon.issues.iter().any(|i| i.number == *number),
+  })
 }
 
 /// The artefact a view realises, when the manifest says that artefact is NOT
 /// realised.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Undeclared {
-  Thread(String),
-  Issue(crate::id::IssueId),
+  /// A thread or an issue, as [`owner`] names it.
+  Record(Named),
   /// A board or inbox view whose node has no migrated `wb_node` row.
   Board(String),
 }
@@ -2012,7 +2003,7 @@ pub enum Undeclared {
 /// callers: this file's skew check, both arms, and the projection in `facade`.
 ///
 /// **The question was spelled three ways and two of them were wrong.**
-/// `owning_thread` answers `None` for `intent/issues/<nnnn>.md`, and `None`
+/// A thread-only owner answered `None` for `intent/issues/<nnnn>.md`, and `None`
 /// inside an `is_some_and` or an `&&` is `false` -- which reads as *this view's
 /// owner is declared*, the one answer that is never safe to assume. The
 /// projection carried that sentence and wrote 284 views against a manifest
@@ -2031,12 +2022,14 @@ pub fn undeclared_owner(
   canon: &Canon,
   realised: &crate::intentfiles::Realised,
 ) -> Option<Undeclared> {
-  if let Some(id) = owning_thread(project, path, canon) {
-    return (!realised.declares(&id)).then_some(Undeclared::Thread(id));
-  }
-  if let Some(number) = owning_issue(project, path, canon) {
-    return (!realised.declares_artefact(crate::intentfiles::Sigil::Issue, &number.stored()))
-      .then_some(Undeclared::Issue(number));
+  if let Some(record) = owner(project, path, canon) {
+    let declared = match &record {
+      Named::Thread(id) => realised.declares(id),
+      Named::Issue(number) => {
+        realised.declares_artefact(crate::intentfiles::Sigil::Issue, &number.stored())
+      }
+    };
+    return (!declared).then_some(Undeclared::Record(record));
   }
   // **A WHITEBOARD VIEW EXISTS FOR EXACTLY THE NODES THE STORE HOLDS** (vc,
   // 2026-09-13), and the manifest has no word for a board: there is no
@@ -2425,6 +2418,9 @@ pub enum ThreadFileRead {
   Opaque,
   /// A file the thread does not carry.
   Absent,
+  /// A case variant of the thread's own `of` (issue 0719), which no door
+  /// carries or reads.
+  CaseVariant { of: std::path::PathBuf },
 }
 
 /// The file `file` of `thread`, relative to its directory (issue 0399).
@@ -2453,6 +2449,7 @@ pub fn read_thread_file(thread: &Thread, file: &str, ctx: &RenderContext<'_>) ->
         .map_or(ThreadFileRead::Opaque, ThreadFileRead::Text),
       None => ThreadFileRead::Absent,
     },
+    ThreadFile::CaseVariant { of } => ThreadFileRead::CaseVariant { of },
   }
 }
 
@@ -2713,7 +2710,7 @@ pub fn skew_against(
         // the same**, and `doctor -v` lists them on one line rather than one
         // line each (`finding::members_by_directory`).
         let clears = match &owner {
-          Some(Undeclared::Thread(_)) | Some(Undeclared::Issue(_)) => {
+          Some(Undeclared::Record(_)) => {
             "not realised by `.intentfiles`, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
           }
           Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it",
@@ -2818,8 +2815,8 @@ pub fn skew_against(
         // verb; an undeclared ISSUE's stale view gets the generic remedy, since
         // there is no thread to pin.
         let unlisted = match &owner {
-          Some(Undeclared::Thread(id)) => Some(id.clone()),
-          Some(Undeclared::Issue(_)) | Some(Undeclared::Board(_)) | None => None,
+          Some(Undeclared::Record(Named::Thread(id))) => Some(id.stored()),
+          Some(Undeclared::Record(Named::Issue(_))) | Some(Undeclared::Board(_)) | None => None,
         };
         let remedy = match (&unlisted, &owner) {
           // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT
@@ -2839,7 +2836,7 @@ pub fn skew_against(
           // cannot tell a stale render from a hand edit -- so the remedy this
           // arm used to name exited 0 and left the finding standing. The two
           // routes that DO clear it are removing the file or declaring it.
-          (None, Some(Undeclared::Issue(number))) => format!(
+          (None, Some(Undeclared::Record(Named::Issue(number)))) => format!(
             "issue {} is not declared in `.intentfiles`, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `{}` to `.intentfiles` and run `intent organize --apply`, which rewrites it",
             number.shown(),
             crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, &number.stored())

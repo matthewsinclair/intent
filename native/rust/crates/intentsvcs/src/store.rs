@@ -2455,8 +2455,14 @@ pub enum StoreError {
   /// the whole defect: two nodes filed concurrently, both were told
   /// `created: ...0126.json`, and one filing reached neither the store nor the
   /// extract with nothing saying so.
-  #[error("{kind} {key} already exists, and a create must not replace it")]
-  CreateHitAnExistingKey { kind: EntityKind, key: String },
+  #[error(
+    "{} {key} already exists, and a create must not replace it",
+    .kind.wire()
+  )]
+  CreateHitAnExistingKey {
+    kind: crate::id::IdKind,
+    key: String,
+  },
   /// **THE RECORD THIS WRITE WAS DERIVED FROM HAS MOVED** (issue 0206, vc
   /// ruled 2026-09-01: refuse and name, never retry).
   ///
@@ -2477,9 +2483,13 @@ pub enum StoreError {
   /// at five assignment sites. The count is worth less than that invariant
   /// costs, and a number nobody can derive is how a message starts lying.
   #[error(
-    "{kind} {key} changed while this command was running, and this write was derived from the copy it held before that"
+    "{} {key} changed while this command was running, and this write was derived from the copy it held before that",
+    .kind.wire()
   )]
-  RecordMovedUnderTheWrite { kind: EntityKind, key: String },
+  RecordMovedUnderTheWrite {
+    kind: crate::id::IdKind,
+    key: String,
+  },
   /// **`intent index rebuild` WILL NOT REPAIR A TABLE IT DOES NOT OWN** (issue
   /// 0453). The two search-index tables are derived and are dropped and
   /// recreated; every other table holds records the store owns, so one that
@@ -2519,27 +2529,6 @@ fn repair_fault(
     StoreError::Sqlite(cause)
   } else {
     wrap(cause)
-  }
-}
-
-/// Which estate a key belongs to.
-///
-/// **An enum rather than a string, because the facade MATCHES on it** to lift
-/// this refusal into its own per-entity vocabulary (`ThreadExists`,
-/// `IssueExists`) -- and a string would make a typo there a silent fall-through
-/// to the generic arm.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EntityKind {
-  Thread,
-  Issue,
-}
-
-impl std::fmt::Display for EntityKind {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str(match self {
-      Self::Thread => "thread",
-      Self::Issue => "issue",
-    })
   }
 }
 
@@ -2651,9 +2640,10 @@ impl crate::remedy::Remedy for StoreError {
       ),
       Self::CreateHitAnExistingKey { kind, key } => format!(
         "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
-         next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
+         next free key. If you meant to CHANGE {} {key}, use the verb that changes it -- a \
          create that silently overwrote would have destroyed the record already there, which is \
-         what this refuses"
+         what this refuses",
+        kind.wire()
       ),
       // **NAMES THE OTHER WRITE AS A FACT ABOUT THE WORLD, NOT AS A FAULT.**
       // Two people working one thread is what this project does; the remedy is
@@ -2664,9 +2654,10 @@ impl crate::remedy::Remedy for StoreError {
       // automatic retry re-derives the edit from a snapshot the operator never
       // saw, which is the original defect wearing a success message.
       Self::RecordMovedUnderTheWrite { kind, key } => format!(
-        "nothing was written. Somebody else changed {kind} {key} while this command was running -- \
+        "nothing was written. Somebody else changed {} {key} while this command was running -- \
          re-run it and it will read the current record first. If you are running two sessions \
-         against one project, this is that, working"
+         against one project, this is that, working",
+        kind.wire()
       ),
       Self::SchemaMismatch { store, .. } => format!(
         "run `intent doctor` -- it names {store}'s version against this build's, and reports \
@@ -4748,7 +4739,7 @@ impl Store {
         if f.code == rusqlite::ErrorCode::ConstraintViolation && door == Door::Create =>
       {
         StoreError::CreateHitAnExistingKey {
-          kind: EntityKind::Thread,
+          kind: crate::id::IdKind::Thread,
           key: t.id.stored(),
         }
       }
@@ -4903,7 +4894,7 @@ impl Store {
         if f.code == rusqlite::ErrorCode::ConstraintViolation && door == Door::Create =>
       {
         StoreError::CreateHitAnExistingKey {
-          kind: EntityKind::Issue,
+          kind: crate::id::IdKind::Issue,
           key: i.number.stored(),
         }
       }
@@ -5156,7 +5147,7 @@ impl Store {
       };
       if &stored != *expected {
         return Err(StoreError::RecordMovedUnderTheWrite {
-          kind: EntityKind::Thread,
+          kind: crate::id::IdKind::Thread,
           key: expected.id.stored(),
         });
       }
@@ -5167,7 +5158,7 @@ impl Store {
       };
       if &stored != *expected {
         return Err(StoreError::RecordMovedUnderTheWrite {
-          kind: EntityKind::Issue,
+          kind: crate::id::IdKind::Issue,
           key: expected.number.stored(),
         });
       }

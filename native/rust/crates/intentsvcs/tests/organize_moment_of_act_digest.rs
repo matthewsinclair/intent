@@ -71,6 +71,7 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
       // These arms all refuse before pruning, which is exactly why the value has
       // to be safe rather than merely unused today.
       estate_root: fx.path(""),
+      project: fx.project(),
       held: Vec::new(),
     },
   )

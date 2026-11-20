@@ -287,11 +287,11 @@ pub fn outstanding_rows(rows: &[([String; 4], Option<View>)], counts: &str) -> V
 /// open onto a package the child view cannot find.
 pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
   use intentsvcs::address::Entity;
-  use intentsvcs::outstanding::Kind;
+  use intentsvcs::id::IdKind;
   let entity = match row.kind {
-    Kind::Thread => Entity::Thread { id: row.id.clone() },
-    Kind::Issue => Entity::Issue { id: row.id.clone() },
-    Kind::WorkPackage => {
+    IdKind::Thread => Entity::Thread { id: row.id.clone() },
+    IdKind::Issue => Entity::Issue { id: row.id.clone() },
+    IdKind::WorkPackage => {
       let wp = row.wp.as_ref()?;
       Entity::Wp {
         thread: wp.thread.stored(),

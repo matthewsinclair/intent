@@ -3,9 +3,10 @@
   "number": 708,
   "slug": "search-reports-a-work-package-s-prose-hit-as-kin",
   "title": "search reports a work package's prose hit as kind file: ingest writes owner type work-package, of_owner maps only wp and work_package",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-19",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "`ingest.rs:2013` writes a work package section's `owner_type` as `work-package`, the spelling `views.rs:1712` also uses, and `search::HitKind::of_owner` (`search.rs:862-871`) maps `wp` and `work_package` but not `work-package`. So every work package's prose hit falls through to `HitKind::File`. The hit still carries its path, so nothing is lost, but `intent search --kind wp` cannot find a work package's prose, and a reader filtering by kind is told a package's section is a plain file.\n\nFound by cc's census for ST0095, 2026-11-19. Not caused by ST0095.\n\nFix: one spelling of the owner type, declared once and read by both ingest and `of_owner`."
 }

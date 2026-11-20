@@ -1152,7 +1152,7 @@ fn tool_answer(
     "outstanding" => {
       let show = match opt_s(path, map, "show")? {
         Some(raw) => crate::render::show_filter(raw).map_err(|why| args_err(path, why))?,
-        None => intentsvcs::outstanding::Kind::ALL.to_vec(),
+        None => intentsvcs::id::IdKind::ALL.to_vec(),
       };
       val(path, &f.outstanding(&show))
     }

@@ -102,18 +102,41 @@ pub const ISSUE_ID_FORM: &str = "an issue id is four digits, eg 0001";
 pub const WP_ADDRESS_FORM: &str =
   "a work package's address is its thread's id, a slash and its own id, eg ST0000/01";
 
-/// Which collection an operator's spelling names.
+/// The tag an operator can type before a thread's digits: `s59` is `ST0059`.
+const THREAD_TAG: char = 's';
+
+/// The tag an operator can type before an issue's digits: `i59` is `0059`.
+const ISSUE_TAG: char = 'i';
+
+/// **THE ONE ENUM OF THE ID FAMILIES** (ST0095 WP-14): a steel thread, a work
+/// package, an issue. Nothing else names them as a set. An enum that also names
+/// kinds that are not ids (`search::HitKind`, `address::Entity`) keeps its own
+/// variants and maps its id variants from this one.
+///
+/// **IT OWNS ONE SPELLING PER SURFACE, AND EVERY SURFACE ASKS IT.** A work
+/// package was spelled `wp`, `work-package`, `work_package` and `work package`
+/// by eight enums and string sets, and search read one spelling where ingest
+/// wrote another (issue 0708). Each surface's spelling is one method here, and
+/// each reader parses through that method's inverse, which accepts every
+/// spelling the surface ever wrote. What is persisted is never respelled: an
+/// event file and the store keep the spelling they were written with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdKind {
   Thread,
+  WorkPackage,
   Issue,
 }
 
 impl IdKind {
-  /// The word an error message uses. Prose, not a wire form.
+  /// Every family, in the order a count names them: threads, their work
+  /// packages, then issues.
+  pub const ALL: [IdKind; 3] = [IdKind::Thread, IdKind::WorkPackage, IdKind::Issue];
+
+  /// The word prose uses, in a message or a plan's line. Not a wire form.
   pub fn as_str(&self) -> &'static str {
     match self {
       IdKind::Thread => "steel thread",
+      IdKind::WorkPackage => "work package",
       IdKind::Issue => "issue",
     }
   }
@@ -124,32 +147,93 @@ impl IdKind {
   pub fn with_article(&self) -> &'static str {
     match self {
       IdKind::Thread => "a steel thread",
+      IdKind::WorkPackage => "a work package",
       IdKind::Issue => "an issue",
     }
   }
 
-  /// The tag an operator can type to name this collection explicitly.
-  pub fn tag(&self) -> char {
+  /// The tag an operator can type to name this family explicitly. `None` for
+  /// a work package, which is named under its thread (`ST0000/01`) and has no
+  /// tag of its own.
+  pub fn tag(&self) -> Option<char> {
     match self {
-      IdKind::Thread => 's',
-      IdKind::Issue => 'i',
+      IdKind::Thread => Some(THREAD_TAG),
+      IdKind::WorkPackage => None,
+      IdKind::Issue => Some(ISSUE_TAG),
     }
   }
 
-  /// How many digits this collection's ordinal id carries.
+  /// How many digits this family's ordinal id carries.
   pub fn digits(&self) -> usize {
     match self {
       IdKind::Thread => THREAD_DIGITS,
+      IdKind::WorkPackage => WP_DIGITS,
       IdKind::Issue => ISSUE_DIGITS,
     }
   }
 
-  /// The sentence that says what this collection's id looks like:
-  /// [`THREAD_ID_FORM`] or [`ISSUE_ID_FORM`].
+  /// The sentence that says what this family's id looks like:
+  /// [`THREAD_ID_FORM`], [`WP_ADDRESS_FORM`] or [`ISSUE_ID_FORM`].
   pub fn form(&self) -> &'static str {
     match self {
       IdKind::Thread => THREAD_ID_FORM,
+      IdKind::WorkPackage => WP_ADDRESS_FORM,
       IdKind::Issue => ISSUE_ID_FORM,
+    }
+  }
+
+  /// **THE WIRE SPELLING**: `thread`, `wp`, `issue`. An event's subject type,
+  /// persisted in event files and the event log; search's `--kind` and a
+  /// hit's `kind`; and an address's entity form, which `forms.json` names.
+  pub fn wire(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "thread",
+      IdKind::WorkPackage => "wp",
+      IdKind::Issue => "issue",
+    }
+  }
+
+  /// The family a wire spelling names: the inverse of [`IdKind::wire`], whose
+  /// spellings are the only ones that surface ever wrote. `None` for any other
+  /// word, which may name a kind that is not an id (`file`, `node`).
+  pub fn of_wire(word: &str) -> Option<IdKind> {
+    IdKind::ALL.into_iter().find(|kind| kind.wire() == word)
+  }
+
+  /// **THE ROW SPELLING**: `thread`, `work-package`, `issue`. A prose
+  /// section's owner in the store, which ingest writes and search reads, and
+  /// the `kind` of an `outstanding` row or a `todo` item in their JSON, which
+  /// this type's `Serialize` writes.
+  pub fn row(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "thread",
+      IdKind::WorkPackage => "work-package",
+      IdKind::Issue => "issue",
+    }
+  }
+
+  /// The family a row spelling names: the inverse of [`IdKind::row`]. Ingest
+  /// has written no other spelling into the store, so a section with any other
+  /// owner (`file`, `board`, `wb_node`) is owned by no thread, package or issue.
+  pub fn of_row(word: &str) -> Option<IdKind> {
+    IdKind::ALL.into_iter().find(|kind| kind.row() == word)
+  }
+
+  /// The type column of `intent outstanding`, as hv wrote it: ST, WP, Issue.
+  pub fn label(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "ST",
+      IdKind::WorkPackage => "WP",
+      IdKind::Issue => "Issue",
+    }
+  }
+
+  /// What a count calls this family: threads, work packages, issues.
+  pub fn plural(&self) -> &'static str {
+    match self {
+      IdKind::Thread => "threads",
+      IdKind::WorkPackage => "work packages",
+      IdKind::Issue => "issues",
     }
   }
 }
@@ -420,10 +504,10 @@ impl ThreadId {
   /// The explicitly tagged short spelling an operator can type: `s59`. A hash
   /// is tagged by its marker, so its tagged spelling is its shown form.
   pub fn tagged(&self) -> String {
-    self.form.bare().map_or_else(
-      || self.shown(),
-      |digits| format!("{}{digits}", IdKind::Thread.tag()),
-    )
+    self
+      .form
+      .bare()
+      .map_or_else(|| self.shown(), |digits| format!("{THREAD_TAG}{digits}"))
   }
 }
 
@@ -568,10 +652,10 @@ impl IssueId {
   /// The explicitly tagged short spelling an operator can type: `i59`. A hash
   /// is tagged by its marker, so its tagged spelling is its shown form.
   pub fn tagged(&self) -> String {
-    self.0.bare().map_or_else(
-      || self.shown(),
-      |digits| format!("{}{digits}", IdKind::Issue.tag()),
-    )
+    self
+      .0
+      .bare()
+      .map_or_else(|| self.shown(), |digits| format!("{ISSUE_TAG}{digits}"))
   }
 }
 
@@ -781,11 +865,8 @@ fn spelling(raw: &str) -> Result<Spelling, IdError> {
     .or_else(|| t.strip_suffix(".md"))
     .unwrap_or(t);
 
-  // The tag letters are [`IdKind::tag`]'s, read here rather than spelled again.
-  let (thread_tag, issue_tag) = (
-    IdKind::Thread.tag().to_string(),
-    IdKind::Issue.tag().to_string(),
-  );
+  // The tag letters are the consts [`IdKind::tag`] reads, never spelled again.
+  let (thread_tag, issue_tag) = (THREAD_TAG.to_string(), ISSUE_TAG.to_string());
   let (tag, digits) = if let Some(d) = strip_ci(t, THREAD_PREFIX) {
     (Some(IdKind::Thread), d)
   } else if let Some(d) = strip_ci(t, &thread_tag) {
@@ -897,11 +978,23 @@ fn hashed_spelling(raw: &str) -> Option<Named> {
     .map(|form| Named::Issue(IssueId(form)))
 }
 
-/// What a spelling names at a door that knows the collection.
+/// A thread or an issue, by its id: what a spelling names at a door that knows
+/// the collection, and what owns a path
+/// ([`Project::owner_of`](crate::project::Project::owner_of)).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Named {
   Thread(ThreadId),
   Issue(IssueId),
+}
+
+impl Named {
+  /// The thread this names, when it names one.
+  pub fn thread(&self) -> Option<&ThreadId> {
+    match self {
+      Named::Thread(id) => Some(id),
+      Named::Issue(_) => None,
+    }
+  }
 }
 
 /// An operator's spelling at a door that does NOT know which collection is
@@ -921,6 +1014,9 @@ pub fn normalise_id(raw: &str) -> Result<Named, IdError> {
   match s.tag {
     Some(IdKind::Thread) => ThreadId::from_ordinal(s.seq).map(Named::Thread),
     Some(IdKind::Issue) => IssueId::from_ordinal(s.seq).map(Named::Issue),
+    // No tag names a work package ([`IdKind::tag`] is `None` for one), so
+    // `spelling` never answers this; a package is named under its thread.
+    Some(IdKind::WorkPackage) => Err(IdError::NotAnId),
     None => Err(IdError::Ambiguous {
       thread: ThreadId::from_ordinal(s.seq)?,
       issue: IssueId::from_ordinal(s.seq)?,
@@ -931,11 +1027,13 @@ pub fn normalise_id(raw: &str) -> Result<Named, IdError> {
 /// What an operator who typed `raw` would type to name the `wanted` collection's
 /// id with the same number: `i21` asked of a thread door is `s21`. The remedy a
 /// [`IdError::WrongCollection`] refusal offers. `None` when `raw` spells no id,
-/// or one past the wanted kind's width.
+/// or one past the wanted kind's width, or when a work package is wanted, which
+/// no number alone names.
 pub fn respelled_as(raw: &str, wanted: IdKind) -> Option<String> {
   let s = spelling(raw).ok()?;
   match wanted {
     IdKind::Thread => ThreadId::from_ordinal(s.seq).ok().map(|id| id.tagged()),
+    IdKind::WorkPackage => None,
     IdKind::Issue => IssueId::from_ordinal(s.seq).ok().map(|id| id.tagged()),
   }
 }
@@ -1239,6 +1337,14 @@ pub fn id_order(a: &str, b: &str) -> Ordering {
 // column) and GraphQL's (a String!) are the stored string too, so a hashed id
 // reads back through every face.
 // ---------------------------------------------------------------------------
+
+/// A family travels in JSON as its row spelling, [`IdKind::row`]: the `kind`
+/// an `outstanding` row and a `todo` item have always carried.
+impl serde::Serialize for IdKind {
+  fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(self.row())
+  }
+}
 
 impl serde::Serialize for ThreadId {
   fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -1690,5 +1796,37 @@ mod tests {
     assert_eq!(normalise_wp_id(&wp.stored().to_ascii_uppercase()), Ok(wp));
     // The ordinal spellings keep their meaning beside the hashed ones.
     assert_eq!(normalise_thread_id("46"), ThreadId::from_ordinal(46));
+  }
+
+  /// ST0095 AC-14.1: each surface reads a family back from the one spelling it
+  /// writes, and JSON carries the row spelling.
+  #[test]
+  fn each_family_reads_back_from_its_own_spelling_on_every_surface() {
+    for kind in IdKind::ALL {
+      assert_eq!(IdKind::of_wire(kind.wire()), Some(kind), "{kind:?}");
+      assert_eq!(IdKind::of_row(kind.row()), Some(kind), "{kind:?}");
+      let json = serde_json::to_value(kind).expect("a family serialises");
+      assert_eq!(json, serde_json::Value::from(kind.row()), "{kind:?}");
+    }
+  }
+
+  /// **WHAT IS PERSISTED IS NEVER RESPELLED**: an event file's subject type and
+  /// a store section's owner keep the spellings they were written with, so a
+  /// reader of an old file or row still finds its family.
+  #[test]
+  fn the_persisted_spellings_are_the_ones_always_written() {
+    let wire: Vec<&str> = IdKind::ALL.iter().map(IdKind::wire).collect();
+    assert_eq!(wire, ["thread", "wp", "issue"]);
+    let row: Vec<&str> = IdKind::ALL.iter().map(IdKind::row).collect();
+    assert_eq!(row, ["thread", "work-package", "issue"]);
+    assert_eq!(IdKind::of_wire("work-package"), None);
+    assert_eq!(IdKind::of_row("wp"), None);
+  }
+
+  #[test]
+  fn a_work_package_has_no_operator_tag_and_no_number_respells_to_one() {
+    assert_eq!(IdKind::WorkPackage.tag(), None);
+    assert_eq!(respelled_as("s21", IdKind::WorkPackage), None);
+    assert_eq!(respelled_as("s21", IdKind::Issue).as_deref(), Some("i21"));
   }
 }

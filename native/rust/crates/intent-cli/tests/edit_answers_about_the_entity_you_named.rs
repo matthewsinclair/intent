@@ -180,7 +180,11 @@ fn all_three_ruled_spellings_reach_the_same_artefact() {
   let thread = intentsvcs::id::ThreadId::parse(&st).expect("a minted thread id reads back");
   let tagged = thread.tagged();
   let bare = tagged
-    .strip_prefix(intentsvcs::id::IdKind::Thread.tag())
+    .strip_prefix(
+      intentsvcs::id::IdKind::Thread
+        .tag()
+        .expect("a thread has an operator tag"),
+    )
     .expect("a thread's tagged spelling starts with its tag")
     .to_string();
   let mut answers = Vec::new();

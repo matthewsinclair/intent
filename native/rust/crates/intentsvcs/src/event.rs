@@ -349,6 +349,19 @@ pub struct Subject {
   pub id: String,
 }
 
+impl Subject {
+  /// The subject of an event about a thread, a work package or an issue. Its
+  /// type is the family's wire spelling, [`IdKind::wire`](crate::id::IdKind::wire),
+  /// so no writer spells a family itself; every other subject (`ac`, `node`,
+  /// `project`) names a kind that is not an id and is written as it reads.
+  pub fn of(kind: crate::id::IdKind, id: impl Into<String>) -> Self {
+    Subject {
+      kind: kind.wire().to_string(),
+      id: id.into(),
+    }
+  }
+}
+
 /// The next event id, MONOTONIC within a millisecond.
 ///
 /// **`Ulid::new()` IS NOT ENOUGH, AND A CASCADE IS WHAT PROVED IT.** A ULID's

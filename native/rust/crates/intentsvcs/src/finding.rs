@@ -54,6 +54,12 @@ pub enum FindingClass {
   UnknownFileShape,
   /// Two artefacts claiming one natural id (the 0011 class).
   DuplicateId,
+  /// A file in a thread's directory that a disk folding case (macOS's
+  /// default) stores as the thread's own file, spelled otherwise:
+  /// `Acceptance.md` beside the generated `acceptance.md` (issue 0719). No door
+  /// carries, renames or claims it, and it is counted here because a commit
+  /// carries it and a disk that folds case breaks on it.
+  CaseVariant,
   /// An AC/AT/claims/index row the frozen legacy grammar cannot read
   /// (migration.md).
   UnparseableRow,
@@ -647,6 +653,11 @@ impl FindingClass {
         5,
         "duplicate-id",
         "two artefacts claim one id; rename or remove one of them",
+      ),
+      Self::CaseVariant => (
+        5,
+        "case-variant",
+        "rename it to a name that is not the thread's own file's in any case, or remove it",
       ),
       // **THE COMMAND IS ON EACH FINDING'S LINE, NOT HERE** (issue `0283`).
       // This named `intent sync --to-disk` for every view, and that verb does

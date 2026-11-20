@@ -444,12 +444,12 @@ pub fn face_reach(entity: &str) -> Option<Vec<(String, Reach)>> {
 /// says more than the test would.** A `None` from this function cannot reach
 /// [`crate::nav::kinds`], because that list is derived from forms that loaded.
 pub(crate) fn face_for(entity: &str) -> Option<&'static str> {
-  match entity {
-    "thread" => Some("thread.schema.json"),
-    "wp" => Some("thread.schema.json#/$defs/WorkPackage"),
-    "issue" => Some("issue.schema.json"),
-    _ => None,
-  }
+  use crate::id::IdKind;
+  Some(match IdKind::of_wire(entity)? {
+    IdKind::Thread => "thread.schema.json",
+    IdKind::WorkPackage => "thread.schema.json#/$defs/WorkPackage",
+    IdKind::Issue => "issue.schema.json",
+  })
 }
 
 fn reach(entity: &AddrEntity, field: &str) -> Reach {
@@ -528,16 +528,15 @@ fn probe_entity(entity: &str) -> Option<AddrEntity> {
   // Spelled by the waist like every other id. Zero and one fit every width, so
   // none of the `ok()?`s below is how an entity comes to have no probe.
   let thread = crate::id::ThreadId::from_ordinal(0).ok()?.stored();
-  match entity {
-    "thread" => Some(AddrEntity::Thread { id: thread }),
-    "issue" => Some(AddrEntity::Issue {
+  match crate::id::IdKind::of_wire(entity)? {
+    crate::id::IdKind::Thread => Some(AddrEntity::Thread { id: thread }),
+    crate::id::IdKind::Issue => Some(AddrEntity::Issue {
       id: crate::id::IssueId::from_ordinal(0).ok()?.stored(),
     }),
-    "wp" => Some(AddrEntity::Wp {
+    crate::id::IdKind::WorkPackage => Some(AddrEntity::Wp {
       thread,
       wp: crate::id::WpId::from_ordinal(1).ok()?.stored(),
     }),
-    _ => None,
   }
 }
 

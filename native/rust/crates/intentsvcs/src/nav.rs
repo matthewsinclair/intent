@@ -621,10 +621,11 @@ pub fn view_for(entity: &Entity) -> Option<View> {
 /// together so neither can grow an arm the other lacks.
 pub fn entity_for_item(view: &View) -> Option<Entity> {
   match view {
-    View::Item { kind, id } => match kind.as_str() {
-      "thread" => Some(Entity::Thread { id: id.clone() }),
-      "issue" => Some(Entity::Issue { id: id.clone() }),
-      _ => None,
+    View::Item { kind, id } => match crate::id::IdKind::of_wire(kind)? {
+      crate::id::IdKind::Thread => Some(Entity::Thread { id: id.clone() }),
+      crate::id::IdKind::Issue => Some(Entity::Issue { id: id.clone() }),
+      // A package's item is the child rung below, never a top-level item.
+      crate::id::IdKind::WorkPackage => None,
     },
     // **THE CHILD RUNG IS AN ITEM VIEW, WHICH IS WHY IT BELONGS IN THIS
     // FUNCTION AND NOT BESIDE IT.** A face standing on `/thread/ST0056/wps/17`

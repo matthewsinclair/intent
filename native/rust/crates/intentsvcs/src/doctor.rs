@@ -2135,8 +2135,20 @@ fn file_checks(
   // ingest and reported as uncovered by this, or the reverse and worse.
   for thread in &canon.threads {
     for rel in project.thread_files(&thread.id) {
-      if crate::project::Project::classify(&rel) != crate::project::ThreadFile::Attachment {
-        continue;
+      match crate::project::Project::classify(&rel) {
+        crate::project::ThreadFile::Attachment => {}
+        crate::project::ThreadFile::GeneratedView | crate::project::ThreadFile::Canon => continue,
+        // **COUNTED, BECAUSE A COMMIT CARRIES IT AND A DISK THAT FOLDS CASE
+        // BREAKS ON IT** (issue 0719): no door carries it, so nothing else in
+        // this report would name it.
+        crate::project::ThreadFile::CaseVariant { of } => {
+          report.findings.push(Finding::new(
+            project.relative(&project.thread_dir(&thread.id).join(&rel)),
+            FindingClass::CaseVariant,
+            crate::project::Project::case_variant_detail(&of),
+          ));
+          continue;
+        }
       }
       let path = project.thread_dir(&thread.id).join(&rel);
       // **THE SAME QUESTION, ASKED OF THE SAME FUNCTION AS THE CARRIER.**
