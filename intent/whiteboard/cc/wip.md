@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 17:22Z
+heartbeat_at: 2026-11-20 17:40Z
 status: active
-focus: "2026-11-20 17:22Z by date -u: localfolded for hv's compact, not released. ST0096/01 is green at efa722ffc and its proof is with vc for the land; after the land, the AT markers, wp done ST0095/07, AC-01.1/01.2's ATs, the worktree's removal, then ST0096 WP-05. Claims ST0095/05, ST0095/06, ST0096/01."
-claims: [ST0095/05, ST0095/06, ST0096/01]
+focus: "2026-11-20 17:40Z by date -u: localfolded for hv's compact, not released. ST0096/01 landed and closed out; ST0096/05 next (plan to vc first). Claims ST0095/05, ST0095/06, ST0096/05."
+claims: [ST0095/05, ST0095/06, ST0096/05]
 ---
 
 # Control Claude (cc)
@@ -14,7 +14,7 @@ claims: [ST0095/05, ST0095/06, ST0096/01]
 ## DOING
 
 - ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
-- ST0096/01 GATE GREEN at efa722ffc (Desk 01M7WZB9M6, 17:16:46Z to 17:21:27Z by date -u), proof sent to vc 17:21Z; vc lands it. Worktree tmp/wt-st0096-wp01, branch cc/st0096-wp01-v7 on WP-07 v7 81dd2adb2 (landed as 62045266e), bank refs/bank/cc/st0096/wp01-wip12-on-81dd2adb2 (patch-id 0a1b675f0ac2), resume notes refs/bank/cc/st0096/wp01-notes.md. Reds on the way, each named in the proof: 0734 hang, the doctor fixtures vs WP-02's UnrealisedView, one fmt line, and WP-07's all-digit-prefix flake (fixed inside WP-01 on vc's word). AFTER THE LAND: one comment-only commit adding AT markers (ST0095 AT-05.1, 05.3, 05.4, 06.2, 06.4, 06.5, 06.7 re-cited to their marker lines, and AT-07.1 to 07.4 in a_prefix_names_one_record.rs at its four arms 114/167/210/274), then wp done ST0095/07; ATs for ST0096 AC-01.1 and AC-01.2; remove the worktree by the four checks (tmp/aside holds the set-aside dev stores). Then ST0096 WP-05. devbin-cc builds issue 0735 on the land (brief refs/bank/cc/0735/brief; fallback check in event::from_file agreed 17:21Z). (edited)
+- ST0096/05 (L): each work package, criterion, test and attachment its own canon file under .canon/st/<thread>/, the cover renders only the thread's own fields, intent upgrade splits byte-deterministically and removes the 22 closed records' views, refusing a dirty attachment and a case pair by name (AC-05.1 to 05.3, design.md 'Each record its own canon file'). Not started: next is the plan to vc, then a worktree off main. ST0096/01 LANDED at 9a87b035c; AC-01.1/01.2 satisfied by AT-01.1/01.2 at b505ea8ba; ST0095 WP-07 done at ac0fa4011 (rows re-cited to markers); worktree removed by the four checks (attic refs/attic/cc/st0096/wp01-wt-head). Lesson from vc: a bank touching surface/dispatch-table.json runs gen_dispatch_table.sh before banking. Always gate with stdin from /dev/null (issue 0734).
 
 ## TODO
 
