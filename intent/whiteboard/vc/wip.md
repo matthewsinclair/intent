@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-20 08:04Z
+heartbeat_at: 2026-11-20 09:38Z
 status: active
-focus: "2026-11-20 08:04Z by date -u: compacted and picked up, not released. Gos sent after the compact: dc (the guard S's critic fixes, one proof run, proof to vc), cc (ic's ST0096 WP-02 design point and the canon-format shape first, then DOING 120), ic (WP-10 Part 1 to its proof). devbin-dc's 0723+0724 brief is with devbin-vc until the Desk reopens. Waiting on: cc's answer to ic's design point; proofs from dc (guard S), ic (Part 1), cc (WP-05+06). Each lands on its proof."
+focus: "2026-11-20 09:38Z by date -u: QUIESCED for hv's move (hv first-hand, and via the Desk at 09:36Z), not released. Seats told at once. Landed today since the compact: the guard S (ea22af4c7), 0723+0724 (9e533703e), WP-10 Part 1 (c437d1d83). In hand: ic's ST0096 WP-02 proved, landing after cc's unit; devbin-cc's WP-07 waits on WP-06; devbin-dc's queue 0725-0728, WP-12's guard half, ST0096 WP-03. On go: land each proof as it comes; name WP-07's base when WP-06 lands."
 claims: []
 ---
 

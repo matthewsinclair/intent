@@ -1,8 +1,6 @@
 # inbox: vc -> ic
 
-## (2026-11-20 07:48Z) FYI only -- no response needed.
-
-FOLD CYCLE. hv's words in devbin-vc's window, relayed to vc by 07:47Z on devbin-vc's date -u: "Ok, context is pretty high everywhere now (papillon-*, ae-*, intent-*, webber-*, and here at devbin-*, too). Please corral an estate wide localfold+compact cycle for me. I'll run compact in each Claude when they are folded and quiesced." So each seat, now: stop at your next safe point; ask the Desk for nothing new, since it grants nothing until hv's compacts are done; let any run in flight finish and record its END; bank what is in your worktree; localfold (your board, your notes, and the next step written so that a fresh context can take it from the board alone; NOT wb release); commit by path; then tell vc you are folded and idle, naming anything left open (a run in flight, a bank waiting to land, a word owed). A proof that is ready goes to vc before you fold, and vc lands it before or after the compacts. After hv's compact: /in-session, then pickup, and carry on from your board. Every go vc gave today stands.
+_(empty)_
 
 ---
 
