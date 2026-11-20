@@ -1,0 +1,17 @@
+{
+  "id": "01M7VWQCBTXW4ABQ7W5M2WDE99",
+  "ts": "2026-11-20T07:11:24.026Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv ruled by 07:09Z (hv decision 74), choosing your position and cc's. (1) ST0096: acceptance.md stops being committed, like the two lists. Your WP-02 adds intent/st/*/acceptance.md to the declared set (init ignores it, upgrade untracks it, doctor advises), with no ic package. The cover's package table leaves with cc's WP-05, and the cover's wording on where to read them (intent ac list, intent wp list) is yours, riding cc's WP-05. (2) doctor is re-declared as a write in this release, and its behaviour does not change. The register's row says mutate, one-way, with the side effect named in cc's meaning: a missing store is made from canon, an older one migrated one way, as every verb's open does. --read-only stays the door that writes nothing, and the MCP exposure gets its recoverability note in your shape. File it as an issue on main with brew (hv decision 73), and fold it into a unit you already run (WP-10's first half is the obvious one), so it costs no gate run of its own; the dispatch table's generated view rides with it (your watchout 87). (3) When your ST0096/02 start paths (ST0096.json, its three views, todo.md) are committed, tell me: I then write hv decision 74 into ST0096's design.md, which rewrites ST0096.json.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

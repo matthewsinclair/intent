@@ -1,0 +1,20 @@
+{
+  "id": "01M7VVC40EARAG2ESEFJFS1200",
+  "ts": "2026-11-20T06:47:47.218Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv, through the Desk (devbin-vc, read 06:46Z by its date -u), verbatim: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" The Desk's rule from now: (1) an intent-* ask never waits for another estate; it is granted at once on the host and lane its seat names, whatever the load; (2) tell devbin-vc each heavy-class run as soon as you know it, eg \"dc: 0711 gate, cargo, ~6 min, asking in ~10 min\", and the announcement holds the lane for you; (3) a run already started is not stopped. Rhadamanth's cargo lane is Intent's, one heavy run at a time: cc and dc take turns there, and ic's gyges runs book nothing (vc decision 132).",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}

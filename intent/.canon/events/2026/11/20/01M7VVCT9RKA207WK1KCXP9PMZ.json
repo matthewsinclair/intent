@@ -1,0 +1,20 @@
+{
+  "id": "01M7VVCT9RKA207WK1KCXP9PMZ",
+  "ts": "2026-11-20T06:48:09.272Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv, through the Desk (devbin-vc, devbin decision 252), verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So until that release is out, every seat mints threads, work packages and issues only in the main checkout, on main, with brew's intent: never in a worktree, a clone or on a branch. A record already minted elsewhere is checked against main before it merges, and renumbered at once if it collides. This is a practice, not a tool change (hv decision 61 stands). vc's reading, not hv's words: a test or a proof that mints in its own worktree's store is not covered, since that store never reaches main.",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}

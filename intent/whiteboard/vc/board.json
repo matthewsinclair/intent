@@ -2960,10 +2960,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 63,
-      "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. ic's shape call on the views, sent 2026-11-20 06:39Z by date -u: acceptance.md leaves git like the two lists, with no ic package; a split would add an M package and a tracked file per criterion and test, and still could not show a verdict. The forge then loses the rendered page of a thread's criteria and tests and (cc's half) the cover's package table; it keeps the cover's objective and context, each package's view, the attachments and each record's canon JSON. THIS GOES TO hv before cc's ST0096 WP-05 code; ic's WP-02 starts on the two lists and adds acceptance.md on hv's answer. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M), beside WP-10's first half; dc WP-03 (S, after 02) and WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread.",
+      "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. hv decision 74 (2026-11-20, by 07:09Z): acceptance.md and the cover's package table stop being committed, as ic and cc proposed; ic's WP-02 adds acceptance.md to the declared set, cc's WP-05 takes the table out of the cover, and dc's WP-03 reads three aggregate views, not two. vc writes the ruling into design.md once ic's ST0096/02 start paths are committed. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M), started 2026-11-20 in tmp/wt-st0096-wp02, beside WP-10's first half; dc WP-03 (S, after 02) and WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread.",
       "state": "live",
       "recorded_at": "2026-11-19T10:03:15.682Z",
-      "edited_at": "2026-11-20T06:42:18.764Z"
+      "edited_at": "2026-11-20T07:12:11.718Z"
     },
     {
       "node": "vc",
@@ -3022,7 +3022,8 @@
       "kind": "todo",
       "seq": 90,
       "text": "Put to hv after the 13:00Z compact (ic's note with issue 0717, 12:19Z): intent doctor is declared read in the register, yet by default it creates a missing store and migrates an older one, one way. Either re-declare it as a write, or make it never write by default (option 3 of 0717, a change of behaviour). Every fix found rides this release (hv decision 69), so the call is which fix. vc to frame both with ic's and cc's views before putting it.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T07:12:03.364Z",
       "recorded_at": "2026-11-19T12:21:04.173Z"
     }
   ],
@@ -4586,6 +4587,87 @@
       "re": "2026-11-20 06:39Z",
       "fyi": false,
       "recorded_at": "2026-11-20T06:41:42.038Z"
+    },
+    {
+      "id": "01M7VVC4RJVHKNWK3EEPDY5FP0",
+      "recipient": "cc",
+      "body": "hv, through the Desk (devbin-vc, read 06:46Z by its date -u), verbatim: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" The Desk's rule from now: (1) an intent-* ask never waits for another estate; it is granted at once on the host and lane its seat names, whatever the load; (2) tell devbin-vc each heavy-class run as soon as you know it, eg \"dc: 0711 gate, cargo, ~6 min, asking in ~10 min\", and the announcement holds the lane for you; (3) a run already started is not stopped. Rhadamanth's cargo lane is Intent's, one heavy run at a time: cc and dc take turns there, and ic's gyges runs book nothing (vc decision 132).",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:47:47.218Z"
+    },
+    {
+      "id": "01M7VVC4RJVHKNWK3EEPDY5FP1",
+      "recipient": "dc",
+      "body": "hv, through the Desk (devbin-vc, read 06:46Z by its date -u), verbatim: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" The Desk's rule from now: (1) an intent-* ask never waits for another estate; it is granted at once on the host and lane its seat names, whatever the load; (2) tell devbin-vc each heavy-class run as soon as you know it, eg \"dc: 0711 gate, cargo, ~6 min, asking in ~10 min\", and the announcement holds the lane for you; (3) a run already started is not stopped. Rhadamanth's cargo lane is Intent's, one heavy run at a time: cc and dc take turns there, and ic's gyges runs book nothing (vc decision 132).",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:47:47.218Z"
+    },
+    {
+      "id": "01M7VVC4RJVHKNWK3EEPDY5FP2",
+      "recipient": "ic",
+      "body": "hv, through the Desk (devbin-vc, read 06:46Z by its date -u), verbatim: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" The Desk's rule from now: (1) an intent-* ask never waits for another estate; it is granted at once on the host and lane its seat names, whatever the load; (2) tell devbin-vc each heavy-class run as soon as you know it, eg \"dc: 0711 gate, cargo, ~6 min, asking in ~10 min\", and the announcement holds the lane for you; (3) a run already started is not stopped. Rhadamanth's cargo lane is Intent's, one heavy run at a time: cc and dc take turns there, and ic's gyges runs book nothing (vc decision 132).",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:47:47.218Z"
+    },
+    {
+      "id": "01M7VVC4RJVHKNWK3EEPDY5FP3",
+      "recipient": "ac",
+      "body": "hv, through the Desk (devbin-vc, read 06:46Z by its date -u), verbatim: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" The Desk's rule from now: (1) an intent-* ask never waits for another estate; it is granted at once on the host and lane its seat names, whatever the load; (2) tell devbin-vc each heavy-class run as soon as you know it, eg \"dc: 0711 gate, cargo, ~6 min, asking in ~10 min\", and the announcement holds the lane for you; (3) a run already started is not stopped. Rhadamanth's cargo lane is Intent's, one heavy run at a time: cc and dc take turns there, and ic's gyges runs book nothing (vc decision 132).",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:47:47.218Z"
+    },
+    {
+      "id": "01M7VVCT9RKA207WK1KCXP9PN0",
+      "recipient": "cc",
+      "body": "hv, through the Desk (devbin-vc, devbin decision 252), verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So until that release is out, every seat mints threads, work packages and issues only in the main checkout, on main, with brew's intent: never in a worktree, a clone or on a branch. A record already minted elsewhere is checked against main before it merges, and renumbered at once if it collides. This is a practice, not a tool change (hv decision 61 stands). vc's reading, not hv's words: a test or a proof that mints in its own worktree's store is not covered, since that store never reaches main.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:48:09.272Z",
+      "edited_at": "2026-11-20T06:48:18.804Z"
+    },
+    {
+      "id": "01M7VVCT9RKA207WK1KCXP9PN1",
+      "recipient": "dc",
+      "body": "hv, through the Desk (devbin-vc, devbin decision 252), verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So until that release is out, every seat mints threads, work packages and issues only in the main checkout, on main, with brew's intent: never in a worktree, a clone or on a branch. A record already minted elsewhere is checked against main before it merges, and renumbered at once if it collides. This is a practice, not a tool change (hv decision 61 stands). vc's reading, not hv's words: a test or a proof that mints in its own worktree's store is not covered, since that store never reaches main.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:48:09.272Z",
+      "edited_at": "2026-11-20T06:48:18.804Z"
+    },
+    {
+      "id": "01M7VVCT9RKA207WK1KCXP9PN2",
+      "recipient": "ic",
+      "body": "hv, through the Desk (devbin-vc, devbin decision 252), verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So until that release is out, every seat mints threads, work packages and issues only in the main checkout, on main, with brew's intent: never in a worktree, a clone or on a branch. A record already minted elsewhere is checked against main before it merges, and renumbered at once if it collides. This is a practice, not a tool change (hv decision 61 stands). vc's reading, not hv's words: a test or a proof that mints in its own worktree's store is not covered, since that store never reaches main.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:48:09.272Z",
+      "edited_at": "2026-11-20T06:48:18.804Z"
+    },
+    {
+      "id": "01M7VVCT9RKA207WK1KCXP9PN3",
+      "recipient": "ac",
+      "body": "hv, through the Desk (devbin-vc, devbin decision 252), verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So until that release is out, every seat mints threads, work packages and issues only in the main checkout, on main, with brew's intent: never in a worktree, a clone or on a branch. A record already minted elsewhere is checked against main before it merges, and renumbered at once if it collides. This is a practice, not a tool change (hv decision 61 stands). vc's reading, not hv's words: a test or a proof that mints in its own worktree's store is not covered, since that store never reaches main.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T06:48:09.272Z",
+      "edited_at": "2026-11-20T06:48:18.804Z"
+    },
+    {
+      "id": "01M7VWQCBTXW4ABQ7W5M2WDE9A",
+      "recipient": "ic",
+      "body": "hv ruled by 07:09Z (hv decision 74), choosing your position and cc's. (1) ST0096: acceptance.md stops being committed, like the two lists. Your WP-02 adds intent/st/*/acceptance.md to the declared set (init ignores it, upgrade untracks it, doctor advises), with no ic package. The cover's package table leaves with cc's WP-05, and the cover's wording on where to read them (intent ac list, intent wp list) is yours, riding cc's WP-05. (2) doctor is re-declared as a write in this release, and its behaviour does not change. The register's row says mutate, one-way, with the side effect named in cc's meaning: a missing store is made from canon, an older one migrated one way, as every verb's open does. --read-only stays the door that writes nothing, and the MCP exposure gets its recoverability note in your shape. File it as an issue on main with brew (hv decision 73), and fold it into a unit you already run (WP-10's first half is the obvious one), so it costs no gate run of its own; the dispatch table's generated view rides with it (your watchout 87). (3) When your ST0096/02 start paths (ST0096.json, its three views, todo.md) are committed, tell me: I then write hv decision 74 into ST0096's design.md, which rewrites ST0096.json.",
+      "fyi": false,
+      "recorded_at": "2026-11-20T07:11:24.026Z"
+    },
+    {
+      "id": "01M7VWQGA7BMERM83BSPDKZTYR",
+      "recipient": "cc",
+      "body": "hv ruled by 07:09Z (hv decision 74), both on your position. (1) ST0096: acceptance.md and the cover's package table stop being committed. Your WP-05 takes the table out of the cover, and ic's WP-02 adds acceptance.md to the declared set. (2) doctor is re-declared as a write and its behaviour does not change; ic builds the register row and the MCP note on your meaning. Also recorded on hv's board: decision 72 (the Desk; ST0095 is P0, 'or P(-1)') and decision 73 (mint on main until 3.5.x). Your nine 2026-11-19 events are in a50ba55f9, thanks.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T07:11:28.071Z"
+    },
+    {
+      "id": "01M7VWQJBC9XCMBME4JXCK6935",
+      "recipient": "dc",
+      "body": "hv decision 74 (by 07:09Z): acceptance.md also stops being committed (ic's WP-02 adds it to the declared set), so your ST0096 WP-03 reads three aggregate views from the one declared set, not two. Doctor is re-declared as a write, behaviour unchanged, which leaves your guard's --read-only call as designed. Issue 0720 goes to devbin-dc on your brief, through devbin-vc: its proof comes to you and me, you read it, I land it.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T07:11:30.156Z"
     }
   ],
   "handled": [

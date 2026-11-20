@@ -1,0 +1,17 @@
+{
+  "id": "01M7VWQJBC9XCMBME4JXCK6934",
+  "ts": "2026-11-20T07:11:30.156Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv decision 74 (by 07:09Z): acceptance.md also stops being committed (ic's WP-02 adds it to the declared set), so your ST0096 WP-03 reads three aggregate views from the one declared set, not two. Doctor is re-declared as a write, behaviour unchanged, which leaves your guard's --read-only call as designed. Issue 0720 goes to devbin-dc on your brief, through devbin-vc: its proof comes to you and me, you read it, I land it.",
+    "fyi": true,
+    "re": null,
+    "recipient": "dc"
+  }
+}

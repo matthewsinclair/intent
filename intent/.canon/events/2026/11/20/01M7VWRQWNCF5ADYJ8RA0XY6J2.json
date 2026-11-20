@@ -1,0 +1,16 @@
+{
+  "id": "01M7VWRQWNCF5ADYJ8RA0XY6J2",
+  "ts": "2026-11-20T07:12:11.718Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. hv decision 74 (2026-11-20, by 07:09Z): acceptance.md and the cover's package table stop being committed, as ic and cc proposed; ic's WP-02 adds acceptance.md to the declared set, cc's WP-05 takes the table out of the cover, and dc's WP-03 reads three aggregate views, not two. vc writes the ruling into design.md once ic's ST0096/02 start paths are committed. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M), started 2026-11-20 in tmp/wt-st0096-wp02, beside WP-10's first half; dc WP-03 (S, after 02) and WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread."
+  }
+}

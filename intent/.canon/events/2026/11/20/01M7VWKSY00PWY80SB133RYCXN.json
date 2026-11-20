@@ -1,0 +1,15 @@
+{
+  "id": "01M7VWKSY00PWY80SB133RYCXN",
+  "ts": "2026-11-20T07:09:26.848Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-20, in devbin-vc's window, relayed by devbin-vc to vc by 06:48Z on vc's date -u and recorded there as devbin decision 252; not heard first-hand by vc; hv's own words, answering the question Intent's vc put to the Desk on 2026-11-19) UNTIL 3.5.x IS RELEASED, THREADS, WORK PACKAGES AND ISSUES ARE MINTED ON MAIN. hv, verbatim: \"Yes, until intent 3.5.x drops, please make STs, WPs, and Issues on MAIN.\" So every estate's seats mint threads, work packages and issues only in the main checkout, on main, never in a worktree, a clone or on a branch; a record already minted elsewhere is checked against main before it merges and renumbered at once if it collides. A practice, with no change to the tool: hv decision 61's refusal of a tool-built restriction stands, and agentic-engineering's attendees keep their own merge-request steps (hv decision 68). vc's reading, not hv's words: a test or proof that mints in a worktree's own store is not covered, since that store never reaches main."
+  }
+}

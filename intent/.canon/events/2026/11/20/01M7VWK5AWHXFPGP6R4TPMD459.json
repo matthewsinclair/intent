@@ -1,0 +1,15 @@
+{
+  "id": "01M7VWK5AWHXFPGP6R4TPMD459",
+  "ts": "2026-11-20T07:09:05.756Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-20, first-hand in prose in vc's session, read between 06:37Z and 06:39Z on vc's date -u; and relayed by devbin-vc from hv's words in its window, read by vc by 06:47Z, not heard first-hand by vc; hv's own words throughout) THE DESK, AND INTENT ABOVE EVERY OTHER ESTATE. In vc's session, verbatim: \"Note: devbin-cx is still The Desk. It will corral all running project Claudes accordingly. P0 is Intent, P1 is Papillon + Agentic Engineering. P2 is Webber.\" In devbin-vc's window, as devbin-vc relayed it at 06:46Z: \"Remember, this Intent patch for hash-based IDs is P0, or P(-1). Or however I can stipulate UTTMOST PRIORITY.\" vc's reading, not hv's words: devbin-cx is devbin-vc, which re-took the Desk's control at 06:36Z on hv's word. The Desk's rule from 06:46Z: an intent-* ask never waits for another estate and is granted at once on the host and lane its seat names, whatever the load; each seat tells devbin-vc each heavy-class run as soon as it knows it, and the announcement holds the lane; a run already started is not stopped."
+  }
+}
