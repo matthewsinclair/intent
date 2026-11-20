@@ -1,0 +1,16 @@
+{
+  "id": "01M7VZ80S8CAZZ462SG3B64GHY",
+  "ts": "2026-11-20T07:55:26.376Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. hv decision 74 (2026-11-20): acceptance.md and the cover's package table stop being committed; the design carries it (8f6beab03), and AC-02.1, AC-02.2 and AC-03.1 now name the aggregate views. WP-05's criteria AC-05.1 to AC-05.3 are recorded in cc's meaning (45253b5b6). OPEN AT THE FOLD, for cc's meaning: ic's WP-02 (banked at refs/bank/ic/st0096/wp02-wip1-on-421b6d6d1) failed 10 tests on run 1, and its critic's two criticals are a design point. Ignored views leave the gitignore-aware corpus every planner reads (D29's Scanned), so the plan misses a realised acceptance.md and never re-renders stale lists, and a fresh clone has none of the views while doctor counts each missing one. ic proposes the corpus keeps them and doctor shows a missing one without counting it. If cc's answer changes the design, vc writes it into design.md before WP-02 goes on. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M), in tmp/wt-st0096-wp02; WP-03 (S, after 02) goes to devbin-dc on dc's brief, dc reading its proof (vc todo 91); dc WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread."
+  }
+}
