@@ -3177,6 +3177,14 @@
       "text": "After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs",
       "state": "live",
       "recorded_at": "2026-11-20T16:00:52.833Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 79,
+      "text": "Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.",
+      "state": "live",
+      "recorded_at": "2026-11-20T16:28:17.406Z"
     }
   ],
   "sent": [

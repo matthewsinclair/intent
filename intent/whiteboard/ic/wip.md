@@ -19,6 +19,7 @@ claims: [ST0095/10]
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them. (edited)
 - After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs
+- Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.
 
 ## Holds
 

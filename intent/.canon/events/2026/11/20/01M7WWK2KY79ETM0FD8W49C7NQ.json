@@ -1,0 +1,15 @@
+{
+  "id": "01M7WWK2KY79ETM0FD8W49C7NQ",
+  "ts": "2026-11-20T16:28:17.406Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold."
+  }
+}
