@@ -160,14 +160,25 @@ TOOLS="${PROJECT_ROOT:?}/intent/st/ST0056/parity/tools"
 # against its canon, and feeding one to the skew check would ask it to compare a
 # file that is not there.
 #
-# `|| true` is load-bearing rather than defensive noise: git exits non-zero when
-# nothing is staged, and under `set -e` that would abort the gate instead of
-# letting it correctly find nothing to do. (This is the same shape that killed
-# ic's generator -- a legitimately-empty pipeline aborting the whole script.)
+# GIT'S STATUS IS READ, AND A FAILED READ REFUSES (issue 0731). An empty index
+# is not a failure -- git exits 0 and prints nothing, so the gate finds nothing
+# to do -- but a git that cannot read the index exits non-zero. The `|| true`
+# and `2>/dev/null` that stood here took that failure for an empty set, so
+# guard 0 could pass a database it never saw.
 #
+# index_read_failed <command> <what> <status> -- refuses the commit, naming the
+# read and the command that failed. What guard 0 had already found by name is
+# printed with it, so a refusal never loses a finding.
+index_read_failed() {
+  printf 'intent repo-local gate: commit blocked -- "%s" could not read %s (exit %s), so the gate stops here; git'"'"'s message is above\n' "$1" "$2" "$3" >&2
+  [ -z "${staged_db:-}" ] || printf '  guard 0 had already found, before it stopped:\n%s' "$staged_db" >&2
+  exit 1
+}
+
 # Computed BEFORE the apparatus check below, because guard 0 is not an ST0056
 # guard and must outlive that directory.
-STAGED="$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)"
+STAGED="$(git diff --cached --name-only --diff-filter=ACM)" ||
+  index_read_failed "git diff --cached --name-only" "the staged set" "$?"
 
 # --all forces the full sweep regardless of what is staged, for running by hand.
 FULL=0
@@ -285,16 +296,25 @@ done <<<"$STAGED"
 # for both counts on a binary blob. A SQLite file is always binary, so this
 # loses nothing and keeps `git show` off every text file in a large commit.
 # --no-renames because the rename form prints a path pair this would misread.
-BINARIES="$(git diff --cached --numstat --no-renames --diff-filter=ACM 2>/dev/null | awk '$1 == "-" && $2 == "-" { print $3 }' || true)"
+BINARIES="$(git diff --cached --numstat --no-renames --diff-filter=ACM | awk '$1 == "-" && $2 == "-" { print $3 }')" ||
+  index_read_failed "git diff --cached --numstat | awk" "the staged binaries" "$?"
 while IFS= read -r p; do
   [ -n "$p" ] || continue
   case "$p" in
     *.db | *.db-wal | *.db-shm | *.sqlite | *.sqlite3) continue ;; # already named above
   esac
-  # `|| true` on the pipeline: `head -c` closes the pipe early, git dies of
-  # SIGPIPE, and pipefail would abort the whole gate over a file that is merely
-  # shorter than the probe.
-  magic="$( (git show ":$p" 2>/dev/null | head -c 15) 2>/dev/null || true)"
+  # GIT'S OWN STATUS IS READ HERE TOO (issue 0731). `head -c` closes the pipe
+  # early and git dies of SIGPIPE, 141, which is no failure; so pipefail is off
+  # inside, and git's status is the substitution's, its 141 read as 0. Any other
+  # status is a blob git could not read: the `|| true` that stood here took it
+  # for "not SQLite" and passed a database it never read.
+  magic="$(
+    set +o pipefail
+    git show ":$p" | head -c 15
+    s="${PIPESTATUS[0]}"
+    [ "$s" -ne 141 ] || s=0
+    exit "$s"
+  )" || index_read_failed "git show :$p" "the staged blob $p" "$?"
   if [ "$magic" = "SQLite format 3" ]; then
     staged_db="${staged_db}    $p   (by CONTENT -- SQLite magic under a name that does not say so)
 "
@@ -449,8 +469,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # report-only checks above: a finding here is a live defect in a checker, and the reason it needs
   # a gate rather than a sweep is that it is invisible to every other instrument
   # -- a lost race has the same exit code, the same silence and the same green
-  # as a clean run. Exit 2 is the tool refusing to report (its own two-sided
-  # control did not fire), which is not a finding and must not read as one.
+  # as a clean run. Exit 2 is the tool refusing to report, for the cause its own
+  # message names, and no refusal is a finding or may read as one.
   step "$G_PIPEFAIL"
   run_guard "$TOOLS/pipefail_sigpipe_check.sh" gating "an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line"
 

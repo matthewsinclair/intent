@@ -112,8 +112,12 @@ emitted="$(
     | sort -u
 )"
 
-n_declared="$(printf '%s\n' "$declared" | grep -c . || true)"
-n_emitted="$(printf '%s\n' "$emitted" | grep -c . || true)"
+# Counted by awk, whose 0 is its only answer for a count (issue 0731). `grep -c`
+# exits 1 for a zero count, and the `|| true` it needed hid grep's own 2 as well,
+# so a failed count read as an empty table; a failing awk is the ERR trap's, and
+# names itself.
+n_declared="$(printf '%s\n' "$declared" | awk 'NF { n++ } END { print n + 0 }')"
+n_emitted="$(printf '%s\n' "$emitted" | awk 'NF { n++ } END { print n + 0 }')"
 
 # The empty-population refusal. Both sides are extracted by pattern, and a
 # pattern that stops matching yields an empty set rather than an error -- at

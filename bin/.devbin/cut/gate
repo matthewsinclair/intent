@@ -138,9 +138,20 @@ LOAD_SENSITIVE='daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_in
 # 0723): `grep -q` stops at the first red outside the family, and a writer still
 # piping into it could take SIGPIPE, which pipefail would read as every red
 # confined.
+#
+# A DOC-TEST RED IS NEVER CONFINED (issue 0731), whatever its name. The one
+# re-run is `cargo test -p intentd`, and intentd has no lib and so no doc-test:
+# a doc-test red counted as confined would be cleared by a re-run that never ran
+# it. A doc-test red is one whose target is its `Doc-tests` line.
 reds_confined() {
-  local outside=0
+  local outside=0 doctest=0
   [ -n "$1" ] || return 2
+  grep -q -E '^ +Doc-tests ' <<<"$1" || doctest=$?
+  case "$doctest" in
+    0) return 1 ;;
+    1) ;;
+    *) return 2 ;;
+  esac
   grep -q -v -E "$LOAD_SENSITIVE" <<<"$1" || outside=$?
   case "$outside" in
     0) return 1 ;;
@@ -250,8 +261,11 @@ check_rust() {
   if [ -z "$step" ] && ! in_gate "$native" cargo test --workspace --no-fail-fast >>"$log" 2>&1; then
     step="cargo test --workspace"
     # A red is `<its Running line> :: <test name>`; release_gate.bats's
-    # red_naming writes the same form, so the two move together.
-    reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$log")"
+    # red_naming writes the same form, so the two move together. The name is the
+    # whole of what stands between `test ` and ` ... FAILED` (issue 0731): a
+    # doc-test's is several words, eg `src/lib.rs - f (line 3)`. Its target is
+    # its `Doc-tests` line, so reds_confined can tell it from a test binary's.
+    reds="$(awk '/^ +(Running|Doc-tests) /{target=$0} /^test .* \.\.\. FAILED$/{name = $0; sub(/^test /, "", name); sub(/ \.\.\. FAILED$/, "", name); print target " :: " name}' "$log")"
     # Only a red confined to the family runs again; a red outside it, or no
     # judgement, leaves the step refused.
     confined=0

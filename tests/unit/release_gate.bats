@@ -51,8 +51,9 @@ EOF
   # cargo, as the rust gate runs it. `build` exits STUB_BUILD_RC. `test
   # --workspace` names each of STUB_RED as a failed arm under a target, as
   # cargo prints them, and fails if there is one; with no STUB_RED it exits
-  # STUB_TEST_RC, a failure naming no test when set. `test -p intentd` is the
-  # re-run: it is logged, and exits STUB_RERUN_RC.
+  # STUB_TEST_RC, a failure naming no test when set. STUB_DOCTEST names one
+  # failed doc-test, whose name is several words, as cargo prints it. `test -p
+  # intentd` is the re-run: it is logged, and exits STUB_RERUN_RC.
   STUBS="${TEST_TEMP_DIR}/stubs"
   STUB_LOG="${TEST_TEMP_DIR}/stub.log"
   : >"$STUB_LOG"
@@ -62,6 +63,11 @@ EOF
 case "$1 $2" in
   "build -p") exit "${STUB_BUILD_RC:-0}" ;;
   "test --workspace")
+    if [ -n "${STUB_DOCTEST:-}" ]; then
+      echo "   Doc-tests intentsvcs"
+      echo "test $STUB_DOCTEST ... FAILED"
+      exit 1
+    fi
     [ -n "${STUB_RED:-}" ] || exit "${STUB_TEST_RC:-0}"
     echo "     Running tests/suite.rs (target/debug/deps/suite-0)"
     for t in $STUB_RED; do echo "test $t ... FAILED"; done
@@ -287,6 +293,35 @@ red_naming() {
     run reds_confined "$(red_naming "$member")"$'\n'"$outside"
     [ "$status" -eq 1 ] || fail "'$member' beside a red outside the family read $status, where outside is 1"
   done <<<"$MEMBERS"
+}
+
+# Issue 0731: a doc-test red is never confined, since the one re-run is
+# intentd's and intentd has no doc-test, so a re-run would clear a red it never
+# ran. Each family member is read out of LOAD_SENSITIVE and set in a doc-test's
+# name, and the gate refuses with no re-run, as it does for a name with none.
+@test "0731: rust: a failed doc-test naming a member of the family refuses, and nothing runs again" {
+  local member
+  load_reds_confined
+  make_repo
+  while IFS= read -r member; do
+    : >"$STUB_LOG"
+    export STUB_DOCTEST="src/lib.rs - ${member}x (line 3)" STUB_RERUN_RC=0
+    check rust
+    assert_failure
+    err_has "cargo test --workspace failed"
+    run grep -c '^rerun$' "$STUB_LOG"
+    [ "$output" = "0" ] || fail "a doc-test naming '$member' ran intentd again: $(cat "$STUB_LOG")"
+  done <<<"$MEMBERS"
+}
+
+@test "0731: rust: a failed doc-test naming no member of the family refuses, and nothing runs again" {
+  make_repo
+  export STUB_DOCTEST="src/lib.rs - canon::Thing (line 3)" STUB_RERUN_RC=0
+  check rust
+  assert_failure
+  err_has "cargo test --workspace failed"
+  run grep -c '^rerun$' "$STUB_LOG"
+  assert_output "0"
 }
 
 @test "0728: rust: a test run that fails naming no test is no judgement, so nothing runs again and the step refuses" {

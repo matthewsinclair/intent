@@ -115,9 +115,11 @@ PAT="(^|[^$PIPE])[$PIPE][[:space:]]*$GREPQ"
 # carries no extension (`cut/gate`, `cmd/precommit`) or a `.lib` one, so a file
 # there is taken by what its first line declares: a bash shebang, or, for a
 # library the gates source, shellcheck's `shell=bash` directive. Each source
-# that yields nothing refuses on its own, and so does each BASH_DIRS directory,
-# which is committed tooling and never dehydrated as a thread's tools can be: a
-# rule that stopped matching, or a directory that moved, cannot hide behind
+# that yields nothing refuses on its own. Within the `.sh` source only the union
+# of POP_DIRS is asserted (issue 0731), since a thread's tools can be dehydrated
+# and so one directory may be absent by design. Each BASH_DIRS directory is
+# asserted by itself, being committed tooling that is never dehydrated: a rule
+# that stopped matching, or a directory that moved, cannot hide there behind
 # another's files.
 POP_DIRS=(intent/st/ST0056/parity/tools intent/st/ST0057/parity/tools lib/templates/hooks)
 BASH_DIRS=(bin/.devbin/cut bin/.devbin/cmd)
