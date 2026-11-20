@@ -23,8 +23,8 @@
 # shape twice, in a collection verifier carrying its own copy of the classifier's
 # eligibility rules and in a roster that agreed with neither dispatcher beneath
 # it. This parses one verdict; it does not form one. The one choice it does
-# make, where doctor runs, copies the store's own, and the block that makes
-# it says why.
+# make, where doctor runs, it asks of the store's own decision through
+# `doctor --read-only`, and the block that makes it says why.
 #
 # IT READS `doctor --format json`, NEVER DOCTOR'S TEXT (ST0095 WP-03). The text
 # parse it replaces matched `^residue: <path> -- view-skew -- `, and from
@@ -51,6 +51,7 @@
 # a skewed view; 2 the instrument cannot answer (no verdict, a report it cannot
 # read, a control that failed, or the class acknowledged).
 
+# -e stays off: every status below is read by hand, and the reads say why.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -148,61 +149,44 @@ fi
 # store before this tool runs and is out of its reach (issue 0717; vc decision
 # 132 keeps the seats on brew).
 #
-# So the store's schema is read from its header, never by opening it, and the
-# build's from the header of the store the control above made. A store older
-# than the build, one whose header does not say, or no store at all, which
-# doctor would make at this build's schema, is judged as a copy of this
-# checkout's intent/ with no store in it, which doctor builds from canon as a
-# fresh clone does, and the checkout's store is neither opened nor made. A
-# newer store is judged in place: this build cannot open it, so doctor reports
-# that as a finding of its own and judges the views with no render record, as
-# on the copy.
+# So doctor is asked with --read-only (issue 0717), which asks the store's one
+# open-or-migrate decision, `store::Opening::decide`, before it opens the store
+# for write. Where opening would make the store or migrate it, doctor judges
+# nothing and exits 2, and its JSON names what opening would do at
+# `.store.opening`; it prints that object only for such a stop, so this tool
+# takes any word there as the stop and keeps no list of its own. It then judges
+# a copy of this checkout's intent/ with no store in it, which doctor builds
+# from canon as a fresh clone does, and the checkout's store is not opened for
+# write, and neither migrated nor made. Otherwise doctor judges the store in
+# place, read-only, and writes nothing to it. A store newer than the build, or
+# one written before the stamp, is judged in place too: this build cannot read
+# its render record, so doctor reports that as a finding of its own and judges
+# the views with no render record, as on the copy.
 #
-# Measured on this tree on 2026-11-19, at 1184 views: with one thread cover
-# edited by hand, the copy and the store in place both name that view and no
-# other, and without the edit both name none. A copy has no record of what the
-# store rendered, so a view the store re-rendered and nobody has written yet,
-# which reads as store-stale in place and is not this tool's class, reads as
-# view-skew in the copy: on the copy path, a peer's write still landing can
-# block a commit that stages that view. `.backup` and `.cache` stay out of the
-# copy, about 3.4 GB of the store's backups and the search index, which doctor
-# does not read for this verdict. A header is current once its store's last
-# connection has closed: a checkout store whose newer schema still sits in its
-# WAL reads as older, which only sends doctor to the copy, and a control store
-# whose header reads 0 still holds its stamp in its WAL, which is a refusal,
-# since against 0 every store would read as current.
-#
-# THIS IS A SECOND COPY OF `Store::init`'s DECISION (intentsvcs store.rs), kept
-# here for want of a door: the binary cannot say whether opening a store would
-# migrate it without opening it. Issue 0717 is that door. WHEN IT LANDS, DELETE
-# THIS BLOCK AND ASK IT.
-
-# The store's path below a project root, written once.
-STORE_REL="intent/.cache/intent.db"
-
-# schema_in <store> -- the user_version a SQLite header carries (bytes 60 to 63,
-# big-endian), or nothing for a file too short to carry one.
-schema_in() {
-  od -An -tu1 -j60 -N4 "$1" |
-    awk 'NF == 4 { print $1 * 16777216 + $2 * 65536 + $3 * 256 + $4 }'
-}
-
-STORE="$ROOT/$STORE_REL"
-COPY_WHY=""
-if [ ! -f "$STORE" ]; then
-  COPY_WHY="this checkout has no store, and doctor would make one at the schema $BIN writes"
-else
-  BUILT="$(schema_in "$WORK/probe/$STORE_REL")"
-  [ "${BUILT:-0}" -gt 0 ] 2>/dev/null ||
-    die "the store the control made at $WORK/probe/$STORE_REL does not show which schema $BIN writes (its header reads ${BUILT:-nothing}), so this commit is unchecked rather than clean"
-  HELD="$(schema_in "$STORE")"
-  if [ -z "$HELD" ] || [ "$HELD" -lt "$BUILT" ]; then
-    COPY_WHY="$BIN writes store schema $BUILT and this checkout's store is at ${HELD:-a schema its header does not show}"
-  fi
-fi
-
-DOCTOR_ROOT="$ROOT"
-if [ -n "$COPY_WHY" ]; then
+# Measured with one thread cover edited by hand: on 2026-11-19, at 1184 views,
+# the copy named that view and no other; on 2026-11-20, at 1201 views with the
+# build at 1fd4d88b6, the in-place --read-only run did too, and without the
+# edit each named none. A copy has no record of what the store rendered, so a
+# view the store re-rendered and nobody has written yet, which reads as
+# store-stale in place and is not this tool's class, reads as view-skew in the
+# copy: on the copy path, a peer's write still landing can block a commit that
+# stages that view. `.cache` stays out of the copy because it holds the store
+# (and the search index), which is what leaves the copy with no store, and
+# `.backup` because it holds the store's backups, about 3.4 GB together.
+cd "$ROOT" || die "could not enter $ROOT to run doctor there, so this commit is unchecked rather than clean"
+OUT="$("$BIN" doctor --read-only --format json 2>"$WORK/read-only.err")"
+RC=$?
+RUN="in place with --read-only"
+# Exit 2 is also any other run doctor could not answer, so only a report that
+# names a store opening would write sends this to the copy.
+OPENING=""
+[ "$RC" -eq 2 ] &&
+  OPENING="$(printf '%s' "$OUT" | jq -er '.store.opening | strings' 2>/dev/null)"
+if [ -n "$OPENING" ]; then
+  # doctor's own refusal is not replayed here: its remedy, run it without
+  # --read-only, is the migration this tool exists to prevent, and the line
+  # below says what the stop said.
+  HOLDS="$(printf '%s' "$OUT" | jq -r '"\(.store.path), its schema \(.store.schema // "none"), this build'"'"'s \(.store.build)"' 2>/dev/null)"
   clone=(cp -R)
   [ "$(uname -s)" = Darwin ] && clone=(cp -c -R)
   mkdir -p "$WORK/copy/intent" || die "could not make $WORK/copy/intent to judge a copy in, so this commit is unchecked rather than clean"
@@ -212,21 +196,25 @@ if [ -n "$COPY_WHY" ]; then
     "${clone[@]}" "$entry" "$WORK/copy/intent/" ||
       die "could not copy $entry to judge a copy of intent/, so this commit is unchecked rather than clean"
   done
-  DOCTOR_ROOT="$WORK/copy"
-  echo "thread-view-skew: $COPY_WHY, so doctor judges a copy of intent/, and this checkout's store is neither opened nor made." >&2
+  echo "thread-view-skew: doctor --read-only says opening this checkout's store ($HOLDS) would $OPENING it, so doctor judges a copy of intent/, and this checkout's store is not opened for write, and neither migrated nor made." >&2
+  cd "$WORK/copy" || die "could not enter $WORK/copy to run doctor there, so this commit is unchecked rather than clean"
+  OUT="$("$BIN" doctor --format json)"
+  RC=$?
+  RUN="on a copy of intent/"
+else
+  cat "$WORK/read-only.err" >&2
 fi
-cd "$DOCTOR_ROOT" || die "could not enter $DOCTOR_ROOT to run doctor there, so this commit is unchecked rather than clean"
-
-OUT="$("$BIN" doctor --format json)"
-RC=$?
 # `doctor` exits 1 for findings of ANY class, so its exit code is not this
-# instrument's verdict and must not be read as one. Anything above 1 is the
-# command failing rather than reporting, and a failure to run is not a pass.
-[ "$RC" -le 1 ] || die "\`$BIN doctor --format json\` exited $RC -- it did not produce a verdict, so this commit is unchecked rather than clean. Its report follows:
+# instrument's verdict and must not be read as one. It also exits 1 for a usage
+# error, eg a build older than issue 0717 that does not know --read-only, which
+# prints no report, so the reads below refuse it for want of one. Anything above
+# 1 is the command failing rather than reporting, and a failure to run is not a
+# pass.
+[ "$RC" -le 1 ] || die "\`$BIN doctor\`, run $RUN, exited $RC -- it did not produce a verdict, so this commit is unchecked rather than clean. Its report follows:
 $OUT"
 
 VIEWS="$(printf '%s' "$OUT" | jq -er '.checked.views | numbers')" ||
-  die "\`doctor --format json\` gave no view count at .checked.views, so this script cannot show it read the views, and this commit is unchecked rather than clean"
+  die "\`doctor --format json\`, run $RUN, gave no view count at .checked.views, so this script cannot show it read the views, and this commit is unchecked rather than clean"
 [ "$VIEWS" -gt 0 ] || die "\`doctor\` reports $VIEWS views rendered. An empty population and a clean estate compare equal, so this is a refusal and not a pass."
 
 # An acknowledged class's findings leave `findings` for `acknowledged` (issue
