@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 731,
+  "slug": "precommit-swallows-a-git-failure-reading-its-sta",
+  "title": "precommit swallows a git failure reading its staged set, and four guard readings say more or less than their status means",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\ncritic-shell named five items on unchanged lines in devbin-dc's 0725-0728 proof (2026-11-20). Only the first is a silent error:\n\n1. `bin/.devbin/cmd/precommit` (about :163-170 and :288) reads the staged set and the binaries with `|| true` and `2>/dev/null`. That swallows a real git failure, so guard 0 can pass a database it never saw. Its comment's reason does not hold, since an empty index exits 0.\n2. precommit (about :450-451) says pipefail_sigpipe's 2 means only that its control did not fire. It also means an empty population or an unreadable file.\n3. `pipefail_sigpipe_check.sh` (about :117-120) says each source refuses on its own. POP_DIRS directories are asserted only as a union, by design, since a thread can be dehydrated, so the comment overstates it.\n4. `residue_class_check.sh` (about :117-118): `grep -c . || true` hides grep's own 2. The check then refuses saying \"the table's shape moved\", which is the wrong cause, though it still exits 2.\n5. `cut/gate`'s awk keeps only the first word of a doc-test name, so such a red reads as outside the load-sensitive family. This fails closed.\n\n## The fix\n\n1. Read each git status, and refuse with the cause when git fails.\n2. to 4. Make each comment and message say what its status actually means.\n5. Keep the whole doc-test name.\n\nFound by critic-shell on unchanged lines of issues 0725 to 0728's diff. It rides this release (hv decision 69), and vc sequences it.\n"
+}
