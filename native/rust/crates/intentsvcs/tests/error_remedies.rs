@@ -1364,6 +1364,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::UnsyncedAttachment { .. } => "UnsyncedAttachment",
     FacadeError::RealisedAttachmentUnreadable { .. } => "RealisedAttachmentUnreadable",
     FacadeError::RealisedAttachmentNotRestored { .. } => "RealisedAttachmentNotRestored",
+    FacadeError::StoreNotThisCheckouts { .. } => "StoreNotThisCheckouts",
     FacadeError::CaseFoldUnread { .. } => "CaseFoldUnread",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
@@ -1440,6 +1441,7 @@ const ALL_VARIANTS: &[&str] = &[
   "UnsyncedAttachment",
   "RealisedAttachmentUnreadable",
   "RealisedAttachmentNotRestored",
+  "StoreNotThisCheckouts",
   "CaseFoldUnread",
   "NoSuchEditable",
   "NoSuchAttachment",
@@ -1834,6 +1836,9 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // Both are properties of the world, as `SyncDiskStep`'s are.
   "RealisedAttachmentUnreadable",
   "RealisedAttachmentNotRestored",
+  // Issue 0739: a write over a store holding another checkout's records,
+  // driven through real git in its own test file.
+  "StoreNotThisCheckouts",
   // Issue 0722: a name in another case at a read door, when whether the disk
   // folds case cannot be read. A property of the world, as the two above are.
   "CaseFoldUnread",

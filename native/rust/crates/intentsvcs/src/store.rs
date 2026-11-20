@@ -4196,6 +4196,43 @@ impl WbWrite<'_> {
   }
 }
 
+/// The canon paths that show a store holds another checkout's records, not the
+/// canon this checkout carries (issue 0739, cc's meaning of 2026-11-20): the
+/// paths this checkout carries that the store holds no record for, and the
+/// paths of records the store holds whose canon is gone from this checkout
+/// although the file index shows it was on disk once. Empty when they agree.
+///
+/// **KEYED ON THE SET OF PATHS, NEVER THEIR BYTES**, so a peer's ordinary
+/// write cannot trip it: a write commits the store before it projects the
+/// disk, so a carried path the store lacks is not a write in flight, and a
+/// held path the disk lacks with no file-index row is a peer's create still
+/// landing. Bytes that moved are refused per record by the write's own
+/// guards. **One write is the exception, and it is a known limit:** a
+/// renumber (`st_move`, `issue_move`) moves its canon files BEFORE it lands
+/// the store, so a write by another process in that window is refused, and
+/// the same command run again passes. Its owner is A2 (ST0096 WP-05), which
+/// lands the store before it moves the canon (cc, 2026-11-20).
+///
+/// **PURE**: `held` is what [`crate::ingest::canon_paths_of`] gives for the
+/// store's record ids, `carried` what it gives for this checkout's ids, and
+/// `recorded` the file index's paths, all project-relative, so the layout has
+/// one home and this compares only.
+pub(crate) fn not_this_checkouts(
+  held: &std::collections::BTreeSet<String>,
+  carried: &std::collections::BTreeSet<String>,
+  recorded: &std::collections::BTreeSet<String>,
+) -> Vec<String> {
+  carried
+    .difference(held)
+    .chain(
+      held
+        .difference(carried)
+        .filter(|path| recorded.contains(*path)),
+    )
+    .cloned()
+    .collect()
+}
+
 impl Store {
   /// How long a contended write waits before it is refused (issue `0152`).
   ///
@@ -5358,6 +5395,25 @@ impl Store {
       Self::hydrate_threads(&self.conn, None)?,
       Self::hydrate_issues(&self.conn, None)?,
     ))
+  }
+
+  /// The ids of every thread and issue the store holds, read now and nothing
+  /// else (issue 0739): what the store holds at the moment a write asks, not
+  /// what a long-lived facade loaded when it opened.
+  pub fn record_ids(
+    &self,
+  ) -> Result<(Vec<crate::id::ThreadId>, Vec<crate::id::IssueId>), StoreError> {
+    let threads = self
+      .conn
+      .prepare("SELECT id FROM threads ORDER BY id")?
+      .query_map([], |row| row.get::<_, crate::id::ThreadId>(0))?
+      .collect::<Result<Vec<_>, _>>()?;
+    let issues = self
+      .conn
+      .prepare("SELECT number FROM issues ORDER BY number")?
+      .query_map([], |row| row.get::<_, crate::id::IssueId>(0))?
+      .collect::<Result<Vec<_>, _>>()?;
+    Ok((threads, issues))
   }
 
   /// Hydrate threads out of the store -- the whole estate, or exactly one.
@@ -8514,5 +8570,41 @@ impl Store {
       list.push(row?);
     }
     Ok(serde_json::Value::Array(list))
+  }
+}
+
+#[cfg(test)]
+mod not_this_checkouts_tests {
+  //! Each arm of [`super::not_this_checkouts`] on its own (issue 0739):
+  //! the integration test drives a real switch, and these pin the arms it
+  //! cannot tell apart.
+  use std::collections::BTreeSet;
+
+  fn set(paths: &[&str]) -> BTreeSet<String> {
+    paths.iter().map(|p| p.to_string()).collect()
+  }
+
+  #[test]
+  fn a_carried_path_the_store_lacks_is_named() {
+    assert_eq!(
+      super::not_this_checkouts(&set(&["a"]), &set(&["a", "b"]), &set(&["a"])),
+      vec!["b".to_string()]
+    );
+  }
+
+  #[test]
+  fn a_held_path_gone_from_disk_that_the_index_recorded_is_named() {
+    assert_eq!(
+      super::not_this_checkouts(&set(&["a", "b"]), &set(&["a"]), &set(&["a", "b"])),
+      vec!["b".to_string()]
+    );
+  }
+
+  #[test]
+  fn a_held_path_never_recorded_is_a_create_still_landing_and_passes() {
+    assert_eq!(
+      super::not_this_checkouts(&set(&["a", "b"]), &set(&["a"]), &set(&["a"])),
+      Vec::<String>::new()
+    );
   }
 }

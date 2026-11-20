@@ -818,10 +818,27 @@ pub(crate) fn read_events_to_take(
 
 /// Every thread and issue canon file for these records, where they live on disk.
 pub(crate) fn canon_paths(project: &Project, threads: &[Thread], issues: &[Issue]) -> Vec<PathBuf> {
+  canon_paths_of(
+    project,
+    threads.iter().map(|t| t.id.as_str()),
+    issues.iter().map(|i| i.number),
+  )
+}
+
+/// **THE ONE ENUMERATOR OF A RECORD'S CANON FILES**, by id (issue 0722's
+/// sibling 0739, cc's rider): [`canon_paths`] asks it of the records a store
+/// holds, and the store-staleness check asks it of the ids this checkout
+/// carries, so the two sets follow one layout and a file the layout adds is
+/// counted on both sides or neither.
+pub(crate) fn canon_paths_of<'a>(
+  project: &Project,
+  threads: impl IntoIterator<Item = &'a str>,
+  issues: impl IntoIterator<Item = crate::id::IssueId>,
+) -> Vec<PathBuf> {
   threads
-    .iter()
-    .map(|t| project.thread_json(&t.id))
-    .chain(issues.iter().map(|i| project.issue_json(i.number)))
+    .into_iter()
+    .map(|t| project.thread_json(t))
+    .chain(issues.into_iter().map(|i| project.issue_json(i)))
     .collect()
 }
 

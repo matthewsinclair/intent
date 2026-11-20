@@ -156,7 +156,11 @@ fn a_renumber_onto_an_id_the_store_holds_is_refused_and_changes_nothing() {
 #[test]
 fn a_renumber_onto_an_id_only_the_tree_holds_is_refused_and_changes_nothing() {
   // A pull not yet loaded: the canon file is on disk and the store has never
-  // seen it. Renumbering onto it would put two threads in one place.
+  // seen it. Renumbering onto it would put two threads in one place. Since
+  // issue 0739 the write refuses before the renumber looks at its target: the
+  // store does not hold this checkout's canon, and the refusal names the file
+  // and `intent sync --apply`. The tree guard still refuses a target whose
+  // view or record directory is on disk with no canon file.
   let (fx, mut f) = estate();
   fx.write_raw_thread("ST0003", "{}");
   let before = files(&fx);
@@ -166,7 +170,7 @@ fn a_renumber_onto_an_id_only_the_tree_holds_is_refused_and_changes_nothing() {
     .expect_err("the tree holds ST0003");
 
   assert!(
-    matches!(&err, FacadeError::RenumberTargetTaken { held_by, .. } if held_by.ends_with("ST0003.json")),
+    matches!(&err, FacadeError::StoreNotThisCheckouts { paths } if *paths == vec!["intent/.canon/st/ST0003.json".to_string()]),
     "{err}"
   );
   assert_eq!(files(&fx), before);
@@ -239,6 +243,9 @@ fn an_issue_renumber_moves_the_board_claims_that_name_it() {
   // moved, with nothing reporting it.
   let fx = Fixture::new();
   fx.write_issue(&sample_issue(21));
+  // Both issues are on disk before the facade opens, so its store holds
+  // the canon this checkout carries (issue 0739).
+  fx.write_issue(&sample_issue(90));
   let mut f = fx.facade_on_disk();
   f.wb_register("ic", "Interface", "interface")
     .expect("register ic");
@@ -252,7 +259,6 @@ fn an_issue_renumber_moves_the_board_claims_that_name_it() {
   // **A CLAIM THAT MUST NOT MOVE, on a second board**, so the assertion below
   // is about matching the address rather than about rewriting every claim in
   // sight. A renumber that replaced all claims would pass a one-board fixture.
-  fx.write_issue(&sample_issue(90));
   f.wb_claim("dc", "ISSUE:0090")
     .expect("a second board claims a different issue");
 

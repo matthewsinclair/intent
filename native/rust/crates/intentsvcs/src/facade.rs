@@ -2147,6 +2147,16 @@ pub enum FacadeError {
     #[source]
     source: std::io::Error,
   },
+  /// A write over a store that does not hold the canon this checkout carries
+  /// (issue 0739, cc's meaning): another checkout's records, after a branch
+  /// switch with no hooks, or a hand edit to canon. **REFUSED BEFORE ANY ROW
+  /// OR FILE IS WRITTEN**, since writing would render records this checkout
+  /// lacks. `paths` are the canon paths that disagree, project-relative.
+  #[error(
+    "the store does not hold the canon this checkout carries (another checkout's records, or a hand edit to canon): {}",
+    paths.join(", ")
+  )]
+  StoreNotThisCheckouts { paths: Vec<String> },
   /// A name differs from an attachment the thread carries only in case, and
   /// whether this disk folds case could not be read (issue 0722), so the name
   /// is neither answered as that row nor said to be absent: by
@@ -3820,6 +3830,7 @@ impl crate::remedy::Remedy for FacadeError {
         "nothing was written. Carry the file into the store with `intent sync --to-store \
          {thread}`, or move it aside, then attach again"
       ),
+      Self::StoreNotThisCheckouts { .. } => "run `intent sync --apply`, which takes this checkout's canon into the store (the step the post-checkout hook runs after a switch), then run the command again. Nothing was written".to_string(),
       Self::CaseFoldUnread { row, path, .. } => format!(
         "name it as `{row}`, the spelling the thread carries, which answers on any disk; or make `{path}` and the directories above it readable and on one disk, then ask again"
       ),
@@ -8312,6 +8323,12 @@ impl Facade {
     mode: organize::Mode,
     shown: Option<&str>,
   ) -> Result<organize::Report, FacadeError> {
+    // An apply renders every record the store holds, so it is an ordinary
+    // write under issue 0739 (cc, 2026-11-20) and asks at this door; `sync
+    // --apply`'s views step, the repair, calls `organize_run` itself.
+    if matches!(mode, organize::Mode::Apply) {
+      self.refuse_a_store_not_this_checkouts()?;
+    }
     self.organize_run(mode, shown, false)
   }
 
@@ -8576,6 +8593,8 @@ impl Facade {
       });
     };
     let id = id.to_string();
+    // Before the pin or the views, each a write (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
 
     // **STEP ZERO: RESOLVE. An id naming no thread is not realised, and this
     // runs before the pin because the pin is a WRITE to a TRACKED file.**
@@ -9042,6 +9061,8 @@ impl Facade {
       });
     };
     let id = id.to_string();
+    // Before the pin or the views, each a write (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
     // ST0096 WP-01: an upgraded project unlists the record itself, and the
     // hypothetical is its records with this one unset; 3.4.0's format unpins
     // `.intentfiles` as before.
@@ -13517,7 +13538,7 @@ impl Facade {
         }
         (Action::ResolveViews { paths }, _) => self.resolve_views(paths)?,
         (Action::RegenerateViews { .. }, _) => {
-          let report = self.organize(organize::Mode::Apply)?;
+          let report = self.organize_run(organize::Mode::Apply, None, false)?;
           format!(
             "views: wrote {} and removed {}",
             report.hydrated.len() + report.rewritten.len(),
@@ -13777,7 +13798,15 @@ impl Facade {
         json!({ "moves": moves, "mid_merge": true }),
       )
     };
-    let applied = self.apply(op, Subject::of(kind, id.clone()), payload, next)?;
+    // A repair inside `sync --apply`'s merge, before its ingest: unchecked,
+    // as `renumber_in_merge`'s is (issue 0739).
+    let applied = self.land(
+      op,
+      Subject::of(kind, id.clone()),
+      payload,
+      next,
+      crate::store::ProjectStateEdit::Unchanged,
+    )?;
     let mut notes = Outcome::Moved.with_overwrites(applied).notes().to_vec();
     if !claims.is_empty() {
       let mark = self.after_write.len();
@@ -16721,6 +16750,7 @@ impl Facade {
     new: &str,
     origin: Option<&str>,
   ) -> Result<Renumbering, FacadeError> {
+    self.refuse_a_store_not_this_checkouts()?;
     self.st_show(old)?;
     let subject = format!("steel thread {new}");
     if self.canon.threads.iter().any(|t| t.id == new) {
@@ -16815,6 +16845,7 @@ impl Facade {
     new: crate::id::IssueId,
     origin: Option<&str>,
   ) -> Result<Renumbering, FacadeError> {
+    self.refuse_a_store_not_this_checkouts()?;
     self.issue_show(old)?;
     let subject = format!("issue {}", new.shown());
     if self.canon.issues.iter().any(|i| i.number == new) {
@@ -16958,7 +16989,7 @@ impl Facade {
       ));
       done.push((source_path, target));
     }
-    let applied = match self.apply_envelopes(
+    let applied = match self.land_envelopes(
       &[envelope],
       model.canon,
       crate::store::ProjectStateEdit::Unchanged,
@@ -17474,6 +17505,8 @@ impl Facade {
     // thread was listed with no files until the next write by anyone. Pinned
     // before, this write renders it exactly as every write renders every
     // declared thread -- no second realiser, and attachments stay `organize`'s.
+    // Before the first write, the manifest included (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
     self.realise_on_record(op, id, list, &mut next)?;
     let adds =
       list == ListEdit::AsDeclared && matches!(declared_list_edit(op), Some((_, ListAction::Add)));
@@ -20223,6 +20256,8 @@ impl Facade {
     path: &str,
     row: Attachment,
   ) -> Result<Outcome, FacadeError> {
+    // Before the realised file is placed (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
     let mut next = self.canon.clone();
     let holder = find_thread_mut(&mut next, thread)?;
     // **ONE FILE, ONE ATTACHMENT** (issue 0718): a second attachment that one
@@ -20978,6 +21013,8 @@ impl Facade {
   ) -> Result<crate::id::IssueId, FacadeError> {
     let op = "issues.add";
     self.refuse_a_mint_before_the_upgrade(op)?;
+    // Before the first write, the manifest included (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
     let visible: Vec<crate::id::IssueId> = self.canon.issues.iter().map(|i| i.number).collect();
     let (origin, number) = crate::id::mint(&visible, crate::event::next_id)?;
     let issue = crate::model::Issue {
@@ -21273,6 +21310,8 @@ impl Facade {
     // Before `apply` for the reason `issue_add` records: the projection runs
     // inside it and reads the manifest, so an edit made afterwards is invisible
     // to the very write it is supposed to govern.
+    // Before the first write, the manifest included (issue 0739).
+    self.refuse_a_store_not_this_checkouts()?;
     self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
     let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
     self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
@@ -21408,6 +21447,21 @@ impl Facade {
     next: Canon,
     project_state: crate::store::ProjectStateEdit,
   ) -> Result<Applied, FacadeError> {
+    self.refuse_a_store_not_this_checkouts()?;
+    self.land(op, subject, payload, next, project_state)
+  }
+
+  /// Mint one act's envelope and land it without the 0739 check: the one
+  /// mint [`Facade::apply_with_state`] and `sync --apply`'s merge repairs
+  /// share. Only a repair calls it directly.
+  fn land(
+    &mut self,
+    op: &str,
+    subject: Subject,
+    payload: serde_json::Value,
+    next: Canon,
+    project_state: crate::store::ProjectStateEdit,
+  ) -> Result<Applied, FacadeError> {
     let envelope = Envelope::minted(
       &self.ctx.principal,
       &self.ctx.project_id,
@@ -21415,7 +21469,7 @@ impl Facade {
       subject,
       payload,
     );
-    self.apply_envelopes(&[envelope], next, project_state)
+    self.land_envelopes(&[envelope], next, project_state)
   }
 
   /// Apply an ancestor's fiat close DOWNWARD, to exactly the children the
@@ -21554,6 +21608,65 @@ impl Facade {
     out
   }
 
+  /// Refuse a write over a store that does not hold the canon this checkout
+  /// carries (issue 0739, cc's meaning of 2026-11-20): refuse, never re-read
+  /// silently, since a quiet re-read inside a write would drop this store's
+  /// own edits when the person switches back. Asked before any row or file is
+  /// written; the sync verbs, `upgrade` and intentd's ingest never reach it,
+  /// because they are the repair.
+  ///
+  /// **WHAT THE STORE HOLDS IS READ FROM THE STORE, AT THE WRITE**
+  /// ([`crate::store::Store::record_ids`]), never from this facade's loaded
+  /// canon: the explorer's facade and intentd's live for a session, and a
+  /// peer's create since they opened is the store's, not a stale store.
+  ///
+  /// The sets come from [`ingest::canon_paths_of`], the one enumerator, for
+  /// the store's ids and for this checkout's, and
+  /// [`crate::store::not_this_checkouts`] compares them. The file index is read
+  /// only when the store holds a path this checkout does not carry, the one
+  /// case its rows decide.
+  fn refuse_a_store_not_this_checkouts(&self) -> Result<(), FacadeError> {
+    let paths_of = |threads: &[crate::id::ThreadId], issues: Vec<crate::id::IssueId>| {
+      ingest::canon_paths_of(&self.project, threads.iter().map(|t| t.as_str()), issues)
+        .into_iter()
+        .map(|path| self.project.relative(&path))
+        .collect::<std::collections::BTreeSet<String>>()
+    };
+    let (held_threads, held_issues) = self.store.record_ids().map_err(FacadeError::Store)?;
+    let held = paths_of(&held_threads, held_issues);
+    let thread_ids = self
+      .project
+      .thread_ids()
+      .map_err(|e| FacadeError::Ingest(e.into()))?;
+    let issue_numbers = self
+      .project
+      .issue_numbers()
+      .map_err(|e| FacadeError::Ingest(e.into()))?;
+    let carried: std::collections::BTreeSet<String> = ingest::canon_paths_of(
+      &self.project,
+      thread_ids.iter().map(String::as_str),
+      issue_numbers,
+    )
+    .into_iter()
+    .map(|path| self.project.relative(&path))
+    .collect();
+    let recorded: std::collections::BTreeSet<String> = match held.is_subset(&carried) {
+      true => std::collections::BTreeSet::new(),
+      false => self
+        .store
+        .file_index()
+        .map_err(FacadeError::Store)?
+        .into_iter()
+        .map(|entry| entry.path)
+        .collect(),
+    };
+    let paths = crate::store::not_this_checkouts(&held, &carried, &recorded);
+    match paths.is_empty() {
+      true => Ok(()),
+      false => Err(FacadeError::StoreNotThisCheckouts { paths }),
+    }
+  }
+
   /// The one implementation, taking envelopes ALREADY MINTED.
   ///
   /// **A WRAPPER OVER ONE IMPLEMENTATION, and the reason is the fiat cascade**
@@ -21582,6 +21695,22 @@ impl Facade {
   /// note reaches every face rather than only the CLI (issue 0158's argument,
   /// one note along).
   fn apply_envelopes(
+    &mut self,
+    envelopes: &[Envelope],
+    next: Canon,
+    project_state: crate::store::ProjectStateEdit,
+  ) -> Result<Applied, FacadeError> {
+    self.refuse_a_store_not_this_checkouts()?;
+    self.land_envelopes(envelopes, next, project_state)
+  }
+
+  /// [`Facade::apply_envelopes`] without the 0739 check, for the repairs:
+  /// `sync --apply`'s renumber in a merge and its kept packages (through
+  /// [`Facade::land`]) run before its ingest takes the pulled canon in, so the
+  /// store is stale there by design.
+  /// `st_move` and `issue_move`, the ordinary callers of
+  /// [`Facade::land_renumber`], ask the check themselves.
+  fn land_envelopes(
     &mut self,
     envelopes: &[Envelope],
     mut next: Canon,
