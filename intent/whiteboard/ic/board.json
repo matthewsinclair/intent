@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "28a359a5-1850-47c1-a5e7-f9db7e58d7a4",
-    "heartbeat_at": "2026-11-20T18:59:57.387Z",
+    "heartbeat_at": "2026-11-20T19:02:52.585Z",
     "status": "active",
-    "focus": "WP-10 T unit PROVED v2 18:59Z: gate 2ebba3aa0 green on 26c4b0ca0 (0738 + WP-04 under it, critic-rust 0C/2W/4R/4N fixed or answered), banked refs/bank/ic/st0095/wp10-t-unit-on-26c4b0ca0 (patch-id 95245dfe4f2c), proof to vc. Next: AT rows AC-10.3 + ST0092/09 after land, wp done ST0095/10; then 0736, todo 78, 0740",
+    "focus": "ST0095 WP-10 DONE (landed 42de84456, closed dfff5ca5b). Next, plans to vc before each build: issue 0736 (T7 scanners), todo 78 items 1 and 2, issue 0740 (stale-render remedies onto Finding::with_remedy); then WP-11, then WP-13 docs",
     "claims": [
       "ST0095/10"
     ],
@@ -3102,7 +3102,8 @@
       "kind": "doing",
       "seq": 154,
       "text": "ST0095 WP-10 (ic), 2026-11-20 16:25Z by date -u. PART 1 landed c437d1d83; the REMINT DOORS landed 45028cbd3 (AC-10.5; AC-06.3's last hole: st/issues renumber retired with remint as remedy on CLI and MCP). NEXT, in order: (1) WP-07's v3 signature interdiff from devbin-cc when it comes; ic's read of v2 went to vc 16:12Z: two deviations accepted, F1 BLOCKING (thread_spec, issue_arg, thread_id and MCP spec/issue_number refuse a prefix before any resolver: complete Spelled::Prefix via facade.resolve_thread/resolve_issue), F2 (MCP target_in to ServeError::Refused), R1 (resolve::complete drops IdError); (2) PART 2: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 at WP-10's close; (3) WP-11; (4) WP-13. Before banking a rename or removal of a cited test, run intent at list for the old path (the gyges gate runs no repo-local guard).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T19:02:50.598Z",
       "recorded_at": "2026-11-19T10:48:36.112Z",
       "edited_at": "2026-11-20T16:23:26.510Z"
     },
@@ -3183,7 +3184,8 @@
       "kind": "todo",
       "seq": 79,
       "text": "Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T19:02:51.603Z",
       "recorded_at": "2026-11-20T16:28:17.406Z"
     },
     {

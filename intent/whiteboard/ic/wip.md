@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 18:59Z
+heartbeat_at: 2026-11-20 19:02Z
 status: active
-focus: "WP-10 T unit PROVED v2 18:59Z: gate 2ebba3aa0 green on 26c4b0ca0 (0738 + WP-04 under it, critic-rust 0C/2W/4R/4N fixed or answered), banked refs/bank/ic/st0095/wp10-t-unit-on-26c4b0ca0 (patch-id 95245dfe4f2c), proof to vc. Next: AT rows AC-10.3 + ST0092/09 after land, wp done ST0095/10; then 0736, todo 78, 0740"
+focus: "ST0095 WP-10 DONE (landed 42de84456, closed dfff5ca5b). Next, plans to vc before each build: issue 0736 (T7 scanners), todo 78 items 1 and 2, issue 0740 (stale-render remedies onto Finding::with_remedy); then WP-11, then WP-13 docs"
 claims: [ST0095/10]
 ---
 
@@ -13,13 +13,12 @@ claims: [ST0095/10]
 
 ## DOING
 
-- ST0095 WP-10 (ic), 2026-11-20 16:25Z by date -u. PART 1 landed c437d1d83; the REMINT DOORS landed 45028cbd3 (AC-10.5; AC-06.3's last hole: st/issues renumber retired with remint as remedy on CLI and MCP). NEXT, in order: (1) WP-07's v3 signature interdiff from devbin-cc when it comes; ic's read of v2 went to vc 16:12Z: two deviations accepted, F1 BLOCKING (thread_spec, issue_arg, thread_id and MCP spec/issue_number refuse a prefix before any resolver: complete Spelled::Prefix via facade.resolve_thread/resolve_issue), F2 (MCP target_in to ServeError::Refused), R1 (resolve::complete drops IdError); (2) PART 2: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 at WP-10's close; (3) WP-11; (4) WP-13. Before banking a rename or removal of a cited test, run intent at list for the old path (the gyges gate runs no repo-local guard). (edited)
+_(none)_
 
 ## TODO
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them. (edited)
 - After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs
-- Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.
 - Issue 0740 (filed 1292102c5, cc's FYI 2026-11-20 18:25Z by date -u), ic's wording: views.rs's two stale-render findings (skew_against's ViewSkew and StaleRender arms) weave a remedy into their detail beside the class remedy. Once devbin-cc's 0738 (Finding::with_remedy) lands, and after my WP-10 T unit, which rewords the same sentences: the detail says what's wrong, and the override is the one whole remedy (keeping DISCARDING a hand edit and the keep-an-edit route). Its own small unit.
 
 ## Holds

@@ -552,7 +552,7 @@
     {
       "id": "AT-05.1",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:731",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:663",
       "covers": [
         "AC-05.1"
       ],
@@ -562,7 +562,7 @@
     {
       "id": "AT-05.3",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:279",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:202",
       "covers": [
         "AC-05.3"
       ],
@@ -572,7 +572,7 @@
     {
       "id": "AT-05.4",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:830",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:766",
       "covers": [
         "AC-05.4"
       ],
@@ -662,7 +662,7 @@
     {
       "id": "AT-08.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2668",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2885",
       "covers": [
         "AC-08.1"
       ],
@@ -672,7 +672,7 @@
     {
       "id": "AT-08.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2714",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2931",
       "covers": [
         "AC-08.2"
       ],
@@ -792,7 +792,7 @@
     {
       "id": "AT-10.9",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:80",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:29",
       "covers": [
         "AC-10.5"
       ],
@@ -802,7 +802,7 @@
     {
       "id": "AT-10.10",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:196",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:122",
       "covers": [
         "AC-10.5"
       ],
@@ -842,7 +842,7 @@
     {
       "id": "AT-14.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2462",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2679",
       "covers": [
         "AC-14.1"
       ],
