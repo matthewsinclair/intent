@@ -6,6 +6,7 @@
 use crate::common::{ok, run};
 use intentsvcs::id::{IssueId, MIN_PREFIX_HEX, THREAD_PREFIX, ThreadId, WpId};
 
+// ST0095 AT-10.1: the arm below.
 #[test]
 fn st_show_issues_show_and_wp_show_take_a_prefix() {
   let dir = tempfile::tempdir().expect("tempdir");

@@ -660,6 +660,116 @@
       "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
     },
     {
+      "id": "AT-10.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_door_takes_a_hashed_ids_prefix.rs:9",
+      "covers": [
+        "AC-10.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/mcp_resources.rs:262",
+      "covers": [
+        "AC-10.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs:187",
+      "covers": [
+        "AC-10.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:28",
+      "covers": [
+        "AC-10.2"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:59",
+      "covers": [
+        "AC-10.2"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:203",
+      "covers": [
+        "AC-10.2"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs:19",
+      "covers": [
+        "AC-10.4"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.8",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:269",
+      "covers": [
+        "AC-10.4"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.9",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:80",
+      "covers": [
+        "AC-10.5"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.10",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:196",
+      "covers": [
+        "AC-10.5"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-10.11",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/every_door_reads_an_id_through_the_waist.rs:231",
+      "covers": [
+        "AC-10.6"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+    },
+    {
       "id": "AT-14.1",
       "kind": "test",
       "file": "native/rust/crates/intentsvcs/src/id.rs:2391",

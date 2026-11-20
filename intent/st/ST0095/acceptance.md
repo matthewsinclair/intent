@@ -77,12 +77,12 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-10 -- Every door takes and shows both families (status: WIP)
 
-- AC-10.1 Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date. -- satisfied: no (computed)
-- AC-10.2 Every existing spelling of an ordinal keeps its meaning: 46, 0046, ST46, ST0046, s46, i21 and ST0092/09. -- satisfied: no (computed)
+- AC-10.1 Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date. -- satisfied: yes (computed)
+- AC-10.2 Every existing spelling of an ordinal keeps its meaning: 46, 0046, ST46, ST0046, s46, i21 and ST0092/09. -- satisfied: yes (computed)
 - AC-10.3 A table shows a hashed id by its short form, unclipped, beside ordinals, and the issues table has a Created column. -- satisfied: no (computed)
-- AC-10.4 GraphQL carries every id as a string, and no URI, claim or manifest row carries a prefix. -- satisfied: no (computed)
-- AC-10.5 st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy. -- satisfied: no (computed)
-- AC-10.6 One command answers, for a token, whether it is an id, of which kind, and which record it names. -- satisfied: no (computed)
+- AC-10.4 GraphQL carries every id as a string, and no URI, claim or manifest row carries a prefix. -- satisfied: yes (computed)
+- AC-10.5 st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy. -- satisfied: yes (computed)
+- AC-10.6 One command answers, for a token, whether it is an id, of which kind, and which record it names. -- satisfied: yes (computed)
 
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 
@@ -158,7 +158,17 @@ _(no tests in this group)_
 
 ### WP-10 -- Every door takes and shows both families (status: WIP)
 
-_(no tests in this group)_
+- AT-10.1 `native/rust/crates/intent-cli/tests/a_door_takes_a_hashed_ids_prefix.rs:9` -- covers AC-10.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.2 `native/rust/crates/intent-cli/tests/mcp_resources.rs:262` -- covers AC-10.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.3 `native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs:187` -- covers AC-10.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.4 `native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:28` -- covers AC-10.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.5 `native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:59` -- covers AC-10.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.6 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:203` -- covers AC-10.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.7 `native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs:19` -- covers AC-10.4 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.8 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:269` -- covers AC-10.4 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.9 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:80` -- covers AC-10.5 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.10 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:196` -- covers AC-10.5 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.11 `native/rust/crates/intent-cli/tests/every_door_reads_an_id_through_the_waist.rs:231` -- covers AC-10.6 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
 
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 

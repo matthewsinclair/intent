@@ -200,6 +200,7 @@ fn bare_hex_at_the_door_that_does_not_know_the_collection_is_asked_of_both() {
   );
 }
 
+// ST0095 AT-10.6: the arm below.
 // ST0095 AT-07.4: the arm below.
 #[test]
 fn an_ordinal_shaped_spelling_is_the_ordinal_and_never_a_hash() {
@@ -265,6 +266,7 @@ fn a_package_prefix_resolves_within_its_own_thread_and_not_another() {
 }
 
 /// AC-07.2: each path that stores an id is given a prefix and keeps the whole.
+// ST0095 AT-10.8: the arm below.
 // ST0095 AT-07.2: the arm below.
 #[test]
 fn every_store_path_given_a_prefix_keeps_the_whole_id() {

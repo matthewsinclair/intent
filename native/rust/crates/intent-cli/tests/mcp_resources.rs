@@ -259,6 +259,7 @@ fn a_uri_that_names_nothing_is_refused_not_answered_empty() {
 /// ST0095 WP-07: a resource address that spells an id by its shown form, a
 /// prefix, reads as the address that spells it whole, as every other door
 /// completes a prefix.
+// ST0095 AT-10.2: the arm below.
 #[test]
 fn a_prefixed_uri_reads_as_the_whole_one() {
   let (fx, st, seq, number) = project();

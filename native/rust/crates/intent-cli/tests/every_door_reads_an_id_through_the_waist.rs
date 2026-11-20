@@ -228,6 +228,7 @@ fn answer(doc: &Value, at: usize) -> &Value {
   &doc["answers"][at]
 }
 
+// ST0095 AT-10.11: the arm below.
 #[test]
 fn id_names_the_record_each_spelling_names() {
   let dir = tempfile::tempdir().expect("tempdir");

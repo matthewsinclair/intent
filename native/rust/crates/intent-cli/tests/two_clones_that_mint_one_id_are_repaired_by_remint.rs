@@ -77,6 +77,7 @@ fn reminted_to(out: &str) -> String {
     .unwrap_or_else(|| panic!("no `reminted to` line:\n{out}"))
 }
 
+// ST0095 AT-10.9: the arm below.
 #[test]
 fn a_thread_both_clones_hold_is_reminted_and_the_merge_is_clean_under_doctor() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -192,6 +193,7 @@ fn a_thread_both_clones_hold_is_reminted_and_the_merge_is_clean_under_doctor() {
   );
 }
 
+// ST0095 AT-10.10: the arm below.
 #[test]
 fn an_issue_remint_reports_what_it_moved_and_the_prose_it_left() {
   let project = tempfile::tempdir().expect("tempdir");

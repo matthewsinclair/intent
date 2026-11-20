@@ -25,6 +25,7 @@ use crate::common::{issue, tid};
 use intentsvcs::id::{self, IdError, IdKind, IssueId, Named, ThreadId};
 
 /// The five forms v2 accepts, driven in the v2 checkout before being pinned.
+// ST0095 AT-10.4: the arm below.
 #[test]
 fn the_v2_parity_contract_is_five_forms() {
   for raw in ["46", "ST46", "0046", "046", "ST0046"] {
@@ -55,6 +56,7 @@ fn a_leading_zero_is_decimal_and_not_octal() {
 /// The explicit tags, which are what give the ambiguous door something to
 /// recommend. Case-insensitive: a hand-typed argument is not a committed
 /// manifest, so there is nothing behind refusing `st0059` for its case.
+// ST0095 AT-10.5: the arm below.
 #[test]
 fn an_explicit_tag_names_the_collection() {
   for raw in ["s59", "S59", "st59", "ST59", "ST0059", "sT0059"] {

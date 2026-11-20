@@ -16,6 +16,7 @@ use intentsvcs::id::{IdKind, MIN_PREFIX_HEX, THREAD_PREFIX, ThreadId, WpId};
 use intentsvcs::model::TShirt;
 use serde_json::{Value, json};
 
+// ST0095 AT-10.7: the arm below.
 #[tokio::test]
 async fn the_four_reads_answer_what_the_facade_holds() {
   let fx = Fixture::new();
@@ -183,6 +184,7 @@ fn error_at(answer: &Value, alias: &str) -> String {
   at[0]["message"].as_str().unwrap_or_default().to_string()
 }
 
+// ST0095 AT-10.3: the arm below.
 #[tokio::test]
 async fn a_typed_id_answers_as_every_door_answers_it() {
   // **cc's meaning, ST0095 WP-10**: a whole id or a unique prefix names its
