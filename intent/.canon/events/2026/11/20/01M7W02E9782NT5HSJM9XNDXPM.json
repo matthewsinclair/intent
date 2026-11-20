@@ -1,0 +1,15 @@
+{
+  "id": "01M7W02E9782NT5HSJM9XNDXPM",
+  "ts": "2026-11-20T08:09:52.167Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0095 WP-14 with issue 0719 (S on the record, M in practice): claimed (ST0095/14, ISSUE:0719) and started on 2026-11-20 at 08:1xZ, in worktree tmp/wt-st0095-wp14 on main. Meaning: cc's, in todo 73, kept live until the land. Lands BEFORE cc's WP-05+06 unit (cc rebases past it). Step 1, the census: every kind tag set (id.rs IdKind, plan::Minted, outstanding::Kind, search::HitKind, store::EntityKind, address::Entity::form, views::Undeclared, event Subject.kind strings, and the four spellings of a work package) and every owner-of-a-path answer (views.rs, plan.rs, organize.rs, project.rs's walk and classify, legacy.rs, sync.rs). Then AC-14.1 (one IdKind with one spelling per surface; 0708 fixed by HitKind::of_owner asking it), AC-14.2 (one Project::owner_of; st_prefix out of config.json), 0719 (classify through one_file_key), tests, critic-rust, one gate run, proof to vc."
+  }
+}

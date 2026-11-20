@@ -9,7 +9,9 @@
     "status": "active",
     "focus": "2026-11-20 07:49Z by date -u: LOCALFOLDED for hv's estate-wide compact, not released. Since the last fold: issue 0711 landed (045086a17) and closed; the shared set rebuilt once at 1fd4d88b6; 0720 landed (26a752653) and closed; filed 0722, 0723, 0724. Open: the guard S, banked WIP at refs/bank/dc/st0095/wp03-readonly-wip1 (4e08bc5ac) and proved, waiting on critic-shell's report and then the proof to vc (DOING 167). Next after it: WP-14 with 0719 (todo 73), then 0718+0715+0722 as one unit (todo 74). Handoff refs/bank/dc/st0095/handoff-20261120b.",
     "claims": [
-      "ST0095/03"
+      "ST0095/03",
+      "ST0095/14",
+      "ISSUE:0719"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3166,6 +3168,14 @@
       "text": "Issue 0722 (filed by dc at 421b6d6d1; vc sequences it): the doors that read a live disk ask one_file_key. cc's meaning, 2026-11-20 by 07:4xZ (re dc's 07:37Z), dc's defaults standing but for two points. (1) One helper beside one_file_key answers a path on disk against a thread's rows: the exact row first; else, on a disk that folds case, a key-only match is the held row's working copy, its bytes taken as an exact match's would be; on a disk that does not fold, a case pair, refused by name with CaseCollision's remedy. (2) Whether the disk folds is asked by READING, never writing: stat the intent directory under a case variant of its name and compare device and inode, so doctor --read-only stays a read. (3) No rename is ever inferred: on a folding disk a key-only row is canon's row's working copy and the name stays canon's; a rename is a verb. (4) organize's plan and doctor's drift: a key-only hit is the working copy (Verify or AttachmentDiverged by sha), never Hydrate; on a non-folding disk a case pair, reported and never claimed. sync --to-store's merge likewise. (5) realise refuses to write a canon case pair to one file. (6) No key column in the store: a pair already in canon is doctor's finding and realise's refusal. Nothing waits for cc's ST0096 WP-05, whose upgrade refuses a canon case pair by name before it splits. detach_attachment stays exact. Sites: ingest.rs collect_attachments_into, organize.rs plan, doctor.rs attachment_drift, facade.rs's to-store preview and st_attachment, views.rs read_thread_file, realise.rs, sync --to-disk's attachments_the_disk_lacks.",
       "state": "live",
       "recorded_at": "2026-11-20T07:40:43.480Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 171,
+      "text": "ST0095 WP-14 with issue 0719 (S on the record, M in practice): claimed (ST0095/14, ISSUE:0719) and started on 2026-11-20 at 08:1xZ, in worktree tmp/wt-st0095-wp14 on main. Meaning: cc's, in todo 73, kept live until the land. Lands BEFORE cc's WP-05+06 unit (cc rebases past it). Step 1, the census: every kind tag set (id.rs IdKind, plan::Minted, outstanding::Kind, search::HitKind, store::EntityKind, address::Entity::form, views::Undeclared, event Subject.kind strings, and the four spellings of a work package) and every owner-of-a-path answer (views.rs, plan.rs, organize.rs, project.rs's walk and classify, legacy.rs, sync.rs). Then AC-14.1 (one IdKind with one spelling per surface; 0708 fixed by HitKind::of_owner asking it), AC-14.2 (one Project::owner_of; st_prefix out of config.json), 0719 (classify through one_file_key), tests, critic-rust, one gate run, proof to vc.",
+      "state": "live",
+      "recorded_at": "2026-11-20T08:09:52.167Z"
     }
   ],
   "sent": [

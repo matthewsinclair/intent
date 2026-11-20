@@ -6,7 +6,7 @@ session_id: b43bbd8a-78f9-46a0-a162-157b91263503
 heartbeat_at: 2026-11-20 07:50Z
 status: active
 focus: "2026-11-20 07:49Z by date -u: LOCALFOLDED for hv's estate-wide compact, not released. Since the last fold: issue 0711 landed (045086a17) and closed; the shared set rebuilt once at 1fd4d88b6; 0720 landed (26a752653) and closed; filed 0722, 0723, 0724. Open: the guard S, banked WIP at refs/bank/dc/st0095/wp03-readonly-wip1 (4e08bc5ac) and proved, waiting on critic-shell's report and then the proof to vc (DOING 167). Next after it: WP-14 with 0719 (todo 73), then 0718+0715+0722 as one unit (todo 74). Handoff refs/bank/dc/st0095/handoff-20261120b."
-claims: [ST0095/03]
+claims: [ST0095/03, ST0095/14, ISSUE:0719]
 ---
 
 # DevX Claude (dc)
@@ -14,6 +14,7 @@ claims: [ST0095/03]
 ## DOING
 
 - ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9; AC-03.4 and AC-03.5 satisfied. OPEN: (1) THE GUARD S: PROVED AND BANKED, proof with vc since 08:1xZ on 2026-11-20, waiting on vc's word to land. Bank refs/bank/dc/st0095/wp03-readonly-v2 = 9992da686 (base 036d340bd, patch-id 27fcb9a9d3e4, 2 paths: thread_view_skew_check.sh and MODULES.md row 311): the guard asks the shared build's doctor --read-only in place, takes any word at .store.opening as the store's stop and judges a copy of intent/ only then, replaying the read-only run's stderr on every other path; schema_in and the header reads are gone. Proof on the final code: slot 01M7VZWM23NXTZYW3SBYERMD7G, 08:07:08Z to 08:07:26Z, G1 to G4 as designed, the store byte for byte, no doctor error: line on the copy path. critic-shell (2 W, 4 R, 4 S) all fixed; W2 was Highlander. After the land: remove tmp/wt-wp03-guard by the four checks, its native/rust/target SYMLINK first with plain rm (never -r, no trailing slash); ST0056's canon comes in through main's watching intentd. ic told of the -wal/-shm side files. (2) AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10. (edited)
+- ST0095 WP-14 with issue 0719 (S on the record, M in practice): claimed (ST0095/14, ISSUE:0719) and started on 2026-11-20 at 08:1xZ, in worktree tmp/wt-st0095-wp14 on main. Meaning: cc's, in todo 73, kept live until the land. Lands BEFORE cc's WP-05+06 unit (cc rebases past it). Step 1, the census: every kind tag set (id.rs IdKind, plan::Minted, outstanding::Kind, search::HitKind, store::EntityKind, address::Entity::form, views::Undeclared, event Subject.kind strings, and the four spellings of a work package) and every owner-of-a-path answer (views.rs, plan.rs, organize.rs, project.rs's walk and classify, legacy.rs, sync.rs). Then AC-14.1 (one IdKind with one spelling per surface; 0708 fixed by HitKind::of_owner asking it), AC-14.2 (one Project::owner_of; st_prefix out of config.json), 0719 (classify through one_file_key), tests, critic-rust, one gate run, proof to vc.
 
 ## TODO
 
