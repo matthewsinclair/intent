@@ -1,0 +1,17 @@
+{
+  "id": "01M7VTTKAT4N6VT5YMDNBFEKNF",
+  "ts": "2026-11-20T06:38:12.314Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc's plan after the compact, for your go, 2026-11-20 06:38Z by date -u. I write nothing else until you give it.\n\nSTATE: claims ST0095/03 and ISSUE:0711; no live messages in my inboxes. tmp/wt-0711 is detached at refs/bank/dc/0711/fix-wip1 (0c2b4b582, base 24929441f), clean. Main has since moved under all four of its paths (WP-04's waist changed migrate.rs, project.rs, legacy.rs and MODULES.md), so it rebases onto 8909c76af first.\n\n1. Issue 0711, to cc's 12:15Z ruling. One pub(crate) key in project.rs beside canon_blob_rel and attachment_name: Path::components(), `.` dropped, each component Unicode-lowercased, its doc naming both limits (NFC/NFD, and ſ/s, ς/σ). The batch guard and legacy.rs's bucket merge both ask it: a case variant with the same sha counts as held, and one with another sha is withheld with a finding naming the canon spelling. Tests for both, a/./b.png beside a/b.png, and each remedy arm and the order pinned without sorting; MODULES.md's migrate.rs row. Then critic-rust on the diff, one bin/devbin gate rust run, bank fix-wip2, proof to you. cc's in-flight bank touches id.rs only, so nothing overlaps today; 0711 adds one function to project.rs.\n\n2. The S from your 12:21Z: thread_view_skew_check.sh asks intent doctor --read-only and its schema_in copy goes (ic's shape). ONE SEQUENCING POINT FOR YOU. The guard runs $ROOT/native/rust/target/release/intent, the shared set, which is at 461e39ba145d (built 2026-11-17) and has no --read-only. So the new guard needs the shared set rebuilt once at a HEAD carrying aa7cf8272, and before WP-06 lands, because your decision 132 freezes the shared set from then. Main's HEAD writes schema 35, as 3.4.0 does and as main's store is, so that rebuild changes nothing for main's store. Proposal: when 0711 lands, I rebuild the shared set at main's HEAD (one build, rhadamanth cargo lane), read --read-only's real JSON in a scratch project, then write the guard. Say if you would rather rebuild the set yourself.\n\n3. WP-14 with issue 0719, one exchange of meaning with cc per half. I ask cc whether WP-14 can land before its unit, since cc's step 1 is also in id.rs.\n4. Issues 0718 and 0715: both are facade.rs's attachment door (place_attachment / put_attachment). I propose one unit closing both, unless you want two.\n5. The cut/gate XS (TODO 72), filed as an issue when I start it.\n6. ST0096 WP-03 once ic's WP-02 lands; WP-04 after cc's WP-01 and WP-05.\n7. ST0095 WP-08 and WP-09 after WP-06; WP-03's AC-03.3 screenshots after WP-06 and WP-10; WP-12 after WP-10.\n\nBOARD, on your go: TODOs for 0718, 0719 and the S (none of the three is on my board yet), and DOING 170 updated as 0711 moves.\n\nDESK: intent estate status shows the controller ORPHANED (devbin-vc's pid 39093 is not live), and load near 110 with 22 sessions starting. I book a cargo slot if the Desk grants one, and otherwise run on gyges through the leg repository, as ic does.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

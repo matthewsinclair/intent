@@ -1,0 +1,15 @@
+{
+  "id": "01M7VVEYWBRS4MCABGREP8FEAX",
+  "ts": "2026-11-20T06:49:23.550Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0720"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "bin/.devbin/cut/gate reads a guard's exit status through its own copy of precommit's tool_verdict"
+  }
+}

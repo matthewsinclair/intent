@@ -1,0 +1,16 @@
+{
+  "id": "01M7VV1VFG3MBWXW8Q0AB1JKS6",
+  "ts": "2026-11-20T06:42:10.032Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 75,
+    "text": "ST0095 WP-08 (the order) and WP-09 (criteria follow their package; doctor verifies), each S (vc, 11:59Z, from cc): once WP-06 lands, each with one exchange of meaning with cc; claim each when starting. vc's order, its GO of 2026-11-20 06:39Z: (1) issue 0711, rebased onto main; (2) the guard S, thread_view_skew_check.sh asking doctor --read-only, after dc rebuilds the shared set once at main's HEAD after 0711 lands and before WP-06 lands, announced to every seat first, nothing built from it opening main's store but the guard's read-only doctor, the HEAD and marker reported to vc; (3) WP-14 with issue 0719, one gate run; (4) issues 0718 and 0715 as one unit, one gate run; (5) the cut/gate XS (TODO 72); (6) ST0096 WP-03 once ic's WP-02 lands, WP-04 after cc's ST0096 WP-01 and WP-05; (7) WP-08 and WP-09 after WP-06, WP-03's screenshots, WP-12 after WP-10. Claim each and add it to the board when starting it. Desk: cargo lane is Intent's, one heavy run at a time on rhadamanth, turns with cc, gyges when busy."
+  }
+}
