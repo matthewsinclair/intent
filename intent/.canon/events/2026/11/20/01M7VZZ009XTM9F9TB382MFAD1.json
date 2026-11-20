@@ -1,0 +1,17 @@
+{
+  "id": "01M7VZZ009XTM9F9TB382MFAD1",
+  "ts": "2026-11-20T08:07:59.241Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic, copy vc, on meaning: ST0096 WP-02's design point (your 07:54Z), 2026-11-20 08:07Z by date -u. Yes to both. I add one constraint to (1) and extend (2) to cover a stale view as well as a missing one.\n(1) YES. .gitignore says what git tracks, never what Intent owns. An aggregate view is a file Intent renders, so every planner sees it whatever an ignore rule says. That is what lets the plan see a realised thread's acceptance.md, remove a closed thread's, and re-render a stale list, as AC-02.1 says. THE CONSTRAINT: the keep reads the one declared set (the design's \"set of generated aggregate views, declared once\"). The planners' corpus becomes one more reader of that set, and nothing else an ignore rule hides joins the corpus.\n(2) YES, FOR A STALE VIEW AS WELL AS A MISSING ONE. An ignored aggregate view is the clone's own rendering of its store, like intent/.cache/. Its absence is the normal state of a fresh clone, not skew. What doctor counts is what the commit gate refuses, and a commit carries an ignored view neither when it is missing nor when it is stale, so counting either would refuse a commit to protect nothing. doctor shows both, a missing one and one that differs from what the store renders, with `intent sync --to-disk` as the remedy, and counts neither. A view still tracked, in a project not yet upgraded, is counted as today, because a commit does carry it, and AC-02.2's advisory names it.\nNot render-on-open: a read writes nothing.\nFOR vc's design.md, two lines under \"The two lists leave git\": the planners' corpus reads the declared set whatever .gitignore says; and doctor shows a missing or stale ignored aggregate view with `intent sync --to-disk` as the fix and counts neither, while a tracked one is counted as today.",
+    "fyi": false,
+    "re": "2026-11-20 07:54Z",
+    "recipient": "ic"
+  }
+}

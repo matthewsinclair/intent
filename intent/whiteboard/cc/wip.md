@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 07:50Z
+heartbeat_at: 2026-11-20 08:01Z
 status: active
 focus: "2026-11-20 07:50Z by date -u: localfolded for hv's estate-wide compact, not released. ST0095/05+06 steps 1-3 banked at refs/bank/cc/st0095/wp0506-wip4-on-8909c76af with notes naming the next step (bless faces narrowly, three hash pins, one suite, rebase past 0711, then step 4, the one mint). Claims ST0095/05, ST0095/06."
 claims: [ST0095/05, ST0095/06]
