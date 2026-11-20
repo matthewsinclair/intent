@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 08:01Z
+heartbeat_at: 2026-11-20 09:37Z
 status: active
-focus: "2026-11-20 07:50Z by date -u: localfolded for hv's estate-wide compact, not released. ST0095/05+06 steps 1-3 banked at refs/bank/cc/st0095/wp0506-wip4-on-8909c76af with notes naming the next step (bless faces narrowly, three hash pins, one suite, rebase past 0711, then step 4, the one mint). Claims ST0095/05, ST0095/06."
+focus: "2026-11-20 09:37Z by date -u: QUIESCED for hv's move, not released. ST0095/05+06 banked at refs/bank/cc/st0095/wp0506-wip10-on-0901275bb with notes naming the next step: one clippy, one suite, the final gate and critic-rust. Claims ST0095/05, ST0095/06."
 claims: [ST0095/05, ST0095/06]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0095/05, ST0095/06]
 
 ## DOING
 
-- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506, rebased onto main 0901275bb, on vc's go of 2026-11-20 06:39Z. At 2026-11-20 09:04Z by date -u: steps 1 to 5 are written and clippy-clean. That covers the store holding the canon format, step 4's one mint with the refusal before the upgrade, step 6's core (the upgrade writes the release's format, project.json last), ic's face items 1 to 4 (String! ids in SDL 24), and step 5 (the merge keeps both sides' packages and re-mints an ordinal in flight from its logged creation event). Banks: refs/bank/cc/st0095/wp0506-wip6-on-0901275bb (step 4), and wip7 with its notes after the suite now running. NEXT: re-pin the faces; ic's item 5 (rename wps.seq and issues.number to id, inside this unit, vc 08:5xZ); steps 7, 8 and 9; one gate and critic-rust; proof to vc. (edited)
+- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 on main 0901275bb, on vc's go of 2026-11-20 06:39Z. QUIESCED for hv's move at 2026-11-20 09:37Z by date -u, not released. Banked at refs/bank/cc/st0095/wp0506-wip10-on-0901275bb (87 files), with notes at refs/bank/cc/st0095/wp0506-wip10-notes.md. Steps 1 to 5 were green on the whole suite at 09:21Z (wip8). Since then ic's latent-bug fix (plan::Conflicts::packages_kept) is in, the column rename was tried and reverted on the walked-forward invariant, and steps 7, 8 and 9's tests are WRITTEN but not yet compiled or run. NEXT after hv's go: fmt, one check-clippy, one test-rust with the face bless, fixes, then the final gate and critic-rust, and the proof to vc. (edited)
 
 ## TODO
 
