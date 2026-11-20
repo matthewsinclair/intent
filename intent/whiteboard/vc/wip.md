@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-20 07:50Z
+heartbeat_at: 2026-11-20 08:04Z
 status: active
-focus: "2026-11-20 07:50Z by date -u: localfolded for hv's estate-wide compact (fold cycle relayed by devbin-vc at 07:47Z), not released. Landed today: WP-10a (7e0eb368c), 0711 (045086a17), 0720 (26a752653). Waiting on: cc's fold after its last test run's END; ic's and dc's folds (WP-02's and the guard S's proofs may come first). Then one line to devbin-vc. After the compact: vc todo 91 (0723+0724 to devbin-dc), and land each proof as it comes."
+focus: "2026-11-20 08:04Z by date -u: compacted and picked up, not released. Gos sent after the compact: dc (the guard S's critic fixes, one proof run, proof to vc), cc (ic's ST0096 WP-02 design point and the canon-format shape first, then DOING 120), ic (WP-10 Part 1 to its proof). devbin-dc's 0723+0724 brief is with devbin-vc until the Desk reopens. Waiting on: cc's answer to ic's design point; proofs from dc (guard S), ic (Part 1), cc (WP-05+06). Each lands on its proof."
 claims: []
 ---
 
@@ -20,7 +20,7 @@ claims: []
 
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 - Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).
-- After hv's compacts (fold cycle of 2026-11-20 07:47Z), when the Desk reopens: pass dc's brief for issues 0723 (cut/gate:234's SIGPIPE under pipefail, and the sigpipe guard reaching bin/.devbin's shebang scripts) and 0724 (precommit's six two-way guards read through guard_verdict), one XS unit, to devbin-dc through devbin-vc. The brief is at refs/bank/vc/0723-0724/brief-20261120 (git cat-file -p). dc reads the proof, vc lands it. Then ST0096 WP-03 goes to devbin-dc on dc's brief, once ic's ST0096 WP-02 lands.
+- devbin-dc, lent by the Desk (hv decision 72), two units on dc's briefs. (a) Issues 0723 (cut/gate's SIGPIPE under pipefail, and the sigpipe guard reaching bin/.devbin's shebang scripts) and 0724 (precommit's six two-way guards read through guard_verdict), one XS unit: the brief (refs/bank/vc/0723-0724/brief-20261120) has been with devbin-vc since 08:02Z by date -u, held until the Desk reopens after hv's compacts. dc reads the proof, vc lands it. (b) ST0096 WP-03, on dc's brief, to devbin-dc through devbin-vc once ic's ST0096 WP-02 lands. (edited)
 
 ## Holds
 
