@@ -24,7 +24,7 @@
 //! and this file's whole verdict would mean nothing.
 
 use crate::common::{RunningDaemon, project};
-use intentsvcs::facade::{Facade, FacadeContext};
+use intentsvcs::facade::Facade;
 use intentsvcs::model::Thread;
 use intentsvcs::wire::{Request, Response};
 
@@ -46,13 +46,7 @@ fn project_with_a_thread(tag: &str) -> (std::path::PathBuf, String) {
 /// that process believes rather than what the store holds -- and the wire arm
 /// writes through a facade this test never touches.
 fn open(root: &std::path::Path) -> Facade {
-  let opened = intentsvcs::project::Project::open(root).expect("the project just created");
-  let ctx = FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  Facade::open(opened, ctx).expect("open it")
+  crate::common::facade_on(root)
 }
 
 /// The thread as the STORE holds it, read through a facade that did no writing.

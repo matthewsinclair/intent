@@ -47,10 +47,6 @@ fn st_dehydrate_forgets_the_views_it_removes() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&gate_open());
-  fx.write_file(
-    "intent/.intentfiles",
-    "STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n",
-  );
   let mut f = fx.facade();
   let at = Address {
     authority: None,
@@ -72,7 +68,6 @@ fn st_dehydrate_forgets_the_views_it_removes() {
 fn st_renumber_forgets_the_paths_it_moves_away_from() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
   let mut f = fx.facade_on_disk();
   f.take_landed();
   let before = rows(&f);

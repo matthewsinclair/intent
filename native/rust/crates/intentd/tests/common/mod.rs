@@ -316,6 +316,38 @@ impl Drop for RunningDaemon {
   }
 }
 
+/// Write thread `id`'s canon straight onto disk, as an external editor would:
+/// bytes appearing in the tree with the daemon uninvolved. The one copy every
+/// daemon test writes (ST0095 WP-10, T1); its schema is the canon's constant.
+pub fn write_thread(root: &Path, id: &str) {
+  let path = intentsvcs::project::Project::open(root)
+    .expect("a project with its config")
+    .thread_json(id);
+  std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+  std::fs::write(
+    &path,
+    format!(
+      "{{\n  \"schema\": \"{}\",\n  \"id\": \"{id}\",\n  \"title\": \"Written by hand\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-30\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n",
+      intentsvcs::canon_format::THREAD_SCHEMA_V3
+    ),
+  )
+  .expect("write the thread file");
+}
+
+/// A facade on the project at `root`, as a test opens one: the shipped
+/// project reader and the test context (ST0095 WP-10, T5). It mirrors
+/// intent-cli's `tests/common::facade_on`, because `testkit` takes no
+/// dependencies and so cannot hold one copy for both crates.
+pub fn facade_on(root: &Path) -> intentsvcs::facade::Facade {
+  let opened = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
+  intentsvcs::facade::Facade::open(opened, ctx).expect("a facade on the project")
+}
+
 /// This crate's root, where `src` and `tests` sit.
 pub fn crate_root() -> PathBuf {
   PathBuf::from(env!("CARGO_MANIFEST_DIR"))

@@ -131,19 +131,6 @@ fn v2_project(dir: &std::path::Path, version: &str) {
   .expect("write config");
 }
 
-/// Write a v2 steel thread the way v2.19 writes one.
-fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
-  let st = dir.join("intent/st").join(id);
-  std::fs::create_dir_all(&st).expect("mkdir st");
-  std::fs::write(
-    st.join("info.md"),
-    format!(
-      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
-    ),
-  )
-  .expect("write info.md");
-}
-
 fn declared_version(dir: &std::path::Path) -> String {
   let text =
     std::fs::read_to_string(dir.join("intent/.config/config.json")).expect("read config.json");
@@ -238,8 +225,8 @@ fn first_difference(
 fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
-  v2_thread(dir.path(), "ST0001", "WIP");
-  v2_thread(dir.path(), "ST0002", "Completed");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0002", "Completed");
 
   assert_eq!(
     declared_version(dir.path()),
@@ -321,8 +308,8 @@ fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
 fn running_it_twice_leaves_the_tree_byte_identical() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
-  v2_thread(dir.path(), "ST0001", "WIP");
-  v2_thread(dir.path(), "ST0002", "Completed");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0002", "Completed");
 
   git_ready(dir.path());
   let (_, err1, code1) = run(&["upgrade"], dir.path());
@@ -374,7 +361,7 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
 fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
-  v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
   // Residue in a LIVE thread, which blocks (hv's ruling: closed threads carry).
   let info = dir.path().join("intent/st/ST0001/info.md");
   let text = std::fs::read_to_string(&info).expect("read");
@@ -444,7 +431,7 @@ fn a_refusal_names_each_finding_exactly_once() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
   for (id, bad) in [("ST0001", "Banana"), ("ST0002", "Kumquat")] {
-    v2_thread(dir.path(), id, "WIP");
+    crate::common::v2_thread(dir.path(), id, "WIP");
     let info = dir.path().join("intent/st").join(id).join("info.md");
     let text = std::fs::read_to_string(&info).expect("read");
     std::fs::write(
@@ -506,7 +493,7 @@ fn a_refusal_names_each_finding_exactly_once() {
 fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() {
   let below = tempfile::tempdir().expect("tempdir");
   v2_project(below.path(), "2.18.0");
-  v2_thread(below.path(), "ST0001", "Completed");
+  crate::common::v2_thread(below.path(), "ST0001", "Completed");
   let before = tree(below.path());
 
   git_ready(below.path());
@@ -542,7 +529,7 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
   // The control. Same estate, same threads, one field different.
   let at_floor = tempfile::tempdir().expect("tempdir");
   v2_project(at_floor.path(), "2.19.0");
-  v2_thread(at_floor.path(), "ST0001", "Completed");
+  crate::common::v2_thread(at_floor.path(), "ST0001", "Completed");
 
   git_ready(at_floor.path());
   let (_, err2, code2) = run(&["upgrade"], at_floor.path());
@@ -722,7 +709,7 @@ fn a_store_git_tracks_is_named_until_it_is_untracked() {
 fn a_first_conversion_examines_the_views_of_undeclared_threads() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
-  v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
   git_ready(dir.path());
 
   let (out, err, code) = run(&["upgrade"], dir.path());
@@ -744,8 +731,8 @@ fn a_first_conversion_examines_the_views_of_undeclared_threads() {
 fn a_flat_on_hold_thread_converts_to_an_estate_doctor_passes() {
   let dir = tempfile::tempdir().expect("tempdir");
   v2_project(dir.path(), "2.19.0");
-  v2_thread(dir.path(), "ST0001", "WIP");
-  v2_thread(dir.path(), "ST0002", "On Hold");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0002", "On Hold");
   git_ready(dir.path());
 
   let (_, err, code) = run(&["upgrade"], dir.path());

@@ -28,12 +28,6 @@ fn warm_with_one_thread() -> Fixture {
   fx
 }
 
-fn stored_ids(fx: &Fixture) -> Vec<String> {
-  let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");
-  let (threads, _) = store.load_canon().expect("the store reads back");
-  threads.into_iter().map(|t| t.id.stored()).collect()
-}
-
 fn stored_title(fx: &Fixture, id: &str) -> String {
   let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");
   let (threads, _) = store.load_canon().expect("the store reads back");
@@ -63,7 +57,7 @@ fn a_file_the_store_did_not_write_is_taken_and_named() {
     "the changed file and the new one are the pass's changes, named"
   );
   assert_eq!(stored_title(&fx, "ST0001"), "the title a pull brought");
-  assert!(stored_ids(&fx).contains(&"ST0002".to_string()));
+  assert!(crate::common::store_thread_ids(&fx.project()).contains(&"ST0002".to_string()));
 }
 
 #[test]
@@ -112,7 +106,7 @@ fn a_recorded_file_the_pull_removed_takes_the_removal() {
     "a removal is a change the pass made, and it says it was a removal"
   );
   assert_eq!(
-    stored_ids(&fx),
+    crate::common::store_thread_ids(&fx.project()),
     vec!["ST0001".to_string()],
     "the store answers from the merged canon, which no longer has ST0002"
   );
@@ -143,7 +137,7 @@ fn a_row_whose_file_was_never_written_survives() {
     .expect("the pass runs");
 
   assert!(
-    stored_ids(&fx).contains(&"ST0009".to_string()),
+    crate::common::store_thread_ids(&fx.project()).contains(&"ST0009".to_string()),
     "a row whose file was never written is not a deletion, and the pass kept it"
   );
   assert!(
@@ -209,7 +203,7 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
   std::fs::remove_file(fx.canon_path("ST0003")).expect("the pull removes ST0003");
   let _ = std::fs::remove_dir_all(fx.project().thread_dir("ST0003"));
   let before = crate::common::tree(fx.root());
-  let stored_before = stored_ids(&fx);
+  let stored_before = crate::common::store_thread_ids(&fx.project());
 
   let plan = fx
     .facade_on_disk()
@@ -244,7 +238,7 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
     .collect();
   assert!(moved.is_empty(), "the plan wrote files: {moved:?}");
   assert_eq!(
-    stored_ids(&fx),
+    crate::common::store_thread_ids(&fx.project()),
     stored_before,
     "and moved nothing in the store"
   );

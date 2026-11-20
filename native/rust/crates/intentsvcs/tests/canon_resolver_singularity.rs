@@ -54,25 +54,11 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use crate::common::{Fixture, sample_thread};
-use intentsvcs::model::{ISSUE_SCHEMA, Issue, IssueStatus};
 
 /// Deliberately not `intent`, and deliberately not a name that appears
 /// anywhere in the source: if any site hardcodes a directory, its artefacts
 /// land outside this tree and the assertions below say so.
 const ELSEWHERE: &str = "workspace";
-
-fn issue(number: u32) -> Issue {
-  serde_json::from_value(serde_json::json!({
-    "schema": ISSUE_SCHEMA,
-    "id": intentsvcs::id::IssueId::from_ordinal(number).expect("an ordinal").stored(),
-    "slug": "a-defect",
-    "title": "a defect",
-    "status": IssueStatus::Open,
-    "body": "",
-    "created": "2026-08-18",
-  }))
-  .expect("issue")
-}
 
 fn files_under(root: &Path) -> BTreeSet<String> {
   let mut out = BTreeSet::new();
@@ -102,7 +88,7 @@ fn seeded_elsewhere() -> Fixture {
   for id in ["ST0001", "ST0002"] {
     fx.write_thread(&sample_thread(id));
   }
-  fx.write_issue(&issue(7));
+  fx.write_issue(&crate::common::open_issue(7));
   let mut facade = fx.facade();
   facade
     .sync_from_disk(&intentsvcs::sync::Scope::All)
@@ -263,7 +249,7 @@ fn the_exporter_spells_no_canon_path_of_its_own() {
     .iter()
     .map(|id| sample_thread(id))
     .collect();
-  let issues = vec![issue(7), issue(46)];
+  let issues = vec![crate::common::open_issue(7), crate::common::open_issue(46)];
   let bundle = intentsvcs::export::Bundle::new("p", threads.clone(), issues.clone(), Vec::new());
 
   let parts = intentsvcs::export::canon_parts(&bundle).expect("canon parts");

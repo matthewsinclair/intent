@@ -34,6 +34,12 @@ pub const ISSUE_STATUS: IssueStatus = IssueStatus::Open;
 pub struct Row {
   pub kind: IdKind,
   pub id: String,
+  /// The id as a table shows it (ST0095 AC-10.3): a hashed id by its short
+  /// form, an ordinal as stored. Read from the typed id here, the one place
+  /// the row is built, so no face respells it; `id` stays the whole id every
+  /// machine reader takes, and this is not serialised beside it.
+  #[serde(skip)]
+  pub shown: String,
   pub status: &'static str,
   pub title: String,
   /// A work package's thread and sequence, as fields; `None` on a thread or an
@@ -101,6 +107,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[IdKind]) -> O
       .map(|w| Row {
         kind: IdKind::WorkPackage,
         id: crate::id::wp_address(&t.id, w.seq),
+        shown: crate::id::wp_address_shown(&t.id, w.seq),
         status: w.status.display(),
         title: w.title.clone(),
         wp: Some(WpRef {
@@ -114,6 +121,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[IdKind]) -> O
       rows.push(Row {
         kind: IdKind::Thread,
         id: t.id.stored(),
+        shown: t.id.shown(),
         status: t.status.display(),
         title: t.title.clone(),
         wp: None,
@@ -133,6 +141,7 @@ pub fn outstanding(threads: &[&Thread], issues: &[&Issue], show: &[IdKind]) -> O
     .map(|i| Row {
       kind: IdKind::Issue,
       id: i.number.stored(),
+      shown: i.number.shown(),
       status: i.status.display(),
       title: i.title.clone(),
       wp: None,

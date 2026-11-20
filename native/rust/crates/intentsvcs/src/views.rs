@@ -2618,6 +2618,17 @@ pub fn write_all(
   Ok(views)
 }
 
+/// What realises a record in `project`, as a finding's sentence names it:
+/// the manifest's path, quoted, in 3.4.0's format, and the record itself in
+/// an upgraded project (ST0096 WP-01, through [`crate::intentfiles::named`]).
+fn realiser(project: &Project, format: crate::canon_format::CanonFormat) -> String {
+  let named = crate::intentfiles::named(project, format, true);
+  match format {
+    crate::canon_format::CanonFormat::V3 => format!("`{named}`"),
+    crate::canon_format::CanonFormat::V4 => named,
+  }
+}
+
 /// The skew check (AC-03.4): regenerate every view and name any that differs
 /// from what is on disk.
 ///
@@ -2659,6 +2670,8 @@ pub fn skew_against(
   last_render: &dyn Fn(&str, &str) -> bool,
   own_render: &dyn Fn(&str) -> bool,
 ) -> Vec<Finding> {
+  let format = crate::intentfiles::reported_format(project);
+  let realised_by = realiser(project, format);
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
@@ -2726,7 +2739,9 @@ pub fn skew_against(
         if rendered_by_an_older_intent(kind, &on_disk, &view.content)
           == Some(OlderRender::RendererOwnedText) =>
       {
-        // **THE VERB DEPENDS ON WHETHER `.intentfiles` REALISES THE VIEW**, the
+        // **THE VERB DEPENDS ON WHETHER THE VIEW IS REALISED** (by
+        // `.intentfiles` in 3.4.0's format, by its record in an upgraded
+        // project, ST0096 WP-01), the
         // question the skew arm below asks for the same reason. `sync --to-disk`
         // re-renders a realised view and leaves an unrealised one as it found
         // it, so naming it for every view sent the operator to a verb that
@@ -2737,10 +2752,10 @@ pub fn skew_against(
         // the same**, and `doctor -v` lists them on one line rather than one
         // line each (`finding::members_by_directory`).
         let clears = match &owner {
-          Some(Undeclared::Record(_)) => {
-            "not realised by `.intentfiles`, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
-          }
-          Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it",
+          Some(Undeclared::Record(_)) => format!(
+            "{realised_by} does not realise it, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
+          ),
+          Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it".to_string(),
         };
         findings.push(Finding::new(
           &rel,
@@ -2854,20 +2869,59 @@ pub fn skew_against(
           // finding's own paragraph says the difference has two causes and
           // nothing here can tell them apart, so the remedy names the discard
           // it performs rather than implying a regeneration that loses nothing.
-          (Some(id), _) => format!(
-            "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in `.intentfiles`"
-          ),
+          (Some(id), _) => match format {
+            crate::canon_format::CanonFormat::V3 => format!(
+              "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in {realised_by}"
+            ),
+            crate::canon_format::CanonFormat::V4 => format!(
+              "`intent st hydrate {id} --overwrite` regenerates it from the store and sets {id} realised on {realised_by}"
+            ),
+          },
           // **AN UNDECLARED ISSUE'S VIEW HAS NO VERB THAT REWRITES IT** (issue
-          // 0412). `sync --to-disk` skips it because the manifest does not
-          // realise it, and `organize --apply` refuses to remove it because it
+          // 0412). `sync --to-disk` skips it because nothing realises it (the
+          // manifest in 3.4.0's format, its record once upgraded), and `organize --apply` refuses to remove it because it
           // cannot tell a stale render from a hand edit -- so the remedy this
           // arm used to name exited 0 and left the finding standing. The two
           // routes that DO clear it are removing the file or declaring it.
-          (None, Some(Undeclared::Record(Named::Issue(number)))) => format!(
-            "issue {} is not declared in `.intentfiles`, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `{}` to `.intentfiles` and run `intent organize --apply`, which rewrites it",
-            number.shown(),
-            crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, &number.stored())
-          ),
+          (None, Some(Undeclared::Record(Named::Issue(number)))) => match format {
+            crate::canon_format::CanonFormat::V3 => format!(
+              "issue {} is not declared in {manifest}, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `{}` to {manifest} and run `intent organize --apply`, which rewrites it",
+              number.shown(),
+              crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, &number.stored()),
+              manifest = realised_by
+            ),
+            // **IN AN UPGRADED PROJECT THE RECORD SAYS, AND NO VERB REALISES
+            // ONE ISSUE** (cc's meaning, ST0096 WP-01). Closing an issue
+            // unrealises it, and an open one is unrealised only by a choice:
+            // a 3.4.0 manifest that left it out, folded by the upgrade, or a
+            // dehydrate. Either way the one remedy is the delete; reopening
+            // is a status change, and `organize --default --force` resets
+            // every record's choice, so neither is named for one file.
+            //
+            // The status is the record's own, read where the owner was found;
+            // an issue the canon does not hold has no status to name, and the
+            // sentence says only what is true of every unrealised issue.
+            crate::canon_format::CanonFormat::V4 => {
+              let why = match canon
+                .issues
+                .iter()
+                .find(|i| i.number == *number)
+                .map(|i| i.status)
+              {
+                Some(crate::model::IssueStatus::Closed) => {
+                  "is closed, so its record does not realise it"
+                }
+                Some(crate::model::IssueStatus::Open) => {
+                  "is open, but its record does not realise it"
+                }
+                None => "is not realised by any record",
+              };
+              format!(
+                "issue {} {why}, and no sync rewrites this file; nothing here can tell a stale render from a hand edit. If nobody edited it, delete it: the store keeps the issue in full",
+                number.shown()
+              )
+            }
+          },
           _ => "`intent sync --to-disk` regenerates it from the store".to_string(),
         };
         findings.push(Finding::new(

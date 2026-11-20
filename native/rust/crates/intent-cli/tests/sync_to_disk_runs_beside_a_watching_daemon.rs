@@ -33,7 +33,7 @@
 
 use std::path::Path;
 
-use crate::common::{ATTEMPTS, PAUSE, RealDaemon, short_dir};
+use crate::common::{ATTEMPTS, PAUSE, RealDaemon};
 use intentsvcs::wire::{self, Op, Request, Response};
 
 /// Tries for the watcher's FIRST event on a fresh project, which can wait on
@@ -42,16 +42,7 @@ const ARM_ATTEMPTS: u32 = ATTEMPTS * 12;
 
 /// A project carrying one thread and one issue, and the issue's id.
 fn project() -> (std::path::PathBuf, String) {
-  let root = short_dir("todisk-proj");
-  intentsvcs::init::init(&root, "ToDisk", "test", env!("CARGO_PKG_VERSION"))
-    .expect("the shipped initialiser creates a project");
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
+  let (root, mut facade) = crate::common::initialised("todisk-proj", "ToDisk");
   facade
     .st_new("Landed beside a watcher")
     .expect("mint one thread");
@@ -134,8 +125,9 @@ fn write_sentinel(root: &Path, id: &str) {
   let staged = root.join("intent/.cache").join(format!("{id}.json"));
   std::fs::write(
     &staged,
-    format!(
-      "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"Written by hand\",\n  \"status\": \"wip\",\n  \"created\": \"2026-09-21\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
+    crate::common::thread_canon(
+      id,
+      serde_json::json!({ "title": "Written by hand", "status": "wip", "created": "2026-09-21" }),
     ),
   )
   .expect("stage the sentinel thread");

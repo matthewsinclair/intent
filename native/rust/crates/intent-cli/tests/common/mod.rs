@@ -365,6 +365,46 @@ pub fn seed_findable_text(root: &Path, findable: &str) {
     .expect("write the file a search has to find");
 }
 
+/// A facade on the project at `root`, as a test opens one: the shipped
+/// project reader and the test context (ST0095 WP-10, T5). intentd's
+/// `tests/common::facade_on` mirrors it, because `testkit` takes no
+/// dependencies and so cannot hold one copy for both crates.
+pub fn facade_on(root: &Path) -> intentsvcs::facade::Facade {
+  let opened = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext::for_tests(
+    "test".to_string(),
+    opened.config().project_id.clone().unwrap_or_default(),
+    env!("CARGO_PKG_VERSION").to_string(),
+  );
+  intentsvcs::facade::Facade::open(opened, ctx).expect("a facade on the project")
+}
+
+/// A project the shipped initialiser makes at a fresh short path named for
+/// `tag`, and a facade on it: the start of every test that asks a daemon about
+/// a record it minted (ST0095 WP-10, T5).
+pub fn initialised(tag: &str, name: &str) -> (PathBuf, intentsvcs::facade::Facade) {
+  let root = short_dir(tag);
+  intentsvcs::init::init(&root, name, "test", env!("CARGO_PKG_VERSION"))
+    .expect("the shipped initialiser creates a project");
+  let facade = facade_on(&root);
+  (root, facade)
+}
+
+/// Write a v2 steel thread the way v2.19 writes one: the one copy the
+/// upgrade and ingest tests share (ST0095 WP-10, T3). intentsvcs writes v2
+/// views inline in its own tests; folding them into `testkit` is a later step.
+pub fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
+  let st = dir.join("intent/st").join(id);
+  std::fs::create_dir_all(&st).expect("mkdir st");
+  std::fs::write(
+    st.join("info.md"),
+    format!(
+      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
+    ),
+  )
+  .expect("write info.md");
+}
+
 pub fn short_dir(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the
@@ -1262,6 +1302,37 @@ pub fn created(out: &str) -> String {
   id.to_string()
 }
 
+/// **THE ONE HAND-WRITTEN THREAD CANON** (ST0095 WP-10, T1): a 3.4.0-format
+/// record, `fields` laid over the minimum every reader takes. The schema is the
+/// canon's own constant and the id is `id`, so no test spells either, and each
+/// caller sets only what its subject needs.
+pub fn thread_canon(id: &str, fields: serde_json::Value) -> String {
+  let serde_json::Value::Object(mut canon) = serde_json::json!({
+    "schema": intentsvcs::canon_format::THREAD_SCHEMA_V3,
+    "id": id,
+    "title": "A thread",
+    "status": "not-started",
+    "created": "2026-08-15",
+    "objective": "",
+    "context": "",
+  }) else {
+    unreachable!("a json! object literal is an object");
+  };
+  let serde_json::Value::Object(over) = fields else {
+    panic!("thread_canon overlays an object of fields, got {fields}");
+  };
+  canon.extend(over);
+  format!("{:#}\n", serde_json::Value::Object(canon))
+}
+
+/// Write [`thread_canon`] where the project keeps thread `id`'s canon.
+pub fn write_thread_canon(root: &std::path::Path, id: &str, fields: serde_json::Value) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let path = project.thread_json(id);
+  std::fs::create_dir_all(path.parent().expect("the thread canon directory")).expect("mkdir");
+  std::fs::write(&path, thread_canon(id, fields)).expect("write the thread's canon");
+}
+
 /// Seed an ORDINAL thread, with `packages` (number, title) under it not
 /// started, as committed canon, for a test whose subject is the ordinal family.
 /// A mint makes git-style ids now (ST0095 WP-06), so an ordinal is what a
@@ -1274,26 +1345,13 @@ pub fn seed_ordinal_thread(
   title: &str,
   packages: &[(u32, &str)],
 ) {
-  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
-  let path = project.thread_json(id);
-  std::fs::create_dir_all(path.parent().expect("the thread canon directory")).expect("mkdir");
   let wps: Vec<serde_json::Value> = packages
     .iter()
     .map(|(seq, title)| {
       serde_json::json!({ "seq": seq, "title": title, "scope": "S", "status": "not-started" })
     })
     .collect();
-  let canon = serde_json::json!({
-    "schema": intentsvcs::canon_format::THREAD_SCHEMA_V3,
-    "id": id,
-    "title": title,
-    "status": "not-started",
-    "created": "2026-08-15",
-    "objective": "",
-    "context": "",
-    "wps": wps,
-  });
-  std::fs::write(&path, format!("{canon:#}\n")).expect("write the thread's canon");
+  write_thread_canon(root, id, serde_json::json!({ "title": title, "wps": wps }));
 }
 
 /// Seed the creation event a record's mint wrote, as the committed event file
@@ -1338,6 +1396,49 @@ pub fn seed_ordinal_issue(root: &std::path::Path, number: u32, title: &str) {
     "created": "2026-08-15",
   });
   std::fs::write(&path, format!("{canon:#}\n")).expect("write the issue's canon");
+}
+
+/// The canon at `root`, read by the library's own reader, which writes
+/// nothing: what a record says, for a test that drove the binary.
+pub fn canon(root: &Path) -> intentsvcs::ingest::Canon {
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  intentsvcs::ingest::read(&project).expect("the canon reads")
+}
+
+/// Whether thread `id`'s record says it is realised, in an upgraded project,
+/// which keeps realisation on its records (ST0096 WP-01). A 3.4.0 project
+/// reads its manifest instead, and its records always answer false here.
+pub fn realised_thread(root: &Path, id: &str) -> bool {
+  canon(root)
+    .threads
+    .iter()
+    .find(|t| t.id.stored() == id)
+    .unwrap_or_else(|| panic!("thread {id} has a record"))
+    .realised
+}
+
+/// The ids of the threads whose records say they are realised, sorted as
+/// stored strings, in an upgraded project (see [`realised_thread`]).
+pub fn realised_threads(root: &Path) -> Vec<String> {
+  let mut ids: Vec<String> = canon(root)
+    .threads
+    .iter()
+    .filter(|t| t.realised)
+    .map(|t| t.id.stored())
+    .collect();
+  ids.sort();
+  ids
+}
+
+/// Whether issue `id`'s record says it is realised, in an upgraded project
+/// (see [`realised_thread`]).
+pub fn realised_issue(root: &Path, id: &str) -> bool {
+  canon(root)
+    .issues
+    .iter()
+    .find(|i| i.number.stored() == id)
+    .unwrap_or_else(|| panic!("issue {id} has a record"))
+    .realised
 }
 
 /// The form a table, a view or a message prints of a minted id, from the stored

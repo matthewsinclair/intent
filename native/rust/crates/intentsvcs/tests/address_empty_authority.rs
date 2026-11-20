@@ -95,7 +95,6 @@ fn the_portable_form_is_the_shortest_one() {
 fn every_facade_door_refuses_another_projects_address_by_name() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
   let mut facade = fx.facade();
   let before = tree(fx.root());
 

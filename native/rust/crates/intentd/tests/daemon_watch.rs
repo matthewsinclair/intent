@@ -60,25 +60,6 @@ fn thread_ids(daemon: &RunningDaemon, root: &Path) -> Vec<String> {
   threads.into_iter().map(|t| t.id).collect()
 }
 
-/// Write a canon thread file straight onto disk, as an external editor would.
-///
-/// **DELIBERATELY NOT THROUGH THE FACADE.** A test that minted the thread
-/// through `intentsvcs` would be driving the store and watching the store
-/// change -- true, and nothing to do with watching. The criterion says
-/// *external edits*, and the only faithful fixture for that is bytes appearing
-/// in the tree with the daemon uninvolved.
-fn write_thread(root: &Path, id: &str) {
-  let path = root.join("intent/.canon/st").join(format!("{id}.json"));
-  std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-  std::fs::write(
-    &path,
-    format!(
-      "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"Written by hand\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-30\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
-    ),
-  )
-  .expect("write the thread file");
-}
-
 /// Block until `condition` holds, or give up saying so.
 ///
 /// A retry count rather than a deadline: what this requires is that it
@@ -153,7 +134,7 @@ const SENTINEL: &str = "ST0900";
 /// FIRST event of a new watch waits behind the host's filesystem backlog, so
 /// after this every [`ATTEMPTS`] bound below is a claim about the watcher.
 fn arm(daemon: &RunningDaemon, root: &Path) -> u64 {
-  write_thread(root, SENTINEL);
+  crate::common::write_thread(root, SENTINEL);
   for _ in 0..ARM_ATTEMPTS {
     if thread_ids(daemon, root).iter().any(|id| id == SENTINEL) {
       return settle(daemon, root);
@@ -180,7 +161,7 @@ fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
   );
   arm(&daemon, &root);
 
-  write_thread(&root, "ST0042");
+  crate::common::write_thread(&root, "ST0042");
 
   until("the daemon ingested the hand-written thread", || {
     thread_ids(&daemon, &root).contains(&"ST0042".to_string())
@@ -256,7 +237,7 @@ fn one_external_edit_costs_a_bounded_number_of_ingests() {
 
   let _ = thread_ids(&daemon, &root);
   let armed = arm(&daemon, &root);
-  write_thread(&root, "ST0043");
+  crate::common::write_thread(&root, "ST0043");
   until("the daemon ingested", || ingested(&daemon, &root) > armed);
 
   // `settle` panics if the count never stops climbing, which IS the loop.
@@ -289,7 +270,7 @@ fn a_change_to_a_path_outside_the_sync_scope_drives_no_ingest() {
 
   let _ = thread_ids(&daemon, &root);
   arm(&daemon, &root);
-  write_thread(&root, "ST0044");
+  crate::common::write_thread(&root, "ST0044");
   until("the daemon ingested once", || ingested(&daemon, &root) >= 1);
   let resting = settle(&daemon, &root);
 
@@ -333,7 +314,7 @@ fn a_change_to_a_path_outside_the_sync_scope_drives_no_ingest() {
   // Without it, every assertion above holds for a watcher that died, a
   // debouncer that never fires, or a project that stopped being watched when
   // `git init` appeared -- all of which produce a count that does not move.
-  write_thread(&root, "ST0045");
+  crate::common::write_thread(&root, "ST0045");
   until("an in-scope edit still drives an ingest", || {
     ingested(&daemon, &root) > resting
   });
@@ -357,7 +338,7 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   let before = arm(&daemon, &root);
 
   for n in 0..WRITES {
-    write_thread(&root, &format!("ST01{n:02}"));
+    crate::common::write_thread(&root, &format!("ST01{n:02}"));
   }
 
   until("the burst was ingested", || {
@@ -386,17 +367,6 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   }
 
   let _ = std::fs::remove_dir_all(&root);
-}
-
-/// A facade on `root`, opened fresh, the way a command-line verb opens one.
-fn facade(root: &Path) -> intentsvcs::facade::Facade {
-  let project = intentsvcs::project::Project::open(root).expect("the project opens");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    project.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens")
 }
 
 /// Run git in `dir`, refusing with what git said.
@@ -476,7 +446,7 @@ fn a_pulled_render_of_a_recorded_view_is_ingested_and_then_left_alone() {
 
   let address =
     intentsvcs::address::parse(&format!("intent:///threads/{id}")).expect("an addressable thread");
-  facade(&ours)
+  crate::common::facade_on(&ours)
     .hydrate(&address)
     .expect("the thread's views realise");
   let rel = format!("intent/st/{id}/info.md");
@@ -491,7 +461,7 @@ fn a_pulled_render_of_a_recorded_view_is_ingested_and_then_left_alone() {
   let theirs = crate::common::short_dir("intentd-peer");
   let ours_path = ours.to_str().expect("a utf-8 path");
   git(&theirs, &["clone", "-q", ours_path, "."]);
-  facade(&theirs)
+  crate::common::facade_on(&theirs)
     .set(&address, "title", RETITLED.into())
     .expect("the peer's write");
   git(&theirs, &["add", "-A"]);

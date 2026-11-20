@@ -125,19 +125,6 @@ fn seed_thread(root: &std::path::Path, n: u32, title: &str) -> String {
   st
 }
 
-/// Whether issue `issue`'s canon record declares it realised, in a project
-/// that keeps the declaration on its records.
-fn record_declares(root: &std::path::Path, issue: &str) -> bool {
-  let id = intentsvcs::id::IssueId::parse(issue).expect("an issue id");
-  let canon = intentsvcs::project::Project::open(root)
-    .expect("the project")
-    .issue_json(id);
-  let record: serde_json::Value =
-    serde_json::from_str(&std::fs::read_to_string(&canon).expect("the issue's canon"))
-      .expect("the issue's canon parses");
-  record["realised"] == serde_json::Value::Bool(true)
-}
-
 /// The realised view of the issue whose id is `issue`.
 fn view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
   root.join(format!("intent/issues/{issue}.md"))
@@ -186,7 +173,7 @@ fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
   // criterion is about: DECLARED, and absent.
   std::fs::remove_file(view(root, &issue)).expect("start from declared-and-absent");
   assert!(
-    record_declares(root, &issue),
+    crate::common::realised_issue(root, &issue),
     "the fixture must leave the issue declared on its record"
   );
 
@@ -293,7 +280,7 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
   assert!(out.status.success(), "issues add: {}", said(&out));
   let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
   assert!(
-    record_declares(root, &issue),
+    crate::common::realised_issue(root, &issue),
     "`issues add` declares it on its record"
   );
 
@@ -303,7 +290,7 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
       .success()
   );
   assert!(
-    !record_declares(root, &issue),
+    !crate::common::realised_issue(root, &issue),
     "closing takes the declaration off its record"
   );
 
@@ -322,7 +309,7 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
       .success()
   );
   assert!(
-    record_declares(root, &issue),
+    crate::common::realised_issue(root, &issue),
     "reopening re-declares it on its record"
   );
 }

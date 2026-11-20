@@ -35,6 +35,16 @@ fn fixture() -> Fixture {
 
 /// `fx` holding the thread and the issue the forms below name, and a manifest.
 fn seeded(fx: Fixture) -> Fixture {
+  let fx = records(fx);
+  // 3.4.0's format reads realisation from the manifest; an upgraded project
+  // reads it from each record, so only an ordinal fixture needs it.
+  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx
+}
+
+/// The thread and the issue every arm here names, with no manifest: what an
+/// upgraded project holds, whose records say they are realised (ST0096 WP-01).
+fn records(fx: Fixture) -> Fixture {
   fx.write_thread(&sample_thread("ST0001"));
   // **THE ISSUE THE `Entity::Issue` FORM BELOW NAMES (ST0069 WP-01).** Before
   // that package an issue had no realised form and `hydrate` refused it on the
@@ -43,7 +53,6 @@ fn seeded(fx: Fixture) -> Fixture {
   // `NoSuchIssue` -- a refusal about the ESTATE rather than about the form,
   // which is not what this test is measuring.
   fx.write_issue(&sample_issue(21));
-  fx.write_file("intent/.intentfiles", MANIFEST);
   fx
 }
 
@@ -103,7 +112,7 @@ fn an_absent_artefact_is_realised_and_every_returned_path_exists() {
 fn failure_a_thread_still_in_a_v2_bucket_is_not_realised_beside_it() {
   // Upgraded, because the unrelated write below is a mint, which 3.4.0's
   // format refuses (ST0096 WP-01).
-  let fx = seeded(Fixture::new());
+  let fx = records(Fixture::new());
   fx.write_file(
     "intent/st/NOT-STARTED/ST0001/tasks.md",
     "# Tasks\n\nhand-authored, and the store never carried it\n",

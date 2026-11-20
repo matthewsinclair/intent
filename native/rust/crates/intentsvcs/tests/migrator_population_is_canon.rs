@@ -128,14 +128,7 @@ fn index_ids(project: &Project) -> BTreeSet<String> {
     .collect()
 }
 
-/// The thread ids the STORE holds.
-fn store_ids(project: &Project) -> BTreeSet<String> {
-  let store = intentsvcs::store::Store::open(&project.db_path()).expect("store opens");
-  let (threads, _issues) = store.load_canon().expect("store loads");
-  threads.into_iter().map(|t| t.id.stored()).collect()
-}
-
-/// The issue numbers the STORE holds -- `store_ids`' counterpart over the other
+/// The issue numbers the STORE holds -- `common::store_thread_ids`' counterpart over the other
 /// population, and there is no `index_ids` twin because **issues have no index
 /// view**. That absence is why intent#0070 ran silent: the write set for a
 /// store that has lost its issues is byte-identical to one that has not, so no
@@ -174,7 +167,9 @@ fn upgrade_covers_every_thread_canon_holds_in_both_the_index_and_the_store() {
     "the committed index and canon name different populations after `upgrade`"
   );
   assert_eq!(
-    store_ids(&project),
+    crate::common::store_thread_ids(&project)
+      .into_iter()
+      .collect::<BTreeSet<String>>(),
     canon_ids,
     "the STORE and canon hold different populations after `upgrade` -- and the store is \
      gitignored, so nothing in a diff would have shown this"

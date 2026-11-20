@@ -53,31 +53,22 @@ fn project() -> tempfile::TempDir {
 /// somewhere downstream of triage and a fixture at the entry state would make
 /// half these cases refusals instead of movements.
 fn seed(root: &Path) {
-  let dir = root.join("intent/.canon/st");
-  std::fs::create_dir_all(&dir).expect("mkdir");
-  std::fs::write(
-    dir.join("ST0001.json"),
-    r#"{
-  "schema": "intent/thread@3.0",
-  "id": "ST0001",
-  "slug": "a-thread",
-  "title": "A thread",
-  "status": "wip",
-  "created": "2026-08-15",
-  "objective": "",
-  "context": "",
-  "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
-  "criteria": [
-    { "id": "AC-01.1", "text": "It works", "kind": "non-test",
-      "state": { "is": "unsatisfied" } }
-  ],
-  "tests": [
-    { "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "to-write" }
-  ]
-}
-"#,
-  )
-  .expect("write canon");
+  crate::common::write_thread_canon(
+    root,
+    "ST0001",
+    serde_json::json!({
+      "slug": "a-thread",
+      "status": "wip",
+      "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
+      "criteria": [
+        { "id": "AC-01.1", "text": "It works", "kind": "non-test",
+          "state": { "is": "unsatisfied" } }
+      ],
+      "tests": [
+        { "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "to-write" }
+      ]
+    }),
+  );
   std::fs::create_dir_all(root.join("intent/.canon/issues")).expect("mkdir issues");
   std::fs::write(
     root.join("intent/.canon/issues/0001.json"),

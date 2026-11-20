@@ -69,7 +69,7 @@ impl Team {
     team.intent_ok(&bob, &["bootstrap"]);
     let listed = team.intent(&bob, &["st", "list", "--status", "all"]);
     assert!(
-      listed.said.contains(&onboarding),
+      listed.said.contains(&crate::common::shown(&onboarding)),
       "Bob's store warmed from the clone's canon: {}",
       listed.said
     );

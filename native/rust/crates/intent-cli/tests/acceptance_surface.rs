@@ -79,30 +79,13 @@ fn seed_completed(root: &Path, id: &str, criteria: &str, tests: &str) {
 /// `status` is the thread's status field, with its close date when it has one,
 /// and `wp` the status of its one package.
 fn write_canon(root: &Path, id: &str, status: &str, wp: &str, criteria: &str, tests: &str) {
-  // Canon is flat under `intent/.canon/st/` after WP-01; the id is the file
-  // name, not a directory. `intent/st/` keeps the VIEWS and nothing else.
-  let dir = root.join("intent/.canon/st");
-  std::fs::create_dir_all(&dir).expect("mkdir");
-  std::fs::write(
-    dir.join(format!("{id}.json")),
-    format!(
-      r#"{{
-  "schema": "intent/thread@3.0",
-  "id": "{id}",
-  "slug": "a-thread",
-  "title": "A thread",
-  {status},
-  "created": "2026-08-17",
-  "objective": "",
-  "context": "",
+  let fields: serde_json::Value = serde_json::from_str(&format!(
+    r#"{{ "slug": "a-thread", {status}, "created": "2026-08-17",
   "wps": [ {{ "seq": 1, "title": "A package", "scope": "S", "status": "{wp}" }} ],
-  "criteria": [{criteria}],
-  "tests": [{tests}]
-}}
-"#
-    ),
-  )
-  .expect("write canon");
+  "criteria": [{criteria}], "tests": [{tests}] }}"#
+  ))
+  .expect("the thread's fields are JSON");
+  crate::common::write_thread_canon(root, id, fields);
 }
 
 fn criterion(id: &str) -> String {

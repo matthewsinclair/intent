@@ -434,7 +434,9 @@ fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
 fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
   use intentsvcs::intentfiles::{Realised, Sigil, declared_key};
 
-  let fx = Fixture::new();
+  // 3.4.0's format, where an issue is declared by its manifest key; an
+  // upgraded project's wording is `a_skewed_unrealised_view_names_what_realises_it_in_each_format`'s.
+  let fx = Fixture::ordinal();
   let project = fx.project();
   let mut canon = canon();
   canon.issues = vec![crate::common::sample_issue(21)];
@@ -461,5 +463,83 @@ fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
   assert!(
     !detail.contains("`intent sync --to-disk` regenerates it"),
     "and never the sync that skips an undeclared view: {detail}"
+  );
+}
+
+/// **EACH FORMAT NAMES WHAT REALISES A RECORD IN ITS OWN WORDS** (ST0096
+/// WP-01; cc's wording, ST0095 WP-10). A hand-edited view of a thread and of
+/// two issues, one closed and one open, with nothing realised: 3.4.0's format
+/// names the manifest by its path, and an upgraded project names the record,
+/// saying of an issue whether it is closed or open. Each arm reads its own
+/// distinguishing phrase, so a swapped branch fails here.
+#[test]
+fn a_skewed_unrealised_view_names_what_realises_it_in_each_format() {
+  use intentsvcs::intentfiles::Realised;
+  use intentsvcs::model::IssueStatus;
+
+  let mut open = crate::common::sample_issue(22);
+  open.status = IssueStatus::Open;
+  open.closed = None;
+  let closed = crate::common::sample_issue(21);
+  let mut canon = canon();
+  canon.issues = vec![closed.clone(), open.clone()];
+
+  // The three views, as the project lays them out: the thread's, the closed
+  // issue's and the open issue's.
+  let views_of = |project: &intentsvcs::project::Project| {
+    [
+      project.info_view("ST0056"),
+      project.issue_view(closed.number),
+      project.issue_view(open.number),
+    ]
+  };
+  let skewed = |fx: &Fixture| -> Vec<intentsvcs::finding::Finding> {
+    let project = fx.project();
+    views::write_all(&project, &canon, &ctx()).expect("write");
+    for path in views_of(&project) {
+      let text = std::fs::read_to_string(&path).expect("a rendered view");
+      std::fs::write(&path, format!("{text}\nsomeone typed this by hand\n")).expect("edit");
+    }
+    let nothing = Realised::Declared(std::collections::BTreeSet::new());
+    views::skew(&project, &canon, &ctx(), &nothing)
+  };
+  let said = |findings: &[intentsvcs::finding::Finding], rel: &str| -> String {
+    findings
+      .iter()
+      .find(|f| f.file == rel && f.class == FindingClass::ViewSkew)
+      .map(|f| f.detail.clone())
+      .unwrap_or_else(|| panic!("a skew finding for {rel}: {findings:?}"))
+  };
+  let rels_of = |fx: &Fixture| {
+    let project = fx.project();
+    views_of(&project).map(|path| project.relative(&path))
+  };
+
+  let ordinal = Fixture::ordinal();
+  let findings = skewed(&ordinal);
+  let [thread_rel, closed_rel, _] = rels_of(&ordinal);
+  assert!(
+    said(&findings, &thread_rel).contains("pins ST0056 in `intent/.intentfiles`"),
+    "3.4.0's format names the manifest by its path: {findings:?}"
+  );
+  assert!(
+    said(&findings, &closed_rel).contains("is not declared in `intent/.intentfiles`"),
+    "and so does its issue sentence: {findings:?}"
+  );
+
+  let upgraded = Fixture::new();
+  let findings = skewed(&upgraded);
+  let [thread_rel, closed_rel, open_rel] = rels_of(&upgraded);
+  assert!(
+    said(&findings, &thread_rel).contains("sets ST0056 realised on its canon record"),
+    "an upgraded project names the record: {findings:?}"
+  );
+  assert!(
+    said(&findings, &closed_rel).contains("is closed, so its record does not realise it"),
+    "a closed issue says it is closed: {findings:?}"
+  );
+  assert!(
+    said(&findings, &open_rel).contains("is open, but its record does not realise it"),
+    "an open issue is never called closed: {findings:?}"
   );
 }

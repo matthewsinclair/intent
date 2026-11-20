@@ -102,8 +102,9 @@ impl Fixture {
   fn thread(&self, id: &str) {
     self.write(
       &format!("intent/.canon/st/{id}.json"),
-      format!(
-        "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"A thread\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-14\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
+      crate::common::thread_canon(
+        id,
+        serde_json::json!({ "status": "wip", "created": "2026-08-14" }),
       )
       .as_bytes(),
     );

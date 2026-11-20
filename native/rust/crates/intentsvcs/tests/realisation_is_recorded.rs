@@ -255,18 +255,14 @@ fn consecutive_syncs_over_an_unchanged_estate_converge() {
 /// this work package exists to end.
 #[test]
 fn syncing_to_disk_records_the_files_it_actually_wrote() {
-  // **DECLARED, or the assertion below is checking the wrong thing.** Under the
-  // disk model an undeclared thread has no realised form, so a sync over the
-  // default fixture correctly writes `steel_threads.md`, `todo.md` and the log
-  // and nothing of ST0001 at all. The first version of this arm asserted the
-  // thread was named and failed -- **on the code being right**, which is the
-  // only kind of red worth having early.
+  // **REALISED, or the assertion below is checking the wrong thing.** An
+  // unrealised thread has no realised form, so a sync would correctly write
+  // `steel_threads.md`, `todo.md` and the log and nothing of ST0001 at all. The
+  // first version of this arm asserted the thread was named and failed -- **on
+  // the code being right**, which is the only kind of red worth having early.
+  // `sample_thread`'s record says it is realised (ST0096 WP-01).
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file(
-    "intent/.intentfiles",
-    "# .intentfiles\n\nSTEELTHREAD:ST0001\n",
-  );
   let mut facade = fx.facade_on_disk();
 
   facade

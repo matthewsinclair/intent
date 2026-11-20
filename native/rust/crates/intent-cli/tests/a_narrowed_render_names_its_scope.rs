@@ -330,7 +330,7 @@ fn tbc_still_resolves_to_not_started_and_never_to_triage() {
   );
   assert_eq!(code, 0, "{triage}");
   assert!(
-    triage.contains(fresh.as_str()),
+    triage.contains(&crate::common::shown(&fresh)),
     "the fixture really is at Triage, so the absence asserted above is a \
      decision the filter made rather than a thread that was never there: {triage}"
   );

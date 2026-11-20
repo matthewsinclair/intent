@@ -139,17 +139,7 @@ const MINTED: &str = "a thread only the local store knows about";
 /// An Intent project at a fresh short path, built by the shipped initialiser,
 /// carrying one thread.
 fn project() -> PathBuf {
-  let root = short_dir("optin-proj");
-  intentsvcs::init::init(&root, "OptIn", "test", env!("CARGO_PKG_VERSION"))
-    .expect("the shipped initialiser creates a project");
-
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
+  let (root, mut facade) = crate::common::initialised("optin-proj", "OptIn");
   let id = facade.st_new(MINTED).expect("mint one thread");
   // **STARTED, BECAUSE A FRESH THREAD IS NOT WHAT `st list` SHOWS BY DEFAULT.**
   // The first build of this fixture minted a thread and asserted it appeared;

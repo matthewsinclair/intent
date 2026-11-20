@@ -27,16 +27,7 @@ impl Drop for Fixture {
 
 /// An Intent project at a fresh short path, carrying one findable thread.
 fn project() -> (Fixture, String) {
-  let root = short_dir("hatch-proj");
-  intentsvcs::init::init(&root, "Hatch", "test", env!("CARGO_PKG_VERSION"))
-    .expect("the shipped initialiser creates a project");
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
+  let (root, mut facade) = crate::common::initialised("hatch-proj", "Hatch");
   let id = facade.st_new(MINTED).expect("mint one thread");
   (Fixture(root), id)
 }

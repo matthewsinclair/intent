@@ -308,26 +308,17 @@ fn project() -> tempfile::TempDir {
     "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Values\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
   )
   .expect("write config");
-  let st = dir.path().join("intent/.canon/st");
-  std::fs::create_dir_all(&st).expect("mkdir");
-  std::fs::write(
-    st.join("ST0001.json"),
-    r#"{
-  "schema": "intent/thread@3.0",
-  "id": "ST0001",
-  "slug": "a-thread",
-  "title": "A thread",
-  "status": "wip",
-  "created": "2026-08-15",
-  "objective": "",
-  "context": "",
-  "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
-  "criteria": [],
-  "tests": []
-}
-"#,
-  )
-  .expect("write canon");
+  crate::common::write_thread_canon(
+    dir.path(),
+    "ST0001",
+    serde_json::json!({
+      "slug": "a-thread",
+      "status": "wip",
+      "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
+      "criteria": [],
+      "tests": []
+    }),
+  );
   dir
 }
 

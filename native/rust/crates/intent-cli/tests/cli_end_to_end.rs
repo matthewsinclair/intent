@@ -51,28 +51,19 @@ fn project() -> tempfile::TempDir {
 /// under any other number the WP scope would match nothing and block for
 /// arithmetic reasons rather than contractual ones.
 fn seed_closeable_thread(root: &Path) {
-  let dir = root.join("intent/.canon/st");
-  std::fs::create_dir_all(&dir).expect("mkdir");
-  std::fs::write(
-    dir.join("ST0001.json"),
-    r#"{
-  "schema": "intent/thread@3.0",
-  "id": "ST0001",
-  "slug": "a-thread",
-  "title": "A thread",
-  "status": "wip",
-  "created": "2026-08-15",
-  "objective": "",
-  "context": "",
-  "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
-  "criteria": [
-    { "id": "AC-01.1", "text": "It works", "kind": "non-test",
-      "state": { "is": "satisfied", "evidence": "verified by hand" } }
-  ]
-}
-"#,
-  )
-  .expect("write canon");
+  crate::common::write_thread_canon(
+    root,
+    "ST0001",
+    serde_json::json!({
+      "slug": "a-thread",
+      "status": "wip",
+      "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
+      "criteria": [
+        { "id": "AC-01.1", "text": "It works", "kind": "non-test",
+          "state": { "is": "satisfied", "evidence": "verified by hand" } }
+      ]
+    }),
+  );
 }
 
 /// **`HOME` IS FIXTURED BECAUSE THIS FILE NOW CHOOSES VERBS FROM THE TABLE.**
@@ -380,7 +371,7 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   // **`Triage` rather than `Not Started` since the machines were ratified**:
   // `st new` enters at triage and `st triage` accepts it into the backlog.
   let listed = ok(root, &["st", "list", "--status", "all"]);
-  assert!(listed.contains(st.as_str()), "{listed}");
+  assert!(listed.contains(&crate::common::shown(&st)), "{listed}");
   assert!(listed.contains("Triage"), "{listed}");
   // **THIS ARM USED TO REQUIRE `header + separator only` AND THAT IS THE
   // DEFECT hv FILED AS 0121.** The bare form narrows to WIP, the fresh thread
@@ -1175,6 +1166,62 @@ fn wp_list_shares_the_table_and_v2s_empty_case() {
   );
 }
 
+/// **A TABLE SHOWS A HASHED ID BY ITS SHORT FORM, WHOLE, BESIDE AN ORDINAL**
+/// (ST0095 AC-10.3). The id column fits its widest id rather than a fixed
+/// ordinal width, so a short form wider than `ST0001` is never clipped, and the
+/// ordinal beside it keeps its own spelling. Each row's first cell is compared
+/// whole, so a clipped id fails here rather than passing as a prefix.
+#[test]
+fn st_list_and_issues_list_show_a_hashed_id_whole_beside_an_ordinal() {
+  let dir = project();
+  let root = dir.path();
+  let ordinal = 1;
+  let ordinal_thread = intentsvcs::id::ThreadId::from_ordinal(ordinal).expect("an ordinal");
+  crate::common::seed_ordinal_thread(root, &ordinal_thread.stored(), "an ordinal thread", &[]);
+  let ordinal_issue = intentsvcs::id::IssueId::from_ordinal(ordinal).expect("an ordinal");
+  crate::common::seed_ordinal_issue(root, ordinal, "an ordinal issue");
+  let st = crate::common::created(&ok(root, &["st", "new", "a hashed thread"]));
+  let issue = crate::common::created(&ok(root, &["issues", "add", "a hashed issue"]));
+
+  let first_cell = |listed: &str, title: &str| -> String {
+    listed
+      .lines()
+      .find(|l| l.contains(title))
+      .and_then(|l| l.split('|').next())
+      .map(|cell| cell.trim().to_string())
+      .unwrap_or_else(|| panic!("a row for `{title}`:\n{listed}"))
+  };
+
+  assert!(
+    crate::common::shown(&st).len() > ordinal_thread.shown().len(),
+    "the short form must be wider than the ordinal, or nothing here could be clipped"
+  );
+
+  let threads = ok(root, &["st", "list", "--status", "all"]);
+  assert_eq!(
+    first_cell(&threads, "a hashed thread"),
+    crate::common::shown(&st),
+    "the hashed thread's short form, whole:\n{threads}"
+  );
+  assert_eq!(
+    first_cell(&threads, "an ordinal thread"),
+    ordinal_thread.shown(),
+    "the ordinal beside it keeps its spelling:\n{threads}"
+  );
+
+  let issues = ok(root, &["issues", "list", "--kind", "all"]);
+  assert_eq!(
+    first_cell(&issues, "a hashed issue"),
+    crate::common::shown(&issue),
+    "the hashed issue's short form, whole:\n{issues}"
+  );
+  assert_eq!(
+    first_cell(&issues, "an ordinal issue"),
+    ordinal_issue.shown(),
+    "the ordinal issue keeps its spelling:\n{issues}"
+  );
+}
+
 /// `wp new` writes v2's default scope.
 ///
 /// v2 takes no scope flag, so every work package it creates carries the
@@ -1589,31 +1636,17 @@ fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
   let root = dir.path();
   // Seeded rather than minted: the short spellings below (`1`, `s2`, `2`)
   // name ids known in advance, which only seeded threads have.
-  let canon_dir = root.join("intent/.canon/st");
-  std::fs::create_dir_all(&canon_dir).expect("mkdir");
   for (id, slug, title) in [
     ("ST0001", "the-thread-that-links", "the thread that links"),
     ("ST0002", "the-thread-it-links-to", "the thread it links to"),
   ] {
-    std::fs::write(
-      canon_dir.join(format!("{id}.json")),
-      format!(
-        r#"{{
-  "schema": "intent/thread@3.0",
-  "id": "{id}",
-  "slug": "{slug}",
-  "title": "{title}",
-  "status": "wip",
-  "created": "2026-08-15",
-  "objective": "",
-  "context": "",
-  "wps": [],
-  "criteria": []
-}}
-"#
-      ),
-    )
-    .expect("write canon");
+    crate::common::write_thread_canon(
+      root,
+      id,
+      serde_json::json!({
+        "slug": slug, "title": title, "status": "wip", "wps": [], "criteria": []
+      }),
+    );
   }
 
   let said = ok(root, &["st", "relate", "1", "s2", "--note", "builds on it"]);
@@ -1818,20 +1851,16 @@ fn outstanding_lists_what_bare_st_list_and_issues_list() {
     ids_where(|(kind, _, status)| kind == "ST" && status == "WIP"),
     st_list
   );
-  // The issues table prints an id's shown form; the comparison is of records.
-  let shown: Vec<String> = ids_where(|(kind, _, _)| kind == "Issue")
-    .iter()
-    .map(|id| crate::common::shown(id))
-    .collect();
-  assert_eq!(shown, issues);
+  // Both tables print an id's shown form (ST0095 AC-10.3).
+  assert_eq!(ids_where(|(kind, _, _)| kind == "Issue"), issues);
   assert_eq!(
     ids_where(|(kind, _, _)| kind == "WP"),
-    [minted.busy.as_str()],
+    [crate::common::shown(&minted.busy)],
     "the WIP package under the thread in triage, never the unstarted one under the WIP thread"
   );
   assert_eq!(
     ids_where(|(kind, _, status)| kind == "ST" && status == "Triage"),
-    [minted.idle.as_str()],
+    [crate::common::shown(&minted.idle)],
     "the thread `st list` hides comes in as its WIP package's parent, with its own status"
   );
 }
@@ -1925,7 +1954,8 @@ fn a_work_package_is_listed_directly_under_its_own_thread() {
     |kind: &str, id: &str, status: &str| (kind.to_string(), id.to_string(), status.to_string());
   // **EACH PACKAGE DIRECTLY UNDER ITS OWN THREAD, THE THREADS IN `st list`'s
   // ORDER**, which is the waist's and not the order they were minted in
-  // (ST0095 WP-06), so the expected rows are built in it.
+  // (ST0095 WP-06), so the expected rows are built in it. Both tables show
+  // each id by its short form (ST0095 AC-10.3), so the rows are built in it.
   let st_list_all: Vec<String> = first_two_cells(&ok(root, &["st", "list", "--status", "all"]))
     .into_iter()
     .map(|(id, _)| id)
@@ -1938,13 +1968,13 @@ fn a_work_package_is_listed_directly_under_its_own_thread() {
       (&second, "WIP", &second_wp),
     ]
     .into_iter()
-    .find(|(st, _, _)| *st == id)
+    .find(|(st, _, _)| crate::common::shown(st) == *id)
     .map(|(_, status, wp)| (status, wp))
     .expect("st list names only the three threads");
     expected.push(row("ST", id, status));
-    expected.push(row("WP", wp, "WIP"));
+    expected.push(row("WP", &crate::common::shown(wp), "WIP"));
   }
-  expected.push(row("Issue", issue.as_str(), "OPEN"));
+  expected.push(row("Issue", &crate::common::shown(&issue), "OPEN"));
   assert_eq!(kind_id_status(&table), expected);
   let threads_listed: Vec<String> = first_two_cells(&table)
     .into_iter()
@@ -1973,7 +2003,7 @@ fn a_work_package_is_listed_directly_under_its_own_thread() {
 fn outstanding_is_an_mcp_read_serving_the_same_rows() {
   let dir = project();
   let root = dir.path();
-  seed_outstanding(root);
+  let minted = seed_outstanding(root);
 
   let (out, frames) = crate::common::mcp_session(
     root,
@@ -1999,12 +2029,23 @@ fn outstanding_is_an_mcp_read_serving_the_same_rows() {
       .expect("the tool answers text-wrapped JSON"),
   )
   .expect("the rows are JSON");
-  let ids: Vec<&str> = body["rows"]
+  let stored: Vec<String> = body["rows"]
     .as_array()
     .expect("a rows array")
     .iter()
-    .map(|row| row["id"].as_str().unwrap_or_default())
+    .map(|row| row["id"].as_str().expect("a row's id").to_string())
     .collect();
+  // **THE ROWS CARRY EACH ID WHOLE** (ST0095 AC-10.3): an agent is handed the
+  // stored id, and only the table prints the shown form.
+  let mut carried = stored.clone();
+  carried.sort();
+  let mut minted_ids = [minted.open, minted.idle, minted.busy, minted.issue];
+  minted_ids.sort();
+  assert_eq!(
+    carried, minted_ids,
+    "the MCP rows carry each minted id whole"
+  );
+  let ids: Vec<String> = stored.iter().map(|id| crate::common::shown(id)).collect();
   let printed: Vec<String> = first_two_cells(&ok(root, &["outs"]))
     .into_iter()
     .map(|(_, id)| id)
@@ -2186,7 +2227,7 @@ fn enter_on_an_outstanding_row_opens_what_it_names_and_backspace_returns() {
   ] {
     let at = rows
       .iter()
-      .position(|row| row.name == name)
+      .position(|row| row.name == crate::common::shown(name))
       .unwrap_or_else(|| panic!("the view has no `{name}` row: {rows:?}"));
     let mut app = explorer();
     enter(&mut app, "/outs");

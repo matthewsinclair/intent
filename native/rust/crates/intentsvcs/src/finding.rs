@@ -780,7 +780,7 @@ impl FindingClass {
       Self::StaleRender => (
         6,
         "stale-render",
-        "each view's line names the verb that clears it: `intent sync --to-disk` re-renders a view `.intentfiles` realises, and `intent sync --apply` removes one it does not, which the store still holds in full. Only text the renderer owns differs -- the footer, or the Acceptance paragraph it writes -- so there is no hand edit to lose",
+        "each view's line names the verb that clears it: `intent sync --to-disk` re-renders a realised view, and `intent sync --apply` removes an unrealised one, which the store still holds in full. Only text the renderer owns differs -- the footer, or the Acceptance paragraph it writes -- so there is no hand edit to lose",
       ),
       Self::RootFileBehind => (
         6,

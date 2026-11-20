@@ -22,7 +22,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
-use crate::common::{RealDaemon, short_dir};
+use crate::common::RealDaemon;
 use serde_json::Value;
 
 const MINTED: &str = "Minted for the restart";
@@ -38,16 +38,7 @@ impl Drop for Fixture {
 
 /// An Intent project at a fresh short path, carrying one findable thread.
 fn project() -> (Fixture, String) {
-  let root = short_dir("restart-proj");
-  intentsvcs::init::init(&root, "Restart", "test", env!("CARGO_PKG_VERSION"))
-    .expect("the shipped initialiser creates a project");
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
+  let (root, mut facade) = crate::common::initialised("restart-proj", "Restart");
   let id = facade.st_new(MINTED).expect("mint one thread");
   (Fixture(root), id)
 }

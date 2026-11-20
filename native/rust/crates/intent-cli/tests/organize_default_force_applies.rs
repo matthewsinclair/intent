@@ -151,26 +151,6 @@ fn realised(root: &Path) -> Vec<String> {
   out
 }
 
-/// The ids of the threads whose canon record declares them realised, in id
-/// order. A project `init` makes keeps the declaration on its records, not in
-/// `.intentfiles` (ST0096 WP-01).
-fn declared(root: &Path) -> Vec<String> {
-  let mut ids: Vec<String> = std::fs::read_dir(root.join("intent/.canon/st"))
-    .expect("the thread canon must be readable")
-    .map(|entry| entry.expect("an entry").path())
-    .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
-    .filter_map(|path| {
-      let record: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(&path).expect("a thread's canon"))
-          .expect("a thread's canon parses");
-      (record["realised"] == serde_json::Value::Bool(true))
-        .then(|| record["id"].as_str().expect("a thread's id").to_string())
-    })
-    .collect();
-  ids.sort();
-  ids
-}
-
 /// The ids `st new` minted for [`project`]'s three threads, by the part each
 /// plays.
 struct Threads {
@@ -309,8 +289,7 @@ fn regenerates_then_applies_in_the_same_run() {
   // The declaration is now status-derived: the two WIP threads and nothing else.
   // Compared as a set, since the records are read in id order, which for
   // minted ids is not the order they were minted in (ST0095 WP-06).
-  let mut listed = declared(root);
-  listed.sort();
+  let listed = crate::common::realised_threads(root);
   let mut wip = vec![gate.clone(), to_create.clone()];
   wip.sort();
   assert_eq!(
@@ -411,7 +390,7 @@ fn answering_no_leaves_the_declaration_and_the_tree_alone() {
   let (dir, _) = project(true);
   let root = dir.path();
   let before_files = realised(root);
-  let before_declared = declared(root);
+  let before_declared = crate::common::realised_threads(root);
 
   let out = intent_on_a_tty(root, &["organize", "--default", "--force"], "n\n");
   let said = format!("{}{}", stdout(&out), stderr(&out));
@@ -425,7 +404,7 @@ fn answering_no_leaves_the_declaration_and_the_tree_alone() {
     "a declined confirm must leave every file: {said}"
   );
   assert_eq!(
-    declared(root),
+    crate::common::realised_threads(root),
     before_declared,
     "a declined confirm must leave the declaration byte-identical: {said}"
   );

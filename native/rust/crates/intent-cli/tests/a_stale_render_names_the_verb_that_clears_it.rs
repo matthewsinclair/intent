@@ -2,7 +2,7 @@
 //! DIRECTORY'S RUN OF THEM ON ONE LINE.**
 //!
 //! The advisory named `intent sync --to-disk` for every view an older Intent
-//! rendered. That verb re-renders a view `.intentfiles` realises and leaves an
+//! rendered. That verb re-renders a realised view and leaves an
 //! unrealised one exactly as it found it -- the 3.2.1 cut's 62 closed-issue
 //! views stood through it -- and `intent sync --apply` is what clears those,
 //! by removing them. And hv's first read of the advisory was 62 near-identical
@@ -135,7 +135,12 @@ fn unrealised_stale_views_name_the_verb_that_removes_them() {
   );
 
   let (line, command) = the_issue_line(root);
-  assert!(line.contains("not realised by `.intentfiles`"), "{line}");
+  // An upgraded project: the closed issue's record is what does not realise
+  // it (ST0096 WP-01, cc's wording).
+  assert!(
+    line.contains("its canon record does not realise it"),
+    "{line}"
+  );
   assert_eq!(command, "intent sync --apply");
 
   step(root, &["sync", "--apply", "--yes"]);

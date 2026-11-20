@@ -16,13 +16,7 @@ const MINTED: &str = "Minted for the hatch";
 /// A project with one thread the daemon can be asked about.
 fn project_with_a_thread() -> (std::path::PathBuf, String) {
   let root = project("Hatch");
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open it");
+  let mut facade = crate::common::facade_on(&root);
   let id = facade.st_new(MINTED).expect("mint one thread");
   (root, id)
 }

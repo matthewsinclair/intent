@@ -309,6 +309,27 @@ pub struct ThreadSummary {
   pub completed: Option<String>,
 }
 
+impl ThreadSummary {
+  /// The thread's id as every table shows it (ST0095 AC-10.3): a hashed thread
+  /// by its short form, an ordinal as it is stored. The wire carries the stored
+  /// id, and the short form is read from it here, in the library, so no face
+  /// spells it. Both builders write a typed id's stored form, so an id that
+  /// does not read as one is a damaged summary, and it is refused rather than
+  /// printed as if it were an id.
+  pub fn shown_id(&self) -> Result<String, crate::id::Refusal> {
+    crate::id::ThreadId::parse(&self.id)
+      .map(|id| id.shown())
+      .map_err(|e| crate::id::Refusal {
+        message: format!(
+          "the thread list carried `{}`, which is not a thread id ({e})",
+          self.id
+        ),
+        remedy: "run `intent doctor`, which names a thread record the store cannot read"
+          .to_string(),
+      })
+  }
+}
+
 /// One project the daemon has opened.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegisteredProject {

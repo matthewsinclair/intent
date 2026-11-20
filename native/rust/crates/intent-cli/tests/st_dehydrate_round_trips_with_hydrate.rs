@@ -210,17 +210,6 @@ fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
   out
 }
 
-/// Whether thread `id`'s canon record declares it realised. A project `init`
-/// makes keeps the declaration on each record, not in `.intentfiles` (ST0096
-/// WP-01).
-fn declares(root: &Path, id: &str) -> bool {
-  let canon = root.join(format!("intent/.canon/st/{id}.json"));
-  let record: serde_json::Value =
-    serde_json::from_str(&std::fs::read_to_string(&canon).expect("the thread's canon"))
-      .expect("the thread's canon parses");
-  record["realised"] == serde_json::Value::Bool(true)
-}
-
 // ---------------------------------------------------------------------------
 
 /// **AC-00.1's round trip**, with the middle state asserted so a do-nothing
@@ -234,7 +223,7 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   ok(root, &["st", "hydrate", subject.as_str()]);
   let before = tree(root);
   assert!(
-    declares(root, &subject),
+    crate::common::realised_thread(root, &subject),
     "the subject must be listed before the trip starts, or the trip has no subject"
   );
   assert!(
@@ -249,7 +238,7 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   // the record's declaration and the files -- because a `dehydrate` that did
   // neither would round-trip perfectly at the end of this test.
   assert!(
-    !declares(root, &subject),
+    !crate::common::realised_thread(root, &subject),
     "dehydrate left the thread declared on its record, so it removed nothing to restore"
   );
   let middle = tree(root);
@@ -268,7 +257,7 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
   // one of them, sends the next reader at the wrong fix. The precondition
   // below separates them.
   assert!(
-    declares(root, &gate),
+    crate::common::realised_thread(root, &gate),
     "{gate} is not declared after dehydrating {subject}. Either dehydrate delisted a neighbour, or \
      the fixture never declared it -- check the `st hydrate` calls in `project()` before \
      suspecting dehydrate."

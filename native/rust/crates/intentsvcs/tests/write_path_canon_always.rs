@@ -149,7 +149,6 @@ fn a_write_to_a_realised_artefact_still_updates_its_views() {
   let fx = Fixture::new();
   fx.write_thread(&gate_open());
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
 
   let mut f = fx.facade_on_disk();
   f.sync_to_disk(&Scope::All).expect("realise");

@@ -368,8 +368,6 @@ fn hydrating_the_thread_writes_its_opaque_attachment_byte_for_byte() {
     &fx,
     &Bundle::new("opaque", vec![opaque_thread()], Vec::new(), Vec::new()),
   );
-  fx.write_file("intent/.intentfiles", &format!("STEELTHREAD:{ID}\n"));
-
   let mut facade = fx.facade();
   facade
     .hydrate(&parse(&format!("intent:///threads/{ID}")).expect("resolves"))

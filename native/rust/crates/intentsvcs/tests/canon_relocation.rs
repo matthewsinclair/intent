@@ -31,7 +31,6 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use crate::common::{Fixture, sample_thread};
-use intentsvcs::model::{ISSUE_SCHEMA, Issue, IssueStatus};
 use intentsvcs::project::{canon_issue_rel, canon_thread_rel};
 
 /// Written out by hand, deliberately, in the one file whose job is to disagree
@@ -40,19 +39,6 @@ const CANON_DIR: &str = "intent/.canon";
 const THREAD_CANON: &str = "intent/.canon/st";
 const ISSUE_CANON: &str = "intent/.canon/issues";
 const VIEW_DIR: &str = "intent/st";
-
-fn issue(number: u32) -> Issue {
-  serde_json::from_value(serde_json::json!({
-    "schema": ISSUE_SCHEMA,
-    "id": intentsvcs::id::IssueId::from_ordinal(number).expect("an ordinal").stored(),
-    "slug": "a-defect",
-    "title": "a defect",
-    "status": IssueStatus::Open,
-    "body": "",
-    "created": "2026-08-18",
-  }))
-  .expect("issue")
-}
 
 /// Every file under `root`, relative and slash-joined.
 fn files_under(root: &Path, rel: &str) -> BTreeSet<String> {
@@ -81,7 +67,7 @@ fn seeded() -> Fixture {
     fx.write_thread(&sample_thread(id));
   }
   for n in [1, 2] {
-    fx.write_issue(&issue(n));
+    fx.write_issue(&crate::common::open_issue(n));
   }
   let mut facade = fx.facade();
   facade

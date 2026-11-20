@@ -55,19 +55,6 @@ fn project(dir: &std::path::Path) {
   .expect("write config");
 }
 
-/// Write a v2 steel thread the way v2.19 writes one.
-fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
-  let st = dir.join("intent/st").join(id);
-  std::fs::create_dir_all(&st).expect("mkdir st");
-  std::fs::write(
-    st.join("info.md"),
-    format!(
-      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
-    ),
-  )
-  .expect("write info.md");
-}
-
 /// **Phase A reads, reports, and writes NOTHING** -- including no database.
 ///
 /// The last clause is the one worth a test: this runs on a project that has not
@@ -78,8 +65,8 @@ fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
 fn phase_a_reads_a_v2_estate_and_leaves_it_exactly_as_it_was() {
   let dir = tempfile::tempdir().expect("tempdir");
   project(dir.path());
-  v2_thread(dir.path(), "ST0001", "WIP");
-  v2_thread(dir.path(), "ST0002", "Completed");
+  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
+  crate::common::v2_thread(dir.path(), "ST0002", "Completed");
 
   let before = std::fs::read_to_string(dir.path().join("intent/st/ST0001/info.md")).expect("read");
 
@@ -116,7 +103,7 @@ fn live_residue_blocks_and_closed_residue_carries() {
   let dir = tempfile::tempdir().expect("tempdir");
   project(dir.path());
   for (id, status) in [("ST0003", "Completed"), ("ST0004", "WIP")] {
-    v2_thread(dir.path(), id, status);
+    crate::common::v2_thread(dir.path(), id, status);
     let info = dir.path().join("intent/st").join(id).join("info.md");
     let text = std::fs::read_to_string(&info).expect("read");
     std::fs::write(
@@ -170,7 +157,7 @@ fn live_residue_blocks_and_closed_residue_carries() {
 fn a_field_that_was_never_recorded_is_not_reported_as_a_wrong_value() {
   let dir = tempfile::tempdir().expect("tempdir");
   project(dir.path());
-  v2_thread(dir.path(), "ST0001", "Completed");
+  crate::common::v2_thread(dir.path(), "ST0001", "Completed");
   // A work package in the older shape: no frontmatter at all.
   let wp = dir.path().join("intent/st/ST0001/WP/01");
   std::fs::create_dir_all(&wp).expect("mkdir wp");
@@ -214,7 +201,7 @@ fn a_named_path_is_the_project_and_an_absent_one_means_the_project_you_are_in() 
   let outside = tempfile::tempdir().expect("tempdir");
   let estate = tempfile::tempdir().expect("tempdir");
   project(estate.path());
-  v2_thread(estate.path(), "ST0001", "Completed");
+  crate::common::v2_thread(estate.path(), "ST0001", "Completed");
 
   let (_, err, code) = run(&["ingest"], outside.path());
   assert_eq!(code, 1);

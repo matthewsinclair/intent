@@ -594,6 +594,29 @@ pub fn sample_thread(id: &str) -> Thread {
   }
 }
 
+/// An open ordinal issue with nothing but its id to tell it apart: the one
+/// copy the canon-relocation tests share (ST0095 WP-10, T4). Built from its
+/// JSON, so it reads as a record the store would hold.
+pub fn open_issue(number: u32) -> Issue {
+  serde_json::from_value(serde_json::json!({
+    "schema": ISSUE_SCHEMA,
+    "id": intentsvcs::id::IssueId::from_ordinal(number).expect("an ordinal").stored(),
+    "slug": "a-defect",
+    "title": "a defect",
+    "status": IssueStatus::Open,
+    "body": "",
+    "created": "2026-08-18",
+  }))
+  .expect("issue")
+}
+
+/// The thread ids the store at `project` holds, as stored (ST0095 WP-10, T6).
+pub fn store_thread_ids(project: &intentsvcs::project::Project) -> Vec<String> {
+  let store = intentsvcs::store::Store::open(&project.db_path()).expect("the store opens");
+  let (threads, _issues) = store.load_canon().expect("the store reads back");
+  threads.into_iter().map(|t| t.id.stored()).collect()
+}
+
 pub fn sample_issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),

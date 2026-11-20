@@ -93,37 +93,33 @@ fn seed(root: &Path) {
   )
   .expect("write config");
 
-  std::fs::create_dir_all(root.join("intent/.canon/st")).expect("mkdir canon st");
-  std::fs::write(
-    root.join("intent/.canon/st/ST0001.json"),
-    r#"{
-  "schema": "intent/thread@3.0", "id": "ST0001", "slug": "probe",
-  "title": "Probe", "status": "wip", "created": "2026-08-17",
-  "objective": "", "context": "",
-  "wps": [ { "seq": 1, "title": "W", "scope": "S", "status": "wip" } ],
-  "criteria": [
-    { "id": "AC-01.1", "text": "Authored", "kind": "non-test",
-      "state": { "is": "unsatisfied" } },
-    { "id": "AC-01.2", "text": "Test-backed", "kind": "test",
-      "state": { "is": "computed" } }
-  ],
-  "tests": [
-    { "id": "AT-01.1", "covers": ["AC-01.2"], "kind": "test", "status": "to-write" },
-    { "id": "AT-01.2", "covers": ["AC-01.1"], "kind": "non-test", "status": "to-write" }
-  ]
-}
-"#,
-  )
-  .expect("write thread");
+  crate::common::write_thread_canon(
+    root,
+    "ST0001",
+    serde_json::json!({
+      "slug": "probe", "title": "Probe", "status": "wip", "created": "2026-08-17",
+      "wps": [ { "seq": 1, "title": "W", "scope": "S", "status": "wip" } ],
+      "criteria": [
+        { "id": "AC-01.1", "text": "Authored", "kind": "non-test",
+          "state": { "is": "unsatisfied" } },
+        { "id": "AC-01.2", "text": "Test-backed", "kind": "test",
+          "state": { "is": "computed" } }
+      ],
+      "tests": [
+        { "id": "AT-01.1", "covers": ["AC-01.2"], "kind": "test", "status": "to-write" },
+        { "id": "AT-01.2", "covers": ["AC-01.1"], "kind": "non-test", "status": "to-write" }
+      ]
+    }),
+  );
 
-  std::fs::write(
-    root.join("intent/.canon/st/ST0002.json"),
-    r#"{ "schema": "intent/thread@3.0", "id": "ST0002", "slug": "sink",
-  "title": "Sink", "status": "wip", "created": "2026-08-17",
-  "objective": "", "context": "", "wps": [], "criteria": [], "tests": [] }
-"#,
-  )
-  .expect("write sink");
+  crate::common::write_thread_canon(
+    root,
+    "ST0002",
+    serde_json::json!({
+      "slug": "sink", "title": "Sink", "status": "wip", "created": "2026-08-17",
+      "wps": [], "criteria": [], "tests": []
+    }),
+  );
 
   std::fs::create_dir_all(root.join("intent/.canon/issues")).expect("mkdir issues");
   std::fs::write(

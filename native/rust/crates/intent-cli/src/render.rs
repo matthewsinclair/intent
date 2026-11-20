@@ -1280,9 +1280,11 @@ fn st_rows(
   let rows: Vec<Vec<String>> = threads
     .iter()
     .filter(|t| wanted.as_ref().is_none_or(|w| w.contains(&t.status)))
-    .map(|t| {
-      vec![
-        t.id.clone(),
+    .map(|t| -> Result<Vec<String>, Failure> {
+      Ok(vec![
+        // **THE SHORT FORM, AS EVERY TABLE SHOWS AN ID** (ST0095 AC-10.3),
+        // read by the library from the stored id the wire carries.
+        t.shown_id().map_err(|r| refused(&r))?,
         // **DERIVED FROM THE TITLE, NEVER READ FROM `t.slug`.** hv's ruling is
         // that the title is the SSOT and the slug is a rendering of it, so
         // reading the stored column would reintroduce the second piece of data
@@ -1296,9 +1298,9 @@ fn st_rows(
         t.status.display().to_string(),
         t.created.clone(),
         t.completed.clone().unwrap_or_default(),
-      ]
+      ])
     })
-    .collect();
+    .collect::<Result<_, _>>()?;
 
   let columns = st_columns(project, as_slug);
   let columns: Vec<&str> = columns.iter().map(String::as_str).collect();
@@ -13908,7 +13910,7 @@ fn outstanding(m: &ArgMatches) -> Result<(), Failure> {
 pub fn outstanding_cells(r: &intentsvcs::outstanding::Row) -> [String; 4] {
   [
     r.kind.label().to_string(),
-    r.id.clone(),
+    r.shown.clone(),
     r.status.to_string(),
     r.title.clone(),
   ]

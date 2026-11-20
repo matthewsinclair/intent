@@ -173,27 +173,18 @@ fn a_date_that_is_not_a_day_is_refused_and_nothing_is_written() {
 /// the self-loop hid. Written as canon, because no verb produces it: a close
 /// through the CLI always leaves a date behind.
 fn closed_without_a_date(dir: &Path, id: &str) {
-  let canon = dir.join("intent/.canon/st");
-  std::fs::create_dir_all(&canon).expect("mkdir");
-  std::fs::write(
-    canon.join(format!("{id}.json")),
-    format!(
-      r#"{{
-  "schema": "intent/thread@3.0",
-  "id": "{id}",
-  "slug": "a-closed-thread",
-  "title": "A thread closed with no date",
-  "status": "completed",
-  "created": "2026-02-01",
-  "objective": "",
-  "context": "",
-  "wps": [],
-  "criteria": []
-}}
-"#
-    ),
-  )
-  .expect("write canon");
+  crate::common::write_thread_canon(
+    dir,
+    id,
+    serde_json::json!({
+      "slug": "a-closed-thread",
+      "title": "A thread closed with no date",
+      "status": "completed",
+      "created": "2026-02-01",
+      "wps": [],
+      "criteria": []
+    }),
+  );
 }
 
 /// Issue 0503: **A DATE THAT DIFFERS FROM THE ONE ON RECORD IS A RESTATEMENT,

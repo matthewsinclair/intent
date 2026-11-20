@@ -174,19 +174,6 @@ impl Feed {
   }
 }
 
-/// Write a canon thread file straight onto disk, as an external editor would.
-fn write_thread(root: &Path, id: &str) {
-  let path = root.join("intent/.canon/st").join(format!("{id}.json"));
-  std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-  std::fs::write(
-    &path,
-    format!(
-      "{{\n  \"schema\": \"intent/thread@3.0\",\n  \"id\": \"{id}\",\n  \"title\": \"Written by hand\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-30\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n"
-    ),
-  )
-  .expect("write the thread file");
-}
-
 #[test]
 fn a_subscriber_learns_the_project_id_before_any_event_arrives() {
   let daemon = RunningDaemon::start();
@@ -223,7 +210,7 @@ fn an_external_edit_delivers_both_d20_events_in_layer_order() {
 
   let mut feed = Feed::open(&daemon, &root);
   feed.settle();
-  write_thread(&root, "ST0077");
+  crate::common::write_thread(&root, "ST0077");
 
   // **THE ORDER CLAIM IS ABOUT CAUSATION, NOT ARRIVAL POSITION, AND THE FIRST
   // BUILD CONFUSED THE TWO.** It asserted that the FIRST event on the
@@ -272,7 +259,7 @@ fn every_subscriber_receives_every_event() {
     "two subscriptions to one project acknowledged different ids"
   );
 
-  write_thread(&root, "ST0078");
+  crate::common::write_thread(&root, "ST0078");
 
   for (which, feed) in [("first", &mut first), ("second", &mut second)] {
     let event = feed.wait_for("fileChanged", |e| matches!(e, Event::FileChanged { .. }));
@@ -327,7 +314,7 @@ fn a_change_outside_the_sync_scope_delivers_nothing() {
     .get_ref()
     .set_read_timeout(Some(READ_TIMEOUT))
     .expect("restore the deadline");
-  write_thread(&root, "ST0079");
+  crate::common::write_thread(&root, "ST0079");
   let event = feed.wait_for("fileChanged", |e| matches!(e, Event::FileChanged { .. }));
   let Event::FileChanged { path, .. } = &event else {
     unreachable!("wait_for matched on the variant");

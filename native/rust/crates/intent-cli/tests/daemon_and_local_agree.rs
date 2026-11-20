@@ -59,7 +59,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
-use crate::common::{RealDaemon, seed_findable_text, servable_argv, short_dir};
+use crate::common::{RealDaemon, seed_findable_text, servable_argv};
 
 /// The title minted into the fixture project.
 ///
@@ -103,17 +103,7 @@ impl Drop for Fixture {
 
 /// An Intent project at a fresh short path, carrying one findable thread.
 fn project() -> Fixture {
-  let root = short_dir("dualpath-proj");
-  intentsvcs::init::init(&root, "DualPath", "test", env!("CARGO_PKG_VERSION"))
-    .expect("the shipped initialiser creates a project");
-
-  let opened = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let ctx = intentsvcs::facade::FacadeContext::for_tests(
-    "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
-    env!("CARGO_PKG_VERSION").to_string(),
-  );
-  let mut facade = intentsvcs::facade::Facade::open(opened, ctx).expect("open the new project");
+  let (root, mut facade) = crate::common::initialised("dualpath-proj", "DualPath");
   let id = facade.st_new(MINTED).expect("mint one thread");
   // Started, because `st list` filters to WIP by default and a fresh thread is
   // not WIP -- so an unstarted fixture makes both paths agree on an EMPTY
