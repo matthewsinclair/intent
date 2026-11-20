@@ -1,0 +1,20 @@
+{
+  "id": "01M7WQ9MHH2F87FQ0DD9MZCSDP",
+  "ts": "2026-11-20T14:55:45.201Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
+    "recipients": [
+      "cc",
+      "ic",
+      "vc",
+      "ac"
+    ]
+  }
+}

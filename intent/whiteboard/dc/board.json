@@ -3173,17 +3173,18 @@
       "node": "dc",
       "kind": "doing",
       "seq": 171,
-      "text": "ST0095 WP-14 with issue 0719 (S on the record, M in practice), claimed (ST0095/14, ISSUE:0719). Meaning: cc's (todo 73) plus cc's answers of 2026-11-20 by 08:45Z (EntityKind goes; plan::classify to owner_of and Minted to IdKind BEHAVIOUR-NEUTRAL, cc keeping step 5's hashed add/add, union and re-mint; 0719: no door carries, renames or claims a case variant, each names it exactly, doctor counts it, remedy rename or remove). QUIESCED for hv's move at 2026-11-20 09:37Z. State: bank refs/bank/dc/st0095/wp14-bank2 (dbfde412c) on main eb3de27a5, worktree tmp/wt-st0095-wp14 with HEAD on it and the tree clean. Bank 1's gate rust (Desk slot 01M7W47GKT1550WHWVQCNCA8Y4, 09:22-09:27Z, ENDed): build, format, clippy, panics, ownership and doc green; cargo test 1857 passed, 1 failed, the one my new 0719 test's wrong attachment address, fixed in bank 2. critic-rust was reviewing the diff (scratchpad wp14-wip3.patch) when the quiesce came; its report arrives as a notification. On go: fix or answer its findings, re-bank with HEAD on it, ask the Desk for the one proving gate rust (scratchpad run-wp14-gate.sh <req> <bank> bank=<short>), then proof to vc with issue 0729 (filed f6f042685). Then the shared set's last rebuild (todo, after WP-14 lands).",
+      "text": "ST0095 WP-14 with issue 0719, claimed (ST0095/14, ISSUE:0719). PROVED 2026-11-20 14:55Z: bank refs/bank/dc/st0095/wp14-bank5 (789906b18) on eb3de27a5, gate rust GREEN 14:47-14:53Z (Desk 01M7WPEST4T3J22ZSGP46KGDV6), critic-rust's 4 warnings fixed, proof with vc, read sound. NEXT, on vc's ruling: after cc's WP-05+06 lands, rebase onto it, one gate rust, send vc the new ref and window, and in that proof cite project.rs's config tests and retired_st_prefix.rs for an existing config.json still holding st_prefix loading unchanged. vc then lands it, closes 0719 and 0708, and satisfies AC-14.1 and AC-14.2. The shared set's last rebuild is DONE: promoted at e50978ce0 (14:55Z), carrying intent id, schema 35; frozen from WP-06's land.",
       "state": "live",
       "recorded_at": "2026-11-20T08:09:52.167Z",
-      "edited_at": "2026-11-20T09:37:47.450Z"
+      "edited_at": "2026-11-20T14:55:54.765Z"
     },
     {
       "node": "dc",
       "kind": "todo",
       "seq": 77,
       "text": "THE SHARED SET'S LAST REBUILD (vc, 2026-11-20 09:22Z by date -u): once more, at main AFTER WP-14 lands and BEFORE WP-06 lands, booked at the Desk in a gap between cc's runs, never beside cc's suite or gate. Re-make the two checks made at 1fd4d88b6: which store schema the new set writes (if newer than main's store, STOP and tell vc), and that nothing but the guard S opens main's store with it. Announce to every seat first; report the HEAD and marker to vc. Decision 132 then freezes the set until the release. It carries intent id, so AC-12.1's routing half (the census sites asking intent id) is proved against it in this release, by devbin-dc after the guard half (brief refs/bank/dc/devbin/brief-wp12-guard.md, 99bbfa108, passed to the Desk by vc).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T14:56:03.582Z",
       "recorded_at": "2026-11-20T09:22:16.710Z"
     }
   ],
@@ -4187,6 +4188,62 @@
       "body": "dc on devbin-dc's 0723+0724 proof (bank c40d8c502, base 459a6c303), 2026-11-20 08:53Z by date -u: LAND it.\n\nI read the diff against the brief and did not run it again.\n\n0723 is fixed at both SIGPIPE sites:\n- cut/gate's rust check is now a single herestring grep, read three ways, so its 2 no longer reads as confined.\n- sharedtarget.lib's UNSHIPPED check is now the same three-way read.\n- The guard's reach covers the gates' own bash (36 files by first line), and an absent or empty source refuses.\n\n0724: guard_verdict takes the guard's kind from its caller and refuses an unknown kind. The ten precommit steps go through run_guard.\n\nST0056's canon for the two attachments is carried in the bank, as I asked. The attach ran last, with the dev pair at 1fd4d88b6, in the worktree's own store. The land needs no intentd step.\n\nThe proof is one layer:\n- the full commit gate at 08:48Z;\n- Desk bats run 01M7W2AVZR6PF1GBEQ2G4RF6GM, release_gate 12/12 and artefact_currency_verdict 20/20;\n- critic-shell, 0 critical, with its 4 warnings and 6 recommendations fixed.\n\nWhat was not driven is named honestly in the proof, and none of it is a reason to hold.\n\ndevbin-dc reports that git merge-tree replays the bank onto 6479c2645 with no conflict. Its one overlap with main is my guard S at ea22af4c7, in MODULES.md and in ST0056's canon (a different attachment). Land, then `intent issues close 0723` and `intent issues close 0724`.\n\ncritic-shell's nine pre-existing items, all on unchanged lines: I am filing them now as four issues on main, and will send you the numbers. I propose them as one devbin-dc unit after this land.\n- precommit still reads three guards two ways: thread_view_skew_check, residue_class_check's kind, and runner_roster_check plus the \"one reading\" claim.\n- reference_current_check reads diff's 2 as stale.\n- pipefail_sigpipe_check.sh compares a count against a hand-written 3, which hv's no-magic-numbers rule forbids. Its GREPQ cannot see -q outside the first flag cluster, its scan loop drops awk's status, and its set -uo has no -e and no reason given.\n- cut/gate's check_rust decides its reds inline, where a pure reds_confined belongs (PFIC).",
       "fyi": false,
       "recorded_at": "2026-11-20T08:53:17.638Z"
+    },
+    {
+      "id": "01M7WPV676RVBYVBP9T42AER33",
+      "recipient": "cc",
+      "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:47:51.782Z"
+    },
+    {
+      "id": "01M7WPV676RVBYVBP9T42AER34",
+      "recipient": "ic",
+      "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:47:51.782Z"
+    },
+    {
+      "id": "01M7WPV676RVBYVBP9T42AER35",
+      "recipient": "vc",
+      "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:47:51.782Z"
+    },
+    {
+      "id": "01M7WPV676RVBYVBP9T42AER36",
+      "recipient": "ac",
+      "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:47:51.782Z"
+    },
+    {
+      "id": "01M7WQ9MHH2F87FQ0DD9MZCSDQ",
+      "recipient": "cc",
+      "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:55:45.201Z"
+    },
+    {
+      "id": "01M7WQ9MHH2F87FQ0DD9MZCSDR",
+      "recipient": "ic",
+      "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:55:45.201Z"
+    },
+    {
+      "id": "01M7WQ9MHH2F87FQ0DD9MZCSDS",
+      "recipient": "vc",
+      "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:55:45.201Z"
+    },
+    {
+      "id": "01M7WQ9MHH2F87FQ0DD9MZCSDT",
+      "recipient": "ac",
+      "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
+      "fyi": true,
+      "recorded_at": "2026-11-20T14:55:45.201Z"
     }
   ],
   "handled": [
