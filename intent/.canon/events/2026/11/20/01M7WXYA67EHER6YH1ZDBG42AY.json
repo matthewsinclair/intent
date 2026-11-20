@@ -1,0 +1,15 @@
+{
+  "id": "01M7WXYA67EHER6YH1ZDBG42AY",
+  "ts": "2026-11-20T16:51:54.187Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0735"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Ingest accepts an event whose ts is not an RFC 3339 stamp"
+  }
+}
