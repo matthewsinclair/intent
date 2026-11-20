@@ -12,23 +12,16 @@
 //! origin, the hooks wired by `intent claude upgrade --apply` from the
 //! template the binary's own install root serves, and the `intent` those hooks
 //! find on PATH. A test that called the facade would pass while a hook that
-//! never ran, or ran the wrong flag, left the store behind.
+//! never ran, or ran the wrong flag, left the store behind. The origin, the
+//! clones and every commit are common's [`Forge`]'s, built with its hooks.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use crate::common::short_dir;
+use crate::common::{Forge, Said};
 
 /// Two clones of one bare origin: Alice writes, Bob pulls with the hooks wired.
 struct Team {
-  dir: PathBuf,
-  home: PathBuf,
-}
-
-/// What a command printed, on both streams, and its exit code.
-struct Ran {
-  said: String,
-  code: i32,
+  forge: Forge,
 }
 
 impl Team {
@@ -38,137 +31,56 @@ impl Team {
   /// let every arm below pass with the hooks deleted. Hands back the team and
   /// that thread's id, as `st new` minted it.
   fn new() -> (Team, String) {
-    let dir = short_dir("pull");
-    let home = dir.join("home");
-    std::fs::create_dir_all(&home).expect("the isolated HOME");
-    std::fs::write(
-      home.join(".gitconfig"),
-      "[user]\n  email = t@example.com\n  name = t\n[init]\n  defaultBranch = main\n",
-    )
-    .expect("git's identity for the fixture commits");
-    let team = Team { dir, home };
+    let team = Team {
+      forge: Forge::with_hooks(),
+    };
+    let alice = team.forge.clone_as("alice");
+    team.forge.intent_ok(&alice, &["init", "Team"]);
+    let onboarding = crate::common::created(
+      &team
+        .forge
+        .intent_ok(&alice, &["st", "new", "Onboarding guide"]),
+    );
+    team.forge.commit_all(&alice, "init");
+    team
+      .forge
+      .git(&alice, &["push", "-q", "-u", "origin", "main"]);
 
-    team.git(&team.dir, &["init", "-q", "--bare", "origin.git"]);
-    let alice = team.alice();
-    std::fs::create_dir_all(&alice).expect("Alice's clone");
-    team.git(&alice, &["init", "-q"]);
-    team.intent_ok(&alice, &["init", "Team"]);
-    let onboarding =
-      crate::common::created(&team.intent_ok(&alice, &["st", "new", "Onboarding guide"]));
-    team.commit(&alice, "init");
-    team.git(&alice, &["remote", "add", "origin", "../origin.git"]);
-    team.git(&alice, &["push", "-q", "-u", "origin", "main"]);
-
-    team.git(&team.dir, &["clone", "-q", "origin.git", "bob"]);
-    let bob = team.bob();
-    team.intent_ok(&bob, &["claude", "upgrade", "--apply", "--skip-settings"]);
+    let bob = team.forge.clone_as("bob");
+    team
+      .forge
+      .intent_ok(&bob, &["claude", "upgrade", "--apply", "--skip-settings"]);
     // The shim that verb installs refuses every commit until the install
     // pointer names an install, and the post-merge hook's doctor line says so
     // (issue 0570), which is a finding the arms below would read as the pull's
     // own output. So this HOME records one, as a bootstrapped machine does.
-    team.intent_ok(&bob, &["bootstrap"]);
-    let listed = team.intent(&bob, &["st", "list", "--status", "all"]);
+    team.forge.intent_ok(&bob, &["bootstrap"]);
+    let listed = team
+      .forge
+      .intent_said(&bob, &["st", "list", "--status", "all"]);
     assert!(
-      listed.said.contains(&crate::common::shown(&onboarding)),
+      listed.text.contains(&crate::common::shown(&onboarding)),
       "Bob's store warmed from the clone's canon: {}",
-      listed.said
+      listed.text
     );
     (team, onboarding)
   }
 
   fn alice(&self) -> PathBuf {
-    self.dir.join("alice")
+    self.forge.path("alice")
   }
 
   fn bob(&self) -> PathBuf {
-    self.dir.join("bob")
-  }
-
-  /// `PATH` with the binary under test first, so the hooks find THIS `intent`.
-  fn path(&self) -> String {
-    let bin = crate::common::intent_path()
-      .parent()
-      .expect("the binary's directory");
-    format!("{}:/usr/bin:/bin", bin.display())
-  }
-
-  fn command(&self, program: impl AsRef<std::ffi::OsStr>, cwd: &Path, path: &str) -> Command {
-    let mut command = testkit::fixtured_command(program);
-    command
-      .current_dir(cwd)
-      .env("HOME", &self.home)
-      .env("PATH", path)
-      .env_remove("XDG_CONFIG_HOME")
-      .env_remove("XDG_DATA_HOME")
-      .env_remove("XDG_STATE_HOME")
-      .env_remove("XDG_RUNTIME_DIR")
-      .env_remove("GIT_DIR")
-      .env_remove("GIT_INDEX_FILE")
-      .env_remove("GIT_WORK_TREE");
-    command
-  }
-
-  fn ran(&self, mut command: Command) -> Ran {
-    let out = command.output().expect("the command runs");
-    Ran {
-      said: format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-      ),
-      code: out.status.code().unwrap_or(-1),
-    }
-  }
-
-  fn intent(&self, cwd: &Path, args: &[&str]) -> Ran {
-    let mut command = self.command(crate::common::intent_path(), cwd, &self.path());
-    command.args(args).stdin(testkit::lifeline_for(args));
-    self.ran(command)
-  }
-
-  /// Hands back what the run said, where a mint names the id it made.
-  fn intent_ok(&self, cwd: &Path, args: &[&str]) -> String {
-    let ran = self.intent(cwd, args);
-    assert_eq!(ran.code, 0, "intent {args:?} failed: {}", ran.said);
-    ran.said
-  }
-
-  /// git with the binary under test on PATH, which is how the hooks reach it.
-  fn git_with_path(&self, cwd: &Path, args: &[&str], path: &str) -> Ran {
-    let mut command = self.command("git", cwd, path);
-    // LIFELINE-EXEMPT: this runs git with a git argv, never the CLI's, so it
-    // starts no daemon. The lifeline check reads every `.args(<variable>)` in a
-    // file that loads the dispatch table as a call that might.
-    command.args(args);
-    self.ran(command)
-  }
-
-  fn git(&self, cwd: &Path, args: &[&str]) -> Ran {
-    let ran = self.git_with_path(cwd, args, &self.path());
-    assert_eq!(ran.code, 0, "git {args:?} failed: {}", ran.said);
-    ran
-  }
-
-  /// `--no-verify`: the commit gate is not this test's subject, and it needs a
-  /// bootstrapped install pointer this isolated HOME does not carry.
-  fn commit(&self, cwd: &Path, message: &str) {
-    self.git(cwd, &["add", "-A"]);
-    self.git(cwd, &["commit", "-q", "--no-verify", "-m", message]);
+    self.forge.path("bob")
   }
 
   /// Alice mints a thread and pushes it. Hands back its id.
   fn alice_pushes(&self, title: &str) -> String {
     let alice = self.alice();
-    let id = crate::common::created(&self.intent_ok(&alice, &["st", "new", title]));
-    self.commit(&alice, title);
-    self.git(&alice, &["push", "-q"]);
+    let id = crate::common::created(&self.forge.intent_ok(&alice, &["st", "new", title]));
+    self.forge.commit_all(&alice, title);
+    self.forge.git(&alice, &["push", "-q"]);
     id
-  }
-}
-
-impl Drop for Team {
-  fn drop(&mut self) {
-    let _ = std::fs::remove_dir_all(&self.dir);
   }
 }
 
@@ -185,10 +97,10 @@ fn a_pull_brings_the_pulled_thread_into_the_store_and_says_so_once() {
   }
 
   let release = team.alice_pushes("Release checklist");
-  let pulled = team.git(&bob, &["pull", "-q"]);
+  let pulled = team.forge.git_said(&bob, &["pull", "-q"]);
   assert_eq!(
     pulled
-      .said
+      .text
       .lines()
       .filter(|l| l.starts_with("intent ("))
       .collect::<Vec<_>>(),
@@ -199,16 +111,18 @@ fn a_pull_brings_the_pulled_thread_into_the_store_and_says_so_once() {
       crate::common::shown(&release)
     )],
     "one line, naming what the pull changed in the store: {}",
-    pulled.said
+    pulled.text
   );
 
-  let shown = team.intent(&bob, &["st", "show", release.as_str()]);
+  let shown = team
+    .forge
+    .intent_said(&bob, &["st", "show", release.as_str()]);
   assert_eq!(
     shown.code, 0,
     "the next verb answers from the merged canon: {}",
-    shown.said
+    shown.text
   );
-  assert!(shown.said.contains("Release checklist"), "{}", shown.said);
+  assert!(shown.text.contains("Release checklist"), "{}", shown.text);
 }
 
 #[test]
@@ -216,14 +130,14 @@ fn a_pull_that_changes_no_thread_prints_nothing() {
   let (team, _) = Team::new();
   let alice = team.alice();
   std::fs::write(alice.join("README.md"), "a file Intent does not model\n").expect("write");
-  team.commit(&alice, "readme");
-  team.git(&alice, &["push", "-q"]);
+  team.forge.commit_all(&alice, "readme");
+  team.forge.git_said(&alice, &["push", "-q"]);
 
-  let pulled = team.git(&team.bob(), &["pull", "-q"]);
+  let pulled = team.forge.git_said(&team.bob(), &["pull", "-q"]);
   assert!(
-    !pulled.said.contains("intent ("),
+    !pulled.text.contains("intent ("),
     "a pull that changed nothing in the store printed from the hook: {}",
-    pulled.said
+    pulled.text
   );
 }
 
@@ -234,37 +148,37 @@ fn a_pull_that_changes_no_thread_prints_nothing() {
 /// ingest wrote it again untracked -- and the merge then refused over it.
 #[test]
 fn a_branch_switch_leaves_no_untracked_canon_and_the_branch_merges() {
-  let dir = short_dir("switch");
-  let home = dir.join("home");
-  std::fs::create_dir_all(&home).expect("the isolated HOME");
-  std::fs::write(
-    home.join(".gitconfig"),
-    "[user]\n  email = t@example.com\n  name = t\n[init]\n  defaultBranch = main\n",
-  )
-  .expect("git's identity for the fixture commits");
-  let team = Team { dir, home };
-  let repo = team.dir.join("solo");
-  std::fs::create_dir_all(&repo).expect("the repository");
-  team.git(&repo, &["init", "-q"]);
-  team.intent_ok(&repo, &["init", "Solo"]);
-  team.intent_ok(&repo, &["claude", "upgrade", "--apply", "--skip-settings"]);
-  team.commit(&repo, "init");
+  // One repository and no team: a clone of the empty forge, whose origin the
+  // arm never pulls from or pushes to.
+  let team = Team {
+    forge: Forge::with_hooks(),
+  };
+  let repo = team.forge.clone_as("solo");
+  team.forge.intent_ok(&repo, &["init", "Solo"]);
+  team
+    .forge
+    .intent_ok(&repo, &["claude", "upgrade", "--apply", "--skip-settings"]);
+  team.forge.commit_all(&repo, "init");
 
-  team.git(&repo, &["switch", "-q", "-c", "b"]);
-  let st = crate::common::created(&team.intent_ok(&repo, &["st", "new", "On a branch"]));
-  team.commit(&repo, &format!("b: {st}"));
-  team.git(&repo, &["switch", "-q", "main"]);
+  team.forge.git_said(&repo, &["switch", "-q", "-c", "b"]);
+  let st = crate::common::created(&team.forge.intent_ok(&repo, &["st", "new", "On a branch"]));
+  team.forge.commit_all(&repo, &format!("b: {st}"));
+  team.forge.git_said(&repo, &["switch", "-q", "main"]);
 
-  let status = team.git(&repo, &["status", "--porcelain"]);
+  let status = team.forge.git_said(&repo, &["status", "--porcelain"]);
   assert!(
-    !status.said.contains("?? intent/"),
+    !status.text.contains("?? intent/"),
     "the switch left an untracked file under intent/: {}",
-    status.said
+    status.text
   );
-  let merged = team.git(&repo, &["merge", "-q", "--no-edit", "b"]);
-  assert_eq!(merged.code, 0, "{}", merged.said);
-  let listed = team.intent(&repo, &["st", "list", "--status", "all"]);
-  assert!(listed.said.contains("On a branch"), "{}", listed.said);
+  let merged = team
+    .forge
+    .git_said(&repo, &["merge", "-q", "--no-edit", "b"]);
+  assert_eq!(merged.code, 0, "{}", merged.text);
+  let listed = team
+    .forge
+    .intent_said(&repo, &["st", "list", "--status", "all"]);
+  assert!(listed.text.contains("On a branch"), "{}", listed.text);
 }
 
 #[test]
@@ -272,30 +186,36 @@ fn a_branch_checkout_is_ingested_and_a_file_checkout_is_not() {
   let (team, _) = Team::new();
   let bob = team.bob();
   let release = team.alice_pushes("Release checklist");
-  team.git(&bob, &["pull", "-q"]);
+  team.forge.git_said(&bob, &["pull", "-q"]);
 
   // Back to the commit before the pulled thread: a branch checkout, git's flag 1.
-  let back = team.git(&bob, &["switch", "-q", "-c", "before", "HEAD~1"]);
+  let back = team
+    .forge
+    .git_said(&bob, &["switch", "-q", "-c", "before", "HEAD~1"]);
   assert!(
-    back.said.contains(&format!(
+    back.text.contains(&format!(
       "intent (post-checkout): took 1 change(s) from the files into the store: {} (removed)",
       crate::common::shown(&release)
     )),
     "a branch checkout that removed {release}'s canon file takes the removal: {}",
-    back.said
+    back.text
   );
-  let gone = team.intent(&bob, &["st", "show", release.as_str()]);
+  let gone = team
+    .forge
+    .intent_said(&bob, &["st", "show", release.as_str()]);
   assert_ne!(gone.code, 0, "the store answers from the checked-out canon");
 
   // A file checkout, git's flag 0, moves no branch and must run nothing. Of a
   // file git tracks: the aggregate views are ignored since ST0096, and a
   // checkout of one would fail before git ran any hook.
-  let file = team.git(&bob, &["checkout", "--", "intent/.config/config.json"]);
-  assert_eq!(file.code, 0, "the file checkout ran: {}", file.said);
+  let file = team
+    .forge
+    .git_said(&bob, &["checkout", "--", "intent/.config/config.json"]);
+  assert_eq!(file.code, 0, "the file checkout ran: {}", file.text);
   assert!(
-    !file.said.contains("intent ("),
+    !file.text.contains("intent ("),
     "a file checkout ran the ingest: {}",
-    file.said
+    file.text
   );
 }
 
@@ -308,45 +228,36 @@ fn a_fresh_worktree_builds_no_store_and_a_switch_inside_it_still_syncs() {
   let (team, _) = Team::new();
   let bob = team.bob();
   team.alice_pushes("Release checklist");
-  team.git(&bob, &["pull", "-q"]);
+  team.forge.git_said(&bob, &["pull", "-q"]);
 
-  let tree = team.dir.join("bobtree");
-  let added = team.git(
-    &bob,
-    &[
-      "worktree",
-      "add",
-      "-q",
-      "--detach",
-      tree.to_str().expect("utf-8 path"),
-      "HEAD",
-    ],
-  );
+  let (tree, added) = team.forge.worktree_said(&bob, "bobtree", "HEAD");
   let store = tree.join("intent").join(".cache").join("intent.db");
   assert!(
     added
-      .said
+      .text
       .contains("intent (post-checkout): a fresh checkout"),
     "a fresh worktree does not say why it skipped: {}",
-    added.said
+    added.text
   );
   assert!(
     !store.exists(),
     "a fresh worktree built a store: {}",
-    added.said
+    added.text
   );
 
   // A branch switch inside that worktree passes a real previous HEAD.
-  let switched = team.git(&tree, &["switch", "-q", "-c", "before", "HEAD~1"]);
+  let switched = team
+    .forge
+    .git_said(&tree, &["switch", "-q", "-c", "before", "HEAD~1"]);
   assert!(
-    !switched.said.contains("a fresh checkout"),
+    !switched.text.contains("a fresh checkout"),
     "a branch switch was taken for a fresh checkout: {}",
-    switched.said
+    switched.text
   );
   assert!(
     store.exists(),
     "a branch switch inside the worktree ran no pass: {}",
-    switched.said
+    switched.text
   );
 }
 
@@ -357,14 +268,14 @@ fn a_hook_that_cannot_do_its_job_says_so_in_one_line_and_never_fails_the_pull() 
   team.alice_pushes("Release checklist");
 
   // No `intent` on PATH: git is still there, the binary is not.
-  let pulled = team.git_with_path(&bob, &["pull", "-q"], "/usr/bin:/bin");
-  assert_eq!(pulled.code, 0, "a hook failed a pull: {}", pulled.said);
+  let pulled = Said::from(team.forge.git_without_intent(&bob, &["pull", "-q"]));
+  assert_eq!(pulled.code, 0, "a hook failed a pull: {}", pulled.text);
   let said: Vec<&str> = pulled
-    .said
+    .text
     .lines()
     .filter(|l| l.starts_with("intent ("))
     .collect();
-  assert_eq!(said.len(), 1, "one line, not silence: {}", pulled.said);
+  assert_eq!(said.len(), 1, "one line, not silence: {}", pulled.text);
   assert!(
     said[0].contains("NOT brought up to date") && said[0].contains("intent sync --apply"),
     "it names the failure and the command to run: {}",
@@ -376,13 +287,13 @@ fn a_hook_that_cannot_do_its_job_says_so_in_one_line_and_never_fails_the_pull() 
   std::fs::write(bob.join("intent/.cache/intent.db"), "not a database").expect("damage");
   let _ = std::fs::remove_file(bob.join("intent/.cache/intent.db-wal"));
   let _ = std::fs::remove_file(bob.join("intent/.cache/intent.db-shm"));
-  let refused = team.git(&bob, &["pull", "-q"]);
+  let refused = team.forge.git_said(&bob, &["pull", "-q"]);
   assert!(
-    refused.said.lines().any(|l| l
+    refused.text.lines().any(|l| l
       .starts_with("intent (post-merge): the store was NOT brought up to date")
       && l.contains("exited 1")),
     "a refusing pass is reported, in one line, with its exit code: {}",
-    refused.said
+    refused.text
   );
 }
 
@@ -453,7 +364,7 @@ fn find_row<'a>(value: &'a serde_json::Value, path: &str) -> Option<&'a serde_js
 fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
   let (team, _) = Team::new();
   let (alice, bob) = (team.alice(), team.bob());
-  team.intent_ok(
+  team.forge.intent_ok(
     &bob,
     &[
       "wb",
@@ -465,12 +376,12 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
       "worker",
     ],
   );
-  team.commit(&bob, "wb: bo");
-  team.git(&bob, &["push", "-q"]);
+  team.forge.commit_all(&bob, "wb: bo");
+  team.forge.git_said(&bob, &["push", "-q"]);
 
-  team.git(&alice, &["pull", "-q"]);
-  team.intent_ok(&alice, &["sync", "--to-store"]);
-  team.intent_ok(
+  team.forge.git_said(&alice, &["pull", "-q"]);
+  team.forge.intent_ok(&alice, &["sync", "--to-store"]);
+  team.forge.intent_ok(
     &alice,
     &[
       "wb",
@@ -482,7 +393,7 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
       "worker",
     ],
   );
-  team.intent_ok(
+  team.forge.intent_ok(
     &alice,
     &[
       "wb",
@@ -495,11 +406,13 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
   );
   // A thread change rides with the message, so the pull's pass runs the ingest
   // whose projection wrote the store's board over the file (driven).
-  team.intent_ok(&alice, &["st", "new", "Release checklist"]);
-  team.commit(&alice, "wb: al asks bo");
-  team.git(&alice, &["push", "-q"]);
+  team
+    .forge
+    .intent_ok(&alice, &["st", "new", "Release checklist"]);
+  team.forge.commit_all(&alice, "wb: al asks bo");
+  team.forge.git_said(&alice, &["push", "-q"]);
 
-  let pulled = team.git(&bob, &["pull", "-q"]);
+  let pulled = team.forge.git_said(&bob, &["pull", "-q"]);
   // The message is on its SENDER's board (issue 0612), so the board the pull
   // brings is al's, and bo's inbox reads it from the store.
   let board = bob.join("intent/whiteboard/al/board.json");
@@ -508,32 +421,34 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
       .expect("Alice's board.json is on disk in Bob's clone")
       .contains("The onboarding guide is yours"),
     "the pull's pass wrote the store's board over the pulled message: {}",
-    pulled.said
+    pulled.text
   );
   assert!(
-    !pulled.said.contains("left:"),
+    !pulled.text.contains("left:"),
     "the pull left the board it could take: {}",
-    pulled.said
+    pulled.text
   );
   let took = pulled
-    .said
+    .text
     .lines()
     .find(|l| l.contains("from the files into the store"))
-    .unwrap_or_else(|| panic!("the hook named nothing it took: {}", pulled.said));
+    .unwrap_or_else(|| panic!("the hook named nothing it took: {}", pulled.text));
   assert!(
     took.contains("board al"),
     "the took line names the board: {took}"
   );
 
-  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  let shown = team.forge.intent_said(&bob, &["wb", "show", "bo"]);
   assert!(
-    shown.said.contains("The onboarding guide is yours"),
+    shown.text.contains("The onboarding guide is yours"),
     "the pull took the message onto the board: {}",
-    shown.said
+    shown.text
   );
-  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
-  let doctor = team.intent(&bob, &["doctor"]);
-  assert_eq!(doctor.code, 0, "{}", doctor.said);
+  team
+    .forge
+    .intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
+  let doctor = team.forge.intent_said(&bob, &["doctor"]);
+  assert_eq!(doctor.code, 0, "{}", doctor.text);
 }
 
 /// Issue 0554 (a), the arm vc ruled on 2026-09-25: **A CHECKOUT OF AN OLDER
@@ -546,7 +461,7 @@ fn a_pulled_board_is_taken_into_the_store_by_the_pull() {
 fn a_checkout_of_an_older_board_is_left_and_named() {
   let (team, _) = Team::new();
   let bob = team.bob();
-  team.intent_ok(
+  team.forge.intent_ok(
     &bob,
     &[
       "wb",
@@ -558,8 +473,8 @@ fn a_checkout_of_an_older_board_is_left_and_named() {
       "worker",
     ],
   );
-  team.commit(&bob, "wb: bo");
-  team.intent_ok(
+  team.forge.commit_all(&bob, "wb: bo");
+  team.forge.intent_ok(
     &bob,
     &[
       "wb",
@@ -570,26 +485,28 @@ fn a_checkout_of_an_older_board_is_left_and_named() {
       "bo",
     ],
   );
-  team.commit(&bob, "wb: bo reads the guide");
+  team.forge.commit_all(&bob, "wb: bo reads the guide");
 
-  let checked_out = team.git(&bob, &["checkout", "-q", "HEAD~1"]);
+  let checked_out = team.forge.git_said(&bob, &["checkout", "-q", "HEAD~1"]);
   assert!(
-    !checked_out.said.contains("board bo"),
+    !checked_out.text.contains("board bo"),
     "the older board was taken: {}",
-    checked_out.said
+    checked_out.text
   );
-  let pickup = team.intent(&bob, &["wb", "pickup", "--node", "bo"]);
-  assert_ne!(pickup.code, 0, "{}", pickup.said);
+  let pickup = team
+    .forge
+    .intent_said(&bob, &["wb", "pickup", "--node", "bo"]);
+  assert_ne!(pickup.code, 0, "{}", pickup.text);
   assert!(
-    pickup.said.contains("intent sync --to-store"),
+    pickup.text.contains("intent sync --to-store"),
     "{}",
-    pickup.said
+    pickup.text
   );
-  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  let shown = team.forge.intent_said(&bob, &["wb", "show", "bo"]);
   assert!(
-    shown.said.contains("Read the onboarding guide"),
+    shown.text.contains("Read the onboarding guide"),
     "the store's newer board was rolled back: {}",
-    shown.said
+    shown.text
   );
 }
 
@@ -601,7 +518,7 @@ fn a_checkout_of_an_older_board_is_left_and_named() {
 fn a_board_this_clone_wrote_is_not_kept_by_a_pull() {
   let (team, _) = Team::new();
   let bob = team.bob();
-  team.intent_ok(
+  team.forge.intent_ok(
     &bob,
     &[
       "wb",
@@ -613,7 +530,7 @@ fn a_board_this_clone_wrote_is_not_kept_by_a_pull() {
       "worker",
     ],
   );
-  team.intent_ok(
+  team.forge.intent_ok(
     &bob,
     &[
       "wb",
@@ -626,13 +543,15 @@ fn a_board_this_clone_wrote_is_not_kept_by_a_pull() {
   );
 
   team.alice_pushes("Release checklist");
-  let pulled = team.git(&bob, &["pull", "-q"]);
+  let pulled = team.forge.git_said(&bob, &["pull", "-q"]);
   assert!(
-    !pulled.said.contains("left:") && !pulled.said.contains("whiteboard"),
+    !pulled.text.contains("left:") && !pulled.text.contains("whiteboard"),
     "a pull named a board this clone wrote: {}",
-    pulled.said
+    pulled.text
   );
-  team.intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
+  team
+    .forge
+    .intent_ok(&bob, &["wb", "pickup", "--node", "bo"]);
 }
 
 /// The hooks' path in issue 0559's family: **A PULL CARRIES A HAND EDIT TO A
@@ -645,11 +564,15 @@ fn a_board_this_clone_wrote_is_not_kept_by_a_pull() {
 fn a_pull_carries_a_hand_edited_cover_into_the_store() {
   let (team, onboarding) = Team::new();
   let (alice, bob) = (team.alice(), team.bob());
-  team.intent_ok(&alice, &["st", "start", onboarding.as_str()]);
-  team.intent_ok(&alice, &["organize", "--apply"]);
-  team.commit(&alice, &format!("{onboarding} started"));
-  team.git(&alice, &["push", "-q"]);
-  team.git(&bob, &["pull", "-q"]);
+  team
+    .forge
+    .intent_ok(&alice, &["st", "start", onboarding.as_str()]);
+  team.forge.intent_ok(&alice, &["organize", "--apply"]);
+  team
+    .forge
+    .commit_all(&alice, &format!("{onboarding} started"));
+  team.forge.git_said(&alice, &["push", "-q"]);
+  team.forge.git_said(&bob, &["pull", "-q"]);
 
   let cover = bob.join(format!("intent/st/{onboarding}/info.md"));
   let text = std::fs::read_to_string(&cover).expect("the pulled cover is on disk");
@@ -671,18 +594,18 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
   .expect("the hand edit");
 
   let release = team.alice_pushes("Release checklist");
-  let pulled = team.git(&bob, &["pull", "-q"]);
+  let pulled = team.forge.git_said(&bob, &["pull", "-q"]);
   assert!(
     std::fs::read_to_string(&cover)
       .expect("the cover is still on disk")
       .contains("Typed by hand before the pull."),
     "the pull's views step discarded the hand edit: {}",
-    pulled.said
+    pulled.text
   );
   // The line names both, in their shown forms. The order between two minted
   // ids is WP-08's to pin, so this asks that each is named, not where.
   let took = pulled
-    .said
+    .text
     .lines()
     .find(|l| {
       l.starts_with("intent (post-merge): took 2 change(s) from the files into the store: ")
@@ -692,13 +615,15 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
     took.contains(&crate::common::shown(&onboarding))
       && took.contains(&crate::common::shown(&release)),
     "the pull names the cover's thread among what it took: {}",
-    pulled.said
+    pulled.text
   );
-  let shown = team.intent(&bob, &["st", "show", onboarding.as_str()]);
+  let shown = team
+    .forge
+    .intent_said(&bob, &["st", "show", onboarding.as_str()]);
   assert!(
-    shown.said.contains("Typed by hand before the pull."),
+    shown.text.contains("Typed by hand before the pull."),
     "the pull carried the edit into the store: {}",
-    shown.said
+    shown.text
   );
 }
 
@@ -709,16 +634,23 @@ fn two_clones_each_add_a_work_package(
   team: &Team,
   thread: &str,
   bob_also: impl FnOnce(&str),
-) -> (Ran, String, String) {
+) -> (Said, String, String) {
   let (alice, bob) = (team.alice(), team.bob());
-  let alices =
-    crate::common::created(&team.intent_ok(&alice, &["wp", "new", thread, "Alice's package"]));
-  team.commit(&alice, "Alice's package");
-  team.git(&alice, &["push", "-q"]);
-  let bobs = crate::common::created(&team.intent_ok(&bob, &["wp", "new", thread, "Bob's package"]));
+  let alices = crate::common::created(
+    &team
+      .forge
+      .intent_ok(&alice, &["wp", "new", thread, "Alice's package"]),
+  );
+  team.forge.commit_all(&alice, "Alice's package");
+  team.forge.git_said(&alice, &["push", "-q"]);
+  let bobs = crate::common::created(
+    &team
+      .forge
+      .intent_ok(&bob, &["wp", "new", thread, "Bob's package"]),
+  );
   bob_also(bobs.as_str());
-  team.commit(&bob, "Bob's package");
-  let pulled = team.git_with_path(&bob, &["pull", "-q", "--no-rebase"], &team.path());
+  team.forge.commit_all(&bob, "Bob's package");
+  let pulled = Said::from(team.forge.git_try(&bob, &["pull", "-q", "--no-rebase"]));
   (pulled, bobs, alices)
 }
 
@@ -736,7 +668,7 @@ fn two_clones_that_each_add_a_work_package_keep_both() {
   // Bob's node claims his package, and the claim must stay on it (vc's
   // condition on the build: a claim names a package as `<thread>/<id>`).
   let (pulled, bobs, alices) = two_clones_each_add_a_work_package(&team, &onboarding, |package| {
-    team.intent_ok(
+    team.forge.intent_ok(
       &bob,
       &[
         "wb",
@@ -748,50 +680,54 @@ fn two_clones_that_each_add_a_work_package_keep_both() {
         "worker",
       ],
     );
-    team.intent_ok(&bob, &["wb", "claim", package, "--node", "bo"]);
+    team
+      .forge
+      .intent_ok(&bob, &["wb", "claim", package, "--node", "bo"]);
   });
   assert_ne!(bobs, alices, "two clones minted one package id");
-  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
+  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.text);
 
-  let plan = team.intent(&bob, &["sync"]);
+  let plan = team.forge.intent_said(&bob, &["sync"]);
   assert!(
-    plan.said.contains(&format!(
+    plan.text.contains(&format!(
       "both sides added work packages to {onboarding}: every one is kept, staged"
     )),
     "{}",
-    plan.said
+    plan.text
   );
-  assert!(!plan.said.contains("take a side"), "{}", plan.said);
+  assert!(!plan.text.contains("take a side"), "{}", plan.text);
 
-  team.intent_ok(&bob, &["sync", "--apply", "--yes"]);
-  team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
-  let listed = team.intent(&bob, &["wp", "list", onboarding.as_str()]);
+  team.forge.intent_ok(&bob, &["sync", "--apply", "--yes"]);
+  team.forge.commit(&bob, &["--no-edit"]);
+  let listed = team
+    .forge
+    .intent_said(&bob, &["wp", "list", onboarding.as_str()]);
   for (address, title) in [(&alices, "Alice's package"), (&bobs, "Bob's package")] {
     let seq = crate::common::package_of(address).shown();
     assert!(
       listed
-        .said
+        .text
         .lines()
         .any(|l| l.contains(seq.as_str()) && l.contains(title)),
       "WP {seq} is not {title}: {}",
-      listed.said
+      listed.text
     );
   }
-  let shown = team.intent(&bob, &["wb", "show", "bo"]);
+  let shown = team.forge.intent_said(&bob, &["wb", "show", "bo"]);
   let claims = shown
-    .said
+    .text
     .lines()
     .find(|l| l.trim_start().starts_with("claims"))
-    .unwrap_or_else(|| panic!("no claims line: {}", shown.said));
+    .unwrap_or_else(|| panic!("no claims line: {}", shown.text));
   assert!(
     claims.contains(&bobs),
     "Bob's claim did not stay on his package: {claims}"
   );
-  let status = team.git(&bob, &["status", "--porcelain"]);
+  let status = team.forge.git_said(&bob, &["status", "--porcelain"]);
   assert!(
-    status.said.trim().is_empty(),
+    status.text.trim().is_empty(),
     "the merge left: {}",
-    status.said
+    status.text
   );
 }
 
@@ -803,7 +739,7 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
   let (team, onboarding) = Team::new();
   let bob = team.bob();
   let (pulled, _, _) = two_clones_each_add_a_work_package(&team, &onboarding, |_| {
-    team.intent_ok(
+    team.forge.intent_ok(
       &bob,
       &[
         "set",
@@ -813,11 +749,11 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
       ],
     );
   });
-  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
+  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.text);
 
-  let plan = team.intent(&bob, &["sync"]);
-  assert!(plan.said.contains("take a side"), "{}", plan.said);
-  assert!(!plan.said.contains("keep packages"), "{}", plan.said);
+  let plan = team.forge.intent_said(&bob, &["sync"]);
+  assert!(plan.text.contains("take a side"), "{}", plan.text);
+  assert!(!plan.text.contains("keep packages"), "{}", plan.text);
 }
 
 /// ST0095 WP-06, AC-06.1: **TWO CLONES THAT EACH MINT A THREAD AND A WORK
@@ -833,9 +769,12 @@ fn two_clones_that_each_mint_merge_with_no_repair() {
   let (team, onboarding) = Team::new();
   let (alice, bob) = (team.alice(), team.bob());
   let mint = |clone: &std::path::Path, who: &str| -> [String; 2] {
-    let st =
-      crate::common::created(&team.intent_ok(clone, &["st", "new", &format!("{who}'s thread")]));
-    let wp = crate::common::created(&team.intent_ok(
+    let st = crate::common::created(
+      &team
+        .forge
+        .intent_ok(clone, &["st", "new", &format!("{who}'s thread")]),
+    );
+    let wp = crate::common::created(&team.forge.intent_ok(
       clone,
       &[
         "wp",
@@ -847,25 +786,31 @@ fn two_clones_that_each_mint_merge_with_no_repair() {
     [st, wp]
   };
   let alices = mint(&alice, "Alice");
-  team.commit(&alice, "Alice's two");
-  team.git(&alice, &["push", "-q"]);
+  team.forge.commit_all(&alice, "Alice's two");
+  team.forge.git_said(&alice, &["push", "-q"]);
   let bobs = mint(&bob, "Bob");
-  team.commit(&bob, "Bob's two");
-  team.git_with_path(&bob, &["pull", "-q", "--no-rebase"], &team.path());
+  team.forge.commit_all(&bob, "Bob's two");
+  team.forge.git_try(&bob, &["pull", "-q", "--no-rebase"]);
   for (a, b) in alices.iter().zip(&bobs) {
     assert_ne!(a, b, "two clones minted one id");
   }
 
-  let plan = team.intent(&bob, &["sync"]);
+  let plan = team.forge.intent_said(&bob, &["sync"]);
   assert!(
-    !plan.said.contains("renumber") && !plan.said.contains("take a side"),
+    !plan.text.contains("renumber") && !plan.text.contains("take a side"),
     "a merge of minted ids plans no repair and takes no side: {}",
-    plan.said
+    plan.text
   );
-  team.intent_ok(&bob, &["sync", "--apply", "--yes"]);
-  team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
-  let threads = team.intent(&bob, &["st", "list", "--status", "all"]).said;
-  let packages = team.intent(&bob, &["wp", "list", onboarding.as_str()]).said;
+  team.forge.intent_ok(&bob, &["sync", "--apply", "--yes"]);
+  team.forge.commit(&bob, &["--no-edit"]);
+  let threads = team
+    .forge
+    .intent_said(&bob, &["st", "list", "--status", "all"])
+    .text;
+  let packages = team
+    .forge
+    .intent_said(&bob, &["wp", "list", onboarding.as_str()])
+    .text;
   for [st, wp] in [&alices, &bobs] {
     assert!(
       threads.contains(&crate::common::shown(st)),

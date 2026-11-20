@@ -5,125 +5,40 @@
 //! store back into step. Bare `intent sync` prints the plan and writes
 //! nothing; `intent sync --apply` applies it. Alice and Bob clone one origin
 //! under one isolated `HOME`, with no daemon and no hooks, so every change
-//! here is the verb's.
+//! here is the verb's. The origin, both clones and every commit are common's
+//! [`Forge`]'s.
 //!
 //! **THE MERGE ARMS DRIVE THE CASE P2 COULD NOT**: P2's renumber repairs a
 //! collision before the merge. Here the merge has already stopped on it, the
 //! old id's paths hold the pulled side, and the plain verb would move them.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
+
+use crate::common::{Forge, Said};
 
 /// The creation events the two clones' ordinal records were minted by, as
 /// the event files a branch cut before the upgrade carries.
 const ALICES_CREATION: &str = "01JA0000000000000000000001";
 const BOBS_CREATION: &str = "01JA0000000000000000000002";
 
-struct Said {
-  text: String,
-  code: i32,
-}
-
-fn intent(args: &[&str], cwd: &Path, home: &Path) -> Said {
-  let out = crate::common::intent()
-    .args(args)
-    .current_dir(cwd)
-    .env("HOME", home)
-    .env_remove("XDG_CONFIG_HOME")
-    .env_remove("XDG_DATA_HOME")
-    .env_remove("XDG_STATE_HOME")
-    .env_remove("XDG_RUNTIME_DIR")
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .expect("run the v3 binary");
-  Said {
-    text: format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    ),
-    code: out.status.code().unwrap_or(-1),
-  }
-}
-
-fn intent_ok(args: &[&str], cwd: &Path, home: &Path) -> String {
-  let said = intent(args, cwd, home);
-  assert_eq!(said.code, 0, "`intent {}`:\n{}", args.join(" "), said.text);
-  said.text
-}
-
-/// Git with an identity and no hooks, so the fixture's commits are the
-/// commits and nothing else.
-fn git(args: &[&str], cwd: &Path) -> (String, bool) {
-  let out = Command::new("git")
-    .args(["-c", "user.name=t", "-c", "user.email=t@example.com"])
-    .args(["-c", "core.hooksPath=/dev/null"])
-    .args(args)
-    .current_dir(cwd)
-    .output()
-    .expect("run git");
-  (
-    format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    ),
-    out.status.success(),
-  )
-}
-
-fn git_ok(args: &[&str], cwd: &Path) -> String {
-  let (out, success) = git(args, cwd);
-  assert!(success, "`git {}` failed:\n{out}", args.join(" "));
-  out
-}
-
-/// A bare origin, Alice's clone with an initialised project pushed to it, and
-/// Bob's clone of that.
+/// The forge's origin, Alice's clone with an initialised project pushed to
+/// it, and Bob's clone of that.
 struct Team {
-  _dir: tempfile::TempDir,
-  home: tempfile::TempDir,
-  origin: PathBuf,
+  forge: Forge,
   alice: PathBuf,
   bob: PathBuf,
 }
 
 impl Team {
   fn new() -> Self {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let home = tempfile::tempdir().expect("tempdir");
-    let (origin, alice, bob) = (
-      dir.path().join("origin.git"),
-      dir.path().join("alice"),
-      dir.path().join("bob"),
-    );
-    git_ok(
-      &["init", "-q", "--bare", "-b", "main", "origin.git"],
-      dir.path(),
-    );
-    git_ok(&["clone", "-q", "origin.git", "alice"], dir.path());
-    intent_ok(&["init", "Team"], &alice, home.path());
-    git_ok(&["add", "-A"], &alice);
-    git_ok(&["commit", "-q", "-m", "intent init"], &alice);
-    git_ok(&["push", "-q", "origin", "HEAD:main"], &alice);
-    git_ok(&["clone", "-q", "origin.git", "bob"], dir.path());
-    intent_ok(&["sync", "--apply"], &bob, home.path());
-    Self {
-      _dir: dir,
-      home,
-      origin,
-      alice,
-      bob,
-    }
-  }
-
-  fn home(&self) -> &Path {
-    self.home.path()
-  }
-
-  fn commit(&self, clone: &Path, message: &str) {
-    git_ok(&["add", "-A"], clone);
-    git_ok(&["commit", "-q", "-m", message], clone);
+    let forge = Forge::new();
+    let alice = forge.clone_as("alice");
+    forge.intent_ok(&alice, &["init", "Team"]);
+    forge.commit_all(&alice, "intent init");
+    forge.git(&alice, &["push", "-q", "origin", "HEAD:main"]);
+    let bob = forge.clone_as("bob");
+    forge.intent_ok(&bob, &["sync", "--apply"]);
+    Self { forge, alice, bob }
   }
 
   /// Both clones mint their next thread, and both get the same id. Bob starts
@@ -142,21 +57,36 @@ impl Team {
     crate::common::seed_creation_event(&self.alice, ALICES_CREATION, "st.new", "thread", &id);
     // The views her mint rendered, as a branch cut before the upgrade carries
     // them, so the merge conflicts in the generated views as well as in canon.
-    intent_ok(&["sync", "--to-disk"], &self.alice, self.home());
-    self.commit(&self.alice, &format!("alice: {id}"));
-    git_ok(&["push", "-q", "origin", "HEAD:main"], &self.alice);
+    self.forge.intent_ok(&self.alice, &["sync", "--to-disk"]);
+    self.forge.commit_all(&self.alice, &format!("alice: {id}"));
+    self
+      .forge
+      .git(&self.alice, &["push", "-q", "origin", "HEAD:main"]);
     crate::common::seed_ordinal_thread(&self.bob, &id, "Bob's next", &[]);
     crate::common::seed_creation_event(&self.bob, BOBS_CREATION, "st.new", "thread", &id);
-    intent_ok(&["st", "start", id.as_str()], &self.bob, self.home());
-    self.commit(&self.bob, &format!("bob: {id}"));
-    let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &self.bob);
-    assert!(!merged, "the fixture needs the merge to stop:\n{merge}");
-    (merge, id)
+    self
+      .forge
+      .intent_ok(&self.bob, &["st", "start", id.as_str()]);
+    self.forge.commit_all(&self.bob, &format!("bob: {id}"));
+    let merge = Said::from(
+      self
+        .forge
+        .git_try(&self.bob, &["pull", "-q", "--no-rebase", "origin", "main"]),
+    );
+    assert_ne!(
+      merge.code, 0,
+      "the fixture needs the merge to stop:\n{}",
+      merge.text
+    );
+    (merge.text, id)
   }
-}
 
-fn unmerged(clone: &Path) -> String {
-  git_ok(&["diff", "--name-only", "--diff-filter=U"], clone)
+  /// The paths git holds unmerged in `clone`.
+  fn unmerged(&self, clone: &Path) -> String {
+    self
+      .forge
+      .git(clone, &["diff", "--name-only", "--diff-filter=U"])
+  }
 }
 
 /// The digest a printed plan names, `(plan <digest>)`.
@@ -176,18 +106,16 @@ fn digest_of(plan: &str) -> String {
 #[test]
 fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
   let team = Team::new();
-  let st = crate::common::created(&intent_ok(
-    &["st", "new", "Release checklist"],
-    &team.alice,
-    team.home(),
-  ));
-  team.commit(&team.alice, &format!("alice: {st}"));
-  git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
-  git_ok(&["fetch", "-q"], &team.bob);
+  let forge = &team.forge;
+  let st =
+    crate::common::created(&forge.intent_ok(&team.alice, &["st", "new", "Release checklist"]));
+  forge.commit_all(&team.alice, &format!("alice: {st}"));
+  forge.git(&team.alice, &["push", "-q", "origin", "HEAD:main"]);
+  forge.git(&team.bob, &["fetch", "-q"]);
 
-  let status_before = git_ok(&["status", "--porcelain"], &team.bob);
-  let head_before = git_ok(&["rev-parse", "HEAD"], &team.bob);
-  let plan = intent_ok(&["sync"], &team.bob, team.home());
+  let status_before = forge.git(&team.bob, &["status", "--porcelain"]);
+  let head_before = forge.git(&team.bob, &["rev-parse", "HEAD"]);
+  let plan = forge.intent_ok(&team.bob, &["sync"]);
   assert!(plan.starts_with("plan: "), "{plan}");
   assert!(
     plan.contains(". behind (quiet): origin/main holds 1 commit(s) this branch does not"),
@@ -221,7 +149,7 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
   let digest = digest_of(&plan);
   assert_eq!(digest.len(), 64, "the plan names its digest: {plan}");
   assert_eq!(
-    git_ok(&["status", "--porcelain"], &team.bob),
+    forge.git(&team.bob, &["status", "--porcelain"]),
     status_before,
     "the plan wrote nothing git can see"
   );
@@ -232,11 +160,7 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
     "a file the plan never read\n",
   )
   .expect("move the tree");
-  let refused = intent(
-    &["sync", "--apply", "--plan", &digest],
-    &team.bob,
-    team.home(),
-  );
+  let refused = forge.intent_said(&team.bob, &["sync", "--apply", "--plan", &digest]);
   assert_eq!(refused.code, 1, "{}", refused.text);
   assert!(
     refused
@@ -249,11 +173,10 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 
   // Against the tree as it now stands, the apply runs, says the branch is
   // behind, and pulls nothing.
-  let replanned = intent_ok(&["sync"], &team.bob, team.home());
-  let applied = intent(
-    &["sync", "--apply", "--plan", &digest_of(&replanned)],
+  let replanned = forge.intent_ok(&team.bob, &["sync"]);
+  let applied = forge.intent_said(
     &team.bob,
-    team.home(),
+    &["sync", "--apply", "--plan", &digest_of(&replanned)],
   );
   assert!(
     applied
@@ -263,7 +186,7 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
     applied.text
   );
   assert_eq!(
-    git_ok(&["rev-parse", "HEAD"], &team.bob),
+    forge.git(&team.bob, &["rev-parse", "HEAD"]),
     head_before,
     "intent never pulls"
   );
@@ -280,20 +203,23 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 #[test]
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
   let team = Team::new();
+  let forge = &team.forge;
   let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls();
   // Where sync's repair moves this clone's thread: the git-style id its own
   // creation event mints (ST0095 WP-06), which this clone's log holds.
   let moved = intentsvcs::id::ThreadId::from_origin(BOBS_CREATION).stored();
   let bob = &team.bob;
   assert!(
-    unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),
+    team
+      .unmerged(bob)
+      .contains(&format!("intent/.canon/st/{minted}.json")),
     "the fixture stops on the canon add/add:\n{merge}"
   );
   std::fs::write(bob.join("notes.txt"), "Bob's own file\n").expect("an untracked file");
-  let head = git_ok(&["rev-parse", "HEAD"], bob);
-  let origin_main = git_ok(&["rev-parse", "main"], &team.origin);
+  let head = forge.git(bob, &["rev-parse", "HEAD"]);
+  let origin_main = forge.git(&forge.bare(), &["rev-parse", "main"]);
 
-  let plan = intent_ok(&["sync"], bob, team.home());
+  let plan = forge.intent_ok(bob, &["sync"]);
   assert!(
     plan.contains(&format!(
       ". renumber (reversible): both sides minted steel thread {minted}: this clone's moves to {moved}"
@@ -311,7 +237,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
 
   // No terminal and no `--yes`: the renumber is left, and what reads the
   // merged canon waits on it.
-  let left = intent(&["sync", "--apply"], bob, team.home());
+  let left = forge.intent_said(bob, &["sync", "--apply"]);
   let line = left
     .text
     .lines()
@@ -324,7 +250,9 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     left.text
   );
   assert!(
-    unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),
+    team
+      .unmerged(bob)
+      .contains(&format!("intent/.canon/st/{minted}.json")),
     "nothing was resolved without an answer"
   );
   assert!(
@@ -337,7 +265,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   );
 
   // `--yes` answers the reversible steps.
-  let repaired = intent(&["sync", "--apply", "--yes"], bob, team.home());
+  let repaired = forge.intent_said(bob, &["sync", "--apply", "--yes"]);
   assert!(
     repaired.text.contains(&format!(
       "ok: renumbered this clone's {minted} to {moved}, kept the pulled {minted}"
@@ -354,7 +282,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     repaired.text
   );
   assert_eq!(
-    unmerged(bob).trim(),
+    team.unmerged(bob).trim(),
     "",
     "nothing is left unmerged: {}",
     repaired.text
@@ -369,7 +297,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
 
   // AT-05.4: staged is intent's own, the untracked file is untouched, and no
   // commit, pull or push happened.
-  let staged = git_ok(&["diff", "--cached", "--name-only"], bob);
+  let staged = forge.git(bob, &["diff", "--cached", "--name-only"]);
   for path in staged.lines() {
     assert!(
       path.starts_with("intent/"),
@@ -377,27 +305,27 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     );
   }
   assert!(
-    git_ok(&["status", "--porcelain"], bob).contains("?? notes.txt"),
+    forge
+      .git(bob, &["status", "--porcelain"])
+      .contains("?? notes.txt"),
     "an untracked file stays untracked"
   );
   assert_eq!(
-    git_ok(&["rev-parse", "HEAD"], bob),
+    forge.git(bob, &["rev-parse", "HEAD"]),
     head,
     "sync never commits"
   );
-  assert!(
-    git(&["rev-parse", "-q", "--verify", "MERGE_HEAD"], bob).1,
-    "the merge is still the person's to commit"
-  );
+  let (_, _, merging) = forge.git_try(bob, &["rev-parse", "-q", "--verify", "MERGE_HEAD"]);
+  assert_eq!(merging, 0, "the merge is still the person's to commit");
   assert_eq!(
-    git_ok(&["rev-parse", "main"], &team.origin),
+    forge.git(&forge.bare(), &["rev-parse", "main"]),
     origin_main,
     "sync never pushes"
   );
 
   // The person commits the merge, and both threads are there.
-  git_ok(&["commit", "-q", "--no-edit"], bob);
-  let list = intent_ok(&["st", "list", "--status", "all"], bob, team.home());
+  forge.commit(bob, &["--no-edit"]);
+  let list = forge.intent_ok(bob, &["st", "list", "--status", "all"]);
   assert!(
     list.contains(&minted) && list.contains("Alice's next"),
     "{list}"
@@ -416,35 +344,29 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
 #[test]
 fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
   let team = Team::new();
-  let st = crate::common::created(&intent_ok(
-    &["st", "new", "Shared"],
-    &team.alice,
-    team.home(),
-  ));
+  let forge = &team.forge;
+  let st = crate::common::created(&forge.intent_ok(&team.alice, &["st", "new", "Shared"]));
   let canon = format!("intent/.canon/st/{st}.json");
-  team.commit(&team.alice, &format!("alice: {st}"));
-  git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
-  git_ok(&["pull", "-q", "--no-rebase", "origin", "main"], &team.bob);
-  intent_ok(&["sync", "--apply"], &team.bob, team.home());
+  forge.commit_all(&team.alice, &format!("alice: {st}"));
+  forge.git(&team.alice, &["push", "-q", "origin", "HEAD:main"]);
+  forge.git(&team.bob, &["pull", "-q", "--no-rebase", "origin", "main"]);
+  forge.intent_ok(&team.bob, &["sync", "--apply"]);
 
-  intent_ok(
-    &["set", st.as_str(), "title", "Alice's title"],
-    &team.alice,
-    team.home(),
+  forge.intent_ok(&team.alice, &["set", st.as_str(), "title", "Alice's title"]);
+  forge.commit_all(&team.alice, "alice: retitle");
+  forge.git(&team.alice, &["push", "-q", "origin", "HEAD:main"]);
+  forge.intent_ok(&team.bob, &["set", st.as_str(), "title", "Bob's title"]);
+  forge.commit_all(&team.bob, "bob: retitle");
+  let merge =
+    Said::from(forge.git_try(&team.bob, &["pull", "-q", "--no-rebase", "origin", "main"]));
+  assert_ne!(
+    merge.code, 0,
+    "the fixture needs the merge to stop:\n{}",
+    merge.text
   );
-  team.commit(&team.alice, "alice: retitle");
-  git_ok(&["push", "-q", "origin", "HEAD:main"], &team.alice);
-  intent_ok(
-    &["set", st.as_str(), "title", "Bob's title"],
-    &team.bob,
-    team.home(),
-  );
-  team.commit(&team.bob, "bob: retitle");
-  let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &team.bob);
-  assert!(!merged, "the fixture needs the merge to stop:\n{merge}");
-  assert!(unmerged(&team.bob).contains(&canon));
+  assert!(team.unmerged(&team.bob).contains(&canon));
 
-  let left = intent(&["sync", "--apply", "--yes"], &team.bob, team.home());
+  let left = forge.intent_said(&team.bob, &["sync", "--apply", "--yes"]);
   let line = left
     .text
     .lines()
@@ -458,7 +380,7 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
     left.text
   );
   assert!(
-    unmerged(&team.bob).contains(&canon),
+    team.unmerged(&team.bob).contains(&canon),
     "and the conflict stands"
   );
 
@@ -502,9 +424,9 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
     applied.done
   );
   assert!(
-    !unmerged(&team.bob).contains(&canon),
+    !team.unmerged(&team.bob).contains(&canon),
     "the side taken is staged"
   );
-  let shown = intent_ok(&["st", "show", st.as_str()], &team.bob, team.home());
+  let shown = forge.intent_ok(&team.bob, &["st", "show", st.as_str()]);
   assert!(shown.contains("Alice's title"), "{shown}");
 }

@@ -1806,7 +1806,13 @@ fn outstanding_prints_one_table_with_the_kind_leftmost() {
     .into_iter()
     .map(|(id, _)| id)
     .collect();
-  let at = |id: &str| order.iter().position(|listed| listed == id);
+  let at = |id: &str| {
+    let shown = crate::common::shown(id);
+    order
+      .iter()
+      .position(|listed| *listed == shown)
+      .unwrap_or_else(|| panic!("`st list --status all` lists {shown}: {order:?}"))
+  };
   let expected = if at(&minted.idle) < at(&minted.open) {
     ["ST", "WP", "ST", "Issue"]
   } else {

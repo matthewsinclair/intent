@@ -1495,6 +1495,27 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
   out
 }
 
+/// What a run printed, both streams as one text, and its exit code: for an
+/// arm that reads a line whichever stream carries it, as a git hook's line is
+/// on stderr while the command's own is on stdout.
+pub struct Said {
+  pub text: String,
+  pub code: i32,
+}
+
+impl From<(String, String, i32)> for Said {
+  fn from((out, err, code): (String, String, i32)) -> Said {
+    Said {
+      text: format!("{out}{err}"),
+      code,
+    }
+  }
+}
+
+/// The system's own directories, with no `intent` in them: what a forge's
+/// `PATH` ends with, and all of it for [`Forge::git_without_intent`].
+const SYSTEM_PATH: &str = "/usr/bin:/bin";
+
 /// **A FORGE STAND-IN** (ST0096 WP-04): a bare repository holding `main`, the
 /// clones and worktrees that open merge requests against it, and the merge a
 /// forge's merge button runs, done in the bare repository by git alone.
@@ -1508,53 +1529,79 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
 /// [`intent`]'s door. Everything lives under one tempdir, removed when the
 /// forge drops.
 ///
-/// **NO HOOKS, SO A CLEAN `doctor` HERE SAYS NOTHING OF HOOK INSTALLATION.**
-/// `core.hooksPath` is `/dev/null`, which the binary reads too; a test whose
-/// subject is the hooks wires them itself. **BUT A WORKING COPY HERE BEHAVES
-/// AS ONE WITH ITS HOOKS WIRED**: every branch switch and every pull goes
-/// through [`Forge::after_checkout`], which runs what the shipped hook runs.
-/// A fresh checkout, a clone or a new worktree, does not, because the hook
-/// skips one too and leaves the store to the first verb. Without it, a copy
-/// that switches branches keeps the old branch's records in its store and
+/// **NO HOOKS BY DEFAULT, SO A CLEAN `doctor` HERE SAYS NOTHING OF HOOK
+/// INSTALLATION.** [`Forge::new`]'s `core.hooksPath` is `/dev/null`, which
+/// the binary reads too. A test whose subject is the hooks takes
+/// [`Forge::with_hooks`] and wires them itself. **BUT A WORKING COPY HERE
+/// BEHAVES AS ONE WITH ITS HOOKS WIRED**: every branch switch and every pull
+/// through [`Forge::switch`] and [`Forge::pull`] goes through
+/// [`Forge::after_checkout`], which runs what the shipped hook runs. A fresh
+/// checkout, a clone or a new worktree, does not, because the hook skips one
+/// too and leaves the store to the first verb. Without it, a copy that
+/// switches branches keeps the old branch's records in its store and
 /// re-renders them into the new one (issue 0739).
 ///
-/// **THE ONE HOME FOR A MULTI-CLONE FIXTURE.** The tests written before it
-/// each carry their own: the remint test's local `git`, the event log's
-/// `Clone`, and a `Team` in each of `a_pull_is_reflected_by_the_next_verb.rs`
-/// and `a_pull_is_repaired_by_one_command.rs`. They stay as they are until they
-/// are folded into this one.
+/// **THE ONE HOME FOR A MULTI-CLONE FIXTURE (issue 0737).** Every clone,
+/// worktree, push and fixture commit in this crate's two-clone tests is made
+/// here, so a clone is made one way.
 pub struct Forge {
   dir: tempfile::TempDir,
   home: PathBuf,
+  hooks: bool,
 }
 
 impl Forge {
-  /// A bare `forge.git`, with `main` not yet born, and the forge's HOME.
+  /// A bare `forge.git`, with `main` not yet born, and the forge's HOME, whose
+  /// git runs no hook.
   pub fn new() -> Forge {
+    Forge::made(false)
+  }
+
+  /// [`Forge::new`], but **THE FORGE'S GIT RUNS THE HOOKS A COPY WIRES**: its
+  /// HOME's config leaves `core.hooksPath` unset, and its `PATH` puts the
+  /// binary under test first, so a hook that runs `intent` runs this one.
+  pub fn with_hooks() -> Forge {
+    Forge::made(true)
+  }
+
+  fn made(hooks: bool) -> Forge {
     let dir = tempfile::tempdir().expect("the forge's tempdir");
     let home = dir.path().join("home");
     std::fs::create_dir_all(&home).expect("the forge's HOME");
+    let core = if hooks {
+      ""
+    } else {
+      "[core]\n  hooksPath = /dev/null\n"
+    };
     std::fs::write(
       home.join(".gitconfig"),
-      "[user]\n  name = t\n  email = t@example.com\n[core]\n  hooksPath = /dev/null\n\
-       [commit]\n  gpgSign = false\n[init]\n  defaultBranch = main\n[maintenance]\n  auto = false\n",
+      format!(
+        "[user]\n  name = t\n  email = t@example.com\n{core}\
+         [commit]\n  gpgSign = false\n[init]\n  defaultBranch = main\n[maintenance]\n  auto = false\n"
+      ),
     )
     .expect("git's config for the forge's commits");
-    let forge = Forge { dir, home };
+    let forge = Forge { dir, home, hooks };
     forge.git(forge.dir.path(), &["init", "-q", "--bare", "forge.git"]);
     forge
   }
 
+  /// Where a working copy named `name` lives: beside the bare repository, in
+  /// the forge's one tempdir.
+  pub fn path(&self, name: &str) -> PathBuf {
+    self.dir.path().join(name)
+  }
+
   /// The bare repository, where only a merge is ever made.
   pub fn bare(&self) -> PathBuf {
-    self.dir.path().join("forge.git")
+    self.path("forge.git")
   }
 
   /// A clone of the forge, beside it, named `name`. A fresh checkout, so no
   /// sync, as the hook runs none: its first verb builds its store.
   pub fn clone_as(&self, name: &str) -> PathBuf {
     self.git(self.dir.path(), &["clone", "-q", "forge.git", name]);
-    self.dir.path().join(name)
+    self.path(name)
   }
 
   /// A worktree of `clone`, beside it, named `name`, detached at the forge's
@@ -1562,13 +1609,17 @@ impl Forge {
   /// hook sees the null previous HEAD `git worktree add` passes and runs
   /// nothing (post-pull.sh), and the worktree's first verb builds its store.
   pub fn worktree_of(&self, clone: &Path, name: &str) -> PathBuf {
-    let path = self.dir.path().join(name);
-    let at = path.to_str().expect("a UTF-8 tempdir");
-    self.git(
-      clone,
-      &["worktree", "add", "-q", "--detach", at, "origin/main"],
-    );
-    path
+    self.worktree_said(clone, name, "origin/main").0
+  }
+
+  /// A worktree of `clone`, beside it, named `name`, detached at `at`, with
+  /// what `git worktree add` said on both streams, where a hook a copy wired
+  /// prints: the one way a worktree is made here.
+  pub fn worktree_said(&self, clone: &Path, name: &str, at: &str) -> (PathBuf, Said) {
+    let path = self.path(name);
+    let to = path.to_str().expect("a UTF-8 tempdir");
+    let said = self.git_said(clone, &["worktree", "add", "-q", "--detach", to, at]);
+    (path, said)
   }
 
   /// `git switch <args>` in `copy`, then [`Forge::after_checkout`]: the one
@@ -1589,12 +1640,14 @@ impl Forge {
 
   /// **WHAT THE SHIPPED HOOK RUNS AFTER A BRANCH SWITCH OR A MERGE**:
   /// `intent sync --apply`, the one command `lib/templates/hooks/post-pull.sh`
-  /// runs on post-checkout and post-merge. The forge's copies have no hooks,
-  /// so this stands for them, and a copy here is one whose hooks are wired.
-  /// The hookless path is issue 0739: a copy that switches branches without
-  /// it keeps the old branch's records in its store, and its next verb
-  /// re-renders them into the new branch and then refuses the project as
-  /// unmigrated.
+  /// runs on post-checkout and post-merge. On a [`Forge::new`] forge the
+  /// copies have no hooks, so this stands for them, and a copy here is one
+  /// whose hooks are wired. **A [`Forge::with_hooks`] forge is refused**: its
+  /// wired hook would run the sync as well, and an arm could credit this with
+  /// what the hook did. The hookless path is issue 0739: a copy that switches
+  /// branches without it keeps the old branch's records in its store, and
+  /// since 0739 landed its next write is refused before anything is written,
+  /// naming `intent sync --apply` as the remedy.
   ///
   /// **STRICTER THAN THE HOOK, ON PURPOSE: ONE SYNC LEAVES NOTHING.** The hook
   /// exits 0 whatever sync says. Here the sync must leave no step (`left:`),
@@ -1606,6 +1659,10 @@ impl Forge {
   /// minted left a views step that did nothing, and a switch away from records
   /// missed an index step its own steps made due.
   fn after_checkout(&self, copy: &Path) {
+    assert!(
+      !self.hooks,
+      "after_checkout stands for the hook only on a Forge::new forge; a Forge::with_hooks copy runs its own hook on a checkout"
+    );
     let synced = self.intent_ok(copy, &["sync", "--apply"]);
     let fresh = self.intent_ok(copy, &["sync"]);
     let steps: Vec<&str> = fresh
@@ -1643,26 +1700,36 @@ impl Forge {
     );
   }
 
-  /// The forge's HOME on `command`, with the system git config off and every
-  /// inherited `GIT_*` variable and `XDG_CONFIG_HOME` removed: the one
-  /// isolation both the forge's git and the binary under test get.
+  /// The forge's HOME on `command`, which came through testkit's door and so
+  /// carries no per-user variable of the machine running the suite, with the
+  /// system git config off and every inherited `GIT_*` variable removed: the
+  /// one isolation both the forge's git, with any hook it runs, and the binary
+  /// under test get. On a [`Forge::with_hooks`] forge, `PATH` is the binary's
+  /// directory and then the system's, so a hook finds this `intent` and no
+  /// other.
   fn isolate(&self, command: &mut Command) {
-    command
-      .env("HOME", &self.home)
-      .env_remove("XDG_CONFIG_HOME");
+    command.env("HOME", &self.home);
     for (name, _) in std::env::vars_os() {
       if name.to_string_lossy().starts_with("GIT_") {
         command.env_remove(name);
       }
     }
     command.env("GIT_CONFIG_NOSYSTEM", "1");
+    if self.hooks {
+      let bin = intent_path().parent().expect("the binary's directory");
+      command.env("PATH", format!("{}:{SYSTEM_PATH}", bin.display()));
+    }
   }
 
-  /// git in `cwd`: its stdout, its stderr and its exit code.
-  pub fn git_try(&self, cwd: &Path, args: &[&str]) -> (String, String, i32) {
-    let mut command = Command::new("git");
-    command.current_dir(cwd);
+  /// git in `cwd`, isolated, on `path` when one is given: its stdout, its
+  /// stderr and its exit code.
+  fn git_on(&self, cwd: &Path, args: &[&str], path: Option<&str>) -> (String, String, i32) {
+    let mut command = testkit::fixtured_command("git");
     self.isolate(&mut command);
+    if let Some(path) = path {
+      command.env("PATH", path);
+    }
+    command.current_dir(cwd);
     // LIFELINE-EXEMPT: this runs git with a git argv, never the CLI's, so it
     // starts no daemon whatever the argv holds.
     command.args(args);
@@ -1674,8 +1741,20 @@ impl Forge {
     )
   }
 
-  /// [`Forge::git_try`], failing the test unless git exits 0: its stdout.
-  pub fn git(&self, cwd: &Path, args: &[&str]) -> String {
+  /// git in `cwd`: its stdout, its stderr and its exit code.
+  pub fn git_try(&self, cwd: &Path, args: &[&str]) -> (String, String, i32) {
+    self.git_on(cwd, args, None)
+  }
+
+  /// [`Forge::git_try`] with no `intent` on `PATH`, so a hook that runs one
+  /// cannot find it.
+  pub fn git_without_intent(&self, cwd: &Path, args: &[&str]) -> (String, String, i32) {
+    self.git_on(cwd, args, Some(SYSTEM_PATH))
+  }
+
+  /// [`Forge::git_try`], failing the test unless git exits 0: its stdout and
+  /// its stderr. The one place a forge's git must succeed.
+  fn git_ok(&self, cwd: &Path, args: &[&str]) -> (String, String) {
     let (out, err, code) = self.git_try(cwd, args);
     assert_eq!(
       code,
@@ -1684,7 +1763,19 @@ impl Forge {
       args.join(" "),
       cwd.display()
     );
-    out
+    (out, err)
+  }
+
+  /// git in `cwd`, failing the test unless it exits 0: its stdout.
+  pub fn git(&self, cwd: &Path, args: &[&str]) -> String {
+    self.git_ok(cwd, args).0
+  }
+
+  /// git in `cwd`, failing the test unless it exits 0: both streams as one
+  /// text, for an arm that reads what a hook printed.
+  pub fn git_said(&self, cwd: &Path, args: &[&str]) -> Said {
+    let (out, err) = self.git_ok(cwd, args);
+    Said::from((out, err, 0))
   }
 
   /// The binary under test in `cwd`, isolated as the forge's git is: stdout,
@@ -1705,6 +1796,11 @@ impl Forge {
     )
   }
 
+  /// [`Forge::intent`], both streams as one text, whatever it exits.
+  pub fn intent_said(&self, cwd: &Path, args: &[&str]) -> Said {
+    Said::from(self.intent(cwd, args))
+  }
+
   /// [`Forge::intent`], failing the test unless it exits 0: its stdout.
   pub fn intent_ok(&self, cwd: &Path, args: &[&str]) -> String {
     let (out, err, code) = self.intent(cwd, args);
@@ -1716,6 +1812,23 @@ impl Forge {
       cwd.display()
     );
     out
+  }
+
+  /// `git commit -q --no-verify` in `cwd`, then `args`: the one way a fixture
+  /// commits. **`--no-verify` BECAUSE THE COMMIT GATE IS NEVER A FORGE TEST'S
+  /// SUBJECT**, and on a [`Forge::with_hooks`] forge the gate a copy wires
+  /// needs an install pointer the forge's HOME carries only once a test runs
+  /// `bootstrap`.
+  pub fn commit(&self, cwd: &Path, args: &[&str]) {
+    let mut commit = vec!["commit", "-q", "--no-verify"];
+    commit.extend_from_slice(args);
+    self.git(cwd, &commit);
+  }
+
+  /// Everything in `cwd`, added and committed as `message`.
+  pub fn commit_all(&self, cwd: &Path, message: &str) {
+    self.git(cwd, &["add", "-A"]);
+    self.commit(cwd, &["-m", message]);
   }
 
   /// Commit, in `cwd`, exactly the paths `outs` printed under `wrote:` and
@@ -1740,7 +1853,7 @@ impl Forge {
     let mut add = vec!["add", "-A", "--"];
     add.extend(paths.iter().copied());
     self.git(cwd, &add);
-    self.git(cwd, &["commit", "-q", "-m", message]);
+    self.commit(cwd, &["-m", message]);
     let left = self.git(cwd, &["status", "--porcelain", "--untracked-files=all"]);
     assert!(
       left.trim().is_empty(),

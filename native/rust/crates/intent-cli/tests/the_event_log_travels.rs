@@ -24,61 +24,40 @@
 //!   `upgrade_names_an_event_log_with_content_and_leaves_it`.
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
 
-/// One person's clone, with its own git identity and its own isolated HOME, so
-/// no bootstrap on the machine running the suite names the author.
-struct Clone {
+use crate::common::Forge;
+
+/// One person's clone of the forge, with its own git identity, under the
+/// forge's isolated HOME, so no bootstrap on the machine running the suite
+/// names the author.
+struct Clone<'f> {
+  forge: &'f Forge,
   root: PathBuf,
-  home: PathBuf,
 }
 
-impl Clone {
-  fn run(&self, args: &[&str]) -> Output {
-    crate::common::intent()
-      .args(args)
-      .current_dir(&self.root)
-      .env("HOME", &self.home)
-      .env("XDG_CONFIG_HOME", self.home.join(".config"))
-      .env("XDG_DATA_HOME", self.home.join(".local/share"))
-      .env("XDG_STATE_HOME", self.home.join(".local/state"))
-      .stdin(testkit::lifeline_for(args))
-      .output()
-      .expect("run the v3 binary")
+impl Clone<'_> {
+  /// The binary in this clone: stdout, stderr and the exit code.
+  fn run(&self, args: &[&str]) -> (String, String, i32) {
+    self.forge.intent(&self.root, args)
   }
 
   fn intent(&self, args: &[&str]) -> String {
-    let out = self.run(args);
-    assert_eq!(
-      out.status.code(),
-      Some(0),
-      "`intent {}` failed\nstdout: {}\nstderr: {}",
-      args.join(" "),
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8_lossy(&out.stdout).to_string()
+    self.forge.intent_ok(&self.root, args)
   }
 
   /// Doctor's whole output, whatever its verdict: a finding exits non-zero.
   fn doctor(&self, args: &[&str]) -> String {
     let mut argv = vec!["doctor"];
     argv.extend_from_slice(args);
-    let out = self.run(&argv);
-    format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    )
+    self.forge.intent_said(&self.root, &argv).text
   }
 
   fn git(&self, args: &[&str]) -> String {
-    git(&self.root, args)
+    self.forge.git(&self.root, args)
   }
 
   fn commit(&self, message: &str) {
-    self.git(&["add", "-A"]);
-    self.git(&["commit", "-q", "-m", message]);
+    self.forge.commit_all(&self.root, message);
   }
 
   fn event_files(&self) -> Vec<PathBuf> {
@@ -91,21 +70,6 @@ impl Clone {
   fn events_json(&self) -> serde_json::Value {
     serde_json::from_str(&self.intent(&["events", "--format", "json"])).expect("events json")
   }
-}
-
-fn git(root: &Path, args: &[&str]) -> String {
-  let out = Command::new("git")
-    .args(args)
-    .current_dir(root)
-    .output()
-    .expect("run git");
-  assert!(
-    out.status.success(),
-    "git {} failed: {}",
-    args.join(" "),
-    String::from_utf8_lossy(&out.stderr)
-  );
-  String::from_utf8_lossy(&out.stdout).to_string()
 }
 
 fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -122,50 +86,37 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
   }
 }
 
-fn identify(root: &Path, name: &str) {
-  git(root, &["config", "user.name", name]);
-  git(
-    root,
-    &[
-      "config",
-      "user.email",
-      &format!("{}@example.com", name.to_lowercase()),
-    ],
-  );
+/// `clone`'s own git identity, `name`, which its repository's config carries
+/// over the forge's HOME's.
+fn identify(clone: &Clone, name: &str) {
+  clone.git(&["config", "user.name", name]);
+  clone.git(&[
+    "config",
+    "user.email",
+    &format!("{}@example.com", name.to_lowercase()),
+  ]);
 }
 
-/// Alice's project, initialised with one thread and committed, Bob's clone of
-/// it, and that thread's id. Neither machine has bootstrapped, so the config's
-/// author is `init`'s placeholder and each event names the git identity of the
-/// clone it was made on.
-fn two_clones(dir: &Path) -> (Clone, Clone, String) {
+/// Alice's project, initialised with one thread, committed and pushed to the
+/// forge, Bob's clone of it, and that thread's id. Neither machine has
+/// bootstrapped, so the config's author is `init`'s placeholder and each event
+/// names the git identity of the clone it was made on.
+fn two_clones(forge: &Forge) -> (Clone<'_>, Clone<'_>, String) {
   let alice = Clone {
-    root: dir.join("alice"),
-    home: dir.join("home-alice"),
+    forge,
+    root: forge.clone_as("alice"),
   };
-  std::fs::create_dir_all(&alice.root).expect("mkdir alice");
-  std::fs::create_dir_all(&alice.home).expect("mkdir alice home");
-  alice.git(&["init", "-q"]);
-  identify(&alice.root, "Alice");
+  identify(&alice, "Alice");
   alice.intent(&["init", "Team"]);
   let st = crate::common::created(&alice.intent(&["st", "new", "Onboarding guide"]));
   alice.commit(&format!("alice: init and {st}"));
+  alice.git(&["push", "-q", "origin", "HEAD:main"]);
 
   let bob = Clone {
-    root: dir.join("bob"),
-    home: dir.join("home-bob"),
+    forge,
+    root: forge.clone_as("bob"),
   };
-  std::fs::create_dir_all(&bob.home).expect("mkdir bob home");
-  git(
-    dir,
-    &[
-      "clone",
-      "-q",
-      alice.root.to_str().expect("utf8"),
-      bob.root.to_str().expect("utf8"),
-    ],
-  );
-  identify(&bob.root, "Bob");
+  identify(&bob, "Bob");
   (alice, bob, st)
 }
 
@@ -174,8 +125,8 @@ fn two_clones(dir: &Path) -> (Clone, Clone, String) {
 /// day's directory, landing in the act's own write set.
 #[test]
 fn an_act_on_one_clone_is_read_on_another_with_its_author() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, bob, st) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, bob, st) = two_clones(&forge);
 
   // Each of Alice's events is one file under its day, named by its id.
   let files = alice.event_files();
@@ -258,8 +209,8 @@ fn the_author_is_git_then_the_config_then_local() {
 /// machine alone, so its row is written and no file is.
 #[test]
 fn a_heartbeat_stays_on_the_machine_that_beat() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let before = alice.event_files().len();
 
   alice.intent(&[
@@ -290,8 +241,8 @@ fn a_heartbeat_stays_on_the_machine_that_beat() {
 /// and a row stays when its file is absent.
 #[test]
 fn ingest_takes_what_is_missing_and_changes_nothing_else() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, bob, st) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, bob, st) = two_clones(&forge);
   let wp = crate::common::created(&bob.intent(&["wp", "new", st.as_str(), "Write it"]));
   bob.commit(&format!(
     "bob: {}",
@@ -375,8 +326,8 @@ fn ingest_takes_what_is_missing_and_changes_nothing_else() {
 /// hooks print on.
 #[test]
 fn the_sync_plan_names_waiting_event_files_and_apply_takes_them() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let first = alice.event_files().remove(0);
   let mut foreign: serde_json::Value =
     serde_json::from_str(&std::fs::read_to_string(&first).expect("read")).expect("json");
@@ -416,8 +367,8 @@ fn the_sync_plan_names_waiting_event_files_and_apply_takes_them() {
 /// second run writes nothing.
 #[test]
 fn upgrade_backfills_the_history_the_store_held_once() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   alice.intent(&[
     "wb", "register", "al", "--name", "Alice", "--role", "worker",
   ]);
@@ -436,9 +387,8 @@ fn upgrade_backfills_the_history_the_store_held_once() {
     "the store holds a machine-scoped event, or this arm cannot see it skipped: {events}"
   );
 
-  let out = alice.run(&["upgrade"]);
-  let said = String::from_utf8_lossy(&out.stderr);
-  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  let (_, said, code) = alice.run(&["upgrade"]);
+  assert_eq!(code, 0, "upgrade: {said}");
   assert!(
     said.contains(&format!("backfilled: {} event file(s)", travelling.len())),
     "the backfill says how many it wrote: {said}"
@@ -468,8 +418,7 @@ fn upgrade_backfills_the_history_the_store_held_once() {
     .iter()
     .map(|p| std::fs::read(p).expect("read"))
     .collect();
-  let again = alice.run(&["upgrade"]);
-  let said = String::from_utf8_lossy(&again.stderr);
+  let (_, said, _) = alice.run(&["upgrade"]);
   assert!(
     !said.contains("backfilled:"),
     "a second run writes nothing: {said}"
@@ -488,16 +437,11 @@ fn upgrade_backfills_the_history_the_store_held_once() {
 /// tree's: one scoped to `.canon/events/` was the read that could not see it.
 #[test]
 fn upgrade_on_a_migrated_estate_writes_no_event_log_file() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
 
-  let out = alice.run(&["upgrade"]);
-  assert_eq!(
-    out.status.code(),
-    Some(0),
-    "upgrade: {}",
-    String::from_utf8_lossy(&out.stderr)
-  );
+  let (_, said, code) = alice.run(&["upgrade"]);
+  assert_eq!(code, 0, "upgrade: {said}");
   let status = alice.git(&["status", "--short", "--untracked-files=all"]);
   assert!(
     !status.contains("events.jsonl"),
@@ -538,13 +482,12 @@ fn an_estate_from_before_st0078(alice: &Clone, body: &str) -> String {
 /// its operator to commit. The status read is the whole tree's.
 #[test]
 fn upgrade_removes_the_empty_event_log_an_earlier_upgrade_left() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let converged = an_estate_from_before_st0078(&alice, "");
 
-  let out = alice.run(&["upgrade"]);
-  let said = String::from_utf8_lossy(&out.stderr);
-  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  let (_, said, code) = alice.run(&["upgrade"]);
+  assert_eq!(code, 0, "upgrade: {said}");
   assert!(
     said.contains("removed: ")
       && said.contains("intent/events.jsonl -- the empty single-file event log"),
@@ -570,14 +513,13 @@ fn upgrade_removes_the_empty_event_log_an_earlier_upgrade_left() {
 /// remove.** It is left where it is and named with why.
 #[test]
 fn upgrade_names_an_event_log_with_content_and_leaves_it() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let body = "{\"op\":\"st.new\"}\n";
   an_estate_from_before_st0078(&alice, body);
 
-  let out = alice.run(&["upgrade"]);
-  let said = String::from_utf8_lossy(&out.stderr);
-  assert_eq!(out.status.code(), Some(0), "upgrade: {said}");
+  let (_, said, code) = alice.run(&["upgrade"]);
+  assert_eq!(code, 0, "upgrade: {said}");
   assert!(
     said.contains("kept: ") && said.contains(&format!("it holds {} byte(s)", body.len())),
     "the log is named with why it stays: {said}"
@@ -595,8 +537,8 @@ fn upgrade_names_an_event_log_with_content_and_leaves_it() {
 /// does not have builds no thread and draws no reconciliation finding.
 #[test]
 fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let first = alice.event_files().remove(0);
   let day = first.parent().expect("day dir").to_path_buf();
   let good: serde_json::Value =
@@ -652,10 +594,9 @@ fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
   alice.intent(&["sync", "--apply"]);
   let read = alice.intent(&["events", "--subject", "ST0099"]);
   assert!(read.contains(id), "the event is ingested: {read}");
-  let show = alice.run(&["st", "show", "ST0099"]);
+  let (_, _, shown) = alice.run(&["st", "show", "ST0099"]);
   assert_ne!(
-    show.status.code(),
-    Some(0),
+    shown, 0,
     "nothing rebuilds state from events, so ST0099 exists only in the log"
   );
   let out = alice.doctor(&["--verbose"]);
@@ -671,8 +612,8 @@ fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
 /// naming what it carries, and the take that sync runs writes nothing of it.
 #[test]
 fn an_event_file_whose_stamp_is_not_one_is_refused_and_never_taken() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let written = alice.event_files();
   assert!(!written.is_empty(), "the clone wrote events");
   for path in &written {
@@ -741,8 +682,7 @@ fn an_event_file_whose_stamp_is_not_one_is_refused_and_never_taken() {
   // `sync --apply` ends with doctor and exits with its verdict, which the two
   // misstamped files keep red; what it took is read from what it printed and
   // from the store, not from its exit code.
-  let sync = alice.run(&["sync", "--apply"]);
-  let said = String::from_utf8_lossy(&sync.stdout);
+  let (said, _, _) = alice.run(&["sync", "--apply"]);
   assert!(
     said.contains(&format!("{} event file(s) to take", planted.len() + 1)),
     "the plan names every file the store does not hold: {said}"
@@ -775,8 +715,8 @@ fn an_event_file_finding_gives_its_own_remedy_and_not_its_class() {
   use intentsvcs::event::EventFileError;
   use intentsvcs::finding::FindingClass;
   use intentsvcs::remedy::Remedy;
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let first = alice.event_files().remove(0);
   let day = first.parent().expect("day dir").to_path_buf();
   let good: serde_json::Value =
@@ -849,8 +789,8 @@ fn an_event_file_finding_gives_its_own_remedy_and_not_its_class() {
 /// `export` still produces the single-file form.**
 #[test]
 fn upgrade_retires_the_ignore_rule_and_export_keeps_one_file() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  let (alice, _bob, _) = two_clones(dir.path());
+  let forge = Forge::new();
+  let (alice, _bob, _) = two_clones(&forge);
   let gitignore = alice.root.join(".gitignore");
   let converged = std::fs::read_to_string(&gitignore).expect("read .gitignore");
   assert!(
