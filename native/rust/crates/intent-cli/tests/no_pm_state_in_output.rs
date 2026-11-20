@@ -122,7 +122,9 @@ fn pm_identifiers(text: &str, decisions: Decisions) -> Vec<String> {
     match identifier_at(b, i, decisions) {
       Some(end) => {
         let id = &text[i..end];
-        if id != READERS_OWN {
+        // The reader's own id, and any other format example the waist spells
+        // (the zero family, the worked hashed example: issue 0736).
+        if id != READERS_OWN && !intentsvcs::id::is_example(id) {
           found.push(id.to_string());
         }
         i = end;
@@ -149,13 +151,20 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
   // would let a leak hide behind an apostrophe.
   let ends = |at: usize| -> bool { at >= b.len() || !b[at].is_ascii_alphanumeric() };
 
-  // `ST0056`, and NOT `ST00567`.
-  if b[i..].starts_with(b"ST") && digits(i + 2, 4) && ends(i + 6) {
-    return Some(i + 6);
-  }
-  // `WP-06`.
-  if b[i..].starts_with(b"WP-") && digits(i + 3, 2) && ends(i + 5) {
-    return Some(i + 5);
+  // A record's id as a face prints it, of either family: `ST0056` and not
+  // `ST00567`, `WP-06`, and a hashed thread, package or issue, each read by the
+  // waist (issue 0736). The word runs to the right boundary; a package's
+  // heading keeps its `WP-`.
+  let from = if b[i..].starts_with(b"WP-") { i + 3 } else { i };
+  let end = (from..b.len())
+    .find(|&at| !b[at].is_ascii_alphanumeric())
+    .unwrap_or(b.len());
+  if std::str::from_utf8(&b[i..end])
+    .ok()
+    .and_then(intentsvcs::id::marked)
+    .is_some()
+  {
+    return Some(end);
   }
   // `AC-02.8`, `AT-00.11` -- group of two, then a dot, then a sequence.
   for prefix in [b"AC-", b"AT-"] {
@@ -533,6 +542,25 @@ fn the_rule_keys_on_referent_and_not_on_shape() {
   assert_eq!(pm_identifiers("see ST0056", anywhere), vec!["ST0056"]);
   assert_eq!(pm_identifiers("covers AC-02.8", anywhere), vec!["AC-02.8"]);
   assert_eq!(pm_identifiers("covers AT-00.8", anywhere), vec!["AT-00.8"]);
+  // A hashed id of each kind, which a grammar of digits never saw (issue 0736).
+  let thread = intentsvcs::id::ThreadId::from_origin("a planted thread").shown();
+  let issue = intentsvcs::id::IssueId::from_origin("a planted issue").shown();
+  let package = intentsvcs::id::WpId::from_origin("a planted package").heading();
+  assert_eq!(
+    pm_identifiers(&format!("see {thread}, {issue} and {package}"), anywhere),
+    vec![thread, issue, package]
+  );
+  // The waist's own form sentences are worked examples, not our records.
+  for form in [
+    intentsvcs::id::THREAD_ID_FORM,
+    intentsvcs::id::ISSUE_ID_FORM,
+    intentsvcs::id::WP_ADDRESS_FORM,
+  ] {
+    assert!(
+      pm_identifiers(form, anywhere).is_empty(),
+      "`{form}` is a format example"
+    );
+  }
   assert_eq!(
     pm_identifiers("the shape of issue 0442", anywhere),
     vec!["issue 0442"]
@@ -673,6 +701,11 @@ fn real_thread_ids() -> BTreeSet<String> {
     if path.extension().and_then(|e| e.to_str()) == Some("json")
       && let Some(stem) = path.file_stem().and_then(|s| s.to_str())
     {
+      // A hashed thread is cited by its shown form, so the roster holds that
+      // as well as the stored stem (issue 0736).
+      if let Ok(id) = intentsvcs::id::ThreadId::parse(stem) {
+        ids.insert(id.shown());
+      }
       ids.insert(stem.to_string());
     }
   }

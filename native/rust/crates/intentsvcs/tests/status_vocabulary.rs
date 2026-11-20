@@ -295,6 +295,18 @@ fn the_status_line_filter_admits_a_value_and_refuses_a_column_header() {
     !lines.iter().any(|l| l.contains("| ID")),
     "a header row reached the classifier: {lines:?}"
   );
+  // A hashed record's row is an entity row too, which a grammar of digits
+  // never saw (issue 0736).
+  let hashed = [
+    intentsvcs::id::ThreadId::from_origin("a planted thread").shown(),
+    intentsvcs::id::WpId::from_origin("a planted package").heading(),
+  ];
+  for id in hashed {
+    assert!(
+      is_entity_row(&format!("| {id} | a title | Triage |")),
+      "a hashed record's row `{id}` must reach the classifier"
+    );
+  }
 }
 
 /// Render every view for a one-thread canon and return only the lines that
@@ -349,12 +361,14 @@ fn is_entity_row(line: &str) -> bool {
   let Some(first) = line.split('|').nth(1) else {
     return false;
   };
-  let cell = first.trim();
-  let rest = cell
-    .strip_prefix("ST")
-    .or_else(|| cell.strip_prefix("WP-"))
-    .unwrap_or("");
-  !rest.is_empty() && rest.chars().all(|c| c.is_ascii_digit())
+  // A thread's or a package's id as a face prints it, of either family, read
+  // by the waist (issue 0736). An issue's row is not this file's subject: it
+  // checks the thread and work-package vocabularies, as the ordinal grammar
+  // before it did.
+  matches!(
+    intentsvcs::id::marked(first.trim()),
+    Some(intentsvcs::id::IdKind::Thread | intentsvcs::id::IdKind::WorkPackage)
+  )
 }
 
 /// Whether any status-bearing line renders `spelling`.

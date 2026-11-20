@@ -127,6 +127,14 @@ fn is_dev_id(w: &str) -> bool {
     w.strip_prefix(p)
       .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
   }) || (w.len() == 5 && w.starts_with("TN") && w[2..].chars().all(|c| c.is_ascii_digit()))
+    || w.split(['/', ':', '.']).any(names_a_record)
+}
+
+/// A record's id as a face prints it, of either family, read by the waist
+/// (issue 0736). A format example (the zero family, the worked hashed example)
+/// is not one of our records.
+fn names_a_record(w: &str) -> bool {
+  intentsvcs::id::marked(w).is_some() && !intentsvcs::id::is_example(w)
 }
 
 fn is_rust_path(w: &str) -> bool {
@@ -196,11 +204,28 @@ fn no_rendered_register_text_carries_a_maintainers_note() {
 /// that has only ever passed is indistinguishable from one that cannot fail.
 #[test]
 fn each_detector_fires_on_its_shape_and_a_clean_text_passes() {
+  // A hashed record id of each kind a thread or issue takes, which no grammar
+  // of digits saw (issue 0736).
+  let planted_thread = format!(
+    "Owed by {}",
+    intentsvcs::id::ThreadId::from_origin("a planted thread").shown()
+  );
+  let planted_issue = format!(
+    "Filed as {}",
+    intentsvcs::id::IssueId::from_origin("a planted issue").shown()
+  );
+  let planted_package = format!(
+    "Owed by {}",
+    intentsvcs::id::WpId::from_origin("a planted package").heading()
+  );
   for (text, kind) in [
     ("Refuses here (render.rs:1215 says why)", "Rust source path"),
     ("Ruled on 2026-09-24 by the release", "date"),
     ("Exposed implies servable (AC-09.6)", "development id"),
     ("See INV-04 for the exit contract", "development id"),
+    (planted_thread.as_str(), "development id"),
+    (planted_issue.as_str(), "development id"),
+    (planted_package.as_str(), "development id"),
     ("The detector from issue 0142", "issue citation"),
     ("vc landed this after the build", "node moniker"),
   ] {
@@ -216,6 +241,10 @@ fn each_detector_fires_on_its_shape_and_a_clean_text_passes() {
     "`intent sync --to-store` carries each board.json into the store",
     "USE IT when every node needs the same line, or to broadcast a ruling",
     "a `vc` in a code span is the reader's own name, not ours",
+    "name a thread as ST0000, the reader's own",
+    intentsvcs::id::THREAD_ID_FORM,
+    intentsvcs::id::ISSUE_ID_FORM,
+    intentsvcs::id::WP_ADDRESS_FORM,
   ] {
     assert!(
       maintainer_notes(clean).is_empty(),

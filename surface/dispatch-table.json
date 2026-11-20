@@ -1487,7 +1487,7 @@
               "name": "id",
               "type": "st-id",
               "arity": "0..1",
-              "note": "Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0001` and `0001` ONLY"
+              "note": "Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0000` and `0000` ONLY"
             }
           ],
           "flags": [

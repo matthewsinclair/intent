@@ -782,7 +782,7 @@ Repair malformed steel thread metadata
 - **v2:** bin/intent_st:1212-1433
 - **Arguments:**
   - `id` (st-id, arity `0..1`)
-    - Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0001` and `0001` ONLY
+    - Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0000` and `0000` ONLY
 - **Flags:**
   - `--write` (bool) -- Apply the repairs; without it the command is a dry run
     - **disposition:** retire

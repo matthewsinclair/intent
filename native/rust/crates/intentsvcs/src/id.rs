@@ -113,21 +113,57 @@ pub const CLAIM_ISSUE_PREFIX: &str = "ISSUE:";
 pub const CLAIM_ADDRESS_FORMS: &str =
   "a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`";
 
+/// The worked example's hex, as a thread or an issue shows it: the front of
+/// [`EXAMPLE_HEX`]. A macro, so each form sentence below is built from it.
+macro_rules! example_shown {
+  () => {
+    "3f9a2c1"
+  };
+}
+
+/// The worked example's package hex, as a package shows it: the front of
+/// [`EXAMPLE_WP_HEX`].
+macro_rules! example_wp_shown {
+  () => {
+    "c2e4"
+  };
+}
+
+/// **THE ONE WORKED EXAMPLE OF A HASHED ID** that a form sentence, a doc or a
+/// schema comment spells: a thread's or an issue's whole stored hex. It names
+/// no record, so a scanner for ids in shipped text exempts it through
+/// [`is_example`] (issue 0736).
+pub const EXAMPLE_HEX: &str = concat!(example_shown!(), "d4e5f6a7b");
+
+/// The worked example of a hashed package's whole stored hex, as
+/// [`EXAMPLE_HEX`] is a thread's or an issue's.
+pub const EXAMPLE_WP_HEX: &str = concat!(example_wp_shown!(), "1a0b");
+
 /// **THE ONE SENTENCE OF A THREAD ID'S FORM** that every refusal quotes (the
 /// Highlander sweep's C13: three refusals each said it in their own words).
-pub const THREAD_ID_FORM: &str = "a steel-thread id is ST followed by four digits, eg ST0000, \
-   or a hashed id or a unique prefix of its hex, eg ST3f9a2c1";
+pub const THREAD_ID_FORM: &str = concat!(
+  "a steel-thread id is ST followed by four digits, eg ST0000, ",
+  "or a hashed id or a unique prefix of its hex, eg ST",
+  example_shown!()
+);
 
 /// The one sentence of an issue id's form, as [`THREAD_ID_FORM`] is a thread's.
-pub const ISSUE_ID_FORM: &str =
-  "an issue id is four digits, eg 0001, or a hashed id or a unique prefix of its hex, eg I3f9a2c1";
+pub const ISSUE_ID_FORM: &str = concat!(
+  "an issue id is four digits, eg 0001, or a hashed id or a unique prefix of its hex, eg I",
+  example_shown!()
+);
 
 /// The one sentence of a work package's address, as [`THREAD_ID_FORM`] is a
 /// thread id's (cc's meaning, 2026-11-20): its thread's id, a slash and its own
 /// id, in either family, each part whole or a unique prefix of its hex. The
 /// stored address carries both ids whole.
-pub const WP_ADDRESS_FORM: &str = "a work package's address is its thread's id, a slash and its own id, \
-   eg ST0000/01 or ST3f9a2c1/c2e4";
+pub const WP_ADDRESS_FORM: &str = concat!(
+  "a work package's address is its thread's id, a slash and its own id, ",
+  "eg ST0000/01 or ST",
+  example_shown!(),
+  "/",
+  example_wp_shown!()
+);
 
 /// The tag an operator can type before a thread's digits: `s59` is `ST0059`.
 const THREAD_TAG: char = 's';
@@ -1236,6 +1272,93 @@ pub fn check_spelling(raw: &str, kind: IdKind) -> Result<(), IdError> {
   }
 }
 
+/// **WHICH KIND OF RECORD `word` NAMES, WHEN IT IS SPELLED EXACTLY AS A FACE
+/// PRINTS ONE**, for a scanner that looks for ids in text it did not write
+/// (issue 0736): a thread's `ST` id, a hashed issue's `I` id, or a package's
+/// `WP-` heading, each in the form a table, view or message shows it or the
+/// form the store keeps, marker and case included.
+///
+/// **NOT AN OPERATOR'S SPELLING.** A door takes `s59`, `st0059`, a bare hex
+/// prefix or any case; text that only mentions a record spells it the one way
+/// a face printed it, so a word that differs from both of an id's forms is not
+/// one here. That keeps an English word behind a marker (`STAFFED`, `Iced`)
+/// from being read as an id. A prefix shorter or longer than the shown width
+/// is refused for the same reason, and is not a missed leak: no face prints
+/// one, so Intent cannot have written it.
+///
+/// **THE CALLER OWNS ITS WORD BOUNDARIES.** One word is one id: a package's
+/// address (`ST0096/05`) is a thread's id, a `/` and the package's bare form,
+/// and a caller that splits on `/` sees the thread. Where to split, which ids
+/// are exempt (the zero family, a reader's own) and which labels it also
+/// counts are each scanner's own subject.
+///
+/// **A BARE ISSUE ORDINAL IS OUT OF REACH.** An ordinal issue is shown as its
+/// four digits with no marker (`0736`), which prose cannot tell from any other
+/// four-digit number, so a scanner that must catch one needs a context of its
+/// own, such as the word `issue` before it. The rest of the ordinal family, and
+/// every hashed id, carries its marker.
+pub fn marked(word: &str) -> Option<IdKind> {
+  // A hashed id's shown form: the marker and exactly the shown width of hex,
+  // lowercase as a face prints it.
+  let shown_hex =
+    |marker: &str, hex: &str, width: usize| hex.len() == width && word == format!("{marker}{hex}");
+  if word.starts_with(THREAD_PREFIX) {
+    match read_thread(word) {
+      Ok(Spelled::Whole(id)) if word == id.shown() || word == id.stored() => {
+        return Some(IdKind::Thread);
+      }
+      Ok(Spelled::Prefix(hex)) if shown_hex(THREAD_PREFIX, &hex, SHOWN_HEX) => {
+        return Some(IdKind::Thread);
+      }
+      _ => {}
+    }
+  }
+  if let Some(rest) = word.strip_prefix(WP_HEADING_PREFIX) {
+    match read_wp(word) {
+      Ok(Spelled::Whole(id)) if rest == id.shown() || rest == id.stored() => {
+        return Some(IdKind::WorkPackage);
+      }
+      Ok(Spelled::Prefix(hex)) if shown_hex(WP_HEADING_PREFIX, &hex, WP_SHOWN_HEX) => {
+        return Some(IdKind::WorkPackage);
+      }
+      _ => {}
+    }
+  }
+  if word.starts_with(ISSUE_MARKER) {
+    match read_issue(word) {
+      Ok(Spelled::Whole(id)) if id.is_hashed() && (word == id.shown() || word == id.stored()) => {
+        return Some(IdKind::Issue);
+      }
+      Ok(Spelled::Prefix(hex)) if shown_hex(ISSUE_MARKER, &hex, SHOWN_HEX) => {
+        return Some(IdKind::Issue);
+      }
+      _ => {}
+    }
+  }
+  None
+}
+
+/// **WHETHER `word` IS AN EXAMPLE RATHER THAN A RECORD**, for a scanner that
+/// has found an id with [`marked`] and must not count a format example as
+/// one of ours (issue 0736): the zero family, all zeros behind its marker
+/// (`ST0000`, `WP-00`), or the worked example of a hashed id, [`EXAMPLE_HEX`]
+/// or [`EXAMPLE_WP_HEX`] or a front of it, behind its marker. One predicate,
+/// so every scanner exempts the same words.
+///
+/// A minted id whose front happens to equal the example's is exempt too: a
+/// miss of about 1 in 16^7 for a thread or an issue, accepted so that the
+/// format text can name a real-looking id (cc's meaning, issue 0736).
+pub fn is_example(word: &str) -> bool {
+  let behind = |marker: &str, example: &str| {
+    word.strip_prefix(marker).is_some_and(|rest| {
+      !rest.is_empty() && (rest.bytes().all(|b| b == b'0') || example.starts_with(rest))
+    })
+  };
+  behind(THREAD_PREFIX, EXAMPLE_HEX)
+    || behind(ISSUE_MARKER, EXAMPLE_HEX)
+    || behind(WP_HEADING_PREFIX, EXAMPLE_WP_HEX)
+}
+
 /// The ids a typed prefix is completed against: the records the store holds.
 ///
 /// **THE STORE IS INJECTED, AS PRESENCE IS** ([`crate::resolve`],
@@ -2189,6 +2312,100 @@ impl async_graphql::OutputType for ThreadId {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// [`is_example`] holds the zero family and the worked hashed example, every
+  /// id the form sentences spell, and no minted id (issue 0736).
+  #[test]
+  fn is_example_holds_the_zero_family_and_the_worked_example_only() {
+    let shown = &EXAMPLE_HEX[..SHOWN_HEX];
+    let wp_shown = &EXAMPLE_WP_HEX[..WP_SHOWN_HEX];
+    for word in [
+      format!("{THREAD_PREFIX}0000"),
+      format!("{WP_HEADING_PREFIX}00"),
+      format!("{THREAD_PREFIX}{shown}"),
+      format!("{THREAD_PREFIX}{EXAMPLE_HEX}"),
+      format!("{ISSUE_MARKER}{shown}"),
+      format!("{ISSUE_MARKER}{EXAMPLE_HEX}"),
+      format!("{WP_HEADING_PREFIX}{wp_shown}"),
+      format!("{WP_HEADING_PREFIX}{EXAMPLE_WP_HEX}"),
+    ] {
+      assert!(is_example(&word), "`{word}` is a format example");
+    }
+    // Each form sentence spells only examples: every id `marked` finds in it.
+    for form in [THREAD_ID_FORM, ISSUE_ID_FORM, WP_ADDRESS_FORM] {
+      for word in form.split(|c: char| !(c.is_ascii_alphanumeric() || c == '-')) {
+        assert!(
+          marked(word).is_none() || is_example(word),
+          "`{word}` in `{form}` is an id that is no example"
+        );
+      }
+    }
+    for minted in [
+      ThreadId::from_origin("a minted thread").shown(),
+      IssueId::from_origin("a minted issue").shown(),
+      WpId::from_origin("a minted package").heading(),
+      ThreadId::from_ordinal(56).expect("an ordinal").shown(),
+    ] {
+      assert!(!is_example(&minted), "`{minted}` names a record");
+    }
+  }
+
+  /// [`marked`] finds every id in each form a face prints or the store keeps,
+  /// hashed and ordinal, and nothing that differs from both (issue 0736).
+  #[test]
+  fn marked_reads_an_id_as_a_face_prints_it_and_nothing_else() {
+    let thread = ThreadId::from_origin("a hashed thread");
+    let issue = IssueId::from_origin("a hashed issue");
+    let package = WpId::from_origin("a hashed package");
+    let ordinal_thread = ThreadId::from_ordinal(56).expect("an ordinal thread");
+    let ordinal_package = WpId::from_ordinal(9).expect("an ordinal package");
+    for (word, kind) in [
+      (thread.shown(), IdKind::Thread),
+      (thread.stored(), IdKind::Thread),
+      (ordinal_thread.shown(), IdKind::Thread),
+      (issue.shown(), IdKind::Issue),
+      (issue.stored(), IdKind::Issue),
+      (package.heading(), IdKind::WorkPackage),
+      (
+        format!("{WP_HEADING_PREFIX}{}", package.stored()),
+        IdKind::WorkPackage,
+      ),
+      (ordinal_package.heading(), IdKind::WorkPackage),
+    ] {
+      assert_eq!(
+        marked(&word),
+        Some(kind),
+        "`{word}` names a {}",
+        kind.as_str()
+      );
+    }
+
+    // A prefix between the shown and stored widths is neither form, and nor
+    // is one shorter than the shown width.
+    let longer = &thread.stored()[..THREAD_PREFIX.len() + SHOWN_HEX + 1];
+    let shorter = &thread.shown()[..THREAD_PREFIX.len() + SHOWN_HEX - 1];
+    for word in [
+      shorter,
+      "STAFFED",
+      "Iced",
+      "Ideas",
+      longer,
+      &thread.shown().to_ascii_uppercase(),
+      &thread.shown().to_ascii_lowercase(),
+      &ordinal_thread.tagged(),
+      // An ordinal issue is shown as its digits alone; no face prints `I0736`.
+      &format!(
+        "{ISSUE_MARKER}{}",
+        IssueId::from_ordinal(736).expect("an ordinal").stored()
+      ),
+    ] {
+      assert_eq!(
+        marked(word),
+        None,
+        "`{word}` is not an id as a face prints one"
+      );
+    }
+  }
 
   #[test]
   fn the_claim_prefix_is_the_manifests_own_spelling() {

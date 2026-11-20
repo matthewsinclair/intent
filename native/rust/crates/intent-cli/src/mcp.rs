@@ -2541,20 +2541,26 @@ mod tests {
   #[test]
   fn no_tracker_id_reaches_a_published_tool() {
     let specific = |text: &str| {
+      // A record id as a face prints it, of either family, read by the waist
+      // (issue 0736), one whole word at a time: a word runs to the next
+      // character that is not alphanumeric, and a package's heading keeps its
+      // `WP-`. A format example (the zero family, the worked hashed example)
+      // is not information about us.
+      if let Some(id) = text
+        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+        .flat_map(|run| match run.strip_prefix("WP-") {
+          Some(rest) => vec![&run[..run.len() - rest.len() + rest.find('-').unwrap_or(rest.len())]],
+          None => run.split('-').collect(),
+        })
+        .find(|word| intentsvcs::id::marked(word).is_some() && !intentsvcs::id::is_example(word))
+      {
+        return Some(id.to_string());
+      }
       let bytes: Vec<char> = text.chars().collect();
-      let digits_at = |i: usize, n: usize| {
-        (0..n).all(|k| bytes.get(i + k).map(char::is_ascii_digit) == Some(true))
-      };
-      // ST followed by four digits that are not 0000; WP-/AC-/AT- followed by
-      // any digit sequence containing a nonzero digit before the next
-      // non-id character.
+      // WP-/AC-/AT- followed by any digit sequence containing a nonzero digit
+      // before the next non-id character: the criterion and test labels,
+      // which are no record's id.
       for i in 0..bytes.len() {
-        if bytes[i] == 'S' && bytes.get(i + 1) == Some(&'T') && digits_at(i + 2, 4) {
-          let id: String = bytes[i + 2..i + 6].iter().collect();
-          if id != "0000" {
-            return Some(format!("ST{id}"));
-          }
-        }
         for tag in ["WP-", "AC-", "AT-"] {
           let t: Vec<char> = tag.chars().collect();
           if bytes[i..].starts_with(&t) {
@@ -2574,6 +2580,23 @@ mod tests {
     assert_eq!(specific("gate ST0056 blocked"), Some("ST0056".into()));
     assert_eq!(specific("per AC-1.2"), Some("AC-1.2".into()));
     assert_eq!(specific("eg ST0000 or AC-0.0 or AT-0.0"), None);
+    // And a hashed id of each kind, which the ordinal grammar never saw, and an
+    // ordinal joined to the next word by a hyphen (issue 0736).
+    let thread = intentsvcs::id::ThreadId::from_origin("a planted thread").shown();
+    let issue = intentsvcs::id::IssueId::from_origin("a planted issue").shown();
+    let package = intentsvcs::id::WpId::from_origin("a planted package").heading();
+    assert_eq!(specific(&format!("gate {thread} blocked")), Some(thread));
+    assert_eq!(specific(&format!("see {issue}.")), Some(issue));
+    assert_eq!(specific(&format!("owed by {package}")), Some(package));
+    assert_eq!(specific("the ST0056-era rule"), Some("ST0056".into()));
+    // The waist's own form sentences are worked examples, not our records.
+    for form in [
+      intentsvcs::id::THREAD_ID_FORM,
+      intentsvcs::id::ISSUE_ID_FORM,
+      intentsvcs::id::WP_ADDRESS_FORM,
+    ] {
+      assert_eq!(specific(form), None, "`{form}` is a format example");
+    }
     for t in all() {
       let published = format!("{} {} {}", t.name, t.description, t.input_schema);
       if let Some(leak) = specific(&published) {
