@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 742,
+  "slug": "after-a-pull-sync-s-views-step-can-promise-write",
+  "title": "After a pull, sync's views step can promise writes its run does not make: its preview reads the tree and the DONE cutoff before its own ingest step writes them",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by critic-rust on issue 0741 (dc's unit, landed at 3eb706dd0) and left there as a known limit. vc filed it under hv decision 69: a plan that overstates is a small lie to a person, so it rides this release.\n\nAfter issue 0741, `intent sync` plans each step from the state the steps before it will leave, and the views step's REMOVES agree with what the run removes. Its WRITES can still be overstated, from two inputs the preview reads before the ingest step runs:\n\n1. The tree. `organize_preview_over(&render.canon)` observes the disk as it stands, but the ingest step's own projection writes the realised views of pulled records before the views step runs. The shadow's projection is never committed, so the preview counts those views as writes, and the views step then finds them already present. The plan says \"write N\" and the run says \"wrote 0\".\n2. The DONE cutoff. `render_ctx()` reads `todo_watermark` from the store before the ingest has carried a pulled `project.json`, so `todo.md` and `steel_threads.md` can preview as a rewrite the ingest's projection has already done.\n\nWrites keep the views step quiet, so neither leaves a `left:` line, and a fresh sync plans nothing. It is only the count a person reads that is wrong.\n\nRemedy wanted: the views preview also observes the files as the ingest step will leave them. That means overlaying the ingest render's projection writes on the observed tree, and taking the render context's watermark from the model the ingest will produce. The views step then names exactly what its run will write. Proof: after a pull of records another copy minted, the dry run's views step equals what `sync --apply` reports (writes and removes), and is absent when the run would write nothing. Size S. Builder dc. Owner of meaning cc (sync's plan).\n"
+}
