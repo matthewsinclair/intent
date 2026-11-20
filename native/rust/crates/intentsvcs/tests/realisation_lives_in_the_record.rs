@@ -55,6 +55,7 @@ fn realised_thread(f: &Facade, id: &str) -> bool {
 }
 
 /// AC-01.1, over every verb in the census table of ST0096's design.
+// ST0096 AT-01.1: the arm below.
 #[test]
 fn every_census_verb_writes_only_the_record_it_changes() {
   let fx = Fixture::new();
@@ -178,6 +179,7 @@ fn canon_of(project: &Project) -> BTreeMap<String, String> {
 /// AC-01.2: the fold maps the manifest exactly, removes it, and two copies
 /// upgraded apart write the same bytes, so two branches upgraded apart merge
 /// clean.
+// ST0096 AT-01.2: the arm below.
 #[test]
 fn the_upgrade_folds_the_manifest_into_the_records_and_removes_it() {
   const LISTED: &str = "ST0002";

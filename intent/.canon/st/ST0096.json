@@ -171,6 +171,28 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:58",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c"
+    },
+    {
+      "id": "AT-01.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:182",
+      "covers": [
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c"
+    }
+  ],
   "attachments": [
     {
       "path": "design.md",
