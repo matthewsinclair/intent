@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 15:13Z
+heartbeat_at: 2026-11-20 16:29Z
 status: active
-focus: "2026-11-20 15:12Z by date -u: ST0095/05+06 landed at ed302b7e4, its worktree removed. Holding for vc's go on ST0096 WP-01, then WP-05."
+focus: "2026-11-20 16:28Z by date -u: localfolded for hv's compact, not released. ST0096/01's gate at 298d27f24 is running and its verdict is not in yet (the pre-rebase gate was green). Proof to vc after its END. Claims ST0095/05, ST0095/06, ST0096/01."
 claims: [ST0095/05, ST0095/06, ST0096/01]
 ---
 
@@ -14,6 +14,7 @@ claims: [ST0095/05, ST0095/06, ST0096/01]
 ## DOING
 
 - ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
+- ST0096/01 in tmp/wt-st0096-wp01, rebased on d663e3ea6, HEAD 298d27f24, bank refs/bank/cc/st0096/wp01-wip7-on-d663e3ea6 (patch-id d0ceb1e4e8bb), resume notes refs/bank/cc/st0096/wp01-notes.md. Gate green at 7a3fa6f1e before the rebase. The gate at 298d27f24 is running from 16:26:46Z by date -u (Desk 01M7WVY39N3YVRE3F0ZSBH3VY7), and its verdict is not in yet. Next: its END, then the proof to vc (critic-rust fixed or answered), then the land. After the land: re-cite ST0095's seven AT rows to their markers, and satisfy AC-01.1 and AC-01.2. (edited)
 
 ## TODO
 
