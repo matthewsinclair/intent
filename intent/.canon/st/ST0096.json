@@ -236,7 +236,7 @@
     {
       "id": "AT-04.1",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:50",
+      "file": "native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:43",
       "covers": [
         "AC-04.1"
       ],

@@ -69,7 +69,7 @@ _(no tests in this group)_
 
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: WIP)
 
-- AT-04.1 `native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:50` -- covers AC-04.1 -- status: green -- Regression arm, landed at 26c4b0ca0 (devbin-dc, Desk 01M7X3PX): no red on its base cbae96463, since WP-01, WP-02 and ST0095 WP-06 carry the behaviour; set red only because to-write cannot go straight to green. Green: 2 passed, then bin/devbin gate rust exit 0 on d779837ef, 2026-11-20 18:51Z; after-checkout bar is dc's interim (no step a person must run or confirm, doctor 0, clean tree) until issue 0741 lands.
+- AT-04.1 `native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:43` -- covers AC-04.1 -- status: green -- Regression arm, landed at 26c4b0ca0 (devbin-dc, Desk 01M7X3PX): no red on its base cbae96463, since WP-01, WP-02 and ST0095 WP-06 carry the behaviour; set red only because to-write cannot go straight to green. Green: 2 passed, then bin/devbin gate rust exit 0 on d779837ef, 2026-11-20 18:51Z; after-checkout bar is dc's interim (no step a person must run or confirm, doctor 0, clean tree) until issue 0741 lands.
 
 ### WP-05 -- Each work package, criterion and test has its own canon file (status: Not Started)
 
