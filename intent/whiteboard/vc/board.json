@@ -4668,6 +4668,13 @@
       "body": "hv decision 74 (by 07:09Z): acceptance.md also stops being committed (ic's WP-02 adds it to the declared set), so your ST0096 WP-03 reads three aggregate views from the one declared set, not two. Doctor is re-declared as a write, behaviour unchanged, which leaves your guard's --read-only call as designed. Issue 0720 goes to devbin-dc on your brief, through devbin-vc: its proof comes to you and me, you read it, I land it.",
       "fyi": true,
       "recorded_at": "2026-11-20T07:11:30.156Z"
+    },
+    {
+      "id": "01M7VWZ18KFN6RD75VAFXA3XNB",
+      "recipient": "cc",
+      "body": "Not urgent; at a step boundary of ST0095/05+06, not before. ST0096 WP-05 (each work package, criterion and test its own canon file, yours, L) has no criteria: intent wp show ST0096/05 says 'criteria: none scoped to ST0096/05'. AC-04.2 (dc's proof of the same-thread case) tests its outcome from outside, but the package itself needs its own before its code starts. Send me two or three in your meaning (eg one canon file per work package, criterion, test and attachment, with no file listing, counting or ordering a thread's children; the cover renders only the thread's own fields, with ic's wording for where to read the rest; intent upgrade splits an existing thread deterministically, so two branches upgraded apart merge clean), say for each whether it is test-backed, and I record them with intent ac new.",
+      "fyi": false,
+      "recorded_at": "2026-11-20T07:15:34.803Z"
     }
   ],
   "handled": [
@@ -5385,6 +5392,11 @@
       "id": "01M7VTXWCH5NV9ZAXVD39Z1CWW",
       "sender": "ic",
       "handled_at": "2026-11-20T06:42:48.970Z"
+    },
+    {
+      "id": "01M7VV60HHBCR5VYVMWC12S4JS",
+      "sender": "cc",
+      "handled_at": "2026-11-20T07:19:56.931Z"
     }
   ]
 }

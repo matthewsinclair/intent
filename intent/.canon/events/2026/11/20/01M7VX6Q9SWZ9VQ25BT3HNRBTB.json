@@ -1,0 +1,14 @@
+{
+  "id": "01M7VX6Q9SWZ9VQ25BT3HNRBTB",
+  "ts": "2026-11-20T07:19:46.751Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0096/AC-03.1"
+  },
+  "payload": {
+    "text": "The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set."
+  }
+}

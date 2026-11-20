@@ -1,0 +1,17 @@
+{
+  "id": "01M7VWYYQ927FXN4GY4Z9TT26Z",
+  "ts": "2026-11-20T07:15:34.804Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Not urgent; at a step boundary of ST0095/05+06, not before. ST0096 WP-05 (each work package, criterion and test its own canon file, yours, L) has no criteria: intent wp show ST0096/05 says 'criteria: none scoped to ST0096/05'. AC-04.2 (dc's proof of the same-thread case) tests its outcome from outside, but the package itself needs its own before its code starts. Send me two or three in your meaning (eg one canon file per work package, criterion, test and attachment, with no file listing, counting or ordering a thread's children; the cover renders only the thread's own fields, with ic's wording for where to read the rest; intent upgrade splits an existing thread deterministically, so two branches upgraded apart merge clean), say for each whether it is test-backed, and I record them with intent ac new.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

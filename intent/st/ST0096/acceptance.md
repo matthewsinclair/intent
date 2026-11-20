@@ -26,12 +26,12 @@ title: A forge merges every open merge request: no file that every record shares
 
 ### WP-02 -- The two lists leave git (status: WIP)
 
-- AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md and intent/todo.md on disk and out of git, and the verbs and intent sync keep both current. -- satisfied: no (computed)
-- AC-02.2 doctor names a project whose two lists are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
+- AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md, intent/todo.md and every thread's intent/st/<ST>/acceptance.md on disk and out of git, and the verbs and intent sync keep them current. -- satisfied: no (computed)
+- AC-02.2 doctor names a project whose aggregate views (the two lists, or any thread's acceptance.md) are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: Not Started)
 
-- AC-03.1 The repository's commit gate and pull-request check pass on a project with the two lists tracked and on one with them untracked, and read the lists' paths from the one declared set. -- satisfied: no (computed)
+- AC-03.1 The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set. -- satisfied: no (computed)
 
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: Not Started)
 
