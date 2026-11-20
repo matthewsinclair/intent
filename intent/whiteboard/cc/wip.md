@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 34c60f44-2ff6-403d-830c-0d616c0d98c8
-heartbeat_at: 2026-11-19 10:55Z
+session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
+heartbeat_at: 2026-11-20 06:44Z
 status: active
-focus: "2026-11-19 10:48Z by date -u: localfolded on hv's word through vc (bank, fold, compact, carry on), not released. ST0095/04 is banked WIP at refs/bank/cc/st0095/wp04-wip1-on-cb0a9066d with its notes at refs/bank/cc/st0095/wp04-wip1-notes.md. Next after the compact: the intentsvcs tests (a subagent), the rebase past WP-02, the gate and the proof. Claim ST0095/04; Desk slot 01M7SMBA8X4AS2YCAWYT6Q82JP held."
+focus: "2026-11-20 06:44Z by date -u: ST0095/05+06 as one unit, on vc's go of 06:39Z, in tmp/wt-st0095-wp0506 moving onto main 8909c76af. Step 1 under way: the bank wp0506-wip2 (id.rs's hashed family) re-staged past 0717, then ic's three 0717 answers (one Opening refusal, try_exists, Facade::doctor_read_only). Then todo 55's steps 2 to 9; one gate run and critic-rust at the end. Claims ST0095/05, ST0095/06."
 claims: [ST0095/05, ST0095/06]
 ---
 

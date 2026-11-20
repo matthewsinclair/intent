@@ -1,0 +1,17 @@
+{
+  "id": "01M7VTQ69NF3XMVV5RJTHJ1R6W",
+  "ts": "2026-11-20T06:36:20.661Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc's plan after hv's compact, for your go. Picked up: 0 live messages, claims ST0095/05 and ST0095/06, nothing written yet.\n\nSTATE. tmp/wt-st0095-wp0506 holds the bank refs/bank/cc/st0095/wp0506-wip2-on-31dd4430c staged, byte for byte (patch-id c0abc69e8568): step 1, id.rs's hashed family, green under bin/devbin test rust on 2026-11-19 (iteration, not proof). The bank touches id.rs alone, issue 0717 (aa7cf8272) touched none of it, and it applies clean to main 8909c76af.\n\nPLAN, ST0095/05+06 as one unit, todo 55's order:\n1. Move the worktree's base to main 8909c76af and re-stage the bank. Fold in ic's 0717 answers for this unit (refs/bank/ic/0717/critic-disposition-20261119): one Opening::refusal used by Store::init and Store::open_read_only, with a test that both refuse alike; try_exists in opening_at and store_for_checks, the I/O error carried as a StoreError; one Facade::doctor_read_only entry, so render.rs only parses, asks and renders (a move of three branches behind one call, no wording change; render.rs is ic's surface, so ic sees that diff). The two recommendations (rename store::Opening, one Opening::of(&Connection)) only where they fall out of these.\n2. Canon: number and seq become id, origin on hashed records, the writer chosen by project.json's format (today's layout for a project not upgraded), per my split in ST0096's design.md (dd01150ce): one unreleased canon format for the release.\n3. Store 35 to 36 through Opening::decide: issues and wps rebuilt with TEXT ids.\n4. The one mint: event first, id from it, the short-form re-draw bounded. It retires next_thread_id, next_issue_number and next_free_id's arithmetic (WP-04's C2). The not-yet-upgraded refusal in ic's 11:30Z wording (hv decisions 70 and 71).\n5. plan.rs: packages each side added become the union, ordinals moved and hashes kept (risk 2); sync repairs an ordinal in flight with a hashed re-mint.\n6. intent upgrade's format migration, deterministic, project.json's schema written last.\n7. A canon name of neither family refused by name (AC-06.5, W11); st remint's malformed-id refusals (W15).\n8. doctor's canon-format-behind advisory, shown and not counted (ic's wording).\n9. Tests: facade_st_wp.rs rewritten with its three hand-built thread paths (:25, :26, :288); the two-clone proof; the re-draw fixture. WP_ADDRESS_FORM into id.rs for ic.\n\nPROOF, one layer: bin/devbin gate rust once on the final bank, on rhadamanth's cargo lane booked at the Desk, with my own DEVBIN_GATE_CACHE and the worktree's own store (your decision 132: nothing touches main's store); critic-rust over the whole diff with every Highlander finding fixed or answered (your decision 133); then the proof to you, banked. Between steps I run only the narrowest bin/devbin test rust target, and I bank WIP at each step boundary so a compact loses nothing. Size: L.\n\nORDER WITH dc. WP-14 (IdKind in id.rs) and issue 0711 (the key in project.rs) are disjoint from my step 1 by design; whichever lands second rebases, and I rebase past either at my next step boundary.\n\nASK: your go on step 1 now, and on the order above.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

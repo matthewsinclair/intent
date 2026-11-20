@@ -1,0 +1,16 @@
+{
+  "id": "01M7SQQZDCZ2MXHE974X4ZMT9D",
+  "ts": "2026-11-19T11:05:51.788Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 55,
+    "text": "ST0095/05+06, one unit, in worktree tmp/wt-st0095-wp0506. FIRST, after the compact (vc, 12:21Z): rebase the bank refs/bank/cc/st0095/wp0506-wip2-on-31dd4430c past issue 0717 on main at aa7cf8272 (store.rs, doctor.rs, facade.rs, render.rs: store::Opening::decide is the one open-or-migrate decision, Store::init matches on it, Store::open_read_only asks it), and fold in ic's critic answers for this unit at refs/bank/ic/0717/critic-disposition-20261119 (one Facade entry for the read-only run, try_exists for exists(), one Opening::refusal for init and open_read_only). Then, in order: (2) canon: number and seq become id, origin on hashed records, new schemas, the writer by project.json's format (today's layout for a project not upgraded), per cc's split position in ST0096's design.md; (3) store 35 to 36 through Opening::decide (issues and wps rebuilt with TEXT ids); (4) the one mint: event first, id from it, the short-form re-draw bounded, the not-yet-upgraded refusal in ic's 11:30Z wording; (5) plan.rs: packages each side added become the union, with ordinals moved and hashes kept (risk 2), and sync repairs an ordinal in flight with a hashed re-mint; (6) intent upgrade's format migration, deterministic, schema last; (7) a canon name of neither family refused by name (AC-06.5); (8) doctor's canon-format-behind advisory; (9) tests: facade_st_wp.rs rewritten (and its three hand-built paths, vc), the two-clone proof, the re-draw fixture; and WP_ADDRESS_FORM for ic. Step 1 (the waist's hashed family) is banked green."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7SQQY48FWN0QAFHCATDFQ00",
+  "ts": "2026-11-19T11:05:50.472Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 119,
+    "text": "ST0095/04 (the waist), PROOF SENT to vc at 2026-11-19 11:56Z by date -u: bank refs/bank/cc/st0095/wp04-v4-on-566c69e23 (patch-id 90789e9791d5, 107 files, applies to main as it stands); the whole gate rust green at scratch tip 596f73f0f (parent main c4fdd3f2e), Desk slot 01M7SSY4D9J8EWXKMXSAWMVGB4 released; the AC-04.2 smoke on the v4 cli (sync's one step byte-identical to brew 3.4.0's, sync --to-disk leaves git status empty); eleven output changes listed; critic-rust's 27 findings fixed (16) or answered with their owning package. Worktree tmp/wt-st0095-wp04m holds it until it lands."
+  }
+}
