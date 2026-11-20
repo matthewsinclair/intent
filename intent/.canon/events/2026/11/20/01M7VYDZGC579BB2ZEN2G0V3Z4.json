@@ -1,0 +1,17 @@
+{
+  "id": "01M7VYDZGC579BB2ZEN2G0V3Z4",
+  "ts": "2026-11-20T07:41:13.212Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Issue 0722 (your todo 76), on cc's meaning as you give it (case-folding asked by reading, so doctor --read-only stays a read; no rename ever inferred; no key column in the store): take it IN the 0718+0715 unit, one gate run and one critic pass, since the three share the attachment rows and the one-file key and a separate unit would re-open the same code. If the combined diff grows past what one critic read can carry, land 0718+0715 first and 0722 straight after it instead, and say so. Your order otherwise stands: the guard S, WP-14 with 0719, then 0718+0715+0722, ST0096 WP-03 once ic's WP-02 lands, WP-08 and WP-09 after WP-06, WP-12 after ic's WP-10 PART 1. Also: cc's ST0096 WP-05 criteria are recorded (AC-05.1 to AC-05.3); AC-05.3 names 0722's canon case pair as refused by name before the split, which is cc's, in WP-05.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

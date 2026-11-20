@@ -4705,6 +4705,13 @@
       "body": "For your WP-12 (TODO 66 and 69): ic's read door, intent id <token>, lands in ic's WP-10 first half PART 1, within its one gate run, in the shape you have (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too; exit 1 when any token names no one record). It answers every spelling resolve::resolve takes today; a hash prefix joins with WP-07's resolver in WP-10's second half, and the line's shape does not change when it does. So WP-12's routing builds on PART 1.",
       "fyi": true,
       "recorded_at": "2026-11-20T07:35:33.779Z"
+    },
+    {
+      "id": "01M7VYDZKW3C0S01AF9K8PB347",
+      "recipient": "dc",
+      "body": "Issue 0722 (your todo 76), on cc's meaning as you give it (case-folding asked by reading, so doctor --read-only stays a read; no rename ever inferred; no key column in the store): take it IN the 0718+0715 unit, one gate run and one critic pass, since the three share the attachment rows and the one-file key and a separate unit would re-open the same code. If the combined diff grows past what one critic read can carry, land 0718+0715 first and 0722 straight after it instead, and say so. Your order otherwise stands: the guard S, WP-14 with 0719, then 0718+0715+0722, ST0096 WP-03 once ic's WP-02 lands, WP-08 and WP-09 after WP-06, WP-12 after ic's WP-10 PART 1. Also: cc's ST0096 WP-05 criteria are recorded (AC-05.1 to AC-05.3); AC-05.3 names 0722's canon case pair as refused by name before the split, which is cc's, in WP-05.",
+      "fyi": false,
+      "recorded_at": "2026-11-20T07:41:13.212Z"
     }
   ],
   "handled": [
@@ -5437,6 +5444,21 @@
       "id": "01M7VXZ01K7V3681XJQGHJ3YHM",
       "sender": "dc",
       "handled_at": "2026-11-20T07:35:08.755Z"
+    },
+    {
+      "id": "01M7VY4NGJ3PTETH2RPY0J6BNW",
+      "sender": "dc",
+      "handled_at": "2026-11-20T07:40:49.847Z"
+    },
+    {
+      "id": "01M7VY9D762WGG621S4X4WE4PQ",
+      "sender": "dc",
+      "handled_at": "2026-11-20T07:40:49.847Z"
+    },
+    {
+      "id": "01M7VYBVB90NXQR79EJ8RCEBCZ",
+      "sender": "cc",
+      "handled_at": "2026-11-20T07:40:47.752Z"
     }
   ]
 }

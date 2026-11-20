@@ -137,6 +137,30 @@
       "state": {
         "is": "unsatisfied"
       }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "A thread's canon in the release's format is one file for the thread's own fields and one file per work package, criterion, test and attachment under .canon/st/<thread>/, each named by its record's stored id or label, and no file lists, counts or orders a thread's children: the thread's directory holds them, read in the waist's order.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.2",
+      "text": "Two branches from one base, one adding a work package to a thread and the other adding a criterion and a test to the same thread, change disjoint files, and git merges them with no conflict; intent doctor is clean on the merge. (dc's AC-04.2 proves the same through the forge stand-in; this is the unit's own two-branch test.)",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.3",
+      "text": "intent upgrade moves an existing thread to that layout byte-for-byte the same on two clones upgraded apart, and changes no id and no value; no committed view is rendered from more than one record, so the cover renders only the thread's own fields (hv decision 74); the closed records' views still committed on main are removed by the upgrade under removed:; an attachment whose bytes on disk differ from canon is refused by name and never removed; and a canon case pair (two attachments whose paths differ only in case, issue 0722) is refused by name before the split, since a folding disk would put both in one canon file.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
     }
   ],
   "attachments": [

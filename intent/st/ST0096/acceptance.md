@@ -38,6 +38,12 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-04.1 Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no (computed)
 - AC-04.2 (non-test) Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no
 
+### WP-05 -- Each work package, criterion and test has its own canon file (status: Not Started)
+
+- AC-05.1 A thread's canon in the release's format is one file for the thread's own fields and one file per work package, criterion, test and attachment under .canon/st/<thread>/, each named by its record's stored id or label, and no file lists, counts or orders a thread's children: the thread's directory holds them, read in the waist's order. -- satisfied: no (computed)
+- AC-05.2 Two branches from one base, one adding a work package to a thread and the other adding a criterion and a test to the same thread, change disjoint files, and git merges them with no conflict; intent doctor is clean on the merge. (dc's AC-04.2 proves the same through the forge stand-in; this is the unit's own two-branch test.) -- satisfied: no (computed)
+- AC-05.3 intent upgrade moves an existing thread to that layout byte-for-byte the same on two clones upgraded apart, and changes no id and no value; no committed view is rendered from more than one record, so the cover renders only the thread's own fields (hv decision 74); the closed records' views still committed on main are removed by the upgrade under removed:; an attachment whose bytes on disk differ from canon is refused by name and never removed; and a canon case pair (two attachments whose paths differ only in case, issue 0722) is refused by name before the split, since a folding disk would put both in one canon file. -- satisfied: no (computed)
+
 ## Acceptance Tests
 
 ### ST-level
@@ -57,6 +63,10 @@ _(no tests in this group)_
 _(no tests in this group)_
 
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: Not Started)
+
+_(no tests in this group)_
+
+### WP-05 -- Each work package, criterion and test has its own canon file (status: Not Started)
 
 _(no tests in this group)_
 
