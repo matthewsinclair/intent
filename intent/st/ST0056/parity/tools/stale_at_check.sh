@@ -60,6 +60,12 @@
 # it was latent, not live, and it goes live the first time anyone writes an uncited
 # to-write row with a backticked note. Prompted by cc from the opposite end: they
 # captured 14 v2-authored rows and found nine whose note contains a further ` -- `.
+#
+# Those proofs drove the rendered rows this read until ST0096 WP-03. It reads
+# the thread canon now, so the backticked-note cases no longer arise, and
+# tests/unit/stale_at_check.bats is the proof of the canon read.
+# No -e: every step's status is read where it happens, so a failure is named
+# and refused, never an unexplained abort.
 set -uo pipefail
 
 # **NO ARGUMENT MEANS EVERY LIVE THREAD, AND IT USED TO MEAN ST0056** (vc
@@ -79,7 +85,7 @@ STID="${1:-}"
 
 # Walk up to the project root by its marker rather than counting `..` levels.
 # Counting is what broke this on its first run: the tool sits five directories
-# down, not four, and a wrong count fails as "no acceptance.md for <ST>", which
+# down, not four, and a wrong count fails as "no thread canon for <ST>", which
 # reads like a missing thread rather than a missing root.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$HERE"
@@ -99,17 +105,28 @@ cd "$ROOT" || exit 1
 # shellcheck source=lib_citation.sh
 . "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 1; }
 
-ACC=()
+command -v jq >/dev/null 2>&1 || { echo "error: jq is required to read the thread canon" >&2; echo "remedy: install jq" >&2; exit 2; }
+
+# **THE ROWS ARE READ FROM THE THREAD CANON, NEVER FROM A RENDERED
+# `acceptance.md`** (ST0096 WP-03). A thread's acceptance view is one of the
+# aggregate views that leave git (ST0096 WP-02): a clone of an upgraded project
+# holds none until a verb renders them, and a project not yet upgraded holds
+# only the threads it realised. Read from the views, this check refused a fresh
+# clone ("no live thread") and read a different population in every checkout.
+# `intent/.canon/st/<ID>.json` is the truth the view is rendered from, and it
+# never leaves git, so the same rows are read whether the views are tracked,
+# untracked or absent. It reads content, so it asks no declared set for paths:
+# it names no view at all. absent_at_check.sh reads the same canon the same way.
+CANON_DIR="intent/.canon/st"
+THREADS=()
 SKIPPED=()
 if [ -n "$STID" ]; then
-  for candidate in "intent/st/${STID}/acceptance.md" "intent/st/"*"/${STID}/acceptance.md"; do
-    [ -f "$candidate" ] && ACC=("$candidate") && break
-  done
-  if [ "${#ACC[@]}" -eq 0 ]; then
-    echo "error: no acceptance.md for ${STID}" >&2
-    echo "remedy: name a thread that has one, or run from the project root" >&2
+  if [ ! -f "$CANON_DIR/${STID}.json" ]; then
+    echo "error: no thread canon for ${STID} at $CANON_DIR/${STID}.json" >&2
+    echo "remedy: name a thread this project has, or run from the project root" >&2
     exit 1
   fi
+  THREADS=("$CANON_DIR/${STID}.json")
 else
   # **A THREAD THAT HAS NOT STARTED CITES INTENDED HOMES RATHER THAN WRITTEN
   # TESTS, SO ITS ROWS ARE NOT STALE -- AND A CANCELLED THREAD IS FROZEN.**
@@ -119,23 +136,26 @@ else
   # trains the reader to skip it, and the tenth line is the one that mattered.
   #
   # **`completed` IS DELIBERATELY IN SCOPE.** A finished thread carrying a
-  # to-write row whose test exists is a real defect and this should say so. None
-  # exists today; a filter that skipped them would hide the class, not the noise.
-  for candidate in "intent/st/"*"/acceptance.md" "intent/st/"*/*"/acceptance.md"; do
-    [ -f "$candidate" ] || continue
-    tid="$(basename "$(dirname "$candidate")")"
-    tstatus="$(jq -r '.status // "unknown"' "intent/.canon/st/${tid}.json" 2>/dev/null)"
+  # to-write row whose test exists is a real defect and this should say so. A
+  # filter that skipped them would hide the class, not the noise.
+  #
+  # An unreadable status reads as `unknown` and keeps the thread in scope, so
+  # the row pass below reads its canon and refuses on it.
+  for canon in "$CANON_DIR"/*.json; do
+    [ -f "$canon" ] || continue
+    tid="$(basename "$canon" .json)"
+    tstatus="$(jq -r '.status // "unknown"' "$canon" 2>/dev/null)"
     [ -n "$tstatus" ] || tstatus="unknown"
     case "$tstatus" in
       not-started|cancelled) SKIPPED+=("${tid}(${tstatus})") ;;
-      *) ACC+=("$candidate") ;;
+      *) THREADS+=("$canon") ;;
     esac
   done
-  if [ "${#ACC[@]}" -eq 0 ]; then
+  if [ "${#THREADS[@]}" -eq 0 ]; then
     # A project with no live thread is a real state and NOT a clean run: the
     # whole point of the count line is that "nothing violated" and "nothing was
     # examined" must never print the same thing.
-    echo "error: no live thread with an acceptance.md under intent/st/" >&2
+    echo "error: no live thread canon under $CANON_DIR" >&2
     echo "remedy: run this inside an Intent project that has threads" >&2
     exit 1
   fi
@@ -148,78 +168,44 @@ if [ "${#SKIPPED[@]}" -gt 0 ]; then
   SKIPNOTE=" (skipped ${#SKIPPED[@]} not-started/cancelled thread(s): ${SKIPPED[*]})"
 fi
 
-# The citation is the first backticked span on the row; the status is the token
-# after `status: `. Both are grammar the AT linter already enforces at L1, so
-# reading them here does not add a second parser for the row format -- it reads
-# the two fields L1 has already guaranteed are present.
+# ONE jq PASS OVER EVERY LIVE THREAD. A finding names its thread with the row,
+# because AT ids are per-thread and two threads can each hold the same id.
 #
-# THE POPULATION IS COUNTED AND THE COUNT IS PRINTED, and this was not in the
-# first version (found by ic, 2026-08-16, demonstrated rather than read, within
-# the hour this shipped). Renaming one token of the row grammar -- `status:` to
-# `state:` -- leaves `^- AT-` matching all 109 rows while the status extraction
-# returns nothing for every one of them. The awk then emits zero rows, the loop
-# runs zero times, and the script prints `ok: no to-write row cites a file that
-# exists`, BYTE-IDENTICAL to a genuine all-clean run.
+# THE POPULATION IS COUNTED AND THE COUNT IS PRINTED (found by ic, 2026-08-16,
+# against the rendered rows this read then). A renamed status field leaves every
+# row matched while the status reads nothing for each of them; the loop then
+# runs zero times and prints `ok`, BYTE-IDENTICAL to a genuine all-clean run.
+# So a row without a status word is a BAD line and a refusal, never a data
+# state, and the COUNT line carries how many rows were read at all.
 #
-# Note where that fails: BELOW the row match, in field extraction. So a guard
-# asking "did I find any AT rows?" would also have passed -- which is why the
-# refusal below is on an unparseable STATUS rather than on an empty file.
-#
-# This is the same defect one level up from the one the script exists to find.
-# `to-write` is the AT state nothing validates; "zero rows examined" was the
-# script state nothing validated. An instrument reporting on a population it
-# failed to read is the shape ic hit three times in one day -- a check claiming
-# in its own error message to catch retired commands and not seeing them, and a
-# flag sweep losing three flags to a `@tsv` escape while printing agreement.
-# "Nothing violated anything" and "nothing was examined" are the same output
-# unless the count is on the line.
-awk -v line_re="$CITATION_LINE_RE" '
-  /^- AT-/ {
-    matched++
-    id = $2
-    ref = ""
-    # THE CITATION IS SCOPED TO THE HEAD OF THE ROW -- the span before the first
-    # ` -- ` -- and NOT to the first backtick anywhere on the line, which is what
-    # this read before. The grammar puts the path there (`- AT-gg.n `path` -- covers
-    # ... -- status: ...`), so the head is where a citation can legally be.
-    #
-    # WHY IT MATTERED, AND IT WAS LATENT RATHER THAN LIVE. A to-write row with NO
-    # citation whose NOTE carries a backticked span had that span read as the
-    # citation: the check then reported `cites <path> -- the file EXISTS` about a
-    # row that cites nothing, and told the reader to go run a test the row never
-    # named. Measured on this estate at 112 AT rows / 53 to-write: **zero exposed
-    # today**, because every to-write row currently carries a real path. It goes
-    # live the first time someone writes an uncited to-write row with a backticked
-    # note -- and the check is GATED now, so the cost of that day is every node.
-    #
-    # Found by cc, from the other end: they captured 14 v2-authored rows and found
-    # nine whose note is introduced by ` -- ` and then CONTAINS ` -- `, and warned
-    # that anything splitting a row on the separator over-splits exactly the rows
-    # carrying the most information. This reads the FIRST ` -- ` only, so a note
-    # containing more of them cannot move the boundary.
-    head = $0
-    sep = index($0, " -- ")
-    if (sep > 0) { head = substr($0, 1, sep - 1) }
-    if (match(head, /`[^`]+`/)) {
-      ref = substr(head, RSTART + 1, RLENGTH - 2)
-    }
-    # A row that cites a line is checked for its file (issue 0670).
-    sub(line_re, "", ref)
-    if (match($0, /status: [a-z-]+/)) {
-      st = substr($0, RSTART + 8, RLENGTH - 8)
-    } else {
-      # L1 guarantees every AT row carries a status, so a row matching `^- AT-`
-      # whose status will not parse is a broken PARSER, never a data state.
-      print "BAD\t" id
-      next
-    }
-    if (st == "to-write" && ref != "") {
-      examined++
-      print "ROW\t" id "\t" ref
-    }
-  }
-  END { print "COUNT\t" matched + 0 "\t" examined + 0 }
-' "${ACC[@]}" | {
+# The citation is the row's `file` field, with a line suffix dropped (issue
+# 0670). The rendered row's grammar is not read, so a backticked span in a
+# note can no longer be taken for a citation.
+SCAN="$(
+  jq -n -r --arg line_re "$CITATION_LINE_RE" '
+    [ inputs
+      | (input_filename | split("/") | last | sub("\\.json$"; "")) as $tid
+      | (.tests // [])[]
+      | { tid: $tid, r: . } ]
+    | . as $rows
+    | ( $rows[]
+        | (.tid + "/" + ((.r.id // "?") | tostring)) as $id
+        | (.r.status // null) as $st
+        | ((.r.file // "") | tostring | sub($line_re; "")) as $file
+        | if ($st | type) != "string" or ($st | test("^[a-z-]+$") | not)
+             or ($id | test("[\t\n\r]")) or ($file | test("[\t\n\r]")) then "BAD\t" + $id
+          elif $st == "to-write" and $file != "" then "ROW\t" + $id + "\t" + $file
+          else empty
+          end ),
+      ( "COUNT\t" + ($rows | length | tostring) )
+  ' "${THREADS[@]}"
+)" || {
+  echo "error: the thread canon could not be read as JSON" >&2
+  echo "remedy: check \`jq . $CANON_DIR/*.json\`; an unreadable canon must refuse, never report clean" >&2
+  exit 2
+}
+
+printf '%s\n' "$SCAN" | {
   found=0
   bad=0
   matched=0
@@ -228,9 +214,10 @@ awk -v line_re="$CITATION_LINE_RE" '
     case "$kind" in
       BAD)
         bad=$((bad + 1))
-        echo "error: ${a}: matched as an AT row but its status will not parse" >&2
+        echo "error: ${a}: its canon row has no status word, or an id or file with a tab or newline" >&2
         ;;
       ROW)
+        examined=$((examined + 1))
         if [ -e "$b" ]; then
           found=$((found + 1))
           printf 'stale: %-12s cites %s -- the file EXISTS while the row says to-write\n' "$a" "$b"
@@ -238,22 +225,25 @@ awk -v line_re="$CITATION_LINE_RE" '
         ;;
       COUNT)
         matched="$a"
-        examined="$b"
+        ;;
+      *)
+        bad=$((bad + 1))
+        echo "error: the canon pass printed a line this report cannot read: ${kind}" >&2
         ;;
     esac
   done
 
   if [ "$bad" -gt 0 ]; then
-    echo "error: ${bad} of ${matched} AT row(s) matched but did not parse -- the row grammar moved" >&2
-    echo "remedy: this script reads \`status: <word>\`; align it with the grammar the AT linter enforces" >&2
+    echo "error: ${bad} of ${matched} AT row(s) in the canon could not be read -- the canon's row shape moved" >&2
+    echo "remedy: this script reads .tests[] .id, .status and .file in $CANON_DIR/<ID>.json; align it with the fields the canon carries" >&2
     echo "note: refusing rather than reporting, because a parser that reads nothing prints the same" >&2
     echo "      line as a clean run -- which is the defect this script exists to find, one level up" >&2
     exit 2
   fi
 
   if [ "$matched" -eq 0 ]; then
-    echo "error: no AT rows matched in ${ACC}" >&2
-    echo "remedy: check the file is an acceptance.md with AT rows, not an empty or renamed thread" >&2
+    echo "error: no AT rows in ${#THREADS[@]} live thread canon file(s)" >&2
+    echo "remedy: check the canon carries .tests[]; an extract with no rows is not a clean run" >&2
     exit 2
   fi
 
