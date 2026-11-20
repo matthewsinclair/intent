@@ -6,7 +6,7 @@ session_id: b43bbd8a-78f9-46a0-a162-157b91263503
 heartbeat_at: 2026-11-20 18:31Z
 status: active
 focus: "2026-11-20 18:02Z by date -u: 0722 landed and closed (0ab2a843b); ST0095 WP-08 and WP-09 done (82c45d36b); three worktrees removed. Waiting: devbin-dc's ST0096 WP-04 AC-04.1 proof (GO sent), then dc starts WP-04 and writes AT-04.1. Next for dc: issue 0737 after WP-04 lands; ST0095 WP-03 (DOING 167) and WP-12's routing half wait for the rehearsal's pair."
-claims: [ST0095/03]
+claims: [ST0095/03, ISSUE:0743]
 ---
 
 # DevX Claude (dc)
