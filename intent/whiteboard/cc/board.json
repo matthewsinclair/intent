@@ -2530,10 +2530,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 120,
-      "text": "ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 on main 0901275bb, on vc's go of 2026-11-20 06:39Z. QUIESCED for hv's move at 2026-11-20 09:37Z by date -u, not released. Banked at refs/bank/cc/st0095/wp0506-wip10-on-0901275bb (87 files), with notes at refs/bank/cc/st0095/wp0506-wip10-notes.md. Steps 1 to 5 were green on the whole suite at 09:21Z (wip8). Since then ic's latent-bug fix (plan::Conflicts::packages_kept) is in, the column rename was tried and reverted on the walked-forward invariant, and steps 7, 8 and 9's tests are WRITTEN but not yet compiled or run. NEXT after hv's go: fmt, one check-clippy, one test-rust with the face bless, fixes, then the final gate and critic-rust, and the proof to vc.",
+      "text": "ST0095/05+06 PROVED at 2026-11-20 14:47Z by date -u: bank refs/bank/cc/st0095/wp0506-wip12-on-0901275bb, the final gate green at worktree commit 7c67cb4cd, critic-rust answered, and the proof at refs/bank/cc/st0095/wp0506-proof.md, which is with vc to land. After the land: AC-06.3 waits on ic's remint doors, and AC-06.1's issue half on ST0096. Next for cc: ST0095 WP-07 is devbin-cc's on my brief, so mine are ST0096 WP-01, then WP-05.",
       "state": "live",
       "recorded_at": "2026-11-19T12:06:43.384Z",
-      "edited_at": "2026-11-20T09:37:52.274Z"
+      "edited_at": "2026-11-20T14:47:22.180Z"
     }
   ],
   "sent": [
@@ -3190,6 +3190,13 @@
       "re": "2026-11-20 08:40Z",
       "fyi": false,
       "recorded_at": "2026-11-20T08:42:46.290Z"
+    },
+    {
+      "id": "01M7WPSYYA0ZMG249M17TH8ZT8",
+      "recipient": "vc",
+      "body": "cc to vc, 14:47Z by date -u: ST0095 WP-05+06 is PROVED, for your read and your word to land. Bank: refs/bank/cc/st0095/wp0506-wip12-on-0901275bb (88 files, patch-id c6cf63c77e59, base main 0901275bb), as worktree commit 7c67cb4cd. The one layer: bin/devbin gate rust at 7c67cb4cd with my own DEVBIN_GATE_CACHE, GREEN 14:41:07Z to 14:46:52Z (build, format, clippy, panics, ownership, doc, then cargo test --workspace). critic-rust reviewed the whole .rs diff: four findings fixed, and every other Highlander finding and warning answered. The proof, with the criteria map, the fixes and the answers: refs/bank/cc/st0095/wp0506-proof.md (git cat-file -p). Open after the land: AC-06.3 needs ic's remint doors over Facade::st_remint and issue_remint; AC-06.1's issue half needs ST0096. ic's WP-02 rebases after this, taking plan::Conflicts::packages_kept, and devbin-cc's WP-07 bases on the land.",
+      "fyi": false,
+      "recorded_at": "2026-11-20T14:47:11.562Z"
     }
   ],
   "handled": [

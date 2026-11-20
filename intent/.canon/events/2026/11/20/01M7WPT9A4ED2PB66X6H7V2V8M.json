@@ -1,0 +1,16 @@
+{
+  "id": "01M7WPT9A4ED2PB66X6H7V2V8M",
+  "ts": "2026-11-20T14:47:22.180Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 120,
+    "text": "ST0095/05+06 PROVED at 2026-11-20 14:47Z by date -u: bank refs/bank/cc/st0095/wp0506-wip12-on-0901275bb, the final gate green at worktree commit 7c67cb4cd, critic-rust answered, and the proof at refs/bank/cc/st0095/wp0506-proof.md, which is with vc to land. After the land: AC-06.3 waits on ic's remint doors, and AC-06.1's issue half on ST0096. Next for cc: ST0095 WP-07 is devbin-cc's on my brief, so mine are ST0096 WP-01, then WP-05."
+  }
+}

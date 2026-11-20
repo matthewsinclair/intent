@@ -13,7 +13,7 @@ claims: [ST0095/05, ST0095/06]
 
 ## DOING
 
-- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 on main 0901275bb, on vc's go of 2026-11-20 06:39Z. QUIESCED for hv's move at 2026-11-20 09:37Z by date -u, not released. Banked at refs/bank/cc/st0095/wp0506-wip10-on-0901275bb (87 files), with notes at refs/bank/cc/st0095/wp0506-wip10-notes.md. Steps 1 to 5 were green on the whole suite at 09:21Z (wip8). Since then ic's latent-bug fix (plan::Conflicts::packages_kept) is in, the column rename was tried and reverted on the walked-forward invariant, and steps 7, 8 and 9's tests are WRITTEN but not yet compiled or run. NEXT after hv's go: fmt, one check-clippy, one test-rust with the face bless, fixes, then the final gate and critic-rust, and the proof to vc. (edited)
+- ST0095/05+06 PROVED at 2026-11-20 14:47Z by date -u: bank refs/bank/cc/st0095/wp0506-wip12-on-0901275bb, the final gate green at worktree commit 7c67cb4cd, critic-rust answered, and the proof at refs/bank/cc/st0095/wp0506-proof.md, which is with vc to land. After the land: AC-06.3 waits on ic's remint doors, and AC-06.1's issue half on ST0096. Next for cc: ST0095 WP-07 is devbin-cc's on my brief, so mine are ST0096 WP-01, then WP-05. (edited)
 
 ## TODO
 
