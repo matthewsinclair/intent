@@ -6,7 +6,7 @@ session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
 heartbeat_at: 2026-11-20 15:13Z
 status: active
 focus: "2026-11-20 15:12Z by date -u: ST0095/05+06 landed at ed302b7e4, its worktree removed. Holding for vc's go on ST0096 WP-01, then WP-05."
-claims: [ST0095/05, ST0095/06]
+claims: [ST0095/05, ST0095/06, ST0096/01]
 ---
 
 # Control Claude (cc)
