@@ -1,0 +1,16 @@
+{
+  "id": "01M7WYZ4N8Z7VW77RT5V4YKP31",
+  "ts": "2026-11-20T17:09:49.864Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 121,
+    "text": "ST0096/01 in tmp/wt-st0096-wp01, branch cc/st0096-wp01-v7, REBASED on WP-07 v7 (81dd2adb2, green 17:09Z, on main 03cbe1302), HEAD e1cccdac4, bank refs/bank/cc/st0096/wp01-wip10-on-81dd2adb2 (patch-id 35ef55c4fc91, byte-identical to wip9), resume notes refs/bank/cc/st0096/wp01-notes.md. History: at 298d27f24 run 1 hung on issue 0734 (not WP-01), run 2 red on 7 doctor tests (fixtures wrote views of an unrealised thread vs WP-02's UnrealisedView), fixed; v6 rebase (facade.rs conflict kept both; a_prefix_names_one_record's hydrate arm reads the record; ST0056 re-attached by brew sync --to-store, v37 dev store set aside to tmp/aside/intent.db.v37-2) denied when v6 went red. Gate at e1cccdac4 RUNNING from 17:09Z (Desk 01M7WYKZNY9H1W8TAJD5P8Z3MC, log scratchpad gate-st0096-7.log, stdin /dev/null). Next: its END to the Desk, the proof to vc (scratchpad st0096-wp01-proof.md plus the doctor finding and the rebases), then vc lands after v7. After the land: re-cite ST0095's seven AT rows to their markers, satisfy AC-01.1 and AC-01.2, remove the worktree. Then issue 0735, then ST0096 WP-05. Ruled since 16:54Z: dc's ST0095 WP-08/09 meaning, yes with three riders (17:06Z)."
+  }
+}

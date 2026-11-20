@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 16:57Z
+heartbeat_at: 2026-11-20 17:09Z
 status: active
-focus: "2026-11-20 16:58Z by date -u: localfolded for hv's compact, not released. ST0096/01 rebased on WP-07 v6 at 23e998e3b (bank wip9); gate asked as Desk 01M7WY7XMQ, waiting on the grant. Proof to vc after its END. Claims ST0095/05, ST0095/06, ST0096/01."
+focus: "2026-11-20 17:09Z by date -u: localfolded for hv's compact, not released. ST0096/01's gate at e1cccdac4 (on WP-07 v7) is running; proof to vc after its END. Claims ST0095/05, ST0095/06, ST0096/01."
 claims: [ST0095/05, ST0095/06, ST0096/01]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0095/05, ST0095/06, ST0096/01]
 ## DOING
 
 - ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
-- ST0096/01 in tmp/wt-st0096-wp01, branch cc/st0096-wp01-v6, REBASED on WP-07 v6 (base e3abd4b16 = 84040c79d + main's 8d920e2a3, 53e0093e5), HEAD 23e998e3b, bank refs/bank/cc/st0096/wp01-wip9-on-e3abd4b16 (patch-id 35ef55c4fc91), resume notes refs/bank/cc/st0096/wp01-notes.md. History at 298d27f24: run 1 hung on issue 0734 (not WP-01); run 2 red on 7 doctor tests (fixtures wrote views of an unrealised thread vs WP-02's UnrealisedView), fixed. On the rebase: facade.rs conflict kept both sides; a_prefix_names_one_record's hydrate arm now reads the record; ST0056 re-attached by brew sync --to-store (v37 dev store set aside to tmp/aside/intent.db.v37-2). Gate asked as Desk 01M7WY7XMQRFGJMP7FQ3ND93K0, a background wait starts it on the grant (log scratchpad gate-st0096-6.log, stdin /dev/null). Next: its END to the Desk, the proof to vc (scratchpad st0096-wp01-proof.md plus the doctor finding and the rebase), then vc lands after v6. After the land: re-cite ST0095's seven AT rows to their markers, satisfy AC-01.1 and AC-01.2, remove the worktree. Then issue 0735, then ST0096 WP-05. (edited)
+- ST0096/01 in tmp/wt-st0096-wp01, branch cc/st0096-wp01-v7, REBASED on WP-07 v7 (81dd2adb2, green 17:09Z, on main 03cbe1302), HEAD e1cccdac4, bank refs/bank/cc/st0096/wp01-wip10-on-81dd2adb2 (patch-id 35ef55c4fc91, byte-identical to wip9), resume notes refs/bank/cc/st0096/wp01-notes.md. History: at 298d27f24 run 1 hung on issue 0734 (not WP-01), run 2 red on 7 doctor tests (fixtures wrote views of an unrealised thread vs WP-02's UnrealisedView), fixed; v6 rebase (facade.rs conflict kept both; a_prefix_names_one_record's hydrate arm reads the record; ST0056 re-attached by brew sync --to-store, v37 dev store set aside to tmp/aside/intent.db.v37-2) denied when v6 went red. Gate at e1cccdac4 RUNNING from 17:09Z (Desk 01M7WYKZNY9H1W8TAJD5P8Z3MC, log scratchpad gate-st0096-7.log, stdin /dev/null). Next: its END to the Desk, the proof to vc (scratchpad st0096-wp01-proof.md plus the doctor finding and the rebases), then vc lands after v7. After the land: re-cite ST0095's seven AT rows to their markers, satisfy AC-01.1 and AC-01.2, remove the worktree. Then issue 0735, then ST0096 WP-05. Ruled since 16:54Z: dc's ST0095 WP-08/09 meaning, yes with three riders (17:06Z). (edited)
 
 ## TODO
 
