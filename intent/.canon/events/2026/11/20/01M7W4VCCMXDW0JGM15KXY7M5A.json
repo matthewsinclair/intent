@@ -1,0 +1,16 @@
+{
+  "id": "01M7W4VCCMXDW0JGM15KXY7M5A",
+  "ts": "2026-11-20T09:33:23.733Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 156,
+    "text": "ST0096 WP-02 (M, ic), 2026-11-20 09:33Z by date -u. PROVED (proof with vc, 09:16Z) and HELD for order: it lands after cc's WP-05+06, since cc's step 5 rewrites the same 0555 path and carries the unmerged-canon field. Issue 0730 (R11's remainder, filed 4d205c88a) is folded in on vc's word: bank refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5 (22 paths, tmp/wt-st0096-wp02), check run green on gyges at a752f71ba (09:23Z to 09:29Z), critic-rust on the merged is_tracked running. AFTER cc's unit lands: rebase onto it, take cc's field and drop packages_minted_twice, keep a_work_package_both_clones_minted_is_renumbered, then ONE gyges run over this and the remint doors (DOING 154), and one proof in two sections naming 0730's fix, its test (doctor_says_git_was_not_asked_of_the_store_and_the_views_alike) and the critic's word."
+  }
+}

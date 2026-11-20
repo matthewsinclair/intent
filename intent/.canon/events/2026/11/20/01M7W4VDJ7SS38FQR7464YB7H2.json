@@ -1,0 +1,16 @@
+{
+  "id": "01M7W4VDJ7SS38FQR7464YB7H2",
+  "ts": "2026-11-20T09:33:24.935Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 (ic), 2026-11-20 09:33Z by date -u. WP-10 PART 1 LANDED at c437d1d83 (0713 and 0721 closed; dc has intent id's shape). AFTER cc's WP-05+06 lands, in ONE gyges run with WP-02 (DOING 156): the remint doors for AC-10.5 and AC-06.3's last hole: st remint <id> and issues remint <id> call cc's Facade::st_remint and issue_remint (step 7); their dispatch rows replace the two renumber rows, with dispatch-table.md regenerated; the old two-argument renumber is refused on the CLI and MCP with remint as its remedy; the proof shows those three things. PART 2 after that: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 satisfied at WP-10's close. WP-07's signature is agreed with devbin-cc. WP-13 draft: refs/bank/ic/st0095/wp13-draft-20261120."
+  }
+}
