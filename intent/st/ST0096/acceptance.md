@@ -30,7 +30,7 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-02.2 doctor names a project whose aggregate views (the two lists, or any thread's acceptance.md) are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
 - AC-02.3 doctor shows an ignored aggregate view that is missing, or that differs from what the store renders, with intent sync --to-disk as the fix, and counts neither, so a fresh clone's first commit passes the commit gate; a view still tracked is counted as today. -- satisfied: no (computed)
 
-### WP-03 -- The commit gate and the pull-request check follow (status: Not Started)
+### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 
 - AC-03.1 The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set. -- satisfied: no (computed)
 
@@ -60,7 +60,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-03 -- The commit gate and the pull-request check follow (status: Not Started)
+### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 
 _(no tests in this group)_
 

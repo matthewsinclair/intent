@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: The commit gate and the pull-request check follow
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-03: The commit gate and the pull-request check follow
