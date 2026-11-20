@@ -1,0 +1,15 @@
+{
+  "id": "01M7W1DC851W3APCHYCC8SR8JX",
+  "ts": "2026-11-20T08:33:19.317Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "devbin-cc takes ST0095 WP-07 (prefix resolution, M) on cc's brief, through devbin-vc on the Desk's offer, with cc's yes of 2026-11-20 08:33Z by date -u and its four conditions: (1) it builds on main after cc's WP-06 lands, never on cc's bank; (2) cc's brief rules every point of meaning, R7 included (Deref stays: the stored form is the only string form a store compares, a door resolves before anything compares, messages take shown()); (3) the resolver's signature is agreed between cc and ic before it is built, since WP-10's doors call it; (4) cc reads its proof for meaning beside its critic-rust review, and vc lands it. NEXT: cc banks the brief during its step-4 suite and sends vc the ref; vc passes it to devbin-vc. The Desk holds devbin-cc, reading only, until then."
+  }
+}

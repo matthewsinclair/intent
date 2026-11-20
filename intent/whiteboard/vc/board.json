@@ -2935,10 +2935,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 62,
-      "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19 09:38Z by date -u, the thread marked started on 2026-11-20 (60b9adb0e). DONE: WP-01 (ae11d9939), WP-02 (ed1caeb36), WP-04, the waist (31dd4430c). WP-03 is landed, its guard S too (ea22af4c7, on dc's proof), and open only for AC-03.3, its screenshots, after WP-06 and WP-10. LANDED 2026-11-20: WP-10a (7e0eb368c; 0710 closed, 0713 open for events --subject), issue 0711 (045086a17, closed), issue 0720 (26a752653, devbin-dc's on dc's brief; dc closes it), the guard S (ea22af4c7). The shared set is at 1fd4d88b6 (dc, 07:38Z) and is frozen from WP-06's land. AFTER hv's COMPACTS of 2026-11-20: cc's WP-05+06 unit (L) fixes its suite's reds, runs one suite, rebases past 0711, then takes steps 4 to 9 on cc's todo 55, with the store-holds-the-format fix vc OK'd (in the design at e77a68439), and one gate run at the end; rhadamanth's cargo lane is cc's first. ic: WP-10 PART 1 (the doors, the events union closing 0713, intent id <token> for dc's WP-12, issue 0721's doctor row) to its proof on gyges; PART 2 after cc's unit (GraphQL String! ids at SDL face 25, T1 to T9, the 53 hand-built canon test files scoped with cc). dc: WP-14 with 0719 (claimed at 2f13ee69c), then 0718, 0715 and 0722 as one unit, WP-08 and WP-09 after WP-06, WP-12 after PART 1. devbin-dc: issues 0723 and 0724 (vc todo 91), then ST0096 WP-03. WP-14 lands before or after cc's unit, never inside it. Then cc's WP-07, ic's WP-10 second half, WP-11, WP-13. Residue on WP-06's list: facade_st_wp.rs:25, 26 and 288 build a thread path by hand. vc reads each unit's proof with its critic review (vc decision 133); vc decision 132: no dev build touches the main checkout's store.",
+      "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19 09:38Z by date -u, the thread marked started on 2026-11-20 (60b9adb0e). DONE: WP-01 (ae11d9939), WP-02 (ed1caeb36), WP-04, the waist (31dd4430c). WP-03 is landed, its guard S too (ea22af4c7, on dc's proof), and open only for AC-03.3, its screenshots, after WP-06 and WP-10. LANDED 2026-11-20: WP-10a (7e0eb368c; 0710 closed, 0713 open for events --subject), issue 0711 (045086a17, closed), issue 0720 (26a752653, devbin-dc's on dc's brief; dc closes it), the guard S (ea22af4c7). The shared set is at 1fd4d88b6 (dc, 07:38Z) and is frozen from WP-06's land. AFTER hv's COMPACTS of 2026-11-20: cc's WP-05+06 unit (L) is on step 4 (its suite granted at 08:31Z, cc's word), then steps 5 to 9 on cc's todo 55, with the store-holds-the-format fix vc OK'd (in the design at e77a68439), and one gate run at the end; rhadamanth's cargo lane is cc's first. ic: WP-10 PART 1 (the doors, the events union closing 0713, intent id <token> for dc's WP-12, issue 0721's doctor row) to its proof on gyges; PART 2 after cc's unit and WP-07 (GraphQL String! ids at SDL face 25, T1 to T9, the 53 hand-built canon test files scoped with cc). dc: WP-14 with 0719 (claimed at 2f13ee69c), then 0718, 0715 and 0722 as one unit, WP-08 and WP-09 after WP-06, WP-12 after PART 1. devbin-dc: issues 0723 and 0724 (vc todo 91), then ST0096 WP-03. devbin-cc: WP-07 on cc's brief, from WP-06's land (vc todo 92). WP-14 lands before or after cc's unit, never inside it. Then cc's ST0096 WP-01 and WP-05 (in that order), ic's WP-10 second half, WP-11, WP-13. Residue on WP-06's list: facade_st_wp.rs:25, 26 and 288 build a thread path by hand. vc reads each unit's proof with its critic review (vc decision 133); vc decision 132: no dev build touches the main checkout's store.",
       "state": "live",
       "recorded_at": "2026-11-19T08:29:35.862Z",
-      "edited_at": "2026-11-20T08:14:01.741Z"
+      "edited_at": "2026-11-20T08:33:29.484Z"
     },
     {
       "node": "vc",
@@ -3035,6 +3035,14 @@
       "state": "live",
       "recorded_at": "2026-11-20T07:49:49.184Z",
       "edited_at": "2026-11-20T08:04:07.186Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 92,
+      "text": "devbin-cc takes ST0095 WP-07 (prefix resolution, M) on cc's brief, through devbin-vc on the Desk's offer, with cc's yes of 2026-11-20 08:33Z by date -u and its four conditions: (1) it builds on main after cc's WP-06 lands, never on cc's bank; (2) cc's brief rules every point of meaning, R7 included (Deref stays: the stored form is the only string form a store compares, a door resolves before anything compares, messages take shown()); (3) the resolver's signature is agreed between cc and ic before it is built, since WP-10's doors call it; (4) cc reads its proof for meaning beside its critic-rust review, and vc lands it. NEXT: cc banks the brief during its step-4 suite and sends vc the ref; vc passes it to devbin-vc. The Desk holds devbin-cc, reading only, until then.",
+      "state": "live",
+      "recorded_at": "2026-11-20T08:33:19.317Z"
     }
   ],
   "sent": [
