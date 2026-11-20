@@ -727,6 +727,20 @@ fn in_status_bucket(project: &Project, dir: &Path) -> bool {
 /// migration's own record -- and it is named, because the prune probe will then
 /// withhold it and the operator needs to know why before `organize` says so.
 ///
+/// **"CANON HOLDS THE PATH" IS ASKED THROUGH THE ONE-FILE KEY** (issue 0711,
+/// cc's ruling), by [`held_for`], the answer the prune's verdict asks too: a
+/// bucket `design.png` beside a canon `Design.png` is that attachment, because
+/// a case-insensitive disk stores the two as one file. Ingested as a second
+/// attachment, its sidecar would replace canon's on macOS with nothing refusing
+/// it. So it takes canon's verdicts above, and a withheld one is named with the
+/// spelling canon holds.
+///
+/// **Matched against canon's rows as they stood before this merge**, never
+/// against a sibling the merge has just taken in. Two bucket files that are one
+/// file on a case-insensitive disk, which only a case-sensitive disk can hold
+/// side by side, are both carried, and the migration's one-file guard then
+/// refuses the pair with its remedy rather than this choosing one in silence.
+///
 /// Pure over the thread and the offered files: the scan owns the disk read and
 /// the accounting, and this owns only the verdict.
 fn ingest_bucket_attachments(
@@ -736,19 +750,32 @@ fn ingest_bucket_attachments(
 ) -> (Vec<std::path::PathBuf>, Vec<Withheld>) {
   let mut ingested = Vec::new();
   let mut differing = Vec::new();
+  let canon_rows = thread.attachments.len();
   for attachment in offered {
     let path = dir.join(&attachment.path);
-    match thread.attachments.iter().find(|a| a.path == attachment.path) {
+    match held_for(
+      &thread.attachments[..canon_rows],
+      &attachment.path,
+      Some(&attachment.sha256),
+    ) {
       None => {
         ingested.push(path);
         thread.attachments.push(attachment);
       }
       Some(held) if held.sha256 == attachment.sha256 => {}
-      Some(_) => differing.push(Withheld {
+      Some(held) if held.path == attachment.path => differing.push(Withheld {
         path,
         reason: format!(
           "differs from the `{}` {} already carries in canon, and canon wins, so this copy is not ingested",
-          attachment.path,
+          held.path,
+          thread.id.shown()
+        ),
+      }),
+      Some(held) => differing.push(Withheld {
+        path,
+        reason: format!(
+          "is one file with the `{}` {} already carries in canon on a case-insensitive disk (macOS's default), and differs from it, so canon wins and this copy is not ingested",
+          held.path,
           thread.id.shown()
         ),
       }),
@@ -759,6 +786,30 @@ fn ingest_bucket_attachments(
   // files in place.
   thread.attachments.sort_by(|a, b| a.path.cmp(&b.path));
   (ingested, differing)
+}
+
+/// The attachment canon holds for a file at `path` (issue 0711): the row with
+/// that exact spelling first, then a row with its one-file key at `sha`, then
+/// any row with its key.
+///
+/// **One answer for the bucket merge and the prune's verdict**, which must
+/// agree: a file the merge counts as held is one the prune may remove. A canon
+/// already holding a case pair, which a migration on a case-sensitive disk
+/// could leave before 0711, answers each spelling with its own row, and a
+/// file's own bytes find their row before another's does.
+fn held_for<'a>(held: &'a [Attachment], path: &str, sha: Option<&str>) -> Option<&'a Attachment> {
+  let key = crate::project::one_file_key(Path::new(path));
+  let one_file = |a: &&Attachment| crate::project::one_file_key(Path::new(&a.path)) == key;
+  held
+    .iter()
+    .find(|a| a.path == path)
+    .or_else(|| {
+      held
+        .iter()
+        .filter(one_file)
+        .find(|a| Some(a.sha256.as_str()) == sha)
+    })
+    .or_else(|| held.iter().find(one_file))
 }
 
 /// **EVERY ATTACHMENT-SHAPED FILE UNDER A THREAD IS CARRIED OR NAMED, AND THE
@@ -3727,6 +3778,12 @@ fn is_v2_document(path: &Path) -> bool {
 /// `rel` is relative to the BUCKET, so its first component is the thread id --
 /// the same shape `thread_dirs` hands back, and the reason `classify` is asked
 /// about the remainder rather than about `rel` itself.
+///
+/// **An attachment is found by [`held_for`], the bucket merge's own answer**
+/// (issue 0711): the merge counts a case variant of a canon-held attachment at
+/// the same sha as held, so this must too, or the prune would withhold that
+/// file for ever as content nothing else holds, and one withheld file freezes
+/// the whole estate's prune.
 fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
   let mut parts = rel.components();
   let Some(id) = parts.next().and_then(|c| c.as_os_str().to_str()) else {
@@ -3752,7 +3809,13 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
     ThreadFile::Canon => Holding::Held,
     ThreadFile::Attachment => {
       let name = within.to_string_lossy().to_string();
-      let Some(held) = thread.attachments.iter().find(|a| a.path == name) else {
+      // Read before the lookup, so a file's own bytes find their row before
+      // another spelling's does; a file that cannot be read is said so below,
+      // once a row says it is canon's to hold.
+      let sha = std::fs::read(path)
+        .ok()
+        .map(|bytes| crate::model::sha256_hex(&bytes));
+      let Some(held) = held_for(&thread.attachments, &name, sha.as_deref()) else {
         // **AN UNNAMEABLE FILE GETS THE REMEDY, BECAUSE NOTHING ELSE WILL EVER
         // HOLD IT** (issue 0461). The ingest skips a name `attachment_name`
         // refuses and `st attach` refuses it too, so this line repeats on every
@@ -3771,16 +3834,17 @@ fn bucket_verdict(canon: &Canon, rel: &Path, path: &Path) -> Holding {
       // **THE SHA, NOT THE PRESENCE OF A ROW.** A row proves a path was seen;
       // this proves the bytes travelled. The half-migrated thread AC-02.1's
       // probe exists for is exactly a row whose content never arrived.
-      let Ok(bytes) = std::fs::read(path) else {
+      let Some(sha) = sha else {
         return Holding::NotHeld(format!(
           "could not be read, so nothing can say whether {id} holds it"
         ));
       };
-      if crate::model::sha256_hex(&bytes) == held.sha256 {
+      if sha == held.sha256 {
         Holding::Held
       } else {
         Holding::NotHeld(format!(
-          "differs from the `{name}` {id} carries, so the disk copy is the only one of these bytes"
+          "differs from the `{}` {id} carries, so the disk copy is the only one of these bytes",
+          held.path
         ))
       }
     }
@@ -3896,7 +3960,12 @@ fn pointers(project: &Project, leftovers: &[std::path::PathBuf]) -> Vec<Pointer>
 
 #[cfg(test)]
 mod tests {
-  use super::{acceptance_test, account_attachments, preamble};
+  use std::path::Path;
+
+  use super::{
+    Attachment, Canon, Holding, THREAD_SCHEMA, Thread, acceptance_test, account_attachments,
+    bucket_verdict, ingest_bucket_attachments, preamble,
+  };
 
   /// **The fixture is ST0010's REAL v2 bytes** (`9b73e98f:intent/st/CANCELLED/
   /// ST0010/info.md`), reduced to the region that carries the defect and not
@@ -4131,5 +4200,194 @@ mod tests {
       "the keyed fields are still found"
     );
     assert_eq!(test.file, None);
+  }
+
+  /// A thread canon already holds, carrying `attachments`, for the bucket
+  /// merge and the prune verdict (issue 0711).
+  fn canon_thread(attachments: Vec<Attachment>) -> Thread {
+    let mut thread: Thread = serde_json::from_value(serde_json::json!({
+      "schema": THREAD_SCHEMA,
+      "id": "ST0001",
+      "title": "ST0001 title",
+      "status": "wip",
+      "created": "2026-08-17",
+    }))
+    .expect("thread fixture");
+    thread.attachments = attachments;
+    thread
+  }
+
+  fn held_spellings(thread: &Thread) -> Vec<&str> {
+    thread.attachments.iter().map(|a| a.path.as_str()).collect()
+  }
+
+  /// Issue 0711: a bucket file whose name differs only in case from one canon
+  /// holds is that file on a case-insensitive disk, so at the same bytes it is
+  /// already held, neither ingested beside it nor withheld.
+  #[test]
+  fn a_bucket_case_variant_of_a_held_attachment_at_its_bytes_is_already_held() {
+    let mut thread = canon_thread(vec![Attachment::opaque("Design.png", b"same".to_vec())]);
+    let (ingested, withheld) = ingest_bucket_attachments(
+      &mut thread,
+      Path::new("intent/st/COMPLETED/ST0001"),
+      vec![Attachment::opaque("design.png", b"same".to_vec())],
+    );
+    assert!(
+      ingested.is_empty(),
+      "nothing is ingested beside the attachment canon holds: {ingested:?}"
+    );
+    assert!(
+      withheld.is_empty(),
+      "canon holds these bytes, so nothing is withheld: {withheld:?}"
+    );
+    assert_eq!(
+      held_spellings(&thread),
+      ["Design.png"],
+      "canon keeps its one spelling"
+    );
+  }
+
+  /// At other bytes it is withheld, and its reason names the spelling canon
+  /// holds, the file an operator must compare it with.
+  #[test]
+  fn a_bucket_case_variant_at_other_bytes_is_withheld_naming_canons_spelling() {
+    let mut thread = canon_thread(vec![Attachment::opaque("Design.png", b"canon".to_vec())]);
+    let (ingested, withheld) = ingest_bucket_attachments(
+      &mut thread,
+      Path::new("intent/st/COMPLETED/ST0001"),
+      vec![Attachment::opaque("design.png", b"bucket".to_vec())],
+    );
+    assert!(
+      ingested.is_empty(),
+      "canon wins, so nothing is ingested: {ingested:?}"
+    );
+    let [only] = withheld.as_slice() else {
+      panic!("the one bucket file is withheld: {withheld:?}");
+    };
+    assert_eq!(
+      only.path,
+      Path::new("intent/st/COMPLETED/ST0001/design.png")
+    );
+    assert!(
+      only.reason.contains("`Design.png`") && only.reason.contains("case-insensitive"),
+      "the reason names canon's spelling and why the two are one file: {}",
+      only.reason
+    );
+    assert_eq!(
+      held_spellings(&thread),
+      ["Design.png"],
+      "canon keeps its one spelling"
+    );
+  }
+
+  /// Canon holding one thread, ST0001, carrying `attachments`.
+  fn canon_holding(attachments: Vec<Attachment>) -> Canon {
+    Canon {
+      threads: vec![canon_thread(attachments)],
+      ..Default::default()
+    }
+  }
+
+  /// A bucket file named `name` holding `bytes`, written under `dir`.
+  fn bucket_file(dir: &Path, name: &str, bytes: &[u8]) -> std::path::PathBuf {
+    let file = dir.join(name);
+    std::fs::write(&file, bytes).expect("write the bucket file");
+    file
+  }
+
+  /// The prune's verdict finds an attachment as the merge does, so a file the
+  /// merge counted as held is held here too, rather than withheld for ever as
+  /// content nothing else holds, which would freeze the estate's whole prune.
+  #[test]
+  fn the_prune_holds_a_bucket_case_variant_the_merge_counted_as_held() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let file = bucket_file(dir.path(), "design.png", b"same");
+    let canon = canon_holding(vec![Attachment::opaque("Design.png", b"same".to_vec())]);
+
+    assert_eq!(
+      bucket_verdict(&canon, Path::new("ST0001/design.png"), &file),
+      Holding::Held
+    );
+  }
+
+  /// At other bytes the prune withholds it, and its reason names the spelling
+  /// canon holds, as the merge's does.
+  #[test]
+  fn the_prune_withholds_a_bucket_case_variant_at_other_bytes_naming_canons_spelling() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let file = bucket_file(dir.path(), "design.png", b"bucket");
+    let canon = canon_holding(vec![Attachment::opaque("Design.png", b"canon".to_vec())]);
+
+    let Holding::NotHeld(reason) = bucket_verdict(&canon, Path::new("ST0001/design.png"), &file)
+    else {
+      panic!("a case variant at other bytes is not held");
+    };
+    assert!(
+      reason.contains("`Design.png`"),
+      "the reason names the spelling canon holds: {reason}"
+    );
+  }
+
+  /// A canon already holding a case pair, which a migration on a case-sensitive
+  /// disk could leave before 0711, answers each spelling with its own row, in
+  /// the merge and in the prune alike, never with the first row the key finds.
+  #[test]
+  fn a_canon_holding_both_spellings_answers_each_with_its_own_row() {
+    let pair = || {
+      vec![
+        Attachment::opaque("Design.png", b"upper".to_vec()),
+        Attachment::opaque("design.png", b"lower".to_vec()),
+      ]
+    };
+    let mut thread = canon_thread(pair());
+    let (ingested, withheld) = ingest_bucket_attachments(
+      &mut thread,
+      Path::new("intent/st/COMPLETED/ST0001"),
+      vec![Attachment::opaque("design.png", b"lower".to_vec())],
+    );
+    assert!(
+      ingested.is_empty() && withheld.is_empty(),
+      "the merge finds design.png's own row: {ingested:?} {withheld:?}"
+    );
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let file = bucket_file(dir.path(), "design.png", b"lower");
+    assert_eq!(
+      bucket_verdict(
+        &canon_holding(pair()),
+        Path::new("ST0001/design.png"),
+        &file
+      ),
+      Holding::Held,
+      "the prune finds design.png's own row"
+    );
+  }
+
+  /// Two bucket files that are one file on a case-insensitive disk, which only
+  /// a case-sensitive disk holds side by side, are matched against canon as it
+  /// stood, never against each other: both are carried, and the migration's
+  /// one-file guard refuses the pair with its remedy.
+  #[test]
+  fn a_bucket_case_pair_canon_lacks_is_carried_whole_for_the_guard_to_refuse() {
+    let dir = Path::new("intent/st/COMPLETED/ST0001");
+    let mut thread = canon_thread(Vec::new());
+    let (ingested, withheld) = ingest_bucket_attachments(
+      &mut thread,
+      dir,
+      vec![
+        Attachment::opaque("Design.png", b"upper".to_vec()),
+        Attachment::opaque("design.png", b"lower".to_vec()),
+      ],
+    );
+    assert!(
+      withheld.is_empty(),
+      "neither file is judged against the other: {withheld:?}"
+    );
+    assert_eq!(
+      ingested,
+      [dir.join("Design.png"), dir.join("design.png")],
+      "both are carried"
+    );
+    assert_eq!(held_spellings(&thread), ["Design.png", "design.png"]);
   }
 }

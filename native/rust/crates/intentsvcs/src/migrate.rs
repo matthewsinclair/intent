@@ -50,7 +50,7 @@
 //! `NOT-STARTED/` buckets** -- see [`plan`]'s own note. That one is a hole, it
 //! is measured, and it is not silently absent.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use crate::export::{self, Bundle};
@@ -169,6 +169,20 @@ pub enum Blocked {
   /// settle into one check nobody can reach.
   #[error("two artefacts would be written to {path}")]
   Collision { path: String },
+  /// Two artefacts whose paths differ only in case, which a case-insensitive
+  /// disk (macOS's default) stores as one file (issue 0711, cc's ruling of
+  /// 2026-11-19).
+  ///
+  /// **The same guard as [`Blocked::Collision`], asking the one-file key**,
+  /// and refused on every file system, because canon travels by git and the
+  /// pair collides on the next clone made on a Mac. Its pairs are attachments,
+  /// text or opaque, each keyed at the path realising it writes, or an
+  /// attachment beside a view. `path` is the first written and `other` the one
+  /// that would overwrite it, each as written.
+  #[error(
+    "two artefacts would be written to one file on a case-insensitive disk: {path} and {other}"
+  )]
+  CaseCollision { path: String, other: String },
   /// The canon is short of one file per artefact.
   ///
   /// **Counted from the model rather than from the exporter's output**, which
@@ -191,6 +205,9 @@ impl crate::remedy::Remedy for Blocked {
       }
       Self::Collision { path } => format!(
         "two artefacts in the v2 estate resolve to {path}; rename or remove one of them under v2 tooling, then re-run the migration"
+      ),
+      Self::CaseCollision { path, other } => format!(
+        "{path} and {other} differ only in case, so a case-insensitive disk (macOS's default) stores them as one file and one would overwrite the other; give the authored file among them another name under v2 tooling (either one, when both are authored), then re-run the migration"
       ),
       Self::Conservation { expected, actual } => format!(
         "{} artefact(s) produced no canon; nothing in the project caused this and a re-run will reproduce it -- report it",
@@ -650,16 +667,48 @@ fn assemble(
     .map(|(rel, raw)| (intent_dir.join(rel), raw))
     .collect();
 
+  // **EVERY ATTACHMENT, NOT ONLY THE BYTES THIS BATCH CARRIES** (issue 0711).
+  // A text attachment rides inline in its thread's canon, and a thread read
+  // back from canon carries no sidecar bytes, so neither reaches the batch as a
+  // file of its own. Realising the thread writes each of them to its own path
+  // in the thread's directory, so each is keyed there.
+  let realised: Vec<PathBuf> = bundle
+    .threads
+    .iter()
+    .flat_map(|thread| {
+      let dir = project.thread_dir(&thread.id);
+      thread
+        .attachments
+        .iter()
+        .map(move |attachment| dir.join(&attachment.path))
+    })
+    .collect();
+
+  // ONE FILE ON SOME DISK IS ONE FILE (issue 0711, cc's ruling). Every path the
+  // batch writes, and every attachment's realised path, is keyed by the
+  // one-file key, so two that some disk stores as one file are refused before
+  // anything is written, on every file system. What the key equates, and what
+  // it does not, is its own doc's to say.
   {
-    let mut seen: BTreeSet<&PathBuf> = BTreeSet::new();
+    let mut seen: BTreeMap<String, &PathBuf> = BTreeMap::new();
     for path in batch
       .iter()
       .map(|(p, _)| p)
       .chain(blobs.iter().map(|(p, _)| p))
+      .chain(realised.iter())
     {
-      if !seen.insert(path) {
-        return Err(Blocked::Collision {
-          path: project.relative(path),
+      if let Some(first) = seen.insert(crate::project::one_file_key(path), path) {
+        // `relative` spells a path by its components, so two spellings of one
+        // file on every disk (`a/./b.png` and `a/b.png`) read alike here, and
+        // what is left to tell two keyed-alike paths apart is case.
+        let (first, path) = (project.relative(first), project.relative(path));
+        return Err(if first == path {
+          Blocked::Collision { path }
+        } else {
+          Blocked::CaseCollision {
+            path: first,
+            other: path,
+          }
         });
       }
     }
@@ -894,6 +943,104 @@ mod tests {
       panic!("two issues on one number must not silently overwrite");
     };
     assert!(path.contains("46"), "the refusal names the file: {path}");
+  }
+
+  /// ST0001 carrying `attachments`, with the spelling their author gave them.
+  fn carrying(attachments: Vec<crate::model::Attachment>) -> Scan {
+    let mut carrier = thread("ST0001");
+    carrier.attachments = attachments;
+    Scan {
+      threads: vec![carrier],
+      ..Default::default()
+    }
+  }
+
+  /// Two opaque attachments, which reach the guard as sidecar files.
+  fn opaque_pair(first: &str, second: &str) -> Scan {
+    carrying(vec![
+      crate::model::Attachment::opaque(first, b"first".to_vec()),
+      crate::model::Attachment::opaque(second, b"second".to_vec()),
+    ])
+  }
+
+  /// Issue 0711: two paths that differ only in case are one file on a
+  /// case-insensitive disk, which is macOS's default, so there the second write
+  /// would overwrite the first. The refusal names the first written, then the
+  /// one that would overwrite it, each as written. The pair is given out of
+  /// byte order, so a guard that sorted it would answer the other way round.
+  #[test]
+  fn two_paths_that_differ_only_in_case_are_refused_as_one_file() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let project = project(dir.path());
+
+    let Err(refusal) = plan(&project, &ctx(), opaque_pair("design.png", "Design.png")) else {
+      panic!(
+        "design.png and Design.png are one file on a case-insensitive disk, so they must not both be written"
+      );
+    };
+    let Blocked::CaseCollision { path, other } = &refusal else {
+      panic!("a pair that differs only in case is refused as a case collision, not as: {refusal}");
+    };
+    assert!(
+      path.ends_with("ST0001/design.png") && other.ends_with("ST0001/Design.png"),
+      "the first written, then the one that would overwrite it: {path}, {other}"
+    );
+    let remedy = crate::remedy::Remedy::remedy(&refusal);
+    assert!(
+      remedy.contains("differ only in case"),
+      "the remedy says why two names are one file: {remedy}"
+    );
+  }
+
+  /// The key is built from components, as the exact compare it replaced was:
+  /// `a/./b.png` and `a/b.png` are one file on every disk, so the refusal is the
+  /// plain collision, naming the one file, with its own remedy.
+  #[test]
+  fn two_spellings_of_one_path_are_refused_as_one_file() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let project = project(dir.path());
+
+    let Err(refusal) = plan(&project, &ctx(), opaque_pair("a/./b.png", "a/b.png")) else {
+      panic!("a/./b.png and a/b.png are one file on every disk, so they must not both be written");
+    };
+    let Blocked::Collision { path } = &refusal else {
+      panic!("two spellings of one file are refused as one path, not as: {refusal}");
+    };
+    assert!(
+      path.ends_with("ST0001/a/b.png"),
+      "the refusal names the one file: {path}"
+    );
+    let remedy = crate::remedy::Remedy::remedy(&refusal);
+    assert!(
+      remedy.contains("resolve to"),
+      "the remedy says the two artefacts resolve to one file: {remedy}"
+    );
+  }
+
+  /// A text attachment rides inline in its thread's canon, so no sidecar of
+  /// its own reaches the batch; realising the thread writes it, so a text pair
+  /// that differs only in case is refused too.
+  #[test]
+  fn two_text_attachments_that_differ_only_in_case_are_refused_as_one_file() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let project = project(dir.path());
+    let scan = carrying(vec![
+      crate::model::Attachment::new("Notes.md", "first"),
+      crate::model::Attachment::new("notes.md", "second"),
+    ]);
+
+    let Err(refusal) = plan(&project, &ctx(), scan) else {
+      panic!("Notes.md and notes.md are one file once realised on a case-insensitive disk");
+    };
+    let Blocked::CaseCollision { path, other } = &refusal else {
+      panic!(
+        "a text pair that differs only in case is refused as a case collision, not as: {refusal}"
+      );
+    };
+    assert!(
+      path.ends_with("st/ST0001/Notes.md") && other.ends_with("st/ST0001/notes.md"),
+      "the refusal names both realised paths, in the order written: {path}, {other}"
+    );
   }
 
   #[test]

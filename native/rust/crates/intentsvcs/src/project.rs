@@ -1520,6 +1520,51 @@ pub fn canon_blob_rel(id: &str, path: &str) -> String {
   format!(".canon/st/{id}/{path}")
 }
 
+/// The key two paths share when some disk stores them as ONE FILE (issue
+/// 0711, cc's ruling of 2026-11-19). Two paths with one key must never both be
+/// written.
+///
+/// **Built from the path's components**, so `a/./b.png`, `a//b.png` and
+/// `a/b.png` are one key, as they are one file, and **each component is
+/// Unicode-lowercased**, so `Design.png` and `design.png` are one key, as a
+/// case-insensitive disk (macOS's default) stores them as one file.
+///
+/// **Asked on every file system, not only where the disk folds case**:
+/// canon travels by git between macOS and Linux, so a pair harmless on the
+/// disk that wrote it collides on the next clone made on a Mac.
+///
+/// # WHAT IT DOES NOT CATCH, AND WHAT IT CATCHES TOO MUCH, said out loud
+///
+/// - **Unicode normalisation.** Names that differ only as NFC against NFD
+///   are one file on APFS and two keys here.
+/// - **Full case folding.** Lowercasing is not folding: `ſ` against `s`, and
+///   `ς` against `σ`, are two keys here although a folding disk may store
+///   each pair as one file.
+/// - **`..` is kept as written, never resolved**, because resolving it is only
+///   lexical, so `x/../b.png` and `b.png` are two keys. The doors that admit a
+///   name refuse one that is not normalised ([`attachment_name`]); canon read
+///   back and a hand-built model are not checked for it, and this key does not
+///   depend on it.
+/// - **A name that is not UTF-8 is read lossily**, so two such names can share
+///   a key: an over-match, which refuses where it should not, and never lets a
+///   write through.
+///
+/// **Who asks it.** The migration's batch guard, the legacy bucket merge and
+/// the prune's verdict on a bucket file. Issue 0718 moves the attachment door
+/// and projection's sidecar write onto it, issue 0719 `classify`'s view names,
+/// and issue 0722 the doors that read a live disk (`sync --to-store`'s merge,
+/// `organize`'s plan, doctor's attachment drift and the rest it names). Until
+/// those land, those doors still compare paths byte for byte; a door that
+/// compares two paths for "one file" by itself is a second copy of this.
+pub(crate) fn one_file_key(path: &Path) -> String {
+  path
+    .components()
+    .filter(|part| !matches!(part, std::path::Component::CurDir))
+    .map(|part| part.as_os_str().to_string_lossy().to_lowercase())
+    .collect::<Vec<_>>()
+    .join("/")
+}
+
 /// Why an attachment path cannot be carried (ST0057 AC-03.3).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BadName {
