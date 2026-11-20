@@ -1,0 +1,16 @@
+{
+  "id": "01M7W41YXK7VPK94WSM58HSX9B",
+  "ts": "2026-11-20T09:19:30.739Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. (a) Issues 0725 (precommit's three two-way readings, and residue_class_check's kind, ruled GATING by vc on devbin-dc's evidence), 0726 (reference_current_check reads diff three ways), 0727 (the pipefail guard's hand-written count, its -q reach, its dropped awk status, set -uo's reason) and 0728 (a pure reds_confined in cut/gate), one S unit. They are critic-shell's findings on unchanged lines in 0723+0724 (hv decision 69). The brief (refs/bank/dc/devbin/brief-0725-0728.md, blob c6759fa00) is with devbin-dc, which works at main bc2310e95. dc reads the proof; vc lands it and closes all four in the land commit. (b) ST0096 WP-03, on dc's brief, to devbin-dc through devbin-vc once ic's ST0096 WP-02 lands, which is after cc's ST0095 WP-05+06 unit (cc's call, 2026-11-20). Meanwhile dc may brief devbin-dc on a self-contained shell unit, eg WP-12's pipeline half (asked of dc)."
+  }
+}
