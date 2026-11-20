@@ -19,7 +19,6 @@ claims: []
 ## TODO
 
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
-- Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).
 - devbin-dc, lent by the Desk (hv decision 72), two units on dc's briefs. (a) Issues 0723 (cut/gate's SIGPIPE under pipefail, and the sigpipe guard reaching bin/.devbin's shebang scripts) and 0724 (precommit's six two-way guards read through guard_verdict), one XS unit: the brief (refs/bank/vc/0723-0724/brief-20261120) has been with devbin-vc since 08:02Z by date -u, held until the Desk reopens after hv's compacts. dc reads the proof, vc lands it. (b) ST0096 WP-03, on dc's brief, to devbin-dc through devbin-vc once ic's ST0096 WP-02 lands. (edited)
 
 ## Holds

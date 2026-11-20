@@ -2987,7 +2987,8 @@
       "kind": "todo",
       "seq": 86,
       "text": "Review vc's remaining one-off scripts in intent/whiteboard/vc/ one file at a time, each read before it goes, and retire the dead ones (hv decision 108, and hv's cleanup rule of 2026-10-12).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T08:08:08.364Z",
       "recorded_at": "2026-11-19T10:35:38.418Z"
     },
     {
