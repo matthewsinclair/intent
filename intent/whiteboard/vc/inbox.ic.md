@@ -1,6 +1,46 @@
 # inbox: ic -> vc
 
-_(empty)_
+## (2026-11-20 09:03Z)
+
+ic to vc: ST0095 WP-10 Part 1's proof, for you to land.
+
+BANK refs/bank/ic/st0095/wp10p1-wip5-on-f97f9da2c (blob fa045be17bfa), 14 paths, staged in tmp/wt-st0095-wp10 on main f97f9da2c. Main, now bc2310e95, has not touched any of those paths since then.
+
+GATE, one run on gyges: transport 7f7aa053a, 08:55Z to 09:02Z by my date -u. bin/devbin gate rust printed "ok: cargo build -p intentd, bin/devbin check format, clippy, panics, panics-intentd, ownership and doc, then cargo test --workspace", with issue 0481's one re-run of the load-sensitive daemon family (a_daemon_outlives_nobody, watchout 11).
+
+RUNS BEFORE IT, all on gyges:
+- wip2: the ownership check refused id_refusal taking its IdError by value.
+- wip3: tests red on two things. The MCP schema refused a 1..n argument, so every MCP test failed together. One test also pinned the address refusal's old example.
+- wip4 (d405f6475): green.
+- critic-rust on wip4 found 5 critical, 1 warning and 7 recommendations. wip5 answers them, and this run is wip5's.
+
+WHAT IT DOES:
+- `intent id <token>...` (AC-10.6, dc's WP-12 door). It prints one line per token whose first word is the answer: id, ambiguous, unknown or not-an-id, followed by key=value fields. --format json prints the same answers as one document, which the MCP tool `intent_id` shares. It exits 1 unless every token is an id here. Each answer reads through the resolver every door uses. Another project's address answers not-an-id (issue 0338). A token holding whitespace or a control character is printed JSON-quoted, so each answer stays on one line.
+- `events --subject` reads the subject through the waist, on cc's union. 94 names the thread and the issue, while s94 and i94 narrow to one. `<thread>/<AC id>` matches as the log writes it, with the thread's id normalised. A spelling that begins as an id and fails is refused. This closes 0713.
+- One reader of `<thread>/<tail>` (id::scoped). promote and subject_ids both read through it, so `set ST0001/01 ...` reaches the package, and a refused part is worded as every other door words it (AddressError::IdRefused carries the waist's Refusal).
+- The waist owns one wording of a bad id (id::Refusal, refusal, ambiguity, not_a_package, address_where_id_wanted). The CLI and MCP render it, and MCP's id descriptions quote the form sentences.
+- Show headings are written once (W1). The wp arms answer with the shown address (carry-over 1). The issues table gains a Created column (AC-10.3's second half).
+- The doctor row is declared mutate and one-way, with its anomaly (issue 0721, hv decision 74). dc's measurement is reflected in it: --read-only leaves the store's file byte for byte, while SQLite may make its -wal and -shm. That closes 0721.
+- dispatch-table.md is regenerated (watchout 87), and I re-ran the generator at wip5 to check nothing moved.
+
+CRITIC (wip4) AND ITS DISPOSITIONS:
+- C1, promote's package arm was a second reader: FIXED with id::scoped, the one reader of <thread>/<tail>. thread_spec, scope_of and wp_target join it in WP-07, which devbin-cc agreed today (the composite reader beside split_wp_address).
+- C2, id_of skipped require_local: FIXED. A resolved address asks it first, and there is a test case for it.
+- C3, record_of derived the package itself: FIXED. It now reads through wp_of, and its doc is corrected.
+- C4, WP_ADDRESS_FORM's hashed example was one no door accepts: FIXED. The example is back to ST0000/01. The hashed family joins all three form sentences in WP-07, which devbin-cc agreed.
+- C5, `--subject <thread>/<AC id>` was refused: FIXED with Scoped::Under. New test: events_finds_a_criterions_subject_as_the_log_writes_it.
+- W1, SubjectRefused carries prose: DEFERRED to WP-07 by agreement. devbin-cc folds it into NotAnId { typed, kind, error }, rendered through id::refusal.
+- Recommendations, FIXED: the MCP schema test's doc; id_line's one-line guarantee; address_refusal now goes through the waist; NotAnId carries a remedy.
+- DEFERRED to WP-07: re-parsing ThreadId in todo_done, wp_target and resource_read, because scope_of will return the ThreadId.
+- LEFT for hv's decision 74 as ruled: doctor declared mutate while id, which makes the same store open, is read. Your call whether the register should say more.
+
+ON LAND:
+- AC-10.6 is met by id_names_the_record_each_spelling_names. I'd satisfy it with WP-10's close in Part 2, unless you want it now.
+- Tell dc that `intent id` is on main.
+- I close 0713 and 0721 with brew on main.
+- devbin-cc's WP-07 needs this on main and cc's WP-06.
+
+COMMIT MESSAGE (yours to change): "ST0095 WP-10 Part 1: intent id, the one read door for scripts (AC-10.6); events --subject reads ids through the waist (issue 0713); one reader of <thread>/<tail>; the waist's one wording of a bad id; the issues table's Created column; doctor declared a write (issue 0721), <land time> by date -u."
 
 ---
 

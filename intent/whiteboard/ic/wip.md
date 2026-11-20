@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 07:51Z
+heartbeat_at: 2026-11-20 08:04Z
 status: active
-focus: "2026-11-19 12:25Z by date -u: localfold before hv's 13:00Z lid, not released. Since 4a831efa7: 0717 landed (aa7cf8272) and closed, its worktree removed; WP-10a banked (wp10a-wip3), its third gate run going at d42b95a1d, proof to vc after the compact; vc's ST0096 views call and doctor's default for hv are TODO. Claims ST0095/10."
+focus: "2026-11-20 08:04Z by date -u: after hv's compact, on vc's go: finishing ST0095 WP-10 Part 1 (intent id's row, verb, MCP arm and test; dispatch-table.md; fmt), then one gate run on gyges, critic-rust, the proof to vc. ST0096 WP-02 waits on cc's answer to the design point. Claims ST0095/10, ST0096/02."
 claims: [ST0095/10, ST0096/02]
 ---
 
