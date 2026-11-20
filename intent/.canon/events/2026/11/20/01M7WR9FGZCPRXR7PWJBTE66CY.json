@@ -1,0 +1,16 @@
+{
+  "id": "01M7WR9FGZCPRXR7PWJBTE66CY",
+  "ts": "2026-11-20T15:13:09.210Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 120,
+    "text": "ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05."
+  }
+}

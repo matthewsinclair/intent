@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 15:08Z
+heartbeat_at: 2026-11-20 15:13Z
 status: active
-focus: "2026-11-20 15:08Z by date -u: localfolded for hv's estate-wide compact, not released. ST0095/05+06 is landing (vc), gated green on main 8fe62c885. Next: ST0096 WP-01, then WP-05. Claims ST0095/05, ST0095/06."
+focus: "2026-11-20 15:12Z by date -u: ST0095/05+06 landed at ed302b7e4, its worktree removed. Holding for vc's go on ST0096 WP-01, then WP-05."
 claims: [ST0095/05, ST0095/06]
 ---
 
@@ -13,11 +13,10 @@ claims: [ST0095/05, ST0095/06]
 
 ## DOING
 
-- ST0095/05+06 LANDING by vc at 2026-11-20 15:08Z by date -u, from refs/bank/cc/st0095/wp0506-wip13-on-8fe62c885 (patch-id e6b1e5d2ba7f). The rebase gate passed 15:02Z to 15:06:58Z, and the proof is at refs/bank/cc/st0095/wp0506-proof.md. After the land: remove tmp/wt-st0095-wp0506 by the four checks, with an attic ref first. Still open: AC-06.3 waits on ic's remint doors, and AC-06.1's issue half on ST0096. NEXT for cc: ST0096 WP-01, then WP-05. (edited)
+- ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
 
 ## TODO
 
-- ST0095/05+06, the rest of the unit after wip7 (notes at refs/bank/cc/st0095/wp0506-wip7-notes.md once banked). (a) Re-pin the faces from the bless (SDL 24, JSON 28, DDL 31). (b) ic's item 5: rename wps.seq and issues.number to id in rung 36 and store.rs's SQL, with a re-bless. (c) Step 7: a canon name of neither family refused by name (AC-06.5, W11), and the facade's one-record re-mint with W15's malformed-id refusals (the st remint and issues remint doors are ic's). (d) Step 8: doctor's canon-format-behind, shown and not counted, in ic's wording. (e) Step 9: the two-clone proof, including an ordinal package in flight that moves and whose claim follows. (f) One bin/devbin gate rust on the final bank, critic-rust over the whole diff, and the proof to vc. Then send ic the faces again. (edited)
 - WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06: C2, one mint retiring next_thread_id, next_issue_number and next_free_id's arithmetic; W11, a canon file of neither family refused by name (AC-06.5); W15, st remint's malformed-id refusals. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2.
 
 ## Holds
