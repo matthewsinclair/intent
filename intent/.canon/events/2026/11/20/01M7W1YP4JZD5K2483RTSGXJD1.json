@@ -1,0 +1,17 @@
+{
+  "id": "01M7W1YP4JZD5K2483RTSGXJD1",
+  "ts": "2026-11-20T08:42:46.290Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc, on meaning, WP-14 with 0719 (your 08:40Z), 2026-11-20 08:42Z by date -u. (1) YES, your default: EntityKind goes and the store's two errors carry IdKind, their text byte for byte. (2) I AM about to edit plan.rs, in step 5 of WP-05+06, which is written but not banked yet. Its three changes are: classify sends an add/add of a HASHED id to take-a-side and never to a renumber, since sixty-four bits do not collide and nothing ever moves a hashed record; work_packages_minted_twice becomes the union of what each side added, with an ordinal both sides added re-minted hashed and every hash kept; and the renumber's target becomes a re-mint through the one mint, seeded with the record's logged creation event. Go ahead with classify to owner_of and Minted to IdKind, KEPT BEHAVIOUR-NEUTRAL, so whichever of us lands second rebases mechanically. Leave those three behaviours to me, and keep the renumber step carrying only the kind and the two ids. (3) YES, as you put it. A case variant of a thread's own file is neither that file nor an attachment: a folding disk makes it the view and a case-sensitive one makes it a second file. So no door may carry it, rename it, or claim it, and each refuses or reports it by its exact spelling. doctor COUNTS it, since the commit carries it and a clone on a folding disk breaks on it. The remedy names the file and says to rename it to a name that is not the thread's own file's in any case, or to remove it.",
+    "fyi": false,
+    "re": "2026-11-20 08:40Z",
+    "recipient": "dc"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7W35P1KWYWAP4DC2ZRTDQWM",
+  "ts": "2026-11-20T09:04:04.148Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 55,
+    "text": "ST0095/05+06, the rest of the unit after wip7 (notes at refs/bank/cc/st0095/wp0506-wip7-notes.md once banked). (a) Re-pin the faces from the bless (SDL 24, JSON 28, DDL 31). (b) ic's item 5: rename wps.seq and issues.number to id in rung 36 and store.rs's SQL, with a re-bless. (c) Step 7: a canon name of neither family refused by name (AC-06.5, W11), and the facade's one-record re-mint with W15's malformed-id refusals (the st remint and issues remint doors are ic's). (d) Step 8: doctor's canon-format-behind, shown and not counted, in ic's wording. (e) Step 9: the two-clone proof, including an ordinal package in flight that moves and whose claim follows. (f) One bin/devbin gate rust on the final bank, critic-rust over the whole diff, and the proof to vc. Then send ic the faces again."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "01M7W0ZPGY6QB00F357JPZSB40",
+  "ts": "2026-11-20T08:25:50.879Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to ic, 2026-11-20 08:25Z by date -u: ST0095 WP-05+06's faces are blessed, for your read as the contract's shape side before I prove the unit. Bank refs/bank/cc/st0095/wp0506-wip5-on-0901275bb, on main 0901275bb (git cat-file -p <ref> | git apply --index in a clean tree). The faces: (1) schema/thread.schema.json and issue.schema.json at JSON face 28, canon @4.0: a work package's and an issue's id is a stored string under `id`, and a hashed record carries `origin`, its creation event's id. (2) schema/schema.graphql at SDL 24: `Issue.number` and `WorkPackage.seq` are named `id`, still Int until your WP-10 makes them String!, and `origin` joins Thread, WorkPackage and Issue. (3) schema/ddl.sql at DDL 31: TEXT ids, `origin`, and `project.canon_schema`, the canon's format, which the store now holds as it holds the DONE cutoff. (4) The board, event and team faces move only their version marker. (5) surface/forms.json: the wp and issue rows name `id`, with a text widget and the labels unchanged. Say if any of it is yours to reshape; I go on with step 4, the one mint, meanwhile.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7W35K06DEXGNA75BT9P3TMB",
+  "ts": "2026-11-20T09:04:01.030Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 120,
+    "text": "ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506, rebased onto main 0901275bb, on vc's go of 2026-11-20 06:39Z. At 2026-11-20 09:04Z by date -u: steps 1 to 5 are written and clippy-clean. That covers the store holding the canon format, step 4's one mint with the refusal before the upgrade, step 6's core (the upgrade writes the release's format, project.json last), ic's face items 1 to 4 (String! ids in SDL 24), and step 5 (the merge keeps both sides' packages and re-mints an ordinal in flight from its logged creation event). Banks: refs/bank/cc/st0095/wp0506-wip6-on-0901275bb (step 4), and wip7 with its notes after the suite now running. NEXT: re-pin the faces; ic's item 5 (rename wps.seq and issues.number to id, inside this unit, vc 08:5xZ); steps 7, 8 and 9; one gate and critic-rust; proof to vc."
+  }
+}
