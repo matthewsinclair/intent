@@ -5,12 +5,14 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-20T17:45:40.106Z",
+    "heartbeat_at": "2026-11-20T18:31:37.448Z",
     "status": "active",
-    "focus": "2026-11-20 17:45Z by date -u: one gate (vc 17:46Z) for the stack on main fa5ebbbbf: 0722 at refs/bank/dc/0722/both-v2 abdf74504, then ST0095 WP-08+09 at refs/bank/dc/st0095/wp0809-on-0722 41c6c6373; Desk 01M7X0ZZ next after devbin-cc's 0735. vc lands both back to back; then AT-08.1/08.2/09.1-09.3 rows, AT-14.1 re-cite to id.rs:2462, WP-08 and WP-09 close, worktrees removed.",
+    "focus": "2026-11-20 18:02Z by date -u: 0722 landed and closed (0ab2a843b); ST0095 WP-08 and WP-09 done (82c45d36b); three worktrees removed. Waiting: devbin-dc's ST0096 WP-04 AC-04.1 proof (GO sent), then dc starts WP-04 and writes AT-04.1. Next for dc: issue 0737 after WP-04 lands; ST0095 WP-03 (DOING 167) and WP-12's routing half wait for the rehearsal's pair.",
     "claims": [
       "ST0095/03",
-      "ISSUE:0737"
+      "ISSUE:0737",
+      "ISSUE:0739",
+      "ISSUE:0741"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3226,7 +3228,8 @@
       "kind": "todo",
       "seq": 79,
       "text": "ST0096 WP-04 AC-04.1 (Rust) is devbin-dc's (vc 17:56Z; devbin-vc decision 261). GO sent 2026-11-20 after the 0722 + WP-08/09 land (cbae96463): one Forge in intent-cli's tests/common (dc's ruling, option b). dc reads the proof, vc lands; dc then starts WP-04 on main and writes AT-04.1. AC-04.2 waits on cc's WP-05.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:54:59.712Z",
       "recorded_at": "2026-11-20T17:53:17.955Z",
       "edited_at": "2026-11-20T18:01:25.970Z"
     },
@@ -3234,9 +3237,18 @@
       "node": "dc",
       "kind": "todo",
       "seq": 80,
-      "text": "Issue 0737 (filed by dc, hv decision 69): fold the three two-clone tests' own git and clone helpers onto common's Forge. Starts after WP-04's AC-04.1 lands with Forge.",
+      "text": "Issue 0737 (dc's, hv decision 69): fold the four two-clone tests' own git and clone helpers onto common's Forge (remint, event log, both pull tests). vc's GO 2026-11-20; devbin-dc builds on 26c4b0ca0 (rebase once if ic's WP-10 T unit lands first); dc reads the proof, vc lands.",
       "state": "live",
-      "recorded_at": "2026-11-20T18:01:27.101Z"
+      "recorded_at": "2026-11-20T18:01:27.101Z",
+      "edited_at": "2026-11-20T18:55:00.912Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 81,
+      "text": "Issue 0739 (claimed, vc's go 18:20Z, cc's meaning + riders): refs/bank/dc/0739/wip2 ec95c82bd in tmp/wt-0739, wip1 red at compile (misplaced attribute, fixed); critic-rust reading; then one gate and the proof to vc. Issue 0741 (cc's meaning 2026-11-20: plan the views step from the model the ingest will produce, in memory): builder vc's pick, dc offered after 0739. When 0741 lands: WP-04's after_checkout tightens back from 'a fresh sync has nothing to do' to 'no left: line'.",
+      "state": "live",
+      "recorded_at": "2026-11-20T18:27:43.407Z"
     }
   ],
   "sent": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M7X4ZQSGK6HSRDQ03M7BCRJN",
+  "ts": "2026-11-20T18:55:00.912Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 80,
+    "text": "Issue 0737 (dc's, hv decision 69): fold the four two-clone tests' own git and clone helpers onto common's Forge (remint, event log, both pull tests). vc's GO 2026-11-20; devbin-dc builds on 26c4b0ca0 (rebase once if ic's WP-10 T unit lands first); dc reads the proof, vc lands."
+  }
+}

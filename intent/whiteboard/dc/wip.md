@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 17:45Z
+heartbeat_at: 2026-11-20 18:31Z
 status: active
-focus: "2026-11-20 17:45Z by date -u: one gate (vc 17:46Z) for the stack on main fa5ebbbbf: 0722 at refs/bank/dc/0722/both-v2 abdf74504, then ST0095 WP-08+09 at refs/bank/dc/st0095/wp0809-on-0722 41c6c6373; Desk 01M7X0ZZ next after devbin-cc's 0735. vc lands both back to back; then AT-08.1/08.2/09.1-09.3 rows, AT-14.1 re-cite to id.rs:2462, WP-08 and WP-09 close, worktrees removed."
-claims: [ST0095/03, ISSUE:0737]
+focus: "2026-11-20 18:02Z by date -u: 0722 landed and closed (0ab2a843b); ST0095 WP-08 and WP-09 done (82c45d36b); three worktrees removed. Waiting: devbin-dc's ST0096 WP-04 AC-04.1 proof (GO sent), then dc starts WP-04 and writes AT-04.1. Next for dc: issue 0737 after WP-04 lands; ST0095 WP-03 (DOING 167) and WP-12's routing half wait for the rehearsal's pair."
+claims: [ST0095/03, ISSUE:0737, ISSUE:0739, ISSUE:0741]
 ---
 
 # DevX Claude (dc)
@@ -20,8 +20,8 @@ claims: [ST0095/03, ISSUE:0737]
 - ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.
 - hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
 - ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, intent id <token>... (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too). vc, 2026-11-20 07:3xZ: the door lands in ic's WP-10 first half Part 1, in that shape, answering every spelling resolve::resolve takes today; hash prefixes join later without changing the line's shape, so WP-12's routing can build on Part 1. The retirement proposal goes to vc file by file. (edited)
-- ST0096 WP-04 AC-04.1 (Rust) is devbin-dc's (vc 17:56Z; devbin-vc decision 261). GO sent 2026-11-20 after the 0722 + WP-08/09 land (cbae96463): one Forge in intent-cli's tests/common (dc's ruling, option b). dc reads the proof, vc lands; dc then starts WP-04 on main and writes AT-04.1. AC-04.2 waits on cc's WP-05. (edited)
-- Issue 0737 (filed by dc, hv decision 69): fold the three two-clone tests' own git and clone helpers onto common's Forge. Starts after WP-04's AC-04.1 lands with Forge.
+- Issue 0737 (dc's, hv decision 69): fold the four two-clone tests' own git and clone helpers onto common's Forge (remint, event log, both pull tests). vc's GO 2026-11-20; devbin-dc builds on 26c4b0ca0 (rebase once if ic's WP-10 T unit lands first); dc reads the proof, vc lands. (edited)
+- Issue 0739 (claimed, vc's go 18:20Z, cc's meaning + riders): refs/bank/dc/0739/wip2 ec95c82bd in tmp/wt-0739, wip1 red at compile (misplaced attribute, fixed); critic-rust reading; then one gate and the proof to vc. Issue 0741 (cc's meaning 2026-11-20: plan the views step from the model the ingest will produce, in memory): builder vc's pick, dc offered after 0739. When 0741 lands: WP-04's after_checkout tightens back from 'a fresh sync has nothing to do' to 'no left: line'.
 
 ## Holds
 
