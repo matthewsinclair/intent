@@ -1,0 +1,16 @@
+{
+  "id": "01M7WNY0SJ4JKWM88YK2RTY11W",
+  "ts": "2026-11-20T14:31:55.954Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs, in order. DONE: 0723+0724 (9e533703e), and 0725 to 0728 (dddd6345b, closed in the land, with residue_class_check ruled gating). NEXT: (a) issue 0731, XS (the last unit's five pre-existing critic items, one of them a silent git failure in precommit), on dc's brief (blob 0d4b500eb), based on dddd6345b. (b) ST0095 WP-12's guard half (AC-12.1), on dc's brief (blob 99bbfa108), based on (a)'s land, since both touch precommit. (c) ST0096 WP-03, once ic's ST0096 WP-02 lands, after cc's ST0095 WP-05+06 unit. dc reads each proof; vc lands it and closes its issues in the land commit."
+  }
+}
