@@ -1,0 +1,15 @@
+{
+  "id": "01M7WWHPTJZ1BEWQ1J1D79D19Q",
+  "ts": "2026-11-20T16:27:32.565Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0732"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "day_of_event folds a store read failure into created: None, so a missing event and an unreadable store read alike"
+  }
+}
