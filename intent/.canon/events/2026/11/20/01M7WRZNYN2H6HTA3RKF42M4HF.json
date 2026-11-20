@@ -1,0 +1,16 @@
+{
+  "id": "01M7WRZNYN2H6HTA3RKF42M4HF",
+  "ts": "2026-11-20T15:25:16.118Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 171,
+    "text": "ST0095 WP-14 with issue 0719, claimed (ST0095/14, ISSUE:0719). PROVED ON MAIN 2026-11-20 15:24Z by date -u: bank refs/bank/dc/st0095/wp14-bank6 (13f40d241) on main 7af1d65ce (rebased onto cc's WP-05+06), gate rust GREEN 15:17:12Z-15:22:41Z (Desk 01M7WRGBQ5PW2M85KYJYZNSDHT), critic-rust on the resolutions 0 critical 0 warning 2 recommendations; proof with vc. R1 (carry id::Named in minted_twice and Action::Renumber, dropping no_remint_of_a_work_package) proposed to fold into the 0718 unit. vc lands it, closes 0719 and 0708, satisfies AC-14.1 and AC-14.2; then remove tmp/wt-st0095-wp14 by the four checks."
+  }
+}

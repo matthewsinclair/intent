@@ -618,6 +618,46 @@
       ],
       "status": "green",
       "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-14.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:1804",
+      "covers": [
+        "AC-14.1"
+      ],
+      "status": "green",
+      "note": "Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u"
+    },
+    {
+      "id": "AT-14.2",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/search_surface.rs:181",
+      "covers": [
+        "AC-14.1"
+      ],
+      "status": "green",
+      "note": "Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u"
+    },
+    {
+      "id": "AT-14.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:24",
+      "covers": [
+        "AC-14.2"
+      ],
+      "status": "green",
+      "note": "Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u"
+    },
+    {
+      "id": "AT-14.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/retired_st_prefix.rs:134",
+      "covers": [
+        "AC-14.2"
+      ],
+      "status": "green",
+      "note": "Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u"
     }
   ],
   "attachments": [
