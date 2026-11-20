@@ -1,0 +1,15 @@
+{
+  "id": "01M7X6N1JFFRFKZH41Z2B1Q4V7",
+  "ts": "2026-11-20T19:24:07.631Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0742 (dc builds, cc's meaning, hv decision 69): sync's views preview overstates writes after a pull (tree and DONE cutoff read before the ingest writes them); overlay the ingest render's writes on the observed tree and take the watermark from the post-ingest model; proof: dry run's views step equals the apply's. (0739's renumber-window doc line is A2's to reword, cc on vc's word, 2026-11-20.)"
+  }
+}
