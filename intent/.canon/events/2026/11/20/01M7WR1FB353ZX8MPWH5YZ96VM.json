@@ -1,0 +1,16 @@
+{
+  "id": "01M7WR1FB353ZX8MPWH5YZ96VM",
+  "ts": "2026-11-20T15:08:46.307Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19. DONE: WP-01, WP-02, WP-04. LANDED on 2026-11-20, each on its builder's proof, read by vc and not rerun: WP-10a (7e0eb368c); 0711 (045086a17); 0720 (26a752653); the guard S of WP-03 (ea22af4c7); 0723+0724 (9e533703e); WP-10 PART 1 (c437d1d83; intent id; 0713 and 0721 closed); 0725-0728 (dddd6345b); 0731 (fb3a501d1); WP-05+06 (ed302b7e4, cc's unit: the hashed family, the one mint, a merge that knows both families, store schema 36, SDL 24). THE SHARED SET was rebuilt once more at e50978ce0, with intent id and schema 35, and is FROZEN from WP-06's land (decision 132). OPEN: WP-03 for AC-03.3 (screenshots); WP-06 for AC-06.3 (ic's remint doors replace st/issues renumber), AC-06.1's issue half (needs ST0096 WP-01) and AC-06.6 (the drill). NEXT, all on ed302b7e4, after hv's compact cycle: devbin-cc builds WP-07 on cc's brief (signature agreed with ic); ic rebases ST0096 WP-02 with 0730 and adds the remint doors (AC-10.5), two banks proved by one gyges run; dc rebases WP-14+0719 (proved at 789906b18, re-gate), then 0718+0715+0722+0729 on WP-14's land, then WP-08 and WP-09; devbin-dc builds WP-12's guard half (base fb3a501d1); cc takes ST0096 WP-01 then WP-05. Then ic's WP-10 Part 2 (after WP-07), WP-11 and WP-13, and dc's WP-12 other halves. Proofs land in the order they arrive, and a second lander rebases if its files moved. vc reads each proof with its critic review (vc decision 133)."
+  }
+}
