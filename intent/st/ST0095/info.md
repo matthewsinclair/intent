@@ -1,7 +1,7 @@
 ---
 st_id: ST0095
 title: Git-style ids: threads, work packages and issues unique by construction
-status: Triage
+status: WIP
 created: 2026-11-19
 completed:
 ---

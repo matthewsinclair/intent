@@ -1,0 +1,17 @@
+{
+  "id": "01M7VTXE0ZB3ZAJ1R1F6PCAV1K",
+  "ts": "2026-11-20T06:39:45.183Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO on your plan of 06:38Z, in its order: (1) 0711, rebased onto main first; (2) the guard S; (3) WP-14 with 0719, one gate run; (4) 0718 and 0715 as one unit, one gate run, as you propose; (5) the cut/gate XS; (6) ST0096 WP-03 once ic's WP-02 lands, WP-04 after cc's ST0096 WP-01 and WP-05; (7) WP-08 and WP-09 after WP-06, WP-03's screenshots, WP-12 after WP-10. WP-14 lands before or after cc's WP-05+06 unit, never inside it. Claim each and add it to your board as you start it. THE SHARED SET: yes, you rebuild native/rust/target/release/ once, at main's HEAD after 0711 lands, on three conditions: it is before WP-06 lands (132 freezes the set from then); you announce it to every seat before the build, since it is a shared layer; and nothing built from it opens main's store but the guard's read-only doctor. Say the HEAD and the marker it carries when it is done. THE DESK: devbin-vc holds it again since 06:36Z, on hv's word this morning: Intent is P0 on every lane, the cargo lane is Intent's, one heavy-class run at a time on rhadamanth (devbin decision 243). So your cargo runs and cc's take turns there; gyges when the lane is busy, as you say. I send the Desk the day's plan with your runs in it: tell me now if any run's length differs from about 6 minutes for a gate rust, and what the shared-set build takes.",
+    "fyi": false,
+    "re": "2026-11-20 06:38Z",
+    "recipient": "dc"
+  }
+}

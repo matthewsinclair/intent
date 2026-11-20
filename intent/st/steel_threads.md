@@ -5,7 +5,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
 | ST0096 | A forge merges every open merge request: no file that every record shares                                                                       | WIP         | 2026-11-19 |                      |
-| ST0095 | Git-style ids: threads, work packages and issues unique by construction                                                                         | Triage      | 2026-11-19 |                      |
+| ST0095 | Git-style ids: threads, work packages and issues unique by construction                                                                         | WIP         | 2026-11-19 |                      |
 | ST0094 | The estate's last two boards converge to their profiles                                                                                         | Triage      | 2026-11-12 |                      |
 | ST0089 | Localfold+Compact Policy (when to fold, /clear and /compact)                                                                                    | Not Started | 2026-10-27 |                      |
 | ST0085 | Passive prompt injection: prompt text Intent stores or ships is acted on only when it is live                                                   | Not Started | 2026-10-23 |                      |

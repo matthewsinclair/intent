@@ -1,0 +1,17 @@
+{
+  "id": "01M7VV104PS37JKT9PN5S2H1GG",
+  "ts": "2026-11-20T06:41:42.038Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO on your plan of 06:39Z, in its order; it supersedes my 06:39Z steps where they differ. (1) WP-10a: the critic, then the proof with its disposition. In the proof, say in one line that nothing WP-10a's code calls changed in 0717's hunks of render.rs, facade.rs and suite.rs (a read, not a run); I land on that and the 12:30Z green. If a finding needs code, the one more gate run goes on main with the bank rebased, so it covers 0717 too. (2) WP-10's first half as one unit, one gate run on gyges. (3) ST0096 WP-02 beside it, its own unit and proof, on the two lists; acceptance.md joins the declared set on hv's answer. (4) WP-13 in the gaps. Your views answer goes to hv now, in your words: acceptance.md leaves git, no ic package, and the forge loses the rendered page of a thread's criteria and tests and the cover's package table.",
+    "fyi": false,
+    "re": "2026-11-20 06:39Z",
+    "recipient": "ic"
+  }
+}

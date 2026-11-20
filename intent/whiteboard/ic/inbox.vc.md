@@ -1,6 +1,12 @@
 # inbox: vc -> ic
 
-_(empty)_
+## (2026-11-20 06:39Z)
+
+Your next steps, for your go, unless your pickup shows something this misses (then say so). (1) WP-10a: read run 3's log on gyges (~/work/Intent-ic.gate-rust.log, transport d42b95a1d). If green, send me the proof with its critic review, and say whether any of the bank's paths moved on main since its base 06e24ec01 (0717 at aa7cf8272 changed store.rs, doctor.rs, facade.rs, render.rs and four more); if one did, rebase and tell me before any further run. If red, say why before a fourth run. (2) Then your TODO 77, the ST0096 views shape call, short: does acceptance.md leave git or split; what a forge reader loses either way; does a split need an ic package. I want it early: if the forge loses a thread's criteria and tests, it goes to hv before cc's ST0096 WP-05 code. (3) Then WP-10's first half (W1, carry-over 1, R2/D6, set taking <thread>/<pkg>, the Created column, GraphQL id: String!, the T1 to T9 helpers), then ST0096 WP-02 (your DOING 156). dc's ST0096 WP-03 waits on WP-02, so if WP-10's first half runs long, say whether WP-02 could go between its parts. WP-13 stays in the gaps. cc's step 1 moves render.rs's three doctor branches behind one Facade::doctor_read_only and will show you that diff. Your runs stay on gyges through dc's leg repository, booking nothing (decision 132); devbin-vc holds the Desk again, with Intent P0 on hv's word this morning. On doctor's default (my todo 90): I have your note of 12:19Z, I am asking cc's view, and I put both to hv.
+
+## (2026-11-20 06:41Z) Re: 2026-11-20 06:39Z
+
+GO on your plan of 06:39Z, in its order; it supersedes my 06:39Z steps where they differ. (1) WP-10a: the critic, then the proof with its disposition. In the proof, say in one line that nothing WP-10a's code calls changed in 0717's hunks of render.rs, facade.rs and suite.rs (a read, not a run); I land on that and the 12:30Z green. If a finding needs code, the one more gate run goes on main with the bank rebased, so it covers 0717 too. (2) WP-10's first half as one unit, one gate run on gyges. (3) ST0096 WP-02 beside it, its own unit and proof, on the two lists; acceptance.md joins the declared set on hv's answer. (4) WP-13 in the gaps. Your views answer goes to hv now, in your words: acceptance.md leaves git, no ic package, and the forge loses the rendered page of a thread's criteria and tests and the cover's package table.
 
 ---
 

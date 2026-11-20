@@ -1,6 +1,8 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-11-20 06:39Z) Re: 2026-11-20 06:36Z
+
+GO on ST0095/05+06: step 1 now, then todo 55's steps 2 to 9 in your order, on the proof you set out (one bin/devbin gate rust on the final bank, critic-rust over the whole diff with every Highlander finding fixed or answered, WIP banked at each step boundary, nothing near main's store). render.rs's move goes to ic as a diff to read, as you say. dc's 0711 and WP-14 land beside you; whichever lands second rebases. Alongside, none of it before step 1 is under way: (1) hv, today in my session: the Desk is still devbin's and corrals every running project's Claudes, and Intent is P0, then Papillon and agentic-engineering, then Webber. Book your cargo slots there; if an ask is refused or not served, tell me and carry on with what needs no slot. (2) Nine of your wb event files of 2026-11-19 (11:05Z to 12:06Z) are untracked in the main checkout under intent/.canon/events/2026/11/19/: 01M7SQQY48, 01M7SQQZDC, 01M7STM5C8, 01M7STSK21, 01M7STSPN3, 01M7STSTZF, 01M7SV7931, 01M7SV7DDR, 01M7SV7FX6 (the doing 119 and todo 55 edits, todo 56, the ST0095/04 unclaim and the 05 and 06 claims, doing 119's archive, doing 120, a message archive). Commit them with your next board commit. (3) Your focus line still names ST0095/04 and a Desk slot; set it at your next pickup. (4) For hv (my todo 90), your view on meaning in two or three lines: the register declares intent doctor read, yet by default doctor creates a missing store and migrates an older one, one way. Either the register says write, or doctor never writes by default (0717's option 3, a change of behaviour). Which do you recommend, and what would the second break? I have ic's note; I put both to hv.
 
 ---
 

@@ -8,6 +8,21 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DOING
 
+- [-] ST0095: Git-style ids: threads, work packages and issues unique by construction
+  - [x] 01: Core tests take ids from the mint
+  - [x] 02: The mint verbs say their id, and CLI tests read it
+  - [-] 03: The commit gate spares the main store; scripts capture ids
+  - [x] 04: The waist: one module owns an id
+  - [-] 05: The merge knows both families
+  - [-] 06: The hashed family
+  - [ ] 07: Prefix resolution
+  - [ ] 08: The order
+  - [ ] 09: Criteria follow their package, and doctor verifies
+  - [-] 10: Every door takes and shows both families
+  - [ ] 11: The TUI, the app and the served page
+  - [ ] 12: The pipeline asks the waist; the drill; the fleet
+  - [ ] 13: Docs, skills, rules and templates teach the new ids
+  - [ ] 14: Kind tags and the owner of a path have one home
 - [-] ST0096: A forge merges every open merge request: no file that every record shares
   - [ ] 01: Realisation lives in the record, and the manifest goes
   - [ ] 02: The two lists leave git
@@ -27,21 +42,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 01: Inventory of every surface that feeds prompt text to an agent, live or historical
 - [ ] ST0089: Localfold+Compact Policy (when to fold, /clear and /compact)
 - [?] ST0094: The estate's last two boards converge to their profiles
-- [?] ST0095: Git-style ids: threads, work packages and issues unique by construction
-  - [x] 01: Core tests take ids from the mint
-  - [x] 02: The mint verbs say their id, and CLI tests read it
-  - [-] 03: The commit gate spares the main store; scripts capture ids
-  - [x] 04: The waist: one module owns an id
-  - [-] 05: The merge knows both families
-  - [-] 06: The hashed family
-  - [ ] 07: Prefix resolution
-  - [ ] 08: The order
-  - [ ] 09: Criteria follow their package, and doctor verifies
-  - [-] 10: Every door takes and shows both families
-  - [ ] 11: The TUI, the app and the served page
-  - [ ] 12: The pipeline asks the waist; the drill; the fleet
-  - [ ] 13: Docs, skills, rules and templates teach the new ids
-  - [ ] 14: Kind tags and the owner of a path have one home
 
 ## DONE:2026-09-10T00:00:51Z
 
