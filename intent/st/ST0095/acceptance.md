@@ -64,7 +64,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-07.1 A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal. -- satisfied: no (computed)
 - AC-07.2 Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix. -- satisfied: no (computed)
 
-### WP-08 -- The order (status: Not Started)
+### WP-08 -- The order (status: WIP)
 
 - AC-08.1 Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction. -- satisfied: no (computed)
 - AC-08.2 A project that holds only ordinals renders every view as it did before. -- satisfied: no (computed)
@@ -145,7 +145,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-08 -- The order (status: Not Started)
+### WP-08 -- The order (status: WIP)
 
 _(no tests in this group)_
 
