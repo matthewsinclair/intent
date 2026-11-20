@@ -1,0 +1,15 @@
+{
+  "id": "01M7X2M0X81DRGYR1MRQ9K9WGM",
+  "ts": "2026-11-20T18:13:39.883Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0738"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "A finding prints its class remedy beside its own, so event-file findings give contradicting remedies"
+  }
+}

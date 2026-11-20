@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 738,
+  "slug": "a-finding-prints-its-class-remedy-beside-its-own",
+  "title": "A finding prints its class remedy beside its own, so event-file findings give contradicting remedies",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "A finding always prints its class's remedy under its body, even when the body already carries the one remedy that is right for that case, so some findings give two remedies that contradict each other.\n\nFound 2026-11-20 by critic-rust (W1) on issue 0735 v2 (devbin-cc's bank 3bb5aae89). doctor's event checks put the event-file error's own remedy in the body (\"restore the file from git ... never by hand\") for Misstamped (new in 0735), Unstamped and NameDisagrees. The class those findings carry then appends its own generic remedy, eg SchemaInvalid's \"correct the field\". That tells a person to hand-edit history the store alone writes (D42), which is the opposite of the body's advice. Unstamped and NameDisagrees have had this since before 0735, and Misstamped inherits it.\n\nMeaning (cc): a finding may carry its own remedy, and when it does, that remedy REPLACES the class's, never sits beside it. The class remedy stays the default for a finding that carries none. One home: the Finding type holds the optional override, and the one renderer of a finding's remedy chooses. No caller formats a remedy into the body. The event arms move their remedy out of the body and into the override.\n\nProof: doctor on a misstamped event file and on an unstamped one each prints exactly one remedy, the restore-from-git one. A finding with no override still prints its class remedy, unchanged.\n\nOwner: cc, briefed to devbin-cc. Rides this release under hv decision 69.\n"
+}
