@@ -1,0 +1,15 @@
+{
+  "id": "01M7X1EQ232KHFN083C6T41WNJ",
+  "ts": "2026-11-20T17:53:17.955Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0096 WP-04 AC-04.1 (Rust) is devbin-dc's (vc 17:56Z; devbin-vc decision 261). GO sent 2026-11-20 after the 0722 + WP-08/09 land (cbae96463): one Forge in intent-cli's tests/common (dc's ruling, option b). dc reads the proof, vc lands; dc then starts WP-04 on main and writes AT-04.1. AC-04.2 waits on cc's WP-05."
+  }
+}

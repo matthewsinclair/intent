@@ -1,0 +1,15 @@
+{
+  "id": "01M7X1W8DNP0M4T8RM70CQ5ZPX",
+  "ts": "2026-11-20T18:00:41.146Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0737"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Three two-clone tests each carry their own git and clone helpers; fold them onto common's Forge"
+  }
+}

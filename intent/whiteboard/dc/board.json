@@ -5,17 +5,12 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-20T16:23:36.890Z",
+    "heartbeat_at": "2026-11-20T17:45:40.106Z",
     "status": "active",
-    "focus": "2026-11-20 16:23Z by date -u: LOCALFOLDED for hv's compact, not released. 0722 WIP banked at refs/bank/dc/0722/wip1 (a66e2604c), sites 1+2 coded and untested (see its DOING). WP-14 done (4c72d9510). Attach bank 1 landed (cc2358b01). Then WP-08 and WP-09. devbin-dc on ST0096 WP-03 (brief c4108fea7; no doctor field, vc ruled).",
+    "focus": "2026-11-20 17:45Z by date -u: one gate (vc 17:46Z) for the stack on main fa5ebbbbf: 0722 at refs/bank/dc/0722/both-v2 abdf74504, then ST0095 WP-08+09 at refs/bank/dc/st0095/wp0809-on-0722 41c6c6373; Desk 01M7X0ZZ next after devbin-cc's 0735. vc lands both back to back; then AT-08.1/08.2/09.1-09.3 rows, AT-14.1 re-cite to id.rs:2462, WP-08 and WP-09 close, worktrees removed.",
     "claims": [
       "ST0095/03",
-      "ST0095/14",
-      "ISSUE:0719",
-      "ISSUE:0718",
-      "ISSUE:0715",
-      "ISSUE:0722",
-      "ISSUE:0729"
+      "ISSUE:0737"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3060,7 +3055,8 @@
       "kind": "todo",
       "seq": 67,
       "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71). WP-03 (S, shell) GOES TO devbin-dc (vc's offer, dc's yes, 2026-11-20 07:4xZ): dc sends vc the brief when ic's ST0096 WP-02 lands (it defines the declared set), and reads devbin-dc's proof; vc lands it. WP-03's scope: the commit gate and the pull-request check work with the aggregate views out of git, reading their paths from the one declared set: steel_threads.md, todo.md and, by hv decision 74, every thread's acceptance.md (AC-03.1 reworded by vc for 74). WP-04 (S) stays dc's, after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull; its AC-04.2 is hv decision 70's same-thread case (cc's WP-05 closes it): two merge requests from one main change one thread, one adding a work package, the other a criterion and a test, each merging with no conflict and doctor clean after each pull.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:09.004Z",
       "recorded_at": "2026-11-19T10:09:52.968Z",
       "edited_at": "2026-11-20T07:46:27.996Z"
     },
@@ -3133,7 +3129,8 @@
       "kind": "todo",
       "seq": 73,
       "text": "ST0095 WP-14 (S; vc, 11:59Z, from cc; next after 0711 and the guard S; claim when starting), with issue 0719. cc's meaning, both halves, 2026-11-20 07:0xZ (re dc's 07:02Z), dc's defaults standing: WP-14 lands FIRST, cc rebasing past it at its next step boundary, and WP-05's plan.rs then asks owner_of. (a) id.rs's IdKind is the one enum, for thread, work package and issue only (criterion and test labels are caller-assigned, an attachment is a path, a board a moniker). (b) IdKind owns one written spelling per surface (event kind wp, the store's section owner as written, CLI --kind wp, prose work package); every reader parses through IdKind and accepts each spelling its surface ever wrote; event files and the store's spellings stay as written, no rung; 0708 is fixed by HitKind::of_owner asking IdKind. (c) An enum naming only the three families is replaced by IdKind (plan::Minted, outstanding::Kind, its JSON spelling kept as IdKind's for that surface); one also naming non-id kinds keeps its enum and maps its id variants from IdKind (search::HitKind with file, store::EntityKind, address::Entity, views::Undeclared); event Subject.kind is written from IdKind; leave intentfiles::Sigil, which cc's ST0096 WP-01 retires. (d) Project::owner_of(rel) -> Option<Owner>, a thread or an issue, honouring intent_dir; a work package's files and everything under .canon/st/<ID>/ (sidecars now, ST0096 WP-05's wp, ac, at later) are <ID>'s; the id segment is read through ThreadId::parse and IssueId::parse, never a pattern of its own; v2 bucket paths stay legacy's. (e) 0719: classify matches view and canon names through one_file_key and refuses by name an attachment whose key equals a view's. (f) st_prefix leaves this project's config.json; legacy's retired-setting warning stays. Proof: AC-14.1 and AC-14.2's tests, one gate run, critic-rust (AC-00.2).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:03.343Z",
       "recorded_at": "2026-11-19T12:00:17.406Z",
       "edited_at": "2026-11-20T07:05:14.361Z"
     },
@@ -3142,7 +3139,8 @@
       "kind": "todo",
       "seq": 74,
       "text": "Issues 0718, 0715, 0722 and, by vc's fold of 2026-11-20 09:22Z, 0729 (sync's scan, its attachment test and attachment_path_fault spelling intent/) as ONE unit: one gate run and one critic pass, since all share the attachment rows, the one-file key and the owner of a path. If the combined diff grows past one critic read, land 0718+0715 first and the rest straight after, and say so. BEFORE BASING IT, check its files against cc's bank refs/bank/cc/st0095/wp0506-wip6-on-0901275bb and ic's ST0096 WP-02 (sync.rs among them): if it shares files with either, it lands after cc's unit, as WP-02 now does. Claim each issue when starting. 0715 (cc's meaning in substance): st attach --from over an existing attachment replaces it in the store, the canon and the realised file in the one verb, writing the realised file FIRST, refusing before any write when the realised file holds bytes the store does not (naming intent sync --to-store <ID>), and restoring the file's old bytes if the store write fails; code in facade.rs's put_attachment and place_attachment, CLI wording ic's. 0718: no thread holds two attachments with one one_file_key; the attachment door refuses the second naming the held spelling; projection's sidecar write asks the key; with it the text PUT's refusal over an opaque attachment (facade.rs, critic on 0711). 0722: cc's meaning in todo 76. 0729: sync's scan and the watch take the project's intent dir, is_carried_attachment asks Project::owner_of, attachment_path_fault takes the project's st_dir. Order: after WP-14.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:04.337Z",
       "recorded_at": "2026-11-19T12:00:21.599Z",
       "edited_at": "2026-11-20T09:22:17.840Z"
     },
@@ -3151,7 +3149,8 @@
       "kind": "todo",
       "seq": 75,
       "text": "ST0095 WP-08 (the order) and WP-09 (criteria follow their package; doctor verifies), each S (vc, 11:59Z, from cc): once WP-06 lands, each with one exchange of meaning with cc; claim each when starting. vc's order, its GO of 2026-11-20 06:39Z: (1) issue 0711, rebased onto main; (2) the guard S, thread_view_skew_check.sh asking doctor --read-only, after dc rebuilds the shared set once at main's HEAD after 0711 lands and before WP-06 lands, announced to every seat first, nothing built from it opening main's store but the guard's read-only doctor, the HEAD and marker reported to vc; (3) WP-14 with issue 0719, one gate run; (4) issues 0718 and 0715 as one unit, one gate run; (5) the cut/gate XS (TODO 72); (6) ST0096 WP-03 once ic's WP-02 lands, WP-04 after cc's ST0096 WP-01 and WP-05; (7) WP-08 and WP-09 after WP-06, WP-03's screenshots, WP-12 after WP-10. Claim each and add it to the board when starting it. Desk: cargo lane is Intent's, one heavy run at a time on rhadamanth, turns with cc, gyges when busy.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:05.313Z",
       "recorded_at": "2026-11-19T12:00:26.725Z",
       "edited_at": "2026-11-20T06:42:10.032Z"
     },
@@ -3170,7 +3169,8 @@
       "kind": "todo",
       "seq": 76,
       "text": "Issue 0722 (filed by dc at 421b6d6d1; vc sequences it): the doors that read a live disk ask one_file_key. cc's meaning, 2026-11-20 by 07:4xZ (re dc's 07:37Z), dc's defaults standing but for two points. (1) One helper beside one_file_key answers a path on disk against a thread's rows: the exact row first; else, on a disk that folds case, a key-only match is the held row's working copy, its bytes taken as an exact match's would be; on a disk that does not fold, a case pair, refused by name with CaseCollision's remedy. (2) Whether the disk folds is asked by READING, never writing: stat the intent directory under a case variant of its name and compare device and inode, so doctor --read-only stays a read. (3) No rename is ever inferred: on a folding disk a key-only row is canon's row's working copy and the name stays canon's; a rename is a verb. (4) organize's plan and doctor's drift: a key-only hit is the working copy (Verify or AttachmentDiverged by sha), never Hydrate; on a non-folding disk a case pair, reported and never claimed. sync --to-store's merge likewise. (5) realise refuses to write a canon case pair to one file. (6) No key column in the store: a pair already in canon is doctor's finding and realise's refusal. Nothing waits for cc's ST0096 WP-05, whose upgrade refuses a canon case pair by name before it splits. detach_attachment stays exact. Sites: ingest.rs collect_attachments_into, organize.rs plan, doctor.rs attachment_drift, facade.rs's to-store preview and st_attachment, views.rs read_thread_file, realise.rs, sync --to-disk's attachments_the_disk_lacks.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:06.420Z",
       "recorded_at": "2026-11-20T07:40:43.480Z"
     },
     {
@@ -3196,9 +3196,47 @@
       "node": "dc",
       "kind": "doing",
       "seq": 172,
-      "text": "Issue 0722 (claimed), design sent to vc and cc 16:20Z and ruled (vc 16:22Z: unit-test disk_match pure for both folds, site tests on the real disk with the fold read once, CasePair at a site driven by an injected answer or named not driven; split 1+2 then 3+4+5). WIP banked at refs/bank/dc/0722/wip1 (a66e2604c on main 4c72d9510), worktree tmp/wt-0722: disk_match and DiskMatch, Project::disk_folds_case, FindingClass::CasePair, site 1 (ingest collect_attachments_into) and site 2 (organize plan, TreeState.folds, key_twin). NEXT: the site test file for 1+2 (patterns in organize_attachment_divergence.rs), then the light checks, gate, critic-rust and the proof for bank 1; then sites 3 (doctor attachment_drift), 4 (to-store preview, st_attachment, views read_thread_file) and 5 (realise refuses a canon case pair).",
+      "text": "Issue 0722 (claimed). Bank 1 (sites 1+2): refs/bank/dc/0722/unit4 = 11eb3981d on main 4c72d9510, critic-rust R1+R2 answered, gate asked of the Desk (01M7WXHN, after devbin-cc v5 and cc's WP-01 rerun); worktree tmp/wt-0722 FROZEN until it ends; then proof to vc. Bank 2 (sites 3-5) WIP at refs/bank/dc/0722/b2-wip1 = cf7df1d80 on unit4, worktree tmp/wt-0722b, not built: doctor drift + canon pair finding, st_attachment and read_thread_file via Facade::carried_row (FacadeError::CaseFoldUnread), realise RealiseError::CasePair before any write, DiskKeys and key_pair in project.rs (organize and the 0718 projection ask them), cc's fold ruling (one read per project; limits fail toward a reported pair) on disk_folds_case. Preview and sync --to-disk inherit sites 1 and 2. NEXT for bank 2: critic-rust, then its gate after bank 1 lands.",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:10.416Z",
+      "recorded_at": "2026-11-20T16:23:30.281Z",
+      "edited_at": "2026-11-20T16:51:14.456Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 78,
+      "text": "Issue 0733 (filed 617a3babd on vc's ask, hv decision 69, rides this release): one shared thread-canon reading for stale_at_check.sh and absent_at_check.sh, one stated answer for an unreadable row. A devbin-dc unit: brief SENT 2026-11-20 16:36Z (devbin-dc measures and sends its two-line answer on disagreements before coding); dc reads the proof, vc lands.",
+      "state": "archived",
+      "archived_at": "2026-11-20T18:01:07.561Z",
+      "recorded_at": "2026-11-20T16:35:28.676Z",
+      "edited_at": "2026-11-20T16:36:34.713Z"
+    },
+    {
+      "node": "dc",
+      "kind": "hold",
+      "seq": 51,
+      "text": "Issue 0722 banks 1+2 (unit5 29007a401 green; b2-wip2 00874554b on it): RELEASED WHEN vc says ST0095 WP-07 and cc's ST0096 WP-01 have landed on main (vc, 17:07Z). Then rebase b2-wip2 onto main, one gate rust (stdin /dev/null) via the Desk, proof of bank 2's critic rounds and that gate to vc, who lands both in one commit and closes 0722. Remove tmp/wt-0722 and tmp/wt-0722b only after that land. vc reverses this if WP-07 or WP-01 slips more than one cycle.",
+      "state": "archived",
+      "archived_at": "2026-11-20T17:35:21.201Z",
+      "recorded_at": "2026-11-20T17:04:52.384Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 79,
+      "text": "ST0096 WP-04 AC-04.1 (Rust) is devbin-dc's (vc 17:56Z; devbin-vc decision 261). GO sent 2026-11-20 after the 0722 + WP-08/09 land (cbae96463): one Forge in intent-cli's tests/common (dc's ruling, option b). dc reads the proof, vc lands; dc then starts WP-04 on main and writes AT-04.1. AC-04.2 waits on cc's WP-05.",
       "state": "live",
-      "recorded_at": "2026-11-20T16:23:30.281Z"
+      "recorded_at": "2026-11-20T17:53:17.955Z",
+      "edited_at": "2026-11-20T18:01:25.970Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 80,
+      "text": "Issue 0737 (filed by dc, hv decision 69): fold the three two-clone tests' own git and clone helpers onto common's Forge. Starts after WP-04's AC-04.1 lands with Forge.",
+      "state": "live",
+      "recorded_at": "2026-11-20T18:01:27.101Z"
     }
   ],
   "sent": [

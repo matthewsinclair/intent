@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 737,
+  "slug": "three-two-clone-tests-each-carry-their-own-git-a",
+  "title": "Three two-clone tests each carry their own git and clone helpers; fold them onto common's Forge",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "Found when ST0096 WP-04 needed a clone helper (devbin-dc's AC-04.1 unit, dc's ruling 2026-11-20): intent-cli's tests/common/mod.rs had none, and three two-clone tests each carry a local copy: two_clones_that_mint_one_id_are_repaired_by_remint.rs (local run, ok, git, git_ok, isolated HOME, core.hooksPath=/dev/null), the_event_log_travels.rs (a Clone struct and two_clones), and a_pull_is_reflected_by_the_next_verb.rs (a Team struct, hooks wired, fixture commits --no-verify). WP-04's unit adds one Forge in common (bare repo, clone, worktree add, push, the bare repo's merge). Remedy: move the three onto Forge, keeping each test's own subject, so a clone is made one way (Highlander). Waits on WP-04's land. Owner: dc. Rides this release (hv decision 69)."
+}
