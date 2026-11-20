@@ -8263,11 +8263,16 @@ impl Facade {
   ///
   /// **AN UPGRADED PROJECT HAS NO MANIFEST TO REFUSE** (ST0096 WP-01): its
   /// records carry realisation, so it answers through the one owner.
-  fn manifest_for_action(&self) -> Result<intentfiles::Realised, FacadeError> {
+  ///
+  /// **FROM THE CANON THE CALLER PLANS OVER** (issue 0741): `sync`'s views
+  /// step is planned over the model its ingest will produce, and asking the
+  /// store's records instead read a pulled record as unrealised, so the plan
+  /// removed the views its own ingest was about to write.
+  fn manifest_for_action(&self, canon: &Canon) -> Result<intentfiles::Realised, FacadeError> {
     if self.realisation_on_records()? {
       return Ok(intentfiles::declared_by_records(
-        &self.canon.threads,
-        &self.canon.issues,
+        &canon.threads,
+        &canon.issues,
       ));
     }
     let path = self.project.intentfiles_path();
@@ -8354,7 +8359,7 @@ impl Facade {
     &self,
     canon: &Canon,
   ) -> Result<(organize::Plan, Vec<crate::sync::FileEntry>), FacadeError> {
-    let realised = self.manifest_for_action()?;
+    let realised = self.manifest_for_action(canon)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
@@ -8536,7 +8541,7 @@ impl Facade {
     let home = self.project.thread_dir(id);
     Ok(
       self
-        .carried_paths()?
+        .carried_paths(&self.canon)?
         .into_iter()
         .filter(|p| p.starts_with(&home))
         .collect(),
@@ -8637,7 +8642,7 @@ impl Facade {
 
     // STEP TWO: MATERIALISE. Independent of the first -- it runs whether or not
     // the pin moved, and the pin ran whether or not this will write anything.
-    let realised = self.manifest_for_action()?;
+    let realised = self.manifest_for_action(&self.canon)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
@@ -13199,6 +13204,14 @@ impl Facade {
     // **AN UNMERGED VIEW STOPS THE INGEST TOO**: it refuses a tree holding
     // conflict markers, so neither it nor the views step can be previewed
     // until the apply has written over them.
+    // **EACH STEP IS PLANNED FROM THE STATE THE STEPS BEFORE IT WILL LEAVE**
+    // (issue 0741, cc's meaning of 2026-11-20). The views step is planned over
+    // the model the ingest will produce, realisation included, and the index
+    // step over the paths the store will carry after both, with the views the
+    // views step removes counted as gone. Planned from the store as it stands,
+    // a hooked sync left a views step that did nothing after a pull, and missed
+    // the index step its own steps made due after a switch.
+    let carried_after: Option<Vec<std::path::PathBuf>>;
     if conflicts.canon_is_unmerged() || !conflicts.views.is_empty() {
       // **THE TREE HOLDS CONFLICT MARKERS, SO NOTHING CAN BE READ FROM IT
       // YET.** The steps that read the merged canon are listed, and say so.
@@ -13207,20 +13220,28 @@ impl Facade {
         steps.push(Step::resolve_views(conflicts.views.clone()));
       }
       steps.push(Step::regenerate_views(None));
+      carried_after = None;
     } else {
       let render = self.shadow_ingest(scope)?;
       let views = self.organize_preview_over(&render.canon)?;
+      let (pulled, boards_after) = self.pulled_boards()?;
+      // **THE BOARDS ARE NOT THE SHADOW'S**: its store is rebuilt from threads
+      // and issues alone, so its model holds no board, and a carried set drawn
+      // from it alone would make every tracked board file a file row the index
+      // lacks. The store's boards after the ingest's carry are these.
+      let after = Canon {
+        boards: boards_after,
+        declaration: self.store.wb_declaration().map_err(FacadeError::Store)?,
+        ..render.canon
+      };
+      let mut carried = self.carried_paths(&after)?;
+      carried.extend(views.removes.iter().map(|rel| root.join(rel)));
+      carried_after = Some(carried);
       // **A PULLED BOARD THE APPLY WILL TAKE IS PART OF THE STEP** (issue 0554
       // (a)), or a pull that brings only a board plans nothing to take and the
       // apply never reaches the carry.
       let mut taken = render.taken;
-      taken.extend(
-        self
-          .pulled_boards()?
-          .0
-          .into_iter()
-          .map(|node| format!("board {node}")),
-      );
+      taken.extend(pulled.into_iter().map(|node| format!("board {node}")));
       steps.push(Step::ingest(taken));
       if !conflicts.views.is_empty() {
         steps.push(Step::resolve_views(conflicts.views.clone()));
@@ -13228,7 +13249,12 @@ impl Facade {
       steps.push(Step::regenerate_views(Some(views)));
     }
     steps.push(Step::events(self.event_files_waiting()?));
-    let change = self.index_change(None)?;
+    // While canon holds conflict markers the model after the ingest cannot be
+    // read, so the index is planned against the store as it stands.
+    let change = match &carried_after {
+      Some(carried) => self.index_change_carrying(None, carried)?,
+      None => self.index_change(None)?,
+    };
     steps.push(Step::reindex(change.upserts.len() + change.removed.len()));
     steps.push(Step::doctor());
     Ok(crate::plan::Plan { steps, digest })
@@ -13489,6 +13515,14 @@ impl Facade {
         // usually nothing left for this one; it runs on its own when the
         // ingest had no canon to take or was left behind a conflict.
         Action::Events { .. } => Step::events(self.event_files_waiting()?),
+        // The index is surveyed again after the steps before it ran (issue
+        // 0741): the plan's count is its best reading of that state, and while
+        // canon held conflict markers it could not read it at all. Quiet, so
+        // no pinned plan is broken by the recount.
+        Action::Reindex { .. } => {
+          let change = self.index_change(None)?;
+          Step::reindex(change.upserts.len() + change.removed.len())
+        }
         _ => step.clone(),
       };
       if !step.has_work() {
@@ -15282,7 +15316,7 @@ impl Facade {
     canon: &Canon,
     scope: &SyncScope,
   ) -> Result<Vec<(std::path::PathBuf, Vec<u8>)>, FacadeError> {
-    let realised = self.manifest_for_action()?;
+    let realised = self.manifest_for_action(canon)?;
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
@@ -15500,13 +15534,17 @@ impl Facade {
   ///
   /// [`Facade::carried`] is this same answer filtered to one thread, and reads
   /// it from here rather than asking the two authorities a second time.
-  fn carried_paths(&self) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+  ///
+  /// `canon` is the model the answer is for: this facade's own for the index
+  /// as it stands, and the model an ingest will produce for `sync`'s plan of
+  /// the index after it (issue 0741).
+  fn carried_paths(&self, canon: &Canon) -> Result<Vec<std::path::PathBuf>, FacadeError> {
     let ctx = self.render_ctx()?;
-    let mut paths: Vec<std::path::PathBuf> = views::render_all(&self.project, &self.canon, &ctx)
+    let mut paths: Vec<std::path::PathBuf> = views::render_all(&self.project, canon, &ctx)
       .into_iter()
       .map(|v| v.path)
       .collect();
-    for thread in &self.canon.threads {
+    for thread in &canon.threads {
       let home = self.project.thread_dir(&thread.id);
       for attachment in &thread.attachments {
         paths.push(home.join(&attachment.path));
@@ -15527,7 +15565,7 @@ impl Facade {
     // directory rule does not reach it, and the store indexes the board from
     // its rows. Left in, one board answered a search twice: its section, and
     // `board.json` as a file.
-    for board in &self.canon.boards {
+    for board in &canon.boards {
       paths.push(self.project.board_json(&board.node.moniker));
     }
     paths.sort();
@@ -15543,7 +15581,7 @@ impl Facade {
   /// So this answers "what is in scope, and what will never be held, and why",
   /// which is what `intent index status` reports and what AC-18.2 requires.
   pub fn index_rebuild(&mut self) -> Result<crate::index::status::Status, FacadeError> {
-    let carried = self.carried_paths()?;
+    let carried = self.carried_paths(&self.canon)?;
     let rows = crate::index::reconcile::survey(
       self.project.root(),
       &carried,
@@ -15753,13 +15791,26 @@ impl Facade {
     &self,
     under: Option<&[std::path::PathBuf]>,
   ) -> Result<crate::index::reconcile::Change, FacadeError> {
-    let carried = self.carried_paths()?;
+    let carried = self.carried_paths(&self.canon)?;
+    self.index_change_carrying(under, &carried)
+  }
+
+  /// [`Facade::index_change`] with the store's own paths named by the caller:
+  /// `sync`'s plan names the ones the store will carry after its ingest and
+  /// views steps (issue 0741). A path in `carried` is never a file row, so a
+  /// view the views step will remove is passed here too, and an old row for
+  /// it counts as removed, which is the index after that step.
+  fn index_change_carrying(
+    &self,
+    under: Option<&[std::path::PathBuf]>,
+    carried: &[std::path::PathBuf],
+  ) -> Result<crate::index::reconcile::Change, FacadeError> {
     let previous = self.store.index_files().map_err(FacadeError::Store)?;
     crate::index::reconcile::changed_under(
       self.project.root(),
       under,
       &previous,
-      &carried,
+      carried,
       &self.canon_dir(),
       self.project.config().index.max_file_bytes,
     )

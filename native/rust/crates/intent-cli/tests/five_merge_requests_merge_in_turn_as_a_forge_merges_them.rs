@@ -53,6 +53,21 @@ fn five_merge_requests_merge_in_turn_as_a_forge_merges_them() {
   // One main, born in the first clone and pushed.
   let alice = forge.clone_as("alice");
   forge.intent_ok(&alice, &["init", "Forge"]);
+  // A board on main, so every copy carries tracked board files through each
+  // checkout and pull: the store carries them, and a sync that planned the
+  // index without them would leave a step behind (issue 0741).
+  forge.intent_ok(
+    &alice,
+    &[
+      "wb",
+      "register",
+      "al",
+      "--name",
+      "Alice's agent",
+      "--role",
+      "worker",
+    ],
+  );
   forge.git(&alice, &["add", "-A"]);
   forge.git(&alice, &["commit", "-q", "-m", "intent init"]);
   forge.git(&alice, &["push", "-q", "origin", "HEAD:main"]);

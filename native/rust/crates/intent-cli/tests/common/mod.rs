@@ -1596,20 +1596,15 @@ impl Forge {
   /// re-renders them into the new branch and then refuses the project as
   /// unmigrated.
   ///
-  /// **STRICTER THAN THE HOOK, ON PURPOSE: NO HAND STEP IS NEEDED.** The hook
-  /// exits 0 whatever sync says. Here, after the sync, a fresh `intent sync`
-  /// must plan no step but a `(quiet)` one, which the next sync runs with
-  /// nobody asked; doctor must count nothing; and the working copy must be
-  /// clean. Otherwise the test fails at the checkout that caused it. A step
-  /// truly left for a person is not quiet, so this goes red on one. A quiet
-  /// step left is printed, so the lag stays in the run's output.
-  ///
-  /// **TWO THINGS IT DOES NOT HOLD, BOTH ISSUE 0741.** Sync makes one plan
-  /// before its own steps run. So after a pull of records another copy
-  /// minted, it reports a views step `left:` that does nothing when run, and
-  /// after a switch it can miss a quiet index step its own ingest made
-  /// necessary. When 0741 lands, this tightens to "a fresh sync plans
-  /// nothing".
+  /// **STRICTER THAN THE HOOK, ON PURPOSE: ONE SYNC LEAVES NOTHING.** The hook
+  /// exits 0 whatever sync says. Here the sync must leave no step (`left:`),
+  /// a fresh `intent sync` straight after must plan nothing, quiet steps
+  /// included, doctor must count nothing, and the working copy must be clean.
+  /// Otherwise the test fails at the checkout that caused it. It holds because
+  /// sync plans each step from the state the steps before it will leave (issue
+  /// 0741): planned from the store as it stood, a pull of records another copy
+  /// minted left a views step that did nothing, and a switch away from records
+  /// missed an index step its own steps made due.
   fn after_checkout(&self, copy: &Path) {
     let synced = self.intent_ok(copy, &["sync", "--apply"]);
     let fresh = self.intent_ok(copy, &["sync"]);
@@ -1622,19 +1617,18 @@ impl Forge {
           .is_some_and(|(n, _)| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
       })
       .collect();
-    let (quiet, for_a_person): (Vec<&str>, Vec<&str>) =
-      steps.iter().partition(|step| step.contains(" (quiet): "));
     assert!(
-      for_a_person.is_empty(),
-      "after the sync in {}, a fresh plan holds a step that is not quiet:\n{fresh}\n{synced}",
+      !synced
+        .lines()
+        .any(|line| line.trim_start().starts_with("left: ")),
+      "the sync in {} left a step for a person:\n{synced}",
       copy.display()
     );
-    for step in &quiet {
-      eprintln!(
-        "left for the next sync in {} (issue 0741): {step}",
-        copy.display()
-      );
-    }
+    assert!(
+      steps.is_empty(),
+      "after the sync in {}, a fresh plan still holds a step:\n{fresh}\n{synced}",
+      copy.display()
+    );
     let (doctor, err, code) = self.intent(copy, &["doctor"]);
     assert!(
       code == 0 && doctor.contains("doctor: 0 finding(s)"),
