@@ -1,0 +1,15 @@
+{
+  "id": "01M7VYXQG0R15DM3HVQ2SWTX70",
+  "ts": "2026-11-20T07:49:49.184Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After hv's compacts (fold cycle of 2026-11-20 07:47Z), when the Desk reopens: pass dc's brief for issues 0723 (cut/gate:234's SIGPIPE under pipefail, and the sigpipe guard reaching bin/.devbin's shebang scripts) and 0724 (precommit's six two-way guards read through guard_verdict), one XS unit, to devbin-dc through devbin-vc. The brief is at refs/bank/vc/0723-0724/brief-20261120 (git cat-file -p). dc reads the proof, vc lands it. Then ST0096 WP-03 goes to devbin-dc on dc's brief, once ic's ST0096 WP-02 lands."
+  }
+}
