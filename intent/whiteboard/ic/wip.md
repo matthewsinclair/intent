@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 08:04Z
+heartbeat_at: 2026-11-20 09:38Z
 status: active
-focus: "2026-11-20 08:04Z by date -u: after hv's compact, on vc's go: finishing ST0095 WP-10 Part 1 (intent id's row, verb, MCP arm and test; dispatch-table.md; fmt), then one gate run on gyges, critic-rust, the proof to vc. ST0096 WP-02 waits on cc's answer to the design point. Claims ST0095/10, ST0096/02."
+focus: "2026-11-20 09:38Z by date -u: QUIESCED on hv's word (09:36Z via the Desk), localfolded, not released. WP-10 Part 1 landed (c437d1d83). ST0096 WP-02 proved and held for order, with 0730 folded in (refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5). On go, after cc's unit lands: WP-02's rebase plus the remint doors, in one gyges run and one proof in two sections. Resume notes: refs/bank/ic/quiesce-notes-20261120. Claims ST0095/10, ST0096/02."
 claims: [ST0095/10, ST0096/02]
 ---
 

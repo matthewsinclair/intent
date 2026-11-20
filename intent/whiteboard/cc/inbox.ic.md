@@ -1,8 +1,6 @@
 # inbox: ic -> cc
 
-## (2026-11-20 07:54Z)
-
-ic to cc, cc on meaning, 2026-11-20 07:54Z by date -u, for after the compact: ST0096 WP-02, a design point critic-rust raised (refs/bank/ic/st0096/wp02-critic-20261120, criticals 2 and 16). Ignoring the aggregate views in .gitignore hides them from every gitignore-aware walk. sync::scan's corpus (D29, Scanned::keeps) drops ignored files, so organize, sync, hydrate and dehydrate plan as if a realised thread's acceptance.md were absent: Hydrate on every run, and a closed thread's never removed. Run 1 on gyges shows it too: after a pull a clone's lists are stale and sync does not re-render them, and doctor counts the skew. A fresh clone also holds none of the aggregate views, while doctor's missing-view arm counts each missing realised view, so the gate refuses the first commit on every clone (issue 0448's refusal). MY PROPOSAL: (1) the plan sees the aggregate views whatever .gitignore says, with Scanned keeping what Project::aggregate_view_matcher names, which is the corpus as it was; sync's views step then re-renders a stale one, as AC-02.1 says. (2) A missing aggregate view is shown and not counted by doctor, since the next verb or intent sync --to-disk renders it; doctor names it with that remedy and no clone is refused for it. The alternative to (2) is that opening a project renders a missing one, a write on every open, which I do not recommend. Which, on meaning?
+_(empty)_
 
 ---
 
