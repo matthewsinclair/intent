@@ -9,10 +9,12 @@
 # a bare call's non-zero exit ends the gate where it stands, before it reports,
 # so the commit gate never reaches its later guards or its summary, and a cut
 # gate never names the log and the remedy. Its status then means one thing for
-# every such guard: 0 passes, 1 is the finding its step names, and anything
-# else is no verdict, named by its code and never by a cause it did not
-# establish, since a control that did not fire, a tool's own die() and bash's
-# 126 and 127 all land there.
+# every guard of a kind, as guard_verdict below sets out, and no verdict is
+# named by its code and never by a cause it did not establish, since a control
+# that did not fire, a tool's own die() and bash's 126 and 127 all land there.
+# A gating guard's 1 is its finding only as far as its tool keeps 1 for one:
+# bash's own `set -u` abort ends a script with 1, a command failing under `-e`
+# can, and either reads as that guard's finding.
 #
 # BOTH GATES READ A GUARD'S STATUS HERE, AND EACH REPORTS IT ITS OWN WAY. The
 # commit gate (cmd/precommit) adds the guard's line to its summary and runs the
@@ -21,17 +23,28 @@
 # checks each restated this reading in their own `case` arms and their own
 # words ("gave no verdict (rc=N)"), so a change to what a status means could
 # reach one gate and not the other.
+#
+# A GUARD'S KIND IS NAMED BY ITS CALLER, NEVER IMPLIED BY A BRANCH (issue 0724).
+# A report-only guard prints its findings and exits 0 with them, since they
+# never gate, so it gives no status a finding's meaning. A kind nobody declared
+# is refused, since reading its guard as either kind would claim a meaning its
+# caller never gave.
 
-# guard_verdict <status> -- what a guard's exit <status> says, on stdout: `pass`
-# for 0, `finding` for 1, and for any other status the one wording of no
-# verdict, `gave no verdict (exit <status>)`, which its caller follows with
-# where the guard's own output is. A caller reads `pass` and `finding` by name
-# and takes anything else as no verdict, so a status this does not know can
-# never read as a pass.
+# guard_verdict <status> <kind> -- what the exit <status> of a guard of <kind>,
+# `gating` or `report-only`, says, on stdout: `pass` for 0, `finding` for a
+# gating guard's 1, and for any other status the one wording of no verdict,
+# `gave no verdict (exit <status>)`, which its caller follows with where the
+# guard's own output is. A caller reads `pass` and `finding` by name and takes
+# anything else as no verdict, so a status this does not know can never read as
+# a pass. A <kind> it does not know is refused on stderr, with status 2.
 guard_verdict() {
-  case "$1" in
-    0) printf 'pass\n' ;;
-    1) printf 'finding\n' ;;
-    *) printf 'gave no verdict (exit %s)\n' "$1" ;;
+  case "${2:-}:$1" in
+    gating:0 | report-only:0) printf 'pass\n' ;;
+    gating:1) printf 'finding\n' ;;
+    gating:* | report-only:*) printf 'gave no verdict (exit %s)\n' "$1" ;;
+    *)
+      printf 'guard_verdict: no kind of guard is named "%s"; a guard is gating or report-only\n' "${2:-}" >&2
+      return 2
+      ;;
   esac
 }

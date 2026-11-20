@@ -63,6 +63,11 @@
 #     an exiting `awk` have the same shape and are NOT its subject: they are
 #     usually deliberate, and widening a fix quietly is its own defect class.
 #   - It says nothing about whether a flagged predicate is otherwise correct.
+#   - It reads two populations, each by its own rule (issue 0723): the `.sh`
+#     files directly under POP_DIRS, and every file under BASH_DIRS whose first
+#     line declares bash, by a shebang or by shellcheck's `shell=bash`
+#     directive. A bash file anywhere else, or one whose first line declares
+#     neither, is outside it.
 #
 # Exit 0 clean, 1 findings (this gates), 2 not evaluable.
 
@@ -89,21 +94,61 @@ GREPQ="grep[[:space:]]+-[A-Za-z]*q"
 # be a SINGLE one: preceded by the start of the line or by a non-pipe character.
 PAT="(^|[^$PIPE])[$PIPE][[:space:]]*$GREPQ"
 
-# THE POPULATION IS DECLARED AND ITS SIZE IS ASSERTED. A grep over an absent
-# root exits 2 and prints nothing, which reads as a clean estate; the count
-# below is what makes "no findings" mean something. Both directories hold
-# instruments this repository owns and commits.
+# THE POPULATION IS DECLARED AND ITS SIZE IS ASSERTED, FOR EACH SOURCE. A grep
+# over an absent root exits 2 and prints nothing, which reads as a clean estate;
+# the counts below are what make "no findings" mean something. Every directory
+# holds shell this repository owns and commits.
+#
+# TWO SOURCES, BECAUSE NO ONE RULE NAMES BOTH (issue 0723). The instruments are
+# the `.sh` files directly under POP_DIRS. The gates' own shell under BASH_DIRS
+# carries no extension (`cut/gate`, `cmd/precommit`) or a `.lib` one, so a file
+# there is taken by what its first line declares: a bash shebang, or, for a
+# library the gates source, shellcheck's `shell=bash` directive. Each source
+# that yields nothing refuses on its own, and so does each BASH_DIRS directory,
+# which is committed tooling and never dehydrated as a thread's tools can be: a
+# rule that stopped matching, or a directory that moved, cannot hide behind
+# another's files.
 POP_DIRS=(intent/st/ST0056/parity/tools intent/st/ST0057/parity/tools lib/templates/hooks)
+BASH_DIRS=(bin/.devbin/cut bin/.devbin/cmd)
+BASH_SHEBANG='^#!.*[/[:space:]]bash([[:space:]]|$)'
+BASH_DIRECTIVE='^#[[:space:]]*shellcheck[[:space:]](.*[[:space:]])?shell=bash([[:space:]]|$)'
+
+# declares_bash <path> -- true when the file's first line is a bash shebang or
+# the `shell=bash` directive that shellcheck reads. One `read` per file, and no
+# process.
+declares_bash() {
+  local first=""
+  IFS= read -r first <"$1"
+  [[ $first =~ $BASH_SHEBANG || $first =~ $BASH_DIRECTIVE ]]
+}
 
 files=()
+n_sh=0
 for d in "${POP_DIRS[@]}"; do
   [ -d "$d" ] || continue
   while IFS= read -r f; do
-    [ -n "$f" ] && files+=("$f")
+    [ -n "$f" ] || continue
+    files+=("$f")
+    n_sh=$((n_sh + 1))
   done < <(find "$d" -maxdepth 1 -type f -name '*.sh' | sort)
 done
+[ "$n_sh" -gt 0 ] || die "the declared .sh population is EMPTY -- ${POP_DIRS[*]} held no .sh files, so a clean verdict here would be an artefact of finding nothing to read"
 
-[ "${#files[@]}" -gt 0 ] || die "the declared population is EMPTY -- ${POP_DIRS[*]} held no .sh files, so a clean verdict here would be an artefact of finding nothing to read"
+n_bash=0
+for d in "${BASH_DIRS[@]}"; do
+  [ -d "$d" ] || die "the declared bash directory $d is absent -- it is committed tooling, so its absence is a moved tree and not a clean one"
+  list="$(find "$d" -type f | sort)" || die "cannot list the files under $d"
+  n_dir=0
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [ -r "$f" ] || die "cannot read $f, so whether it declares bash is unknown"
+    declares_bash "$f" || continue
+    files+=("$f")
+    n_dir=$((n_dir + 1))
+  done <<<"$list"
+  [ "$n_dir" -gt 0 ] || die "the declared bash population is EMPTY under $d -- no file there declares bash on its first line, so a clean verdict on it would be an artefact of finding nothing to read"
+  n_bash=$((n_bash + n_dir))
+done
 
 # ---------------------------------------------------------------------------
 # scan_file <path> -- prints "<path>:<lineno>:<line>" per finding.
@@ -183,7 +228,7 @@ control() {
 CONTROL_BAD=; CONTROL_GOOD=
 if ! control; then
   echo "pipefail-sigpipe: CONTROL FAILED -- planted defect gave ${CONTROL_BAD:-?} findings (expected 3), planted fix gave ${CONTROL_GOOD:-?} (expected 0)." >&2
-  echo "  The scanner is not doing what this tool reports it as doing, so no verdict is offered on the real population -- ${#files[@]} instrument(s) across ${#POP_DIRS[@]} declared directory(ies), every one of them UNEXAMINED. A refusal that does not name its scope is indistinguishable from a refusal over nothing." >&2
+  echo "  The scanner is not doing what this tool reports it as doing, so no verdict is offered on the real population -- $n_sh .sh instrument(s) across ${#POP_DIRS[@]} declared directory(ies) and $n_bash bash file(s) under ${#BASH_DIRS[@]}, every one of them UNEXAMINED. A refusal that does not name its scope is indistinguishable from a refusal over nothing." >&2
   exit 2
 fi
 
@@ -202,7 +247,7 @@ for f in "${files[@]}"; do
 done
 
 echo "pipefail-sigpipe: control -- planted defect $CONTROL_BAD/3 found, planted fix $CONTROL_GOOD/0 found; both arms fired, so the verdict below means something."
-echo "pipefail-sigpipe: EXAMINED ${#files[@]} instrument(s) across ${#POP_DIRS[@]} declared directory(ies)."
+echo "pipefail-sigpipe: EXAMINED ${#files[@]} file(s): $n_sh .sh instrument(s) across ${#POP_DIRS[@]} declared directory(ies), and $n_bash bash file(s) under ${#BASH_DIRS[@]}, by a shebang or shellcheck's shell=bash on their first line."
 
 if [ "$n_find" -eq 0 ]; then
   echo "pipefail-sigpipe: no instrument ends a pipeline in grep -q."

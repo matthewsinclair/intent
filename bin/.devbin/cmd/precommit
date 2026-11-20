@@ -177,20 +177,38 @@ rc=0
 failed=""
 
 # THE ONE READING OF A GUARD'S EXIT STATUS IS guard_verdict, in shared/guard.lib
-# (issues 0714 and 0720), and the cut's gates read their guards through it too.
-# A guard whose status is read runs as `x=0; bash <tool> || x=$?`, never as a
-# bare call, for the reason given there.
-# tool_verdict <tool> <status> <finding> -- adds <tool>'s line to the report:
-# nothing for a pass, <finding> for a finding, and for anything else the
-# no-verdict wording guard_verdict gives, then where to look.
+# (issues 0714, 0720 and 0724), and the cut's gates read their guards through it
+# too.
+# run_guard "$TOOLS/<tool>" gating <finding>
+# run_guard "$TOOLS/<tool>" report-only
+#   runs <tool> as `x=0; bash <tool> || x=$?`, never as a bare call, for the
+#   reason guard.lib gives, and adds its line to the report through
+#   tool_verdict under its file name. A step names its tool once, by the
+#   `$TOOLS/<tool>` that runner_roster_check.sh reads as its execution site,
+#   and its guard's kind by name.
+run_guard() {
+  local x=0
+  bash "$1" || x=$?
+  tool_verdict "${1##*/}" "$x" "${@:2}"
+}
+
+# tool_verdict <tool> <status> <kind> [<finding>] -- adds <tool>'s line to the
+# report, as guard_verdict reads <status> for a guard of <kind>: nothing for a
+# pass, <finding> for a finding, and for no verdict its wording, then where to
+# look. Only a gating guard has a <finding>, and one named without it is
+# refused here, on every run, rather than at its first finding.
 tool_verdict() {
   local verdict
-  verdict="$(guard_verdict "$2")"
+  if [ "$3" = gating ] && [ "$#" -ne 4 ]; then
+    printf 'tool_verdict: %s is gating and names no finding\n' "$1" >&2
+    exit 2
+  fi
+  verdict="$(guard_verdict "$2" "$3")"
   case "$verdict" in
     pass) ;;
     finding)
       rc=1
-      failed="${failed}  $1 -- $3
+      failed="${failed}  $1 -- $4
 "
       ;;
     *)
@@ -436,20 +454,12 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #
   # The report-only checks' FINDINGS print above and do not block. Read them;
   # that is the whole reason they are here rather than in somebody's shell
-  # history.
+  # history. All three are read as `report-only` (issue 0724).
   step "$G_CORRECTED"
-  if ! bash "$TOOLS/corrected_check.sh"; then
-    rc=1
-    failed="${failed}  corrected_check.sh -- could not measure the corrected class (exit 2; its findings never gate)
-"
-  fi
+  run_guard "$TOOLS/corrected_check.sh" report-only
 
   step "$G_VOCAB"
-  if ! bash "$TOOLS/class_vocab_check.sh"; then
-    rc=1
-    failed="${failed}  class_vocab_check.sh -- could not measure the class vocabulary (exit 2; its findings never gate)
-"
-  fi
+  run_guard "$TOOLS/class_vocab_check.sh" report-only
 
   # The pipefail/SIGPIPE class in our own instruments. IT GATES, unlike the
   # report-only checks above: a finding here is a live defect in a checker, and the reason it needs
@@ -458,9 +468,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # as a clean run. Exit 2 is the tool refusing to report (its own two-sided
   # control did not fire), which is not a finding and must not read as one.
   step "$G_PIPEFAIL"
-  pf_rc=0
-  bash "$TOOLS/pipefail_sigpipe_check.sh" || pf_rc=$?
-  tool_verdict pipefail_sigpipe_check.sh "$pf_rc" "an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line"
+  run_guard "$TOOLS/pipefail_sigpipe_check.sh" gating "an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line"
 
   # The ratified state machines against their transcription. It is here rather
   # than beside the view-skew guards because what it compares is two HAND-KEPT
@@ -469,11 +477,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # hv`s `Fiat` ruling reached the code and left the ratified table stale with
   # no instrument able to see it (2026-08-29, found by eye).
   step "$G_MACHINE"
-  if ! bash "$TOOLS/machine_table_check.sh"; then
-    rc=1
-    failed="${failed}  machine_table_check.sh -- the ratified machines in intent/st/ST0056/data-model.md and their transcription in native/rust/crates/intentsvcs/src/transitions.rs disagree, or could not be compared (exit 2). Fix the side that moved: a CODE-ONLY edge means a ruling never reached the table it was ratified in.
-"
-  fi
+  run_guard "$TOOLS/machine_table_check.sh" gating "the ratified machines in intent/st/ST0056/data-model.md and their transcription in native/rust/crates/intentsvcs/src/transitions.rs disagree. Fix the side that moved: a CODE-ONLY edge means a ruling never reached the table it was ratified in."
 
   # A row declares its artefact KIND by the path it cites, and nothing else in
   # this gate reads that declaration. `stale_at_check.sh` catches a `to-write`
@@ -483,11 +487,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # is a disagreement between a row and an artefact, so a path trigger would
   # have to fire on whichever of the two the commit does not carry.
   step "$G_DECLKIND"
-  if ! bash "$TOOLS/declared_kind_check.sh"; then
-    rc=1
-    failed="${failed}  declared_kind_check.sh -- a row cites an artefact that is not the KIND the row declared (exit 1), or the citation set could not be read at all (exit 2). Repoint the row at what actually satisfies it, or build the kind the row declared. A green here is about agreement AT THE DECLARED PATH and says nothing about an orphaned artefact at a path no row cites.
-"
-  fi
+  run_guard "$TOOLS/declared_kind_check.sh" gating "a row cites an artefact that is not the KIND the row declared. Repoint the row at what actually satisfies it, or build the kind the row declared. A green here is about agreement AT THE DECLARED PATH and says nothing about an orphaned artefact at a path no row cites."
 
   # The mirror of stale_at_check.sh, and the direction nothing watched. That one
   # catches a to-write row whose cited test EXISTS; this catches a green or red
@@ -497,18 +497,10 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # green row looks like every other green row. WHOLE-SET for the same reason as
   # its neighbours above.
   step "$G_ABSENTAT"
-  if ! bash "$TOOLS/absent_at_check.sh"; then
-    rc=1
-    failed="${failed}  absent_at_check.sh -- a green or red AT row cites a file that is not there (exit 1), or the citation set could not be read at all (exit 2). A row whose subject is gone is RETIRED, not left green: withdraw the AC it covers and move the row to a non-test n/a with the reason in its prose. This gate says the file is THERE and never that its assertions can still fail -- present-and-hollow is outside its reach, and is the case that produced it.
-"
-  fi
+  run_guard "$TOOLS/absent_at_check.sh" gating "a green or red AT row cites a file that is not there. A row whose subject is gone is RETIRED, not left green: withdraw the AC it covers and move the row to a non-test n/a with the reason in its prose. This gate says the file is THERE and never that its assertions can still fail -- present-and-hollow is outside its reach, and is the case that produced it."
 
   step "$G_RATIFIED"
-  if ! bash "$TOOLS/rulings_check.sh"; then
-    rc=1
-    failed="${failed}  rulings_check.sh -- a declared ruling is malformed or its record leads nowhere (exit 1), or provenance could not be measured at all (exit 2). BOTH BLOCK. Re-anchor a dangling record on an artefact whose content carries the ruling -- grep the target first; an anchor that resolves to the record's own rendering is circular and worse than the dangle.
-"
-  fi
+  run_guard "$TOOLS/rulings_check.sh" gating "a declared ruling is malformed or its record leads nowhere. Re-anchor a dangling record on an artefact whose content carries the ruling -- grep the target first; an anchor that resolves to the record's own rendering is circular and worse than the dangle."
 
   step "$G_RESIDUE"
   if ! bash "$TOOLS/residue_class_check.sh"; then
@@ -518,11 +510,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   fi
 
   step "$G_STALEAT"
-  if ! bash "$TOOLS/stale_at_check.sh"; then
-    rc=1
-    failed="${failed}  stale_at_check.sh -- could not report; its message above names why (a stale-row finding never gates)
-"
-  fi
+  run_guard "$TOOLS/stale_at_check.sh" report-only
 
   # 10. Self-provenance (AC-11.5). Reads the INDEX and never the worktree, which
   #     is the whole reason it catches anything: on 2026-08-17 HEAD carried a
@@ -539,9 +527,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # Exit 2 is the tool's own hard stop -- a lib it cannot read, and the like -- and
   # it still stops the commit; only the REASON differs, because "the vendored tree
   # disagrees" is a finding the tool never reached (vc's ruling, 2026-09-15).
-  sp_rc=0
-  bash "$TOOLS/self_provenance_check.sh" || sp_rc=$?
-  tool_verdict self_provenance_check.sh "$sp_rc" "the commit's vendored tree disagrees with the manifest committed beside it"
+  run_guard "$TOOLS/self_provenance_check.sh" gating "the commit's vendored tree disagrees with the manifest committed beside it"
 
   # 12. Canon currency (ST0057 AC-03.6). A commit that carries canon must not name
   #     bytes no commit contains -- canon is committed and never sparse, so a canon
@@ -620,9 +606,7 @@ fi
 # INDEX, and runs its own red and green controls before its verdict.
 step "$G_SUITEPATH"
 if tool_present suite_path_check.sh "the suite registrations"; then
-  suite_rc=0
-  bash "$TOOLS/suite_path_check.sh" || suite_rc=$?
-  tool_verdict suite_path_check.sh "$suite_rc" "a suite.rs registers a test module this commit does not carry; the finding above names it"
+  run_guard "$TOOLS/suite_path_check.sh" gating "a suite.rs registers a test module this commit does not carry; the finding above names it"
 fi
 
 if [ "$rc" -ne 0 ]; then

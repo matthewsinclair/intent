@@ -182,14 +182,18 @@ shared_target_marker_scopes() {
 # same list from its own build, so a shell copy that drifted would give the
 # push gate and install two verdicts on one HEAD.
 shared_target_unshipped() {
-  local src="$1" specs
+  local src="$1" specs outside
   [ -r "$src" ] || return 1
   specs="$(sed -n 's/^const UNSHIPPED: &\[&str\] = &\[\(.*\)\];$/\1/p' "$src" |
     grep -o '"[^"]*"' | tr -d '"' || true)"
   [ -n "$specs" ] || return 1
-  if printf '%s\n' "$specs" | grep -qv '^:(top,exclude,glob)[^[:space:]][^[:space:]]*$'; then
-    return 1
-  fi
+  # A herestring, never a pipe (issue 0723): a writer piping into `grep -q`
+  # could take SIGPIPE, which pipefail would read as every entry well formed.
+  # Its 1 alone says every entry has the form. Its 0 is an entry without it,
+  # and its 2, an input it could not read, refuses the list as well.
+  outside=0
+  grep -qv '^:(top,exclude,glob)[^[:space:]][^[:space:]]*$' <<<"$specs" || outside=$?
+  [ "$outside" -eq 1 ] || return 1
   printf '%s\n' "$specs"
 }
 

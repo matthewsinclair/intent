@@ -94,7 +94,7 @@ check_contract() {
   local log rc=0 verdict
   log="$(gate_log contract)"
   bash "$TOOLS/contract_check.sh" >"$log" 2>&1 || rc=$?
-  verdict="$(guard_verdict "$rc")"
+  verdict="$(guard_verdict "$rc" gating)"
   case "$verdict" in
     pass)
       rm -f "$log"
@@ -113,7 +113,7 @@ check_reference() {
   local log rc=0 verdict
   log="$(gate_log reference)"
   bash "$TOOLS/reference_current_check.sh" >"$log" 2>&1 || rc=$?
-  verdict="$(guard_verdict "$rc")"
+  verdict="$(guard_verdict "$rc" gating)"
   case "$verdict" in
     pass)
       rm -f "$log"
@@ -191,7 +191,7 @@ gate_rust_cleanup() {
 # confined to the load-sensitive family re-runs intentd's tests ONCE (issue
 # 0481), because the core re-runs nothing and a red leg stops the cut.
 check_rust() {
-  local log dir native target base="${TMPDIR:-/tmp}" kept="" step="" reds twin
+  local log dir native target base="${TMPDIR:-/tmp}" kept="" step="" reds twin outside
   local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
   command -v cargo >/dev/null 2>&1 || refuse "cargo is not on PATH, and this cut ships a native tree this host cannot test" "install the toolchain rust-toolchain.toml names, $AGAIN"
   log="$(gate_log rust)"
@@ -231,7 +231,16 @@ check_rust() {
   if [ -z "$step" ] && ! in_gate "$native" cargo test --workspace --no-fail-fast >>"$log" 2>&1; then
     step="cargo test --workspace"
     reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$log")"
-    if [ -n "$reds" ] && ! printf '%s\n' "$reds" | grep -v -E "$LOAD_SENSITIVE" | grep -q .; then
+    # One process and no pipe, read three ways (issue 0723). `grep -q` stops at
+    # the first red outside the family, and a writer still piping into it would
+    # take SIGPIPE, which pipefail and a `!` read as every red confined to it.
+    # Its 1 alone says every red is in the family. Its 0 is a red outside it,
+    # and its 2, a pattern or input it could not use, re-runs nothing either,
+    # so an edit that breaks LOAD_SENSITIVE refuses rather than reads as
+    # confined.
+    outside=0
+    grep -q -v -E "$LOAD_SENSITIVE" <<<"$reds" || outside=$?
+    if [ -n "$reds" ] && [ "$outside" -eq 1 ]; then
       printf 'gate rust: red only in the load-sensitive daemon family, so intentd'"'"'s tests run once more (issue 0481):\n' >&2
       printf '%s\n' "$reds" | sed 's/^/  /' >&2
       in_gate "$native" cargo test -p intentd --no-fail-fast >>"$log" 2>&1 && step=""

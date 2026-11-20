@@ -3,9 +3,10 @@
   "number": 723,
   "slug": "cut-gate-s-test-for-a-load-sensitive-red-reads-a",
   "title": "cut/gate's test for a load-sensitive red reads a SIGPIPE as confined, and the SIGPIPE guard does not reach the gates",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-20",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "## What happens\n\nWhen `cargo test --workspace` fails, `bin/.devbin/cut/gate`'s rust check (about :230) asks whether every red is in the load-sensitive daemon family with `! printf '%s\\n' \"$reds\" | grep -v -E \"$LOAD_SENSITIVE\" | grep -q .`, under `set -o pipefail`. `grep -q .` exits at the first red outside the family. If the middle `grep -v` still has output to write, it takes SIGPIPE and exits 141, pipefail makes the pipeline's status 141, and `!` turns that into true. The gate then reads a red outside the family as confined to it, re-runs only intentd's tests, and a green re-run clears the step: a real red can pass the cut's own gate. A few reds fit in one write and escape the race; enough reds to fill the pipe's buffer meet it.\n\n`intent/st/ST0056/parity/tools/pipefail_sigpipe_check.sh`, the guard for this class, does not see it: its population is the `.sh` files under its POP_DIRS, which do not include `bin/.devbin`, and `cut/gate` and `cmd/precommit` carry no extension.\n\n## The fix\n\n- `! grep -q -v -E \"$LOAD_SENSITIVE\" <<<\"$reds\"`: one process, no pipe.\n- The guard's population reaches the gates' own shell: the bash files under `bin/.devbin/cut` and `bin/.devbin/cmd`, taken by their shebang rather than their extension. Whatever the wider guard then finds there is fixed or named.\n\nFound by critic-shell on issue 0720's diff (devbin-dc, 2026-11-20). It rides this release (hv decision 69).\n"
 }
