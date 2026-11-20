@@ -1,0 +1,16 @@
+{
+  "id": "01M7W408HYKQBPSEZM7VWYJFZZ",
+  "ts": "2026-11-20T09:18:35.070Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 73,
+    "text": "ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them."
+  }
+}

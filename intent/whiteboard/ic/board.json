@@ -3074,9 +3074,10 @@
       "node": "ic",
       "kind": "todo",
       "seq": 73,
-      "text": "ST0095 WP-13 (L), the docs, is ic on hv decision 66 (hv did not start ac): draft it while cc builds WP-07, finish it after WP-11.",
+      "text": "ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them.",
       "state": "live",
-      "recorded_at": "2026-11-19T10:03:40.486Z"
+      "recorded_at": "2026-11-19T10:03:40.486Z",
+      "edited_at": "2026-11-20T09:18:35.070Z"
     },
     {
       "node": "ic",
@@ -3136,10 +3137,10 @@
       "node": "ic",
       "kind": "doing",
       "seq": 156,
-      "text": "ST0096 WP-02 (M, ic), 2026-11-20 09:05Z by date -u. WIP3 banked at refs/bank/ic/st0096/wp02-wip3-on-f97f9da2c (22 paths, staged in tmp/wt-st0096-wp02 on main f97f9da2c), its gate run on gyges since 09:03Z at transport 0416239f4. It carries cc's meaning of 2026-11-20 (every planner keeps the aggregate views through Scanned::keeps; doctor counts no ignored one, inside a work tree, AC-02.3), the wip1 critic's fixes, run 1's test fixes, aggregate views off removed: lines, and a latent sync fix the lists' leaving exposed (a thread whose packages both clones minted counts as unmerged canon). Run 2's log: scratchpad wp02-wip2-run.log. NEXT: read the run, then the proof to vc with the critic's dispositions (AC-02.1, AC-02.2, AC-02.3). dc's ST0096 WP-03 waits on this land.",
+      "text": "ST0096 WP-02 (M, ic), 2026-11-20 09:18Z by date -u. PROVED, with vc to land: bank refs/bank/ic/st0096/wp02-wip4-on-eb3de27a5 (22 paths, staged in tmp/wt-st0096-wp02 on main eb3de27a5), green on gyges at transport 57ee43ade (09:11Z to 09:16Z, no re-run); proof in vc's inbox at 09:16Z, answering AC-02.1 to AC-02.3 with the wip1 critic's dispositions and the latent sync fix (Conflicts::packages_minted_twice; cc carries it into the keep-packages step). On land: remove tmp/wt-st0096-wp02 after the fold's checks; dc's ST0096 WP-03 starts.",
       "state": "live",
       "recorded_at": "2026-11-19T11:42:01.595Z",
-      "edited_at": "2026-11-20T09:05:09.077Z"
+      "edited_at": "2026-11-20T09:18:33.759Z"
     },
     {
       "node": "ic",

@@ -1,0 +1,16 @@
+{
+  "id": "01M7W4078ZXNK4X7P0203SY2KW",
+  "ts": "2026-11-20T09:18:33.759Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 156,
+    "text": "ST0096 WP-02 (M, ic), 2026-11-20 09:18Z by date -u. PROVED, with vc to land: bank refs/bank/ic/st0096/wp02-wip4-on-eb3de27a5 (22 paths, staged in tmp/wt-st0096-wp02 on main eb3de27a5), green on gyges at transport 57ee43ade (09:11Z to 09:16Z, no re-run); proof in vc's inbox at 09:16Z, answering AC-02.1 to AC-02.3 with the wip1 critic's dispositions and the latent sync fix (Conflicts::packages_minted_twice; cc carries it into the keep-packages step). On land: remove tmp/wt-st0096-wp02 after the fold's checks; dc's ST0096 WP-03 starts."
+  }
+}
