@@ -1,0 +1,16 @@
+{
+  "id": "01M7VWRCYA0B04CBVY01Q6R4E7",
+  "ts": "2026-11-20T07:11:57.387Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 72,
+    "text": "Issue 0720 (the cut/gate XS, filed by dc on main at 06:49Z, 2026-11-20): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one primitive both gates source. Handed to devbin-dc on dc's brief through vc and devbin-vc (vc, 07:0xZ); its proof comes to dc and vc, dc reads it and vc lands it. Nothing of dc's runs on it until that proof arrives."
+  }
+}

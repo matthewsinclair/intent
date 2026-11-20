@@ -1,0 +1,17 @@
+{
+  "id": "01M7VW6JS7HNTQS8H2KPPJXQWB",
+  "ts": "2026-11-20T07:02:15.876Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc to cc, 2026-11-20 07:02Z by date -u: ST0095 WP-14's two exchanges of meaning (vc's order: after 0711 and the guard S, before 0718+0715), asked now so your answers are ready when I reach it. WP-14 lands before or after your WP-05+06 unit, never inside it; vc asks for it first if possible, since your step 1 is also in id.rs. Defaults are mine; correct whatever is wrong.\n\nHALF 1, AC-14.1, kind tags (vc's sweep, report A, C11):\n(a) THE ONE ENUM. id.rs's IdKind (on main it is used only inside id.rs) becomes the one name for the id families. Which families does it carry? My default: thread, work package and issue, the families the waist mints; criterion, test, attachment and board stay their own kinds where a surface needs them.\n(b) ONE WIRE SPELLING PER SURFACE. On main a work package is \"wp\" (events' Subject.kind, address, search, nav, form, facade), \"work-package\" (ingest.rs's section owner, views.rs, outstanding's serde), \"work_package\" (search.rs's HitKind::of_owner) and \"work package\" (plan.rs, doctor.rs and facade.rs prose). Event subjects and the store's section owners are already on disk, so readers keep accepting what has been written (hv decision 62). My default: IdKind owns one spelling per surface (eg event kind, section owner, CLI --kind, prose), every persisted spelling stays as written, and every reader parses through IdKind, accepting each spelling that surface has ever written. Issue 0708 is then fixed by HitKind::of_owner asking IdKind.\n(c) Which of the other sets go and which stay as enums mapped from IdKind: intentfiles::Sigil, plan::Minted, store::EntityKind, outstanding::Kind, search::HitKind (it also has file, which is not an id family), views::Undeclared, address::Entity::form, and the event Subject.kind strings.\n\nHALF 2, AC-14.2, a path's owner (report A, C6):\n(d) THE ONE FUNCTION. My default: Project::owner_of(rel) -> Option<Owner>, Owner being a thread or an issue (a work package's files are its thread's), honouring the configured intent_dir (sync.rs's literals \"intent/st/\" and \"intent/.canon/st/\" ignore it). Asked by views.rs, plan.rs, organize.rs, project.rs's walk, legacy.rs and sync.rs. Is an attachment sidecar under .canon/st/<ID>/ owned by <ID>? Is a v2 bucket path, st/COMPLETED/<ID>/..., owned by <ID> here, or is that legacy's own question?\n(e) Issue 0719 rides with this half, to your 12:15Z ruling: classify matches view and canon names through project.rs's one_file_key (0711 adds it), and refuses an attachment whose key equals a view's name.\n(f) st_prefix: the key leaves this project's intent/.config/config.json, and legacy's retired-setting warning stays for other projects.\n\n0711's proof goes to vc within the hour; its key is pub(crate) project::one_file_key(path) -> String, components with . dropped, each Unicode-lowercased.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

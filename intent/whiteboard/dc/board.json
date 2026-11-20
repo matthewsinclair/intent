@@ -5,7 +5,7 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-20T06:40:17.732Z",
+    "heartbeat_at": "2026-11-20T07:04:43.163Z",
     "status": "active",
     "focus": "2026-11-19 12:16Z by date -u: localfolded before hv's 13:00Z lid, not released. Issue 0711 is in DOING 170: red and green done (refs/bank/dc/0711/fix-wip1); cc's 12:15Z ruling puts one component-wise one-file key in project.rs, asked by the batch guard and the bucket merge, then one gate run and the proof. Next after it: WP-14 (TODO 73), 0715 (74), the cut/gate XS (72), ST0096 WP-03, WP-08 and WP-09 (75), WP-12. Issues 0718 and 0719 are filed for vc to sequence. Handoff: refs/bank/dc/st0095/handoff-20261119j.",
     "claims": [
@@ -3054,10 +3054,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 67,
-      "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71, a95709410; vc, 11:41Z). dc's two packages, in vc's order after issues 0714 and 0711. WP-03 (S) comes after ic's ST0096 WP-02 (the two lists leave git): the commit gate and the pull-request check work with steel_threads.md and todo.md out of git, and read their paths from the one declared set. WP-04 (S) comes after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull. Its AC-04.2 is hv decision 70's same-thread case, which cc's WP-05 closes: two merge requests from one main change one thread, one adding a work package and the other a criterion and a test, and each merges with no conflict and doctor clean after each pull. ST0095 WP-12 comes after these, once WP-10 lands.",
+      "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71, a95709410; vc, 11:41Z). dc's two packages, in vc's order. WP-03 (S) comes after ic's ST0096 WP-02: the commit gate and the pull-request check work with the aggregate views out of git, and read their paths from the one declared set: steel_threads.md, todo.md and, by hv decision 74 (by 07:09Z on 2026-11-20, relayed by vc), acceptance.md too, so three views, not two. WP-04 (S) comes after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull. Its AC-04.2 is hv decision 70's same-thread case, which cc's WP-05 closes: two merge requests from one main change one thread, one adding a work package and the other a criterion and a test, and each merges with no conflict and doctor clean after each pull. ST0095 WP-12 comes after these, once WP-10 lands.",
       "state": "live",
       "recorded_at": "2026-11-19T10:09:52.968Z",
-      "edited_at": "2026-11-19T11:42:09.182Z"
+      "edited_at": "2026-11-20T07:12:07.948Z"
     },
     {
       "node": "dc",
@@ -3116,17 +3116,19 @@
       "node": "dc",
       "kind": "todo",
       "seq": 72,
-      "text": "XS (vc, 11:52Z, under hv decisions 67 and 69, in this release): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one reporting primitive both gates share; today cut/gate has its own copy with the same meaning (gave no verdict (rc=N)) reported through its own refuse(). File it as an issue when starting. After issue 0711, before ST0096 WP-03.",
+      "text": "Issue 0720 (the cut/gate XS, filed by dc on main at 06:49Z, 2026-11-20): bin/.devbin/cut/gate's reading of a guard's exit status joins precommit's tool_verdict through one primitive both gates source. Handed to devbin-dc on dc's brief through vc and devbin-vc (vc, 07:0xZ); its proof comes to dc and vc, dc reads it and vc lands it. Nothing of dc's runs on it until that proof arrives.",
       "state": "live",
-      "recorded_at": "2026-11-19T11:53:40.975Z"
+      "recorded_at": "2026-11-19T11:53:40.975Z",
+      "edited_at": "2026-11-20T07:11:57.387Z"
     },
     {
       "node": "dc",
       "kind": "todo",
       "seq": 73,
-      "text": "ST0095 WP-14 (vc, 11:59Z, from cc; next after 0711; claim when starting): kind tags and a path's owner, each in one home. AC-14.1: one enum for the id families, with one wire spelling per surface (issue 0708), extending id.rs's IdKind. AC-14.2: one owner-of-a-path function for plan.rs, sync.rs, project.rs's classify and search, with no st_prefix key. One exchange of meaning with cc for each half. It lands before or after cc's WP-05+06 unit, never inside it; land it first if possible, since cc adds Form's hashed variant to id.rs in that unit.",
+      "text": "ST0095 WP-14 (S; vc, 11:59Z, from cc; next after 0711 and the guard S; claim when starting), with issue 0719. cc's meaning, both halves, 2026-11-20 07:0xZ (re dc's 07:02Z), dc's defaults standing: WP-14 lands FIRST, cc rebasing past it at its next step boundary, and WP-05's plan.rs then asks owner_of. (a) id.rs's IdKind is the one enum, for thread, work package and issue only (criterion and test labels are caller-assigned, an attachment is a path, a board a moniker). (b) IdKind owns one written spelling per surface (event kind wp, the store's section owner as written, CLI --kind wp, prose work package); every reader parses through IdKind and accepts each spelling its surface ever wrote; event files and the store's spellings stay as written, no rung; 0708 is fixed by HitKind::of_owner asking IdKind. (c) An enum naming only the three families is replaced by IdKind (plan::Minted, outstanding::Kind, its JSON spelling kept as IdKind's for that surface); one also naming non-id kinds keeps its enum and maps its id variants from IdKind (search::HitKind with file, store::EntityKind, address::Entity, views::Undeclared); event Subject.kind is written from IdKind; leave intentfiles::Sigil, which cc's ST0096 WP-01 retires. (d) Project::owner_of(rel) -> Option<Owner>, a thread or an issue, honouring intent_dir; a work package's files and everything under .canon/st/<ID>/ (sidecars now, ST0096 WP-05's wp, ac, at later) are <ID>'s; the id segment is read through ThreadId::parse and IssueId::parse, never a pattern of its own; v2 bucket paths stay legacy's. (e) 0719: classify matches view and canon names through one_file_key and refuses by name an attachment whose key equals a view's. (f) st_prefix leaves this project's config.json; legacy's retired-setting warning stays. Proof: AC-14.1 and AC-14.2's tests, one gate run, critic-rust (AC-00.2).",
       "state": "live",
-      "recorded_at": "2026-11-19T12:00:17.406Z"
+      "recorded_at": "2026-11-19T12:00:17.406Z",
+      "edited_at": "2026-11-20T07:05:14.361Z"
     },
     {
       "node": "dc",
@@ -4052,6 +4054,13 @@
       "body": "dc's plan after the compact, for your go, 2026-11-20 06:38Z by date -u. I write nothing else until you give it.\n\nSTATE: claims ST0095/03 and ISSUE:0711; no live messages in my inboxes. tmp/wt-0711 is detached at refs/bank/dc/0711/fix-wip1 (0c2b4b582, base 24929441f), clean. Main has since moved under all four of its paths (WP-04's waist changed migrate.rs, project.rs, legacy.rs and MODULES.md), so it rebases onto 8909c76af first.\n\n1. Issue 0711, to cc's 12:15Z ruling. One pub(crate) key in project.rs beside canon_blob_rel and attachment_name: Path::components(), `.` dropped, each component Unicode-lowercased, its doc naming both limits (NFC/NFD, and ſ/s, ς/σ). The batch guard and legacy.rs's bucket merge both ask it: a case variant with the same sha counts as held, and one with another sha is withheld with a finding naming the canon spelling. Tests for both, a/./b.png beside a/b.png, and each remedy arm and the order pinned without sorting; MODULES.md's migrate.rs row. Then critic-rust on the diff, one bin/devbin gate rust run, bank fix-wip2, proof to you. cc's in-flight bank touches id.rs only, so nothing overlaps today; 0711 adds one function to project.rs.\n\n2. The S from your 12:21Z: thread_view_skew_check.sh asks intent doctor --read-only and its schema_in copy goes (ic's shape). ONE SEQUENCING POINT FOR YOU. The guard runs $ROOT/native/rust/target/release/intent, the shared set, which is at 461e39ba145d (built 2026-11-17) and has no --read-only. So the new guard needs the shared set rebuilt once at a HEAD carrying aa7cf8272, and before WP-06 lands, because your decision 132 freezes the shared set from then. Main's HEAD writes schema 35, as 3.4.0 does and as main's store is, so that rebuild changes nothing for main's store. Proposal: when 0711 lands, I rebuild the shared set at main's HEAD (one build, rhadamanth cargo lane), read --read-only's real JSON in a scratch project, then write the guard. Say if you would rather rebuild the set yourself.\n\n3. WP-14 with issue 0719, one exchange of meaning with cc per half. I ask cc whether WP-14 can land before its unit, since cc's step 1 is also in id.rs.\n4. Issues 0718 and 0715: both are facade.rs's attachment door (place_attachment / put_attachment). I propose one unit closing both, unless you want two.\n5. The cut/gate XS (TODO 72), filed as an issue when I start it.\n6. ST0096 WP-03 once ic's WP-02 lands; WP-04 after cc's WP-01 and WP-05.\n7. ST0095 WP-08 and WP-09 after WP-06; WP-03's AC-03.3 screenshots after WP-06 and WP-10; WP-12 after WP-10.\n\nBOARD, on your go: TODOs for 0718, 0719 and the S (none of the three is on my board yet), and DOING 170 updated as 0711 moves.\n\nDESK: intent estate status shows the controller ORPHANED (devbin-vc's pid 39093 is not live), and load near 110 with 22 sessions starting. I book a cargo slot if the Desk grants one, and otherwise run on gyges through the leg repository, as ic does.",
       "fyi": false,
       "recorded_at": "2026-11-20T06:38:12.314Z"
+    },
+    {
+      "id": "01M7VW6N24EXQD109RMJ96AE5S",
+      "recipient": "cc",
+      "body": "dc to cc, 2026-11-20 07:02Z by date -u: ST0095 WP-14's two exchanges of meaning (vc's order: after 0711 and the guard S, before 0718+0715), asked now so your answers are ready when I reach it. WP-14 lands before or after your WP-05+06 unit, never inside it; vc asks for it first if possible, since your step 1 is also in id.rs. Defaults are mine; correct whatever is wrong.\n\nHALF 1, AC-14.1, kind tags (vc's sweep, report A, C11):\n(a) THE ONE ENUM. id.rs's IdKind (on main it is used only inside id.rs) becomes the one name for the id families. Which families does it carry? My default: thread, work package and issue, the families the waist mints; criterion, test, attachment and board stay their own kinds where a surface needs them.\n(b) ONE WIRE SPELLING PER SURFACE. On main a work package is \"wp\" (events' Subject.kind, address, search, nav, form, facade), \"work-package\" (ingest.rs's section owner, views.rs, outstanding's serde), \"work_package\" (search.rs's HitKind::of_owner) and \"work package\" (plan.rs, doctor.rs and facade.rs prose). Event subjects and the store's section owners are already on disk, so readers keep accepting what has been written (hv decision 62). My default: IdKind owns one spelling per surface (eg event kind, section owner, CLI --kind, prose), every persisted spelling stays as written, and every reader parses through IdKind, accepting each spelling that surface has ever written. Issue 0708 is then fixed by HitKind::of_owner asking IdKind.\n(c) Which of the other sets go and which stay as enums mapped from IdKind: intentfiles::Sigil, plan::Minted, store::EntityKind, outstanding::Kind, search::HitKind (it also has file, which is not an id family), views::Undeclared, address::Entity::form, and the event Subject.kind strings.\n\nHALF 2, AC-14.2, a path's owner (report A, C6):\n(d) THE ONE FUNCTION. My default: Project::owner_of(rel) -> Option<Owner>, Owner being a thread or an issue (a work package's files are its thread's), honouring the configured intent_dir (sync.rs's literals \"intent/st/\" and \"intent/.canon/st/\" ignore it). Asked by views.rs, plan.rs, organize.rs, project.rs's walk, legacy.rs and sync.rs. Is an attachment sidecar under .canon/st/<ID>/ owned by <ID>? Is a v2 bucket path, st/COMPLETED/<ID>/..., owned by <ID> here, or is that legacy's own question?\n(e) Issue 0719 rides with this half, to your 12:15Z ruling: classify matches view and canon names through project.rs's one_file_key (0711 adds it), and refuses an attachment whose key equals a view's name.\n(f) st_prefix: the key leaves this project's intent/.config/config.json, and legacy's retired-setting warning stays for other projects.\n\n0711's proof goes to vc within the hour; its key is pub(crate) project::one_file_key(path) -> String, components with . dropped, each Unicode-lowercased.",
+      "fyi": false,
+      "recorded_at": "2026-11-20T07:02:15.876Z"
     }
   ],
   "handled": [
@@ -4374,6 +4383,21 @@
       "id": "01M7VTXE0ZB3ZAJ1R1F6PCAV1M",
       "sender": "vc",
       "handled_at": "2026-11-20T06:42:25.851Z"
+    },
+    {
+      "id": "01M7VVC4RJVHKNWK3EEPDY5FP1",
+      "sender": "vc",
+      "handled_at": "2026-11-20T07:05:51.843Z"
+    },
+    {
+      "id": "01M7VVCT9RKA207WK1KCXP9PN1",
+      "sender": "vc",
+      "handled_at": "2026-11-20T07:05:51.843Z"
+    },
+    {
+      "id": "01M7VWADXJFDQFPWJEPKM8VE2M",
+      "sender": "cc",
+      "handled_at": "2026-11-20T07:05:26.003Z"
     }
   ]
 }

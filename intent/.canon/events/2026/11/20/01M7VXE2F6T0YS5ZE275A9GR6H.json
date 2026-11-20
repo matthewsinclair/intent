@@ -1,0 +1,15 @@
+{
+  "id": "01M7VXE2F6T0YS5ZE275A9GR6H",
+  "ts": "2026-11-20T07:23:47.562Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0722"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Doors that read a live disk compare attachment paths exactly, so a case-only rename is a second file to them"
+  }
+}

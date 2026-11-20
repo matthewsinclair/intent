@@ -1,0 +1,16 @@
+{
+  "id": "01M7VWC0N77SKT28WG0MN60XH8",
+  "ts": "2026-11-20T07:05:14.361Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 73,
+    "text": "ST0095 WP-14 (S; vc, 11:59Z, from cc; next after 0711 and the guard S; claim when starting), with issue 0719. cc's meaning, both halves, 2026-11-20 07:0xZ (re dc's 07:02Z), dc's defaults standing: WP-14 lands FIRST, cc rebasing past it at its next step boundary, and WP-05's plan.rs then asks owner_of. (a) id.rs's IdKind is the one enum, for thread, work package and issue only (criterion and test labels are caller-assigned, an attachment is a path, a board a moniker). (b) IdKind owns one written spelling per surface (event kind wp, the store's section owner as written, CLI --kind wp, prose work package); every reader parses through IdKind and accepts each spelling its surface ever wrote; event files and the store's spellings stay as written, no rung; 0708 is fixed by HitKind::of_owner asking IdKind. (c) An enum naming only the three families is replaced by IdKind (plan::Minted, outstanding::Kind, its JSON spelling kept as IdKind's for that surface); one also naming non-id kinds keeps its enum and maps its id variants from IdKind (search::HitKind with file, store::EntityKind, address::Entity, views::Undeclared); event Subject.kind is written from IdKind; leave intentfiles::Sigil, which cc's ST0096 WP-01 retires. (d) Project::owner_of(rel) -> Option<Owner>, a thread or an issue, honouring intent_dir; a work package's files and everything under .canon/st/<ID>/ (sidecars now, ST0096 WP-05's wp, ac, at later) are <ID>'s; the id segment is read through ThreadId::parse and IssueId::parse, never a pattern of its own; v2 bucket paths stay legacy's. (e) 0719: classify matches view and canon names through one_file_key and refuses by name an attachment whose key equals a view's. (f) st_prefix leaves this project's config.json; legacy's retired-setting warning stays. Proof: AC-14.1 and AC-14.2's tests, one gate run, critic-rust (AC-00.2)."
+  }
+}
