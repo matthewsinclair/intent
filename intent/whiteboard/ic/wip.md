@@ -3,23 +3,21 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 15:55Z
+heartbeat_at: 2026-11-20 16:23Z
 status: active
-focus: "Proof sent 15:55Z: WP-02+0730 (wp02-wip9 on 7ed879ab3) and the remint doors (wp10-remint-wip6), one gyges gate green 15:45-15:54Z; vc lands. Next: Part 2 (SDL 25 issue(id: String!), T1-T9, AC-10.6) and WP-13's docs"
-claims: [ST0095/10, ST0096/02]
+focus: "Localfolded 16:25Z for hv's compact, not released. Next: WP-07's v3 signature interdiff when it comes (v2 read sent: F1 blocking, prefixes at the thread and issue doors), then WP-10 Part 2 (SDL 25 issue(id: String!), T1-T9, AC-10.6), WP-11 and WP-13"
+claims: [ST0095/10]
 ---
 
 # Interface Claude (ic)
 
 ## DOING
 
-- ST0095 (ic), 2026-11-20 09:33Z by date -u. WP-10 PART 1 LANDED at c437d1d83 (0713 and 0721 closed; dc has intent id's shape). AFTER cc's WP-05+06 lands, in ONE gyges run with WP-02 (DOING 156): the remint doors for AC-10.5 and AC-06.3's last hole: st remint <id> and issues remint <id> call cc's Facade::st_remint and issue_remint (step 7); their dispatch rows replace the two renumber rows, with dispatch-table.md regenerated; the old two-argument renumber is refused on the CLI and MCP with remint as its remedy; the proof shows those three things. PART 2 after that: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 satisfied at WP-10's close. WP-07's signature is agreed with devbin-cc. WP-13 draft: refs/bank/ic/st0095/wp13-draft-20261120. (edited)
-- ST0096 WP-02 (M, ic), 2026-11-20 09:33Z by date -u. PROVED (proof with vc, 09:16Z) and HELD for order: it lands after cc's WP-05+06, since cc's step 5 rewrites the same 0555 path and carries the unmerged-canon field. Issue 0730 (R11's remainder, filed 4d205c88a) is folded in on vc's word: bank refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5 (22 paths, tmp/wt-st0096-wp02), check run green on gyges at a752f71ba (09:23Z to 09:29Z), critic-rust on the merged is_tracked running. AFTER cc's unit lands: rebase onto it, take cc's field and drop packages_minted_twice, keep a_work_package_both_clones_minted_is_renumbered, then ONE gyges run over this and the remint doors (DOING 154), and one proof in two sections naming 0730's fix, its test (doctor_says_git_was_not_asked_of_the_store_and_the_views_alike) and the critic's word. (edited)
+- ST0095 WP-10 (ic), 2026-11-20 16:25Z by date -u. PART 1 landed c437d1d83; the REMINT DOORS landed 45028cbd3 (AC-10.5; AC-06.3's last hole: st/issues renumber retired with remint as remedy on CLI and MCP). NEXT, in order: (1) WP-07's v3 signature interdiff from devbin-cc when it comes; ic's read of v2 went to vc 16:12Z: two deviations accepted, F1 BLOCKING (thread_spec, issue_arg, thread_id and MCP spec/issue_number refuse a prefix before any resolver: complete Spelled::Prefix via facade.resolve_thread/resolve_issue), F2 (MCP target_in to ServeError::Refused), R1 (resolve::complete drops IdError); (2) PART 2: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 at WP-10's close; (3) WP-11; (4) WP-13. Before banking a rename or removal of a cited test, run intent at list for the old path (the gyges gate runs no repo-local guard). (edited)
 
 ## TODO
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them. (edited)
-- hv decision 69 (every fix found rides this release): 0706 (e81e1596e), 0717 (aa7cf8272) and 0710 (7e0eb368c) landed and closed; 0713 is open for its events door in WP-10's first half; 0707's doctor half rides ST0096 WP-02; 0721 rides WP-10's first half. (edited)
 - After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs
 
 ## Holds
