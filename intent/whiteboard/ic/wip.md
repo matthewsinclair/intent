@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 09:38Z
+heartbeat_at: 2026-11-20 15:08Z
 status: active
-focus: "2026-11-20 09:38Z by date -u: QUIESCED on hv's word (09:36Z via the Desk), localfolded, not released. WP-10 Part 1 landed (c437d1d83). ST0096 WP-02 proved and held for order, with 0730 folded in (refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5). On go, after cc's unit lands: WP-02's rebase plus the remint doors, in one gyges run and one proof in two sections. Resume notes: refs/bank/ic/quiesce-notes-20261120. Claims ST0095/10, ST0096/02."
+focus: "2026-11-20 15:08Z by date -u: LOCALFOLDED for hv's compact, not released. WP-10 Part 1 landed (c437d1d83). ST0096 WP-02 proved, rebase pending on cc's WP-05+06 (landing now): bank refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5, 0730's critic says sound (refs/bank/ic/st0096/0730-critic-20261120). After the compact: WP-02 rebased with 0730, plus the remint doors, as two banks proved by one gyges run. Resume notes: refs/bank/ic/quiesce-notes-20261120. Claims ST0095/10, ST0096/02."
 claims: [ST0095/10, ST0096/02]
 ---
 
