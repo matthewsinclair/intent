@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 16:45Z
+heartbeat_at: 2026-11-20 16:54Z
 status: active
-focus: "2026-11-20 16:50Z by date -u: ST0096/01's gate rerun at 298d27f24 (Desk 01M7WXHV83, stdin from /dev/null, issue 0734) is next after devbin-cc's WP-07 v5 gate; proof to vc after its END, then hv compacts cc. Claims ST0095/05, ST0095/06, ST0096/01."
+focus: "2026-11-20 16:54Z by date -u: localfolded for hv's compact, not released. ST0096/01 fixed at 2a7f49a1c (doctor fixtures realise their thread), banked wip8; gate asked as Desk 01M7WY235ZV2YMK8HRWS73T0M8, not started. Proof to vc after its END. Claims ST0095/05, ST0095/06, ST0096/01."
 claims: [ST0095/05, ST0095/06, ST0096/01]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0095/05, ST0095/06, ST0096/01]
 ## DOING
 
 - ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
-- ST0096/01 in tmp/wt-st0096-wp01, rebased on d663e3ea6, HEAD 298d27f24, bank refs/bank/cc/st0096/wp01-wip7-on-d663e3ea6 (patch-id d0ceb1e4e8bb), resume notes refs/bank/cc/st0096/wp01-notes.md. Gate green at 7a3fa6f1e before the rebase. The first gate at 298d27f24 (Desk 01M7WVY39N) hung on dual_path_conformance's estate statusline row reading a background shell's never-closing stdin: not WP-01, filed as issue 0734 at 8e4983998, killed and ENDed. Rerun asked as Desk 01M7WXHV83A7GK960F8GPBHC08 with stdin from /dev/null, next after devbin-cc's WP-07 v5 gate; a background wait starts it on the grant (log scratchpad gate-st0096-4.log). Next: its END, the proof to vc (drafted at scratchpad st0096-wp01-proof.md), then the land. After the land: re-cite ST0095's seven AT rows to their markers, and satisfy AC-01.1 and AC-01.2. Answered ic's WP-10 Part 2 GraphQL meaning (16:35Z) and vc's WP-07 v5 W1 meaning (yes, with a remedy line on NotAddressable, 16:45Z). (edited)
+- ST0096/01 in tmp/wt-st0096-wp01 on d663e3ea6, HEAD 2a7f49a1c, bank refs/bank/cc/st0096/wp01-wip8-on-d663e3ea6 (patch-id 09d824711ec2), resume notes refs/bank/cc/st0096/wp01-notes.md. Gate green at 7a3fa6f1e before the rebase. At 298d27f24: run 1 hung on issue 0734 (estate statusline reading a never-closing stdin, not WP-01, filed 8e4983998); run 2 (stdin from /dev/null) red on 7 intentsvcs doctor tests only, every other target green incl. dual_path_conformance. CAUSE, a WP-01 finding from the rebase: WP-02's UnrealisedView (c7e1cee74) names a kept view of an unrealised record, and the three doctor fixtures (doctor_advisory, doctor_scope, doctor_names_closed_contract_drift) wrote views of a thread WP-01 had given realised: false. FIXED at 2a7f49a1c: they realise their thread. Gate asked as Desk 01M7WY235ZV2YMK8HRWS73T0M8 with stdin from /dev/null; on its grant run scratchpad cc-slot-run.sh with WT set, DEVBIN_GATE_CACHE=scratchpad/gate-cache, log gate-st0096-5.log. Next: its END to the Desk, the proof to vc (drafted at scratchpad st0096-wp01-proof.md, add the doctor finding), then the land. After the land: re-cite ST0095's seven AT rows to their markers, satisfy AC-01.1 and AC-01.2. Owed later: issue 0735 (ingest refuses a non-RFC 3339 event ts), then ST0096 WP-05. (edited)
 
 ## TODO
 

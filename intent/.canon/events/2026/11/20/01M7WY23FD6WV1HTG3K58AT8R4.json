@@ -1,0 +1,16 @@
+{
+  "id": "01M7WY23FD6WV1HTG3K58AT8R4",
+  "ts": "2026-11-20T16:53:58.381Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 121,
+    "text": "ST0096/01 in tmp/wt-st0096-wp01 on d663e3ea6, HEAD 2a7f49a1c, bank refs/bank/cc/st0096/wp01-wip8-on-d663e3ea6 (patch-id 09d824711ec2), resume notes refs/bank/cc/st0096/wp01-notes.md. Gate green at 7a3fa6f1e before the rebase. At 298d27f24: run 1 hung on issue 0734 (estate statusline reading a never-closing stdin, not WP-01, filed 8e4983998); run 2 (stdin from /dev/null) red on 7 intentsvcs doctor tests only, every other target green incl. dual_path_conformance. CAUSE, a WP-01 finding from the rebase: WP-02's UnrealisedView (c7e1cee74) names a kept view of an unrealised record, and the three doctor fixtures (doctor_advisory, doctor_scope, doctor_names_closed_contract_drift) wrote views of a thread WP-01 had given realised: false. FIXED at 2a7f49a1c: they realise their thread. Gate asked as Desk 01M7WY235ZV2YMK8HRWS73T0M8 with stdin from /dev/null; on its grant run scratchpad cc-slot-run.sh with WT set, DEVBIN_GATE_CACHE=scratchpad/gate-cache, log gate-st0096-5.log. Next: its END to the Desk, the proof to vc (drafted at scratchpad st0096-wp01-proof.md, add the doctor finding), then the land. After the land: re-cite ST0095's seven AT rows to their markers, satisfy AC-01.1 and AC-01.2. Owed later: issue 0735 (ingest refuses a non-RFC 3339 event ts), then ST0096 WP-05."
+  }
+}
