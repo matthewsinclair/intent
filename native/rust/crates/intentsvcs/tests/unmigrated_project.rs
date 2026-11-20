@@ -439,6 +439,20 @@ fn doctor_reports_the_migration_and_nothing_downstream_of_it() {
     finding.detail.contains("2.19.0"),
     "the finding names the declared version: {finding:?}"
   );
+  // Issue 0738: one remedy, the migration's own with the class's clause that
+  // stays true of it, and the class's own sentence nowhere beside it.
+  assert!(
+    finding.remedy().contains("intent upgrade")
+      && finding
+        .remedy()
+        .ends_with(intentsvcs::finding::DOWNSTREAM_OF_MIGRATION),
+    "the finding's remedy is the migration's, whole: {finding:?}"
+  );
+  assert_eq!(
+    finding.to_string().matches("remedy: ").count(),
+    1,
+    "{finding}"
+  );
   // **NOT HEALTHY, AND THE CODE IS 2 RATHER THAN 1** (vc, 2026-09-12, issues
   // 0308 and 0309). This asserted 1 until `doctor` joined the pre-commit gate,
   // at which point the difference between *I could not judge this estate* and

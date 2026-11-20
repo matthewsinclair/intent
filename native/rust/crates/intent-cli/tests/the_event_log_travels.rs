@@ -765,6 +765,86 @@ fn an_event_file_whose_stamp_is_not_one_is_refused_and_never_taken() {
   }
 }
 
+/// **Issue 0738: an event-file finding gives one remedy, its own.** A
+/// misstamped file and an unstamped one are each reported under a remedy line
+/// that is the event error's restore-from-git remedy, and the remedies of the
+/// classes they carry, which would have a person edit history by hand, are
+/// printed nowhere.
+#[test]
+fn an_event_file_finding_gives_its_own_remedy_and_not_its_class() {
+  use intentsvcs::event::EventFileError;
+  use intentsvcs::finding::FindingClass;
+  use intentsvcs::remedy::Remedy;
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob, _) = two_clones(dir.path());
+  let first = alice.event_files().remove(0);
+  let day = first.parent().expect("day dir").to_path_buf();
+  let good: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&first).expect("read")).expect("json");
+
+  let misstamped = "01M2SXJJJJJJJJJJJJJJJJJJJJ";
+  let unstamped = "01M2SXKKKKKKKKKKKKKKKKKKKK";
+  let cases = [
+    (
+      misstamped,
+      "20261120",
+      EventFileError::Misstamped {
+        id: misstamped.to_string(),
+        found: "20261120".to_string(),
+      }
+      .remedy(),
+    ),
+    (
+      unstamped,
+      "",
+      EventFileError::Unstamped {
+        id: unstamped.to_string(),
+      }
+      .remedy(),
+    ),
+  ];
+  for (id, ts, _) in &cases {
+    let mut event = good.clone();
+    event["id"] = (*id).into();
+    event["ts"] = (*ts).into();
+    std::fs::write(
+      day.join(format!("{id}.json")),
+      serde_json::to_string_pretty(&event).expect("json"),
+    )
+    .expect("write");
+  }
+
+  let out = alice.doctor(&[]);
+  let lines: Vec<&str> = out.lines().collect();
+  let rel = day
+    .strip_prefix(&alice.root)
+    .expect("the day is in the clone");
+  for (id, _, remedy) in &cases {
+    let file = rel.join(format!("{id}.json")).display().to_string();
+    let at = lines
+      .iter()
+      .position(|line| line.trim_start().starts_with(&format!("{file} -- ")))
+      .unwrap_or_else(|| panic!("doctor reports {file}: {out}"));
+    let given = lines[..at]
+      .iter()
+      .rev()
+      .find_map(|line| line.trim_start().strip_prefix("remedy: "))
+      .unwrap_or_else(|| panic!("{file}'s group carries a remedy line: {out}"));
+    assert_eq!(
+      given,
+      remedy.as_str(),
+      "{file}'s one remedy is its own: {out}"
+    );
+  }
+  for class in [FindingClass::SchemaInvalid, FindingClass::UnknownFileShape] {
+    assert!(
+      !out.contains(class.remedy()),
+      "`{}`'s remedy is printed nowhere, since every finding of it here has its own: {out}",
+      class.as_str()
+    );
+  }
+}
+
 /// **AC-01.4: `upgrade` removes the retired ignore rule and adds nothing, and
 /// `export` still produces the single-file form.**
 #[test]

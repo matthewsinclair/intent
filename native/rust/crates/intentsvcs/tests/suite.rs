@@ -55,6 +55,8 @@ mod a_drain_takes_only_what_landed_since_the_last;
 mod a_due_backup_is_taken_by_whichever_door_asks;
 #[path = "a_facade_catches_up_with_a_peers_commit.rs"]
 mod a_facade_catches_up_with_a_peers_commit;
+#[path = "a_finding_gives_its_own_remedy_once.rs"]
+mod a_finding_gives_its_own_remedy_once;
 #[path = "a_fresh_clone_takes_its_boards.rs"]
 mod a_fresh_clone_takes_its_boards;
 #[path = "a_hashed_package_is_judged_by_its_own_criteria.rs"]

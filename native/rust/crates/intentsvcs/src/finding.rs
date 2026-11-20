@@ -604,6 +604,28 @@ pub enum FindingClass {
   Advisory,
 }
 
+// The clauses a class remedy shares with a finding's own remedy (issue 0738),
+// each spelled once: a macro, because `concat!` builds the class table's
+// literal from it and a `const` cannot be concatenated.
+macro_rules! downstream_of_migration {
+  () => {
+    "every other finding on it is downstream of this one"
+  };
+}
+macro_rules! cannot_honour {
+  () => {
+    "the value is well-formed and the data cannot honour it"
+  };
+}
+
+/// What stays true of an unmigrated project's every finding, for a finding
+/// whose own remedy replaces `Unmigrated`'s class remedy (issue 0738).
+pub const DOWNSTREAM_OF_MIGRATION: &str = downstream_of_migration!();
+
+/// What stays true of every unhonourable setting, for a finding whose own
+/// remedy replaces `UnhonourableSetting`'s class remedy (issue 0738).
+pub const CANNOT_HONOUR: &str = cannot_honour!();
+
 impl FindingClass {
   /// Rank, wire spelling and REMEDY, from ONE exhaustive match.
   ///
@@ -629,13 +651,13 @@ impl FindingClass {
   /// a cache.
   fn meta(self) -> (u8, &'static str, &'static str) {
     match self {
-      // The detail already carries `Migration::remedy()`, which names the
-      // version and the command. This says the part that is true of the class:
-      // nothing else is worth reading until it is done.
+      // doctor's finding carries its own remedy, `Migration::remedy()` (the
+      // version and the command) with this class's clause that stays true of
+      // it: nothing else is worth reading until it is done (issue 0738).
       Self::Unmigrated => (
         0,
         "unmigrated",
-        "migrate the project first -- every other finding on it is downstream of this one",
+        concat!("migrate the project first -- ", downstream_of_migration!()),
       ),
       // **The four migration classes. Their remedy names the FIXING
       // ENVIRONMENT, which is the last v2 release rather than this binary**
@@ -921,7 +943,7 @@ impl FindingClass {
       Self::IndexUnreadable => (
         8,
         "index-unreadable",
-        "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. `intent index rebuild` recreates it and fills it again; the detail names the table, and the newest snapshot if there is one for the case the rebuild refuses",
+        "the committed canon is intact -- the store's search-index table cannot be read, and every command that opens the store refuses until it can. `intent index rebuild` recreates it and fills it again; the finding names the table, and its own remedy the newest snapshot if there is one for the case the rebuild refuses",
       ),
       Self::StoreUnreadable => (
         8,
@@ -959,14 +981,17 @@ impl FindingClass {
         "v3 fixes this setting and does not read it -- rename the artefacts to the fixed form before migrating, or the migration will not see them at all. The declaration is left in config.json rather than removed for you",
       ),
       // Last, because nothing is at risk: the estate is intact, one display
-      // command refuses, and the fix is one number in config.json. The
-      // DETAIL carries the arithmetic -- which value was configured and the two
-      // honourable ones either side of it -- because that is per-instance and
-      // this string is per-class.
+      // command refuses, and the fix is one number in config.json. A finding
+      // that knows the arithmetic -- the two honourable values either side of
+      // the configured one -- carries it in its own remedy, which replaces
+      // this per-class string (issue 0738).
       Self::UnhonourableSetting => (
         10,
         "unhonourable-setting",
-        "the value is well-formed and the data cannot honour it; the detail above names what to set instead",
+        concat!(
+          cannot_honour!(),
+          "; the detail above names what to set instead"
+        ),
       ),
       // Beside `BackupStale`, and for the same reason: both are a protection the
       // operator believes they have and does not.
@@ -1279,6 +1304,70 @@ pub struct Finding {
   /// Human-actionable detail. Names the specific thing -- the unknown field,
   /// the duplicate id -- never just restates the class.
   pub detail: String,
+  /// This finding's own remedy, which replaces its class's. Absent means the
+  /// class's remedy applies.
+  // Issue 0738: an override is never printed beside the class remedy; every
+  // reader asks `Finding::remedy`, which chooses.
+  //
+  // **NO FINDING THE STORE KEEPS MAY SET ONE YET.** `file_index.findings`
+  // stores a scan's findings as this JSON, and a binary from before 0738 reads
+  // it with `deny_unknown_fields`, so a stored `remedy` would refuse its whole
+  // file index. Only doctor's findings set one today, and none reaches
+  // `sync::scan`; a scan finding that needs one waits for every reader to be
+  // past 0738.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub remedy: Option<String>,
+}
+
+/// The findings of one class that share one remedy, for a report that prints
+/// a heading and its remedy once, then every member.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RemedyGroup<'a> {
+  pub class: FindingClass,
+  /// The remedy every member's [`Finding::remedy`] gives.
+  pub remedy: &'a str,
+  /// The members, in report order.
+  pub members: Vec<&'a Finding>,
+}
+
+/// Group findings by class and by the remedy each gives (issue 0738).
+///
+/// **A FINDING'S OWN REMEDY HEADS A GROUP OF ITS OWN**, so it is never printed
+/// beside the class remedy it replaced. Classes keep their first-appearance
+/// order, which already carries meaning (`FindingClass::meta`'s rank). Within
+/// a class the group giving the class's own remedy comes first, where a reader
+/// expects it, and the groups giving their own follow in the order their first
+/// member was raised (ic's shape).
+pub fn by_class_and_remedy<'a>(
+  findings: impl IntoIterator<Item = &'a Finding>,
+) -> Vec<RemedyGroup<'a>> {
+  let mut classes: Vec<FindingClass> = Vec::new();
+  let mut groups: Vec<RemedyGroup<'a>> = Vec::new();
+  for finding in findings {
+    if !classes.contains(&finding.class) {
+      classes.push(finding.class);
+    }
+    let remedy = finding.remedy();
+    match groups
+      .iter_mut()
+      .find(|g| g.class == finding.class && g.remedy == remedy)
+    {
+      Some(group) => group.members.push(finding),
+      None => groups.push(RemedyGroup {
+        class: finding.class,
+        remedy,
+        members: vec![finding],
+      }),
+    }
+  }
+  // Stable, so groups that tie keep the order their first member was raised.
+  groups.sort_by_key(|g| {
+    (
+      classes.iter().position(|c| *c == g.class),
+      g.remedy != g.class.remedy(),
+    )
+  });
+  groups
 }
 
 /// One directory's members of a class that share one detail, for a reader
@@ -1330,12 +1419,31 @@ impl Finding {
       line: None,
       class,
       detail: detail.into(),
+      remedy: None,
     }
   }
 
   pub fn at_line(mut self, line: u32) -> Self {
     self.line = Some(line);
     self
+  }
+
+  /// This finding with its own remedy in place of its class's (issue 0738).
+  ///
+  /// **The one way a caller says a remedy.** A remedy formatted into
+  /// [`Finding::detail`] printed beside the class's, and the two contradicted
+  /// each other on the event-file findings: the class said "correct the field"
+  /// of a file the store alone writes.
+  pub fn with_remedy(mut self, remedy: impl Into<String>) -> Self {
+    self.remedy = Some(remedy.into());
+    self
+  }
+
+  /// What to do about this finding: its own remedy where it carries one, and
+  /// its class's otherwise. **Every renderer asks here**, so no reader prints
+  /// a class remedy a finding has replaced.
+  pub fn remedy(&self) -> &str {
+    self.remedy.as_deref().unwrap_or(self.class.remedy())
   }
 
   /// Where it is and what it is, with no verdict word and no remedy.
@@ -1432,7 +1540,7 @@ impl fmt::Display for Finding {
       // thing about a shape nothing is wrong with.
       self.class.lead(),
       self.body(),
-      self.class.remedy()
+      self.remedy()
     )
   }
 }
@@ -1506,5 +1614,100 @@ impl fmt::Display for Refusal {
       "error: refused {} finding(s) -- {totals}",
       self.findings.len()
     )
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  const OWN: &str = "restore it, never mend it";
+
+  fn plain(file: &str) -> Finding {
+    Finding::new(file, FindingClass::SchemaInvalid, "a detail")
+  }
+
+  fn own(file: &str) -> Finding {
+    plain(file).with_remedy(OWN)
+  }
+
+  #[test]
+  fn a_finding_without_its_own_remedy_gives_its_class_remedy() {
+    let f = plain("a.json");
+    assert_eq!(f.remedy(), f.class.remedy());
+    assert!(
+      f.to_string()
+        .ends_with(&format!("remedy: {}", f.class.remedy()))
+    );
+  }
+
+  #[test]
+  fn its_own_remedy_replaces_the_class_remedy_and_never_sits_beside_it() {
+    let f = own("a.json");
+    assert_eq!(f.remedy(), OWN);
+    let shown = f.to_string();
+    assert_eq!(
+      shown.matches("remedy: ").count(),
+      1,
+      "one remedy line: {shown}"
+    );
+    assert!(shown.ends_with(&format!("remedy: {OWN}")), "{shown}");
+    assert!(!shown.contains(f.class.remedy()), "{shown}");
+  }
+
+  #[test]
+  fn json_carries_a_remedy_only_where_the_finding_has_its_own() {
+    let without = serde_json::to_value(plain("a.json")).expect("json");
+    assert!(without.get("remedy").is_none(), "{without}");
+    let with = serde_json::to_value(own("a.json")).expect("json");
+    assert_eq!(with["remedy"], serde_json::json!(OWN));
+    let read: Finding =
+      serde_json::from_value(without).expect("a finding written before 0738 reads");
+    assert_eq!(read, plain("a.json"));
+  }
+
+  #[test]
+  fn groups_keep_class_order_with_the_class_remedy_first() {
+    let other = Finding::new("z.json", FindingClass::UnknownFileShape, "a detail");
+    let second_own = plain("d.json").with_remedy("another of its own");
+    let findings = [
+      own("a.json"),
+      other.clone(),
+      plain("b.json"),
+      second_own.clone(),
+      own("c.json"),
+    ];
+    let groups = by_class_and_remedy(&findings);
+    let shape: Vec<(FindingClass, &str, Vec<&str>)> = groups
+      .iter()
+      .map(|g| {
+        (
+          g.class,
+          g.remedy,
+          g.members.iter().map(|f| f.file.as_str()).collect(),
+        )
+      })
+      .collect();
+    assert_eq!(
+      shape,
+      vec![
+        (
+          FindingClass::SchemaInvalid,
+          FindingClass::SchemaInvalid.remedy(),
+          vec!["b.json"]
+        ),
+        (FindingClass::SchemaInvalid, OWN, vec!["a.json", "c.json"]),
+        (
+          FindingClass::SchemaInvalid,
+          "another of its own",
+          vec!["d.json"]
+        ),
+        (
+          FindingClass::UnknownFileShape,
+          FindingClass::UnknownFileShape.remedy(),
+          vec!["z.json"]
+        ),
+      ]
+    );
   }
 }

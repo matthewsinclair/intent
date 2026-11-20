@@ -6030,7 +6030,9 @@ fn upgrade() -> Result<(), Failure> {
     }
     // **THE CLASS REMEDY, ONCE.** It is the only place the report says nothing
     // is owed, and saying it per line is how an enumeration becomes unreadable
-    // -- which would put the directory noun back, spelled out at length.
+    // -- which would put the directory noun back, spelled out at length. The
+    // class's is the right one because no carried finding sets its own (issue
+    // 0738); one that did would need `finding::by_class_and_remedy` here.
     println!(
       "  {}",
       intentsvcs::finding::FindingClass::ModelledNotBuilt.remedy()
@@ -6549,7 +6551,7 @@ fn use_verb(m: &ArgMatches) -> Result<(), Failure> {
           format!(
             "error: the shadow check fails: {}\n  remedy: {}",
             f.where_and_what(),
-            f.class.remedy()
+            f.remedy()
           )
         })
         .collect::<Vec<_>>()
@@ -8886,13 +8888,18 @@ fn print_search_index_probes(r: &intentsvcs::doctor::SearchIndexReading) {
   }
 }
 
-/// Print findings grouped by class: one header, one remedy, then every member.
+/// Print findings grouped by class and remedy: one header, one remedy, then
+/// every member.
 ///
-/// **THE REMEDY CANNOT VARY WITHIN A CLASS.** `FindingClass::remedy` takes no
-/// argument, so a per-finding remedy line emits the same sentence once per
-/// instance -- 45 identical copies on Lamplight's `status-gate-disagreement`
-/// alone, 186 across Conflab's advisories. Grouping removes the repetition and
+/// **A REMEDY PRINTS ONCE PER GROUP, NOT ONCE PER FINDING.** A class's remedy
+/// is the same sentence for every member, so a per-finding remedy line emitted
+/// it once per instance -- 45 identical copies on Lamplight's
+/// `status-gate-disagreement` alone, 186 across Conflab's advisories. Grouping
+/// removes the repetition and
 /// nothing else: every finding still prints, in order, naming its own artefact.
+/// A finding that carries its own remedy heads a group of its own under the
+/// same lead, so its remedy replaces the class's rather than sitting beside it
+/// ([`intentsvcs::finding::by_class_and_remedy`], issue 0738).
 ///
 /// **THE LEAD WORD IS THE CLASS'S OWN**, so a group of uncounted notes cannot
 /// head itself `residue:` -- the same agreement `Finding`'s `Display` keeps for
@@ -8903,15 +8910,8 @@ fn print_search_index_probes(r: &intentsvcs::doctor::SearchIndexReading) {
 /// everything else is downstream of it), and re-sorting here would quietly
 /// discard it.
 fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Finding>) {
-  use intentsvcs::finding::{Finding, FindingClass};
-  let mut by_class: Vec<(FindingClass, Vec<&Finding>)> = Vec::new();
-  for finding in findings {
-    match by_class.iter_mut().find(|(c, _)| *c == finding.class) {
-      Some((_, group)) => group.push(finding),
-      None => by_class.push((finding.class, vec![finding])),
-    }
-  }
-  for (class, group) in &by_class {
+  for group in intentsvcs::finding::by_class_and_remedy(findings) {
+    let class = group.class;
     // `FindingClass::Advisory`'s wire spelling IS its lead word, so naming both
     // renders `advisory: advisory --`. The class is dropped when it would only
     // stutter; every other class still names itself.
@@ -8922,7 +8922,7 @@ fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Fin
     println!(
       "{}: {named}{}{}",
       class.lead(),
-      match group.len() {
+      match group.members.len() {
         1 => "1 finding".to_string(),
         n => format!("{n} findings"),
       },
@@ -8932,9 +8932,11 @@ fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Fin
         ", not counted in the verdict"
       }
     );
-    println!("  remedy: {}", class.remedy());
+    println!("  remedy: {}", group.remedy);
+    // The directory collapse runs inside one remedy group, never across two,
+    // so one line never mixes members whose remedies differ (ic's shape).
     if class.lists_members_by_directory() {
-      for dir in intentsvcs::finding::members_by_directory(group.iter().copied()) {
+      for dir in intentsvcs::finding::members_by_directory(group.members.iter().copied()) {
         match dir.names.as_slice() {
           [one] => println!("  {}{one} -- {}", dir.directory, dir.detail),
           names => println!(
@@ -8948,7 +8950,7 @@ fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Fin
       }
       continue;
     }
-    for finding in group {
+    for finding in &group.members {
       println!("  {}", finding.where_and_what());
     }
   }
@@ -9139,14 +9141,14 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // this line would have uncounted a class and gone on printing every one of
   // its findings -- a summary saying 3 with 50 blocks scrolling above it,
   // which is worse than the state being fixed.
-  // **GROUPED BY CLASS, AND THE REMEDY PRINTS ONCE PER CLASS.**
+  // **GROUPED BY CLASS AND REMEDY, AND THE REMEDY PRINTS ONCE PER GROUP**
+  // (`print_grouped`'s doc says how a finding's own remedy heads a group).
   //
   // **hv, 2026-09-07, driving Lamplight: "this is the worst of the lot".** 88
   // findings rendered as 176 lines, of which 45 were byte-identical copies of
   // the `status-gate-disagreement` remedy and 40 of the `model-inconsistent`
-  // one. `FindingClass::remedy` takes no argument, so a class's remedy CANNOT
-  // vary between its instances -- printing it per finding is duplication by
-  // construction, not detail.
+  // one. Every finding without its own remedy gives its class's, so printing
+  // it per finding is duplication by construction, not detail.
   //
   // **THE COUNT LEADS AND THE LIST STAYS COMPLETE.** Every finding still
   // appears on its own line, in order, naming its own artefact; what is removed
@@ -9178,16 +9180,16 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
       }
     }
   }
-  // **THE UNCOUNTED NOTES ARE GROUPED BY CLASS, AND THE REMEDY PRINTS ONCE PER
-  // CLASS RATHER THAN ONCE PER NOTE.**
+  // **THE UNCOUNTED NOTES ARE GROUPED BY CLASS AND REMEDY, AND THE REMEDY
+  // PRINTS ONCE PER GROUP RATHER THAN ONCE PER NOTE** (`print_grouped`).
   //
   // **hv, 2026-09-07, on Conflab and Baize: "how do we come to the conclusion
   // that multiple hundreds of lines of output is pristine?"** They were right
   // and the number that said otherwise was measuring the wrong thing -- rc=0
   // with zero COUNTED findings, while `-v` printed 186 notes as 372 lines. A
-  // class remedy is BY CONSTRUCTION identical on every instance of its class:
-  // `FindingClass::remedy` takes no argument and cannot vary. So printing it
-  // per note emitted the same sentence 186 times and called it detail.
+  // class remedy is identical on every note that does not carry its own, so
+  // printing it per note emitted the same sentence 186 times and called it
+  // detail.
   //
   // **THIS ALSO RESOLVES A TRADE `model_checks` RECORDED AS UNAVOIDABLE.** The
   // legacy-carry note keeps its policy explanation inline "because it is the

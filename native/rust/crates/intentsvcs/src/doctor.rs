@@ -670,11 +670,20 @@ fn examine(
   // whose honest remedy -- regenerate the views -- would have rendered an
   // empty estate over the top of real work.
   if let crate::project::Migration::Pending(pending) = project.migration() {
-    report.findings.push(Finding::new(
-      project.relative(&Project::config_path(project.root())),
-      FindingClass::Unmigrated,
-      format!("{pending} -- {}", pending.remedy()),
-    ));
+    // The finding's remedy is the migration's own, with the part of the
+    // class's that stays true of it (issue 0738): one remedy, nothing lost.
+    report.findings.push(
+      Finding::new(
+        project.relative(&Project::config_path(project.root())),
+        FindingClass::Unmigrated,
+        pending.to_string(),
+      )
+      .with_remedy(format!(
+        "{} -- {}",
+        pending.remedy(),
+        crate::finding::DOWNSTREAM_OF_MIGRATION
+      )),
+    );
     return report;
   }
 
@@ -684,16 +693,19 @@ fn examine(
   // put a second cause beside the one that matters -- which is the noise the
   // early return above exists to prevent.
   //
-  // The DETAIL carries the instance arithmetic, exactly as the unmigrated
-  // finding carries `Migration::remedy()`: the class remedy says what is true
-  // of the class, and the two honourable values either side of a rejected
-  // window are true of this project only.
+  // The REMEDY carries the instance arithmetic, as the unmigrated finding's
+  // carries `Migration::remedy()`: the two honourable values either side of a
+  // rejected window are true of this project only, and the class's sentence
+  // that stays true of it is folded in, so one remedy prints (issue 0738).
   if let Err(e) = project.config().todo.window() {
-    report.findings.push(Finding::new(
-      project.relative(&Project::config_path(project.root())),
-      FindingClass::UnhonourableSetting,
-      format!("{e} -- {}", e.remedy()),
-    ));
+    report.findings.push(
+      Finding::new(
+        project.relative(&Project::config_path(project.root())),
+        FindingClass::UnhonourableSetting,
+        e.to_string(),
+      )
+      .with_remedy(format!("{}: {}", crate::finding::CANNOT_HONOUR, e.remedy())),
+    );
   }
 
   if let Some(store) = store {
@@ -1813,31 +1825,21 @@ fn event_checks(project: &Project, access: Access, out: &mut Vec<Finding>) {
     match read {
       Ok(event) => committed.push((rel, event.id)),
       Err(EventFileError::NotJson(_)) => {}
-      Err(e @ EventFileError::NotAnEnvelope(_)) => {
-        out.push(Finding::new(
-          rel,
-          FindingClass::SchemaInvalid,
-          e.to_string(),
-        ));
-      }
-      // A stamp outside the pattern the schema publishes is a schema
-      // violation (issue 0735), and its remedy is the error's own: the class's
-      // "correct the field" would have a person write history by hand.
-      Err(e @ EventFileError::Misstamped { .. }) => {
-        out.push(Finding::new(
-          rel,
-          FindingClass::SchemaInvalid,
-          format!("{e} -- {}", e.remedy()),
-        ));
+      // A file that is not an envelope, and a stamp outside the pattern the
+      // schema publishes (issue 0735), are schema violations. Each event-file
+      // finding here carries the error's own remedy in place of its class's
+      // (issue 0738): the classes say "correct the field" and "move or rename
+      // it", and an event file is written once by the store, so it is
+      // restored, never mended by hand.
+      Err(e @ (EventFileError::NotAnEnvelope(_) | EventFileError::Misstamped { .. })) => {
+        out.push(
+          Finding::new(rel, FindingClass::SchemaInvalid, e.to_string()).with_remedy(e.remedy()),
+        );
       }
       Err(e @ (EventFileError::NameDisagrees { .. } | EventFileError::Unstamped { .. })) => {
-        out.push(Finding::new(
-          rel,
-          FindingClass::UnknownFileShape,
-          format!(
-            "{e} -- an event file is named by its own id and written once, so restore it from git rather than renaming or editing it"
-          ),
-        ));
+        out.push(
+          Finding::new(rel, FindingClass::UnknownFileShape, e.to_string()).with_remedy(e.remedy()),
+        );
       }
     }
   }
@@ -3524,14 +3526,20 @@ fn index_unreadable_finding(project: &Project, store: &crate::store::Store) -> O
   else {
     return None;
   };
-  Some(Finding::new(
-    project.relative(&project.db_path()),
-    FindingClass::IndexUnreadable,
-    format!(
-      "the `{table}` table could not be read ({cause}) -- {}",
-      crate::ingest::unreadable_index_remedy(table, newest_snapshot.as_deref(), &snapshot_dir)
-    ),
-  ))
+  // The ingest's own remedy is the whole of the class's and names this
+  // store's table and snapshot, so it replaces the class's (issue 0738).
+  Some(
+    Finding::new(
+      project.relative(&project.db_path()),
+      FindingClass::IndexUnreadable,
+      format!("the `{table}` table could not be read ({cause})"),
+    )
+    .with_remedy(crate::ingest::unreadable_index_remedy(
+      table,
+      newest_snapshot.as_deref(),
+      &snapshot_dir,
+    )),
+  )
 }
 
 /// Prose sections the index holds more than one row for (issue 0605), shown

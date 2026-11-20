@@ -143,9 +143,9 @@ fn doctor_counts_an_unreadable_index_table_as_a_finding() {
     "COUNTED, so the commit gate and the fleet trawl can see a store with every verb down"
   );
   assert!(
-    found.detail.contains("`doc_sections`") && found.detail.contains("canon is intact"),
-    "the finding carries the same sentence the refusal does: {}",
-    found.detail
+    found.detail.contains("`doc_sections`") && found.remedy().contains("canon is intact"),
+    "the finding names the table and carries the same remedy the refusal does: {}",
+    found
   );
   assert_ne!(report.exit_code(), 0, "and the verdict moves");
 }
