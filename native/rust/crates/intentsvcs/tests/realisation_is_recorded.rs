@@ -69,12 +69,19 @@ fn last_disk_payload(facade: &intentsvcs::facade::Facade, op: &str) -> serde_jso
 fn a_preview_records_nothing_and_an_apply_that_moves_nothing_records_nothing() {
   let fx = fixture();
   let mut facade = fx.facade_on_disk();
+  // No clone commits the index views (ST0096), so this tree has none until a
+  // run renders them, and that first apply is an act. It is not this test's
+  // subject: what follows it is measured against what it left.
+  facade
+    .organize(organize::Mode::Apply)
+    .expect("render the index views");
+  let converged = disk_ops(&facade);
 
   facade.organize(organize::Mode::Preview).expect("preview");
-  assert!(
-    disk_ops(&facade).is_empty(),
-    "a preview changed no file, so it is not an act: {:?}",
-    disk_ops(&facade)
+  assert_eq!(
+    disk_ops(&facade),
+    converged,
+    "a preview changed no file, so it is not an act"
   );
 
   // An apply over a tree that already agrees with the manifest is equally not
@@ -83,10 +90,10 @@ fn a_preview_records_nothing_and_an_apply_that_moves_nothing_records_nothing() {
   facade
     .organize(organize::Mode::Apply)
     .expect("second apply");
-  assert!(
-    disk_ops(&facade).is_empty(),
-    "an apply that moved nothing is not an act either: {:?}",
-    disk_ops(&facade)
+  assert_eq!(
+    disk_ops(&facade),
+    converged,
+    "an apply that moved nothing is not an act either"
   );
 }
 

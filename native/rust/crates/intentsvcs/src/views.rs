@@ -2501,7 +2501,7 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       });
     }
   }
-  views.extend(aggregate_views(project, &canon.threads, ctx));
+  views.extend(index_views(project, &canon.threads, ctx));
   views
 }
 
@@ -2550,35 +2550,35 @@ pub fn live_to<'a>(
   })
 }
 
-/// The two estate-wide views, `intent/st/steel_threads.md` and
-/// `intent/todo.md`.
+/// The two index views, `intent/st/steel_threads.md` and `intent/todo.md`
+/// ([`crate::project::INDEX_VIEWS`]), each rendered from every thread.
 ///
 /// **ONE HOME FOR THE PAIR, BECAUSE `init` WRITES IT TOO** (issue 0448). A
-/// project `init` created had neither file, and `doctor` counts an absent
-/// aggregate view as skew even with no thread to render -- so the first commit
-/// of every new project was refused by the gate `claude upgrade --apply` had
-/// just wired. `init` now writes exactly what [`render_all`] would, from this
-/// function, so the two cannot come to disagree about what a fresh estate's
-/// aggregate views say.
-pub fn aggregate_views(
-  project: &Project,
-  threads: &[Thread],
-  ctx: &RenderContext<'_>,
-) -> [View; 2] {
+/// project `init` created had neither file, and `doctor` counted an absent one
+/// as skew even with no thread to render, so the first commit of every new
+/// project was refused by the gate `claude upgrade --apply` had just wired.
+/// `init` writes exactly what [`render_all`] would, from this function, so the
+/// two cannot come to disagree about what a fresh estate's index views say.
+pub fn index_views(project: &Project, threads: &[Thread], ctx: &RenderContext<'_>) -> [View; 2] {
   [
     View {
       path: project.steel_threads_view(),
       content: steel_threads(threads, ctx),
     },
-    View {
-      path: project.todo_view(),
-      // **`All`, and it is not a default reached for want of a window.** This
-      // is the committed artefact, and D44's window is ruled terminal-only
-      // precisely so that a generated file stays a function of the model and
-      // nothing else.
-      content: todo(threads, ctx),
-    },
+    todo_view(project, threads, ctx),
   ]
+}
+
+/// The flat DOING / TODO / DONE view, one of [`index_views`], which
+/// `intent todo update` writes on its own.
+pub fn todo_view(project: &Project, threads: &[Thread], ctx: &RenderContext<'_>) -> View {
+  View {
+    path: project.todo_view(),
+    // **`All`, and it is not a default reached for want of a window.** This is
+    // the rendered file, and D44's window is ruled terminal-only precisely so
+    // that a generated file stays a function of the model and nothing else.
+    content: todo(threads, ctx),
+  }
 }
 
 /// Render every view and write it through a [`WriteSet`].
@@ -2627,14 +2627,15 @@ pub fn write_all(
 /// `doctor` runs this; the migrator runs it before it converges.
 ///
 /// With no record of what the store last rendered, every difference is
-/// counted; [`skew_against`] is the same check given that record (issue 0630).
+/// counted, and every view is one a commit carries; [`skew_against`] is the
+/// same check given both answers (issue 0630, ST0096).
 pub fn skew(
   project: &Project,
   canon: &Canon,
   ctx: &RenderContext<'_>,
   realised: &crate::intentfiles::Realised,
 ) -> Vec<Finding> {
-  skew_against(project, canon, ctx, realised, &|_, _| false)
+  skew_against(project, canon, ctx, realised, &|_, _| false, &|_| false)
 }
 
 /// [`skew`], given a way to ask whether a view's bytes are the store's last
@@ -2642,17 +2643,30 @@ pub fn skew(
 /// 0630). A view on disk that is that render, byte for byte, is a write still
 /// landing, and it is reported as store-stale rather than counted as a hand
 /// edit.
+///
+/// **AND GIVEN WHICH VIEWS NO COMMIT CARRIES**: `own_render(path)`, the path
+/// project-relative, is true for an aggregate view git does not track (ST0096,
+/// AC-02.3; cc's meaning, 2026-11-20). Such a view is this clone's own render
+/// of its store, as `intent/.cache/` is, and a fresh clone has none, so it is
+/// shown when it is missing or differs from the render, with the verb that
+/// renders it, and never counted: the commit gate refuses what a commit
+/// carries, and a commit carries it neither way.
 pub fn skew_against(
   project: &Project,
   canon: &Canon,
   ctx: &RenderContext<'_>,
   realised: &crate::intentfiles::Realised,
   last_render: &dyn Fn(&str, &str) -> bool,
+  own_render: &dyn Fn(&str) -> bool,
 ) -> Vec<Finding> {
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
     let owner = undeclared_owner(project, &view.path, canon, realised);
+    if own_render(&rel) {
+      findings.extend(own_render_finding(&view, &rel, owner.as_ref()));
+      continue;
+    }
     let board_node = node_board_view(project, &view.path);
     let kind = view_kind(project, &view.path);
     // **A REGISTERED, UNMIGRATED BOARD IS NOT A GENERATED VIEW AND IS NEVER
@@ -2676,7 +2690,20 @@ pub fn skew_against(
       continue;
     }
     match std::fs::read_to_string(&view.path) {
-      Ok(on_disk) if on_disk == view.content => {}
+      // **A VIEW NOTHING REALISES, KEPT ON DISK, IS NAMED** (issue 0707). It
+      // matches the store, so it is no skew, but every clone's sync removes it
+      // and every merge request carries that deletion until one commit on main
+      // makes it. No id in the detail, so `doctor` lists a directory's worth
+      // on one line.
+      Ok(on_disk) if on_disk == view.content => {
+        if let Some(Undeclared::Record(_)) = &owner {
+          findings.push(Finding::new(
+            &rel,
+            FindingClass::UnrealisedView,
+            UNREALISED_VIEW_KEPT,
+          ));
+        }
+      }
       // **TWO CAUSES, AND THE REMEDY THAT CLEARS THIS FINDING DEPENDS ON THE
       // THREAD** (issue `0283`). A hand edit is one; the other is the store
       // moving on after the view was last rendered -- until 0283's half B, a
@@ -2897,6 +2924,47 @@ pub fn skew_against(
     }
   }
   findings
+}
+
+/// What doctor says of a view that a project's record no longer realises and
+/// that is still on disk, byte for byte its render (issue 0707). No id in it,
+/// so `doctor` lists a directory's worth on one line.
+const UNREALISED_VIEW_KEPT: &str =
+  "the project does not realise its record, so every clone's `intent sync --apply` removes it";
+
+/// What [`skew_against`] says of a view no commit carries (ST0096, AC-02.3):
+/// shown when it is not this clone's current render, and never counted.
+///
+/// **THE OWNER DECIDES THE VERB**, as it does for a view a commit carries: a
+/// view the project realises is rendered by `intent sync --to-disk`, a kept
+/// view of a record it does not realise is removed by `intent sync --apply`,
+/// and an absent one of those is the design working. No id in a detail, so a
+/// directory's worth reads the same.
+fn own_render_finding(view: &View, rel: &str, owner: Option<&Undeclared>) -> Option<Finding> {
+  let realised = owner.is_none();
+  let stale = |detail: String| Some(Finding::new(rel, FindingClass::AggregateViewStale, detail));
+  match std::fs::read_to_string(&view.path) {
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => realised.then(|| {
+      Finding::new(
+        rel,
+        FindingClass::AggregateViewStale,
+        "missing: this clone has not rendered it from its store -- `intent sync --to-disk` renders it",
+      )
+    }),
+    Err(e) => stale(format!(
+      "could not be read ({e}), so whether it is this clone's current render is not known -- `intent sync --to-disk` renders it again"
+    )),
+    Ok(on_disk) if on_disk == view.content => (!realised)
+      .then(|| Finding::new(rel, FindingClass::UnrealisedView, UNREALISED_VIEW_KEPT)),
+    Ok(_) if realised => stale(
+      "differs from what the store renders, so this clone's render is behind its store -- `intent sync --to-disk` re-renders it"
+        .to_string(),
+    ),
+    Ok(_) => stale(
+      "differs from what the store renders, for a record the project does not realise, so no sync re-renders or removes it -- git does not carry it, so deleting it loses nothing the store holds"
+        .to_string(),
+    ),
+  }
 }
 
 // ---------------------------------------------------------------------------

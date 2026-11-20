@@ -188,6 +188,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::NoSuchIssue { .. }
     | FacadeError::MigrationBlocked(_)
     | FacadeError::MigrationHalted { .. }
+    | FacadeError::AggregateViewsNotUntracked(_)
     | FacadeError::EgestFromRefusedIngest { .. }
     | FacadeError::EgestWouldEmptyTheEstate { .. }
     | FacadeError::EgestFromStaleStore { .. }

@@ -5,10 +5,12 @@
 //! is behind its upstream, which index entries are unmerged and at which
 //! stages, and the bytes a stage or a commit holds at a path.
 //!
-//! **ONE WRITE, AND IT IS STAGING.** [`stage`] runs `git add` over exactly the
-//! paths a caller names, and the caller names only the files it regenerated to
-//! resolve a conflict it was asked to resolve (AC-05.4). Without it a person is
-//! back to one `git add` per file after every repaired merge.
+//! **TWO WRITES, AND BOTH ARE TO THE INDEX.** [`stage`] runs `git add` over
+//! exactly the paths a caller names, and the caller names only the files it
+//! regenerated to resolve a conflict it was asked to resolve (AC-05.4). Without
+//! it a person is back to one `git add` per file after every repaired merge.
+//! [`untrack`] runs `git rm --cached` over exactly the aggregate views
+//! `intent upgrade` found tracked (ST0096), each left on disk.
 //!
 //! **IT NEVER PULLS, COMMITS OR PUSHES, AND THERE IS NO FUNCTION HERE THAT
 //! COULD.** The boundary is this module's surface rather than a promise at each
@@ -52,10 +54,10 @@ impl crate::remedy::Remedy for GitStateError {
   fn remedy(&self) -> String {
     match self {
       Self::Spawn { .. } => {
-        "check that `git` is on PATH -- `intent sync` reads git's status to plan, and plans nothing it could not read".to_string()
+        "check that `git` is on PATH -- Intent reads git's answer here, and acts on nothing it could not read".to_string()
       }
       Self::Refused { args, .. } => format!(
-        "run `git {args}` yourself to read git's answer, repair what it names, then run `intent sync` again"
+        "run `git {args}` yourself to read git's answer, repair what it names, then run the Intent command again"
       ),
       Self::Unparsed { .. } => {
         "run `git ls-files -u` to see the unmerged entries git reports, and `git status` for the merge in progress".to_string()
@@ -95,13 +97,32 @@ impl Unmerged {
 }
 
 /// Is `root` inside a git work tree? No git on PATH reads as no.
+///
+/// **THE `bool` READING OF [`work_tree`], FOR THE CALLERS THAT WANT A GIT THAT
+/// CANNOT BE ASKED READ AS NO WORK TREE**: a hook or a plan run outside a
+/// repository's reach, where the honest answer is to look at nothing. A caller
+/// that acts on the answer, as the upgrade's untrack does, asks [`work_tree`].
 pub fn is_work_tree(root: &Path) -> bool {
-  Command::new("git")
-    .args(["rev-parse", "--is-inside-work-tree"])
-    .current_dir(root)
-    .output()
-    .map(|out| out.status.success() && out.stdout.starts_with(b"true"))
-    .unwrap_or(false)
+  work_tree(root).unwrap_or(false)
+}
+
+/// Is `root` inside a git work tree, asked so that a git which could not be
+/// asked is an error rather than a no (ST0096 WP-02's critic).
+///
+/// **THREE ANSWERS, NOT TWO.** No `.git` at or above `root` is no work tree, and
+/// git is not asked. Inside a repository, a git that will not start, or that
+/// refuses (dubious ownership, a damaged `.git`), is [`GitStateError`]: read as
+/// no work tree it would let the upgrade mark a project upgraded with its
+/// aggregate views still tracked, and let doctor say nothing was tracked.
+///
+/// **THE `.git` PROBE READS THE FILESYSTEM, NOT GIT'S ENVIRONMENT**: a project
+/// whose repository is named only by `GIT_DIR`, with no `.git` at or above
+/// `root`, reads as no work tree here although git would answer for it.
+pub fn work_tree(root: &Path) -> Result<bool, GitStateError> {
+  if !root.ancestors().any(|dir| dir.join(".git").exists()) {
+    return Ok(false);
+  }
+  run(root, &["rev-parse", "--is-inside-work-tree"]).map(|out| out.starts_with(b"true"))
 }
 
 /// Does the work tree at `root` have a HEAD commit? An unborn branch has
@@ -209,11 +230,81 @@ pub fn files_under(root: &Path, rev: &str, prefix: &str) -> Result<Vec<String>, 
 }
 
 /// Is `path` in the index? Outside a work tree nothing is.
+///
+/// **THE ONE-PATH READING OF [`tracked_matching`]'S QUESTION** (issue 0730), so
+/// the two cannot answer a git that cannot be asked apart: inside a repository
+/// that is the error, never an untracked path, as it is for the aggregate
+/// views. The path is a `:(literal)` pathspec, so one holding glob characters
+/// names only itself.
 pub fn is_tracked(root: &Path, path: &str) -> Result<bool, GitStateError> {
-  if !is_work_tree(root) {
-    return Ok(false);
+  matching(root, &["ls-files", "-z"], &[format!(":(literal){path}")]).map(|paths| !paths.is_empty())
+}
+
+/// The paths in the index that match `patterns`, sorted, each once and
+/// relative to `root`. A pattern is read as a glob whose `*` stays within one
+/// path segment (git's `:(glob)` magic), as `.gitignore` reads it. Outside a
+/// work tree nothing is in the index; a git that could not be asked is the
+/// error, never an empty answer ([`work_tree`]).
+pub fn tracked_matching(root: &Path, patterns: &[String]) -> Result<Vec<String>, GitStateError> {
+  matching(root, &["ls-files", "-z"], &globs(patterns))
+}
+
+/// The paths matching `patterns` whose deletion the index holds and no commit
+/// has made yet, sorted, each once and relative to `root` (ST0096): what an
+/// upgrade untracked, on this run or an earlier one whose untrack nobody has
+/// committed. Outside a work tree nothing is staged.
+pub fn staged_deletions_matching(
+  root: &Path,
+  patterns: &[String],
+) -> Result<Vec<String>, GitStateError> {
+  matching(
+    root,
+    &[
+      "diff",
+      "--cached",
+      "--name-only",
+      "--relative",
+      "--diff-filter=D",
+      "-z",
+    ],
+    &globs(patterns),
+  )
+}
+
+/// Patterns as git's `:(glob)` pathspecs, `*` within one segment, as
+/// `.gitignore` reads them.
+fn globs(patterns: &[String]) -> Vec<String> {
+  patterns
+    .iter()
+    .map(|pattern| format!(":(glob){pattern}"))
+    .collect()
+}
+
+/// `git <query> -- <pathspecs>`, read as NUL-separated paths, sorted and each
+/// once: an unmerged path is listed once per stage, and one answer names it
+/// once. The one reading [`is_tracked`], [`tracked_matching`] and
+/// [`staged_deletions_matching`] share, asked through the three-way
+/// [`work_tree`].
+fn matching(
+  root: &Path,
+  query: &[&str],
+  pathspecs: &[String],
+) -> Result<Vec<String>, GitStateError> {
+  if pathspecs.is_empty() || !work_tree(root)? {
+    return Ok(Vec::new());
   }
-  run(root, &["ls-files", "-z", "--", path]).map(|out| !out.is_empty())
+  let mut args = query.to_vec();
+  args.push("--");
+  args.extend(pathspecs.iter().map(String::as_str));
+  let out = run(root, &args)?;
+  let mut paths: Vec<String> = out
+    .split(|b| *b == 0)
+    .filter(|r| !r.is_empty())
+    .map(|r| String::from_utf8_lossy(r).to_string())
+    .collect();
+  paths.sort();
+  paths.dedup();
+  Ok(paths)
 }
 
 /// Does a `.gitattributes` line decide `export-ignore` for the directory `dir`
@@ -437,6 +528,22 @@ pub fn stage(root: &Path, paths: &[String]) -> Result<(), GitStateError> {
     return Ok(());
   }
   let mut args = vec!["add", "-A", "--"];
+  args.extend(paths.iter().map(String::as_str));
+  run(root, &args).map(|_| ())
+}
+
+/// Take exactly `paths` out of the index, each file left on disk
+/// (`git rm --cached --quiet -- <paths>`).
+///
+/// **THE ONLY GIT WRITE `intent upgrade` MAKES** (ST0096): the caller names the
+/// aggregate views it found tracked, and nothing else. It stages each one's
+/// deletion, which a plain `git commit` carries; `git commit --only` takes a
+/// path it names from the working tree, and would track it again.
+pub fn untrack(root: &Path, paths: &[String]) -> Result<(), GitStateError> {
+  if paths.is_empty() {
+    return Ok(());
+  }
+  let mut args = vec!["rm", "--cached", "--quiet", "--"];
   args.extend(paths.iter().map(String::as_str));
   run(root, &args).map(|_| ())
 }

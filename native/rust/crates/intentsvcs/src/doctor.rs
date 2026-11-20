@@ -719,6 +719,14 @@ fn examine(
   // Beside the gate and for its reason: whether git tracks the store is a fact
   // about the repository, and a store that will not open is still tracked.
   report.findings.extend(store_tracked_finding(project));
+  // Beside the store's tracking and for its reason: whether git tracks an
+  // aggregate view is a fact about the repository (ST0096). Asked once, because
+  // the view checks below read the same answer: a view git does not track is
+  // the clone's own render, shown and never counted (AC-02.3).
+  let tracked_views = crate::facade::tracked_aggregate_views(project);
+  report
+    .findings
+    .extend(aggregate_view_tracked_findings(project, &tracked_views));
   report.findings.extend(canon_format_behind(project));
   // Beside it and for its reason: whether `intent/.cache` is marked for
   // Dropbox is a fact about the directory, and a store that will not open
@@ -789,7 +797,15 @@ fn examine(
       std::collections::BTreeMap::new()
     }
   };
-  file_checks(project, &canon, ctx, store, &before, &mut report);
+  file_checks(
+    project,
+    &canon,
+    ctx,
+    store,
+    &before,
+    &tracked_views,
+    &mut report,
+  );
 
   report
 }
@@ -2080,6 +2096,7 @@ fn file_checks(
   ctx: &RenderContext<'_>,
   store: Option<&crate::store::Store>,
   before: &std::collections::BTreeMap<String, String>,
+  tracked_views: &Result<Option<Vec<String>>, crate::gitstate::GitStateError>,
   report: &mut Report,
 ) {
   // **`doctor` ASKS THE MANIFEST, and until now it did not.** The three-state
@@ -2109,7 +2126,19 @@ fn file_checks(
           .is_ok_and(|now| now.get(rel).is_some_and(|recorded| recorded == sha))
       })
   };
-  let skew = views::skew_against(project, canon, ctx, &realised, &last_render);
+  // **AN AGGREGATE VIEW GIT DOES NOT TRACK IS THIS CLONE'S OWN RENDER** (ST0096,
+  // AC-02.3; cc's meaning, 2026-11-20): a commit carries it neither missing
+  // nor stale, so it is shown and never counted, and a fresh clone's first
+  // commit passes the gate. **ASKED ONLY INSIDE A WORK TREE**: outside one no
+  // commit gate refuses anything, and a git that could not be asked may be
+  // hiding a tracked one, so either way each view is checked as before this
+  // release, and the advisory beside the store's says when git was not asked.
+  let aggregate = project.aggregate_view_matcher();
+  let own_render = |rel: &str| {
+    aggregate(rel)
+      && matches!(tracked_views, Ok(Some(tracked)) if !tracked.iter().any(|path| path == rel))
+  };
+  let skew = views::skew_against(project, canon, ctx, &realised, &last_render, &own_render);
   if let Some(Err(cause)) = after.get() {
     report.findings.push(Finding::new(
       "intent/.cache/intent.db",
@@ -3014,13 +3043,60 @@ fn store_tracked_finding(project: &Project) -> Option<Finding> {
         "git tracks the store, so every commit carries this machine's copy of it and a teammate's pull collides with it -- `.gitignore` keeps out a file git does not track yet, and does not untrack one it already does; `git rm --cached {path}` untracks it and leaves the file on disk"
       ),
     )),
-    crate::facade::StoreTracking::Unasked(cause) => Some(Finding::new(
+    crate::facade::StoreTracking::Unasked(cause) => Some(git_unasked(
       project.relative(&project.db_path()),
-      FindingClass::Advisory,
-      format!(
-        "git was not asked whether it tracks the store: {cause} -- `git ls-files intent/.cache` answers it"
-      ),
+      "the store",
+      cause,
+      "git ls-files intent/.cache",
     )),
+  }
+}
+
+/// The advisory for a question doctor put to git and could not ask: what it
+/// asked about, why, and the command that answers it by hand. One builder for
+/// every such question, so they read alike and a reader learns one sentence.
+fn git_unasked(file: String, about: &str, cause: impl std::fmt::Display, asks: &str) -> Finding {
+  Finding::new(
+    file,
+    FindingClass::Advisory,
+    format!("git was not asked whether it tracks {about}: {cause} -- `{asks}` answers it"),
+  )
+}
+
+/// Every aggregate view git tracks (ST0096, AC-02.2): one finding each, whose
+/// class names `intent upgrade`, which takes it out of the index and leaves it
+/// on disk. A git that could not be asked is said so, as the store's is, never
+/// read as untracked.
+///
+/// **SHOWN AND NOT COUNTED, FOR `StoreTracked`'s REASON**: a project made before
+/// the release that untracks them carries them from its first commit rather
+/// than from anything done since, and its next upgrade takes them out.
+fn aggregate_view_tracked_findings(
+  project: &Project,
+  tracked: &Result<Option<Vec<String>>, crate::gitstate::GitStateError>,
+) -> Vec<Finding> {
+  match tracked {
+    Ok(None) => Vec::new(),
+    Ok(Some(tracked)) => tracked
+      .iter()
+      .map(|path| {
+        Finding::new(
+          path.clone(),
+          FindingClass::AggregateViewTracked,
+          "git tracks this view, which every clone renders from its own store: a change to one record rewrites it, so of two open merge requests that change different records only the first merges without a hand step",
+        )
+      })
+      .collect(),
+    Err(cause) => {
+      let patterns = project.aggregate_view_patterns();
+      let quoted: Vec<String> = patterns.iter().map(|p| format!("'{p}'")).collect();
+      vec![git_unasked(
+        patterns.join(", "),
+        "the aggregate views",
+        cause,
+        &format!("git ls-files -- {}", quoted.join(" ")),
+      )]
+    }
   }
 }
 

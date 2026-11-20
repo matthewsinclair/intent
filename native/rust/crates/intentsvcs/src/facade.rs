@@ -266,6 +266,11 @@ pub struct Upgraded {
   /// so the door names the command rather than leaving the store to ride in
   /// every commit.
   pub store_tracking: StoreTracking,
+  /// The aggregate views this run took out of git's index (ST0096), which,
+  /// unlike the store, the upgrade untracks itself: they are its own views, and
+  /// a project it marks upgraded with them still tracked keeps the merge
+  /// conflict ST0096 removes.
+  pub aggregate_untrack: AggregateUntrack,
 }
 
 /// Whether git tracks a project's store (issue 0551).
@@ -296,6 +301,70 @@ pub fn store_tracking(project: &Project) -> StoreTracking {
     Ok(false) => StoreTracking::Untracked,
     Err(cause) => StoreTracking::Unasked(cause.to_string()),
   }
+}
+
+/// Which aggregate views git tracks (ST0096), read through
+/// [`Project::aggregate_view_patterns`], or `None` outside a git work tree,
+/// where no commit carries anything and no commit gate refuses anything: the
+/// one answer `doctor`'s advisory and its view checks both read. A git that
+/// could not be asked is the error, never an empty answer.
+pub fn tracked_aggregate_views(
+  project: &Project,
+) -> Result<Option<Vec<String>>, crate::gitstate::GitStateError> {
+  if !crate::gitstate::work_tree(project.root())? {
+    return Ok(None);
+  }
+  crate::gitstate::tracked_matching(project.root(), &project.aggregate_view_patterns()).map(Some)
+}
+
+/// What an upgrade did with the aggregate views git tracked (ST0096, AC-02.1).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AggregateUntrack {
+  /// Not a git work tree, so no index holds them and nothing was untracked.
+  NoWorkTree,
+  /// Every aggregate view whose deletion the index holds uncommitted, each
+  /// left on disk: this run's, and any an earlier run untracked that nobody has
+  /// committed. None once the deletion is committed.
+  Untracked(Vec<String>),
+}
+
+impl AggregateUntrack {
+  /// The word each line naming an untracked view begins with, where the verbs
+  /// print `wrote:` and `removed:`.
+  pub const LINE: &'static str = "untracked:";
+  /// What a line says of the view it names: where it went, and the one commit
+  /// that carries its staged deletion. **ONE HOME**, for the CLI's line and
+  /// for the docs that teach it (ST0096's critic): `git commit --only` takes a
+  /// path it names from the working tree, so it would track the view again.
+  pub const COMMIT: &'static str = "out of git's index and left on disk, its deletion staged: commit it with a plain `git commit`, because `git commit --only` takes a path it names from the working tree and would track it again";
+}
+
+/// Take every aggregate view git tracks out of its index, each left on disk
+/// (ST0096, AC-02.1; cc's meaning, 2026-11-20).
+///
+/// **A GIT THAT CANNOT BE ASKED IS AN ERROR, NEVER AN UNTRACKED VIEW.** The
+/// upgrade halts on it before its stamp, because going on would mark a project
+/// upgraded with its aggregate views still tracked, the state in which every
+/// open merge request conflicts on them. Outside a work tree there is no index,
+/// which is [`AggregateUntrack::NoWorkTree`] and not an error, and is asked
+/// three ways ([`crate::gitstate::work_tree`]) so a git that refuses is not
+/// read as one.
+///
+/// **IT NAMES EVERY AGGREGATE VIEW WHOSE DELETION IS STAGED**, this run's and
+/// any an earlier run untracked that nobody has committed, so a re-run after a
+/// halt says what the index still holds rather than nothing.
+fn untrack_aggregate_views(
+  project: &Project,
+) -> Result<AggregateUntrack, crate::gitstate::GitStateError> {
+  let root = project.root();
+  if !crate::gitstate::work_tree(root)? {
+    return Ok(AggregateUntrack::NoWorkTree);
+  }
+  let patterns = project.aggregate_view_patterns();
+  crate::gitstate::untrack(root, &crate::gitstate::tracked_matching(root, &patterns)?)?;
+  Ok(AggregateUntrack::Untracked(
+    crate::gitstate::staged_deletions_matching(root, &patterns)?,
+  ))
 }
 
 /// The single-file event log an earlier v3 upgrade left behind, and what this
@@ -439,6 +508,15 @@ const IGNORED: &[(&str, &str)] = &[
     "Intent's store snapshots and text exports: per-machine, never committed.",
   ),
 ];
+
+/// The comment above each aggregate view's ignore rule (ST0096, hv decision 66).
+///
+/// **NOT IN [`IGNORED`], WHOSE CLASS IS PER-MACHINE ARTEFACTS.** These are views
+/// every clone renders alike, ignored for a different reason: each is rendered
+/// from many records, so two branches that change different records both
+/// rewrite it, and a forge could merge only one of them. The rules come from
+/// [`Project::aggregate_view_patterns`], so the set has one declaration.
+const AGGREGATE_WHY: &str = "An Intent view of many records: every clone renders its own from the store, so none is committed.";
 
 /// Rules a converge REMOVES, each with the comment line an earlier converge
 /// wrote above it, which goes with it.
@@ -726,8 +804,19 @@ pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error
   let path = project.root().join(".gitignore");
   let current = std::fs::read_to_string(&path).unwrap_or_default();
   let mut next = current.clone();
-  for (member, why) in IGNORED {
-    let rule = format!("{dir}/{member}");
+  // **EVERY RULE IS SPELT FROM THE PROJECT'S OWN RELATIVE PATH**, as the
+  // aggregate views' patterns are, so an intent directory below the root is
+  // ignored where it is. The bare `{dir}/{member}` stays the retired rules'
+  // match key below, because it is what earlier upgrades wrote.
+  let intent_rel = project.relative(&project.intent_dir());
+  let per_machine = IGNORED
+    .iter()
+    .map(|(member, why)| (format!("{intent_rel}/{member}"), *why));
+  let aggregate = project
+    .aggregate_view_patterns()
+    .into_iter()
+    .map(|pattern| (pattern, AGGREGATE_WHY));
+  for (rule, why) in per_machine.chain(aggregate) {
     if next.lines().any(|l| l.trim() == rule) {
       continue;
     }
@@ -967,8 +1056,13 @@ fn probe_matcher(ignore_file: &str) -> Option<ignore::gitignore::Gitignore> {
 /// The file is rewritten from its parsed form with only this key replaced, so
 /// an unknown key a project carries survives: `config.json` is the operator's
 /// file and the migration has no business pruning it.
-/// **THE CANON FORMAT MOVES TO THE RELEASE'S, LAST BEFORE THE STAMP** (ST0095
-/// WP-06, design "Upgrading a project"). The plan wrote every record in it, so
+/// **THE CANON FORMAT MOVES TO THE RELEASE'S, BEFORE THE AGGREGATE VIEWS LEAVE
+/// GIT'S INDEX AND THE STAMP** (ST0095 WP-06, design "Upgrading a project";
+/// ST0096 WP-02 put the untrack between this and the stamp). A git that refuses
+/// the untrack leaves the canon moved and the version unstamped, and mints are
+/// then allowed on that halted upgrade: accepted, because the canon is in the
+/// release's format and a re-run of the upgrade writes nothing twice. The plan
+/// wrote every record in it, so
 /// this writes the one file whose schema says so, `project.json`, with the
 /// DONE cutoff the store holds, which the load just carried in from the file
 /// or a migration rung seeded, and records the same state in the store, which
@@ -1836,6 +1930,16 @@ pub enum FacadeError {
     #[source]
     cause: std::io::Error,
   },
+  /// The upgrade could not take the aggregate views out of git's index
+  /// (ST0096, AC-02.1), so it stopped before its stamp.
+  ///
+  /// **ITS OWN VARIANT, BECAUSE THE REMEDY IS GIT'S AND NOT THE MIGRATION'S.**
+  /// Folded into [`FacadeError::MigrationHalted`], whose remedy is to run the
+  /// upgrade again, a git that refuses (eg `git rm --cached` over staged
+  /// content that differs from both `HEAD` and the file) sent the operator
+  /// round the same refusal for ever. Git's own words and remedy travel here.
+  #[error("the upgrade stopped before its stamp, taking the aggregate views out of git's index")]
+  AggregateViewsNotUntracked(#[source] crate::gitstate::GitStateError),
   /// `organize` refused, or could not read the tree.
   ///
   /// **Delegated rather than given a remedy here**, for the reason `Store` is:
@@ -3807,6 +3911,10 @@ impl crate::remedy::Remedy for FacadeError {
       Self::MigrationHalted { .. } => {
         "run `intent upgrade` again -- the migration is re-runnable, and threads already converted are read from their canon rather than converted twice".to_string()
       }
+      Self::AggregateViewsNotUntracked(git) => format!(
+        "{} -- the project is not stamped yet, so `intent upgrade` is the command to run again once git answers",
+        crate::remedy::Remedy::remedy(git)
+      ),
       // **Delegated by INNER variant, because one remedy for the whole of
       // `IngestError` would tell someone whose history file is damaged to fix
       // their steel threads.** History is the one thing nothing recomputes, so
@@ -4360,11 +4468,12 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
 
 /// The files a verb wrote and removed, as the one printer names them: each
 /// written path is the caller's to commit unless a whiteboard file, which is
-/// named with its owner, and each removed path is the caller's. A path inside
-/// the repository's own `.git` directory, such as an installed hook, is no
-/// file anybody commits, so it is named as neither. Pure, so a verb that
-/// writes before any facade exists names its files through the same split as
-/// one that drains a facade.
+/// named with its owner, or an aggregate view, which is nobody's (ST0096), and
+/// each removed path is the caller's but an aggregate view, whose removal no
+/// commit carries either. A path inside the repository's own
+/// `.git` directory, such as an installed hook, is no file anybody commits, so
+/// it is named as neither. Pure, so a verb that writes before any facade exists
+/// names its files through the same split as one that drains a facade.
 pub fn written_from(
   project: &Project,
   landed: &[std::path::PathBuf],
@@ -4375,10 +4484,18 @@ pub fn written_from(
   let mut landed: Vec<std::path::PathBuf> = landed.iter().filter(committable).cloned().collect();
   landed.sort();
   landed.dedup();
+  let aggregate = project.aggregate_view_matcher();
   let mut written = Written::default();
   for path in &landed {
     let rel = project.relative(path);
     match crate::views::whiteboard_writer(project, path) {
+      // **AN AGGREGATE VIEW IS NOBODY'S TO COMMIT**: every clone renders its
+      // own and git ignores it, and `git commit --only` refuses a path git
+      // does not track.
+      None if aggregate(&rel) => written.re_rendered.push(RerenderedFile {
+        path: rel,
+        owner: String::new(),
+      }),
       None => written.wrote.push(rel),
       Some(owner) => written
         .re_rendered
@@ -4390,6 +4507,7 @@ pub fn written_from(
     .filter(committable)
     .filter(|path| !landed.contains(path))
     .map(|path| project.relative(path))
+    .filter(|rel| !aggregate(rel))
     .collect();
   removed.sort();
   removed.dedup();
@@ -5327,6 +5445,7 @@ impl Facade {
       crate::legacy::Leftovers,
       usize,
       Option<EventLogLeftover>,
+      AggregateUntrack,
     );
     let finish = || -> Result<Finished, FacadeError> {
       let mut store = Store::open(&project.db_path())?;
@@ -5381,7 +5500,7 @@ impl Facade {
         }
       }
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
-        step: "adding the per-machine artefacts to .gitignore",
+        step: "adding the per-machine artefacts and the aggregate views to .gitignore",
         cause,
       })?;
       let event_log_leftover =
@@ -5401,6 +5520,13 @@ impl Facade {
         }
       })?;
       move_the_canon_format(project, &store)?;
+      // **THE AGGREGATE VIEWS LEAVE GIT'S INDEX LAST BEFORE THE STAMP** (ST0096,
+      // AC-02.1), so a git that cannot be asked halts the upgrade unstamped and
+      // re-runnable, and no fallible step between the untrack and the stamp can
+      // drop its report. The index is not rolled back on a halt: a re-run names
+      // every view whose deletion is still staged.
+      let aggregate_untrack =
+        untrack_aggregate_views(project).map_err(FacadeError::AggregateViewsNotUntracked)?;
       stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
         cause,
@@ -5411,10 +5537,18 @@ impl Facade {
         leftovers,
         events_backfilled,
         event_log_leftover,
+        aggregate_untrack,
       ))
     };
     match finish() {
-      Ok((pruned, prune_deferred, leftovers, events_backfilled, event_log_leftover)) => {
+      Ok((
+        pruned,
+        prune_deferred,
+        leftovers,
+        events_backfilled,
+        event_log_leftover,
+        aggregate_untrack,
+      )) => {
         applied.keep();
         // **THE VIEWS OF EVERY UNDECLARED THREAD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
@@ -5456,6 +5590,7 @@ impl Facade {
         let store_tracking = store_tracking(project);
         Ok(Upgraded {
           store_tracking,
+          aggregate_untrack,
           dehydrated,
           dehydrate_refused,
           pruned,
@@ -13913,13 +14048,14 @@ impl Facade {
   ///
   /// One file rather than the whole projection, because that is what the verb
   /// says. It goes through a [`WriteSet`] like every other write, so it is
-  /// atomic and leaves nothing half-written; the CONTENT comes from
-  /// [`views::todo`], so this selects which files to write and never re-decides
-  /// what they say.
+  /// atomic and leaves nothing half-written; the VIEW, path and content
+  /// together, is [`views::todo_view`], the one [`views::index_views`] renders
+  /// too, so this never re-decides what the file holds or where it goes (vc's
+  /// Highlander sweep, ST0096 WP-02).
   pub fn todo_update(&mut self) -> Result<(), FacadeError> {
-    let content = self.todo_view()?;
+    let view = views::todo_view(&self.project, &self.canon.threads, &self.render_ctx()?);
     let mut set = WriteSet::new();
-    set.add(self.project.todo_view(), content);
+    set.add(view.path, view.content);
     let committed = set.commit()?;
     self.note_landed(&committed);
     committed.keep();

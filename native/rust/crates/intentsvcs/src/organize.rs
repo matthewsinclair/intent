@@ -66,11 +66,11 @@ use crate::write_set::WriteSet;
 
 /// Views that the renderer produces but which name no single artefact.
 ///
-/// **NAMED, NOT INFERRED (AC-04.6).** `steel_threads.md` and `todo.md` are
-/// renderer output, so the fifth row would never claim them -- but they are also
-/// not per-artefact views, so no manifest entry implies them and the declared
-/// set can never contain them. Without this list they would be DEHYDRATED on the
-/// first real run.
+/// **NAMED, NOT INFERRED (AC-04.6).** The index views,
+/// [`crate::project::INDEX_VIEWS`], are renderer output, so the fifth row
+/// would never claim them -- but they are also not per-artefact views, so no
+/// manifest entry implies them and the declared set can never contain them.
+/// Without that list they would be DEHYDRATED on the first real run.
 ///
 /// Leaving them to be caught by D57-3's fifth row was considered and refused.
 /// UNCLAIMED means *a human put this here*, and using it to shelter something the
@@ -674,9 +674,7 @@ pub fn plan(
     .map(|View { path, content }| (path, content.into_bytes()))
     .collect();
 
-  let exempt: BTreeSet<PathBuf> = [project.steel_threads_view(), project.todo_view()]
-    .into_iter()
-    .collect();
+  let exempt: BTreeSet<PathBuf> = project.index_views().into_iter().collect();
 
   // Which renderable paths belong to a DECLARED artefact. Built by asking the
   // canon which thread owns each view, rather than by parsing the path -- a path
@@ -795,6 +793,21 @@ pub fn plan(
           content: None,
         }),
       }
+    }
+  }
+
+  // **AN INDEX VIEW ON NO DISK IS WRITTEN** (ST0096, AC-02.1; cc's meaning,
+  // 2026-11-20). No clone commits one, so a fresh clone has none and a pull
+  // brings none, and the plan renders it as it renders a declared view nobody
+  // has realised yet. One that is there is `Exempt` below, kept, and re-rendered
+  // when its bytes differ, so a stale list is written over and never removed.
+  for path in &exempt {
+    if !present.contains(path) {
+      steps.push(Step {
+        path: path.clone(),
+        action: Action::Hydrate,
+        content: renderable.get(path).cloned(),
+      });
     }
   }
 
@@ -1499,6 +1512,19 @@ impl Plan {
     let mut set = WriteSet::new();
     for step in &self.steps {
       let writes = matches!(step.action, Action::Hydrate | Action::HydrateAttachment);
+      // **AN INDEX VIEW IS KEPT AND KEPT CURRENT** (ST0096, AC-02.1): rendered
+      // over when its bytes differ, as a `Verify` is, and reported only when
+      // it moved, so the count of `unchanged` stays the count of declared views
+      // a run verified.
+      if step.action == Action::Exempt {
+        if let Some(content) = &step.content
+          && std::fs::read(&step.path).ok().as_ref() != Some(content)
+        {
+          report.rewritten.push(step.path.clone());
+          set.add_bytes(step.path.clone(), content.clone());
+        }
+        continue;
+      }
       if !writes && step.action != Action::Verify {
         continue;
       }

@@ -1951,6 +1951,39 @@ fn declares_bare(config: &str) -> bool {
   false
 }
 
+/// Whether a project-relative path matches one of `patterns`, read with the
+/// search surfaces' glob, `*` within one segment: the one matcher behind
+/// [`Project::generated_view_matcher`] and [`Project::aggregate_view_matcher`].
+fn glob_matcher(patterns: Vec<String>) -> impl Fn(&str) -> bool + use<> {
+  move |rel: &str| {
+    patterns
+      .iter()
+      .any(|pattern| crate::search::glob_matches(pattern, rel))
+  }
+}
+
+/// The threads' directory, relative to the intent directory, spelt once for
+/// [`Project::st_dir`] and the index view inside it. A macro rather than a
+/// `const` because `concat!` takes only literals.
+macro_rules! st_dir_name {
+  () => {
+    "st"
+  };
+}
+
+/// The thread index view, relative to the intent directory: beside the threads
+/// it indexes, at v2's path (vc ruling, 2026-08-14).
+const STEEL_THREADS_VIEW: &str = concat!(st_dir_name!(), "/steel_threads.md");
+
+/// The flat DOING / TODO / DONE view, relative to the intent directory.
+const TODO_VIEW: &str = "todo.md";
+
+/// The INDEX views, relative to the intent directory: each is rendered from
+/// every record at once, so neither names a single artefact. `organize` keeps
+/// them, and `init` writes them, so its occupied check reads them here, before
+/// a `Project` exists.
+pub const INDEX_VIEWS: [&str; 2] = [STEEL_THREADS_VIEW, TODO_VIEW];
+
 /// A resolved project.
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -2078,7 +2111,7 @@ impl Project {
   }
 
   pub fn st_dir(&self) -> PathBuf {
-    self.intent_dir().join("st")
+    self.intent_dir().join(st_dir_name!())
   }
 
   /// `intent/st/<ID>/` -- a thread's directory, whether or not it exists.
@@ -2352,17 +2385,46 @@ impl Project {
     self.intent_dir().join(".cache").join("resolve").join(lang)
   }
 
-  /// The event log's committed file form (D34, AC-02.6).
-  /// The thread index view. Beside the threads it indexes, at v2's path (vc
-  /// ruling, 2026-08-14): a rewrite that already moves plenty does not need to
-  /// move this too.
+  /// The thread index view, one of [`INDEX_VIEWS`]. Beside the threads it
+  /// indexes, at v2's path (vc ruling, 2026-08-14): a rewrite that already moves
+  /// plenty does not need to move this too.
   pub fn steel_threads_view(&self) -> PathBuf {
-    self.st_dir().join("steel_threads.md")
+    self.intent_dir().join(STEEL_THREADS_VIEW)
   }
 
-  /// The flat DOING / TODO / DONE view.
+  /// The flat DOING / TODO / DONE view, one of [`INDEX_VIEWS`].
   pub fn todo_view(&self) -> PathBuf {
-    self.intent_dir().join("todo.md")
+    self.intent_dir().join(TODO_VIEW)
+  }
+
+  /// Every one of [`INDEX_VIEWS`], under this project's intent directory.
+  pub fn index_views(&self) -> [PathBuf; 2] {
+    INDEX_VIEWS.map(|view| self.intent_dir().join(view))
+  }
+
+  /// The AGGREGATE views, as project-relative patterns whose `*` is one path
+  /// segment: the index views and every thread's acceptance view, each rendered
+  /// from many records.
+  ///
+  /// **THE ONE DECLARATION OF WHAT NO CLONE COMMITS (ST0096, hv decisions 66 and
+  /// 74).** A change to one record rewrites an aggregate view, so two branches
+  /// that change different records both write it, and a forge cannot merge the
+  /// second. So every clone renders its own from its store, and git ignores
+  /// them. The `.gitignore` writer, the upgrade's untrack, doctor's advisory,
+  /// the verbs' `wrote:` lines and the commit gate read the set here. Each
+  /// pattern is derived from the method that makes the real path, with `*` for
+  /// the thread, as [`Self::generated_view_patterns`] derives its own.
+  pub fn aggregate_view_patterns(&self) -> Vec<String> {
+    let rel = |p: PathBuf| self.relative(&p);
+    let mut patterns: Vec<String> = self.index_views().into_iter().map(rel).collect();
+    patterns.push(rel(self.acceptance_view("*")));
+    patterns
+  }
+
+  /// Whether a project-relative path is one of the aggregate views, matched as
+  /// [`Self::generated_view_matcher`] matches, `*` within one segment.
+  pub fn aggregate_view_matcher(&self) -> impl Fn(&str) -> bool + use<> {
+    glob_matcher(self.aggregate_view_patterns())
   }
 
   /// A thread's generated cover.
@@ -2477,11 +2539,13 @@ impl Project {
   /// behind.
   pub fn generated_view_patterns(&self) -> Vec<String> {
     let rel = |p: PathBuf| self.relative(&p);
-    vec![
-      rel(self.steel_threads_view()),
-      rel(self.todo_view()),
-      rel(self.info_view("*")),
-      rel(self.acceptance_view("*")),
+    // Every aggregate view is a generated view, so the aggregate set is read
+    // here rather than spelt a second time. The cover goes in after the index
+    // views and before the acceptance view, where the formatter's ignore file
+    // has always listed it, so a new project's file reads as it always has.
+    let mut patterns = self.aggregate_view_patterns();
+    patterns.insert(INDEX_VIEWS.len(), rel(self.info_view("*")));
+    patterns.extend([
       rel(self.thread_dir("*").join("WP").join("*").join("info.md")),
       // **Assembled by hand for the reason the work-package one is**:
       // `issue_view` takes a typed `IssueId` and no wildcard survives that.
@@ -2489,7 +2553,8 @@ impl Project {
       rel(self.issues_view_dir().join("*.md")),
       rel(self.wb_board_view("*")),
       rel(self.wb_inbox_view("*", "*")),
-    ]
+    ]);
+    patterns
   }
 
   /// Whether a project-relative path is one of the generated views
@@ -2501,12 +2566,7 @@ impl Project {
   /// file index asks it so that a generated view's row is only ever the bytes
   /// its renderer wrote (issue 0630).
   pub fn generated_view_matcher(&self) -> impl Fn(&str) -> bool + use<> {
-    let patterns = self.generated_view_patterns();
-    move |rel: &str| {
-      patterns
-        .iter()
-        .any(|pattern| crate::search::glob_matches(pattern, rel))
-    }
+    glob_matcher(self.generated_view_patterns())
   }
 
   /// Every file under a thread's directory, sorted, each as a path RELATIVE to

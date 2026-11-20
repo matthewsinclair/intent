@@ -128,26 +128,22 @@ fn a_thread_both_clones_minted_is_renumbered_and_the_merge_is_clean_under_doctor
   git_ok(&["add", "-A"], &bob);
   git_ok(&["commit", "-q", "-m", "bob: renumber to ST0002"], &bob);
 
-  // The merge now touches canon cleanly; only generated views can conflict.
-  let (merge, _) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &bob);
+  // The merge now touches canon cleanly, and nothing conflicts: the two lists
+  // both clones rewrote are each clone's own render and travel in no commit
+  // (ST0096), so the pull merges and commits by itself.
+  let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &bob);
   let conflicted = git_ok(&["diff", "--name-only", "--diff-filter=U"], &bob);
-  for path in conflicted.lines() {
-    assert!(
-      path == "intent/st/steel_threads.md" || path == "intent/todo.md",
-      "after a renumber only a generated view may conflict, and {path} did:\n{merge}"
-    );
-  }
-  if !conflicted.trim().is_empty() {
-    let views: Vec<&str> = conflicted.lines().collect();
-    let mut args = vec!["checkout", "--theirs", "--"];
-    args.extend(views);
-    git_ok(&args, &bob);
-  }
+  assert!(
+    merged && conflicted.trim().is_empty(),
+    "after a renumber the merge is clean, and {conflicted} conflicted:\n{merge}"
+  );
   ok(&["sync", "--apply"], &bob, home.path());
   ok(&["sync", "--to-disk"], &bob, home.path());
   ok(&["todo", "update"], &bob, home.path());
+  // Whatever the three left to commit; the lists they rewrote are ignored, so
+  // this may be nothing at all.
   git_ok(&["add", "-A"], &bob);
-  git_ok(&["commit", "-q", "-m", "merge main"], &bob);
+  git_ok(&["commit", "-q", "--allow-empty", "-m", "merge main"], &bob);
 
   let list = ok(&["st", "list", "--status", "all"], &bob, home.path());
   assert!(

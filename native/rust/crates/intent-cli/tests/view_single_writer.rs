@@ -115,28 +115,44 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
 }
 
 /// A consumer project carrying a rendered view with authored `*emphasis*` in
-/// it. The emphasis is the payload: it is the construct prettier rewrites, so
-/// a fixture without it cannot exhibit the defect.
-fn consumer_with_a_rendered_view() -> tempfile::TempDir {
+/// it, and that view's project-relative path. The emphasis is the payload: it
+/// is the construct prettier rewrites, so a fixture without it cannot exhibit
+/// the defect.
+///
+/// **The view is an open issue's**: generated, realised by `issues add`, and it
+/// carries the issue's body verbatim as markdown (its title sits in the
+/// frontmatter, which prettier leaves alone). It is not an aggregate view,
+/// because git ignores those (ST0096) and prettier honours `.gitignore`, so one
+/// would be left alone with the exclusion removed and the positive control
+/// could not fail.
+fn consumer_with_a_rendered_view() -> (tempfile::TempDir, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let (out, rc) = run(root, &["init", "consumer"]);
   assert_eq!(rc, 0, "init a consumer project: {out}");
-  let (out, rc) = run(root, &["st", "new", "a thread with *emphasis* in it"]);
-  assert_eq!(rc, 0, "create the thread: {out}");
-  // D02: the store is the SSOT and the view does not exist on disk until this.
+  let body = dir.path().join("issue-body.md");
+  std::fs::write(&body, "An issue body with *emphasis* in it.\n").expect("write the body");
+  let (out, rc) = run(
+    root,
+    &[
+      "issues",
+      "add",
+      "an issue with a body",
+      "--from",
+      body.to_str().expect("a UTF-8 path"),
+    ],
+  );
+  assert_eq!(rc, 0, "create the issue: {out}");
+  let view = format!("intent/issues/{}.md", crate::common::created(&out));
+  // D02: the store is the SSOT, and this renders every view it realises.
   let (out, rc) = run(root, &["sync", "--to-disk"]);
   assert_eq!(rc, 0, "render the view: {out}");
   assert!(
-    root.join(VIEW).exists(),
+    root.join(&view).exists(),
     "the fixture is only a fixture if the view actually rendered"
   );
-  dir
+  (dir, view)
 }
-
-/// The rendered view under test. Chosen because it is generated, it carries an
-/// authored string verbatim, and it exists on a project with one thread in it.
-const VIEW: &str = "intent/st/steel_threads.md";
 
 fn prettier_write(root: &Path, rel: &str) {
   let out = Command::new("prettier")
@@ -171,17 +187,17 @@ fn ignored_by_prettier(root: &Path, rel: &str) -> Option<bool> {
 #[test]
 fn a_rendered_view_survives_the_formatter_in_a_consumer_repo() {
   require_prettier();
-  let dir = consumer_with_a_rendered_view();
+  let (dir, view) = consumer_with_a_rendered_view();
   let root = dir.path();
-  let before = std::fs::read_to_string(root.join(VIEW)).expect("read the view");
+  let before = std::fs::read_to_string(root.join(&view)).expect("read the view");
   assert!(
     before.contains("*emphasis*"),
     "the renderer must emit the authored form verbatim, or this test measures nothing: {before}"
   );
 
-  prettier_write(root, VIEW);
+  prettier_write(root, &view);
 
-  let after = std::fs::read_to_string(root.join(VIEW)).expect("re-read the view");
+  let after = std::fs::read_to_string(root.join(&view)).expect("re-read the view");
   assert_eq!(
     before, after,
     "a format pass rewrote a generated view in a consumer repo -- the renderer is no longer its \
@@ -192,14 +208,14 @@ fn a_rendered_view_survives_the_formatter_in_a_consumer_repo() {
 #[test]
 fn the_consumer_repo_carries_the_exclusion_that_makes_the_arm_above_structural() {
   require_prettier();
-  let dir = consumer_with_a_rendered_view();
+  let (dir, view) = consumer_with_a_rendered_view();
   // Byte-equality can hold by luck -- a view with no rewritable construct in it
   // passes the arm above forever. The EXCLUSION is the structural claim, and it
   // is what `intent init` owes a consumer.
   assert_eq!(
-    ignored_by_prettier(dir.path(), VIEW),
+    ignored_by_prettier(dir.path(), &view),
     Some(true),
-    "prettier's own resolution says it would format {VIEW} in a freshly-initialised consumer \
+    "prettier's own resolution says it would format {view} in a freshly-initialised consumer \
      project, so nothing there keeps the formatter off a generated view"
   );
 }
@@ -207,7 +223,7 @@ fn the_consumer_repo_carries_the_exclusion_that_makes_the_arm_above_structural()
 #[test]
 fn authored_prose_in_a_consumer_repo_is_still_formatted() {
   require_prettier();
-  let dir = consumer_with_a_rendered_view();
+  let (dir, _) = consumer_with_a_rendered_view();
   let root = dir.path();
   // A `.prettierignore` of `*` satisfies the arm above completely, and would be
   // a tool quietly disabling a consumer's formatter across their whole repo.
@@ -224,16 +240,16 @@ fn authored_prose_in_a_consumer_repo_is_still_formatted() {
 #[test]
 fn it_can_fail_when_the_exclusion_is_removed() {
   require_prettier();
-  let dir = consumer_with_a_rendered_view();
+  let (dir, view) = consumer_with_a_rendered_view();
   let root = dir.path();
   // THE POSITIVE CONTROL. Identical drive, exclusion deleted. If this does not
   // go red, then the green above is telling us nothing about the exclusion --
   // it would look exactly the same if prettier were a no-op, if the view were
   // never rendered, or if the fixture carried nothing rewritable.
   let _ = std::fs::remove_file(root.join(".prettierignore"));
-  let before = std::fs::read_to_string(root.join(VIEW)).expect("read the view");
-  prettier_write(root, VIEW);
-  let after = std::fs::read_to_string(root.join(VIEW)).expect("re-read the view");
+  let before = std::fs::read_to_string(root.join(&view)).expect("read the view");
+  prettier_write(root, &view);
+  let after = std::fs::read_to_string(root.join(&view)).expect("re-read the view");
   assert_ne!(
     before, after,
     "with the exclusion removed the formatter left the view alone, so this fixture cannot \

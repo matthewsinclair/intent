@@ -6146,6 +6146,23 @@ fn upgrade() -> Result<(), Failure> {
     ),
     intentsvcs::facade::StoreTracking::Untracked => {}
   }
+  // ST0096: every aggregate view whose deletion the index holds, named path by
+  // path, with the one way that deletion is committed. A re-run names each one
+  // still uncommitted, and none once it is.
+  match &done.aggregate_untrack {
+    intentsvcs::facade::AggregateUntrack::Untracked(paths) => {
+      for path in paths {
+        eprintln!(
+          "{} {path} -- {}",
+          intentsvcs::facade::AggregateUntrack::LINE,
+          intentsvcs::facade::AggregateUntrack::COMMIT
+        );
+      }
+    }
+    intentsvcs::facade::AggregateUntrack::NoWorkTree => eprintln!(
+      "note: not a git work tree, so no index holds the aggregate views and none was untracked"
+    ),
+  }
   // Issue 0459: the empty single-file log an earlier upgrade left, removed or
   // named with why it stays.
   match &done.event_log_leftover {

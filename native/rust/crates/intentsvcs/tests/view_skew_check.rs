@@ -212,12 +212,17 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
   }
 
   // ARM 1 -- the manifest declares NOTHING. The thread is not realised, its
-  // views are legitimately gone, and doctor must be silent about them.
+  // two removed views are legitimately gone, and doctor must be silent about
+  // them. The views it still has on disk, byte for byte their render, are
+  // named as unrealised (issue 0707): shown, and never counted.
   let declared_none = Realised::Declared(std::collections::BTreeSet::new());
   let findings = views::skew(&project, &canon(), &ctx(), &declared_none);
+  let removed = ["intent/st/ST0056/info.md", "intent/st/ST0056/acceptance.md"];
   assert!(
-    findings.is_empty(),
-    "an undeclared thread's views are absent by design, not skew: {findings:?}"
+    findings
+      .iter()
+      .all(|f| f.class == FindingClass::UnrealisedView && !removed.contains(&f.file.as_str())),
+    "an undeclared thread's views are absent by design, not skew, and one kept is only named: {findings:?}"
   );
 
   // ARM 2 -- the SAME missing files, with the manifest declaring the thread
@@ -236,11 +241,17 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
     .collect(),
   );
   let findings = views::skew(&project, &canon(), &ctx(), &declared_st0056);
-  let files: Vec<&str> = findings.iter().map(|f| f.file.as_str()).collect();
+  // Counted findings only: a view of another record the manifest leaves
+  // unrealised is named beside them, and is not what this arm is about.
+  let files: Vec<&str> = findings
+    .iter()
+    .filter(|f| f.class.is_actionable())
+    .map(|f| f.file.as_str())
+    .collect();
   assert_eq!(
-    findings.len(),
+    files.len(),
     2,
-    "a DECLARED thread's missing views are still a finding: {files:?}"
+    "a DECLARED thread's missing views are still a finding: {findings:?}"
   );
   assert!(
     files.contains(&"intent/st/ST0056/info.md")

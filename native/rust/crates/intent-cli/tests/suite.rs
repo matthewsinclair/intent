@@ -308,6 +308,8 @@ mod sync_plan_and_apply_from_the_command_line;
 mod sync_to_disk_runs_beside_a_watching_daemon;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
 mod sync_to_store_does_not_contradict_itself;
+#[path = "the_aggregate_views_stay_out_of_git.rs"]
+mod the_aggregate_views_stay_out_of_git;
 #[path = "the_binary_under_test_is_the_one_cargo_built.rs"]
 mod the_binary_under_test_is_the_one_cargo_built;
 #[path = "the_canon_set_is_derived.rs"]

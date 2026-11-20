@@ -316,15 +316,31 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
     "nothing was removed, so there is no report to check -- stdout: {stdout}"
   );
 
+  // An aggregate view, a thread's `acceptance.md`, is no commit's (ST0096), so
+  // its removal is named on the plan's `to-remove:` line and never on a
+  // `removed:` line, which names a deletion for the caller to commit.
+  let aggregate = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .aggregate_view_matcher();
+  let (theirs, ours): (Vec<String>, Vec<String>) =
+    vanished.into_iter().partition(|path| aggregate(path));
   let named: Vec<String> = stdout
     .lines()
     .filter_map(|l| l.trim().strip_prefix("removed: "))
     .map(|p| p.to_string())
     .collect();
   assert_eq!(
-    named, vanished,
+    named, ours,
     "the removed: lines and the files that actually vanished disagree -- stdout: {stdout}"
   );
+  for path in &theirs {
+    assert!(
+      stdout
+        .lines()
+        .any(|l| l.trim() == format!("to-remove: {path}")),
+      "the aggregate view {path} vanished and is named on no to-remove: line -- stdout: {stdout}"
+    );
+  }
 
   assert!(
     stdout
@@ -346,10 +362,13 @@ fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
   std::fs::remove_file(root.join(format!("intent/st/{subject}/acceptance.md")))
     .expect("remove a realised file");
 
+  // `acceptance.md` is an aggregate view no clone commits (ST0096, hv decision
+  // 74), so the file it restored is named `re-rendered:`, nobody's to commit.
   let restored = ok(root, &["st", "hydrate", subject.as_str()]);
   assert!(
-    restored.contains(&format!("\nwrote: intent/st/{subject}/acceptance.md\n"))
-      && restored.contains(&format!("  exists: intent/st/{subject}/info.md\n"))
+    restored.contains(&format!(
+      "\nre-rendered: intent/st/{subject}/acceptance.md\n"
+    )) && restored.contains(&format!("  exists: intent/st/{subject}/info.md\n"))
       && !restored.contains(&format!("  exists: intent/st/{subject}/acceptance.md\n")),
     "the recreated file is reported as written and the untouched one as existing: {restored}"
   );

@@ -178,6 +178,47 @@ pub enum FindingClass {
   /// so a counted class would refuse every commit in it on the day it upgrades
   /// Intent. The wording is ic's, taken as written (hv decision 71).
   CanonFormatBehind,
+  /// Git tracks an aggregate view: `intent/st/steel_threads.md`,
+  /// `intent/todo.md` or a thread's `acceptance.md` (ST0096, AC-02.2; hv
+  /// decisions 66 and 74).
+  ///
+  /// **A CHANGE TO ONE RECORD REWRITES AN AGGREGATE VIEW**, so two branches that
+  /// change different records both write it, and a forge merges only the first. From
+  /// this release every clone renders its own and none is committed: `init`
+  /// ignores them, and `intent upgrade` takes an older project's copies out of
+  /// the index once.
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `StoreTracked`'s REASON**: a project made
+  /// before this release tracks them from its first commit rather than from
+  /// anything done since, and a counted class would refuse its every commit.
+  AggregateViewTracked,
+  /// A view on disk of a record the project does not realise, byte for byte
+  /// what the store renders (issue 0707).
+  ///
+  /// **A CLOSE TOOK THE RECORD OUT OF THE MANIFEST AND LEFT ITS VIEWS**, so every
+  /// clone's `intent sync --apply` plans to remove them, and where git tracks
+  /// them, while main keeps them every merge request carries the same deletion.
+  /// One removal on main ends it, and until this class nothing said so. An
+  /// aggregate view git ignores (ST0096) is removed by the clone's own sync and
+  /// carried by no merge request.
+  ///
+  /// **SHOWN AND NOT COUNTED**: the view is what the store renders, so nothing
+  /// is lost or wrong, only kept where nothing realises it.
+  UnrealisedView,
+  /// An aggregate view git does not carry that is not this clone's current
+  /// render of its store (ST0096, AC-02.3; cc's meaning, 2026-11-20): missing,
+  /// as on a fresh clone, or different from what the store renders, as after a
+  /// pull that changed records.
+  ///
+  /// **AN IGNORED VIEW IS THE CLONE'S OWN RENDERING OF ITS STORE**, as
+  /// `intent/.cache/` is, and the finding's detail names the verb that brings
+  /// it up to date.
+  ///
+  /// **SHOWN AND NOT COUNTED**: the commit gate refuses what a commit carries,
+  /// and a commit carries this view neither when it is missing nor when it is
+  /// stale. A view git still tracks, in a project not yet upgraded, is counted
+  /// as view skew, as before.
+  AggregateViewStale,
   /// The prose index holds more than one row for one section (issue `0605`).
   ///
   /// **EVERY SCOPED INGEST FROM 3.1.0 TO 3.2.3 DOUBLED THE FILE AND WHITEBOARD
@@ -695,6 +736,21 @@ impl FindingClass {
         "store-tracked",
         "run the git command the finding names and commit it: it takes the store out of the index and leaves your copy on disk, and the ignore rule keeps it out from then on. Not counted: a project made by Intent 3.0 carries this from its first commit rather than from anything done since",
       ),
+      Self::AggregateViewTracked => (
+        6,
+        "aggregate-view-tracked",
+        "run `intent upgrade`: it writes the view's ignore rule, takes the view out of git's index and leaves it on disk, and says how to commit that. Not counted: a project made before this release tracks the view from its first commit rather than from anything done since",
+      ),
+      Self::UnrealisedView => (
+        6,
+        "unrealised-view",
+        "`intent organize` lists each view it would remove, and `intent organize --apply` removes them, while the store keeps every record. Where git tracks them, remove them once, on main, and commit that: until then every branch's `intent sync --apply` removes them again, and each merge request carries the same deletion. Not counted: each is byte for byte what the store renders, so nothing is lost",
+      ),
+      Self::AggregateViewStale => (
+        6,
+        "aggregate-view-stale",
+        "bring this clone's render up to date with the verb the finding names: `intent sync --to-disk` renders every view the project realises from its store. Not counted: git does not carry the view, so a commit carries it neither when it is missing nor when it is stale",
+      ),
       Self::DropboxCacheUnmarked => (
         6,
         "dropbox-cache-unmarked",
@@ -1066,6 +1122,9 @@ impl FindingClass {
         | Self::RootFileBehind
         | Self::StoreTracked
         | Self::CanonFormatBehind
+        | Self::AggregateViewTracked
+        | Self::UnrealisedView
+        | Self::AggregateViewStale
         | Self::ProseIndexDuplicated
         | Self::DropboxCacheUnmarked
         | Self::SettingsHookMissing
@@ -1108,6 +1167,9 @@ impl FindingClass {
           | Self::RootFileBehind
           | Self::StoreTracked
           | Self::CanonFormatBehind
+          | Self::AggregateViewTracked
+          | Self::UnrealisedView
+          | Self::AggregateViewStale
           | Self::ProseIndexDuplicated
           | Self::DropboxCacheUnmarked
           | Self::SettingsHookMissing
@@ -1121,9 +1183,11 @@ impl FindingClass {
   ///
   /// **ONLY WHERE MEMBERS COME IN RUNS THAT SAY THE SAME THING.** A stale render
   /// arrives for every view an upgrade touched, and the fleet's first read of
-  /// one was 62 near-identical lines.
+  /// one was 62 near-identical lines. An unrealised view arrives for every
+  /// record a close left behind: 21 issue views and one thread's on this
+  /// repository on 2026-11-19.
   pub fn lists_members_by_directory(&self) -> bool {
-    matches!(self, Self::StaleRender)
+    matches!(self, Self::StaleRender | Self::UnrealisedView)
   }
 
   /// The word a report leads with for this class.

@@ -272,8 +272,9 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 /// AT-05.2 and AT-05.4: **a merge stopped on an id both clones minted is
 /// repaired by `--apply --yes`**: this clone's thread moves to the next id free
 /// in the store and the tree, the pulled one keeps its id, the store takes the
-/// merged canon, the unmerged views are regenerated from it and staged, and
-/// doctor's verdict is the exit code. **Only what it regenerated is staged,
+/// merged canon, and doctor's verdict is the exit code. No view is left
+/// unmerged to regenerate, because the lists both clones rewrote travel in no
+/// commit (ST0096). **Only what it regenerated is staged,
 /// and it never commits, pulls or pushes.**
 #[test]
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
@@ -343,9 +344,12 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     "{}",
     repaired.text
   );
+  // No view was unmerged to regenerate: the two lists both clones rewrote are
+  // each clone's own render and travel in no commit (ST0096), so the plan
+  // names no views to resolve.
   assert!(
-    repaired.text.contains("ok: regenerated and staged"),
-    "the unmerged views are regenerated and staged: {}",
+    !plan.contains(". resolve views (") && !repaired.text.contains("ok: regenerated and staged"),
+    "no view is unmerged once the lists leave git: {plan}\n{}",
     repaired.text
   );
   assert_eq!(

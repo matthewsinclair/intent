@@ -287,8 +287,11 @@ fn a_branch_checkout_is_ingested_and_a_file_checkout_is_not() {
   let gone = team.intent(&bob, &["st", "show", release.as_str()]);
   assert_ne!(gone.code, 0, "the store answers from the checked-out canon");
 
-  // A file checkout, git's flag 0, moves no branch and must run nothing.
-  let file = team.git(&bob, &["checkout", "--", "intent/todo.md"]);
+  // A file checkout, git's flag 0, moves no branch and must run nothing. Of a
+  // file git tracks: the aggregate views are ignored since ST0096, and a
+  // checkout of one would fail before git ran any hook.
+  let file = team.git(&bob, &["checkout", "--", "intent/.config/config.json"]);
+  assert_eq!(file.code, 0, "the file checkout ran: {}", file.said);
   assert!(
     !file.said.contains("intent ("),
     "a file checkout ran the ingest: {}",

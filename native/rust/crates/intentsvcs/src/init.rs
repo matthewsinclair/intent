@@ -392,12 +392,12 @@ pub fn init_with_languages(
     .chain([
       root.join("intent/.intentfiles"),
       root.join("intent/.cache/intent.db"),
-      // The two aggregate views `init` writes below (issue 0448). Named by
-      // path here because the check runs before a `Project` exists to derive
-      // them, under the `intent_dir` this function writes into the config.
-      root.join("intent/st/steel_threads.md"),
-      root.join("intent/todo.md"),
     ])
+    // The index views `init` writes below (issue 0448), from their one
+    // declaration. Joined here because the check runs before a `Project`
+    // exists to derive them, under the `intent_dir` this function writes into
+    // the config.
+    .chain(crate::project::INDEX_VIEWS.map(|view| root.join("intent").join(view)))
     .filter(|path| path.exists())
     .collect();
   if !occupied.is_empty() {
@@ -565,14 +565,15 @@ pub fn init_with_languages(
     written.push(path);
   }
 
-  // **THE TWO AGGREGATE VIEWS, SO THE FIRST COMMIT IS NOT REFUSED** (issue
-  // 0448). `doctor` counts an absent `steel_threads.md` or `todo.md` as skew
+  // **THE TWO INDEX VIEWS, RENDERED WHERE THE PROJECT IS MADE** (issue
+  // 0448). `doctor` counted an absent `steel_threads.md` or `todo.md` as skew
   // even on an estate with no thread, so a project `init` left without them
   // was refused at its first commit by the gate `claude upgrade --apply`
-  // installs, with `sync --to-disk` as a remedy the new user had to find.
-  // Rendered by `views::aggregate_views`, the one home `render_all` also uses,
-  // so what `init` writes and what a sync would write are the same bytes.
-  for view in crate::views::aggregate_views(&project, &[], &ctx) {
+  // installs. Git ignores both now (ST0096), so this is the clone's own first
+  // render of them. Rendered by `views::index_views`, the one home
+  // `render_all` also uses, so what `init` writes and what a sync would write
+  // are the same bytes.
+  for view in crate::views::index_views(&project, &[], &ctx) {
     write(&view.path, &view.content)?;
     written.push(view.path);
   }

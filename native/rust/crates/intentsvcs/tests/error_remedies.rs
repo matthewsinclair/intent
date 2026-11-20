@@ -1321,6 +1321,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::SubjectRefused(_) => "SubjectRefused",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
+    FacadeError::AggregateViewsNotUntracked(_) => "AggregateViewsNotUntracked",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
     FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
     FacadeError::EgestFromStaleStore { .. } => "EgestFromStaleStore",
@@ -1489,6 +1490,7 @@ const ALL_VARIANTS: &[&str] = &[
   "SubjectRefused",
   "MigrationBlocked",
   "MigrationHalted",
+  "AggregateViewsNotUntracked",
   "EgestFromRefusedIngest",
   "EgestWouldEmptyTheEstate",
   "EgestFromStaleStore",
@@ -1758,6 +1760,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // there is no `Facade` to be had until it has run.
   "MigrationBlocked",
   "MigrationHalted",
+  // **PROVOKED WHERE GIT CAN BE MADE UNREACHABLE** (ST0096): the upgrade's
+  // untrack halts only when git cannot be asked inside a repository, and a test
+  // cannot take git away from its own process. intent-cli's
+  // `the_aggregate_views_stay_out_of_git.rs` drives `intent upgrade` with no
+  // `git` on PATH and asserts the halt, its remedy and an unstamped project.
+  "AggregateViewsNotUntracked",
   // Needs a project DECLARING a sub-floor version, which is a property of the
   // world rather than of the call, and reachable only through the migration
   // door for the same reason as the two above. Driven end to end in

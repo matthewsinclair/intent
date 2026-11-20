@@ -502,12 +502,16 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
   }
 }
 
-/// The layout `root`'s config declares, read where the scope is built (ST0083).
+/// The project `root`'s config declares, read where the scope is built: its
+/// contracts layout (ST0083) and its aggregate views (ST0096) come from this one
+/// read, so the config is opened once and an unreadable one fails the scope
+/// once.
 ///
 /// **AN ABSENT CONFIG DECLARES NO LAYOUT, AS AN ABSENT KEY DOES, AND READS AS
-/// `root`.** A config that is there and cannot be read, or that names a third
-/// value, is an error the caller surfaces: scoping a `dotclaude` project as
-/// `root` would stop its contracts being ingested with nothing to say so.
+/// `root`**, and it declares no aggregate view. A config that is there and
+/// cannot be read, or that names a third value, is an error the caller
+/// surfaces: scoping a `dotclaude` project as `root` would stop its contracts
+/// being ingested with nothing to say so.
 ///
 /// **THE TWO CASES ARE DIFFERENT ON PURPOSE, AND THE ABSENT ONE IS NOT TO BE
 /// TIGHTENED** (vc's ruling, 2026-10-15). A file that is not there declares
@@ -515,11 +519,11 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
 /// there and unreadable may be declaring `dotclaude`, so guessing `root` for it
 /// is the silent fallback No Silent Errors forbids. Refusing the absent case as
 /// well would buy nothing and break every scope built over a bare directory.
-fn contracts_at(root: &Path) -> Result<Contracts, SyncError> {
+fn project_at(root: &Path) -> Result<Option<Project>, SyncError> {
   if !Project::config_path(root).is_file() {
-    return Ok(Contracts::default());
+    return Ok(None);
   }
-  Ok(Project::open(root)?.config().contracts)
+  Ok(Some(Project::open(root)?))
 }
 
 /// Scan the project's sync scope, deciding each file's state against the
@@ -562,6 +566,17 @@ pub struct Scanned {
   /// contracts are -- and a caller cannot pair this root with another layout.
   root_files: Vec<PathBuf>,
   ignored: Ignored,
+  /// Whether a project-relative path is one of the project's aggregate views
+  /// ([`Project::aggregate_view_matcher`], ST0096): none where there is no
+  /// config.
+  ///
+  /// **AN IGNORE RULE SAYS WHAT GIT TRACKS, NEVER WHAT INTENT OWNS** (cc's
+  /// meaning, 2026-11-20). An aggregate view is ignored because each clone
+  /// renders its own, and every planner still reads it: organize hydrates a
+  /// realised thread's `acceptance.md` it sees and removes a closed one's, and
+  /// sync re-renders a stale list. So the keep reads the one declared set, and
+  /// nothing else an ignore rule hides joins the corpus.
+  aggregate: Box<dyn Fn(&str) -> bool + Send + Sync>,
 }
 
 impl Scanned {
@@ -575,7 +590,15 @@ impl Scanned {
   /// the daemon follows a change of the `contracts` key at its next batch with
   /// nothing cached, and an unreadable config fails the build of the scope.
   pub fn for_root(root: &Path) -> Result<Scanned, SyncError> {
-    let contracts = contracts_at(root)?;
+    let project = project_at(root)?;
+    let contracts = project
+      .as_ref()
+      .map(|project| project.config().contracts)
+      .unwrap_or_default();
+    let aggregate: Box<dyn Fn(&str) -> bool + Send + Sync> = match &project {
+      Some(project) => Box::new(project.aggregate_view_matcher()),
+      None => Box::new(|_: &str| false),
+    };
     Ok(Scanned {
       root: root.to_path_buf(),
       root_files: ROOT_FILES
@@ -583,6 +606,7 @@ impl Scanned {
         .map(|name| root.join(root_file_path(name, contracts)))
         .collect(),
       ignored: Ignored::for_root(root),
+      aggregate,
     })
   }
 
@@ -600,9 +624,10 @@ impl Scanned {
     name != ".git" && !self.ignored.contains(dir) && !SKIPPED_DIRS.contains(&name.as_str())
   }
 
-  /// Would the walk keep this file?
+  /// Would the walk keep this file? Any file git would carry, and an aggregate
+  /// view whatever an ignore rule says (see [`Scanned::aggregate`]).
   fn keeps(&self, file: &Path) -> bool {
-    !self.ignored.contains(file)
+    !self.ignored.contains(file) || (self.aggregate)(&crate::project::relative(&self.root, file))
   }
 
   /// Would a sync read this path?
