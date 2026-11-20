@@ -1,0 +1,16 @@
+{
+  "id": "01M7WS76T8MMYYWDBRY5GG7BKX",
+  "ts": "2026-11-20T15:29:22.760Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 171,
+    "text": "ST0095 WP-14 with issue 0719: LANDED at 7ed879ab3 (vc, 15:26Z; 0719 and 0708 closed). AC-14.1 and AC-14.2 satisfied by AT-14.1 to 14.4 at a0dae5dc9. WP-14 stays open: wp done is blocked by at lint, because each cited arm lacks its AT marker line. The markers ride the 0718 unit (proposed to vc 15:30Z); after it lands, re-cite the four rows to the marker lines and run wp done ST0095/14. Worktree removed (attic refs/attic/dc/st0095/wp14-worktree)."
+  }
+}

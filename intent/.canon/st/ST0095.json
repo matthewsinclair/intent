@@ -131,7 +131,7 @@
       "seq": 14,
       "title": "Kind tags and the owner of a path have one home",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "The id families have one set of kind tags, with one wire spelling for each surface, and one answer to which thread or issue owns a path, so no caller names a family or claims a path by its own copy.",
       "body": "Seat: cc. Size: S. Lands after WP-04, alongside WP-06. cc split it from WP-04 on 2026-11-19 (cc's \"WP-04b\") so that WP-04 lands sooner, since WP-05 and WP-06 do not need it.\n\n## Scope\n\n- **Kind tags.** At least eight enums or string sets name the id families today, and a work package is spelled `wp`, `work-package`, `work_package` and `work package` (the Highlander sweep, report A, cluster C11). One enum in the waist, with one wire spelling for each surface. That fixes issue 0708, where `search --kind wp` never finds a work package's prose because ingest writes `work-package` and `HitKind::of_owner` maps only `wp` and `work_package`.\n- **Which record owns a path.** There are six answers today (report A, cluster C6). One function answers it, and every caller asks it.\n- **The dead `st_prefix` key** in this project's `intent/.config/config.json`. Nothing reads it but legacy's retired-setting warning, which is silent for `ST`. It is removed.\n\n## Out of scope\n\n- The id concerns WP-04 takes, the mint (WP-06) and the order (WP-08).\n\n## Proof\n\n- AC-14.1's and AC-14.2's tests.\n- A critic-rust review of the diff, each Highlander finding fixed or answered (AC-00.2).\n",
       "preamble": ""
@@ -622,7 +622,7 @@
     {
       "id": "AT-14.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:1804",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:1817",
       "covers": [
         "AC-14.1"
       ],
@@ -642,7 +642,7 @@
     {
       "id": "AT-14.3",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:24",
+      "file": "native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:23",
       "covers": [
         "AC-14.2"
       ],

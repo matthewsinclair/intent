@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 15:25Z
+heartbeat_at: 2026-11-20 16:04Z
 status: active
-focus: "2026-11-20 15:24Z by date -u: WP-14 with 0719 PROVED on main at refs/bank/dc/st0095/wp14-bank6 (13f40d241 on 7af1d65ce), gate green 15:17-15:22Z, proof with vc to land (DOING 171). Next: 0718+0715+0722+0729 on WP-14's land (with the critic's R1, Named in the renumber), then WP-08 and WP-09."
-claims: [ST0095/03, ST0095/14, ISSUE:0719]
+focus: "2026-11-20 16:04Z by date -u: attach unit bank (0718, 0715, 0729, WP-14's R1, AT-14 markers) in tmp/wt-attach-unit on 1d3604937; critic-rust's 5 warnings fixed; gate 3 (Desk 01M7WTSDWJKFTXQ62528NP5K4E) queued behind cc's ST0096/01 gate. Then proof to vc, then 0722 on its land, then WP-08 and WP-09. WP-14 close waits on this land (DOING 171)."
+claims: [ST0095/03, ST0095/14, ISSUE:0719, ISSUE:0718, ISSUE:0715, ISSUE:0722, ISSUE:0729]
 ---
 
 # DevX Claude (dc)
@@ -14,7 +14,7 @@ claims: [ST0095/03, ST0095/14, ISSUE:0719]
 ## DOING
 
 - ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9, and the guard S at ea22af4c7 (2026-11-20, vc on dc's proof: thread_view_skew_check.sh asks doctor --read-only; main's commit gate then ran it in place, 1205 views matching); tmp/wt-wp03-guard removed after the four checks (attic refs/attic/dc/wt-wp03-guard). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10. (edited)
-- ST0095 WP-14 with issue 0719, claimed (ST0095/14, ISSUE:0719). PROVED ON MAIN 2026-11-20 15:24Z by date -u: bank refs/bank/dc/st0095/wp14-bank6 (13f40d241) on main 7af1d65ce (rebased onto cc's WP-05+06), gate rust GREEN 15:17:12Z-15:22:41Z (Desk 01M7WRGBQ5PW2M85KYJYZNSDHT), critic-rust on the resolutions 0 critical 0 warning 2 recommendations; proof with vc. R1 (carry id::Named in minted_twice and Action::Renumber, dropping no_remint_of_a_work_package) proposed to fold into the 0718 unit. vc lands it, closes 0719 and 0708, satisfies AC-14.1 and AC-14.2; then remove tmp/wt-st0095-wp14 by the four checks. (edited)
+- ST0095 WP-14 with issue 0719: LANDED at 7ed879ab3 (vc, 15:26Z; 0719 and 0708 closed). AC-14.1 and AC-14.2 satisfied by AT-14.1 to 14.4 at a0dae5dc9. WP-14 stays open: wp done is blocked by at lint, because each cited arm lacks its AT marker line. The markers ride the 0718 unit (proposed to vc 15:30Z); after it lands, re-cite the four rows to the marker lines and run wp done ST0095/14. Worktree removed (attic refs/attic/dc/st0095/wp14-worktree). (edited)
 
 ## TODO
 

@@ -101,7 +101,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-13.2 (non-test) The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven. -- satisfied: no
 - AC-13.3 (non-test) The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered. -- satisfied: no
 
-### WP-14 -- Kind tags and the owner of a path have one home (status: WIP)
+### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
 - AC-14.1 One enum names the id families, with one wire spelling for each surface, and intent search --kind wp finds a work package's prose (issue 0708). -- satisfied: yes (computed)
 - AC-14.2 One function answers which thread or issue owns a path, every caller asks it, and the project config carries no st_prefix key. -- satisfied: yes (computed)
@@ -169,11 +169,11 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-14 -- Kind tags and the owner of a path have one home (status: WIP)
+### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
-- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:1804` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
+- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:1817` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.2 `native/rust/crates/intent-cli/tests/search_surface.rs:181` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
-- AT-14.3 `native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:24` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
+- AT-14.3 `native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:23` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.4 `native/rust/crates/intentsvcs/tests/retired_st_prefix.rs:134` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 
 ---

@@ -2,7 +2,7 @@
 wp_id: WP-14
 title: Kind tags and the owner of a path have one home
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-14: Kind tags and the owner of a path have one home
