@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 16:04Z
+heartbeat_at: 2026-11-20 16:23Z
 status: active
-focus: "2026-11-20 16:04Z by date -u: attach unit bank (0718, 0715, 0729, WP-14's R1, AT-14 markers) in tmp/wt-attach-unit on 1d3604937; critic-rust's 5 warnings fixed; gate 3 (Desk 01M7WTSDWJKFTXQ62528NP5K4E) queued behind cc's ST0096/01 gate. Then proof to vc, then 0722 on its land, then WP-08 and WP-09. WP-14 close waits on this land (DOING 171)."
+focus: "2026-11-20 16:23Z by date -u: LOCALFOLDED for hv's compact, not released. 0722 WIP banked at refs/bank/dc/0722/wip1 (a66e2604c), sites 1+2 coded and untested (see its DOING). WP-14 done (4c72d9510). Attach bank 1 landed (cc2358b01). Then WP-08 and WP-09. devbin-dc on ST0096 WP-03 (brief c4108fea7; no doctor field, vc ruled)."
 claims: [ST0095/03, ST0095/14, ISSUE:0719, ISSUE:0718, ISSUE:0715, ISSUE:0722, ISSUE:0729]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0095/03, ST0095/14, ISSUE:0719, ISSUE:0718, ISSUE:0715, ISSUE:0722, I
 ## DOING
 
 - ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9, and the guard S at ea22af4c7 (2026-11-20, vc on dc's proof: thread_view_skew_check.sh asks doctor --read-only; main's commit gate then ran it in place, 1205 views matching); tmp/wt-wp03-guard removed after the four checks (attic refs/attic/dc/wt-wp03-guard). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10. (edited)
-- ST0095 WP-14 with issue 0719: LANDED at 7ed879ab3 (vc, 15:26Z; 0719 and 0708 closed). AC-14.1 and AC-14.2 satisfied by AT-14.1 to 14.4 at a0dae5dc9. WP-14 stays open: wp done is blocked by at lint, because each cited arm lacks its AT marker line. The markers ride the 0718 unit (proposed to vc 15:30Z); after it lands, re-cite the four rows to the marker lines and run wp done ST0095/14. Worktree removed (attic refs/attic/dc/st0095/wp14-worktree). (edited)
+- Issue 0722 (claimed), design sent to vc and cc 16:20Z and ruled (vc 16:22Z: unit-test disk_match pure for both folds, site tests on the real disk with the fold read once, CasePair at a site driven by an injected answer or named not driven; split 1+2 then 3+4+5). WIP banked at refs/bank/dc/0722/wip1 (a66e2604c on main 4c72d9510), worktree tmp/wt-0722: disk_match and DiskMatch, Project::disk_folds_case, FindingClass::CasePair, site 1 (ingest collect_attachments_into) and site 2 (organize plan, TreeState.folds, key_twin). NEXT: the site test file for 1+2 (patterns in organize_attachment_divergence.rs), then the light checks, gate, critic-rust and the proof for bank 1; then sites 3 (doctor attachment_drift), 4 (to-store preview, st_attachment, views read_thread_file) and 5 (realise refuses a canon case pair).
 
 ## TODO
 

@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-20T16:04:44.602Z",
+    "heartbeat_at": "2026-11-20T16:23:36.890Z",
     "status": "active",
-    "focus": "2026-11-20 16:04Z by date -u: attach unit bank (0718, 0715, 0729, WP-14's R1, AT-14 markers) in tmp/wt-attach-unit on 1d3604937; critic-rust's 5 warnings fixed; gate 3 (Desk 01M7WTSDWJKFTXQ62528NP5K4E) queued behind cc's ST0096/01 gate. Then proof to vc, then 0722 on its land, then WP-08 and WP-09. WP-14 close waits on this land (DOING 171).",
+    "focus": "2026-11-20 16:23Z by date -u: LOCALFOLDED for hv's compact, not released. 0722 WIP banked at refs/bank/dc/0722/wip1 (a66e2604c), sites 1+2 coded and untested (see its DOING). WP-14 done (4c72d9510). Attach bank 1 landed (cc2358b01). Then WP-08 and WP-09. devbin-dc on ST0096 WP-03 (brief c4108fea7; no doctor field, vc ruled).",
     "claims": [
       "ST0095/03",
       "ST0095/14",
@@ -3178,7 +3178,8 @@
       "kind": "doing",
       "seq": 171,
       "text": "ST0095 WP-14 with issue 0719: LANDED at 7ed879ab3 (vc, 15:26Z; 0719 and 0708 closed). AC-14.1 and AC-14.2 satisfied by AT-14.1 to 14.4 at a0dae5dc9. WP-14 stays open: wp done is blocked by at lint, because each cited arm lacks its AT marker line. The markers ride the 0718 unit (proposed to vc 15:30Z); after it lands, re-cite the four rows to the marker lines and run wp done ST0095/14. Worktree removed (attic refs/attic/dc/st0095/wp14-worktree).",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T16:23:23.393Z",
       "recorded_at": "2026-11-20T08:09:52.167Z",
       "edited_at": "2026-11-20T15:29:22.760Z"
     },
@@ -3190,6 +3191,14 @@
       "state": "archived",
       "archived_at": "2026-11-20T14:56:03.582Z",
       "recorded_at": "2026-11-20T09:22:16.710Z"
+    },
+    {
+      "node": "dc",
+      "kind": "doing",
+      "seq": 172,
+      "text": "Issue 0722 (claimed), design sent to vc and cc 16:20Z and ruled (vc 16:22Z: unit-test disk_match pure for both folds, site tests on the real disk with the fold read once, CasePair at a site driven by an injected answer or named not driven; split 1+2 then 3+4+5). WIP banked at refs/bank/dc/0722/wip1 (a66e2604c on main 4c72d9510), worktree tmp/wt-0722: disk_match and DiskMatch, Project::disk_folds_case, FindingClass::CasePair, site 1 (ingest collect_attachments_into) and site 2 (organize plan, TreeState.folds, key_twin). NEXT: the site test file for 1+2 (patterns in organize_attachment_divergence.rs), then the light checks, gate, critic-rust and the proof for bank 1; then sites 3 (doctor attachment_drift), 4 (to-store preview, st_attachment, views read_thread_file) and 5 (realise refuses a canon case pair).",
+      "state": "live",
+      "recorded_at": "2026-11-20T16:23:30.281Z"
     }
   ],
   "sent": [
@@ -4207,21 +4216,24 @@
       "recipient": "cc",
       "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:47:51.782Z"
+      "recorded_at": "2026-11-20T14:47:51.782Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WPV676RVBYVBP9T42AER34",
       "recipient": "ic",
       "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:47:51.782Z"
+      "recorded_at": "2026-11-20T14:47:51.782Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WPV676RVBYVBP9T42AER35",
       "recipient": "vc",
       "body": "dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:47:51.782Z"
+      "recorded_at": "2026-11-20T14:47:51.782Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WPV676RVBYVBP9T42AER36",
@@ -4235,21 +4247,24 @@
       "recipient": "cc",
       "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:55:45.201Z"
+      "recorded_at": "2026-11-20T14:55:45.201Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WQ9MHH2F87FQ0DD9MZCSDR",
       "recipient": "ic",
       "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:55:45.201Z"
+      "recorded_at": "2026-11-20T14:55:45.201Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WQ9MHH2F87FQ0DD9MZCSDS",
       "recipient": "vc",
       "body": "dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.",
       "fyi": true,
-      "recorded_at": "2026-11-20T14:55:45.201Z"
+      "recorded_at": "2026-11-20T14:55:45.201Z",
+      "archived_at": "2026-11-20T16:23:44.189Z"
     },
     {
       "id": "01M7WQ9MHH2F87FQ0DD9MZCSDT",

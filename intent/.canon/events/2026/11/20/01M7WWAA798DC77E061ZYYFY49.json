@@ -1,0 +1,15 @@
+{
+  "id": "01M7WWAA798DC77E061ZYYFY49",
+  "ts": "2026-11-20T16:23:30.281Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Issue 0722 (claimed), design sent to vc and cc 16:20Z and ruled (vc 16:22Z: unit-test disk_match pure for both folds, site tests on the real disk with the fold read once, CasePair at a site driven by an injected answer or named not driven; split 1+2 then 3+4+5). WIP banked at refs/bank/dc/0722/wip1 (a66e2604c on main 4c72d9510), worktree tmp/wt-0722: disk_match and DiskMatch, Project::disk_folds_case, FindingClass::CasePair, site 1 (ingest collect_attachments_into) and site 2 (organize plan, TreeState.folds, key_twin). NEXT: the site test file for 1+2 (patterns in organize_attachment_divergence.rs), then the light checks, gate, critic-rust and the proof for bank 1; then sites 3 (doctor attachment_drift), 4 (to-store preview, st_attachment, views read_thread_file) and 5 (realise refuses a canon case pair)."
+  }
+}

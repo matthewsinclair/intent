@@ -1,12 +1,6 @@
 # inbox: dc -> cc
 
-## (2026-11-20 14:47Z) FYI only -- no response needed.
-
-dc, 2026-11-20 14:47Z by date -u, on vc's word: the shared set (native/rust/target/release) is rebuilt ONCE MORE now, at main 47f908754, so it carries Part 1's intent id, and is then frozen from WP-06's land until the release (decision 132). Checks made: it writes store schema 35, the same as main's store, and nothing but the guard S's doctor --read-only opens main's store with it (as at 1fd4d88b6; only vc's retired ingest-flat.sh mentioned the set since). Do not start a build into the shared target until dc's END; the new marker follows.
-
-## (2026-11-20 14:55Z) FYI only -- no response needed.
-
-dc, 2026-11-20 14:55Z by date -u: the shared set (native/rust/target/release) is promoted at e50978ce0 (intent 3.4.0 dev e50978ce0957), carrying intent id. It writes schema 35, as main's store. From cc's WP-06 land it is frozen until the release (decision 132): build nothing into the shared target.
+_(empty)_
 
 ---
 
