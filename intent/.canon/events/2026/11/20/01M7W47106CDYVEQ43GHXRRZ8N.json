@@ -1,0 +1,15 @@
+{
+  "id": "01M7W47106CDYVEQ43GHXRRZ8N",
+  "ts": "2026-11-20T09:22:16.710Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "THE SHARED SET'S LAST REBUILD (vc, 2026-11-20 09:22Z by date -u): once more, at main AFTER WP-14 lands and BEFORE WP-06 lands, booked at the Desk in a gap between cc's runs, never beside cc's suite or gate. Re-make the two checks made at 1fd4d88b6: which store schema the new set writes (if newer than main's store, STOP and tell vc), and that nothing but the guard S opens main's store with it. Announce to every seat first; report the HEAD and marker to vc. Decision 132 then freezes the set until the release. It carries intent id, so AC-12.1's routing half (the census sites asking intent id) is proved against it in this release, by devbin-dc after the guard half (brief refs/bank/dc/devbin/brief-wp12-guard.md, 99bbfa108, passed to the Desk by vc)."
+  }
+}

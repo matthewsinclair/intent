@@ -1,0 +1,16 @@
+{
+  "id": "01M7W2PB1KEJY3451JW5T14YGX",
+  "ts": "2026-11-20T08:55:41.363Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 171,
+    "text": "ST0095 WP-14 with issue 0719 (S on the record, M in practice), claimed (ST0095/14, ISSUE:0719). Meaning: cc's (todo 73) plus cc's answers of 2026-11-20 by 08:45Z (EntityKind goes; plan::classify to owner_of and Minted to IdKind BEHAVIOUR-NEUTRAL, cc keeping step 5's hashed add/add, union and re-mint; 0719: no door carries, renames or claims a case variant, each names it exactly, doctor counts it, remedy rename or remove). QUIESCED for hv's move at 2026-11-20 09:37Z. State: bank refs/bank/dc/st0095/wp14-bank2 (dbfde412c) on main eb3de27a5, worktree tmp/wt-st0095-wp14 with HEAD on it and the tree clean. Bank 1's gate rust (Desk slot 01M7W47GKT1550WHWVQCNCA8Y4, 09:22-09:27Z, ENDed): build, format, clippy, panics, ownership and doc green; cargo test 1857 passed, 1 failed, the one my new 0719 test's wrong attachment address, fixed in bank 2. critic-rust was reviewing the diff (scratchpad wp14-wip3.patch) when the quiesce came; its report arrives as a notification. On go: fix or answer its findings, re-bank with HEAD on it, ask the Desk for the one proving gate rust (scratchpad run-wp14-gate.sh <req> <bank> bank=<short>), then proof to vc with issue 0729 (filed f6f042685). Then the shared set's last rebuild (todo, after WP-14 lands)."
+  }
+}

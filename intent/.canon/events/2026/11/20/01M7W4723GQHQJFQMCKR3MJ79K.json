@@ -1,0 +1,16 @@
+{
+  "id": "01M7W4723GQHQJFQMCKR3MJ79K",
+  "ts": "2026-11-20T09:22:17.840Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Issues 0718, 0715, 0722 and, by vc's fold of 2026-11-20 09:22Z, 0729 (sync's scan, its attachment test and attachment_path_fault spelling intent/) as ONE unit: one gate run and one critic pass, since all share the attachment rows, the one-file key and the owner of a path. If the combined diff grows past one critic read, land 0718+0715 first and the rest straight after, and say so. BEFORE BASING IT, check its files against cc's bank refs/bank/cc/st0095/wp0506-wip6-on-0901275bb and ic's ST0096 WP-02 (sync.rs among them): if it shares files with either, it lands after cc's unit, as WP-02 now does. Claim each issue when starting. 0715 (cc's meaning in substance): st attach --from over an existing attachment replaces it in the store, the canon and the realised file in the one verb, writing the realised file FIRST, refusing before any write when the realised file holds bytes the store does not (naming intent sync --to-store <ID>), and restoring the file's old bytes if the store write fails; code in facade.rs's put_attachment and place_attachment, CLI wording ic's. 0718: no thread holds two attachments with one one_file_key; the attachment door refuses the second naming the held spelling; projection's sidecar write asks the key; with it the text PUT's refusal over an opaque attachment (facade.rs, critic on 0711). 0722: cc's meaning in todo 76. 0729: sync's scan and the watch take the project's intent dir, is_carried_attachment asks Project::owner_of, attachment_path_fault takes the project's st_dir. Order: after WP-14."
+  }
+}
