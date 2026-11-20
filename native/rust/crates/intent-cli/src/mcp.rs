@@ -275,20 +275,21 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
       // the domain so an agent types `ST0056`, not a guess.
       "st-id" => {
         prop.insert("type".into(), json!("string"));
-        prop.insert("description".into(), json!("a steel thread id, eg ST0000"));
+        prop.insert("description".into(), json!(intentsvcs::id::THREAD_ID_FORM));
       }
       "st-id/NN" => {
         prop.insert("type".into(), json!("string"));
-        prop.insert(
-          "description".into(),
-          json!("a work package id, eg ST0000/01"),
-        );
+        prop.insert("description".into(), json!(intentsvcs::id::WP_ADDRESS_FORM));
       }
       "st-id[/NN]" => {
         prop.insert("type".into(), json!("string"));
         prop.insert(
           "description".into(),
-          json!("a steel thread id, optionally scoped to a work package, eg ST0000 or ST0000/01"),
+          json!(format!(
+            "a steel thread, or a work package under it: {}; {}",
+            intentsvcs::id::THREAD_ID_FORM,
+            intentsvcs::id::WP_ADDRESS_FORM
+          )),
         );
       }
       // **ITS OWN TYPE RATHER THAN `st-id[/NN]`, BECAUSE THE DOOR ADMITS A
@@ -326,7 +327,7 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
       }
       "issue-id" => {
         prop.insert("type".into(), json!("string"));
-        prop.insert("description".into(), json!("an issue number, eg 0000"));
+        prop.insert("description".into(), json!(intentsvcs::id::ISSUE_ID_FORM));
       }
       "node" => {
         prop.insert("type".into(), json!("string"));
@@ -349,15 +350,17 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
       prop.insert("default".into(), json!(default));
     }
     properties.insert(arg.name.clone(), Value::Object(prop));
-    match arg.arity.as_str() {
-      "1" => required.push(arg.name.clone()),
-      "0..1" => {}
-      other => {
-        return Err(refuse(format!(
-          "arg `{}` has undeclared arity `{other}`",
-          arg.name
-        )));
-      }
+    // **THE REGISTER'S ONE READING OF AN ARITY** (`dispatch::arity_bounds`),
+    // so a repeated argument publishes as its kind, as a repeated flag does:
+    // the arm reads one value or a list of them through `strings`.
+    if crate::dispatch::arity_bounds(&arg.arity).is_none() {
+      return Err(refuse(format!(
+        "arg `{}` has undeclared arity `{}`",
+        arg.name, arg.arity
+      )));
+    }
+    if arg.required() {
+      required.push(arg.name.clone());
     }
   }
 
@@ -487,7 +490,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 81] = [
+pub const SERVED: [&str; 82] = [
   "st new",
   "st start",
   "st done",
@@ -563,6 +566,7 @@ pub const SERVED: [&str; 81] = [
   "export",
   "organize",
   "events",
+  "id",
   "graphql",
   "schema",
   "wb profile list",
@@ -1777,6 +1781,19 @@ fn tool_answer(
       let page = f.events(&filter)?;
       Ok(crate::render::events_json(&page))
     }
+    "id" => {
+      // The CLI's own document (`render::id_json`), so the tool and
+      // `--format json` cannot answer differently for one token.
+      let tokens = strings(path, map, "token")?.unwrap_or_default();
+      if tokens.is_empty() {
+        return Err(args_err(
+          path,
+          "`token` is required: one or more ids, package addresses or addresses",
+        ));
+      }
+      let answers: Vec<_> = tokens.iter().map(|t| f.id_of(t)).collect();
+      Ok(crate::render::id_json(&answers))
+    }
 
     // The population check above admitted this path, so a fall-through here is
     // a roster/arm drift -- reported as the same UnknownTool the gate test
@@ -1902,19 +1919,23 @@ fn wp_scope(
   let target = spec(path, need_s(path, map, "specifier")?)?;
   match crate::render::scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
-    _ => Err(args_err(
+    _ => Err(failure_args(
       path,
-      format!("`{target}` is not a work package -- name it as `<ST id>/<NN>`, eg ST0000/03"),
+      &crate::render::refused(&intentsvcs::id::not_a_package(&target)),
     )),
   }
 }
 
-/// An issue id, through the waist's own normaliser.
+/// An issue id, through the waist's own normaliser, refused in its one wording.
 fn issue_number(path: &str, raw: &str) -> Result<intentsvcs::id::IssueId, ServeError> {
-  intentsvcs::id::normalise_issue_id(raw).map_err(|_| {
-    args_err(
+  intentsvcs::id::normalise_issue_id(raw).map_err(|e| {
+    failure_args(
       path,
-      format!("`{raw}` is not an issue number -- name it as digits, eg 0000"),
+      &crate::render::refused(&intentsvcs::id::refusal(
+        raw,
+        &e,
+        intentsvcs::id::IdKind::Issue,
+      )),
     )
   })
 }
@@ -2051,7 +2072,7 @@ pub fn resource_list(f: &Facade) -> Vec<Resource> {
   for t in f.st_list() {
     out.push(Resource {
       uri: Entity::Thread { id: t.id.stored() }.local_url(),
-      name: format!("{}: {}", t.id.shown(), t.title),
+      name: crate::show::thread_heading(t),
     });
     for wp in &t.wps {
       out.push(Resource {
@@ -2060,7 +2081,7 @@ pub fn resource_list(f: &Facade) -> Vec<Resource> {
           wp: wp.seq.stored(),
         }
         .local_url(),
-        name: format!("{}/{}: {}", t.id.shown(), wp.seq.heading(), wp.title),
+        name: crate::show::work_package_heading(&t.id, wp),
       });
     }
   }
@@ -2070,7 +2091,7 @@ pub fn resource_list(f: &Facade) -> Vec<Resource> {
         id: i.number.stored(),
       }
       .local_url(),
-      name: format!("{}: {}", i.number.shown(), i.title),
+      name: crate::show::issue_heading(i),
     });
   }
   out
@@ -2098,6 +2119,8 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
     Entity::Wp { thread, wp } => {
       let seq = intentsvcs::id::normalise_wp_id(&wp)
         .map_err(|_| bad("a work-package address ends in a work package's id".to_string()))?;
+      let thread = intentsvcs::id::ThreadId::parse(&thread)
+        .map_err(|_| bad("a work-package address begins with its thread's id".to_string()))?;
       let criteria = f.wp_criteria(&thread, seq)?;
       Ok(crate::show::work_package(
         &thread,
@@ -2360,8 +2383,10 @@ mod tests {
   }
 
   /// Every declared arg and every kept flag reaches the schema; required is
-  /// exactly the arity-1 args; enums carry their values whichever of the
-  /// three corpus spellings declared them.
+  /// exactly the args [`crate::dispatch::Arg::required`] names, the register's
+  /// one reading of an arity, whose meaning `dispatch.rs`'s
+  /// `an_arity_is_read_the_same_way_by_every_reader` checks; enums carry their
+  /// values whichever of the three corpus spellings declared them.
   #[test]
   fn schemas_carry_every_declared_parameter() {
     let table = dispatch::table();
@@ -2391,7 +2416,7 @@ mod tests {
           a.name
         );
         assert_eq!(
-          a.arity == "1",
+          a.required(),
           required.contains(&a.name.as_str()),
           "`{}`: arg `{}` required-ness disagrees with its arity",
           t.path,

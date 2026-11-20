@@ -31,14 +31,33 @@
 use std::fmt::Write;
 
 use intentsvcs::facade::AcRow;
+use intentsvcs::id::ThreadId;
 use intentsvcs::model::{AcState, Criterion, Issue, Thread, WorkPackage};
+
+/// A thread's first line, the one `st show` prints and the name MCP lists its
+/// resource by: one heading per entity, so the two faces cannot word it apart
+/// (the Highlander sweep's W1).
+pub fn thread_heading(t: &Thread) -> String {
+  format!("{}: {}", t.id.shown(), t.title)
+}
+
+/// A work package's first line, under its thread as resolved and shown, as
+/// [`thread_heading`] is a thread's.
+pub fn work_package_heading(thread: &ThreadId, wp: &WorkPackage) -> String {
+  format!("{}/{}: {}", thread.shown(), wp.seq.heading(), wp.title)
+}
+
+/// An issue's first line, as [`thread_heading`] is a thread's.
+pub fn issue_heading(i: &Issue) -> String {
+  format!("{}: {}", i.number.shown(), i.title)
+}
 
 /// `intent st show <id>`'s text: id, title, status, its reason if any, created,
 /// completed if any, then the objective (issue 0332), which is what a reader
 /// opens a thread to learn. The rest of the body stays in `info.md`.
 pub fn thread(t: &Thread) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{}: {}", t.id.shown(), t.title);
+  let _ = writeln!(s, "{}", thread_heading(t));
   let _ = writeln!(s, "status: {}", t.status.display());
   if let Some(reason) = &t.status_reason {
     let _ = writeln!(s, "reason: {reason}");
@@ -77,12 +96,13 @@ pub fn thread_all(t: &Thread, files: &[(String, Vec<u8>)]) -> Vec<u8> {
   out
 }
 
-/// `intent wp show <st> <seq>`'s text. The parent `st` is the caller's — the
-/// model is identified within a thread and carries no parent id — matching the
-/// arm, which takes `st` from its argument.
-pub fn work_package(st: &str, wp: &WorkPackage, criteria: &[AcRow]) -> String {
+/// `intent wp show <st> <seq>`'s text. The parent thread is the caller's, as
+/// resolved: the model is identified within a thread and carries no parent id,
+/// so the heading and the empty-criteria line show the thread the caller
+/// resolved, never the spelling it was handed.
+pub fn work_package(thread: &ThreadId, wp: &WorkPackage, criteria: &[AcRow]) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{st}/{}: {}", wp.seq.heading(), wp.title);
+  let _ = writeln!(s, "{}", work_package_heading(thread, wp));
   let _ = writeln!(s, "status: {}", wp.status.display());
   if let Some(reason) = &wp.status_reason {
     let _ = writeln!(s, "reason: {reason}");
@@ -94,7 +114,7 @@ pub fn work_package(st: &str, wp: &WorkPackage, criteria: &[AcRow]) -> String {
     let _ = writeln!(
       s,
       "criteria: none scoped to {}",
-      intentsvcs::id::wp_address(st, wp.seq)
+      intentsvcs::id::wp_address_shown(thread, wp.seq)
     );
   }
   for row in criteria {
@@ -164,7 +184,7 @@ pub fn criterion(st: &str, c: &Criterion, row: &AcRow) -> String {
 /// line if it is non-empty.
 pub fn issue(i: &Issue) -> String {
   let mut s = String::new();
-  let _ = writeln!(s, "{}: {}", i.number.shown(), i.title);
+  let _ = writeln!(s, "{}", issue_heading(i));
   let _ = writeln!(s, "status: {}", i.status.display());
   if let Some(sev) = &i.severity {
     let _ = writeln!(s, "severity: {sev}");

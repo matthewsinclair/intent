@@ -1,6 +1,7 @@
 //! A URL handed to a verb that takes a steel thread id is refused WHOLE: the
 //! refusal names the argument as typed, says the verb takes a steel thread id,
-//! and gives an example. `thread_spec` split its argument at the first `/`, so
+//! and quotes the id's form from the waist (`intentsvcs::id::THREAD_ID_FORM`),
+//! which carries its example. `thread_spec` split its argument at the first `/`, so
 //! `intent:///threads/ST0001` reached the id check as `intent:` and the refusal
 //! named a fragment nobody had typed as an id (found driving issue 0338, ruled
 //! by vc on 2026-09-15). Driven through the doors the ruling names: the CLI's
@@ -41,12 +42,12 @@ fn estate() -> (PathBuf, String) {
   (root, st)
 }
 
-/// The whole argument, what the verb takes, and an example -- and never the
+/// The whole argument, what the verb takes, and the id's form -- and never the
 /// scheme's head on its own, which is what the split handed the id check.
 fn refuses_it_whole(said: &str, url: &str) -> bool {
   said.contains(&format!("`{url}`"))
     && said.contains("this verb takes a steel thread id")
-    && said.contains("`ST0000`")
+    && said.contains(intentsvcs::id::THREAD_ID_FORM)
     && !said.contains("`intent:`")
 }
 

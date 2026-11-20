@@ -1626,6 +1626,12 @@ pub enum FacadeError {
   /// the id's SHAPE. The two send an operator to different places.
   #[error("`{id}` is not an issue number")]
   MalformedIssueId { id: String },
+  /// An event subject the id doors refuse (issue 0713): a spelling that begins
+  /// as an id and is not one, eg `i1/2` or `ST99999`, which a filter would
+  /// otherwise match against nothing, in silence. Its message and remedy are
+  /// the waist's one wording ([`crate::id::subject_ids`]).
+  #[error("{}", .0.message)]
+  SubjectRefused(crate::id::Refusal),
   /// An address whose form names no entity a renderer can resolve.
   ///
   /// **THE ADDRESS GRAMMAR IS WIDER THAN THE FORM DECLARATION, AND THAT IS
@@ -3496,6 +3502,7 @@ impl crate::remedy::Remedy for FacadeError {
         "{}, which `intent/.intentfiles` names as `ISSUE:0001`",
         crate::id::ISSUE_ID_FORM
       ),
+      Self::SubjectRefused(refusal) => refusal.remedy.clone(),
       // The remedy names the three that DO resolve rather than the ten that
       // do not: a caller here asked for something reasonable and needs the
       // set they can ask for, and the refusing set is both longer and less
@@ -4824,8 +4831,63 @@ fn canon_file_unreadable(path: &std::path::Path, source: std::io::Error) -> Faca
 #[derive(Debug, Default, Clone)]
 pub struct EventFilter {
   pub op: Option<String>,
+  /// The subject as the caller spelt it, read by [`crate::id::subject_ids`]:
+  /// an id in any spelling (an untagged number names a thread and an issue
+  /// alike, by cc's meaning for issue 0713), or a node's or a board's name.
   pub subject: Option<String>,
   pub limit: Option<usize>,
+}
+
+/// One record a token names, as `intent id` reports it (ST0095 WP-10, AC-10.6).
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct IdRecord {
+  /// The record's form in the address grammar: `thread`, `wp` or `issue`.
+  pub kind: &'static str,
+  /// The stored id, whole: a work package's is its address under its thread.
+  pub id: String,
+  /// The id as tables and people show it.
+  pub shown: String,
+  /// The canon file that holds the record, project-relative. A work package's
+  /// is its thread's, which carries it.
+  pub canon: String,
+  /// Where the record is realised, project-relative, whether or not it is.
+  pub path: String,
+}
+
+/// What `intent id` answers for one token (ST0095 WP-10, AC-10.6).
+///
+/// **THE READ DOOR A SCRIPT ASKS, SO NO SCRIPT READS AN ID ITSELF.** Which
+/// record a spelling names is the resolver's answer, the one every verb's door
+/// takes, and the pipeline's tools join on it rather than on a pattern of their
+/// own. A hash prefix joins with WP-07's resolver, and the answer's shape does
+/// not change when it does.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(tag = "answer", rename_all = "kebab-case")]
+pub enum IdAnswer {
+  /// The token names exactly one record here.
+  Id {
+    token: String,
+    #[serde(flatten)]
+    record: IdRecord,
+  },
+  /// It names more than one record here, and nothing in it says which.
+  Ambiguous {
+    token: String,
+    candidates: Vec<IdRecord>,
+  },
+  /// It spells an id that names no record here: the forms it was looked for as.
+  Unknown {
+    token: String,
+    kinds: Vec<&'static str>,
+  },
+  /// It is no id of a record here, `why` the reader's own reason (the
+  /// parser's refusal, another project's address, or the form of an address
+  /// that names no record) and `remedy` what to type instead.
+  NotAnId {
+    token: String,
+    why: String,
+    remedy: String,
+  },
 }
 
 /// What one read of the SQL door answers (AC-17.2, AC-17.4).
@@ -7151,12 +7213,24 @@ impl Facade {
   /// history in the store, which is the opposite of what anyone asking for
   /// "the last 20" means -- and it would look perfectly plausible.
   pub fn events(&self, filter: &EventFilter) -> Result<EventPage, FacadeError> {
+    // Read before the store is: a subject the id doors refuse is the caller's
+    // to fix, and an empty page would say nothing matched (issue 0713).
+    let subjects = filter
+      .subject
+      .as_deref()
+      .map(crate::id::subject_ids)
+      .transpose()
+      .map_err(FacadeError::SubjectRefused)?;
     let all = self.store.events().map_err(FacadeError::Store)?;
     let total = all.len();
     let matched: Vec<Envelope> = all
       .into_iter()
       .filter(|e| filter.op.as_ref().is_none_or(|op| &e.op == op))
-      .filter(|e| filter.subject.as_ref().is_none_or(|id| &e.subject.id == id))
+      .filter(|e| {
+        subjects
+          .as_ref()
+          .is_none_or(|ids| ids.contains(&e.subject.id))
+      })
       .collect();
     let count = matched.len();
     let rows = match filter.limit {
@@ -7168,6 +7242,123 @@ impl Facade {
       matched: count,
       total,
     })
+  }
+
+  /// Which record `token` names here (ST0095 WP-10, AC-10.6): an id in any
+  /// spelling the doors take, a work package's address, or an address of
+  /// either.
+  ///
+  /// **THE RESOLVER DECIDES, AND THIS ONLY REPORTS.** A bare number is asked of
+  /// this project as every door asks it ([`crate::resolve::resolve`]), so it
+  /// names one record, or several, or none; a tagged spelling or an address
+  /// names its one record if it is here. What is reported of a record is read
+  /// from it and from the project's own path methods.
+  pub fn id_of(&self, token: &str) -> IdAnswer {
+    use crate::remedy::Remedy;
+    use crate::resolve::Resolution;
+    let token_ = token.to_string();
+    let found = |a: &Address| self.record_of(&a.entity);
+    match crate::resolve::resolve(token, |a| found(a).is_some()) {
+      Ok(Resolution::Resolved(address)) => match (require_local(&address), found(&address)) {
+        // **ANOTHER PROJECT'S ADDRESS NAMES NOTHING HERE** (issue 0338), asked
+        // first, as every door that takes an address asks it: the entity alone
+        // would answer about this project's record of the same id.
+        (Err(elsewhere), _) => IdAnswer::NotAnId {
+          token: token_,
+          why: elsewhere.to_string(),
+          remedy: elsewhere.remedy(),
+        },
+        (Ok(()), Some(record)) => IdAnswer::Id {
+          token: token_,
+          record,
+        },
+        // A spelling whose record is not here is unknown when it names a
+        // record's form, and no id at all when it names another form.
+        (Ok(()), None) => match address.entity {
+          AddrEntity::Thread { .. } | AddrEntity::Wp { .. } | AddrEntity::Issue { .. } => {
+            IdAnswer::Unknown {
+              token: token_,
+              kinds: vec![address.entity.form()],
+            }
+          }
+          _ => IdAnswer::NotAnId {
+            why: format!(
+              "`{token}` addresses the `{}` form, and only a thread, a work package or an issue has an id",
+              address.entity.form()
+            ),
+            remedy: format!(
+              "name a thread, a work package or an issue: {}; {}; {}",
+              crate::id::THREAD_ID_FORM,
+              crate::id::WP_ADDRESS_FORM,
+              crate::id::ISSUE_ID_FORM
+            ),
+            token: token_,
+          },
+        },
+      },
+      Ok(Resolution::Ambiguous(addresses)) => IdAnswer::Ambiguous {
+        token: token_,
+        candidates: addresses.iter().filter_map(found).collect(),
+      },
+      Ok(Resolution::Unresolvable { searched }) => IdAnswer::Unknown {
+        token: token_,
+        kinds: searched.iter().map(|a| a.entity.form()).collect(),
+      },
+      // The parser's refusal is the reason, in the words written where the
+      // grammar lives.
+      Err(refusal) => IdAnswer::NotAnId {
+        token: token_,
+        why: refusal.to_string(),
+        remedy: refusal.remedy(),
+      },
+    }
+  }
+
+  /// The record `entity` names, if it is a thread, a work package or an issue
+  /// this project holds.
+  ///
+  /// **`None` MEANS NOT HERE, AND NOTHING ELSE.** Each lookup reads the canon
+  /// this facade already holds, whose one refusal is that the record is absent.
+  /// A work package is found by [`Self::wp_of`], the one home for which package
+  /// an address's raw segment names, whose ruling is that a segment spelling no
+  /// package id names no package; so no failure is folded into the answer.
+  fn record_of(&self, entity: &AddrEntity) -> Option<IdRecord> {
+    let rel = |path: std::path::PathBuf| self.project.relative(&path);
+    match entity {
+      AddrEntity::Thread { id } => {
+        let thread = self.st_show(id).ok()?;
+        Some(IdRecord {
+          kind: entity.form(),
+          id: thread.id.stored(),
+          shown: thread.id.shown(),
+          canon: rel(self.project.thread_json(id)),
+          path: rel(self.project.thread_dir(id)),
+        })
+      }
+      AddrEntity::Wp { thread, wp } => {
+        let owner = self.st_show(thread).ok()?;
+        let seq = self.wp_of(thread, wp).ok()?.seq;
+        Some(IdRecord {
+          kind: entity.form(),
+          id: crate::id::wp_address(thread, seq),
+          shown: crate::id::wp_address_shown(&owner.id, seq),
+          canon: rel(self.project.thread_json(thread)),
+          path: rel(self.project.wp_dir(thread, seq)),
+        })
+      }
+      AddrEntity::Issue { id } => {
+        let number = crate::id::IssueId::parse(id).ok()?;
+        let issue = self.issue_show(number).ok()?;
+        Some(IdRecord {
+          kind: entity.form(),
+          id: issue.number.stored(),
+          shown: issue.number.shown(),
+          canon: rel(self.project.issue_json(number)),
+          path: rel(self.project.issue_view(number)),
+        })
+      }
+      _ => None,
+    }
   }
 
   /// Open `.intentfiles` for a verb that is about to ACT on what it says.

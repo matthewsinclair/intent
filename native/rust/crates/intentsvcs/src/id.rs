@@ -77,6 +77,14 @@ pub const THREAD_ID_FORM: &str = "a steel-thread id is ST followed by four digit
 /// The one sentence of an issue id's form, as [`THREAD_ID_FORM`] is a thread's.
 pub const ISSUE_ID_FORM: &str = "an issue id is four digits, eg 0001";
 
+/// The one sentence of a work package's address, as [`THREAD_ID_FORM`] is a
+/// thread id's (cc's meaning, 2026-11-20): its thread's id, a slash and its own
+/// id. The stored address carries both ids whole. Its example names only the
+/// family every door accepts today; the hashed family joins all three form
+/// sentences in the change that teaches the doors to read it (ST0095 WP-07).
+pub const WP_ADDRESS_FORM: &str =
+  "a work package's address is its thread's id, a slash and its own id, eg ST0000/01";
+
 /// Which collection an operator's spelling names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdKind {
@@ -625,6 +633,166 @@ pub fn respelled_as(raw: &str, wanted: IdKind) -> Option<String> {
   }
 }
 
+/// A spelling a door refused: what is wrong with it, and what to type instead
+/// (ST0095 WP-10; the Highlander sweep's D6).
+///
+/// **THE ONE WORDING OF A BAD ID, FOR EVERY FACE.** The CLI worded each
+/// [`IdError`] itself, MCP folded every one into a message of its own, and each
+/// carried a hand-written example. A face renders this one: the CLI as an error
+/// and its remedy, MCP as one argument error, and a facade door through its own
+/// error.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Refusal {
+  /// What is wrong with the spelling.
+  pub message: String,
+  /// What to type instead: a respelling that works, or the sentence of the
+  /// wanted id's form.
+  pub remedy: String,
+}
+
+/// The refusal of `raw`, for the reason `e` gives, at a door that wanted
+/// `wanted`.
+///
+/// **THE WANTED COLLECTION IS THE CALLER'S TO SUPPLY.** An [`IdError`] is a fact
+/// about a spelling and holds no door's context: `i59` is a well-formed id, and
+/// whether it is wrong depends on which door was asked.
+pub fn refusal(raw: &str, e: &IdError, wanted: IdKind) -> Refusal {
+  let (message, remedy) = match e {
+    IdError::NotAnId => (
+      format!("`{raw}` is not {} id", wanted.with_article()),
+      wanted.form().to_string(),
+    ),
+    IdError::OutOfRange => (
+      format!("`{raw}` is out of range for {} id", wanted.with_article()),
+      wanted.form().to_string(),
+    ),
+    // **THE REFUSAL OFFERS THE SPELLING THAT WORKS**: the other collection is
+    // named, and never reported as a not-found.
+    IdError::WrongCollection { named } => (
+      format!(
+        "`{raw}` names {}, and this verb takes {}",
+        named.with_article(),
+        wanted.with_article()
+      ),
+      respelled_as(raw, wanted).map_or_else(
+        || wanted.form().to_string(),
+        |respelled| format!("`{respelled}` names the {}", wanted.as_str()),
+      ),
+    ),
+    IdError::Ambiguous { thread, issue } => return ambiguity(raw, thread, issue),
+  };
+  Refusal { message, remedy }
+}
+
+/// The refusal of an address where a door takes a bare id: the address named
+/// whole, and the remedy the id's form, never an id read out of the address,
+/// which can name another project's record (issue 0338).
+pub fn address_where_id_wanted(raw: &str, wanted: IdKind) -> Refusal {
+  Refusal {
+    message: format!(
+      "`{raw}` is an address, and this verb takes {} id",
+      wanted.with_article()
+    ),
+    remedy: format!("name the {} by its id: {}", wanted.as_str(), wanted.form()),
+  }
+}
+
+/// What a `<thread>/<tail>` spelling is (ST0095 WP-10; the Highlander sweep's
+/// W4 and the WP-10 critic's first finding).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Scoped {
+  /// The tail is a package id: a work package's address.
+  Package(ThreadId, WpId),
+  /// The tail is no package id, eg `AC-01.1` or an attachment's path: another
+  /// thing under the thread, as the event log's subjects spell it.
+  Under(ThreadId, String),
+}
+
+/// **THE ONE READER OF `<thread>/<tail>`**, so every door that takes one reads
+/// the head through the thread door and decides the tail one way. `None` when
+/// the text is not that shape: no slash, or a head that spells no id at all.
+///
+/// **A PART THAT BEGINS AS AN ID AND IS NOT ONE IS REFUSED**, worded for the
+/// part that failed: a head that names an issue or is out of range, or a tail
+/// that spells a package id and is out of range. A tail that spells no package
+/// id is no refusal: it is [`Scoped::Under`], because the event log writes a
+/// criterion's, a test's and an attachment's subjects in this shape. Pure: no
+/// store is asked.
+pub fn scoped(raw: &str) -> Result<Option<Scoped>, Refusal> {
+  let Some((head, tail)) = split_wp_address(raw) else {
+    return Ok(None);
+  };
+  let thread = match normalise_thread_id(head) {
+    Ok(thread) => thread,
+    Err(IdError::NotAnId) => return Ok(None),
+    Err(e) => return Err(refusal(head, &e, IdKind::Thread)),
+  };
+  match normalise_wp_id(tail) {
+    Ok(wp) => Ok(Some(Scoped::Package(thread, wp))),
+    Err(IdError::NotAnId) => Ok(Some(Scoped::Under(thread, tail.to_string()))),
+    Err(_) => Err(not_a_package(raw)),
+  }
+}
+
+/// The refusal of a target that names no work package, at a door that takes
+/// one: its remedy is [`WP_ADDRESS_FORM`].
+pub fn not_a_package(raw: &str) -> Refusal {
+  Refusal {
+    message: format!("`{raw}` is not a work package"),
+    remedy: WP_ADDRESS_FORM.to_string(),
+  }
+}
+
+/// The refusal of an untagged number that names both a thread and an issue, at
+/// a door that takes either: [`refusal`]'s wording and the address door's
+/// (`AddressError::AmbiguousId`), one sentence for both.
+pub fn ambiguity(raw: &str, thread: &ThreadId, issue: &IssueId) -> Refusal {
+  Refusal {
+    message: format!("`{raw}` names both a steel thread and an issue"),
+    remedy: format!(
+      "`{}` names the steel thread, `{}` the issue",
+      thread.tagged(),
+      issue.tagged()
+    ),
+  }
+}
+
+/// The stored subject ids an event subject's spelling names (issue 0713; cc's
+/// meaning, 2026-11-20).
+///
+/// **A FILTER OVER HISTORY, SO AN UNTAGGED NUMBER NAMES EVERY KIND IT COULD.**
+/// `94` and `0094` name thread `ST0094` and issue `0094`, and a filter matches
+/// the events of both, each row carrying its kind, so nothing is picked for the
+/// caller. A tagged spelling (`ST94`, `s94`, `i94`) narrows to its kind, a work
+/// package's address names its one package, and a subject that spells no id,
+/// a node or a board, is matched as typed. A hash prefix is WP-07's to resolve.
+///
+/// **`<thread>/<tail>` IS READ BY [`scoped`]**, the one reader every door
+/// shares: a package's address names its one package, a criterion's, a test's
+/// or an attachment's subject is matched with its thread's id normalised, and
+/// a part that begins as an id and fails is refused, never matched against
+/// nothing in silence (`i1/2`, `ST99999/02`). Pure: no store is asked.
+pub fn subject_ids(raw: &str) -> Result<Vec<String>, Refusal> {
+  match scoped(raw)? {
+    Some(Scoped::Package(thread, wp)) => return Ok(vec![wp_address(thread.as_str(), wp)]),
+    Some(Scoped::Under(thread, tail)) => return Ok(vec![format!("{}/{tail}", thread.stored())]),
+    None => {}
+  }
+  match normalise_id(raw) {
+    Ok(Named::Thread(id)) => Ok(vec![id.stored()]),
+    Ok(Named::Issue(id)) => Ok(vec![id.stored()]),
+    Err(IdError::Ambiguous { thread, issue }) => Ok(vec![thread.stored(), issue.stored()]),
+    Err(IdError::NotAnId) => Ok(vec![raw.to_string()]),
+    Err(e) => {
+      let wanted = spelling(raw)
+        .ok()
+        .and_then(|s| s.tag)
+        .unwrap_or(IdKind::Thread);
+      Err(refusal(raw, &e, wanted))
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // The one scanner: which ids a text names.
 // ---------------------------------------------------------------------------
@@ -978,6 +1146,77 @@ mod tests {
     assert_eq!(normalise_issue_id("\u{e9}"), Err(IdError::NotAnId));
     assert_eq!(normalise_wp_id("\u{e9}\u{e9}"), Err(IdError::NotAnId));
     assert_eq!(group_of("AC-\u{e9}\u{e9}.1"), Group::Unreadable);
+  }
+
+  #[test]
+  fn a_subject_names_every_record_its_spelling_could() {
+    let ids = |raw: &str| subject_ids(raw).expect("a subject the door reads");
+    assert_eq!(
+      ids("94"),
+      ["ST0094", "0094"],
+      "an untagged ordinal names a thread and an issue alike"
+    );
+    assert_eq!(ids("0094"), ["ST0094", "0094"], "padded, the same two");
+    assert_eq!(ids("ST94"), ["ST0094"], "a thread's tag narrows to it");
+    assert_eq!(ids("s94"), ["ST0094"], "and so does its short tag");
+    assert_eq!(ids("i94"), ["0094"], "an issue's tag narrows to it");
+    assert_eq!(
+      ids("56/2"),
+      ["ST0056/02"],
+      "a package's address names its one package"
+    );
+    assert_eq!(ids("ic"), ["ic"], "a node is matched as typed");
+    let refused = |raw: &str| subject_ids(raw).expect_err("a subject the door refuses");
+    assert_eq!(
+      refused("i1/2").remedy,
+      "`s1` names the steel thread",
+      "a package under an issue's spelling is refused about its head, never matched as typed"
+    );
+    assert_eq!(
+      refused("ST99999/02").message,
+      "`ST99999` is out of range for a steel thread id"
+    );
+    assert_eq!(
+      refused("i99999").message,
+      "`i99999` is out of range for an issue id",
+      "worded for the kind the tag reaches for"
+    );
+    assert_eq!(
+      ids("1/AC-01.1"),
+      ["ST0001/AC-01.1"],
+      "a criterion's subject is matched as the log writes it, its thread normalised"
+    );
+    let out_of_range = format!("56/{}", u32::MAX);
+    assert_eq!(
+      refused(&out_of_range),
+      not_a_package(&out_of_range),
+      "a package half that spells a package id and fails is refused"
+    );
+  }
+
+  #[test]
+  fn a_refusal_quotes_the_form_or_the_spelling_that_works() {
+    let thread = IdKind::Thread;
+    assert_eq!(
+      refusal("foo", &IdError::NotAnId, thread).remedy,
+      THREAD_ID_FORM
+    );
+    assert_eq!(
+      refusal("ST99999", &IdError::OutOfRange, IdKind::Issue).remedy,
+      ISSUE_ID_FORM
+    );
+    let wrong = IdError::WrongCollection {
+      named: IdKind::Issue,
+    };
+    assert_eq!(
+      refusal("i59", &wrong, thread).remedy,
+      "`s59` names the steel thread"
+    );
+    let ambiguous = normalise_id("59").expect_err("an untagged number names both collections");
+    assert_eq!(
+      refusal("59", &ambiguous, thread).remedy,
+      "`s59` names the steel thread, `i59` the issue"
+    );
   }
 
   #[test]

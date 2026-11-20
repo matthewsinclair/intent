@@ -293,6 +293,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // number at all; nothing was LEFT OUT, and the remedy is a different value
     // for the one they gave. Same argument as the two above it.
     | FacadeError::MalformedIssueId { .. }
+    // Issue 0713's refusal, the same argument: the caller gave an event subject
+    // that begins as an id and is not one. Nothing was LEFT OUT; the remedy is
+    // the spelling that works, or the id's form.
+    | FacadeError::SubjectRefused(_)
     // ST0069 WP-14's board reader. The caller gave a moniker and no node
     // carries it; nothing was LEFT OUT, and the remedy is a different value for
     // the one they gave, or a registration. Same argument as the two above it.

@@ -5342,11 +5342,13 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read",
+          "read_or_mutate": "mutate",
+          "recoverability": "one-way",
+          "recoverability_anomaly": "OFFERED ON MCP THOUGH ONE-WAY, BECAUSE ITS ONE WRITE IS THE STORE OPEN EVERY VERB MAKES (hv decision 74, 2026-11-20; issue 0721). A default run makes a missing store from the committed canon and migrates an older one, one way, as any verb that opens the store does. It writes no file a person reads or commits, which `doctor_changes_nothing_it_looks_at` holds it to. `--read-only` is the run that changes nothing in the store: it judges a store at this build's schema as it stands, and refuses, exit 2, to open one it would make or migrate. The store's own file is left byte for byte; like any reader of a store in WAL mode, the run may create the `-wal` and `-shm` side files where they are absent.",
           "mcp_review": {
-            "counterintuitive": "`doctor` is a diagnostic in every other tool that ships one, and v3's IS one -- this row is `read`. It was `mutate` until 2026-08-16, on reasoning that was correct about a command that no longer exists.",
-            "grounded_in": "v3: `Facade::doctor(project, ctx, store: Option<&Store>)` ACCEPTS a store and never creates one, so a generate-on-absent write is impossible at the type level (vc's structural proof, stronger than either argument that preceded it); `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten and that a second run reports identically. v2: bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files.",
-            "superseded": "A JUDGEMENT IS NOT OVERTURNED WHEN THE THING IT JUDGED STOPS EXISTING -- IT IS SUPERSEDED, AND NOBODY PROPAGATED THE SUPERSESSION (vc, ruling 2026-08-16). The prior note read `--fix moves the global config and the project config aside; the diagnosis is the default; the entry is still a mutation`. Every word of that is STILL TRUE OF ITS SUBJECT. Its subject was withdrawn: `--fix` is `disposition: retire` for v3. Kept here rather than deleted, because the failure was never the reasoning -- it was that a defended row is harder to correct than an undefended one, which is a property of the DEFENCE and not of the row. Found rendering the agent guide, which prints `read_or_mutate` as the FIRST fact per command: a wrong `mutate` on the diagnostic tells every reader that running `doctor` might change their project, discouraging the one command you most want run freely when something is already wrong. `todo` is the negative case that makes the rule sharp rather than the counter-example that muddies it -- it is correctly `mutate`, because bare `intent todo` inherits `list`'s generate-on-absent write. Same shape, write removed at the type level."
+            "counterintuitive": "`doctor` is a diagnostic, and a default run is still a write, which the register now says (hv decision 74, 2026-11-20; issue 0721). Its behaviour did not change: the row said `read` from 2026-08-16 while the open it makes created and migrated the store, a declaration that outlived its subject in silence.",
+            "grounded_in": "v3: the CLI's doctor arm opens the engine unless `--read-only` is given, and that open is `Store::init` on `store::Opening::decide`, which makes a missing store from canon and migrates an older one (issue 0717 made it one decision). `doctor --read-only` asks the decision first and opens nothing it would write (`doctor_read_only_never_writes_the_store`). `doctor_changes_nothing_it_looks_at` asserts the estate it reports on is left as it was.",
+            "superseded": "The note of 2026-08-16 held the row a read because `Facade::doctor` accepts a store and never creates one. That is true of the facade, and the CLI arm opens the store before it asks the facade, an open that writes (ic, issue 0717, 2026-11-19)."
           },
           "facade": "doctor"
         }
@@ -10913,7 +10915,8 @@
           "type": "string",
           "value": "<id>",
           "help": "Show only events about this subject, eg `ST0000/01`",
-          "disposition": "keep"
+          "disposition": "keep",
+          "note": "Read through the id doors (issue 0713): an id in any spelling, or a node's or a board's own name. An untagged number, eg `94`, names the thread and the issue it could and shows the events of both, each row with its kind; a tag, `s94` or `i94`, narrows to one."
         },
         {
           "spellings": [
@@ -11556,6 +11559,44 @@
       "disposition": "new-surface",
       "exposed_on_mcp": false,
       "read_or_mutate": "read"
+    },
+    {
+      "path": "id",
+      "help": "Say, for each token, whether it is an id, of which kind, and which record it names",
+      "when_to_use": "USE IT when a script or an agent needs to know what a spelling names before acting on it: whether the token is an id at all, which kind of record it names, the record's stored and shown ids, the canon file that holds it and where it is realised. A bare number is asked of this project, so it can name a thread and an issue at once, and the answer then lists both rather than picking one. DO NOT USE IT to read a record: `intent st show`, `intent wp show` and `intent issues show` are that.",
+      "args": [
+        {
+          "name": "token",
+          "type": "string",
+          "arity": "1..n",
+          "note": "An id in any spelling the commands take, eg `ST0000`, `s12`, `i7` or `12`, a work package's address, eg `ST0000/01`, or an `intent:///` address of any of them."
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--format"
+          ],
+          "type": "enum",
+          "value": "terminal|json",
+          "default": "terminal",
+          "help": "Output format: one line per token, or one JSON document",
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "disposition_basis": "`--format`, not `--json`, on hv's 2026-08-21 spelling ruling for new surface. The terminal form is one line per token, its first word the answer (`id`, `ambiguous`, `unknown` or `not-an-id`) and the rest `key=value` fields, so a shell script reads it with `read`; the json form is the facade's answers serialised whole. The MCP tool always answers the structured form."
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "ST0095 WP-10 (hv decisions 61 and 62): one read door on the binary for scripts, so no script or gate reads an id with a pattern of its own. It asks the resolver every door asks, so a hash prefix joins when WP-07 lands and the answer's shape does not change. WP-12's tools join a canon file, an id and a realised directory through it rather than by string concatenation. A canon file's path as a token joins with WP-14's one owner-of-a-path function. Exit 0 when every token is an id here, 1 when any is not, with every token answered either way.",
+      "owner_wp": "WP-10",
+      "acceptance": "ST0095 AC-10.6",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "read_or_mutate": "read",
+      "facade": "id_of"
     }
   ],
   "provenance": {
@@ -12131,7 +12172,8 @@
       "graphql",
       "set",
       "outstanding",
-      "guards"
+      "guards",
+      "id"
     ],
     "shipped": [
       "st",
@@ -12318,7 +12360,8 @@
       "graphql",
       "set",
       "outstanding",
-      "guards"
+      "guards",
+      "id"
     ],
     "retired": [
       "st repair",
@@ -12507,7 +12550,8 @@
       "graphql",
       "set",
       "outstanding",
-      "guards"
+      "guards",
+      "id"
     ],
     "self_loop": [
       "ac descope",

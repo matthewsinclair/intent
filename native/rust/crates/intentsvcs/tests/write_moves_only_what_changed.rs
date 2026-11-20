@@ -851,6 +851,10 @@ const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
     "todo toggle",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- the same unconditional refusal, driven on a NOT-STARTED WP as well, where `reopens finished work` cannot be true. State-independent by construction.",
   ),
+  (
+    "doctor",
+    "intentsvcs/tests/doctor_checks.rs `doctor_changes_nothing_it_looks_at` -- RECLASSIFIED `mutate` WITH NO CHANGE OF BEHAVIOUR (hv decision 74, issue 0721): its one write is the store open every verb makes, a missing store made from canon and an older one migrated, under `intent/.cache/`, which this file's walk leaves out as every verb's open. The estate it reports on is left as it was, which that test asserts, and `intent-cli/tests/doctor_read_only_never_writes_the_store.rs` holds `--read-only` to leaving the store's file byte for byte.",
+  ),
 ];
 
 /// **THE DEBT, CARRIED BY NAME. Every one of these is a shipped mutator whose

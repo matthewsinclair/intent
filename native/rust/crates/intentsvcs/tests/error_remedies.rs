@@ -1191,6 +1191,17 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .agents_sync()
       .expect_err("the scope cannot place the contracts"),
   ));
+  // An event subject that begins as an id and is not one is refused before the
+  // store is read (issue 0713), never matched against nothing.
+  out.push((
+    "an event subject the id doors refuse",
+    facade
+      .events(&intentsvcs::facade::EventFilter {
+        subject: Some("i1/2".to_string()),
+        ..Default::default()
+      })
+      .expect_err("a package under an issue's spelling"),
+  ));
 
   out
 }
@@ -1293,6 +1304,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
     FacadeError::MalformedIssueId { .. } => "MalformedIssueId",
+    FacadeError::SubjectRefused(_) => "SubjectRefused",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
@@ -1455,6 +1467,7 @@ const ALL_VARIANTS: &[&str] = &[
   "ExportRoundTripFailed",
   "NoSuchIssue",
   "MalformedIssueId",
+  "SubjectRefused",
   "MigrationBlocked",
   "MigrationHalted",
   "EgestFromRefusedIngest",

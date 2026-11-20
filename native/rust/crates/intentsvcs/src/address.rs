@@ -366,6 +366,12 @@ pub enum AddressError {
   /// answers a question they did not ask.
   #[error("`{input}` is neither an address nor an artefact id")]
   NotAddressable { input: String },
+  /// A spelling one of whose parts begins as an id and is not one, eg the
+  /// `i1` of `i1/2` (ST0095 WP-10). **ITS OWN VARIANT SO THE WAIST'S ONE
+  /// WORDING TRAVELS**: the message and remedy are the [`crate::id::Refusal`]
+  /// [`crate::id::scoped`] gave, as every other door words the same spelling.
+  #[error("{}", .0.message)]
+  IdRefused(crate::id::Refusal),
   /// **THE ONLY DOOR WHERE A BARE NUMBER IS GENUINELY AMBIGUOUS.** A verb-scoped
   /// door reads the collection off its own verb; this one has nothing to read it
   /// off, and in the estate that first hit it `59` named both `ST0059` and issue
@@ -374,7 +380,7 @@ pub enum AddressError {
   /// **IT IS ITS OWN VARIANT BECAUSE THE REMEDY IS DIFFERENT AND ACTIONABLE.**
   /// `NotAddressable` says the argument named nothing; this says it named two
   /// things, and can hand back the exact spellings that pick one.
-  #[error("`{input}` names both a steel thread and an issue")]
+  #[error("{}", crate::id::ambiguity(input, thread, issue).message)]
   AmbiguousId {
     input: String,
     thread: crate::id::ThreadId,
@@ -418,19 +424,18 @@ impl Remedy for AddressError {
       AddressError::ViewAddressed { .. } => {
         "address the ENTITY and select a representation: `/threads/ST0000?format=md`".into()
       }
-      AddressError::AmbiguousId { thread, issue, .. } => {
-        format!(
-          "`{}` names the steel thread, `{}` the issue",
-          thread.tagged(),
-          issue.tagged()
-        )
-      }
+      AddressError::AmbiguousId {
+        input,
+        thread,
+        issue,
+      } => crate::id::ambiguity(input, thread, issue).remedy,
       // **ONLY FORMS EVERY DOOR ACCEPTS** (0153). This text is shared by
       // `edit`, `set` and `browse`, and it named an issue id -- which `edit`
       // refuses in every spelling, so following it earned a second refusal.
       AddressError::NotAddressable { .. } => {
         format!("name a thread (`ST0000`) or a full address (`{SCHEME}/threads/ST0000`)")
       }
+      AddressError::IdRefused(refused) => refused.remedy.clone(),
     }
   }
 }
@@ -931,6 +936,22 @@ pub fn serve_md(
 pub fn promote(input: &str) -> Result<Address, AddressError> {
   if input.starts_with(SCHEME) {
     return parse(input);
+  }
+  // **A WORK PACKAGE'S ADDRESS, AS `wp new` PRINTS IT** (ST0095 WP-10), read
+  // by the waist's one reader of `<thread>/<tail>`, so `set ST0001/01
+  // objective` reaches the package it names and a part that begins as an id
+  // and fails is refused in the words every door uses. Any other shape is left
+  // to the cases below, as before.
+  match crate::id::scoped(input) {
+    Ok(Some(crate::id::Scoped::Package(thread, wp))) => {
+      return parse(&format!(
+        "{SCHEME}/threads/{}/wp/{}",
+        thread.stored(),
+        wp.stored()
+      ));
+    }
+    Ok(Some(crate::id::Scoped::Under(..)) | None) => {}
+    Err(refused) => return Err(AddressError::IdRefused(refused)),
   }
   match crate::id::normalise_id(input) {
     Ok(crate::id::Named::Thread(id)) => parse(&format!("{SCHEME}/threads/{}", id.stored())),

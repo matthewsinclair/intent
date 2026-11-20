@@ -489,3 +489,30 @@ fn every_declared_severity_is_accepted() {
     );
   }
 }
+
+/// ST0095 AC-10.3: **the issues table says when each issue was created**, the
+/// date `issues show` reports, since a hashed id no longer says which came
+/// first.
+#[test]
+fn the_issues_table_says_when_each_was_created() {
+  let dir = project();
+  let shown = stdout(&run(dir.path(), &["issues", "show", "21"]));
+  let created = shown
+    .lines()
+    .find_map(|l| l.strip_prefix("created: "))
+    .unwrap_or_else(|| panic!("issues show names the date:\n{shown}"))
+    .to_string();
+  let listed = stdout(&run(dir.path(), &["issues", "list"]));
+  assert!(
+    listed
+      .lines()
+      .next()
+      .is_some_and(|header| header.contains("Created")),
+    "the table has a Created column:\n{listed}"
+  );
+  let row = listed
+    .lines()
+    .find(|l| l.contains("0021"))
+    .unwrap_or_else(|| panic!("the open issue is listed:\n{listed}"));
+  assert!(row.contains(&created), "its row carries {created}:\n{row}");
+}

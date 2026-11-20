@@ -124,6 +124,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("edit", m)) => edited(m),
     Some(("browse", m)) => browse_verb(m),
     Some(("events", m)) => events(m),
+    Some(("id", m)) => id_verb(m),
     Some(("fc", m)) => fc(m),
     Some(("set", m)) => set_verb(m),
     Some(("surface", m)) => surface(m),
@@ -1047,8 +1048,11 @@ fn clamp_heading(name: &str) -> String {
 
 const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
 
-/// v2's `intent issues list` columns (`bin/intent_issues:240`).
-const ISSUE_COLUMNS: &[&str] = &["ID", "Status", "Sev", "Title"];
+/// v2's `intent issues list` columns (`bin/intent_issues:240`), with the date each
+/// was created (ST0095 WP-10, AC-10.3): once ids are hashed the id no longer
+/// says which came first, so the table says when. Before the title, so a title
+/// the width clips never takes the date with it.
+const ISSUE_COLUMNS: &[&str] = &["ID", "Status", "Sev", "Created", "Title"];
 
 /// `intent outstanding`'s columns (ST0079): the kind leftmost, as hv asked,
 /// then the ones every kind carries. Severity is an issue's alone.
@@ -3165,7 +3169,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "started",
       );
       Ok(())
@@ -3177,7 +3181,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "done",
       );
       Ok(())
@@ -3196,7 +3200,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "reopened",
       );
       Ok(())
@@ -3216,7 +3220,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "cancelled",
       );
       Ok(())
@@ -3229,7 +3233,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "reinstated",
       );
       Ok(())
@@ -3241,7 +3245,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         "back to not started",
       );
       Ok(())
@@ -3274,7 +3278,7 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       reported(
         &mut f,
         &outcome,
-        &intentsvcs::id::wp_address(&st, seq),
+        &intentsvcs::id::wp_address_shown(&st, seq),
         &format!("rescoped to {}", enum_str(&size)),
       );
       Ok(())
@@ -8590,6 +8594,106 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// `intent id <token>... [--format terminal|json]` (ST0095 WP-10, AC-10.6).
+///
+/// **ONE LINE PER TOKEN, ITS FIRST WORD THE ANSWER**, so a shell script reads
+/// it with `read`: `id`, `ambiguous`, `unknown` or `not-an-id`, then
+/// `key=value` fields, and for `not-an-id` the reason after ` -- `. Every token
+/// is answered whatever the others are, and the exit is 0 only when every one
+/// names a record here: a gate asking about several ids learns from the code
+/// that one failed and from the lines which.
+fn id_verb(m: &ArgMatches) -> Result<(), Failure> {
+  use intentsvcs::facade::IdAnswer;
+  let format = enum_flag(m, "id", "--format")?;
+  let (project, ctx) = context()?;
+  let facade = engine(project, ctx, StoreNeed::Shared)?;
+  let answers: Vec<IdAnswer> = m
+    .get_many::<String>("token")
+    .into_iter()
+    .flatten()
+    .map(|token| facade.id_of(token))
+    .collect();
+  if format == "json" {
+    println!("{:#}", id_json(&answers));
+  } else {
+    for answer in &answers {
+      println!("{}", id_line(answer));
+    }
+  }
+  if answers.iter().all(|a| matches!(a, IdAnswer::Id { .. })) {
+    Ok(())
+  } else {
+    Err(Failure::Verdict)
+  }
+}
+
+/// One answer as its terminal line.
+///
+/// **ONE LINE, WHATEVER THE TOKEN HOLDS.** A token with whitespace or a control
+/// character in it is printed as a JSON string, and the prose after ` -- ` has
+/// its control characters escaped, so a script reading by line or by field
+/// never meets a token split in two.
+fn id_line(answer: &intentsvcs::facade::IdAnswer) -> String {
+  use intentsvcs::facade::IdAnswer;
+  let field = |token: &str| {
+    if token.chars().any(|c| c.is_whitespace() || c.is_control()) {
+      serde_json::Value::from(token).to_string()
+    } else {
+      token.to_string()
+    }
+  };
+  let prose = |text: &str| -> String {
+    text
+      .chars()
+      .map(|c| match c.is_control() {
+        true => c.escape_default().to_string(),
+        false => c.to_string(),
+      })
+      .collect()
+  };
+  match answer {
+    IdAnswer::Id { token, record: r } => format!(
+      "id token={} kind={} id={} shown={} canon={} path={}",
+      field(token),
+      r.kind,
+      r.id,
+      r.shown,
+      r.canon,
+      r.path
+    ),
+    IdAnswer::Ambiguous { token, candidates } => format!(
+      "ambiguous token={} kind={} candidates={}",
+      field(token),
+      candidates
+        .iter()
+        .map(|r| r.kind)
+        .collect::<Vec<_>>()
+        .join(","),
+      candidates
+        .iter()
+        .map(|r| r.id.as_str())
+        .collect::<Vec<_>>()
+        .join(",")
+    ),
+    IdAnswer::Unknown { token, kinds } => {
+      format!("unknown token={} kind={}", field(token), kinds.join(","))
+    }
+    IdAnswer::NotAnId { token, why, remedy } => format!(
+      "not-an-id token={} -- {} -- remedy: {}",
+      field(token),
+      prose(why),
+      prose(remedy)
+    ),
+  }
+}
+
+/// `intent id`'s answers as one JSON document: the CLI's `--format json` and
+/// the MCP tool both print this, so the two faces cannot answer differently
+/// for one token.
+pub fn id_json(answers: &[intentsvcs::facade::IdAnswer]) -> serde_json::Value {
+  serde_json::json!({ "answers": answers })
+}
+
 /// Advisories are printed above the summary and never counted in it; the suffix
 /// says how many were set aside so a reader cannot mistake "0 finding(s)" for
 /// "nothing printed" (hv, 2026-08-26).
@@ -8880,12 +8984,14 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // route to; it is the daemon's own work package that makes it reachable, and
   // it belongs to whoever lands the client.
   //
-  // **`--read-only` WRITES NOTHING TO THE STORE** (issue 0717). It asks the
+  // **`--read-only` CHANGES NOTHING IN THE STORE** (issue 0717). It asks the
   // store's one open-or-migrate decision first, and where opening would make or
   // migrate the store it judges nothing and exits 2, this build being unable to
   // answer without writing; `--format json` says why. Otherwise the engine,
   // which would ingest into a cold store, is not opened at all, and every check
-  // that reads the store opens it read-only.
+  // that reads the store opens it read-only. The store's file is left byte for
+  // byte; like any reader of a store in WAL mode, a read-only open may create
+  // the `-wal` and `-shm` side files where they are absent.
   let read_only = a.get_flag("read-only");
   // A store that exists and will not even open read-only is no stop: the
   // checks open it again and report it unreadable, as a run without the flag
@@ -9424,10 +9530,14 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
       // done` spell it, never the specifier as typed (issue 0713).
       let (outcome, subject) = match scope_of(&thread_spec(&spec)?) {
         (st, Scope::Thread) => (f.st_done(&st).map_err(fail)?, st),
-        (st, Scope::WorkPackage(seq)) => (
-          f.wp_done(&st, seq).map_err(fail)?,
-          intentsvcs::id::wp_address(&st, seq),
-        ),
+        (st, Scope::WorkPackage(seq)) => {
+          let thread = intentsvcs::id::ThreadId::parse(&st)
+            .map_err(|e| id_refusal(&st, &e, intentsvcs::id::IdKind::Thread))?;
+          (
+            f.wp_done(&thread, seq).map_err(fail)?,
+            intentsvcs::id::wp_address_shown(&thread, seq),
+          )
+        }
       };
       reported(&mut f, &outcome, &subject, "done");
       Ok(())
@@ -10109,16 +10219,18 @@ pub(crate) fn scope_of(target: &str) -> (String, Scope) {
   }
 }
 
-fn wp_target(a: &ArgMatches) -> Result<(String, intentsvcs::id::WpId), Failure> {
+/// A work package's target, its thread resolved: the `ThreadId` every `wp` arm
+/// answers with in its shown form (the sweep's carry-over 1), and the facade
+/// takes as the stored one.
+fn wp_target(a: &ArgMatches) -> Result<(intentsvcs::id::ThreadId, intentsvcs::id::WpId), Failure> {
   let target = thread_arg(a, "specifier")?;
   match scope_of(&target) {
-    (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
-    _ => Err(Failure::Error(format!(
-      // The worked example is `ST0000` deliberately (D37): it is the STZero
-      // retrofit id, so it names something in the READER's own project rather
-      // than a thread in ours.
-      "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0000/03"
-    ))),
+    (st, Scope::WorkPackage(seq)) => {
+      let thread = intentsvcs::id::ThreadId::parse(&st)
+        .map_err(|e| id_refusal(&st, &e, intentsvcs::id::IdKind::Thread))?;
+      Ok((thread, seq))
+    }
+    _ => Err(refused(&intentsvcs::id::not_a_package(&target))),
   }
 }
 
@@ -13908,6 +14020,7 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
             // and the token is kept: a blank cell reads as a rendering fault,
             // where `?` reads as "nobody said".
             i.severity.clone().unwrap_or_else(|| "?".to_string()),
+            i.created.clone(),
             i.title.clone(),
           ]
         })
@@ -16264,7 +16377,7 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   }
   let head = intentsvcs::id::split_wp_address(raw).map_or(raw, |(thread, _)| thread);
   let id = intentsvcs::id::normalise_thread_id(head)
-    .map_err(|e| id_refusal(head, e, intentsvcs::id::IdKind::Thread))?;
+    .map_err(|e| id_refusal(head, &e, intentsvcs::id::IdKind::Thread))?;
   // The thread half takes its stored spelling, and the rest of `raw`, the
   // separator and the package's part, passes through as written (nothing when
   // `raw` names no package), so this function spells no separator of its own.
@@ -16459,7 +16572,7 @@ pub(crate) fn address_of(
     }
     _ => Entity::Issue {
       id: intentsvcs::id::normalise_issue_id(raw)
-        .map_err(|e| id_refusal(raw, e, intentsvcs::id::IdKind::Issue))?
+        .map_err(|e| id_refusal(raw, &e, intentsvcs::id::IdKind::Issue))?
         .stored(),
     },
   };
@@ -16497,76 +16610,28 @@ fn check_enum(given: &str, verb: &str, name: &str) -> Result<String, Failure> {
 fn issue_arg(m: &ArgMatches, name: &str) -> Result<intentsvcs::id::IssueId, Failure> {
   let raw = arg(m, name)?;
   intentsvcs::id::normalise_issue_id(&raw)
-    .map_err(|e| id_refusal(&raw, e, intentsvcs::id::IdKind::Issue))
+    .map_err(|e| id_refusal(&raw, &e, intentsvcs::id::IdKind::Issue))
 }
 
-/// **THE ONE PLACE A BAD ID IS EXPLAINED, AND THE WANTED COLLECTION IS THE
-/// CALLER'S TO SUPPLY.** `intentsvcs::id::IdError` is a fact about a spelling and is
-/// deliberately collection-independent -- `i59` is a well-formed id, and whether
-/// that is an error depends entirely on which verb was asked. Putting the
-/// expectation in the error would make the model hold the CLI's context; putting
-/// the message here keeps the fact in one place and the wording in another.
-fn id_refusal(raw: &str, e: intentsvcs::id::IdError, wanted: intentsvcs::id::IdKind) -> Failure {
-  let what = wanted.as_str();
-  Failure::Error(match e {
-    intentsvcs::id::IdError::NotAnId => format!(
-      "error: `{raw}` is not {} id\n  remedy: name it as a number, eg `{}`",
-      wanted.with_article(),
-      example(wanted)
-    ),
-    intentsvcs::id::IdError::OutOfRange => format!(
-      "error: `{raw}` is out of range -- {} id is {} digits\n  remedy: name it as a number, eg `{}`",
-      wanted.with_article(),
-      // The width of the kind asked for (the sweep's D6): this said the
-      // thread's for an issue too, and only agreed because both are four.
-      wanted.digits(),
-      example(wanted)
-    ),
-    // **THE REFUSAL THIS CHANGE EXISTS FOR.** Naming the OTHER collection and
-    // offering the tag that would have worked, because a refusal whose remedy is
-    // a spelling the operator can type is a different object from one that says
-    // no. Reporting this as a not-found sends them into the estate looking for
-    // something that was never addressed.
-    intentsvcs::id::IdError::WrongCollection { named } => format!(
-      "error: `{raw}` names {}, and this verb takes {}\n  remedy: `{}` names the {what}",
-      named.with_article(),
-      wanted.with_article(),
-      intentsvcs::id::respelled_as(raw, wanted).unwrap_or_else(|| example(wanted).to_string())
-    ),
-    // Only the collection-agnostic door can raise this: every other caller
-    // learns the collection from its own verb.
-    intentsvcs::id::IdError::Ambiguous { thread, issue } => format!(
-      "error: `{raw}` names both a steel thread and an issue\n  remedy: `{}` names the steel thread, `{}` the issue",
-      thread.tagged(),
-      issue.tagged()
-    ),
-  })
+/// A bad id, refused in the waist's one wording (`intentsvcs::id::refusal`,
+/// the Highlander sweep's D6), as this face renders an error: the message and
+/// its remedy. The wanted collection is the caller's to supply, because
+/// `intentsvcs::id::IdError` is a fact about a spelling: `i59` is well formed,
+/// and whether it is wrong depends on which verb was asked.
+fn id_refusal(raw: &str, e: &intentsvcs::id::IdError, wanted: intentsvcs::id::IdKind) -> Failure {
+  refused(&intentsvcs::id::refusal(raw, e, wanted))
 }
 
-/// **AN ADDRESS WHERE THE VERB TAKES AN ID, NAMED WHOLE.** The remedy shows the
-/// id's own spelling from [`example`], never an id read out of the address,
-/// which can name another project's thread (issue 0338).
+/// A refusal from the waist, as this face renders an error.
+pub(crate) fn refused(r: &intentsvcs::id::Refusal) -> Failure {
+  Failure::Error(format!("error: {}\n  remedy: {}", r.message, r.remedy))
+}
+
+/// **AN ADDRESS WHERE THE VERB TAKES AN ID, NAMED WHOLE**, in the waist's
+/// wording (`intentsvcs::id::address_where_id_wanted`), whose remedy quotes the
+/// id's form and never an id read out of the address (issue 0338).
 fn address_refusal(raw: &str, wanted: intentsvcs::id::IdKind) -> Failure {
-  Failure::Error(format!(
-    "error: `{raw}` is an address, and this verb takes {} id\n  remedy: name the {} by its id, eg `{}`",
-    wanted.with_article(),
-    wanted.as_str(),
-    example(wanted)
-  ))
-}
-
-/// A worked example in the reader's own vocabulary. `ST0000` is the STZero
-/// retrofit id (D37), so it names something in THEIR project rather than ours.
-fn example(kind: intentsvcs::id::IdKind) -> &'static str {
-  match kind {
-    // `0` and `ST0000` are the SAME id in its two spellings, which is the
-    // equivalence the example is teaching -- and `ST0000` is the STZero
-    // retrofit id, so it names something in the READER's project rather than a
-    // thread in ours. `no_pm_state_in_output` enforces exactly that, and caught
-    // this line carrying `ST0046` on its first run.
-    intentsvcs::id::IdKind::Thread => "0` or `ST0000",
-    intentsvcs::id::IdKind::Issue => "21` or `0021",
-  }
+  refused(&intentsvcs::id::address_where_id_wanted(raw, wanted))
 }
 
 /// **THE ONE PLACE A COMMAND'S OUTPUT SHAPE IS DECIDED.**
