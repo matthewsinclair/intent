@@ -13,7 +13,7 @@ claims: [ST0095/05, ST0095/06]
 
 ## DOING
 
-- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 (base main 8909c76af), on vc's go of 2026-11-20 06:39Z. Folded for hv's compact at 2026-11-20 07:50Z by date -u: steps 1, 2 and 3 are banked WIP at refs/bank/cc/st0095/wp0506-wip4-on-8909c76af (patch-id fab4fbdce17d, 47 files), notes refs/bank/cc/st0095/wp0506-wip4-notes.md, which name the next step. Step 2: canon_format.rs (V3, 3.4.0's ordinal format, frozen; V4 the release's: ids as strings under id, origin), the one decoder by file schema, every write by project.json's format, init born at V4, Fixture::new() at V4. Step 3: store schema 36 (TEXT ids, origin, rung 36). Clippy clean; the last suite (Desk's grant of 07:48Z) was still running at the fold, its expected reds the faces to bless narrowly and three hash pins. NEXT after the compact: notes 'the next step' 1 to 5, then step 4, the one mint. (edited)
+- ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 (base main 8909c76af), on vc's go of 2026-11-20 06:39Z. Folded for hv's compact at 2026-11-20 07:5xZ by date -u: steps 1, 2 and 3 are banked WIP at refs/bank/cc/st0095/wp0506-wip4-on-8909c76af (patch-id fab4fbdce17d, 47 files), notes refs/bank/cc/st0095/wp0506-wip4-notes.md (what each step is, the next step), and the last suite's reds with their fixes at refs/bank/cc/st0095/wp0506-wip4-suite.md (faces to bless narrowly, two hash pins, two test keys, and one design point: the store must hold the canon format so an egest restores project.json). Clippy clean. NEXT after the compact: read those two notes, fix the reds, one suite, rebase onto main past 0711, then step 4, the one mint. (edited)
 
 ## TODO
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M7VZ7RMQ60TY3ES81DB5HJ17",
+  "ts": "2026-11-20T07:55:18.039Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 120,
+    "text": "ST0095/05+06 as one unit, in worktree tmp/wt-st0095-wp0506 (base main 8909c76af), on vc's go of 2026-11-20 06:39Z. Folded for hv's compact at 2026-11-20 07:5xZ by date -u: steps 1, 2 and 3 are banked WIP at refs/bank/cc/st0095/wp0506-wip4-on-8909c76af (patch-id fab4fbdce17d, 47 files), notes refs/bank/cc/st0095/wp0506-wip4-notes.md (what each step is, the next step), and the last suite's reds with their fixes at refs/bank/cc/st0095/wp0506-wip4-suite.md (faces to bless narrowly, two hash pins, two test keys, and one design point: the store must hold the canon format so an egest restores project.json). Clippy clean. NEXT after the compact: read those two notes, fix the reds, one suite, rebase onto main past 0711, then step 4, the one mint."
+  }
+}
