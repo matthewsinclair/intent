@@ -40,6 +40,7 @@ use intentsvcs::model::{
 /// exists to detect.
 fn maximal_thread(id: &str) -> Thread {
   let mut t = sample_thread(id);
+  t.origin = Some(crate::common::FIXTURE_ORIGIN.to_string());
   t.completed = Some("2026-08-15".to_string());
   t.acceptance = Some(AcceptanceMode::Exempt);
   // **ST0066: the fiat record has to be SET here or the round trip proves
@@ -96,6 +97,7 @@ fn issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: crate::common::issue(number),
+    origin: Some(crate::common::FIXTURE_ORIGIN.to_string()),
     slug: "a-pipe-|-and-a-quote".to_string(),
     title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Closed,
@@ -148,8 +150,13 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
   // 1 and 46 rather than two neighbours: the defect was a MISSING pad, so a
   // fixture whose numbers are already four digits wide cannot see it.
   let issues = vec![issue(1), issue(46)];
+  // In the release's format, the only one that carries an origin (ST0095 WP-06).
   let bundle =
-    intentsvcs::export::Bundle::new(PROJECT_ID, threads.clone(), issues.clone(), Vec::new());
+    intentsvcs::export::Bundle::new(PROJECT_ID, threads.clone(), issues.clone(), Vec::new())
+      .with_project_state(intentsvcs::model::ProjectState::new(
+        None,
+        intentsvcs::canon_format::CanonFormat::V4,
+      ));
 
   let intent_dir = project.intent_dir();
   let mut written = BTreeSet::new();
@@ -172,6 +179,9 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
   for i in &issues {
     resolved.insert(project.issue_json(i.number));
   }
+  // The bundle carries its project state, whose schema is the canon's format
+  // (ST0095 WP-06), so the exporter writes it and the reader resolves it too.
+  resolved.insert(project.project_json());
 
   assert_eq!(
     written, resolved,
@@ -242,6 +252,48 @@ fn canon_survives_the_store_byte_for_byte() {
   }
 }
 
+/// **THE FORMAT SURVIVES THE STORE, AND A DELETED `project.json` COMES BACK**
+/// (ST0095 WP-06). The file's schema is the project's canon format, and the
+/// store holds a copy that every load carries in. So an ingest that finds the
+/// file gone leaves the store's format standing rather than reading the absence
+/// as 3.4.0's format, and the next write puts the file back. Before the store
+/// held it, the same two steps re-encoded the canon in 3.4.0's format and left
+/// no `project.json` behind.
+#[test]
+fn a_deleted_project_file_comes_back_in_the_format_the_store_holds() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let before = fx.read_canon("ST0001");
+  let mut facade = fx.facade_on_disk();
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("the first ingest carries the format in");
+
+  let project_json = fx.project().project_json();
+  std::fs::remove_file(&project_json).expect("the project file is there to delete");
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("an ingest with the project file gone");
+  facade
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("the next write");
+
+  let state: serde_json::Value = serde_json::from_str(
+    &std::fs::read_to_string(&project_json).expect("the write put the project file back"),
+  )
+  .expect("plain JSON");
+  assert_eq!(
+    state["schema"],
+    intentsvcs::model::PROJECT_SCHEMA,
+    "the project file came back in another format, so the store did not hold this one"
+  );
+  assert_eq!(
+    fx.read_canon("ST0001"),
+    before,
+    "the thread's canon was re-encoded, so the write chose its format from the missing file"
+  );
+}
+
 /// THE GUARD ON THE FIXTURE. Every property the generated schema face declares
 /// must actually appear in the canon this test round-trips.
 ///
@@ -308,5 +360,59 @@ fn a_dropped_field_is_caught_by_the_comparison() {
     to_canonical_json(&lossy).expect("serialise"),
     "if losing a nested optional field did not change the bytes, the whole \
      comparison above would be incapable of failing"
+  );
+}
+
+/// ST0095 WP-06, AC-06.4: **`intent upgrade` writes the release's format to the
+/// same bytes on two copies upgraded apart, and changes no id.** So two
+/// branches upgraded on their own merge cleanly. Each copy holds the same
+/// 3.4.0-format canon, a thread with its packages and an issue, and is
+/// upgraded by itself.
+#[test]
+fn two_copies_upgraded_apart_write_the_same_canon_and_keep_every_id() {
+  let canon_of = |fx: &Fixture| -> std::collections::BTreeMap<String, String> {
+    let project = fx.project();
+    let mut files = std::collections::BTreeMap::new();
+    for dir in [project.canon_st_dir(), project.issues_dir()] {
+      for entry in std::fs::read_dir(&dir)
+        .expect("a canon directory")
+        .flatten()
+      {
+        let path = entry.path();
+        if path.extension().is_some_and(|x| x == "json") {
+          let text = std::fs::read_to_string(&path).expect("a canon file");
+          files.insert(project.relative(&path), text);
+        }
+      }
+    }
+    let state = project.project_json();
+    files.insert(
+      project.relative(&state),
+      std::fs::read_to_string(&state).expect("the upgrade writes project.json"),
+    );
+    files
+  };
+  let copies = [Fixture::ordinal(), Fixture::ordinal()];
+  for fx in &copies {
+    fx.write_thread(&sample_thread("ST0001"));
+    fx.write_issue(&crate::common::sample_issue(7));
+    intentsvcs::facade::Facade::upgrade(&fx.project(), &crate::common::facade_ctx())
+      .expect("the upgrade");
+  }
+  let [a, b] = &copies;
+  assert_eq!(
+    canon_of(a),
+    canon_of(b),
+    "two copies upgraded apart wrote different canon"
+  );
+  assert!(
+    a.project().thread_json("ST0001").exists()
+      && a.project().issue_json(crate::common::issue(7)).exists(),
+    "the upgrade moved an id"
+  );
+  assert_eq!(
+    intentsvcs::ingest::canon_format(&a.project()).expect("the format"),
+    intentsvcs::canon_format::CanonFormat::CURRENT,
+    "the upgrade left the canon in 3.4.0's format"
   );
 }

@@ -252,6 +252,7 @@ prop_compose! {
   ) -> WorkPackage {
     WorkPackage {
       seq: wp(seq),
+      origin: None,
       title,
       scope: scope.0,
       scope_legacy: scope.1,
@@ -311,6 +312,7 @@ prop_compose! {
       preamble: preamble.trim().to_string(),
       schema: THREAD_SCHEMA.to_string(),
       id: generated_thread(n),
+      origin: None,
       title,
       slug,
       status,
@@ -414,6 +416,7 @@ fn sample_thread() -> Thread {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0056"),
+    origin: None,
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -430,6 +433,7 @@ fn sample_thread() -> Thread {
     }],
     wps: vec![WorkPackage {
       seq: wp(2),
+      origin: None,
       title: "Workspace and reified model".to_string(),
       scope: Some(TShirt::L),
       scope_legacy: None,
@@ -465,6 +469,7 @@ fn sample_issue() -> Issue {
   Issue {
     schema: intentsvcs::model::ISSUE_SCHEMA.to_string(),
     number: issue(21),
+    origin: None,
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

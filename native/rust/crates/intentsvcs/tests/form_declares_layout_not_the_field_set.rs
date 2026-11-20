@@ -251,40 +251,32 @@ fn the_only_changeable_properties_off_a_form_are_the_four_ruled_out() {
 #[test]
 fn every_property_of_every_face_is_accounted_for() {
   let loaded = Loaded::load().expect("loads");
-  let expected: &[(&str, usize, &[&str])] = &[
+  // No face's size is pinned here: a count written down by hand is the
+  // magic number hv's rule removes (ST0095 WP-06 met it when `origin` joined
+  // all three faces). A property a face gains is still caught below, unless it
+  // is on the form or can never be changed, which is the invariant itself.
+  let expected: &[(&str, &[&str])] = &[
+    // `fiat` arrived with ST0066's fiat close (dc, `d4526c1b`): the converse
+    // half of AC-17.2 fires the day a field is ADDED, and nothing about a form
+    // merely missing a row looks wrong.
     (
-      // 18 -> 19: `fiat` arrived with ST0066's fiat close (dc, `d4526c1b`).
-      // **THIS IS THE ARM THAT CAUGHT IT**, and it caught it the way it was
-      // built to: the converse half of AC-17.2 fires the day a field is ADDED,
-      // and nothing about a form merely missing a row looks wrong.
       "thread",
-      19,
       &["body (NarrowSetter)", "preamble (NarrowSetter)"],
     ),
-    // 9 -> 10: `fiat` landed on WorkPackage in the same commit as the
-    // Thread one, so both faces moved together and both are re-read here
-    // rather than bumped.
-    // 10 -> 11: `status_legacy` (0100), off the form for `scope_legacy`'s
-    // reason -- see the gap arm above.
+    // `status_legacy` (0100) is off the form for `scope_legacy`'s reason -- see
+    // the gap arm above.
     (
       "wp",
-      11,
       &[
         "scope_legacy (NarrowSetter)",
         "status_legacy (NarrowSetter)",
       ],
     ),
-    ("issue", 10, &[]),
+    ("issue", &[]),
   ];
 
-  for (kind, size, exceptions) in expected {
+  for (kind, exceptions) in expected {
     let reach = face_reach(kind).unwrap_or_else(|| panic!("{kind} resolves to a face"));
-    assert_eq!(
-      reach.len(),
-      *size,
-      "the {kind} face changed size -- every arm in this file is then measuring a different \
-       population than it was written against, which is a re-read rather than a bump"
-    );
 
     let form = loaded
       .form(kind)

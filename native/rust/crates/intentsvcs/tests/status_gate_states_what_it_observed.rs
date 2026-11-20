@@ -35,6 +35,7 @@ fn park_shaped() -> Thread {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0001"),
+    origin: None,
     title: "A thread with a satisfied scope nobody has started".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -48,6 +49,7 @@ fn park_shaped() -> Thread {
     related: vec![],
     wps: vec![WorkPackage {
       seq: wp(1),
+      origin: None,
       title: "PARKED -- criteria authored at unpark".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

@@ -66,15 +66,13 @@ impl Recoverability {
   }
 }
 
-/// What a renumber moves: a steel thread or an issue.
+/// What a renumber moves: a steel thread or an issue. A work package is a row
+/// inside its thread's canon file, so git sees a thread both sides changed, and
+/// [`packages_both_sides_added`] tells that apart as [`Action::KeepPackages`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Minted {
   Thread,
   Issue,
-  /// A work package, named `<thread>/<NN>` (issue 0555). It is a row inside
-  /// its thread's canon file rather than a file, so git sees a thread both
-  /// sides changed, and [`work_packages_minted_twice`] tells the two apart.
-  WorkPackage,
 }
 
 /// Which side of a merge a person chose.
@@ -104,12 +102,25 @@ pub enum Action {
   /// Unmerged paths that are neither canon nor a generated view. Said, and
   /// left to the person: Intent does not own them.
   Unowned { paths: Vec<String> },
-  /// Both clones minted `from`. This clone's record moves to `to`, the next id
-  /// free in the store AND the tree, and the pulled side keeps `from`.
+  /// Both clones minted the ordinal `from`, which only a branch cut before the
+  /// upgrade can carry (ST0095 WP-06). This clone's record moves to `to`, the
+  /// git-style id the one mint derives from `origin`: its own creation event
+  /// where this clone's log holds it, so the plan and its apply agree, or a
+  /// creation event drawn for the move. The pulled side keeps `from`.
   Renumber {
     minted: Minted,
     from: String,
     to: String,
+    origin: String,
+  },
+  /// A thread both sides changed only by adding work packages (ST0095 WP-06):
+  /// the merge keeps every package either side added. A package both sides
+  /// added under one ordinal moves on this clone to a git-style id, `moves`,
+  /// each `(from, to)` as addresses; a git-style one never collides and is
+  /// kept as it is.
+  KeepPackages {
+    thread: String,
+    moves: Vec<(String, String)>,
   },
   /// A canon file both sides changed. A person picks a side.
   TakeSide { path: String },
@@ -172,10 +183,24 @@ impl Step {
     Self::quiet(Action::Unowned { paths })
   }
 
-  /// A renumber. **REVERSIBLE**: `renumber` moves it back.
-  pub fn renumber(minted: Minted, from: String, to: String) -> Self {
+  /// A renumber. **REVERSIBLE**: it is staged, so the merge can be redone.
+  pub fn renumber(minted: Minted, from: String, to: String, origin: String) -> Self {
     Self {
-      action: Action::Renumber { minted, from, to },
+      action: Action::Renumber {
+        minted,
+        from,
+        to,
+        origin,
+      },
+      recoverability: Recoverability::Reversible,
+    }
+  }
+
+  /// Keeping both sides' packages. **REVERSIBLE**, as a renumber is: the
+  /// thread it writes is staged, and nothing either side added is dropped.
+  pub fn keep_packages(thread: String, moves: Vec<(String, String)>) -> Self {
+    Self {
+      action: Action::KeepPackages { thread, moves },
       recoverability: Recoverability::Reversible,
     }
   }
@@ -244,7 +269,7 @@ impl Step {
     match &self.action {
       Action::Behind { commits, .. } => *commits > 0,
       Action::Unowned { paths } | Action::ResolveViews { paths } => !paths.is_empty(),
-      Action::Renumber { .. } | Action::TakeSide { .. } => true,
+      Action::Renumber { .. } | Action::KeepPackages { .. } | Action::TakeSide { .. } => true,
       Action::Ingest { would_take } => would_take.as_ref().is_none_or(|t| !t.is_empty()),
       Action::RegenerateViews { would } => would
         .as_ref()
@@ -265,7 +290,7 @@ impl Step {
   pub fn resolves_canon(&self) -> bool {
     matches!(
       self.action,
-      Action::Renumber { .. } | Action::TakeSide { .. }
+      Action::Renumber { .. } | Action::KeepPackages { .. } | Action::TakeSide { .. }
     )
   }
 
@@ -284,6 +309,7 @@ impl Step {
       Action::Behind { .. } => "behind",
       Action::Unowned { .. } => "unmerged",
       Action::Renumber { .. } => "renumber",
+      Action::KeepPackages { .. } => "keep packages",
       Action::TakeSide { .. } => "take a side",
       Action::Ingest { .. } => "ingest",
       Action::ResolveViews { .. } => "resolve views",
@@ -305,14 +331,27 @@ impl Step {
         paths.len(),
         paths.join(", ")
       ),
-      Action::Renumber { minted, from, to } => format!(
+      Action::Renumber { minted, from, to, .. } => format!(
         "both sides minted {} {from}: this clone's moves to {to} and the pulled one keeps {from}, both staged",
         match minted {
           Minted::Thread => "steel thread",
           Minted::Issue => "issue",
-          Minted::WorkPackage => "work package",
         }
       ),
+      Action::KeepPackages { thread, moves } => {
+        let moved: Vec<String> = moves
+          .iter()
+          .map(|(from, to)| format!("this clone's {from} moves to {to}"))
+          .collect();
+        if moved.is_empty() {
+          format!("both sides added work packages to {thread}: every one is kept, staged")
+        } else {
+          format!(
+            "both sides added work packages to {thread}: every one is kept, {}, staged",
+            moved.join(", ")
+          )
+        }
+      }
       Action::TakeSide { path } => format!(
         "both sides changed {path}: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it"
       ),
@@ -501,31 +540,42 @@ pub fn left_line(left: &[Left]) -> Option<String> {
   ))
 }
 
-/// A thread both sides changed only by adding work packages, some under the same
-/// seq: the thread as the merge should leave it, and this clone's seqs that
-/// move, each with where it moves to (issue 0555).
+/// A thread both sides changed only by adding work packages: the thread as the
+/// merge should leave it, and this clone's packages that move, each with where
+/// it moves to and the creation event its new id derives from (issue 0555,
+/// ST0095 WP-06).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct WorkPackagesMintedTwice {
+pub struct PackagesBothSidesAdded {
   pub merged: crate::model::Thread,
-  pub moves: Vec<(crate::id::WpId, crate::id::WpId)>,
+  pub moves: Vec<(crate::id::WpId, crate::id::WpId, String)>,
 }
 
-/// Whether a thread both sides changed is a work package both sides minted,
-/// from its three versions: the merge base, this clone's, and the pulled one.
+/// Whether a thread both sides changed is one both sides added work packages
+/// to, from its three versions: the merge base, this clone's, and the pulled
+/// one.
 ///
 /// **ONLY WHEN ADDING WORK PACKAGES IS ALL EITHER SIDE DID** -- each side, with
-/// its added packages taken out, is exactly the base -- **AND SOME SEQ WAS
-/// ADDED ON BOTH.** Anything else changed on the thread, by either side, is a
-/// person's choice, and `None` leaves the take-a-side step to ask for it.
+/// its added packages taken out, is exactly the base -- **AND BOTH SIDES ADDED
+/// ONE.** Anything else changed on the thread, by either side, is a person's
+/// choice, and `None` leaves the take-a-side step to ask for it.
 ///
-/// **PURE.** The pulled side keeps its seqs; this clone's colliding packages
-/// move past the highest seq either side holds, in seq order, and its other
-/// added packages keep theirs.
-pub fn work_packages_minted_twice(
+/// **EVERY PACKAGE EITHER SIDE ADDED IS KEPT** (ST0095 WP-06). A git-style id
+/// never collides, so it is kept as it is. An ordinal both sides added, which
+/// only a branch cut before the upgrade carries, is moved on this clone to the
+/// id `remint` gives it, the one mint seeded with its creation event, and
+/// `remint` answering `None` leaves the thread to a person too. The pulled side
+/// keeps every id it has. A package both sides added under one git-style id is
+/// one record, kept once when both added it alike and left to a person when
+/// they did not.
+///
+/// **PURE**: what an id moves to is `remint`'s, given the package and every id
+/// either side holds.
+pub fn packages_both_sides_added(
   base: &crate::model::Thread,
   ours: &crate::model::Thread,
   theirs: &crate::model::Thread,
-) -> Option<WorkPackagesMintedTwice> {
+  mut remint: impl FnMut(crate::id::WpId, &[crate::id::WpId]) -> Option<(String, crate::id::WpId)>,
+) -> Option<PackagesBothSidesAdded> {
   let in_base = |seq: crate::id::WpId| base.wps.iter().any(|wp| wp.seq == seq);
   let without_added = |t: &crate::model::Thread| {
     let mut t = t.clone();
@@ -543,13 +593,9 @@ pub fn work_packages_minted_twice(
       .collect()
   };
   let (ours_added, theirs_added) = (added(ours), added(theirs));
-  let collides = |seq: crate::id::WpId| theirs_added.iter().any(|wp| wp.seq == seq);
-  if !ours_added.iter().any(|wp| collides(wp.seq)) {
+  if ours_added.is_empty() || theirs_added.is_empty() {
     return None;
   }
-  // The next free package after every id either side holds, from the waist's
-  // one ordinal mint; a thread already at the width's last id has no next, and
-  // the take-a-side step asks a person instead.
   let mut taken: Vec<crate::id::WpId> = ours
     .wps
     .iter()
@@ -559,16 +605,25 @@ pub fn work_packages_minted_twice(
   let mut merged = theirs.clone();
   let mut moves = Vec::new();
   for mut wp in ours_added {
-    if collides(wp.seq) {
-      let next = crate::id::WpId::next_after(taken.iter().copied()).ok()?;
-      taken.push(next);
-      moves.push((wp.seq, next));
-      wp.seq = next;
+    match theirs_added.iter().find(|t| t.seq == wp.seq) {
+      None => merged.wps.push(wp),
+      Some(same) if wp.seq.is_hashed() => {
+        if *same != wp {
+          return None;
+        }
+      }
+      Some(_) => {
+        let (origin, to) = remint(wp.seq, &taken)?;
+        taken.push(to);
+        moves.push((wp.seq, to, origin.clone()));
+        wp.seq = to;
+        wp.origin = Some(origin);
+        merged.wps.push(wp);
+      }
     }
-    merged.wps.push(wp);
   }
   merged.wps.sort_by_key(|wp| wp.seq);
-  Some(WorkPackagesMintedTwice { merged, moves })
+  Some(PackagesBothSidesAdded { merged, moves })
 }
 
 /// The unmerged paths of a merge, sorted by who resolves them and how.
@@ -579,6 +634,12 @@ pub struct Conflicts {
   /// Canon files both sides changed, and canon sidecars of a thread that is
   /// not being renumbered.
   pub take_sides: Vec<String>,
+  /// Thread canon files both sides changed only by adding work packages,
+  /// which the keep-packages step resolves (ST0095 WP-06). Taken out of
+  /// `take_sides` once read, and still unmerged until that step runs, so
+  /// nothing reads the canon before it (ic's finding building ST0096 WP-02:
+  /// counted nowhere, the plan read conflicted canon and refused).
+  pub packages_kept: Vec<String>,
   /// Generated views, outside any renumbered id's paths.
   pub views: Vec<String>,
   /// Everything else: authored files Intent does not resolve.
@@ -589,14 +650,15 @@ impl Conflicts {
   pub fn is_empty(&self) -> bool {
     self.minted_twice.is_empty()
       && self.take_sides.is_empty()
+      && self.packages_kept.is_empty()
       && self.views.is_empty()
       && self.unowned.is_empty()
   }
 
-  /// Whether canon holds conflict markers until a person or a renumber
-  /// resolves them.
+  /// Whether canon holds conflict markers until a person, a renumber or the
+  /// keep-packages step resolves them.
   pub fn canon_is_unmerged(&self) -> bool {
-    !self.minted_twice.is_empty() || !self.take_sides.is_empty()
+    !self.minted_twice.is_empty() || !self.take_sides.is_empty() || !self.packages_kept.is_empty()
   }
 }
 
@@ -630,11 +692,17 @@ pub fn classify(
     let path = entry.path.as_str();
     if let Some(rest) = path.strip_prefix(&canon_st) {
       match rest.split_once('/') {
-        None => match rest
-          .strip_suffix(".json")
-          .filter(|id| crate::id::ThreadId::parse(id).is_ok())
-        {
-          Some(id) if entry.is_add_add() => out.minted_twice.push((Minted::Thread, id.to_string())),
+        // **AN ADD/ADD IS A RENUMBER ONLY FOR AN ORDINAL** (ST0095 WP-06): a
+        // git-style id never collides, so nothing ever moves one, and two sides
+        // adding one file under it is a person's choice.
+        None => match rest.strip_suffix(".json").and_then(|id| {
+          crate::id::ThreadId::parse(id)
+            .ok()
+            .map(|parsed| (id, parsed))
+        }) {
+          Some((id, parsed)) if entry.is_add_add() && !parsed.is_hashed() => {
+            out.minted_twice.push((Minted::Thread, id.to_string()));
+          }
           _ => out.take_sides.push(path.to_string()),
         },
         Some((id, _)) if crate::id::ThreadId::parse(id).is_ok() => {
@@ -645,9 +713,11 @@ pub fn classify(
     } else if let Some(rest) = path.strip_prefix(&canon_issues) {
       match rest
         .strip_suffix(".json")
-        .filter(|n| crate::id::IssueId::parse(n).is_ok())
+        .and_then(|n| crate::id::IssueId::parse(n).ok().map(|parsed| (n, parsed)))
       {
-        Some(n) if entry.is_add_add() => out.minted_twice.push((Minted::Issue, n.to_string())),
+        Some((n, parsed)) if entry.is_add_add() && !parsed.is_hashed() => {
+          out.minted_twice.push((Minted::Issue, n.to_string()));
+        }
         _ => out.take_sides.push(path.to_string()),
       }
     } else if path.starts_with(&canon) {
@@ -737,12 +807,20 @@ mod tests {
     );
   }
 
+  /// A creation event's id, which a moved record's git-style id derives from.
+  const MOVED_BY: &str = "01JA0000000000000000000002";
+
   #[test]
   fn the_left_line_names_each_step_and_the_command_that_finishes() {
     assert_eq!(left_line(&[]), None);
     let line = left_line(&[
       Left {
-        step: Step::renumber(Minted::Thread, "ST0001".into(), "ST0003".into()),
+        step: Step::renumber(
+          Minted::Thread,
+          "ST0001".into(),
+          crate::id::ThreadId::from_origin(MOVED_BY).stored(),
+          MOVED_BY.into(),
+        ),
         because: LeftBecause::NeedsAPerson,
       },
       Left {

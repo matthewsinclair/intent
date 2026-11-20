@@ -6,7 +6,7 @@
 //! module makes one: from its stored form ([`ThreadId::parse`] and its
 //! siblings), from what an operator typed ([`normalise_thread_id`] and its
 //! siblings), from a number a wire form carries ([`IssueId::from_ordinal`]), or
-//! as the next one ([`ThreadId::next_after`]). Nothing outside it formats,
+//! new, from its creation event, by [`mint`], the one mint. Nothing outside it formats,
 //! parses, scans or does arithmetic on one. **AN ID HAS NO `Display`, NO NUMERIC
 //! ACCESSOR AND NO WIDTH**, so a `{:04}` written against one does not compile,
 //! and the compiler lists every site that would do arithmetic on an id or pad
@@ -16,8 +16,10 @@
 //! review finds that: build a package's address with [`wp_address`] and split
 //! one with [`split_wp_address`].
 //!
-//! **EVERY ID IS AN ORDINAL TODAY**: `ST0092`, issue `0703`, and a work package's
-//! `09` under its thread. Each type holds one private `Form`, so a second
+//! **AN ID IS AN ORDINAL OR A HASH**: `ST0092`, issue `0703` and a work
+//! package's `09` under its thread, minted by every Intent before ST0095 and
+//! valid for ever, or the front of the SHA-256 of the record's creation event's
+//! id, which is all [`mint`] makes. Each type holds one private `Form`, so a
 //! family is a variant here and an arm in each method, and nowhere else.
 //!
 //! **STORED AND SHOWN ARE TWO FORMS, AND EVERY CALLER CHOOSES ONE.** The stored
@@ -49,6 +51,21 @@ pub const ISSUE_DIGITS: usize = 4;
 /// How many digits an ordinal work package id carries under its thread:
 /// `ST0092/09`, `intent/st/ST0092/WP/09/`.
 pub const WP_DIGITS: usize = 2;
+
+/// The marker before a hashed issue id's hex (ic's letter, ST0095): `I3f9a2c1d4e5f6a7b`.
+/// A hashed thread id carries [`THREAD_PREFIX`]; a work package carries none,
+/// because it never stands alone.
+pub const ISSUE_MARKER: &str = "I";
+/// How many hex digits a hashed thread or issue id stores (hv decision 64:
+/// "Store 16, show 7"), cut from the front of its creation event's SHA-256.
+pub const HASH_HEX: usize = 16;
+/// How many hex digits a hashed work package id stores under its thread.
+pub const WP_HASH_HEX: usize = 8;
+/// How many of a hashed thread or issue id's hex digits a table, a view or a
+/// message shows.
+pub const SHOWN_HEX: usize = 7;
+/// How many of a hashed work package id's hex digits are shown.
+pub const WP_SHOWN_HEX: usize = 4;
 
 /// How a claim names an ISSUE, as [`crate::intentfiles::Sigil::Issue`] spells
 /// it in the manifest, with its separator.
@@ -176,11 +193,16 @@ impl fmt::Display for IdError {
 impl std::error::Error for IdError {}
 
 /// One form an id takes. Private, so a family is a variant here and nowhere
-/// else; the derived order is the family key (an ordinal by its number).
+/// else. The derived order is the family key: every ordinal, by its number,
+/// before every hashed id.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum Form {
   /// Minted highest-plus-one by every Intent before ST0095, and valid for ever.
   Ordinal(u32),
+  /// Minted from a creation event's id (ST0095): the front of its SHA-256 in
+  /// lowercase hex, as many digits as the kind stores ([`HASH_HEX`] or
+  /// [`WP_HASH_HEX`]), held as their value so an id stays `Copy`.
+  Hashed(u64),
 }
 
 /// A steel thread's id: `ST0092`.
@@ -254,60 +276,120 @@ fn fits(n: u32, width: usize) -> Result<Form, IdError> {
     .ok_or(IdError::OutOfRange)
 }
 
-/// The next ordinal after the highest of `taken`, or 1 for none.
-fn next_ordinal(taken: impl Iterator<Item = Form>, width: usize) -> Result<Form, IdError> {
-  let highest = taken
-    .map(|form| match form {
-      Form::Ordinal(n) => n,
-    })
-    .max()
-    .unwrap_or(0);
-  fits(highest.saturating_add(1), width)
+/// A hashed id's exact stored hex: `width` lowercase hex digits, nothing else.
+/// Uppercase is refused here, because a stored form is compared whole; an
+/// operator's spelling is lowercased by the door before it gets this far.
+fn hashed_hex(hex: &str, width: usize) -> Result<Form, IdError> {
+  if hex.len() != width
+    || !hex
+      .bytes()
+      .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+  {
+    return Err(IdError::NotAnId);
+  }
+  Ok(Form::Hashed(
+    hex.bytes().fold(0, |value, b| (value << 4) | nibble(b)),
+  ))
+}
+
+/// One hex digit's value.
+fn nibble(b: u8) -> u64 {
+  char::from(b).to_digit(16).map_or(0, u64::from)
+}
+
+/// The form a creation event's id mints: the front `width` hex digits of its
+/// SHA-256, through the crate's one hasher ([`crate::model::sha256_hex`]), so
+/// there is no second hasher and no second source of randomness.
+fn digest_front(origin: &str, width: usize) -> Form {
+  Form::Hashed(
+    crate::model::sha256_hex(origin.as_bytes())
+      .bytes()
+      .take(width)
+      .fold(0, |value, b| (value << 4) | nibble(b)),
+  )
 }
 
 impl Form {
-  fn padded(&self, width: usize) -> String {
+  /// The stored spelling of the id's digits: an ordinal zero-padded to
+  /// `ordinal_width`, a hash as `hash_width` lowercase hex digits.
+  fn spelled(&self, ordinal_width: usize, hash_width: usize) -> String {
     match self {
-      Form::Ordinal(n) => format!("{n:0width$}"),
+      Form::Ordinal(n) => format!("{n:0ordinal_width$}"),
+      Form::Hashed(value) => format!("{value:0hash_width$x}"),
     }
   }
 
-  /// The digits with no padding, for the tagged spellings `s59` and `i59`.
-  fn bare(&self) -> String {
+  /// The digits a table shows: an ordinal whole, a hash's first `shown_width`.
+  fn shown(&self, ordinal_width: usize, hash_width: usize, shown_width: usize) -> String {
     match self {
-      Form::Ordinal(n) => n.to_string(),
+      Form::Ordinal(_) => self.spelled(ordinal_width, hash_width),
+      Form::Hashed(_) => self
+        .spelled(ordinal_width, hash_width)
+        .chars()
+        .take(shown_width)
+        .collect(),
     }
   }
 
-  fn ordinal(&self) -> u32 {
+  /// The digits with no padding, for the tagged spellings `s59` and `i59`. A
+  /// hash has none: its marker already names its kind.
+  fn bare(&self) -> Option<String> {
     match self {
-      Form::Ordinal(n) => *n,
+      Form::Ordinal(n) => Some(n.to_string()),
+      Form::Hashed(_) => None,
     }
+  }
+
+  /// The ordinal's number, or `None` for a hash.
+  fn ordinal(&self) -> Option<u32> {
+    match self {
+      Form::Ordinal(n) => Some(*n),
+      Form::Hashed(_) => None,
+    }
+  }
+
+  fn is_hashed(&self) -> bool {
+    matches!(self, Form::Hashed(_))
   }
 }
 
 impl ThreadId {
   fn of(form: Form) -> Self {
     Self {
-      stored: format!("{THREAD_PREFIX}{}", form.padded(THREAD_DIGITS)),
+      stored: format!("{THREAD_PREFIX}{}", form.spelled(THREAD_DIGITS, HASH_HEX)),
       form,
     }
   }
 
-  /// The thread a stored spelling names: `ST` and four digits, exactly.
+  /// The thread a stored spelling names: `ST` and four digits, or `ST` and
+  /// sixteen lowercase hex digits, exactly.
   pub fn parse(stored: &str) -> Result<Self, IdError> {
-    let digits = stored.strip_prefix(THREAD_PREFIX).ok_or(IdError::NotAnId)?;
-    ordinal_digits(digits, THREAD_DIGITS).map(Self::of)
+    let rest = stored.strip_prefix(THREAD_PREFIX).ok_or(IdError::NotAnId)?;
+    ordinal_digits(rest, THREAD_DIGITS)
+      .or_else(|_| hashed_hex(rest, HASH_HEX))
+      .map(Self::of)
+  }
+
+  /// The thread id a creation event's id mints (ST0095): `ST` and the front of
+  /// the SHA-256 of `origin`.
+  pub fn from_origin(origin: &str) -> Self {
+    Self::of(digest_front(origin, HASH_HEX))
+  }
+
+  /// Whether this is a hashed id minted from `origin`, which doctor asks of a
+  /// record's `origin` field. An ordinal has no origin to answer to.
+  pub fn derives_from(&self, origin: &str) -> bool {
+    self.form.is_hashed() && Self::from_origin(origin) == *self
+  }
+
+  /// Whether this id is a hash rather than an ordinal.
+  pub fn is_hashed(&self) -> bool {
+    self.form.is_hashed()
   }
 
   /// The thread with ordinal `n`, for a number a wire or legacy form carries.
   pub fn from_ordinal(n: u32) -> Result<Self, IdError> {
     fits(n, THREAD_DIGITS).map(Self::of)
-  }
-
-  /// The id after the highest of `taken`, `ST0001` for none.
-  pub fn next_after<'a>(taken: impl IntoIterator<Item = &'a ThreadId>) -> Result<Self, IdError> {
-    next_ordinal(taken.into_iter().map(|id| id.form), THREAD_DIGITS).map(Self::of)
   }
 
   /// The stored form, borrowed: canon, file and directory names, claims,
@@ -321,9 +403,13 @@ impl ThreadId {
     self.stored.clone()
   }
 
-  /// The form a table, a view or a message prints.
+  /// The form a table, a view or a message prints: the whole ordinal, or `ST`
+  /// and the first [`SHOWN_HEX`] hex digits of a hash.
   pub fn shown(&self) -> String {
-    self.stored.clone()
+    format!(
+      "{THREAD_PREFIX}{}",
+      self.form.shown(THREAD_DIGITS, HASH_HEX, SHOWN_HEX)
+    )
   }
 
   /// The lowercase form a branch or a ref takes.
@@ -331,9 +417,13 @@ impl ThreadId {
     self.stored.to_ascii_lowercase()
   }
 
-  /// The explicitly tagged short spelling an operator can type: `s59`.
+  /// The explicitly tagged short spelling an operator can type: `s59`. A hash
+  /// is tagged by its marker, so its tagged spelling is its shown form.
   pub fn tagged(&self) -> String {
-    format!("{}{}", IdKind::Thread.tag(), self.form.bare())
+    self.form.bare().map_or_else(
+      || self.shown(),
+      |digits| format!("{}{digits}", IdKind::Thread.tag()),
+    )
   }
 }
 
@@ -362,10 +452,12 @@ impl PartialEq<String> for ThreadId {
 }
 
 impl WpId {
-  /// The work package a stored spelling names under its thread: two digits,
-  /// exactly.
+  /// The work package a stored spelling names under its thread: two digits, or
+  /// eight lowercase hex digits, exactly.
   pub fn parse(stored: &str) -> Result<Self, IdError> {
-    ordinal_digits(stored, WP_DIGITS).map(Self)
+    ordinal_digits(stored, WP_DIGITS)
+      .or_else(|_| hashed_hex(stored, WP_HASH_HEX))
+      .map(Self)
   }
 
   /// The work package with ordinal `n`, for a number a wire form carries.
@@ -373,19 +465,31 @@ impl WpId {
     fits(n, WP_DIGITS).map(Self)
   }
 
-  /// The id after the highest of `taken` in one thread, `01` for none.
-  pub fn next_after(taken: impl IntoIterator<Item = WpId>) -> Result<Self, IdError> {
-    next_ordinal(taken.into_iter().map(|id| id.0), WP_DIGITS).map(Self)
+  /// The work package id a creation event's id mints (ST0095): the front of
+  /// the SHA-256 of `origin`, with no marker, because it never stands alone.
+  pub fn from_origin(origin: &str) -> Self {
+    Self(digest_front(origin, WP_HASH_HEX))
   }
 
-  /// The stored form under its thread: `09`.
+  /// Whether this is a hashed id minted from `origin`.
+  pub fn derives_from(&self, origin: &str) -> bool {
+    self.0.is_hashed() && Self::from_origin(origin) == *self
+  }
+
+  /// Whether this id is a hash rather than an ordinal.
+  pub fn is_hashed(&self) -> bool {
+    self.0.is_hashed()
+  }
+
+  /// The stored form under its thread: `09`, or eight hex digits.
   pub fn stored(&self) -> String {
-    self.0.padded(WP_DIGITS)
+    self.0.spelled(WP_DIGITS, WP_HASH_HEX)
   }
 
-  /// The form a table, a view or a message prints under its thread.
+  /// The form a table, a view or a message prints under its thread: the whole
+  /// ordinal, or a hash's first [`WP_SHOWN_HEX`] hex digits.
   pub fn shown(&self) -> String {
-    self.stored()
+    self.0.shown(WP_DIGITS, WP_HASH_HEX, WP_SHOWN_HEX)
   }
 
   /// The heading a view gives the package: `WP-09`.
@@ -401,9 +505,17 @@ impl WpId {
 }
 
 impl IssueId {
-  /// The issue a stored spelling names: four digits, exactly.
+  /// The issue a stored spelling names: four digits, or [`ISSUE_MARKER`] and
+  /// sixteen lowercase hex digits, exactly.
   pub fn parse(stored: &str) -> Result<Self, IdError> {
-    ordinal_digits(stored, ISSUE_DIGITS).map(Self)
+    ordinal_digits(stored, ISSUE_DIGITS)
+      .or_else(|_| {
+        stored
+          .strip_prefix(ISSUE_MARKER)
+          .ok_or(IdError::NotAnId)
+          .and_then(|hex| hashed_hex(hex, HASH_HEX))
+      })
+      .map(Self)
   }
 
   /// The issue with ordinal `n`, for a number a wire or legacy form carries.
@@ -411,19 +523,41 @@ impl IssueId {
     fits(n, ISSUE_DIGITS).map(Self)
   }
 
-  /// The id after the highest of `taken`, `0001` for none.
-  pub fn next_after(taken: impl IntoIterator<Item = IssueId>) -> Result<Self, IdError> {
-    next_ordinal(taken.into_iter().map(|id| id.0), ISSUE_DIGITS).map(Self)
+  /// The issue id a creation event's id mints (ST0095): [`ISSUE_MARKER`] and
+  /// the front of the SHA-256 of `origin`.
+  pub fn from_origin(origin: &str) -> Self {
+    Self(digest_front(origin, HASH_HEX))
   }
 
-  /// The stored form: `0703`.
+  /// Whether this is a hashed id minted from `origin`.
+  pub fn derives_from(&self, origin: &str) -> bool {
+    self.0.is_hashed() && Self::from_origin(origin) == *self
+  }
+
+  /// Whether this id is a hash rather than an ordinal.
+  pub fn is_hashed(&self) -> bool {
+    self.0.is_hashed()
+  }
+
+  /// The stored form: `0703`, or the marker and sixteen hex digits.
   pub fn stored(&self) -> String {
-    self.0.padded(ISSUE_DIGITS)
+    let digits = self.0.spelled(ISSUE_DIGITS, HASH_HEX);
+    if self.0.is_hashed() {
+      format!("{ISSUE_MARKER}{digits}")
+    } else {
+      digits
+    }
   }
 
-  /// The form a table, a view or a message prints.
+  /// The form a table, a view or a message prints: the whole ordinal, or the
+  /// marker and a hash's first [`SHOWN_HEX`] hex digits.
   pub fn shown(&self) -> String {
-    self.stored()
+    let digits = self.0.shown(ISSUE_DIGITS, HASH_HEX, SHOWN_HEX);
+    if self.0.is_hashed() {
+      format!("{ISSUE_MARKER}{digits}")
+    } else {
+      digits
+    }
   }
 
   /// How a board claims it and `.intentfiles` declares it: `ISSUE:0703`.
@@ -431,10 +565,140 @@ impl IssueId {
     format!("{CLAIM_ISSUE_PREFIX}{}", self.stored())
   }
 
-  /// The explicitly tagged short spelling an operator can type: `i59`.
+  /// The explicitly tagged short spelling an operator can type: `i59`. A hash
+  /// is tagged by its marker, so its tagged spelling is its shown form.
   pub fn tagged(&self) -> String {
-    format!("{}{}", IdKind::Issue.tag(), self.0.bare())
+    self.0.bare().map_or_else(
+      || self.shown(),
+      |digits| format!("{}{digits}", IdKind::Issue.tag()),
+    )
   }
+}
+
+/// How many creation event ids [`mint`] draws for one record before it refuses.
+/// A draw past the first follows one whose short form a visible record of the
+/// kind already shows. At [`SHOWN_HEX`] hex digits that needs a project of
+/// tens of thousands of records to happen twice running, so reaching this bound
+/// says the draw is broken, not that the project is large.
+pub const MINT_DRAWS: usize = 8;
+
+/// A kind of id the one mint makes: derived from a creation event's id, with a
+/// short form no two records of the kind may show.
+pub trait Mintable: Sized + PartialEq {
+  /// The kind, as the mint's refusal names it.
+  const WHAT: &'static str;
+  /// The hashed id `origin` mints.
+  fn minted_from(origin: &str) -> Self;
+  /// The form a table prints, which the mint keeps apart.
+  fn short(&self) -> String;
+}
+
+impl Mintable for ThreadId {
+  const WHAT: &'static str = "steel thread";
+  fn minted_from(origin: &str) -> Self {
+    Self::from_origin(origin)
+  }
+  fn short(&self) -> String {
+    self.shown()
+  }
+}
+
+impl Mintable for WpId {
+  const WHAT: &'static str = "work package";
+  fn minted_from(origin: &str) -> Self {
+    Self::from_origin(origin)
+  }
+  fn short(&self) -> String {
+    self.shown()
+  }
+}
+
+impl Mintable for IssueId {
+  const WHAT: &'static str = "issue";
+  fn minted_from(origin: &str) -> Self {
+    Self::from_origin(origin)
+  }
+  fn short(&self) -> String {
+    self.shown()
+  }
+}
+
+/// Why the one mint made no id. Nothing was written: the mint runs inside the
+/// verb that asked, before any write.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MintError {
+  /// The id a draw derived is one this clone already holds. At sixty-four bits
+  /// that is a broken draw, never chance.
+  Taken { what: &'static str, id: String },
+  /// Every one of [`MINT_DRAWS`] draws gave a short form a visible record of
+  /// the kind already shows.
+  ShortFormsShared { what: &'static str, draws: usize },
+}
+
+impl fmt::Display for MintError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      MintError::Taken { what, id } => {
+        write!(
+          f,
+          "the new {what}'s id {id} is one this project already holds"
+        )
+      }
+      MintError::ShortFormsShared { what, draws } => write!(
+        f,
+        "every one of {draws} new {what} ids shows a short form a {what} here already shows"
+      ),
+    }
+  }
+}
+
+impl std::error::Error for MintError {}
+
+impl crate::remedy::Remedy for MintError {
+  fn remedy(&self) -> String {
+    "nothing was written. A mint draws a fresh creation event for every id, so this is a defect \
+     in Intent, not in the project: report it with the command that met it"
+      .to_string()
+  }
+}
+
+/// **THE ONE MINT** (ST0095 WP-06): a new record's id, and the creation event
+/// id it derives from, which the record carries as `origin` and its creation
+/// event carries as its own id. `st new`, `wp new`, `issues add` and the
+/// re-mints call it, and nothing else makes an id.
+///
+/// `draw` gives a creation event's id: the crate's one minter of event ids in
+/// every caller but a test of this function, so there is no second source of
+/// randomness. `visible` is every id of the kind this clone can see where the
+/// new one will live: the project's threads or issues, or one thread's work
+/// packages.
+///
+/// It refuses an id equal to a visible one, which at sixty-four bits never
+/// fires. It draws again while the new short form equals a visible record's,
+/// so two records that have met never show one short form, and it refuses
+/// after [`MINT_DRAWS`] draws rather than loop.
+pub fn mint<I: Mintable>(
+  visible: &[I],
+  mut draw: impl FnMut() -> String,
+) -> Result<(String, I), MintError> {
+  for _ in 0..MINT_DRAWS {
+    let origin = draw();
+    let id = I::minted_from(&origin);
+    if visible.contains(&id) {
+      return Err(MintError::Taken {
+        what: I::WHAT,
+        id: id.short(),
+      });
+    }
+    let short = id.short();
+    if visible.iter().all(|seen| seen.short() != short) {
+      return Ok((origin, id));
+    }
+  }
+  Err(MintError::ShortFormsShared {
+    what: I::WHAT,
+    draws: MINT_DRAWS,
+  })
 }
 
 /// What separates the thread from the package in a work package's address.
@@ -563,6 +827,15 @@ fn ordinal_of(digits: &str) -> Result<u32, IdError> {
 /// anything (`foo` became `STfoo`, then a not-found for a non-name), and it had
 /// the width hole `fits` documents.
 pub fn normalise_thread_id(raw: &str) -> Result<ThreadId, IdError> {
+  match hashed_spelling(raw) {
+    Some(Named::Thread(id)) => return Ok(id),
+    Some(Named::Issue(_)) => {
+      return Err(IdError::WrongCollection {
+        named: IdKind::Issue,
+      });
+    }
+    None => {}
+  }
   let s = spelling(raw)?;
   match s.tag {
     Some(IdKind::Issue) => Err(IdError::WrongCollection {
@@ -575,6 +848,15 @@ pub fn normalise_thread_id(raw: &str) -> Result<ThreadId, IdError> {
 /// An operator's spelling of an ISSUE id: `21`, `0021`, `0021.json` and `i21`
 /// are one issue, as v2's `bin/intent_issues:normalize_id` made them.
 pub fn normalise_issue_id(raw: &str) -> Result<IssueId, IdError> {
+  match hashed_spelling(raw) {
+    Some(Named::Issue(id)) => return Ok(id),
+    Some(Named::Thread(_)) => {
+      return Err(IdError::WrongCollection {
+        named: IdKind::Thread,
+      });
+    }
+    None => {}
+  }
   let s = spelling(raw)?;
   match s.tag {
     Some(IdKind::Thread) => Err(IdError::WrongCollection {
@@ -590,7 +872,29 @@ pub fn normalise_issue_id(raw: &str) -> Result<IssueId, IdError> {
 pub fn normalise_wp_id(raw: &str) -> Result<WpId, IdError> {
   let t = raw.trim();
   let digits = strip_ci(t, WP_HEADING_PREFIX).unwrap_or(t).trim();
+  // A whole stored hash, in any case; a shorter hex spelling is a prefix, which
+  // only the store can resolve (ST0095 WP-07).
+  if digits.len() == WP_HASH_HEX
+    && let Ok(form) = hashed_hex(&digits.to_ascii_lowercase(), WP_HASH_HEX)
+  {
+    return Ok(WpId(form));
+  }
   WpId::from_ordinal(ordinal_of(digits)?)
+}
+
+/// A whole hashed thread or issue spelling, in any case: `ST` or [`ISSUE_MARKER`]
+/// and sixteen hex digits. `None` for anything else, an ordinal spelling or a
+/// prefix included, because a prefix names a record only against the store
+/// (ST0095 WP-07).
+fn hashed_spelling(raw: &str) -> Option<Named> {
+  let t = raw.trim();
+  let hex = |rest: &str| hashed_hex(&rest.to_ascii_lowercase(), HASH_HEX).ok();
+  if let Some(form) = strip_ci(t, THREAD_PREFIX).and_then(hex) {
+    return Some(Named::Thread(ThreadId::of(form)));
+  }
+  strip_ci(t, ISSUE_MARKER)
+    .and_then(hex)
+    .map(|form| Named::Issue(IssueId(form)))
 }
 
 /// What a spelling names at a door that knows the collection.
@@ -610,6 +914,9 @@ pub enum Named {
 /// candidates, and [`crate::resolve`] asks the project which exists; the tagged
 /// spellings `s59` and `i59` settle it in the argument itself.
 pub fn normalise_id(raw: &str) -> Result<Named, IdError> {
+  if let Some(named) = hashed_spelling(raw) {
+    return Ok(named);
+  }
   let s = spelling(raw)?;
   match s.tag {
     Some(IdKind::Thread) => ThreadId::from_ordinal(s.seq).map(Named::Thread),
@@ -922,10 +1229,15 @@ pub fn id_order(a: &str, b: &str) -> Ordering {
 // ---------------------------------------------------------------------------
 // The faces: canon (serde), the published JSON Schema, the store and GraphQL.
 //
-// **EACH ENCODES THE REPRESENTATION ABOVE, SO EACH LIVES HERE.** Today a thread
-// id travels as its stored string, and a work package or issue id as the bare
-// ordinal number its canon field has always held (`"seq": 9`, `"number": 703`),
-// so every face is byte-for-byte what it was before these types existed.
+// **EACH ENCODES THE REPRESENTATION ABOVE, SO EACH LIVES HERE.** In canon every
+// id travels as its stored string (ST0095 WP-06), a work package's `"04"` or
+// `"c2e41a0b"` and an issue's `"0703"` or `"I3f9a2c1d4e5f6a7b"`. The ordinal
+// format a project `intent upgrade` has not moved carries a work package or
+// issue id as the bare number its canon field has always held (`"seq": 9`,
+// `"number": 703`): that face is [`ordinal_face`], which only
+// `crate::canon_format`'s frozen V3 structs name. The store's face (a TEXT
+// column) and GraphQL's (a String!) are the stored string too, so a hashed id
+// reads back through every face.
 // ---------------------------------------------------------------------------
 
 impl serde::Serialize for ThreadId {
@@ -946,15 +1258,15 @@ macro_rules! ordinal_faces {
   ($ty:ident, $what:literal) => {
     impl serde::Serialize for $ty {
       fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_u32(self.0.ordinal())
+        serializer.serialize_str(&self.stored())
       }
     }
 
     impl<'de> serde::Deserialize<'de> for $ty {
       fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let n = u32::deserialize(deserializer)?;
-        $ty::from_ordinal(n)
-          .map_err(|e| serde::de::Error::custom(format!("{n} is not {}: {e}", $what)))
+        let stored = String::deserialize(deserializer)?;
+        $ty::parse(&stored)
+          .map_err(|e| serde::de::Error::custom(format!("`{stored}` is not {}: {e}", $what)))
       }
     }
 
@@ -964,38 +1276,51 @@ macro_rules! ordinal_faces {
       }
 
       fn schema_name() -> Cow<'static, str> {
-        <u32 as schemars::JsonSchema>::schema_name()
+        <String as schemars::JsonSchema>::schema_name()
       }
 
       fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        <u32 as schemars::JsonSchema>::json_schema(generator)
+        <String as schemars::JsonSchema>::json_schema(generator)
       }
     }
 
+    impl ordinal_face::Ordinal for $ty {
+      const WHAT: &'static str = $what;
+
+      fn number(&self) -> Option<u32> {
+        self.0.ordinal()
+      }
+
+      fn from_number(n: u32) -> Result<Self, IdError> {
+        $ty::from_ordinal(n)
+      }
+
+      fn spelled(&self) -> String {
+        self.stored()
+      }
+    }
+
+    // The store holds the stored form as TEXT since schema 36, so an all-digit
+    // id keeps its leading zero and a hashed one has a column to live in.
     impl rusqlite::types::ToSql for $ty {
       fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
-        Ok(rusqlite::types::ToSqlOutput::from(i64::from(self.0.ordinal())))
+        Ok(rusqlite::types::ToSqlOutput::from(self.stored()))
       }
     }
 
     impl rusqlite::types::FromSql for $ty {
       fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
-        let n = value.as_i64()?;
-        u32::try_from(n)
-          .map_err(|_| rusqlite::types::FromSqlError::OutOfRange(n))
-          .and_then(|n| {
-            $ty::from_ordinal(n).map_err(|e| rusqlite::types::FromSqlError::Other(Box::new(e)))
-          })
+        $ty::parse(value.as_str()?).map_err(|e| rusqlite::types::FromSqlError::Other(Box::new(e)))
       }
     }
 
     impl async_graphql::OutputType for $ty {
       fn type_name() -> Cow<'static, str> {
-        <u32 as async_graphql::OutputType>::type_name()
+        <String as async_graphql::OutputType>::type_name()
       }
 
       fn create_type_info(registry: &mut async_graphql::registry::Registry) -> String {
-        <u32 as async_graphql::OutputType>::create_type_info(registry)
+        <String as async_graphql::OutputType>::create_type_info(registry)
       }
 
       fn resolve(
@@ -1004,8 +1329,8 @@ macro_rules! ordinal_faces {
         field: &async_graphql::Positioned<async_graphql::parser::types::Field>,
       ) -> impl std::future::Future<Output = async_graphql::ServerResult<async_graphql::Value>> + Send
       {
-        let n = self.0.ordinal();
-        async move { <u32 as async_graphql::OutputType>::resolve(&n, ctx, field).await }
+        let stored = self.stored();
+        async move { <String as async_graphql::OutputType>::resolve(&stored, ctx, field).await }
       }
     }
   };
@@ -1013,6 +1338,49 @@ macro_rules! ordinal_faces {
 
 ordinal_faces!(WpId, "a work package id");
 ordinal_faces!(IssueId, "an issue id");
+
+/// The face a work package or issue id has in the ordinal canon of a project
+/// `intent upgrade` has not moved: the bare number its field has always held
+/// (ST0095 WP-06). Named only by `crate::canon_format`'s frozen V3 structs,
+/// with `#[serde(with = "crate::id::ordinal_face")]`.
+///
+/// **A HASHED ID HAS NO NUMBER, AND THIS FACE REFUSES IT LOUDLY** rather than
+/// writing one. The V3 encoder refuses a hashed record before it gets here.
+pub mod ordinal_face {
+  use super::IdError;
+
+  /// An id this face can carry: a work package's or an issue's.
+  pub trait Ordinal: Sized {
+    /// What the id is, for a refusal: "a work package id".
+    const WHAT: &'static str;
+    /// The ordinal's number, or `None` for a hashed id.
+    fn number(&self) -> Option<u32>;
+    /// The ordinal `n`.
+    fn from_number(n: u32) -> Result<Self, IdError>;
+    /// The stored spelling, for a refusal.
+    fn spelled(&self) -> String;
+  }
+
+  pub fn serialize<T: Ordinal, S: serde::Serializer>(
+    id: &T,
+    serializer: S,
+  ) -> Result<S::Ok, S::Error> {
+    match id.number() {
+      Some(n) => serializer.serialize_u32(n),
+      None => Err(serde::ser::Error::custom(format!(
+        "{} is hashed and has no number to write in the ordinal canon",
+        id.spelled()
+      ))),
+    }
+  }
+
+  pub fn deserialize<'de, T: Ordinal, D: serde::Deserializer<'de>>(
+    deserializer: D,
+  ) -> Result<T, D::Error> {
+    let n = <u32 as serde::Deserialize>::deserialize(deserializer)?;
+    T::from_number(n).map_err(|e| serde::de::Error::custom(format!("{n} is not {}: {e}", T::WHAT)))
+  }
+}
 
 impl schemars::JsonSchema for ThreadId {
   fn inline_schema() -> bool {
@@ -1227,5 +1595,100 @@ mod tests {
     let zero = WpId::from_ordinal(0).expect("zero fits a package's width");
     assert_eq!(THREAD_GROUP, zero.stored());
     assert!(zero.is_thread_level());
+  }
+
+  /// A creation event id, as `event::next_id` mints them: the origin the hashed
+  /// family's tests derive every expectation from, through the one hasher.
+  const ORIGIN: &str = "01M7SQ544Q2FK5BNMYAMXV3Z4Z";
+  const OTHER_ORIGIN: &str = "01M7SQ544Q2FK5BNMYAMXV3Z50";
+
+  #[test]
+  fn a_hashed_id_is_its_marker_and_the_front_of_its_origins_sha256() {
+    let digest = crate::model::sha256_hex(ORIGIN.as_bytes());
+    let front = |n: usize| digest.chars().take(n).collect::<String>();
+
+    let thread = ThreadId::from_origin(ORIGIN);
+    assert_eq!(
+      thread.stored(),
+      format!("{THREAD_PREFIX}{}", front(HASH_HEX))
+    );
+    assert_eq!(
+      thread.shown(),
+      format!("{THREAD_PREFIX}{}", front(SHOWN_HEX))
+    );
+    assert_eq!(ThreadId::parse(&thread.stored()), Ok(thread.clone()));
+
+    let issue = IssueId::from_origin(ORIGIN);
+    assert_eq!(issue.stored(), format!("{ISSUE_MARKER}{}", front(HASH_HEX)));
+    assert_eq!(issue.shown(), format!("{ISSUE_MARKER}{}", front(SHOWN_HEX)));
+    assert_eq!(IssueId::parse(&issue.stored()), Ok(issue));
+
+    let wp = WpId::from_origin(ORIGIN);
+    assert_eq!(wp.stored(), front(WP_HASH_HEX));
+    assert_eq!(wp.shown(), front(WP_SHOWN_HEX));
+    assert_eq!(
+      wp.heading(),
+      format!("{WP_HEADING_PREFIX}{}", front(WP_SHOWN_HEX))
+    );
+    assert_eq!(WpId::parse(&wp.stored()), Ok(wp));
+  }
+
+  #[test]
+  fn an_id_answers_to_the_origin_it_was_minted_from_and_to_no_other() {
+    assert!(ThreadId::from_origin(ORIGIN).derives_from(ORIGIN));
+    assert!(!ThreadId::from_origin(ORIGIN).derives_from(OTHER_ORIGIN));
+    assert!(IssueId::from_origin(ORIGIN).derives_from(ORIGIN));
+    assert!(WpId::from_origin(ORIGIN).derives_from(ORIGIN));
+    let ordinal = ThreadId::from_ordinal(46).expect("an ordinal that fits");
+    assert!(
+      !ordinal.derives_from(ORIGIN),
+      "an ordinal was minted from no event, so no origin is its own"
+    );
+  }
+
+  #[test]
+  fn no_stored_spelling_is_both_an_ordinal_and_a_hash() {
+    let thread = ThreadId::from_origin(ORIGIN);
+    assert!(thread.is_hashed());
+    assert!(!ThreadId::parse("ST0046").expect("an ordinal").is_hashed());
+    assert!(!IssueId::parse("0703").expect("an ordinal").is_hashed());
+    assert!(!WpId::parse("09").expect("an ordinal").is_hashed());
+    // A stored form is compared whole, so its case is part of it: lowercase hex
+    // is a stored thread id, and the same digits in uppercase are not.
+    assert!(ThreadId::parse("STabcdef0123456789").is_ok());
+    assert_eq!(ThreadId::parse("STABCDEF0123456789"), Err(IdError::NotAnId));
+    // Seven hex digits are the shown form, not a stored one.
+    assert_eq!(ThreadId::parse(&thread.shown()), Err(IdError::NotAnId));
+  }
+
+  #[test]
+  fn every_ordinal_orders_before_every_hash() {
+    let last_ordinal = ThreadId::from_ordinal(9999).expect("the last ordinal");
+    assert!(last_ordinal < ThreadId::from_origin(ORIGIN));
+    let last_issue = IssueId::from_ordinal(9999).expect("the last ordinal");
+    assert!(last_issue < IssueId::from_origin(ORIGIN));
+  }
+
+  #[test]
+  fn a_door_reads_a_whole_hashed_spelling_in_any_case_and_names_its_collection() {
+    let thread = ThreadId::from_origin(ORIGIN);
+    let issue = IssueId::from_origin(ORIGIN);
+    assert_eq!(normalise_thread_id(&thread.stored()), Ok(thread.clone()));
+    assert_eq!(
+      normalise_thread_id(&thread.stored().to_ascii_uppercase()),
+      Ok(thread.clone())
+    );
+    assert_eq!(normalise_issue_id(&issue.stored()), Ok(issue));
+    assert_eq!(
+      normalise_thread_id(&issue.stored()),
+      Err(IdError::WrongCollection {
+        named: IdKind::Issue
+      })
+    );
+    assert_eq!(normalise_id(&thread.stored()), Ok(Named::Thread(thread)));
+    let wp = WpId::from_origin(ORIGIN);
+    assert_eq!(normalise_wp_id(&wp.stored().to_ascii_uppercase()), Ok(wp));
+    // The ordinal spellings keep their meaning beside the hashed ones.
+    assert_eq!(normalise_thread_id("46"), ThreadId::from_ordinal(46));
   }
 }

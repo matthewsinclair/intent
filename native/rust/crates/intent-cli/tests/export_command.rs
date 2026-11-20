@@ -37,6 +37,7 @@ fn project() -> tempfile::TempDir {
     "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
   )
   .expect("write config");
+  crate::common::born_upgraded(dir.path());
   let (_, err, code) = run(&["st", "new", "no · 12:30 · a hazardous title"], dir.path());
   assert_eq!(code, 0, "fixture setup failed: {err}");
   dir
@@ -52,7 +53,7 @@ fn the_bare_command_writes_the_whole_estate_to_stdout_as_json() {
   let bundle: serde_json::Value = serde_json::from_str(&out)
     .unwrap_or_else(|e| panic!("the default format must be readable JSON: {e}\n{out}"));
   assert_eq!(
-    bundle["schema"], "intent/export@3.0",
+    bundle["schema"], "intent/export@4.0",
     "the artefact names its own schema, so a stranger can tell what they have"
   );
   assert!(

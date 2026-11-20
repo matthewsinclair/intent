@@ -69,6 +69,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // A scope that cannot be built is about the project's config file (ST0083),
     // not a field the caller left out.
     | FacadeError::Sync(_)
+    // A record the project's canon format cannot carry (ST0095 WP-06) is
+    // about the format, not a field the caller left out.
+    | FacadeError::CanonFormat(_)
     // The estate refuses a session id or a line, never a field left out.
     | FacadeError::Estate(_)
     // A Team Profile is refused by its name or for its install, never for a
@@ -112,9 +115,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // thread's date is restated through `intent set` rather than through a
     // close. No field was left out of the call.
     | FacadeError::CompletionDateNotRestated { .. }
-    // ST0095: the mint ran past the last id its form holds. The call left
-    // nothing out, and no fuller call reaches an id the form does not have.
-    | FacadeError::IdsExhausted { .. }
+    // ST0095 WP-06: the one mint made no id, or the project is not yet
+    // upgraded. Both are about the project or the mint, never a field left out.
+    | FacadeError::Mint(_)
+    | FacadeError::NotYetUpgraded { .. }
+    | FacadeError::NothingToRemint { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

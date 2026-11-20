@@ -770,6 +770,9 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
     "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
   )
   .expect("write config");
+  // In the release's canon format, as `intent init` makes it, so the report
+  // carries no `canon-format-behind` advisory line beside its findings.
+  crate::common::born_upgraded(dir.path());
 
   let out = intent_cmd()
     .arg("doctor")

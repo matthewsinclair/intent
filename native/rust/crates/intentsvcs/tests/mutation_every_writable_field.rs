@@ -1329,6 +1329,7 @@ fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
 /// defaults, which are four of the eight fields this test is about.
 fn fully_populated_thread(id: &str) -> Thread {
   let mut thread = sample_thread(id);
+  thread.origin = Some(crate::common::FIXTURE_ORIGIN.to_string());
   thread.slug = Some("intent-v3".to_string());
   thread.status_reason = Some("reopened: AC-02.6 was added after the close".to_string());
   // **POPULATED, NOT PINNED IN `SERDE_SKIPPED`, AND THE DIFFERENCE IS THE WHOLE
@@ -1438,6 +1439,14 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
   // other way -- but it fails toward "go and look" instead of toward "go and
   // build".
   const UNAUTHORABLE: [&str; 1] = ["fiat"];
+  // **A SIXTH ROLE: IDENTITY THE BODY NEED NOT SEND** (ST0095 WP-06). `origin`
+  // names the event that minted the thread and a hashed id is derived from it,
+  // so `put` refuses to change it, as it refuses another `id`; a body that
+  // omits it is refused with the collateral fields. It is not required, since
+  // an ordinal thread has none. The behaviour is witnessed by
+  // `put_refuses_to_change_an_origin`, below in this file, for the reason the
+  // paragraph above gives for `fiat`.
+  const IDENTITY: [&str; 1] = ["origin"];
 
   let classified: BTreeSet<&str> = REQUIRED
     .iter()
@@ -1445,6 +1454,7 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
     .chain(ASKED_FOR.iter())
     .chain(COLLATERAL.iter())
     .chain(UNAUTHORABLE.iter())
+    .chain(IDENTITY.iter())
     .copied()
     .collect();
 
@@ -1934,7 +1944,7 @@ fn every_refusal_names_the_field_and_the_door_that_opens() {
     // Identity: the id IS the address.
     (&thread, "id", "address"),
     (&thread, "schema", "address"),
-    (&wp, "seq", "address"),
+    (&wp, "id", "address"),
     // Machine-guarded: a raw write would bypass a ratified state machine.
     (&thread, "status", "st "),
     (&wp, "status", "wp "),
@@ -2247,6 +2257,7 @@ fn field_axis(entity: &intentsvcs::address::Entity) -> FieldAxis {
 fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
   intentsvcs::model::WorkPackage {
     seq: wp(1),
+    origin: Some(crate::common::FIXTURE_ORIGIN.to_string()),
     title: "The field axis".to_string(),
     scope: Some(intentsvcs::model::TShirt::M),
     // Carries `inherited_from`, because the cascade case and the
@@ -2326,7 +2337,10 @@ fn declared_fields(model: &str) -> BTreeSet<String> {
     "Criterion" => serde_json::to_value(fully_populated_criterion()),
     "AcceptanceTest" => serde_json::to_value(fully_populated_row()),
     "Attachment" => serde_json::to_value(fully_populated_attachment()),
-    "Issue" => serde_json::to_value(crate::common::sample_issue(21)),
+    "Issue" => serde_json::to_value(intentsvcs::model::Issue {
+      origin: Some(crate::common::FIXTURE_ORIGIN.to_string()),
+      ..crate::common::sample_issue(21)
+    }),
     other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no fully-populated instance"),
   }
   .expect("a model serialises");
@@ -2364,6 +2378,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
       let intentsvcs::model::Thread {
         schema: _,
         id: _,
+        origin: _,
         title: _,
         slug: _,
         status: _,
@@ -2385,6 +2400,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
       vec![
         "schema",
         "id",
+        "origin",
         "title",
         "slug",
         "status",
@@ -2407,6 +2423,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
     "WorkPackage" => {
       let intentsvcs::model::WorkPackage {
         seq: _,
+        origin: _,
         title: _,
         scope: _,
         scope_legacy: _,
@@ -2419,7 +2436,8 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         preamble: _,
       } = fully_populated_work_package();
       vec![
-        "seq",
+        "id",
+        "origin",
         "title",
         "scope",
         "scope_legacy",
@@ -2471,6 +2489,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
       let intentsvcs::model::Issue {
         schema: _,
         number: _,
+        origin: _,
         slug: _,
         title: _,
         status: _,
@@ -2481,8 +2500,8 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         body: _,
       } = crate::common::sample_issue(21);
       vec![
-        "schema", "number", "slug", "title", "status", "severity", "created", "closed", "reporter",
-        "body",
+        "schema", "id", "origin", "slug", "title", "status", "severity", "created", "closed",
+        "reporter", "body",
       ]
     }
     other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no compile-fenced field list"),
@@ -3082,6 +3101,50 @@ fn put_refuses_to_author_a_fiat_record() {
   );
 }
 
+/// **THE WITNESS FOR `origin` AS IDENTITY** (ST0095 WP-06). The roster above
+/// (`IDENTITY`) proves `origin` is classified; this proves `put` refuses to
+/// change it, by the refusal's own words, so a green means the guard and not a
+/// parse error. Both directions: another origin for a thread that has one, and
+/// an origin for a thread minted in sequence, which has none.
+#[test]
+fn put_refuses_to_change_an_origin() {
+  // A well-formed creation event's id that is not `FIXTURE_ORIGIN`, so the
+  // refusal is about the change and never about the shape of what was sent.
+  const ANOTHER_ORIGIN: &str = "01M7VXR0UNDTR1PF1XTVRE0R1H";
+  let fx = Fixture::new();
+  let mut minted = sample_thread("ST0001");
+  minted.origin = Some(crate::common::FIXTURE_ORIGIN.to_string());
+  let ordinal = sample_thread("ST0002");
+  fx.write_thread(&minted);
+  fx.write_thread(&ordinal);
+  let mut f = fx.facade();
+
+  for (thread, why) in [
+    (&minted, "no write changes it"),
+    (&ordinal, "no write gives it one"),
+  ] {
+    let mut body = thread_scalars_only(thread);
+    body
+      .as_object_mut()
+      .expect("an object")
+      .insert("origin".to_string(), serde_json::json!(ANOTHER_ORIGIN));
+    let addr = parse(&format!("intent:///threads/{}", thread.id.shown())).expect("address");
+    let err = f
+      .put(&addr, &body.to_string())
+      .expect_err("`put` must refuse to change a thread's origin");
+    let said = err.to_string();
+    assert!(
+      said.contains(why),
+      "the refusal must be the origin guard's, not a deserialisation failure wearing its exit: {said}"
+    );
+    assert_eq!(
+      f.st_show(&thread.id.shown()).expect("there").origin,
+      thread.origin,
+      "the refusal changed the origin anyway -- a refusal that mutates is the worse defect"
+    );
+  }
+}
+
 /// **LIMB 2 ON THE CLI HALF: SEVEN VERBS CLEARED `status_reason` ON THEIR WAY
 /// PAST, ACROSS TWO ENTITIES.**
 ///
@@ -3182,6 +3245,7 @@ fn the_work_package_tail_carries_the_same_property() {
   let mut t = sample_thread("ST0001");
   t.wps = vec![intentsvcs::model::WorkPackage {
     seq: wp(1),
+    origin: None,
     title: "one".to_string(),
     scope: Some(intentsvcs::model::TShirt::S),
     scope_legacy: None,

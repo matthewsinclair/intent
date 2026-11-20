@@ -195,7 +195,8 @@ fn a_pull_brings_the_pulled_thread_into_the_store_and_says_so_once() {
     // The pull carries Alice's `st.new` as a committed event file too (ST0078
     // P1), and the same line names it.
     vec![format!(
-      "intent (post-merge): took 1 change(s) from the files into the store: {release}; and 1 event file(s)"
+      "intent (post-merge): took 1 change(s) from the files into the store: {}; and 1 event file(s)",
+      crate::common::shown(&release)
     )],
     "one line, naming what the pull changed in the store: {}",
     pulled.said
@@ -277,7 +278,8 @@ fn a_branch_checkout_is_ingested_and_a_file_checkout_is_not() {
   let back = team.git(&bob, &["switch", "-q", "-c", "before", "HEAD~1"]);
   assert!(
     back.said.contains(&format!(
-      "intent (post-checkout): took 1 change(s) from the files into the store: {release} (removed)"
+      "intent (post-checkout): took 1 change(s) from the files into the store: {} (removed)",
+      crate::common::shown(&release)
     )),
     "a branch checkout that removed {release}'s canon file takes the removal: {}",
     back.said
@@ -674,10 +676,18 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
     "the pull's views step discarded the hand edit: {}",
     pulled.said
   );
+  // The line names both, in their shown forms. The order between two minted
+  // ids is WP-08's to pin, so this asks that each is named, not where.
+  let took = pulled
+    .said
+    .lines()
+    .find(|l| {
+      l.starts_with("intent (post-merge): took 2 change(s) from the files into the store: ")
+    })
+    .unwrap_or_default();
   assert!(
-    pulled.said.contains(&format!(
-      "intent (post-merge): took 2 change(s) from the files into the store: {onboarding}, {release}"
-    )),
+    took.contains(&crate::common::shown(&onboarding))
+      && took.contains(&crate::common::shown(&release)),
     "the pull names the cover's thread among what it took: {}",
     pulled.said
   );
@@ -689,42 +699,39 @@ fn a_pull_carries_a_hand_edited_cover_into_the_store() {
   );
 }
 
-/// Both clones mint a work package on `thread`, one id between them, and Bob
-/// pulls Alice's. `bob_also` runs in Bob's clone before he commits, given the
-/// address he minted. Hands back the pull and that address.
-fn two_clones_mint_one_work_package(
+/// Both clones add a work package to `thread`, and Bob pulls Alice's.
+/// `bob_also` runs in Bob's clone before he commits, given the address he
+/// minted. Hands back the pull, Bob's address and Alice's.
+fn two_clones_each_add_a_work_package(
   team: &Team,
   thread: &str,
   bob_also: impl FnOnce(&str),
-) -> (Ran, String) {
+) -> (Ran, String, String) {
   let (alice, bob) = (team.alice(), team.bob());
   let alices =
     crate::common::created(&team.intent_ok(&alice, &["wp", "new", thread, "Alice's package"]));
   team.commit(&alice, "Alice's package");
   team.git(&alice, &["push", "-q"]);
   let bobs = crate::common::created(&team.intent_ok(&bob, &["wp", "new", thread, "Bob's package"]));
-  assert_eq!(
-    bobs, alices,
-    "the two clones must mint one work package, or there is no collision to repair"
-  );
   bob_also(bobs.as_str());
   team.commit(&bob, "Bob's package");
   let pulled = team.git_with_path(&bob, &["pull", "-q", "--no-rebase"], &team.path());
-  (pulled, bobs)
+  (pulled, bobs, alices)
 }
 
-/// Issue 0555: **A WORK PACKAGE BOTH CLONES MINTED IS RENUMBERED, NOT A SIDE
-/// TO TAKE.** The collision reached the plan as a thread both sides changed,
-/// whose only offer was taking a side, which drops one person's package. The
-/// plan now reads the merge's three versions, sees two packages minted under
-/// one seq, and moves this clone's to the next free one.
+/// Issue 0555, and ST0095 WP-06: **TWO CLONES THAT EACH ADD A WORK PACKAGE TO
+/// ONE THREAD KEEP BOTH, WITH NO REPAIR AND NO MOVED CLAIM.** Each package's
+/// id is minted from its own creation event, so the two never share one. Git
+/// still sees a thread both sides changed, whose only offer used to be taking
+/// a side, which drops one person's package. The plan reads the merge's three
+/// versions, sees that adding packages is all either side did, and keeps both.
 #[test]
-fn a_work_package_both_clones_minted_is_renumbered() {
+fn two_clones_that_each_add_a_work_package_keep_both() {
   let (team, onboarding) = Team::new();
   let bob = team.bob();
-  // Bob's node claims his package, and the claim must follow it (vc's
-  // condition on the build: a claim names a package as `<thread>/<NN>`).
-  let (pulled, minted) = two_clones_mint_one_work_package(&team, &onboarding, |package| {
+  // Bob's node claims his package, and the claim must stay on it (vc's
+  // condition on the build: a claim names a package as `<thread>/<id>`).
+  let (pulled, bobs, alices) = two_clones_each_add_a_work_package(&team, &onboarding, |package| {
     team.intent_ok(
       &bob,
       &[
@@ -739,17 +746,13 @@ fn a_work_package_both_clones_minted_is_renumbered() {
     );
     team.intent_ok(&bob, &["wb", "claim", package, "--node", "bo"]);
   });
+  assert_ne!(bobs, alices, "two clones minted one package id");
   assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.said);
 
-  // Bob's package moves to the next free seq on the thread.
-  let moved = intentsvcs::id::wp_address(
-    &onboarding,
-    intentsvcs::id::WpId::from_ordinal(2).expect("a package id"),
-  );
   let plan = team.intent(&bob, &["sync"]);
   assert!(
     plan.said.contains(&format!(
-      "both sides minted work package {minted}: this clone's moves to {moved}"
+      "both sides added work packages to {onboarding}: every one is kept, staged"
     )),
     "{}",
     plan.said
@@ -759,13 +762,8 @@ fn a_work_package_both_clones_minted_is_renumbered() {
   team.intent_ok(&bob, &["sync", "--apply", "--yes"]);
   team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
   let listed = team.intent(&bob, &["wp", "list", onboarding.as_str()]);
-  for (seq, title) in [
-    (
-      crate::common::package_of(&minted).shown(),
-      "Alice's package",
-    ),
-    (crate::common::package_of(&moved).shown(), "Bob's package"),
-  ] {
+  for (address, title) in [(&alices, "Alice's package"), (&bobs, "Bob's package")] {
+    let seq = crate::common::package_of(address).shown();
     assert!(
       listed
         .said
@@ -782,8 +780,8 @@ fn a_work_package_both_clones_minted_is_renumbered() {
     .find(|l| l.trim_start().starts_with("claims"))
     .unwrap_or_else(|| panic!("no claims line: {}", shown.said));
   assert!(
-    claims.contains(&moved) && !claims.contains(&minted),
-    "Bob's claim did not follow his package: {claims}"
+    claims.contains(&bobs),
+    "Bob's claim did not stay on his package: {claims}"
   );
   let status = team.git(&bob, &["status", "--porcelain"]);
   assert!(
@@ -795,12 +793,12 @@ fn a_work_package_both_clones_minted_is_renumbered() {
 
 /// The control, and the limit the CHANGELOG states: **A THREAD WHOSE OTHER
 /// FIELDS MOVED TOO STILL TAKES A SIDE.** Bob retitled the thread as well as
-/// adding a package, so the thread is not only packages minted twice.
+/// adding a package, so the thread is not only packages both sides added.
 #[test]
 fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
   let (team, onboarding) = Team::new();
   let bob = team.bob();
-  let (pulled, _) = two_clones_mint_one_work_package(&team, &onboarding, |_| {
+  let (pulled, _, _) = two_clones_each_add_a_work_package(&team, &onboarding, |_| {
     team.intent_ok(
       &bob,
       &[
@@ -815,5 +813,60 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
 
   let plan = team.intent(&bob, &["sync"]);
   assert!(plan.said.contains("take a side"), "{}", plan.said);
-  assert!(!plan.said.contains("work package"), "{}", plan.said);
+  assert!(!plan.said.contains("keep packages"), "{}", plan.said);
+}
+
+/// ST0095 WP-06, AC-06.1: **TWO CLONES THAT EACH MINT A THREAD AND A WORK
+/// PACKAGE IN ONE SHARED THREAD FROM ONE BASE MERGE WITH DIFFERENT IDS AND NO
+/// REPAIR.** Nothing is renumbered and no side is taken: the plan keeps both
+/// sides' packages and regenerates the views, and every id either side minted
+/// is there after. (An issue each, the criterion's third record, also declares
+/// a row in `.intentfiles`, which leaves git with ST0096, so that half is
+/// proven once ST0096 lands.)
+#[test]
+fn two_clones_that_each_mint_merge_with_no_repair() {
+  let (team, onboarding) = Team::new();
+  let (alice, bob) = (team.alice(), team.bob());
+  let mint = |clone: &std::path::Path, who: &str| -> [String; 2] {
+    let st =
+      crate::common::created(&team.intent_ok(clone, &["st", "new", &format!("{who}'s thread")]));
+    let wp = crate::common::created(&team.intent_ok(
+      clone,
+      &[
+        "wp",
+        "new",
+        onboarding.as_str(),
+        &format!("{who}'s package"),
+      ],
+    ));
+    [st, wp]
+  };
+  let alices = mint(&alice, "Alice");
+  team.commit(&alice, "Alice's two");
+  team.git(&alice, &["push", "-q"]);
+  let bobs = mint(&bob, "Bob");
+  team.commit(&bob, "Bob's two");
+  team.git_with_path(&bob, &["pull", "-q", "--no-rebase"], &team.path());
+  for (a, b) in alices.iter().zip(&bobs) {
+    assert_ne!(a, b, "two clones minted one id");
+  }
+
+  let plan = team.intent(&bob, &["sync"]);
+  assert!(
+    !plan.said.contains("renumber") && !plan.said.contains("take a side"),
+    "a merge of minted ids plans no repair and takes no side: {}",
+    plan.said
+  );
+  team.intent_ok(&bob, &["sync", "--apply", "--yes"]);
+  team.git(&bob, &["commit", "-q", "--no-verify", "--no-edit"]);
+  let threads = team.intent(&bob, &["st", "list", "--status", "all"]).said;
+  let packages = team.intent(&bob, &["wp", "list", onboarding.as_str()]).said;
+  for [st, wp] in [&alices, &bobs] {
+    assert!(
+      threads.contains(&crate::common::shown(st)),
+      "{st} is gone: {threads}"
+    );
+    let package = crate::common::package_of(wp).shown();
+    assert!(packages.contains(&package), "{wp} is gone: {packages}");
+  }
 }

@@ -80,6 +80,7 @@ fn project() -> tempfile::TempDir {
     "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Search\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
   )
   .expect("write config");
+  crate::common::born_upgraded(dir.path());
   dir
 }
 

@@ -909,7 +909,7 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
 
   let issue: Value =
     serde_json::from_str(&fx.read(&fx.issue_canon_rel(issue(21)))).expect("plain JSON");
-  assert_eq!(issue["number"], 21);
+  assert_eq!(issue["id"], "0021");
 
   // JSONL: one self-describing object per line, no framing to reimplement.
   // **Read from the EXPORT rather than the tree (D53)**: the form is unchanged

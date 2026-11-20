@@ -33,11 +33,11 @@ use serde::{Deserialize, Serialize};
 use crate::id::{IssueId, ThreadId, WpId};
 
 /// The `schema` field value for thread canon files.
-pub const THREAD_SCHEMA: &str = "intent/thread@3.0";
+pub const THREAD_SCHEMA: &str = "intent/thread@4.0";
 /// The `schema` field value for issue canon files.
-pub const ISSUE_SCHEMA: &str = "intent/issue@3.0";
+pub const ISSUE_SCHEMA: &str = "intent/issue@4.0";
 /// The `schema` field value for the project-state canon file.
-pub const PROJECT_SCHEMA: &str = "intent/project@3.0";
+pub const PROJECT_SCHEMA: &str = "intent/project@4.0";
 
 /// The finest interval [`Thread::completed`] can distinguish, in hours.
 ///
@@ -91,10 +91,13 @@ pub struct ProjectState {
 }
 
 impl ProjectState {
-  /// The state a project starts with: schema stamped, nothing flushed.
-  pub fn new(todo_watermark: Option<String>) -> Self {
+  /// The state of a project in `format`, its cutoff `todo_watermark` (ST0095
+  /// WP-06: the schema IS the project's canon format).
+  pub fn new(todo_watermark: Option<String>, format: crate::canon_format::CanonFormat) -> Self {
     Self {
-      schema: PROJECT_SCHEMA.to_string(),
+      schema: format
+        .schema(crate::canon_format::CanonKind::Project)
+        .to_string(),
       todo_watermark,
     }
   }
@@ -156,6 +159,12 @@ pub struct Thread {
   // SDL, and a reader cannot look up a thread in our repository (D37).
   /// Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
   pub id: ThreadId,
+  // ST0095 WP-06: the record's provenance, from which a hashed id derives.
+  /// The id of the creation event a hashed id was minted from: the id is its
+  /// marker and the front of this one's SHA-256, so it is never stored twice.
+  /// Absent on an ordinal.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub origin: Option<String>,
   pub title: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub slug: Option<String>,
@@ -588,7 +597,9 @@ pub fn authored_section(text: &str) -> String {
   text.trim_matches('\n').to_string()
 }
 
-fn authored_section_from<'de, D: serde::Deserializer<'de>>(d: D) -> Result<String, D::Error> {
+pub(crate) fn authored_section_from<'de, D: serde::Deserializer<'de>>(
+  d: D,
+) -> Result<String, D::Error> {
   String::deserialize(d).map(|text| authored_section(&text))
 }
 
@@ -599,8 +610,17 @@ fn authored_section_from<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Strin
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct WorkPackage {
-  /// Unique within the thread, and rendered zero-padded as `WP-<seq>`.
+  // ST0095 WP-06: the canon key is `id`; the ordinal format (3.4.0's) calls it
+  // `seq`, through `crate::canon_format`.
+  /// The package's id within its thread: two digits for an ordinal, eg `01`,
+  /// or its hashed id.
+  #[serde(rename = "id")]
+  #[graphql(name = "id")]
   pub seq: WpId,
+  /// The id of the creation event a hashed id was minted from, as a thread's
+  /// origin is. Absent on an ordinal.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub origin: Option<String>,
   pub title: String,
   /// The size, absent only when [`scope_legacy`] carries a v2 value the enum
   /// cannot express.
@@ -1655,8 +1675,16 @@ impl AtStatus {
 pub struct Issue {
   /// Always [`ISSUE_SCHEMA`].
   pub schema: String,
-  /// Rendered zero-padded, eg `0021`.
+  // ST0095 WP-06: the canon key is `id`; the ordinal format (3.4.0's) calls it
+  // `number`, through `crate::canon_format`.
+  /// The issue's id: four digits for an ordinal, eg `0021`, or its hashed id.
+  #[serde(rename = "id")]
+  #[graphql(name = "id")]
   pub number: IssueId,
+  /// The id of the creation event a hashed id was minted from, as a thread's
+  /// origin is. Absent on an ordinal.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub origin: Option<String>,
   pub slug: String,
   pub title: String,
   pub status: IssueStatus,

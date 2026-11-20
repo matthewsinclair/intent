@@ -160,7 +160,7 @@ fn no_value_can_carry_a_line_break() {
 fn the_derivation_needs_no_renderer_and_no_terminal() {
   let l = loaded();
   let form = l.form("issue").expect("the issue form must be declared");
-  let out = triples(form, &json!({ "title": "a thing", "number": 157 }));
+  let out = triples(form, &json!({ "title": "a thing", "id": "0157" }));
   assert!(!out.is_empty());
   assert_eq!(
     out
@@ -172,8 +172,8 @@ fn the_derivation_needs_no_renderer_and_no_terminal() {
   assert_eq!(
     out
       .iter()
-      .find(|t| t.name == "number")
+      .find(|t| t.name == "id")
       .map(|t| t.value.as_str()),
-    Some("157")
+    Some("0157")
   );
 }

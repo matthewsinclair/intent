@@ -19,7 +19,18 @@ fn st_new_creates_canon_and_every_view() {
   let mut facade = fx.facade();
 
   let id = facade.st_new("Add a Rust-based CLI").expect("st new");
-  assert_eq!(id, "ST0001", "the first thread in an empty project");
+  // **THE ID IS THE CREATION EVENT'S, NOT A COUNT** (ST0095 WP-06): taken from
+  // the mint and checked against the origin the thread carries, never predicted.
+  let origin = facade
+    .st_show(&id)
+    .expect("show")
+    .origin
+    .clone()
+    .expect("a minted thread carries its origin");
+  assert!(
+    facade.st_show(&id).expect("show").id.derives_from(&origin),
+    "the new thread's id {id} is not the one its creation event mints"
+  );
 
   assert!(fx.canon_path(&id).is_file());
   assert!(fx.project().info_view(&id).is_file());
@@ -44,12 +55,29 @@ fn st_new_creates_canon_and_every_view() {
   assert_eq!(thread.slug.as_deref(), Some("add-a-rust-based-cli"));
 }
 
+/// **A NEW ID IS MINTED FROM ITS CREATION EVENT, WHATEVER IDS THE PROJECT
+/// HOLDS** (ST0095 WP-06). This was "ids continue from the highest existing
+/// thread": the arithmetic it pinned is retired, and the ordinal beside the new
+/// thread is left exactly as it was.
 #[test]
-fn ids_continue_from_the_highest_existing_thread() {
+fn a_new_thread_is_minted_from_its_creation_event_whatever_ids_exist() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  assert_eq!(facade.st_new("next").expect("st new"), "ST0057");
+  let id = facade.st_new("next").expect("st new");
+  let thread = facade.st_show(&id).expect("there");
+  let origin = thread
+    .origin
+    .as_deref()
+    .expect("a minted thread carries its origin");
+  assert!(
+    thread.id.derives_from(origin),
+    "the new thread's id {id} is not the one its creation event mints"
+  );
+  assert!(
+    facade.st_show("ST0056").is_ok(),
+    "the ordinal the project held is still there"
+  );
 }
 
 #[test]
@@ -82,22 +110,39 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
   );
 }
 
+/// Each new package's id is minted from its own creation event (ST0095 WP-06),
+/// so the two are told apart by the ids the mint returned, never by position.
 #[test]
-fn work_packages_number_from_one_and_move_through_their_states() {
+fn work_packages_are_minted_and_move_through_their_states() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
   let id = facade.st_new("a thread").expect("new");
 
   let first = facade.wp_new(&id, "first", TShirt::M).unwrap();
   let second = facade.wp_new(&id, "second", TShirt::L).unwrap();
-  assert_eq!(first, wp(1));
-  assert_eq!(second, wp(2));
+  assert_ne!(first, second, "two packages were given one id");
 
   facade.wp_start(&id, second).expect("start");
   let wps = facade.wp_list(&id).expect("list");
-  assert_eq!(wps[0].status, WpStatus::NotStarted);
-  assert_eq!(wps[1].status, WpStatus::Wip);
-  assert_eq!(wps[1].scope, Some(TShirt::L));
+  let listed = |seq| {
+    wps
+      .iter()
+      .find(|w| w.seq == seq)
+      .expect("the package is listed")
+  };
+  assert_eq!(listed(first).status, WpStatus::NotStarted);
+  assert_eq!(listed(second).status, WpStatus::Wip);
+  assert_eq!(listed(second).scope, Some(TShirt::L));
+  for package in wps {
+    let origin = package
+      .origin
+      .as_deref()
+      .expect("a minted package carries its origin");
+    assert!(
+      package.seq.derives_from(origin),
+      "a package's id is not its creation event's"
+    );
+  }
 }
 
 /// `st done` consults the close gate, and there is no path around it.
@@ -203,7 +248,9 @@ fn a_mid_write_failure_leaves_no_torn_state() {
     .expect("a legal mutation from wip");
 
   let canon_before = fx.read_canon("ST0056");
-  let info_before = fx.read("intent/st/ST0056/info.md");
+  // The cover's path from the project, never spelled by hand (ST0095 WP-06).
+  let info = fx.project().info_view("ST0056");
+  let info_before = std::fs::read_to_string(&info).expect("the cover");
   let index_before = fx.read("intent/st/steel_threads.md");
   let db_before = facade.store().derived_dump().expect("snapshot");
 
@@ -239,7 +286,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
     "the canon file is byte-identical -- the write landed and the batch unwound it"
   );
   assert_eq!(
-    fx.read("intent/st/ST0056/info.md"),
+    std::fs::read_to_string(&info).expect("the cover"),
     info_before,
     "the view that DID get written was restored, not left half-updated"
   );

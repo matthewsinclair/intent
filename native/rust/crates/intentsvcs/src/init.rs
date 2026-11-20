@@ -577,6 +577,22 @@ pub fn init_with_languages(
     written.push(view.path);
   }
 
+  // **A NEW PROJECT IS BORN IN THE RELEASE'S CANON FORMAT** (ST0095 WP-06).
+  // The format is the project state's schema, and a project without one is
+  // one `intent upgrade` has not moved, whose first mint refuses (hv decision
+  // 70). A new project has nothing to move, so it starts in the format that
+  // mints: recorded in the store, which every writer reads, and in
+  // `.canon/project.json`, which carries it to a clone.
+  let format = crate::canon_format::CanonFormat::CURRENT;
+  store
+    .set_project_state(&crate::model::ProjectState::new(None, format))
+    .map_err(InitError::Store)?;
+  let state_path = project.project_json();
+  let state = crate::canon_format::encode_project_state(None, format)
+    .map_err(|e| InitError::Io(state_path.clone(), std::io::Error::other(e)))?;
+  write(&state_path, &state)?;
+  written.push(state_path);
+
   // **THE `init` EVENT'S COMMITTED FILE** (ST0078 P1). Every event travels as
   // its own file under `.canon/events/`, and `init` is the first one a project
   // has, so a clone knows who created it. Written from what the store actually

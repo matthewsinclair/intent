@@ -735,7 +735,9 @@ fn the_shipped_criterion_carries_a_readable_declaration() {
     eprintln!("no ST0057 canon at {canon_path:?}; nothing to check");
     return;
   };
-  let thread: Thread = serde_json::from_str(&raw).expect("ST0057 canon parses");
+  let value: serde_json::Value = serde_json::from_str(&raw).expect("ST0057 canon is JSON");
+  let thread: Thread =
+    intentsvcs::ingest::decode_thread("ST0057", value).expect("ST0057 canon parses");
   let criterion: &Criterion = thread
     .criteria
     .iter()

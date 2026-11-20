@@ -170,9 +170,9 @@
           "editable": true
         },
         {
-          "name": "seq",
-          "label": "seq",
-          "widget": "number",
+          "name": "id",
+          "label": "id",
+          "widget": "text",
           "editable": false
         }
       ]
@@ -229,9 +229,9 @@
           "editable": false
         },
         {
-          "name": "number",
-          "label": "number",
-          "widget": "number",
+          "name": "id",
+          "label": "id",
+          "widget": "text",
           "editable": false
         }
       ]

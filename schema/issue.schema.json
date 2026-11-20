@@ -27,11 +27,16 @@
     "created": {
       "type": "string"
     },
-    "number": {
-      "description": "Rendered zero-padded, eg `0021`.",
-      "format": "uint32",
-      "minimum": 0,
-      "type": "integer"
+    "id": {
+      "description": "The issue's id: four digits for an ordinal, eg `0021`, or its hashed id.",
+      "type": "string"
+    },
+    "origin": {
+      "description": "The id of the creation event a hashed id was minted from, as a thread's\norigin is. Absent on an ordinal.",
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "reporter": {
       "description": "Who reported it, free text, exactly as recorded.",
@@ -63,7 +68,7 @@
   },
   "required": [
     "schema",
-    "number",
+    "id",
     "slug",
     "title",
     "status",
@@ -72,5 +77,5 @@
   "title": "Issue",
   "type": "object",
   "x-intent-ver": "3.4.0",
-  "x-schema-json-ver": 27
+  "x-schema-json-ver": 28
 }

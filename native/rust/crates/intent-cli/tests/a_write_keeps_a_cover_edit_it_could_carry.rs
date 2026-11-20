@@ -134,7 +134,10 @@ fn the_restore_names_the_cover_edit_it_carries() {
   assert!(!said.contains("overwrites nothing"), "{said}");
   assert!(
     said.contains("OVERWRITES")
-      && said.contains(&format!("{st}: intent/st/{st}/info.md carries an edit")),
+      && said.contains(&format!(
+        "{}: intent/st/{st}/info.md carries an edit",
+        crate::common::shown(&st)
+      )),
     "the carried edit is named: {said}"
   );
   let (_, shown) = intent(root, &["st", "show", st.as_str()]);

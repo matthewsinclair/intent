@@ -967,6 +967,27 @@ fn probe_matcher(ignore_file: &str) -> Option<ignore::gitignore::Gitignore> {
 /// The file is rewritten from its parsed form with only this key replaced, so
 /// an unknown key a project carries survives: `config.json` is the operator's
 /// file and the migration has no business pruning it.
+/// **THE CANON FORMAT MOVES TO THE RELEASE'S, LAST BEFORE THE STAMP** (ST0095
+/// WP-06, design "Upgrading a project"). The plan wrote every record in it, so
+/// this writes the one file whose schema says so, `project.json`, with the
+/// DONE cutoff the store holds, which the load just carried in from the file
+/// or a migration rung seeded, and records the same state in the store, which
+/// every writer reads. An upgrade stopped before it leaves the file naming
+/// 3.4.0's format, whose reader takes each record by its own schema, and the
+/// next upgrade writes it.
+fn move_the_canon_format(project: &Project, store: &Store) -> Result<(), FacadeError> {
+  let format = crate::canon_format::CanonFormat::CURRENT;
+  let watermark = store.todo_watermark()?;
+  let mut set = WriteSet::new();
+  set.add(
+    project.project_json(),
+    crate::canon_format::encode_project_state(watermark.clone(), format)?,
+  );
+  set.commit()?.keep();
+  store.set_project_state(&crate::model::ProjectState::new(watermark, format))?;
+  Ok(())
+}
+
 fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
   let path = Project::config_path(project.root());
   let text = std::fs::read_to_string(&path)?;
@@ -1447,12 +1468,24 @@ pub enum FacadeError {
   NoSuchThread { id: String },
   #[error("steel thread {id} already exists")]
   ThreadExists { id: String },
-  /// **THE ORDINAL FORM HAS A LAST ID, AND A MINT PAST IT IS REFUSED** (ST0095,
-  /// the Highlander sweep's C4). The mint used to format one past the width,
-  /// `ST10000`, which no reader takes for a thread, so every later `st new`
-  /// minted it again and hit [`Self::ThreadExists`].
-  #[error("no new {kind} id fits: {last} is the last one its form holds")]
-  IdsExhausted { kind: &'static str, last: String },
+  /// The one mint made no id (ST0095 WP-06).
+  #[error(transparent)]
+  Mint(#[from] crate::id::MintError),
+  /// **A MINT IN A PROJECT `intent upgrade` HAS NOT MOVED** (hv decision 70, in
+  /// the wording ic drafted and hv took, hv decision 71). Its canon is in 3.4.0's
+  /// format, which an older Intent still opens and which cannot carry the
+  /// git-style id a mint makes, so every mint refuses there and nothing else
+  /// does. `verb` is the command as the refusal names it, read off the mint's
+  /// own event op (`st.new` is `st new`), so no second list of commands exists.
+  #[error(
+    "`{verb}` refused, and nothing was written: this project's canon is in the ordinal format, \
+     which an older Intent still opens without reading a git-style id"
+  )]
+  NotYetUpgraded { verb: String },
+  /// A re-mint asked of a git-style id (ST0095 WP-06): such an id never
+  /// collides, so nothing ever moves one.
+  #[error("{id} is already a git-style id, which never collides, so there is nothing to re-mint")]
+  NothingToRemint { id: String },
   /// `wp` is the package as a message names it: its heading (`WpId::heading`),
   /// or, for a spelling that names no package, that spelling in its own words.
   #[error("{st} has no {wp}")]
@@ -2045,6 +2078,9 @@ pub enum FacadeError {
   /// config could not say where its contracts live.
   #[error(transparent)]
   Sync(#[from] crate::sync::SyncError),
+  /// A record the project's canon format cannot carry (ST0095 WP-06).
+  #[error(transparent)]
+  CanonFormat(#[from] crate::canon_format::CanonFormatError),
   /// The host's estate could not be read or written (ST0086).
   #[error(transparent)]
   Estate(#[from] crate::estate::EstateError),
@@ -3343,9 +3379,13 @@ impl crate::remedy::Remedy for FacadeError {
       Self::ThreadExists { id } => {
         format!("pick a different id, or work on the existing one with `intent st show {id}`")
       }
-      Self::IdsExhausted { .. } => "nothing was written: the ordinal form holds a fixed number of \
-         ids and this project has minted the last of its kind, so a new id needs the git-style \
-         form, which has no last one"
+      Self::Mint(cause) => cause.remedy(),
+      Self::NothingToRemint { .. } => "nothing was written. Only an ordinal two branches both \
+         minted needs a re-mint; a git-style id stays as it is"
+        .to_string(),
+      Self::NotYetUpgraded { .. } => "run `intent upgrade` once and commit what it prints. It \
+         changes no id, and an older Intent then refuses the project by name instead of \
+         misreading it, so upgrade Intent first on every machine that opens it"
         .to_string(),
       Self::NoSuchWorkPackage { st, .. } => contract::see_the_work_packages(st),
       Self::NoSuchCriterion { st, .. } => {
@@ -3652,6 +3692,7 @@ impl crate::remedy::Remedy for FacadeError {
       // endpoint; restating it here would be a second answer to one question.
       Self::Embed(cause) => cause.remedy(),
       Self::Sync(cause) => cause.remedy(),
+      Self::CanonFormat(cause) => cause.remedy(),
       Self::Estate(cause) => cause.remedy(),
       Self::Teams(cause) => cause.remedy(),
       Self::RosterReadme(cause) => cause.remedy(),
@@ -5348,6 +5389,7 @@ impl Facade {
           cause,
         }
       })?;
+      move_the_canon_format(project, &store)?;
       stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
         cause,
@@ -12210,26 +12252,39 @@ impl Facade {
     if !conflicts.unowned.is_empty() {
       steps.push(Step::unowned(conflicts.unowned.clone()));
     }
+    // **AN ORDINAL BOTH SIDES MINTED MOVES TO A GIT-STYLE ID** (ST0095 WP-06),
+    // which only a branch cut before the upgrade can bring, and only in a
+    // project the upgrade has moved: before it, the repair is a mint and
+    // refuses as every mint does.
+    if !conflicts.minted_twice.is_empty() {
+      self.refuse_before_the_upgrade("sync")?;
+    }
     let mut minted: Vec<String> = Vec::new();
     for (kind, from) in &conflicts.minted_twice {
-      let to = self.next_free_id(*kind, &minted)?;
+      let (origin, to) = self.remint_in_merge(*kind, from, &minted)?;
       minted.push(to.clone());
-      steps.push(Step::renumber(*kind, from.clone(), to));
+      steps.push(Step::renumber(*kind, from.clone(), to, origin));
     }
-    // **A WORK PACKAGE BOTH SIDES MINTED IS A THREAD BOTH SIDES CHANGED** to
-    // git, so it arrives here as a side to take; the three versions tell the
-    // two apart, and a renumber replaces the choice (issue 0555).
+    // **A THREAD BOTH SIDES ADDED WORK PACKAGES TO IS A THREAD BOTH SIDES
+    // CHANGED** to git, so it arrives here as a side to take; the three
+    // versions tell the two apart, and keeping both sides' packages replaces
+    // the choice (issue 0555, ST0095 WP-06).
     let mut sides = Vec::new();
     for path in std::mem::take(&mut conflicts.take_sides) {
-      match self.work_packages_minted_twice_at(&path)? {
+      match self.packages_both_sides_added_at(&path)? {
         Some((id, found)) => {
-          for (from, to) in found.moves {
-            steps.push(Step::renumber(
-              crate::plan::Minted::WorkPackage,
-              crate::id::wp_address(&id, from),
-              crate::id::wp_address(&id, to),
-            ));
-          }
+          conflicts.packages_kept.push(path.clone());
+          let moves = found
+            .moves
+            .iter()
+            .map(|(from, to, _)| {
+              (
+                crate::id::wp_address(&id, *from),
+                crate::id::wp_address(&id, *to),
+              )
+            })
+            .collect();
+          steps.push(Step::keep_packages(id, moves));
         }
         None => sides.push(path),
       }
@@ -12344,29 +12399,25 @@ impl Facade {
     })
   }
 
-  /// Why [`Facade::next_free_id`] mints no work package seq: its new seq comes
-  /// from the merge's own three versions (issue 0555), which the tree cannot
-  /// answer for, and the plan asks them itself.
-  fn no_minted_work_package() -> FacadeError {
-    FacadeError::SyncDiskStep {
-      step: "mint a work package's seq".to_string(),
-      source: std::io::Error::other(
-        "a work package both sides minted takes its seq from the merge's versions, not from the tree",
-      ),
-    }
-  }
-
-  /// The next id free in the store AND the tree, past every one in `taken`.
+  /// The git-style id a thread or an issue both sides minted moves to in a
+  /// merge, and the creation event it derives from (ST0095 WP-06).
+  ///
+  /// **THE ONE MINT, SEEDED WITH THE RECORD'S OWN CREATION EVENT**, which this
+  /// clone's log holds for a record this clone made: mid-merge the store holds
+  /// this side's estate and not the pulled one. So the plan and its apply derive
+  /// one id, and a plan a person read is the one that runs. Where the log holds
+  /// no creation event, the mint draws one, and the move records it.
   ///
   /// **THE TREE IS ASKED AS WELL AS THE STORE** (ic, measured building P2):
   /// mid-merge the tree holds the pulled side's canon and directories, which the
-  /// store has not loaded, and an id only the store calls free is one the
-  /// renumber would then refuse as taken.
-  fn next_free_id(
+  /// store has not loaded, so their short forms are kept apart too. `taken` is
+  /// what this plan has already moved records to.
+  fn remint_in_merge(
     &self,
     kind: crate::plan::Minted,
+    from: &str,
     taken: &[String],
-  ) -> Result<String, FacadeError> {
+  ) -> Result<(String, String), FacadeError> {
     use crate::plan::Minted;
     let names = |dir: std::path::PathBuf| -> Result<Vec<String>, FacadeError> {
       match std::fs::read_dir(&dir) {
@@ -12384,71 +12435,89 @@ impl Facade {
       }
     };
     let stem = |name: &str| name.split('.').next().unwrap_or_default().to_string();
+    let seen = |dirs: [std::path::PathBuf; 2]| -> Result<Vec<String>, FacadeError> {
+      let mut seen = Vec::new();
+      for dir in dirs {
+        seen.extend(names(dir)?.iter().map(|name| stem(name)));
+      }
+      seen.extend(taken.iter().cloned());
+      Ok(seen)
+    };
     match kind {
-      Minted::WorkPackage => Err(Self::no_minted_work_package()),
       Minted::Thread => {
-        let mut seen: Vec<crate::id::ThreadId> =
+        let mut visible: Vec<crate::id::ThreadId> =
           self.canon.threads.iter().map(|t| t.id.clone()).collect();
-        for name in [
-          names(self.project.canon_st_dir())?,
-          names(self.project.st_dir())?,
-        ]
-        .concat()
-        {
-          seen.extend(crate::id::ThreadId::parse(&stem(&name)).ok());
-        }
-        seen.extend(
-          taken
+        let tree = seen([self.project.canon_st_dir(), self.project.st_dir()])?;
+        visible.extend(
+          tree
             .iter()
             .filter_map(|id| crate::id::ThreadId::parse(id).ok()),
         );
-        Self::next_thread_after(seen.iter()).map(|id| id.stored())
+        let mut draw = self.creation_draw("st.new", from)?;
+        let (origin, id) = crate::id::mint(&visible, &mut draw)?;
+        Ok((origin, id.stored()))
       }
       Minted::Issue => {
-        let mut seen: Vec<crate::id::IssueId> =
+        let mut visible: Vec<crate::id::IssueId> =
           self.canon.issues.iter().map(|i| i.number).collect();
-        for name in [
-          names(self.project.issues_dir())?,
-          names(self.project.issues_view_dir())?,
-        ]
-        .concat()
-        {
-          seen.extend(crate::id::IssueId::parse(&stem(&name)).ok());
-        }
-        seen.extend(
-          taken
+        let tree = seen([self.project.issues_dir(), self.project.issues_view_dir()])?;
+        visible.extend(
+          tree
             .iter()
             .filter_map(|id| crate::id::IssueId::parse(id).ok()),
         );
-        Self::next_issue_after(&seen).map(|id| id.stored())
+        let mut draw = self.creation_draw("issues.add", from)?;
+        let (origin, id) = crate::id::mint(&visible, &mut draw)?;
+        Ok((origin, id.stored()))
       }
     }
   }
 
-  /// The thread id after every one in `taken`, through the waist's one ordinal
-  /// mint, or [`FacadeError::IdsExhausted`] past the form's last.
-  fn next_thread_after<'a>(
-    taken: impl Iterator<Item = &'a crate::id::ThreadId> + Clone,
-  ) -> Result<crate::id::ThreadId, FacadeError> {
-    crate::id::ThreadId::next_after(taken.clone()).map_err(|_| FacadeError::IdsExhausted {
-      kind: "steel thread",
-      last: taken
-        .max()
-        .map(crate::id::ThreadId::shown)
-        .unwrap_or_default(),
-    })
+  /// The id of the event that created THIS CLONE'S `subject` by `op`, if its
+  /// log holds one.
+  ///
+  /// **MID-MERGE, THE ONE THIS SIDE COMMITTED.** An ordinal both sides minted
+  /// has two creation events, one per side, and the merge's quiet events step
+  /// may already have taken the pulled one into this store. So a creation event
+  /// is this clone's only when its committed file is in `HEAD`'s tree, which is
+  /// this side, whatever the store has taken since. Outside a merge there is
+  /// one, and it is the first the log holds.
+  fn creation_origin(&self, op: &str, subject: &str) -> Result<Option<String>, FacadeError> {
+    let root = self.project.root();
+    let merging = crate::gitstate::merging(root);
+    let created = self
+      .store
+      .events()
+      .map_err(FacadeError::Store)?
+      .into_iter()
+      .filter(|e| e.op == op && e.subject.id == subject);
+    for event in created {
+      if !merging {
+        return Ok(Some(event.id));
+      }
+      let path = self
+        .project
+        .event_file(&event)
+        .map_err(|cause| FacadeError::SyncDiskStep {
+          step: format!("find the committed file of event {}", event.id),
+          source: std::io::Error::other(cause),
+        })?;
+      if crate::gitstate::blob(root, "HEAD", &self.project.relative(&path))?.is_some() {
+        return Ok(Some(event.id));
+      }
+    }
+    Ok(None)
   }
 
-  /// The issue id after every one in `taken`, as [`Self::next_thread_after`].
-  fn next_issue_after(taken: &[crate::id::IssueId]) -> Result<crate::id::IssueId, FacadeError> {
-    crate::id::IssueId::next_after(taken.iter().copied()).map_err(|_| FacadeError::IdsExhausted {
-      kind: "issue",
-      last: taken
-        .iter()
-        .max()
-        .map(crate::id::IssueId::shown)
-        .unwrap_or_default(),
-    })
+  /// The draws a re-mint is handed: the record's own creation event first,
+  /// where this clone's log holds it, then the crate's minter.
+  fn creation_draw(
+    &self,
+    op: &str,
+    subject: &str,
+  ) -> Result<impl FnMut() -> String + use<>, FacadeError> {
+    let mut logged = self.creation_origin(op, subject)?;
+    Ok(move || logged.take().unwrap_or_else(crate::event::next_id))
   }
 
   /// `intent sync --apply`: the plan, applied (ST0078 WP-05, AC-05.1 to 05.4).
@@ -12544,7 +12613,16 @@ impl Facade {
           continue;
         }
         (Action::TakeSide { path }, Decision::Take(side)) => self.take_side(path, side)?,
-        (Action::Renumber { minted, from, to }, _) => self.renumber_in_merge(*minted, from, to)?,
+        (
+          Action::Renumber {
+            minted,
+            from,
+            to,
+            origin,
+          },
+          _,
+        ) => self.renumber_in_merge(*minted, from, to, origin)?,
+        (Action::KeepPackages { thread, .. }, _) => self.keep_packages_in_merge(thread)?,
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
           let boards = self.carry_pulled_boards()?;
@@ -12693,14 +12771,21 @@ impl Facade {
     Ok((written, unrendered))
   }
 
-  /// Whether the thread canon file at `path`, which both sides changed, is a
-  /// work package both sides minted, read from the merge's three versions:
-  /// `:1` the base, `:2` this clone's, `:3` the pulled one (issue 0555). `None`
-  /// for any other path, or when a version is missing or is not a thread.
-  fn work_packages_minted_twice_at(
+  /// The thread at a canon path both sides changed, when what both did was
+  /// add work packages to it (issue 0555, ST0095 WP-06): its id and the union
+  /// the merge keeps, from the merge's three versions, `:1` the base, `:2` this
+  /// clone's and `:3` the pulled one, each read by its own schema. `None` for
+  /// any other path, or when a version is missing or is not a thread.
+  ///
+  /// **AN ORDINAL BOTH SIDES ADDED MOVES TO A GIT-STYLE ID DERIVED FROM ITS
+  /// OWN CREATION EVENT**, which this clone's log holds for a package this
+  /// clone added, so the plan and its apply agree. Where the log holds none,
+  /// nothing names the event its id would derive from, and the thread is left
+  /// to a person, as any other change is.
+  fn packages_both_sides_added_at(
     &self,
     path: &str,
-  ) -> Result<Option<(String, crate::plan::WorkPackagesMintedTwice)>, FacadeError> {
+  ) -> Result<Option<(String, crate::plan::PackagesBothSidesAdded)>, FacadeError> {
     let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
     let Some(id) = path
       .strip_prefix(&canon_st)
@@ -12715,53 +12800,75 @@ impl Facade {
       let Some(bytes) = crate::gitstate::blob(root, stage, path)? else {
         return Ok(None);
       };
-      let Ok(thread) = serde_json::from_slice::<Thread>(&bytes) else {
+      let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
+        return Ok(None);
+      };
+      let Ok(thread) = crate::ingest::decode_thread(path, value) else {
         return Ok(None);
       };
       versions.push(thread);
     }
-    Ok(
-      crate::plan::work_packages_minted_twice(&versions[0], &versions[1], &versions[2])
-        .map(|found| (id.to_string(), found)),
-    )
+    let mut refused = None;
+    let found = crate::plan::packages_both_sides_added(
+      &versions[0],
+      &versions[1],
+      &versions[2],
+      |seq, taken| {
+        if let Err(before) = self.refuse_before_the_upgrade("sync") {
+          refused = Some(before);
+          return None;
+        }
+        let logged = match self.creation_origin("wp.new", &crate::id::wp_address(id, seq)) {
+          Ok(logged) => logged?,
+          Err(e) => {
+            refused = Some(e);
+            return None;
+          }
+        };
+        let mut draws =
+          std::iter::once(logged).chain(std::iter::repeat_with(crate::event::next_id));
+        match crate::id::mint(taken, || draws.next().unwrap_or_else(crate::event::next_id)) {
+          Ok(minted) => Some(minted),
+          Err(e) => {
+            refused = Some(e.into());
+            None
+          }
+        }
+      },
+    );
+    if let Some(e) = refused {
+      return Err(e);
+    }
+    Ok(found.map(|found| (id.to_string(), found)))
   }
 
-  /// Renumber this clone's work package `from` to `to`, mid-merge (issue 0555):
-  /// the thread lands as the pulled side's with this clone's added packages on
-  /// it, the colliding ones moved, and this clone's claims on them follow.
-  ///
-  /// **ONE PASS MOVES EVERY COLLIDING PACKAGE OF THE THREAD**, because the
-  /// merged thread is one record; a later step for the same thread finds its
-  /// canon file resolved and says so.
-  fn renumber_work_package_in_merge(
-    &mut self,
-    from: &str,
-    to: &str,
-  ) -> Result<String, FacadeError> {
+  /// Keep every work package both sides added to `thread`, in the middle of the
+  /// merge (issue 0555, ST0095 WP-06): the union is written as this clone's
+  /// thread, an ordinal both sides added moves to its git-style id, a claim on
+  /// a moved package moves with it, and every path touched is staged.
+  fn keep_packages_in_merge(&mut self, thread: &str) -> Result<String, FacadeError> {
     let root = self.project.root().to_path_buf();
-    let Some((id, _)) = crate::id::split_wp_address(from) else {
-      return Err(FacadeError::NoSuchThread {
-        id: from.to_string(),
-      });
-    };
-    let id = id.to_string();
+    let id = thread.to_string();
     let path = self.project.relative(&self.project.thread_json(&id));
     if !crate::gitstate::unmerged(&root)?
       .iter()
       .any(|u| u.path == path)
     {
-      return Ok(format!(
-        "work package {from}: moved to {to} with the others of {id}"
-      ));
+      return Ok(format!("the work packages of {id} are already kept"));
     }
-    let Some((_, found)) = self.work_packages_minted_twice_at(&path)? else {
+    let Some((_, found)) = self.packages_both_sides_added_at(&path)? else {
       return Err(FacadeError::SyncDiskStep {
-        step: format!("renumber work package {from}"),
+        step: format!("keep the work packages both sides added to {id}"),
         source: std::io::Error::other(
-          "the merge no longer shows both sides minting it -- run `intent sync` again for a fresh plan",
+          "the merge no longer shows both sides only adding work packages to it -- run `intent sync` again for a fresh plan",
         ),
       });
     };
+    let pairs: Vec<(crate::id::WpId, crate::id::WpId)> = found
+      .moves
+      .iter()
+      .map(|(from, to, _)| (*from, *to))
+      .collect();
     // The act's event file is this renumber's to stage, like the canon file;
     // it is the one the write adds under the events directory.
     let events_before = Project::files_in(&self.project.events_dir());
@@ -12770,9 +12877,8 @@ impl Facade {
       Some(thread) => *thread = found.merged.clone(),
       None => return Err(FacadeError::NoSuchThread { id }),
     }
-    let (claims, _) = crate::renumber::work_package_claims(&self.canon.boards, &id, &found.moves);
-    let moves: Vec<String> = found
-      .moves
+    let (claims, _) = crate::renumber::work_package_claims(&self.canon.boards, &id, &pairs);
+    let moves: Vec<String> = pairs
       .iter()
       .map(|(f, t)| {
         format!(
@@ -12782,13 +12888,24 @@ impl Facade {
         )
       })
       .collect();
+    // **A MOVE IS A RENUMBER IN THE LOG, AND A UNION THAT MOVES NOTHING IS A
+    // WRITE OF THE WHOLE THREAD BY THE MERGE**, so the log says which happened.
+    let (op, kind, payload) = if moves.is_empty() {
+      ("thread.put", "thread", json!({ "via": "merge" }))
+    } else {
+      (
+        "wp.renumber",
+        "wp",
+        json!({ "moves": moves, "mid_merge": true }),
+      )
+    };
     let applied = self.apply(
-      "wp.renumber",
+      op,
       Subject {
-        kind: "wp".to_string(),
+        kind: kind.to_string(),
         id: id.clone(),
       },
-      json!({ "moves": moves, "mid_merge": true }),
+      payload,
       next,
     )?;
     let mut notes = Outcome::Moved.with_overwrites(applied).notes().to_vec();
@@ -12824,17 +12941,21 @@ impl Facade {
         }
       }
     }
-    for (_, seq) in &found.moves {
+    for (_, seq) in &pairs {
       let dir = self.project.wp_dir(&id, *seq);
       for file in Project::files_in(&dir) {
         staged.push(self.project.relative(&dir.join(file)));
       }
     }
     crate::gitstate::stage(&root, &staged)?;
-    Ok(format!(
-      "work package(s) of {id} both sides minted: this clone's moved ({}), the pulled side's kept theirs, staged",
-      moves.join(", ")
-    ))
+    Ok(if moves.is_empty() {
+      format!("the work packages both sides added to {id}: every one kept, staged")
+    } else {
+      format!(
+        "the work packages both sides added to {id}: every one kept, this clone's moved ({}), staged",
+        moves.join(", ")
+      )
+    })
   }
 
   /// Renumber an id both sides minted, in the middle of the merge (AC-05.2).
@@ -12852,6 +12973,7 @@ impl Facade {
     minted: crate::plan::Minted,
     from: &str,
     to: &str,
+    origin: &str,
   ) -> Result<String, FacadeError> {
     use crate::plan::Minted;
     let root = self.project.root().to_path_buf();
@@ -12860,12 +12982,27 @@ impl Facade {
         id: from.to_string(),
       });
     }
+    // **THE MOVE IS A MINT** (ST0095 WP-06): `to` is the git-style id `origin`
+    // derives, which the plan drew, and a project the upgrade has not moved
+    // refuses it as every mint is refused there.
+    self.refuse_before_the_upgrade("sync")?;
+    let derives = match minted {
+      Minted::Thread => crate::id::ThreadId::parse(to).is_ok_and(|id| id.derives_from(origin)),
+      Minted::Issue => crate::id::IssueId::parse(to).is_ok_and(|id| id.derives_from(origin)),
+    };
+    if !derives {
+      return Err(FacadeError::SyncDiskStep {
+        step: format!("move {from} to {to}"),
+        source: std::io::Error::other(format!(
+          "{to} is not the id {origin} mints -- run `intent sync` again for a fresh plan"
+        )),
+      });
+    }
     // A clone, so the closure holds no borrow of `self` across the write.
     let project = self.project.clone();
     let rel = |p: std::path::PathBuf| project.relative(&p);
     // The old id's paths, and where this clone's files under each go.
-    let (prefixes, sigil, model) = match minted {
-      Minted::WorkPackage => return self.renumber_work_package_in_merge(from, to),
+    let (prefixes, sigil, mut model) = match minted {
       Minted::Thread => {
         let model = crate::id::ThreadId::parse(from)
           .ok()
@@ -12978,25 +13115,40 @@ impl Facade {
       staged.push(target);
     }
 
-    let envelope = Envelope::minted(
-      &self.ctx.principal,
-      &self.ctx.project_id,
-      match minted {
-        Minted::Thread => "st.renumber",
-        Minted::Issue => "issues.renumber",
-        Minted::WorkPackage => "wp.renumber",
-      },
-      Subject {
-        kind: match minted {
-          Minted::Thread => "thread",
-          Minted::Issue => "issue",
-          Minted::WorkPackage => "wp",
+    // **THE MOVED RECORD CARRIES ITS ORIGIN, AND THE ORIGIN NAMES AN EVENT.**
+    // Where the log holds the record's creation event, that is the origin and
+    // the move is an event of its own; where it does not, the move's own event
+    // takes the drawn id, so the new id derives from the event that made it.
+    match minted {
+      Minted::Thread => {
+        if let Some(moved) = model.canon.threads.iter_mut().find(|t| t.id.as_str() == to) {
+          moved.origin = Some(origin.to_string());
         }
-        .to_string(),
+      }
+      Minted::Issue => {
+        if let Some(moved) = model
+          .canon
+          .issues
+          .iter_mut()
+          .find(|i| i.number.stored() == to)
+        {
+          moved.origin = Some(origin.to_string());
+        }
+      }
+    }
+    let (op, kind) = match minted {
+      Minted::Thread => ("st.renumber", "thread"),
+      Minted::Issue => ("issues.renumber", "issue"),
+    };
+    let envelope = self.move_event(
+      Some(origin),
+      op,
+      Subject {
+        kind: kind.to_string(),
         id: to.to_string(),
       },
       json!({ "from": from, "to": to, "mid_merge": true }),
-    );
+    )?;
     let renumbering = self.land_renumber(RenumberPlan {
       from: from.to_string(),
       to: to.to_string(),
@@ -13814,6 +13966,7 @@ impl Facade {
     let bundle = export::Bundle::new(&self.ctx.project_id, threads, issues, events)
       .with_project_state(crate::model::ProjectState::new(
         self.store.todo_watermark().map_err(FacadeError::Store)?,
+        self.canon_format()?,
       ));
     let projected =
       export::project(&bundle, format.unwrap_or(export::DEFAULT_FORMAT)).map_err(|refusal| {
@@ -13885,6 +14038,17 @@ impl Facade {
     views::owning_thread(&self.project, path, canon)
   }
 
+  /// The project's canon format (ST0095 WP-06), **READ FROM THE STORE, NOT
+  /// FROM THE FILE**: the store holds it as it holds the DONE cutoff, carried
+  /// in from `project.json` by every load. So a canon recreated from the store
+  /// recreates `project.json`, and a deleted one does not turn an upgraded
+  /// project back into 3.4.0's format.
+  fn canon_format(&self) -> Result<crate::canon_format::CanonFormat, FacadeError> {
+    let schema = self.store.canon_schema().map_err(FacadeError::Store)?;
+    crate::canon_format::CanonFormat::of_project(schema.as_deref())
+      .map_err(FacadeError::CanonFormat)
+  }
+
   /// Every file the model projects onto disk, as one batch.
   ///
   /// THE ONE PLACE THE db -> disk DIRECTION IS EXPRESSED. `apply` and both
@@ -13901,13 +14065,15 @@ impl Facade {
   ) -> Result<Projection, FacadeError> {
     let mut set = WriteSet::new();
     let mut canon_files: Vec<(std::path::PathBuf, String)> = Vec::new();
+    // **THE PROJECT'S FORMAT, READ ONCE, CHOOSES EVERY LAYOUT BELOW** (ST0095
+    // WP-06, hv decision 70). A project `intent upgrade` has not moved is
+    // written exactly as 3.4.0 writes it, so nothing is rewritten behind the
+    // user's back and a machine still on 3.4.0 keeps working beside this one.
+    let format = self.canon_format()?;
     for thread in threads {
       let path = self.project.thread_json(&thread.id);
       canon_files.push((path.clone(), thread.id.shown()));
-      set.add(
-        path,
-        to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-      );
+      set.add(path, crate::canon_format::encode_thread(thread, format)?);
       // **THE BYTES THE CANON FILE NAMES LAND BESIDE IT (0084).** Canon names an
       // opaque attachment by hash and size and keeps its bytes in a sidecar;
       // without this write the next read of canon found the name and not the
@@ -13919,10 +14085,7 @@ impl Facade {
     for issue in issues {
       let path = self.project.issue_json(issue.number);
       canon_files.push((path.clone(), format!("issue {}", issue.number.shown())));
-      set.add(
-        path,
-        to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-      );
+      set.add(path, crate::canon_format::encode_issue(issue, format)?);
     }
     // **ONE BOARD FILE PER NODE, AND NOT NARROWED BY A THREAD SCOPE**, for the
     // reason project state is not: a board is not a thread, so a thread scope
@@ -13967,13 +14130,18 @@ impl Facade {
     // that never committed it leave it untracked -- the post-checkout hook did
     // so on every switch -- and the next merge then refused over it. So it is
     // written when there is a cutoff to record, or when it is already there.
+    // **ITS SCHEMA IS THE PROJECT'S FORMAT, AND IN THE RELEASE'S FORMAT IT IS
+    // ALWAYS WRITTEN** (ST0095 WP-06): the file's schema is what makes an older
+    // Intent refuse the project by name, so a project in that format always has
+    // it, and an egest or a deleted file gets it back from the store's copy. A
+    // project in 3.4.0's format has it only for a cutoff, as before. Only
+    // `intent upgrade` and `intent init` move the format.
     let watermark = self.store.todo_watermark().map_err(FacadeError::Store)?;
     let project_json = self.project.project_json();
-    if watermark.is_some() || project_json.exists() {
+    if format.always_has_project_file() || watermark.is_some() || project_json.exists() {
       set.add(
         project_json,
-        to_canonical_json(&crate::model::ProjectState::new(watermark))
-          .map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+        crate::canon_format::encode_project_state(watermark, format)?,
       );
     }
     // **VIEWS IF MARKED, AND CANON REGARDLESS** (AC-08.1). The canon writes
@@ -14838,10 +15006,36 @@ impl Facade {
     Self::doctor_with(project, ctx, store, scope, crate::doctor::Access::Open)
   }
 
+  /// `doctor --read-only` (issue 0717): the store this run did not open,
+  /// because opening it would make or migrate it, or the report judged with
+  /// every check that reads the store reading it as it stands. The one entry a
+  /// read-only run asks, so a caller restates none of the policy: it asks the
+  /// stop, it opens no engine, and it chooses no access.
+  ///
+  /// **A STORE THAT EXISTS AND WILL NOT OPEN EVEN READ-ONLY IS NO STOP.** The
+  /// checks open it again and report it unreadable, as a run without the flag
+  /// does (issue 0455), where a stop would exit 2 and fail the commit gate open.
+  pub fn doctor_read_only(
+    project: &Project,
+    ctx: &FacadeContext,
+    scope: crate::doctor::Scope,
+  ) -> Result<crate::doctor::Report, crate::doctor::StoreUnopened> {
+    if let Ok(Some(stop)) = crate::doctor::read_only_stop(project) {
+      return Err(stop);
+    }
+    Ok(Self::doctor_with(
+      project,
+      ctx,
+      None,
+      scope,
+      crate::doctor::Access::ReadOnly,
+    ))
+  }
+
   /// [`Facade::doctor`], with the checks that read the project's store opening
-  /// it as `access` says: `doctor --read-only` passes
+  /// it as `access` says: [`Facade::doctor_read_only`] passes
   /// [`crate::doctor::Access::ReadOnly`] (issue 0717).
-  pub fn doctor_with(
+  fn doctor_with(
     project: &Project,
     ctx: &FacadeContext,
     store: Option<&crate::store::Store>,
@@ -15201,21 +15395,17 @@ impl Facade {
     title: &str,
     list: ListEdit,
   ) -> Result<(String, Vec<Note>), FacadeError> {
-    // **THE PRE-CHECK THAT USED TO BE HERE COULD NOT FIRE, AND IT IS GONE**
-    // (issue 0131). It asked whether `self.canon` already held the id that
-    // `next_thread_id()` had just computed as `max() + 1` over that same canon
-    // -- false by construction, on every call, for the whole life of the verb.
-    // `error_remedies.rs` had already recorded the symptom without the cause,
-    // exempting `ThreadExists` from its drive as "needs a colliding id, which
-    // `st new` allocates around".
-    //
-    // The condition it was reaching for is real and it is what the ruling is
-    // about: a SECOND facade, opened before this one wrote, computes the same
-    // id. No check against an in-memory canon can see that, because the canon
-    // is the stale read. `ThreadExists` is now raised where the collision is
-    // actually detectable -- by the UNIQUE constraint, inside the transaction
-    // -- and is reachable for the first time.
-    let id = self.next_thread_id()?;
+    // **THE ID COMES FROM THE CREATION EVENT, MINTED FIRST** (ST0095 WP-06):
+    // the one mint draws the event's id and derives the thread's from it, so no
+    // two mints read anything the other writes and none can compute another's
+    // id. `ThreadExists` stays where a collision is detectable, the UNIQUE
+    // constraint inside the transaction (issue 0131), which at sixty-four bits
+    // a mint never reaches.
+    let op = "st.new";
+    self.refuse_a_mint_before_the_upgrade(op)?;
+    let visible: Vec<crate::id::ThreadId> =
+      self.canon.threads.iter().map(|t| t.id.clone()).collect();
+    let (origin, id) = crate::id::mint(&visible, crate::event::next_id)?;
     let thread = Thread {
       // A thread created here has no files beside it yet; the walk that finds
       // them runs at ingest, not at creation.
@@ -15228,6 +15418,7 @@ impl Facade {
       preamble: String::new(),
       schema: crate::model::THREAD_SCHEMA.to_string(),
       id: id.clone(),
+      origin: Some(origin.clone()),
       title: title.to_string(),
       slug: Some(slugify(title)),
       status: ThreadStatus::Triage,
@@ -15251,16 +15442,18 @@ impl Facade {
     };
     let mut next = self.canon.clone();
     next.threads.push(thread);
-    let foreign = self.apply(
-      "st.new",
+    let created = self.creation_event(
+      origin,
+      op,
       Subject {
         kind: "thread".to_string(),
         id: id.stored(),
       },
       json!({"title": title}),
-      next,
-    )?;
-    self.edit_list("st.new", &id, list)?;
+    );
+    let foreign =
+      self.apply_envelopes(&[created], next, crate::store::ProjectStateEdit::Unchanged)?;
+    self.edit_list(op, &id, list)?;
     // The same fold every transition uses, so a create cannot report its
     // overwrites in a second spelling.
     let notes = Outcome::Moved.with_overwrites(foreign).notes().to_vec();
@@ -15513,6 +15706,38 @@ impl Facade {
   /// directory the store does not know is most often a pull not yet loaded,
   /// and renumbering onto it would put two threads in one place.
   pub fn st_renumber(&mut self, old: &str, new: &str) -> Result<Renumbering, FacadeError> {
+    self.st_move(old, new, None)
+  }
+
+  /// **THE RE-MINT OF ONE ORDINAL THREAD** (ST0095 WP-06): it moves to the
+  /// git-style id the one mint derives from its own creation event, where this
+  /// clone's log holds it, or from one drawn for the move, which the move's
+  /// event then carries. The door (`st remint`, ic's) parses the spelling, so
+  /// a malformed one is refused there by the waist's one refusal; this refuses
+  /// before the upgrade, a git-style id, which nothing ever moves, and a thread
+  /// the project does not hold.
+  pub fn st_remint(&mut self, id: &crate::id::ThreadId) -> Result<Renumbering, FacadeError> {
+    self.refuse_before_the_upgrade("st remint")?;
+    if id.is_hashed() {
+      return Err(FacadeError::NothingToRemint { id: id.shown() });
+    }
+    self.st_show(id)?;
+    let visible: Vec<crate::id::ThreadId> =
+      self.canon.threads.iter().map(|t| t.id.clone()).collect();
+    let mut draw = self.creation_draw("st.new", id)?;
+    let (origin, new) = crate::id::mint(&visible, &mut draw)?;
+    self.st_move(id, &new.stored(), Some(&origin))
+  }
+
+  /// The one move of a thread to another id, behind `st renumber` and the
+  /// re-mint. `origin` is the creation event a re-minted id derives from,
+  /// which the moved record then carries.
+  fn st_move(
+    &mut self,
+    old: &str,
+    new: &str,
+    origin: Option<&str>,
+  ) -> Result<Renumbering, FacadeError> {
     self.st_show(old)?;
     let subject = format!("steel thread {new}");
     if self.canon.threads.iter().any(|t| t.id == new) {
@@ -15533,22 +15758,30 @@ impl Facade {
     let new_id = crate::id::ThreadId::parse(new).map_err(|_| FacadeError::NoSuchThread {
       id: new.to_string(),
     })?;
-    let model = crate::renumber::thread(&self.canon, &old_id, &new_id).ok_or_else(|| {
+    let mut model = crate::renumber::thread(&self.canon, &old_id, &new_id).ok_or_else(|| {
       FacadeError::NoSuchThread {
         id: old.to_string(),
       }
     })?;
+    if let Some(origin) = origin
+      && let Some(moved) = model
+        .canon
+        .threads
+        .iter_mut()
+        .find(|t| t.id.as_str() == new)
+    {
+      moved.origin = Some(origin.to_string());
+    }
     let foreign = self.foreign_under(&self.project.thread_dir(old))?;
-    let envelope = Envelope::minted(
-      &self.ctx.principal,
-      &self.ctx.project_id,
+    let envelope = self.move_event(
+      origin,
       "st.renumber",
       Subject {
         kind: "thread".to_string(),
         id: new.to_string(),
       },
       json!({ "from": old, "to": new }),
-    );
+    )?;
     self.land_renumber(RenumberPlan {
       from: old.to_string(),
       to: new.to_string(),
@@ -15577,6 +15810,31 @@ impl Facade {
     old: crate::id::IssueId,
     new: crate::id::IssueId,
   ) -> Result<Renumbering, FacadeError> {
+    self.issue_move(old, new, None)
+  }
+
+  /// The re-mint of one ordinal issue, as [`Facade::st_remint`] re-mints a
+  /// thread (ST0095 WP-06).
+  pub fn issue_remint(&mut self, id: crate::id::IssueId) -> Result<Renumbering, FacadeError> {
+    self.refuse_before_the_upgrade("issues remint")?;
+    if id.is_hashed() {
+      return Err(FacadeError::NothingToRemint { id: id.shown() });
+    }
+    self.issue_show(id)?;
+    let visible: Vec<crate::id::IssueId> = self.canon.issues.iter().map(|i| i.number).collect();
+    let mut draw = self.creation_draw("issues.add", &id.stored())?;
+    let (origin, new) = crate::id::mint(&visible, &mut draw)?;
+    self.issue_move(id, new, Some(&origin))
+  }
+
+  /// The one move of an issue to another id, as [`Facade::st_move`] moves a
+  /// thread.
+  fn issue_move(
+    &mut self,
+    old: crate::id::IssueId,
+    new: crate::id::IssueId,
+    origin: Option<&str>,
+  ) -> Result<Renumbering, FacadeError> {
     self.issue_show(old)?;
     let subject = format!("issue {}", new.shown());
     if self.canon.issues.iter().any(|i| i.number == new) {
@@ -15589,20 +15847,24 @@ impl Facade {
       &subject,
       &[self.project.issue_json(new), self.project.issue_view(new)],
     )?;
-    let model = crate::renumber::issue(&self.canon, old, new)
+    let mut model = crate::renumber::issue(&self.canon, old, new)
       .ok_or(FacadeError::NoSuchIssue { number: old })?;
+    if let Some(origin) = origin
+      && let Some(moved) = model.canon.issues.iter_mut().find(|i| i.number == new)
+    {
+      moved.origin = Some(origin.to_string());
+    }
     let foreign = self.foreign_under(&self.project.issue_view(old))?;
     let (from, to) = (old.stored(), new.stored());
-    let envelope = Envelope::minted(
-      &self.ctx.principal,
-      &self.ctx.project_id,
+    let envelope = self.move_event(
+      origin,
       "issues.renumber",
       Subject {
         kind: "issue".to_string(),
         id: to.clone(),
       },
       json!({ "from": from, "to": to }),
-    );
+    )?;
     self.land_renumber(RenumberPlan {
       from,
       to,
@@ -16462,23 +16724,20 @@ impl Facade {
     title: &str,
     scope: TShirt,
   ) -> Result<crate::id::WpId, FacadeError> {
-    let taken: Vec<crate::id::WpId> = self.st_show(st)?.wps.iter().map(|w| w.seq).collect();
-    let seq = crate::id::WpId::next_after(taken.iter().copied()).map_err(|_| {
-      FacadeError::IdsExhausted {
-        kind: "work package",
-        last: taken
-          .iter()
-          .max()
-          .map(|w| crate::id::wp_address(st, *w))
-          .unwrap_or_default(),
-      }
-    })?;
+    // The thread's own packages are the ones whose short form a new one must
+    // not share: a package is shown and typed under its thread (ST0095 WP-06).
+    let op = "wp.new";
+    self.refuse_a_mint_before_the_upgrade(op)?;
+    let visible: Vec<crate::id::WpId> = self.st_show(st)?.wps.iter().map(|w| w.seq).collect();
+    let (origin, seq) = crate::id::mint(&visible, crate::event::next_id)?;
     let mut next = self.canon.clone();
-    find_thread_mut(&mut next, st)?.wps.push(WorkPackage {
+    let holder = find_thread_mut(&mut next, st)?;
+    holder.wps.push(WorkPackage {
       objective: String::new(),
       body: String::new(),
       preamble: String::new(),
       seq,
+      origin: Some(origin.clone()),
       title: title.to_string(),
       // A work package created through v3 always has a real size: the legacy
       // form exists only for values that arrived from a v2 estate.
@@ -16491,15 +16750,20 @@ impl Facade {
       // not a placeholder. A brand-new package has not been closed at all.
       fiat: None,
     });
-    let applied = self.apply(
-      "wp.new",
+    // In the waist's order, as the store reads a thread's packages back, so the
+    // record this write holds is the one the next write compares against.
+    holder.wps.sort_by_key(|wp| wp.seq);
+    let created = self.creation_event(
+      origin,
+      op,
       Subject {
         kind: "wp".to_string(),
         id: crate::id::wp_address(st, seq),
       },
       json!({"title": title, "scope": crate::model::enum_str(&scope)}),
-      next,
-    )?;
+    );
+    let applied =
+      self.apply_envelopes(&[created], next, crate::store::ProjectStateEdit::Unchanged)?;
     self.park(applied);
     Ok(seq)
   }
@@ -18756,6 +19020,25 @@ impl Facade {
           ));
         }
 
+        // **`origin` IS IDENTITY, SO `put` REFUSES TO CHANGE IT, AS IT REFUSES
+        // ANOTHER `id`** (ST0095 WP-06). It names the event that minted this
+        // thread, and a hashed id is derived from it, so a body carrying another
+        // would leave the id naming a mint that is not this thread's. CHANGED,
+        // not PRESENT, and after the collateral check, for `fiat`'s two reasons
+        // above: a read-modify-write sends it back untouched, and a body that
+        // omits it has already been refused by name with the other fields it
+        // would clear.
+        if existing.origin != row.origin {
+          return Err(refuse(match &existing.origin {
+            Some(origin) => format!(
+              "`origin` names the event that minted {id}, and no write changes it: send `{origin}` back unchanged"
+            ),
+            None => {
+              format!("{id} was minted in sequence and has no `origin`, and no write gives it one")
+            }
+          }));
+        }
+
         if row == existing {
           return Ok(Outcome::AlreadyThere {
             state: "unchanged".to_string(),
@@ -19603,10 +19886,14 @@ impl Facade {
     reporter: Option<&str>,
     body: &str,
   ) -> Result<crate::id::IssueId, FacadeError> {
-    let number = self.next_issue_number()?;
+    let op = "issues.add";
+    self.refuse_a_mint_before_the_upgrade(op)?;
+    let visible: Vec<crate::id::IssueId> = self.canon.issues.iter().map(|i| i.number).collect();
+    let (origin, number) = crate::id::mint(&visible, crate::event::next_id)?;
     let issue = crate::model::Issue {
       schema: crate::model::ISSUE_SCHEMA.to_string(),
       number,
+      origin: Some(origin.clone()),
       slug: slugify(title),
       title: title.to_string(),
       status: IssueStatus::Open,
@@ -19635,19 +19922,20 @@ impl Facade {
     // line declaring it existed, decided no, and skipped the view. Nothing
     // failed; the file simply never appeared.
     let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
-    self.edit_list("issues.add", &number.stored(), ListEdit::AsDeclared)?;
+    self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
-    // Issue 0376: a refused add left its ISSUE row in the manifest, and a landed add's failed step went unreported.
-    match self.apply(
-      "issues.add",
+    let created = self.creation_event(
+      origin,
+      op,
       Subject {
         kind: "issue".to_string(),
         id: number.stored(),
       },
       json!({"title": title, "severity": severity}),
-      next,
-    ) {
+    );
+    // Issue 0376: a refused add left its ISSUE row in the manifest, and a landed add's failed step went unreported.
+    match self.apply_envelopes(&[created], next, crate::store::ProjectStateEdit::Unchanged) {
       Ok(applied) => self.park(applied),
       Err(refused) => {
         self.restore_manifest(before)?;
@@ -19921,15 +20209,77 @@ impl Facade {
     Ok(Outcome::Moved.with_overwrites(applied))
   }
 
-  /// The next free issue number.
-  ///
-  /// **Highest-plus-one, not count-plus-one**, for the reason
-  /// [`Facade::next_thread_id`] is: a project whose issues are not contiguous --
-  /// and Intent's own are not, once anything is ever removed -- would otherwise
-  /// be handed a number that is already taken.
-  fn next_issue_number(&self) -> Result<crate::id::IssueId, FacadeError> {
-    let taken: Vec<crate::id::IssueId> = self.canon.issues.iter().map(|i| i.number).collect();
-    Self::next_issue_after(&taken)
+  /// **EVERY MINT IN A PROJECT `intent upgrade` HAS NOT MOVED REFUSES** (hv
+  /// decision 70), before the mint draws anything: the project's canon is in
+  /// 3.4.0's format, which cannot carry the id a mint makes. `op` is the mint's
+  /// event op, whose words are its command's: `st.new` is `st new`.
+  fn refuse_a_mint_before_the_upgrade(&self, op: &str) -> Result<(), FacadeError> {
+    self.refuse_before_the_upgrade(&op.replace('.', " "))
+  }
+
+  /// The same refusal for a mint the command `verb` makes on its way, as
+  /// `sync`'s repair of an ordinal both sides minted does.
+  fn refuse_before_the_upgrade(&self, verb: &str) -> Result<(), FacadeError> {
+    match self.canon_format()? {
+      crate::canon_format::CanonFormat::V3 => Err(FacadeError::NotYetUpgraded {
+        verb: verb.to_string(),
+      }),
+      crate::canon_format::CanonFormat::V4 => Ok(()),
+    }
+  }
+
+  /// A record's creation event, whose id `origin` is the one
+  /// [`crate::id::mint`] drew and derived the record's id from (ST0095 WP-06):
+  /// the event is minted first, so the record's `origin` and its creation
+  /// event's id are one value.
+  fn creation_event(
+    &self,
+    origin: String,
+    op: &str,
+    subject: Subject,
+    payload: serde_json::Value,
+  ) -> Envelope {
+    Envelope::minted_as(
+      origin,
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      op,
+      subject,
+      payload,
+    )
+  }
+
+  /// A move's event (ST0095 WP-06). **AN ORIGIN ALWAYS NAMES AN EVENT**: where
+  /// the moved record's origin is a creation event this clone's log holds, or
+  /// there is none, the move has an event of its own; where the origin was
+  /// drawn for the move, the move's event takes it, so the record's new id
+  /// derives from the event that made it.
+  fn move_event(
+    &self,
+    origin: Option<&str>,
+    op: &str,
+    subject: Subject,
+    payload: serde_json::Value,
+  ) -> Result<Envelope, FacadeError> {
+    let drawn = match origin {
+      Some(origin) => !self
+        .store
+        .events()
+        .map_err(FacadeError::Store)?
+        .iter()
+        .any(|e| e.id == origin),
+      None => false,
+    };
+    Ok(match origin {
+      Some(origin) if drawn => self.creation_event(origin.to_string(), op, subject, payload),
+      _ => Envelope::minted(
+        &self.ctx.principal,
+        &self.ctx.project_id,
+        op,
+        subject,
+        payload,
+      ),
+    })
   }
 
   // -------------------------------------------------------------------------
@@ -20205,7 +20555,9 @@ impl Facade {
       let Ok(text) = std::fs::read_to_string(&path) else {
         continue;
       };
-      let Ok(on_disk) = serde_json::from_str::<Issue>(&text) else {
+      // Read by the one reader, so a file in either canon format is judged
+      // (ST0095 WP-06): a project still in 3.4.0's format is guarded too.
+      let Ok(on_disk) = crate::ingest::read_issue(&self.project, issue.number, &text) else {
         continue;
       };
       if !on_disk.body.is_empty() {
@@ -20666,15 +21018,16 @@ impl Facade {
         .into_iter()
         .map(|view| (view.path, view.content.into_bytes()))
         .collect();
+    // In the project's own canon format (ST0095 WP-06), or every file of a
+    // project still in 3.4.0's would read as changed.
+    let format = self.canon_format()?;
     for thread in &self.canon.threads {
-      if let Ok(json) = to_canonical_json(thread) {
-        before.insert(self.project.thread_json(&thread.id), json.into_bytes());
-      }
+      let json = crate::canon_format::encode_thread(thread, format)?;
+      before.insert(self.project.thread_json(&thread.id), json.into_bytes());
     }
     for issue in &self.canon.issues {
-      if let Ok(json) = to_canonical_json(issue) {
-        before.insert(self.project.issue_json(issue.number), json.into_bytes());
-      }
+      let json = crate::canon_format::encode_issue(issue, format)?;
+      before.insert(self.project.issue_json(issue.number), json.into_bytes());
     }
     Ok(
       candidates
@@ -20898,10 +21251,6 @@ impl Facade {
       set.commit()?.keep();
     }
     Ok(())
-  }
-
-  fn next_thread_id(&self) -> Result<crate::id::ThreadId, FacadeError> {
-    Self::next_thread_after(self.canon.threads.iter().map(|t| &t.id))
   }
 }
 
@@ -21371,7 +21720,7 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
   // the operator a round trip and reads as authoritative while it does.
   match entity {
     AddrEntity::Thread { .. } => match field {
-      "schema" | "id" => Some(Unsettable::Identity),
+      "schema" | "id" | "origin" => Some(Unsettable::Identity),
       "status" => Some(Unsettable::Machine(
         "intent st start|done|fc|hold|resume|cancel|reopen|reinstate",
       )),
@@ -21389,7 +21738,7 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
       _ => None,
     },
     AddrEntity::Wp { .. } => match field {
-      "seq" => Some(Unsettable::Identity),
+      "seq" | "id" | "origin" => Some(Unsettable::Identity),
       "status" => Some(Unsettable::Machine(
         "intent wp start|done|fc|unstart|reopen|cancel|reinstate",
       )),
@@ -21437,7 +21786,7 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     // model, carried through canon, and `issues add` takes `<TITLE>` and
     // `--severity` only, so the whole of an issue's prose had no door at all.
     AddrEntity::Issue { .. } => match field {
-      "schema" | "number" => Some(Unsettable::Identity),
+      "schema" | "number" | "id" | "origin" => Some(Unsettable::Identity),
       "status" | "closed" => Some(Unsettable::Machine("intent issues close|open")),
       "created" => Some(Unsettable::Stamped),
       // **`created` WAS SETTABLE FOR AN HOUR AND THE ARGUMENT FOR IT WAS WRONG

@@ -114,7 +114,8 @@ fn a_run_that_did_overwrite_still_says_so() {
 
   assert_eq!(rc, 0, "sync --to-store refused: {out}");
   assert!(
-    out.contains("OVERWRITES") && out.contains(&format!("{st}: differs on disk")),
+    out.contains("OVERWRITES")
+      && out.contains(&format!("{}: differs on disk", crate::common::shown(&st))),
     "a genuine store/extract divergence was not reported -- the warning path is what makes the \
      other test's silence meaningful: {out}"
   );

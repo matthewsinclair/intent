@@ -2996,7 +2996,7 @@ mod tests {
     .map(|(number, status)| {
       serde_json::from_value(serde_json::json!({
         "schema": crate::model::ISSUE_SCHEMA,
-        "number": number,
+        "id": crate::id::IssueId::from_ordinal(*number).expect("an ordinal that fits").stored(),
         "slug": format!("issue-{number}"),
         "title": format!("issue {number}"),
         "status": status,
@@ -3045,7 +3045,7 @@ mod tests {
       "title": format!("{id} title"),
       "status": status,
       "created": "2026-08-18",
-      "wps": [{ "seq": 1, "title": "the work package", "status": wp_status }],
+      "wps": [{ "id": "01", "title": "the work package", "status": wp_status }],
     }))
     .expect("thread-with-wp fixture")
   }
@@ -3734,7 +3734,7 @@ mod tests {
     let mut t = with_wp("ST0001", "not-started", "done");
     t.wps.push(
       serde_json::from_value(serde_json::json!({
-        "seq": 2, "title": "the second", "status": "wip"
+        "id": "02", "title": "the second", "status": "wip"
       }))
       .expect("wp"),
     );

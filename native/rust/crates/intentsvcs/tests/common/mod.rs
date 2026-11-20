@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use intentsvcs::id::{IssueId, ThreadId, WpId};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
-  Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 use intentsvcs::project::Project;
 use intentsvcs::views::RenderContext;
@@ -68,6 +68,10 @@ pub fn facade_ctx() -> intentsvcs::facade::FacadeContext {
   )
 }
 
+/// A creation event's id, as a hashed record carries it in `origin` (ST0095
+/// WP-06): set on a fixture that must exercise the field.
+pub const FIXTURE_ORIGIN: &str = "01M7VXR0UNDTR1PF1XTVRE0R1G";
+
 pub struct Fixture {
   pub dir: tempfile::TempDir,
 }
@@ -100,11 +104,20 @@ impl Fixture {
       ),
     )
     .expect("write config");
-    Self { dir }
+    Self { dir }.born_upgraded()
   }
 
-  /// A project with config.json and nothing else.
+  /// A project as this build makes one: config.json, and the project state
+  /// that says its canon is in the release's format (ST0095 WP-06), as
+  /// `intent init` writes it.
   pub fn new() -> Self {
+    Self::ordinal().born_upgraded()
+  }
+
+  /// A project with config.json and nothing else: one `intent upgrade` has not
+  /// moved, so its canon is in 3.4.0's ordinal format and its first mint
+  /// refuses (ST0095 WP-06).
+  pub fn ordinal() -> Self {
     let dir = tempfile::tempdir().expect("tempdir");
     let config = dir.path().join("intent").join(".config");
     std::fs::create_dir_all(&config).expect("mkdir .config");
@@ -114,6 +127,20 @@ impl Fixture {
     )
     .expect("write config");
     Self { dir }
+  }
+
+  /// This fixture with its project state written in the release's canon
+  /// format, as `intent init` writes it.
+  fn born_upgraded(self) -> Self {
+    let path = self.project().project_json();
+    std::fs::create_dir_all(path.parent().expect("canon dir")).expect("mkdir canon");
+    let state = intentsvcs::canon_format::encode_project_state(
+      None,
+      intentsvcs::canon_format::CanonFormat::CURRENT,
+    )
+    .expect("the project state renders");
+    std::fs::write(&path, state).expect("write project state");
+    self
   }
 
   pub fn root(&self) -> &Path {
@@ -182,7 +209,10 @@ impl Fixture {
   pub fn write_thread(&self, thread: &Thread) {
     let path = self.project().thread_json(&thread.id);
     std::fs::create_dir_all(path.parent().expect("thread dir")).expect("mkdir st");
-    std::fs::write(&path, to_canonical_json(thread).expect("render canon")).expect("write thread");
+    // In the project's own canon format (ST0095 WP-06), as every writer does.
+    let format = intentsvcs::ingest::canon_format(&self.project()).expect("the canon format");
+    let canon = intentsvcs::canon_format::encode_thread(thread, format).expect("render canon");
+    std::fs::write(&path, canon).expect("write thread");
     // **ONE STUB PER FILE, CARRYING EVERY ROW THAT CITES IT** (issue 0665).
     // A stub per ROW let the last row citing a shared file overwrite the ids
     // of the rows before it, and only the close gate's L3 exemption for a
@@ -266,7 +296,9 @@ impl Fixture {
   pub fn write_issue(&self, issue: &Issue) {
     let path = self.project().issue_json(issue.number);
     std::fs::create_dir_all(path.parent().expect("issues dir")).expect("mkdir issues");
-    std::fs::write(&path, to_canonical_json(issue).expect("render canon")).expect("write issue");
+    let format = intentsvcs::ingest::canon_format(&self.project()).expect("the canon format");
+    let canon = intentsvcs::canon_format::encode_issue(issue, format).expect("render canon");
+    std::fs::write(&path, canon).expect("write issue");
   }
 
   /// Write an authored prose file beside a thread's canon.
@@ -411,6 +443,7 @@ pub fn sample_thread(id: &str) -> Thread {
       preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
+    origin: None,
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -452,6 +485,7 @@ pub fn sample_thread(id: &str) -> Thread {
     wps: vec![
       WorkPackage {
         seq: wp(2),
+        origin: None,
         title: "Workspace and reified model".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -465,6 +499,7 @@ pub fn sample_thread(id: &str) -> Thread {
       },
       WorkPackage {
         seq: wp(3),
+        origin: None,
         title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -562,6 +597,7 @@ pub fn sample_issue(number: u32) -> Issue {
   Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: issue(number),
+    origin: None,
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

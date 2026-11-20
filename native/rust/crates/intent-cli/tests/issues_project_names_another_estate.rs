@@ -226,8 +226,11 @@ fn an_unknown_name_is_refused_listing_the_registry_and_the_stale_root() {
 #[test]
 fn a_read_names_the_project_on_stderr_and_in_its_json() {
   let e = estate();
-  let (_, err, code) = add_through(&e, "gamma");
+  let (out, err, code) = add_through(&e, "gamma");
   assert_eq!(code, 0, "{err}");
+  // The id the add minted, read off its `created:` line (ST0095 WP-02), never
+  // predicted.
+  let number = crate::common::created(&out);
   let (stdout, stderr, code) = run(
     &e.home,
     &e.here,
@@ -236,7 +239,7 @@ fn a_read_names_the_project_on_stderr_and_in_its_json() {
       "--project",
       "gamma",
       "show",
-      "0001",
+      number.as_str(),
       "--format",
       "json",
     ],

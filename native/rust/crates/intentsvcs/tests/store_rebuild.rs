@@ -30,6 +30,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0056"),
+    origin: None,
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -47,6 +48,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     wps: vec![
       WorkPackage {
         seq: wp(1),
+        origin: None,
         title: "Design canon".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -60,6 +62,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
       },
       WorkPackage {
         seq: wp(2),
+        origin: None,
         title: "Workspace".to_string(),
         scope: Some(TShirt::L),
         scope_legacy: None,
@@ -105,6 +108,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
   let issue = Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: issue(21),
+    origin: None,
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,

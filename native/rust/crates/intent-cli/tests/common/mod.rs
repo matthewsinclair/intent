@@ -17,6 +17,23 @@
 
 pub mod level_three;
 
+/// Give a project made by hand the project state `intent init` writes, through
+/// the library's one encoder, so it is in the release's canon format and its
+/// mints are not refused as those of a project `intent upgrade` has not moved
+/// (ST0095 WP-06). The intentsvcs tests' `Fixture::new` does the same for
+/// theirs; a test crate's helpers cannot cross into another's.
+pub fn born_upgraded(root: &std::path::Path) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let path = project.project_json();
+  std::fs::create_dir_all(path.parent().expect("the canon directory")).expect("mkdir canon");
+  let state = intentsvcs::canon_format::encode_project_state(
+    None,
+    intentsvcs::canon_format::CanonFormat::CURRENT,
+  )
+  .expect("the project state renders");
+  std::fs::write(&path, state).expect("write the project state");
+}
+
 /// The `intent` binary cargo built for these tests, as a path.
 ///
 /// **THE ONLY PLACE IN THIS CRATE'S TESTS THAT NAMES `CARGO_BIN_EXE_intent`
@@ -1211,6 +1228,102 @@ pub fn created(out: &str) -> String {
     "a minted id is one word, and this `created:` line carries `{id}`:\n{out}"
   );
   id.to_string()
+}
+
+/// Seed an ORDINAL thread, with `packages` (number, title) under it not
+/// started, as committed canon, for a test whose subject is the ordinal family.
+/// A mint makes git-style ids now (ST0095 WP-06), so an ordinal is what a
+/// project carries from before its upgrade, and a test seeds one. Written in
+/// 3.4.0's format, which every reader takes by its own schema, so a store that
+/// holds nothing yet ingests it on its next open.
+pub fn seed_ordinal_thread(
+  root: &std::path::Path,
+  id: &str,
+  title: &str,
+  packages: &[(u32, &str)],
+) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let path = project.thread_json(id);
+  std::fs::create_dir_all(path.parent().expect("the thread canon directory")).expect("mkdir");
+  let wps: Vec<serde_json::Value> = packages
+    .iter()
+    .map(|(seq, title)| {
+      serde_json::json!({ "seq": seq, "title": title, "scope": "S", "status": "not-started" })
+    })
+    .collect();
+  let canon = serde_json::json!({
+    "schema": intentsvcs::canon_format::THREAD_SCHEMA_V3,
+    "id": id,
+    "title": title,
+    "status": "not-started",
+    "created": "2026-08-15",
+    "objective": "",
+    "context": "",
+    "wps": wps,
+  });
+  std::fs::write(&path, format!("{canon:#}\n")).expect("write the thread's canon");
+}
+
+/// Seed the creation event a record's mint wrote, as the committed event file
+/// a branch cut before the upgrade carries beside its ordinal (ST0095 WP-06):
+/// `id` is the event's own id, `op` the creation op, and `kind` and `subject`
+/// the record it made. A repair of an ordinal both sides minted derives the
+/// record's git-style id from this event, so a test that seeds one can name
+/// the id the repair will choose.
+pub fn seed_creation_event(root: &std::path::Path, id: &str, op: &str, kind: &str, subject: &str) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let envelope = intentsvcs::event::Envelope {
+    id: id.to_string(),
+    ts: "2026-08-15T10:00:00.000Z".to_string(),
+    principal: "test".to_string(),
+    project_id: String::new(),
+    op: op.to_string(),
+    subject: intentsvcs::event::Subject {
+      kind: kind.to_string(),
+      id: subject.to_string(),
+    },
+    payload: serde_json::json!({}),
+  };
+  let path = project.event_file(&envelope).expect("an event file's path");
+  std::fs::create_dir_all(path.parent().expect("the event's directory")).expect("mkdir");
+  let bytes = intentsvcs::model::to_canonical_json(&envelope).expect("the event serialises");
+  std::fs::write(&path, bytes).expect("write the event file");
+}
+
+/// Seed an ORDINAL issue as committed canon, for the reason
+/// [`seed_ordinal_thread`] gives.
+pub fn seed_ordinal_issue(root: &std::path::Path, number: u32, title: &str) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let id = intentsvcs::id::IssueId::from_ordinal(number).expect("an issue ordinal that fits");
+  let path = project.issue_json(id);
+  std::fs::create_dir_all(path.parent().expect("the issue canon directory")).expect("mkdir");
+  let canon = serde_json::json!({
+    "schema": intentsvcs::canon_format::ISSUE_SCHEMA_V3,
+    "number": number,
+    "slug": "an-issue",
+    "title": title,
+    "status": "open",
+    "created": "2026-08-15",
+  });
+  std::fs::write(&path, format!("{canon:#}\n")).expect("write the issue's canon");
+}
+
+/// The form a table, a view or a message prints of a minted id, from the stored
+/// form [`created`] read. A git-style id shows shorter than it is stored
+/// (ST0095 WP-06), so a test that looks for a minted id in a line asks for this,
+/// read through the waist, and spells neither form by hand. A thread, an issue,
+/// or a work package's `<thread>/<package>` address.
+pub fn shown(stored: &str) -> String {
+  use intentsvcs::id::{IssueId, ThreadId, WpId, split_wp_address, wp_address_shown};
+  if let Some((thread, package)) = split_wp_address(stored) {
+    let thread = ThreadId::parse(thread).expect("a work package's thread");
+    let package = WpId::parse(package).expect("a work package's id");
+    return wp_address_shown(&thread, package);
+  }
+  ThreadId::parse(stored)
+    .map(|id| id.shown())
+    .or_else(|_| IssueId::parse(stored).map(|id| id.shown()))
+    .expect("a stored thread or issue id")
 }
 
 /// A minted work package's own id, read by the id waist from the part of its

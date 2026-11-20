@@ -506,7 +506,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   // **THE CHILD-ROW HALVES OF ISSUE 0131's REFUSAL, AND THEY ARE PROVOKED HERE
   // RATHER THAN EXEMPTED, WHICH IS THE DIFFERENCE FROM THEIR TWO SIBLINGS.**
-  // `ThreadExists` and `IssueExists` need two facades over one on-disk store,
+  // `ThreadExists` and `IssueExists` are lifted from the store's create door,
   // because the collision is detected by a UNIQUE constraint inside the write.
   // A criterion and a test are CHILD rows with no such constraint, so the check
   // is made against loaded canon and one bad call reaches it.
@@ -814,23 +814,34 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .issue_show(issue(9999))
       .expect_err("no such issue"),
   ));
-  // **ST0095: THE ORDINAL FORM HAS A LAST ID, AND A MINT PAST IT IS REFUSED.**
-  // Its own fixture, because the subject is a project whose highest thread is
-  // the last id the form holds, and the shared fixture's `ST0056` leaves room.
-  // The variant is asserted rather than assumed: before the refusal the mint
-  // formatted `ST10000`, which no reader takes for a thread.
-  let full = Fixture::new();
-  full.write_thread(&sample_thread("ST9999"));
-  let exhausted = full
+  // **ST0095 WP-06: A MINT IN A PROJECT NOT YET UPGRADED REFUSES** (hv decision
+  // 70). Its own fixture, in 3.4.0's ordinal format, because the shared one is
+  // born in the release's. The variant is asserted rather than assumed, so the
+  // arm cannot be satisfied by an earlier refusal.
+  let ordinal = Fixture::ordinal();
+  let refused = ordinal
     .facade()
-    .st_new("a thread the ordinal form has no id left for")
-    .expect_err("ST9999 is the last id the ordinal form holds");
+    .st_new("a thread a project in the ordinal format cannot mint")
+    .expect_err("a project in the ordinal format refuses every mint");
   assert_eq!(
-    variant(&exhausted),
-    "IdsExhausted",
-    "this arm must reach the mint's refusal rather than an earlier one: {exhausted}"
+    variant(&refused),
+    "NotYetUpgraded",
+    "this arm must reach the format's refusal rather than an earlier one: {refused}"
   );
-  out.push(("a mint past the last ordinal id", exhausted));
+  out.push(("a mint before the upgrade", refused));
+  // ST0095 WP-06: a re-mint asked of a git-style id, which nothing ever moves.
+  let fresh = Fixture::new();
+  let mut minting = fresh.facade();
+  let minted = minting.st_new("a thread minted git-style").expect("st new");
+  let already = minting
+    .st_remint(&intentsvcs::id::ThreadId::parse(&minted).expect("a thread id"))
+    .expect_err("a git-style id is never re-minted");
+  assert_eq!(
+    variant(&already),
+    "NothingToRemint",
+    "this arm must reach the re-mint's refusal rather than an earlier one: {already}"
+  );
+  out.push(("a re-mint of a git-style id", already));
   out.push((
     "PUT to a server-assigned id",
     facade
@@ -1240,7 +1251,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",
-    FacadeError::IdsExhausted { .. } => "IdsExhausted",
+    FacadeError::Mint(_) => "Mint",
+    FacadeError::NotYetUpgraded { .. } => "NotYetUpgraded",
+    FacadeError::NothingToRemint { .. } => "NothingToRemint",
     FacadeError::RenumberTargetTaken { .. } => "RenumberTargetTaken",
     FacadeError::RenumberDiskStep { .. } => "RenumberDiskStep",
     FacadeError::SyncPlanMoved { .. } => "SyncPlanMoved",
@@ -1287,6 +1300,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Store(_) => "Store",
     FacadeError::Ingest(_) => "Ingest",
     FacadeError::Sync(_) => "Sync",
+    FacadeError::CanonFormat(_) => "CanonFormat",
     FacadeError::Estate(_) => "Estate",
     FacadeError::Teams(_) => "Teams",
     FacadeError::RosterReadme(_) => "RosterReadme",
@@ -1408,7 +1422,9 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchThread",
   "ThreadExists",
   "IssueExists",
-  "IdsExhausted",
+  "Mint",
+  "NotYetUpgraded",
+  "NothingToRemint",
   "RenumberTargetTaken",
   "RenumberDiskStep",
   "SyncPlanMoved",
@@ -1445,6 +1461,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Store",
   "Ingest",
   "Sync",
+  "CanonFormat",
   "Estate",
   "Teams",
   "RosterReadme",
@@ -1668,15 +1685,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "Store",           // a damaged SQLite file
   "Ingest",          // schema-invalid canon -- `ingest_refusal.rs`
   "Unmigrated",      // an older store -- `unmigrated_project.rs`
-  // **BOTH HALVES OF ISSUE 0131's REFUSAL, AND `ThreadExists` HAS MOVED HERE
-  // FROM BEING UNREACHABLE.** Its old exemption read "needs a colliding id,
-  // which `st new` allocates around", which was true of the pre-check it was
-  // raised from -- a test against the same canon `next_thread_id()` had just
-  // read, false by construction. Since 0131 the collision is detected by the
-  // UNIQUE constraint inside the write, so BOTH are reachable, and both are
-  // provoked in `a_create_refuses_a_key_that_is_taken.rs` by opening two
-  // facades on one on-disk store before either writes. Not provoked HERE
-  // because that needs two facades and a shared store rather than a bad call.
+  // **BOTH HALVES OF ISSUE 0131's REFUSAL.** The collision is detected by the
+  // UNIQUE constraint inside the write, and since ST0095 WP-06 no verb can
+  // bring it a held key: a mint draws each record's own creation event, so two
+  // facades loaded before either writes get two ids. The store's create door,
+  // whose refusal these two lift, is driven at the store in
+  // `a_create_refuses_a_key_that_is_taken.rs`.
   "ThreadExists",
   "IssueExists",
   // A renumber's disk move refused by the filesystem, a property of the world
@@ -1691,6 +1705,13 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `a_pull_is_repaired_by_one_command.rs`.
   "RenumberNotMerging",
   "SyncDiskStep",
+  // ST0095 WP-06: a record the ordinal canon cannot carry. No verb reaches it,
+  // since a project in that format refuses its first mint (hv decision 70).
+  "CanonFormat",
+  // ST0095 WP-06: the one mint's refusals need a broken draw, and the facade
+  // draws with the crate's own minter of event ids. Both are driven with a
+  // scripted draw in `the_one_mint.rs`.
+  "Mint",
   "Git",
   "BadQuery", // FTS5 syntax -- `facade_search.rs` territory
   // Issue 0443: a store fault met while ANSWERING a search. Needs the store

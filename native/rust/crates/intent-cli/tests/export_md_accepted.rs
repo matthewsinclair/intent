@@ -41,6 +41,7 @@ fn project() -> tempfile::TempDir {
     "{\"intent_version\":\"3.0.0\",\"project_name\":\"P\",\"author\":\"dc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
   )
   .expect("write config");
+  crate::common::born_upgraded(dir.path());
   let (_, err, code) = run(&["st", "new", "a thread to realise"], dir.path());
   assert_eq!(code, 0, "fixture setup failed: {err}");
   dir

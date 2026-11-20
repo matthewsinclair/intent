@@ -60,6 +60,18 @@ fn stored(root: &std::path::Path, id: &str) -> Thread {
   open(root).st_show(id).expect("the thread is there").clone()
 }
 
+/// The thread as the store holds it, with `beside`'s identity. Each project's
+/// mint draws its own creation event, so `id` and `origin` are the one pair of
+/// fields two projects' records cannot share (ST0095 WP-06), and every other
+/// field is what comparing the two is about, in the arm and in its control.
+fn stored_beside(root: &std::path::Path, id: &str, beside: &Thread) -> Thread {
+  Thread {
+    id: beside.id.clone(),
+    origin: beside.origin.clone(),
+    ..stored(root, id)
+  }
+}
+
 /// The edit, made the way the TUI realiser makes it: straight at the facade.
 fn through_the_in_process_door(root: &std::path::Path, id: &str, title: &str) {
   let address =
@@ -108,7 +120,7 @@ fn no_realiser_is_a_second_opinion_about_what_was_written() {
   through_the_wire_door(&daemon, &wire_root, &wire_id, EDITED);
 
   let a = stored(&in_process_root, &in_process_id);
-  let b = stored(&wire_root, &wire_id);
+  let b = stored_beside(&wire_root, &wire_id, &a);
 
   // **THE WHOLE RECORD, NOT THE EDITED FIELD.** A realiser that wrote the
   // title correctly and cleared a neighbouring field would pass a check that
@@ -133,7 +145,7 @@ fn the_diff_can_actually_fail() {
   through_the_wire_door(&daemon, &wire_root, &wire_id, "A different title");
 
   let a = stored(&in_process_root, &in_process_id);
-  let b = stored(&wire_root, &wire_id);
+  let b = stored_beside(&wire_root, &wire_id, &a);
 
   assert_ne!(
     a, b,

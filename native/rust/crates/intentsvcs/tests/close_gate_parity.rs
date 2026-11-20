@@ -31,6 +31,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0001"),
+    origin: None,
     title: "gate parity".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
@@ -44,6 +45,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     related: Vec::new(),
     wps: vec![WorkPackage {
       seq: wp(1),
+      origin: None,
       title: "one".to_string(),
       scope: Some(TShirt::M),
       scope_legacy: None,
@@ -212,6 +214,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
   );
   t.wps.push(WorkPackage {
     seq: wp(4),
+    origin: None,
     title: "later".to_string(),
     scope: Some(TShirt::S),
     scope_legacy: None,
@@ -256,6 +259,7 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
   );
   t.wps.push(WorkPackage {
     seq: wp(2),
+    origin: None,
     title: "two".to_string(),
     scope: Some(TShirt::M),
     scope_legacy: None,

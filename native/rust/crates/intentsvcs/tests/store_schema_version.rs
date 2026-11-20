@@ -150,6 +150,44 @@ fn a_store_from_a_newer_build_is_refused_at_open() {
   );
 }
 
+/// **THE TWO DOORS REFUSE A STORE ALIKE** (issue 0717, critic finding).
+/// `Store::open` and `Store::open_read_only` each spelled the two schema
+/// refusals out until both asked one `Refusal::error`, so a sentence changed at
+/// one door could be left behind at the other. The read-only door is asked
+/// first because it writes nothing.
+#[test]
+fn the_read_only_door_refuses_a_store_as_the_open_door_does() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let unstamped = dir.path().join("unstamped.db");
+  Connection::open(&unstamped)
+    .expect("create")
+    .execute_batch("CREATE TABLE threads (id TEXT PRIMARY KEY, title TEXT NOT NULL);")
+    .expect("lay down a pre-stamp table");
+  let newer = dir.path().join("newer.db");
+  {
+    let conn = Connection::open(&newer).expect("create");
+    conn
+      .pragma_update(None, "user_version", SCHEMA_VERSION + 1)
+      .expect("stamp");
+    conn.execute_batch(DDL).expect("apply");
+  }
+  let refusals = |path: &std::path::Path| {
+    let read_only = Store::open_read_only(path)
+      .err()
+      .expect("the read-only door refuses it");
+    let open = Store::open(path).err().expect("the open door refuses it");
+    (
+      (read_only.to_string(), read_only.remedy()),
+      (open.to_string(), open.remedy()),
+    )
+  };
+
+  let (read_only, open) = refusals(&unstamped);
+  assert_eq!(read_only, open, "the doors refuse an unstamped store apart");
+  let (read_only, open) = refusals(&newer);
+  assert_eq!(read_only, open, "the doors refuse a newer store apart");
+}
+
 /// The two directions of a version mismatch read differently.
 ///
 /// A refusal that does not say WHICH END is behind leaves the operator guessing
@@ -359,8 +397,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 35 is `wb_node.retired_at` and `retired_reason` (ST0092 WP-04), a node's
   // retirement from the roster, set or null together under a table CHECK. One
   // rebuild of `wb_node`, for the CHECK's sake; existing rows start null.
-  const PINNED_SCHEMA_HASH: u64 = 0x1cae_1046_2161_5873;
-  const PINNED_FOR_VERSION: i32 = 35;
+  //
+  // 36 is git-style ids (ST0095 WP-06): `wps.seq` and `issues.number` become
+  // TEXT in two rebuilds, and `threads.origin` and `project.canon_schema` are
+  // added where absent; existing rows start null, every id in its stored form.
+  const PINNED_SCHEMA_HASH: u64 = 0xfea0_0dc3_5e39_2762;
+  const PINNED_FOR_VERSION: i32 = 36;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

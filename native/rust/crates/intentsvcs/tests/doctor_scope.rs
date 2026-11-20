@@ -72,6 +72,7 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
+    origin: None,
     title: "A thread with a known shape".to_string(),
     slug: None,
     status,
@@ -89,6 +90,7 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
     related: vec![],
     wps: vec![WorkPackage {
       seq: wp(1),
+      origin: None,
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

@@ -1,5 +1,5 @@
 # INTENT_VER: 3.4.0
-# SCHEMA_SDL_VER: 23
+# SCHEMA_SDL_VER: 24
 
 enum AcKind {
   TEST
@@ -344,9 +344,14 @@ type Issue {
   """
   schema: String!
   """
-  Rendered zero-padded, eg `0021`.
+  The issue's id: four digits for an ordinal, eg `0021`, or its hashed id.
   """
-  number: Int!
+  id: String!
+  """
+  The id of the creation event a hashed id was minted from, as a thread's
+  origin is. Absent on an ordinal.
+  """
+  origin: String
   slug: String!
   title: String!
   status: IssueStatus!
@@ -467,6 +472,12 @@ type Thread {
   Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
   """
   id: String!
+  """
+  The id of the creation event a hashed id was minted from: the id is its
+  marker and the front of this one's SHA-256, so it is never stored twice.
+  Absent on an ordinal.
+  """
+  origin: String
   title: String!
   slug: String
   status: ThreadStatus!
@@ -813,9 +824,15 @@ type WbSent {
 
 type WorkPackage {
   """
-  Unique within the thread, and rendered zero-padded as `WP-<seq>`.
+  The package's id within its thread: two digits for an ordinal, eg `01`,
+  or its hashed id.
   """
-  seq: Int!
+  id: String!
+  """
+  The id of the creation event a hashed id was minted from, as a thread's
+  origin is. Absent on an ordinal.
+  """
+  origin: String
   title: String!
   """
   The size, absent only when [`scope_legacy`] carries a v2 value the enum

@@ -1265,6 +1265,7 @@ mod tests {
       preamble: String::new(),
       schema: THREAD_SCHEMA.to_string(),
       id: crate::id::ThreadId::parse("ST0056").expect("a thread id"),
+      origin: None,
       title: "t".to_string(),
       slug: None,
       status: ThreadStatus::Wip,
@@ -1279,6 +1280,7 @@ mod tests {
       wps: vec![WorkPackage {
         preamble: String::new(),
         seq: crate::id::WpId::from_ordinal(3).expect("a package id"),
+        origin: None,
         title: "w".to_string(),
         scope: Some(crate::model::TShirt::L),
         scope_legacy: None,
@@ -1454,6 +1456,7 @@ mod tests {
     t.wps.push(WorkPackage {
       preamble: String::new(),
       seq: crate::id::WpId::from_ordinal(7).expect("a package id"),
+      origin: None,
       title: "later".to_string(),
       scope: Some(crate::model::TShirt::S),
       scope_legacy: None,

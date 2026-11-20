@@ -11,24 +11,29 @@
 //! ST0069 AT-14.7 cites this file: any node's board is read over GraphQL through
 //! that one door, `boards` and `board(node)`.
 
-use crate::common::Fixture;
+use crate::common::{Fixture, sample_issue};
 use serde_json::{Value, json};
 
 #[tokio::test]
 async fn the_four_reads_answer_what_the_facade_holds() {
   let fx = Fixture::new();
+  // **AN ORDINAL ISSUE, SEEDED.** The `issue(number:)` argument still takes an
+  // ordinal's number until ic's ST0095 WP-10 makes it the id, so this read's
+  // issue is seeded through the fixture writer rather than minted, which now
+  // gives a git-style id. The subject here is the four reads, not the mint. An
+  // issue's `id` field answers its stored form, a string, as a thread's does.
+  let seeded = sample_issue(21);
+  fx.write_issue(&seeded);
   let mut facade = fx.facade();
   let id = facade.st_new("Hatch fixture").expect("mint a thread");
-  let number = facade
-    .issue_add("A hatch issue", None, None, "reported by the hatch test")
-    .expect("add an issue");
-  // The number as GraphQL carries it: an issue id's wire face is its ordinal.
-  let number = json!(number);
+  let number = json!(
+    intentsvcs::id::ordinal_face::Ordinal::number(&seeded.number).expect("an ordinal issue id")
+  );
 
   let answer = facade
     .graphql(
       &format!(
-        "query($id: String!) {{ threads {{ id title }} thread(id: $id) {{ id title }} issues {{ number title }} issue(number: {number}) {{ number }} missing: thread(id: \"ST9999\") {{ id }} }}"
+        "query($id: String!) {{ threads {{ id title }} thread(id: $id) {{ id title }} issues {{ id title }} issue(number: {number}) {{ id }} missing: thread(id: \"ST9999\") {{ id }} }}"
       ),
       Some(json!({ "id": id })),
     )
@@ -51,10 +56,10 @@ async fn the_four_reads_answer_what_the_facade_holds() {
   assert!(
     data["issues"]
       .as_array()
-      .is_some_and(|issues| issues.iter().any(|i| i["number"] == number)),
+      .is_some_and(|issues| issues.iter().any(|i| i["id"] == seeded.number.stored())),
     "issues: {data}"
   );
-  assert_eq!(data["issue"]["number"], number);
+  assert_eq!(data["issue"]["id"], seeded.number.stored());
   // An id nobody minted is `null`, which is an answer and not an error --
   // the spec's shape for an absent object, and the reason the resolver's
   // return type is `Option`.

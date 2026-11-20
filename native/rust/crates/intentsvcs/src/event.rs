@@ -421,9 +421,23 @@ impl Envelope {
     subject: Subject,
     payload: serde_json::Value,
   ) -> Self {
+    Self::minted_as(next_id(), principal, project_id, op, subject, payload)
+  }
+
+  /// [`Envelope::minted`] with its id already drawn: a record's creation event,
+  /// whose id [`crate::id::mint`] drew from the crate's one minter and derived the record's
+  /// id from (ST0095 WP-06), so the event is minted first and the id follows.
+  pub fn minted_as(
+    id: String,
+    principal: &str,
+    project_id: &str,
+    op: &str,
+    subject: Subject,
+    payload: serde_json::Value,
+  ) -> Self {
     let ts = String::new();
     Self {
-      id: next_id(),
+      id,
       ts,
       principal: principal.to_string(),
       project_id: project_id.to_string(),

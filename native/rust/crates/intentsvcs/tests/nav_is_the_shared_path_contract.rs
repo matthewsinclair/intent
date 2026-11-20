@@ -292,8 +292,8 @@ fn a_face_that_is_a_definition_resolves_through_its_fragment() {
     .get("properties")
     .expect("the WorkPackage definition must carry properties");
   assert!(
-    props.get("seq").is_some(),
-    "the resolved face is missing WorkPackage's own `seq`"
+    props.get("id").is_some(),
+    "the resolved face is missing WorkPackage's own `id`"
   );
   assert!(
     props.get("wps").is_none(),

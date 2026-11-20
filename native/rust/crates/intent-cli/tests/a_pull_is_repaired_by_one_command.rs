@@ -14,6 +14,11 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+/// The creation events the two clones' ordinal records were minted by, as
+/// the event files a branch cut before the upgrade carries.
+const ALICES_CREATION: &str = "01JA0000000000000000000001";
+const BOBS_CREATION: &str = "01JA0000000000000000000002";
+
 struct Said {
   text: String,
   code: i32,
@@ -124,24 +129,29 @@ impl Team {
   /// Both clones mint their next thread, and both get the same id. Bob starts
   /// his, so it is realised and declared; the merge then stops on the canon
   /// add/add. Returns what the merge said and the id Bob's mint printed.
+  /// **AN ORDINAL IN FLIGHT, SEEDED ON BOTH SIDES** (ST0095 WP-06). A mint
+  /// makes a git-style id now, which never collides, so the collision under
+  /// repair is the one a branch cut before the upgrade carries: one ordinal,
+  /// written by each clone with its own creation event. Bob's event is
+  /// [`BOBS_CREATION`], which his record's new id derives from.
   fn both_mint_the_same_id_and_bob_pulls(&self) -> (String, String) {
-    let alice_st = crate::common::created(&intent_ok(
-      &["st", "new", "Alice's next"],
-      &self.alice,
-      self.home(),
-    ));
-    self.commit(&self.alice, &format!("alice: {alice_st}"));
+    let id = intentsvcs::id::ThreadId::from_ordinal(1)
+      .expect("an ordinal thread")
+      .stored();
+    crate::common::seed_ordinal_thread(&self.alice, &id, "Alice's next", &[]);
+    crate::common::seed_creation_event(&self.alice, ALICES_CREATION, "st.new", "thread", &id);
+    // The views her mint rendered, as a branch cut before the upgrade carries
+    // them, so the merge conflicts in the generated views as well as in canon.
+    intent_ok(&["sync", "--to-disk"], &self.alice, self.home());
+    self.commit(&self.alice, &format!("alice: {id}"));
     git_ok(&["push", "-q", "origin", "HEAD:main"], &self.alice);
-    let bob_st = crate::common::created(&intent_ok(
-      &["st", "new", "Bob's next"],
-      &self.bob,
-      self.home(),
-    ));
-    intent_ok(&["st", "start", bob_st.as_str()], &self.bob, self.home());
-    self.commit(&self.bob, &format!("bob: {bob_st}"));
+    crate::common::seed_ordinal_thread(&self.bob, &id, "Bob's next", &[]);
+    crate::common::seed_creation_event(&self.bob, BOBS_CREATION, "st.new", "thread", &id);
+    intent_ok(&["st", "start", id.as_str()], &self.bob, self.home());
+    self.commit(&self.bob, &format!("bob: {id}"));
     let (merge, merged) = git(&["pull", "-q", "--no-rebase", "origin", "main"], &self.bob);
     assert!(!merged, "the fixture needs the merge to stop:\n{merge}");
-    (merge, bob_st)
+    (merge, id)
   }
 }
 
@@ -269,11 +279,9 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
   let team = Team::new();
   let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls();
-  // Where sync's repair moves this clone's thread: the next free ordinal, which
-  // is the behaviour under test here, not a mint (ST0095 WP-05 changes it).
-  let moved = intentsvcs::id::ThreadId::from_ordinal(2)
-    .expect("a thread id")
-    .shown();
+  // Where sync's repair moves this clone's thread: the git-style id its own
+  // creation event mints (ST0095 WP-06), which this clone's log holds.
+  let moved = intentsvcs::id::ThreadId::from_origin(BOBS_CREATION).stored();
   let bob = &team.bob;
   assert!(
     unmerged(bob).contains(&format!("intent/.canon/st/{minted}.json")),
@@ -390,7 +398,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     "{list}"
   );
   assert!(
-    list.contains(moved.as_str()) && list.contains("Bob's next"),
+    list.contains(&crate::common::shown(&moved)) && list.contains("Bob's next"),
     "{list}"
   );
 }

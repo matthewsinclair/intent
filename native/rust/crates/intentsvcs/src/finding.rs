@@ -163,6 +163,15 @@ pub enum FindingClass {
   /// would refuse every commit in it on the day it upgrades. The remedy is one
   /// command in the next commit, and the upgrade names it too.
   StoreTracked,
+  /// A project `intent upgrade` has not moved (ST0095 WP-06): its canon is in
+  /// 3.4.0's ordinal format, so every mint refuses there until the upgrade runs
+  /// (hv decision 70).
+  ///
+  /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON**: the project
+  /// carries it from before this build, and every verb but a mint works on it,
+  /// so a counted class would refuse every commit in it on the day it upgrades
+  /// Intent. The wording is ic's, taken as written (hv decision 71).
+  CanonFormatBehind,
   /// The prose index holds more than one row for one section (issue `0605`).
   ///
   /// **EVERY SCOPED INGEST FROM 3.1.0 TO 3.2.3 DOUBLED THE FILE AND WHITEBOARD
@@ -665,6 +674,11 @@ impl FindingClass {
         "root-file-behind",
         "run `intent claude upgrade --apply --skip-settings` -- or `intent claude upgrade --apply` for `.claude/settings.json` and `.mcp.json`, which `--skip-settings` leaves alone. Either run brings the file to the installed templates, and each file's line says what that replaces in it and what it keeps; `intent claude upgrade` without `--apply` lists what it would write. Not counted: a newer Intent reads every project behind until this runs there",
       ),
+      Self::CanonFormatBehind => (
+        6,
+        "canon-format-behind",
+        "run `intent upgrade` once and commit what it prints. It changes no id, and until it runs Intent works on this project's existing ids and refuses only to mint a new one. Upgrade Intent first on every machine that opens the project, because an older Intent refuses it afterwards",
+      ),
       Self::StoreTracked => (
         6,
         "store-tracked",
@@ -1040,6 +1054,7 @@ impl FindingClass {
         | Self::StoreStale
         | Self::RootFileBehind
         | Self::StoreTracked
+        | Self::CanonFormatBehind
         | Self::ProseIndexDuplicated
         | Self::DropboxCacheUnmarked
         | Self::SettingsHookMissing
@@ -1081,6 +1096,7 @@ impl FindingClass {
           | Self::SeatRetired
           | Self::RootFileBehind
           | Self::StoreTracked
+          | Self::CanonFormatBehind
           | Self::ProseIndexDuplicated
           | Self::DropboxCacheUnmarked
           | Self::SettingsHookMissing

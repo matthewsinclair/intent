@@ -348,7 +348,10 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // declaration. All three faces move for it.
     // 30: `retired_at` and `retired_reason` on `wb_node` (ST0092 WP-04, schema
     // rung 35), a node's retirement from the roster.
-    ("SCHEMA_DDL_VER", 30, 0x0d58_c116_7d76_8feb),
+    // 31: git-style ids (ST0095 WP-06, schema rung 36): `wps.seq` and
+    // `issues.number` become TEXT, `origin` on threads, wps and issues, and
+    // `project.canon_schema`, the canon's format. All three faces move for it.
+    ("SCHEMA_DDL_VER", 31, 0x853b_243e_dfd3_5a74),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -365,7 +368,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 20 -> 21 is `archivedAt` on `WbSent` and `WbMessage` (issue 0627).
     // 21 -> 22 is `remit` on `WbNode` (ST0092 WP-03).
     // 23: `retired` on the board's node and its `WbRetired` (ST0092 WP-04).
-    ("SCHEMA_SDL_VER", 23, 0x6b3f_7892_b8f8_ee7c),
+    // 24: git-style ids (ST0095 WP-06): `Issue.number` and `WorkPackage.seq`
+    // are named `id`, and `origin` joins a thread, a work package and an issue.
+    ("SCHEMA_SDL_VER", 24, 0xd653_e7ee_979c_5651),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -392,7 +397,9 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 25 -> 26 is ST0092 WP-03: `intent/board@4.1`, `remit` on the board's
     // node, and `team-declaration.schema.json` joins the contract.
     // 27: `retired` on a board's node (ST0092 WP-04), carried in board 4.1.
-    ("SCHEMA_JSON_VER", 27, 0x3f5f_689f_ee83_8863),
+    // 28: git-style ids (ST0095 WP-06): thread and issue canon at @4.0, an id as
+    // a stored string under `id`, and `origin` on a hashed record.
+    ("SCHEMA_JSON_VER", 28, 0x7530_91ad_5010_ba27),
   ];
 
   let mut moved = Vec::new();

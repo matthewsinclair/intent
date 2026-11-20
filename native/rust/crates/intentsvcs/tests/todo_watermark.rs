@@ -332,6 +332,11 @@ fn a_flush_clears_work_completed_today() {
   // A thread completed TODAY, by the database's own reckoning -- no clock is
   // read here either. `st_done` stamps `completed` at the write.
   let today = complete_today(&fx, &mut facade, "finished today");
+  // A cleared line prints the thread's shown form, which for a git-style id is
+  // shorter than the stored one the mint returned (ST0095 WP-06).
+  let today = intentsvcs::id::ThreadId::parse(&today)
+    .expect("st new names a thread")
+    .shown();
 
   let flushed = facade.todo_flush().expect("flush");
   assert!(

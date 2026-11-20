@@ -86,20 +86,22 @@ fn a_thread_both_clones_minted_is_renumbered_and_the_merge_is_clean_under_doctor
   git_ok(&["clone", "-q", "origin.git", "bob"], dir.path());
   assert!(origin.exists());
 
-  // Both mint one id, the collision under repair. Bob starts his, so it is
-  // realised and declared.
-  let alices = crate::common::created(&ok(&["st", "new", "Alice's next"], &alice, home.path()));
+  // Both hold one ordinal, the collision under repair. **SEEDED, NOT MINTED**
+  // (ST0095 WP-06): a mint makes a git-style id now, which never collides, so
+  // this is the ordinal a branch cut before the upgrade carries. Bob starts
+  // his, so it is realised and declared.
+  let alices = intentsvcs::id::ThreadId::from_ordinal(1)
+    .expect("an ordinal thread")
+    .stored();
+  crate::common::seed_ordinal_thread(&alice, &alices, "Alice's next", &[]);
   git_ok(&["add", "-A"], &alice);
   git_ok(
     &["commit", "-q", "-m", format!("alice: {alices}").as_str()],
     &alice,
   );
   git_ok(&["push", "-q", "origin", "HEAD:main"], &alice);
-  let bobs = crate::common::created(&ok(&["st", "new", "Bob's next"], &bob, home.path()));
-  assert_eq!(
-    bobs, alices,
-    "the two clones must mint one id, or there is no collision to repair"
-  );
+  let bobs = alices.clone();
+  crate::common::seed_ordinal_thread(&bob, &bobs, "Bob's next", &[]);
   ok(&["st", "start", bobs.as_str()], &bob, home.path());
   git_ok(&["add", "-A"], &bob);
   git_ok(
@@ -207,7 +209,10 @@ fn an_issue_renumber_reports_what_it_moved_and_the_prose_it_left() {
   );
   assert_eq!(code, 1, "{second} is taken:\n{out}{err}");
   assert!(
-    err.contains(&format!("issue {second} is already taken")),
+    err.contains(&format!(
+      "issue {} is already taken",
+      crate::common::shown(&second)
+    )),
     "{err}"
   );
 
@@ -217,7 +222,10 @@ fn an_issue_renumber_reports_what_it_moved_and_the_prose_it_left() {
     home.path(),
   );
   assert!(
-    out.contains(&format!("ok: issue {first} renumbered to 0007")),
+    out.contains(&format!(
+      "ok: issue {} renumbered to 0007",
+      crate::common::shown(&first)
+    )),
     "{out}"
   );
   assert!(

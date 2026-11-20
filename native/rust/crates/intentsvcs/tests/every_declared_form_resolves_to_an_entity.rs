@@ -175,12 +175,14 @@ fn a_work_package_resolves_to_its_own_fields_and_not_to_its_threads() {
     wp, thread,
     "a work package must resolve to itself, not to the thread whose files carry it"
   );
+  // The stored id under `id` (ST0095 WP-06), as the canon carries it.
   assert_eq!(
-    wp.get("seq").and_then(|v| v.as_u64()),
+    wp.get("id").and_then(|v| v.as_str()),
     Some(
-      WP_SEQ
-        .parse::<u64>()
-        .expect("the fixture's seq is a number")
+      intentsvcs::id::normalise_wp_id(WP_SEQ)
+        .expect("the fixture's package id")
+        .stored()
+        .as_str()
     ),
     "the resolved entity must be the work package that was addressed"
   );

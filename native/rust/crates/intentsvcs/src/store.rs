@@ -197,7 +197,10 @@ CREATE TABLE IF NOT EXISTS threads (
   -- migration rung, which is a worse trade than a harmless counter; **silence
   -- here would send the next reader hunting for a consumer that does not
   -- exist.**
-  revision INTEGER NOT NULL DEFAULT 0
+  revision INTEGER NOT NULL DEFAULT 0,
+  -- The creation event a hashed id derives from; null on an ordinal. Last,
+  -- where rung 36's ADD COLUMN puts it on a migrated store.
+  origin TEXT
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 CREATE TABLE IF NOT EXISTS related (
@@ -254,7 +257,9 @@ CREATE TABLE IF NOT EXISTS attachments (
 -- the enum column holds nothing rather than a lie.
 CREATE TABLE IF NOT EXISTS wps (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
-  seq INTEGER NOT NULL,
+  -- The package's stored id, `04` or `c2e41a0b`, as TEXT so an all-digit id
+  -- keeps its leading zero (rung 36).
+  seq TEXT NOT NULL,
   title TEXT NOT NULL,
   scope TEXT,
   scope_legacy TEXT,
@@ -272,6 +277,8 @@ CREATE TABLE IF NOT EXISTS wps (
   -- the status it was read as -- `scope_legacy`'s carry, for `status`. Last
   -- because rung 18 appends it.
   status_legacy TEXT,
+  -- The creation event a hashed id derives from; null on an ordinal.
+  origin TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the
@@ -330,7 +337,9 @@ CREATE TABLE IF NOT EXISTS tests (
 -- about where markdown lives.
 -- openness: carried by intent/.canon/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
-  number INTEGER PRIMARY KEY,
+  -- The issue's stored id, `0703` or `I3f9a2c1d4e5f6a7b`, as TEXT so an
+  -- all-digit id keeps its leading zero (rung 36).
+  number TEXT PRIMARY KEY,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -340,7 +349,9 @@ CREATE TABLE IF NOT EXISTS issues (
   reporter TEXT,
   body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The creation event a hashed id derives from; null on an ordinal.
+  origin TEXT
 );
 -- The sync engine's git-style index (data-model.md). DB-only and derived from
 -- the working tree, not from canon, so `rebuild` does not touch it.
@@ -708,11 +719,18 @@ CREATE TABLE IF NOT EXISTS event_log (
 -- project's committed files rather than with its history.
 --
 -- NULL means never flushed.
+--
+-- `canon_schema` is the canon's format, spelled as the schema the project's
+-- `project.json` carries. NULL is 3.4.0's format, as an absent file is. A load
+-- carries it in from the file as it carries the cutoff, and every write reads
+-- it here, so a canon recreated from this store recreates the file. Last,
+-- where rung 36's ADD COLUMN puts it on a migrated store.
 -- openness: carried by intent/.canon/project.json
 CREATE TABLE IF NOT EXISTS project (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   todo_watermark TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  canon_schema TEXT
 );
 -- THE COORDINATION ENTITIES. One board per node.
 --
@@ -857,7 +875,7 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 35;
+pub const SCHEMA_VERSION: i32 = 36;
 
 /// What opening a store does to it, decided once (issue 0717).
 ///
@@ -874,12 +892,37 @@ pub enum Opening {
   Open,
   /// An older store: opening migrates it from `from`, one way.
   Migrate { from: i32 },
-  /// Tables written before the stamp existed: refused, since their shape is not
-  /// knowable.
-  RefuseUnstamped,
-  /// A newer store: refused, since no rung could help. The remedy is to move
-  /// the tool forward, never the data back.
-  RefuseNewer { found: i32 },
+  /// A store this build does not speak: refused, alike from every door.
+  Refuse(Refusal),
+}
+
+/// Why a store is refused at open, whichever door opens it (issue 0717).
+///
+/// **ONE HOME FOR THE TWO SCHEMA REFUSALS.** `Store::init` and
+/// [`Store::open_read_only`] each spelled both out before, so a change to one
+/// door's sentence could leave the other's behind; each now asks
+/// [`Refusal::error`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Refusal {
+  /// Tables written before the stamp existed: their shape is not knowable.
+  Unstamped,
+  /// A newer store: no rung could help. The remedy is to move the tool forward,
+  /// never the data back.
+  Newer { found: i32 },
+}
+
+impl Refusal {
+  /// The refusal of the store named `store`, as a person reads it.
+  pub fn error(self, store: String) -> StoreError {
+    match self {
+      Self::Unstamped => StoreError::SchemaUnstamped { store },
+      Self::Newer { found } => StoreError::SchemaMismatch {
+        store,
+        found,
+        expected: SCHEMA_VERSION,
+      },
+    }
+  }
 }
 
 impl Opening {
@@ -888,19 +931,27 @@ impl Opening {
   pub fn decide(found: i32, has_tables: bool) -> Self {
     match found {
       0 if !has_tables => Self::Create,
-      0 => Self::RefuseUnstamped,
+      0 => Self::Refuse(Refusal::Unstamped),
       v if v == SCHEMA_VERSION => Self::Open,
       // An OLDER store is migrated, not refused: migrations are normal.
       v if v < SCHEMA_VERSION => Self::Migrate { from: v },
-      found => Self::RefuseNewer { found },
+      found => Self::Refuse(Refusal::Newer { found }),
     }
+  }
+
+  /// The decision for the database behind `conn`, its stamp and its tables read
+  /// through SQLite: the one reading [`Store::init`] and [`Store::opening_at`]
+  /// both ask, so neither reads a stamp its own way.
+  fn of(conn: &Connection) -> Result<Self, StoreError> {
+    let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    Ok(Self::decide(found, Store::has_tables(conn)?))
   }
 
   /// Whether opening writes the store's shape: makes it, or migrates it.
   pub fn writes(self) -> bool {
     match self {
       Self::Create | Self::Migrate { .. } => true,
-      Self::Open | Self::RefuseUnstamped | Self::RefuseNewer { .. } => false,
+      Self::Open | Self::Refuse(_) => false,
     }
   }
 
@@ -910,8 +961,8 @@ impl Opening {
       Self::Create => "create",
       Self::Open => "open",
       Self::Migrate { .. } => "migrate",
-      Self::RefuseUnstamped => "refuse-unstamped",
-      Self::RefuseNewer { .. } => "refuse-newer",
+      Self::Refuse(Refusal::Unstamped) => "refuse-unstamped",
+      Self::Refuse(Refusal::Newer { .. }) => "refuse-newer",
     }
   }
 }
@@ -2197,6 +2248,69 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      DROP TABLE wb_node;
      ALTER TABLE wb_node_rebuilt RENAME TO wb_node;",
   ),
+  (
+    36,
+    // 35 -> 36: ST0095 WP-06, git-style ids. A work package's and an issue's
+    // id become TEXT, their stored form (`04`, `0703`, or a hash), and every
+    // record gains `origin`, the creation event a hashed id derives from. Every
+    // id the store holds is an ordinal at this rung, so each is written in its
+    // stored form and every `origin` starts null.
+    //
+    // **A REBUILD OF `wps` AND `issues`**, because a column's type cannot be
+    // altered in place, and `issues.number` was the rowid: an INTEGER PRIMARY
+    // KEY would read an all-digit id back as a number and lose its leading
+    // zero. `threads` only gains a column, and so does `project`, whose
+    // `canon_schema` holds the canon's format: `rung_step` adds each where it is
+    // absent, since `ADD COLUMN` has no `IF NOT EXISTS`. Every `canon_schema`
+    // starts null, 3.4.0's format, the only one this store's last writer wrote.
+    "CREATE TABLE wps_v36 (
+       thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+       seq TEXT NOT NULL,
+       title TEXT NOT NULL,
+       scope TEXT,
+       scope_legacy TEXT,
+       status TEXT NOT NULL,
+       status_reason TEXT,
+       objective TEXT NOT NULL,
+       body TEXT NOT NULL,
+       preamble TEXT NOT NULL DEFAULT '',
+       written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       fiat TEXT,
+       status_legacy TEXT,
+       origin TEXT,
+       PRIMARY KEY (thread_id, seq)
+     );
+     INSERT INTO wps_v36 (thread_id, seq, title, scope, scope_legacy, status, status_reason,
+       objective, body, preamble, written_at, fiat, status_legacy)
+       SELECT thread_id, CASE typeof(seq) WHEN 'integer' THEN printf('%02d', seq) ELSE seq END,
+         title, scope, scope_legacy, status, status_reason,
+         objective, body, preamble, written_at, fiat, status_legacy
+       FROM wps;
+     DROP TABLE wps;
+     ALTER TABLE wps_v36 RENAME TO wps;
+     CREATE TABLE issues_v36 (
+       number TEXT PRIMARY KEY,
+       slug TEXT NOT NULL,
+       title TEXT NOT NULL,
+       status TEXT NOT NULL,
+       severity TEXT,
+       created TEXT NOT NULL,
+       closed TEXT,
+       reporter TEXT,
+       body TEXT NOT NULL DEFAULT '',
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       origin TEXT
+     );
+     INSERT INTO issues_v36 (number, slug, title, status, severity, created, closed, reporter,
+       body, created_at, updated_at)
+       SELECT CASE typeof(number) WHEN 'integer' THEN printf('%04d', number) ELSE number END,
+         slug, title, status, severity, created, closed, reporter,
+         body, created_at, updated_at
+       FROM issues;
+     DROP TABLE issues;
+     ALTER TABLE issues_v36 RENAME TO issues;",
+  ),
 ];
 
 /// The Rust step of a migration rung, run in the rung's own transaction ahead
@@ -2288,6 +2402,16 @@ pub enum StoreError {
   Serde(#[from] serde_json::Error),
   #[error("creating the runtime cache directory: {0}")]
   Cache(#[source] std::io::Error),
+  /// Whether a store is at a path could not be told, because the file system
+  /// refused the question (issue 0717). Nothing was opened and nothing was
+  /// made: read as "absent", it would judge or make a second store beside one
+  /// that may be there.
+  #[error("could not tell whether {store} exists: {source}")]
+  Unprobed {
+    store: String,
+    #[source]
+    source: std::io::Error,
+  },
   /// An in-memory store was asked for the read-only door `intent search --sql`
   /// reads through. There is no file to open a second connection to, and a
   /// fresh in-memory database opened beside it would be EMPTY -- every query
@@ -2521,6 +2645,10 @@ impl crate::remedy::Remedy for StoreError {
       Self::WouldWrite { .. } => "run the command without --read-only, or any verb, to make the \
         store at this build's schema from the committed canon"
         .to_string(),
+      Self::Unprobed { store, .. } => format!(
+        "make {store} and each directory above it readable by this user, then run the command \
+         again"
+      ),
       Self::CreateHitAnExistingKey { kind, key } => format!(
         "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
          next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
@@ -4240,12 +4368,23 @@ impl Store {
   /// committed and has not yet checkpointed is seen here, where a header read
   /// still shows the one before it.
   pub fn opening_at(path: &std::path::Path) -> Result<Opening, StoreError> {
-    if !path.exists() {
+    if !Self::exists_at(path)? {
       return Ok(Opening::Create);
     }
-    let conn = Self::read_only_at(path)?;
-    let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    Ok(Opening::decide(found, Self::has_tables(&conn)?))
+    Opening::of(&Self::read_only_at(path)?)
+  }
+
+  /// Whether a store file is at `path` (issue 0717): the one probe a door that
+  /// must not make a store asks before opening one.
+  ///
+  /// **AN I/O ERROR IS NOT AN ANSWER.** `Path::exists` reads a refused probe,
+  /// eg a directory this user cannot search, as "absent", and the caller then
+  /// judges, or makes, a second store beside the one that is there.
+  pub fn exists_at(path: &std::path::Path) -> Result<bool, StoreError> {
+    path.try_exists().map_err(|source| StoreError::Unprobed {
+      store: path.display().to_string(),
+      source,
+    })
   }
 
   /// An in-memory store, for tests.
@@ -4278,9 +4417,8 @@ impl Store {
       |p| p.display().to_string(),
     );
     conn.pragma_update(None, "foreign_keys", "ON")?;
-    let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
 
-    match Opening::decide(found, Self::has_tables(&conn)?) {
+    match Opening::of(&conn)? {
       Opening::Create => {
         let tx = Self::write_tx(&mut conn)?;
         tx.pragma_update(None, "user_version", SCHEMA_VERSION)?;
@@ -4288,7 +4426,6 @@ impl Store {
         tx.execute_batch(FTS_SECURE_DELETE)?;
         tx.commit()?;
       }
-      Opening::RefuseUnstamped => return Err(StoreError::SchemaUnstamped { store }),
       Opening::Open => {
         // Same shape. The apply is a genuine no-op here, and it is what
         // finishes an interrupted create -- see the ordering note above.
@@ -4298,13 +4435,7 @@ impl Store {
         Self::migrate(&mut conn, from)?;
         conn.execute_batch(DDL)?;
       }
-      Opening::RefuseNewer { found } => {
-        return Err(StoreError::SchemaMismatch {
-          store,
-          found,
-          expected: SCHEMA_VERSION,
-        });
-      }
+      Opening::Refuse(refusal) => return Err(refusal.error(store)),
     }
     Ok(Self::over(conn, at))
   }
@@ -4329,18 +4460,14 @@ impl Store {
   ///
   /// It opens only a store at this build's schema. One that opening would make
   /// or migrate is refused with [`StoreError::WouldWrite`], and a newer or an
-  /// unstamped one with the refusal [`Store::open`] gives it. Every statement on
-  /// it is a read; a write is refused by SQLite at the statement layer.
+  /// unstamped one with the refusal [`Store::open`] gives it, through the one
+  /// [`Refusal::error`]. Every statement on it is a read; a write is refused by
+  /// SQLite at the statement layer.
   pub fn open_read_only(path: &std::path::Path) -> Result<Self, StoreError> {
     let store = path.display().to_string();
     match Self::opening_at(path)? {
       Opening::Open => Ok(Self::over(Self::read_only_at(path)?, Some(path))),
-      Opening::RefuseUnstamped => Err(StoreError::SchemaUnstamped { store }),
-      Opening::RefuseNewer { found } => Err(StoreError::SchemaMismatch {
-        store,
-        found,
-        expected: SCHEMA_VERSION,
-      }),
+      Opening::Refuse(refusal) => Err(refusal.error(store)),
       opening @ (Opening::Create | Opening::Migrate { .. }) => {
         Err(StoreError::WouldWrite { store, opening })
       }
@@ -4433,8 +4560,27 @@ impl Store {
   fn rung_step(to: i32) -> Option<RungStep> {
     match to {
       32 => Some(Self::message_ids_for_rung_32),
+      36 => Some(Self::columns_for_rung_36),
       _ => None,
     }
+  }
+
+  /// Rung 36's two added columns (ST0095 WP-06), `threads.origin` and
+  /// `project.canon_schema`, each added only where its table lacks it: a store
+  /// written before the rung does, and one the current DDL laid down already
+  /// has both.
+  fn columns_for_rung_36(tx: &rusqlite::Transaction<'_>) -> Result<(), StoreError> {
+    for (table, column) in [("threads", "origin"), ("project", "canon_schema")] {
+      let present: i64 = tx.query_row(
+        "SELECT count(*) FROM pragma_table_info(?1) WHERE name = ?2",
+        params![table, column],
+        |row| row.get(0),
+      )?;
+      if present == 0 {
+        tx.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {column} TEXT"))?;
+      }
+    }
+    Ok(())
   }
 
   /// Rung 32's step: give every message the id its old row derives (0612).
@@ -4563,6 +4709,7 @@ impl Store {
            body = excluded.body,
            preamble = excluded.preamble,
            fiat = excluded.fiat,
+           origin = excluded.origin,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
            revision = threads.revision + 1"
       }
@@ -4570,7 +4717,7 @@ impl Store {
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12, ?13)
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
          {on_conflict}
          RETURNING created, completed"
       ),
@@ -4588,6 +4735,7 @@ impl Store {
         t.body,
         t.preamble,
         t.fiat.as_ref().map(serde_json::to_string).transpose()?,
+        t.origin,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     );
@@ -4620,7 +4768,7 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy, origin) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         params![
           t.id,
           wp.seq,
@@ -4634,6 +4782,7 @@ impl Store {
           wp.preamble,
           wp.fiat.as_ref().map(serde_json::to_string).transpose()?,
           wp.status_legacy.as_ref().map(|l| l.raw.clone()),
+          wp.origin,
         ],
       )?;
     }
@@ -4730,17 +4879,18 @@ impl Store {
          closed = excluded.closed,
          reporter = excluded.reporter,
          body = excluded.body,
+         origin = excluded.origin,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
       }
       Door::Create => "",
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9)
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body, origin) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10)
        {on_conflict}
        RETURNING created, closed"
       ),
-      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body],
+      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body, i.origin],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     );
     // **The constraint is translated HERE, not left to surface as `sqlite:
@@ -5199,7 +5349,7 @@ impl Store {
     // `?1 IS NULL OR id = ?1` rather than two statements, for the reason in
     // the doc above: two statements is two column lists.
     let mut stmt = conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat FROM threads WHERE (?1 IS NULL OR id = ?1) ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin FROM threads WHERE (?1 IS NULL OR id = ?1) ORDER BY id",
     )?;
     let rows = stmt.query_map(params![only], |row| {
       Ok((
@@ -5216,6 +5366,7 @@ impl Store {
         row.get::<_, String>(10)?,
         row.get::<_, String>(11)?,
         row.get::<_, Option<String>>(12)?,
+        row.get::<_, Option<String>>(13)?,
       ))
     })?;
 
@@ -5238,6 +5389,7 @@ impl Store {
       body,
       preamble,
       fiat,
+      origin,
     ) in shells
     {
       threads.push(Thread {
@@ -5250,6 +5402,7 @@ impl Store {
         criteria: Self::criteria_of(conn, &id)?,
         tests: Self::tests_of(conn, &id)?,
         id,
+        origin,
         title,
         slug,
         status: enum_from(&status)?,
@@ -5275,7 +5428,7 @@ impl Store {
     only: Option<crate::id::IssueId>,
   ) -> Result<Vec<Issue>, StoreError> {
     let mut stmt = conn.prepare(
-      "SELECT number, slug, title, status, severity, created, closed, reporter, body FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
+      "SELECT number, slug, title, status, severity, created, closed, reporter, body, origin FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
     )?;
     let issues = stmt
       .query_map(params![only], |row| {
@@ -5289,6 +5442,7 @@ impl Store {
           row.get::<_, Option<String>>(6)?,
           row.get::<_, Option<String>>(7)?,
           row.get::<_, String>(8)?,
+          row.get::<_, Option<String>>(9)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -5296,10 +5450,11 @@ impl Store {
     issues
       .into_iter()
       .map(
-        |(number, slug, title, status, severity, created, closed, reporter, body)| {
+        |(number, slug, title, status, severity, created, closed, reporter, body, origin)| {
           Ok(Issue {
             schema: ISSUE_SCHEMA.to_string(),
             number,
+            origin,
             slug,
             title,
             status: enum_from(&status)?,
@@ -5356,7 +5511,7 @@ impl Store {
 
   fn wps_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = conn
-      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy, origin FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -5371,6 +5526,7 @@ impl Store {
           row.get::<_, String>(8)?,
           row.get::<_, Option<String>>(9)?,
           row.get::<_, Option<String>>(10)?,
+          row.get::<_, Option<String>>(11)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -5389,9 +5545,11 @@ impl Store {
           preamble,
           fiat,
           status_legacy,
+          origin,
         )| {
           Ok(WorkPackage {
             seq,
+            origin,
             title,
             scope: scope.as_deref().map(enum_from).transpose()?,
             scope_legacy: scope_legacy.map(|raw| crate::model::Legacy { raw }),
@@ -5406,7 +5564,15 @@ impl Store {
           })
         },
       )
-      .collect()
+      .collect::<Result<Vec<WorkPackage>, StoreError>>()
+      // **IN THE WAIST'S ORDER, NOT SQL'S** (ST0095 WP-06). `ORDER BY seq`
+      // compares the stored text, which for a git-style id is not the order
+      // [`crate::id::WpId`] gives, and a thread read back in another order than
+      // the one its writer holds is a record that moved under the write.
+      .map(|mut wps| {
+        wps.sort_by_key(|wp| wp.seq);
+        wps
+      })
   }
 
   fn criteria_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<Criterion>, StoreError> {
@@ -6164,22 +6330,41 @@ impl Store {
     }
   }
 
-  /// Record the DONE cutoff.
+  /// Record a project state as its `project.json` carries it: the DONE cutoff,
+  /// and the canon's format as the file's schema. One write for one file, so
+  /// the two values never come from different reads of it.
   ///
   /// An UPSERT rather than an UPDATE, so the singleton does not have to exist
   /// first. A store created by [`DDL`] has the table and no row; a store that
   /// came up the migration ladder has the row already. **Two creation paths and
   /// one write** -- an UPDATE would silently affect zero rows on the first of
   /// them, which is a flush that reports success and changes nothing.
-  pub fn set_todo_watermark(&self, mark: Option<&str>) -> Result<(), StoreError> {
+  pub fn set_project_state(&self, state: &crate::model::ProjectState) -> Result<(), StoreError> {
     self.conn.execute(
-      "INSERT INTO project (id, todo_watermark) VALUES (1, ?1)
+      "INSERT INTO project (id, todo_watermark, canon_schema) VALUES (1, ?1, ?2)
        ON CONFLICT (id) DO UPDATE SET
          todo_watermark = excluded.todo_watermark,
+         canon_schema = excluded.canon_schema,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
-      params![mark],
+      params![state.todo_watermark, state.schema],
     )?;
     Ok(())
+  }
+
+  /// The canon's format, spelled as the schema the project's `project.json`
+  /// carries, for [`crate::canon_format::CanonFormat::of_project`] to read.
+  /// `None` covers an absent singleton and a NULL column, as
+  /// [`Store::todo_watermark`] does: both are 3.4.0's format, as an absent file
+  /// is.
+  pub fn canon_schema(&self) -> Result<Option<String>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT canon_schema FROM project WHERE id = 1")?;
+    let mut rows = stmt.query([])?;
+    match rows.next()? {
+      Some(row) => Ok(row.get::<_, Option<String>>(0)?),
+      None => Ok(None),
+    }
   }
 
   /// Every envelope, oldest first.

@@ -7,9 +7,12 @@
 //! `--subject 94` matched nothing. A filter over history reads an untagged
 //! number as every record it could name (cc's meaning, 2026-11-20).
 //!
-//! The short spellings are derived from the minted ids: the tagged one from the
-//! waist (`ThreadId::tagged`, `IssueId::tagged`), and the bare number and the
-//! unpadded package by trimming the waist's own outputs, never from a literal.
+//! The short spellings are derived from the records' ids: the tagged one from
+//! the waist (`ThreadId::tagged`, `IssueId::tagged`), and the bare number and
+//! the unpadded package by trimming the waist's own outputs, never from a
+//! literal. **A short number is an ordinal's spelling**, and a mint now makes a
+//! git-style id, whose short spelling is a prefix (ST0095 WP-06, WP-07), so an
+//! arm whose subject is a short number seeds ordinals.
 //!
 //! `intent id` (AC-10.6) is the read door a script asks in place of a pattern
 //! of its own, so it answers through the same resolver as every verb's door.
@@ -17,6 +20,26 @@
 use crate::common::{created, ok, run};
 use intentsvcs::id::{IssueId, ThreadId, WpId};
 use serde_json::Value;
+
+/// The creation events of the seeded thread and issue, as the committed event
+/// files a project from before the upgrade carries beside its ordinals.
+const THREADS_CREATION: &str = "01JA0000000000000000000011";
+const ISSUES_CREATION: &str = "01JA0000000000000000000012";
+
+/// Thread `ST0001` and issue `0001`, ordinals sharing one number, as committed
+/// canon in an initialised project. A mint makes git-style ids now, so the
+/// number two records share is seeded (ST0095 WP-06).
+fn seed_a_shared_number(root: &std::path::Path, packages: &[(u32, &str)]) -> (String, String) {
+  let st = ThreadId::from_ordinal(1)
+    .expect("an ordinal thread")
+    .stored();
+  let issue = IssueId::from_ordinal(1).expect("an ordinal issue").stored();
+  crate::common::seed_ordinal_thread(root, &st, "A thread the doors name", packages);
+  crate::common::seed_ordinal_issue(root, 1, "An issue sharing the number");
+  crate::common::seed_creation_event(root, THREADS_CREATION, "st.new", "thread", &st);
+  crate::common::seed_creation_event(root, ISSUES_CREATION, "issues.add", "issue", &issue);
+  (st, issue)
+}
 
 /// A minted thread's bare number, eg `1` for `ST0001`: its tagged spelling
 /// with the tag trimmed off.
@@ -33,13 +56,16 @@ fn todo_done_reaches_the_package_a_short_spelling_names() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "doors"]);
-  let st = created(&ok(root, &["st", "new", "A thread the doors name"]));
-  let wp = created(&ok(
+  let st = ThreadId::from_ordinal(56).expect("an ordinal thread");
+  let package = WpId::from_ordinal(2).expect("an ordinal package");
+  crate::common::seed_ordinal_thread(
     root,
-    &["wp", "new", st.as_str(), "A package the doors name"],
-  ));
-  let (_, package) = intentsvcs::id::split_wp_address(&wp).expect("a package address");
-  let package = WpId::parse(package).expect("a minted package id");
+    &st,
+    "A thread the doors name",
+    &[(2, "A package the doors name")],
+  );
+  let wp = intentsvcs::id::wp_address(&st, package);
+  let st = st.stored();
   let short_wp = format!("{}/{}", bare(&st), package.shown().trim_start_matches('0'));
 
   // The package is not started, so `wp.done` is refused by the transition
@@ -60,8 +86,14 @@ fn ac_descope_takes_a_bare_thread_number() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "doors"]);
-  let from = created(&ok(root, &["st", "new", "The thread a requirement leaves"]));
-  let to = created(&ok(root, &["st", "new", "The thread that will hold it"]));
+  let from = ThreadId::from_ordinal(58)
+    .expect("an ordinal thread")
+    .stored();
+  let to = ThreadId::from_ordinal(59)
+    .expect("an ordinal thread")
+    .stored();
+  crate::common::seed_ordinal_thread(root, &from, "The thread a requirement leaves", &[]);
+  crate::common::seed_ordinal_thread(root, &to, "The thread that will hold it", &[]);
   ok(
     root,
     &[
@@ -97,8 +129,7 @@ fn events_shows_every_record_an_untagged_number_names() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "doors"]);
-  let st = created(&ok(root, &["st", "new", "A thread the log names"]));
-  let issue = created(&ok(root, &["issues", "add", "An issue the log names"]));
+  let (st, issue) = seed_a_shared_number(root, &[]);
   let thread_tag = ThreadId::parse(&st).expect("a minted thread id").tagged();
   let issue_tag = IssueId::parse(&issue).expect("a minted issue id").tagged();
   let number = bare(&st);
@@ -146,7 +177,7 @@ fn events_finds_a_criterions_subject_as_the_log_writes_it() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "doors"]);
-  let st = created(&ok(root, &["st", "new", "A thread with a criterion"]));
+  let (st, _) = seed_a_shared_number(root, &[]);
   let ac = "AC-01.1";
   ok(
     root,
@@ -202,13 +233,10 @@ fn id_names_the_record_each_spelling_names() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   ok(root, &["init", "doors"]);
-  let st = created(&ok(root, &["st", "new", "A thread the id door names"]));
-  let wp = created(&ok(root, &["wp", "new", st.as_str(), "A package it names"]));
-  let first = created(&ok(root, &["issues", "add", "An issue sharing the number"]));
-  let second = created(&ok(
-    root,
-    &["issues", "add", "An issue alone at its number"],
-  ));
+  let (st, first) = seed_a_shared_number(root, &[(1, "A package it names")]);
+  let wp = intentsvcs::id::wp_address(&st, WpId::from_ordinal(1).expect("an ordinal package"));
+  crate::common::seed_ordinal_issue(root, 2, "An issue alone at its number");
+  let second = IssueId::from_ordinal(2).expect("an ordinal issue").stored();
   let thread_tag = ThreadId::parse(&st).expect("a minted thread id").tagged();
   let number = bare(&st);
   let second_number = IssueId::parse(&second)

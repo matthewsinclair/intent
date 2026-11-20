@@ -45,7 +45,11 @@ fn an_edit_inside_a_sync_keeps_its_files_and_the_close_after_it_overwrites_nothi
     .clone();
   assert_eq!(
     std::fs::read_to_string(project.issue_json(number)).expect("the canon file is on disk"),
-    intentsvcs::model::to_canonical_json(&stored).expect("the stored issue renders"),
+    intentsvcs::canon_format::encode_issue(
+      &stored,
+      intentsvcs::ingest::canon_format(&project).expect("the canon format")
+    )
+    .expect("the stored issue renders"),
     "the canon file on disk is the store's render, not the one the sync took before the edit"
   );
   let view = std::fs::read_to_string(project.issue_view(number)).expect("the view is on disk");

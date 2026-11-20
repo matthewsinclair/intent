@@ -215,6 +215,7 @@ fn every_work_package_spelling_reaches_a_view_and_excludes_the_others() {
     thread.wps = vec![WorkPackage {
       preamble: String::new(),
       seq: wp(1),
+      origin: None,
       title: "one work package".to_string(),
       scope: None,
       scope_legacy: None,

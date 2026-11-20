@@ -77,7 +77,7 @@ fn info_prints_the_cover_the_bare_verb_prints() {
   let (dir, st) = seeded();
   let cover = ok(dir.path(), &["st", "show", st.as_str()]);
   assert!(
-    cover.starts_with(&format!("{st}: A thread\n")),
+    cover.starts_with(&format!("{}: A thread\n", crate::common::shown(&st))),
     "the declared default is the cover: {cover}"
   );
   assert_eq!(ok(dir.path(), &["st", "show", st.as_str(), "info"]), cover);

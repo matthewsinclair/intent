@@ -34,12 +34,15 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::canon_format::{
+  CanonFormat, CanonFormatError, encode_issue, encode_project_state, encode_thread,
+};
 use crate::event::{self, Envelope};
 use crate::faces::INTENT_VER;
 use crate::model::{Issue, Thread, to_canonical_json};
 
 /// The `schema` field value for an export bundle.
-pub const BUNDLE_SCHEMA: &str = "intent/export@3.0";
+pub const BUNDLE_SCHEMA: &str = "intent/export@4.0";
 
 /// The whole estate as ONE document -- what a projection projects.
 ///
@@ -512,12 +515,39 @@ fn verify(bundle: &Bundle, text: &str, name: &str, read: Read) -> Result<(), Exp
 /// writer of this list, and the single-file form is [`log_part`], the export
 /// round trip's own comparison part. It was here as the last part until 0457, and a
 /// migration, which writes every part, left an empty `events.jsonl` in the tree.
-pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json::Error> {
+pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, CanonFormatError> {
+  // **IN THE FORMAT THE BUNDLE'S PROJECT STATE NAMES** (ST0095 WP-06), and
+  // 3.4.0's where it carries none, as a project with no `project.json` is: a
+  // round trip of a project `intent upgrade` has not moved gives back its own
+  // bytes.
+  let format = CanonFormat::of_project(bundle.project.as_ref().map(|state| state.schema.as_str()))?;
+  let mut out = record_parts(bundle, format)?;
+  // **THE CUTOFF LEAVES WITH THE CANON, because it IS canon.** Without this an
+  // export round trip drops the DONE cutoff silently and the restored estate
+  // resurrects every flushed thread -- the same defect a git clone had, through
+  // the one door AC-02.6 is about.
+  if let Some(state) = &bundle.project {
+    out.push((
+      crate::project::canon_project_rel(),
+      encode_project_state(state.todo_watermark.clone(), format)?,
+    ));
+  }
+  Ok(out)
+}
+
+/// One canon file per thread and per issue in `bundle`, in `format`, and
+/// nothing else: [`canon_parts`] without the project state, for `intent
+/// upgrade`, which writes every record in the release's format before it
+/// writes the one file that says so (ST0095 WP-06).
+pub fn record_parts(
+  bundle: &Bundle,
+  format: CanonFormat,
+) -> Result<Vec<(String, String)>, CanonFormatError> {
   let mut out = Vec::with_capacity(bundle.threads.len() + bundle.issues.len() + 1);
   for thread in &bundle.threads {
     out.push((
       crate::project::canon_thread_rel(&thread.id),
-      to_canonical_json(thread)?,
+      encode_thread(thread, format)?,
     ));
   }
   for issue in &bundle.issues {
@@ -534,17 +564,7 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
       // says why a shared spelling is required rather than tidy -- delete it
       // and the next person to want a literal here has only the aesthetics.
       crate::project::canon_issue_rel(issue.number),
-      to_canonical_json(issue)?,
-    ));
-  }
-  // **THE CUTOFF LEAVES WITH THE CANON, because it IS canon.** Without this an
-  // export round trip drops the DONE cutoff silently and the restored estate
-  // resurrects every flushed thread -- the same defect a git clone had, through
-  // the one door AC-02.6 is about.
-  if let Some(state) = &bundle.project {
-    out.push((
-      crate::project::canon_project_rel(),
-      to_canonical_json(state)?,
+      encode_issue(issue, format)?,
     ));
   }
   Ok(out)
@@ -561,7 +581,7 @@ pub fn log_part(bundle: &Bundle) -> Result<(String, String), serde_json::Error> 
 }
 
 /// What a round-tripping projection must carry back: the canon, then the log.
-pub fn carried_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json::Error> {
+pub fn carried_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, CanonFormatError> {
   let mut out = canon_parts(bundle)?;
   out.push(log_part(bundle)?);
   Ok(out)

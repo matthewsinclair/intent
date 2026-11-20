@@ -25,10 +25,13 @@
 //! either.
 //!
 //! **So this drives the PROPERTY rather than the race.** Two facades opened
-//! before either writes both compute the same next number -- which is the state
-//! the incident was in, however it got there -- and the second write must be
-//! refused. A test that waited for a scheduler to produce that state would be
-//! measuring the scheduler.
+//! before either writes are the state the incident was in, however it got
+//! there. They used to compute the same next number, and the second write was
+//! refused. Since ST0095 WP-06 each mint draws its record's own creation event,
+//! so the two get two ids and both filings survive, and the store's create
+//! door, which still refuses a held key, is driven at the store, where a key
+//! can be named. A test that waited for a scheduler to produce that state would
+//! be measuring the scheduler.
 //!
 //! # What the arms are for
 //!
@@ -52,7 +55,6 @@
 //! running `intent` share one on-disk store; that is the population.
 
 use crate::common::{Fixture, sample_issue, sample_thread};
-use intentsvcs::facade::FacadeError;
 use intentsvcs::model::IssueStatus;
 
 /// The ordinary path, and the non-vacuity control for everything below.
@@ -81,104 +83,109 @@ fn two_sequential_adds_allocate_two_numbers_and_both_survive() {
   assert_eq!(f.issue_show(second).unwrap().title, "the second filing");
 }
 
-/// **THE DISCRIMINATING ARM.** Two facades, both loaded before either wrote, so
-/// both compute the same next number. The second must be REFUSED.
-///
-/// Before the fix this returned `Ok` and the first filing was gone.
+/// **THE INCIDENT'S STATE, AND NOW NOTHING COLLIDES** (ST0095 WP-06). Two
+/// facades, both loaded before either wrote, are the state 0131 was in, and
+/// both used to compute the same next number. A mint now draws each record's
+/// own creation event, so the two filings get two ids and both survive, read
+/// back byte intact through a third facade. That is 0131's ruling, a filing is
+/// never lost, held by construction.
 #[test]
-fn two_facades_that_both_think_the_number_is_free_do_not_both_get_it() {
+fn two_facades_loaded_before_either_writes_both_mint_and_both_filings_survive() {
   let fx = Fixture::new();
-
-  // Both open BEFORE either writes -- the state the incident was in. Nothing
-  // here is timing-dependent: the canon each one holds is fixed at open.
   let mut a = fx.facade_on_disk();
   let mut b = fx.facade_on_disk();
 
-  let landed = a
-    .issue_add("the filing that survives", None, None, "")
-    .unwrap();
+  let first = a
+    .issue_add("the first filing", None, None, "the first body")
+    .expect("the first add");
+  let second = b
+    .issue_add("the second filing", None, None, "the second body")
+    .expect("the second add, from a facade that never saw the first");
+  assert_ne!(first, second, "two facades minted one id");
 
-  let refused = b.issue_add("the filing that must not overwrite it", None, None, "");
-  let err = refused.expect_err(
-    "the second facade allocated a number the first had already taken, and writing it \
-     would replace the first filing -- a create must refuse",
-  );
-
-  // **THE VARIANT IS ASSERTED, NOT JUST THE FACT OF AN ERROR.** A refusal that
-  // travelled as `FacadeError::Store` would render "could not update the
-  // runtime store" and pass a test that only checked `is_err` -- and it would
-  // tell the operator to look at their disk over a key collision.
-  assert!(
-    matches!(err, FacadeError::IssueExists { number } if number == landed),
-    "the refusal must name the issue it hit, as its own variant: {err:?}"
-  );
-  assert!(
-    err.to_string().contains(&landed.shown()),
-    "and the rendered message must carry the number: {err}"
-  );
+  let after = fx.facade_on_disk();
+  assert_eq!(after.issue_show(first).unwrap().body, "the first body");
+  assert_eq!(after.issue_show(second).unwrap().body, "the second body");
 }
 
-/// **AND THE FIRST FILING IS STILL THERE**, which is the whole of the ruling.
-///
-/// The arm above proves a refusal; this proves the refusal is protecting
-/// something. A store that refused AND had already clobbered the row would pass
-/// the assertion above and fail this one.
+/// The same for threads, because `st new` mints the same way and one ruling
+/// covers the mutation surface rather than one verb.
 #[test]
-fn the_refused_write_leaves_the_first_filing_byte_intact() {
+fn two_facades_loaded_before_either_writes_both_mint_a_thread() {
   let fx = Fixture::new();
   let mut a = fx.facade_on_disk();
   let mut b = fx.facade_on_disk();
 
-  let landed = a
-    .issue_add(
-      "the filing that survives",
-      None,
-      None,
-      "the body that survives",
-    )
-    .unwrap();
-  let _ = b.issue_add("the overwrite that must not happen", None, None, "clobber");
+  let first = a.st_new("the first thread").unwrap();
+  let second = b.st_new("the second thread").unwrap();
+  assert_ne!(first, second, "two facades minted one id");
 
-  // Read through a THIRD facade, so the assertion is about what the store
-  // holds rather than about either writer's in-memory canon.
   let after = fx.facade_on_disk();
-  let issue = after.issue_show(landed).unwrap();
-  assert_eq!(issue.title, "the filing that survives");
-  assert_eq!(issue.body, "the body that survives");
+  assert_eq!(after.st_show(&first).unwrap().title, "the first thread");
+  assert_eq!(after.st_show(&second).unwrap().title, "the second thread");
+}
+
+/// **THE DOOR STAYS SHUT WHERE NO VERB CAN REACH IT.** A create is written
+/// through the store's create door, so the DATABASE decides inside the
+/// transaction whether the key was free. No mint can bring it a held key at
+/// sixty-four bits, so it is driven here at the store, the one place a key
+/// can be named, and the row it holds must survive the refused write.
+#[test]
+fn the_store_refuses_a_create_of_a_key_it_holds_and_keeps_the_row() {
+  let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
+  let held = sample_issue(1);
+  create_issue(&mut store, &held).expect("the first create");
+
+  let mut other = sample_issue(1);
+  other.title = "the create that must not overwrite it".to_string();
+  let refused = create_issue(&mut store, &other).expect_err("the key is held");
+  assert!(
+    matches!(
+      &refused,
+      intentsvcs::store::StoreError::CreateHitAnExistingKey { key, .. } if *key == held.number.stored()
+    ),
+    "the refusal must name the key it hit, as its own variant: {refused:?}"
+  );
+  let (_, issues) = store.load_canon().expect("load");
   assert_eq!(
-    after.issue_list().len(),
+    issues.len(),
     1,
-    "the refused write must not have landed under any number"
+    "the refused write landed under another key"
+  );
+  assert_eq!(
+    issues[0].title, held.title,
+    "the refused write replaced the row"
   );
 }
 
-/// The same property for threads, because `st new` allocates its id the same
-/// way and one ruling covers the mutation surface rather than one verb.
-#[test]
-fn two_facades_do_not_both_get_the_same_thread_id() {
-  let fx = Fixture::new();
-  let mut a = fx.facade_on_disk();
-  let mut b = fx.facade_on_disk();
-
-  let landed = a.st_new("the thread that survives").unwrap();
-  let err = b
-    .st_new("the thread that must not overwrite it")
-    .expect_err("a create must refuse an id that is already taken");
-  // **`ThreadExists` IS REACHABLE FOR THE FIRST TIME HERE.** `st_new` carried a
-  // pre-check against its own just-read canon -- false by construction -- and
-  // `error_remedies.rs` exempted the variant from its drive as needing "a
-  // colliding id, which `st new` allocates around". The collision is real; the
-  // place it was being looked for could not see it.
-  assert!(
-    matches!(&err, FacadeError::ThreadExists { id } if id == &landed),
-    "the refusal must name the thread it hit, as its own variant: {err:?}"
+/// One issue brought into existence through the store's create door.
+fn create_issue(
+  store: &mut intentsvcs::store::Store,
+  issue: &intentsvcs::model::Issue,
+) -> Result<intentsvcs::store::StoredDates, intentsvcs::store::StoreError> {
+  let envelope = intentsvcs::event::Envelope::minted(
+    "test",
+    "",
+    "issues.add",
+    intentsvcs::event::Subject {
+      kind: "issue".to_string(),
+      id: issue.number.stored(),
+    },
+    serde_json::json!({}),
   );
-
-  let after = fx.facade_on_disk();
-  assert_eq!(
-    after.st_show(&landed).unwrap().title,
-    "the thread that survives"
-  );
+  store.commit_mutation(intentsvcs::store::Mutation {
+    threads: &[],
+    issues: &[issue],
+    removed_threads: &[],
+    removed_issues: &[],
+    created_threads: &[],
+    created_issues: &[issue.number],
+    expected_threads: &[],
+    expected_issues: &[],
+    sections: &[],
+    envelopes: &[&envelope],
+    project_state: intentsvcs::store::ProjectStateEdit::Unchanged,
+  })
 }
 
 /// **THE ARM THAT WOULD CATCH THE OBVIOUS WRONG FIX.** Dropping `ON CONFLICT`

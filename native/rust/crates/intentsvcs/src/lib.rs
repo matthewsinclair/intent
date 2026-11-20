@@ -54,6 +54,7 @@ pub mod backup;
 pub mod bootstrap;
 pub mod brief;
 pub mod canon;
+pub mod canon_format;
 pub mod contract;
 pub mod critic;
 pub mod daemon;

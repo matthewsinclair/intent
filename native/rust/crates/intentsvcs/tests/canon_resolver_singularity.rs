@@ -64,7 +64,7 @@ const ELSEWHERE: &str = "workspace";
 fn issue(number: u32) -> Issue {
   serde_json::from_value(serde_json::json!({
     "schema": ISSUE_SCHEMA,
-    "number": number,
+    "id": intentsvcs::id::IssueId::from_ordinal(number).expect("an ordinal").stored(),
     "slug": "a-defect",
     "title": "a defect",
     "status": IssueStatus::Open,

@@ -105,7 +105,8 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   );
   assert!(
     said.contains(&format!(
-      ". ingest (quiet): take 1 change(s) from the files into the store: {pulled}"
+      ". ingest (quiet): take 1 change(s) from the files into the store: {}",
+      crate::common::shown(&pulled)
     )),
     "the step names what it would take and says it is quiet: {said}"
   );
@@ -125,7 +126,10 @@ fn the_bare_verb_prints_the_plan_and_writes_nothing() {
   );
 
   let applied = run(&home, &root, &["sync", "--apply"]);
-  let took = format!("ok: took 1 change(s) from the files into the store: {pulled}");
+  let took = format!(
+    "ok: took 1 change(s) from the files into the store: {}",
+    crate::common::shown(&pulled)
+  );
   assert!(
     text(&applied).lines().any(|l| l == took),
     "the apply takes what the plan named: {}",

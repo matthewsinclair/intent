@@ -21,9 +21,10 @@ use std::sync::OnceLock;
 
 use serde::de::DeserializeOwned;
 
+use crate::canon_format::{CanonFormat, CanonKind, IssueV3, ThreadV3};
 use crate::event::{Envelope, EventFileError};
 use crate::finding::{Finding, FindingClass, Refusal};
-use crate::model::{ISSUE_SCHEMA, Issue, PROJECT_SCHEMA, ProjectState, THREAD_SCHEMA, Thread};
+use crate::model::{Issue, ProjectState, Thread};
 use crate::project::Project;
 use crate::prose::{self, DocSection};
 use crate::store::{IngestOutcome, Store, StoreError};
@@ -201,17 +202,7 @@ impl From<Refusal> for IngestError {
 /// `legacy.rs` has already established the file exists.
 pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
   let rel = project.relative(&project.thread_json(id));
-  let thread = parse::<Thread>(&rel, text)?;
-  if thread.schema != THREAD_SCHEMA {
-    return Err(vec![Finding::new(
-      &rel,
-      FindingClass::SchemaInvalid,
-      format!(
-        "schema is {:?}; this binary reads {THREAD_SCHEMA:?}",
-        thread.schema
-      ),
-    )]);
-  }
+  let thread = decode_thread(&rel, parse_json(&rel, text)?)?;
   if thread.id != id {
     return Err(vec![Finding::new(
       &rel,
@@ -247,17 +238,7 @@ pub fn read_issue(
   text: &str,
 ) -> Result<Issue, Vec<Finding>> {
   let rel = project.relative(&project.issue_json(number));
-  let issue = parse::<Issue>(&rel, text)?;
-  if issue.schema != ISSUE_SCHEMA {
-    return Err(vec![Finding::new(
-      &rel,
-      FindingClass::SchemaInvalid,
-      format!(
-        "schema is {:?}; this binary reads {ISSUE_SCHEMA:?}",
-        issue.schema
-      ),
-    )]);
-  }
+  let issue = decode_issue(&rel, parse_json(&rel, text)?)?;
   if issue.number != number {
     return Err(vec![Finding::new(
       &rel,
@@ -342,17 +323,79 @@ pub fn read_project_state(project: &Project) -> Result<Option<ProjectState>, Vec
     }
   };
   let state = parse::<ProjectState>(&rel, &text)?;
-  if state.schema != PROJECT_SCHEMA {
-    return Err(vec![Finding::new(
-      &rel,
-      FindingClass::SchemaInvalid,
-      format!(
-        "schema is {:?}; this binary reads {PROJECT_SCHEMA:?}",
-        state.schema
-      ),
-    )]);
-  }
+  project_format_of(&rel, &state)?;
   Ok(Some(state))
+}
+
+/// The canon format the files declare (ST0095 WP-06): the schema of
+/// `.canon/project.json`, by [`CanonFormat::of_project`]'s rule, so an absent
+/// file is [`CanonFormat::V3`]. **A WRITER DOES NOT ASK THIS**: it reads the
+/// store's copy, which every load carries in from the file, so a canon recreated from
+/// the store recreates the file. This is the files' own answer, for a reader
+/// of the files alone.
+pub fn canon_format(project: &Project) -> Result<CanonFormat, Vec<Finding>> {
+  let state = read_project_state(project)?;
+  CanonFormat::of_project(state.as_ref().map(|state| state.schema.as_str())).map_err(|refused| {
+    vec![Finding::new(
+      project.relative(&project.project_json()),
+      FindingClass::SchemaInvalid,
+      refused.to_string(),
+    )]
+  })
+}
+
+/// The format a read project state names, or the refusal of a schema this
+/// build does not read.
+fn project_format_of(rel: &str, state: &ProjectState) -> Result<CanonFormat, Vec<Finding>> {
+  CanonFormat::of(CanonKind::Project, &state.schema)
+    .ok_or_else(|| unread_schema(rel, &state.schema, CanonKind::Project))
+}
+
+/// One thread's canon, read by the schema the file carries (ST0095 WP-06), so a
+/// file a merge brought in the other format is read, and `intent upgrade` can
+/// move it. The one decoder of a thread: [`read_thread`] and every caller that
+/// holds a thread's JSON ask it.
+pub fn decode_thread(rel: &str, value: serde_json::Value) -> Result<Thread, Vec<Finding>> {
+  match format_of(rel, &value, CanonKind::Thread)? {
+    CanonFormat::V4 => validated::<Thread>(rel, value),
+    CanonFormat::V3 => validated::<ThreadV3>(rel, value).map(Thread::from),
+  }
+}
+
+/// One issue's canon, read by the schema the file carries, as
+/// [`decode_thread`] reads a thread.
+pub fn decode_issue(rel: &str, value: serde_json::Value) -> Result<Issue, Vec<Finding>> {
+  match format_of(rel, &value, CanonKind::Issue)? {
+    CanonFormat::V4 => validated::<Issue>(rel, value),
+    CanonFormat::V3 => validated::<IssueV3>(rel, value).map(Issue::from),
+  }
+}
+
+/// The format a canon file is in, by its schema. A schema that is missing or
+/// not a string is judged against the release's format, whose validator then
+/// names what is wrong with it.
+fn format_of(
+  rel: &str,
+  value: &serde_json::Value,
+  kind: CanonKind,
+) -> Result<CanonFormat, Vec<Finding>> {
+  match value.get("schema").and_then(serde_json::Value::as_str) {
+    None => Ok(CanonFormat::CURRENT),
+    Some(schema) => CanonFormat::of(kind, schema).ok_or_else(|| unread_schema(rel, schema, kind)),
+  }
+}
+
+/// The refusal of a canon file whose schema this build does not read, naming
+/// both it does.
+fn unread_schema(rel: &str, schema: &str, kind: CanonKind) -> Vec<Finding> {
+  vec![Finding::new(
+    rel,
+    FindingClass::SchemaInvalid,
+    format!(
+      "schema is {schema:?}; this binary reads {}",
+      CanonFormat::readable(kind)
+    ),
+  )]
 }
 
 pub fn read(project: &Project) -> Result<Canon, IngestError> {
@@ -830,6 +873,13 @@ pub(crate) fn canon_file_entries(
 /// source -- so it is taken, the same distinction `.intentfiles` draws between
 /// absent and empty.
 ///
+/// **THE CANON'S FORMAT CROSSES THE SAME WAY** (ST0095 WP-06): the file's
+/// schema is carried with the cutoff, by the same rule. A fresh clone of an
+/// upgraded project learns its format here, and a pull that brings the upgrade
+/// carries it in. A deleted file leaves the store's format standing, and the
+/// next write puts the file back, since every writer reads the format from the
+/// store.
+///
 /// One function and two callers rather than two copies: [`load`] and
 /// [`resync_inner`] are both disk -> store, and a rule stated twice is a rule
 /// that will disagree with itself.
@@ -837,7 +887,7 @@ pub(crate) fn carry_project_state(project: &Project, store: &mut Store) -> Resul
   if let Some(state) =
     read_project_state(project).map_err(|f| IngestError::from(Refusal::new(f)))?
   {
-    store.set_todo_watermark(state.todo_watermark.as_deref())?;
+    store.set_project_state(&state)?;
   }
   Ok(())
 }
@@ -1706,15 +1756,18 @@ fn index_rows(
 /// gave up. Deserialisation after a clean validation cannot fail for schema
 /// reasons, so its error is reported honestly as a schema finding too.
 fn parse<T: Validated>(rel: &str, text: &str) -> Result<T, Vec<Finding>> {
-  let value: serde_json::Value = match serde_json::from_str(text) {
-    Ok(value) => value,
-    Err(e) => {
-      return Err(vec![
-        Finding::new(rel, FindingClass::MalformedJson, e.to_string()).at_line(e.line() as u32),
-      ]);
-    }
-  };
+  validated(rel, parse_json(rel, text)?)
+}
 
+/// A canon file's text as JSON, or the finding that it is not JSON.
+fn parse_json(rel: &str, text: &str) -> Result<serde_json::Value, Vec<Finding>> {
+  serde_json::from_str(text).map_err(|e| {
+    vec![Finding::new(rel, FindingClass::MalformedJson, e.to_string()).at_line(e.line() as u32)]
+  })
+}
+
+/// [`parse`]'s second half: validate a parsed value, then deserialise it.
+fn validated<T: Validated>(rel: &str, value: serde_json::Value) -> Result<T, Vec<Finding>> {
   let errors: Vec<Finding> = T::validator()
     .iter_errors(&value)
     .map(|e| {
@@ -1793,6 +1846,20 @@ impl Validated for Issue {
   fn validator() -> &'static jsonschema::Validator {
     static V: OnceLock<jsonschema::Validator> = OnceLock::new();
     V.get_or_init(compile::<Issue>)
+  }
+}
+
+impl Validated for ThreadV3 {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<ThreadV3>)
+  }
+}
+
+impl Validated for IssueV3 {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<IssueV3>)
   }
 }
 

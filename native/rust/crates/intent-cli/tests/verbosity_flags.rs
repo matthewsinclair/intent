@@ -122,6 +122,7 @@ fn quiet_is_strictly_less_than_the_default() {
     "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"Q\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
   )
   .expect("write config");
+  crate::common::born_upgraded(root);
 
   let made = crate::common::intent()
     .args(["st", "new", "A thread"])

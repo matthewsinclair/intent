@@ -1428,6 +1428,11 @@ pub enum ProjectError {
     #[source]
     source: serde_json::Error,
   },
+  /// A canon file whose name is no stored id of its collection's family
+  /// (ST0095 WP-06, AC-06.5). Refused by name and never skipped: a record no
+  /// reader takes is one the next write of its collection loses.
+  #[error("{path} is named as no {kind} id, so no reader can say which record it is")]
+  CanonNameNotAnId { path: String, kind: &'static str },
 }
 
 impl ProjectError {
@@ -1447,6 +1452,7 @@ impl ProjectError {
         .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
         .is_none_or(|config| config.get("intent_version").is_none()),
       Self::NotFound(_) | Self::PreV210(_) | Self::BareRepository(_) | Self::Io { .. } => true,
+      Self::CanonNameNotAnId { .. } => false,
     }
   }
 }
@@ -1477,6 +1483,9 @@ impl crate::remedy::Remedy for ProjectError {
       // this file is committed, so git holds the version before the edit.
       Self::Config { path, .. } => format!(
         "the parse error above names the position in {path}; if you did not mean to edit it, `git checkout -- {path}` restores the committed version"
+      ),
+      Self::CanonNameNotAnId { path, .. } => format!(
+        "a canon file is named by its record's stored id: rename {path} to the id its own `id` field holds, or move it out of the canon directory if it is no record"
       ),
     }
   }
@@ -2596,14 +2605,36 @@ impl Project {
     let Ok(entries) = std::fs::read_dir(self.canon_st_dir()) else {
       return Ok(Vec::new());
     };
-    let mut ids: Vec<String> = entries
+    let mut ids = Vec::new();
+    for path in entries
       .filter_map(Result::ok)
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
-      .filter_map(|p| p.file_stem().and_then(|s| s.to_str()).map(str::to_string))
-      .collect();
+    {
+      ids.push(self.canon_name(&path, "steel thread", |stem| {
+        crate::id::ThreadId::parse(stem).map(|id| id.stored())
+      })?);
+    }
     ids.sort();
     Ok(ids)
+  }
+
+  /// The stored id a canon file's name gives, read by `parse`, or the refusal
+  /// of a name that is no `kind` id (ST0095 WP-06, AC-06.5): never skipped.
+  fn canon_name<T>(
+    &self,
+    path: &Path,
+    kind: &'static str,
+    parse: impl Fn(&str) -> Result<T, crate::id::IdError>,
+  ) -> Result<T, ProjectError> {
+    path
+      .file_stem()
+      .and_then(|stem| stem.to_str())
+      .and_then(|stem| parse(stem).ok())
+      .ok_or_else(|| ProjectError::CanonNameNotAnId {
+        path: self.relative(path),
+        kind,
+      })
   }
 
   /// Whether this project's canon is in a form this binary can read.
@@ -2705,16 +2736,14 @@ impl Project {
     let Ok(entries) = std::fs::read_dir(self.issues_dir()) else {
       return Ok(Vec::new());
     };
-    let mut ids: Vec<crate::id::IssueId> = entries
+    let mut ids = Vec::new();
+    for path in entries
       .filter_map(Result::ok)
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
-      .filter_map(|p| {
-        p.file_stem()
-          .and_then(|s| s.to_str())
-          .and_then(|s| crate::id::IssueId::parse(s).ok())
-      })
-      .collect();
+    {
+      ids.push(self.canon_name(&path, "issue", crate::id::IssueId::parse)?);
+    }
     ids.sort_unstable();
     Ok(ids)
   }

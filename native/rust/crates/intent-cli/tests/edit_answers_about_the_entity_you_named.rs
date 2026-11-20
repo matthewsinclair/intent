@@ -26,14 +26,22 @@ use std::path::Path;
 /// A project with one thread and one issue **whose numbers collide** -- which
 /// is the only configuration in which the defect is observable at all.
 ///
-/// Returned with the thread's id and the issue's, each as its mint printed it.
-/// The issue's id is the number the two share.
+/// Returned with the thread's id and the issue's, each in its stored form. The
+/// issue's id is the number the two share.
+///
+/// **SEEDED, NOT MINTED** (ST0095 WP-06): a thread and an issue share a number
+/// only in the ordinal family, which a mint no longer makes, so the two are
+/// seeded as committed canon under one ordinal, and the ids come back from the
+/// waist rather than from a literal.
 fn seeded() -> (tempfile::TempDir, String, String) {
   let dir = tempfile::tempdir().expect("tempdir");
   run(dir.path(), &["init", "kinds"]);
-  let st = crate::common::created(&run(dir.path(), &["st", "new", "a thread"]).0);
-  let number = crate::common::created(&run(dir.path(), &["issues", "add", "an issue"]).0);
-  (dir, st, number)
+  let shared = 59;
+  let st = intentsvcs::id::ThreadId::from_ordinal(shared).expect("an ordinal thread");
+  let number = intentsvcs::id::IssueId::from_ordinal(shared).expect("an ordinal issue");
+  crate::common::seed_ordinal_thread(dir.path(), &st, "a thread", &[]);
+  crate::common::seed_ordinal_issue(dir.path(), shared, "an issue");
+  (dir, st.stored(), number.stored())
 }
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {

@@ -297,9 +297,14 @@ fn regenerates_then_applies_in_the_same_run() {
   );
 
   // The declaration is now status-derived: the two WIP threads and nothing else.
+  // Compared as a set, since the manifest lists them in the waist's order,
+  // which for minted ids is not the order they were minted in (ST0095 WP-06).
+  let mut listed = declared(root);
+  listed.sort();
+  let mut wip = vec![gate.clone(), to_create.clone()];
+  wip.sort();
   assert_eq!(
-    declared(root),
-    [gate.as_str(), to_create.as_str()],
+    listed, wip,
     "the regenerated manifest must declare exactly the WIP threads: {said}"
   );
 

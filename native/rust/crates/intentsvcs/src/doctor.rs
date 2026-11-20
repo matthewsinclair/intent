@@ -570,7 +570,7 @@ impl StoreUnopened {
 /// opening would make or migrate, or `None` when the run may go on. Asked of
 /// the one decision [`crate::store::Opening::decide`], through the read-only
 /// door, so no caller restates when a store migrates.
-pub fn read_only_stop(
+pub(crate) fn read_only_stop(
   project: &Project,
 ) -> Result<Option<StoreUnopened>, crate::store::StoreError> {
   let path = project.db_path();
@@ -592,19 +592,21 @@ pub fn read_only_stop(
 
 /// The project's store for a check, or `None` when there is no file: a
 /// diagnosis never makes the store it diagnoses (issue 0454). The one place a
-/// check opens it, as `access` says.
+/// check opens it, as `access` says. A probe the file system refuses is the
+/// check's error to report, never "no file" (issue 0717).
 fn store_for_checks(
   project: &Project,
   access: Access,
 ) -> Option<Result<crate::store::Store, crate::store::StoreError>> {
   let path = project.db_path();
-  if !path.exists() {
-    return None;
+  match Store::exists_at(&path) {
+    Ok(false) => None,
+    Ok(true) => Some(match access {
+      Access::Open => Store::open(&path),
+      Access::ReadOnly => Store::open_read_only(&path),
+    }),
+    Err(unprobed) => Some(Err(unprobed)),
   }
-  Some(match access {
-    Access::Open => Store::open(&path),
-    Access::ReadOnly => Store::open_read_only(&path),
-  })
 }
 
 /// Move each acknowledged class's findings out of the verdict and into
@@ -717,6 +719,7 @@ fn examine(
   // Beside the gate and for its reason: whether git tracks the store is a fact
   // about the repository, and a store that will not open is still tracked.
   report.findings.extend(store_tracked_finding(project));
+  report.findings.extend(canon_format_behind(project));
   // Beside it and for its reason: whether `intent/.cache` is marked for
   // Dropbox is a fact about the directory, and a store that will not open
   // still syncs (ST0083 WP-07).
@@ -2947,6 +2950,35 @@ fn listing(lines: &[(usize, String)]) -> String {
     0 => shown.join(", "),
     more => format!("{} and {more} more", shown.join(", ")),
   }
+}
+
+/// A project whose committed canon is in 3.4.0's ordinal format (ST0095
+/// WP-06): one finding on its `project.json`, present or not, read from the
+/// files as a clone reads them. A project state that does not read is reported
+/// as its own findings rather than taken for either format.
+fn canon_format_behind(project: &Project) -> Vec<Finding> {
+  // The files' format by the one rule that reads it; the state is read again
+  // only to word the line, which names the schema the file carries.
+  match crate::ingest::canon_format(project) {
+    Err(findings) => return findings,
+    Ok(crate::canon_format::CanonFormat::V4) => return Vec::new(),
+    Ok(crate::canon_format::CanonFormat::V3) => {}
+  }
+  let state = match crate::ingest::read_project_state(project) {
+    Ok(state) => state,
+    Err(findings) => return findings,
+  };
+  let said = match state.as_ref().map(|state| state.schema.as_str()) {
+    Some(schema) => format!("schema {schema} is the ordinal format"),
+    None => "is absent, so the canon is in the ordinal format".to_string(),
+  };
+  vec![Finding::new(
+    project.relative(&project.project_json()),
+    FindingClass::CanonFormatBehind,
+    format!(
+      "{said}, so every mint refuses here: `st new`, `wp new`, `issues add` and the re-mints"
+    ),
+  )]
 }
 
 /// The store, when git tracks it (issue 0551): one finding naming the path, whose

@@ -355,3 +355,36 @@ fn a_satisfaction_carrying_no_evidence_is_refused() {
     }
   );
 }
+
+/// ST0095 WP-06, AC-06.5: **A CANON FILE WHOSE NAME IS NEITHER FAMILY IS
+/// REFUSED BY NAME, AND NONE IS SKIPPED.** A canon file is named by its
+/// record's stored id, so a name that is no id is a record no reader can place.
+/// 3.4.0 skipped such an issue file, and its next write deleted it.
+#[test]
+fn a_canon_file_named_as_no_id_is_refused_by_name_and_none_is_skipped() {
+  // A canon directory of the fixture, and the kind of id its files are named by.
+  type Collection = (fn(&Fixture) -> std::path::PathBuf, &'static str);
+  let collections: [Collection; 2] = [
+    (|fx| fx.project().canon_st_dir(), "steel thread"),
+    (|fx| fx.project().issues_dir(), "issue"),
+  ];
+  for (dir, kind) in collections {
+    let fx = Fixture::new();
+    fx.write_thread(&sample_thread("ST0056"));
+    let dir = dir(&fx);
+    std::fs::create_dir_all(&dir).expect("the canon directory");
+    let misnamed = dir.join("not-a-record.json");
+    std::fs::write(&misnamed, "{}\n").expect("a canon file named as no id");
+
+    let refused = ingest::read(&fx.project()).expect_err("a name that is no id is refused");
+    assert!(
+      matches!(
+        &refused,
+        IngestError::Project(intentsvcs::project::ProjectError::CanonNameNotAnId { path, kind: named })
+          if path.ends_with("not-a-record.json") && *named == kind
+      ),
+      "the refusal must name the file and its collection's kind: {refused}"
+    );
+    assert!(misnamed.exists(), "a refusal removed the file it named");
+  }
+}

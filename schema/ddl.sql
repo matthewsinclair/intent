@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.4.0
--- SCHEMA_DDL_VER: 30
+-- SCHEMA_DDL_VER: 31
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -113,7 +113,10 @@ CREATE TABLE IF NOT EXISTS threads (
   -- migration rung, which is a worse trade than a harmless counter; **silence
   -- here would send the next reader hunting for a consumer that does not
   -- exist.**
-  revision INTEGER NOT NULL DEFAULT 0
+  revision INTEGER NOT NULL DEFAULT 0,
+  -- The creation event a hashed id derives from; null on an ordinal. Last,
+  -- where rung 36's ADD COLUMN puts it on a migrated store.
+  origin TEXT
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 CREATE TABLE IF NOT EXISTS related (
@@ -170,7 +173,9 @@ CREATE TABLE IF NOT EXISTS attachments (
 -- the enum column holds nothing rather than a lie.
 CREATE TABLE IF NOT EXISTS wps (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
-  seq INTEGER NOT NULL,
+  -- The package's stored id, `04` or `c2e41a0b`, as TEXT so an all-digit id
+  -- keeps its leading zero (rung 36).
+  seq TEXT NOT NULL,
   title TEXT NOT NULL,
   scope TEXT,
   scope_legacy TEXT,
@@ -188,6 +193,8 @@ CREATE TABLE IF NOT EXISTS wps (
   -- the status it was read as -- `scope_legacy`'s carry, for `status`. Last
   -- because rung 18 appends it.
   status_legacy TEXT,
+  -- The creation event a hashed id derives from; null on an ordinal.
+  origin TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the
@@ -246,7 +253,9 @@ CREATE TABLE IF NOT EXISTS tests (
 -- about where markdown lives.
 -- openness: carried by intent/.canon/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
-  number INTEGER PRIMARY KEY,
+  -- The issue's stored id, `0703` or `I3f9a2c1d4e5f6a7b`, as TEXT so an
+  -- all-digit id keeps its leading zero (rung 36).
+  number TEXT PRIMARY KEY,
   slug TEXT NOT NULL,
   title TEXT NOT NULL,
   status TEXT NOT NULL,
@@ -256,7 +265,9 @@ CREATE TABLE IF NOT EXISTS issues (
   reporter TEXT,
   body TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The creation event a hashed id derives from; null on an ordinal.
+  origin TEXT
 );
 -- The sync engine's git-style index (data-model.md). DB-only and derived from
 -- the working tree, not from canon, so `rebuild` does not touch it.
@@ -624,11 +635,18 @@ CREATE TABLE IF NOT EXISTS event_log (
 -- project's committed files rather than with its history.
 --
 -- NULL means never flushed.
+--
+-- `canon_schema` is the canon's format, spelled as the schema the project's
+-- `project.json` carries. NULL is 3.4.0's format, as an absent file is. A load
+-- carries it in from the file as it carries the cutoff, and every write reads
+-- it here, so a canon recreated from this store recreates the file. Last,
+-- where rung 36's ADD COLUMN puts it on a migrated store.
 -- openness: carried by intent/.canon/project.json
 CREATE TABLE IF NOT EXISTS project (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   todo_watermark TEXT,
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  canon_schema TEXT
 );
 -- THE COORDINATION ENTITIES. One board per node.
 --

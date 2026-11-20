@@ -62,6 +62,8 @@ fn proofs() {
   implements::<intentsvcs::rootfiles::Fault>();
   implements::<intentsvcs::rootfiles::RootFileError>();
   implements::<intentsvcs::store::StoreError>();
+  implements::<intentsvcs::canon_format::CanonFormatError>();
+  implements::<intentsvcs::id::MintError>();
   implements::<intentsvcs::sync::SyncError>();
   implements::<intentsvcs::write_set::WriteError>();
 }

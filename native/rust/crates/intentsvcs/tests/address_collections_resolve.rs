@@ -76,8 +76,11 @@ fn d57_8_collection_fence() -> Vec<String> {
 
   // Typed rather than `Value`, so a schema change is a loud deserialisation
   // failure here instead of a silent `None` two lines down.
-  let thread: Thread = serde_json::from_str(&raw)
-    .unwrap_or_else(|e| panic!("ST0057 canon did not read as a Thread: {e}"));
+  // Read by the one decoder, so either canon format reads (ST0095 WP-06).
+  let value: serde_json::Value =
+    serde_json::from_str(&raw).unwrap_or_else(|e| panic!("ST0057 canon is not JSON: {e}"));
+  let thread: Thread = intentsvcs::ingest::decode_thread("ST0057", value)
+    .unwrap_or_else(|e| panic!("ST0057 canon did not read as a Thread: {e:?}"));
 
   let design = thread
     .attachments

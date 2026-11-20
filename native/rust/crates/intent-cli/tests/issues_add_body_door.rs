@@ -26,6 +26,7 @@ fn project() -> tempfile::TempDir {
   )
   .expect("write config");
   std::fs::create_dir_all(dir.path().join("intent/.canon/issues")).expect("mkdir issues");
+  crate::common::born_upgraded(dir.path());
   dir
 }
 

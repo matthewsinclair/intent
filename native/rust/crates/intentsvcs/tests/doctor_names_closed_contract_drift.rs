@@ -48,6 +48,7 @@ fn thread(id: &str, status: ThreadStatus) -> Thread {
     preamble: String::new(),
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
+    origin: None,
     title: "A thread whose test lost its label".to_string(),
     slug: None,
     status,
@@ -61,6 +62,7 @@ fn thread(id: &str, status: ThreadStatus) -> Thread {
     related: vec![],
     wps: vec![WorkPackage {
       seq: wp(1),
+      origin: None,
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,

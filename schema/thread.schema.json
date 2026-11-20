@@ -530,10 +530,21 @@
           ],
           "description": "The fiat close, present exactly when this work package was closed on human\nauthority against the evidence rather than on a passing gate.\n\n**BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status\nstays `done`, so Machine 2 is untouched and every consumer that reads it\nkeeps working; what changes is the EDGE that reached it. `wp.fc` is guarded\nby `ReasonRecorded` where `wp.done` is guarded by `GatePass` -- **a fiat\nclose is by definition the case where the gate does not pass**, so relaxing\nthe existing edge to accept either guard would have made `wp.done` silently\nfiat-capable.\n\n**NOTHING STRUCTURAL HOLDS THIS FIELD AND [`WorkPackage::status`] IN\nAGREEMENT**, so the invariant is every verb's to keep: `wp.fc` writes the\npair together, every other transition out of `done` clears it, and\n`Facade::put` refuses to write it.\n\n**This is also the field a cascade writes into.** A fiat close on a thread\nreaches its work packages, and a cascaded record carries\n[`FiatRecord::inherited_from`] naming the ancestor -- so a package closed\nin its own right and one closed because its thread was are distinguishable\nby query rather than by reading the reason."
         },
+        "id": {
+          "description": "The package's id within its thread: two digits for an ordinal, eg `01`,\nor its hashed id.",
+          "type": "string"
+        },
         "objective": {
           "default": "",
           "description": "What this work package ships: the one section every work package has.",
           "type": "string"
+        },
+        "origin": {
+          "description": "The id of the creation event a hashed id was minted from, as a thread's\norigin is. Absent on an ordinal.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "preamble": {
           "default": "",
@@ -562,12 +573,6 @@
           ],
           "description": "A scope recorded by an older Intent that is outside the size vocabulary,\ncarried verbatim. Present only when `scope` is absent."
         },
-        "seq": {
-          "description": "Unique within the thread, and rendered zero-padded as `WP-<seq>`.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": "integer"
-        },
         "status": {
           "$ref": "#/$defs/WpStatus"
         },
@@ -594,7 +599,7 @@
         }
       },
       "required": [
-        "seq",
+        "id",
         "title",
         "status"
       ],
@@ -678,6 +683,13 @@
       "description": "What this thread ships. Modelled rather than authored prose (vc ruling,\n2026-08-14): `objective` already carries tool opinion -- the 0010\nempty-objective warning -- which is the signature of a modelled field.\nMay be empty; the 0010 warning is COMPUTED from emptiness, never stored.",
       "type": "string"
     },
+    "origin": {
+      "description": "The id of the creation event a hashed id was minted from: the id is its\nmarker and the front of this one's SHA-256, so it is never stored twice.\nAbsent on an ordinal.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "preamble": {
       "default": "",
       "description": "Authored prose above the first `## `, minus the `# ` title line, stripped.\n\nCarried verbatim and never classified. The regions are largely metadata\nrestatement, and that is the reason no classifier exists for them rather\nthan a reason to build one: a model naming the shapes it foresaw drops\nwhat it did not, and the unforeseen remainder is the load-bearing half.\n\nStored STRIPPED. The surrounding blank lines are markdown layout the\nrenderer re-emits, so the trim is a normalisation rather than a loss --\nreported and counted as such, never silently adopted.",
@@ -735,5 +747,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.4.0",
-  "x-schema-json-ver": 27
+  "x-schema-json-ver": 28
 }

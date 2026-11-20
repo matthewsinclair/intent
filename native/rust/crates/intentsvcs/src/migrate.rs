@@ -150,7 +150,7 @@ pub enum Blocked {
   #[error("the migration's own canon would not serialise")]
   Canon {
     #[source]
-    source: serde_json::Error,
+    source: crate::canon_format::CanonFormatError,
   },
   /// Two artefacts resolve to one file.
   ///
@@ -639,8 +639,13 @@ fn assemble(
   // `canon_parts` reads `bundle.threads` and `bundle.issues`, and never
   // `bundle.project_id`, so nothing this bundle emits carries the id at all.
   // Migration passes `Vec::new()` for events, which `canon_parts` does not read.
+  // **EVERY RECORD IN THE RELEASE'S CANON FORMAT** (ST0095 WP-06): this is
+  // the rewrite `intent upgrade` makes once, deterministic, so two clones
+  // upgraded apart write the same bytes. It changes no id. The one file whose
+  // schema says the format, `project.json`, is written by the facade last.
   let bundle = Bundle::new(&ctx.project_id, threads, issues, Vec::new());
-  let parts = export::canon_parts(&bundle).map_err(|source| Blocked::Canon { source })?;
+  let parts = export::record_parts(&bundle, crate::canon_format::CanonFormat::CURRENT)
+    .map_err(|source| Blocked::Canon { source })?;
   if parts.len() != expected {
     return Err(Blocked::Conservation {
       expected,
@@ -779,7 +784,7 @@ mod tests {
 
   fn wp(seq: u32) -> crate::model::WorkPackage {
     serde_json::from_value(serde_json::json!({
-      "seq": seq,
+      "id": crate::id::WpId::from_ordinal(seq).expect("an ordinal that fits").stored(),
       "title": crate::id::WpId::from_ordinal(seq).expect("an ordinal that fits").heading(),
       "status": "not-started",
     }))
@@ -793,7 +798,7 @@ mod tests {
   fn issue(number: u32) -> Issue {
     serde_json::from_value(serde_json::json!({
       "schema": crate::model::ISSUE_SCHEMA,
-      "number": number,
+      "id": crate::id::IssueId::from_ordinal(number).expect("an ordinal that fits").stored(),
       "slug": format!("issue-{number}"),
       "title": format!("issue {number}"),
       "status": "closed",

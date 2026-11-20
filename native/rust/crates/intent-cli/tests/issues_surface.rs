@@ -46,6 +46,7 @@ fn project() -> tempfile::TempDir {
     "{\"schema\":\"intent/issue@3.0\",\"number\":7,\"slug\":\"older\",\"title\":\"An older thing\",\"status\":\"closed\",\"created\":\"2026-07-01\",\"closed\":\"2026-07-09\"}\n",
   )
   .expect("write issue");
+  crate::common::born_upgraded(dir.path());
   dir
 }
 
@@ -231,7 +232,8 @@ fn the_json_form_is_the_issue_itself() {
   let out = stdout(&run(dir.path(), &["issues", "show", "21", "--json"]));
   let parsed: serde_json::Value =
     serde_json::from_str(&out).unwrap_or_else(|e| panic!("`--json` emits JSON ({e}):\n{out}"));
-  assert_eq!(parsed["number"], 21);
+  // The stored id under `id` (ST0095 WP-06), as the canon carries it.
+  assert_eq!(parsed["id"], "0021");
   assert_eq!(parsed["status"], "open");
   assert_eq!(parsed["title"], "A thing went wrong");
 }
@@ -342,21 +344,22 @@ fn an_issue_closes_and_reopens_and_the_close_date_follows() {
 /// v3's first line is the mint's `created: <id>`, as `st new` and `wp new` print
 /// it, and the file it wrote is on the `wrote:` line after the result.
 ///
-/// **The number is `highest + 1`, checked against a fixture whose issues are not
-/// contiguous** (0007 and 0021, nothing between). A count-plus-one implementation
-/// would answer `0003` here and collide on the next raise; against a contiguous
-/// fixture the two are indistinguishable. The ordinal mint retires in ST0095
-/// WP-06, and this check goes with it.
+/// **The id is minted from the issue's creation event** (ST0095 WP-06), on a
+/// fixture that holds ordinals (0007 and 0021), which no longer number it: the
+/// `highest + 1` this used to check retired with the ordinal mint. Its second
+/// line shows the id's short form, as every table and message does.
 #[test]
-fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
+fn adding_an_issue_mints_its_id_and_reads_back() {
   let dir = project();
   let out = run(dir.path(), &["issues", "add", "A new thing"]);
   let printed = stdout(&out);
   let issue = crate::common::created(&printed);
   let number = intentsvcs::id::IssueId::parse(&issue).expect("a minted issue id reads back");
+  // **MINTED, NOT NUMBERED** (ST0095 WP-06): the new issue's id is a git-style
+  // one, derived from its creation event, whatever ordinals the project holds.
   assert!(
-    number > intentsvcs::id::IssueId::from_ordinal(21).expect("an issue id"),
-    "an issue is numbered past the highest the project holds (0021), not by count: {issue}"
+    number.is_hashed(),
+    "a new issue's id is minted from its creation event, never past the highest: {issue}"
   );
   // The result, without the `wrote:` lines that follow it (issue 0624), which
   // are the commit rule's rather than part of v2's shape.
@@ -372,7 +375,10 @@ fn adding_an_issue_numbers_it_past_the_highest_and_reads_back() {
   // repo-relative, so that line is asserted whole: an absolute path there would
   // leak $HOME into a line meant to be copied (issue 0060).
   assert_eq!(lines[0], format!("created: {issue}"));
-  assert_eq!(lines[1], format!("{issue}:A new thing"));
+  assert_eq!(
+    lines[1],
+    format!("{}:A new thing", crate::common::shown(&issue))
+  );
   let wrote = format!("wrote: intent/.canon/issues/{issue}.json");
   assert!(
     printed.lines().any(|line| line == wrote),
