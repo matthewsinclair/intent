@@ -1,0 +1,15 @@
+{
+  "id": "01M7XAFNJ7H64JZZPDV2JDWZ8B",
+  "ts": "2026-11-20T20:31:05.799Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095 WP-12, must ride this release (devbin-dc's WP-13 handoff, 2026-11-20): lib/templates/.claude/scripts/session-context.sh reads the WIP line with ^\\*\\*ST[0-9]+, which misses a git-style thread whose hex starts with a letter (4 of 21 in WP-13's drive); the census row intent/st/ST0056/parity/data/id_patterns.tsv:45 names the fix: read the first bold line, with no id pattern. _wip.md (WP-13) already tells people to lead the focus line with the id as printed."
+  }
+}
