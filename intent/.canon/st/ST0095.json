@@ -68,7 +68,7 @@
       "seq": 7,
       "title": "Prefix resolution",
       "scope": "M",
-      "status": "wip",
+      "status": "done",
       "objective": "One resolver turns what a person typed into the one record it names, or says which records it could name, and nothing stored is ever a prefix.",
       "body": "Seat: cc. Size: M.\n\n## Scope\n\n- `resolve.rs` (`:92-135`) takes a spelling and the project's ids, and returns the id, the candidates of an ambiguous prefix, or not found. It is the only place a prefix is expanded, for the CLI, the TUI and MCP.\n- An ordinal-shaped spelling is always the ordinal. A hash prefix is at least 4 hex characters.\n- The facade's verbs take typed ids. Claims (`facade.rs:11454`, `11477`), `events --subject` (`:7138`) and `Scope::selects` (`sync.rs:411-418`) resolve before they compare, and keep comparing whole ids.\n- The pure spelling stays pure: MCP validates its arguments with no store (`mcp.rs:1915`).\n\n## Order\n\nAfter WP-06.\n\n## Proof\n\nThe waist's own tests, with hashed records seeded through the fixture writer, two that share a short form among them.\n",
       "preamble": ""
@@ -552,7 +552,7 @@
     {
       "id": "AT-05.1",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:729",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:731",
       "covers": [
         "AC-05.1"
       ],
@@ -572,7 +572,7 @@
     {
       "id": "AT-05.4",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:827",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:830",
       "covers": [
         "AC-05.4"
       ],
@@ -582,7 +582,7 @@
     {
       "id": "AT-06.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:64",
+      "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:63",
       "covers": [
         "AC-06.2"
       ],
@@ -592,7 +592,7 @@
     {
       "id": "AT-06.4",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:372",
+      "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:373",
       "covers": [
         "AC-06.4"
       ],
@@ -602,7 +602,7 @@
     {
       "id": "AT-06.5",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/ingest_refusal.rs:364",
+      "file": "native/rust/crates/intentsvcs/tests/ingest_refusal.rs:363",
       "covers": [
         "AC-06.5"
       ],
@@ -622,7 +622,7 @@
     {
       "id": "AT-07.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:114",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:113",
       "covers": [
         "AC-07.1"
       ],
@@ -632,7 +632,7 @@
     {
       "id": "AT-07.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:274",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:276",
       "covers": [
         "AC-07.2"
       ],
@@ -652,7 +652,7 @@
     {
       "id": "AT-07.4",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:210",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:211",
       "covers": [
         "AC-07.1"
       ],

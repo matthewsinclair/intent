@@ -110,6 +110,7 @@ fn candidate_ids(refused: FacadeError) -> Vec<IdRecord> {
   }
 }
 
+// ST0095 AT-07.1: the arm below.
 #[test]
 fn a_unique_prefix_names_its_record_with_or_without_its_marker_and_in_either_case() {
   let e = estate();
@@ -163,6 +164,7 @@ fn a_unique_prefix_names_its_record_with_or_without_its_marker_and_in_either_cas
   }
 }
 
+// ST0095 AT-07.3: the arm below.
 #[test]
 fn a_shared_short_form_is_refused_with_every_candidate_and_none_is_picked() {
   let e = estate();
@@ -206,6 +208,7 @@ fn bare_hex_at_the_door_that_does_not_know_the_collection_is_asked_of_both() {
   );
 }
 
+// ST0095 AT-07.4: the arm below.
 #[test]
 fn an_ordinal_shaped_spelling_is_the_ordinal_and_never_a_hash() {
   let e = estate();
@@ -270,6 +273,7 @@ fn a_package_prefix_resolves_within_its_own_thread_and_not_another() {
 }
 
 /// AC-07.2: each path that stores an id is given a prefix and keeps the whole.
+// ST0095 AT-07.2: the arm below.
 #[test]
 fn every_store_path_given_a_prefix_keeps_the_whole_id() {
   let mut e = estate();

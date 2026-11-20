@@ -2,7 +2,7 @@
 wp_id: WP-07
 title: Prefix resolution
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-07: Prefix resolution
