@@ -2554,6 +2554,14 @@
       "text": "ST0096/05 (L): each work package, criterion, test and attachment its own canon file under .canon/st/<thread>/, the cover renders only the thread's own fields, intent upgrade splits byte-deterministically and removes the 22 closed records' views, refusing a dirty attachment and a case pair by name (AC-05.1 to 05.3, design.md 'Each record its own canon file'). Not started: next is the plan to vc, then a worktree off main. ST0096/01 LANDED at 9a87b035c; AC-01.1/01.2 satisfied by AT-01.1/01.2 at b505ea8ba; ST0095 WP-07 done at ac0fa4011 (rows re-cited to markers); worktree removed by the four checks (attic refs/attic/cc/st0096/wp01-wt-head). Lesson from vc: a bank touching surface/dispatch-table.json runs gen_dispatch_table.sh before banking. Always gate with stdin from /dev/null (issue 0734).",
       "state": "live",
       "recorded_at": "2026-11-20T17:40:15.040Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 57,
+      "text": "With ST0096/05, if data-model.md is touched: name organize --default/--force's setting of realised from status as the bulk reset outside the per-record Machine 6 (hv decision 75, recorded at 0288accdf; no new edge). Not worth a commit alone.",
+      "state": "live",
+      "recorded_at": "2026-11-20T17:49:47.059Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M7X189NK92CPMZZHWZ2G4GV4",
+  "ts": "2026-11-20T17:49:47.059Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "With ST0096/05, if data-model.md is touched: name organize --default/--force's setting of realised from status as the bulk reset outside the per-record Machine 6 (hv decision 75, recorded at 0288accdf; no new edge). Not worth a commit alone."
+  }
+}

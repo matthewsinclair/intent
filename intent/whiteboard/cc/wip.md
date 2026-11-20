@@ -19,6 +19,7 @@ claims: [ST0095/05, ST0095/06, ST0096/05]
 ## TODO
 
 - WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06: C2, one mint retiring next_thread_id, next_issue_number and next_free_id's arithmetic; W11, a canon file of neither family refused by name (AC-06.5); W15, st remint's malformed-id refusals. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2.
+- With ST0096/05, if data-model.md is touched: name organize --default/--force's setting of realised from status as the bulk reset outside the per-record Machine 6 (hv decision 75, recorded at 0288accdf; no new edge). Not worth a commit alone.
 
 ## Holds
 
