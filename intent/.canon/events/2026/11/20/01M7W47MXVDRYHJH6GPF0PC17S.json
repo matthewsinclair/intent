@@ -1,0 +1,16 @@
+{
+  "id": "01M7W47MXVDRYHJH6GPF0PC17S",
+  "ts": "2026-11-20T09:22:37.115Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs, in order. (a) Issues 0725 to 0728, one S unit: critic-shell's findings on unchanged lines in 0723+0724 (hv decision 69), with residue_class_check ruled GATING by vc on devbin-dc's evidence. The brief is refs/bank/dc/devbin/brief-0725-0728.md (blob c6759fa00), and devbin-dc works at main bc2310e95. dc reads the proof; vc lands it and closes all four in the land commit. (b) ST0095 WP-12's guard half (AC-12.1: a census of every id pattern in scripts, hooks, templates and workflows, and id_pattern_check.sh, a gating ratchet), on dc's brief refs/bank/dc/devbin/brief-wp12-guard.md (blob 99bbfa108), passed through the Desk. Its base is main at (a)'s land, which vc names. cc may overrule dc's meaning of an id pattern. (c) ST0096 WP-03, on dc's brief, once ic's ST0096 WP-02 lands, after cc's ST0095 WP-05+06 unit (cc's call, 2026-11-20)."
+  }
+}
