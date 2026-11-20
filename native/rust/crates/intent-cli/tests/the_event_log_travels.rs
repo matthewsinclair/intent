@@ -665,6 +665,106 @@ fn doctor_reports_bad_event_files_and_events_the_store_lacks() {
   );
 }
 
+/// **Issue 0735: an event file whose `ts` is not a stamp is refused at the
+/// boundary.** Every file the store wrote reads back, which is the control;
+/// one carrying a stamp the store never writes is reported by doctor by path,
+/// naming what it carries, and the take that sync runs writes nothing of it.
+#[test]
+fn an_event_file_whose_stamp_is_not_one_is_refused_and_never_taken() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (alice, _bob, _) = two_clones(dir.path());
+  let written = alice.event_files();
+  assert!(!written.is_empty(), "the clone wrote events");
+  for path in &written {
+    let stem = path.file_stem().expect("a file name").to_string_lossy();
+    let text = std::fs::read_to_string(path).expect("read");
+    intentsvcs::event::from_file(&stem, &text).unwrap_or_else(|e| {
+      panic!(
+        "{} was written by the store and reads back: {e}",
+        path.display()
+      )
+    });
+  }
+  let day = written[0].parent().expect("day dir").to_path_buf();
+  let good: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&written[0]).expect("read")).expect("json");
+
+  // Two stamps the store never writes, neither a substring of the other, and
+  // beside them one it does, which the same take must carry: the control that
+  // the take ran at all.
+  let planted = [
+    ("01M2SXFFFFFFFFFFFFFFFFFFFF", "20261120"),
+    ("01M2SXGGGGGGGGGGGGGGGGGGGG", "2026-11-20T17:00:00Z"),
+  ];
+  let taken = "01M2SXHHHHHHHHHHHHHHHHHHHH";
+  let plant = |id: &str, ts: &serde_json::Value| {
+    let mut event = good.clone();
+    event["id"] = id.into();
+    event["ts"] = ts.clone();
+    std::fs::write(
+      day.join(format!("{id}.json")),
+      serde_json::to_string_pretty(&event).expect("json"),
+    )
+    .expect("write");
+  };
+  for (id, ts) in planted {
+    plant(id, &ts.into());
+  }
+  plant(taken, &good["ts"]);
+
+  let out = alice.doctor(&[]);
+  let rel = day
+    .strip_prefix(&alice.root)
+    .expect("the day is in the clone");
+  // Doctor groups findings under their class's heading, an unindented line,
+  // and prints each one indented beneath it as `<file> -- <detail>`.
+  let lines: Vec<&str> = out.lines().collect();
+  for (id, ts) in planted {
+    let file = rel.join(format!("{id}.json")).display().to_string();
+    let at = lines
+      .iter()
+      .position(|line| {
+        line.trim_start().starts_with(&format!("{file} -- ")) && line.contains(&format!("`{ts}`"))
+      })
+      .unwrap_or_else(|| panic!("doctor reports {file}, naming the `{ts}` it carries: {out}"));
+    let heading = lines[..at]
+      .iter()
+      .rev()
+      .find(|line| !line.starts_with(char::is_whitespace))
+      .unwrap_or_else(|| panic!("{file}'s finding sits under a class heading: {out}"));
+    assert!(
+      heading.contains("schema-invalid"),
+      "{file} is reported as schema-invalid, under `{heading}`: {out}"
+    );
+  }
+
+  // `sync --apply` ends with doctor and exits with its verdict, which the two
+  // misstamped files keep red; what it took is read from what it printed and
+  // from the store, not from its exit code.
+  let sync = alice.run(&["sync", "--apply"]);
+  let said = String::from_utf8_lossy(&sync.stdout);
+  assert!(
+    said.contains(&format!("{} event file(s) to take", planted.len() + 1)),
+    "the plan names every file the store does not hold: {said}"
+  );
+  assert!(
+    said.contains("took 1 event file(s)"),
+    "the take carries the one well-stamped file and neither misstamped one: {said}"
+  );
+  let events = alice.events_json();
+  let rows = events["events"].as_array().expect("rows");
+  assert!(
+    rows.iter().any(|row| row["id"] == taken),
+    "control: the well-stamped event beside them is taken: {events}"
+  );
+  for (id, ts) in planted {
+    assert!(
+      !rows.iter().any(|row| row["id"] == id),
+      "the event carrying `{ts}` is never taken into the store: {events}"
+    );
+  }
+}
+
 /// **AC-01.4: `upgrade` removes the retired ignore rule and adds nothing, and
 /// `export` still produces the single-file form.**
 #[test]

@@ -325,10 +325,7 @@ pub struct Envelope {
   // Milliseconds rather than seconds because two machines MERGE their event
   // logs (D34) and order them by this value; at second resolution two writes
   // in one second collide, which is what any script does.
-  #[schemars(
-    extend("format" = "date-time"),
-    extend("pattern" = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
-  )]
+  #[schemars(extend("format" = "date-time"), extend("pattern" = STAMP_PATTERN))]
   pub ts: String,
   pub principal: String,
   pub project_id: String,
@@ -572,15 +569,20 @@ pub const EVENTS_DIR: &str = "events";
 ///
 /// Refuses an envelope with no `ts`: it was never written, so it is not
 /// history (the same refusal [`to_jsonl`] makes), and it has no day to live in.
+/// Refuses one whose `ts` is not [`STAMP_PATTERN`] as [`from_file`] does, so no
+/// file is written that every reader would then refuse (issue 0735).
 pub fn file_rel(e: &Envelope) -> Result<std::path::PathBuf, EventFileError> {
-  let day = e
-    .ts
-    .get(..10)
-    .filter(|d| {
-      let b = d.as_bytes();
-      b[4] == b'-' && b[7] == b'-' && d.chars().filter(|c| c.is_ascii_digit()).count() == 8
-    })
-    .ok_or_else(|| EventFileError::Unstamped { id: e.id.clone() })?;
+  if e.ts.is_empty() {
+    return Err(EventFileError::Unstamped { id: e.id.clone() });
+  }
+  let misstamped = || EventFileError::Misstamped {
+    id: e.id.clone(),
+    found: e.ts.clone(),
+  };
+  if !is_stamp(&e.ts) {
+    return Err(misstamped());
+  }
+  let day = e.ts.get(..10).ok_or_else(misstamped)?;
   Ok(
     std::path::PathBuf::from(&day[..4])
       .join(&day[5..7])
@@ -595,13 +597,49 @@ pub fn to_file(e: &Envelope) -> Result<String, serde_json::Error> {
   crate::model::to_canonical_json(e)
 }
 
+/// The shape of a written event's [`Envelope::ts`]: RFC 3339 UTC to the
+/// millisecond, `YYYY-MM-DDTHH:MM:SS.sssZ`.
+///
+/// **ONE HOME FOR THE SHAPE** (issue 0735): it is the `pattern` the schema
+/// publishes for the field, and the expression [`is_stamp`] compiles, so the
+/// contract a consumer reads and the check a reader makes cannot come apart.
+pub const STAMP_PATTERN: &str = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$";
+
+/// Whether `text` has the shape a written event's stamp has, [`STAMP_PATTERN`].
+/// It reads text a file carries and is handed no time, which D42 forbids.
+///
+/// Compiled with Unicode off, so `\d` is an ASCII digit as it is in the JSON
+/// Schema dialect the pattern is published in, and not any script's digit.
+#[allow(
+  clippy::expect_used,
+  reason = "INVARIANT: STAMP_PATTERN is a constant that compiles"
+)]
+pub fn is_stamp(text: &str) -> bool {
+  static STAMP: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+  STAMP
+    .get_or_init(|| {
+      regex::RegexBuilder::new(STAMP_PATTERN)
+        .unicode(false)
+        .build()
+        .expect("the stamp pattern compiles")
+    })
+    .is_match(text)
+}
+
 /// Read one committed event file back, refusing one whose name disagrees with
-/// the id it carries.
+/// the id it carries, and one whose `ts` is not a written event's stamp.
 ///
 /// `stem` is the file name without `.json`. **The name IS the key additive
 /// ingest dedups on, so a file whose name and id disagree is two claims about
 /// one record** -- ingest would take the id and a reader would find it under
 /// another name -- and neither can be picked without guessing.
+///
+/// **THE STAMP IS CHECKED HERE AND NOWHERE ELSE** (issue 0735). This is where
+/// a file becomes an [`Envelope`], so every route in (ingest's take, doctor,
+/// sync) is refused the same way and no reader of `ts` checks it again. A
+/// stamp type that held the check by construction was weighed and not taken:
+/// a minted envelope has no stamp until the store writes one (D42), so the
+/// field would be an `Option` and move every mint site and every reader.
 pub fn from_file(stem: &str, text: &str) -> Result<Envelope, EventFileError> {
   let value: serde_json::Value = serde_json::from_str(text).map_err(EventFileError::NotJson)?;
   let e: Envelope = serde_json::from_value(value).map_err(EventFileError::NotAnEnvelope)?;
@@ -613,6 +651,12 @@ pub fn from_file(stem: &str, text: &str) -> Result<Envelope, EventFileError> {
   }
   if e.ts.is_empty() {
     return Err(EventFileError::Unstamped { id: e.id });
+  }
+  if !is_stamp(&e.ts) {
+    return Err(EventFileError::Misstamped {
+      id: e.id,
+      found: e.ts,
+    });
   }
   Ok(e)
 }
@@ -629,6 +673,12 @@ pub enum EventFileError {
   NameDisagrees { name: String, id: String },
   #[error("event {id} has no timestamp, so it was never written to a store")]
   Unstamped { id: String },
+  /// A `ts` that is not [`STAMP_PATTERN`]: the store never writes one, so the
+  /// file was edited by hand or damaged (issue 0735).
+  #[error(
+    "event file {id}.json carries the timestamp `{found}`, which is not a written event's stamp (`YYYY-MM-DDTHH:MM:SS.sssZ`, UTC to the millisecond)"
+  )]
+  Misstamped { id: String, found: String },
 }
 
 impl crate::remedy::Remedy for EventFileError {
@@ -636,7 +686,13 @@ impl crate::remedy::Remedy for EventFileError {
   /// is written once and never rewritten, so a damaged one is repaired by
   /// putting back the bytes that were committed.
   fn remedy(&self) -> String {
-    "restore the file from git (`git checkout -- <path>`) -- an event file is written once and never rewritten, so the committed bytes are the record".to_string()
+    match self {
+      // A stamp is the store's to write (D42), so no hand can mend one: the
+      // file is restored, or it is removed when it was never committed and so
+      // was never an event at all.
+      Self::Misstamped { .. } => "restore the file from git (`git checkout -- <path>`), or remove it if it was never committed -- an event's stamp is written by the store, never by hand".to_string(),
+      _ => "restore the file from git (`git checkout -- <path>`) -- an event file is written once and never rewritten, so the committed bytes are the record".to_string(),
+    }
   }
 }
 
@@ -646,3 +702,78 @@ impl crate::remedy::Remedy for EventFileError {
 
 /// The op recorded by `intent todo done --flush`.
 pub const TODO_FLUSH: &str = "todo.flush";
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  /// An envelope as a written event file would carry it, with `ts` as given.
+  fn stamped(text: &str) -> Envelope {
+    let mut e = Envelope::minted(
+      "test",
+      "",
+      "st.new",
+      Subject::of(crate::id::IdKind::Thread, "ST0001"),
+      serde_json::json!({}),
+    );
+    e.ts = text.to_string();
+    e
+  }
+
+  #[test]
+  fn the_schema_publishes_the_pattern_the_reader_checks() {
+    let schema = serde_json::to_value(schemars::schema_for!(Envelope)).expect("a schema");
+    assert_eq!(
+      schema["properties"]["ts"]["pattern"],
+      serde_json::json!(STAMP_PATTERN),
+      "the published pattern and the reader's check are one constant"
+    );
+  }
+
+  #[test]
+  fn the_store_stamps_what_the_reader_takes() {
+    let store = crate::store::Store::open_in_memory().expect("an in-memory store");
+    let ts = store
+      .append_event(&stamped(""))
+      .expect("the store writes and stamps an event");
+    assert!(is_stamp(&ts), "the store's own stamp `{ts}` is a stamp");
+    let e = stamped(&ts);
+    let text = to_file(&e).expect("the event's file form");
+    assert_eq!(
+      from_file(&e.id, &text).expect("the store's event reads back"),
+      e
+    );
+  }
+
+  #[test]
+  fn a_stamp_is_utc_to_the_millisecond_in_ascii_digits() {
+    assert!(is_stamp("2026-11-20T17:00:00.123Z"));
+    for not in [
+      "2026-11",
+      "2026-11-20",
+      "2026-11-20T17:00:00Z",
+      "2026-11-20T17:00:00.1Z",
+      "2026-11-20T17:00:00.123",
+      "2026-11-20T17:00:00.123+00:00",
+      "2026-11-20 17:00:00.123Z",
+      " 2026-11-20T17:00:00.123Z",
+      "\u{ff12}026-11-20T17:00:00.123Z",
+    ] {
+      assert!(!is_stamp(not), "`{not}` is not a stamp");
+    }
+  }
+
+  #[test]
+  fn a_file_whose_stamp_is_not_one_is_refused_naming_what_it_carries() {
+    for bad in ["2026-11", "2026-11-20T17:00:00Z"] {
+      let e = stamped(bad);
+      let text = to_file(&e).expect("the event's file form");
+      match from_file(&e.id, &text) {
+        Err(EventFileError::Misstamped { id, found }) => {
+          assert_eq!((id.as_str(), found.as_str()), (e.id.as_str(), bad));
+        }
+        other => panic!("`{bad}` was not refused as a stamp: {other:?}"),
+      }
+    }
+  }
+}

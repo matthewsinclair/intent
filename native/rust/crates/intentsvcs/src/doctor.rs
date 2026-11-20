@@ -1820,6 +1820,16 @@ fn event_checks(project: &Project, access: Access, out: &mut Vec<Finding>) {
           e.to_string(),
         ));
       }
+      // A stamp outside the pattern the schema publishes is a schema
+      // violation (issue 0735), and its remedy is the error's own: the class's
+      // "correct the field" would have a person write history by hand.
+      Err(e @ EventFileError::Misstamped { .. }) => {
+        out.push(Finding::new(
+          rel,
+          FindingClass::SchemaInvalid,
+          format!("{e} -- {}", e.remedy()),
+        ));
+      }
       Err(e @ (EventFileError::NameDisagrees { .. } | EventFileError::Unstamped { .. })) => {
         out.push(Finding::new(
           rel,
