@@ -1,0 +1,15 @@
+{
+  "id": "01M7X1H5TXTEKTYR4DX4M6593B",
+  "ts": "2026-11-20T17:54:38.049Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0736"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Four test id scanners see only ordinal ids, so their leak and status checks miss every hashed id"
+  }
+}
