@@ -34,9 +34,9 @@ title: A forge merges every open merge request: no file that every record shares
 
 - AC-03.1 The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set. -- satisfied: no (computed)
 
-### WP-04 -- The proof: five merge requests through a forge stand-in (status: Not Started)
+### WP-04 -- The proof: five merge requests through a forge stand-in (status: WIP)
 
-- AC-04.1 Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no (computed)
+- AC-04.1 Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: yes (computed)
 - AC-04.2 (non-test) Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no
 
 ### WP-05 -- Each work package, criterion and test has its own canon file (status: Not Started)
@@ -67,9 +67,9 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-04 -- The proof: five merge requests through a forge stand-in (status: Not Started)
+### WP-04 -- The proof: five merge requests through a forge stand-in (status: WIP)
 
-_(no tests in this group)_
+- AT-04.1 `native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:50` -- covers AC-04.1 -- status: green -- Regression arm, landed at 26c4b0ca0 (devbin-dc, Desk 01M7X3PX): no red on its base cbae96463, since WP-01, WP-02 and ST0095 WP-06 carry the behaviour; set red only because to-write cannot go straight to green. Green: 2 passed, then bin/devbin gate rust exit 0 on d779837ef, 2026-11-20 18:51Z; after-checkout bar is dc's interim (no step a person must run or confirm, doctor 0, clean tree) until issue 0741 lands.
 
 ### WP-05 -- Each work package, criterion and test has its own canon file (status: Not Started)
 

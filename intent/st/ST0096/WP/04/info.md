@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The proof: five merge requests through a forge stand-in
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-04: The proof: five merge requests through a forge stand-in
