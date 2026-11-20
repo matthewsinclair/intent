@@ -1,0 +1,16 @@
+{
+  "id": "01M7X0S2DGNV8RD4MFSRNDFP9Y",
+  "ts": "2026-11-20T17:41:28.113Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705 (hv decisions 66, 70, 71 and 74): UNDER WAY since 2026-11-19. LANDED: WP-02 (c7e1cee74, ic; wp done owed); WP-03's shell half (1c45f817c, devbin-dc; open on it: vc todo 94); WP-01 (9a87b035c, cc; realisation on the record, .intentfiles folded by upgrade; AC-01.1, AC-01.2 satisfied at b505ea8ba; wp done owed). 0733 closed (29d5ffe94, 4b47fe6c8). 0707 stays open for cc's upgrade half. IN FLIGHT (2026-11-20 17:41Z): dc's 0722 banks 1 and 2 (bank 1 unit5 green at 29007a401; landing as one after a combined gate on main). NEXT: cc's WP-05 (L, plan to vc before code); dc's WP-04. FOR hv (vc's condition 3 on Machine 6): organize --default and --force set every record's realised from status, today's behaviour, kept and not written as an edge; vc recommends accepting it."
+  }
+}

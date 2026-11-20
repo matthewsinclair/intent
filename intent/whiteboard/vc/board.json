@@ -2935,10 +2935,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 62,
-      "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19. DONE: WP-01, WP-02, WP-04, WP-14 (4c72d9510). LANDED on 2026-11-20, each on its builder's proof, read by vc and not rerun, through WP-05+06 (ed302b7e4); then WP-14 with 0719 and 0708 closed (7ed879ab3); WP-12's guard half, AC-12.1 (1d3604937, devbin-dc); the remint doors, AC-10.5 and AC-06.3 (45028cbd3 and d663e3ea6, ic); 0718, 0715 and 0729 with WP-14's R1 (cc2358b01, dc; vc's W4 ruling: an attach never destroys an author's unsynced file). THE SHARED SET is FROZEN at e50978ce0 (decision 132). OPEN: WP-03 for AC-03.3; WP-06 for AC-06.1's issue half (ST0096 WP-01) and AC-06.6 (the drill). IN FLIGHT: devbin-cc's WP-07 v5. v4 (5cda68866) has ic's read: F1, F2 and R1 met, cc's meaning read done. vc ruled at 16:33Z by date -u that F3 (render::address_of's issue arm still on normalise_issue_id) and two mcp.rs doc nits fold into v5, with critic-rust on the v2..v5 interdiff and one gate; ic reads only F3's hunk. dc's 0722 (wip1 a66e2604c), design to cc on silence. NEXT: ic's WP-10 Part 2 with issue 0732 (after WP-07), WP-11 and WP-13; dc's WP-08, WP-09 and WP-12's routing half. Rule: a bank that renames or removes a cited test re-cites its AT row in the land (absent_at_check; the gyges gate runs no repo-local guard).",
+      "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19. DONE: WP-01, WP-02, WP-04, WP-07 (landed 62045266e, devbin-cc on cc's brief; done at ac0fa4011), WP-14. LANDED on 2026-11-20 on builders' proofs, read by vc and not rerun: WP-05+06 (ed302b7e4); WP-14 (7ed879ab3); WP-12's guard half (1d3604937); the remint doors (45028cbd3, d663e3ea6); 0718, 0715, 0729 (cc2358b01); WP-07 (62045266e). THE SHARED SET is FROZEN at e50978ce0 (decision 132). OPEN: WP-03 for AC-03.3; WP-06 for AC-06.6 (the drill). IN FLIGHT (2026-11-20 17:41Z): ic's WP-10 Part 2 (SDL 25, 0732, 0734, NotAddressable's MIN_PREFIX_HEX floor; proved on v7, rebasing onto 9a87b035c, gyges gate then land); dc's WP-08+09 (gate since 17:32Z); devbin-cc's 0735 (ingest refuses a non-RFC 3339 ts, cc's brief). NEXT: ic's WP-10 T1 to T9, WP-11, WP-13; dc's WP-12 routing half. Rules: a bank that renames or removes a cited test re-cites its AT row in the land; a bank touching surface/dispatch-table.json runs gen_dispatch_table.sh before banking (the gyges gate runs no repo-local guard).",
       "state": "live",
       "recorded_at": "2026-11-19T08:29:35.862Z",
-      "edited_at": "2026-11-20T16:33:28.344Z"
+      "edited_at": "2026-11-20T17:41:26.747Z"
     },
     {
       "node": "vc",
@@ -2960,10 +2960,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 63,
-      "text": "ST0096, issue 0705 (hv decisions 66, 70, 71 and 74): UNDER WAY since 2026-11-19. LANDED: WP-02 at c7e1cee74 (ic; the aggregate views leave git; 0707's doctor half; 0730 closed); WP-03's shell half of AC-03.1 at 1c45f817c (devbin-dc on dc's brief; the gate reads AT rows from canon; brew smoke keeps init's .gitignore; open on it: vc todo 94). 0707 stays open for cc's upgrade half; 0733 (dc, devbin-dc) is stale_at and absent_at's one canon reading. IN FLIGHT: cc's WP-01, realisation onto the record (bank refs/bank/cc/st0096/wp01-wip7-on-d663e3ea6; gate at 298d27f24 running; it carries the seven ST0095 AT markers and Machines 6 and 7 in ST0056's data-model.md). NEXT: cc's WP-05; dc's WP-04. FOR hv (vc's condition 3 on Machine 6): organize --default and --force set every record's realised from status, which is today's behaviour, kept and not written as an edge; vc recommends accepting it.",
+      "text": "ST0096, issue 0705 (hv decisions 66, 70, 71 and 74): UNDER WAY since 2026-11-19. LANDED: WP-02 (c7e1cee74, ic; wp done owed); WP-03's shell half (1c45f817c, devbin-dc; open on it: vc todo 94); WP-01 (9a87b035c, cc; realisation on the record, .intentfiles folded by upgrade; AC-01.1, AC-01.2 satisfied at b505ea8ba; wp done owed). 0733 closed (29d5ffe94, 4b47fe6c8). 0707 stays open for cc's upgrade half. IN FLIGHT (2026-11-20 17:41Z): dc's 0722 banks 1 and 2 (bank 1 unit5 green at 29007a401; landing as one after a combined gate on main). NEXT: cc's WP-05 (L, plan to vc before code); dc's WP-04. FOR hv (vc's condition 3 on Machine 6): organize --default and --force set every record's realised from status, today's behaviour, kept and not written as an edge; vc recommends accepting it.",
       "state": "live",
       "recorded_at": "2026-11-19T10:03:15.682Z",
-      "edited_at": "2026-11-20T16:36:16.159Z"
+      "edited_at": "2026-11-20T17:41:28.112Z"
     },
     {
       "node": "vc",
