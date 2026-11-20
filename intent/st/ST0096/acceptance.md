@@ -28,6 +28,7 @@ title: A forge merges every open merge request: no file that every record shares
 
 - AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md, intent/todo.md and every thread's intent/st/<ST>/acceptance.md on disk and out of git, and the verbs and intent sync keep them current. -- satisfied: no (computed)
 - AC-02.2 doctor names a project whose aggregate views (the two lists, or any thread's acceptance.md) are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
+- AC-02.3 doctor shows an ignored aggregate view that is missing, or that differs from what the store renders, with intent sync --to-disk as the fix, and counts neither, so a fresh clone's first commit passes the commit gate; a view still tracked is counted as today. -- satisfied: no (computed)
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: Not Started)
 
