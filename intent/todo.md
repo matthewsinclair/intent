@@ -22,7 +22,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 11: The TUI, the app and the served page
   - [ ] 12: The pipeline asks the waist; the drill; the fleet
   - [ ] 13: Docs, skills, rules and templates teach the new ids
-  - [ ] 14: Kind tags and the owner of a path have one home
+  - [-] 14: Kind tags and the owner of a path have one home
 - [-] ST0096: A forge merges every open merge request: no file that every record shares
   - [ ] 01: Realisation lives in the record, and the manifest goes
   - [-] 02: The two lists leave git
