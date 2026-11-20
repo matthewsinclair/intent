@@ -24,11 +24,11 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-01.2 intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean. -- satisfied: yes (computed)
 - AC-01.3 (non-test) The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704. -- evidence: intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc -- satisfied: yes
 
-### WP-02 -- The two lists leave git (status: WIP)
+### WP-02 -- The two lists leave git (status: Done)
 
-- AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md, intent/todo.md and every thread's intent/st/<ST>/acceptance.md on disk and out of git, and the verbs and intent sync keep them current. -- satisfied: no (computed)
-- AC-02.2 doctor names a project whose aggregate views (the two lists, or any thread's acceptance.md) are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: no (computed)
-- AC-02.3 doctor shows an ignored aggregate view that is missing, or that differs from what the store renders, with intent sync --to-disk as the fix, and counts neither, so a fresh clone's first commit passes the commit gate; a view still tracked is counted as today. -- satisfied: no (computed)
+- AC-02.1 A new project and an upgraded one keep intent/st/steel_threads.md, intent/todo.md and every thread's intent/st/<ST>/acceptance.md on disk and out of git, and the verbs and intent sync keep them current. -- satisfied: yes (computed)
+- AC-02.2 doctor names a project whose aggregate views (the two lists, or any thread's acceptance.md) are still tracked, with intent upgrade as the fix, as an advisory that is not counted. -- satisfied: yes (computed)
+- AC-02.3 doctor shows an ignored aggregate view that is missing, or that differs from what the store renders, with intent sync --to-disk as the fix, and counts neither, so a fresh clone's first commit passes the commit gate; a view still tracked is counted as today. -- satisfied: yes (computed)
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 
@@ -56,9 +56,12 @@ _(no tests in this group)_
 - AT-01.1 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:58` -- covers AC-01.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
 - AT-01.2 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:182` -- covers AC-01.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
 
-### WP-02 -- The two lists leave git (status: WIP)
+### WP-02 -- The two lists leave git (status: Done)
 
-_(no tests in this group)_
+- AT-02.1 `native/rust/crates/intent-cli/tests/the_aggregate_views_stay_out_of_git.rs:107` -- covers AC-02.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), the arm unchanged since it landed at c7e1cee74
+- AT-02.2 `native/rust/crates/intent-cli/tests/the_aggregate_views_stay_out_of_git.rs:152` -- covers AC-02.1, AC-02.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), the arm unchanged since it landed at c7e1cee74
+- AT-02.3 `native/rust/crates/intent-cli/tests/the_aggregate_views_stay_out_of_git.rs:312` -- covers AC-02.3 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), the arm unchanged since it landed at c7e1cee74
+- AT-02.4 `native/rust/crates/intent-cli/tests/the_aggregate_views_stay_out_of_git.rs:373` -- covers AC-02.3 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), the arm unchanged since it landed at c7e1cee74
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 

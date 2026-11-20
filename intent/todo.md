@@ -25,7 +25,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 14: Kind tags and the owner of a path have one home
 - [-] ST0096: A forge merges every open merge request: no file that every record shares
   - [x] 01: Realisation lives in the record, and the manifest goes
-  - [-] 02: The two lists leave git
+  - [x] 02: The two lists leave git
   - [-] 03: The commit gate and the pull-request check follow
   - [ ] 04: The proof: five merge requests through a forge stand-in
   - [ ] 05: Each work package, criterion and test has its own canon file

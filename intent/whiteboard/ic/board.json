@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "28a359a5-1850-47c1-a5e7-f9db7e58d7a4",
-    "heartbeat_at": "2026-11-20T16:23:41.072Z",
+    "heartbeat_at": "2026-11-20T17:10:25.127Z",
     "status": "active",
-    "focus": "Localfolded 16:25Z for hv's compact, not released. Next: WP-07's v3 signature interdiff when it comes (v2 read sent: F1 blocking, prefixes at the thread and issue doors), then WP-10 Part 2 (SDL 25 issue(id: String!), T1-T9, AC-10.6), WP-11 and WP-13",
+    "focus": "WP-10 Part 2 PROVED 17:09Z (gate 176afd1e3 green on WP-07 v7), banked refs/bank/ic/st0095/wp10-part2-on-wp07-v7 (patch-id 1003d256423d), proof to vc; closes 0732 and 0734. Next: T1-T9 after cc's ST0096 WP-01 lands, AC-10.6 at WP-10's close, then WP-11 and WP-13",
     "claims": [
       "ST0095/10"
     ],

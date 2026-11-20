@@ -104,6 +104,7 @@ fn run_without_git(root: &Path, args: &[&str]) -> (String, Option<i32>) {
   )
 }
 
+// ST0096 AT-02.1: the arm below.
 #[test]
 fn a_new_project_renders_its_aggregate_views_and_commits_none() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -148,6 +149,7 @@ fn a_new_project_renders_its_aggregate_views_and_commits_none() {
   );
 }
 
+// ST0096 AT-02.2: the arm below.
 #[test]
 fn an_upgrade_untracks_the_aggregate_views_that_doctor_names() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -307,6 +309,7 @@ fn a_closed_records_views_are_named_until_they_are_removed() {
 /// clone has none, and a pull that changes records leaves them behind the
 /// store; doctor shows both with the verb that renders them, and counts
 /// neither, so the first commit on a fresh clone passes the commit gate.
+// ST0096 AT-02.3: the arm below.
 #[test]
 fn a_clones_own_render_is_shown_and_never_counted() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -367,6 +370,7 @@ fn a_clones_own_render_is_shown_and_never_counted() {
 
 /// AC-02.3's other half: **A VIEW STILL TRACKED IS COUNTED AS BEFORE**, in a
 /// project not yet upgraded, because a commit does carry it.
+// ST0096 AT-02.4: the arm below.
 #[test]
 fn a_tracked_aggregate_view_that_differs_is_counted_as_before() {
   let dir = tempfile::tempdir().expect("tempdir");

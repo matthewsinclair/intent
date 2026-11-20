@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: The two lists leave git
 scope: M
-status: WIP
+status: Done
 ---
 
 # WP-02: The two lists leave git
