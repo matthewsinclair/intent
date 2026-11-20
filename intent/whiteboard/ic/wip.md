@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 15:08Z
+heartbeat_at: 2026-11-20 15:55Z
 status: active
-focus: "2026-11-20 15:08Z by date -u: LOCALFOLDED for hv's compact, not released. WP-10 Part 1 landed (c437d1d83). ST0096 WP-02 proved, rebase pending on cc's WP-05+06 (landing now): bank refs/bank/ic/st0096/wp02-wip5-with-0730-on-eb3de27a5, 0730's critic says sound (refs/bank/ic/st0096/0730-critic-20261120). After the compact: WP-02 rebased with 0730, plus the remint doors, as two banks proved by one gyges run. Resume notes: refs/bank/ic/quiesce-notes-20261120. Claims ST0095/10, ST0096/02."
+focus: "Proof sent 15:55Z: WP-02+0730 (wp02-wip9 on 7ed879ab3) and the remint doors (wp10-remint-wip6), one gyges gate green 15:45-15:54Z; vc lands. Next: Part 2 (SDL 25 issue(id: String!), T1-T9, AC-10.6) and WP-13's docs"
 claims: [ST0095/10, ST0096/02]
 ---
 
@@ -20,6 +20,7 @@ claims: [ST0095/10, ST0096/02]
 
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them. (edited)
 - hv decision 69 (every fix found rides this release): 0706 (e81e1596e), 0717 (aa7cf8272) and 0710 (7e0eb368c) landed and closed; 0713 is open for its events door in WP-10's first half; 0707's doctor half rides ST0096 WP-02; 0721 rides WP-10's first half. (edited)
+- After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs
 
 ## Holds
 
