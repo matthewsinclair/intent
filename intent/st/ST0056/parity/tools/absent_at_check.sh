@@ -117,129 +117,71 @@
 # -- so "0 examined" is genuinely ambiguous and the tool refuses instead of
 # choosing the reassuring reading. The count is on the ok line either way.
 
+# No -e: every step's status is read where it happens, so a failure is named
+# and refused, never an unexplained abort.
 set -uo pipefail
 
-die() {
-  echo "error: $1" >&2
-  [ -n "${2:-}" ] && echo "remedy: $2" >&2
-  exit 2
-}
-
-# Walk up to the project root by its marker rather than counting `..` levels --
-# `stale_at_check.sh`'s lesson, inherited: the tool sits five directories down
-# and a wrong count fails as a missing thread rather than a missing root.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$HERE"
-while [ "$ROOT" != "/" ] && [ ! -f "$ROOT/intent/.config/config.json" ]; do
-  ROOT="$(dirname "$ROOT")"
-done
-[ -f "$ROOT/intent/.config/config.json" ] \
-  || die "no Intent project root above $(dirname "${BASH_SOURCE[0]}")" \
-         "run this inside an Intent project"
 
-cd "$ROOT" || exit 2
-command -v jq >/dev/null 2>&1 || die "jq is required to read the canon extract" "install jq"
-# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
-# shellcheck source=lib_citation.sh
-. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
+# THE CANON IS READ THROUGH lib_at_canon.sh, stale_at_check.sh's reader too
+# (issue 0733). It refuses with exit 2 on anything it cannot read, before this
+# file sees a row: until then a row whose status was null, a number or a
+# misspelt word fell quietly out of the population below, and jq's message
+# naming an unreadable file went to /dev/null. Every thread is read, whatever
+# its status: a verdict claimed in a cancelled thread is still counted.
+# shellcheck source=lib_at_canon.sh
+. "$HERE/lib_at_canon.sh" || { echo "error: cannot load lib_at_canon.sh beside this tool, or a library it sources (named above if so)" >&2; exit 2; }
+at_canon_root "$HERE" || exit 2
+at_canon_ready || exit 2
+# The words this tool judges by are the model's, or it refuses.
+at_canon_legal AtKind test || exit 2
+at_canon_legal AtStatus green red || exit 2
 
-CANON_DIR="intent/.canon/st"
-[ -d "$CANON_DIR" ] || die "no canon extract at $CANON_DIR" \
-  "run \`intent sync\` to write the extract, or run this in a project that has one"
-
-THREADS=()
-while IFS= read -r f; do THREADS+=("$f"); done < <(find "$CANON_DIR" -name '*.json' -type f | sort)
-
-# A project with no thread canon is a real state and NOT a clean run. "Nothing
-# violated" and "nothing was examined" must never print the same line.
-[ "${#THREADS[@]}" -gt 0 ] \
-  || die "no thread canon under $CANON_DIR" \
-         "this gate reads the committed extract; \`intent sync\` writes it"
-
-# ONE jq PASS OVER EVERY THREAD. `input_filename` carries the thread id, which
-# the rows themselves do not: AT ids are per-thread and this estate holds two
-# distinct `AT-01.8` rows (ST0043 and ST0050), so a finding that named the row
-# alone would send the reader to the wrong thread.
-#
-# TOTAL and POPULATION are emitted as records rather than counted afterwards,
-# so a jq filter that silently matches nothing is distinguishable from a corpus
-# that genuinely holds nothing.
-SCAN="$(
-  jq -r --arg line_re "$CITATION_LINE_RE" '
-    input_filename as $f
-    | ($f | split("/") | last | sub("\\.json$"; "")) as $tid
-    | (.tests // []) as $rows
-    | ($rows | length) as $n
-    | ("TOTAL\t" + ($n | tostring)),
-      ( $rows[]
-        | . as $r
-        | (($r.status // "") | tostring) as $st
-        | (($r.kind // "") | tostring) as $kind
-        | (($r.file // "") | tostring | sub($line_re; "")) as $file
-        | if ($r | has("status")) then empty else ("BAD\t" + $tid + "\t" + ($r.id // "?")) end
-        , ( if $kind == "test" and $file != "" and ($st == "green" or $st == "red")
-            then "ROW\t" + $tid + "\t" + ($r.id // "?") + "\t" + $st + "\t" + $file
-            else empty
-            end )
-      )
-  ' "${THREADS[@]}" 2>/dev/null
-)" || die "the canon extract could not be read as JSON" \
-          "check \`jq . $CANON_DIR/*.json\`; a truncated extract must refuse, never report clean"
-
-[ -n "$SCAN" ] || die "read ${#THREADS[@]} thread file(s) and extracted nothing" \
-  "the extract's shape moved; this gate reads .tests[] with .kind/.status/.file"
-
-total=0
-bad=0
 examined=0
 found=0
 FINDINGS=""
 
-while IFS="$(printf '\t')" read -r kind a b c d; do
-  case "$kind" in
-    TOTAL) total=$((total + a)) ;;
-    BAD)
-      bad=$((bad + 1))
-      echo "error: ${a}/${b}: an AT row carries no status field" >&2
-      ;;
-    ROW)
-      examined=$((examined + 1))
-      if [ ! -e "$d" ]; then
-        found=$((found + 1))
-        FINDINGS="${FINDINGS}absent: ${a}/${b} is ${c} and cites ${d} -- the file is NOT THERE
-"
-      fi
-      ;;
+at_thread() { :; }
+
+# A finding names its thread with the row: AT ids are per-thread and this
+# estate holds two distinct `AT-01.8` rows (ST0043 and ST0050), so a finding
+# that named the row alone would send the reader to the wrong thread.
+at_row() {
+  if [ "$3" != "test" ] || [ -z "$5" ]; then
+    return 0
+  fi
+  case "$4" in
+    green | red) ;;
+    *) return 0 ;;
   esac
-done <<< "$SCAN"
+  examined=$((examined + 1))
+  if [ ! -e "$5" ]; then
+    found=$((found + 1))
+    FINDINGS="${FINDINGS}absent: ${1}/${2} is ${4} and cites ${5} -- the file is NOT THERE
+"
+  fi
+}
 
-# The grammar moved. Refuse rather than report: a parser reading nothing prints
-# the same line as a clean run, which is the defect one level up from the one
-# this exists to find.
-if [ "$bad" -gt 0 ]; then
-  die "${bad} of ${total} AT row(s) carry no \`status\` -- the row grammar moved" \
-      "align this gate with the field names the AT model writes"
-fi
-
-[ "$total" -gt 0 ] \
-  || die "read ${#THREADS[@]} thread file(s) holding zero AT rows" \
-         "a canon extract with no acceptance tests is not something this gate can pass"
+at_canon_read "${AT_CANON_FILES[@]}" || exit 2
+total="$AT_CANON_ROWS"
 
 # **ZERO IN POPULATION IS A REFUSAL, NOT A PASS.** Every other outcome here is
 # measured against rows that were actually examined; with none, the exit code
 # would be reporting on the filter rather than on the estate.
-[ "$examined" -gt 0 ] \
-  || die "of ${total} AT row(s) across ${#THREADS[@]} thread(s), NONE is a green or red test row with a citation" \
-         "either the estate genuinely has no verdict-claiming row yet -- in which case this gate has nothing to say and should not be in the runner -- or the filter no longer matches the model's field values"
+if [ "$examined" -eq 0 ]; then
+  at_canon_refuse "of ${total} AT row(s) across ${#AT_CANON_FILES[@]} thread(s), NONE is a green or red test row with a citation" \
+    "either the estate genuinely has no verdict-claiming row yet -- in which case this gate has nothing to say and should not be in the runner -- or the filter no longer matches the model's field values"
+  exit 2
+fi
 
 if [ "$found" -eq 0 ]; then
-  echo "ok: examined ${examined} green/red row(s) with a citation, of ${total} AT row(s) across ${#THREADS[@]} thread(s); none cites a missing file"
+  echo "ok: examined ${examined} green/red row(s) with a citation, of ${total} AT row(s) across ${#AT_CANON_FILES[@]} thread(s); none cites a missing file"
   exit 0
 fi
 
 printf '%s' "$FINDINGS"
 echo ""
-echo "examined ${examined} green/red row(s) with a citation, of ${total} AT row(s) across ${#THREADS[@]} thread(s)"
+echo "examined ${examined} green/red row(s) with a citation, of ${total} AT row(s) across ${#AT_CANON_FILES[@]} thread(s)"
 echo "note: a green row is counted as evidence by \`ac status\` and the close gate."
 echo "      A row whose subject is gone is RETIRED, not left green -- withdraw the AC"
 echo "      it covers (\`intent ac withdraw\`) and move the row to a non-test n/a with"

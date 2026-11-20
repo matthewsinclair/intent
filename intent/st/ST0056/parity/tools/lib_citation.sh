@@ -10,7 +10,8 @@
 # with no leading zero, at the end, which `citation` reads the same way.
 # Taking it off leaves the file a guard checks for existence or reads.
 #
-# Readers: absent_at_check.sh, declared_kind_check.sh, instrument_reach_census.sh
-# and stale_at_check.sh, each in jq, `sub($line_re; "")` with `--arg line_re`.
+# Readers: declared_kind_check.sh, instrument_reach_census.sh and
+# lib_at_canon.sh (the canon reader absent_at_check.sh and stale_at_check.sh
+# share, issue 0733), each in jq, `sub($line_re; "")` with `--arg line_re`.
 # shellcheck disable=SC2034 # read by the guards that source this file
 CITATION_LINE_RE=':[1-9][0-9]*$'

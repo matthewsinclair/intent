@@ -1,0 +1,14 @@
+{
+  "id": "01M7WY80F036FFGHT44JM3K6X4",
+  "ts": "2026-11-20T16:57:11.909Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/lib_at_canon.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

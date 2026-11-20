@@ -3,9 +3,10 @@
   "number": 733,
   "slug": "stale-at-check-sh-and-absent-at-check-sh-each-de",
   "title": "stale_at_check.sh and absent_at_check.sh each define the thread canon directory and differ on what an unreadable row is",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-20",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "Found by critic-shell on ST0096 WP-03 (devbin-dc's bank 9e0bba25f, read by dc 2026-11-20). Both ST0056 parity tools now read AT rows from intent/.canon/st/<ID>.json, but each defines CANON_DIR itself (two homes for one path, Highlander), and they disagree on an unreadable row: stale_at refuses with exit 2, absent_at answers otherwise. Remedy: one shared reading of the thread canon in lib_citation.sh (or a sibling helper both source), with one stated answer for an unreadable row, and both tools sourcing it. Owner: dc, as a devbin-dc unit. Rides this release (hv decision 69)."
 }

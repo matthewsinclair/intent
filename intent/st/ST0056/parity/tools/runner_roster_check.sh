@@ -180,6 +180,7 @@ gen_reference.sh               not-an-instrument generator; emits the per-family
 gen_register.sh                not-an-instrument generator; emits the test register
 intentfiles_reviewable.sh      manual            ST0057; needs a realisation change already in the working tree to review, so there is no bare invocation for a gate to make
 interrupt_rig.sh               manual            produces the two trees the cutover gate compares by SIGKILLing a migration mid-run; it DOES form a verdict, but it takes minutes and needs a migrated estate
+lib_at_canon.sh                not-an-instrument sourced, not executed; ships 644 and defines functions only. THE ONE HOME for how the shell guards read the AT rows of the thread canon (issue 0733): absent_at_check.sh and stale_at_check.sh each keep only their own judgement, and every unreadable thing refuses with exit 2, the vocabulary read from the committed schema face of the model
 lib_citation.sh                not-an-instrument sourced, not executed; ships 644 and defines one pattern only. THE ONE HOME for how the shell guards read the citation of an AT row, `<file>` or `<file>:<line>` (issue 0670), the same reading as intentsvcs::contract::citation
 lib_classify.sh                not-an-instrument sourced, not executed; ships 644 and defines functions only
 lib_corpus.sh                  not-an-instrument sourced, not executed; ships 644 and defines functions only

@@ -37,6 +37,9 @@
 # Exit status is 0 whether or not it finds anything. It is a report, not a gate:
 # a legitimately absent citation is the normal state of most rows for most of
 # this thread's life, so failing on a hit would make it a gate nobody keeps.
+# It exits 2, and never 1, when it cannot answer: no project root, an unknown
+# thread, no live thread, or a canon lib_at_canon.sh cannot read (issue 0733;
+# until then those exits were 1).
 
 # MUTATION PROOFS, run 2026-08-17 at `67814555` (ic). Co-located because a check
 # whose failure path has never fired is a claim, not an instrument -- and this one
@@ -63,7 +66,8 @@
 #
 # Those proofs drove the rendered rows this read until ST0096 WP-03. It reads
 # the thread canon now, so the backticked-note cases no longer arise, and
-# tests/unit/stale_at_check.bats is the proof of the canon read.
+# tests/unit/stale_at_check.bats is the proof of the canon read, for this
+# tool and absent_at_check.sh both.
 # No -e: every step's status is read where it happens, so a failure is named
 # and refused, never an unexplained abort.
 set -uo pipefail
@@ -83,82 +87,104 @@ set -uo pipefail
 # zero was itself silently scoped.
 STID="${1:-}"
 
-# Walk up to the project root by its marker rather than counting `..` levels.
-# Counting is what broke this on its first run: the tool sits five directories
-# down, not four, and a wrong count fails as "no thread canon for <ST>", which
-# reads like a missing thread rather than a missing root.
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$HERE"
-while [ "$ROOT" != "/" ] && [ ! -f "$ROOT/intent/.config/config.json" ]; do
-  ROOT="$(dirname "$ROOT")"
-done
-
-if [ ! -f "$ROOT/intent/.config/config.json" ]; then
-  echo "error: no Intent project root above $(dirname "${BASH_SOURCE[0]}")" >&2
-  echo "remedy: run this inside an Intent project" >&2
-  exit 1
-fi
-
-cd "$ROOT" || exit 1
-
-# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
-# shellcheck source=lib_citation.sh
-. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 1; }
-
-command -v jq >/dev/null 2>&1 || { echo "error: jq is required to read the thread canon" >&2; echo "remedy: install jq" >&2; exit 2; }
 
 # **THE ROWS ARE READ FROM THE THREAD CANON, NEVER FROM A RENDERED
 # `acceptance.md`** (ST0096 WP-03). A thread's acceptance view is one of the
 # aggregate views that leave git (ST0096 WP-02): a clone of an upgraded project
 # holds none until a verb renders them, and a project not yet upgraded holds
-# only the threads it realised. Read from the views, this check refused a fresh
-# clone ("no live thread") and read a different population in every checkout.
-# `intent/.canon/st/<ID>.json` is the truth the view is rendered from, and it
-# never leaves git, so the same rows are read whether the views are tracked,
-# untracked or absent. It reads content, so it asks no declared set for paths:
-# it names no view at all. absent_at_check.sh reads the same canon the same way.
-CANON_DIR="intent/.canon/st"
-THREADS=()
-SKIPPED=()
+# only the threads it realised. `intent/.canon/st/<ID>.json` is the truth the
+# view is rendered from, and it never leaves git. It is read through
+# lib_at_canon.sh, absent_at_check.sh's reader too (issue 0733), which refuses
+# with exit 2 on anything it cannot read, so this file holds only what makes a
+# row stale.
+# shellcheck source=lib_at_canon.sh
+. "$HERE/lib_at_canon.sh" || { echo "error: cannot load lib_at_canon.sh beside this tool, or a library it sources (named above if so)" >&2; exit 2; }
+at_canon_root "$HERE" || exit 2
+at_canon_ready || exit 2
+# The words this tool judges by are the model's, or it refuses.
+at_canon_legal AtStatus to-write || exit 2
+at_canon_legal ThreadStatus not-started cancelled || exit 2
+
+THREADS=("${AT_CANON_FILES[@]}")
 if [ -n "$STID" ]; then
-  if [ ! -f "$CANON_DIR/${STID}.json" ]; then
-    echo "error: no thread canon for ${STID} at $CANON_DIR/${STID}.json" >&2
-    echo "remedy: name a thread this project has, or run from the project root" >&2
-    exit 1
+  if [ ! -f "$AT_CANON_DIR/${STID}.json" ]; then
+    at_canon_refuse "no thread canon for ${STID} at $AT_CANON_DIR/${STID}.json" \
+      "name a thread this project has"
+    exit 2
   fi
-  THREADS=("$CANON_DIR/${STID}.json")
-else
-  # **A THREAD THAT HAS NOT STARTED CITES INTENDED HOMES RATHER THAN WRITTEN
-  # TESTS, SO ITS ROWS ARE NOT STALE -- AND A CANCELLED THREAD IS FROZEN.**
-  # Widening the default to every thread immediately printed NINE ST0046 rows,
-  # all citing one v2 bats file that happens to exist. **Nine unactionable lines
-  # on every commit is how an instrument dies:** a report nobody can act on
-  # trains the reader to skip it, and the tenth line is the one that mattered.
-  #
-  # **`completed` IS DELIBERATELY IN SCOPE.** A finished thread carrying a
-  # to-write row whose test exists is a real defect and this should say so. A
-  # filter that skipped them would hide the class, not the noise.
-  #
-  # An unreadable status reads as `unknown` and keeps the thread in scope, so
-  # the row pass below reads its canon and refuses on it.
-  for canon in "$CANON_DIR"/*.json; do
-    [ -f "$canon" ] || continue
-    tid="$(basename "$canon" .json)"
-    tstatus="$(jq -r '.status // "unknown"' "$canon" 2>/dev/null)"
-    [ -n "$tstatus" ] || tstatus="unknown"
-    case "$tstatus" in
-      not-started|cancelled) SKIPPED+=("${tid}(${tstatus})") ;;
-      *) THREADS+=("$canon") ;;
-    esac
-  done
-  if [ "${#THREADS[@]}" -eq 0 ]; then
-    # A project with no live thread is a real state and NOT a clean run: the
-    # whole point of the count line is that "nothing violated" and "nothing was
-    # examined" must never print the same thing.
-    echo "error: no live thread canon under $CANON_DIR" >&2
-    echo "remedy: run this inside an Intent project that has threads" >&2
-    exit 1
+  THREADS=("$AT_CANON_DIR/${STID}.json")
+fi
+
+# **A THREAD THAT HAS NOT STARTED CITES INTENDED HOMES RATHER THAN WRITTEN
+# TESTS, SO ITS ROWS ARE NOT STALE -- AND A CANCELLED THREAD IS FROZEN.**
+# Widening the default to every thread immediately printed NINE ST0046 rows,
+# all citing one v2 bats file that happens to exist. **Nine unactionable lines
+# on every commit is how an instrument dies:** a report nobody can act on
+# trains the reader to skip it, and the tenth line is the one that mattered.
+# A thread named on the command line is read whatever its status.
+#
+# **`completed` IS DELIBERATELY IN SCOPE.** A finished thread carrying a
+# to-write row whose test exists is a real defect and this should say so. A
+# filter that skipped them would hide the class, not the noise.
+#
+# The skipped threads, one per line between newlines, matched whole: no
+# associative array, because the gate may run this under bash 3.2.
+SKIPLIST=$'\n'
+SKIPPED=()
+live=0
+matched=0
+examined=0
+found=0
+
+at_thread() {
+  case "$2" in
+    not-started | cancelled)
+      if [ -z "$STID" ]; then
+        SKIPLIST="${SKIPLIST}${1}"$'\n'
+        SKIPPED+=("${1}($2)")
+        return
+      fi
+      ;;
+  esac
+  live=$((live + 1))
+}
+
+# A finding names its thread with the row, because AT ids are per-thread and
+# two threads can each hold the same id. The citation is the row's `file`, its
+# line suffix already taken off (issue 0670).
+at_row() {
+  case "$SKIPLIST" in
+    *$'\n'"$1"$'\n'*) return 0 ;;
+  esac
+  matched=$((matched + 1))
+  if [ "$4" != "to-write" ] || [ -z "$5" ]; then
+    return 0
   fi
+  examined=$((examined + 1))
+  if [ -e "$5" ]; then
+    found=$((found + 1))
+    printf 'stale: %-12s cites %s -- the file EXISTS while the row says to-write\n' "$1/$2" "$5"
+  fi
+}
+
+at_canon_read "${THREADS[@]}" || exit 2
+
+if [ "$live" -eq 0 ]; then
+  # A project with no live thread is a real state and NOT a clean run: the
+  # whole point of the count line is that "nothing violated" and "nothing was
+  # examined" must never print the same thing.
+  at_canon_refuse "no live thread canon under $AT_CANON_DIR" "run this inside an Intent project that has threads"
+  exit 2
+fi
+
+# THE POPULATION IS COUNTED AND THE COUNT IS PRINTED (found by ic, 2026-08-16).
+# A reader that reads nothing must never print the line a clean run prints, so
+# live threads holding no row refuse rather than report.
+if [ "$matched" -eq 0 ]; then
+  at_canon_refuse "no AT rows in ${live} live thread canon file(s)" \
+    "check the canon carries .tests[]; an extract with no rows is not a clean run"
+  exit 2
 fi
 
 # **THE SKIP GOES ON THE COUNT LINE, NEVER ONLY IN A COMMENT.** A scoped report
@@ -168,94 +194,15 @@ if [ "${#SKIPPED[@]}" -gt 0 ]; then
   SKIPNOTE=" (skipped ${#SKIPPED[@]} not-started/cancelled thread(s): ${SKIPPED[*]})"
 fi
 
-# ONE jq PASS OVER EVERY LIVE THREAD. A finding names its thread with the row,
-# because AT ids are per-thread and two threads can each hold the same id.
-#
-# THE POPULATION IS COUNTED AND THE COUNT IS PRINTED (found by ic, 2026-08-16,
-# against the rendered rows this read then). A renamed status field leaves every
-# row matched while the status reads nothing for each of them; the loop then
-# runs zero times and prints `ok`, BYTE-IDENTICAL to a genuine all-clean run.
-# So a row without a status word is a BAD line and a refusal, never a data
-# state, and the COUNT line carries how many rows were read at all.
-#
-# The citation is the row's `file` field, with a line suffix dropped (issue
-# 0670). The rendered row's grammar is not read, so a backticked span in a
-# note can no longer be taken for a citation.
-SCAN="$(
-  jq -n -r --arg line_re "$CITATION_LINE_RE" '
-    [ inputs
-      | (input_filename | split("/") | last | sub("\\.json$"; "")) as $tid
-      | (.tests // [])[]
-      | { tid: $tid, r: . } ]
-    | . as $rows
-    | ( $rows[]
-        | (.tid + "/" + ((.r.id // "?") | tostring)) as $id
-        | (.r.status // null) as $st
-        | ((.r.file // "") | tostring | sub($line_re; "")) as $file
-        | if ($st | type) != "string" or ($st | test("^[a-z-]+$") | not)
-             or ($id | test("[\t\n\r]")) or ($file | test("[\t\n\r]")) then "BAD\t" + $id
-          elif $st == "to-write" and $file != "" then "ROW\t" + $id + "\t" + $file
-          else empty
-          end ),
-      ( "COUNT\t" + ($rows | length | tostring) )
-  ' "${THREADS[@]}"
-)" || {
-  echo "error: the thread canon could not be read as JSON" >&2
-  echo "remedy: check \`jq . $CANON_DIR/*.json\`; an unreadable canon must refuse, never report clean" >&2
-  exit 2
-}
-
-printf '%s\n' "$SCAN" | {
-  found=0
-  bad=0
-  matched=0
-  examined=0
-  while IFS="$(printf '\t')" read -r kind a b; do
-    case "$kind" in
-      BAD)
-        bad=$((bad + 1))
-        echo "error: ${a}: its canon row has no status word, or an id or file with a tab or newline" >&2
-        ;;
-      ROW)
-        examined=$((examined + 1))
-        if [ -e "$b" ]; then
-          found=$((found + 1))
-          printf 'stale: %-12s cites %s -- the file EXISTS while the row says to-write\n' "$a" "$b"
-        fi
-        ;;
-      COUNT)
-        matched="$a"
-        ;;
-      *)
-        bad=$((bad + 1))
-        echo "error: the canon pass printed a line this report cannot read: ${kind}" >&2
-        ;;
-    esac
-  done
-
-  if [ "$bad" -gt 0 ]; then
-    echo "error: ${bad} of ${matched} AT row(s) in the canon could not be read -- the canon's row shape moved" >&2
-    echo "remedy: this script reads .tests[] .id, .status and .file in $CANON_DIR/<ID>.json; align it with the fields the canon carries" >&2
-    echo "note: refusing rather than reporting, because a parser that reads nothing prints the same" >&2
-    echo "      line as a clean run -- which is the defect this script exists to find, one level up" >&2
-    exit 2
-  fi
-
-  if [ "$matched" -eq 0 ]; then
-    echo "error: no AT rows in ${#THREADS[@]} live thread canon file(s)" >&2
-    echo "remedy: check the canon carries .tests[]; an extract with no rows is not a clean run" >&2
-    exit 2
-  fi
-
-  # The population is on the ok line, so zero examined reads as zero rather than
-  # as clean.
-  if [ "$found" -eq 0 ]; then
-    echo "ok: examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}; none names a file that exists"
-  else
-    echo ""
-    echo "examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}"
-    echo "note: presence is not greenness. Run each test before moving its row."
-    echo "note: a row whose test exists and fails belongs at red WITH the reason named,"
-    echo "      never at to-write -- to-write is exempt from L2 and L3."
-  fi
-}
+# The population is on the ok line, so zero examined reads as zero rather than
+# as clean. Zero to-write rows with a citation is a normal state, unlike
+# absent_at_check.sh's zero, so it is reported, not refused.
+if [ "$found" -eq 0 ]; then
+  echo "ok: examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}; none names a file that exists"
+else
+  echo ""
+  echo "examined ${examined} to-write row(s) with a citation, of ${matched} AT row(s)${SKIPNOTE}"
+  echo "note: presence is not greenness. Run each test before moving its row."
+  echo "note: a row whose test exists and fails belongs at red WITH the reason named,"
+  echo "      never at to-write -- to-write is exempt from L2 and L3."
+fi

@@ -1,0 +1,14 @@
+{
+  "id": "01M7WY80VVETJTWE5A9J4AP1SX",
+  "ts": "2026-11-20T16:57:12.321Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/stale_at_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}
