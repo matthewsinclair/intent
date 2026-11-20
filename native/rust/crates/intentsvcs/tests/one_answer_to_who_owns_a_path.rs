@@ -20,6 +20,8 @@ fn issue(id: &str) -> Option<Named> {
   Some(Named::Issue(IssueId::parse(id).expect("an issue id")))
 }
 
+/// AT-14.3 (ST0095 AC-14.2): one function answers which thread or issue owns a
+/// path.
 #[test]
 fn a_thread_owns_its_directory_its_record_and_what_lies_beside_its_record() {
   let project = Fixture::new().project();

@@ -593,10 +593,11 @@ pub(crate) fn boards_moved_on_disk(
     if !path.exists() {
       continue;
     }
-    let now = sync::entry_for(project.root(), &path, &[]).map_err(|e| IngestError::Io {
-      path: rel.clone(),
-      source: std::io::Error::other(e.to_string()),
-    })?;
+    let now =
+      sync::entry_for(project.root(), Some(project), &path, &[]).map_err(|e| IngestError::Io {
+        path: rel.clone(),
+        source: std::io::Error::other(e.to_string()),
+      })?;
     if now.sha256 != *sha {
       moved.insert(node);
     }
@@ -848,10 +849,11 @@ pub(crate) fn canon_file_entries(
 ) -> Result<Vec<sync::FileEntry>, IngestError> {
   let mut entries = Vec::with_capacity(paths.len());
   for path in paths.iter().filter(|p| p.exists()) {
-    let mut entry = sync::entry_for(project.root(), path, &[]).map_err(|e| IngestError::Io {
-      path: path.display().to_string(),
-      source: std::io::Error::other(e.to_string()),
-    })?;
+    let mut entry =
+      sync::entry_for(project.root(), Some(project), path, &[]).map_err(|e| IngestError::Io {
+        path: path.display().to_string(),
+        source: std::io::Error::other(e.to_string()),
+      })?;
     entry.state = FileState::Clean;
     entries.push(entry);
   }

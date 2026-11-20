@@ -130,6 +130,9 @@ fn declaring_the_value_v3_fixed_it_to_is_silent() {
 /// Dropping it on the first rewrite would be a silent data change of exactly
 /// the kind the finding above exists to prevent -- one layer down, in the
 /// artefact rather than in the estate.
+///
+/// AT-14.4 (ST0095 AC-14.2): a config that still carries `st_prefix` loads, and
+/// keeps it.
 #[test]
 fn the_retired_declaration_survives_in_the_config_it_was_written_in() {
   let fixture = Fixture::new();

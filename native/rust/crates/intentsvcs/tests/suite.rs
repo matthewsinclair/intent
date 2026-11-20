@@ -107,6 +107,8 @@ mod address_promotes_a_bare_id;
 mod address_resolution_single_home;
 #[path = "address_views_have_no_url.rs"]
 mod address_views_have_no_url;
+#[path = "an_attachment_door_writes_one_file.rs"]
+mod an_attachment_door_writes_one_file;
 #[path = "an_issue_body_can_be_corrected.rs"]
 mod an_issue_body_can_be_corrected;
 #[path = "an_unreadable_index_table_is_named_and_the_canon_is_not_blamed.rs"]
@@ -487,6 +489,8 @@ mod symbols_are_typed_definitions;
 mod sync_direction;
 #[path = "sync_overwrite_names_a_diverged_attachment.rs"]
 mod sync_overwrite_names_a_diverged_attachment;
+#[path = "sync_reads_the_projects_own_intent_dir.rs"]
+mod sync_reads_the_projects_own_intent_dir;
 #[path = "sync_reports_uncommitted_attachment.rs"]
 mod sync_reports_uncommitted_attachment;
 #[path = "sync_scan.rs"]

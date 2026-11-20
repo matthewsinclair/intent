@@ -1395,11 +1395,13 @@ pub enum FacadeError {
   /// the operator the right PATH, and the two are not the same sentence. The
   /// first build of this check reused that variant and printed *`PUT` json to a
   /// caller-assigned id* at someone who had mistyped a file path.
-  #[error("{}", fault.why(path, thread))]
+  #[error("{}", fault.why(path, home))]
   AttachmentPathNotInThread {
     url: String,
     path: String,
     thread: String,
+    /// The thread's directory, project-relative, which the message names.
+    home: String,
     fault: crate::project::PathFault,
   },
   /// A detach naming an attachment the thread does not carry (issue 0394).
@@ -2101,6 +2103,46 @@ pub enum FacadeError {
   CaseVariant {
     path: String,
     of: std::path::PathBuf,
+  },
+  /// **NO THREAD HOLDS TWO ATTACHMENTS ONE DISK STORES AS ONE FILE** (issue
+  /// 0718, cc's ruling): `path` and the `held` attachment share
+  /// `project::one_file_key`, so a case-insensitive disk (macOS's
+  /// default) writes both to one file and one destroys the other.
+  #[error(
+    "{thread} already holds `{held}`, which a case-insensitive disk stores as the same file as `{path}`"
+  )]
+  OneFileAttachment {
+    thread: String,
+    path: String,
+    held: String,
+  },
+  /// **AN ATTACH OVER AN ATTACHMENT WHOSE REALISED FILE HOLDS AN UNSYNCED
+  /// EDIT** (issue 0715): the file on disk carries bytes the store does not,
+  /// so replacing it would lose them. `path` is project-relative.
+  #[error("`{path}` holds bytes the store does not carry, so attaching over it would lose them")]
+  UnsyncedAttachment { thread: String, path: String },
+  /// An attach could not read its realised file (issue 0715), so whether it
+  /// holds an edit the store does not carry is unknown, and nothing was written.
+  #[error(
+    "`{path}` could not be read, so whether it holds an edit the store does not carry is unknown"
+  )]
+  RealisedAttachmentUnreadable {
+    path: String,
+    #[source]
+    source: std::io::Error,
+  },
+  /// The store refused an attach after its realised file was written, and the
+  /// file's old bytes could not be put back (issue 0715). `refused` is the
+  /// store's own refusal, kept whole.
+  #[error(
+    "the store refused the attachment ({refused}), and `{path}` could not be put back as it was"
+  )]
+  RealisedAttachmentNotRestored {
+    thread: String,
+    path: String,
+    refused: Box<FacadeError>,
+    #[source]
+    source: WriteError,
   },
   /// The artefact does not carry that file.
   ///
@@ -3722,6 +3764,22 @@ impl crate::remedy::Remedy for FacadeError {
       // its failures happened and this does not.
       Self::NotEditable { author_with, .. } => format!("author it with {author_with}"),
       Self::CaseVariant { .. } => crate::finding::FindingClass::CaseVariant.remedy().to_string(),
+      Self::OneFileAttachment { thread, held, .. } => format!(
+        "nothing was written. Keep one name for the file: detach the other with `intent st detach \
+         {thread} <name>` (`{held}` is the one {thread} holds), then attach under the name left"
+      ),
+      Self::UnsyncedAttachment { thread, .. } => format!(
+        "nothing was written. Carry the file into the store with `intent sync --to-store \
+         {thread}`, or move it aside, then attach again"
+      ),
+      Self::RealisedAttachmentUnreadable { path, .. } => format!(
+        "nothing was written. Make `{path}` readable (its permissions, or whatever holds it), \
+         then attach again"
+      ),
+      Self::RealisedAttachmentNotRestored { thread, path, .. } => format!(
+        "`{path}` holds the attach's new bytes and the store does not: clear the store's refusal \
+         above and attach again, or carry the file as it is with `intent sync --to-store {thread}`"
+      ),
       Self::RenumberTargetTaken { .. } => {
         "nothing was renumbered. A canon file or directory on disk that the store does not \
          hold is usually a pull not yet loaded: `intent sync --apply` loads it without \
@@ -12409,10 +12467,10 @@ impl Facade {
       self.refuse_before_the_upgrade("sync")?;
     }
     let mut minted: Vec<String> = Vec::new();
-    for (kind, from) in &conflicts.minted_twice {
-      let (origin, to) = self.remint_in_merge(*kind, from, &minted)?;
+    for from in &conflicts.minted_twice {
+      let (origin, to) = self.remint_in_merge(from, &minted)?;
       minted.push(to.clone());
-      steps.push(Step::renumber(*kind, from.clone(), to, origin));
+      steps.push(Step::renumber(from.clone(), to, origin));
     }
     // **A THREAD BOTH SIDES ADDED WORK PACKAGES TO IS A THREAD BOTH SIDES
     // CHANGED** to git, so it arrives here as a side to take; the three
@@ -12548,19 +12606,6 @@ impl Facade {
     })
   }
 
-  /// **A WORK PACKAGE IS NEVER RE-MINTED IN A MERGE** (ST0095 WP-06): a thread
-  /// both sides added packages to keeps both sides' packages
-  /// ([`crate::plan::Action::KeepPackages`]), so a renumber names a thread or an
-  /// issue, and one that names a package is refused by name.
-  fn no_remint_of_a_work_package(id: &str) -> FacadeError {
-    FacadeError::SyncDiskStep {
-      step: format!("re-mint {id}"),
-      source: std::io::Error::other(
-        "a work package is never re-minted, since both sides' packages are kept -- run `intent sync` again for a fresh plan",
-      ),
-    }
-  }
-
   /// The git-style id a thread or an issue both sides minted moves to in a
   /// merge, and the creation event it derives from (ST0095 WP-06).
   ///
@@ -12576,11 +12621,10 @@ impl Facade {
   /// what this plan has already moved records to.
   fn remint_in_merge(
     &self,
-    kind: crate::id::IdKind,
-    from: &str,
+    from: &crate::id::Named,
     taken: &[String],
   ) -> Result<(String, String), FacadeError> {
-    use crate::id::IdKind;
+    use crate::id::Named;
     let names = |dir: std::path::PathBuf| -> Result<Vec<String>, FacadeError> {
       match std::fs::read_dir(&dir) {
         Ok(entries) => Ok(
@@ -12605,9 +12649,8 @@ impl Facade {
       seen.extend(taken.iter().cloned());
       Ok(seen)
     };
-    match kind {
-      IdKind::WorkPackage => Err(Self::no_remint_of_a_work_package(from)),
-      IdKind::Thread => {
+    match from {
+      Named::Thread(_) => {
         let mut visible: Vec<crate::id::ThreadId> =
           self.canon.threads.iter().map(|t| t.id.clone()).collect();
         let tree = seen([self.project.canon_st_dir(), self.project.st_dir()])?;
@@ -12616,11 +12659,11 @@ impl Facade {
             .iter()
             .filter_map(|id| crate::id::ThreadId::parse(id).ok()),
         );
-        let mut draw = self.creation_draw("st.new", from)?;
+        let mut draw = self.creation_draw("st.new", &from.stored())?;
         let (origin, id) = crate::id::mint(&visible, &mut draw)?;
         Ok((origin, id.stored()))
       }
-      IdKind::Issue => {
+      Named::Issue(_) => {
         let mut visible: Vec<crate::id::IssueId> =
           self.canon.issues.iter().map(|i| i.number).collect();
         let tree = seen([self.project.issues_dir(), self.project.issues_view_dir()])?;
@@ -12629,7 +12672,7 @@ impl Facade {
             .iter()
             .filter_map(|id| crate::id::IssueId::parse(id).ok()),
         );
-        let mut draw = self.creation_draw("issues.add", from)?;
+        let mut draw = self.creation_draw("issues.add", &from.stored())?;
         let (origin, id) = crate::id::mint(&visible, &mut draw)?;
         Ok((origin, id.stored()))
       }
@@ -12776,15 +12819,7 @@ impl Facade {
           continue;
         }
         (Action::TakeSide { path }, Decision::Take(side)) => self.take_side(path, side)?,
-        (
-          Action::Renumber {
-            minted,
-            from,
-            to,
-            origin,
-          },
-          _,
-        ) => self.renumber_in_merge(*minted, from, to, origin)?,
+        (Action::Renumber { from, to, origin }, _) => self.renumber_in_merge(from, to, origin)?,
         (Action::KeepPackages { thread, .. }, _) => self.keep_packages_in_merge(thread)?,
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
@@ -13129,12 +13164,13 @@ impl Facade {
   /// staged, and nothing else.
   fn renumber_in_merge(
     &mut self,
-    minted: crate::id::IdKind,
-    from: &str,
+    minted: &crate::id::Named,
     to: &str,
     origin: &str,
   ) -> Result<String, FacadeError> {
-    use crate::id::IdKind;
+    use crate::id::Named;
+    let from = minted.stored();
+    let from = from.as_str();
     let root = self.project.root().to_path_buf();
     if !crate::gitstate::merging(&root) {
       return Err(FacadeError::RenumberNotMerging {
@@ -13146,9 +13182,8 @@ impl Facade {
     // refuses it as every mint is refused there.
     self.refuse_before_the_upgrade("sync")?;
     let derives = match minted {
-      IdKind::Thread => crate::id::ThreadId::parse(to).is_ok_and(|id| id.derives_from(origin)),
-      IdKind::Issue => crate::id::IssueId::parse(to).is_ok_and(|id| id.derives_from(origin)),
-      IdKind::WorkPackage => return Err(Self::no_remint_of_a_work_package(from)),
+      Named::Thread(_) => crate::id::ThreadId::parse(to).is_ok_and(|id| id.derives_from(origin)),
+      Named::Issue(_) => crate::id::IssueId::parse(to).is_ok_and(|id| id.derives_from(origin)),
     };
     if !derives {
       return Err(FacadeError::SyncDiskStep {
@@ -13163,8 +13198,7 @@ impl Facade {
     let rel = |p: std::path::PathBuf| project.relative(&p);
     // The old id's paths, and where this clone's files under each go.
     let (prefixes, sigil, mut model) = match minted {
-      IdKind::WorkPackage => return Err(Self::no_remint_of_a_work_package(from)),
-      IdKind::Thread => {
+      Named::Thread(_) => {
         let model = crate::id::ThreadId::parse(from)
           .ok()
           .zip(crate::id::ThreadId::parse(to).ok())
@@ -13191,7 +13225,7 @@ impl Facade {
           model,
         )
       }
-      IdKind::Issue => {
+      Named::Issue(_) => {
         // Both are issue ids by construction: the plan read them from canon
         // paths and minted `to` itself. A spelling that is not one is refused
         // by name, where it used to become issue 0000 in silence.
@@ -13238,7 +13272,7 @@ impl Facade {
 
     // This clone's authored files move to the new id, from `HEAD`. Its canon
     // file and its views are the store's to write, below.
-    let thread_dir = (minted == IdKind::Thread).then(|| rel(self.project.thread_dir(from)));
+    let thread_dir = matches!(minted, Named::Thread(_)).then(|| rel(self.project.thread_dir(from)));
     // **EVERY MOVE IS DECIDED BEFORE ANY IS WRITTEN**, so a refusal leaves the
     // tree as it found it rather than half moved.
     let mut moves: Vec<(&String, String)> = Vec::new();
@@ -13296,13 +13330,13 @@ impl Facade {
     // the move is an event of its own; where it does not, the move's own event
     // takes the drawn id, so the new id derives from the event that made it.
     let op = match minted {
-      IdKind::Thread => {
+      Named::Thread(_) => {
         if let Some(moved) = model.canon.threads.iter_mut().find(|t| t.id.as_str() == to) {
           moved.origin = Some(origin.to_string());
         }
         "st.renumber"
       }
-      IdKind::Issue => {
+      Named::Issue(_) => {
         if let Some(moved) = model
           .canon
           .issues
@@ -13313,12 +13347,11 @@ impl Facade {
         }
         "issues.renumber"
       }
-      IdKind::WorkPackage => return Err(Self::no_remint_of_a_work_package(from)),
     };
     let envelope = self.move_event(
       Some(origin),
       op,
-      Subject::of(minted, to),
+      Subject::of(minted.kind(), to),
       json!({ "from": from, "to": to, "mid_merge": true }),
     )?;
     let renumbering = self.land_renumber(RenumberPlan {
@@ -14255,6 +14288,22 @@ impl Facade {
       // opaque attachment by hash and size and keeps its bytes in a sidecar;
       // without this write the next read of canon found the name and not the
       // file, and refused `broken-reference`.
+      //
+      // **AND NO TWO OF THEM ARE ONE FILE** (issue 0718): a model can carry such
+      // a pair from an ingest on a disk that does not fold case, and writing it
+      // to one that does would put both sidecars in one file.
+      let mut sidecars: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+      for attachment in thread.attachments.iter().filter(|a| a.blob.is_some()) {
+        let key = crate::project::one_file_key(std::path::Path::new(&attachment.path));
+        if let Some(held) = sidecars.insert(key, attachment.path.clone()) {
+          return Err(FacadeError::OneFileAttachment {
+            thread: thread.id.as_str().to_string(),
+            path: attachment.path.clone(),
+            held,
+          });
+        }
+      }
       for (rel, raw) in crate::export::thread_blobs(thread) {
         set.add_bytes(self.project.intent_dir().join(rel), raw);
       }
@@ -14585,7 +14634,7 @@ impl Facade {
       {
         continue;
       }
-      let now = crate::sync::entry_for(self.project.root(), path, &[])
+      let now = crate::sync::entry_for(self.project.root(), Some(&self.project), path, &[])
         .map_err(|e| canon_file_unreadable(path, std::io::Error::other(e.to_string())))?;
       if index
         .iter()
@@ -19391,6 +19440,23 @@ impl Facade {
   ) -> Result<Outcome, FacadeError> {
     let mut next = self.canon.clone();
     let holder = find_thread_mut(&mut next, thread)?;
+    // **ONE FILE, ONE ATTACHMENT** (issue 0718): a second attachment that one
+    // disk stores as a held one's file is refused by the held one's name, so
+    // the pair never reaches canon, and so never a disk.
+    let key = crate::project::one_file_key(std::path::Path::new(path));
+    if let Some(held) = holder.attachments.iter().find(|a| {
+      a.path != path && crate::project::one_file_key(std::path::Path::new(&a.path)) == key
+    }) {
+      return Err(FacadeError::OneFileAttachment {
+        thread: thread.to_string(),
+        path: path.to_string(),
+        held: held.path.clone(),
+      });
+    }
+    // `None` only for an opaque row whose sidecar is not loaded, which neither
+    // door builds; such a row has nothing to realise.
+    let new = row.as_bytes().map(<[u8]>::to_vec);
+    let mut stored: Option<Vec<u8>> = None;
     let outcome = match holder.attachments.iter_mut().find(|a| a.path == path) {
       Some(existing) => {
         if *existing == row {
@@ -19398,6 +19464,7 @@ impl Facade {
             state: "unchanged".to_string(),
           });
         }
+        stored = existing.as_bytes().map(<[u8]>::to_vec);
         *existing = row;
         Outcome::Moved
       }
@@ -19407,17 +19474,79 @@ impl Facade {
         Outcome::Moved
       }
     };
-    self
-      .apply(
-        "attachment.put",
-        Subject {
-          kind: "attachment".to_string(),
-          id: format!("{thread}/{path}"),
-        },
-        json!({ "via": "address" }),
-        next,
-      )
-      .map(|foreign| outcome.with_overwrites(foreign))
+    // **THE REALISED FILE MOVES FIRST, AND BACK IF THE STORE DOES NOT** (issue
+    // 0715). Canon alone moving left the old bytes in the realised file, where
+    // a watching intentd carried them straight back over the new row.
+    let realised = self.project.thread_dir(thread).join(path);
+    let restore = self.replace_realised(thread, &realised, stored.as_deref(), new.as_deref())?;
+    let applied = self.apply(
+      "attachment.put",
+      Subject {
+        kind: "attachment".to_string(),
+        id: format!("{thread}/{path}"),
+      },
+      json!({ "via": "address" }),
+      next,
+    );
+    match (applied, restore) {
+      (Ok(foreign), _) => Ok(outcome.with_overwrites(foreign)),
+      (Err(failed), None) => Err(failed),
+      (Err(failed), Some(old)) => match crate::write_set::write_atomically(&realised, &old) {
+        Ok(()) => Err(failed),
+        Err(source) => Err(FacadeError::RealisedAttachmentNotRestored {
+          thread: thread.to_string(),
+          path: self.project.relative(&realised),
+          refused: Box::new(failed),
+          source,
+        }),
+      },
+    }
+  }
+
+  /// Write an attachment's realised file ahead of its store write (issue
+  /// 0715), and hand back the bytes it held, which the caller puts back if the
+  /// store write then fails. `None` when nothing was written: the thread has no
+  /// realised file at `realised`, it already holds the new bytes, or the row has
+  /// none to write.
+  ///
+  /// **A FILE HOLDING BYTES THE STORE DOES NOT CARRY IS REFUSED BEFORE ANY
+  /// WRITE**: it is an edit no sync has taken in, and replacing it would lose
+  /// it. `stored` is the store's bytes for the attachment, `None` when it holds
+  /// none, and `new` the bytes the attach writes.
+  ///
+  /// **A NEW ATTACHMENT OVER A FILE THE STORE DOES NOT CARRY IS REFUSED THE
+  /// SAME WAY**: the file is the author's, and the attach would destroy it.
+  fn replace_realised(
+    &self,
+    thread: &str,
+    realised: &std::path::Path,
+    stored: Option<&[u8]>,
+    new: Option<&[u8]>,
+  ) -> Result<Option<Vec<u8>>, FacadeError> {
+    let Some(new) = new else {
+      return Ok(None);
+    };
+    let on_disk = match std::fs::read(realised) {
+      Ok(bytes) => bytes,
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+      Err(source) => {
+        return Err(FacadeError::RealisedAttachmentUnreadable {
+          path: self.project.relative(realised),
+          source,
+        });
+      }
+    };
+    if on_disk == new {
+      return Ok(None);
+    }
+    if stored != Some(on_disk.as_slice()) {
+      return Err(FacadeError::UnsyncedAttachment {
+        thread: thread.to_string(),
+        path: self.project.relative(realised),
+      });
+    }
+    crate::write_set::write_atomically(realised, new)?;
+    Ok(Some(on_disk))
   }
 
   /// Write an attachment's content, carrying **the form the bytes decide**.
@@ -19492,11 +19621,13 @@ impl Facade {
     // **ASKED BEFORE `whose file is this`, because a path that names nowhere
     // has no owner to look up.** The refusals below classify a well-formed
     // path; this one refuses a path that never was (`0262`).
-    if let Some(fault) = crate::project::attachment_path_fault(&rel, thread) {
+    let home = self.project.relative(&self.project.thread_dir(thread));
+    if let Some(fault) = crate::project::attachment_path_fault(&rel, std::path::Path::new(&home)) {
       return Err(FacadeError::AttachmentPathNotInThread {
         url: address.to_url(),
         path: path.clone(),
         thread: thread.clone(),
+        home,
         fault,
       });
     }

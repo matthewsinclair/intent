@@ -177,6 +177,8 @@ fn a_word_in_a_work_package_title_is_found() {
 /// nothing, which vc found by reading the criterion rather than the file. A
 /// property demonstrated once and guarded by nothing is a property that decays
 /// silently.
+///
+/// AT-14.2 (ST0095 AC-14.1, issue 0708): `--kind wp` finds this hit.
 #[test]
 fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
   let dir = project();

@@ -502,16 +502,16 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
   }
 }
 
-/// The project `root`'s config declares, read where the scope is built: its
-/// contracts layout (ST0083) and its aggregate views (ST0096) come from this one
-/// read, so the config is opened once and an unreadable one fails the scope
-/// once.
+/// The project at `root`, read where the scope is built: its contracts layout
+/// (ST0083), its aggregate views (ST0096) and its intent directory (issue 0729)
+/// come from this one read, so the config is opened once and an unreadable one
+/// fails the scope once.
 ///
 /// **AN ABSENT CONFIG DECLARES NO LAYOUT, AS AN ABSENT KEY DOES, AND READS AS
-/// `root`**, and it declares no aggregate view. A config that is there and
-/// cannot be read, or that names a third value, is an error the caller
-/// surfaces: scoping a `dotclaude` project as `root` would stop its contracts
-/// being ingested with nothing to say so.
+/// `root`**, with no aggregate view and the config's default intent directory.
+/// A config that is there and cannot be read, or that names a third value, is
+/// an error the caller surfaces: scoping a `dotclaude` project as `root` would
+/// stop its contracts being ingested with nothing to say so.
 ///
 /// **THE TWO CASES ARE DIFFERENT ON PURPOSE, AND THE ABSENT ONE IS NOT TO BE
 /// TIGHTENED** (vc's ruling, 2026-10-15). A file that is not there declares
@@ -565,6 +565,12 @@ pub struct Scanned {
   /// so the predicate and the enumeration cannot disagree about where the
   /// contracts are -- and a caller cannot pair this root with another layout.
   root_files: Vec<PathBuf>,
+  /// The project's intent directory, from its config (issue 0729): the corpus
+  /// is rooted here, never at a spelled `intent/`.
+  intent_dir: PathBuf,
+  /// The project, `None` over a root with no config, asked which thread owns
+  /// a path ([`Project::owner_of`]).
+  project: Option<Project>,
   ignored: Ignored,
   /// Whether a project-relative path is one of the project's aggregate views
   /// ([`Project::aggregate_view_matcher`], ST0096): none where there is no
@@ -605,9 +611,20 @@ impl Scanned {
         .iter()
         .map(|name| root.join(root_file_path(name, contracts)))
         .collect(),
+      intent_dir: project.as_ref().map_or_else(
+        || root.join(crate::project::default_intent_dir()),
+        Project::intent_dir,
+      ),
+      project,
       ignored: Ignored::for_root(root),
       aggregate,
     })
+  }
+
+  /// The project's intent directory, where the corpus is rooted (issue 0729):
+  /// what a watcher registers, read from the one config the scope read.
+  pub fn intent_dir(&self) -> &Path {
+    &self.intent_dir
   }
 
   /// Would the walk descend into this directory?
@@ -641,8 +658,7 @@ impl Scanned {
     if !self.keeps(path) {
       return false;
     }
-    let intent_dir = self.root.join("intent");
-    if let Ok(rest) = path.strip_prefix(&intent_dir) {
+    if let Ok(rest) = path.strip_prefix(&self.intent_dir) {
       // **A BARE DIRECTORY IS A CONTAINER, NOT A MEMBER, AND `intent/` ITSELF
       // IS THE ONE THAT BIT US.** An empty remainder means the path IS the
       // intent directory, and every line below is about the components
@@ -664,7 +680,7 @@ impl Scanned {
       }
       // Every directory between `intent/` and the file must be one the walk
       // would have descended into.
-      let mut at = intent_dir.clone();
+      let mut at = self.intent_dir.clone();
       let mut components: Vec<_> = rest.components().collect();
       components.pop();
       for component in components {
@@ -800,7 +816,7 @@ pub fn changed_under(
     return Ok(Vec::new());
   }
   let scope = Scanned::for_root(root)?;
-  let changed = candidates(root, &scope)?
+  let changed = candidates(&scope)?
     .into_iter()
     .filter(|path| path.starts_with(under))
     .map(|path| {
@@ -828,16 +844,15 @@ pub fn changed_under(
 /// against the store's index and published it, for a file [`Scanned::includes`]
 /// refuses as a leaf: one scope object, two answers, decided by which door the
 /// event arrived through (2026-09-12, dc; vc's ruling is this function).
-fn candidates(root: &Path, scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
+fn candidates(scope: &Scanned) -> Result<Vec<PathBuf>, SyncError> {
   let mut paths = Vec::new();
   for candidate in &scope.root_files {
     if candidate.is_file() && scope.keeps(candidate) {
       paths.push(candidate.clone());
     }
   }
-  let intent_dir = root.join("intent");
-  if intent_dir.is_dir() {
-    walk(&intent_dir, scope, &mut paths)?;
+  if scope.intent_dir.is_dir() {
+    walk(&scope.intent_dir, scope, &mut paths)?;
   }
   paths.sort();
   Ok(paths)
@@ -908,11 +923,11 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
   // statement of scope drifts silently in the direction that loops.
   let scope = Scanned::for_root(root)?;
 
-  let paths = candidates(root, &scope)?;
+  let paths = candidates(&scope)?;
 
   let mut entries = Vec::with_capacity(paths.len());
   for path in paths {
-    entries.push(entry_for(root, &path, previous)?);
+    entries.push(entry_for(root, scope.project.as_ref(), &path, previous)?);
   }
   Ok(entries)
 }
@@ -1163,6 +1178,7 @@ fn children(dir: &Path) -> Result<Vec<PathBuf>, SyncError> {
 /// this file's bytes".
 pub(crate) fn entry_for(
   root: &Path,
+  project: Option<&Project>,
   path: &Path,
   previous: &[FileEntry],
 ) -> Result<FileEntry, SyncError> {
@@ -1171,7 +1187,7 @@ pub(crate) fn entry_for(
   let (size, mtime) = stamp_of(path)?;
   let sha256 = sha256_hex(&bytes);
 
-  let findings = inspect(&rel, &bytes);
+  let findings = inspect(project, &rel, &bytes);
   let state = if !findings.is_empty() {
     FileState::Unparsed
   } else if previous
@@ -1212,14 +1228,14 @@ pub(crate) fn stamp_of(path: &Path) -> Result<(u64, String), SyncError> {
 }
 
 /// Everything that makes a file unreadable-as-what-it-claims-to-be.
-fn inspect(rel: &str, bytes: &[u8]) -> Vec<Finding> {
+fn inspect(project: Option<&Project>, rel: &str, bytes: &[u8]) -> Vec<Finding> {
   let Ok(text) = std::str::from_utf8(bytes) else {
     // **AN ATTACHMENT CLAIMS NOTHING ABOUT ITS BYTES (0084).** The collector
     // carries a non-UTF-8 attachment as opaque bytes, and retired its own
     // UTF-8 refusal to do so; this was the survivor, and it ran first -- so
     // the whole thread refused, under a remedy telling the operator to move
     // the one file the model keeps.
-    if is_carried_attachment(rel) {
+    if project.is_some_and(|project| is_carried_attachment(project, rel)) {
       return Vec::new();
     }
     return vec![Finding::new(
@@ -1271,21 +1287,24 @@ fn inspect(rel: &str, bytes: &[u8]) -> Vec<Finding> {
 /// [`crate::project::Project::classify`] calls the author's -- or that
 /// attachment's canon sidecar ([`crate::project::canon_blob_rel`]), which holds
 /// the same bytes and so claims no more about them?
-fn is_carried_attachment(rel: &str) -> bool {
-  let Some(under) = rel
-    .strip_prefix("intent/st/")
-    .or_else(|| rel.strip_prefix("intent/.canon/st/"))
-  else {
+///
+/// **WHICH THREAD OWNS `rel` IS [`Project::owner_of`]'s ANSWER** (issue 0729),
+/// asked of the project the scope was built for, so the project's own intent
+/// directory is honoured and no second owner-of-a-path answer is spelled here.
+fn is_carried_attachment(project: &Project, rel: &str) -> bool {
+  let Some(crate::id::Named::Thread(id)) = project.owner_of(Path::new(rel)) else {
     return false;
   };
-  match under.split_once('/') {
-    Some((id, file)) => {
-      crate::id::ThreadId::parse(id).is_ok()
-        && crate::project::Project::classify(Path::new(file))
-          == crate::project::ThreadFile::Attachment
-    }
-    None => false,
-  }
+  let path = project.root().join(rel);
+  [
+    project.thread_dir(id.as_str()),
+    project.canon_st_dir().join(id.as_str()),
+  ]
+  .iter()
+  .find_map(|dir| path.strip_prefix(dir).ok())
+  .is_some_and(|file| {
+    crate::project::Project::classify(file) == crate::project::ThreadFile::Attachment
+  })
 }
 
 /// Git conflict markers.

@@ -186,14 +186,28 @@ pub fn start(root: &Path, handle: Arc<ProjectHandle>) -> Result<Watch, Response>
       )
     })?;
 
-  let intent_dir = root.join("intent");
+  // **THE PROJECT'S OWN INTENT DIRECTORY, AS THE SCOPE READS IT** (issue 0729).
+  // A scope that cannot be built refuses the watch here, with the config's own
+  // remedy, rather than leaving a watch that hears nothing until a restart.
+  let intent_dir = intentsvcs::sync::Scanned::for_root(root)
+    .map_err(|e| {
+      Response::error(
+        format!(
+          "the sync scope for `{}` could not be built, so its intent directory is unknown: {e}",
+          root.display()
+        ),
+        e.remedy(),
+      )
+    })?
+    .intent_dir()
+    .to_path_buf();
   if intent_dir.is_dir() {
     debouncer
       .watch(&intent_dir, RecursiveMode::Recursive)
       .map_err(|e| {
         Response::error(
           format!("`{}` could not be watched: {e}", intent_dir.display()),
-          "the project's `intent/` directory is not readable, or this process has run out of the descriptors the platform watcher needs. Canon edits will not be ingested until the daemon is restarted.",
+          "the project's intent directory is not readable, or this process has run out of the descriptors the platform watcher needs. Canon edits will not be ingested until the daemon is restarted.",
         )
       })?;
   }

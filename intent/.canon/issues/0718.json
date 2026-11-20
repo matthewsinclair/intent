@@ -3,9 +3,10 @@
   "number": 718,
   "slug": "a-thread-can-hold-two-attachments-that-one-disk",
   "title": "A thread can hold two attachments that one disk stores as one file: the attachment door and projection's sidecar write do not ask the one-file key",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-19",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "## What happens\n\nA thread can hold two attachments whose paths a case-insensitive disk, macOS's default, stores as one file, eg `Design.png` and `design.png`. Two doors let the pair reach the disk unchecked:\n\n- The facade's attachment door (`place_attachment` / `put_attachment` in `facade.rs`) accepts a second attachment whose path differs from a held one only in case.\n- `Facade::projection` writes every opaque sidecar from `export::thread_blobs` with no one-file check. On APFS, every sync or apply then writes both sidecars to one file, and nothing refuses.\n\nA thread's model can get such a pair from ingest on a case-sensitive disk, which gates each name on its own, or from the legacy bucket merge before issue 0711's fix.\n\n## The fix\n\ncc's ruling, given to dc on 2026-11-19 by 12:15Z on dc's date -u: no thread holds two attachments that share the one-file key.\n\n- The attachment door refuses the second attachment and names the held spelling.\n- Projection's sidecar write asks the same key.\n\nThen the class cannot reach the disk by any door. The key is the one issue 0711 puts in `project.rs`, beside `canon_blob_rel` and `attachment_name`: path components, with `.` dropped and each component Unicode-lowercased. Use it, never a second copy.\n\nFound by critic-rust on issue 0711's diff. It rides this release (hv decision 69), and vc sequences it.\n"
 }

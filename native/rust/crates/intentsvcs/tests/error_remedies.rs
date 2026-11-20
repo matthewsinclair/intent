@@ -1340,6 +1340,10 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::DehydrationRefused { .. } => "DehydrationRefused",
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::CaseVariant { .. } => "CaseVariant",
+    FacadeError::OneFileAttachment { .. } => "OneFileAttachment",
+    FacadeError::UnsyncedAttachment { .. } => "UnsyncedAttachment",
+    FacadeError::RealisedAttachmentUnreadable { .. } => "RealisedAttachmentUnreadable",
+    FacadeError::RealisedAttachmentNotRestored { .. } => "RealisedAttachmentNotRestored",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
@@ -1411,6 +1415,10 @@ const ALL_VARIANTS: &[&str] = &[
   "DehydrationRefused",
   "NotEditable",
   "CaseVariant",
+  "OneFileAttachment",
+  "UnsyncedAttachment",
+  "RealisedAttachmentUnreadable",
+  "RealisedAttachmentNotRestored",
   "NoSuchEditable",
   "NoSuchAttachment",
   "NoSuchRelatedTarget",
@@ -1793,6 +1801,15 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // it is one file with (issue 0719). Cited rather than provoked because the
   // door refuses only after its address parses and its thread loads.
   "CaseVariant",
+  // **ASSERTED IN `an_attachment_door_writes_one_file.rs`**, by the same reasoning
+  // (issues 0718 and 0715): each refuses at the attach door after its thread loads.
+  "OneFileAttachment",
+  "UnsyncedAttachment",
+  // Issue 0715's two disk failures at the attach door: a realised file that
+  // cannot be read, and a store refusal whose old bytes cannot be put back.
+  // Both are properties of the world, as `SyncDiskStep`'s are.
+  "RealisedAttachmentUnreadable",
+  "RealisedAttachmentNotRestored",
   // **THE SQL DOOR'S OTHER FOUR, ASSERTED IN
   // `intent-cli/tests/the_sql_door_is_read_only.rs` AND NOT MERELY REACHED
   // THERE.** They are cited rather than provoked because each needs a store ON

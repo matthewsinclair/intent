@@ -220,6 +220,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // was complete and the answer is still no.
     | FacadeError::NotEditable { .. }
     | FacadeError::CaseVariant { .. }
+    | FacadeError::OneFileAttachment { .. }
+    | FacadeError::UnsyncedAttachment { .. }
+    | FacadeError::RealisedAttachmentUnreadable { .. }
+    | FacadeError::RealisedAttachmentNotRestored { .. }
     | FacadeError::NoSuchEditable { .. }
     // The narrow setter's refusal. It is about WHICH DOOR writes a field, not
     // about a value left out of the call -- the caller supplied both the field

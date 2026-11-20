@@ -995,6 +995,22 @@ impl Named {
       Named::Issue(_) => None,
     }
   }
+
+  /// The family this names.
+  pub fn kind(&self) -> IdKind {
+    match self {
+      Named::Thread(_) => IdKind::Thread,
+      Named::Issue(_) => IdKind::Issue,
+    }
+  }
+
+  /// The stored spelling of the id this names.
+  pub fn stored(&self) -> String {
+    match self {
+      Named::Thread(id) => id.stored(),
+      Named::Issue(number) => number.stored(),
+    }
+  }
 }
 
 /// An operator's spelling at a door that does NOT know which collection is
@@ -1798,7 +1814,7 @@ mod tests {
     assert_eq!(normalise_thread_id("46"), ThreadId::from_ordinal(46));
   }
 
-  /// ST0095 AC-14.1: each surface reads a family back from the one spelling it
+  /// AT-14.1 (ST0095 AC-14.1): each surface reads a family back from the one spelling it
   /// writes, and JSON carries the row spelling.
   #[test]
   fn each_family_reads_back_from_its_own_spelling_on_every_surface() {

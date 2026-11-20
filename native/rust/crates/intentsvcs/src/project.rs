@@ -104,8 +104,11 @@ pub enum PathFault {
 impl PathFault {
   /// The sentence naming what is wrong with THIS path. The remedy is a separate
   /// question with a separate home -- see the type's own doc.
-  pub fn why(&self, shown: &str, thread: &str) -> String {
-    let home = Path::new("intent").join("st").join(thread);
+  /// `home` is the thread's directory relative to the project root, as
+  /// [`Project::relative`] spells it, so the project's own intent directory is
+  /// the one named (issue 0729).
+  pub fn why(&self, shown: &str, home: &str) -> String {
+    let home = Path::new(home);
     match self {
       Self::Empty => {
         "an attachment path is empty, so it names no file inside the thread".to_string()
@@ -170,7 +173,10 @@ impl PathFault {
 /// person who wrote it, and because an accepted-and-wrong write is the failure
 /// this whole check exists to stop. The `why` names what the path would have
 /// meant, so the loss is visible rather than mysterious.
-pub fn attachment_path_fault(rel: &Path, thread: &str) -> Option<PathFault> {
+///
+/// `home` is the thread's directory relative to the project root, as
+/// [`Project::relative`] spells it (issue 0729).
+pub fn attachment_path_fault(rel: &Path, home: &Path) -> Option<PathFault> {
   use std::path::Component;
 
   let shown = rel.display().to_string();
@@ -187,9 +193,14 @@ pub fn attachment_path_fault(rel: &Path, thread: &str) -> Option<PathFault> {
   }
 
   // The repo-relative form is checked before normalisation so the better
-  // message wins on a path that is both.
-  if rel.starts_with(Path::new("intent").join("st")) {
-    let inside: PathBuf = rel.components().skip(3).collect();
+  // message wins on a path that is both. The threads' directory is `home`'s
+  // parent, the project's own and never a spelled `intent/st` (issue 0729).
+  let threads = home.parent().unwrap_or(home);
+  if rel.starts_with(threads) {
+    let inside: PathBuf = rel
+      .components()
+      .skip(threads.components().count() + 1)
+      .collect();
     let corrected = if inside.as_os_str().is_empty() {
       "<the path inside the thread>".to_string()
     } else {
@@ -197,12 +208,7 @@ pub fn attachment_path_fault(rel: &Path, thread: &str) -> Option<PathFault> {
     };
     return Some(PathFault::RepoRelative {
       corrected,
-      would_name: Path::new("intent")
-        .join("st")
-        .join(thread)
-        .join(&shown)
-        .display()
-        .to_string(),
+      would_name: home.join(&shown).display().to_string(),
     });
   }
 
@@ -1404,7 +1410,7 @@ impl TodoConfig {
 /// it: a default would be a second place the prefix is decided.
 pub const RETIRED_ST_PREFIX_KEY: &str = "st_prefix";
 
-fn default_intent_dir() -> String {
+pub(crate) fn default_intent_dir() -> String {
   "intent".to_string()
 }
 
@@ -1566,11 +1572,12 @@ pub fn canon_blob_rel(id: &str, path: &str) -> String {
 ///
 /// **Who asks it.** The migration's batch guard, the legacy bucket merge, the
 /// prune's verdict on a bucket file, and [`Project::classify`] for the thread's
-/// own files (issue 0719). Issue 0718 moves the attachment door and
-/// projection's sidecar write onto it, and issue 0722 the doors that read a live disk (`sync --to-store`'s merge,
-/// `organize`'s plan, doctor's attachment drift and the rest it names). Until
-/// those land, those doors still compare paths byte for byte; a door that
-/// compares two paths for "one file" by itself is a second copy of this.
+/// own files (issue 0719), and the attachment door and projection's sidecar
+/// write (issue 0718). Issue 0722 moves the doors that read a live disk onto
+/// it (`sync --to-store`'s merge, `organize`'s plan, doctor's attachment
+/// drift and the rest it names); until it lands, those doors still compare
+/// paths byte for byte. A door that compares two paths for "one file" by
+/// itself is a second copy of this.
 pub(crate) fn one_file_key(path: &Path) -> String {
   path
     .components()

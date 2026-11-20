@@ -42,7 +42,7 @@
 //! terminal and no `--yes` the quiet steps run and every other is left, which
 //! is what the git hooks run.
 
-use crate::id::IdKind;
+use crate::id::Named;
 
 /// Whether applying a step may ask a person, and which answer lets it run.
 ///
@@ -96,13 +96,14 @@ pub enum Action {
   /// left to the person: Intent does not own them.
   Unowned { paths: Vec<String> },
   /// Both clones minted the ordinal `from`, which only a branch cut before the
-  /// upgrade can carry (ST0095 WP-06). This clone's record moves to `to`, the
+  /// upgrade can carry (ST0095 WP-06). It is a thread or an issue and never a
+  /// work package, whose packages both sides keep ([`Action::KeepPackages`]),
+  /// so its type cannot name one. This clone's record moves to `to`, the
   /// git-style id the one mint derives from `origin`: its own creation event
   /// where this clone's log holds it, so the plan and its apply agree, or a
   /// creation event drawn for the move. The pulled side keeps `from`.
   Renumber {
-    minted: IdKind,
-    from: String,
+    from: Named,
     to: String,
     origin: String,
   },
@@ -177,14 +178,9 @@ impl Step {
   }
 
   /// A renumber. **REVERSIBLE**: it is staged, so the merge can be redone.
-  pub fn renumber(minted: IdKind, from: String, to: String, origin: String) -> Self {
+  pub fn renumber(from: Named, to: String, origin: String) -> Self {
     Self {
-      action: Action::Renumber {
-        minted,
-        from,
-        to,
-        origin,
-      },
+      action: Action::Renumber { from, to, origin },
       recoverability: Recoverability::Reversible,
     }
   }
@@ -324,9 +320,10 @@ impl Step {
         paths.len(),
         paths.join(", ")
       ),
-      Action::Renumber { minted, from, to, .. } => format!(
-        "both sides minted {} {from}: this clone's moves to {to} and the pulled one keeps {from}, both staged",
-        minted.as_str()
+      Action::Renumber { from, to, .. } => format!(
+        "both sides minted {} {held}: this clone's moves to {to} and the pulled one keeps {held}, both staged",
+        from.kind().as_str(),
+        held = from.stored(),
       ),
       Action::KeepPackages { thread, moves } => {
         let moved: Vec<String> = moves
@@ -620,7 +617,7 @@ pub fn packages_both_sides_added(
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Conflicts {
   /// Ids both sides minted, each with what it names: canon add/adds.
-  pub minted_twice: Vec<(IdKind, String)>,
+  pub minted_twice: Vec<Named>,
   /// Canon files both sides changed, and canon sidecars of a thread that is
   /// not being renumbered.
   pub take_sides: Vec<String>,
@@ -664,14 +661,13 @@ pub fn classify(
   project: &crate::project::Project,
   unmerged: &[crate::gitstate::Unmerged],
 ) -> Conflicts {
-  use crate::id::Named;
   let canon = format!("{}/", project.relative(&project.canon_dir()));
   let is_view = project.generated_view_matcher();
 
   let mut out = Conflicts::default();
   // Paths whose owner is decided once every twice-minted id is known.
-  let mut sidecars: Vec<(String, String)> = Vec::new();
-  let mut under_threads: Vec<(String, String)> = Vec::new();
+  let mut sidecars: Vec<(Named, String)> = Vec::new();
+  let mut under_threads: Vec<(Named, String)> = Vec::new();
   let mut views: Vec<(Option<Named>, String)> = Vec::new();
 
   for entry in unmerged {
@@ -687,55 +683,45 @@ pub fn classify(
       match owner {
         Some(Named::Thread(id)) if project.relative(&project.thread_json(&id)) == path => {
           if entry.is_add_add() && !id.is_hashed() {
-            out.minted_twice.push((IdKind::Thread, id.stored()));
+            out.minted_twice.push(Named::Thread(id));
           } else {
             out.take_sides.push(path.to_string());
           }
         }
         Some(Named::Issue(number)) if project.relative(&project.issue_json(number)) == path => {
           if entry.is_add_add() && !number.is_hashed() {
-            out.minted_twice.push((IdKind::Issue, number.stored()));
+            out.minted_twice.push(Named::Issue(number));
           } else {
             out.take_sides.push(path.to_string());
           }
         }
-        Some(Named::Thread(id)) => sidecars.push((id.stored(), path.to_string())),
+        Some(Named::Thread(id)) => sidecars.push((Named::Thread(id), path.to_string())),
         Some(Named::Issue(_)) | None => out.take_sides.push(path.to_string()),
       }
     } else if is_view(path) {
       views.push((owner, path.to_string()));
     } else if let Some(Named::Thread(id)) = owner {
-      under_threads.push((id.stored(), path.to_string()));
+      under_threads.push((Named::Thread(id), path.to_string()));
     } else {
       out.unowned.push(path.to_string());
     }
   }
 
-  let renumbered = |minted: IdKind, id: &str| {
-    out
-      .minted_twice
-      .iter()
-      .any(|(m, twice)| *m == minted && twice == id)
-  };
+  let renumbered = |owner: &Named| out.minted_twice.contains(owner);
   let mut take_sides = Vec::new();
-  for (id, path) in sidecars {
-    if !renumbered(IdKind::Thread, &id) {
+  for (owner, path) in sidecars {
+    if !renumbered(&owner) {
       take_sides.push(path);
     }
   }
   let mut unowned = Vec::new();
-  for (id, path) in under_threads {
-    if !renumbered(IdKind::Thread, &id) {
+  for (owner, path) in under_threads {
+    if !renumbered(&owner) {
       unowned.push(path);
     }
   }
   for (owner, path) in views {
-    let covered = match owner {
-      Some(Named::Thread(id)) => renumbered(IdKind::Thread, &id.stored()),
-      Some(Named::Issue(number)) => renumbered(IdKind::Issue, &number.stored()),
-      None => false,
-    };
-    if !covered {
+    if !owner.as_ref().is_some_and(renumbered) {
       out.views.push(path);
     }
   }
@@ -783,8 +769,7 @@ mod tests {
     let line = left_line(&[
       Left {
         step: Step::renumber(
-          IdKind::Thread,
-          "ST0001".into(),
+          Named::Thread(crate::id::ThreadId::parse("ST0001").expect("an ordinal thread id")),
           crate::id::ThreadId::from_origin(MOVED_BY).stored(),
           MOVED_BY.into(),
         ),
