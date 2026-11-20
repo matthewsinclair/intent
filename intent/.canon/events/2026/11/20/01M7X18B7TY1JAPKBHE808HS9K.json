@@ -1,0 +1,16 @@
+{
+  "id": "01M7X18B7TY1JAPKBHE808HS9K",
+  "ts": "2026-11-20T17:49:48.666Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705 (hv decisions 66, 70, 71, 74 and 75): UNDER WAY since 2026-11-19. DONE: WP-01 (landed 9a87b035c, cc; done e65e170cc) and WP-02 (landed c7e1cee74, ic; done 48608cbcb). LANDED: WP-03's shell half (1c45f817c, devbin-dc; WP-03 started f49fecad1; open on it: vc todo 94). 0733 closed (29d5ffe94, 4b47fe6c8). 0707 stays open for cc's upgrade half. hv decision 75 (2026-11-20 17:49Z): organize --default and --force keep setting realised from status; no Machine 6 edge. IN FLIGHT: dc's 0722 plus ST0095 WP-08+09 as one stack (both-v2 abdf74504, wp0809-on-0722 41c6c6373), one gate on the tip. NEXT: cc's WP-05 (L, plan to vc before code; the critical path); then dc's WP-04."
+  }
+}
