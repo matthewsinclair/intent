@@ -1,0 +1,16 @@
+{
+  "id": "01M7W0B2M2ZFTS433WFYQF4FEM",
+  "ts": "2026-11-20T08:14:35.138Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9, and the guard S at ea22af4c7 (2026-11-20, vc on dc's proof: thread_view_skew_check.sh asks doctor --read-only; main's commit gate then ran it in place, 1205 views matching); tmp/wt-wp03-guard removed after the four checks (attic refs/attic/dc/wt-wp03-guard). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10."
+  }
+}
