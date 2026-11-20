@@ -1,0 +1,15 @@
+{
+  "id": "01M7WWYD5R4MK57WF09DFPCE0X",
+  "ts": "2026-11-20T16:34:28.668Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0733"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "stale_at_check.sh and absent_at_check.sh each define the thread canon directory and differ on what an unreadable row is"
+  }
+}
