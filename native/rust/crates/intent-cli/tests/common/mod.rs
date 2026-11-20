@@ -1658,11 +1658,17 @@ impl Forge {
   /// 0741): planned from the store as it stood, a pull of records another copy
   /// minted left a views step that did nothing, and a switch away from records
   /// missed an index step its own steps made due.
+  ///
+  /// **AND THE PLAN IS WHAT THE RUN DOES** (issue 0742): the views step a dry
+  /// `intent sync` shows names the writes and removes the sync then reports,
+  /// and is absent when it writes and removes nothing. Planned before the
+  /// ingest step had written them, it promised writes the run did not make.
   fn after_checkout(&self, copy: &Path) {
     assert!(
       !self.hooks,
       "after_checkout stands for the hook only on a Forge::new forge; a Forge::with_hooks copy runs its own hook on a checkout"
     );
+    let planned = self.intent_ok(copy, &["sync"]);
     let synced = self.intent_ok(copy, &["sync", "--apply"]);
     let fresh = self.intent_ok(copy, &["sync"]);
     let steps: Vec<&str> = fresh
@@ -1679,6 +1685,12 @@ impl Forge {
         .lines()
         .any(|line| line.trim_start().starts_with("left: ")),
       "the sync in {} left a step for a person:\n{synced}",
+      copy.display()
+    );
+    assert_eq!(
+      views_planned(&planned),
+      views_done(&synced),
+      "in {}, the dry run's views step is not what the sync did:\n{planned}\n{synced}",
       copy.display()
     );
     assert!(
@@ -1935,4 +1947,58 @@ impl Forge {
       merged.err().unwrap_or_default().join(", ")
     );
   }
+}
+
+/// The writes and removes a dry `intent sync`'s views step names, or none when
+/// it plans no views step (issue 0742).
+fn views_planned(plan: &str) -> (usize, usize) {
+  let count = |text: &str| -> usize {
+    text
+      .split_whitespace()
+      .next()
+      .and_then(|n| n.trim_end_matches(':').parse().ok())
+      .unwrap_or_else(|| panic!("a count in {text:?}"))
+  };
+  // The step by its name, `  N. views (<recoverability>): ...`, and a views
+  // step whose writes do not parse fails here rather than reading as none.
+  let step = plan.lines().map(str::trim_start).find(|line| {
+    line
+      .split_once(". ")
+      .is_some_and(|(_, rest)| rest.starts_with("views ("))
+  });
+  let Some(step) = step else {
+    return (0, 0);
+  };
+  let (_, said) = step
+    .split_once(": write ")
+    .unwrap_or_else(|| panic!("a views step names its writes: {step}"));
+  match said.split_once(" and remove ") {
+    Some((writes, removes)) => (count(writes), count(removes)),
+    None => (count(said), 0),
+  }
+}
+
+/// The writes and removes `intent sync --apply` reports its views step made,
+/// or none when it ran no views step. The CLI prints it as
+/// `ok: views: wrote N and removed M`.
+fn views_done(applied: &str) -> (usize, usize) {
+  applied
+    .lines()
+    .find_map(|line| line.trim_start().strip_prefix("ok: views: wrote "))
+    .map(|said| {
+      let (wrote, removed) = said
+        .split_once(" and removed ")
+        .expect("views: wrote N and removed M");
+      (
+        wrote
+          .trim()
+          .parse()
+          .unwrap_or_else(|_| panic!("a count in {wrote:?}")),
+        removed
+          .trim()
+          .parse()
+          .unwrap_or_else(|_| panic!("a count in {removed:?}")),
+      )
+    })
+    .unwrap_or((0, 0))
 }

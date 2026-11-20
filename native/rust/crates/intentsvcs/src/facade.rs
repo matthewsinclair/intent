@@ -5009,6 +5009,25 @@ pub struct IngestRender {
   taken: Vec<String>,
 }
 
+/// What the ingest step will have left before the steps after it run (issue
+/// 0742): the files its projection writes, and the DONE cutoff and canon
+/// format its carry of `project.json` leaves in the store. `intent sync`'s
+/// plan renders its views step with that project state and leaves out what
+/// the ingest will already have written, so the step names only what its own
+/// run will write. Built only when the ingest step runs.
+struct AfterIngest<'a> {
+  writes: &'a WriteSet,
+  todo_watermark: Option<String>,
+  on_records: bool,
+}
+
+/// The ingest's preview, with the project state the shadow holds after it.
+struct Shadowed {
+  render: IngestRender,
+  todo_watermark: Option<String>,
+  on_records: bool,
+}
+
 /// What an ingest pass that landed did (ST0078 WP-03).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ingested {
@@ -8269,7 +8288,18 @@ impl Facade {
   /// store's records instead read a pulled record as unrealised, so the plan
   /// removed the views its own ingest was about to write.
   fn manifest_for_action(&self, canon: &Canon) -> Result<intentfiles::Realised, FacadeError> {
-    if self.realisation_on_records()? {
+    self.manifest_with(canon, self.realisation_on_records()?)
+  }
+
+  /// [`Facade::manifest_for_action`] with the canon's format named by the
+  /// caller: `sync`'s plan names the one its ingest step will leave, which a
+  /// pull of the upgrade changes (issue 0742).
+  fn manifest_with(
+    &self,
+    canon: &Canon,
+    on_records: bool,
+  ) -> Result<intentfiles::Realised, FacadeError> {
+    if on_records {
       return Ok(intentfiles::declared_by_records(
         &canon.threads,
         &canon.issues,
@@ -8355,15 +8385,24 @@ impl Facade {
   /// **ONE HOME FOR THE OBSERVATION AND THE PLAN**, shared by every organize
   /// run and by `intent sync`'s preview of the views, which renders from the
   /// model as it will stand after the ingest rather than from the store.
+  /// `after` is that ingest's project state (issue 0742), which the render
+  /// and the realisation are read with; an organize run passes none.
   fn organize_plan_over(
     &self,
     canon: &Canon,
+    after: Option<&AfterIngest<'_>>,
   ) -> Result<(organize::Plan, Vec<crate::sync::FileEntry>), FacadeError> {
-    let realised = self.manifest_for_action(canon)?;
+    let realised = match after {
+      Some(after) => self.manifest_with(canon, after.on_records)?,
+      None => self.manifest_for_action(canon)?,
+    };
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
-    let ctx = self.render_ctx()?;
+    let mut ctx = self.render_ctx()?;
+    if let Some(after) = after {
+      ctx.todo_watermark = after.todo_watermark.clone();
+    }
     let plan = organize::plan(&self.project, canon, &realised, &ctx, &tree, digest);
     Ok((plan, previous))
   }
@@ -8391,7 +8430,7 @@ impl Facade {
     // It also settles a mystery this estate spent an evening on:
     // `intentfiles::render` had no production caller because **the thing it
     // does is not needed**, not because anybody forgot to wire it.
-    let (plan, previous) = self.organize_plan_over(&self.canon)?;
+    let (plan, previous) = self.organize_plan_over(&self.canon, None)?;
     // Issue 0316: a thread's generated view reaches a Dehydrate step only when
     // the thread is undeclared, so "a view with a thread owner" is exactly the
     // undeclared threads' views -- attachments and issues stay out.
@@ -13222,9 +13261,25 @@ impl Facade {
       steps.push(Step::regenerate_views(None));
       carried_after = None;
     } else {
-      let render = self.shadow_ingest(scope)?;
-      let views = self.organize_preview_over(&render.canon)?;
+      let Shadowed {
+        render,
+        todo_watermark,
+        on_records,
+      } = self.shadow_ingest(scope)?;
       let (pulled, boards_after) = self.pulled_boards()?;
+      // **A PULLED BOARD THE APPLY WILL TAKE IS PART OF THE STEP** (issue 0554
+      // (a)), or a pull that brings only a board plans nothing to take and the
+      // apply never reaches the carry.
+      let mut taken = render.taken;
+      taken.extend(pulled.into_iter().map(|node| format!("board {node}")));
+      // The views step is read past the ingest only when the ingest runs:
+      // with nothing to take it is skipped, and writes nothing.
+      let ingested = (!taken.is_empty()).then_some(AfterIngest {
+        writes: &render.projection.set,
+        todo_watermark,
+        on_records,
+      });
+      let views = self.organize_preview_over(&render.canon, ingested.as_ref())?;
       // **THE BOARDS ARE NOT THE SHADOW'S**: its store is rebuilt from threads
       // and issues alone, so its model holds no board, and a carried set drawn
       // from it alone would make every tracked board file a file row the index
@@ -13237,11 +13292,6 @@ impl Facade {
       let mut carried = self.carried_paths(&after)?;
       carried.extend(views.removes.iter().map(|rel| root.join(rel)));
       carried_after = Some(carried);
-      // **A PULLED BOARD THE APPLY WILL TAKE IS PART OF THE STEP** (issue 0554
-      // (a)), or a pull that brings only a board plans nothing to take and the
-      // apply never reaches the carry.
-      let mut taken = render.taken;
-      taken.extend(pulled.into_iter().map(|node| format!("board {node}")));
       steps.push(Step::ingest(taken));
       if !conflicts.views.is_empty() {
         steps.push(Step::resolve_views(conflicts.views.clone()));
@@ -13265,7 +13315,12 @@ impl Facade {
   /// **THE SHADOW HOLDS A COPY OF THIS STORE'S ESTATE AND FILE INDEX**, which is
   /// everything the ingest's decision reads, and its render is never
   /// committed, so no file moves and this store is only read.
-  fn shadow_ingest(&self, scope: &SyncScope) -> Result<IngestRender, FacadeError> {
+  ///
+  /// **AND THIS STORE'S PROJECT STATE**, so the shadow holds after the render
+  /// what this store will after its ingest (issue 0742): the DONE cutoff and
+  /// the canon's format as a pulled `project.json` carries them in, and as
+  /// they are when none was pulled. The answer carries both.
+  fn shadow_ingest(&self, scope: &SyncScope) -> Result<Shadowed, FacadeError> {
     let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
     let index = self.store.file_index().map_err(FacadeError::Store)?;
     let mut shadow = Store::open_in_memory().map_err(FacadeError::Store)?;
@@ -13275,6 +13330,12 @@ impl Facade {
     shadow
       .replace_file_index(&index)
       .map_err(FacadeError::Store)?;
+    shadow
+      .set_project_state(&crate::model::ProjectState::new(
+        self.store.todo_watermark().map_err(FacadeError::Store)?,
+        self.canon_format()?,
+      ))
+      .map_err(FacadeError::Store)?;
     let seen = shadow.data_version().map_err(FacadeError::Store)?;
     let mut shadow = Self::over(
       self.project.clone(),
@@ -13283,7 +13344,12 @@ impl Facade {
       self.canon.clone(),
       seen,
     );
-    shadow.ingest_render(scope)
+    let render = shadow.ingest_render(scope)?;
+    Ok(Shadowed {
+      render,
+      todo_watermark: shadow.store.todo_watermark().map_err(FacadeError::Store)?,
+      on_records: shadow.realisation_on_records()?,
+    })
   }
 
   /// How many committed event files the store does not hold, by NAME: a
@@ -13306,16 +13372,52 @@ impl Facade {
   /// What `organize --apply` would write and remove, rendered from `canon`:
   /// the model as it will stand after the ingest, so the plan names the views
   /// the pull changes rather than the ones the ingest is about to fix.
-  fn organize_preview_over(&self, canon: &Canon) -> Result<crate::plan::ViewWork, FacadeError> {
-    let (plan, _) = self.organize_plan_over(canon)?;
+  fn organize_preview_over(
+    &self,
+    canon: &Canon,
+    after: Option<&AfterIngest<'_>>,
+  ) -> Result<crate::plan::ViewWork, FacadeError> {
+    let (plan, _) = self.organize_plan_over(canon, after)?;
     let report = plan
       .run(organize::Mode::Preview, &|| plan.digest.clone())
       .map_err(FacadeError::Organize)?;
+    // **WHAT THE INGEST WILL HAVE WRITTEN IS NOT THIS STEP'S** (issue 0742): a
+    // view its projection writes with the bytes this step would write is on
+    // disk, unchanged, by the time this step runs. Writes only: an ingest that
+    // writes a file never stands in for this step removing it. The step runs
+    // on what is left, so a view left out here is one the ingest wrote, never
+    // one nobody writes.
+    let ingest_wrote: std::collections::HashMap<&std::path::Path, &[u8]> = after
+      .map(|after| after.writes.writes().collect())
+      .unwrap_or_default();
+    let written: std::collections::HashMap<&std::path::Path, &[u8]> = plan
+      .steps
+      .iter()
+      .filter(|step| {
+        matches!(
+          step.action,
+          organize::Action::Hydrate | organize::Action::Verify | organize::Action::Exempt
+        )
+      })
+      .filter_map(|step| Some((step.path.as_path(), step.content.as_deref()?)))
+      .collect();
+    let already_written = |path: &std::path::Path| -> bool {
+      written
+        .get(path)
+        .is_some_and(|bytes| ingest_wrote.get(path) == Some(bytes))
+    };
     let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
       paths.iter().map(|p| self.project.relative(p)).collect()
     };
+    let writes = |paths: &[std::path::PathBuf]| -> Vec<String> {
+      paths
+        .iter()
+        .filter(|p| !already_written(p))
+        .map(|p| self.project.relative(p))
+        .collect()
+    };
     Ok(crate::plan::ViewWork {
-      writes: [rel(&report.hydrated), rel(&report.rewritten)].concat(),
+      writes: [writes(&report.hydrated), writes(&report.rewritten)].concat(),
       removes: [
         rel(&report.dehydrated),
         rel(&report.pruned_legacy),
@@ -13509,7 +13611,7 @@ impl Facade {
       // see what it would remove, so it is decided on what it finds now.
       let step = match &step.action {
         Action::RegenerateViews { would: None } => {
-          Step::regenerate_views(Some(self.organize_preview_over(&self.canon)?))
+          Step::regenerate_views(Some(self.organize_preview_over(&self.canon, None)?))
         }
         // The ingest step takes the event files too, so by now there is
         // usually nothing left for this one; it runs on its own when the
