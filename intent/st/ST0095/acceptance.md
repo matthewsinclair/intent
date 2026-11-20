@@ -59,10 +59,10 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-06.6 (non-test) Brew 3.4.0 refuses an upgraded project by the schema's name and deletes nothing. -- satisfied: no
 - AC-06.7 A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw. -- satisfied: yes (computed)
 
-### WP-07 -- Prefix resolution (status: Not Started)
+### WP-07 -- Prefix resolution (status: WIP)
 
-- AC-07.1 A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal. -- satisfied: no (computed)
-- AC-07.2 Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix. -- satisfied: no (computed)
+- AC-07.1 A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal. -- satisfied: yes (computed)
+- AC-07.2 Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix. -- satisfied: yes (computed)
 
 ### WP-08 -- The order (status: WIP)
 
@@ -141,9 +141,12 @@ _(no tests in this group)_
 - AT-06.5 `native/rust/crates/intentsvcs/tests/ingest_refusal.rs:364` -- covers AC-06.5 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.7 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:78` -- covers AC-06.7 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
-### WP-07 -- Prefix resolution (status: Not Started)
+### WP-07 -- Prefix resolution (status: WIP)
 
-_(no tests in this group)_
+- AT-07.1 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:114` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.2 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:274` -- covers AC-07.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.3 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:167` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
+- AT-07.4 `native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:210` -- covers AC-07.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e
 
 ### WP-08 -- The order (status: WIP)
 

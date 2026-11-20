@@ -26,7 +26,7 @@ hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted hig
 | WP-04 | The waist: one module owns an id                           | L    | Done        |
 | WP-05 | The merge knows both families                              | S    | WIP         |
 | WP-06 | The hashed family                                          | L    | WIP         |
-| WP-07 | Prefix resolution                                          | M    | Not Started |
+| WP-07 | Prefix resolution                                          | M    | WIP         |
 | WP-08 | The order                                                  | S    | WIP         |
 | WP-09 | Criteria follow their package, and doctor verifies         | S    | Not Started |
 | WP-10 | Every door takes and shows both families                   | L    | WIP         |

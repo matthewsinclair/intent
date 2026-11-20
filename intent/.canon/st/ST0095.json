@@ -68,7 +68,7 @@
       "seq": 7,
       "title": "Prefix resolution",
       "scope": "M",
-      "status": "not-started",
+      "status": "wip",
       "objective": "One resolver turns what a person typed into the one record it names, or says which records it could name, and nothing stored is ever a prefix.",
       "body": "Seat: cc. Size: M.\n\n## Scope\n\n- `resolve.rs` (`:92-135`) takes a spelling and the project's ids, and returns the id, the candidates of an ambiguous prefix, or not found. It is the only place a prefix is expanded, for the CLI, the TUI and MCP.\n- An ordinal-shaped spelling is always the ordinal. A hash prefix is at least 4 hex characters.\n- The facade's verbs take typed ids. Claims (`facade.rs:11454`, `11477`), `events --subject` (`:7138`) and `Scope::selects` (`sync.rs:411-418`) resolve before they compare, and keep comparing whole ids.\n- The pure spelling stays pure: MCP validates its arguments with no store (`mcp.rs:1915`).\n\n## Order\n\nAfter WP-06.\n\n## Proof\n\nThe waist's own tests, with hashed records seeded through the fixture writer, two that share a short form among them.\n",
       "preamble": ""
@@ -618,6 +618,46 @@
       ],
       "status": "green",
       "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-07.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:114",
+      "covers": [
+        "AC-07.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
+    },
+    {
+      "id": "AT-07.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:274",
+      "covers": [
+        "AC-07.2"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
+    },
+    {
+      "id": "AT-07.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:167",
+      "covers": [
+        "AC-07.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
+    },
+    {
+      "id": "AT-07.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:210",
+      "covers": [
+        "AC-07.1"
+      ],
+      "status": "green",
+      "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
     },
     {
       "id": "AT-14.1",
