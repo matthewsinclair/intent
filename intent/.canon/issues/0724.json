@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 724,
+  "slug": "precommit-s-six-two-way-guards-name-exit-codes-t",
+  "title": "precommit's six two-way guards name exit codes their branch never reads",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-20",
+  "reporter": "Matthew Sinclair",
+  "body": "## What happens\n\n`bin/.devbin/cmd/precommit` reads six guards two ways, `if ! bash \"$TOOLS/<guard>\"`, and each one's failure line names its cause by an exit code that the branch never reads: `corrected_check.sh` and `class_vocab_check.sh` (\"exit 2; its findings never gate\"), `machine_table_check.sh` (\"exit 2\"), and `declared_kind_check.sh`, `absent_at_check.sh` and `rulings_check.sh` (\"exit 1\", or \"exit 2\"). Any non-zero exit takes the branch, so a missing tool's 127, bash's 126 or the tool's own die() is reported as the cause the label names. That is the class issue 0714 fixed for three guards.\n\n## The fix\n\nEach of the six runs as `x=0; bash <tool> || x=$?` and is read through issue 0720's `guard_verdict`, so its failure line names only what its status established: its own finding text where its status is the finding its tool defines, and the one no-verdict wording otherwise. Where a tool gives an exit code a meaning of its own, eg a measurement that never gates, that meaning is read by name, never by the branch.\n\nFound by devbin-dc's Highlander sweep for issue 0720 (2026-11-20). It rides this release (hv decision 69).\n"
+}

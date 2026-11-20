@@ -3053,10 +3053,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 67,
-      "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71, a95709410; vc, 11:41Z). dc's two packages, in vc's order. WP-03 (S) comes after ic's ST0096 WP-02: the commit gate and the pull-request check work with the aggregate views out of git, and read their paths from the one declared set: steel_threads.md, todo.md and, by hv decision 74 (by 07:09Z on 2026-11-20, relayed by vc), acceptance.md too, so three views, not two. WP-04 (S) comes after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull. Its AC-04.2 is hv decision 70's same-thread case, which cc's WP-05 closes: two merge requests from one main change one thread, one adding a work package and the other a criterion and a test, and each merges with no conflict and doctor clean after each pull. ST0095 WP-12 comes after these, once WP-10 lands.",
+      "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71). WP-03 (S, shell) GOES TO devbin-dc (vc's offer, dc's yes, 2026-11-20 07:4xZ): dc sends vc the brief when ic's ST0096 WP-02 lands (it defines the declared set), and reads devbin-dc's proof; vc lands it. WP-03's scope: the commit gate and the pull-request check work with the aggregate views out of git, reading their paths from the one declared set: steel_threads.md, todo.md and, by hv decision 74, every thread's acceptance.md (AC-03.1 reworded by vc for 74). WP-04 (S) stays dc's, after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull; its AC-04.2 is hv decision 70's same-thread case (cc's WP-05 closes it): two merge requests from one main change one thread, one adding a work package, the other a criterion and a test, each merging with no conflict and doctor clean after each pull.",
       "state": "live",
       "recorded_at": "2026-11-19T10:09:52.968Z",
-      "edited_at": "2026-11-20T07:12:07.948Z"
+      "edited_at": "2026-11-20T07:46:27.996Z"
     },
     {
       "node": "dc",
@@ -3134,9 +3134,10 @@
       "node": "dc",
       "kind": "todo",
       "seq": 74,
-      "text": "Issue 0715 (vc, 11:59Z, from cc; after WP-14; claim when starting). cc's meaning, in substance: st attach --from over an existing attachment replaces it in the store, in the canon and, when the thread is realised, in the realised file, all in the one verb, and prints ok only when all three stood. The realised file is the authoring surface, so it is written FIRST: a watching daemon that ingests it in between takes in the new bytes, and the store write that follows agrees. If the realised file already holds bytes the store does not (an unsynced hand edit), the verb refuses before writing anything, naming intent sync --to-store <ID> and editing the file directly. If the store write fails after the file was written, the file's old bytes go back, so a refusal never leaves the file ahead of the store. The code is facade.rs's put_attachment and place_attachment; the CLI wording is ic's.",
+      "text": "Issues 0718, 0715 and 0722 as ONE unit (vc, 07:41Z on 2026-11-20): one gate run and one critic pass, since the three share the attachment rows and the one-file key. If the combined diff grows past what one critic read can carry, land 0718+0715 first and 0722 straight after it, and say so. Claim each when starting. 0715, cc's meaning in substance: st attach --from over an existing attachment replaces it in the store, in the canon and, when the thread is realised, in the realised file, all in the one verb, and prints ok only when all three stood. The realised file is the authoring surface, so it is written FIRST: a watching daemon that ingests it in between takes in the new bytes, and the store write that follows agrees. If the realised file already holds bytes the store does not (an unsynced hand edit), the verb refuses before writing anything, naming intent sync --to-store <ID> and editing the file directly. If the store write fails after the file was written, the file's old bytes go back, so a refusal never leaves the file ahead of the store. Code: facade.rs's put_attachment and place_attachment; the CLI wording is ic's. 0718: no thread holds two attachments with one one_file_key; the attachment door refuses the second and names the held spelling, and projection's sidecar write asks the key; with it, the text PUT's refusal over an opaque attachment (facade.rs about :18686, critic on 0711). 0722: cc's meaning in todo 76. Order: after the guard S and WP-14 with 0719. cc's ST0096 WP-05 AC-05.3 refuses a canon case pair before its split: cc's, not this unit's.",
       "state": "live",
-      "recorded_at": "2026-11-19T12:00:21.599Z"
+      "recorded_at": "2026-11-19T12:00:21.599Z",
+      "edited_at": "2026-11-20T07:41:43.870Z"
     },
     {
       "node": "dc",
@@ -3156,6 +3157,14 @@
       "archived_at": "2026-11-20T07:35:46.970Z",
       "recorded_at": "2026-11-19T12:15:59.021Z",
       "edited_at": "2026-11-20T07:33:23.478Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 76,
+      "text": "Issue 0722 (filed by dc at 421b6d6d1; vc sequences it): the doors that read a live disk ask one_file_key. cc's meaning, 2026-11-20 by 07:4xZ (re dc's 07:37Z), dc's defaults standing but for two points. (1) One helper beside one_file_key answers a path on disk against a thread's rows: the exact row first; else, on a disk that folds case, a key-only match is the held row's working copy, its bytes taken as an exact match's would be; on a disk that does not fold, a case pair, refused by name with CaseCollision's remedy. (2) Whether the disk folds is asked by READING, never writing: stat the intent directory under a case variant of its name and compare device and inode, so doctor --read-only stays a read. (3) No rename is ever inferred: on a folding disk a key-only row is canon's row's working copy and the name stays canon's; a rename is a verb. (4) organize's plan and doctor's drift: a key-only hit is the working copy (Verify or AttachmentDiverged by sha), never Hydrate; on a non-folding disk a case pair, reported and never claimed. sync --to-store's merge likewise. (5) realise refuses to write a canon case pair to one file. (6) No key column in the store: a pair already in canon is doctor's finding and realise's refusal. Nothing waits for cc's ST0096 WP-05, whose upgrade refuses a canon case pair by name before it splits. detach_attachment stays exact. Sites: ingest.rs collect_attachments_into, organize.rs plan, doctor.rs attachment_drift, facade.rs's to-store preview and st_attachment, views.rs read_thread_file, realise.rs, sync --to-disk's attachments_the_disk_lacks.",
+      "state": "live",
+      "recorded_at": "2026-11-20T07:40:43.480Z"
     }
   ],
   "sent": [
@@ -4485,6 +4494,16 @@
       "id": "01M7VY3M4K1HZD62FEMENMKDCS",
       "sender": "vc",
       "handled_at": "2026-11-20T07:37:24.835Z"
+    },
+    {
+      "id": "01M7VYB8AZXQH5DCM2P9H58WXM",
+      "sender": "cc",
+      "handled_at": "2026-11-20T07:40:45.840Z"
+    },
+    {
+      "id": "01M7VYDZKW3C0S01AF9K8PB347",
+      "sender": "vc",
+      "handled_at": "2026-11-20T07:41:46.966Z"
     }
   ]
 }

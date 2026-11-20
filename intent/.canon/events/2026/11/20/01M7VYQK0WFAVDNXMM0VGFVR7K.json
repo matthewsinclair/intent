@@ -1,0 +1,16 @@
+{
+  "id": "01M7VYQK0WFAVDNXMM0VGFVR7K",
+  "ts": "2026-11-20T07:46:27.996Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 67,
+    "text": "ST0096 (issue 0705's thread): hv said go (hv decision 71). WP-03 (S, shell) GOES TO devbin-dc (vc's offer, dc's yes, 2026-11-20 07:4xZ): dc sends vc the brief when ic's ST0096 WP-02 lands (it defines the declared set), and reads devbin-dc's proof; vc lands it. WP-03's scope: the commit gate and the pull-request check work with the aggregate views out of git, reading their paths from the one declared set: steel_threads.md, todo.md and, by hv decision 74, every thread's acceptance.md (AC-03.1 reworded by vc for 74). WP-04 (S) stays dc's, after cc's WP-01 and WP-05 and ic's WP-02: the proof through a forge stand-in, five merge requests from one main in two clones and two worktrees, merged in turn by a bare repository's git merge-tree --write-tree, with no conflict and doctor clean after each pull; its AC-04.2 is hv decision 70's same-thread case (cc's WP-05 closes it): two merge requests from one main change one thread, one adding a work package, the other a criterion and a test, each merging with no conflict and doctor clean after each pull."
+  }
+}

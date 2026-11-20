@@ -1,0 +1,16 @@
+{
+  "id": "01M7VYEXHYZWG29XPQ2XXV249Q",
+  "ts": "2026-11-20T07:41:43.870Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 74,
+    "text": "Issues 0718, 0715 and 0722 as ONE unit (vc, 07:41Z on 2026-11-20): one gate run and one critic pass, since the three share the attachment rows and the one-file key. If the combined diff grows past what one critic read can carry, land 0718+0715 first and 0722 straight after it, and say so. Claim each when starting. 0715, cc's meaning in substance: st attach --from over an existing attachment replaces it in the store, in the canon and, when the thread is realised, in the realised file, all in the one verb, and prints ok only when all three stood. The realised file is the authoring surface, so it is written FIRST: a watching daemon that ingests it in between takes in the new bytes, and the store write that follows agrees. If the realised file already holds bytes the store does not (an unsynced hand edit), the verb refuses before writing anything, naming intent sync --to-store <ID> and editing the file directly. If the store write fails after the file was written, the file's old bytes go back, so a refusal never leaves the file ahead of the store. Code: facade.rs's put_attachment and place_attachment; the CLI wording is ic's. 0718: no thread holds two attachments with one one_file_key; the attachment door refuses the second and names the held spelling, and projection's sidecar write asks the key; with it, the text PUT's refusal over an opaque attachment (facade.rs about :18686, critic on 0711). 0722: cc's meaning in todo 76. Order: after the guard S and WP-14 with 0719. cc's ST0096 WP-05 AC-05.3 refuses a canon case pair before its split: cc's, not this unit's."
+  }
+}

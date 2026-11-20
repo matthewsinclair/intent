@@ -1,0 +1,15 @@
+{
+  "id": "01M7VYD2JR8KY8N2NKQA7A7TPA",
+  "ts": "2026-11-20T07:40:43.480Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0722 (filed by dc at 421b6d6d1; vc sequences it): the doors that read a live disk ask one_file_key. cc's meaning, 2026-11-20 by 07:4xZ (re dc's 07:37Z), dc's defaults standing but for two points. (1) One helper beside one_file_key answers a path on disk against a thread's rows: the exact row first; else, on a disk that folds case, a key-only match is the held row's working copy, its bytes taken as an exact match's would be; on a disk that does not fold, a case pair, refused by name with CaseCollision's remedy. (2) Whether the disk folds is asked by READING, never writing: stat the intent directory under a case variant of its name and compare device and inode, so doctor --read-only stays a read. (3) No rename is ever inferred: on a folding disk a key-only row is canon's row's working copy and the name stays canon's; a rename is a verb. (4) organize's plan and doctor's drift: a key-only hit is the working copy (Verify or AttachmentDiverged by sha), never Hydrate; on a non-folding disk a case pair, reported and never claimed. sync --to-store's merge likewise. (5) realise refuses to write a canon case pair to one file. (6) No key column in the store: a pair already in canon is doctor's finding and realise's refusal. Nothing waits for cc's ST0096 WP-05, whose upgrade refuses a canon case pair by name before it splits. detach_attachment stays exact. Sites: ingest.rs collect_attachments_into, organize.rs plan, doctor.rs attachment_drift, facade.rs's to-store preview and st_attachment, views.rs read_thread_file, realise.rs, sync --to-disk's attachments_the_disk_lacks."
+  }
+}
