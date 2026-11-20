@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 09:37Z
+heartbeat_at: 2026-11-20 15:08Z
 status: active
-focus: "2026-11-20 09:37Z by date -u: QUIESCED for hv's move, not released. WP-14 with 0719: bank refs/bank/dc/st0095/wp14-bank2 (dbfde412c) compiles and passes all but one test, which bank 2 fixes; critic-rust's report pending; then one gate rust and the proof to vc (DOING 171). Next: the shared set's last rebuild after WP-14 lands, then 0718+0715+0722+0729 (todo 74). Filed 0725-0729 today. Claims ST0095/03 (AC-03.3 only), ST0095/14, ISSUE:0719."
+focus: "2026-11-20 15:08Z by date -u: LOCALFOLDED for hv's estate-wide compact, not released. WP-14 with 0719 PROVED at refs/bank/dc/st0095/wp14-bank5 (789906b18, gate green 14:47-14:53Z), vc read sound; after the compact rebase it onto cc's WP-05+06 land, one gate, proof to vc citing the st_prefix tests (DOING 171). The shared set's last rebuild is done (promoted e50978ce0, carries intent id). Then 0718+0715+0722+0729 based on WP-14's land, design only until then (todo 74). Claims ST0095/03 (AC-03.3 only), ST0095/14, ISSUE:0719."
 claims: [ST0095/03, ST0095/14, ISSUE:0719]
 ---
 
