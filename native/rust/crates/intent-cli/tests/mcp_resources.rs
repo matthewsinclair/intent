@@ -255,3 +255,47 @@ fn a_uri_that_names_nothing_is_refused_not_answered_empty() {
     "reading a nonexistent thread returned a result rather than an error: {answer}"
   );
 }
+
+/// ST0095 WP-07: a resource address that spells an id by its shown form, a
+/// prefix, reads as the address that spells it whole, as every other door
+/// completes a prefix.
+#[test]
+fn a_prefixed_uri_reads_as_the_whole_one() {
+  let (fx, st, seq, number) = project();
+  let root = &fx.0;
+  let thread = intentsvcs::id::ThreadId::parse(&st).expect("the mint returns a stored thread id");
+  let pairs = [
+    (
+      format!("intent:///threads/{}", thread.shown()),
+      format!("intent:///threads/{st}"),
+    ),
+    (
+      format!("intent:///threads/{}/wp/{}", thread.shown(), seq.shown()),
+      format!("intent:///threads/{st}/wp/{}", seq.stored()),
+    ),
+    (
+      format!("intent:///issues/{}", number.shown()),
+      format!("intent:///issues/{}", number.stored()),
+    ),
+  ];
+  let text = |uri: &str| {
+    let read =
+      format!(r#"{{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{{"uri":"{uri}"}}}}"#);
+    let frames = session(root, &[init_frame(), &read]);
+    response(&frames, 2)["result"]["contents"][0]["text"]
+      .as_str()
+      .unwrap_or_else(|| panic!("resources/read {uri} carries no text: {frames:?}"))
+      .to_string()
+  };
+  for (prefixed, whole) in &pairs {
+    assert_ne!(
+      prefixed, whole,
+      "the shown form is shorter than the stored id"
+    );
+    assert_eq!(
+      text(prefixed),
+      text(whole),
+      "`{prefixed}` does not read as `{whole}`"
+    );
+  }
+}

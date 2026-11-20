@@ -203,7 +203,7 @@ fn a_descoped_or_withdrawn_precondition_is_unmet() {
       "AC-00.3",
       AcKind::NonTest,
       AcState::Descoped {
-        to: "ST0058".to_string(),
+        to: intentsvcs::id::ThreadId::parse("ST0058").expect("a stored thread id"),
         by: Some("hv".to_string()),
         reason: Some("moved".to_string()),
       },

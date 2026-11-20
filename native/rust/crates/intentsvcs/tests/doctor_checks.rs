@@ -278,7 +278,7 @@ fn a_criterion_no_longer_asked_for_is_not_orphaned_by_its_absent_work_package() 
   thread.criteria.push(criterion(
     "AC-07.2",
     AcState::Descoped {
-      to: "ST0001".to_string(),
+      to: intentsvcs::id::ThreadId::parse("ST0001").expect("a stored thread id"),
       by: None,
       reason: None,
     },
@@ -372,7 +372,7 @@ fn the_model_check_still_reports_the_pair_for_the_paths_that_bypass_the_schema()
   );
   assert!(
     AcState::Descoped {
-      to: "ST0002".to_string(),
+      to: intentsvcs::id::ThreadId::parse("ST0002").expect("a stored thread id"),
       by: None,
       reason: None,
     }
@@ -387,7 +387,7 @@ fn a_criterion_descoped_to_a_thread_that_does_not_exist_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
   thread.criteria[0].state = AcState::Descoped {
-    to: "ST4242".to_string(),
+    to: intentsvcs::id::ThreadId::parse("ST4242").expect("a stored thread id"),
     by: None,
     reason: None,
   };
@@ -803,7 +803,7 @@ fn every_fault_is_reported_in_one_pass() {
   // it demonstrates one refusal. The property under test is unchanged; the
   // fault chosen to exercise it is one the earlier gate does not catch.
   thread.criteria[0].state = AcState::Descoped {
-    to: "ST4242".to_string(),
+    to: intentsvcs::id::ThreadId::parse("ST4242").expect("a stored thread id"),
     by: None,
     reason: None,
   };

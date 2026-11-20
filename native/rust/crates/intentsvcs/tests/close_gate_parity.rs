@@ -127,7 +127,7 @@ fn offscope_counts_are_reported_separately_from_satisfied() {
         "AC-01.2",
         AcKind::Test,
         AcState::Descoped {
-          to: "ST0002".to_string(),
+          to: intentsvcs::id::ThreadId::parse("ST0002").expect("a stored thread id"),
           by: None,
           reason: None,
         },

@@ -247,12 +247,12 @@ fn projection_cases() -> Vec<intentsvcs::model::AcState> {
       evidence: "the render itself".into(),
     },
     AcState::Descoped {
-      to: "ST0057".into(),
+      to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
       by: Some("hv".into()),
       reason: Some("moved".into()),
     },
     AcState::Descoped {
-      to: "ST0057".into(),
+      to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
       by: None,
       reason: None,
     },

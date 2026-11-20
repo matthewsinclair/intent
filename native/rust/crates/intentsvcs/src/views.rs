@@ -1371,7 +1371,7 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
       }
     }
     AcState::Descoped { to, by, reason } => {
-      line.push_str(&format!(" -- DESCOPED to {to}"));
+      line.push_str(&format!(" -- DESCOPED to {}", to.shown()));
       if let Some(by) = by {
         line.push_str(&format!(" by {by}"));
       }

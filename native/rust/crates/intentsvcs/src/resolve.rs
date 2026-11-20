@@ -23,6 +23,7 @@
 //! three -- and this crate keeps `resolve` testable against a set literal.
 
 use crate::address::{Address, AddressError, Entity};
+use crate::id::{Found, IdScope, Named};
 
 /// What a spelling resolved to.
 ///
@@ -88,10 +89,25 @@ pub enum Resolution {
 /// searching -- nothing was searched. It comes back as the [`AddressError`]
 /// `promote` produced, in the parser's own words, so a face can carry the
 /// message and remedy that were written where the fact lives.
-pub fn resolve(input: &str, exists: impl Fn(&Address) -> bool) -> Result<Resolution, AddressError> {
+///
+/// # A prefix is completed against the store's ids, never probed for
+///
+/// An address or a spelling that carries the front of a hashed id (ST0095
+/// WP-07) is completed against `scope`, the store's ids injected as presence
+/// is: one record that the front begins is [`Resolution::Resolved`] with its
+/// id whole, several are [`Resolution::Ambiguous`], and none is
+/// [`Resolution::Unresolvable`] naming what was looked for. Bare hex no
+/// ordinal could be is looked for as both a thread and an issue. A whole id is
+/// never completed, so its existence stays [`crate::nav::Unlanded::Absent`]'s.
+pub fn resolve(
+  input: &str,
+  exists: impl Fn(&Address) -> bool,
+  scope: &impl IdScope,
+) -> Result<Resolution, AddressError> {
   let (thread, issue) = match crate::address::promote(input) {
-    Ok(address) => return Ok(Resolution::Resolved(address)),
+    Ok(address) => return complete(address, scope).map_err(AddressError::IdRefused),
     Err(AddressError::AmbiguousId { thread, issue, .. }) => (thread, issue),
+    Err(AddressError::PrefixOfEither { hex, .. }) => return Ok(either(input, &hex, scope)),
     Err(refusal) => return Err(refusal),
   };
 
@@ -131,6 +147,138 @@ fn rungs(thread: &crate::id::ThreadId, issue: crate::id::IssueId) -> Vec<Address
   .collect()
 }
 
+/// `address` with every id segment whole: each prefix completed against
+/// `scope`, the thread before the package under it, so a package's front is
+/// only ever completed among its own thread's packages.
+///
+/// **A SEGMENT THAT IS ALREADY WHOLE IS NOT LOOKED UP.** A thread or issue
+/// segment the waist cannot read is refused in its words; a package segment it
+/// cannot read is left for the lookup, which answers it as no package.
+pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, crate::id::Refusal> {
+  use crate::id::IdKind;
+  let (authority, format) = (address.authority.clone(), address.format);
+  let with = move |entity: Entity| Address {
+    authority: authority.clone(),
+    entity,
+    format,
+  };
+  let Some(typed) = thread_of(&address.entity) else {
+    return Ok(match &address.entity {
+      Entity::Issue { id } => {
+        let found = crate::id::resolve_issue(id, scope)
+          .map_err(|e| crate::id::refusal(id, &e, IdKind::Issue))?;
+        answer(
+          &address,
+          found.map(|issue| with(Entity::Issue { id: issue.stored() })),
+        )
+      }
+      _ => Resolution::Resolved(address),
+    });
+  };
+  let thread = match crate::id::resolve_thread(typed, scope)
+    .map_err(|e| crate::id::refusal(typed, &e, IdKind::Thread))?
+  {
+    Found::One(thread) => thread,
+    found => {
+      return Ok(answer(
+        &address,
+        found.map(|thread| with(rethreaded(&address.entity, &thread))),
+      ));
+    }
+  };
+  let entity = rethreaded(&address.entity, &thread);
+  let Entity::Wp { wp, .. } = &entity else {
+    return Ok(Resolution::Resolved(with(entity)));
+  };
+  // A package segment the waist cannot read is left for the lookup, whose
+  // ruling is that such a segment names no package (`Facade::wp_of`).
+  Ok(match crate::id::resolve_wp(&thread, wp, scope) {
+    Ok(found) => answer(
+      &address,
+      found.map(|seq| {
+        with(Entity::Wp {
+          thread: thread.stored(),
+          wp: seq.stored(),
+        })
+      }),
+    ),
+    Err(_) => Resolution::Resolved(with(entity)),
+  })
+}
+
+/// The thread segment an entity carries, if it is one under a thread.
+fn thread_of(entity: &Entity) -> Option<&str> {
+  match entity {
+    Entity::WpCollection { thread }
+    | Entity::AcCollection { thread }
+    | Entity::Wp { thread, .. }
+    | Entity::Ac { thread, .. }
+    | Entity::At { thread, .. }
+    | Entity::Attachment { thread, .. } => Some(thread),
+    Entity::Thread { id } => Some(id),
+    _ => None,
+  }
+}
+
+/// `entity` with its thread segment replaced by `thread`'s stored id.
+fn rethreaded(entity: &Entity, thread: &crate::id::ThreadId) -> Entity {
+  let stored = thread.stored();
+  match entity.clone() {
+    Entity::Thread { .. } => Entity::Thread { id: stored },
+    Entity::WpCollection { .. } => Entity::WpCollection { thread: stored },
+    Entity::AcCollection { .. } => Entity::AcCollection { thread: stored },
+    Entity::Wp { wp, .. } => Entity::Wp { thread: stored, wp },
+    Entity::Ac { ac, .. } => Entity::Ac { thread: stored, ac },
+    Entity::At { at, .. } => Entity::At { thread: stored, at },
+    Entity::Attachment { path, .. } => Entity::Attachment {
+      thread: stored,
+      path,
+    },
+    other => other,
+  }
+}
+
+/// A completion as a [`Resolution`]: the one address, every candidate, or the
+/// address as typed, which is what was looked for.
+fn answer(typed: &Address, found: Found<Address>) -> Resolution {
+  match found {
+    Found::One(address) => Resolution::Resolved(address),
+    Found::Many(addresses) => Resolution::Ambiguous(addresses),
+    Found::Nothing => Resolution::Unresolvable {
+      searched: vec![typed.clone()],
+    },
+  }
+}
+
+/// Bare hex no ordinal could be, completed against threads and issues alike
+/// (cc's rule 5): one record is resolved, several of either kind are one
+/// ambiguity, and none names both places it was looked for.
+fn either(input: &str, hex: &str, scope: &impl IdScope) -> Resolution {
+  let address = |entity: Entity| Address {
+    authority: None,
+    entity,
+    format: None,
+  };
+  let of = |named: Named| match named {
+    Named::Thread(id) => address(Entity::Thread { id: id.stored() }),
+    Named::Issue(id) => address(Entity::Issue { id: id.stored() }),
+  };
+  match crate::id::resolve_named(input, scope) {
+    Ok(Found::One(named)) => Resolution::Resolved(of(named)),
+    Ok(Found::Many(named)) => Resolution::Ambiguous(named.into_iter().map(of).collect()),
+    Ok(Found::Nothing) | Err(_) => Resolution::Unresolvable {
+      searched: vec![
+        address(Entity::Thread {
+          id: crate::id::Spelled::<crate::id::ThreadId>::Prefix(hex.to_string()).segment(),
+        }),
+        address(Entity::Issue {
+          id: crate::id::Spelled::<crate::id::IssueId>::Prefix(hex.to_string()).segment(),
+        }),
+      ],
+    },
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -149,7 +297,10 @@ mod tests {
     let never = |_: &Address| panic!("a tagged spelling must not reach the store");
     for spelling in ["ST0059", "s59", "i59"] {
       assert!(
-        matches!(resolve(spelling, never), Ok(Resolution::Resolved(_))),
+        matches!(
+          resolve(spelling, never, &crate::id::NoRecords),
+          Ok(Resolution::Resolved(_))
+        ),
         "{spelling} is unambiguous and must resolve without a probe"
       );
     }
@@ -158,13 +309,15 @@ mod tests {
   #[test]
   fn a_bare_number_naming_one_thing_resolves_to_that_thing() {
     let only_the_issue = |a: &Address| matches!(a.entity, Entity::Issue { .. });
-    let Ok(Resolution::Resolved(address)) = resolve("0059", only_the_issue) else {
+    let Ok(Resolution::Resolved(address)) = resolve("0059", only_the_issue, &crate::id::NoRecords)
+    else {
       panic!("one hit is a resolution");
     };
     assert_eq!(address.entity, Entity::Issue { id: "0059".into() });
 
     let only_the_thread = |a: &Address| matches!(a.entity, Entity::Thread { .. });
-    let Ok(Resolution::Resolved(address)) = resolve("0059", only_the_thread) else {
+    let Ok(Resolution::Resolved(address)) = resolve("0059", only_the_thread, &crate::id::NoRecords)
+    else {
       panic!("one hit is a resolution");
     };
     assert_eq!(
@@ -182,7 +335,7 @@ mod tests {
     // numbers on this estate are also issue numbers -- so the wrong answer was
     // the common case rather than a corner.
     let both = |_: &Address| true;
-    let Ok(Resolution::Ambiguous(candidates)) = resolve("0059", both) else {
+    let Ok(Resolution::Ambiguous(candidates)) = resolve("0059", both, &crate::id::NoRecords) else {
       panic!("two hits is an ambiguity, not a precedence question");
     };
     assert_eq!(
@@ -197,7 +350,8 @@ mod tests {
 
   #[test]
   fn nothing_found_reports_both_places_it_looked() {
-    let Ok(Resolution::Unresolvable { searched }) = resolve("0059", barren) else {
+    let Ok(Resolution::Unresolvable { searched }) = resolve("0059", barren, &crate::id::NoRecords)
+    else {
       panic!("no hit is unresolvable");
     };
     assert_eq!(
@@ -215,11 +369,11 @@ mod tests {
     // `ST5x` names nothing under any spelling. Nothing was searched, so
     // `Unresolvable` would be a false report of a search that never ran.
     assert!(matches!(
-      resolve("ST5x", barren),
+      resolve("ST5x", barren, &crate::id::NoRecords),
       Err(AddressError::NotAddressable { .. })
     ));
     assert!(matches!(
-      resolve("", barren),
+      resolve("", barren, &crate::id::NoRecords),
       Err(AddressError::NotAddressable { .. })
     ));
   }
@@ -227,9 +381,62 @@ mod tests {
   #[test]
   fn a_full_address_resolves_as_itself() {
     let never = |_: &Address| panic!("an address needs no store to be read");
-    let Ok(Resolution::Resolved(address)) = resolve("intent:///issues/0059", never) else {
+    let Ok(Resolution::Resolved(address)) =
+      resolve("intent:///issues/0059", never, &crate::id::NoRecords)
+    else {
       panic!("a full address is already resolved");
     };
     assert_eq!(address.entity, Entity::Issue { id: "0059".into() });
+  }
+
+  fn bare(entity: Entity) -> Address {
+    Address {
+      authority: None,
+      entity,
+      format: None,
+    }
+  }
+
+  #[test]
+  fn a_thread_or_issue_segment_the_waist_cannot_read_is_refused_in_its_words() {
+    for entity in [
+      Entity::Thread { id: "ST5x".into() },
+      Entity::Issue { id: "5x".into() },
+    ] {
+      let typed = bare(entity.clone());
+      assert!(
+        complete(typed, &crate::id::NoRecords).is_err(),
+        "{entity:?} is not an id, and completing it is refused rather than passed on"
+      );
+    }
+  }
+
+  #[test]
+  fn a_package_segment_the_waist_cannot_read_is_left_for_the_lookup() {
+    let typed = Entity::Wp {
+      thread: "ST0059".into(),
+      wp: "5x".into(),
+    };
+    let Ok(Resolution::Resolved(address)) = complete(bare(typed.clone()), &crate::id::NoRecords)
+    else {
+      panic!("an unreadable package segment is the lookup's to answer as no package");
+    };
+    assert_eq!(address.entity, typed);
+  }
+
+  #[test]
+  fn a_word_that_begins_with_a_marker_is_not_a_short_prefix() {
+    // A marker counts only before hex a door takes, so a node's name, and a
+    // marked spelling too short for a prefix that reads exactly as one, is no
+    // address at the door that does not know the collection.
+    for word in ["ic", "Idea", "stab", "cc", "ST3f9"] {
+      assert!(
+        matches!(
+          resolve(word, barren, &crate::id::NoRecords),
+          Err(AddressError::NotAddressable { .. })
+        ),
+        "`{word}` is read as a word, not as a too-short prefix"
+      );
+    }
   }
 }

@@ -538,7 +538,7 @@ pub fn sample_thread(id: &str) -> Thread {
         text: "a descoped requirement".to_string(),
         kind: AcKind::Test,
         state: AcState::Descoped {
-          to: "ST0057".to_string(),
+          to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
           by: Some("hv".to_string()),
           reason: Some("moved with the daemon".to_string()),
         },

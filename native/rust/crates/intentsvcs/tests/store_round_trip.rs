@@ -78,7 +78,7 @@ fn rebuild_then_load_returns_exactly_what_went_in() {
 fn every_ac_scope_variant_survives_with_its_payload() {
   let mut thread = sample_thread("ST0056");
   thread.criteria[0].state = AcState::Descoped {
-    to: "ST0057".to_string(),
+    to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
     by: Some("hv".to_string()),
     reason: Some("moved, with a | pipe in the reason".to_string()),
   };

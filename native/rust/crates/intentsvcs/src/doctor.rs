@@ -1459,8 +1459,9 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     {
       add(
         format!(
-          "{} is descoped to {to}, which is not a steel thread in this project",
-          criterion.id
+          "{} is descoped to {}, which is not a steel thread in this project",
+          criterion.id,
+          to.shown()
         ),
         FindingClass::ModelInconsistent,
       );

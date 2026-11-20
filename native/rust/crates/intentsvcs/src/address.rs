@@ -372,6 +372,12 @@ pub enum AddressError {
   /// [`crate::id::scoped`] gave, as every other door words the same spelling.
   #[error("{}", .0.message)]
   IdRefused(crate::id::Refusal),
+  /// Bare hex that no ordinal could be, at the door that does not know the
+  /// collection: the front of a thread's or an issue's hashed id, which only
+  /// the store can tell apart (ST0095 WP-07). [`crate::resolve`] completes it;
+  /// it reaches an operator only from a door with no store.
+  #[error("`{input}` is the front of a hashed id, and only this project's records can say which")]
+  PrefixOfEither { input: String, hex: String },
   /// **THE ONLY DOOR WHERE A BARE NUMBER IS GENUINELY AMBIGUOUS.** A verb-scoped
   /// door reads the collection off its own verb; this one has nothing to read it
   /// off, and in the estate that first hit it `59` named both `ST0059` and issue
@@ -432,6 +438,11 @@ impl Remedy for AddressError {
         format!("name a thread (`ST0000`) or a full address (`{SCHEME}/threads/ST0000`)")
       }
       AddressError::IdRefused(refused) => refused.remedy.clone(),
+      AddressError::PrefixOfEither { hex, .. } => format!(
+        "name its kind: `{}` for a steel thread, `{}` for an issue",
+        crate::id::Spelled::<crate::id::ThreadId>::Prefix(hex.clone()).segment(),
+        crate::id::Spelled::<crate::id::IssueId>::Prefix(hex.clone()).segment()
+      ),
     }
   }
 }
@@ -610,14 +621,20 @@ fn parse_format(query: Option<&str>) -> Result<Option<Format>, AddressError> {
     })
 }
 
+/// A thread segment: its stored id, or a prefix of a hashed one, kept as typed
+/// for [`crate::resolve`] to complete against the store (ST0095 WP-07, the
+/// WP-04 critic's C1). An ordinal's other spellings are not an address's.
 fn thread(id: &str) -> Result<String, AddressError> {
-  crate::id::ThreadId::parse(id)
-    .is_ok()
-    .then(|| id.to_string())
-    .ok_or_else(|| AddressError::MalformedId {
-      kind: crate::id::IdKind::Thread,
-      id: id.to_string(),
-    })
+  (crate::id::ThreadId::parse(id).is_ok()
+    || matches!(
+      crate::id::read_thread(id),
+      Ok(crate::id::Spelled::Prefix(_))
+    ))
+  .then(|| id.to_string())
+  .ok_or_else(|| AddressError::MalformedId {
+    kind: crate::id::IdKind::Thread,
+    id: id.to_string(),
+  })
 }
 
 fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> {
@@ -662,13 +679,13 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
       thread: thread(id)?,
       path: rest.join("/"),
     }),
-    ["issues", id] => crate::id::IssueId::parse(id)
-      .is_ok()
-      .then(|| Entity::Issue { id: id.to_string() })
-      .ok_or_else(|| AddressError::MalformedId {
-        kind: crate::id::IdKind::Issue,
-        id: id.to_string(),
-      }),
+    ["issues", id] => (crate::id::IssueId::parse(id).is_ok()
+      || matches!(crate::id::read_issue(id), Ok(crate::id::Spelled::Prefix(_))))
+    .then(|| Entity::Issue { id: id.to_string() })
+    .ok_or_else(|| AddressError::MalformedId {
+      kind: crate::id::IdKind::Issue,
+      id: id.to_string(),
+    }),
     ["nodes", moniker] => Ok(Entity::Node {
       moniker: moniker.to_string(),
     }),
@@ -942,16 +959,24 @@ pub fn promote(input: &str) -> Result<Address, AddressError> {
     Ok(Some(crate::id::Scoped::Package(thread, wp))) => {
       return parse(&format!(
         "{SCHEME}/threads/{}/wp/{}",
-        thread.stored(),
-        wp.stored()
+        thread.segment(),
+        wp.segment()
       ));
     }
     Ok(Some(crate::id::Scoped::Under(..)) | None) => {}
     Err(refused) => return Err(AddressError::IdRefused(refused)),
   }
-  match crate::id::normalise_id(input) {
-    Ok(crate::id::Named::Thread(id)) => parse(&format!("{SCHEME}/threads/{}", id.stored())),
-    Ok(crate::id::Named::Issue(id)) => parse(&format!("{SCHEME}/issues/{}", id.stored())),
+  // A prefix is kept as typed behind its kind's marker, and bare hex that
+  // could begin either kind is the store's to tell apart (ST0095 WP-07).
+  match crate::id::read_named(input) {
+    Ok(crate::id::NamedSpelling::Thread(id)) => {
+      parse(&format!("{SCHEME}/threads/{}", id.segment()))
+    }
+    Ok(crate::id::NamedSpelling::Issue(id)) => parse(&format!("{SCHEME}/issues/{}", id.segment())),
+    Ok(crate::id::NamedSpelling::Either(hex)) => Err(AddressError::PrefixOfEither {
+      input: input.to_string(),
+      hex,
+    }),
     Err(crate::id::IdError::Ambiguous { thread, issue }) => Err(AddressError::AmbiguousId {
       input: input.to_string(),
       thread,

@@ -225,7 +225,7 @@ fn unknown_collections_are_refused() {
 fn ids_are_checked_by_the_estate_predicate() {
   for bad in [
     "intent:///threads/ST56",
-    "intent:///threads/ST00567",
+    "intent:///threads/ST005",
     "intent:///threads/st0056",
     "intent:///threads/intent",
     "intent:///issues/42",
@@ -234,6 +234,9 @@ fn ids_are_checked_by_the_estate_predicate() {
     assert!(parse(bad).is_err(), "`{bad}` must be refused");
   }
   assert!(parse("intent:///threads/ST0000").is_ok(), "ST0000 is real");
+  // **FIVE DIGITS ARE A PREFIX OF A HASHED ID NOW** (ST0095 WP-07, hv decision
+  // 70), read by the same predicate, and kept for the resolver to complete.
+  assert!(parse("intent:///threads/ST00567").is_ok());
   assert!(parse("intent:///issues/0001").is_ok());
 }
 

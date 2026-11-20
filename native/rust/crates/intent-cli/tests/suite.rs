@@ -49,6 +49,8 @@ mod a_closed_stdout_ends_quietly;
 mod a_creating_verb_names_what_it_overwrote;
 #[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
+#[path = "a_door_takes_a_hashed_ids_prefix.rs"]
+mod a_door_takes_a_hashed_ids_prefix;
 #[path = "a_fresh_project_commits_clean.rs"]
 mod a_fresh_project_commits_clean;
 #[path = "a_hooks_git_dir_reaches_no_other_tree.rs"]

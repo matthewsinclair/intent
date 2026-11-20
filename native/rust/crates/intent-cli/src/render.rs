@@ -40,7 +40,7 @@ use intentsvcs::wire::{self, Op, Request, Response, ThreadSummary};
 /// A facade refusal, rendered: exit 2 where the library says this build
 /// cannot answer (`FacadeError::build_cannot_answer`, INV-04), exit 1
 /// otherwise. The one place that mapping is made.
-fn fail(e: FacadeError) -> Failure {
+pub(crate) fn fail(e: FacadeError) -> Failure {
   if e.build_cannot_answer() {
     Failure::Unavailable(e.render())
   } else {
@@ -3479,7 +3479,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("status", a)) => {
       let target = thread_arg(a, "stid")?;
-      let (st, scope) = scope_of(&target);
+      let (st, scope) = target_of(&target)?.gate();
       let f = open()?;
       let verdict = f.gate(&st, scope).map_err(fail)?;
       // v2 reports N/M plus the verdict, and exits 0 either way: `status` is a
@@ -6875,7 +6875,7 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
   let mut app = match address {
     None => tui::app::App::explore(),
     Some(word) if names_a_view(word) => tui::app::App::explore().starting_at(word),
-    Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {
+    Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v), &live.facade) {
       nav::Landing::At(view) => tui::app::App::rooted_at(view),
       // **ROOT PLUS THE REASON.** hv ruled the fallback; vc ruled that *opens
       // at the root* contrasts with REFUSING rather than with TELLING. A
@@ -7116,7 +7116,11 @@ impl tui::run::Source for Lobby {
 
   fn locate(&mut self, spelling: &str) -> Result<intentsvcs::nav::View, tui::edit::Refused> {
     let table = &self.table;
-    match nav::land(spelling, |v| unprojected_rows(table, v).is_some()) {
+    match nav::land(
+      spelling,
+      |v| unprojected_rows(table, v).is_some(),
+      &intentsvcs::id::NoRecords,
+    ) {
       nav::Landing::At(view) => Ok(view),
       nav::Landing::Root(_) => Err(tui::edit::Refused::new(format!(
         "`{spelling}` needs a project -- {NO_PROJECT}"
@@ -7347,7 +7351,7 @@ impl tui::run::Source for Live {
   /// The one resolver, presence-probed against this store (`AC-06.12`).
   fn locate(&mut self, spelling: &str) -> Result<intentsvcs::nav::View, tui::edit::Refused> {
     self.catch_up()?;
-    match nav::land(spelling, |v| present(&self.facade, v)) {
+    match nav::land(spelling, |v| present(&self.facade, v), &self.facade) {
       nav::Landing::At(view) => Ok(view),
       nav::Landing::Root(why) => {
         let remedy = intentsvcs::remedy::Remedy::remedy(&why);
@@ -9502,11 +9506,11 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
       let reopen = if spec.is_empty() {
         "`intent st reopen <thread> --reason \"<reason>\"` (or `intent wp reopen <thread>/<package> --reason \"<reason>\"`)".to_string()
       } else {
-        match scope_of(&thread_spec(&spec)?) {
-          (st, Scope::Thread) => format!("`intent st reopen {st} --reason \"<reason>\"`"),
-          (st, Scope::WorkPackage(seq)) => format!(
+        match target_of(&thread_spec(&spec)?)? {
+          Target::Thread(st) => format!("`intent st reopen {st} --reason \"<reason>\"`"),
+          Target::Package(thread, seq) => format!(
             "`intent wp reopen {} --reason \"<reason>\"`",
-            intentsvcs::id::wp_address(&st, seq)
+            intentsvcs::id::wp_address(thread.as_str(), seq)
           ),
         }
       };
@@ -9546,11 +9550,9 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
       // of `ST0001/02` here is a second place for the answer to differ.
       // The answer names what `scope_of` read, spelled as `st done` and `wp
       // done` spell it, never the specifier as typed (issue 0713).
-      let (outcome, subject) = match scope_of(&thread_spec(&spec)?) {
-        (st, Scope::Thread) => (f.st_done(&st).map_err(fail)?, st),
-        (st, Scope::WorkPackage(seq)) => {
-          let thread = intentsvcs::id::ThreadId::parse(&st)
-            .map_err(|e| id_refusal(&st, &e, intentsvcs::id::IdKind::Thread))?;
+      let (outcome, subject) = match target_of(&thread_spec(&spec)?)? {
+        Target::Thread(st) => (f.st_done(&st).map_err(fail)?, st),
+        Target::Package(thread, seq) => {
           (
             f.wp_done(&thread, seq).map_err(fail)?,
             intentsvcs::id::wp_address_shown(&thread, seq),
@@ -10214,7 +10216,7 @@ fn print_versions(faces: &[intentsvcs::faces::SchemaFace]) {
 /// own line: `ac gate` and `wp gate` both answer through here, so the two doors
 /// cannot drift (issue 0310).
 fn gate_verdict(target: &str) -> Result<(), Failure> {
-  let (st, scope) = scope_of(target);
+  let (st, scope) = target_of(target)?.gate();
   let f = open()?;
   let verdict = f.gate(&st, scope).map_err(fail)?;
   println!("{}", verdict.line(target));
@@ -10227,14 +10229,56 @@ fn gate_verdict(target: &str) -> Result<(), Failure> {
   }
 }
 
-pub(crate) fn scope_of(target: &str) -> (String, Scope) {
-  match intentsvcs::id::split_wp_address(target) {
-    Some((st, wp)) => match intentsvcs::id::normalise_wp_id(wp) {
-      Ok(seq) => (st.to_string(), Scope::WorkPackage(seq)),
-      Err(_) => (target.to_string(), Scope::Thread),
-    },
-    None => (target.to_string(), Scope::Thread),
+/// What a thread-or-package target names: a thread as the thread door spelt
+/// it, or a work package with both its ids whole and typed, so no caller
+/// parses the thread's id again (the WP-10 critic's ThreadId re-parses).
+pub(crate) enum Target {
+  Thread(String),
+  Package(intentsvcs::id::ThreadId, intentsvcs::id::WpId),
+}
+
+impl Target {
+  /// The close gate's two arguments.
+  pub(crate) fn gate(&self) -> (String, Scope) {
+    match self {
+      Target::Thread(st) => (st.clone(), Scope::Thread),
+      Target::Package(thread, wp) => (thread.stored(), Scope::WorkPackage(*wp)),
+    }
   }
+}
+
+/// A thread or `<thread>/<package>` target, read by the waist's one reader of
+/// `<thread>/<tail>` (the WP-04 critic's W4): a package part that is no
+/// package is refused naming that part, and never re-read whole as a thread.
+/// A part typed as a prefix is completed by `complete`, the facade's
+/// [`intentsvcs::facade::Facade::resolve_wp`], which each face asks with the
+/// facade it holds.
+pub(crate) fn target_with<E>(
+  target: &str,
+  complete: impl FnOnce() -> Result<(intentsvcs::id::ThreadId, intentsvcs::id::WpId), E>,
+  refuse: impl Fn(Failure) -> E,
+) -> Result<Target, E> {
+  use intentsvcs::id::{Scoped, Spelled};
+  match intentsvcs::id::scoped(target).map_err(|r| refuse(refused(&r)))? {
+    None => Ok(Target::Thread(target.to_string())),
+    Some(Scoped::Package(Spelled::Whole(thread), Spelled::Whole(wp))) => {
+      Ok(Target::Package(thread, wp))
+    }
+    Some(Scoped::Package(..)) => complete().map(|(thread, wp)| Target::Package(thread, wp)),
+    Some(Scoped::Under(_, tail)) => Err(refuse(refused(&intentsvcs::id::not_a_package_part(
+      target, &tail,
+    )))),
+  }
+}
+
+/// [`target_with`] at a CLI door, opening the project only when a prefix needs
+/// completing.
+pub(crate) fn target_of(target: &str) -> Result<Target, Failure> {
+  target_with(
+    target,
+    || open()?.resolve_wp(target).map_err(fail),
+    |refused| refused,
+  )
 }
 
 /// A work package's target, its thread resolved: the `ThreadId` every `wp` arm
@@ -10242,13 +10286,9 @@ pub(crate) fn scope_of(target: &str) -> (String, Scope) {
 /// takes as the stored one.
 fn wp_target(a: &ArgMatches) -> Result<(intentsvcs::id::ThreadId, intentsvcs::id::WpId), Failure> {
   let target = thread_arg(a, "specifier")?;
-  match scope_of(&target) {
-    (st, Scope::WorkPackage(seq)) => {
-      let thread = intentsvcs::id::ThreadId::parse(&st)
-        .map_err(|e| id_refusal(&st, &e, intentsvcs::id::IdKind::Thread))?;
-      Ok((thread, seq))
-    }
-    _ => Err(refused(&intentsvcs::id::not_a_package(&target))),
+  match target_of(&target)? {
+    Target::Package(thread, seq) => Ok((thread, seq)),
+    Target::Thread(_) => Err(refused(&intentsvcs::id::not_a_package(&target))),
   }
 }
 
@@ -14413,17 +14453,17 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
     // and a family-rooted verb could not reach an ST's ATs at all.
     None => {
       let target = thread_arg(m, "target")?;
-      match scope_of(&target) {
-        (st, Scope::Thread) => {
+      match target_of(&target)? {
+        Target::Thread(st) => {
           let mut f = open()?;
           let outcome = f.st_fc(&st, &because, by).map_err(fail)?;
           reported(&mut f, &outcome, &st, "fiat-closed");
           Ok(())
         }
-        (st, Scope::WorkPackage(seq)) => {
-          let label = intentsvcs::id::wp_address(&st, seq);
+        Target::Package(thread, seq) => {
+          let label = intentsvcs::id::wp_address(thread.as_str(), seq);
           let mut f = open()?;
-          let outcome = f.wp_fc(&st, seq, &because, by).map_err(fail)?;
+          let outcome = f.wp_fc(&thread, seq, &because, by).map_err(fail)?;
           reported(&mut f, &outcome, &label, "fiat-closed");
           Ok(())
         }
@@ -16384,16 +16424,31 @@ fn thread_arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
 /// take, whose thread half is normalised and whose tail is passed through
 /// UNTOUCHED because a work-package number is not this function's to interpret.
 pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
+  thread_spec_with(
+    raw,
+    |head| open()?.resolve_thread(head).map_err(fail),
+    |refused| refused,
+  )
+}
+
+/// [`thread_spec`] at a face that holds its own facade: `complete` finishes a
+/// thread half typed as a prefix (ST0095 WP-07), and `refuse` renders this
+/// door's own refusals in the face's error.
+pub(crate) fn thread_spec_with<E>(
+  raw: &str,
+  complete: impl FnOnce(&str) -> Result<intentsvcs::id::ThreadId, E>,
+  refuse: impl Fn(Failure) -> E,
+) -> Result<String, E> {
   // **AN ADDRESS IS REFUSED WHOLE, BEFORE THE SPLIT** (vc, 2026-09-15). The
   // split below takes everything before the first `/` as the thread, so an
   // address reached the id check as its scheme's head, and the refusal named
   // `intent:`: a fragment nobody had typed as an id. `://` is in every URL and
   // in no id spelling, and the scheme itself stays `address`'s to spell.
   if raw.contains("://") {
-    return Err(address_refusal(raw, intentsvcs::id::IdKind::Thread));
+    return Err(refuse(address_refusal(raw, intentsvcs::id::IdKind::Thread)));
   }
   let head = intentsvcs::id::split_wp_address(raw).map_or(raw, |(thread, _)| thread);
-  let id = thread_id(head)?;
+  let id = thread_id_with(head, || complete(head), &refuse)?;
   // The thread half takes its stored spelling, and the rest of `raw`, the
   // separator and the package's part, passes through as written (nothing when
   // `raw` names no package), so this function spells no separator of its own.
@@ -16456,7 +16511,9 @@ fn resolved_against_the_project(raw: &str) -> Result<intentsvcs::address::Addres
       .unwrap_or(false)
   };
 
-  match intentsvcs::resolve::resolve(raw, exists).map_err(|e| Failure::Error(e.render()))? {
+  match intentsvcs::resolve::resolve(raw, exists, &facade)
+    .map_err(|e| Failure::Error(e.render()))?
+  {
     Resolution::Resolved(address) => Ok(address),
     // **BOTH EXIST, SO THE REFUSAL NAMES BOTH AND PICKS NEITHER.** The
     // candidates are rendered through `to_url`, so the operator is shown a form
@@ -16587,9 +16644,7 @@ pub(crate) fn address_of(
       }
     }
     _ => Entity::Issue {
-      id: intentsvcs::id::normalise_issue_id(raw)
-        .map_err(|e| id_refusal(raw, &e, intentsvcs::id::IdKind::Issue))?
-        .stored(),
+      id: issue_id(raw)?.stored(),
     },
   };
   Ok(intentsvcs::address::Address {
@@ -16633,18 +16688,61 @@ fn thread_id_arg(m: &ArgMatches, name: &str) -> Result<intentsvcs::id::ThreadId,
 /// address whole, before anything else reads it (vc, 2026-09-15), and any other
 /// bad spelling in the waist's one wording.
 fn thread_id(raw: &str) -> Result<intentsvcs::id::ThreadId, Failure> {
-  if raw.contains("://") {
-    return Err(address_refusal(raw, intentsvcs::id::IdKind::Thread));
-  }
-  intentsvcs::id::normalise_thread_id(raw)
-    .map_err(|e| id_refusal(raw, &e, intentsvcs::id::IdKind::Thread))
+  thread_id_with(
+    raw,
+    || open()?.resolve_thread(raw).map_err(fail),
+    &|refused| refused,
+  )
 }
 
-/// An operator's spelling of an ISSUE id, as a number.
+/// **THE THREAD DOOR** (ST0095 WP-07): the waist's reader, and a prefix
+/// completed by `complete`, the facade's `resolve_thread`, which is asked only
+/// for a prefix, so a whole id opens nothing.
+fn thread_id_with<E>(
+  raw: &str,
+  complete: impl FnOnce() -> Result<intentsvcs::id::ThreadId, E>,
+  refuse: &impl Fn(Failure) -> E,
+) -> Result<intentsvcs::id::ThreadId, E> {
+  use intentsvcs::id::Spelled;
+  if raw.contains("://") {
+    return Err(refuse(address_refusal(raw, intentsvcs::id::IdKind::Thread)));
+  }
+  match intentsvcs::id::read_thread(raw)
+    .map_err(|e| refuse(id_refusal(raw, &e, intentsvcs::id::IdKind::Thread)))?
+  {
+    Spelled::Whole(id) => Ok(id),
+    Spelled::Prefix(_) => complete(),
+  }
+}
+
+/// An operator's spelling of an ISSUE id.
 fn issue_arg(m: &ArgMatches, name: &str) -> Result<intentsvcs::id::IssueId, Failure> {
-  let raw = arg(m, name)?;
-  intentsvcs::id::normalise_issue_id(&raw)
-    .map_err(|e| id_refusal(&raw, &e, intentsvcs::id::IdKind::Issue))
+  issue_id(&arg(m, name)?)
+}
+
+/// An issue's id from an operator's spelling, as [`thread_id`] is a thread's:
+/// the issue door, a prefix completed by this project's facade.
+fn issue_id(raw: &str) -> Result<intentsvcs::id::IssueId, Failure> {
+  issue_id_with(
+    raw,
+    || open()?.resolve_issue(raw).map_err(fail),
+    &|refused| refused,
+  )
+}
+
+/// **THE ISSUE DOOR**, as [`thread_id_with`] is the thread's.
+pub(crate) fn issue_id_with<E>(
+  raw: &str,
+  complete: impl FnOnce() -> Result<intentsvcs::id::IssueId, E>,
+  refuse: &impl Fn(Failure) -> E,
+) -> Result<intentsvcs::id::IssueId, E> {
+  use intentsvcs::id::Spelled;
+  match intentsvcs::id::read_issue(raw)
+    .map_err(|e| refuse(id_refusal(raw, &e, intentsvcs::id::IdKind::Issue)))?
+  {
+    Spelled::Whole(id) => Ok(id),
+    Spelled::Prefix(_) => complete(),
+  }
 }
 
 /// A bad id, refused in the waist's one wording (`intentsvcs::id::refusal`,

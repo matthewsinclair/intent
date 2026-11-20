@@ -106,7 +106,7 @@ fn ac_state() -> impl Strategy<Value = AcState> {
     proptest::option::of("[a-z ,.]{3,40}").prop_map(|note| AcState::Unsatisfied { note }),
     "[a-z/. ]{3,30}".prop_map(|evidence| AcState::Satisfied { evidence }),
     (0u32..9999, proptest::option::of("[a-z]{2,8}")).prop_map(|(n, by)| AcState::Descoped {
-      to: generated_thread(n).stored(),
+      to: generated_thread(n),
       by,
       reason: None,
     }),

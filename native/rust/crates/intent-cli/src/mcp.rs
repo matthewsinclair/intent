@@ -60,7 +60,7 @@
 
 use crate::dispatch::{Arg, Entry, Flag, Table};
 use crate::render::SearchDoor;
-use intentsvcs::contract::{Scope, Verdict};
+use intentsvcs::contract::Verdict;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, outcome_json,
 };
@@ -694,45 +694,45 @@ fn tool_answer(
       Ok(json!({ "created": id }))
     }
     "st start" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.st_start(&id)?, &id))
     }
     "st triage" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.st_triage(&id)?, &id))
     }
     "st resume" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.st_resume(&id)?, &id))
     }
     "st relate" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
-      let target = spec(path, need_s(path, map, "target")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
+      let target = spec(path, f, need_s(path, map, "target")?)?;
       let note = opt_s(path, map, "note")?;
       Ok(outcome_json(&f.st_relate(&id, &target, note)?, &id))
     }
     "st unrelate" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
-      let target = spec(path, need_s(path, map, "target")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
+      let target = spec(path, f, need_s(path, map, "target")?)?;
       Ok(outcome_json(&f.st_unrelate(&id, &target)?, &id))
     }
     "st hold" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default();
       Ok(outcome_json(&f.st_hold(&id, reason)?, &id))
     }
     "st reopen" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default();
       Ok(outcome_json(&f.st_reopen(&id, reason)?, &id))
     }
     "st reinstate" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default();
       Ok(outcome_json(&f.st_reinstate(&id, reason)?, &id))
     }
     "st done" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let list = if opt_b(path, map, "keep")? {
         ListEdit::Suppressed
       } else {
@@ -742,7 +742,7 @@ fn tool_answer(
       Ok(outcome_json(&f.st_done_listing(&id, list, on)?, &id))
     }
     "st cancel" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default();
       let list = if opt_b(path, map, "keep")? {
         ListEdit::Suppressed
@@ -756,7 +756,7 @@ fn tool_answer(
       ))
     }
     "st hydrate" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let address = promote(path, &id)?;
       let done = f.hydration(&address)?;
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
@@ -769,7 +769,7 @@ fn tool_answer(
       )
     }
     "st dehydrate" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let address = promote(path, &id)?;
       let done = f.dehydrate(&address)?;
       let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
@@ -808,12 +808,12 @@ fn tool_answer(
           "`file` is not served here -- the tool returns the whole thread; `intent_st_edit` resolves a file view to its path",
         ));
       }
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let t = f.st_show(&id)?;
       val(path, t)
     }
     "st edit" => {
-      let id = spec(path, need_s(path, map, "id")?)?;
+      let id = spec(path, f, need_s(path, map, "id")?)?;
       let file = opt_s(path, map, "file")?.unwrap_or("info").to_string();
       // The declared vocabulary, from the table -- the same home the CLI arm
       // reads, so the two doors cannot drift about what a file view is.
@@ -851,7 +851,7 @@ fn tool_answer(
 
     // ----- work packages -----
     "wp new" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let title = need_s(path, map, "title")?;
       // S by default, same as the CLI: sizing happens after the package is
       // written (hv, issue 0052), and `wp rescope` is the exit.
@@ -859,28 +859,28 @@ fn tool_answer(
       Ok(json!({ "created": intentsvcs::id::wp_address(&st, seq) }))
     }
     "wp start" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       Ok(outcome_json(
         &f.wp_start(&st, seq)?,
         &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp done" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       Ok(outcome_json(
         &f.wp_done(&st, seq)?,
         &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp unstart" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       Ok(outcome_json(
         &f.wp_unstart(&st, seq)?,
         &intentsvcs::id::wp_address(&st, seq),
       ))
     }
     "wp reopen" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_reopen(&st, seq, &reason)?,
@@ -888,7 +888,7 @@ fn tool_answer(
       ))
     }
     "wp cancel" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_cancel(&st, seq, &reason)?,
@@ -896,7 +896,7 @@ fn tool_answer(
       ))
     }
     "wp reinstate" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default().to_string();
       Ok(outcome_json(
         &f.wp_reinstate(&st, seq, &reason)?,
@@ -904,7 +904,7 @@ fn tool_answer(
       ))
     }
     "wp rescope" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       let raw = need_s(path, map, "size")?;
       let size = crate::render::t_shirt(raw).map_err(|e| failure_args(path, &e))?;
       Ok(outcome_json(
@@ -913,11 +913,11 @@ fn tool_answer(
       ))
     }
     "wp list" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       val(path, f.wp_list(&st)?)
     }
     "wp show" => {
-      let (st, seq) = wp_scope(path, map)?;
+      let (st, seq) = wp_scope(path, f, map)?;
       val(path, f.wp_show(&st, seq)?)
     }
 
@@ -926,7 +926,7 @@ fn tool_answer(
       // The target whole, as the CLI hands it on, so a `/NN` target is refused
       // here as it is there: this face used to drop the package half and
       // answer for the whole thread (issue 0713).
-      let target = spec(path, need_s(path, map, "stid")?)?;
+      let target = spec(path, f, need_s(path, map, "stid")?)?;
       let rows: Vec<Value> = f
         .ac_list(&target)?
         .iter()
@@ -939,7 +939,7 @@ fn tool_answer(
       Ok(json!({ "criteria": rows }))
     }
     "ac show" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       let (criterion, row) = f.ac_show(&st, id)?;
       Ok(json!({
@@ -948,20 +948,20 @@ fn tool_answer(
       }))
     }
     "ac gate" => {
-      let target = spec(path, need_s(path, map, "stid")?)?;
-      let (st, scope) = crate::render::scope_of(&target);
+      let target = spec(path, f, need_s(path, map, "stid")?)?;
+      let (st, scope) = target_in(path, f, &target)?.gate();
       let verdict = f.gate(&st, scope)?;
       Ok(verdict_json(&verdict, &verdict.line(&target)))
     }
     "ac status" => {
-      let target = spec(path, need_s(path, map, "stid")?)?;
-      let (st, scope) = crate::render::scope_of(&target);
+      let target = spec(path, f, need_s(path, map, "stid")?)?;
+      let (st, scope) = target_in(path, f, &target)?.gate();
       let verdict = f.gate(&st, scope)?;
       // `status_line`, like the CLI: the count-first shape, exit-code-free.
       Ok(verdict_json(&verdict, &verdict.status_line()))
     }
     "ac new" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       let text = need_s(path, map, "text")?;
       let kind = match opt_s(path, map, "kind")? {
@@ -977,25 +977,25 @@ fn tool_answer(
       Ok(outcome_json(&f.ac_new(&st, id, text, kind)?, id))
     }
     "ac edit" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       let text = opt_s(path, map, "text")?.map(str::to_string);
       let note = opt_s(path, map, "note")?.map(str::to_string);
       Ok(outcome_json(&f.ac_edit(&st, id, text, note)?, id))
     }
     "ac satisfy" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       let evidence = opt_s(path, map, "evidence")?.unwrap_or_default();
       Ok(outcome_json(&f.ac_satisfy(&st, id, evidence)?, id))
     }
     "ac unsatisfy" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       Ok(outcome_json(&f.ac_unsatisfy(&st, id)?, id))
     }
     "ac descope" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       // Read as the CLI reads it (issue 0713).
       let to = crate::render::descope_target(opt_s(path, map, "to")?.unwrap_or_default())
@@ -1005,30 +1005,30 @@ fn tool_answer(
       Ok(outcome_json(&f.ac_descope(&st, id, &to, by, reason)?, id))
     }
     "ac withdraw" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       let reason = opt_s(path, map, "reason")?.unwrap_or_default();
       let by = opt_s(path, map, "by")?;
       Ok(outcome_json(&f.ac_withdraw(&st, id, reason, by)?, id))
     }
     "ac rescope" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       Ok(outcome_json(&f.ac_rescope(&st, id)?, id))
     }
     "ac reinstate" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
       Ok(outcome_json(&f.ac_reinstate(&st, id)?, id))
     }
 
     // ----- acceptance tests -----
     "at list" => {
-      let target = spec(path, need_s(path, map, "stid")?)?;
+      let target = spec(path, f, need_s(path, map, "stid")?)?;
       Ok(json!({ "tests": val(path, f.at_list(&target)?)? }))
     }
     "at lint" => {
-      let target = spec(path, need_s(path, map, "stid")?)?;
+      let target = spec(path, f, need_s(path, map, "stid")?)?;
       let report = f.at_lint(&target)?;
       // `rows` is the WALKED total and keeps its spelling; the machine surface
       // gains what the human one gained (0273), rather than being left as the
@@ -1058,7 +1058,7 @@ fn tool_answer(
       }))
     }
     "at green" | "at red" | "at na" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "atid")?;
       let status = match path {
         "at green" => AtStatus::Green,
@@ -1069,7 +1069,7 @@ fn tool_answer(
       Ok(outcome_json(&f.at_set(&st, id, status, note)?, id))
     }
     "at new" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "atid")?;
       let covers = strings(path, map, "covers")?.unwrap_or_default();
       let kind = match opt_s(path, map, "kind")? {
@@ -1091,7 +1091,7 @@ fn tool_answer(
       ))
     }
     "at edit" => {
-      let st = spec(path, need_s(path, map, "stid")?)?;
+      let st = spec(path, f, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "atid")?;
       let file = opt_s(path, map, "file")?.map(str::to_string);
       let prose = opt_s(path, map, "prose")?.map(str::to_string);
@@ -1144,7 +1144,7 @@ fn tool_answer(
       Ok(json!({ "issues": val(path, &rows)? }))
     }
     "issues show" => {
-      let number = issue_number(path, need_s(path, map, "id")?)?;
+      let number = issue_number(path, f, need_s(path, map, "id")?)?;
       val(path, f.issue_show(number)?)
     }
     // ST0079: the CLI's rows and counts, structured; `show` is the CLI's
@@ -1178,11 +1178,11 @@ fn tool_answer(
       Ok(json!({ "created": number.stored() }))
     }
     "issues close" => {
-      let number = issue_number(path, need_s(path, map, "id")?)?;
+      let number = issue_number(path, f, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.issue_close(number)?, &number.stored()))
     }
     "issues open" => {
-      let number = issue_number(path, need_s(path, map, "id")?)?;
+      let number = issue_number(path, f, need_s(path, map, "id")?)?;
       Ok(outcome_json(&f.issue_open(number)?, &number.stored()))
     }
 
@@ -1905,39 +1905,61 @@ fn strings(
   }
 }
 
-/// A thread spelling, canonicalised through the ONE thread door.
-fn spec(path: &str, raw: &str) -> Result<String, ServeError> {
-  crate::render::thread_spec(raw).map_err(|e| failure_args(path, &e))
+/// A thread or `<thread>/<package>` spelling through the CLI's one thread door,
+/// a prefix completed by this facade, whose refusal reaches the client as the
+/// facade's own error (ST0095 WP-07).
+fn spec(path: &str, f: &intentsvcs::facade::Facade, raw: &str) -> Result<String, ServeError> {
+  crate::render::thread_spec_with(
+    raw,
+    |head| f.resolve_thread(head).map_err(ServeError::from),
+    |e| failure_args(path, &e),
+  )
 }
 
 /// A `<ST>/<NN>` spelling resolved to its work-package scope, refusing a bare
 /// thread the way `wp_target` does -- same rule, this face's rendering.
 fn wp_scope(
   path: &str,
+  f: &intentsvcs::facade::Facade,
   map: &Map<String, Value>,
 ) -> Result<(String, intentsvcs::id::WpId), ServeError> {
-  let target = spec(path, need_s(path, map, "specifier")?)?;
-  match crate::render::scope_of(&target) {
-    (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
-    _ => Err(failure_args(
+  let target = spec(path, f, need_s(path, map, "specifier")?)?;
+  match target_in(path, f, &target)? {
+    crate::render::Target::Package(thread, seq) => Ok((thread.stored(), seq)),
+    crate::render::Target::Thread(_) => Err(failure_args(
       path,
       &crate::render::refused(&intentsvcs::id::not_a_package(&target)),
     )),
   }
 }
 
-/// An issue id, through the waist's own normaliser, refused in its one wording.
-fn issue_number(path: &str, raw: &str) -> Result<intentsvcs::id::IssueId, ServeError> {
-  intentsvcs::id::normalise_issue_id(raw).map_err(|e| {
-    failure_args(
-      path,
-      &crate::render::refused(&intentsvcs::id::refusal(
-        raw,
-        &e,
-        intentsvcs::id::IdKind::Issue,
-      )),
-    )
-  })
+/// A thread-or-package target at an MCP door: the CLI's one reader of
+/// `<thread>/<tail>`, with a prefix completed by this facade (ST0095 WP-07).
+fn target_in(
+  path: &str,
+  f: &intentsvcs::facade::Facade,
+  target: &str,
+) -> Result<crate::render::Target, ServeError> {
+  crate::render::target_with(
+    target,
+    || f.resolve_wp(target).map_err(ServeError::from),
+    |e| failure_args(path, &e),
+  )
+}
+
+/// An issue id through the CLI's one issue door, a prefix completed by this
+/// facade, whose refusal reaches the client as the facade's own error (ST0095
+/// WP-07).
+fn issue_number(
+  path: &str,
+  f: &intentsvcs::facade::Facade,
+  raw: &str,
+) -> Result<intentsvcs::id::IssueId, ServeError> {
+  crate::render::issue_id_with(
+    raw,
+    || f.resolve_issue(raw).map_err(ServeError::from),
+    &|e| failure_args(path, &e),
+  )
 }
 
 /// An address promoted from a bare id -- the caller's spelling, so a refusal
@@ -2114,11 +2136,16 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
   // `intent://other/threads/ST0001`, byte for byte: the silent form of the
   // defect, a wrong answer that looks exactly like a right one.
   intentsvcs::facade::require_local(&address)?;
-  match address.entity {
+  // A prefix in the address is completed as every other door completes one
+  // (ST0095 WP-07), so each segment the arms below read is a stored id.
+  match f.whole_address(&address)?.entity {
     Entity::Thread { id } => Ok(crate::show::thread(f.st_show(&id)?)),
     Entity::Wp { thread, wp } => {
-      let seq = intentsvcs::id::normalise_wp_id(&wp)
-        .map_err(|_| bad("a work-package address ends in a work package's id".to_string()))?;
+      // `whole_address` left this segment as typed only if the waist could not
+      // read it, so this refusal says why in its words.
+      let seq = intentsvcs::id::WpId::parse(&wp).map_err(|e| {
+        bad(intentsvcs::id::refusal(&wp, &e, intentsvcs::id::IdKind::WorkPackage).message)
+      })?;
       let thread = intentsvcs::id::ThreadId::parse(&thread)
         .map_err(|_| bad("a work-package address begins with its thread's id".to_string()))?;
       let criteria = f.wp_criteria(&thread, seq)?;

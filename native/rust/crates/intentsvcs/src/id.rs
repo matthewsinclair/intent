@@ -16,6 +16,22 @@
 //! review finds that: build a package's address with [`wp_address`] and split
 //! one with [`split_wp_address`].
 //!
+//! **`Deref<Target = str>` ON [`ThreadId`] STAYS** (cc's architecture call on the
+//! WP-04 critic's R7, ST0095 WP-07). The stored form is the only string form any
+//! store, claim, path or subject compares, and `Deref` gives exactly that form
+//! and nothing else. The defects R7 feared are a prefix or a shown form compared
+//! as if it were stored, and both are closed elsewhere: at the door, where
+//! [`resolve_thread`] and its siblings turn every typed spelling into a whole
+//! typed id before anything compares, and in messages, which take
+//! [`ThreadId::shown`]. Removing `Deref` would put `as_str()` at every store call
+//! for no change in meaning.
+//!
+//! **A PREFIX IS RESOLVED, NEVER STORED** (ST0095 WP-07). What a person types is
+//! read with no store by [`read_thread`], [`read_issue`] and [`read_wp`]: a whole
+//! id, or the front of a hashed one, at least [`MIN_PREFIX_HEX`] hex digits. The
+//! resolvers complete a front against an [`IdScope`], the store injected, and
+//! answer one id, several or none; nothing stores what was typed.
+//!
 //! **AN ID IS AN ORDINAL OR A HASH**: `ST0092`, issue `0703` and a work
 //! package's `09` under its thread, minted by every Intent before ST0095 and
 //! valid for ever, or the front of the SHA-256 of the record's creation event's
@@ -66,6 +82,16 @@ pub const WP_HASH_HEX: usize = 8;
 pub const SHOWN_HEX: usize = 7;
 /// How many of a hashed work package id's hex digits are shown.
 pub const WP_SHOWN_HEX: usize = 4;
+/// The fewest hex digits a typed prefix of a hashed id carries (ST0095 WP-07;
+/// design, "Typed"). A prefix made of digits alone needs one more than its
+/// kind's ordinal width as well, so that no spelling is both an ordinal and a
+/// prefix ([`prefix_floor`]). Every shown form is at least this long, so a
+/// short form copied out of a table is always a prefix a door takes.
+pub const MIN_PREFIX_HEX: usize = 4;
+
+// Every shown form is a prefix a door takes, held where the constants are, so
+// a change to any of them that breaks it does not compile.
+const _: () = assert!(SHOWN_HEX >= MIN_PREFIX_HEX && WP_SHOWN_HEX >= MIN_PREFIX_HEX);
 
 /// How a claim names an ISSUE, as [`crate::intentfiles::Sigil::Issue`] spells
 /// it in the manifest, with its separator.
@@ -89,18 +115,19 @@ pub const CLAIM_ADDRESS_FORMS: &str =
 
 /// **THE ONE SENTENCE OF A THREAD ID'S FORM** that every refusal quotes (the
 /// Highlander sweep's C13: three refusals each said it in their own words).
-pub const THREAD_ID_FORM: &str = "a steel-thread id is ST followed by four digits, eg ST0000";
+pub const THREAD_ID_FORM: &str = "a steel-thread id is ST followed by four digits, eg ST0000, \
+   or a hashed id or a unique prefix of its hex, eg ST3f9a2c1";
 
 /// The one sentence of an issue id's form, as [`THREAD_ID_FORM`] is a thread's.
-pub const ISSUE_ID_FORM: &str = "an issue id is four digits, eg 0001";
+pub const ISSUE_ID_FORM: &str =
+  "an issue id is four digits, eg 0001, or a hashed id or a unique prefix of its hex, eg I3f9a2c1";
 
 /// The one sentence of a work package's address, as [`THREAD_ID_FORM`] is a
 /// thread id's (cc's meaning, 2026-11-20): its thread's id, a slash and its own
-/// id. The stored address carries both ids whole. Its example names only the
-/// family every door accepts today; the hashed family joins all three form
-/// sentences in the change that teaches the doors to read it (ST0095 WP-07).
-pub const WP_ADDRESS_FORM: &str =
-  "a work package's address is its thread's id, a slash and its own id, eg ST0000/01";
+/// id, in either family, each part whole or a unique prefix of its hex. The
+/// stored address carries both ids whole.
+pub const WP_ADDRESS_FORM: &str = "a work package's address is its thread's id, a slash and its own id, \
+   eg ST0000/01 or ST3f9a2c1/c2e4";
 
 /// The tag an operator can type before a thread's digits: `s59` is `ST0059`.
 const THREAD_TAG: char = 's';
@@ -256,6 +283,9 @@ pub enum IdError {
   /// the thread and the issue the digits would name, for a resolver that can
   /// ask the project which exists.
   Ambiguous { thread: ThreadId, issue: IssueId },
+  /// Hex that is no ordinal and fewer digits than a prefix of a hashed id
+  /// carries: `floor` is the fewest it needs ([`prefix_floor`]).
+  TooShort { floor: usize },
 }
 
 impl fmt::Display for IdError {
@@ -263,6 +293,10 @@ impl fmt::Display for IdError {
     match self {
       IdError::NotAnId => f.write_str("not an id"),
       IdError::OutOfRange => f.write_str("more digits than an id of its kind carries"),
+      IdError::TooShort { floor } => write!(
+        f,
+        "fewer hex digits than a prefix of a hashed id carries: at least {floor}"
+      ),
       IdError::WrongCollection { named } => write!(f, "names {}", named.with_article()),
       IdError::Ambiguous { thread, issue } => write!(
         f,
@@ -434,6 +468,12 @@ impl Form {
 
   fn is_hashed(&self) -> bool {
     matches!(self, Form::Hashed(_))
+  }
+
+  /// Whether this is a hashed id whose stored hex, `hash_width` digits, begins
+  /// with `prefix`. No ordinal begins with a prefix: a prefix names a hash.
+  fn hex_begins(&self, hash_width: usize, prefix: &str) -> bool {
+    self.is_hashed() && self.spelled(0, hash_width).starts_with(prefix)
   }
 }
 
@@ -1040,6 +1080,341 @@ pub fn normalise_id(raw: &str) -> Result<Named, IdError> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Prefix resolution (ST0095 WP-07): what a typed spelling names in a scope.
+// ---------------------------------------------------------------------------
+
+/// What an operator typed, read with no store: a whole id, or the front of a
+/// hashed one, which only the ids in a scope can complete.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Spelled<T> {
+  /// An ordinal in any spelling the doors took before ST0095, or a hashed id's
+  /// whole stored hex, with or without its marker and in any case.
+  Whole(T),
+  /// The lowercase front of a hashed id's hex: at least [`prefix_floor`]
+  /// digits, and fewer than the kind stores.
+  Prefix(String),
+}
+
+/// The fewest hex digits a prefix spelled as `hex` needs, at a kind whose
+/// ordinal is `ordinal_width` digits: [`MIN_PREFIX_HEX`], and one more than the
+/// ordinal width when it is digits alone, because an ordinal-shaped spelling is
+/// always the ordinal. Five for a thread or an issue, four for a package.
+pub fn prefix_floor(hex: &str, ordinal_width: usize) -> usize {
+  if hex.bytes().all(|b| b.is_ascii_digit()) {
+    MIN_PREFIX_HEX.max(ordinal_width + 1)
+  } else {
+    MIN_PREFIX_HEX
+  }
+}
+
+/// `rest`, what follows a kind's optional marker, read as a hashed id's hex:
+/// its whole stored hex or a prefix of it, lowercased. `None` when it is no hex
+/// at all or ordinal-shaped, which the ordinal readers answer.
+fn typed_hex(
+  rest: &str,
+  ordinal_width: usize,
+  hash_width: usize,
+) -> Option<Result<String, IdError>> {
+  let hex = rest.trim().to_ascii_lowercase();
+  if hex.is_empty() || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+    return None;
+  }
+  if hex.bytes().all(|b| b.is_ascii_digit()) && hex.len() <= ordinal_width {
+    return None;
+  }
+  if hex.len() > hash_width {
+    return Some(Err(IdError::OutOfRange));
+  }
+  let floor = prefix_floor(&hex, ordinal_width);
+  if hex.len() < floor {
+    return Some(Err(IdError::TooShort { floor }));
+  }
+  Some(Ok(hex))
+}
+
+/// A typed hex spelling as [`Spelled`]: the whole stored hex is the id itself.
+fn spelled_hex<T>(hex: String, hash_width: usize, whole: impl Fn(Form) -> T) -> Spelled<T> {
+  match hashed_hex(&hex, hash_width) {
+    Ok(form) if hex.len() == hash_width => Spelled::Whole(whole(form)),
+    _ => Spelled::Prefix(hex),
+  }
+}
+
+/// An operator's spelling of a THREAD, read with no store: everything
+/// [`normalise_thread_id`] takes, and a hashed thread's hex or a prefix of it,
+/// its `ST` marker optional. An issue's marker on hex is the other collection.
+pub fn read_thread(raw: &str) -> Result<Spelled<ThreadId>, IdError> {
+  let t = raw.trim();
+  if let Some(Ok(_)) =
+    strip_ci(t, ISSUE_MARKER).and_then(|rest| typed_hex(rest, ISSUE_DIGITS, HASH_HEX))
+  {
+    return Err(IdError::WrongCollection {
+      named: IdKind::Issue,
+    });
+  }
+  let rest = strip_ci(t, THREAD_PREFIX).unwrap_or(t);
+  match typed_hex(rest, THREAD_DIGITS, HASH_HEX) {
+    Some(hex) => Ok(spelled_hex(hex?, HASH_HEX, ThreadId::of)),
+    None => normalise_thread_id(raw).map(Spelled::Whole),
+  }
+}
+
+/// An operator's spelling of an ISSUE, read with no store, as [`read_thread`]
+/// reads a thread's: its [`ISSUE_MARKER`] optional, and a thread's marker on
+/// hex the other collection.
+pub fn read_issue(raw: &str) -> Result<Spelled<IssueId>, IdError> {
+  let t = raw.trim();
+  if let Some(Ok(_)) =
+    strip_ci(t, THREAD_PREFIX).and_then(|rest| typed_hex(rest, THREAD_DIGITS, HASH_HEX))
+  {
+    return Err(IdError::WrongCollection {
+      named: IdKind::Thread,
+    });
+  }
+  let rest = strip_ci(t, ISSUE_MARKER).unwrap_or(t);
+  match typed_hex(rest, ISSUE_DIGITS, HASH_HEX) {
+    Some(hex) => Ok(spelled_hex(hex?, HASH_HEX, IssueId)),
+    None => normalise_issue_id(raw).map(Spelled::Whole),
+  }
+}
+
+/// An operator's spelling of a WORK PACKAGE under its thread, read with no
+/// store: everything [`normalise_wp_id`] takes, and a hashed package's hex or
+/// a prefix of it, `WP-` optional. `1234` is longer than a package ordinal, so
+/// it is a prefix.
+pub fn read_wp(raw: &str) -> Result<Spelled<WpId>, IdError> {
+  let t = raw.trim();
+  let rest = strip_ci(t, WP_HEADING_PREFIX).unwrap_or(t);
+  match typed_hex(rest, WP_DIGITS, WP_HASH_HEX) {
+    Some(hex) => Ok(spelled_hex(hex?, WP_HASH_HEX, WpId)),
+    None => normalise_wp_id(raw).map(Spelled::Whole),
+  }
+}
+
+/// Whether `raw` is a spelling a door of `kind` takes, whole or a prefix, with
+/// no store asked: for a face's parse before a store is open, and for an
+/// address's segments. Its refusal is [`refusal`]'s.
+pub fn check_spelling(raw: &str, kind: IdKind) -> Result<(), IdError> {
+  match kind {
+    IdKind::Thread => read_thread(raw).map(drop),
+    IdKind::WorkPackage => read_wp(raw).map(drop),
+    IdKind::Issue => read_issue(raw).map(drop),
+  }
+}
+
+/// The ids a typed prefix is completed against: the records the store holds.
+///
+/// **THE STORE IS INJECTED, AS PRESENCE IS** ([`crate::resolve`],
+/// [`crate::nav::land`]): the facade implements it from its canon and a test
+/// from a literal set, so every door asks the one rule below and none of them
+/// writes a second.
+pub trait IdScope {
+  /// Every thread this project holds.
+  fn threads(&self) -> Vec<ThreadId>;
+  /// Every issue this project holds.
+  fn issues(&self) -> Vec<IssueId>;
+  /// Every work package `thread` holds: the scope a package's id is minted in,
+  /// and so the scope its prefix is completed in.
+  fn wps(&self, thread: &ThreadId) -> Vec<WpId>;
+}
+
+/// The scope of a door that has no project, where no prefix completes: the
+/// TUI's lobby, and a test that holds no records.
+pub struct NoRecords;
+
+impl IdScope for NoRecords {
+  fn threads(&self) -> Vec<ThreadId> {
+    Vec::new()
+  }
+  fn issues(&self) -> Vec<IssueId> {
+    Vec::new()
+  }
+  fn wps(&self, _thread: &ThreadId) -> Vec<WpId> {
+    Vec::new()
+  }
+}
+
+/// What a typed spelling names in its scope.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Found<T> {
+  /// Exactly one: an ordinal-shaped spelling or a whole hashed id as typed,
+  /// never looked up, because whether it exists is the lookup's question; or
+  /// the one id in scope a prefix begins.
+  One(T),
+  /// A prefix no id in scope begins.
+  Nothing,
+  /// A prefix several ids in scope begin: every one, in the family order,
+  /// and none picked.
+  Many(Vec<T>),
+}
+
+impl<T> Found<T> {
+  /// The same answer about another value.
+  pub fn map<U>(self, f: impl Fn(T) -> U) -> Found<U> {
+    match self {
+      Found::One(id) => Found::One(f(id)),
+      Found::Nothing => Found::Nothing,
+      Found::Many(ids) => Found::Many(ids.into_iter().map(f).collect()),
+    }
+  }
+}
+
+/// Every id in `scope` that `prefix` begins, as one answer.
+fn completed<T: Ord>(scope: Vec<T>, begins: impl Fn(&T) -> bool) -> Found<T> {
+  let mut hits: Vec<T> = scope.into_iter().filter(|id| begins(id)).collect();
+  hits.sort();
+  hits.dedup();
+  match hits.len() {
+    0 => Found::Nothing,
+    // `pop` on a one-element vector is its one element.
+    1 => hits.pop().map_or(Found::Nothing, Found::One),
+    _ => Found::Many(hits),
+  }
+}
+
+fn threads_begun(scope: &impl IdScope, prefix: &str) -> Found<ThreadId> {
+  completed(scope.threads(), |id| id.form.hex_begins(HASH_HEX, prefix))
+}
+
+fn issues_begun(scope: &impl IdScope, prefix: &str) -> Found<IssueId> {
+  completed(scope.issues(), |id| id.0.hex_begins(HASH_HEX, prefix))
+}
+
+/// **THE ONE RESOLVER OF A TYPED THREAD** (ST0095 WP-07): the thread `raw`
+/// names in `scope`. An ordinal-shaped spelling is always the ordinal, a whole
+/// hashed id is itself, and a prefix is completed against the threads the
+/// scope holds. A refusal of the spelling is [`refusal`]'s to word.
+pub fn resolve_thread(raw: &str, scope: &impl IdScope) -> Result<Found<ThreadId>, IdError> {
+  Ok(match read_thread(raw)? {
+    Spelled::Whole(id) => Found::One(id),
+    Spelled::Prefix(hex) => threads_begun(scope, &hex),
+  })
+}
+
+/// The one resolver of a typed issue, as [`resolve_thread`] is a thread's.
+pub fn resolve_issue(raw: &str, scope: &impl IdScope) -> Result<Found<IssueId>, IdError> {
+  Ok(match read_issue(raw)? {
+    Spelled::Whole(id) => Found::One(id),
+    Spelled::Prefix(hex) => issues_begun(scope, &hex),
+  })
+}
+
+/// The one resolver of a typed work package under `thread`, completed only
+/// against that thread's packages: a prefix never reaches another thread's.
+pub fn resolve_wp(
+  thread: &ThreadId,
+  raw: &str,
+  scope: &impl IdScope,
+) -> Result<Found<WpId>, IdError> {
+  Ok(match read_wp(raw)? {
+    Spelled::Whole(id) => Found::One(id),
+    Spelled::Prefix(hex) => completed(scope.wps(thread), |id| id.0.hex_begins(WP_HASH_HEX, &hex)),
+  })
+}
+
+/// The one resolver at the door that does not know the collection (`intent
+/// edit`, [`normalise_id`]'s callers; cc's rule 5). A marked spelling names its
+/// kind. Bare hex is completed against threads and issues together, so a
+/// prefix both begin is one ambiguity across both kinds, threads first. Untagged
+/// ordinal digits stay [`IdError::Ambiguous`], which the project's ladder
+/// ([`crate::resolve`]) answers as before.
+pub fn resolve_named(raw: &str, scope: &impl IdScope) -> Result<Found<Named>, IdError> {
+  match read_named(raw)? {
+    NamedSpelling::Thread(Spelled::Whole(id)) => Ok(Found::One(Named::Thread(id))),
+    NamedSpelling::Thread(Spelled::Prefix(hex)) => {
+      Ok(threads_begun(scope, &hex).map(Named::Thread))
+    }
+    NamedSpelling::Issue(Spelled::Whole(id)) => Ok(Found::One(Named::Issue(id))),
+    NamedSpelling::Issue(Spelled::Prefix(hex)) => Ok(issues_begun(scope, &hex).map(Named::Issue)),
+    NamedSpelling::Either(hex) => {
+      let threads = threads_begun(scope, &hex).map(Named::Thread);
+      let issues = issues_begun(scope, &hex).map(Named::Issue);
+      let mut hits: Vec<Named> = [threads, issues]
+        .into_iter()
+        .flat_map(|found| match found {
+          Found::One(named) => vec![named],
+          Found::Nothing => Vec::new(),
+          Found::Many(named) => named,
+        })
+        .collect();
+      Ok(match hits.len() {
+        0 => Found::Nothing,
+        1 => hits.pop().map_or(Found::Nothing, Found::One),
+        _ => Found::Many(hits),
+      })
+    }
+  }
+}
+
+/// What a spelling at the door that does not know the collection is, read
+/// with no store.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NamedSpelling {
+  /// A thread: tagged, marked, or a whole or partial hash after `ST`.
+  Thread(Spelled<ThreadId>),
+  /// An issue: tagged, marked, or a whole or partial hash after its marker.
+  Issue(Spelled<IssueId>),
+  /// Bare hex no ordinal could be: the front of a thread's or an issue's hash,
+  /// which only the store can tell apart.
+  Either(String),
+}
+
+/// [`resolve_named`]'s reading, with no store: untagged ordinal digits are
+/// [`IdError::Ambiguous`], as [`normalise_id`] has them.
+///
+/// **A MARKER IS `named_reading`'S TO COUNT, AND NOWHERE ELSE'S.** Hex behind
+/// a marker that is too short for a prefix reads here exactly as a word that
+/// begins with the letter (`ST3f9` as `stab`, `i3f9` as `ic`), so this door,
+/// which does not know the collection, does not call either a prefix. A door
+/// that knows its kind ([`read_thread`], [`read_issue`]) refuses the short one
+/// naming the minimum.
+pub fn read_named(raw: &str) -> Result<NamedSpelling, IdError> {
+  match named_reading(raw) {
+    NamedReading::Thread => return read_thread(raw).map(NamedSpelling::Thread),
+    NamedReading::Issue => return read_issue(raw).map(NamedSpelling::Issue),
+    NamedReading::Both => {}
+  }
+  if let Some(hex) = typed_hex(raw.trim(), THREAD_DIGITS.max(ISSUE_DIGITS), HASH_HEX) {
+    return hex.map(NamedSpelling::Either);
+  }
+  match normalise_id(raw)? {
+    Named::Thread(id) => Ok(NamedSpelling::Thread(Spelled::Whole(id))),
+    Named::Issue(id) => Ok(NamedSpelling::Issue(Spelled::Whole(id))),
+  }
+}
+
+impl Spelled<ThreadId> {
+  /// The spelling an address segment carries: the stored id, or the prefix
+  /// behind the thread's marker, so the segment reads as a thread's.
+  pub fn segment(&self) -> String {
+    match self {
+      Spelled::Whole(id) => id.stored(),
+      Spelled::Prefix(hex) => format!("{THREAD_PREFIX}{hex}"),
+    }
+  }
+}
+
+impl Spelled<IssueId> {
+  /// The spelling an address segment carries, as a thread's does.
+  pub fn segment(&self) -> String {
+    match self {
+      Spelled::Whole(id) => id.stored(),
+      Spelled::Prefix(hex) => format!("{ISSUE_MARKER}{hex}"),
+    }
+  }
+}
+
+impl Spelled<WpId> {
+  /// The spelling an address segment carries: the stored id, or the prefix.
+  pub fn segment(&self) -> String {
+    match self {
+      Spelled::Whole(id) => id.stored(),
+      Spelled::Prefix(hex) => hex.clone(),
+    }
+  }
+}
+
 /// What an operator who typed `raw` would type to name the `wanted` collection's
 /// id with the same number: `i21` asked of a thread door is `s21`. The remedy a
 /// [`IdError::WrongCollection`] refusal offers. `None` when `raw` spells no id,
@@ -1087,6 +1462,13 @@ pub fn refusal(raw: &str, e: &IdError, wanted: IdKind) -> Refusal {
       format!("`{raw}` is out of range for {} id", wanted.with_article()),
       wanted.form().to_string(),
     ),
+    IdError::TooShort { floor } => (
+      format!(
+        "`{raw}` is too short to name {} id: a prefix of a hashed id is at least {floor} hex digits",
+        wanted.with_article()
+      ),
+      wanted.form().to_string(),
+    ),
     // **THE REFUSAL OFFERS THE SPELLING THAT WORKS**: the other collection is
     // named, and never reported as a not-found.
     IdError::WrongCollection { named } => (
@@ -1122,11 +1504,12 @@ pub fn address_where_id_wanted(raw: &str, wanted: IdKind) -> Refusal {
 /// W4 and the WP-10 critic's first finding).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Scoped {
-  /// The tail is a package id: a work package's address.
-  Package(ThreadId, WpId),
+  /// The tail is a package id: a work package's address. Either part may be a
+  /// prefix, which [`resolve_scoped`] completes against a scope.
+  Package(Spelled<ThreadId>, Spelled<WpId>),
   /// The tail is no package id, eg `AC-01.1` or an attachment's path: another
   /// thing under the thread, as the event log's subjects spell it.
-  Under(ThreadId, String),
+  Under(Spelled<ThreadId>, String),
 }
 
 /// **THE ONE READER OF `<thread>/<tail>`**, so every door that takes one reads
@@ -1134,24 +1517,83 @@ pub enum Scoped {
 /// the text is not that shape: no slash, or a head that spells no id at all.
 ///
 /// **A PART THAT BEGINS AS AN ID AND IS NOT ONE IS REFUSED**, worded for the
-/// part that failed: a head that names an issue or is out of range, or a tail
-/// that spells a package id and is out of range. A tail that spells no package
-/// id is no refusal: it is [`Scoped::Under`], because the event log writes a
+/// part that failed: a head that names an issue, is out of range or is too
+/// short to be a prefix, or a tail that spells a package id and is no package
+/// (`ST0001/100`), which is refused as a package and never re-read whole as a
+/// thread (the WP-04 critic's W4). A tail that spells no package id is no
+/// refusal: it is [`Scoped::Under`], because the event log writes a
 /// criterion's, a test's and an attachment's subjects in this shape. Pure: no
 /// store is asked.
 pub fn scoped(raw: &str) -> Result<Option<Scoped>, Refusal> {
   let Some((head, tail)) = split_wp_address(raw) else {
     return Ok(None);
   };
-  let thread = match normalise_thread_id(head) {
+  let thread = match read_thread(head) {
     Ok(thread) => thread,
     Err(IdError::NotAnId) => return Ok(None),
     Err(e) => return Err(refusal(head, &e, IdKind::Thread)),
   };
-  match normalise_wp_id(tail) {
+  match read_wp(tail) {
     Ok(wp) => Ok(Some(Scoped::Package(thread, wp))),
     Err(IdError::NotAnId) => Ok(Some(Scoped::Under(thread, tail.to_string()))),
-    Err(_) => Err(not_a_package(raw)),
+    Err(e) => Err(package_part_refused(raw, tail, &e)),
+  }
+}
+
+/// What a `<thread>/<tail>` spelling names in a scope: [`scoped`]'s reading,
+/// with each prefix completed, its ids whole.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ScopedFound {
+  /// A work package's address: its thread and its own id.
+  Package(ThreadId, WpId),
+  /// Another thing under one thread, the tail as typed.
+  Under(ThreadId, String),
+}
+
+/// [`scoped`], resolved against `scope`: the thread first, then the package
+/// only among that thread's packages, so a package prefix never reaches
+/// another thread's. `None` when the text is not `<thread>/<tail>`. A thread
+/// part that names several threads or none is the answer, and no package is
+/// looked for under it.
+pub fn resolve_scoped(raw: &str, scope: &impl IdScope) -> Result<Option<ScopedFound>, Unresolved> {
+  let (thread, tail) = match scoped(raw).map_err(Unresolved::Refused)? {
+    None => return Ok(None),
+    Some(Scoped::Package(thread, wp)) => (thread, Ok(wp)),
+    Some(Scoped::Under(thread, tail)) => (thread, Err(tail)),
+  };
+  let thread = match thread {
+    Spelled::Whole(id) => id,
+    Spelled::Prefix(hex) => threads_begun(scope, &hex).one(&[IdKind::Thread], Candidate::Thread)?,
+  };
+  Ok(Some(match tail {
+    Err(tail) => ScopedFound::Under(thread, tail),
+    Ok(Spelled::Whole(wp)) => ScopedFound::Package(thread, wp),
+    Ok(Spelled::Prefix(hex)) => {
+      let wp = completed(scope.wps(&thread), |id| id.0.hex_begins(WP_HASH_HEX, &hex))
+        .one(&[IdKind::WorkPackage], |wp| {
+          Candidate::Wp(thread.clone(), wp)
+        })?;
+      ScopedFound::Package(thread, wp)
+    }
+  }))
+}
+
+/// The refusal of `<thread>/<tail>` at a door that takes a work package, whose
+/// tail is no package id at all: refused as a package, naming that part, never
+/// re-read whole as a thread (the WP-04 critic's W4).
+pub fn not_a_package_part(raw: &str, tail: &str) -> Refusal {
+  Refusal {
+    message: format!("`{raw}` is not a work package: its package part `{tail}` is no package id"),
+    remedy: WP_ADDRESS_FORM.to_string(),
+  }
+}
+
+/// The refusal of `<thread>/<tail>` whose tail spells a package id and is no
+/// package, naming the part that failed (the WP-04 critic's W4).
+fn package_part_refused(raw: &str, tail: &str, e: &IdError) -> Refusal {
+  Refusal {
+    message: format!("`{raw}` is not a work package: its package part `{tail}` is {e}"),
+    remedy: WP_ADDRESS_FORM.to_string(),
   }
 }
 
@@ -1192,25 +1634,132 @@ pub fn ambiguity(raw: &str, thread: &ThreadId, issue: &IssueId) -> Refusal {
 /// shares: a package's address names its one package, a criterion's, a test's
 /// or an attachment's subject is matched with its thread's id normalised, and
 /// a part that begins as an id and fails is refused, never matched against
-/// nothing in silence (`i1/2`, `ST99999/02`). Pure: no store is asked.
-pub fn subject_ids(raw: &str) -> Result<Vec<String>, Refusal> {
-  match scoped(raw)? {
-    Some(Scoped::Package(thread, wp)) => return Ok(vec![wp_address(thread.as_str(), wp)]),
-    Some(Scoped::Under(thread, tail)) => return Ok(vec![format!("{}/{tail}", thread.stored())]),
+/// nothing in silence (`i1/2`, `ST0001/100`).
+///
+/// **A PREFIX IS COMPLETED AGAINST `scope` AND STORED WHOLE** (ST0095 WP-07,
+/// AC-07.2): the log's subjects are whole ids, so a filter compares whole ids.
+/// A prefix that names several records is refused with them, never widened to
+/// all of them; a marked prefix that names nothing is refused as unknown. Bare
+/// hex that is too short or names nothing is matched as typed, because a node
+/// or a board may be named so (`cc`).
+pub fn subject_ids(raw: &str, scope: &impl IdScope) -> Result<Vec<String>, Unresolved> {
+  match resolve_scoped(raw, scope)? {
+    Some(ScopedFound::Package(thread, wp)) => return Ok(vec![wp_address(thread.as_str(), wp)]),
+    Some(ScopedFound::Under(thread, tail)) => {
+      return Ok(vec![format!("{}/{tail}", thread.stored())]);
+    }
     None => {}
   }
-  match normalise_id(raw) {
-    Ok(Named::Thread(id)) => Ok(vec![id.stored()]),
-    Ok(Named::Issue(id)) => Ok(vec![id.stored()]),
+  let reading = named_reading(raw);
+  match resolve_named(raw, scope) {
+    Ok(Found::Nothing) if reading == NamedReading::Both => Ok(vec![raw.to_string()]),
+    Ok(found) => match found.one(&reading.kinds(), Candidate::of)? {
+      Named::Thread(id) => Ok(vec![id.stored()]),
+      Named::Issue(id) => Ok(vec![id.stored()]),
+    },
     Err(IdError::Ambiguous { thread, issue }) => Ok(vec![thread.stored(), issue.stored()]),
     Err(IdError::NotAnId) => Ok(vec![raw.to_string()]),
+    Err(IdError::TooShort { .. }) if reading == NamedReading::Both => Ok(vec![raw.to_string()]),
     Err(e) => {
-      let wanted = spelling(raw)
-        .ok()
-        .and_then(|s| s.tag)
-        .unwrap_or(IdKind::Thread);
-      Err(refusal(raw, &e, wanted))
+      let wanted = match reading {
+        NamedReading::Issue => IdKind::Issue,
+        _ => spelling(raw)
+          .ok()
+          .and_then(|s| s.tag)
+          .unwrap_or(IdKind::Thread),
+      };
+      Err(Unresolved::Refused(refusal(raw, &e, wanted)))
     }
+  }
+}
+
+/// One record a typed spelling could name, its ids whole.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Candidate {
+  Thread(ThreadId),
+  Wp(ThreadId, WpId),
+  Issue(IssueId),
+}
+
+impl Candidate {
+  /// The candidate a [`Named`] is.
+  pub fn of(named: Named) -> Self {
+    match named {
+      Named::Thread(id) => Candidate::Thread(id),
+      Named::Issue(id) => Candidate::Issue(id),
+    }
+  }
+
+  /// Its kind.
+  pub fn kind(&self) -> IdKind {
+    match self {
+      Candidate::Thread(_) => IdKind::Thread,
+      Candidate::Wp(..) => IdKind::WorkPackage,
+      Candidate::Issue(_) => IdKind::Issue,
+    }
+  }
+}
+
+/// Why a typed spelling names no one record (ST0095 WP-07). A face renders
+/// each its own way from these values; none of them is prose but the refusal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Unresolved {
+  /// It is no spelling of the id wanted: the waist's one wording.
+  Refused(Refusal),
+  /// It names no record here: every kind it was looked for as.
+  Nothing(Vec<IdKind>),
+  /// It names several records here: every one, none picked.
+  Many(Vec<Candidate>),
+}
+
+impl<T> Found<T> {
+  /// The one id, or why there is not one: nothing of `kinds`, or several.
+  pub fn one(self, kinds: &[IdKind], candidate: impl Fn(T) -> Candidate) -> Result<T, Unresolved> {
+    match self {
+      Found::One(id) => Ok(id),
+      Found::Nothing => Err(Unresolved::Nothing(kinds.to_vec())),
+      Found::Many(ids) => Err(Unresolved::Many(ids.into_iter().map(candidate).collect())),
+    }
+  }
+}
+
+/// Which collections a spelling at the door that does not know the collection
+/// is resolved in: a marked spelling's kind, or both.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum NamedReading {
+  Thread,
+  Issue,
+  Both,
+}
+
+impl NamedReading {
+  fn kinds(&self) -> Vec<IdKind> {
+    match self {
+      NamedReading::Thread => vec![IdKind::Thread],
+      NamedReading::Issue => vec![IdKind::Issue],
+      NamedReading::Both => vec![IdKind::Thread, IdKind::Issue],
+    }
+  }
+}
+
+/// How [`resolve_named`] reads `raw`: hex after a thread's or an issue's marker
+/// names that kind, and anything else is asked of both.
+fn named_reading(raw: &str) -> NamedReading {
+  let t = raw.trim();
+  // A marker counts only before hex a door takes, so a word that begins
+  // with the letter (`ic`, a node) is not read as a short prefix.
+  if matches!(
+    strip_ci(t, THREAD_PREFIX).and_then(|rest| typed_hex(rest, THREAD_DIGITS, HASH_HEX)),
+    Some(Ok(_))
+  ) {
+    NamedReading::Thread
+  } else if matches!(
+    strip_ci(t, ISSUE_MARKER).and_then(|rest| typed_hex(rest, ISSUE_DIGITS, HASH_HEX)),
+    Some(Ok(_))
+  ) {
+    NamedReading::Issue
+  } else {
+    NamedReading::Both
   }
 }
 
@@ -1274,10 +1823,25 @@ pub enum Group {
 /// has neither. Only a renderer that must show an unreadable group asks for
 /// the text; every comparison asks [`group_of`].
 pub fn group_text(label: &str) -> &str {
-  label
-    .split_once('-')
-    .and_then(|(_, rest)| rest.split_once('.'))
-    .map_or(label, |(group, _)| group)
+  label_parts(label).map_or(label, |(_, group, _)| group)
+}
+
+/// **THE ONE SPLIT OF A LABEL**: the text before its dash, its group, and the
+/// text after its dot. [`group_text`] and [`regrouped`] both read it.
+fn label_parts(label: &str) -> Option<(&str, &str, &str)> {
+  let (head, rest) = label.split_once('-')?;
+  let (group, tail) = rest.split_once('.')?;
+  Some((head, group, tail))
+}
+
+/// `label` with its group replaced by `wp`'s stored id, so a group typed as a
+/// prefix is stored whole (ST0095 WP-07): the inverse of [`group_text`] for
+/// one group. A label with no group comes back as it is.
+pub fn regrouped(label: &str, wp: WpId) -> String {
+  match label_parts(label) {
+    Some((head, _, tail)) => format!("{head}-{}.{tail}", wp.stored()),
+    None => label.to_string(),
+  }
 }
 
 /// **THE ONE READER OF A LABEL'S GROUP** (issue 0712). There were five, and
@@ -1640,7 +2204,7 @@ mod tests {
 
   #[test]
   fn a_subject_names_every_record_its_spelling_could() {
-    let ids = |raw: &str| subject_ids(raw).expect("a subject the door reads");
+    let ids = |raw: &str| subject_ids(raw, &NoRecords).expect("a subject the door reads");
     assert_eq!(
       ids("94"),
       ["ST0094", "0094"],
@@ -1656,20 +2220,19 @@ mod tests {
       "a package's address names its one package"
     );
     assert_eq!(ids("ic"), ["ic"], "a node is matched as typed");
-    let refused = |raw: &str| subject_ids(raw).expect_err("a subject the door refuses");
+    assert_eq!(
+      ids("cc"),
+      ["cc"],
+      "a node whose name is hex too short for a prefix is matched as typed"
+    );
+    let refused = |raw: &str| match subject_ids(raw, &NoRecords) {
+      Err(Unresolved::Refused(refusal)) => refusal,
+      other => panic!("`{raw}` should be refused as a spelling, and was {other:?}"),
+    };
     assert_eq!(
       refused("i1/2").remedy,
       "`s1` names the steel thread",
       "a package under an issue's spelling is refused about its head, never matched as typed"
-    );
-    assert_eq!(
-      refused("ST99999/02").message,
-      "`ST99999` is out of range for a steel thread id"
-    );
-    assert_eq!(
-      refused("i99999").message,
-      "`i99999` is out of range for an issue id",
-      "worded for the kind the tag reaches for"
     );
     assert_eq!(
       ids("1/AC-01.1"),
@@ -1677,10 +2240,21 @@ mod tests {
       "a criterion's subject is matched as the log writes it, its thread normalised"
     );
     let out_of_range = format!("56/{}", u32::MAX);
+    assert!(
+      refused(&out_of_range)
+        .message
+        .contains(&u32::MAX.to_string()),
+      "a package half that spells a package id and fails is refused, naming that half"
+    );
+    // **FIVE DIGITS ARE A PREFIX NOW** (hv decision 70), so a thread or an
+    // issue spelled with them is looked for, and here names nothing.
     assert_eq!(
-      refused(&out_of_range),
-      not_a_package(&out_of_range),
-      "a package half that spells a package id and fails is refused"
+      subject_ids("ST99999/02", &NoRecords),
+      Err(Unresolved::Nothing(vec![IdKind::Thread]))
+    );
+    assert_eq!(
+      subject_ids("i99999", &NoRecords),
+      Err(Unresolved::Nothing(vec![IdKind::Issue]))
     );
   }
 
@@ -1844,5 +2418,165 @@ mod tests {
     assert_eq!(IdKind::WorkPackage.tag(), None);
     assert_eq!(respelled_as("s21", IdKind::WorkPackage), None);
     assert_eq!(respelled_as("s21", IdKind::Issue).as_deref(), Some("i21"));
+  }
+
+  /// The scope a test holds: ids it lists, and no store.
+  struct Held {
+    threads: Vec<ThreadId>,
+    issues: Vec<IssueId>,
+    wps: Vec<(ThreadId, WpId)>,
+  }
+
+  impl IdScope for Held {
+    fn threads(&self) -> Vec<ThreadId> {
+      self.threads.clone()
+    }
+    fn issues(&self) -> Vec<IssueId> {
+      self.issues.clone()
+    }
+    fn wps(&self, thread: &ThreadId) -> Vec<WpId> {
+      self
+        .wps
+        .iter()
+        .filter(|(owner, _)| owner == thread)
+        .map(|(_, wp)| *wp)
+        .collect()
+    }
+  }
+
+  /// A thread whose stored hex is `hex`, padded with zeros to the stored width.
+  fn thread_of_hex(hex: &str) -> ThreadId {
+    ThreadId::parse(&format!("{THREAD_PREFIX}{hex:0<HASH_HEX$}")).expect("a stored thread id")
+  }
+
+  #[test]
+  fn every_shown_form_is_a_prefix_a_door_takes() {
+    let thread = ThreadId::from_origin(ORIGIN);
+    let wp = WpId::from_origin(ORIGIN);
+    let scope = Held {
+      threads: vec![thread.clone()],
+      issues: Vec::new(),
+      wps: vec![(thread.clone(), wp)],
+    };
+    assert_eq!(
+      resolve_thread(&thread.shown(), &scope),
+      Ok(Found::One(thread.clone()))
+    );
+    assert_eq!(
+      resolve_wp(&thread, &wp.heading(), &scope),
+      Ok(Found::One(wp))
+    );
+    assert_eq!(resolve_wp(&thread, &wp.shown(), &scope), Ok(Found::One(wp)));
+  }
+
+  #[test]
+  fn the_floor_is_the_minimum_and_one_past_the_ordinal_for_digits_alone() {
+    assert_eq!(prefix_floor("3f9a", THREAD_DIGITS), MIN_PREFIX_HEX);
+    assert_eq!(
+      prefix_floor("1234", THREAD_DIGITS),
+      MIN_PREFIX_HEX.max(THREAD_DIGITS + 1)
+    );
+    assert_eq!(
+      prefix_floor("1234", WP_DIGITS),
+      MIN_PREFIX_HEX.max(WP_DIGITS + 1)
+    );
+    let short = "f".repeat(MIN_PREFIX_HEX - 1);
+    assert_eq!(
+      read_thread(&short),
+      Err(IdError::TooShort {
+        floor: MIN_PREFIX_HEX
+      })
+    );
+    let wp_digits = "1".repeat(WP_DIGITS + 1);
+    assert_eq!(
+      read_wp(&wp_digits),
+      Err(IdError::TooShort {
+        floor: prefix_floor(&wp_digits, WP_DIGITS)
+      }),
+      "longer than a package ordinal, shorter than a prefix"
+    );
+  }
+
+  #[test]
+  fn an_ordinal_shaped_spelling_never_reaches_a_hash_that_begins_with_its_digits() {
+    let digits = "1".repeat(THREAD_DIGITS);
+    let hashed = thread_of_hex(&"1".repeat(THREAD_DIGITS + 1));
+    let scope = Held {
+      threads: vec![hashed.clone()],
+      issues: Vec::new(),
+      wps: Vec::new(),
+    };
+    for typed in [digits.clone(), format!("{THREAD_PREFIX}{digits}")] {
+      assert_eq!(
+        resolve_thread(&typed, &scope),
+        Ok(Found::One(
+          normalise_thread_id(&digits).expect("an ordinal")
+        )),
+        "`{typed}` is the ordinal"
+      );
+    }
+    let longer = "1".repeat(THREAD_DIGITS + 1);
+    assert_eq!(
+      resolve_thread(&longer, &scope),
+      Ok(Found::One(hashed)),
+      "one digit more is the hash's prefix"
+    );
+  }
+
+  #[test]
+  fn a_prefix_names_one_several_or_none_and_never_picks() {
+    let front = "3f9a";
+    let (one, two) = (
+      thread_of_hex(&format!("{front}1")),
+      thread_of_hex(&format!("{front}2")),
+    );
+    let scope = Held {
+      threads: vec![two.clone(), one.clone()],
+      issues: vec![IssueId::from_origin(ORIGIN)],
+      wps: Vec::new(),
+    };
+    assert_eq!(
+      resolve_thread(front, &scope),
+      Ok(Found::Many(vec![one.clone(), two.clone()])),
+      "every candidate, in the family order"
+    );
+    assert_eq!(
+      resolve_thread(&format!("{front}1").to_ascii_uppercase(), &scope),
+      Ok(Found::One(one.clone()))
+    );
+    assert_eq!(resolve_thread("abcd", &scope), Ok(Found::Nothing));
+    assert_eq!(
+      read_thread(&format!("{ISSUE_MARKER}{front}")),
+      Err(IdError::WrongCollection {
+        named: IdKind::Issue
+      }),
+      "an issue's marker on hex names the other collection"
+    );
+  }
+
+  #[test]
+  fn a_package_prefix_is_completed_only_among_its_own_threads_packages() {
+    let (mine, other) = (
+      ThreadId::from_origin(ORIGIN),
+      ThreadId::from_origin(OTHER_ORIGIN),
+    );
+    let wp = WpId::from_origin(ORIGIN);
+    let scope = Held {
+      threads: vec![mine.clone(), other.clone()],
+      issues: Vec::new(),
+      wps: vec![(mine.clone(), wp)],
+    };
+    assert_eq!(resolve_wp(&mine, &wp.shown(), &scope), Ok(Found::One(wp)));
+    assert_eq!(resolve_wp(&other, &wp.shown(), &scope), Ok(Found::Nothing));
+  }
+
+  #[test]
+  fn a_regrouped_label_carries_the_whole_package_id() {
+    let wp = WpId::from_origin(ORIGIN);
+    assert_eq!(
+      regrouped(&format!("AC-{}.3", wp.shown()), wp),
+      format!("AC-{}.3", wp.stored())
+    );
+    assert_eq!(regrouped("AC", wp), "AC", "a label with no group is left");
   }
 }

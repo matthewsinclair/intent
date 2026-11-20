@@ -304,10 +304,13 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // number at all; nothing was LEFT OUT, and the remedy is a different value
     // for the one they gave. Same argument as the two above it.
     | FacadeError::MalformedIssueId { .. }
-    // Issue 0713's refusal, the same argument: the caller gave an event subject
-    // that begins as an id and is not one. Nothing was LEFT OUT; the remedy is
-    // the spelling that works, or the id's form.
-    | FacadeError::SubjectRefused(_)
+    // ST0095 WP-07's three refusals of a typed id, the same argument: the
+    // caller gave a spelling that is no id, names nothing here, or names
+    // several records. Nothing was LEFT OUT; the remedy is the spelling that
+    // works, the list to choose from, or more of the id.
+    | FacadeError::NotAnId { .. }
+    | FacadeError::UnknownId { .. }
+    | FacadeError::AmbiguousId { .. }
     // ST0069 WP-14's board reader. The caller gave a moniker and no node
     // carries it; nothing was LEFT OUT, and the remedy is a different value for
     // the one they gave, or a registration. Same argument as the two above it.
@@ -430,14 +433,21 @@ fn reaches_a_read_face(field: &str) -> String {
       }),
       &c,
     ),
-    "descope target" => views::acceptance(
-      &thread_whose_criterion_is(AcState::Descoped {
-        to: CANARY.to_string(),
-        by: None,
-        reason: None,
-      }),
-      &c,
-    ),
+    // A descope target is a typed thread id (ST0095 WP-07), so the canary is
+    // the thread a canary origin mints, and the face is read for its shown
+    // form, which is what a person sees of it.
+    "descope target" => {
+      let to = intentsvcs::id::ThreadId::from_origin(CANARY);
+      views::acceptance(
+        &thread_whose_criterion_is(AcState::Descoped {
+          to: to.clone(),
+          by: None,
+          reason: None,
+        }),
+        &c,
+      )
+      .replace(&to.shown(), CANARY)
+    }
     other => panic!(
       "`{other}` is demanded by a refusal and no face is registered for it here.\n       \
        Either render it where a person reads it, or stop demanding it -- a value\n       \

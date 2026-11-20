@@ -171,7 +171,7 @@ impl From<&AcState> for AcStateView {
       },
       AcState::Descoped { to, by, reason } => Self {
         state: AcStateName::Descoped,
-        to: Some(to.clone()),
+        to: Some(to.stored()),
         by: by.clone(),
         reason: reason.clone(),
         ..base

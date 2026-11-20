@@ -1755,12 +1755,32 @@ pub enum FacadeError {
   /// the id's SHAPE. The two send an operator to different places.
   #[error("`{id}` is not an issue number")]
   MalformedIssueId { id: String },
-  /// An event subject the id doors refuse (issue 0713): a spelling that begins
-  /// as an id and is not one, eg `i1/2` or `ST99999`, which a filter would
-  /// otherwise match against nothing, in silence. Its message and remedy are
-  /// the waist's one wording ([`crate::id::subject_ids`]).
-  #[error("{}", .0.message)]
-  SubjectRefused(crate::id::Refusal),
+  /// A spelling a door refuses as no id of the kind it takes (ST0095 WP-07),
+  /// eg `i1/2`, `ab` or an issue's id where a thread's is wanted, which a
+  /// filter would otherwise match against nothing, in silence. Its message and
+  /// remedy are the waist's one wording ([`crate::id::refusal`]); the events
+  /// subject door's refusal is this one.
+  #[error("{}", .refusal.message)]
+  NotAnId {
+    typed: String,
+    refusal: crate::id::Refusal,
+  },
+  /// A prefix of a hashed id, or an untagged number, that names no record here
+  /// (ST0095 WP-07): `kinds` are the forms it was looked for as. A whole id
+  /// that names nothing stays [`Self::NoSuchThread`], [`Self::NoSuchIssue`] or
+  /// [`Self::NoSuchWorkPackage`].
+  #[error("`{typed}` names no {} in this project", .kinds.join(" or "))]
+  UnknownId {
+    typed: String,
+    kinds: Vec<&'static str>,
+  },
+  /// A prefix of a hashed id that several records here begin (ST0095 WP-07):
+  /// every one, none picked, each as `intent id` reports a record.
+  #[error("`{typed}` names {} records in this project: {}", .candidates.len(), candidate_list(.candidates))]
+  AmbiguousId {
+    typed: String,
+    candidates: Vec<IdRecord>,
+  },
   /// An address whose form names no entity a renderer can resolve.
   ///
   /// **THE ADDRESS GRAMMAR IS WIDER THAN THE FORM DECLARATION, AND THAT IS
@@ -3698,7 +3718,23 @@ impl crate::remedy::Remedy for FacadeError {
         "{}, which `intent/.intentfiles` names as `ISSUE:0001`",
         crate::id::ISSUE_ID_FORM
       ),
-      Self::SubjectRefused(refusal) => refusal.remedy.clone(),
+      Self::NotAnId { refusal, .. } => refusal.remedy.clone(),
+      Self::UnknownId { kinds, .. } => format!(
+        "list what is there with {}",
+        kinds
+          .iter()
+          .map(|kind| list_verb(kind))
+          .collect::<Vec<_>>()
+          .join(" or ")
+      ),
+      Self::AmbiguousId { candidates, .. } => format!(
+        "name the one you meant by more of its id, or by all of it: {}",
+        candidates
+          .iter()
+          .map(|c| format!("`{}`", c.id))
+          .collect::<Vec<_>>()
+          .join(", ")
+      ),
       // The remedy names the three that DO resolve rather than the ten that
       // do not: a caller here asked for something reasonable and needs the
       // set they can ask for, and the refusing set is both longer and less
@@ -5067,6 +5103,31 @@ pub struct EventFilter {
   pub limit: Option<usize>,
 }
 
+/// How many leading characters of an event's RFC 3339 stamp are its day.
+const DAY_OF_STAMP: usize = "YYYY-MM-DD".len();
+
+/// **THE STORE'S IDS, AS THE RESOLVER'S SCOPE** (ST0095 WP-07): a prefix is
+/// completed against the records this facade's canon holds.
+impl crate::id::IdScope for Facade {
+  fn threads(&self) -> Vec<crate::id::ThreadId> {
+    self.canon.threads.iter().map(|t| t.id.clone()).collect()
+  }
+
+  fn issues(&self) -> Vec<crate::id::IssueId> {
+    self.canon.issues.iter().map(|i| i.number).collect()
+  }
+
+  fn wps(&self, thread: &crate::id::ThreadId) -> Vec<crate::id::WpId> {
+    self
+      .canon
+      .threads
+      .iter()
+      .find(|t| t.id == *thread)
+      .map(|t| t.wps.iter().map(|w| w.seq).collect())
+      .unwrap_or_default()
+  }
+}
+
 /// One record a token names, as `intent id` reports it (ST0095 WP-10, AC-10.6).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct IdRecord {
@@ -5081,6 +5142,41 @@ pub struct IdRecord {
   pub canon: String,
   /// Where the record is realised, project-relative, whether or not it is.
   pub path: String,
+  /// The record's title.
+  pub title: String,
+  /// The day the record was created: a thread's or an issue's `created`, and
+  /// a hashed work package's the day of the creation event its `origin` names,
+  /// read from that event in this clone's log (cc's meaning, ST0095 WP-07).
+  /// `None` where there is no such day to read, never a guessed one.
+  pub created: Option<String>,
+}
+
+/// An ambiguity's candidates as a refusal names them: each one's id as
+/// shown, kind, title and created day.
+fn candidate_list(candidates: &[IdRecord]) -> String {
+  candidates
+    .iter()
+    .map(|c| {
+      let created = c
+        .created
+        .as_deref()
+        .map_or_else(String::new, |day| format!(", created {day}"));
+      format!("{} ({}, \"{}\"{created})", c.shown, c.kind, c.title)
+    })
+    .collect::<Vec<_>>()
+    .join("; ")
+}
+
+/// The verb that lists a record form's collection, for a not-found's remedy.
+fn list_verb(kind: &str) -> &'static str {
+  use crate::id::IdKind;
+  if kind == IdKind::Issue.wire() {
+    "`intent issues list --kind all`"
+  } else if kind == IdKind::WorkPackage.wire() {
+    "`intent wp list <thread>`"
+  } else {
+    "`intent st list --status all`"
+  }
 }
 
 /// What `intent id` answers for one token (ST0095 WP-10, AC-10.6).
@@ -7465,9 +7561,8 @@ impl Facade {
     let subjects = filter
       .subject
       .as_deref()
-      .map(crate::id::subject_ids)
-      .transpose()
-      .map_err(FacadeError::SubjectRefused)?;
+      .map(|raw| crate::id::subject_ids(raw, self).map_err(|why| self.unresolved(raw, why)))
+      .transpose()?;
     let all = self.store.events().map_err(FacadeError::Store)?;
     let total = all.len();
     let matched: Vec<Envelope> = all
@@ -7505,7 +7600,7 @@ impl Facade {
     use crate::resolve::Resolution;
     let token_ = token.to_string();
     let found = |a: &Address| self.record_of(&a.entity);
-    match crate::resolve::resolve(token, |a| found(a).is_some()) {
+    match crate::resolve::resolve(token, |a| found(a).is_some(), self) {
       Ok(Resolution::Resolved(address)) => match (require_local(&address), found(&address)) {
         // **ANOTHER PROJECT'S ADDRESS NAMES NOTHING HERE** (issue 0338), asked
         // first, as every door that takes an address asks it: the entity alone
@@ -7580,17 +7675,25 @@ impl Facade {
           shown: thread.id.shown(),
           canon: rel(self.project.thread_json(id)),
           path: rel(self.project.thread_dir(id)),
+          title: thread.title.clone(),
+          created: Some(thread.created.clone()),
         })
       }
       AddrEntity::Wp { thread, wp } => {
         let owner = self.st_show(thread).ok()?;
-        let seq = self.wp_of(thread, wp).ok()?.seq;
+        let package = self.wp_of(thread, wp).ok()?;
+        let seq = package.seq;
         Some(IdRecord {
           kind: entity.form(),
           id: crate::id::wp_address(thread, seq),
           shown: crate::id::wp_address_shown(&owner.id, seq),
           canon: rel(self.project.thread_json(thread)),
           path: rel(self.project.wp_dir(thread, seq)),
+          title: package.title.clone(),
+          created: package
+            .origin
+            .as_deref()
+            .and_then(|origin| self.day_of_event(origin)),
         })
       }
       AddrEntity::Issue { id } => {
@@ -7602,9 +7705,217 @@ impl Facade {
           shown: issue.number.shown(),
           canon: rel(self.project.issue_json(number)),
           path: rel(self.project.issue_view(number)),
+          title: issue.title.clone(),
+          created: Some(issue.created.clone()),
         })
       }
       _ => None,
+    }
+  }
+
+  /// The day an event in this clone's log was written, read from its stamp
+  /// (cc's meaning for a work package's created day, ST0095 WP-07): never from
+  /// the event id's own clock, which is the minting process's (D42). `None`
+  /// where the log does not hold the event.
+  fn day_of_event(&self, id: &str) -> Option<String> {
+    let events = self.store.events().ok()?;
+    let event = events.into_iter().find(|e| e.id == id)?;
+    event.ts.get(..DAY_OF_STAMP).map(str::to_string)
+  }
+
+  /// The record a resolver's candidate is, as `intent id` reports it.
+  fn candidate_record(&self, candidate: &crate::id::Candidate) -> Option<IdRecord> {
+    use crate::id::Candidate;
+    let entity = match candidate {
+      Candidate::Thread(id) => AddrEntity::Thread { id: id.stored() },
+      Candidate::Wp(thread, wp) => AddrEntity::Wp {
+        thread: thread.stored(),
+        wp: wp.stored(),
+      },
+      Candidate::Issue(id) => AddrEntity::Issue { id: id.stored() },
+    };
+    self.record_of(&entity)
+  }
+
+  /// Why `typed` names no one record here, as this facade's refusal: the
+  /// waist's wording of a bad spelling, the kinds it was looked for as, or
+  /// every record it could name (ST0095 WP-07).
+  fn unresolved(&self, typed: &str, why: crate::id::Unresolved) -> FacadeError {
+    use crate::id::Unresolved;
+    let typed = typed.to_string();
+    match why {
+      Unresolved::Refused(refusal) => FacadeError::NotAnId { typed, refusal },
+      Unresolved::Nothing(kinds) => FacadeError::UnknownId {
+        typed,
+        kinds: kinds.iter().map(crate::id::IdKind::wire).collect(),
+      },
+      Unresolved::Many(candidates) => FacadeError::AmbiguousId {
+        typed,
+        candidates: candidates
+          .iter()
+          .filter_map(|c| self.candidate_record(c))
+          .collect(),
+      },
+    }
+  }
+
+  /// **THE DOOR EVERY FACE ASKS FOR A TYPED THREAD** (ST0095 WP-07): the one
+  /// thread `typed` names here, whole. An ordinal or a whole hashed id comes
+  /// back as typed and unlooked-up, so its absence stays the lookup's
+  /// [`FacadeError::NoSuchThread`]; a prefix is completed against this
+  /// project's threads.
+  pub fn resolve_thread(&self, typed: &str) -> Result<crate::id::ThreadId, FacadeError> {
+    use crate::id::{Candidate, IdKind};
+    crate::id::resolve_thread(typed, self)
+      .map_err(|e| self.refused(typed, &e, IdKind::Thread))?
+      .one(&[IdKind::Thread], Candidate::Thread)
+      .map_err(|why| self.unresolved(typed, why))
+  }
+
+  /// The door every face asks for a typed issue, as [`Self::resolve_thread`]
+  /// is a thread's.
+  pub fn resolve_issue(&self, typed: &str) -> Result<crate::id::IssueId, FacadeError> {
+    use crate::id::{Candidate, IdKind};
+    crate::id::resolve_issue(typed, self)
+      .map_err(|e| self.refused(typed, &e, IdKind::Issue))?
+      .one(&[IdKind::Issue], Candidate::Issue)
+      .map_err(|why| self.unresolved(typed, why))
+  }
+
+  /// The door every face asks for a typed work package's address,
+  /// `<thread>/<package>`: the thread first, then the package among that
+  /// thread's packages alone, each whole.
+  pub fn resolve_wp(
+    &self,
+    typed: &str,
+  ) -> Result<(crate::id::ThreadId, crate::id::WpId), FacadeError> {
+    match crate::id::resolve_scoped(typed, self).map_err(|why| self.unresolved(typed, why))? {
+      Some(crate::id::ScopedFound::Package(thread, wp)) => Ok((thread, wp)),
+      Some(crate::id::ScopedFound::Under(..)) | None => Err(FacadeError::NotAnId {
+        typed: typed.to_string(),
+        refusal: crate::id::not_a_package(typed),
+      }),
+    }
+  }
+
+  /// The door that does not know the collection (`intent edit`; cc's rule 5):
+  /// a marked spelling names its kind, and bare hex is completed against
+  /// threads and issues together.
+  pub fn resolve_named(&self, typed: &str) -> Result<crate::id::Named, FacadeError> {
+    use crate::id::{Candidate, IdKind};
+    crate::id::resolve_named(typed, self)
+      .map_err(|e| self.refused(typed, &e, IdKind::Thread))?
+      .one(&[IdKind::Thread, IdKind::Issue], Candidate::of)
+      .map_err(|why| self.unresolved(typed, why))
+  }
+
+  /// `address` with each id segment whole, a prefix completed against this
+  /// project (ST0095 WP-07; the WP-04 critic's C1). A segment that reads as a
+  /// whole id is respelled as stored with no lookup (`46` as `ST0046`), so a
+  /// reader of the answer reads stored ids; a package segment the waist cannot
+  /// read is left as typed, for the lookup to answer as no package.
+  pub fn whole_address(&self, address: &Address) -> Result<Address, FacadeError> {
+    use crate::resolve::Resolution;
+    let completed =
+      crate::resolve::complete(address.clone(), self).map_err(|refusal| FacadeError::NotAnId {
+        typed: address.to_url(),
+        refusal,
+      })?;
+    match completed {
+      Resolution::Resolved(whole) => Ok(whole),
+      Resolution::Ambiguous(candidates) => Err(FacadeError::AmbiguousId {
+        typed: address.to_url(),
+        candidates: candidates
+          .iter()
+          .filter_map(|a| self.record_of(&a.entity))
+          .collect(),
+      }),
+      Resolution::Unresolvable { searched } => Err(FacadeError::UnknownId {
+        typed: address.to_url(),
+        kinds: searched.iter().map(|a| a.entity.form()).collect(),
+      }),
+    }
+  }
+
+  /// `typed` with a prefix of a hashed thread completed, and any other spelling
+  /// as typed for the verb's own lookup to answer as it always has.
+  fn whole_thread_text(&self, typed: &str) -> Result<String, FacadeError> {
+    match crate::id::read_thread(typed) {
+      Ok(crate::id::Spelled::Prefix(_)) => self.resolve_thread(typed).map(|id| id.stored()),
+      _ => Ok(typed.to_string()),
+    }
+  }
+
+  /// A sync scope with each thread a prefix names completed.
+  fn whole_scope(&self, scope: &SyncScope) -> Result<SyncScope, FacadeError> {
+    match scope {
+      SyncScope::All => Ok(SyncScope::All),
+      SyncScope::Threads(ids) => ids
+        .iter()
+        .map(|id| self.whole_thread_text(id))
+        .collect::<Result<Vec<_>, _>>()
+        .map(SyncScope::Threads),
+    }
+  }
+
+  /// A claim as a board stores it: a whole claim as typed, or one whose thread,
+  /// package or issue is a prefix, completed (AC-07.2). Anything else is
+  /// [`FacadeError::WbClaimMalformed`], as before.
+  fn whole_claim(&self, claim: &str) -> Result<String, FacadeError> {
+    use crate::id::{Scoped, Spelled};
+    if crate::id::is_claim_address(claim) {
+      return Ok(claim.to_string());
+    }
+    let malformed = || FacadeError::WbClaimMalformed {
+      claim: claim.to_string(),
+    };
+    if let Some(issue) = claim.strip_prefix(crate::id::CLAIM_ISSUE_PREFIX) {
+      return match crate::id::read_issue(issue) {
+        Ok(Spelled::Prefix(_)) => self.resolve_issue(issue).map(|id| id.claim()),
+        _ => Err(malformed()),
+      };
+    }
+    match crate::id::scoped(claim) {
+      Ok(Some(Scoped::Package(thread, wp)))
+        if matches!(thread, Spelled::Prefix(_)) || matches!(wp, Spelled::Prefix(_)) =>
+      {
+        let (thread, wp) = self.resolve_wp(claim)?;
+        return Ok(crate::id::wp_address(thread.as_str(), wp));
+      }
+      Ok(Some(_)) | Err(_) => return Err(malformed()),
+      Ok(None) => {}
+    }
+    match crate::id::read_thread(claim) {
+      Ok(Spelled::Prefix(_)) => self.resolve_thread(claim).map(|id| id.stored()),
+      _ => Err(malformed()),
+    }
+  }
+
+  /// A criterion's or a test's label with a package prefix in its group
+  /// completed among `thread`'s packages, so the group is stored whole (design,
+  /// "Criteria and tests": a door takes a prefix for the group and stores it
+  /// whole). Any other label as typed.
+  fn whole_label(&self, thread: &str, label: &str) -> Result<String, FacadeError> {
+    let group = crate::id::group_text(label);
+    if group == label || !matches!(crate::id::read_wp(group), Ok(crate::id::Spelled::Prefix(_))) {
+      return Ok(label.to_string());
+    }
+    use crate::id::{Candidate, IdKind};
+    let owner = self.resolve_thread(thread)?;
+    let wp = crate::id::resolve_wp(&owner, group, self)
+      .map_err(|e| self.refused(group, &e, IdKind::WorkPackage))?
+      .one(&[IdKind::WorkPackage], |wp| {
+        Candidate::Wp(owner.clone(), wp)
+      })
+      .map_err(|why| self.unresolved(group, why))?;
+    Ok(crate::id::regrouped(label, wp))
+  }
+
+  /// A spelling's refusal at a door that takes `wanted`, in the waist's words.
+  fn refused(&self, typed: &str, e: &crate::id::IdError, wanted: crate::id::IdKind) -> FacadeError {
+    FacadeError::NotAnId {
+      typed: typed.to_string(),
+      refusal: crate::id::refusal(typed, e, wanted),
     }
   }
 
@@ -7939,6 +8250,10 @@ impl Facade {
     overwrite: bool,
     announce: &mut dyn FnMut(&[std::path::PathBuf]),
   ) -> Result<Hydration, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     require_local(address)?;
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
@@ -8398,6 +8713,10 @@ impl Facade {
     address: &Address,
     announce: &mut dyn FnMut(&[std::path::PathBuf], &[std::path::PathBuf]),
   ) -> Result<Dehydrated, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     require_local(address)?;
     let Some((sigil, id)) = address.entity.artefact() else {
       return Err(FacadeError::NotHydratable {
@@ -11906,11 +12225,8 @@ impl Facade {
   pub fn wb_claim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
-    if !crate::id::is_claim_address(claim) {
-      return Err(FacadeError::WbClaimMalformed {
-        claim: claim.to_string(),
-      });
-    }
+    let whole = self.whole_claim(claim)?;
+    let claim = whole.as_str();
     let mut claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
     if claims.iter().any(|c| c == claim) {
       return Ok(false);
@@ -11934,6 +12250,14 @@ impl Facade {
   pub fn wb_unclaim(&mut self, node: &str, claim: &str) -> Result<bool, FacadeError> {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
+    // A prefix is completed as a claim's is, and a claim no reader takes is
+    // dropped as typed: unclaiming what was never claimable moves nothing.
+    let whole = match self.whole_claim(claim) {
+      Ok(whole) => whole,
+      Err(FacadeError::WbClaimMalformed { .. }) => claim.to_string(),
+      Err(other) => return Err(other),
+    };
+    let claim = whole.as_str();
     let claims = self.store.wb_claims(node).map_err(FacadeError::Store)?;
     let kept: Vec<String> = claims.iter().filter(|c| *c != claim).cloned().collect();
     if kept.len() == claims.len() {
@@ -12439,6 +12763,10 @@ impl Facade {
   /// transaction, so a peer's write landing between them can show in the plan.
   /// The apply decides again under the lock, which is where correctness lives.
   pub fn sync_plan(&self, scope: &SyncScope) -> Result<crate::plan::Plan, FacadeError> {
+    // A prefix among the threads named is completed before any is compared
+    // (ST0095 WP-07).
+    let whole_scope = self.whole_scope(scope)?;
+    let scope = &whole_scope;
     use crate::plan::Step;
     let root = self.project.root();
     let mut steps = Vec::new();
@@ -12748,6 +13076,10 @@ impl Facade {
     asking: &crate::plan::Asking,
     ask: &mut dyn FnMut(&crate::plan::Step) -> crate::plan::Decision,
   ) -> Result<SyncApplied, FacadeError> {
+    // A prefix among the threads named is completed before any is compared
+    // (ST0095 WP-07).
+    let whole_scope = self.whole_scope(scope)?;
+    let scope = &whole_scope;
     use crate::plan::{Action, Decision, Gate, Left, LeftBecause, Step};
     let plan = self.sync_plan(scope)?;
     if let Some(shown) = asking.shown.as_deref()
@@ -13784,6 +14116,10 @@ impl Facade {
   /// did not run -- and is not an empty list. The caller must be able to say "I
   /// do not know" rather than print a clean bill of health it did not earn.
   pub fn sync_uncommitted(&self, scope: &SyncScope) -> Result<Option<Vec<String>>, FacadeError> {
+    // A prefix among the threads named is completed before any is compared
+    // (ST0095 WP-07).
+    let whole_scope = self.whole_scope(scope)?;
+    let scope = &whole_scope;
     let canon = ingest::read(&self.project)?;
     let mut paths = Vec::new();
     for thread in canon.threads.iter().filter(|t| scope.selects(&t.id)) {
@@ -15325,6 +15661,10 @@ impl Facade {
   /// (hv, 2026-08-19). The disposition comes from [`Project::edit_disposition`]
   /// so there is no second answer to what a file is.
   pub fn edit(&mut self, address: &Address, file: &str) -> Result<std::path::PathBuf, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     // **ANOTHER PROJECT'S ADDRESS IS REFUSED BEFORE ANY CHECK BELOW** (issue
     // 0338 (i)): each of them answers about THIS project, and `edit` told
     // `intent://other/threads/ST0009` that this project has no ST0009 -- a true
@@ -17395,6 +17735,8 @@ impl Facade {
     text: &str,
     kind: AcKind,
   ) -> Result<Outcome, FacadeError> {
+    let whole = self.whole_label(st, ac)?;
+    let ac = whole.as_str();
     if self.st_show(st)?.criteria.iter().any(|c| c.id == ac) {
       return Err(FacadeError::CriterionExists {
         st: st.to_string(),
@@ -17464,6 +17806,13 @@ impl Facade {
     covers: Vec<String>,
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
+    // A package prefix in a label's group is stored whole (ST0095 WP-07).
+    let whole = self.whole_label(st, at)?;
+    let at = whole.as_str();
+    let covers = covers
+      .into_iter()
+      .map(|ac| self.whole_label(st, &ac))
+      .collect::<Result<Vec<_>, _>>()?;
     // **THE REFUSAL, AND IT RETIRES A MITIGATION RATHER THAN JOINING IT.** This
     // verb used to READ the stored row and carry its `note` and `legacy`
     // forward, because a create on an existing id was a full replacement and
@@ -18090,17 +18439,19 @@ impl Facade {
     if to.trim().is_empty() {
       return Err(FacadeError::DescopeTargetRequired { ac: ac.to_string() });
     }
-    if !self.canon.threads.iter().any(|t| t.id == to) {
+    let whole = self.whole_thread_text(to)?;
+    let Some(target) = self.canon.threads.iter().find(|t| t.id == whole.as_str()) else {
       return Err(FacadeError::DescopeTargetMissing {
         ac: ac.to_string(),
         to: to.to_string(),
       });
-    }
+    };
+    let to = target.id.clone();
     self.set_ac_state(
       st,
       ac,
       AcState::Descoped {
-        to: to.to_string(),
+        to: to.clone(),
         by: by.map(str::to_string),
         reason: reason.map(str::to_string),
       },
@@ -18287,7 +18638,7 @@ impl Facade {
   /// something about its satisfaction, and the refusal names the undo.
   fn refuse_if_off_scope(criterion: &Criterion, ac: &str, verb: &str) -> Result<(), FacadeError> {
     let (state, undo) = match &criterion.state {
-      AcState::Descoped { to, .. } => (format!("descoped to {to}"), "rescope"),
+      AcState::Descoped { to, .. } => (format!("descoped to {}", to.shown()), "rescope"),
       AcState::Withdrawn { .. } => ("withdrawn".to_string(), "reinstate"),
       _ => return Ok(()),
     };
@@ -18756,6 +19107,10 @@ impl Facade {
   /// surface that silently ignored the collections it cannot create into would
   /// report the same success as one that handles them all.
   pub fn post(&mut self, address: &Address, body: &str) -> Result<Address, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     require_local(address)?;
     match &address.entity {
       AddrEntity::Threads => {
@@ -18901,6 +19256,10 @@ impl Facade {
   /// the day one appears, this contract needs re-deciding rather than
   /// re-reading.
   pub fn put(&mut self, address: &Address, body: &str) -> Result<Outcome, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     require_local(address)?;
     let is_attachment = matches!(address.entity, AddrEntity::Attachment { .. });
     if address.format == Some(AddrFormat::Md) && !is_attachment {
@@ -19684,6 +20043,10 @@ impl Facade {
   /// Written through the same `Facade::apply` as [`Facade::put_attachment`],
   /// so the canon, the store and the event log move together.
   pub fn detach_attachment(&mut self, address: &Address) -> Result<Outcome, FacadeError> {
+    // A prefix in the address is completed before anything is looked up, so
+    // nothing below meets one (ST0095 WP-07, AC-07.2).
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     require_local(address)?;
     let AddrEntity::Attachment { thread, path } = &address.entity else {
       return Err(FacadeError::WriteNotAddressable {
@@ -19737,6 +20100,8 @@ impl Facade {
     note: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
     self.st_show(id)?;
+    let whole = self.whole_thread_text(target)?;
+    let target = whole.as_str();
     if id == target {
       return Err(FacadeError::RelatedToItself {
         thread: id.to_string(),
@@ -22225,7 +22590,7 @@ fn ac_row(thread: &Thread, c: &Criterion) -> AcRow {
     // satisfaction comes from a covering green test and storing it too
     // would be the double truth data-model.md forbids.
     state: match &c.state {
-      AcState::Descoped { to, .. } => format!("descoped-to: {to}"),
+      AcState::Descoped { to, .. } => format!("descoped-to: {}", to.stored()),
       AcState::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
       // **ISSUE 0137, AND IT WAS A WILDCARD SWALLOWING A STATE THAT HAS
       // TWO EXPLICIT NEIGHBOURS.** `Fiat` fell into the `_` arm below and

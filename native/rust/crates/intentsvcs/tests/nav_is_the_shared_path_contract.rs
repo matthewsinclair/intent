@@ -375,9 +375,11 @@ fn only(kinds: &'static [&'static str]) -> impl Fn(&View) -> bool {
 /// digit count, with nothing said.
 #[test]
 fn a_bare_number_that_names_two_things_lands_nowhere_and_names_both() {
-  let Landing::Root(Unlanded::Ambiguous { input, candidates }) =
-    land("0059", only(&["thread", "issue"]))
-  else {
+  let Landing::Root(Unlanded::Ambiguous { input, candidates }) = land(
+    "0059",
+    only(&["thread", "issue"]),
+    &intentsvcs::id::NoRecords,
+  ) else {
     panic!("two live candidates is an ambiguity, not a landing");
   };
   assert_eq!(input, "0059");
@@ -398,7 +400,7 @@ fn a_bare_number_that_names_two_things_lands_nowhere_and_names_both() {
 #[test]
 fn a_bare_number_that_names_one_live_thing_lands_on_it() {
   assert_eq!(
-    land("0059", only(&["issue"])),
+    land("0059", only(&["issue"]), &intentsvcs::id::NoRecords),
     Landing::At(View::Item {
       kind: "issue".to_string(),
       id: "0059".to_string()
@@ -406,7 +408,7 @@ fn a_bare_number_that_names_one_live_thing_lands_on_it() {
     "only the issue is there, so the number is not ambiguous IN THIS PROJECT"
   );
   assert_eq!(
-    land("0059", only(&["thread"])),
+    land("0059", only(&["thread"]), &intentsvcs::id::NoRecords),
     Landing::At(View::Item {
       kind: "thread".to_string(),
       id: "ST0059".to_string()
@@ -420,7 +422,9 @@ fn a_bare_number_that_names_one_live_thing_lands_on_it() {
 /// might have meant -- the precedence defect one layer up.
 #[test]
 fn a_bare_number_that_names_nothing_reports_both_places_it_looked() {
-  let Landing::Root(Unlanded::Unresolvable { searched, .. }) = land("0059", only(&[])) else {
+  let Landing::Root(Unlanded::Unresolvable { searched, .. }) =
+    land("0059", only(&[]), &intentsvcs::id::NoRecords)
+  else {
     panic!("no live candidate is unresolvable, and is not the same fact as absent");
   };
   assert_eq!(
@@ -440,7 +444,7 @@ fn a_bare_number_that_names_nothing_reports_both_places_it_looked() {
 fn a_tagged_spelling_is_not_re_decided_by_what_happens_to_exist() {
   assert!(
     matches!(
-      land("s59", only(&["issue"])),
+      land("s59", only(&["issue"]), &intentsvcs::id::NoRecords),
       Landing::Root(Unlanded::Absent { kind, .. }) if kind == "thread"
     ),
     "`s59` names a thread; the thread is missing, which is ABSENT rather than a resolution to the issue"

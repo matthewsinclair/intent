@@ -87,7 +87,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         text: "a descoped example".to_string(),
         kind: AcKind::NonTest,
         state: AcState::Descoped {
-          to: "ST0057".to_string(),
+          to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
           by: Some("hv".to_string()),
           reason: None,
         },

@@ -338,6 +338,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("an edit never creates a message"),
   ));
   out.push((
+    "a prefix of a hashed id that names nothing here",
+    facade
+      .resolve_thread("abcd")
+      .expect_err("this fixture holds no hashed thread for a prefix to begin"),
+  ));
+  out.push((
     "a claim that is not an address",
     facade
       .wb_claim("cc", "the whole of ST0069")
@@ -1318,7 +1324,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ExportRoundTripFailed { .. } => "ExportRoundTripFailed",
     FacadeError::NoSuchIssue { .. } => "NoSuchIssue",
     FacadeError::MalformedIssueId { .. } => "MalformedIssueId",
-    FacadeError::SubjectRefused(_) => "SubjectRefused",
+    FacadeError::NotAnId { .. } => "NotAnId",
+    FacadeError::UnknownId { .. } => "UnknownId",
+    FacadeError::AmbiguousId { .. } => "AmbiguousId",
     FacadeError::MigrationBlocked(_) => "MigrationBlocked",
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::AggregateViewsNotUntracked(_) => "AggregateViewsNotUntracked",
@@ -1495,7 +1503,9 @@ const ALL_VARIANTS: &[&str] = &[
   "ExportRoundTripFailed",
   "NoSuchIssue",
   "MalformedIssueId",
-  "SubjectRefused",
+  "NotAnId",
+  "UnknownId",
+  "AmbiguousId",
   "MigrationBlocked",
   "MigrationHalted",
   "AggregateViewsNotUntracked",
@@ -1828,6 +1838,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "SqlOutOfReach",
   "SqlOverBudget",
   "SqlDidNotRun",
+  // **ASSERTED IN `a_prefix_names_one_record.rs`**, which needs two hashed
+  // records whose creation events were found to share a short form; this
+  // file's fixtures hold none. The cover asserts every candidate's id, kind,
+  // title and created day, so a refusal for another reason fails it.
+  "AmbiguousId",
 ];
 
 #[test]

@@ -1998,6 +1998,15 @@ fn criterion_read(row: &str, non_test_by_thread: bool) -> Result<Criterion, RowR
         ),
       ));
     }
+    // **A DESTINATION NO READER CAN RESOLVE IS REFUSED BY NAME** (ST0095
+    // WP-07): the thread is read through the waist's thread door and carried
+    // whole, never as text a later reader would have to guess at.
+    let Ok(to) = crate::id::normalise_thread_id(&to) else {
+      return Err((
+        FindingClass::UnparseableRow,
+        format!("{id} records `descoped-to: {to}`, which names no steel thread"),
+      ));
+    };
     (
       AcKind::NonTest,
       AcState::Descoped {

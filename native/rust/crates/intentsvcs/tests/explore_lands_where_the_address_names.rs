@@ -82,7 +82,7 @@ fn anything(_: &View) -> bool {
 fn every_addressable_form_either_opens_a_view_or_is_refused_by_name() {
   assert_eq!(FORMS.len(), 13, "the address grammar's form set has moved");
   for (form, url) in FORMS {
-    let landing = nav::land(url, anything);
+    let landing = nav::land(url, anything, &intentsvcs::id::NoRecords);
     if WITH_VIEWS.contains(form) {
       assert!(
         matches!(landing, Landing::At(_)),
@@ -105,8 +105,8 @@ fn every_addressable_form_either_opens_a_view_or_is_refused_by_name() {
 #[test]
 fn the_presence_test_is_actually_consulted() {
   let url = "intent:///threads/ST0056";
-  let found = nav::land(url, |_| true);
-  let missing = nav::land(url, |_| false);
+  let found = nav::land(url, |_| true, &intentsvcs::id::NoRecords);
+  let missing = nav::land(url, |_| false, &intentsvcs::id::NoRecords);
   assert_ne!(
     found, missing,
     "the presence test is not consulted -- `land` returns the same landing whether the entity is \
@@ -123,7 +123,7 @@ fn the_presence_test_is_actually_consulted() {
 /// same screen.
 #[test]
 fn a_well_formed_address_for_something_absent_opens_the_root_and_says_so() {
-  let landing = nav::land("ST9999", |_| false);
+  let landing = nav::land("ST9999", |_| false, &intentsvcs::id::NoRecords);
   let Landing::Root(Unlanded::Absent { kind, view, .. }) = &landing else {
     panic!("a well-formed id for an absent thread did not report absence: {landing:?}");
   };
@@ -161,7 +161,7 @@ fn a_well_formed_address_for_something_absent_opens_the_root_and_says_so() {
 fn a_bare_short_number_names_two_things_and_the_message_says_which() {
   // `anything` says every view is present, so both rungs exist and the ladder
   // finds two. It refuses to pick -- which is the whole ruling.
-  let landing = nav::land("56", anything);
+  let landing = nav::land("56", anything, &intentsvcs::id::NoRecords);
   let Landing::Root(Unlanded::Ambiguous { candidates, .. }) = &landing else {
     panic!("`56` names two live things and was not reported as ambiguous: {landing:?}");
   };
@@ -177,7 +177,7 @@ fn a_bare_short_number_names_two_things_and_the_message_says_which() {
   // **AND THE POINT THE OLD ASSERTION WAS MAKING STILL HOLDS, MEASURED THE
   // SAME WAY.** A spelling that names nothing is a different answer from one
   // that names two -- now a different variant rather than a different sentence.
-  let nothing = nav::land("banana", anything);
+  let nothing = nav::land("banana", anything, &intentsvcs::id::NoRecords);
   let Landing::Root(Unlanded::Unreadable { why, .. }) = &nothing else {
     panic!("`banana` names nothing and was not reported as unreadable: {nothing:?}");
   };
@@ -197,7 +197,7 @@ fn a_bare_short_number_names_two_things_and_the_message_says_which() {
 /// thing they already have.
 #[test]
 fn a_real_address_with_no_view_is_not_reported_as_naming_nothing() {
-  let landing = nav::land("intent:///nodes/vc", anything);
+  let landing = nav::land("intent:///nodes/vc", anything, &intentsvcs::id::NoRecords);
   let Landing::Root(Unlanded::NoView { form, .. }) = &landing else {
     panic!("a node address was not reported as a viewless form: {landing:?}");
   };
@@ -215,8 +215,12 @@ fn a_real_address_with_no_view_is_not_reported_as_naming_nothing() {
 /// Both spellings hv named reach ONE door, so they must reach one answer.
 #[test]
 fn the_two_spellings_hv_named_reach_the_same_view() {
-  let bare = nav::land("ST0056", anything);
-  let url = nav::land("intent:///threads/ST0056", anything);
+  let bare = nav::land("ST0056", anything, &intentsvcs::id::NoRecords);
+  let url = nav::land(
+    "intent:///threads/ST0056",
+    anything,
+    &intentsvcs::id::NoRecords,
+  );
   assert_eq!(
     bare, url,
     "`ST0056` and its URL form landed in different places"
@@ -252,7 +256,7 @@ fn every_child_view_this_maps_to_is_a_descent_the_declaration_carries() {
     "intent:///threads/ST0056/ac",
     "intent:///threads/ST0056/wp/01",
   ] {
-    let (kind, field) = match nav::land(url, anything) {
+    let (kind, field) = match nav::land(url, anything, &intentsvcs::id::NoRecords) {
       Landing::At(View::Children { kind, field, .. }) => (kind, field),
       Landing::At(View::Child { kind, field, .. }) => (kind, field),
       other => panic!("`{url}` did not open a child view: {other:?}"),

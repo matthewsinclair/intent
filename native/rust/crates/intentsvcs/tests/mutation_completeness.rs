@@ -1192,7 +1192,7 @@ fn state_named(name: &str) -> AcState {
       evidence: "the render itself".to_string(),
     },
     "descoped" => AcState::Descoped {
-      to: "ST0057".to_string(),
+      to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
       by: Some("hv".to_string()),
       reason: None,
     },

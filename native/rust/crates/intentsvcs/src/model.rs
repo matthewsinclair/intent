@@ -1285,7 +1285,10 @@ pub enum AcState {
   },
   Descoped {
     /// The thread the requirement moved to, eg `ST0000`.
-    to: String,
+    // A typed thread id, whose canon face is its stored string (ST0095 WP-07),
+    // so a reader never meets text no door can resolve. `//` on purpose: a
+    // `///` here is shipped into the JSON Schema face.
+    to: crate::id::ThreadId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

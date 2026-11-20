@@ -1392,7 +1392,7 @@ mod tests {
           "AC-03.2",
           AcKind::Test,
           AcState::Descoped {
-            to: "ST0057".to_string(),
+            to: crate::id::ThreadId::parse("ST0057").expect("a stored thread id"),
             by: None,
             reason: None,
           },

@@ -671,7 +671,11 @@ pub fn entity_for_item(view: &View) -> Option<Entity> {
 /// `present` keeps this module free of the facade, the same way the TUI's
 /// editor launcher is passed in as a closure rather than resolved where it is
 /// used. Both faces then share one presence rule instead of writing two.
-pub fn land(input: &str, present: impl Fn(&View) -> bool) -> Landing {
+pub fn land(
+  input: &str,
+  present: impl Fn(&View) -> bool,
+  scope: &impl crate::id::IdScope,
+) -> Landing {
   // **ONE PROBE, DERIVED, RATHER THAN A SECOND CLOSURE INJECTED BESIDE
   // `present`.** The ruled shape was a second injected closure; this asks the
   // one that is already here. `exists` and `present` would be two probes of
@@ -691,7 +695,7 @@ pub fn land(input: &str, present: impl Fn(&View) -> bool) -> Landing {
   // than that somebody added one.
   let exists =
     |a: &crate::address::Address| view_for(&a.entity).map(|v| present(&v)).unwrap_or(false);
-  let address = match crate::resolve::resolve(input, exists) {
+  let address = match crate::resolve::resolve(input, exists, scope) {
     Ok(crate::resolve::Resolution::Resolved(a)) => a,
     // **THE LADDER FOUND TWO AND REFUSES TO PICK.** Precedence here would be
     // `0189` one layer up: answering confidently about the entity the caller

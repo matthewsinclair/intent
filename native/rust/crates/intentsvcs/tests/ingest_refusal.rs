@@ -267,7 +267,7 @@ fn a_descoped_test_backed_ac_ingests_and_keeps_its_payload() {
   assert_eq!(
     canon.threads[0].criteria[0].state,
     intentsvcs::model::AcState::Descoped {
-      to: "ST0057".to_string(),
+      to: intentsvcs::id::ThreadId::parse("ST0057").expect("a stored thread id"),
       by: Some("hv".to_string()),
       reason: Some("moved with the daemon".to_string()),
     },
