@@ -1,0 +1,16 @@
+{
+  "id": "01M7W0A20DKEENFM4YP3MQXB7K",
+  "ts": "2026-11-20T08:14:01.741Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19 09:38Z by date -u, the thread marked started on 2026-11-20 (60b9adb0e). DONE: WP-01 (ae11d9939), WP-02 (ed1caeb36), WP-04, the waist (31dd4430c). WP-03 is landed, its guard S too (ea22af4c7, on dc's proof), and open only for AC-03.3, its screenshots, after WP-06 and WP-10. LANDED 2026-11-20: WP-10a (7e0eb368c; 0710 closed, 0713 open for events --subject), issue 0711 (045086a17, closed), issue 0720 (26a752653, devbin-dc's on dc's brief; dc closes it), the guard S (ea22af4c7). The shared set is at 1fd4d88b6 (dc, 07:38Z) and is frozen from WP-06's land. AFTER hv's COMPACTS of 2026-11-20: cc's WP-05+06 unit (L) fixes its suite's reds, runs one suite, rebases past 0711, then takes steps 4 to 9 on cc's todo 55, with the store-holds-the-format fix vc OK'd (in the design at e77a68439), and one gate run at the end; rhadamanth's cargo lane is cc's first. ic: WP-10 PART 1 (the doors, the events union closing 0713, intent id <token> for dc's WP-12, issue 0721's doctor row) to its proof on gyges; PART 2 after cc's unit (GraphQL String! ids at SDL face 25, T1 to T9, the 53 hand-built canon test files scoped with cc). dc: WP-14 with 0719 (claimed at 2f13ee69c), then 0718, 0715 and 0722 as one unit, WP-08 and WP-09 after WP-06, WP-12 after PART 1. devbin-dc: issues 0723 and 0724 (vc todo 91), then ST0096 WP-03. WP-14 lands before or after cc's unit, never inside it. Then cc's WP-07, ic's WP-10 second half, WP-11, WP-13. Residue on WP-06's list: facade_st_wp.rs:25, 26 and 288 build a thread path by hand. vc reads each unit's proof with its critic review (vc decision 133); vc decision 132: no dev build touches the main checkout's store."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "01M7W0A39Z656N7KV4H61E59PC",
+  "ts": "2026-11-20T08:14:03.072Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: UNDER WAY since 2026-11-19 11:38Z by date -u, on hv's go (hv decision 71; 66, 67 and 70 rule the direction, the Highlander check and the same-thread case). cc's canon split for WP-05 is in the design at dd01150ce: one canon file per record (work package, criterion, test and attachment), one unreleased canon version for the release so a project runs intent upgrade once, and the 22 closed records still committed go in the upgrade's commit. hv decision 74 (2026-11-20): acceptance.md and the cover's package table stop being committed; the design carries it (8f6beab03), and AC-02.1, AC-02.2 and AC-03.1 now name the aggregate views. WP-05's criteria AC-05.1 to AC-05.3 are recorded in cc's meaning (45253b5b6). ic's WP-02 design point is answered in cc's meaning and is in the design with a new AC-02.3 (e77a68439): every planner's corpus reads the one declared set whatever .gitignore says, and doctor shows a missing or stale ignored aggregate view with intent sync --to-disk as the fix and counts neither, while a tracked one is counted as today. ic goes on wip2 from wip1 (refs/bank/ic/st0096/wp02-wip1-on-421b6d6d1; run 1 failed 10 tests), its proof answering AC-02.1 to AC-02.3. Packages: cc WP-01 (M) and WP-05 (L), both after ST0095 WP-06; ic WP-02 (M), in tmp/wt-st0096-wp02; WP-03 (S, after 02) goes to devbin-dc on dc's brief, dc reading its proof (vc todo 91); dc WP-04 (S, the proof with AC-04.2, after 01, 02 and 05). Issue 0704 is superseded by this thread."
+  }
+}
