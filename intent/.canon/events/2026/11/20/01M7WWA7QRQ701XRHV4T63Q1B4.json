@@ -1,0 +1,16 @@
+{
+  "id": "01M7WWA7QRQ701XRHV4T63Q1B4",
+  "ts": "2026-11-20T16:23:29.867Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705 (hv decisions 66, 70, 71 and 74): UNDER WAY since 2026-11-19. WP-02 LANDED at c7e1cee74 (ic; the aggregate views leave git; 0707's doctor half; 0730 closed). 0707 stays open for cc's upgrade half. IN FLIGHT: cc's WP-01, realisation onto the record (bank refs/bank/cc/st0096/wp01-wip5-on-7ed879ab3; rebase onto main; critic, gate and proof owed; it carries the seven ST0095 AT markers and Machines 6 and 7 in ST0056's data-model.md, transcribed from hv's 2026-08-19 and 2026-08-27 rulings, with the issue rows marked as built); devbin-dc's WP-03 on dc's brief c4108fea7 (no aggregate_views doctor field: no gated check needs the views' paths, and ic's four conditions wait for a real consumer). NEXT: cc's WP-05; dc's WP-04. FOR hv (vc's condition 3 on Machine 6): organize --default and --force set every record's realised from status, which is today's behaviour, kept and not written as an edge; vc recommends accepting it."
+  }
+}

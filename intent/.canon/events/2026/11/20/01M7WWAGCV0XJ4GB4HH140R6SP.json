@@ -1,0 +1,16 @@
+{
+  "id": "01M7WWAGCV0XJ4GB4HH140R6SP",
+  "ts": "2026-11-20T16:23:37.898Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b), 0731 (fb3a501d1) and ST0095 WP-12's guard half (1d3604937). NOW: ST0096 WP-03 on dc's brief (blob c4108fea7), on main after c7e1cee74. dc reads each proof; vc lands it."
+  }
+}

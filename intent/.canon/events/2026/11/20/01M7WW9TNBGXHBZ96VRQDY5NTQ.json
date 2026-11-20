@@ -1,0 +1,16 @@
+{
+  "id": "01M7WW9TNBGXHBZ96VRQDY5NTQ",
+  "ts": "2026-11-20T16:23:17.197Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids (hv decisions 61 to 74; P0, 'or P(-1)', hv decision 72): UNDER WAY since 2026-11-19. DONE: WP-01, WP-02, WP-04, WP-14 (4c72d9510). LANDED on 2026-11-20, each on its builder's proof, read by vc and not rerun, through WP-05+06 (ed302b7e4); then WP-14 with 0719 and 0708 closed (7ed879ab3); WP-12's guard half, AC-12.1 (1d3604937, devbin-dc); the remint doors, AC-10.5 and AC-06.3 (45028cbd3 and d663e3ea6, ic); 0718, 0715 and 0729 with WP-14's R1 (cc2358b01, dc; vc's W4 ruling: an attach never destroys an author's unsynced file). THE SHARED SET is FROZEN at e50978ce0 (decision 132). OPEN: WP-03 for AC-03.3; WP-06 for AC-06.1's issue half (ST0096 WP-01) and AC-06.6 (the drill). IN FLIGHT at hv's 16:22Z compact: devbin-cc's WP-07 v3 or v4 (v2 = 7c8eb7d2e, green; ic accepted the signature and found F1, so the CLI doors complete no prefix, plus F2, MCP transport, and R1, the too-short refusal, all ruled into WP-07; rebase onto main; cc's meaning read is owed); dc's 0722, design to cc on silence, with disk_match unit-tested pure for both fold values. NEXT: ic's WP-10 Part 2 (after WP-07), WP-11 and WP-13; dc's WP-08, WP-09 and WP-12's routing half. Rule: a bank that renames or removes a cited test re-cites its AT row in the land (absent_at_check; the gyges gate runs no repo-local guard)."
+  }
+}
