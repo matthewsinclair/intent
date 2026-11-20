@@ -3031,10 +3031,10 @@
       "node": "vc",
       "kind": "todo",
       "seq": 91,
-      "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs, in order. DONE: 0723+0724 (9e533703e), and 0725 to 0728 (dddd6345b, closed in the land, with residue_class_check ruled gating). NEXT: (a) issue 0731, XS (the last unit's five pre-existing critic items, one of them a silent git failure in precommit), on dc's brief (blob 0d4b500eb), based on dddd6345b. (b) ST0095 WP-12's guard half (AC-12.1), on dc's brief (blob 99bbfa108), based on (a)'s land, since both touch precommit. (c) ST0096 WP-03, once ic's ST0096 WP-02 lands, after cc's ST0095 WP-05+06 unit. dc reads each proof; vc lands it and closes its issues in the land commit.",
+      "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b) and 0731 (fb3a501d1), each closed in its land. NOW: ST0095 WP-12's guard half (AC-12.1), on dc's brief (blob 99bbfa108), based on fb3a501d1, with 0731's two cosmetic leftovers folded in (pipefail's context label, residue's doubled NO VERDICT line). NEXT: ST0096 WP-03, once ic's ST0096 WP-02 lands, after cc's ST0095 WP-05+06 unit. dc reads each proof; vc lands it.",
       "state": "live",
       "recorded_at": "2026-11-20T07:49:49.184Z",
-      "edited_at": "2026-11-20T14:31:55.954Z"
+      "edited_at": "2026-11-20T14:50:49.495Z"
     },
     {
       "node": "vc",

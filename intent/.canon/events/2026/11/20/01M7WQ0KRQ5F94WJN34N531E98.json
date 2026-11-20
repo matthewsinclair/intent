@@ -1,0 +1,16 @@
+{
+  "id": "01M7WQ0KRQ5F94WJN34N531E98",
+  "ts": "2026-11-20T14:50:49.495Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 91,
+    "text": "devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b) and 0731 (fb3a501d1), each closed in its land. NOW: ST0095 WP-12's guard half (AC-12.1), on dc's brief (blob 99bbfa108), based on fb3a501d1, with 0731's two cosmetic leftovers folded in (pipefail's context label, residue's doubled NO VERDICT line). NEXT: ST0096 WP-03, once ic's ST0096 WP-02 lands, after cc's ST0095 WP-05+06 unit. dc reads each proof; vc lands it."
+  }
+}
