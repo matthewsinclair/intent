@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "5af3bd13-884c-4502-be68-30788850cf56",
-    "heartbeat_at": "2026-11-20T09:38:02.386Z",
+    "heartbeat_at": "2026-11-20T14:16:14.088Z",
     "status": "active",
-    "focus": "2026-11-20 09:38Z by date -u: QUIESCED for hv's move (hv first-hand, and via the Desk at 09:36Z), not released. Seats told at once. Landed today since the compact: the guard S (ea22af4c7), 0723+0724 (9e533703e), WP-10 Part 1 (c437d1d83). In hand: ic's ST0096 WP-02 proved, landing after cc's unit; devbin-cc's WP-07 waits on WP-06; devbin-dc's queue 0725-0728, WP-12's guard half, ST0096 WP-03. On go: land each proof as it comes; name WP-07's base when WP-06 lands.",
+    "focus": "2026-11-20 14:16Z by date -u: resumed after hv's move (the Desk hold lifted at 14:15Z); cc, ic and dc restarted from their banks. Waiting on: cc's final gate and proof for WP-05+06, dc's WP-14 proof, devbin-dc's 0725-0728. Landing each proof as it comes; WP-07's base named when WP-06 lands.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -3050,7 +3050,8 @@
       "kind": "todo",
       "seq": 93,
       "text": "ON hv's GO after the move (quiesced at 09:38Z to 09:39Z by date -u, 2026-11-20): restart cc (refs/bank/cc/st0095/wp0506-wip10-on-0901275bb, 87 files: steps 7, 8 and 9 written and not yet compiled; then one clippy, one suite, fixes, the final gate with critic-rust, the proof), ic (refs/bank/ic/quiesce-notes-20261120; WP-13's draft; re-run the read-only critic on the merged is_tracked if its report was lost) and dc (refs/bank/dc/st0095/wp14-bank2 = dbfde412c, critic-rust's report, then one gate rust; DOING 171), through the Desk. FOR THE RECORD, cc's word at the quiesce: ST0095 AC-06.1's issue half needs ST0096 WP-01, since issues add declares a .intentfiles row and two clones' rows conflict until .intentfiles leaves git, so WP-06 stays open for it as well as for AC-06.3; AC-06.6 is by construction plus WP-12's drill.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-20T14:16:13.011Z",
       "recorded_at": "2026-11-20T09:40:44.725Z"
     }
   ],
