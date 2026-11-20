@@ -66,6 +66,8 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 shared="$here/../cmd/shared"
 # shellcheck source-path=SCRIPTDIR source=../cmd/shared/releasestamp.lib
 . "$shared/releasestamp.lib"
+# shellcheck source-path=SCRIPTDIR source=../cmd/shared/guard.lib
+. "$shared/guard.lib"
 
 CHECK="${1:-}"
 TOOLS="$PROJECT_ROOT/intent/st/ST0056/parity/tools"
@@ -85,20 +87,21 @@ gate_log() {
     refuse "no temporary file for the $1 log under ${TMPDIR:-/tmp}" "make it writable, or point TMPDIR at a directory that is"
 }
 
-# Its three exits mean three things: 0 the two agree, 1 a finding that wants an
-# author, anything else no verdict, which refuses too: a gate that could not
-# run has not passed.
+# Its status is read by guard_verdict (shared/guard.lib), the commit gate's
+# reading too: a pass is the two agreeing, a finding wants an author, and no
+# verdict refuses as well, since a gate that could not run has not passed.
 check_contract() {
-  local log rc=0
+  local log rc=0 verdict
   log="$(gate_log contract)"
   bash "$TOOLS/contract_check.sh" >"$log" 2>&1 || rc=$?
-  case "$rc" in
-    0)
+  verdict="$(guard_verdict "$rc")"
+  case "$verdict" in
+    pass)
       rm -f "$log"
       printf 'ok: data-model.md and the published schema faces describe the same fields\n'
       ;;
-    1) refuse "data-model.md and the published schema faces disagree; the findings are in $log" "$AGAIN" ;;
-    *) refuse "contract_check.sh gave no verdict (rc=$rc), so nothing says the two agree; its output is in $log" "run it by hand to see why, $AGAIN" ;;
+    finding) refuse "data-model.md and the published schema faces disagree; the findings are in $log" "$AGAIN" ;;
+    *) refuse "contract_check.sh $verdict, so nothing says the two agree; its output is in $log" "run it by hand to see why, $AGAIN" ;;
   esac
 }
 
@@ -107,16 +110,17 @@ check_contract() {
 # --allow-stale-reference has no successor: a cut that ships pages describing
 # another revision is the defect this exists to stop.
 check_reference() {
-  local log rc=0
+  local log rc=0 verdict
   log="$(gate_log reference)"
   bash "$TOOLS/reference_current_check.sh" >"$log" 2>&1 || rc=$?
-  case "$rc" in
-    0)
+  verdict="$(guard_verdict "$rc")"
+  case "$verdict" in
+    pass)
       rm -f "$log"
       printf 'ok: docs/reference describes this commit against the previous release tag\n'
       ;;
-    1) refuse "docs/reference does not describe this commit; the diff and the commands that fix it are in $log" "regenerate both halves and commit them (intent/docs/releasing.md), $AGAIN" ;;
-    *) refuse "reference_current_check.sh gave no verdict (rc=$rc); its output is in $log" "run it by hand to see why, $AGAIN" ;;
+    finding) refuse "docs/reference does not describe this commit; the diff and the commands that fix it are in $log" "regenerate both halves and commit them (intent/docs/releasing.md), $AGAIN" ;;
+    *) refuse "reference_current_check.sh $verdict; its output is in $log" "run it by hand to see why, $AGAIN" ;;
   esac
 }
 

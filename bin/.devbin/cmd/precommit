@@ -43,6 +43,9 @@
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
+# guard_verdict: the one reading of a guard's exit status.
+# shellcheck source-path=SCRIPTDIR source=shared/guard.lib
+. "$(dirname "${BASH_SOURCE[0]}")/shared/guard.lib"
 
 # `--help` prints the usage block above and runs nothing; it ran the gate, every guard.
 case "${1:-}" in
@@ -173,26 +176,26 @@ FULL=0
 rc=0
 failed=""
 
-# THE ONE READING OF A GUARD'S EXIT STATUS (issue 0714). A guard whose status is
-# read runs as `x=0; bash <tool> || x=$?`, never as a bare call: under `set -e`
-# a bare call's non-zero exit ends the gate where it stands, before the guards
-# after it and before the report at the bottom. Its status then means one thing
-# for every such guard: 0 passes, 1 is the finding its step names, and anything
-# else is no verdict, named by its code and never by a cause it did not
-# establish, since a control that did not fire, a tool's own die() and bash's
-# 126 and 127 all land there.
-# tool_verdict <tool> <status> <finding> -- adds <tool>'s line to the report.
+# THE ONE READING OF A GUARD'S EXIT STATUS IS guard_verdict, in shared/guard.lib
+# (issues 0714 and 0720), and the cut's gates read their guards through it too.
+# A guard whose status is read runs as `x=0; bash <tool> || x=$?`, never as a
+# bare call, for the reason given there.
+# tool_verdict <tool> <status> <finding> -- adds <tool>'s line to the report:
+# nothing for a pass, <finding> for a finding, and for anything else the
+# no-verdict wording guard_verdict gives, then where to look.
 tool_verdict() {
-  case "$2" in
-    0) ;;
-    1)
+  local verdict
+  verdict="$(guard_verdict "$2")"
+  case "$verdict" in
+    pass) ;;
+    finding)
       rc=1
       failed="${failed}  $1 -- $3
 "
       ;;
     *)
       rc=1
-      failed="${failed}  $1 -- gave no verdict (exit $2); its own message above, if any, says why
+      failed="${failed}  $1 -- $verdict; its own message above, if any, says why
 "
       ;;
   esac

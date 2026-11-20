@@ -1,0 +1,37 @@
+# shellcheck shell=bash
+#
+# shared/guard.lib -- what a guard's exit status says, for both commit-time
+# gates (issue 0720). SOURCED, never run: it is 0644 so `is_handler` (-f AND -x)
+# cannot mistake it for a command.
+#
+# THE ONE READING OF A GUARD'S EXIT STATUS (issue 0714). A guard whose status is
+# read runs as `x=0; bash <tool> || x=$?`, never as a bare call: under `set -e`
+# a bare call's non-zero exit ends the gate where it stands, before it reports,
+# so the commit gate never reaches its later guards or its summary, and a cut
+# gate never names the log and the remedy. Its status then means one thing for
+# every such guard: 0 passes, 1 is the finding its step names, and anything
+# else is no verdict, named by its code and never by a cause it did not
+# establish, since a control that did not fire, a tool's own die() and bash's
+# 126 and 127 all land there.
+#
+# BOTH GATES READ A GUARD'S STATUS HERE, AND EACH REPORTS IT ITS OWN WAY. The
+# commit gate (cmd/precommit) adds the guard's line to its summary and runs the
+# guards after it. A cut gate (cut/gate) refuses at once, naming the log the
+# guard wrote and its remedy. Until issue 0720 the cut's contract and reference
+# checks each restated this reading in their own `case` arms and their own
+# words ("gave no verdict (rc=N)"), so a change to what a status means could
+# reach one gate and not the other.
+
+# guard_verdict <status> -- what a guard's exit <status> says, on stdout: `pass`
+# for 0, `finding` for 1, and for any other status the one wording of no
+# verdict, `gave no verdict (exit <status>)`, which its caller follows with
+# where the guard's own output is. A caller reads `pass` and `finding` by name
+# and takes anything else as no verdict, so a status this does not know can
+# never read as a pass.
+guard_verdict() {
+  case "$1" in
+    0) printf 'pass\n' ;;
+    1) printf 'finding\n' ;;
+    *) printf 'gave no verdict (exit %s)\n' "$1" ;;
+  esac
+}

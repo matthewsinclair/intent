@@ -139,7 +139,7 @@ write_pair() {
   export STUB_CONTRACT_RC=3
   check contract
   assert_failure
-  err_has "no verdict (rc=3)"
+  err_has "contract_check.sh gave no verdict (exit 3)"
 }
 
 @test "AT-01.5: reference: current pages pass, and stale pages and a missing verdict each refuse with the remedy" {
@@ -153,7 +153,7 @@ write_pair() {
   export STUB_REFERENCE_RC=2
   check reference
   assert_failure
-  err_has "no verdict (rc=2)"
+  err_has "reference_current_check.sh gave no verdict (exit 2)"
 }
 
 @test "AT-01.5: rust: a green run passes after every twin, and leaves no worktree behind" {
