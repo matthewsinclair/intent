@@ -1,0 +1,15 @@
+{
+  "id": "01M7W421T0M6A8A5Y684GHGM1B",
+  "ts": "2026-11-20T09:19:33.700Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0730"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Two ways of asking git whether a path is tracked, with two answers for a git that cannot be asked"
+  }
+}
