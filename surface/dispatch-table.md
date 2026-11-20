@@ -223,7 +223,8 @@ Manage steel threads for the project
 | `st edit`                           | <id> [file]   | --editor, --path                                                         | Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one; the files a realise writes are named on stderr as `wrote:` lines | keep        |
 | `st attach`                         | <id> <path>   | --from <file>                                                            | Write an attachment's content from a local file                                                                                                                                                                          | new-surface |
 | `st detach`                         | <id> <path>   | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                                                                                                           | new-surface |
-| `st renumber`                       | <old> <new>   | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                                                                                                             | new-surface |
+| `st renumber`                       | <old> <new>   | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                                                                                                             | retire      |
+| `st remint`                         | <id>          | --                                                                       | Move an ordinal steel thread to its git-style id, with everything that names it structurally                                                                                                                             | new-surface |
 | `st relate`                         | <id> <target> | --note <text>                                                            | Link a thread to another, or replace the note on a link it already carries                                                                                                                                               | new-surface |
 | `st unrelate`                       | <id> <target> | --                                                                       | Drop a thread's link to another, including a link to a thread that no longer exists                                                                                                                                      | new-surface |
 | `st sync`                           | --            | --write, --width <n>, --format terminal/md                               | Print the steel thread index; with `--write`, write it and each thread's projection to disk                                                                                                                              | keep        |
@@ -673,14 +674,35 @@ Move a steel thread to a free id, with everything that names it structurally
   - `1` -- `<old>` does not exist, `<new>` is taken by the store or the tree, or the filesystem refused a move -- in each case nothing is renumbered
 - **stdout:** `ok: <old> renumbered to <new>`, then `moved: ...` per path or manifest row, `rewritten: ...` per structured reference, and `prose: <path>[:<line>]` per mention the index found and left alone, with a closing `note:` saying so
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `new-surface`
+- **Target:** `retire`
+- **spelling:** intent st remint <id>
+- **retired by:** ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent st remint <id>`, which moves an ordinal thread to the id the one mint derives for it. It carried target state `new-surface`.
 - **MCP:** not exposed -- **mutates**
 - **basis:** ST0078 WP-02 (AC-02.1), vc's order of 2026-09-18 on hv's ruling that ST0078 goes into 3.1.0 whole. **Two clones mint ids highest-plus-one over their own canon, so both can mint one id**; git refuses the merge with an add/add conflict on the canon file (driven, ST0078 design.md E4), so the collision stays git's to catch and this is the repair the losing side runs before merging again. It refuses when `<new>` is held by the store OR the tree -- a canon file or directory the store does not hold is usually a pull not yet loaded. Otherwise it moves the canon file, the realised directory whole (views, attachments and any file nobody modelled), the canon sidecars and the `.intentfiles` row; rewrites every `related` reference in other threads and every board claim on the thread or its packages; writes its own `st.renumber` event; and prints the prose references the index found and did NOT rewrite, because prose is authored.
 - **owner wp:** WP-02
 - **acceptance:** AC-02.1
 - **recoverability:** reversible
-- **recoverability anomaly:** Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).
-- **facade:** st_renumber
+- **recoverability anomaly:** Withheld because it is retired: a retired command reaches neither clap nor the MCP roster, and a call to it on either door is refused with `intent st remint <id>` as the remedy.
+
+### `st remint`
+
+Move an ordinal steel thread to its git-style id, with everything that names it structurally
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Exit codes:**
+  - `0` -- reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id
+  - `1` -- the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves
+- **stdout:** `ok: <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **basis:** ST0095 WP-10 (AC-10.5), the door to cc's `st_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The thread moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; a thread the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `st renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.
+- **owner wp:** WP-10
+- **acceptance:** ST0095 AC-10.5
+- **recoverability:** one-way
+- **facade:** st_remint
 
 ### `st relate`
 
@@ -1738,18 +1760,19 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args        | flags                                                                             | help                                                          | disposition |
-| --------------------------------- | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------- |
-| `issues`                          | [command]   | --project <project>, --width <n>, --format terminal/md                            | Track issues without the ceremony of a steel thread           | keep        |
-| `issues list`                     | --          | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                   | keep        |
-| `issues add` (alias `issues new`) | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                           | keep        |
-| `issues edit`                     | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity | new-surface |
-| `issues show`                     | <id>        | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                           | keep        |
-| `issues close`                    | <id>        | --                                                                                | Mark an issue done: OPEN -> CLOSED                            | keep        |
-| `issues open`                     | <id>        | --                                                                                | Reopen an issue: CLOSED -> OPEN                               | keep        |
-| `issues renumber`                 | <old> <new> | --                                                                                | Move an issue to a free number, with its canon file and view  | new-surface |
-| `issues hydrate`                  | <id>        | --                                                                                | Add an issue to .intentfiles and write its files              | retire      |
-| `issues dehydrate`                | <id>        | --                                                                                | Remove an issue from .intentfiles and delete its files        | retire      |
+| command                           | args        | flags                                                                             | help                                                                                  | disposition |
+| --------------------------------- | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------- |
+| `issues`                          | [command]   | --project <project>, --width <n>, --format terminal/md                            | Track issues without the ceremony of a steel thread                                   | keep        |
+| `issues list`                     | --          | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                                           | keep        |
+| `issues add` (alias `issues new`) | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                                                   | keep        |
+| `issues edit`                     | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity                         | new-surface |
+| `issues show`                     | <id>        | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                                                   | keep        |
+| `issues close`                    | <id>        | --                                                                                | Mark an issue done: OPEN -> CLOSED                                                    | keep        |
+| `issues open`                     | <id>        | --                                                                                | Reopen an issue: CLOSED -> OPEN                                                       | keep        |
+| `issues renumber`                 | <old> <new> | --                                                                                | Move an issue to a free number, with its canon file and view                          | retire      |
+| `issues remint`                   | <id>        | --                                                                                | Move an ordinal issue to its git-style id, with everything that names it structurally | new-surface |
+| `issues hydrate`                  | <id>        | --                                                                                | Add an issue to .intentfiles and write its files                                      | retire      |
+| `issues dehydrate`                | <id>        | --                                                                                | Remove an issue from .intentfiles and delete its files                                | retire      |
 
 ### `issues`
 
@@ -1972,14 +1995,35 @@ Move an issue to a free number, with its canon file and view
   - `1` -- `<old>` does not exist, or `<new>` is taken by the store or the tree -- nothing is renumbered
 - **stdout:** `ok: issue <old> renumbered to <new>`, then `moved:` and `prose:` lines as for `st renumber`
 - **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `new-surface`
+- **Target:** `retire`
+- **spelling:** intent issues remint <id>
+- **retired by:** ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent issues remint <id>`, which moves an ordinal issue to the id the one mint derives for it. It carried target state `new-surface`.
 - **MCP:** not exposed -- **mutates**
 - **basis:** ST0078 WP-02 (AC-02.2): the issue half of `st renumber`, for the same collision -- issue numbers are minted highest-plus-one over the local canon exactly as thread ids are. It refuses a number the store or the tree holds, moves the canon file, the view and the `.intentfiles` row, writes its own `issues.renumber` event, and prints the prose references it did not rewrite -- including an issue body's own `# <nnnn>:` line, which is carried text rather than a rendered heading.
 - **owner wp:** WP-02
 - **acceptance:** AC-02.2
 - **recoverability:** reversible
-- **recoverability anomaly:** Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).
-- **facade:** issue_renumber
+- **recoverability anomaly:** Withheld because it is retired: a retired command reaches neither clap nor the MCP roster, and a call to it on either door is refused with `intent issues remint <id>` as the remedy.
+
+### `issues remint`
+
+Move an ordinal issue to its git-style id, with everything that names it structurally
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Exit codes:**
+  - `0` -- reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id
+  - `1` -- the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves
+- **stdout:** `ok: issue <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **basis:** ST0095 WP-10 (AC-10.5), the door to cc's `issue_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The issue moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; an issue the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `issues renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.
+- **owner wp:** WP-10
+- **acceptance:** ST0095 AC-10.5
+- **recoverability:** one-way
+- **facade:** issue_remint
 
 ### `issues hydrate`
 

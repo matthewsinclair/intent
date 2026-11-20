@@ -3723,10 +3723,10 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NotEditable { author_with, .. } => format!("author it with {author_with}"),
       Self::CaseVariant { .. } => crate::finding::FindingClass::CaseVariant.remedy().to_string(),
       Self::RenumberTargetTaken { .. } => {
-        "nothing was renumbered. Pick an id nothing holds: `intent st list --status all` and \
-         `intent issues list` show what the store holds, and a canon file or directory on disk \
-         that the store does not hold is usually a pull not yet loaded, which `intent sync \
-         --apply` loads without discarding anything the store holds"
+        "nothing was renumbered. A canon file or directory on disk that the store does not \
+         hold is usually a pull not yet loaded: `intent sync --apply` loads it without \
+         discarding anything the store holds, and the remint or the merge's repair then mints \
+         past it"
           .to_string()
       }
       Self::RenumberDiskStep { .. } => {
@@ -3740,8 +3740,9 @@ impl crate::remedy::Remedy for FacadeError {
           .to_string()
       }
       Self::RenumberNotMerging { id } => format!(
-        "nothing was renumbered. With no merge in progress `intent st renumber {id} <new>` (or \
-         `intent issues renumber`) moves this clone's record before you merge again"
+        "nothing was renumbered. With no merge in progress `intent st remint {id}` (or \
+         `intent issues remint {id}`) moves this clone's record to its git-style id before you \
+         merge again"
       ),
       Self::SyncDiskStep { .. } => {
         "the merge is partly repaired and the steps before this one stand. Clear the filesystem \

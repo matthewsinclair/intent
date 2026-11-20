@@ -565,6 +565,23 @@ const DECLARED: &[(&str, &str, Why)] = &[
     "agents validate",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),
+  (
+    "intentsvcs/src/facade.rs",
+    "st remint",
+    Why::NotARoster(
+      "one refusal's own verb: `Facade::st_remint` names the command it serves in \
+       `NotYetUpgraded`'s message, once, beside the method the row's `facade` field names \
+       (ST0095 WP-10). Not a list of commands",
+    ),
+  ),
+  (
+    "intentsvcs/src/facade.rs",
+    "issues remint",
+    Why::NotARoster(
+      "one refusal's own verb, for `st remint`'s reason: `Facade::issue_remint` names the \
+       command it serves in `NotYetUpgraded`'s message (ST0095 WP-10). Not a list of commands",
+    ),
+  ),
 ];
 
 /// The four `const`s a per-`const` sweep surfaced on 2026-08-30, classified by

@@ -1275,14 +1275,53 @@
             "stderr": "`error: ...` on stderr (INV-01)"
           },
           "target": {
+            "state": "retire",
+            "spelling": "intent st remint <id>",
+            "retired_by": "ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent st remint <id>`, which moves an ordinal thread to the id the one mint derives for it. It carried target state `new-surface`."
+          },
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "Withheld because it is retired: a retired command reaches neither clap nor the MCP roster, and a call to it on either door is refused with `intent st remint <id>` as the remedy."
+        },
+        {
+          "path": "st remint",
+          "help": "Move an ordinal steel thread to its git-style id, with everything that names it structurally",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0095 WP-10 (AC-10.5), the door to cc's `st_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The thread moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; a thread the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `st renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.",
+          "owner_wp": "WP-10",
+          "acceptance": "ST0095 AC-10.5",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id"
+              },
+              {
+                "code": 1,
+                "when": "the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves"
+              }
+            ],
+            "stdout": "`ok: <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
             "state": "new-surface"
           },
           "disposition": "new-surface",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible",
-          "recoverability_anomaly": "Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).",
-          "facade": "st_renumber"
+          "recoverability": "one-way",
+          "facade": "st_remint"
         },
         {
           "path": "st relate",
@@ -4224,14 +4263,53 @@
             "stderr": "`error: ...` on stderr (INV-01)"
           },
           "target": {
+            "state": "retire",
+            "spelling": "intent issues remint <id>",
+            "retired_by": "ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent issues remint <id>`, which moves an ordinal issue to the id the one mint derives for it. It carried target state `new-surface`."
+          },
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "Withheld because it is retired: a retired command reaches neither clap nor the MCP roster, and a call to it on either door is refused with `intent issues remint <id>` as the remedy."
+        },
+        {
+          "path": "issues remint",
+          "help": "Move an ordinal issue to its git-style id, with everything that names it structurally",
+          "args": [
+            {
+              "name": "id",
+              "type": "issue-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0095 WP-10 (AC-10.5), the door to cc's `issue_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The issue moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; an issue the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `issues renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.",
+          "owner_wp": "WP-10",
+          "acceptance": "ST0095 AC-10.5",
+          "observed": {
+            "exit": [
+              {
+                "code": 0,
+                "when": "reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id"
+              },
+              {
+                "code": 1,
+                "when": "the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves"
+              }
+            ],
+            "stdout": "`ok: issue <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id",
+            "stderr": "`error: ...` on stderr (INV-01)"
+          },
+          "target": {
             "state": "new-surface"
           },
           "disposition": "new-surface",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible",
-          "recoverability_anomaly": "Reversible by renumbering back, and withheld because it moves directories and rewrites other threads' references and other nodes' claims, which makes it a repair an agent runs because it was asked and never unasked (vc, 2026-09-18).",
-          "facade": "issue_renumber"
+          "recoverability": "one-way",
+          "facade": "issue_remint"
         },
         {
           "path": "issues hydrate",
@@ -11991,6 +12069,7 @@
       "st attach",
       "st detach",
       "st renumber",
+      "st remint",
       "st relate",
       "st unrelate",
       "st sync",
@@ -12038,6 +12117,7 @@
       "issues close",
       "issues open",
       "issues renumber",
+      "issues remint",
       "issues hydrate",
       "issues dehydrate",
       "todo",
@@ -12193,7 +12273,7 @@
       "st edit",
       "st attach",
       "st detach",
-      "st renumber",
+      "st remint",
       "st relate",
       "st unrelate",
       "st sync",
@@ -12237,7 +12317,7 @@
       "issues show",
       "issues close",
       "issues open",
-      "issues renumber",
+      "issues remint",
       "todo",
       "todo list",
       "todo update",
@@ -12364,9 +12444,11 @@
       "id"
     ],
     "retired": [
+      "st renumber",
       "st repair",
       "st organize",
       "st bootstrap",
+      "issues renumber",
       "issues hydrate",
       "issues dehydrate",
       "organize",
@@ -12398,7 +12480,7 @@
       "st edit",
       "st attach",
       "st detach",
-      "st renumber",
+      "st remint",
       "st relate",
       "st unrelate",
       "st sync",
@@ -12442,7 +12524,7 @@
       "issues show",
       "issues close",
       "issues open",
-      "issues renumber",
+      "issues remint",
       "todo",
       "todo list",
       "todo update",

@@ -2992,16 +2992,18 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
-    // ST0078 WP-02: move a thread to a free id after two clones minted one.
-    Some(("renumber", a)) => {
-      let old = thread_arg(a, "old")?;
-      let new = thread_arg(a, "new")?;
+    // ST0095 WP-10 (AC-10.5): move an ordinal thread to its git-style id. The
+    // one argument is the whole door: the id it moves to is the one mint's, so
+    // no verb names an ordinal to mint (AC-06.3). The `ok:` line names both
+    // ids stored, whole, because that is the spelling the next command takes.
+    Some(("remint", a)) => {
+      let id = thread_id_arg(a, "id")?;
       let mut f = open()?;
-      let done = f.st_renumber(&old, &new).map_err(fail)?;
+      let done = f.st_remint(&id).map_err(fail)?;
       print_renumbering(
         &mut f,
         &done,
-        &format!("{old} renumbered to {new}"),
+        &format!("{} reminted to {}", done.from, done.to),
         "thread",
       );
       Ok(())
@@ -14239,16 +14241,15 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
-    // ST0078 WP-02: the issue half of `st renumber`.
-    Some(("renumber", a)) => {
-      let old = issue_arg(a, "old")?;
-      let new = issue_arg(a, "new")?;
+    // ST0095 WP-10 (AC-10.5): the issue half of `st remint`.
+    Some(("remint", a)) => {
+      let id = issue_arg(a, "id")?;
       let mut f = issues_open(m, Answer::Write)?.0;
-      let done = f.issue_renumber(old, new).map_err(fail)?;
+      let done = f.issue_remint(id).map_err(fail)?;
       print_renumbering(
         &mut f,
         &done,
-        &format!("issue {} renumbered to {}", old.shown(), new.shown()),
+        &format!("issue {} reminted to {}", done.from, done.to),
         "issue",
       );
       Ok(())
@@ -14479,7 +14480,7 @@ fn print_renumbering(
   }
   if !done.prose.is_empty() {
     println!(
-      "note: {} place(s) above still name {} in text somebody wrote -- a renumber does not \
+      "note: {} place(s) above still name {} in text somebody wrote -- a remint does not \
        rewrite prose, so read each one and change the ones that mean this {}",
       done.prose.len(),
       done.from,
@@ -16392,8 +16393,7 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
     return Err(address_refusal(raw, intentsvcs::id::IdKind::Thread));
   }
   let head = intentsvcs::id::split_wp_address(raw).map_or(raw, |(thread, _)| thread);
-  let id = intentsvcs::id::normalise_thread_id(head)
-    .map_err(|e| id_refusal(head, &e, intentsvcs::id::IdKind::Thread))?;
+  let id = thread_id(head)?;
   // The thread half takes its stored spelling, and the rest of `raw`, the
   // separator and the package's part, passes through as written (nothing when
   // `raw` names no package), so this function spells no separator of its own.
@@ -16620,6 +16620,24 @@ fn check_enum(given: &str, verb: &str, name: &str) -> Result<String, Failure> {
     )));
   }
   Ok(given.to_string())
+}
+
+/// One thread id, for a verb that takes a thread and never a package's address
+/// (`st remint`): read by [`thread_id`], the reader [`thread_spec`] reads a
+/// thread's half through.
+fn thread_id_arg(m: &ArgMatches, name: &str) -> Result<intentsvcs::id::ThreadId, Failure> {
+  thread_id(&arg(m, name)?)
+}
+
+/// A thread's id from an operator's spelling, refused through the waist: an
+/// address whole, before anything else reads it (vc, 2026-09-15), and any other
+/// bad spelling in the waist's one wording.
+fn thread_id(raw: &str) -> Result<intentsvcs::id::ThreadId, Failure> {
+  if raw.contains("://") {
+    return Err(address_refusal(raw, intentsvcs::id::IdKind::Thread));
+  }
+  intentsvcs::id::normalise_thread_id(raw)
+    .map_err(|e| id_refusal(raw, &e, intentsvcs::id::IdKind::Thread))
 }
 
 /// An operator's spelling of an ISSUE id, as a number.

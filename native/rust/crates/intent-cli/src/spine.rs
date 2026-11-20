@@ -1365,14 +1365,42 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   // holds every retired row's key present -- but it says what it knows rather
   // than asserting the stronger claim, because an unreachable arm that lies is
   // still the lie that ships if the table drifts.
-  let remedy = match replacement(entry) {
+  Some(format!(
+    "error: `intent {typed}` was retired in Intent v3 and is not a command in this build\n  remedy: {}",
+    retired_remedy(entry)
+  ))
+}
+
+/// What a retired row tells its caller to do instead, in the one wording both
+/// doors print: the CLI's refusal above and the MCP server's answer to a
+/// retired tool's name ([`retired_tool`]).
+pub fn retired_remedy(entry: &Entry) -> String {
+  match replacement(entry) {
     Replacement::DeclaredNone => "there is no v3 replacement -- remove it from any script that calls it".to_string(),
     Replacement::Named(named) => format!("use `{named}` instead"),
     Replacement::Unrecorded => "no v3 replacement is recorded for this command -- check the release notes before removing it from a script".to_string(),
-  };
-  Some(format!(
-    "error: `intent {typed}` was retired in Intent v3 and is not a command in this build\n  remedy: {remedy}"
-  ))
+  }
+}
+
+/// The retired spelling a tool name spells, with the remedy its row names, or
+/// `None` (ST0095 WP-10, AC-10.5).
+///
+/// **THE MCP DOOR'S HALF OF THE CLI'S RETIRED REFUSAL, READ FROM THE SAME
+/// ROSTER AND MATCHED THE SAME WAY**: on the spellings that are gone, never on
+/// a row's path, so a retired row whose path still runs is never named retired
+/// here either. An agent that calls a retired command by its tool name, as
+/// `intent_st_renumber` spells `st renumber`, is told where the capability went
+/// rather than only that no tool has the name.
+pub fn retired_tool(table: &Table, name: &str) -> Option<(String, String)> {
+  retired_and_unreachable(table)
+    .into_iter()
+    .find_map(|(e, gone)| {
+      gone
+        .into_iter()
+        .map(|spelling| spelling.join(" "))
+        .find(|spelling| crate::mcp::tool_name(spelling) == name)
+        .map(|spelling| (spelling, retired_remedy(e)))
+    })
 }
 
 /// clap renders a multi-line block; v2 speaks one line. Take the message and

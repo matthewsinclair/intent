@@ -288,10 +288,23 @@ fn tool_call(
 ) -> Result<Value, (i64, String)> {
   let name = params.get("name").and_then(Value::as_str).unwrap_or("");
   let Some(tool) = tools.iter().find(|t| t.name == name) else {
+    // A retired command's tool name is answered with where the capability
+    // went, from the roster the CLI's own refusal reads (ST0095 AC-10.5). The
+    // remedy is the row's, a command line, and says so: a successor this
+    // server does not serve is one a person runs.
+    let retired = crate::spine::retired_tool(&crate::dispatch::table(), name).map_or_else(
+      String::new,
+      |(spelling, remedy)| {
+        format!(
+          "; `intent {spelling}` was retired -- remedy, on the command line: {remedy}, which \
+           `tools/list` names only if this server serves it"
+        )
+      },
+    );
     return Err((
       JSONRPC_INVALID_PARAMS,
       format!(
-        "no tool named `{name}` -- `tools/list` names the {} this server serves",
+        "no tool named `{name}` -- `tools/list` names the {} this server serves{retired}",
         tools.len()
       ),
     ));
@@ -547,6 +560,39 @@ mod tests {
       &mut never,
     );
     assert_eq!(out[0]["error"]["code"], JSONRPC_INVALID_PARAMS);
+  }
+
+  /// A retired command's tool name is refused with the remedy its row names,
+  /// as the CLI refuses its spelling (ST0095 AC-10.5): the two-argument
+  /// renumbers name `remint`, and a name nothing ever served names nothing.
+  #[test]
+  fn a_retired_tool_is_refused_with_its_rows_remedy() {
+    let table = crate::dispatch::table();
+    for path in ["st renumber", "issues renumber"] {
+      let entry = table
+        .retired()
+        .into_iter()
+        .find(|e| e.path == path)
+        .unwrap_or_else(|| panic!("`{path}` is a retired row"));
+      let remedy = crate::spine::retired_remedy(entry);
+      let frame = format!(
+        r#"{{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{{"name":"{}"}}}}"#,
+        crate::mcp::tool_name(path)
+      );
+      let out = drive(&[frame.as_str()], &mut never);
+      assert_eq!(out[0]["error"]["code"], JSONRPC_INVALID_PARAMS);
+      let message = out[0]["error"]["message"].as_str().expect("a message");
+      assert!(
+        message.contains(&remedy) && remedy.contains("remint <id>"),
+        "`{path}`'s refusal carries its row's remedy, `{remedy}`: {message}"
+      );
+    }
+    let out = drive(
+      &[r#"{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"intent_no_such"}}"#],
+      &mut never,
+    );
+    let message = out[0]["error"]["message"].as_str().expect("a message");
+    assert!(!message.contains("retired"), "{message}");
   }
 
   #[test]

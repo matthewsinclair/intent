@@ -346,14 +346,23 @@ fn hydrate_and_dehydrate_name_what_they_wrote_and_removed() {
 }
 
 #[test]
-fn the_renumbers_name_what_they_moved_as_written_and_removed() {
+fn the_remints_name_what_they_moved_as_written_and_removed() {
   let dir = project();
   let d = dir.path();
-  let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
+  // A remint moves an ordinal, which a project carries from before its
+  // upgrade and a test seeds (ST0095 WP-06).
+  let st = intentsvcs::id::ThreadId::from_ordinal(1)
+    .expect("an ordinal thread")
+    .stored();
+  crate::common::seed_ordinal_thread(d, &st, "a probe thread", &[]);
+  crate::common::seed_ordinal_issue(d, 1, "a probe issue");
+  crate::common::git_commit_all(d);
   setup(d, &["st", "hydrate", st.as_str()]);
-  names_what_it_wrote_and_removed(d, &["st", "renumber", st.as_str(), "ST0002"]);
-  let issue = crate::common::created(&setup(d, &["issues", "add", "a probe issue"]));
-  names_what_it_wrote_and_removed(d, &["issues", "renumber", issue.as_str(), "0002"]);
+  names_what_it_wrote_and_removed(d, &["st", "remint", st.as_str()]);
+  let issue = intentsvcs::id::IssueId::from_ordinal(1)
+    .expect("an ordinal issue")
+    .stored();
+  names_what_it_wrote_and_removed(d, &["issues", "remint", issue.as_str()]);
 }
 
 #[test]

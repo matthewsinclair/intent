@@ -583,22 +583,23 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
      beside it for `st relate`'s reason",
   ),
   (
-    "st renumber",
-    "renumber_moves_an_id_and_what_names_it.rs -- six arms drive the facade door: the record, its \
-     canon file, its directory, the manifest row, `related` references, claims and the event all \
-     move, prose is reported and left, and a taken id or a refused move changes nothing -- and \
-     intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs drives the real \
-     binary through two clones (ST0078 WP-02). What it moves is an id, across records and paths, \
-     rather than a field of one row, so the whole-row diff this file is built around does not \
-     describe it",
+    "st remint",
+    "renumber_moves_an_id_and_what_names_it.rs -- six arms drive the move every remint makes: \
+     the record, its canon file, its directory, the manifest row, `related` references, claims \
+     and the event all move, prose is reported and left, and a taken id or a refused move \
+     changes nothing -- the_one_mint.rs drives the facade's remint, and \
+     intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs drives the real \
+     binary through two clones (ST0095 WP-10). What it moves is an id, across records and \
+     paths, rather than a field of one row, so the whole-row diff this file is built around \
+     does not describe it",
   ),
   (
-    "issues renumber",
+    "issues remint",
     "renumber_moves_an_id_and_what_names_it.rs \
      `an_issue_renumber_moves_its_canon_and_view_and_reports_its_own_heading` and \
-     intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs \
-     `an_issue_renumber_reports_what_it_moved_and_the_prose_it_left` (ST0078 WP-02), for \
-     `st renumber`'s reason",
+     intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs \
+     `an_issue_remint_reports_what_it_moved_and_the_prose_it_left` (ST0095 WP-10), for \
+     `st remint`'s reason",
   ),
   (
     "st edit",

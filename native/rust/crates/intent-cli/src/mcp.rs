@@ -156,7 +156,7 @@ pub fn tools(table: &Table) -> Result<Vec<Tool>, Undeclarable> {
 /// `st new` -> `intent_st_new`. The prefix is the namespace `intent_graphql`
 /// (AC-09.2) already established; the body is the path with its one legal
 /// separator swapped.
-fn tool_name(path: &str) -> String {
+pub(crate) fn tool_name(path: &str) -> String {
   format!("intent_{}", path.replace([' ', '-'], "_"))
 }
 

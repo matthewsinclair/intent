@@ -236,7 +236,7 @@
     {
       "id": "AT-02.2",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_renumber.rs",
+      "file": "native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs",
       "covers": [
         "AC-02.1",
         "AC-02.2"
