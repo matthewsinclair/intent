@@ -69,7 +69,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-08.1 Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction. -- satisfied: no (computed)
 - AC-08.2 A project that holds only ordinals renders every view as it did before. -- satisfied: no (computed)
 
-### WP-09 -- Criteria follow their package, and doctor verifies (status: Not Started)
+### WP-09 -- Criteria follow their package, and doctor verifies (status: WIP)
 
 - AC-09.1 wp done refuses a hashed work package while a criterion of its own is unsatisfied. -- satisfied: no (computed)
 - AC-09.2 doctor reports a hashed id that is not its marker and the hash of its origin. -- satisfied: no (computed)
@@ -152,7 +152,7 @@ _(no tests in this group)_
 
 _(no tests in this group)_
 
-### WP-09 -- Criteria follow their package, and doctor verifies (status: Not Started)
+### WP-09 -- Criteria follow their package, and doctor verifies (status: WIP)
 
 _(no tests in this group)_
 

@@ -17,7 +17,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 06: The hashed family
   - [-] 07: Prefix resolution
   - [-] 08: The order
-  - [ ] 09: Criteria follow their package, and doctor verifies
+  - [-] 09: Criteria follow their package, and doctor verifies
   - [-] 10: Every door takes and shows both families
   - [ ] 11: The TUI, the app and the served page
   - [ ] 12: The pipeline asks the waist; the drill; the fleet
