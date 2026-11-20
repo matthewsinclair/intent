@@ -1,0 +1,15 @@
+{
+  "id": "01M7X3B8CTQ2NNEV8HXE8MEXK1",
+  "ts": "2026-11-20T18:26:21.214Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0741"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "After a pull of records another copy minted, sync --apply leaves a stale views step for a person, which does nothing when run"
+  }
+}
