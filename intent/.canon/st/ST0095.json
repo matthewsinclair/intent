@@ -548,6 +548,76 @@
       ],
       "status": "green",
       "note": "Written with WP-02's code; the row moves through red as the machine requires. Green in ic's bin/devbin gate rust on gyges at f7780b922, the base plus the landed bank (ed1caeb36)."
+    },
+    {
+      "id": "AT-05.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:729",
+      "covers": [
+        "AC-05.1"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-05.3",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:279",
+      "covers": [
+        "AC-05.3"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-05.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:827",
+      "covers": [
+        "AC-05.4"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-06.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:64",
+      "covers": [
+        "AC-06.2"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-06.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:372",
+      "covers": [
+        "AC-06.4"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-06.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/ingest_refusal.rs:364",
+      "covers": [
+        "AC-06.5"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+    },
+    {
+      "id": "AT-06.7",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:78",
+      "covers": [
+        "AC-06.7"
+      ],
+      "status": "green",
+      "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
     }
   ],
   "attachments": [

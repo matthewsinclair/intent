@@ -44,20 +44,20 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-05 -- The merge knows both families (status: WIP)
 
-- AC-05.1 A merge of two branches that each minted hashed records plans no step that takes a side. -- satisfied: no (computed)
+- AC-05.1 A merge of two branches that each minted hashed records plans no step that takes a side. -- satisfied: yes (computed)
 - AC-05.2 A merge in which both sides added rows to .intentfiles is resolved by intent sync --apply --yes alone, and the two aggregate views are regenerated. -- WITHDRAWN: Its subject has gone: ST0096 (hv decision 66) takes .intentfiles and the two aggregate views out of git, so ST0095's merge neither merges .intentfiles as a set nor regenerates the lists. A branch still in today's format runs intent upgrade before it merges, and issue 0704 is superseded by ST0096. cc's call, 2026-11-19. (by cc)
-- AC-05.3 An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id. -- satisfied: no (computed)
-- AC-05.4 Two branches that each add a work package to one thread merge with both packages kept and no claim moved. -- satisfied: no (computed)
+- AC-05.3 An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id. -- satisfied: yes (computed)
+- AC-05.4 Two branches that each add a work package to one thread merge with both packages kept and no claim moved. -- satisfied: yes (computed)
 
 ### WP-06 -- The hashed family (status: WIP)
 
 - AC-06.1 Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair. -- satisfied: no (computed)
-- AC-06.2 A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin. -- satisfied: no (computed)
+- AC-06.2 A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin. -- satisfied: yes (computed)
 - AC-06.3 No verb mints an ordinal. -- satisfied: no (computed)
-- AC-06.4 intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id. -- satisfied: no (computed)
-- AC-06.5 A canon file whose name is neither family is refused by name, and none is skipped. -- satisfied: no (computed)
+- AC-06.4 intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id. -- satisfied: yes (computed)
+- AC-06.5 A canon file whose name is neither family is refused by name, and none is skipped. -- satisfied: yes (computed)
 - AC-06.6 (non-test) Brew 3.4.0 refuses an upgraded project by the schema's name and deletes nothing. -- satisfied: no
-- AC-06.7 A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw. -- satisfied: no (computed)
+- AC-06.7 A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw. -- satisfied: yes (computed)
 
 ### WP-07 -- Prefix resolution (status: Not Started)
 
@@ -130,11 +130,16 @@ _(no tests in this group)_
 
 ### WP-05 -- The merge knows both families (status: WIP)
 
-_(no tests in this group)_
+- AT-05.1 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:729` -- covers AC-05.1 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-05.3 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:279` -- covers AC-05.3 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-05.4 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:827` -- covers AC-05.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
 ### WP-06 -- The hashed family (status: WIP)
 
-_(no tests in this group)_
+- AT-06.2 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:64` -- covers AC-06.2 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-06.4 `native/rust/crates/intentsvcs/tests/canon_round_trip.rs:372` -- covers AC-06.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-06.5 `native/rust/crates/intentsvcs/tests/ingest_refusal.rs:364` -- covers AC-06.5 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-06.7 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:78` -- covers AC-06.7 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
 ### WP-07 -- Prefix resolution (status: Not Started)
 
