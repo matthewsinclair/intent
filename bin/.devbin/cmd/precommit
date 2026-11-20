@@ -178,18 +178,26 @@ failed=""
 
 # THE ONE READING OF A GUARD'S EXIT STATUS IS guard_verdict, in shared/guard.lib
 # (issues 0714, 0720 and 0724), and the cut's gates read their guards through it
-# too.
-# run_guard "$TOOLS/<tool>" gating <finding>
-# run_guard "$TOOLS/<tool>" report-only
-#   runs <tool> as `x=0; bash <tool> || x=$?`, never as a bare call, for the
-#   reason guard.lib gives, and adds its line to the report through
-#   tool_verdict under its file name. A step names its tool once, by the
-#   `$TOOLS/<tool>` that runner_roster_check.sh reads as its execution site,
-#   and its guard's kind by name.
+# too. Every guard tool this gate runs is read through run_guard (issue 0725);
+# guard 0 below is inline and has no exit status to read.
+# run_guard "$TOOLS/<tool>" gating <finding> [-- <arg>...]
+# run_guard "$TOOLS/<tool>" report-only [-- <arg>...]
+#   runs <tool>, with each <arg> after `--`, as `x=0; bash <tool> || x=$?`,
+#   never as a bare call, for the reason guard.lib gives, and adds its line to
+#   the report through tool_verdict under its file name. A step names its tool
+#   once, by the `$TOOLS/<tool>` that runner_roster_check.sh reads as its
+#   execution site, and its guard's kind by name.
 run_guard() {
-  local x=0
-  bash "$1" || x=$?
-  tool_verdict "${1##*/}" "$x" "${@:2}"
+  local tool="$1" x=0
+  local -a verdict=()
+  shift
+  while [ "$#" -gt 0 ] && [ "$1" != -- ]; do
+    verdict+=("$1")
+    shift
+  done
+  [ "$#" -eq 0 ] || shift
+  bash "$tool" "$@" || x=$?
+  tool_verdict "${tool##*/}" "$x" "${verdict[@]}"
 }
 
 # tool_verdict <tool> <status> <kind> [<finding>] -- adds <tool>'s line to the
@@ -199,11 +207,11 @@ run_guard() {
 # refused here, on every run, rather than at its first finding.
 tool_verdict() {
   local verdict
-  if [ "$3" = gating ] && [ "$#" -ne 4 ]; then
-    printf 'tool_verdict: %s is gating and names no finding\n' "$1" >&2
+  if [ "${3:-}" = gating ] && [ "$#" -ne 4 ]; then
+    printf 'tool_verdict: %s is gating and is given %s word(s) after its kind, where it takes one finding; its tool'"'"'s own arguments go after --\n' "$1" "$(($# - 3))" >&2
     exit 2
   fi
-  verdict="$(guard_verdict "$2" "$3")"
+  verdict="$(guard_verdict "$2" "${3:-}")"
   case "$verdict" in
     pass) ;;
     finding)
@@ -326,23 +334,33 @@ if [ ! -d "$TOOLS" ]; then
   HAVE_TOOLS=0
 fi
 
+# A TOOL NAMES ITS OWN REFUSAL, AND A FINDING LABEL BELOW SAYS ONLY WHAT ITS
+# TOOL'S 1 MEANS (vc's ruling, 2026-09-15, read through guard_verdict since issue
+# 0725). A label naming one finding read any refusal as that finding:
+# `provenance_check.sh` was labelled "a measurement group names more than one
+# revision" while it refused a stamp that belonged to no group, and the label
+# sent the committer after a split group that did not exist. A tool whose 1 is
+# any refusal is labelled REFUSED, defined here once.
+REFUSED="refused; its message above names why"
+
 # 1. Provenance. Always runs the full sweep: it is cheap (its span is recorded
 #    in runner_roster_check.sh's ROSTER), and its invariant is CROSS-artefact -- staging one file of a measurement
 #    group is exactly when the group can be split, so narrowing it to the staged
 #    set would blind it to the failure it exists to catch.
 if [ "$HAVE_TOOLS" -eq 1 ]; then
-  # A TOOL NAMES ITS OWN REFUSAL, AND A LABEL BELOW SAYS ONLY WHAT EVERY NON-ZERO
-  # EXIT OF THAT TOOL MEANS (vc's ruling, 2026-09-15). A label naming one finding
-  # read any refusal as that finding: `provenance_check.sh` was labelled "a
-  # measurement group names more than one revision" while it refused a stamp that
-  # belonged to no group, and the label sent the committer after a split group that
-  # did not exist. Where a tool's exit codes do mean different things, the label
-  # splits on them.
   step "$G_PROV"
-  if ! bash "$TOOLS/provenance_check.sh"; then
-    rc=1
-    failed="${failed}  provenance_check.sh -- refused; its message above names why
-"
+  run_guard "$TOOLS/provenance_check.sh" gating "$REFUSED"
+
+  # The staged paths as the two skew checks below take them, `--changed` and one
+  # argument per path, or nothing for a full sweep (--all) or an empty index.
+  # Unquoted expansion is wrong here and this shell is zsh for interactive use,
+  # so the argv is built explicitly rather than by word splitting.
+  changed_args=()
+  if [ "$FULL" -eq 0 ] && [ -n "$STAGED" ]; then
+    changed_args=(--changed)
+    while IFS= read -r p; do
+      [ -n "$p" ] && changed_args+=("$p")
+    done <<<"$STAGED"
   fi
 
   # 2. View skew. Path-triggered by design: a slow gate gets --no-verify'd, which
@@ -350,21 +368,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #    fudge -- a generator reads only its canon, so a view cannot go stale unless
   #    canon, generator or view changes, and all three are paths.
   step "$G_SKEW"
-  if [ "$FULL" -eq 1 ] || [ -z "$STAGED" ]; then
-    skew_run=(bash "$TOOLS/view_skew_check.sh")
-  else
-    # Unquoted expansion is wrong here and this shell is zsh for interactive use,
-    # so build the argv explicitly rather than relying on word splitting.
-    skew_run=(bash "$TOOLS/view_skew_check.sh" --changed)
-    while IFS= read -r p; do
-      [ -n "$p" ] && skew_run+=("$p")
-    done <<<"$STAGED"
-  fi
-  if ! "${skew_run[@]}"; then
-    rc=1
-    failed="${failed}  view_skew_check.sh -- refused; its message above names why
-"
-  fi
+  run_guard "$TOOLS/view_skew_check.sh" gating "$REFUSED" -- "${changed_args[@]}"
 
   # 2b. Thread views. The SIBLING of the check above and a different population:
   #     the CHECKABLE in view_skew_check.sh covers only surface/, so thread
@@ -387,19 +391,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #     wait and retry -- from a tree that was never built, where the remedy is
   #     `bin/devbin build all`.
   step "$G_SKEWTHREAD"
-  thread_skew_run=(bash "$TOOLS/thread_view_skew_check.sh")
-  if [ "$FULL" -eq 0 ] && [ -n "$STAGED" ]; then
-    thread_skew_run+=(--changed)
-    while IFS= read -r p; do
-      [ -n "$p" ] && thread_skew_run+=("$p")
-    done <<<"$STAGED"
-  fi
-  if ! "${thread_skew_run[@]}"; then
-    rc=1
-    failed="${failed}  thread_view_skew_check.sh -- this commit touches a generated thread view that no
-    longer matches the model, or the tool could not read a verdict at all
-"
-  fi
+  run_guard "$TOOLS/thread_view_skew_check.sh" gating "this commit touches a generated thread view that no longer matches the model; the finding above names it" -- "${changed_args[@]}"
 
   # 3. Generator inputs. NOT path-triggered, unlike the skew check above, and the
   #    difference is the invariant rather than an inconsistency. Skew asks "does
@@ -409,11 +401,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #    scratchpad, or reboots. It is a whole-set check over the `gen_*.sh`
   #    generators the index holds, so it is cheap to run every time.
   step "$G_GENIN"
-  if ! bash "$TOOLS/generator_inputs_check.sh"; then
-    rc=1
-    failed="${failed}  generator_inputs_check.sh -- refused; its message above names why
-"
-  fi
+  run_guard "$TOOLS/generator_inputs_check.sh" gating "$REFUSED"
 
   # 4. Instrument disposition -- the roster that says whether the list ABOVE is
   #    the whole of what runs. Issue 0059: most instruments in the tools
@@ -430,11 +418,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #    roster, and forcing it on the day the tool ARRIVES is the entire point.
   #    The roster is the only artefact here that cannot rot by omission.
   step "$G_ROSTER"
-  if ! bash "$TOOLS/runner_roster_check.sh"; then
-    rc=1
-    failed="${failed}  runner_roster_check.sh -- refused; its message above names why
-"
-  fi
+  run_guard "$TOOLS/runner_roster_check.sh" gating "the roster in runner_roster_check.sh and this runner disagree; the finding above names each tool"
 
   # THE REGISTER CHECKS. corrected_check.sh, class_vocab_check.sh and
   # stale_at_check.sh are REPORT-ONLY BY CONSTRUCTION: each exits 0 whether it
@@ -503,11 +487,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   run_guard "$TOOLS/rulings_check.sh" gating "a declared ruling is malformed or its record leads nowhere. Re-anchor a dangling record on an artefact whose content carries the ruling -- grep the target first; an anchor that resolves to the record's own rendering is circular and worse than the dangle."
 
   step "$G_RESIDUE"
-  if ! bash "$TOOLS/residue_class_check.sh"; then
-    rc=1
-    failed="${failed}  residue_class_check.sh -- could not measure the residue classes, or the two sets disagree
-"
-  fi
+  run_guard "$TOOLS/residue_class_check.sh" gating "migration.md's residue table and the classes the scanner emits disagree; the finding above names each class"
 
   step "$G_STALEAT"
   run_guard "$TOOLS/stale_at_check.sh" report-only
@@ -554,11 +534,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #     MOVING A ROW ON COST GROUNDS and to record the span with its method; read
   #     the figure there rather than from a copy here.
   step "$G_CANONCOMMIT"
-  if ! bash "$TOOLS/canon_commit_check.sh" --staged; then
-    rc=1
-    failed="${failed}  canon_commit_check.sh -- refused; its message above names why
-"
-  fi
+  run_guard "$TOOLS/canon_commit_check.sh" gating "the index names attachment bytes it does not hold; the finding above names each and the order that fixes it" -- --staged
 fi
 
 # GUARD HOME. UNCONDITIONAL AND NOT PATH-TRIGGERED, because the failure it
@@ -576,10 +552,8 @@ step "$G_GUARDHOME"
 # A summary that names a cause it did not establish is worse than one that names
 # none: it sends the reader at a file that is fine, with the gate's authority
 # behind it. Same class as `unwired`s leaf remedy pointing at an empty help block.
-if tool_present guard_home_check.sh "the hook template" && ! bash "$TOOLS/guard_home_check.sh"; then
-  rc=1
-  failed="${failed}  guard_home_check.sh -- refused; its message above names why
-"
+if tool_present guard_home_check.sh "the hook template"; then
+  run_guard "$TOOLS/guard_home_check.sh" gating "$REFUSED"
 fi
 
 # AC-11.6. `native/rust/target/release/` is shared by every node here with no
@@ -595,10 +569,8 @@ fi
 # that names a cause it did not establish sends the reader at a file that is
 # fine, with the gate's authority behind it.
 step "$G_SHAREDBUILD"
-if tool_present shared_artefact_build_guard.sh "the build path" && ! bash "$TOOLS/shared_artefact_build_guard.sh"; then
-  rc=1
-  failed="${failed}  shared_artefact_build_guard.sh -- refused; its message above names why
-"
+if tool_present shared_artefact_build_guard.sh "the build path"; then
+  run_guard "$TOOLS/shared_artefact_build_guard.sh" gating "$REFUSED"
 fi
 
 # Issue 0348: a suite.rs registration whose file the commit does not carry

@@ -23,24 +23,31 @@
 # and every annotated tag here is v1 or v2, so the bare form answers v2.3.2 at
 # every cut.
 #
-# EXITS: 0 current; 1 stale, with the diff and the fix command; 2 no verdict --
-# a generator refused, or either side came back empty. An empty set against an
-# empty set compares equal, so emptiness is a refusal and never a pass.
+# EXITS: 0 current; 1 stale, with the diff and the fix command, and for nothing
+# else; 2 no verdict -- a generator refused, either side came back empty, diff
+# could not compare the two (its own 2), or any other command failed (issue
+# 0726). An empty set against an empty set compares equal, so emptiness is a
+# refusal and never a pass.
 #
 # Driven 2026-09-18 at efb44044b, both directions: the committed set (reported
 # against v3.0.1) exits 1, and a set regenerated at HEAD against v3.0.3 exits 0
 # with its time stamps different from the check's own regeneration.
 
-set -euo pipefail
-
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
-REFDIR="$ROOT/docs/reference"
+set -Eeuo pipefail
 
 no_verdict() {
   echo "error: reference_current_check: NO VERDICT -- $*" >&2
   exit 2
 }
+
+# ITS 1 IS "STALE" AND NOTHING ELSE (issue 0726): this trap turns a command
+# failing under `-e` into no verdict, naming the command, and `-E` carries it
+# into `mask`. guard.lib says why, and what a gating guard's 1 cannot rule out.
+trap 'no_verdict "line $LINENO: \`$BASH_COMMAND\` failed"' ERR
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
+REFDIR="$ROOT/docs/reference"
 
 # The generators resolve revisions in the CURRENT directory's repository.
 cd "$ROOT"
@@ -48,7 +55,9 @@ cd "$ROOT"
 BASE="$(git describe --tags --abbrev=0 2>/dev/null)" || no_verdict "no release tag reachable from HEAD, so there is no ruled baseline"
 
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+# The ERR trap is dropped first, so a cleanup that fails names itself and not
+# the command before it.
+trap 'trap - ERR; rm -rf "$TMP" || no_verdict "could not remove its scratch directory $TMP"' EXIT
 mkdir -p "$TMP/fresh" "$TMP/a" "$TMP/b"
 
 "$HERE/gen_reference.sh" --rev HEAD --baseline "$BASE" --out "$TMP/fresh" > "$TMP/gen.log" 2>&1 \
@@ -68,10 +77,19 @@ mask() {
 for f in "$TMP/fresh"/*; do mask "$f" > "$TMP/b/$(basename "$f")"; done
 for f in "$REFDIR"/*; do mask "$f" > "$TMP/a/$(basename "$f")"; done
 
-if diff -ru "$TMP/a" "$TMP/b" > "$TMP/diff" 2>&1; then
-  echo "ok: docs/reference describes HEAD against $BASE"
-  exit 0
-fi
+# diff read three ways (issue 0726): 0 the sets match, 1 they differ, and
+# anything else its own trouble -- a file it could not read, a comparison that
+# never ran -- which is no verdict and never stale pages.
+drc=0
+diff -ru "$TMP/a" "$TMP/b" > "$TMP/diff" 2>&1 || drc=$?
+case "$drc" in
+  0)
+    echo "ok: docs/reference describes HEAD against $BASE"
+    exit 0
+    ;;
+  1) ;;
+  *) no_verdict "diff could not compare docs/reference with the regenerated set (exit $drc): $(tail -n 1 "$TMP/diff")" ;;
+esac
 
 sed -e "s|$TMP/a|docs/reference|g" -e "s|$TMP/b|regenerated|g" "$TMP/diff"
 cat <<EOF

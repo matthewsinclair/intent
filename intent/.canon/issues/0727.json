@@ -3,9 +3,10 @@
   "number": 727,
   "slug": "pipefail-sigpipe-check-sh-a-hand-written-count-a",
   "title": "pipefail_sigpipe_check.sh: a hand-written count, a -q it cannot see, an awk status it drops, and set -uo without a reason",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-20",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "## What happens\n\n`intent/st/ST0056/parity/tools/pipefail_sigpipe_check.sh`, the guard issue 0723 widened, has four faults on lines 0723 did not touch:\n\n1. Its control compares its count against a hand-written 3. hv's standing rule says no test or guard compares against a number written down by hand.\n2. Its GREPQ pattern sees `-q` only in the first flag cluster, so `| grep -E -q`, `| grep -v -q` and `| grep --quiet` pass unseen. Its REACH header does not say so. Neither population has a live instance today.\n3. Its scan loop drops awk's status (`done < <(scan_file \"$f\")`), so an instrument it cannot read adds no finding and no refusal.\n4. It runs `set -uo pipefail` without `-e`, and no comment says why.\n\n## The fix\n\n- Derive the control's expected count from what it plants, or check that every planted case was found.\n- Match `-q` and `--quiet` wherever they appear among grep's flags, and say so in REACH.\n- Read each scan's status and refuse on a failed read.\n- Say why `-e` is off, or turn it on.\n\nFound by critic-shell on unchanged lines of issues 0723 and 0724's diff (devbin-dc's proof, 2026-11-20). It rides this release (hv decision 69), and vc sequences it.\n"
 }

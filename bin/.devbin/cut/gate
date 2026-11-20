@@ -130,6 +130,25 @@ check_reference() {
 # because it waits on such an event, never because its name looks like these.
 LOAD_SENSITIVE='daemon_subscriptions|daemon_watch::|a_source_edit_reaches_the_index_and_costs_canon_nothing|the_daemon_lists_the_project_registry|a_daemon_outlives_nobody'
 
+# reds_confined <reds> -- whether every red in <reds>, one per line as check_rust
+# lists them, is in the load-sensitive family: 0 every red is, 1 a red is outside
+# it, and 2 it could not judge, for no red at all or a pattern or input grep
+# could not use. It reads nothing but <reds> and LOAD_SENSITIVE, so a test drives
+# its three answers without cargo (issue 0728). One grep and no pipe (issue
+# 0723): `grep -q` stops at the first red outside the family, and a writer still
+# piping into it could take SIGPIPE, which pipefail would read as every red
+# confined.
+reds_confined() {
+  local outside=0
+  [ -n "$1" ] || return 2
+  grep -q -v -E "$LOAD_SENSITIVE" <<<"$1" || outside=$?
+  case "$outside" in
+    0) return 1 ;;
+    1) return 0 ;;
+    *) return 2 ;;
+  esac
+}
+
 # gate_kept_target -- the rust gate's cargo target under DEVBIN_GATE_CACHE,
 # printed. The core hands the gates that directory under `release gates`, the
 # cut and each leg, and no run clears it (devbin issue 0335, ST0093 WP-06), so a
@@ -191,7 +210,7 @@ gate_rust_cleanup() {
 # confined to the load-sensitive family re-runs intentd's tests ONCE (issue
 # 0481), because the core re-runs nothing and a red leg stops the cut.
 check_rust() {
-  local log dir native target base="${TMPDIR:-/tmp}" kept="" step="" reds twin outside
+  local log dir native target base="${TMPDIR:-/tmp}" kept="" step="" reds twin confined
   local real_cargo_home="${CARGO_HOME:-$HOME/.cargo}" real_rustup_home="${RUSTUP_HOME:-$HOME/.rustup}"
   command -v cargo >/dev/null 2>&1 || refuse "cargo is not on PATH, and this cut ships a native tree this host cannot test" "install the toolchain rust-toolchain.toml names, $AGAIN"
   log="$(gate_log rust)"
@@ -230,21 +249,27 @@ check_rust() {
   fi
   if [ -z "$step" ] && ! in_gate "$native" cargo test --workspace --no-fail-fast >>"$log" 2>&1; then
     step="cargo test --workspace"
+    # A red is `<its Running line> :: <test name>`; release_gate.bats's
+    # red_naming writes the same form, so the two move together.
     reds="$(awk '/^ +Running /{target=$0} /^test .* \.\.\. FAILED$/{print target " :: " $2}' "$log")"
-    # One process and no pipe, read three ways (issue 0723). `grep -q` stops at
-    # the first red outside the family, and a writer still piping into it would
-    # take SIGPIPE, which pipefail and a `!` read as every red confined to it.
-    # Its 1 alone says every red is in the family. Its 0 is a red outside it,
-    # and its 2, a pattern or input it could not use, re-runs nothing either,
-    # so an edit that breaks LOAD_SENSITIVE refuses rather than reads as
-    # confined.
-    outside=0
-    grep -q -v -E "$LOAD_SENSITIVE" <<<"$reds" || outside=$?
-    if [ -n "$reds" ] && [ "$outside" -eq 1 ]; then
-      printf 'gate rust: red only in the load-sensitive daemon family, so intentd'"'"'s tests run once more (issue 0481):\n' >&2
-      printf '%s\n' "$reds" | sed 's/^/  /' >&2
-      in_gate "$native" cargo test -p intentd --no-fail-fast >>"$log" 2>&1 && step=""
-    fi
+    # Only a red confined to the family runs again; a red outside it, or no
+    # judgement, leaves the step refused.
+    confined=0
+    reds_confined "$reds" || confined=$?
+    case "$confined" in
+      0)
+        printf 'gate rust: red only in the load-sensitive daemon family, so intentd'"'"'s tests run once more (issue 0481):\n' >&2
+        printf '%s\n' "$reds" | sed 's/^/  /' >&2
+        in_gate "$native" cargo test -p intentd --no-fail-fast >>"$log" 2>&1 && step=""
+        ;;
+      2)
+        if [ -z "$reds" ]; then
+          printf 'gate rust: cargo test failed with no failed test named in its log, so nothing runs again\n' >&2
+        else
+          printf 'gate rust: no judgement on whether its reds are in the load-sensitive daemon family (grep says why above), so nothing runs again\n' >&2
+        fi
+        ;;
+    esac
   fi
   [ -z "$step" ] || refuse "$step failed; the run is in $log" "$AGAIN"
   rm -f "$log"

@@ -3,9 +3,10 @@
   "number": 725,
   "slug": "precommit-still-reads-three-guards-two-ways-thre",
   "title": "precommit still reads three guards two ways: thread_view_skew_check, residue_class_check, runner_roster_check",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-20",
+  "closed": "2026-11-20",
   "reporter": "Matthew Sinclair",
   "body": "## What happens\n\nIssue 0724 routed ten precommit steps through `run_guard`, which reads each guard by the kind its caller names (`guard_verdict <status> <kind>`). Three guards with more than two exit codes are still read two ways, `if ! bash \"$TOOLS/<tool>\"`:\n\n- `thread_view_skew_check.sh` declares 0, 1 and 2 in its header. precommit reads it two ways, under a label that names both causes.\n- `residue_class_check.sh`'s header says \"Reports; never gates\", but precommit's comment says its 1 blocks, and the step blocks on any non-zero. It also runs under `set -e`, so its 1 does not reliably mean \"the sets differ\". Its kind wants settling once.\n- `runner_roster_check.sh` declares 0, 1 and 2. precommit's comment \"THE ONE READING ... IS guard_verdict\" stands beside ten `if !` steps, so the claim is wider than the code.\n\n## The fix\n\nRoute each three-code guard through `run_guard` with its declared kind, and settle residue_class_check's kind once, in its header and in precommit. Then either every guard precommit runs goes through guard_verdict, or the comment says exactly which ones do.\n\nFound by critic-shell on unchanged lines of issues 0723 and 0724's diff (devbin-dc's proof, 2026-11-20). It rides this release (hv decision 69), and vc sequences it.\n"
 }

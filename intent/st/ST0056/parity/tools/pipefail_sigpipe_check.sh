@@ -62,6 +62,12 @@
 #   - `grep -q` is the only early-exiting reader it knows. `head`, `grep -m` and
 #     an exiting `awk` have the same shape and are NOT its subject: they are
 #     usually deliberate, and widening a fix quietly is its own defect class.
+#   - It sees `-q` anywhere among grep's flags (issue 0727): alone or in a
+#     cluster (with a numeric option after it too, eg `-qm1`), before or after
+#     the pattern, or spelt `--quiet` or `--silent`.
+#     It reads from `grep` to the end of that pipeline stage, the next `|`, `;`,
+#     `&` or `)`, so a quoted pattern holding one of those ends the stage early,
+#     and a quoted pattern holding ` -q` reads as the flag.
 #   - It says nothing about whether a flagged predicate is otherwise correct.
 #   - It reads two populations, each by its own rule (issue 0723): the `.sh`
 #     files directly under POP_DIRS, and every file under BASH_DIRS whose first
@@ -71,6 +77,10 @@
 #
 # Exit 0 clean, 1 findings (this gates), 2 not evaluable.
 
+# NO `-e`, ON PURPOSE (issue 0727): its 1 is a finding and gates, and under `-e`
+# a failing command would end it with its own status, which guard.lib says a
+# gating guard cannot tell from a finding. So it reads the status of each step
+# its verdict rests on, and refuses through die(), exit 2, when one fails.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -85,7 +95,8 @@ cd "$REPO_ROOT" || die "cannot reach the repository root"
 # only available fix would be an exemption -- which is the thing it exists to
 # stop other files from needing.
 PIPE='|'
-GREPQ="grep[[:space:]]+-[A-Za-z]*q"
+# grep with -q anywhere among its flags, to the end of its stage (REACH says how).
+GREPQ="grep[^$PIPE;&)]*[[:space:]](-[A-Za-z]*q[A-Za-z0-9]*|--quiet|--silent)([[:space:]]|\$)"
 # `||` IS NOT A PIPE, and the first version of this tool read it as one. That
 # gave two false positives immediately -- `[ ... ] || grep -q PAT file` reads a
 # FILE with no pipeline anywhere, and `[ ... ] || grep -q PAT <<<"$x"` is the
@@ -125,12 +136,16 @@ declares_bash() {
 files=()
 n_sh=0
 for d in "${POP_DIRS[@]}"; do
+  # A thread's tools can be dehydrated, so an absent POP_DIRS directory is
+  # skipped, and only the source as a whole must yield files. find's status
+  # is read, so a partial listing refuses rather than shrinks the population.
   [ -d "$d" ] || continue
+  list="$(find "$d" -maxdepth 1 -type f -name '*.sh' | sort)" || die "cannot list the .sh files under $d"
   while IFS= read -r f; do
     [ -n "$f" ] || continue
     files+=("$f")
     n_sh=$((n_sh + 1))
-  done < <(find "$d" -maxdepth 1 -type f -name '*.sh' | sort)
+  done <<<"$list"
 done
 [ "$n_sh" -gt 0 ] || die "the declared .sh population is EMPTY -- ${POP_DIRS[*]} held no .sh files, so a clean verdict here would be an artefact of finding nothing to read"
 
@@ -187,47 +202,60 @@ scan_file() {
 # unless both fire. A control that cannot fail is decoration.
 # ---------------------------------------------------------------------------
 control() {
-  local tmp rc_bad rc_good bad good
-  tmp="$(mktemp -d)" || return 1
+  local tmp bad good found_bad found_good i
+  # Each defect shape, one per line: direct, multi-stage, negated, -q later
+  # among the flags, -q spelt long, and -q before a numeric option (issue 0727).
+  local -a header=('#!/bin/bash' 'set -uo pipefail')
+  local -a defects=(
+    "f() { printf '%s' \"\$1\" $PIPE grep -q PAT; }"
+    "g() { printf '%s' \"\$1\" $PIPE tr a b $PIPE grep -qxF \"\$2\"; }"
+    "h() { ! printf '%s' \"\$1\" $PIPE grep -qE '^x'; }"
+    "j() { printf '%s' \"\$1\" $PIPE grep -E -q '^x'; }"
+    "k() { printf '%s' \"\$1\" $PIPE grep --quiet PAT; }"
+    "m() { printf '%s' \"\$1\" $PIPE grep -qm1 PAT; }"
+  )
+  # The two false-positive families this tool has actually shipped, planted
+  # rather than merely avoided: a comment describing the idiom, and a double
+  # pipe, which is NOT a pipeline.
+  local -a decoys=(
+    "# a comment describing printf piped into grep -q must NOT be a finding"
+    "i() { [ -n \"\$1\" ] || grep -q PAT \"\$2\"; }"
+  )
+  # The same predicates, fixed. Nothing here should be found.
+  local -a fixes=(
+    'f() { grep -q PAT <<<"$1"; }'
+    'g() { grep -qxF "$2" <<<"$(tr a b <<<"$1")"; }'
+    'h() { ! grep -qE "^x" <<<"$1"; }'
+    'j() { grep -E -q "^x" <<<"$1"; }'
+    'k() { grep --quiet PAT <<<"$1"; }'
+    'm() { grep -qm1 PAT <<<"$1"; }'
+  )
+
+  tmp="$(mktemp -d)" || die "control: no temporary directory for its planted files"
   bad="$tmp/planted_defect.sh"
   good="$tmp/planted_fix.sh"
-
-  # The defect, in its three shapes: direct, multi-stage, and negated.
-  {
-    echo '#!/bin/bash'
-    echo 'set -uo pipefail'
-    echo "f() { printf '%s' \"\$1\" $PIPE grep -q PAT; }"
-    echo "g() { printf '%s' \"\$1\" $PIPE tr a b $PIPE grep -qxF \"\$2\"; }"
-    echo "h() { ! printf '%s' \"\$1\" $PIPE grep -qE '^x'; }"
-    echo "# a comment describing printf piped into grep -q must NOT be a finding"
-    echo "i() { [ -n \"\$1\" ] || grep -q PAT \"\$2\"; }"   # a double pipe is NOT a pipeline
-  } > "$bad"
-
-  # The same three predicates, fixed. Nothing here should be found.
-  {
-    echo '#!/bin/bash'
-    echo 'set -uo pipefail'
-    echo 'f() { grep -q PAT <<<"$1"; }'
-    echo 'g() { grep -qxF "$2" <<<"$(tr a b <<<"$1")"; }'
-    echo 'h() { ! grep -qE "^x" <<<"$1"; }'
-  } > "$good"
-
-  local n_bad n_good
-  n_bad="$(scan_file "$bad" | wc -l | tr -d ' ')"
-  n_good="$(scan_file "$good" | wc -l | tr -d ' ')"
+  printf '%s\n' "${header[@]}" "${defects[@]}" "${decoys[@]}" >"$bad" || { rm -rf "$tmp"; die "control: could not write its planted defects to $bad"; }
+  printf '%s\n' "${header[@]}" "${fixes[@]}" >"$good" || { rm -rf "$tmp"; die "control: could not write its planted fixes to $good"; }
+  found_bad="$(scan_file "$bad")" || { rm -rf "$tmp"; die "control: the scanner could not read its planted defects"; }
+  found_good="$(scan_file "$good")" || { rm -rf "$tmp"; die "control: the scanner could not read its planted fixes"; }
   rm -rf "$tmp"
 
-  CONTROL_BAD="$n_bad"
-  CONTROL_GOOD="$n_good"
-  # Three planted defects must be found. The comment must NOT be, and neither
-  # must the `||` line -- both are false-positive families this tool has
-  # actually shipped, so they are planted rather than merely avoided.
-  [ "$n_bad" = "3" ] && [ "$n_good" = "0" ]
+  # WHICH LINES, NOT HOW MANY, and both derived from what was written: the
+  # defects stand on the lines after the header, and the scanner must find
+  # each of those lines and no other, so a scanner that missed a defect and
+  # found a decoy instead cannot balance a count.
+  CONTROL_WANT=""
+  for ((i = ${#header[@]} + 1; i <= ${#header[@]} + ${#defects[@]}; i++)); do
+    CONTROL_WANT="${CONTROL_WANT}${CONTROL_WANT:+ }$i"
+  done
+  CONTROL_GOT="$(awk -F: 'NF { printf "%s%s", sep, $2; sep = " " }' <<<"$found_bad")"
+  CONTROL_GOOD="$found_good"
+  [ "$CONTROL_GOT" = "$CONTROL_WANT" ] && [ -z "$CONTROL_GOOD" ]
 }
 
-CONTROL_BAD=; CONTROL_GOOD=
+CONTROL_WANT=; CONTROL_GOT=; CONTROL_GOOD=
 if ! control; then
-  echo "pipefail-sigpipe: CONTROL FAILED -- planted defect gave ${CONTROL_BAD:-?} findings (expected 3), planted fix gave ${CONTROL_GOOD:-?} (expected 0)." >&2
+  echo "pipefail-sigpipe: CONTROL FAILED -- the planted defects stand on line(s) ${CONTROL_WANT:-?} and the scanner found line(s) ${CONTROL_GOT:-none}; the planted fixes, where nothing is a finding, gave: ${CONTROL_GOOD:-nothing}." >&2
   echo "  The scanner is not doing what this tool reports it as doing, so no verdict is offered on the real population -- $n_sh .sh instrument(s) across ${#POP_DIRS[@]} declared directory(ies) and $n_bash bash file(s) under ${#BASH_DIRS[@]}, every one of them UNEXAMINED. A refusal that does not name its scope is indistinguishable from a refusal over nothing." >&2
   exit 2
 fi
@@ -238,15 +266,18 @@ fi
 findings=""
 n_find=0
 for f in "${files[@]}"; do
+  # Its own status is read (issue 0727): a file awk cannot read has no verdict,
+  # and adding no finding for it would pass it unread.
+  hits="$(scan_file "$f")" || die "could not read $f, so whether it ends a pipeline in grep -q is unknown"
   while IFS= read -r hit; do
     [ -n "$hit" ] || continue
     findings="${findings}${hit}
 "
     n_find=$((n_find + 1))
-  done < <(scan_file "$f")
+  done <<<"$hits"
 done
 
-echo "pipefail-sigpipe: control -- planted defect $CONTROL_BAD/3 found, planted fix $CONTROL_GOOD/0 found; both arms fired, so the verdict below means something."
+echo "pipefail-sigpipe: control -- every planted defect was found on its own line (${CONTROL_WANT}), and no decoy or planted fix was; both arms fired, so the verdict below means something."
 echo "pipefail-sigpipe: EXAMINED ${#files[@]} file(s): $n_sh .sh instrument(s) across ${#POP_DIRS[@]} declared directory(ies), and $n_bash bash file(s) under ${#BASH_DIRS[@]}, by a shebang or shellcheck's shell=bash on their first line."
 
 if [ "$n_find" -eq 0 ]; then

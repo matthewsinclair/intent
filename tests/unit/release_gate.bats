@@ -50,7 +50,8 @@ EOF
 
   # cargo, as the rust gate runs it. `build` exits STUB_BUILD_RC. `test
   # --workspace` names each of STUB_RED as a failed arm under a target, as
-  # cargo prints them, and fails if there is one. `test -p intentd` is the
+  # cargo prints them, and fails if there is one; with no STUB_RED it exits
+  # STUB_TEST_RC, a failure naming no test when set. `test -p intentd` is the
   # re-run: it is logged, and exits STUB_RERUN_RC.
   STUBS="${TEST_TEMP_DIR}/stubs"
   STUB_LOG="${TEST_TEMP_DIR}/stub.log"
@@ -61,7 +62,7 @@ EOF
 case "$1 $2" in
   "build -p") exit "${STUB_BUILD_RC:-0}" ;;
   "test --workspace")
-    [ -n "${STUB_RED:-}" ] || exit 0
+    [ -n "${STUB_RED:-}" ] || exit "${STUB_TEST_RC:-0}"
     echo "     Running tests/suite.rs (target/debug/deps/suite-0)"
     for t in $STUB_RED; do echo "test $t ... FAILED"; done
     exit 1 ;;
@@ -245,6 +246,67 @@ write_pair() {
   assert_failure
   run grep -c '^rerun$' "$STUB_LOG"
   assert_output "0"
+}
+
+# Issue 0728: reds_confined is check_rust's one judgement of its reds, driven
+# here without cargo, read out of the gate's own source as other suites read a
+# handler's function. The family's members are read out of LOAD_SENSITIVE
+# itself, so a member added to it is a case here, written nowhere twice.
+load_reds_confined() {
+  source <(sed -n '/^LOAD_SENSITIVE=/p;/^reds_confined() {/,/^}/p' "$GATE")
+  declare -F reds_confined >/dev/null || fail "no reds_confined() in $GATE"
+  [ -n "${LOAD_SENSITIVE:-}" ] || fail "no LOAD_SENSITIVE in $GATE"
+  MEMBERS="$(tr '|' '\n' <<<"$LOAD_SENSITIVE")"
+}
+
+# red_naming <name> -- a red as check_rust lists it, for a test named <name>.
+red_naming() {
+  printf '     Running tests/suite.rs (target/debug/deps/suite-0) :: %s' "$1"
+}
+
+@test "0728: reds_confined: reds in the load-sensitive family are confined (0), each member alone and all together" {
+  local member all=""
+  load_reds_confined
+  while IFS= read -r member; do
+    run reds_confined "$(red_naming "$member")"
+    [ "$status" -eq 0 ] || fail "a red naming '$member' read $status, where confined is 0"
+    all="${all}$(red_naming "$member")"$'\n'
+  done <<<"$MEMBERS"
+  run reds_confined "${all%$'\n'}"
+  [ "$status" -eq 0 ] || fail "the family's reds together read $status, where confined is 0"
+}
+
+@test "0728: reds_confined: a red outside the family is not confined (1), alone and beside each member" {
+  local member outside
+  load_reds_confined
+  outside="$(red_naming canon::a_plain_red)"
+  ! grep -qE "$LOAD_SENSITIVE" <<<"$outside" || fail "the red meant to be outside names a member of the family: $outside"
+  run reds_confined "$outside"
+  [ "$status" -eq 1 ] || fail "a red outside the family read $status, where outside is 1"
+  while IFS= read -r member; do
+    run reds_confined "$(red_naming "$member")"$'\n'"$outside"
+    [ "$status" -eq 1 ] || fail "'$member' beside a red outside the family read $status, where outside is 1"
+  done <<<"$MEMBERS"
+}
+
+@test "0728: rust: a test run that fails naming no test is no judgement, so nothing runs again and the step refuses" {
+  make_repo
+  export STUB_TEST_RC=101
+  check rust
+  assert_failure
+  err_has "cargo test failed with no failed test named in its log"
+  err_has "cargo test --workspace failed"
+  run grep -c '^rerun$' "$STUB_LOG"
+  assert_output "0"
+}
+
+@test "0728: reds_confined: no red, or a family pattern grep cannot use, is no judgement (2)" {
+  load_reds_confined
+  run reds_confined ""
+  [ "$status" -eq 2 ] || fail "no red read $status, where no judgement is 2"
+  LOAD_SENSITIVE='('
+  run reds_confined "$(red_naming canon::a_plain_red)"
+  [ "$status" -eq 2 ] || fail "an unbalanced family pattern read $status, where no judgement is 2"
 }
 
 @test "AT-01.5: provenance: a pair naming the release commit passes, another commit and no pair each refuse naming the gate that builds it" {

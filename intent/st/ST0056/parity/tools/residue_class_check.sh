@@ -21,12 +21,21 @@
 # second copy of the vocabulary would drift exactly the way the table it guards
 # drifted -- which is the whole finding.
 #
-# Reports; never gates. Exit 0 when the sets agree, 1 when they differ, and 2
-# when either side parses EMPTY -- an empty declared set and an empty emitted
-# set compare equal to each other, so a grammar change on either side would
-# otherwise print the all-clear.
+# IT GATES (vc's ruling, 2026-11-20, issue 0725): the commit gate has blocked on
+# its finding since it was wired in, and its roster row says `gated`. Exit 0
+# when the sets agree, 1 when they differ and for nothing else, and 2 when it
+# could not compare them: a file it cannot read, either side parsing EMPTY --
+# an empty declared set and an empty emitted set compare equal to each other,
+# so a grammar change on either side would otherwise print the all-clear -- or
+# any command failing before the comparison.
 
-set -euo pipefail
+set -Eeuo pipefail
+
+# ITS 1 IS "THE SETS DIFFER" AND NOTHING ELSE: this trap turns a command failing
+# under `-e` into no verdict, exit 2, naming the command, and `-E` carries it
+# into the functions lib_staged.sh supplies, staged_cleanup on the EXIT trap
+# among them. guard.lib says why, and what a gating guard's 1 cannot rule out.
+trap 'echo "error: residue_class_check: NO VERDICT -- line $LINENO: \`$BASH_COMMAND\` failed, so the sets were not compared" >&2; exit 2' ERR
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)"
 
