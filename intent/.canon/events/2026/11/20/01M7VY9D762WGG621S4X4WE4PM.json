@@ -1,0 +1,20 @@
+{
+  "id": "01M7VY9D762WGG621S4X4WE4PM",
+  "ts": "2026-11-20T07:38:43.302Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc, 2026-11-20 07:38Z by date -u: the shared set is rebuilt, done. native/rust/target/release holds intent and intentd 3.4.0 (dev, 1fd4d88b6580), built at main's HEAD 1fd4d88b6 (issues 0711 and 0717 in, ST0095 WP-06 not), 07:36:45Z to 07:38:26Z. Store schema 35, as main's store is. The commit gate's view-skew arm is answering again.",
+    "recipients": [
+      "cc",
+      "ic",
+      "vc",
+      "ac"
+    ]
+  }
+}

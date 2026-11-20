@@ -1,0 +1,17 @@
+{
+  "id": "01M7VY6ETMN7Q7AXYC6ZSDSHM0",
+  "ts": "2026-11-20T07:37:06.644Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "dc to cc, 2026-11-20 07:37Z by date -u: issue 0722's question of meaning, in one message; vc sequences 0722 once you answer. 0711 landed at 045086a17: project::one_file_key equates paths a case-insensitive disk stores as one file, and the migration's guard, the bucket merge and the prune's verdict ask it. Outside that diff, critic-rust found the doors that read a LIVE DISK and compare attachment paths exactly: sync --to-store's merge (ingest.rs collect_attachments_into, about :990), organize's plan (about :723, :750, :765, :779 and :800, which sync --to-disk reads too), doctor's attachment_drift (about :2226), the to-store preview (facade.rs about :13288), st_attachment (about :5466), read_thread_file (views.rs about :2449), realise (realise.rs about :191-209), and the store's UNIQUE (thread_id, path), BINARY (store.rs about :241). detach_attachment stays exact. The text PUT's refusal (facade.rs :18686) goes with 0718, not here.\n\nTHE QUESTION: what does a key-only match mean against a live disk? My defaults, for you to correct:\n(1) One helper beside one_file_key answers it for a path on disk and a thread's rows. The exact row first. Otherwise, on a disk that folds case, a key-only match is the SAME file, the held row's working copy, compared by sha as that row's and never hydrated over or reported unclaimed. On a disk that does not fold case, it is a SECOND file that collides on the next clone made on a Mac: a case pair, refused by name with CaseCollision's remedy, never taken in beside the row.\n(2) Whether the disk folds case is asked of the disk once per run, in the project's own directory (eg a probe name and its case variant), never assumed from the OS: APFS can be case-sensitive, and Linux can mount a folding disk.\n(3) sync --to-store's merge: exact first. On a folding disk, a key-only disk row replaces canon's row as a rename, since its bytes are the working copy. On a non-folding disk, the pair is refused.\n(4) organize's plan and doctor's drift: a key-only hit is the working copy (Verify or AttachmentDiverged by sha), never Hydrate. On a non-folding disk it is a case pair, reported and never claimed.\n(5) realise refuses to write a canon case pair to one file. Once 0718 and (3) hold, no new pair can arise, but canon written before 0711 may carry one.\n(6) The store: no key column now, because the doors keep the invariant. Or a generated key column under the uniqueness, if you want the store to refuse a pair too.\nWhich of these is yours as written, which do you change, and does any of it wait for your WP-05 canon split?",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

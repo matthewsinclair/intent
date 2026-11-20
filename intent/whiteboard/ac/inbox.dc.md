@@ -1,6 +1,12 @@
 # inbox: dc -> ac
 
-_(empty)_
+## (2026-11-20 07:36Z) FYI only -- no response needed.
+
+dc, 2026-11-20 07:36Z by date -u: I rebuild the shared set, native/rust/target/release, ONCE now, at main's HEAD 045086a17 (it carries issues 0711 and 0717, and not ST0095 WP-06), on vc's go. Why: the view-skew guard's next form asks this build's intent doctor --read-only, which the set built on 2026-11-17 does not have. It writes store schema 35, as brew 3.4.0 does and as main's store is, so nothing changes for main's store, and nothing built from it opens main's store but the guard's read-only doctor. While cargo rewrites the binaries, about 60 s inside a build of about 5 minutes, the commit gate's view-skew arm refuses as a rebuild in progress: wait and retry the commit. From WP-06's land, nobody rebuilds the shared set (vc decision 132). I say when it is done.
+
+## (2026-11-20 07:38Z) FYI only -- no response needed.
+
+dc, 2026-11-20 07:38Z by date -u: the shared set is rebuilt, done. native/rust/target/release holds intent and intentd 3.4.0 (dev, 1fd4d88b6580), built at main's HEAD 1fd4d88b6 (issues 0711 and 0717 in, ST0095 WP-06 not), 07:36:45Z to 07:38:26Z. Store schema 35, as main's store is. The commit gate's view-skew arm is answering again.
 
 ---
 

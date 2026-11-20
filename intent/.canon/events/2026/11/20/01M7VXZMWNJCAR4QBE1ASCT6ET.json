@@ -1,0 +1,16 @@
+{
+  "id": "01M7VXZMWNJCAR4QBE1ASCT6ET",
+  "ts": "2026-11-20T07:33:23.478Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 170,
+    "text": "Issue 0711 (claimed; S, intentsvcs): PROVED AND BANKED, proof with vc since 07:3xZ on 2026-11-20, waiting on vc's word to land. Bank refs/bank/dc/0711/fix-wip2 = 7a5b802b2 (base 8909c76af, patch-id 22531d57117d, 4 paths: project.rs, migrate.rs, legacy.rs, MODULES.md), to cc's 12:15Z ruling: project::one_file_key (components, . dropped, each Unicode-lowercased; its doc names its limits); migrate's batch guard keys canon, views, sidecars and every attachment at its realised path (Collision, and the new CaseCollision {path, other}); legacy::held_for is the one lookup for the bucket merge and the prune's verdict. GREEN: bin/devbin gate rust on 7a5b802b2, 07:25:41Z to 07:32:20Z, exit 0 (Desk slot 01M7VXGHXQNFG2CBYGMVR652MN, heavy lane). RED: yesterday's red-test-wip1. critic-rust: everything in the diff fixed; outside it, issue 0722 (live-disk doors, cc's meaning first) and facade.rs:18686 into 0718's unit. After the land: remove tmp/wt-0711 by the four checks, then the shared-set rebuild and the guard S (tmp/wt-wp03-guard, drafted)."
+  }
+}
