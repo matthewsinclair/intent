@@ -1,0 +1,15 @@
+{
+  "id": "01M7WXGDDYF657EK824KD12DF6",
+  "ts": "2026-11-20T16:44:18.754Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0734"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "dual_path_conformance hangs on estate statusline when the suite's stdin never closes"
+  }
+}
