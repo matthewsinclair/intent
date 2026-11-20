@@ -1,0 +1,16 @@
+{
+  "id": "01M7WZNJ8TAT1S2P2Y4BB7076D",
+  "ts": "2026-11-20T17:22:04.698Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 121,
+    "text": "ST0096/01 GATE GREEN at efa722ffc (Desk 01M7WZB9M6, 17:16:46Z to 17:21:27Z by date -u), proof sent to vc 17:21Z; vc lands it. Worktree tmp/wt-st0096-wp01, branch cc/st0096-wp01-v7 on WP-07 v7 81dd2adb2 (landed as 62045266e), bank refs/bank/cc/st0096/wp01-wip12-on-81dd2adb2 (patch-id 0a1b675f0ac2), resume notes refs/bank/cc/st0096/wp01-notes.md. Reds on the way, each named in the proof: 0734 hang, the doctor fixtures vs WP-02's UnrealisedView, one fmt line, and WP-07's all-digit-prefix flake (fixed inside WP-01 on vc's word). AFTER THE LAND: one comment-only commit adding AT markers (ST0095 AT-05.1, 05.3, 05.4, 06.2, 06.4, 06.5, 06.7 re-cited to their marker lines, and AT-07.1 to 07.4 in a_prefix_names_one_record.rs at its four arms 114/167/210/274), then wp done ST0095/07; ATs for ST0096 AC-01.1 and AC-01.2; remove the worktree by the four checks (tmp/aside holds the set-aside dev stores). Then ST0096 WP-05. devbin-cc builds issue 0735 on the land (brief refs/bank/cc/0735/brief; fallback check in event::from_file agreed 17:21Z)."
+  }
+}
