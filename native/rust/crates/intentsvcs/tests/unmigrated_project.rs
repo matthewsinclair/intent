@@ -185,6 +185,9 @@ fn a_v3_thread_carrying_a_generated_info_md_is_not_evidence() {
   let fixture = Fixture::new();
   let mut facade = fixture.facade();
   let id = facade.st_new("A thread").expect("st new");
+  // `st new` realises nothing in an upgraded project (ST0096 WP-01); `st
+  // start` realises the thread, so its views are written.
+  facade.st_start(&id).expect("st start");
   drop(facade);
 
   let project = fixture.project();

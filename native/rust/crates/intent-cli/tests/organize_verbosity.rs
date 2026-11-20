@@ -92,7 +92,7 @@ fn project() -> tempfile::TempDir {
   assert!(
     intent(root, &["st", "start", st.as_str()]).status.success(),
     "the thread must reach WIP -- only WIP threads are declared, so a triage \
-     thread would leave the manifest empty and the preview with no action lines"
+     thread would leave the declaration empty and the preview with no action lines"
   );
   // `st start` realises the thread it declares since issue 0079; the two
   // action rows this fixture needs are hydrations, so its views are removed.
@@ -183,10 +183,39 @@ fn project_with_a_removal() -> tempfile::TempDir {
     intent(root, &["organize", "--apply"]).status.success(),
     "the views must exist before a run can remove them"
   );
-  // `.intentfiles` is hand-editable by design and nothing regenerates it;
-  // declaring nothing is what makes the realised views undeclared.
-  std::fs::write(root.join("intent/.intentfiles"), "# declares nothing\n")
-    .expect("undeclare everything");
+  // A project `init` makes keeps the declaration on each record (ST0096
+  // WP-01), so the fixture's one thread is undeclared by a verb that
+  // unrealises its record and leaves its files: `st cancel`.
+  let threads: Vec<String> = std::fs::read_dir(root.join("intent/.canon/st"))
+    .expect("the thread canon")
+    .map(|entry| entry.expect("an entry").path())
+    .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
+    .map(|path| {
+      path
+        .file_stem()
+        .expect("a canon file's name")
+        .to_string_lossy()
+        .into_owned()
+    })
+    .collect();
+  let [st] = threads.as_slice() else {
+    panic!("the fixture holds one thread: {threads:?}");
+  };
+  assert!(
+    intent(
+      root,
+      &[
+        "st",
+        "cancel",
+        st.as_str(),
+        "--reason",
+        "undeclared by the fixture"
+      ]
+    )
+    .status
+    .success(),
+    "undeclare the thread"
+  );
   dir
 }
 

@@ -359,6 +359,9 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
     root.join(format!("intent/.canon/st/{st}.json")).is_file(),
     "canon"
   );
+  // An upgraded project realises a thread on its record (ST0096 WP-01), and
+  // `st new` does not, so the views are put on disk by `st hydrate`.
+  ok(root, &["st", "hydrate", st.as_str()]);
   assert!(
     root.join(format!("intent/st/{st}/info.md")).is_file(),
     "cover view"
@@ -1208,6 +1211,9 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  // Realised on its record (ST0096 WP-01), so the work package's view is
+  // rendered.
+  ok(root, &["st", "hydrate", st.as_str()]);
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
   let pkg = crate::common::package_of(&wp).stored();
 

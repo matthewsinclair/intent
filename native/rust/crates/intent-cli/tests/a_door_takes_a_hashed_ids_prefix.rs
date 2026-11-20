@@ -84,12 +84,10 @@ fn st_show_issues_show_and_wp_show_take_a_prefix() {
     "`browse issue` passes the door by the shown form as by the whole id"
   );
 
-  let hex = thread
-    .stored()
-    .strip_prefix(THREAD_PREFIX)
-    .expect("a thread id")
-    .to_string();
-  let short = format!("{THREAD_PREFIX}{}", &hex[..MIN_PREFIX_HEX - 1]);
+  // A hex letter, so the spelling cannot read as an ordinal: digits alone
+  // after the marker are the ordinal (design, "Typing an id"), and the front
+  // of a minted id is all digits in about one run in four.
+  let short = format!("{THREAD_PREFIX}{}", "f".repeat(MIN_PREFIX_HEX - 1));
   let (_, stderr, code) = run(root, &["st", "show", &short]);
   assert_ne!(code, 0, "`{short}` is too short to be a prefix");
   assert!(

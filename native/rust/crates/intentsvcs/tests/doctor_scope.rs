@@ -73,6 +73,8 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
     origin: None,
+    // Realised: these tests write the thread's views and read doctor over them.
+    realised: true,
     title: "A thread with a known shape".to_string(),
     slug: None,
     status,

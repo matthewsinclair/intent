@@ -299,6 +299,8 @@ impl From<ThreadV3> for Thread {
       schema: THREAD_SCHEMA.to_string(),
       id,
       origin: None,
+      // A 3.4.0 project's realisation is its `.intentfiles`, never a record's.
+      realised: false,
       title,
       slug,
       status,
@@ -328,6 +330,8 @@ impl TryFrom<&Thread> for ThreadV3 {
       schema: _,
       id,
       origin,
+      // The ordinal format has no field for it: `.intentfiles` carries it.
+      realised: _,
       title,
       slug,
       status,
@@ -466,6 +470,7 @@ impl From<IssueV3> for Issue {
       schema: ISSUE_SCHEMA.to_string(),
       number,
       origin: None,
+      realised: false,
       slug,
       title,
       status,
@@ -486,6 +491,7 @@ impl TryFrom<&Issue> for IssueV3 {
       schema: _,
       number,
       origin,
+      realised: _,
       slug,
       title,
       status,

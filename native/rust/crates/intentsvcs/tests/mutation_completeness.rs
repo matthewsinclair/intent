@@ -1125,6 +1125,78 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       assert_movement(entity, field, edge, from, outcome);
       enum_str(&facade.issue_show(issue(21)).expect("issue").status).to_string()
     }
+    ("Thread", "realised") => {
+      // Machine 6: the thread is authored at `from` in a status the verb moves
+      // out of, so the edge driven is the realisation the op declares.
+      let status = match edge.verb {
+        "st.start" | "st.triage" => ThreadStatus::Triage,
+        "st.resume" => ThreadStatus::Hold,
+        "st.reopen" => ThreadStatus::Completed,
+        _ => ThreadStatus::Wip,
+      };
+      let fx = Fixture::new();
+      fx.write_thread(&thread_with(|t| {
+        t.status = status;
+        t.realised = from == "true";
+        if matches!(edge.verb, "st.done" | "st.fc") {
+          for wp in t.wps.iter_mut() {
+            if matches!(wp.status, WpStatus::NotStarted | WpStatus::Wip) {
+              wp.status = WpStatus::Done;
+            }
+          }
+        }
+      }));
+      let mut facade = fx.facade();
+      let address = intentsvcs::address::promote(ST).expect("an address");
+      match edge.verb {
+        "st.hydrate" => {
+          facade.hydrate(&address).expect("st hydrate");
+        }
+        "st.dehydrate" => {
+          facade.dehydrate(&address).expect("st dehydrate");
+        }
+        verb => {
+          let outcome = match verb {
+            "st.triage" => facade.st_triage(ST).expect("st triage"),
+            "st.start" => facade.st_start(ST).expect("st start"),
+            "st.resume" => facade.st_resume(ST).expect("st resume"),
+            "st.hold" => facade.st_hold(ST, REASON).expect("st hold"),
+            "st.done" => facade.st_done(ST).expect("st done"),
+            "st.cancel" => facade.st_cancel(ST, REASON).expect("st cancel"),
+            "st.reopen" => facade.st_reopen(ST, REASON).expect("st reopen"),
+            "st.fc" => facade.st_fc(ST, REASON, "hv").expect("st fc"),
+            other => panic!("no arm drives {other} on Thread.realised"),
+          };
+          assert_movement(entity, field, edge, from, outcome);
+        }
+      }
+      facade.st_show(ST).expect("thread").realised.to_string()
+    }
+    ("Issue", "realised") => {
+      // Machine 7: an open issue is closed and a closed one opened.
+      let status = match edge.verb {
+        "issues.open" => parse("closed"),
+        _ => parse("open"),
+      };
+      let fx = Fixture::new();
+      fx.write_issue(&Issue {
+        status,
+        realised: from == "true",
+        ..sample_issue(21)
+      });
+      let mut facade = fx.facade();
+      let outcome = match edge.verb {
+        "issues.close" => facade.issue_close(issue(21)).expect("issues close"),
+        "issues.open" => facade.issue_open(issue(21)).expect("issues open"),
+        other => panic!("no arm drives {other} on Issue.realised"),
+      };
+      assert_movement(entity, field, edge, from, outcome);
+      facade
+        .issue_show(issue(21))
+        .expect("issue")
+        .realised
+        .to_string()
+    }
     other => panic!("no arm drives {other:?} -- every State field needs one"),
   }
 }
@@ -1523,6 +1595,29 @@ const RATIFIED_AT: &[RatifiedEdge] = &[
   ),
 ];
 
+/// **Machine 6, the thread's realisation** (ST0096 WP-01): a transcription of
+/// the op table hv ruled for `.intentfiles` (ST0057 AC-05.2, 2026-08-19,
+/// membership settled 2026-08-27), carried onto the record by hv decision 71.
+const RATIFIED_THREAD_REALISED: &[RatifiedEdge] = &[
+  ("st.start", &["false"], "true", &[]),
+  ("st.resume", &["false"], "true", &[]),
+  ("st.reopen", &["false"], "true", &[]),
+  ("st.hydrate", &["false"], "true", &[]),
+  ("st.done", &["true"], "false", &[]),
+  ("st.fc", &["true"], "false", &[]),
+  ("st.cancel", &["true"], "false", &[]),
+  ("st.hold", &["true"], "false", &[]),
+  ("st.triage", &["true"], "false", &[]),
+  ("st.dehydrate", &["true"], "false", &[]),
+];
+
+/// **Machine 7, the issue's realisation**: as built by ST0069 WP-01, recorded
+/// as built and not as a ruling of hv's.
+const RATIFIED_ISSUE_REALISED: &[RatifiedEdge] = &[
+  ("issues.open", &["false"], "true", &[]),
+  ("issues.close", &["true"], "false", &[]),
+];
+
 /// **EVERY ratified machine, in ONE array, read by all three walks** (vc's
 /// recommendation, 2026-08-17).
 ///
@@ -1544,6 +1639,8 @@ const RATIFIED: &[RatifiedMachine] = &[
   ("Criterion", "state", RATIFIED_CRITERION),
   ("Issue", "status", RATIFIED_ISSUE),
   ("AcceptanceTest", "status", RATIFIED_AT),
+  ("Thread", "realised", RATIFIED_THREAD_REALISED),
+  ("Issue", "realised", RATIFIED_ISSUE_REALISED),
 ];
 
 /// **Machines `data-model.md` ratifies IN PROSE rather than as an edge table**,
@@ -1600,11 +1697,22 @@ const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[
 /// is required to contribute some. Either way the number is checked, which is what
 /// makes the vacuity readable instead of something a reader has to recompute by
 /// hand.
-const TOTAL_MACHINES: &[(&str, &str)] = &[(
-  "Issue",
-  "two states and two edges, so every (verb, state) pair is either declared or the verb's own \
-   target -- there is nothing undeclared left to refuse",
-)];
+const TOTAL_MACHINES: &[(&str, &str)] = &[
+  (
+    "Issue.status",
+    "two states and two edges, so every (verb, state) pair is either declared or the verb's own \
+     target -- there is nothing undeclared left to refuse",
+  ),
+  (
+    "Thread.realised",
+    "two states, and every verb moves it one way from the other, so each (verb, state) pair is \
+     either declared or the verb's own target (Machine 6)",
+  ),
+  (
+    "Issue.realised",
+    "two states and two edges, as Machine 4 (Machine 7)",
+  ),
+];
 
 /// **Verbs whose ratified from-set is EMPTY BY DECLARATION** -- `(any)` in the
 /// document's From column, `from: &[]` in the code -- with the reason.
@@ -2197,9 +2305,10 @@ fn attempt(
 #[test]
 fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   let mut checked = 0;
-  let mut per_machine: Vec<(&str, usize)> = Vec::new();
+  // Keyed by machine, `Entity.field`, since one entity can own two machines.
+  let mut per_machine: Vec<(String, usize)> = Vec::new();
   let mut unrestricted_seen: Vec<(&str, &str)> = Vec::new();
-  for (entity, _, ratified) in RATIFIED {
+  for (entity, field, ratified) in RATIFIED {
     let states: Vec<&str> = ratified
       .iter()
       .flat_map(|(_, from, to, _)| from.iter().copied().chain(std::iter::once(*to)))
@@ -2316,7 +2425,7 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
         here += 1;
       }
     }
-    per_machine.push((entity, here));
+    per_machine.push((format!("{entity}.{field}"), here));
   }
 
   // **Every machine's contribution is recorded, and a ZERO is declared** -- so a

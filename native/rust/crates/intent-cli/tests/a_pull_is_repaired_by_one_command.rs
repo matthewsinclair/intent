@@ -276,6 +276,7 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
 /// unmerged to regenerate, because the lists both clones rewrote travel in no
 /// commit (ST0096). **Only what it regenerated is staged,
 /// and it never commits, pulls or pushes.**
+// ST0095 AT-05.3: the arm below.
 #[test]
 fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerated_is_staged() {
   let team = Team::new();

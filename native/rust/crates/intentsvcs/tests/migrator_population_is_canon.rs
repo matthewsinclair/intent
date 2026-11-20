@@ -155,7 +155,9 @@ fn store_issue_numbers(project: &Project) -> BTreeSet<IssueId> {
 /// `git status` would ever show**, because the store is gitignored.
 #[test]
 fn upgrade_covers_every_thread_canon_holds_in_both_the_index_and_the_store() {
-  let fx = Fixture::new();
+  // 3.4.0's format, whose `.intentfiles` the estate is dehydrated through and
+  // `upgrade` folds into the records (ST0096 WP-01).
+  let fx = Fixture::ordinal();
   let canon_ids: BTreeSet<String> = dehydrated_estate(&fx).into_iter().collect();
   let project = fx.project();
 
@@ -188,7 +190,8 @@ fn upgrade_covers_every_thread_canon_holds_in_both_the_index_and_the_store() {
 /// **The two defects are opposite and a test for either passes on the other.**
 #[test]
 fn upgrade_realises_only_what_the_manifest_declares() {
-  let fx = Fixture::new();
+  // 3.4.0's format: the manifest is the subject (ST0096 WP-01).
+  let fx = Fixture::ordinal();
   dehydrated_estate(&fx);
   let project = fx.project();
 

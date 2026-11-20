@@ -13,6 +13,9 @@
 //! moved past. So the control is the copy unedited over an unmoved store, and
 //! the third arm pins that an unedited copy over a MOVED store is kept too: a
 //! later change that made it a silent rewrite again reds here.
+//!
+//! **3.4.0's FORMAT** (ST0096 WP-01): the thread is declared again through
+//! `.intentfiles`, which only a project `intent upgrade` has not moved keeps.
 
 use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
@@ -140,7 +143,7 @@ fn assert_kept(fx: &Fixture, f: &mut Facade, copy: &str) {
 
 #[test]
 fn a_hand_edited_cover_put_back_and_re_declared_is_kept() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let (mut f, copy) = put_back(&fx, true, true);
   assert_kept(&fx, &mut f, &copy);
   assert!(
@@ -151,7 +154,7 @@ fn a_hand_edited_cover_put_back_and_re_declared_is_kept() {
 
 #[test]
 fn an_unedited_copy_over_an_unmoved_store_is_rendered_as_before() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let (mut f, _) = put_back(&fx, false, false);
   let report = f.organize(Mode::Apply).expect("apply");
   assert!(
@@ -166,7 +169,7 @@ fn an_unedited_copy_over_an_unmoved_store_is_rendered_as_before() {
 
 #[test]
 fn an_unedited_copy_over_a_moved_store_is_kept_too() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let (mut f, copy) = put_back(&fx, true, false);
   assert_kept(&fx, &mut f, &copy);
 }

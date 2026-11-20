@@ -90,6 +90,9 @@ fn a_word_in_authored_thread_prose_is_found() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
+  // Realised on its record (ST0096 WP-01), so the thread's directory is on
+  // disk for its prose.
+  ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
     root.join(format!("intent/st/{st}/design.md")),
     "# Notes\n\nThe kestrel combinator returns its first argument.\n",
@@ -242,6 +245,9 @@ fn no_match_is_exit_zero_and_silent() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  // Realised on its record (ST0096 WP-01), so the thread's directory is on
+  // disk for its prose.
+  ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
     root.join(format!("intent/st/{st}/design.md")),
     "# Design\n\nSomething.\n",
@@ -321,6 +327,9 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
   // Now index the project and ask the SAME question. This is the comparison
   // the criterion is about: same query, same exit code, same stdout, and the
   // two invocations must not be the same bytes.
+  // Realised on its record (ST0096 WP-01), so the thread's directory is on
+  // disk for its prose.
+  ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
     root.join(format!("intent/st/{st}/design.md")),
     "# Design\n\nSomething.\n",
@@ -406,6 +415,9 @@ fn ordinary_punctuation_is_searched_literally_and_finds_what_it_names() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
+  // Realised on its record (ST0096 WP-01), so the thread's directory is on
+  // disk for its prose.
+  ok(root, &["st", "hydrate", st.as_str()]);
   std::fs::write(
     root.join(format!("intent/st/{st}/design.md")),
     "# Notes\n\nThe family-root disclaimer lives in render.rs and shipped in v3.0.1.\n",

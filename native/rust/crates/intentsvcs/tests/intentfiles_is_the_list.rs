@@ -43,6 +43,9 @@
 //! That is a stronger property than *the rewrite preserves it*, and it is
 //! asserted the strong way: byte-for-byte equality of the whole file across a
 //! run that moved files in both directions.
+//!
+//! This file covers 3.4.0's format, where `.intentfiles` is still the list
+//! (ST0096 WP-01), so its fixtures are `Fixture::ordinal()`.
 
 use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::id::ThreadId;
@@ -77,7 +80,7 @@ STEELTHREAD:ST0057
 /// **THE PROPERTY, BOTH DIRECTIONS, ONE RUN.**
 #[test]
 fn organize_makes_disk_match_the_list_in_both_directions() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   estate(&fx);
 
   let listed_absent = fx.project().info_view("ST0001");
@@ -111,7 +114,7 @@ fn organize_makes_disk_match_the_list_in_both_directions() {
 /// direction that would be easy to reintroduce by accident.
 #[test]
 fn the_list_wins_over_status_in_both_directions() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.write_thread(&gate_open());
   let mut closed = sample_thread("ST0001");
   closed.status = intentsvcs::model::ThreadStatus::Completed;
@@ -154,7 +157,7 @@ fn the_list_wins_over_status_in_both_directions() {
 /// because there is no longer a region to preserve.
 #[test]
 fn organize_does_not_recompute_the_list() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let authored = estate(&fx);
 
   fx.facade_on_disk()
@@ -175,7 +178,7 @@ fn organize_does_not_recompute_the_list() {
 /// first run's movement was the list being applied rather than churn.
 #[test]
 fn a_second_run_with_an_unchanged_list_moves_nothing() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   estate(&fx);
   let mut facade = fx.facade_on_disk();
   facade.organize(Mode::Apply).expect("first");
@@ -223,7 +226,7 @@ fn a_second_run_with_an_unchanged_list_moves_nothing() {
 fn the_realised_set_equals_the_listed_set() {
   use std::collections::BTreeSet;
 
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.write_thread(&gate_open()); // ST0057
   for n in 1..=9 {
     let id = ThreadId::from_ordinal(n).expect("a seeded ordinal fits the thread form");

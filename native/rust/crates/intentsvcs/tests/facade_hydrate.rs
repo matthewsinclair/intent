@@ -14,6 +14,9 @@
 //! that handled all eleven. The partition test walks every form and requires
 //! each to be hydratable or refused BY NAME, so a tenth form cannot arrive and
 //! be quietly dropped.
+//!
+//! The pin this file drives is 3.4.0's, in `.intentfiles` (ST0096 WP-01), so
+//! its fixture is `Fixture::ordinal()`; an upgraded project pins on the record.
 
 use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::address::{Address, Entity, Format};
@@ -27,7 +30,11 @@ const MANIFEST: &str = "\
 ";
 
 fn fixture() -> Fixture {
-  let fx = Fixture::new();
+  seeded(Fixture::ordinal())
+}
+
+/// `fx` holding the thread and the issue the forms below name, and a manifest.
+fn seeded(fx: Fixture) -> Fixture {
   fx.write_thread(&sample_thread("ST0001"));
   // **THE ISSUE THE `Entity::Issue` FORM BELOW NAMES (ST0069 WP-01).** Before
   // that package an issue had no realised form and `hydrate` refused it on the
@@ -94,7 +101,9 @@ fn an_absent_artefact_is_realised_and_every_returned_path_exists() {
 /// thread, now pinned, is not realised by the next write about anything else.
 #[test]
 fn failure_a_thread_still_in_a_v2_bucket_is_not_realised_beside_it() {
-  let fx = fixture();
+  // Upgraded, because the unrelated write below is a mint, which 3.4.0's
+  // format refuses (ST0096 WP-01).
+  let fx = seeded(Fixture::new());
   fx.write_file(
     "intent/st/NOT-STARTED/ST0001/tasks.md",
     "# Tasks\n\nhand-authored, and the store never carried it\n",

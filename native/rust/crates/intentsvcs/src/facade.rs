@@ -238,6 +238,9 @@ pub struct Upgraded {
   /// Removal stays with `intent organize`, which names every path before it
   /// goes. A conversion, and a re-run that ingested nothing, prune as before.
   pub prune_deferred: Vec<std::path::PathBuf>,
+  /// `.intentfiles`, when this run folded it into the records and removed it
+  /// (ST0096 WP-01). Named so the operator commits the removal.
+  pub manifest_folded: Option<std::path::PathBuf>,
   /// Why the prune removed nothing: one entry per file the store does not hold.
   /// Empty on a conversion that pruned.
   pub prune_withheld: Vec<crate::legacy::Withheld>,
@@ -465,20 +468,13 @@ fn issue_home(project: &Project, id: &str) -> Result<std::path::PathBuf, FacadeE
     .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })
 }
 
-fn declare_default_if_absent(
-  project: &Project,
-  threads: &[Thread],
-  issues: &[crate::model::Issue],
-) -> Result<(), std::io::Error> {
-  let path = project.intentfiles_path();
-  if path.exists() {
-    return Ok(());
+/// Remove `.intentfiles` once `intent upgrade` has folded it into the records
+/// (ST0096 WP-01). Absent is the ordinary state of a re-run.
+fn remove_folded_manifest(project: &Project) -> Result<(), std::io::Error> {
+  match std::fs::remove_file(project.intentfiles_path()) {
+    Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(()),
+    other => other,
   }
-  let open: Vec<(String, crate::model::ThreadStatus)> =
-    threads.iter().map(|t| (t.id.stored(), t.status)).collect();
-  let open_issues: Vec<(crate::id::IssueId, crate::model::IssueStatus)> =
-    issues.iter().map(|i| (i.number, i.status)).collect();
-  std::fs::write(&path, intentfiles::default_declaration(&open, &open_issues))
 }
 
 /// The per-machine artefacts a converged project ignores, each a PATH under the
@@ -5602,6 +5598,11 @@ impl Facade {
       Option<EventLogLeftover>,
       AggregateUntrack,
     );
+    // Whether the fold has a manifest to remove, read before the run removes it.
+    let manifest_folded = project
+      .intentfiles_path()
+      .exists()
+      .then(|| project.intentfiles_path());
     let finish = || -> Result<Finished, FacadeError> {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
@@ -5668,12 +5669,6 @@ impl Facade {
         step: "keeping the formatter off generated views",
         cause,
       })?;
-      declare_default_if_absent(project, &threads, &issues).map_err(|cause| {
-        FacadeError::MigrationHalted {
-          step: "writing the realisation manifest",
-          cause,
-        }
-      })?;
       move_the_canon_format(project, &store)?;
       // **THE AGGREGATE VIEWS LEAVE GIT'S INDEX LAST BEFORE THE STAMP** (ST0096,
       // AC-02.1), so a git that cannot be asked halts the upgrade unstamped and
@@ -5684,6 +5679,16 @@ impl Facade {
         untrack_aggregate_views(project).map_err(FacadeError::AggregateViewsNotUntracked)?;
       stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
+        cause,
+      })?;
+      // **THE MANIFEST GOES LAST, AFTER THE FORMAT HAS MOVED** (ST0096 WP-01).
+      // The plan folded its rows into the records it wrote. Stopped before
+      // this line, the project is in the release's format with a manifest
+      // nothing reads, and a re-run keeps what the records say and removes it.
+      // Removed before the format moved, a re-run would read 3.4.0's format
+      // with no manifest and fold the default over the rows.
+      remove_folded_manifest(project).map_err(|cause| FacadeError::MigrationHalted {
+        step: "removing the realisation manifest the records now carry",
         cause,
       })?;
       Ok((
@@ -5763,6 +5768,7 @@ impl Facade {
           dispositions,
           events_backfilled,
           event_log_leftover,
+          manifest_folded,
         })
       }
       Err(halted) => {
@@ -7919,6 +7925,101 @@ impl Facade {
     }
   }
 
+  /// Hydrate's pin in 3.4.0's format: `.intentfiles` declares `id`, and an
+  /// absent manifest is left absent. Whether the manifest moved.
+  fn pin_in_manifest(&mut self, sigil: Sigil, id: &str) -> Result<bool, FacadeError> {
+    let path = self.project.intentfiles_path();
+    let pinned = match std::fs::read_to_string(&path) {
+      Ok(before) => Some(before),
+      // **AN ABSENT MANIFEST IS LEFT ABSENT, AND THE ALTERNATIVE IS
+      // DESTRUCTIVE RATHER THAN MERELY DIFFERENT.** Creating one here to hold
+      // this single entry would declare that this id is THE WHOLE of what is
+      // realised, and the next `organize` would remove every other thread's
+      // files on the strength of one `intent edit`. Nobody has said, so
+      // everything is already realised and there is nothing for a pin to add
+      // -- the no-op is the rule applying, not a case being skipped. hv ruled
+      // this for the lifecycle verbs; `edit_list` is the same arm,
+      // written by ic, and AC-04.7 states expressly that it does not decide
+      // this one beyond requiring that absence not be REPORTED as unreadable.
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
+      // Any other IO fault is raised. A file that exists and cannot be read is
+      // not a file that does not exist, and letting a permissions error answer
+      // as "nobody has said" is the silent swallow this estate forbids.
+      Err(source) => {
+        return Err(FacadeError::ManifestUnreadable {
+          path: path.display().to_string(),
+          source,
+        });
+      }
+    };
+    // **`false` FOR THE ABSENT CASE IS A FACT ABOUT THE RUN, NOT A DEFAULT.**
+    // This value is what `disk.hydrate` records as `pinned`, and nothing was
+    // pinned: no manifest was read, none was written, and none was created.
+    // Reporting `true` because the artefact is realised would record an act
+    // that did not happen, in the log this estate treats as the durable one.
+    Ok(match pinned {
+      None => false,
+      Some(before) => {
+        let after = intentfiles::pin(&before, sigil, id, None).map_err(FacadeError::Intentfiles)?;
+        if after != before {
+          let mut set = WriteSet::new();
+          set.add(path, after);
+          let applied = set.commit()?;
+          self.note_landed(&applied);
+          applied.keep();
+          true
+        } else {
+          false
+        }
+      }
+    })
+  }
+
+  /// Set one artefact's realisation on its record, in an upgraded project
+  /// (ST0096 WP-01, R1): `st hydrate` and `st dehydrate` write their own
+  /// record's canon, never a shared manifest. Whether the record moved; one
+  /// already in that state is left alone and writes nothing.
+  fn realise_record(
+    &mut self,
+    sigil: Sigil,
+    id: &str,
+    realised: bool,
+    via: &str,
+  ) -> Result<bool, FacadeError> {
+    let mut next = self.canon.clone();
+    let (op, kind) = match sigil {
+      Sigil::SteelThread => {
+        let thread = find_thread_mut(&mut next, id)?;
+        if thread.realised == realised {
+          return Ok(false);
+        }
+        thread.realised = realised;
+        ("thread.set", "thread")
+      }
+      Sigil::Issue => {
+        let number = crate::id::IssueId::parse(id)
+          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
+        let issue = find_issue_mut(&mut next, number)?;
+        if issue.realised == realised {
+          return Ok(false);
+        }
+        issue.realised = realised;
+        ("issue.set", "issue")
+      }
+    };
+    let applied = self.apply(
+      op,
+      Subject {
+        kind: kind.to_string(),
+        id: id.to_string(),
+      },
+      json!({ "via": via, "field": "realised" }),
+      next,
+    )?;
+    self.park(applied);
+    Ok(true)
+  }
+
   /// Open `.intentfiles` for a verb that is about to ACT on what it says.
   ///
   /// **THREE STATES, KEPT APART, BECAUSE TWO OF THEM WERE THE SAME ONE AND THE
@@ -7944,7 +8045,16 @@ impl Facade {
   /// different questions: that one needs the manifest's TEXT in order to
   /// rewrite it, this one needs its DECLARATION in order to plan against it.
   /// Sharing a return type would make one of them convert back.
+  ///
+  /// **AN UPGRADED PROJECT HAS NO MANIFEST TO REFUSE** (ST0096 WP-01): its
+  /// records carry realisation, so it answers through the one owner.
   fn manifest_for_action(&self) -> Result<intentfiles::Realised, FacadeError> {
+    if self.realisation_on_records()? {
+      return Ok(intentfiles::declared_by_records(
+        &self.canon.threads,
+        &self.canon.issues,
+      ));
+    }
     let path = self.project.intentfiles_path();
     match std::fs::read_to_string(&path) {
       Ok(raw) => {
@@ -8294,52 +8404,12 @@ impl Facade {
     self.resolve_artefact(sigil, &id)?;
 
     // STEP ONE: PIN. First, and unconditionally, because it is the step the
-    // obvious ordering skips.
-    let path = self.project.intentfiles_path();
-    let pinned = match std::fs::read_to_string(&path) {
-      Ok(before) => Some(before),
-      // **AN ABSENT MANIFEST IS LEFT ABSENT, AND THE ALTERNATIVE IS
-      // DESTRUCTIVE RATHER THAN MERELY DIFFERENT.** Creating one here to hold
-      // this single entry would declare that this id is THE WHOLE of what is
-      // realised, and the next `organize` would remove every other thread's
-      // files on the strength of one `intent edit`. Nobody has said, so
-      // everything is already realised and there is nothing for a pin to add
-      // -- the no-op is the rule applying, not a case being skipped. hv ruled
-      // this for the lifecycle verbs; `edit_list` is the same arm,
-      // written by ic, and AC-04.7 states expressly that it does not decide
-      // this one beyond requiring that absence not be REPORTED as unreadable.
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
-      // Any other IO fault is raised. A file that exists and cannot be read is
-      // not a file that does not exist, and letting a permissions error answer
-      // as "nobody has said" is the silent swallow this estate forbids.
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: path.display().to_string(),
-          source,
-        });
-      }
-    };
-    // **`false` FOR THE ABSENT CASE IS A FACT ABOUT THE RUN, NOT A DEFAULT.**
-    // This value is what `disk.hydrate` records as `pinned`, and nothing was
-    // pinned: no manifest was read, none was written, and none was created.
-    // Reporting `true` because the artefact is realised would record an act
-    // that did not happen, in the log this estate treats as the durable one.
-    let pin_moved = match pinned {
-      None => false,
-      Some(before) => {
-        let after =
-          intentfiles::pin(&before, sigil, &id, None).map_err(FacadeError::Intentfiles)?;
-        if after != before {
-          let mut set = WriteSet::new();
-          set.add(path, after);
-          let applied = set.commit()?;
-          self.note_landed(&applied);
-          applied.keep();
-          true
-        } else {
-          false
-        }
-      }
+    // obvious ordering skips. An upgraded project pins on the record itself
+    // (ST0096 WP-01); 3.4.0's format pins in `.intentfiles`.
+    let pin_moved = if self.realisation_on_records()? {
+      self.realise_record(sigil, &id, true, "hydrate")?
+    } else {
+      self.pin_in_manifest(sigil, &id)?
     };
 
     // STEP TWO: MATERIALISE. Independent of the first -- it runs whether or not
@@ -8612,6 +8682,9 @@ impl Facade {
   /// is `organize`'s, and keeping them apart is what lets `--default` be safe
   /// to run on any estate at any time.
   pub fn declare_default(&mut self, force: bool) -> Result<Declared, FacadeError> {
+    if self.realisation_on_records()? {
+      return self.declare_default_on_records(force);
+    }
     let path = self.project.intentfiles_path();
 
     let existing = match std::fs::read_to_string(&path) {
@@ -8687,6 +8760,46 @@ impl Facade {
     })
   }
 
+  /// `organize --default` in an upgraded project (ST0096 WP-01): the records
+  /// always say, so without `--force` it reports what they declare, and with it
+  /// each record takes the default the manifest's one definition gives
+  /// ([`intentfiles::default_declaration`]), in one write. It removes nothing,
+  /// as in 3.4.0's format.
+  fn declare_default_on_records(&mut self, force: bool) -> Result<Declared, FacadeError> {
+    let path = self.project.canon_dir();
+    if !force {
+      return Ok(Declared {
+        path,
+        wrote: false,
+        was_present: true,
+        declares: intentfiles::realised_count(&self.canon.threads, &self.canon.issues),
+      });
+    }
+    let default = intentfiles::default_for(&self.canon.threads, &self.canon.issues);
+    let mut next = self.canon.clone();
+    intentfiles::fold_onto(&default, &mut next.threads, &mut next.issues);
+    let declares = intentfiles::realised_count(&next.threads, &next.issues);
+    let changed = next.threads != self.canon.threads || next.issues != self.canon.issues;
+    if changed {
+      let applied = self.apply(
+        "disk.declare_default",
+        Subject {
+          kind: "paths".to_string(),
+          id: self.ctx.project_id.clone(),
+        },
+        json!({ "declares": declares, "replaced": true }),
+        next,
+      )?;
+      self.park(applied);
+    }
+    Ok(Declared {
+      path,
+      wrote: changed,
+      was_present: true,
+      declares,
+    })
+  }
+
   /// Delist a thread and remove its realised files.
   ///
   /// **THE ANNOUNCING FORM IS THE ONE EVERY INTERACTIVE FACE OWES ITS
@@ -8725,36 +8838,56 @@ impl Facade {
       });
     };
     let id = id.to_string();
-    let path = self.project.intentfiles_path();
+    // ST0096 WP-01: an upgraded project unlists the record itself, and the
+    // hypothetical is its records with this one unset; 3.4.0's format unpins
+    // `.intentfiles` as before.
+    let (was_listed, realised_after, unpinned) = if self.realisation_on_records()? {
+      let mut after = self.canon.clone();
+      let was = match sigil {
+        Sigil::SteelThread => std::mem::take(&mut find_thread_mut(&mut after, &id)?.realised),
+        Sigil::Issue => {
+          let number = crate::id::IssueId::parse(&id)
+            .map_err(|_| FacadeError::MalformedIssueId { id: id.clone() })?;
+          std::mem::take(&mut find_issue_mut(&mut after, number)?.realised)
+        }
+      };
+      (
+        was,
+        intentfiles::declared_by_records(&after.threads, &after.issues),
+        None,
+      )
+    } else {
+      let path = self.project.intentfiles_path();
 
-    // **AN ABSENT MANIFEST REFUSES (AC-00.4).** See
-    // [`FacadeError::NoManifestToUnlistFrom`] for why creating one here is the
-    // destructive answer rather than the convenient one.
-    let before = match std::fs::read_to_string(&path) {
-      Ok(text) => text,
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
-        return Err(FacadeError::NoManifestToUnlistFrom {
-          id,
-          path: self.project.relative(&path),
-        });
-      }
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: path.display().to_string(),
-          source,
-        });
-      }
+      // **AN ABSENT MANIFEST REFUSES (AC-00.4).** See
+      // [`FacadeError::NoManifestToUnlistFrom`] for why creating one here is the
+      // destructive answer rather than the convenient one.
+      let before = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
+          return Err(FacadeError::NoManifestToUnlistFrom {
+            id,
+            path: self.project.relative(&path),
+          });
+        }
+        Err(source) => {
+          return Err(FacadeError::ManifestUnreadable {
+            path: path.display().to_string(),
+            source,
+          });
+        }
+      };
+
+      // THE HYPOTHETICAL. Text, not a write. `unpin` refuses a malformed id and
+      // returns the original unchanged when the id is simply not listed -- which
+      // is an ordinary state here, not an error: a thread can be present on disk
+      // and absent from the list, and finishing that job is exactly what this verb
+      // is for.
+      let after = intentfiles::unpin(&before, sigil, &id).map_err(FacadeError::Intentfiles)?;
+      let realised_after =
+        intentfiles::realised_for_action(&after).map_err(FacadeError::Intentfiles)?;
+      (after != before, realised_after, Some((path, after)))
     };
-
-    // THE HYPOTHETICAL. Text, not a write. `unpin` refuses a malformed id and
-    // returns the original unchanged when the id is simply not listed -- which
-    // is an ordinary state here, not an error: a thread can be present on disk
-    // and absent from the list, and finishing that job is exactly what this verb
-    // is for.
-    let after = intentfiles::unpin(&before, sigil, &id).map_err(FacadeError::Intentfiles)?;
-    let was_listed = after != before;
-    let realised_after =
-      intentfiles::realised_for_action(&after).map_err(FacadeError::Intentfiles)?;
 
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
@@ -8886,11 +9019,18 @@ impl Facade {
     // the thread still declared -- which the next `organize` repairs by writing
     // them back from the store. The other order has no such recovery.
     if was_listed {
-      let mut set = WriteSet::new();
-      set.add(path, after);
-      let committed = set.commit()?;
-      self.note_landed(&committed);
-      committed.keep();
+      match unpinned {
+        Some((path, after)) => {
+          let mut set = WriteSet::new();
+          set.add(path, after);
+          let committed = set.commit()?;
+          self.note_landed(&committed);
+          committed.keep();
+        }
+        None => {
+          self.realise_record(sigil, &id, false, "dehydrate")?;
+        }
+      }
     }
 
     let removed: Vec<std::path::PathBuf> = run.dehydrated.clone();
@@ -14567,8 +14707,63 @@ impl Facade {
   /// everything at the next one. They are separate values so that a reader
   /// which needs to tell them apart does not have to re-derive the distinction
   /// from the filesystem.
-  fn realised_threads(&self) -> Realised {
-    crate::intentfiles::realised(&self.project.intentfiles_path())
+  ///
+  /// **ASKED OF `canon`, THE STATE BEING WRITTEN** (ST0096 WP-01): in an
+  /// upgraded project the records carry realisation, so the projection inside a
+  /// write asks the canon it is about to write, and a verb that realises its
+  /// own record renders it in the same write.
+  fn realised_in(&self, canon: &Canon) -> Result<Realised, FacadeError> {
+    Ok(crate::intentfiles::of_project(
+      &self.project,
+      self.canon_format()?,
+      &canon.threads,
+      &canon.issues,
+    ))
+  }
+
+  /// Where this project keeps realisation, as a report names it (ST0096
+  /// WP-01): see [`intentfiles::named`].
+  pub fn realisation_named(&self, one: bool) -> Result<String, FacadeError> {
+    Ok(intentfiles::named(&self.project, self.canon_format()?, one))
+  }
+
+  /// Whether realisation is carried by the records (an upgraded project) and
+  /// not by `.intentfiles` (ST0096 WP-01).
+  fn realisation_on_records(&self) -> Result<bool, FacadeError> {
+    Ok(self.canon_format()? == crate::canon_format::CanonFormat::V4)
+  }
+
+  /// Write the realisation a lifecycle op declares onto the record it changes,
+  /// in an upgraded project (ST0096 WP-01, R1).
+  ///
+  /// **THE SAME TABLE AS [`Facade::edit_list`], ON THE RECORD INSTEAD OF THE
+  /// MANIFEST**, and in the same write as the status, so creating or changing
+  /// one record writes no file another record's change also writes. A project
+  /// in 3.4.0's format is left to `edit_list`, and `--keep` and `--dehydrate`
+  /// suppress it here as there.
+  fn realise_on_record(
+    &self,
+    op: &str,
+    id: &str,
+    list: ListEdit,
+    next: &mut Canon,
+  ) -> Result<(), FacadeError> {
+    if list == ListEdit::Suppressed || !self.realisation_on_records()? {
+      return Ok(());
+    }
+    let Some((sigil, action)) = declared_list_edit(op) else {
+      return Ok(());
+    };
+    let realised = action == ListAction::Add;
+    match sigil {
+      Sigil::SteelThread => find_thread_mut(next, id)?.realised = realised,
+      Sigil::Issue => {
+        let number = crate::id::IssueId::parse(id)
+          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
+        find_issue_mut(next, number)?.realised = realised;
+      }
+    }
+    Ok(())
   }
 
   /// Which thread in canon owns a path, if any.
@@ -14720,7 +14915,7 @@ impl Facade {
     // as "nothing is declared" would silently stop rendering every view in
     // every project that has not opted in. Absence means nobody has said, not
     // that the answer is none.
-    let realised = self.realised_threads();
+    let realised = self.realised_in(canon)?;
     // **A HELD THREAD'S VIEWS ARE SKIPPED, NOT REFUSED** (issue 0209). The
     // write after `st start` realised the thread here, beside the v2 bucket
     // copy it would leave behind, and that write can be any verb about any
@@ -15995,6 +16190,7 @@ impl Facade {
       schema: crate::model::THREAD_SCHEMA.to_string(),
       id: id.clone(),
       origin: Some(origin.clone()),
+      realised: false,
       title: title.to_string(),
       slug: Some(slugify(title)),
       status: ThreadStatus::Triage,
@@ -16494,7 +16690,10 @@ impl Facade {
     } = plan;
     let mut moved = Vec::new();
     let manifest = self.project.intentfiles_path();
+    // An upgraded project's realisation moves with its record (ST0096 WP-01),
+    // so only 3.4.0's format has a manifest line to move.
     let before = match std::fs::read_to_string(&manifest) {
+      _ if self.realisation_on_records()? => None,
       Ok(text) => Some(text),
       Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
       Err(source) => {
@@ -17061,6 +17260,7 @@ impl Facade {
     // thread was listed with no files until the next write by anyone. Pinned
     // before, this write renders it exactly as every write renders every
     // declared thread -- no second realiser, and attachments stay `organize`'s.
+    self.realise_on_record(op, id, list, &mut next)?;
     let adds =
       list == ListEdit::AsDeclared && matches!(declared_list_edit(op), Some((_, ListAction::Add)));
     let manifest = self.project.intentfiles_path();
@@ -17090,7 +17290,7 @@ impl Facade {
     // 0209). A thread this verb has just declared, with a v2 bucket copy and
     // nothing at its home, will be skipped by every write -- and this verb is
     // the one whose success reads as "on its way to disk".
-    let realised = self.realised_threads();
+    let realised = self.realised_in(&self.canon)?;
     let present = organize::presence(&self.project, &self.canon, &realised);
     if let Some(h) = organize::held(&self.project, &self.canon, &realised, &present)
       .into_iter()
@@ -19619,6 +19819,18 @@ impl Facade {
           }));
         }
 
+        // **REALISATION HAS ITS OWN VERBS** (ST0096 WP-01): `st hydrate` and
+        // `st dehydrate` write it and write or remove the files with it, so a
+        // body carrying another value would say a thread is realised with no
+        // files on disk, or the reverse. CHANGED, not PRESENT, for `fiat`'s
+        // reasons above.
+        if existing.realised != row.realised {
+          return Err(refuse(format!(
+            "`realised` says whether {id}'s files are on disk, and no write changes it: use \
+             `intent st hydrate {id}` or `intent st dehydrate {id}`, which move the files with it"
+          )));
+        }
+
         if row == existing {
           return Ok(Outcome::AlreadyThere {
             state: "unchanged".to_string(),
@@ -20558,6 +20770,7 @@ impl Facade {
       schema: crate::model::ISSUE_SCHEMA.to_string(),
       number,
       origin: Some(origin.clone()),
+      realised: false,
       slug: slugify(title),
       title: title.to_string(),
       status: IssueStatus::Open,
@@ -20589,6 +20802,7 @@ impl Facade {
     self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
+    self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
     let created = self.creation_event(
       origin,
       op,
@@ -20843,6 +21057,7 @@ impl Facade {
     // Before `apply` for the reason `issue_add` records: the projection runs
     // inside it and reads the manifest, so an edit made afterwards is invisible
     // to the very write it is supposed to govern.
+    self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
     let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
     self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of the manifest.
@@ -21802,7 +22017,7 @@ impl Facade {
   /// A thread the manifest does not list is likewise already unlisted, so this
   /// close arms nothing new.
   ///
-  /// **IT READS THE MANIFEST THROUGH [`Facade::realised_threads`] AND NOT
+  /// **IT READS THE MANIFEST THROUGH [`Facade::realised_in`] AND NOT
   /// THROUGH `manifest_for_action`, AND THE DIFFERENCE IS WHICH ERROR THE
   /// OPERATOR SEES.** The strict reader REFUSES an unparseable manifest, and a
   /// note that refuses is a diagnostic deciding the verb's outcome: measured
@@ -21812,7 +22027,7 @@ impl Facade {
   /// note may say less than it would like; it may not change what the verb
   /// answers.
   fn dehydration_paths(&self, id: &str) -> Result<Vec<String>, FacadeError> {
-    let Realised::Declared(mut declared) = self.realised_threads() else {
+    let Realised::Declared(mut declared) = self.realised_in(&self.canon)? else {
       return Ok(Vec::new());
     };
     if !declared.remove(&intentfiles::declared_key(Sigil::SteelThread, id)) {
@@ -21864,7 +22079,9 @@ impl Facade {
   /// question -- that the pin must not be skipped when the files already exist
   /// -- and it has no second write to be interrupted between.
   fn edit_list(&mut self, op: &str, id: &str, list: ListEdit) -> Result<(), FacadeError> {
-    if list == ListEdit::Suppressed {
+    // An upgraded project's op writes this on its record, in the same write as
+    // its status, through [`Facade::realise_on_record`] (ST0096 WP-01).
+    if list == ListEdit::Suppressed || self.realisation_on_records()? {
       return Ok(());
     }
     let Some((sigil, action)) = declared_list_edit(op) else {
@@ -22397,6 +22614,9 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
   match entity {
     AddrEntity::Thread { .. } => match field {
       "schema" | "id" | "origin" => Some(Unsettable::Identity),
+      "realised" => Some(Unsettable::OwnVerbs(
+        "intent st hydrate <ST-id>, intent st dehydrate <ST-id>",
+      )),
       "status" => Some(Unsettable::Machine(
         "intent st start|done|fc|hold|resume|cancel|reopen|reinstate",
       )),
@@ -22463,6 +22683,9 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     // `--severity` only, so the whole of an issue's prose had no door at all.
     AddrEntity::Issue { .. } => match field {
       "schema" | "number" | "id" | "origin" => Some(Unsettable::Identity),
+      "realised" => Some(Unsettable::OwnVerbs(
+        "intent issues open|close, which realise and unrealise the issue's view",
+      )),
       "status" | "closed" => Some(Unsettable::Machine("intent issues close|open")),
       "created" => Some(Unsettable::Stamped),
       // **`created` WAS SETTABLE FOR AN HOUR AND THE ARGUMENT FOR IT WAS WRONG

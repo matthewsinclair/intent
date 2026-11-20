@@ -34,6 +34,38 @@ pub fn born_upgraded(root: &std::path::Path) {
   std::fs::write(&path, state).expect("write the project state");
 }
 
+/// Put a project `intent init` made back in 3.4.0's format, for a test whose
+/// subject is that format's `.intentfiles` (ST0096 WP-01): no project state,
+/// and no store, so the next open ingests a project that names no format. A
+/// mint refuses in this format, so its threads and issues are seeded with
+/// [`seed_ordinal_thread`] and [`seed_ordinal_issue`].
+pub fn born_ordinal(root: &std::path::Path) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  std::fs::remove_file(project.project_json()).expect("remove the project state");
+  let db = project.db_path();
+  for path in [
+    db.clone(),
+    db.with_extension("db-wal"),
+    db.with_extension("db-shm"),
+  ] {
+    match std::fs::remove_file(&path) {
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+      done => done.expect("remove the store"),
+    }
+  }
+}
+
+/// The manifest 3.4.0's `intent init` wrote: the header, declaring nothing,
+/// through the one function that derives it.
+pub fn seed_init_manifest(root: &std::path::Path) {
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  std::fs::write(
+    project.intentfiles_path(),
+    intentsvcs::intentfiles::default_declaration(&[], &[]),
+  )
+  .expect("write the manifest");
+}
+
 /// The `intent` binary cargo built for these tests, as a path.
 ///
 /// **THE ONLY PLACE IN THIS CRATE'S TESTS THAT NAMES `CARGO_BIN_EXE_intent`

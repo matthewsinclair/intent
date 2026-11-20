@@ -351,7 +351,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 31: git-style ids (ST0095 WP-06, schema rung 36): `wps.seq` and
     // `issues.number` become TEXT, `origin` on threads, wps and issues, and
     // `project.canon_schema`, the canon's format. All three faces move for it.
-    ("SCHEMA_DDL_VER", 31, 0x853b_243e_dfd3_5a74),
+    ("SCHEMA_DDL_VER", 31, 0x7ffb_2eb7_d381_4b64),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
@@ -370,7 +370,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 23: `retired` on the board's node and its `WbRetired` (ST0092 WP-04).
     // 24: git-style ids (ST0095 WP-06): `Issue.number` and `WorkPackage.seq`
     // are named `id`, and `origin` joins a thread, a work package and an issue.
-    ("SCHEMA_SDL_VER", 24, 0xd653_e7ee_979c_5651),
+    ("SCHEMA_SDL_VER", 24, 0x0d9d_cb4e_7b64_d3f3),
     // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
     // **THE COORDINATION ENTITIES GET A PUBLISHED FACE (WP-14).** 17 -> 18, and
     // it is a ONE-face result: `board.schema.json` joins the JSON contract, so
@@ -399,7 +399,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // 27: `retired` on a board's node (ST0092 WP-04), carried in board 4.1.
     // 28: git-style ids (ST0095 WP-06): thread and issue canon at @4.0, an id as
     // a stored string under `id`, and `origin` on a hashed record.
-    ("SCHEMA_JSON_VER", 28, 0x7530_91ad_5010_ba27),
+    ("SCHEMA_JSON_VER", 28, 0x1a5c_bfb2_4ca2_8257),
   ];
 
   let mut moved = Vec::new();

@@ -151,14 +151,24 @@ fn realised(root: &Path) -> Vec<String> {
   out
 }
 
-/// The ids the manifest declares, in file order.
+/// The ids of the threads whose canon record declares them realised, in id
+/// order. A project `init` makes keeps the declaration on its records, not in
+/// `.intentfiles` (ST0096 WP-01).
 fn declared(root: &Path) -> Vec<String> {
-  std::fs::read_to_string(root.join("intent/.intentfiles"))
-    .expect("the manifest must be readable")
-    .lines()
-    .filter_map(|l| l.strip_prefix("STEELTHREAD:"))
-    .map(|id| id.split('#').next().unwrap_or(id).trim().to_string())
-    .collect()
+  let mut ids: Vec<String> = std::fs::read_dir(root.join("intent/.canon/st"))
+    .expect("the thread canon must be readable")
+    .map(|entry| entry.expect("an entry").path())
+    .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
+    .filter_map(|path| {
+      let record: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&path).expect("a thread's canon"))
+          .expect("a thread's canon parses");
+      (record["realised"] == serde_json::Value::Bool(true))
+        .then(|| record["id"].as_str().expect("a thread's id").to_string())
+    })
+    .collect();
+  ids.sort();
+  ids
 }
 
 /// The ids `st new` minted for [`project`]'s three threads, by the part each
@@ -297,15 +307,15 @@ fn regenerates_then_applies_in_the_same_run() {
   );
 
   // The declaration is now status-derived: the two WIP threads and nothing else.
-  // Compared as a set, since the manifest lists them in the waist's order,
-  // which for minted ids is not the order they were minted in (ST0095 WP-06).
+  // Compared as a set, since the records are read in id order, which for
+  // minted ids is not the order they were minted in (ST0095 WP-06).
   let mut listed = declared(root);
   listed.sort();
   let mut wip = vec![gate.clone(), to_create.clone()];
   wip.sort();
   assert_eq!(
     listed, wip,
-    "the regenerated manifest must declare exactly the WIP threads: {said}"
+    "the regenerated declaration must be exactly the WIP threads: {said}"
   );
 
   let after = realised(root);

@@ -370,15 +370,25 @@ fn organize_names_what_it_hydrated_and_removed() {
   let dir = project();
   let d = dir.path();
   let st = crate::common::created(&setup(d, &["st", "new", "a probe thread"]));
-  // Declared in the manifest and not on disk: organize realises it.
-  let manifest = d.join("intent/.intentfiles");
-  let text = std::fs::read_to_string(&manifest).expect("the manifest");
-  std::fs::write(&manifest, format!("{text}STEELTHREAD:{st}\n")).expect("declare it");
+  // Declared on its record and not on disk: organize realises it. The record
+  // carries the declaration (ST0096 WP-01), so `st hydrate` declares it and
+  // its files are then taken off the disk by hand.
+  setup(d, &["st", "hydrate", st.as_str()]);
+  std::fs::remove_dir_all(d.join(format!("intent/st/{st}"))).expect("unrealise it");
   crate::common::git_commit_all(d);
   names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
-  // Then undeclared while on disk: organize removes its views.
-  std::fs::write(&manifest, &text).expect("undeclare it");
-  crate::common::git_commit_all(d);
+  // Then undeclared while on disk: organize removes its views. `st cancel`
+  // takes the declaration off the record and leaves the files.
+  setup(
+    d,
+    &[
+      "st",
+      "cancel",
+      st.as_str(),
+      "--reason",
+      "undeclared by the fixture",
+    ],
+  );
   let out = names_what_it_wrote_and_removed(d, &["organize", "--apply"]);
   assert!(
     !removed(&out, "").is_empty(),

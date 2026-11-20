@@ -728,6 +728,7 @@ fn two_clones_each_add_a_work_package(
 /// still sees a thread both sides changed, whose only offer used to be taking
 /// a side, which drops one person's package. The plan reads the merge's three
 /// versions, sees that adding packages is all either side did, and keeps both.
+// ST0095 AT-05.1: the arm below.
 #[test]
 fn two_clones_that_each_add_a_work_package_keep_both() {
   let (team, onboarding) = Team::new();
@@ -826,6 +827,7 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
 /// is there after. (An issue each, the criterion's third record, also declares
 /// a row in `.intentfiles`, which leaves git with ST0096, so that half is
 /// proven once ST0096 lands.)
+// ST0095 AT-05.4: the arm below.
 #[test]
 fn two_clones_that_each_mint_merge_with_no_repair() {
   let (team, onboarding) = Team::new();

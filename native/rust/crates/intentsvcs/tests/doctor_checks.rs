@@ -33,6 +33,7 @@ fn clean_thread(id: &str) -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
     origin: None,
+    realised: false,
     title: "A clean thread".to_string(),
     slug: None,
     status: ThreadStatus::Wip,

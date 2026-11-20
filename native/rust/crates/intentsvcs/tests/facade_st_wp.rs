@@ -33,10 +33,17 @@ fn st_new_creates_canon_and_every_view() {
   );
 
   assert!(fx.canon_path(&id).is_file());
-  assert!(fx.project().info_view(&id).is_file());
-  assert!(fx.project().acceptance_view(&id).is_file());
   assert!(fx.path("intent/st/steel_threads.md").is_file());
   assert!(fx.path("intent/todo.md").is_file());
+  // `st new` declares nothing (ST0096 WP-01): its record is not realised, so
+  // the thread's own views wait for the verb that realises it.
+  assert!(!facade.st_show(&id).expect("show").realised);
+  assert!(!fx.project().info_view(&id).exists());
+  facade
+    .hydrate(&intentsvcs::address::promote(&id).expect("an address"))
+    .expect("st hydrate");
+  assert!(fx.project().info_view(&id).is_file());
+  assert!(fx.project().acceptance_view(&id).is_file());
 
   let thread = facade.st_show(&id).expect("show");
   assert_eq!(thread.status, ThreadStatus::Triage);
@@ -246,6 +253,12 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   facade
     .st_hold("ST0056", "waiting on the fleet")
     .expect("a legal mutation from wip");
+  // `st hold` unrealises the thread (ST0096 WP-01), so it is realised again
+  // and the cancel below keeps it realised (`--keep`): the cover is then one of
+  // the files the failing batch writes.
+  facade
+    .hydrate(&intentsvcs::address::promote("ST0056").expect("an address"))
+    .expect("st hydrate");
 
   let canon_before = fx.read_canon("ST0056");
   // The cover's path from the project, never spelled by hand (ST0095 WP-06).
@@ -259,7 +272,12 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   // `intent/todo.md` fails -- so the batch dies after several writes landed.
   let mode = fx.make_readonly("intent");
 
-  let result = facade.st_cancel("ST0056", "superseded by the v3 line");
+  let result = facade.st_cancel_listing(
+    "ST0056",
+    "superseded by the v3 line",
+    ListEdit::Suppressed,
+    None,
+  );
 
   fx.restore_mode("intent", mode);
 

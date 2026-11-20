@@ -36,6 +36,7 @@ fn park_shaped() -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0001"),
     origin: None,
+    realised: false,
     title: "A thread with a satisfied scope nobody has started".to_string(),
     slug: None,
     status: ThreadStatus::Wip,

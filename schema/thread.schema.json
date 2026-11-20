@@ -695,6 +695,10 @@
       "description": "Authored prose above the first `## `, minus the `# ` title line, stripped.\n\nCarried verbatim and never classified. The regions are largely metadata\nrestatement, and that is the reason no classifier exists for them rather\nthan a reason to build one: a model naming the shapes it foresaw drops\nwhat it did not, and the unforeseen remainder is the load-bearing half.\n\nStored STRIPPED. The surrounding blank lines are markdown layout the\nrenderer re-emits, so the trim is a normalisation rather than a loss --\nreported and counted as such, never silently adopted.",
       "type": "string"
     },
+    "realised": {
+      "description": "Whether the thread's files are on disk, as `st hydrate` and\n`st dehydrate` and the lifecycle verbs set it. Absent means not realised.",
+      "type": "boolean"
+    },
     "related": {
       "items": {
         "$ref": "#/$defs/Related"

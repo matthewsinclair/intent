@@ -39,6 +39,13 @@
 //! exiting non-zero. **The uncovered half fails loudly** -- an operator typing
 //! it sees the prompt or does not -- while the covered half is the one that
 //! would let a script regenerate a declaration with nobody watching.
+//!
+//! # 3.4.0's format (ST0096 WP-01)
+//!
+//! `.intentfiles` is the declaration only in a project `intent upgrade` has not
+//! moved, so every fixture here is one: `init`, put back in 3.4.0's format, its
+//! threads seeded as ordinals (a mint refuses there) and the manifest 3.4.0's
+//! `init` wrote.
 
 use std::process::Output;
 
@@ -78,11 +85,21 @@ fn project() -> (tempfile::TempDir, String, String) {
     intent(root, &["init", "Fixture"]).status.success(),
     "the fixture must initialise"
   );
-  let [first, second] = ["An open thread", "A thread to close"].map(|title| {
-    let out = intent(root, &["st", "new", title]);
-    assert!(out.status.success(), "st new must succeed");
-    crate::common::created(&String::from_utf8_lossy(&out.stdout))
+  crate::common::born_ordinal(root);
+  let [first, second] = [(1, "An open thread"), (2, "A thread to close")].map(|(n, title)| {
+    let id = intentsvcs::id::ThreadId::from_ordinal(n)
+      .expect("an ordinal thread")
+      .stored();
+    crate::common::seed_ordinal_thread(root, &id, title, &[]);
+    // At `triage`, where `st new` leaves a thread.
+    let canon = root.join(format!("intent/.canon/st/{id}.json"));
+    let text = std::fs::read_to_string(&canon).expect("the seeded canon");
+    let triage = text.replace("\"status\": \"not-started\"", "\"status\": \"triage\"");
+    assert_ne!(text, triage, "the seeded thread must move to triage");
+    std::fs::write(&canon, triage).expect("write the seeded canon");
+    id
   });
+  crate::common::seed_init_manifest(root);
   (dir, first, second)
 }
 

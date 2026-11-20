@@ -356,15 +356,17 @@ fn two_facades_holding_one_issue_snapshot_do_not_both_get_to_write() {
 #[test]
 fn a_close_the_locked_store_refuses_leaves_the_manifest_as_it_found_it() {
   // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of .intentfiles.
+  // An upgraded project carries the declaration on the issue's own record
+  // (ST0096 WP-01), so that record is what the refusal must leave alone.
   let fx = Fixture::new();
-  fx.write_file("intent/.intentfiles", "");
   let mut f = fx.facade_on_disk();
   let number = f
     .issue_add("closed under a lock", None, None, "the body")
     .expect("add");
-  let before = fx.read("intent/.intentfiles");
+  let record = fx.project().issue_json(number);
+  let before = std::fs::read_to_string(&record).expect("the issue's record");
   assert!(
-    before.contains(&number.claim()),
+    f.issue_show(number).expect("the issue").realised,
     "precondition: the add declared it: {before:?}"
   );
   let lock = rusqlite::Connection::open(fx.project().db_path()).expect("a second connection");
@@ -378,8 +380,15 @@ fn a_close_the_locked_store_refuses_leaves_the_manifest_as_it_found_it() {
     "precondition: the locked store refused the close"
   );
   assert_eq!(
-    fx.read("intent/.intentfiles"),
+    std::fs::read_to_string(&record).expect("the issue's record"),
     before,
-    "and the manifest is as the refusal found it"
+    "and the record is as the refusal found it"
+  );
+  assert!(
+    fx.facade_on_disk()
+      .issue_show(number)
+      .expect("the issue")
+      .realised,
+    "and the issue is still declared"
   );
 }

@@ -239,6 +239,8 @@ MACHINE_MAP='
 3 Criterion state
 4 Issue status
 5 AcceptanceTest status
+6 Thread realised
+7 Issue realised
 '
 # `Disposition::State` fields the document deliberately does not table, with
 # its reason. NEVER a skip list: a row here is a claim the document makes, and

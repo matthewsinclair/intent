@@ -857,6 +857,38 @@ States: `to-write` | `red` | `green` | `n-a` | `fiat`. **Entry: `to-write`.**
 
 **THE `fiat` / FIAT-RECORD INVARIANT IS ENFORCED BY NO TYPE, AND THIS TABLE CANNOT EXPRESS IT.** `AcState::Fiat` carries its `FiatRecord` INSIDE the variant, so on Machine 3 the state and its evidence cannot disagree -- the type holds them together and no verb can separate them. `AtStatus` derives `Copy` and async-graphql `Enum`, both of which forbid a payload, so the record sits BESIDE the status on `AcceptanceTest.fiat`. **A `fiat` status with no record, and a record on a row that is not `fiat`, are each expressible, and nothing structural refuses either.** The invariant is therefore carried by EVERY verb that touches `status`, and each one has to re-establish it: `at_fc` writes the pair together, `at_set` clears the record on any other landing, and `Facade::put` refuses to write the field at all (hv, D7). **A verb added to this machine later inherits that obligation and gets no reminder from the compiler** -- which is the most important thing on this page about Machine 5, and the reason it is stated in prose beneath the table rather than left to the rows.
 
+### Machine 6 -- Thread realisation (`Thread.realised`)
+
+States: `false` | `true`. **Entry: `false`.** Whether a thread's files are on disk (ST0096 WP-01, R1).
+
+**A TRANSCRIPTION, NOT A NEW MACHINE.** Every row is the op table hv ruled for `.intentfiles` (ST0057 AC-05.2, ruled by hv 2026-08-19, its membership settled by hv on 2026-08-27), which hv decision 71 (2026-11-19, ST0096 as designed, R1) carries onto the record with no change in meaning, `st hydrate` and `st dehydrate` included. Keyed on the op and never on the status the op lands on: `st new` and `st reinstate` move nothing, and `st done --keep`, `st cancel --keep` and `st new --dehydrate` suppress the row for one call. `intent organize --default`, which sets every record from status, is not in the ruled table and is not a row here (vc, 2026-11-20, for hv).
+
+| From     | To      | Verb           | Guard |
+| -------- | ------- | -------------- | ----- |
+| _(none)_ | `false` | `st.new`       | --    |
+| `false`  | `true`  | `st.start`     | --    |
+| `false`  | `true`  | `st.resume`    | --    |
+| `false`  | `true`  | `st.reopen`    | --    |
+| `false`  | `true`  | `st.hydrate`   | --    |
+| `true`   | `false` | `st.done`      | --    |
+| `true`   | `false` | `st.fc`        | --    |
+| `true`   | `false` | `st.cancel`    | --    |
+| `true`   | `false` | `st.hold`      | --    |
+| `true`   | `false` | `st.triage`    | --    |
+| `true`   | `false` | `st.dehydrate` | --    |
+
+### Machine 7 -- Issue realisation (`Issue.realised`)
+
+States: `false` | `true`. **Entry: `true`.** Whether an issue's view is on disk (ST0096 WP-01, R1).
+
+**AS BUILT BY ST0069 WP-01, NOT A RULING OF hv's.** ST0069 WP-01 gave an issue a realised form and made `issues add` and `issues open` declare it and `issues close` remove it. It is recorded as built, and hv may overrule it (vc, 2026-11-20).
+
+| From     | To      | Verb           | Guard |
+| -------- | ------- | -------------- | ----- |
+| _(none)_ | `true`  | `issues.add`   | --    |
+| `false`  | `true`  | `issues.open`  | --    |
+| `true`   | `false` | `issues.close` | --    |
+
 ### What this gives cc's `transitions.rs`
 
 `transitions.rs` declares each ratified machine -- its `initial` values and every `Edge` -- and `tests/mutation_completeness.rs` drives the service layer against that **declared** graph, so the question is "does the code implement the ratified machine, exactly?" rather than "is the code closed?", and a missing verb is a red test rather than a fact nobody noticed until a WP could not be reopened. `machine_table_check.sh` holds the declaration to the tables on this page.

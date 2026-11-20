@@ -869,7 +869,8 @@
           "basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.",
           "owner_wp": "ST0057 WP-02",
           "target": {
-            "state": "new-surface"
+            "state": "new-surface",
+            "no_op": "unexamined by driving the verb twice. Read from `render.rs` (`fn hydrated`), ST0096 WP-01: the second call prints `ok: <address> hydrated -- listed in <where>, <n> file(s) on disk, 0 written by this run`, exit 0, where `<where>` is `.intentfiles` in 3.4.0's format and `its canon record` once the project is upgraded."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -893,7 +894,8 @@
           "basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list.",
           "owner_wp": "ST0057 WP-02",
           "target": {
-            "state": "new-surface"
+            "state": "new-surface",
+            "no_op": "unexamined by driving the verb twice. Read from `render.rs` (`fn dehydrated`), ST0096 WP-01: the second call prints `ok: <address> was already dehydrated -- not listed in <where>, nothing realised to remove`, exit 0, where `<where>` is `.intentfiles` in 3.4.0's format and `its canon record` once the project is upgraded."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -12651,8 +12653,10 @@
       "issues open",
       "set",
       "st cancel",
+      "st dehydrate",
       "st done",
       "st hold",
+      "st hydrate",
       "st reinstate",
       "st reopen",
       "st resume",

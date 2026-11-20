@@ -360,6 +360,7 @@ fn a_satisfaction_carrying_no_evidence_is_refused() {
 /// REFUSED BY NAME, AND NONE IS SKIPPED.** A canon file is named by its
 /// record's stored id, so a name that is no id is a record no reader can place.
 /// 3.4.0 skipped such an issue file, and its next write deleted it.
+// ST0095 AT-06.5: the arm below.
 #[test]
 fn a_canon_file_named_as_no_id_is_refused_by_name_and_none_is_skipped() {
   // A canon directory of the fixture, and the kind of id its files are named by.

@@ -192,7 +192,7 @@ fn declaration(fields: &str) -> String {
 
 /// **AC-17.2's CONVERSE, ASSERTED AS AN EQUALITY OVER ALL THREE ENTITIES.**
 ///
-/// The gap set is exactly four properties, each out by a recorded decision:
+/// The gap set is exactly these properties, each out by a recorded decision:
 ///
 /// - **`thread.body`, `thread.preamble`** -- `tui-design.md` §11, *empty
 ///   everywhere measured*, recommended out of v1.
@@ -205,6 +205,10 @@ fn declaration(fields: &str) -> String {
 /// - **`wp.status_legacy`** (0100) -- the same carry for `status`, out for the
 ///   same reason: a v2 spelling kept verbatim beside the status it was read
 ///   as, which nothing reads to answer a question about status.
+/// - **`thread.realised`, `issue.realised`** (ST0096 WP-01) -- realisation has
+///   its own verbs, which move the files with it: `st hydrate` and `st
+///   dehydrate` for a thread, `issues open` and `issues close` for an issue. A
+///   form row would set it with no files on disk, or none with files there.
 ///
 /// **The point is that each omission is NAMED rather than silent**, and it is
 /// asserted as `==`, never as `is_empty` or `contains`. A new writable field
@@ -212,7 +216,7 @@ fn declaration(fields: &str) -> String {
 /// converse arm exists: it fires the day a field is ADDED, and nothing about a
 /// form merely missing a row looks wrong.
 #[test]
-fn the_only_changeable_properties_off_a_form_are_the_four_ruled_out() {
+fn the_only_changeable_properties_off_a_form_are_the_ruled_out_ones() {
   let loaded = Loaded::load().expect("loads");
   let gaps: Vec<String> = loaded
     .changeable_and_not_on_any_form()
@@ -222,13 +226,15 @@ fn the_only_changeable_properties_off_a_form_are_the_four_ruled_out() {
   assert_eq!(
     gaps,
     [
+      "issue.realised",
       "thread.body",
       "thread.preamble",
+      "thread.realised",
       "wp.scope_legacy",
       "wp.status_legacy"
     ],
     "a changeable property with no row is unreachable through EVERY realiser, and the only \
-     symptom is that nobody ever edits it. These four are out by a recorded decision; \
+     symptom is that nobody ever edits it. These are out by a recorded decision; \
      anything else here is a field that arrived after the forms were written"
   );
 }
@@ -259,9 +265,14 @@ fn every_property_of_every_face_is_accounted_for() {
     // `fiat` arrived with ST0066's fiat close (dc, `d4526c1b`): the converse
     // half of AC-17.2 fires the day a field is ADDED, and nothing about a form
     // merely missing a row looks wrong.
+    // `realised` is off every form for the reason in the gap arm above.
     (
       "thread",
-      &["body (NarrowSetter)", "preamble (NarrowSetter)"],
+      &[
+        "body (NarrowSetter)",
+        "preamble (NarrowSetter)",
+        "realised (AnotherDoor)",
+      ],
     ),
     // `status_legacy` (0100) is off the form for `scope_legacy`'s reason -- see
     // the gap arm above.
@@ -272,7 +283,7 @@ fn every_property_of_every_face_is_accounted_for() {
         "status_legacy (NarrowSetter)",
       ],
     ),
-    ("issue", &[]),
+    ("issue", &["realised (AnotherDoor)"]),
   ];
 
   for (kind, exceptions) in expected {

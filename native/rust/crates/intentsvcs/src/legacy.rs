@@ -487,6 +487,7 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       schema: THREAD_SCHEMA.to_string(),
       id: id.clone(),
       origin: None,
+      realised: false,
       title: heading,
       slug: Some(slug),
       status: status.unwrap_or(ThreadStatus::NotStarted),
@@ -998,6 +999,7 @@ fn issues(project: &Project, out: &mut Scan) {
         schema: crate::model::ISSUE_SCHEMA.to_string(),
         number,
         origin: None,
+        realised: false,
         // The filename tail after `<nnnn>-`, which is where v2 keeps the slug.
         slug: md
           .file_stem()

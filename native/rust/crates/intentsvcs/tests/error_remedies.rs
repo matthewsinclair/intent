@@ -367,16 +367,29 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // a manifest that is there and cannot be READ, and one that is there and will
   // not PARSE. A directory in the file's place is the first, needs no `chmod`,
   // and behaves the same on every platform this ships to.
-  std::fs::create_dir(fx.path("intent/.intentfiles")).expect("a directory in the manifest's place");
+  //
+  // **ON A PROJECT IN 3.4.0's FORMAT** (ST0096 WP-01): an upgraded project
+  // keeps realisation on its records and reads no manifest, so these arms need
+  // one `intent upgrade` has not moved. ST0057 is the vehicle the lifecycle arm
+  // below cancels, since a mint refuses in that format.
+  let manifest_fx = Fixture::ordinal();
+  manifest_fx.write_thread(&sample_thread("ST0056"));
+  manifest_fx.write_thread(&sample_thread("ST0057"));
+  let mut manifest = manifest_fx.facade();
+  std::fs::create_dir(manifest_fx.path("intent/.intentfiles"))
+    .expect("a directory in the manifest's place");
   out.push((
     "unreadable realisation manifest",
-    facade
+    manifest
       .organize(Mode::Apply)
       .expect_err("a manifest that is there and cannot be read is refused"),
   ));
-  std::fs::remove_dir(fx.path("intent/.intentfiles")).expect("take it away again");
-  std::fs::write(fx.path("intent/.intentfiles"), "NOTASIGIL:ST0056\n")
-    .expect("write a malformed manifest");
+  std::fs::remove_dir(manifest_fx.path("intent/.intentfiles")).expect("take it away again");
+  std::fs::write(
+    manifest_fx.path("intent/.intentfiles"),
+    "NOTASIGIL:ST0056\n",
+  )
+  .expect("write a malformed manifest");
   // **An address form that names nothing realisation can create.** Provoked
   // rather than exempted: it needs no broken world, only an ordinary call with
   // an address that is perfectly valid and names a thing with no file form.
@@ -434,7 +447,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   ));
   out.push((
     "malformed realisation manifest",
-    facade
+    manifest
       .organize(Mode::Apply)
       .expect_err("a manifest with an unknown sigil is refused"),
   ));
@@ -457,10 +470,8 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // stopped being provoked, because closing an already-cancelled thread is a
   // different error. A control used as a subject is spent, and nothing about
   // the file says so -- so this creates its own victim and leaves ST0056 alone.
-  let doomed = facade
-    .st_new("a thread that exists only to be cancelled over a bad manifest")
-    .expect("st new does not touch the list, so it survives the malformed file below");
-  std::fs::write(fx.path("intent/.intentfiles"), "NONSENSE\n")
+  let doomed = "ST0057";
+  std::fs::write(manifest_fx.path("intent/.intentfiles"), "NONSENSE\n")
     .expect("a line that is not an entry at all");
   out.push((
     "a lifecycle verb over a malformed manifest",
@@ -469,8 +480,8 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     // provocation stopped provoking, and a fault that cannot be reached is a
     // fault this file cannot render. `st.cancel` still edits the list, is
     // reachable from every live state, and hits the same parse.
-    facade
-      .st_cancel(&doomed, "a thread whose listing cannot be written")
+    manifest
+      .st_cancel(doomed, "a thread whose listing cannot be written")
       .expect_err("the list edit cannot be expressed against a manifest that will not parse"),
   ));
   out.push((
@@ -916,7 +927,8 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // **THE ORDER IS FORCED AND IT IS THE INTERESTING PART**: the refusal needs
   // the manifest present, and the absence needs it gone, so the present case
   // must come first and the file is taken away between them.
-  let dehydrating = Fixture::new();
+  // In 3.4.0's format, the one that keeps a manifest (ST0096 WP-01).
+  let dehydrating = Fixture::ordinal();
   dehydrating.write_thread(&sample_thread("ST0056"));
   let mut d = dehydrating.facade();
   let st0056 = intentsvcs::address::Address {

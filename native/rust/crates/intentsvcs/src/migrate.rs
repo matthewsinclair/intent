@@ -192,6 +192,22 @@ pub enum Blocked {
   /// `canon_parts` by construction and report a silent drop as correct.
   #[error("the canon carries {actual} file(s) for {expected} artefact(s)")]
   Conservation { expected: usize, actual: usize },
+  /// `.intentfiles` is present and will not parse, so its rows cannot be
+  /// folded into the records (ST0096 WP-01). **Refused, never read fail-open**:
+  /// the fold removes the file, so a row it could not read would be lost.
+  #[error("{path} does not parse, so the upgrade cannot fold it into the records: {cause}")]
+  Manifest {
+    path: String,
+    cause: crate::intentfiles::IntentfilesError,
+  },
+  /// `.intentfiles` is present and cannot be read, so the fold cannot say
+  /// what it declares (ST0096 WP-01).
+  #[error("{path} could not be read, so the upgrade cannot fold it into the records")]
+  ManifestUnreadable {
+    path: String,
+    #[source]
+    source: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for Blocked {
@@ -208,6 +224,10 @@ impl crate::remedy::Remedy for Blocked {
       ),
       Self::CaseCollision { path, other } => format!(
         "{path} and {other} differ only in case, so a case-insensitive disk (macOS's default) stores them as one file and one would overwrite the other; give the authored file among them another name under v2 tooling (either one, when both are authored), then re-run the migration"
+      ),
+      Self::Manifest { cause, .. } => crate::remedy::Remedy::remedy(cause),
+      Self::ManifestUnreadable { path, .. } => format!(
+        "make {path} readable (the cause line names why it is not), then run `intent upgrade` again; nothing was written"
       ),
       Self::Conservation { expected, actual } => format!(
         "{} artefact(s) produced no canon; nothing in the project caused this and a re-run will reproduce it -- report it",
@@ -574,21 +594,45 @@ fn assemble(
   // reported nothing. vc made that measurement the condition of lifting the
   // hold this clause sat under, on the ground that a check narrower than the
   // defect it is aimed at is the class that has cost this estate most.
-  let realised = match crate::intentfiles::realised(&project.intentfiles_path()) {
-    crate::intentfiles::Realised::NothingSaid => {
-      let statuses: Vec<(String, crate::model::ThreadStatus)> = canon
-        .threads
-        .iter()
-        .map(|t| (t.id.stored(), t.status))
-        .collect();
-      let issues: Vec<(crate::id::IssueId, crate::model::IssueStatus)> =
-        canon.issues.iter().map(|i| (i.number, i.status)).collect();
-      crate::intentfiles::realised_from(&crate::intentfiles::default_declaration(
-        &statuses, &issues,
-      ))
+  //
+  // # The fold (ST0096 WP-01, R1)
+  //
+  // The realised set is then written onto the records, which the plan writes
+  // in the release's format: a listed record carries `realised: true` and any
+  // other record carries no field, so the fold maps the manifest exactly and
+  // two branches upgraded apart write the same bytes. `Facade::upgrade` then
+  // removes the manifest. A project an earlier upgrade moved already carries
+  // the field and has no manifest, so a re-run keeps what its records say.
+  // An unreadable manifest is refused here, not read fail-open: the fold
+  // removes the file, so a row it could not read would be lost.
+  let format = crate::ingest::canon_format(project)
+    .map_err(|findings| Blocked::ProjectState(Refusal::new(findings)))?;
+  let realised = match format {
+    crate::canon_format::CanonFormat::V4 => {
+      crate::intentfiles::declared_by_records(&canon.threads, &canon.issues)
     }
-    said => said,
+    crate::canon_format::CanonFormat::V3 => {
+      match std::fs::read_to_string(project.intentfiles_path()) {
+        Ok(text) => {
+          crate::intentfiles::realised_for_action(&text).map_err(|cause| Blocked::Manifest {
+            path: project.relative(&project.intentfiles_path()),
+            cause,
+          })?
+        }
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
+          crate::intentfiles::default_for(&canon.threads, &canon.issues)
+        }
+        Err(source) => {
+          return Err(Blocked::ManifestUnreadable {
+            path: project.relative(&project.intentfiles_path()),
+            source,
+          });
+        }
+      }
+    }
   };
+  let mut canon = canon;
+  crate::intentfiles::fold_onto(&realised, &mut canon.threads, &mut canon.issues);
   let unrealised: Vec<PathBuf> = canon
     .threads
     .iter()

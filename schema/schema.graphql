@@ -352,6 +352,11 @@ type Issue {
   origin is. Absent on an ordinal.
   """
   origin: String
+  """
+  Whether the issue's view is on disk, as a thread's realisation is.
+  Absent means not realised.
+  """
+  realised: Boolean!
   slug: String!
   title: String!
   status: IssueStatus!
@@ -478,6 +483,11 @@ type Thread {
   Absent on an ordinal.
   """
   origin: String
+  """
+  Whether the thread's files are on disk, as `st hydrate` and
+  `st dehydrate` and the lifecycle verbs set it. Absent means not realised.
+  """
+  realised: Boolean!
   title: String!
   slug: String
   status: ThreadStatus!

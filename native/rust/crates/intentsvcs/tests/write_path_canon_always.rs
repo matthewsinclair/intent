@@ -35,8 +35,10 @@ use intentsvcs::model::ThreadStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 
-/// An estate where ST0001 is REALISED, then dehydrated by a manifest that
-/// declares nothing.
+/// An estate where ST0001 is REALISED, then dehydrated by `st dehydrate`, which
+/// unsets its record's `realised` and removes its files through the same
+/// estate gate `organize` asks (ST0096 WP-01: an upgraded project keeps
+/// realisation on the record, not in `.intentfiles`).
 fn dehydrated(fx: &Fixture) {
   fx.write_thread(&gate_open());
   // **DEHYDRATED BY STATUS, NOT BY AN EMPTY MANIFEST.** The first version of
@@ -49,11 +51,9 @@ fn dehydrated(fx: &Fixture) {
   closed.status = ThreadStatus::Completed;
   fx.write_thread(&closed);
 
-  // **REALISE FIRST WITH NO MANIFEST AT ALL.** An absent manifest means nobody
-  // has said, so everything renders -- which is how a project that has never
-  // organized behaves. Writing one first would mean nothing was ever realised
-  // and `organize` would remove nothing, so every assertion below would pass
-  // because the file was never there.
+  // **REALISE FIRST.** The record carries `realised`, so everything renders.
+  // Were nothing ever realised, the dehydration would remove nothing, and every
+  // assertion below would pass because the file was never there.
   let mut f = fx.facade_on_disk();
   f.sync_to_disk(&Scope::All)
     .expect("realise everything first");
@@ -62,11 +62,8 @@ fn dehydrated(fx: &Fixture) {
     "precondition: ST0001 is on disk before organize is asked to remove it"
   );
 
-  // `organize` reads the manifest, so the file has to exist; an empty one
-  // declares nothing, so every realised file is a removal.
-  fx.write_file("intent/.intentfiles", "");
   let mut f = fx.facade_on_disk();
-  f.organize(Mode::Apply)
+  f.dehydrate(&intentsvcs::address::promote("ST0001").expect("an address"))
     .expect("the gate is open, so the removals happen");
   assert!(
     !fx.project().info_view("ST0001").exists(),
@@ -247,7 +244,8 @@ fn the_estate_index_is_written_even_when_every_thread_is_dehydrated() {
 /// `Declared(empty)` passed the whole file while dehydrating everything.
 #[test]
 fn a_manifest_that_does_not_parse_realises_everything() {
-  let fx = Fixture::new();
+  // 3.4.0's format: an upgraded project reads no manifest (ST0096 WP-01).
+  let fx = Fixture::ordinal();
   fx.write_thread(&gate_open());
   fx.write_thread(&sample_thread("ST0001"));
 

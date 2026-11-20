@@ -24,15 +24,16 @@ use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::organize;
 
-const MANIFEST: &str = "\
-# .intentfiles
-
-";
+/// A thread on record and not realised: an upgraded project keeps that on the
+/// record (ST0096 WP-01), where 3.4.0 declared nothing in `.intentfiles`.
+fn unrealised(mut thread: intentsvcs::model::Thread) -> intentsvcs::model::Thread {
+  thread.realised = false;
+  thread
+}
 
 fn fixture() -> Fixture {
   let fx = Fixture::new();
-  fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_thread(&unrealised(sample_thread("ST0001")));
   fx
 }
 
@@ -156,8 +157,7 @@ fn dehydrating_is_recorded_and_names_every_file_it_removed() {
   // to call it. Without this the fixture removes nothing and the test proves
   // nothing, which is what the assertion below exists to catch.
   let fx = Fixture::new();
-  fx.write_thread(&gate_open());
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_thread(&unrealised(gate_open()));
   let mut facade = fx.facade_on_disk();
 
   let address = Address {
@@ -169,8 +169,11 @@ fn dehydrating_is_recorded_and_names_every_file_it_removed() {
   };
   facade.hydrate(&address).expect("hydrate");
 
-  // Undeclare it, exactly as an operator editing the list would.
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  // Undeclare it: `st hold` takes the thread off the realised set on its
+  // record and leaves its files for `organize`.
+  facade
+    .st_hold("ST0057", "off the realised set")
+    .expect("a wip thread holds");
   let report = facade.organize(organize::Mode::Apply).expect("apply");
   assert!(
     !report.dehydrated.is_empty(),

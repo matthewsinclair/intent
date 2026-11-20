@@ -444,6 +444,7 @@ pub fn sample_thread(id: &str) -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
     origin: None,
+    realised: true,
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
@@ -598,6 +599,7 @@ pub fn sample_issue(number: u32) -> Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: issue(number),
     origin: None,
+    realised: true,
     slug: "credo-checks".to_string(),
     title: "prune the dead mechanism".to_string(),
     status: IssueStatus::Closed,
@@ -814,7 +816,9 @@ pub fn git_at(root: &Path, args: &[&str]) {
 }
 
 pub fn v2_estate() -> Fixture {
-  let fx = Fixture::new();
+  // No project state, as a real v2 estate has none: an upgraded one would
+  // fold realisation from records v2 never wrote (ST0096 WP-01).
+  let fx = Fixture::ordinal();
   fx.write_file(
     "intent/.config/config.json",
     "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",

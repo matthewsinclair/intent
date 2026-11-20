@@ -49,6 +49,8 @@ fn thread(id: &str, status: ThreadStatus) -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid(id),
     origin: None,
+    // Realised: these tests write the thread's views and read doctor over them.
+    realised: true,
     title: "A thread whose test lost its label".to_string(),
     slug: None,
     status,

@@ -16,6 +16,9 @@
 //! WORKS.** A control that would also pass under the failure being guarded
 //! against is decoration; the ones here differ from their refusing arm by
 //! exactly the one fact under test and nothing else.
+//!
+//! The declaration this file drives is 3.4.0's, in `.intentfiles` (ST0096
+//! WP-01), so its fixtures are `Fixture::ordinal()`.
 
 use crate::common::{Fixture, declaring_thread, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
@@ -33,7 +36,7 @@ STEELTHREAD:ST0057
 ";
 
 fn fixture() -> Fixture {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&gate_open());
   fx.write_file("intent/.intentfiles", MANIFEST);
@@ -272,7 +275,7 @@ fn an_estate_with_no_declaration_is_guarded_by_the_per_file_rail_at_this_door() 
   //
   // **SO THE DOOR IS PROVED BY BOTH ARMS RATHER THAN BY A BLANKET NO.** A clean
   // thread leaves; a hand-edited one is refused with nothing removed.
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
   let mut f = fx.facade();
@@ -394,7 +397,7 @@ fn a_directory_the_run_could_not_empty_is_named() {
 /// NOT appear, which a refusal that printed the whole declaration would fail.
 #[test]
 fn a_declared_but_unmet_precondition_refuses_and_names_it() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&declaring_thread(&[
     (

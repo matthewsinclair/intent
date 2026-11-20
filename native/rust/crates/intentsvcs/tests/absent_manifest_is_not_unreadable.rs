@@ -14,6 +14,9 @@
 //! CASE.** `intent init` writes no manifest, so `intent init` followed by
 //! `intent organize` -- the first two commands anybody types -- answered rc=1
 //! with `could not read .../intent/.intentfiles`.
+//!
+//! This file covers 3.4.0's format, the one that still has a manifest
+//! (ST0096 WP-01), so its fixture is `Fixture::ordinal()`.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::organize::Mode;
@@ -28,7 +31,7 @@ use intentsvcs::sync::Scope;
 /// vacuous in the passing direction, which is the trap `parity.md:338` records
 /// against a "no git" fixture that sat inside a repository.
 fn estate_with_no_manifest() -> Fixture {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   for id in ["ST0001", "ST0002"] {
     fx.write_thread(&sample_thread(id));
   }

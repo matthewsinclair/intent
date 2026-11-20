@@ -60,6 +60,7 @@ fn scripted<'a>(origins: &'a [&'a str]) -> impl FnMut() -> String + 'a {
   }
 }
 
+// ST0095 AT-06.2: the arm below.
 #[test]
 fn the_id_is_derived_from_the_creation_event_it_draws() {
   let (origin, id) = mint::<ThreadId>(&[], scripted(&[FIXTURE_ORIGIN])).expect("a mint");
@@ -74,6 +75,7 @@ fn the_id_is_derived_from_the_creation_event_it_draws() {
 /// The re-draw, for each kind, against a visible record built to show the
 /// first draw's short form: the second draw is taken, and its short form is
 /// apart from every visible one.
+// ST0095 AT-06.7: the arm below.
 #[test]
 fn a_short_form_a_visible_record_shows_is_drawn_again() {
   let first = ThreadId::from_origin(FIXTURE_ORIGIN);

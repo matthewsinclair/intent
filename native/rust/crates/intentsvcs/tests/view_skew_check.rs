@@ -309,7 +309,9 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
   // contract view, then add a criterion. Returns the view before and after the
   // mutation, and the manifest after.
   let drive = |hand_edit: bool| -> (String, String, String) {
-    let fx = Fixture::new();
+    // 3.4.0's format, where the thread is undeclared through `.intentfiles`
+    // (ST0096 WP-01).
+    let fx = Fixture::ordinal();
     let mut thread = sample_thread("ST0001");
     thread.status = ThreadStatus::Completed;
     fx.write_thread(&thread);

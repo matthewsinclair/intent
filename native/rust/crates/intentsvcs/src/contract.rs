@@ -1266,6 +1266,7 @@ mod tests {
       schema: THREAD_SCHEMA.to_string(),
       id: crate::id::ThreadId::parse("ST0056").expect("a thread id"),
       origin: None,
+      realised: false,
       title: "t".to_string(),
       slug: None,
       status: ThreadStatus::Wip,

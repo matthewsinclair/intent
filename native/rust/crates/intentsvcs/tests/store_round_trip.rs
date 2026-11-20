@@ -33,6 +33,7 @@ fn issue(number: u32) -> Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: crate::common::issue(number),
     origin: None,
+    realised: false,
     slug: "a-pipe-|-and-a-quote".to_string(),
     title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Open,

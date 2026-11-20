@@ -136,6 +136,18 @@ fn quiet_is_strictly_less_than_the_default() {
   );
 
   let st = crate::common::created(&String::from_utf8_lossy(&made.stdout));
+  // An upgraded project realises a thread on its record (ST0096 WP-01), and
+  // `st new` does not, so the thread is hydrated to put its directory on disk.
+  let hydrated = crate::common::intent()
+    .args(["st", "hydrate", &st])
+    .current_dir(root)
+    .output()
+    .expect("st hydrate");
+  assert!(
+    hydrated.status.success(),
+    "the thread must be realised for doctor to walk its directory: {}",
+    String::from_utf8_lossy(&hydrated.stderr)
+  );
   let thread_dir = root.join(format!("intent/st/{st}"));
   assert!(
     thread_dir.is_dir(),

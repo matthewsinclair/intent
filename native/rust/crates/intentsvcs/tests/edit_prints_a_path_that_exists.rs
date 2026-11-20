@@ -22,6 +22,9 @@
 //! a set computed from the code would absorb a form changing buckets in
 //! silence, which is exactly how `issue` moved from hydratable to refused
 //! without anyone noticing until a declared list said so.
+//!
+//! The pin these arms read is 3.4.0's, in the tracked `.intentfiles` (ST0096
+//! WP-01), so the fixture is `Fixture::ordinal()`.
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, Entity};
@@ -42,7 +45,7 @@ const MANIFEST: &str = "\
 /// no argument at all for which `edit` returns a path -- every test here would
 /// have asserted a refusal and none would have shown the verb working.
 fn fixture() -> Fixture {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let mut thread = sample_thread("ST0001");
   thread.attachments.push(intentsvcs::model::Attachment::new(
     "design.md",

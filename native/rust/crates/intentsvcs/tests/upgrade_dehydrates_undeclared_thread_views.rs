@@ -29,7 +29,9 @@ fn stale_footer(text: &str) -> String {
 }
 
 /// A migrated estate whose closed thread ST0002 carries views an older Intent
-/// rendered, and no manifest -- the dormant estate courses-vc measured. With
+/// rendered, and whose record does not declare it realised -- the dormant
+/// estate courses-vc measured, as an upgraded project holds it (ST0096 WP-01:
+/// realisation is the record's own field, and `.intentfiles` is gone). With
 /// `edit_a_byte`, ST0002's info view also differs from the render by one body
 /// byte. Returns the fixture, ST0002's views, and ST0002's canon as committed.
 fn dormant_estate(edit_a_byte: bool) -> (Fixture, Vec<PathBuf>, String) {
@@ -68,7 +70,17 @@ fn dormant_estate(edit_a_byte: bool) -> (Fixture, Vec<PathBuf>, String) {
       .collect()
   };
   assert!(!views.is_empty(), "the fixture realised no view for ST0002");
-  std::fs::remove_file(fx.path("intent/.intentfiles")).expect("drop the manifest");
+  // Undeclare it in its committed canon, as a record carrying no `realised`
+  // reads, and leave its views where they are. The line is taken out of the
+  // tool's own encoding, so every other byte is as the tool wrote it.
+  let record = fx.project().thread_json("ST0002");
+  let text = std::fs::read_to_string(&record).expect("read the canon");
+  let undeclared = text.replacen("  \"realised\": true,\n", "", 1);
+  assert_ne!(
+    undeclared, text,
+    "precondition: the hydrate realised ST0002 on its record"
+  );
+  std::fs::write(&record, undeclared).expect("undeclare ST0002");
   for view in &views {
     let text = std::fs::read_to_string(view).expect("read the view");
     std::fs::write(view, stale_footer(&text)).expect("stale its footer");

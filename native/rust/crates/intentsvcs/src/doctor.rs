@@ -2109,7 +2109,13 @@ fn file_checks(
   // Fail-open by construction: an absent OR unreadable manifest declares
   // everything, so a project that has never run `organize` is checked exactly as
   // it was before this landed.
-  let realised = crate::intentfiles::realised(&project.intentfiles_path());
+  //
+  // ST0096 WP-01: an upgraded project answers from its records, through the one
+  // owner. A project state that does not read is reported by
+  // `canon_format_behind` as its own finding, so this reporter reads it as
+  // 3.4.0's format, the manifest's, and keeps checking.
+  let format = crate::intentfiles::reported_format(project);
+  let realised = crate::intentfiles::of_project(project, format, &canon.threads, &canon.issues);
   // **AND READ ONCE MORE, AFTER A VIEW THE FIRST READ DOES NOT EXCUSE**
   // (issue 0630), so a write that lands and records its views while this reads
   // them is matched too. Lazily, so a tree with no difference reads the index

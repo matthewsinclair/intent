@@ -165,6 +165,13 @@ pub struct Thread {
   /// Absent on an ordinal.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub origin: Option<String>,
+  // ST0096 WP-01 (R1): realisation is the record's own state, so creating or
+  // changing one record writes no file another record's change also writes.
+  // `intent upgrade` folds `.intentfiles` into this field and removes the file.
+  /// Whether the thread's files are on disk, as `st hydrate` and
+  /// `st dehydrate` and the lifecycle verbs set it. Absent means not realised.
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+  pub realised: bool,
   pub title: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub slug: Option<String>,
@@ -1688,6 +1695,10 @@ pub struct Issue {
   /// origin is. Absent on an ordinal.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub origin: Option<String>,
+  /// Whether the issue's view is on disk, as a thread's realisation is.
+  /// Absent means not realised.
+  #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+  pub realised: bool,
   pub slug: String,
   pub title: String,
   pub status: IssueStatus,

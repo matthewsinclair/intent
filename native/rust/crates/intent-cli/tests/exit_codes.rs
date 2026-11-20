@@ -732,6 +732,31 @@ fn probe_project() -> tempfile::TempDir {
   dir
 }
 
+/// Every file under `dir`, by path relative to it, with its bytes.
+fn canon_tree(dir: &std::path::Path) -> std::collections::BTreeMap<std::path::PathBuf, Vec<u8>> {
+  fn walk(
+    root: &std::path::Path,
+    dir: &std::path::Path,
+    out: &mut std::collections::BTreeMap<std::path::PathBuf, Vec<u8>>,
+  ) {
+    for entry in std::fs::read_dir(dir).expect("read the dir") {
+      let path = entry.expect("an entry").path();
+      if path.is_dir() {
+        walk(root, &path, out);
+      } else {
+        let rel = path
+          .strip_prefix(root)
+          .expect("under the root")
+          .to_path_buf();
+        out.insert(rel, std::fs::read(&path).expect("read the file"));
+      }
+    }
+  }
+  let mut out = std::collections::BTreeMap::new();
+  walk(dir, dir, &mut out);
+  out
+}
+
 /// AC-11.2's exit-code pair, **asserted together in one test for the reason
 /// this file learned at issue 0038**: a test pinning ONE code passes the moment
 /// someone gives every path the same code, and reports that as success. The
@@ -794,8 +819,19 @@ fn probe_project() -> tempfile::TempDir {
 fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
   let dir = probe_project();
   let root = dir.path();
-  let manifest = root.join("intent/.intentfiles");
-  let before = std::fs::read(&manifest).expect("init leaves a manifest (AC-11.3)");
+  // **THE DECLARATION IS THE RECORDS NOW** (ST0096 WP-01): a project `init`
+  // makes is upgraded, and each record carries its own `realised`. So a WIP
+  // thread gives the records something to declare, and the bytes compared are
+  // every canon file, the records and their events.
+  let made = run_in(root, &["st", "new", "a thread", "-s"]);
+  assert_eq!(
+    made.status.code(),
+    Some(0),
+    "the fixture needs a declared thread\nstderr: {}",
+    String::from_utf8_lossy(&made.stderr)
+  );
+  let canon = root.join("intent/.canon");
+  let before = canon_tree(&canon);
 
   assert_eq!(
     run_in(root, &["organize"]).status.code(),
@@ -812,9 +848,9 @@ fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
     String::from_utf8_lossy(&declined.stderr)
   );
   assert_eq!(
-    std::fs::read(&manifest).expect("manifest survives a decline"),
+    canon_tree(&canon),
     before,
-    "`--default` changed the manifest it was supposed to leave alone"
+    "`--default` changed the records it was supposed to leave alone"
   );
 
   // 1 -- `--force` with nobody to ask writes nothing and refuses.
@@ -833,9 +869,9 @@ fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
      {refused_err}"
   );
   assert_eq!(
-    std::fs::read(&manifest).expect("manifest survives a refusal"),
+    canon_tree(&canon),
     before,
-    "`--force` refused and rewrote the manifest anyway -- the exit code was honest and the \
+    "`--force` refused and rewrote the records anyway -- the exit code was honest and the \
      behaviour was not"
   );
 

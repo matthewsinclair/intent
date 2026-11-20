@@ -1330,6 +1330,7 @@ fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
 fn fully_populated_thread(id: &str) -> Thread {
   let mut thread = sample_thread(id);
   thread.origin = Some(crate::common::FIXTURE_ORIGIN.to_string());
+  thread.realised = true;
   thread.slug = Some("intent-v3".to_string());
   thread.status_reason = Some("reopened: AC-02.6 was added after the close".to_string());
   // **POPULATED, NOT PINNED IN `SERDE_SKIPPED`, AND THE DIFFERENCE IS THE WHOLE
@@ -1447,6 +1448,9 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
   // `put_refuses_to_change_an_origin`, below in this file, for the reason the
   // paragraph above gives for `fiat`.
   const IDENTITY: [&str; 1] = ["origin"];
+  // **A SEVENTH: STATE WITH ITS OWN VERBS** (ST0096 WP-01). `realised` is
+  // written by `st hydrate` and `st dehydrate`, so `put` refuses to change it.
+  const OWN_VERBS: [&str; 1] = ["realised"];
 
   let classified: BTreeSet<&str> = REQUIRED
     .iter()
@@ -1455,6 +1459,7 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
     .chain(COLLATERAL.iter())
     .chain(UNAUTHORABLE.iter())
     .chain(IDENTITY.iter())
+    .chain(OWN_VERBS.iter())
     .copied()
     .collect();
 
@@ -2379,6 +2384,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         schema: _,
         id: _,
         origin: _,
+        realised: _,
         title: _,
         slug: _,
         status: _,
@@ -2401,6 +2407,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         "schema",
         "id",
         "origin",
+        "realised",
         "title",
         "slug",
         "status",
@@ -2490,6 +2497,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         schema: _,
         number: _,
         origin: _,
+        realised: _,
         slug: _,
         title: _,
         status: _,
@@ -2500,8 +2508,8 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         body: _,
       } = crate::common::sample_issue(21);
       vec![
-        "schema", "id", "origin", "slug", "title", "status", "severity", "created", "closed",
-        "reporter", "body",
+        "schema", "id", "origin", "realised", "slug", "title", "status", "severity", "created",
+        "closed", "reporter", "body",
       ]
     }
     other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no compile-fenced field list"),

@@ -200,7 +200,10 @@ CREATE TABLE IF NOT EXISTS threads (
   revision INTEGER NOT NULL DEFAULT 0,
   -- The creation event a hashed id derives from; null on an ordinal. Last,
   -- where rung 36's ADD COLUMN puts it on a migrated store.
-  origin TEXT
+  origin TEXT,
+  -- Whether the thread is realised on disk, 1 or 0. After origin, where
+  -- rung 37's ADD COLUMN puts it.
+  realised INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 CREATE TABLE IF NOT EXISTS related (
@@ -351,7 +354,9 @@ CREATE TABLE IF NOT EXISTS issues (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   -- The creation event a hashed id derives from; null on an ordinal.
-  origin TEXT
+  origin TEXT,
+  -- Whether the issue's view is realised on disk, 1 or 0.
+  realised INTEGER NOT NULL DEFAULT 0
 );
 -- The sync engine's git-style index (data-model.md). DB-only and derived from
 -- the working tree, not from canon, so `rebuild` does not touch it.
@@ -875,7 +880,7 @@ CREATE INDEX IF NOT EXISTS wb_mark_by_recipient ON wb_mark (recipient, mid);
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 36;
+pub const SCHEMA_VERSION: i32 = 37;
 
 /// What opening a store does to it, decided once (issue 0717).
 ///
@@ -2310,6 +2315,18 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        FROM issues;
      DROP TABLE issues;
      ALTER TABLE issues_v36 RENAME TO issues;",
+  ),
+  (
+    37,
+    // 36 -> 37: ST0096 WP-01, realisation is the record's own state (R1). A
+    // thread and an issue each gain `realised`, which starts 0: the store
+    // answers realisation from it only once `intent upgrade` has folded
+    // `.intentfiles` into the canon, and the next load carries the canon's
+    // value in.
+    //
+    // **ADDED BY ITS STEP, WHERE ABSENT**, as rung 36's columns are: a store
+    // the current DDL laid down already has both.
+    "",
   ),
 ];
 
@@ -4552,6 +4569,7 @@ impl Store {
     match to {
       32 => Some(Self::message_ids_for_rung_32),
       36 => Some(Self::columns_for_rung_36),
+      37 => Some(Self::columns_for_rung_37),
       _ => None,
     }
   }
@@ -4569,6 +4587,24 @@ impl Store {
       )?;
       if present == 0 {
         tx.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {column} TEXT"))?;
+      }
+    }
+    Ok(())
+  }
+
+  /// Rung 37's two added columns (ST0096 WP-01), `threads.realised` and
+  /// `issues.realised`, each added only where its table lacks it.
+  fn columns_for_rung_37(tx: &rusqlite::Transaction<'_>) -> Result<(), StoreError> {
+    for table in ["threads", "issues"] {
+      let present: i64 = tx.query_row(
+        "SELECT count(*) FROM pragma_table_info(?1) WHERE name = 'realised'",
+        params![table],
+        |row| row.get(0),
+      )?;
+      if present == 0 {
+        tx.execute_batch(&format!(
+          "ALTER TABLE {table} ADD COLUMN realised INTEGER NOT NULL DEFAULT 0"
+        ))?;
       }
     }
     Ok(())
@@ -4701,6 +4737,7 @@ impl Store {
            preamble = excluded.preamble,
            fiat = excluded.fiat,
            origin = excluded.origin,
+           realised = excluded.realised,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
            revision = threads.revision + 1"
       }
@@ -4708,7 +4745,7 @@ impl Store {
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin, realised) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
          {on_conflict}
          RETURNING created, completed"
       ),
@@ -4727,6 +4764,7 @@ impl Store {
         t.preamble,
         t.fiat.as_ref().map(serde_json::to_string).transpose()?,
         t.origin,
+        t.realised,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     );
@@ -4871,17 +4909,18 @@ impl Store {
          reporter = excluded.reporter,
          body = excluded.body,
          origin = excluded.origin,
+         realised = excluded.realised,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
       }
       Door::Create => "",
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body, origin) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10)
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body, origin, realised) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11)
        {on_conflict}
        RETURNING created, closed"
       ),
-      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body, i.origin],
+      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body, i.origin, i.realised],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     );
     // **The constraint is translated HERE, not left to surface as `sqlite:
@@ -5340,7 +5379,7 @@ impl Store {
     // `?1 IS NULL OR id = ?1` rather than two statements, for the reason in
     // the doc above: two statements is two column lists.
     let mut stmt = conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin FROM threads WHERE (?1 IS NULL OR id = ?1) ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat, origin, realised FROM threads WHERE (?1 IS NULL OR id = ?1) ORDER BY id",
     )?;
     let rows = stmt.query_map(params![only], |row| {
       Ok((
@@ -5358,6 +5397,7 @@ impl Store {
         row.get::<_, String>(11)?,
         row.get::<_, Option<String>>(12)?,
         row.get::<_, Option<String>>(13)?,
+        row.get::<_, bool>(14)?,
       ))
     })?;
 
@@ -5381,6 +5421,7 @@ impl Store {
       preamble,
       fiat,
       origin,
+      realised,
     ) in shells
     {
       threads.push(Thread {
@@ -5394,6 +5435,7 @@ impl Store {
         tests: Self::tests_of(conn, &id)?,
         id,
         origin,
+        realised,
         title,
         slug,
         status: enum_from(&status)?,
@@ -5419,7 +5461,7 @@ impl Store {
     only: Option<crate::id::IssueId>,
   ) -> Result<Vec<Issue>, StoreError> {
     let mut stmt = conn.prepare(
-      "SELECT number, slug, title, status, severity, created, closed, reporter, body, origin FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
+      "SELECT number, slug, title, status, severity, created, closed, reporter, body, origin, realised FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
     )?;
     let issues = stmt
       .query_map(params![only], |row| {
@@ -5434,6 +5476,7 @@ impl Store {
           row.get::<_, Option<String>>(7)?,
           row.get::<_, String>(8)?,
           row.get::<_, Option<String>>(9)?,
+          row.get::<_, bool>(10)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -5441,11 +5484,24 @@ impl Store {
     issues
       .into_iter()
       .map(
-        |(number, slug, title, status, severity, created, closed, reporter, body, origin)| {
+        |(
+          number,
+          slug,
+          title,
+          status,
+          severity,
+          created,
+          closed,
+          reporter,
+          body,
+          origin,
+          realised,
+        )| {
           Ok(Issue {
             schema: ISSUE_SCHEMA.to_string(),
             number,
             origin,
+            realised,
             slug,
             title,
             status: enum_from(&status)?,

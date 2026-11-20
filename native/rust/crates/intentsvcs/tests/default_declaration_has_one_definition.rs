@@ -103,10 +103,19 @@
 //! thread and for no other, and every undeclared thread's file is byte-identical
 //! to what it was before the run. **The residue is AC-11.4's state, not a
 //! hole**, and `organize` reports it as to-remove-and-blocked.
+//!
+//! # ST0096 WP-01: two of the three writers now write the records
+//!
+//! `init` makes a project born upgraded and writes no manifest, and the
+//! migration folds its declaration into each record's `realised` and removes
+//! the file. So their output is compared as the realised SET the records
+//! declare, against the same function's answer read through
+//! [`realised_from`]. The verb still writes `.intentfiles` in 3.4.0's format,
+//! which is the corpus it is driven on here.
 
 use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
-use intentsvcs::intentfiles::default_declaration;
+use intentsvcs::intentfiles::{Realised, declared_by_records, default_declaration, realised_from};
 use intentsvcs::model::{Thread, ThreadStatus};
 use intentsvcs::project::Project;
 
@@ -119,6 +128,22 @@ fn manifest(project: &Project) -> String {
   let path = project.intentfiles_path();
   std::fs::read_to_string(&path)
     .unwrap_or_else(|e| panic!("no manifest at {}: {e}", project.relative(&path)))
+}
+
+/// What an upgraded project's records declare realised.
+fn records_declare(facade: &Facade) -> Realised {
+  declared_by_records(&facade.canon().threads, &facade.canon().issues)
+}
+
+/// The project at `project` carries no manifest: an upgraded project keeps
+/// realisation on its records (ST0096 WP-01).
+fn assert_no_manifest(project: &Project, who: &str) {
+  let path = project.intentfiles_path();
+  assert!(
+    !path.exists(),
+    "{who} left {} behind, a second home for what the records carry",
+    project.relative(&path)
+  );
 }
 
 /// This estate's threads and their statuses, as the tool holds them.
@@ -170,7 +195,8 @@ fn thread_at(id: &str, status: ThreadStatus) -> Thread {
 /// `control_the_three_writers_do_not_all_write_the_same_bytes` able to fail, and
 /// so what stops a caller emitting a constant from passing the proof below.
 fn v3_corpus() -> Fixture {
-  let fx = Fixture::new();
+  // 3.4.0's format, the one where `organize --default` writes the manifest.
+  let fx = Fixture::ordinal();
   fx.write_thread(&thread_at("ST0010", ThreadStatus::Wip));
   fx.write_thread(&thread_at("ST0011", ThreadStatus::Wip));
   fx.write_thread(&thread_at("ST0012", ThreadStatus::Triage));
@@ -189,12 +215,12 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
   let fresh = tempfile::tempdir().expect("tempdir");
   intentsvcs::init::init(fresh.path(), "Probe", "ic", "3.0.0").expect("init");
   let initialised = Project::open(fresh.path()).expect("open the initialised project");
+  assert_no_manifest(&initialised, "`init`");
+  let born = Facade::open(initialised, facade_ctx()).expect("open the initialised project");
   assert_eq!(
-    manifest(&initialised),
-    default_declaration(&[], &[]),
-    "`init` must write the function's answer for an empty estate -- header \
-     present, no declarations. A mismatch here means init spells the header \
-     itself, which is a second home for it."
+    records_declare(&born),
+    realised_from(&default_declaration(&[], &[])),
+    "`init` must declare the function's answer for an empty estate: nothing"
   );
 
   // WRITER 2 -- the migration, through `Facade::upgrade` on a v2 estate.
@@ -202,11 +228,12 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
   Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
   let migrated =
     Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
+  assert_no_manifest(migrated.project(), "the migration");
   assert_eq!(
-    manifest(migrated.project()),
-    default_declaration(&statuses(&migrated), &[]),
-    "the migration must write the function's answer for the corpus it just \
-     converted"
+    records_declare(&migrated),
+    realised_from(&default_declaration(&statuses(&migrated), &[])),
+    "the migration must fold the function's answer for the corpus it just \
+     converted into the records"
   );
 
   // WRITER 3 -- the `organize --default` verb, on a different corpus again.
@@ -274,18 +301,22 @@ fn control_the_corpus_can_tell_the_candidate_definitions_apart() {
 fn control_the_three_writers_do_not_all_write_the_same_bytes() {
   let fresh = tempfile::tempdir().expect("tempdir");
   intentsvcs::init::init(fresh.path(), "Probe", "ic", "3.0.0").expect("init");
-  let from_init = manifest(&Project::open(fresh.path()).expect("open"));
+  let from_init = records_declare(
+    &Facade::open(Project::open(fresh.path()).expect("open"), facade_ctx()).expect("open"),
+  );
 
   let converted = v2_corpus();
   Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
-  let from_migration = manifest(&converted.project());
+  let from_migration = records_declare(
+    &Facade::open(converted.project(), facade_ctx()).expect("open the converted estate"),
+  );
 
   let declared = v3_corpus();
   let mut facade = declared.facade();
   facade
     .declare_default(false)
     .expect("--default writes an absent manifest");
-  let from_verb = manifest(facade.project());
+  let from_verb = realised_from(&manifest(facade.project()));
 
   assert_ne!(
     from_init, from_migration,
@@ -300,27 +331,40 @@ fn control_the_three_writers_do_not_all_write_the_same_bytes() {
 
 /// AC-11.3's other half for the re-run: **present means touch nothing.**
 ///
-/// The arm that fails SILENTLY. A migration that regenerated the manifest would
-/// look identical on a fresh conversion and would quietly discard a hand
-/// dehydration on every re-run, which is the one operation `.intentfiles`
-/// exists to record.
+/// The arm that fails SILENTLY. A migration that regenerated the declaration
+/// would look identical on a fresh conversion and would quietly discard a hand
+/// realisation on every re-run. Once converted, the declaration is on the
+/// records (ST0096 WP-01), so the hand realisation is `st hydrate`'s, on the
+/// record of a COMPLETED thread, which no regeneration from status produces.
 #[test]
 fn upgrade_over_a_present_manifest_changes_not_one_byte() {
   let converted = v2_corpus();
   Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
   let project = converted.project();
 
-  // A declaration no regeneration from status would ever produce: it names a
-  // COMPLETED thread, which is what a hand hydration looks like on disk.
-  let by_hand = format!("{}STEELTHREAD:ST0004\n", default_declaration(&[], &[]));
-  std::fs::write(project.intentfiles_path(), &by_hand).expect("write the hand manifest");
+  let mut facade = Facade::open(project.clone(), facade_ctx()).expect("open the converted estate");
+  facade
+    .hydrate(&intentsvcs::address::Address {
+      authority: None,
+      entity: intentsvcs::address::Entity::Thread {
+        id: "ST0004".to_string(),
+      },
+      format: None,
+    })
+    .expect("a completed thread hydrates by hand");
+  assert!(
+    facade.st_show("ST0004").expect("ST0004").realised,
+    "precondition: the hand hydration is on the record"
+  );
+  drop(facade);
+  let by_hand = std::fs::read_to_string(project.thread_json("ST0004")).expect("ST0004's record");
 
   Facade::upgrade(&project, &facade_ctx()).expect("a converted estate re-runs");
   assert_eq!(
-    manifest(&project),
+    std::fs::read_to_string(project.thread_json("ST0004")).expect("ST0004's record"),
     by_hand,
-    "a re-run must leave a present manifest alone -- regenerating it discards \
-     every hand realisation the estate had recorded"
+    "a re-run must leave a record's declaration alone -- regenerating it from \
+     status discards every hand realisation the estate had recorded"
   );
 }
 /// **AC-11.3's MIGRATION CLAUSE: _realises only those threads_.**
@@ -355,10 +399,13 @@ fn the_migration_realises_only_what_it_declares() {
   let migrated =
     Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
 
-  let declared: Vec<String> = manifest(migrated.project())
-    .lines()
-    .filter_map(|l| l.trim().strip_prefix("STEELTHREAD:"))
-    .map(|id| id.to_string())
+  // The declaration is folded into the records (ST0096 WP-01).
+  assert_no_manifest(migrated.project(), "the migration");
+  let declared: Vec<String> = migrated
+    .st_list()
+    .iter()
+    .filter(|t| t.realised)
+    .map(|t| t.id.stored())
     .collect();
   assert_eq!(
     declared,

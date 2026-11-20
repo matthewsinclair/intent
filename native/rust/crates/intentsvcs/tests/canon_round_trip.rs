@@ -98,6 +98,8 @@ fn issue(number: u32) -> Issue {
     schema: ISSUE_SCHEMA.to_string(),
     number: crate::common::issue(number),
     origin: Some(crate::common::FIXTURE_ORIGIN.to_string()),
+    // Set, so the round trip below proves the store carries it (ST0096 WP-01).
+    realised: true,
     slug: "a-pipe-|-and-a-quote".to_string(),
     title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Closed,
@@ -368,6 +370,7 @@ fn a_dropped_field_is_caught_by_the_comparison() {
 /// branches upgraded on their own merge cleanly. Each copy holds the same
 /// 3.4.0-format canon, a thread with its packages and an issue, and is
 /// upgraded by itself.
+// ST0095 AT-06.4: the arm below.
 #[test]
 fn two_copies_upgraded_apart_write_the_same_canon_and_keep_every_id() {
   let canon_of = |fx: &Fixture| -> std::collections::BTreeMap<String, String> {

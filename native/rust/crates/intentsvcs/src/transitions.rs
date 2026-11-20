@@ -781,6 +781,47 @@ pub const FIELDS: &[Field] = &[
       orphans: &[],
     },
   },
+  Field {
+    entity: "Thread",
+    field: "realised",
+    // **MACHINE 6, A TRANSCRIPTION** (ST0096 WP-01). The op table hv ruled for
+    // `.intentfiles` (ST0057 AC-05.2, 2026-08-19, its membership settled on
+    // 2026-08-27), carried onto the record unchanged by hv decision 71 (R1).
+    // Keyed on the op, never on the status the op lands on, as that table is.
+    // `st reinstate` and `st new` move nothing; `--keep` and `--dehydrate`
+    // suppress the edge for one call. `organize --default`, which sets every
+    // record from status, is not in the ruled table and is not declared here.
+    disposition: Disposition::State {
+      initial: &["false"],
+      edges: &[
+        Edge::direct("st.start", &["false"], "true"),
+        Edge::direct("st.resume", &["false"], "true"),
+        Edge::direct("st.reopen", &["false"], "true"),
+        Edge::direct("st.hydrate", &["false"], "true"),
+        Edge::direct("st.done", &["true"], "false"),
+        Edge::direct("st.fc", &["true"], "false"),
+        Edge::direct("st.cancel", &["true"], "false"),
+        Edge::direct("st.hold", &["true"], "false"),
+        Edge::direct("st.triage", &["true"], "false"),
+        Edge::direct("st.dehydrate", &["true"], "false"),
+      ],
+      orphans: &[],
+    },
+  },
+  Field {
+    entity: "Issue",
+    field: "realised",
+    // **MACHINE 7, A TRANSCRIPTION OF WHAT ST0069 WP-01 BUILT**, not a ruling
+    // of hv's (ST0096 WP-01). `issues add` realises the issue it creates.
+    disposition: Disposition::State {
+      initial: &["true"],
+      edges: &[
+        Edge::direct("issues.open", &["false"], "true"),
+        Edge::direct("issues.close", &["true"], "false"),
+      ],
+      orphans: &[],
+    },
+  },
 ];
 
 pub fn find(entity: &str, field: &str) -> Option<&'static Field> {

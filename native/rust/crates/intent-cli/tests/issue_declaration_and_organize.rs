@@ -25,6 +25,14 @@
 //! That is AC-11.1's behaviour and not this criterion's business, so the arm
 //! removes the file first -- the same move `organize_default_declaration.rs`
 //! makes, for the same reason.
+//!
+//! # Two formats (ST0096 WP-01)
+//!
+//! A project `intent upgrade` has moved keeps the declaration on each record,
+//! and `.intentfiles` is gone. The arms about what `issues add` and `close`
+//! declare run there, against the record. The arms about what the MANIFEST
+//! says run on a project in 3.4.0's format ([`ordinal_project`]), where it is
+//! still the declaration; a mint refuses there, so its records are seeded.
 
 use std::process::Output;
 
@@ -95,6 +103,41 @@ fn project() -> tempfile::TempDir {
   dir
 }
 
+/// A project `init` made, put back in 3.4.0's format, holding one open issue
+/// and no manifest (nobody has said). Returned with the issue's id.
+fn ordinal_project() -> (tempfile::TempDir, String) {
+  let dir = project();
+  let root = dir.path();
+  crate::common::born_ordinal(root);
+  crate::common::seed_ordinal_issue(root, 1, "A defect");
+  let issue = intentsvcs::id::IssueId::from_ordinal(1)
+    .expect("an ordinal issue")
+    .stored();
+  (dir, issue)
+}
+
+/// Seed thread ordinal `n` in [`ordinal_project`]'s format, not started.
+fn seed_thread(root: &std::path::Path, n: u32, title: &str) -> String {
+  let st = intentsvcs::id::ThreadId::from_ordinal(n)
+    .expect("an ordinal thread")
+    .stored();
+  crate::common::seed_ordinal_thread(root, &st, title, &[]);
+  st
+}
+
+/// Whether issue `issue`'s canon record declares it realised, in a project
+/// that keeps the declaration on its records.
+fn record_declares(root: &std::path::Path, issue: &str) -> bool {
+  let id = intentsvcs::id::IssueId::parse(issue).expect("an issue id");
+  let canon = intentsvcs::project::Project::open(root)
+    .expect("the project")
+    .issue_json(id);
+  let record: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&canon).expect("the issue's canon"))
+      .expect("the issue's canon parses");
+  record["realised"] == serde_json::Value::Bool(true)
+}
+
 /// The realised view of the issue whose id is `issue`.
 fn view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
   root.join(format!("intent/issues/{issue}.md"))
@@ -106,11 +149,8 @@ fn view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
 
 #[test]
 fn the_manifest_accepts_the_issue_sigil() {
-  let dir = project();
+  let (dir, issue) = ordinal_project();
   let root = dir.path();
-  let out = intent(root, &["issues", "add", "A defect"]);
-  assert!(out.status.success(), "issues add: {}", said(&out));
-  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
 
   // Hand-written, because the criterion is about what the GRAMMAR accepts and
   // a manifest this test wrote through a verb would only prove the verb agrees
@@ -146,9 +186,8 @@ fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
   // criterion is about: DECLARED, and absent.
   std::fs::remove_file(view(root, &issue)).expect("start from declared-and-absent");
   assert!(
-    declared(root).contains(&format!("ISSUE:{issue}")),
-    "the fixture must leave the issue declared: {:?}",
-    declared(root)
+    record_declares(root, &issue),
+    "the fixture must leave the issue declared on its record"
   );
 
   let preview = preview_line(&intent(root, &["organize"]));
@@ -173,12 +212,13 @@ fn a_declared_issue_with_no_file_is_hydrated_and_never_ok_over_zero_files() {
 
 #[test]
 fn a_realised_file_whose_issue_is_undeclared_is_dehydrated() {
-  let dir = project();
+  let (dir, issue) = ordinal_project();
   let root = dir.path();
-  let out = intent(root, &["issues", "add", "A defect"]);
-  assert!(out.status.success(), "issues add: {}", said(&out));
-  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
-  assert!(view(root, &issue).is_file(), "realised by the write");
+  // No manifest: nobody has said, so everything is realised, and the apply
+  // puts the issue's view on disk.
+  let out = intent(root, &["organize", "--apply"]);
+  assert!(out.status.success(), "apply: {}", said(&out));
+  assert!(view(root, &issue).is_file(), "realised by the apply");
 
   // Undeclare it by hand rather than by closing: this arm is about what the
   // MANIFEST says, and closing would also change the record, so a green here
@@ -199,32 +239,38 @@ fn a_realised_file_whose_issue_is_undeclared_is_dehydrated() {
 
 #[test]
 fn default_declares_exactly_the_wip_threads_and_the_open_issues() {
-  let dir = project();
+  // 3.4.0's format, where `--default` writes `.intentfiles`, and no manifest
+  // there, so it is written rather than left alone.
+  let (dir, open) = ordinal_project();
   let root = dir.path();
-  let out = intent(root, &["st", "new", "A thread at triage"]);
-  assert!(out.status.success(), "st new: {}", said(&out));
-  let at_triage = crate::common::created(&String::from_utf8_lossy(&out.stdout));
-  let out = intent(root, &["st", "new", "A thread to start"]);
-  assert!(out.status.success(), "st new: {}", said(&out));
-  let started = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let at_triage = seed_thread(root, 1, "A thread at triage");
+  // At `triage`, where `st new` leaves a thread.
+  let canon = root.join(format!("intent/.canon/st/{at_triage}.json"));
+  let text = std::fs::read_to_string(&canon).expect("the seeded canon");
+  let triage = text.replace("\"status\": \"not-started\"", "\"status\": \"triage\"");
+  assert_ne!(text, triage, "the seeded thread must move to triage");
+  std::fs::write(&canon, triage).expect("write the seeded canon");
+  let started = seed_thread(root, 2, "A thread to start");
+  // Seeded before the first verb opens a store, which ingests the tree once.
+  crate::common::seed_ordinal_issue(root, 2, "A closed defect");
+  let closed = intentsvcs::id::IssueId::from_ordinal(2)
+    .expect("an ordinal issue")
+    .stored();
   assert!(
     intent(root, &["st", "start", started.as_str()])
       .status
       .success()
   );
-  let out = intent(root, &["issues", "add", "An open defect"]);
-  assert!(out.status.success(), "issues add: {}", said(&out));
-  let open = crate::common::created(&String::from_utf8_lossy(&out.stdout));
-  let out = intent(root, &["issues", "add", "A closed defect"]);
-  assert!(out.status.success(), "issues add: {}", said(&out));
-  let closed = crate::common::created(&String::from_utf8_lossy(&out.stdout));
   assert!(
     intent(root, &["issues", "close", closed.as_str()])
       .status
       .success()
   );
 
-  std::fs::remove_file(root.join("intent/.intentfiles")).expect("start from absent");
+  assert!(
+    !root.join("intent/.intentfiles").exists(),
+    "start from absent"
+  );
   let out = intent(root, &["organize", "--default"]);
   assert!(out.status.success(), "--default: {}", said(&out));
 
@@ -246,11 +292,9 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
   let out = intent(root, &["issues", "add", "A defect"]);
   assert!(out.status.success(), "issues add: {}", said(&out));
   let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
-  let declaration = format!("ISSUE:{issue}");
   assert!(
-    declared(root).contains(&declaration),
-    "`issues add` adds its id: {:?}",
-    declared(root)
+    record_declares(root, &issue),
+    "`issues add` declares it on its record"
   );
 
   assert!(
@@ -259,9 +303,8 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
       .success()
   );
   assert!(
-    !declared(root).contains(&declaration),
-    "closing removes it: {:?}",
-    declared(root)
+    !record_declares(root, &issue),
+    "closing takes the declaration off its record"
   );
 
   let out = intent(root, &["organize", "--apply"]);
@@ -279,9 +322,8 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
       .success()
   );
   assert!(
-    declared(root).contains(&declaration),
-    "reopening re-declares it: {:?}",
-    declared(root)
+    record_declares(root, &issue),
+    "reopening re-declares it on its record"
   );
 }
 
@@ -304,24 +346,22 @@ fn adding_an_issue_declares_it_and_closing_it_undeclares_and_dehydrates() {
 /// arm exists to keep out.
 #[test]
 fn an_undeclared_issue_gets_no_view_when_something_writes() {
-  let dir = project();
+  let (dir, issue) = ordinal_project();
   let root = dir.path();
-  let out = intent(root, &["issues", "add", "A defect"]);
-  assert!(out.status.success(), "issues add: {}", said(&out));
-  let issue = crate::common::created(&String::from_utf8_lossy(&out.stdout));
+  let st = seed_thread(root, 1, "An unrelated thread");
 
-  // Undeclare it and remove the view: the estate's shape, reached deliberately
+  // Undeclared and with no view: the estate's shape, reached deliberately
   // rather than by closing, so the record still says OPEN and only the
   // MANIFEST says undeclared.
   std::fs::write(root.join("intent/.intentfiles"), "# nothing declared\n")
     .expect("undeclare by hand");
-  std::fs::remove_file(view(root, &issue)).expect("start from absent");
+  assert!(!view(root, &issue).is_file(), "start from absent");
 
-  // Any write at all runs the projection. `st new` is deliberately about a
+  // Any write at all runs the projection. `st start` is deliberately about a
   // DIFFERENT entity: the issue is untouched, so nothing about this command
   // asks for its view.
-  let out = intent(root, &["st", "new", "An unrelated thread"]);
-  assert!(out.status.success(), "st new: {}", said(&out));
+  let out = intent(root, &["st", "start", st.as_str()]);
+  assert!(out.status.success(), "st start: {}", said(&out));
 
   assert!(
     !view(root, &issue).is_file(),

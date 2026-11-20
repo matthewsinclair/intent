@@ -38,6 +38,10 @@
         "null"
       ]
     },
+    "realised": {
+      "description": "Whether the issue's view is on disk, as a thread's realisation is.\nAbsent means not realised.",
+      "type": "boolean"
+    },
     "reporter": {
       "description": "Who reported it, free text, exactly as recorded.",
       "type": [

@@ -218,6 +218,103 @@ impl Realised {
   }
 }
 
+/// WHAT IS REALISED, FOR A PROJECT IN EITHER CANON FORMAT: the one owner
+/// (ST0096 WP-01, design "Realisation leaves the shared manifest", R1).
+///
+/// A project 3.4.0's format still holds keeps its realisation in
+/// `.intentfiles`, read fail-open by [`realised`]. Once `intent upgrade` has
+/// moved it, each thread and issue carries its own `realised` field and the
+/// manifest is gone, so the answer is read off the records by
+/// [`declared_by_records`]. organize, hydrate, dehydrate, sync, doctor and the
+/// views ask through here or through a door that delegates to it, so the two
+/// formats cannot answer differently for one caller.
+pub fn of_project(
+  project: &crate::project::Project,
+  format: crate::canon_format::CanonFormat,
+  threads: &[model::Thread],
+  issues: &[model::Issue],
+) -> Realised {
+  match format {
+    crate::canon_format::CanonFormat::V3 => realised(&project.intentfiles_path()),
+    crate::canon_format::CanonFormat::V4 => declared_by_records(threads, issues),
+  }
+}
+
+/// Where a project keeps realisation, as a report names it: the manifest's
+/// path in 3.4.0's format, or the record (`one`) or the records in an upgraded
+/// project (ST0096 WP-01).
+pub fn named(
+  project: &crate::project::Project,
+  format: crate::canon_format::CanonFormat,
+  one: bool,
+) -> String {
+  match (format, one) {
+    (crate::canon_format::CanonFormat::V3, _) => project.relative(&project.intentfiles_path()),
+    (crate::canon_format::CanonFormat::V4, true) => "its canon record".to_string(),
+    (crate::canon_format::CanonFormat::V4, false) => {
+      "the realisation the canon records carry".to_string()
+    }
+  }
+}
+
+/// The format realisation is answered in, for a REPORTER that must keep
+/// going: a project state that does not read is taken as 3.4.0's format, the
+/// manifest's, because doctor reports that state as its own finding
+/// (`canon_format_behind`) and an acting verb refuses it when it opens the
+/// facade. The one home of that fallback (ST0096 WP-01).
+pub fn reported_format(project: &crate::project::Project) -> crate::canon_format::CanonFormat {
+  crate::ingest::canon_format(project).unwrap_or(crate::canon_format::CanonFormat::V3)
+}
+
+/// What realisation status alone gives, through the one definition of the
+/// default ([`default_declaration`]): `organize --default` and the upgrade's
+/// fold of a project with no manifest both read it here.
+pub fn default_for(threads: &[model::Thread], issues: &[model::Issue]) -> Realised {
+  let statuses: Vec<(String, model::ThreadStatus)> =
+    threads.iter().map(|t| (t.id.stored(), t.status)).collect();
+  let issues: Vec<(crate::id::IssueId, model::IssueStatus)> =
+    issues.iter().map(|i| (i.number, i.status)).collect();
+  realised_from(&default_declaration(&statuses, &issues))
+}
+
+/// Write `realised` onto every record from a declared set: the fold of a
+/// manifest, or of the status default, into the records (ST0096 WP-01, R1).
+pub fn fold_onto(realised: &Realised, threads: &mut [model::Thread], issues: &mut [model::Issue]) {
+  for thread in threads {
+    thread.realised = realised.declares(&thread.id.stored());
+  }
+  for issue in issues {
+    issue.realised = realised.declares_artefact(Sigil::Issue, &issue.number.stored());
+  }
+}
+
+/// How many records declare themselves realised: the count a report gives.
+pub fn realised_count(threads: &[model::Thread], issues: &[model::Issue]) -> usize {
+  threads.iter().filter(|t| t.realised).count() + issues.iter().filter(|i| i.realised).count()
+}
+
+/// What an upgraded project's records declare realised, keyed as the manifest
+/// keyed them, so every reader of [`Realised`] is unchanged.
+///
+/// **ALWAYS `Declared`.** An upgraded project has no "nobody has said": a
+/// record without the field is not realised, which is what the fold writes for
+/// a record the manifest did not list.
+pub fn declared_by_records(threads: &[model::Thread], issues: &[model::Issue]) -> Realised {
+  Realised::Declared(
+    threads
+      .iter()
+      .filter(|t| t.realised)
+      .map(|t| declared_key(Sigil::SteelThread, &t.id.stored()))
+      .chain(
+        issues
+          .iter()
+          .filter(|i| i.realised)
+          .map(|i| declared_key(Sigil::Issue, &i.number.stored())),
+      )
+      .collect(),
+  )
+}
+
 /// Read the manifest at `path` and say what it declares realised.
 ///
 /// **FAIL-OPEN, AND THE DIRECTION IS CHOSEN RATHER THAN INHERITED.** A broken

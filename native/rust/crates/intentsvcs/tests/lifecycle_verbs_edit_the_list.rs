@@ -1,5 +1,10 @@
 //! **AT-05.2 / AC-05.2 -- THE LIFECYCLE VERBS EDIT `.intentfiles`.**
 //!
+//! This file covers 3.4.0's format, where `.intentfiles` is still the list
+//! (ST0096 WP-01), so its fixtures are `Fixture::ordinal()`. A mint refuses in
+//! that format, so the arms that drive `st new` run on an upgraded project and
+//! read the record's own `realised` instead.
+//!
 //! hv's architecture in one line: **realisation is driven from `.intentfiles`;
 //! commands change `.intentfiles`; `organize` realises it.** This file drives
 //! the middle clause. **Which verb makes which edit is hv's, ruled repeatedly
@@ -135,7 +140,7 @@ fn write_settled(fx: &Fixture, thread: &intentsvcs::model::Thread) {
 }
 
 fn fixture() -> Fixture {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx
@@ -153,6 +158,14 @@ fn declared(fx: &Fixture) -> intentsvcs::intentfiles::Realised {
 
 fn manifest_text(fx: &Fixture) -> String {
   fx.read("intent/.intentfiles")
+}
+
+/// An upgraded project holding `ST0056`, realised on its record, for the arms
+/// that mint: a mint refuses in 3.4.0's format (ST0096 WP-01).
+fn upgraded_fixture() -> Fixture {
+  let fx = Fixture::new();
+  write_settled(&fx, &sample_thread("ST0056"));
+  fx
 }
 
 // ---------------------------------------------------------------------------
@@ -175,21 +188,20 @@ fn manifest_text(fx: &Fixture) -> String {
 /// existed reads exactly like one that was closed.
 #[test]
 fn st_new_does_not_declare_the_thread_it_creates() {
-  let fx = fixture();
+  let fx = upgraded_fixture();
   let mut facade = fx.facade();
   let id = facade
     .st_new("a thread that is created at triage")
     .expect("new");
 
   assert!(
-    !declared(&fx).declares(&id),
-    "`st new` declared {id}, which is at `triage` -- the realised set is WIP alone:\n{}",
-    manifest_text(&fx)
+    !facade.st_show(&id).expect("the new thread").realised,
+    "`st new` declared {id}, which is at `triage` -- the realised set is WIP alone"
   );
   assert!(
-    declared(&fx).declares("ST0099"),
-    "and the neighbour is untouched -- without this a verb that rewrote the file \
-     would pass"
+    facade.st_show("ST0056").expect("the neighbour").realised,
+    "and the neighbour is untouched -- without this a verb that rewrote every \
+     record would pass"
   );
 }
 
@@ -208,23 +220,22 @@ fn st_new_does_not_declare_the_thread_it_creates() {
 /// differing. Whether the flag should be withdrawn is not a test's call.
 #[test]
 fn st_new_dehydrate_does_not() {
-  let fx = fixture();
+  let fx = upgraded_fixture();
   let mut facade = fx.facade();
-  let before = manifest_text(&fx);
+  let before = fx.read_canon("ST0056");
   let id = facade
     .st_new_listing("a thread nobody wants on disk", ListEdit::Suppressed)
     .expect("new");
 
   assert!(
-    !declared(&fx).declares(&id),
-    "`--dehydrate` must not list it:\n{}",
-    manifest_text(&fx)
+    !facade.st_show(&id).expect("the new thread").realised,
+    "`--dehydrate` must not realise it"
   );
   assert_eq!(
-    manifest_text(&fx),
+    fx.read_canon("ST0056"),
     before,
-    "and the file is byte-identical -- a suppressed edit writes nothing at all, so \
-     nothing reflows and no mtime moves"
+    "and the neighbour's record is byte-identical -- a suppressed edit writes \
+     nothing to another record"
   );
 }
 
@@ -470,7 +481,7 @@ fn hold_removes_and_resume_adds_it_back() {
 /// answer.
 #[test]
 fn triage_removes_and_start_adds_it_back() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let mut thread = sample_thread("ST0056");
   thread.status = ThreadStatus::Triage;
   fx.write_thread(&thread);
@@ -507,17 +518,17 @@ fn triage_removes_and_start_adds_it_back() {
 /// The `st new`, `st triage`, `st start` sequence is what `--start` drives.
 #[test]
 fn st_new_then_start_leaves_the_thread_realised_with_no_further_write() {
+  // A mint refuses in 3.4.0's format, so this runs upgraded and reads the
+  // record (ST0096 WP-01).
   let fx = Fixture::new();
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0099\n");
 
   let mut facade = fx.facade();
   let id = facade.st_new("started on creation").expect("new");
   facade.st_triage(&id).expect("triage");
   facade.st_start(&id).expect("start");
   assert!(
-    declared(&fx).declares(&id),
-    "precondition: `st start` declares:\n{}",
-    manifest_text(&fx)
+    facade.st_show(&id).expect("the thread").realised,
+    "precondition: `st start` declares on the record"
   );
   assert!(
     fx.path(&format!("intent/st/{id}/info.md")).exists(),
@@ -602,7 +613,8 @@ fn reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wro
 fn no_verb_creates_a_manifest_that_was_not_there() {
   let path_rel = "intent/.intentfiles";
 
-  // `st new` -- the one most likely to be implemented as "create and list".
+  // `st new` -- the one most likely to be implemented as "create and list". A
+  // mint refuses in 3.4.0's format, so this arm is upgraded (ST0096 WP-01).
   {
     let fx = Fixture::new();
     write_settled(&fx, &sample_thread("ST0056"));
@@ -620,7 +632,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
   // `st done` -- nothing to remove, and creating a file to record that would be
   // the same catastrophe in the other direction.
   {
-    let fx = Fixture::new();
+    let fx = Fixture::ordinal();
     write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade.st_done("ST0056").expect("done");
@@ -629,7 +641,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
 
   // `st reopen`, which ADDS -- the verb with the strongest excuse to create one.
   {
-    let fx = Fixture::new();
+    let fx = Fixture::ordinal();
     write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade.st_done("ST0056").expect("done");
@@ -763,7 +775,7 @@ fn keep_closes_without_a_note_because_nothing_is_being_dehydrated() {
 fn a_verb_that_removes_nothing_carries_no_note() {
   // The ADD side: `st start` lands on `wip` and adds. Nothing is being
   // dehydrated, so there is nothing to warn about.
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let mut thread = sample_thread("ST0056");
   thread.status = ThreadStatus::Triage;
   fx.write_thread(&thread);
@@ -820,7 +832,7 @@ fn hold_now_carries_the_note_because_the_note_follows_the_removal() {
 /// non-git project, which is how a warning becomes wallpaper.
 #[test]
 fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let mut thread = sample_thread("ST0056");
   thread.attachments.clear();
   write_settled(&fx, &thread);
@@ -850,7 +862,7 @@ fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
 /// names all of it; with one attachment in the fixture that implementation is
 /// indistinguishable from the right one.
 fn committed_fixture() -> Fixture {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.git_init();
   write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
@@ -953,7 +965,7 @@ fn the_warning_closes_the_thread_and_still_makes_the_edit() {
 /// message would be true of both and useful for neither.
 #[test]
 fn an_untracked_attachment_is_named_and_says_so_in_its_own_words() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   fx.git_init();
   write_settled(&fx, &sample_thread("ST0056"));
   fx.write_file("intent/.intentfiles", MANIFEST);
@@ -1035,7 +1047,7 @@ fn keep_stays_silent_even_when_there_are_uncommitted_bytes_to_warn_about() {
 /// `organize` wrote it.
 #[test]
 fn st_reopen_realises_the_attachments_with_the_views() {
-  let fx = Fixture::new();
+  let fx = Fixture::ordinal();
   let mut thread = sample_thread("ST0056");
   thread.attachments.push(intentsvcs::model::Attachment::new(
     "design.md",

@@ -71,6 +71,8 @@ fn estate() -> Estate {
     thread.origin = Some(origin.to_string());
     thread.title = title.to_string();
     thread.related.clear();
+    // Unrealised, so the hydrate below by prefix has a record to move.
+    thread.realised = false;
     if *id == a {
       let mut package: WorkPackage = thread.wps[0].clone();
       package.seq = wp;
@@ -86,8 +88,6 @@ fn estate() -> Estate {
   record.origin = Some(SHARED_A.to_string());
   record.title = "an issue beside the first".to_string();
   fx.write_issue(&record);
-  // The manifest a hydrate declares into, as a project that hydrates has one.
-  fx.write_file("intent/.intentfiles", "");
   let mut f = fx.facade_on_disk();
   f.wb_register("ic", "Interface", "interface")
     .expect("register ic");
@@ -349,12 +349,15 @@ fn every_store_path_given_a_prefix_keeps_the_whole_id() {
   );
   assert!(page.rows.iter().all(|row| row.subject.id == e.c.stored()));
 
-  // `.intentfiles`, through an address that carries the prefix.
+  // Realisation, through an address that carries the prefix: the whole
+  // thread's own record moves (ST0096 WP-01).
   let address = intentsvcs::address::promote(&a_typed).expect("an address by prefix");
   e.f.hydrate(&address).expect("hydrate by prefix");
-  let manifest = e.fx.read("intent/.intentfiles");
   assert!(
-    manifest.lines().any(|line| line.ends_with(&e.a.stored())),
-    "{manifest}"
+    e.f
+      .st_show(&e.a.stored())
+      .expect("the first thread")
+      .realised,
+    "hydrate by prefix did not realise the thread it names"
   );
 }

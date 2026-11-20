@@ -25,8 +25,9 @@ fn files(fx: &Fixture) -> std::collections::BTreeMap<String, Vec<u8>> {
 }
 
 /// ST0001 is the thread that moves. ST0005 names it in `related` and in a
-/// sentence; `notes.md` under its directory is a file nobody modelled; the
-/// manifest declares both; and `ic` claims one of its packages.
+/// sentence; `notes.md` under its directory is a file nobody modelled; both
+/// are realised on their records (ST0096 WP-01); and `ic` claims one of its
+/// packages.
 fn estate() -> (Fixture, Facade) {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
@@ -38,10 +39,6 @@ fn estate() -> (Fixture, Facade) {
   other.objective = "Build on the design ST0001 settled.".to_string();
   fx.write_thread(&other);
   fx.write_prose("ST0001", "notes.md", "an unmodelled file\n");
-  fx.write_file(
-    "intent/.intentfiles",
-    "STEELTHREAD:ST0001\nSTEELTHREAD:ST0005\n",
-  );
   let mut f = fx.facade_on_disk();
   f.wb_register("ic", "Interface", "interface")
     .expect("register ic");
@@ -80,10 +77,9 @@ fn a_thread_renumber_moves_the_record_and_everything_that_names_it_structurally(
     "{cover}"
   );
 
-  // The manifest row, the related reference and the claim.
-  let manifest = fx.read("intent/.intentfiles");
-  assert!(manifest.contains("STEELTHREAD:ST0003"), "{manifest}");
-  assert!(!manifest.contains("STEELTHREAD:ST0001"), "{manifest}");
+  // Its realisation, the related reference and the claim. Realisation is the
+  // record's own field, so it moves with the record (ST0096 WP-01).
+  assert!(moved.realised, "its realisation came with its record");
   let related: Vec<String> = f
     .st_show("ST0005")
     .expect("ST0005")

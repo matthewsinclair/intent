@@ -436,6 +436,8 @@ mod preamble_conservation;
 mod prose_ingest_fts;
 #[path = "realisation_is_recorded.rs"]
 mod realisation_is_recorded;
+#[path = "realisation_lives_in_the_record.rs"]
+mod realisation_lives_in_the_record;
 #[path = "record_timestamps.rs"]
 mod record_timestamps;
 #[path = "refused_ingest_blocks_egest.rs"]

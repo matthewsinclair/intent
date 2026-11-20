@@ -2621,11 +2621,12 @@ fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
   // operator who typed `ST0000` is told what it was promoted to, which is the
   // one place the bare-id shorthand can be seen doing its work; echoing their
   // own argument back would confirm only that it was received.
+  let listed_in = facade.realisation_named(true).map_err(fail)?;
   let project = facade.project();
   println!(
     "ok: {} hydrated -- listed in {}, {} file(s) on disk, {} written by this run",
     address.to_url(),
-    project.relative(&project.intentfiles_path()),
+    listed_in,
     done.paths.len(),
     done.wrote.len()
   );
@@ -2671,7 +2672,7 @@ fn dehydrated(argument: &str) -> Result<(), Failure> {
     })
     .map_err(fail)?;
 
-  let manifest = project.relative(&project.intentfiles_path());
+  let manifest = facade.realisation_named(true).map_err(fail)?;
 
   // **AC-00.6: `NOTHING TO DO` AND `DID SOMETHING` MUST NOT READ THE SAME**, and
   // the two axes are reported SEPARATELY because they move independently.
@@ -6123,6 +6124,10 @@ fn upgrade() -> Result<(), Failure> {
   for path in &done.pruned {
     eprintln!("pruned: {}", path.display());
   }
+  // ST0096 WP-01: the manifest's rows are now each record's own `realised`.
+  if let Some(path) = &done.manifest_folded {
+    eprintln!("removed: {} (folded into the records)", path.display());
+  }
   // **THE VIEWS OF UNDECLARED THREADS, NAMED PATH BY PATH** (issue 0316), and
   // every refusal in organize's own words.
   for path in &done.dehydrated {
@@ -6245,7 +6250,11 @@ fn upgrade() -> Result<(), Failure> {
 fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   let force = given(m, "force");
   let (project, ctx) = context()?;
-  let manifest = project.relative(&project.intentfiles_path());
+  // ST0096 WP-01: an upgraded project keeps realisation on its records. A
+  // project state that does not read names the manifest, as 3.4.0's did, and
+  // the facade opened below refuses it by name.
+  let format = intentsvcs::intentfiles::reported_format(&project);
+  let manifest = intentsvcs::intentfiles::named(&project, format, false);
 
   // **THE TTY IS CHECKED BEFORE THE FACADE IS EVEN OPENED, SO A REFUSAL CANNOT
   // HAVE WRITTEN ANYTHING (AC-11.2).** Not an ordering convention: nothing
@@ -6286,7 +6295,12 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
       "a thread whose preconditions are unmet keeps every one of its files, and the refusal names the thread and the precondition."
     );
     println!(
-      "`intent organize --default` without --force writes the declaration and removes nothing."
+      "{}",
+      if format == intentsvcs::canon_format::CanonFormat::V3 {
+        "`intent organize --default` without --force writes the declaration and removes nothing."
+      } else {
+        "`intent organize --default` without --force reports what the records declare and changes nothing."
+      }
     );
     print!("proceed? [y/N] ");
     use std::io::Write as _;

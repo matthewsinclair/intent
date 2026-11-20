@@ -116,7 +116,10 @@ CREATE TABLE IF NOT EXISTS threads (
   revision INTEGER NOT NULL DEFAULT 0,
   -- The creation event a hashed id derives from; null on an ordinal. Last,
   -- where rung 36's ADD COLUMN puts it on a migrated store.
-  origin TEXT
+  origin TEXT,
+  -- Whether the thread is realised on disk, 1 or 0. After origin, where
+  -- rung 37's ADD COLUMN puts it.
+  realised INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 CREATE TABLE IF NOT EXISTS related (
@@ -267,7 +270,9 @@ CREATE TABLE IF NOT EXISTS issues (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   -- The creation event a hashed id derives from; null on an ordinal.
-  origin TEXT
+  origin TEXT,
+  -- Whether the issue's view is realised on disk, 1 or 0.
+  realised INTEGER NOT NULL DEFAULT 0
 );
 -- The sync engine's git-style index (data-model.md). DB-only and derived from
 -- the working tree, not from canon, so `rebuild` does not touch it.

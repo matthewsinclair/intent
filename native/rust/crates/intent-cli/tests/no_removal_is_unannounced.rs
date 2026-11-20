@@ -154,15 +154,16 @@ fn project() -> (tempfile::TempDir, String) {
 }
 
 /// Take thread `st` out of the declaration while its files stay on disk.
+///
+/// A project `init` makes keeps the declaration on each record (ST0096 WP-01),
+/// so this is a verb that unrealises its own record: `st cancel`, which leaves
+/// the files for `organize` to remove. The arms' vacuity control reds if it
+/// ever took them itself.
 fn undeclare(root: &Path, st: &str) {
-  let path = root.join("intent/.intentfiles");
-  let text = std::fs::read_to_string(&path).expect("the declaration is readable");
-  let kept: String = text
-    .lines()
-    .filter(|l| !l.contains(st))
-    .map(|l| format!("{l}\n"))
-    .collect();
-  std::fs::write(&path, kept).expect("rewrite the declaration");
+  ok(
+    root,
+    &["st", "cancel", st, "--reason", "undeclared by the fixture"],
+  );
 }
 
 /// The paths a run took away.

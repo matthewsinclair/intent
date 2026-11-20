@@ -25,6 +25,18 @@ use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 
+/// Unrealise each thread on its record by `st hold`, which takes a thread off
+/// the realised set and leaves its files for `organize` (ST0096 WP-01: an
+/// upgraded project keeps realisation on the record, not in `.intentfiles`).
+/// ST0057 stays realised.
+fn undeclare(fx: &Fixture, ids: &[&str]) {
+  let mut f = fx.facade_on_disk();
+  for id in ids {
+    f.st_hold(id, "off the realised set")
+      .expect("a wip thread holds");
+  }
+}
+
 /// Realise two threads, then declare neither, so a single run empties both.
 fn dehydrating_estate(fx: &Fixture) {
   fx.write_thread(&gate_open());
@@ -33,7 +45,7 @@ fn dehydrating_estate(fx: &Fixture) {
   fx.facade_on_disk()
     .sync_to_disk(&Scope::All)
     .expect("realise everything");
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0057\n");
+  undeclare(fx, &["ST0001", "ST0002"]);
 }
 
 /// **THE PROPERTY.** A thread whose every file this run removed leaves no
@@ -78,7 +90,7 @@ fn an_ancestor_emptied_by_its_child_goes_in_the_same_run() {
   fx.facade_on_disk()
     .sync_to_disk(&Scope::All)
     .expect("realise everything");
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0057\n");
+  undeclare(&fx, &["ST0001"]);
 
   let wp_dir = fx.project().thread_dir("ST0001").join("WP");
   assert!(

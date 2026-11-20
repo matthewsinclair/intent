@@ -17,7 +17,7 @@
 //! the middle step and the tree is trivially byte-identical at the end -- a
 //! flawless score for an implementation that does not exist. The criterion as
 //! written cannot see that, so the middle state is asserted directly:
-//! `dehydrate` must have taken the `STEELTHREAD:` entry out of the manifest AND
+//! `dehydrate` must have taken the declaration off the thread's record AND
 //! taken the thread's files off the disk, both checked between the two
 //! hydrations. **The round trip proves composition; only the middle assertion
 //! proves there was anything to compose.**
@@ -210,14 +210,15 @@ fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
   out
 }
 
-fn manifest(root: &Path) -> String {
-  std::fs::read_to_string(root.join("intent/.intentfiles")).expect("manifest")
-}
-
+/// Whether thread `id`'s canon record declares it realised. A project `init`
+/// makes keeps the declaration on each record, not in `.intentfiles` (ST0096
+/// WP-01).
 fn declares(root: &Path, id: &str) -> bool {
-  manifest(root)
-    .lines()
-    .any(|l| l.trim() == format!("STEELTHREAD:{id}"))
+  let canon = root.join(format!("intent/.canon/st/{id}.json"));
+  let record: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&canon).expect("the thread's canon"))
+      .expect("the thread's canon parses");
+  record["realised"] == serde_json::Value::Bool(true)
 }
 
 // ---------------------------------------------------------------------------
@@ -245,11 +246,11 @@ fn hydrate_dehydrate_hydrate_returns_the_tree_byte_for_byte() {
 
   // **THE MIDDLE STATE, AND IT IS THE WHOLE DEFENCE AGAINST A DEGENERATE
   // PASS.** Both halves of "is the inverse of hydrate" are checked here --
-  // the manifest entry and the files -- because a `dehydrate` that did
+  // the record's declaration and the files -- because a `dehydrate` that did
   // neither would round-trip perfectly at the end of this test.
   assert!(
     !declares(root, &subject),
-    "dehydrate left the STEELTHREAD entry in the manifest, so it removed nothing to restore"
+    "dehydrate left the thread declared on its record, so it removed nothing to restore"
   );
   let middle = tree(root);
   assert!(
@@ -345,8 +346,8 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
   assert!(
     stdout
       .lines()
-      .any(|l| l.trim() == "delisted: intent/.intentfiles"),
-    "the run changed the manifest and did not name it -- stdout: {stdout}"
+      .any(|l| l.trim() == "delisted: its canon record"),
+    "the run changed the declaration on the record and did not name it -- stdout: {stdout}"
   );
 }
 

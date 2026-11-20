@@ -401,8 +401,11 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // 36 is git-style ids (ST0095 WP-06): `wps.seq` and `issues.number` become
   // TEXT in two rebuilds, and `threads.origin` and `project.canon_schema` are
   // added where absent; existing rows start null, every id in its stored form.
-  const PINNED_SCHEMA_HASH: u64 = 0xfea0_0dc3_5e39_2762;
-  const PINNED_FOR_VERSION: i32 = 36;
+  //
+  // 37 is realisation on the record (ST0096 WP-01): `threads.realised` and
+  // `issues.realised`, added where absent by the rung's step, starting 0.
+  const PINNED_SCHEMA_HASH: u64 = 0xc61b_fd10_b2b4_38a2;
+  const PINNED_FOR_VERSION: i32 = 37;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

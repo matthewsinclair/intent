@@ -32,6 +32,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     schema: THREAD_SCHEMA.to_string(),
     id: tid("ST0001"),
     origin: None,
+    realised: false,
     title: "gate parity".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
