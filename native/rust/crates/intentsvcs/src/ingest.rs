@@ -24,7 +24,9 @@ use serde::de::DeserializeOwned;
 use crate::canon_format::{CanonFormat, CanonKind, IssueV3, ThreadV3};
 use crate::event::{Envelope, EventFileError};
 use crate::finding::{Finding, FindingClass, Refusal};
-use crate::model::{Issue, ProjectState, Thread};
+use crate::model::{
+  AcceptanceTest, Attachment, Criterion, Issue, ProjectState, Thread, WorkPackage,
+};
 use crate::project::Project;
 use crate::prose::{self, DocSection};
 use crate::store::{IngestOutcome, Store, StoreError};
@@ -201,8 +203,28 @@ impl From<Refusal> for IngestError {
 /// its error type. `read` propagates an unreadable file as an `IngestError`;
 /// `legacy.rs` has already established the file exists.
 pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
+  read_thread_file(project, id, text).map(|(thread, _)| thread)
+}
+
+/// [`read_thread`], with the format the file is written in, which says where
+/// the thread's children are: inside it (3.4.0's) or also in files of their
+/// own (the release's, ST0096 WP-05).
+///
+/// **THE FILE'S FORMAT, NOT THE PROJECT'S.** `intent upgrade` writes a
+/// thread's records before `project.json`'s schema, so a run cut short leaves
+/// threads in the release's layout in a project still marked 3.4.0's. Read by
+/// the project's mark, such a thread would come back without its children, and
+/// the re-run would write it so. Read by its own, it comes back whole, as
+/// [`decode_thread`] already reads each file by the schema it carries.
+fn read_thread_file(
+  project: &Project,
+  id: &str,
+  text: &str,
+) -> Result<(Thread, CanonFormat), Vec<Finding>> {
   let rel = project.relative(&project.thread_json(id));
-  let mut thread = decode_thread(&rel, parse_json(&rel, text)?)?;
+  let value = parse_json(&rel, text)?;
+  let format = format_of(&rel, &value, CanonKind::Thread)?;
+  let mut thread = decode_thread(&rel, value)?;
   // **IN THE ONE ORDER AT THE DISK BOUNDARY** (ST0095 WP-08): a thread file's
   // packages may be in any order (one written before WP-08 holds hashed ones
   // by hash), and the store reads them back in `id::record_order`, so a thread
@@ -218,7 +240,7 @@ pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Ve
       ),
     )]);
   }
-  Ok(thread)
+  Ok((thread, format))
 }
 
 /// Validate ONE issue's committed canon: parse, then the two checks that only
@@ -408,12 +430,18 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
   let mut findings = Vec::new();
 
   for id in project.thread_ids()? {
-    match read_thread(project, &id, &read_to_string(&project.thread_json(&id))?) {
-      Ok(mut thread) => {
+    match read_thread_file(project, &id, &read_to_string(&project.thread_json(&id))?) {
+      Ok((mut thread, format)) => {
         // **The sidecars are loaded in the SAME step that parsed the JSON, so
         // no caller ever observes the half-formed state** an opaque attachment
         // has between the two (`model::Attachment::blob`). A `Canon` handed out
-        // of here holds bytes for every opaque attachment or refuses.
+        // of here holds bytes for every opaque attachment or refuses. So are
+        // the children with files of their own (ST0096 WP-05), by the layout
+        // the thread's file is in.
+        match format {
+          CanonFormat::V4 => findings.append(&mut read_children(project, &mut thread)?),
+          CanonFormat::V3 => {}
+        }
         findings.append(&mut load_blobs(project, &mut thread));
         canon.threads.push(thread);
       }
@@ -725,6 +753,163 @@ fn read_event_file(path: PathBuf) -> Result<EventFileRead, IngestError> {
   let text = read_to_string(&path)?;
   let read = crate::event::from_file(&event_id_of(&path), &text);
   Ok((path, read))
+}
+
+/// A thread's work packages, criteria, tests and attachments in the release's
+/// format, each read from its own file in the thread's directory and added to
+/// `thread` (ST0096 WP-05), packages in [`crate::id::record_order`]. No file
+/// lists them, so the directory is the list.
+///
+/// A file that does not parse as its kind, or whose name is not its record's,
+/// is a finding naming the file; it is never skipped.
+fn read_children(project: &Project, thread: &mut Thread) -> Result<Vec<Finding>, IngestError> {
+  use crate::project::{
+    CANON_AC_DIR, CANON_AT_DIR, CANON_ATTACHMENTS_DIR, CANON_WP_DIR, canon_ac_rel, canon_at_rel,
+    canon_attachment_rel, canon_wp_rel,
+  };
+  let id = thread.id.stored();
+  let mut findings = Vec::new();
+  thread.wps.extend(read_records(
+    project,
+    &id,
+    CANON_WP_DIR,
+    &mut findings,
+    |wp: &WorkPackage| canon_wp_rel(&id, &wp.seq.stored()),
+  )?);
+  thread.criteria.extend(read_records(
+    project,
+    &id,
+    CANON_AC_DIR,
+    &mut findings,
+    |c: &Criterion| canon_ac_rel(&id, &c.id),
+  )?);
+  thread.tests.extend(read_records(
+    project,
+    &id,
+    CANON_AT_DIR,
+    &mut findings,
+    |t: &AcceptanceTest| canon_at_rel(&id, &t.id),
+  )?);
+  thread.attachments.extend(read_records(
+    project,
+    &id,
+    CANON_ATTACHMENTS_DIR,
+    &mut findings,
+    |a: &Attachment| canon_attachment_rel(&id, &a.path),
+  )?);
+  // Packages are in the one order wherever a thread is read (ST0095 WP-08).
+  // Criteria, tests and attachments keep the order the store gives them, as
+  // in a thread file, and the files are read in path order. One order for
+  // those three across the store and the disk comes with the writer's switch
+  // to this layout, since a thread's file still lists them until then.
+  thread.wps.sort_by(crate::id::record_order);
+  Ok(findings)
+}
+
+/// Every record of one kind in a thread's directory, with a finding for each
+/// file that does not parse as `T` or whose path is not the one `rel_of` gives
+/// its record.
+fn read_records<T: DeserializeOwned>(
+  project: &Project,
+  thread: &str,
+  dir: &str,
+  findings: &mut Vec<Finding>,
+  rel_of: impl Fn(&T) -> String,
+) -> Result<Vec<T>, IngestError> {
+  let mut paths = Vec::new();
+  collect_record_paths(
+    project,
+    &project
+      .intent_dir()
+      .join(crate::project::canon_children_rel(thread, dir)),
+    &mut paths,
+    findings,
+  )?;
+  paths.sort();
+  let mut records = Vec::new();
+  for path in paths {
+    let rel = project.relative(&path);
+    let value = match parse_json(&rel, &read_to_string(&path)?) {
+      Ok(value) => value,
+      Err(mut found) => {
+        findings.append(&mut found);
+        continue;
+      }
+    };
+    match serde_json::from_value::<T>(value) {
+      Ok(record) => {
+        let named = project.relative(&project.intent_dir().join(rel_of(&record)));
+        if named == rel {
+          records.push(record);
+        } else {
+          findings.push(Finding::new(
+            &rel,
+            FindingClass::SchemaInvalid,
+            format!("holds the record whose file is {named}, so its name and its record disagree"),
+          ));
+        }
+      }
+      Err(e) => findings.push(Finding::new(
+        &rel,
+        FindingClass::SchemaInvalid,
+        e.to_string(),
+      )),
+    }
+  }
+  Ok(records)
+}
+
+/// The record files under one of a thread's record directories, recursively
+/// (ST0096 WP-05), with a finding for each file that cannot be a record.
+///
+/// **NOT [`collect_event_paths`]**, which skips every dotfile and every file
+/// that is not `.json`. Here a name is a record's id, label or path, and an
+/// attachment's path may begin with a dot (`.github/ci.yml`), so skipping
+/// dotfiles would lose that attachment on the way back in, without a word.
+/// Only a write in flight is passed over; anything else that is not a `.json`
+/// file is named.
+fn collect_record_paths(
+  project: &Project,
+  dir: &std::path::Path,
+  out: &mut Vec<PathBuf>,
+  findings: &mut Vec<Finding>,
+) -> Result<(), IngestError> {
+  let entries = match std::fs::read_dir(dir) {
+    Ok(entries) => entries,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+    Err(source) => {
+      return Err(IngestError::Io {
+        path: dir.display().to_string(),
+        source,
+      });
+    }
+  };
+  for entry in entries {
+    let entry = entry.map_err(|source| IngestError::Io {
+      path: dir.display().to_string(),
+      source,
+    })?;
+    let path = entry.path();
+    if entry
+      .file_name()
+      .to_string_lossy()
+      .ends_with(crate::write_set::IN_FLIGHT_SUFFIX)
+    {
+      continue;
+    }
+    if path.is_dir() {
+      collect_record_paths(project, &path, out, findings)?;
+    } else if path.extension().is_some_and(|x| x == "json") {
+      out.push(path);
+    } else {
+      findings.push(Finding::new(
+        project.relative(&path),
+        FindingClass::UnknownFileShape,
+        "is in a thread's record directory and is not a record's `.json` file".to_string(),
+      ));
+    }
+  }
+  Ok(())
 }
 
 /// The `.json` files under `dir`, recursively. Dotfiles are skipped: a write

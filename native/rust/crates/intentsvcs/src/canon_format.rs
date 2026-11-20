@@ -136,6 +136,17 @@ pub enum CanonFormatError {
   UnreadProjectSchema { schema: String },
   #[error("serialisation: {0}")]
   Serde(#[from] serde_json::Error),
+  /// Two of one thread's canon files in the release's format that a disk which
+  /// folds case stores as one file (ST0096 WP-05): eg an opaque attachment
+  /// whose bytes would land on a record's file. Neither is written.
+  #[error(
+    "{thread} would write {first} and {second}, which a disk that folds case stores as one file"
+  )]
+  SharedPath {
+    thread: String,
+    first: String,
+    second: String,
+  },
 }
 
 impl crate::remedy::Remedy for CanonFormatError {
@@ -150,6 +161,9 @@ impl crate::remedy::Remedy for CanonFormatError {
       Self::Serde(_) => "nothing was written. A record that does not serialise is a defect in \
         Intent: report it with the command that met it"
         .to_string(),
+      Self::SharedPath { .. } => "nothing was written. Rename one of the two attachments so \
+        their paths differ by more than letter case, then write again"
+        .to_string(),
     }
   }
 }
@@ -160,6 +174,88 @@ pub fn encode_thread(thread: &Thread, format: CanonFormat) -> Result<String, Can
     CanonFormat::V4 => to_canonical_json(thread)?,
     CanonFormat::V3 => to_canonical_json(&ThreadV3::try_from(thread)?)?,
   })
+}
+
+/// A thread's canon files in `format`, each as its path relative to the intent
+/// directory and its bytes: the one encoder of a thread's layout (ST0096
+/// WP-05).
+///
+/// In 3.4.0's format a thread is one file, [`encode_thread`]'s. In the
+/// release's, the thread's file carries its own fields only, and each work
+/// package, criterion, test and attachment is a file of its own in the
+/// thread's directory, named by its stored id or label. No file lists, counts
+/// or orders a thread's children: the directory holds them, so two branches
+/// that change two children of one thread change two files.
+///
+/// **NO TWO OF THEM ARE ONE FILE**: the records are under
+/// [`crate::project::CANON_RECORDS_DIR`] and the opaque attachments' bytes in
+/// the thread's own directory ([`crate::project::canon_blob_rel`]), so the
+/// two cannot meet. What remains is two attachments whose paths differ only
+/// in case (issue 0722): the paths this writes and the bytes' paths are
+/// refused as a set when a disk that folds case would store two as one,
+/// before anything is written.
+pub fn encode_thread_files(
+  thread: &Thread,
+  format: CanonFormat,
+) -> Result<Vec<(String, String)>, CanonFormatError> {
+  use crate::project::{
+    canon_ac_rel, canon_at_rel, canon_attachment_rel, canon_blob_rel, canon_thread_rel,
+    canon_wp_rel,
+  };
+  let id = thread.id.stored();
+  match format {
+    CanonFormat::V3 => {
+      return Ok(vec![(
+        canon_thread_rel(&id),
+        encode_thread(thread, format)?,
+      )]);
+    }
+    CanonFormat::V4 => {}
+  }
+  let own = Thread {
+    wps: Vec::new(),
+    criteria: Vec::new(),
+    tests: Vec::new(),
+    attachments: Vec::new(),
+    ..thread.clone()
+  };
+  let mut files = vec![(canon_thread_rel(&id), to_canonical_json(&own)?)];
+  for wp in &thread.wps {
+    files.push((canon_wp_rel(&id, &wp.seq.stored()), to_canonical_json(wp)?));
+  }
+  for criterion in &thread.criteria {
+    files.push((
+      canon_ac_rel(&id, &criterion.id),
+      to_canonical_json(criterion)?,
+    ));
+  }
+  for test in &thread.tests {
+    files.push((canon_at_rel(&id, &test.id), to_canonical_json(test)?));
+  }
+  for attachment in &thread.attachments {
+    files.push((
+      canon_attachment_rel(&id, &attachment.path),
+      to_canonical_json(attachment)?,
+    ));
+  }
+  let sidecars: Vec<String> = thread
+    .attachments
+    .iter()
+    .filter(|a| a.is_opaque())
+    .map(|a| canon_blob_rel(&id, &a.path))
+    .collect();
+  let paths = files
+    .iter()
+    .map(|(path, _)| path.as_str())
+    .chain(sidecars.iter().map(String::as_str));
+  if let Some((first, second)) = crate::project::key_pair(paths) {
+    return Err(CanonFormatError::SharedPath {
+      thread: thread.id.shown(),
+      first: first.to_string(),
+      second: second.to_string(),
+    });
+  }
+  Ok(files)
 }
 
 /// An issue's canon bytes in `format`: the one encoder every issue write asks.

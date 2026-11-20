@@ -325,6 +325,11 @@ fn record(path: &Path) -> Result<Prior, WriteError> {
   })
 }
 
+/// The end of a write in flight's name: [`write_atomically`] writes its bytes
+/// to a `.<name>.<pid>.<seq>.intent-tmp` sibling and renames it into place, so
+/// a reader walking a directory knows such a file is not one yet.
+pub(crate) const IN_FLIGHT_SUFFIX: &str = ".intent-tmp";
+
 /// Write via a sibling temp file and a rename, so a reader never observes a
 /// half-written file. The temp file sits in the destination directory because
 /// a rename across filesystems is not atomic and may not even be a rename.
@@ -343,7 +348,10 @@ pub(crate) fn write_atomically(path: &Path, content: &[u8]) -> Result<(), WriteE
     .map(|n| n.to_string_lossy().into_owned())
     .unwrap_or_else(|| "intent".to_string());
   let seq = WRITES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-  let temp = dir.join(format!(".{name}.{}.{seq}.intent-tmp", std::process::id()));
+  let temp = dir.join(format!(
+    ".{name}.{}.{seq}{IN_FLIGHT_SUFFIX}",
+    std::process::id()
+  ));
 
   std::fs::write(&temp, content).map_err(|e| io_err(&temp, e))?;
   if let Err(e) = std::fs::rename(&temp, path) {

@@ -1538,7 +1538,74 @@ pub fn canon_thread_rel(id: &str) -> String {
 /// is not a collision -- one is a file and one is a directory -- and it keeps
 /// a thread's whole record in one place a reader can list.
 pub fn canon_blob_rel(id: &str, path: &str) -> String {
-  format!(".canon/st/{id}/{path}")
+  format!("{}/{path}", canon_thread_dir_rel(id))
+}
+
+/// A thread's attachment directory, relative to the intent directory: the one
+/// spelling of `.canon/st/<thread>`, which [`canon_blob_rel`] and
+/// [`attachment_name`]'s containment test build from. It holds the opaque
+/// attachments' bytes and nothing else, whatever the canon format.
+pub fn canon_thread_dir_rel(id: &str) -> String {
+  format!(".canon/st/{id}")
+}
+
+/// Where a thread's records live in the release's format, relative to the
+/// intent directory (ST0096 WP-05): `.canon/records/<thread>/`, one directory
+/// per kind of child beneath it.
+///
+/// **NOT INSIDE THE THREAD'S ATTACHMENT DIRECTORY**, which holds an opaque
+/// attachment's bytes at the attachment's own path. Sharing it would let an
+/// attachment's path land on a record (`wp/notes.json` read as a package, a
+/// file named `wp` against the directory, or `WP/03/x.png` inside `wp/` on a
+/// disk that folds case). Reserving the record directories' names instead
+/// would refuse an image under `WP/`, Intent's own convention. Two roots make
+/// the collision impossible rather than refused.
+pub const CANON_RECORDS_DIR: &str = ".canon/records";
+
+/// The directories of a thread's records in the release's format, under
+/// [`CANON_RECORDS_DIR`] (ST0096 WP-05): one for each kind of child, named here once so
+/// the writer and the reader cannot spell one two ways.
+pub const CANON_WP_DIR: &str = "wp";
+/// See [`CANON_WP_DIR`].
+pub const CANON_AC_DIR: &str = "ac";
+/// See [`CANON_WP_DIR`].
+pub const CANON_AT_DIR: &str = "at";
+/// See [`CANON_WP_DIR`].
+pub const CANON_ATTACHMENTS_DIR: &str = "attachments";
+
+/// One kind of a thread's records in the release's format, relative to the
+/// intent directory: `.canon/records/<thread>/<dir>` (ST0096 WP-05).
+pub fn canon_children_rel(thread: &str, dir: &str) -> String {
+  format!("{CANON_RECORDS_DIR}/{thread}/{dir}")
+}
+
+/// One work package's canon path in the release's format, relative to the
+/// intent directory (ST0096 WP-05): its own file in its thread's directory,
+/// named by its stored id, so two branches that change two packages of one
+/// thread change two files.
+pub fn canon_wp_rel(thread: &str, wp: &str) -> String {
+  format!("{}/{wp}.json", canon_children_rel(thread, CANON_WP_DIR))
+}
+
+/// One criterion's canon path in the release's format, named by its label
+/// (ST0096 WP-05).
+pub fn canon_ac_rel(thread: &str, label: &str) -> String {
+  format!("{}/{label}.json", canon_children_rel(thread, CANON_AC_DIR))
+}
+
+/// One acceptance test's canon path in the release's format, named by its
+/// label (ST0096 WP-05).
+pub fn canon_at_rel(thread: &str, label: &str) -> String {
+  format!("{}/{label}.json", canon_children_rel(thread, CANON_AT_DIR))
+}
+
+/// One attachment's record in the release's format, named by its path
+/// (ST0096 WP-05). An opaque attachment's bytes stay at [`canon_blob_rel`].
+pub fn canon_attachment_rel(thread: &str, path: &str) -> String {
+  format!(
+    "{}/{path}.json",
+    canon_children_rel(thread, CANON_ATTACHMENTS_DIR)
+  )
 }
 
 /// The key two paths share when some disk stores them as ONE FILE (issue
@@ -1638,8 +1705,9 @@ pub(crate) fn disk_match<'a>(
 
 /// The first two of `paths` that are one file on a disk that folds case
 /// (issues 0718 and 0722), as `(held, path)`: `held` the earlier, `path` the
-/// one that would land on it. Asked by the projection's sidecars, realise and
-/// doctor's canon finding, so none of them spells the comparison. Migration's
+/// one that would land on it. Asked by the projection's sidecars, realise,
+/// doctor's canon finding and a thread's canon layout
+/// (`canon_format::encode_thread_files`), so none of them spells the comparison. Migration's
 /// own collision check (`migrate.rs`, v2 files under v2 tooling) and the
 /// attach door's one-against-many check (`disk_match`'s shape) keep theirs.
 pub(crate) fn key_pair<'a>(paths: impl IntoIterator<Item = &'a str>) -> Option<(&'a str, &'a str)> {
@@ -1830,7 +1898,7 @@ impl std::fmt::Display for BadName {
 /// The two are different claims and only the first is being made.
 pub fn attachment_name(thread: &str, path: &str) -> Result<(), BadName> {
   let rel = canon_blob_rel(thread, path);
-  let prefix = format!(".canon/st/{thread}/");
+  let prefix = format!("{}/", canon_thread_dir_rel(thread));
 
   // Resolve `.` and `..` lexically. A leading `..` pops past the prefix and the
   // containment test below fails, which is the whole point.

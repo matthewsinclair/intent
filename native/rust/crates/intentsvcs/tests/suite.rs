@@ -402,6 +402,8 @@ mod upgrade_dehydrates_undeclared_thread_views;
 
 #[path = "a_removed_file_leaves_the_file_index.rs"]
 mod a_removed_file_leaves_the_file_index;
+#[path = "a_thread_is_its_records_files.rs"]
+mod a_thread_is_its_records_files;
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
 #[path = "no_view_claims_to_be_truth.rs"]
