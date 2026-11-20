@@ -1,0 +1,15 @@
+{
+  "id": "01M7X39REN600FTXJTX09KBNWT",
+  "ts": "2026-11-20T18:25:32.117Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0740 (filed 1292102c5, cc's FYI 2026-11-20 18:25Z by date -u), ic's wording: views.rs's two stale-render findings (skew_against's ViewSkew and StaleRender arms) weave a remedy into their detail beside the class remedy. Once devbin-cc's 0738 (Finding::with_remedy) lands, and after my WP-10 T unit, which rewords the same sentences: the detail says what's wrong, and the override is the one whole remedy (keeping DISCARDING a hand edit and the keep-an-edit route). Its own small unit."
+  }
+}

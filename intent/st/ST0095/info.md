@@ -29,7 +29,7 @@ hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted hig
 | WP-07 | Prefix resolution                                          | M    | Done        |
 | WP-08 | The order                                                  | S    | Done        |
 | WP-09 | Criteria follow their package, and doctor verifies         | S    | Done        |
-| WP-10 | Every door takes and shows both families                   | L    | WIP         |
+| WP-10 | Every door takes and shows both families                   | L    | Done        |
 | WP-11 | The TUI, the app and the served page                       | M    | Not Started |
 | WP-12 | The pipeline asks the waist; the drill; the fleet          | M    | Not Started |
 | WP-13 | Docs, skills, rules and templates teach the new ids        | L    | Not Started |

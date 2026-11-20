@@ -75,11 +75,11 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-09.2 doctor reports a hashed id that is not its marker and the hash of its origin. -- satisfied: yes (computed)
 - AC-09.3 acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory. -- satisfied: yes (computed)
 
-### WP-10 -- Every door takes and shows both families (status: WIP)
+### WP-10 -- Every door takes and shows both families (status: Done)
 
 - AC-10.1 Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date. -- satisfied: yes (computed)
 - AC-10.2 Every existing spelling of an ordinal keeps its meaning: 46, 0046, ST46, ST0046, s46, i21 and ST0092/09. -- satisfied: yes (computed)
-- AC-10.3 A table shows a hashed id by its short form, unclipped, beside ordinals, and the issues table has a Created column. -- satisfied: no (computed)
+- AC-10.3 A table shows a hashed id by its short form, unclipped, beside ordinals, and the issues table has a Created column. -- satisfied: yes (computed)
 - AC-10.4 GraphQL carries every id as a string, and no URI, claim or manifest row carries a prefix. -- satisfied: yes (computed)
 - AC-10.5 st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy. -- satisfied: yes (computed)
 - AC-10.6 One command answers, for a token, whether it is an id, of which kind, and which record it names. -- satisfied: yes (computed)
@@ -159,7 +159,7 @@ _(no tests in this group)_
 - AT-09.2 `native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:54` -- covers AC-09.2 -- status: green -- Written after the land. Red on the base: doctor has no IdNotFromOrigin check. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 - AT-09.3 `native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:87` -- covers AC-09.3 -- status: green -- Written after the land. Red on the base: doctor has no ShortFormShared advisory, and it counted a short-form pair as DuplicateId. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 
-### WP-10 -- Every door takes and shows both families (status: WIP)
+### WP-10 -- Every door takes and shows both families (status: Done)
 
 - AT-10.1 `native/rust/crates/intent-cli/tests/a_door_takes_a_hashed_ids_prefix.rs:9` -- covers AC-10.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
 - AT-10.2 `native/rust/crates/intent-cli/tests/mcp_resources.rs:262` -- covers AC-10.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
@@ -172,6 +172,8 @@ _(no tests in this group)_
 - AT-10.9 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:80` -- covers AC-10.5 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
 - AT-10.10 `native/rust/crates/intent-cli/tests/two_clones_that_mint_one_id_are_repaired_by_remint.rs:196` -- covers AC-10.5 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
 - AT-10.11 `native/rust/crates/intent-cli/tests/every_door_reads_an_id_through_the_waist.rs:231` -- covers AC-10.6 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment
+- AT-10.12 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs:1174` -- covers AC-10.3 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment
+- AT-10.13 `native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:239` -- covers AC-10.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment
 
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 

@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-20 17:10Z
+heartbeat_at: 2026-11-20 18:59Z
 status: active
-focus: "WP-10 Part 2 PROVED 17:09Z (gate 176afd1e3 green on WP-07 v7), banked refs/bank/ic/st0095/wp10-part2-on-wp07-v7 (patch-id 1003d256423d), proof to vc; closes 0732 and 0734. Next: T1-T9 after cc's ST0096 WP-01 lands, AC-10.6 at WP-10's close, then WP-11 and WP-13"
+focus: "WP-10 T unit PROVED v2 18:59Z: gate 2ebba3aa0 green on 26c4b0ca0 (0738 + WP-04 under it, critic-rust 0C/2W/4R/4N fixed or answered), banked refs/bank/ic/st0095/wp10-t-unit-on-26c4b0ca0 (patch-id 95245dfe4f2c), proof to vc. Next: AT rows AC-10.3 + ST0092/09 after land, wp done ST0095/10; then 0736, todo 78, 0740"
 claims: [ST0095/10]
 ---
 
@@ -20,6 +20,7 @@ claims: [ST0095/10]
 - ST0095 WP-13 (L), the docs, is ic on hv decision 66. DRAFT at refs/bank/ic/st0095/wp13-draft-20261120 (sections 1 to 7, with WP-10 Part 1's and ST0096 WP-02's CHANGELOG lines and rule 9's untracked: line, 2026-11-20 09:18Z by date -u); what HANGS ON WP-07, Part 2 and WP-11 finishes after them. (edited)
 - After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs
 - Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.
+- Issue 0740 (filed 1292102c5, cc's FYI 2026-11-20 18:25Z by date -u), ic's wording: views.rs's two stale-render findings (skew_against's ViewSkew and StaleRender arms) weave a remedy into their detail beside the class remedy. Once devbin-cc's 0738 (Finding::with_remedy) lands, and after my WP-10 T unit, which rewords the same sentences: the detail says what's wrong, and the override is the one whole remedy (keeping DISCARDING a hand edit and the keep-an-edit route). Its own small unit.
 
 ## Holds
 

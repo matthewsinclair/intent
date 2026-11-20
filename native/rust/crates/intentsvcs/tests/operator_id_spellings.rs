@@ -236,6 +236,7 @@ fn every_canonical_output_satisfies_the_existing_predicate() {
 /// **A WORK PACKAGE'S ORDINAL ADDRESS KEEPS ITS MEANING** (ST0095 AC-10.2):
 /// `ST0092/09` is thread `ST0092`'s package `09`, both whole, read by the one
 /// reader every door that takes a package uses.
+// ST0095 AT-10.13: the arm below.
 #[test]
 fn a_package_address_keeps_its_ordinal_meaning() {
   use intentsvcs::id::{Scoped, Spelled, WpId};

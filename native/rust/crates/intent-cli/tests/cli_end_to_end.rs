@@ -1171,6 +1171,7 @@ fn wp_list_shares_the_table_and_v2s_empty_case() {
 /// ordinal width, so a short form wider than `ST0001` is never clipped, and the
 /// ordinal beside it keeps its own spelling. Each row's first cell is compared
 /// whole, so a clipped id fails here rather than passing as a prefix.
+// ST0095 AT-10.12: the arm below.
 #[test]
 fn st_list_and_issues_list_show_a_hashed_id_whole_beside_an_ordinal() {
   let dir = project();

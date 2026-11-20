@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "28a359a5-1850-47c1-a5e7-f9db7e58d7a4",
-    "heartbeat_at": "2026-11-20T17:10:25.127Z",
+    "heartbeat_at": "2026-11-20T18:59:57.387Z",
     "status": "active",
-    "focus": "WP-10 Part 2 PROVED 17:09Z (gate 176afd1e3 green on WP-07 v7), banked refs/bank/ic/st0095/wp10-part2-on-wp07-v7 (patch-id 1003d256423d), proof to vc; closes 0732 and 0734. Next: T1-T9 after cc's ST0096 WP-01 lands, AC-10.6 at WP-10's close, then WP-11 and WP-13",
+    "focus": "WP-10 T unit PROVED v2 18:59Z: gate 2ebba3aa0 green on 26c4b0ca0 (0738 + WP-04 under it, critic-rust 0C/2W/4R/4N fixed or answered), banked refs/bank/ic/st0095/wp10-t-unit-on-26c4b0ca0 (patch-id 95245dfe4f2c), proof to vc. Next: AT rows AC-10.3 + ST0092/09 after land, wp done ST0095/10; then 0736, todo 78, 0740",
     "claims": [
       "ST0095/10"
     ],
@@ -3185,6 +3185,14 @@
       "text": "Issue 0732 (filed e0ac914cb, vc 16:31Z), ic's, in ST0095 WP-10 Part 2, rides this release: Facade::day_of_event folds a store read failure into IdRecord.created = None (cc ruled it a silent error; WP-07 lands with it only as this issue). Make record_of return a Result so id_of carries a typed error; keep None only for an event the log does not hold.",
       "state": "live",
       "recorded_at": "2026-11-20T16:28:17.406Z"
+    },
+    {
+      "node": "ic",
+      "kind": "todo",
+      "seq": 80,
+      "text": "Issue 0740 (filed 1292102c5, cc's FYI 2026-11-20 18:25Z by date -u), ic's wording: views.rs's two stale-render findings (skew_against's ViewSkew and StaleRender arms) weave a remedy into their detail beside the class remedy. Once devbin-cc's 0738 (Finding::with_remedy) lands, and after my WP-10 T unit, which rewords the same sentences: the detail says what's wrong, and the override is the one whole remedy (keeping DISCARDING a hand edit and the keep-an-edit route). Its own small unit.",
+      "state": "live",
+      "recorded_at": "2026-11-20T18:25:32.117Z"
     }
   ],
   "sent": [
