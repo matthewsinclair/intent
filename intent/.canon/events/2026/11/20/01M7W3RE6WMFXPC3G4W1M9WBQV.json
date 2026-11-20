@@ -1,0 +1,15 @@
+{
+  "id": "01M7W3RE6WMFXPC3G4W1M9WBQV",
+  "ts": "2026-11-20T09:14:18.720Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0729"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "sync's scan, its attachment test and attachment_path_fault spell intent/ whatever intent_dir says, and the attachment test is a second owner-of-a-path answer"
+  }
+}
