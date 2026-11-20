@@ -1,0 +1,15 @@
+{
+  "id": "01M7X3WVZSGCMQZV0PZ85T8R0E",
+  "ts": "2026-11-20T18:35:59.471Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "LENT SEATS KEEP WORKING ON THIS RELEASE THROUGH THE DESK HOLD (hv, 2026-11-20, first-hand in vc's session, read at 18:35Z on vc's date -u; hv's own words). The Desk took hv's 18:35Z hold (\"hold on the bounce other than intent-* for the release\") as also covering devbin-dc and devbin-cc, its seats lent to Intent, and paused devbin-dc's ST0096 WP-04 run 4. vc asked hv whether they keep going. hv chose \"Keep both\", then said: \"Ok, push on. Get this done. Intent is P0.\" So devbin-dc finishes WP-04 AC-04.1 and devbin-cc finishes 0738 and then WP-05 slice B; vc passed the ruling to the Desk."
+  }
+}

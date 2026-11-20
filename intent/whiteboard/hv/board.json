@@ -821,6 +821,14 @@
       "text": "(hv, 2026-11-20, first-hand in prose in vc's session, read by 17:49Z on vc's date -u; hv's own words) ORGANIZE --DEFAULT AND --FORCE KEEP SETTING REALISED FROM STATUS (hv decision 75). vc's condition 3 on ST0096's Machine 6 asked whether organize --default and --force, which set every record's realised flag from its status, should stand: it is today's behaviour, kept by ST0096 WP-01 (9a87b035c) and not written as an edge of Machine 6, so it was the one move with no source. vc recommended accepting it. hv, verbatim: \"Accept your recommendation on organize --default\". So it stands as built, and Machine 6 needs no new edge for it; cc may name it in data-model.md as the bulk reset that sits outside the per-record machine.",
       "state": "live",
       "recorded_at": "2026-11-20T17:49:04.732Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 76,
+      "text": "LENT SEATS KEEP WORKING ON THIS RELEASE THROUGH THE DESK HOLD (hv, 2026-11-20, first-hand in vc's session, read at 18:35Z on vc's date -u; hv's own words). The Desk took hv's 18:35Z hold (\"hold on the bounce other than intent-* for the release\") as also covering devbin-dc and devbin-cc, its seats lent to Intent, and paused devbin-dc's ST0096 WP-04 run 4. vc asked hv whether they keep going. hv chose \"Keep both\", then said: \"Ok, push on. Get this done. Intent is P0.\" So devbin-dc finishes WP-04 AC-04.1 and devbin-cc finishes 0738 and then WP-05 slice B; vc passed the ruling to the Desk.",
+      "state": "live",
+      "recorded_at": "2026-11-20T18:35:59.471Z"
     }
   ],
   "sent": [],

@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-20 16:31Z
+heartbeat_at: 2026-11-20 18:33Z
 status: active
 focus: "2026-11-20 16:22Z by date -u: LOCALFOLDED for hv's second compact, not released. Landed since the first: 7ed879ab3 (WP-14), 1d3604937 (WP-12 guard), c7e1cee74, 45028cbd3 and d663e3ea6 (ic: ST0096 WP-02 and remint), and cc2358b01 (dc: 0718, 0715 and 0729). Next: land WP-07 v3+ (devbin-cc, after cc's meaning read), cc's ST0096 WP-01, dc's 0722 and devbin-dc's ST0096 WP-03. For hv: organize --default (DOING 63)."
 claims: []
