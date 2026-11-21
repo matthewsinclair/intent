@@ -60,16 +60,25 @@ final class ProjectService {
     }
   }
 
-  /// Decode `intent graphql {threads{id}}` -> `{"data":{"threads":[{"id":…}]}}`.
-  /// A shape the app does not recognise decodes to nil (the menu shows nothing),
-  /// never to a wrong count -- Health.decode's unknown-tolerant contract. Pure
-  /// and `nonisolated`: it reads its argument and touches no actor state, so it
-  /// is callable off the main actor (its tests, like Health.decode's, are).
+  /// The count of `decodeThreadIds`: nil where it is nil (the menu shows
+  /// nothing), never a wrong count.
   nonisolated static func decodeThreadCount(_ text: String) -> Int? {
+    decodeThreadIds(text)?.count
+  }
+
+  /// Decode `intent graphql {threads{id}}` -> `{"data":{"threads":[{"id":…}]}}`
+  /// to the thread ids as the daemon sent them, in its order. A shape the app
+  /// does not recognise decodes to nil, never to a wrong answer --
+  /// Health.decode's unknown-tolerant contract. The one decoder of the payload.
+  /// An id is opaque here, ordinal or hashed alike (ST0095 WP-11): never
+  /// parsed, sorted or cut. Pure and `nonisolated`: it reads its argument and
+  /// touches no actor state, so it is callable off the main actor (its tests,
+  /// like Health.decode's, are).
+  nonisolated static func decodeThreadIds(_ text: String) -> [String]? {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard let data = trimmed.data(using: .utf8), !data.isEmpty else { return nil }
     guard let envelope = try? JSONDecoder().decode(Envelope.self, from: data) else { return nil }
-    return envelope.data.threads.count
+    return envelope.data.threads.map(\.id)
   }
 
   private struct Envelope: Decodable {

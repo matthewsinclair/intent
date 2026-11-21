@@ -835,16 +835,19 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
   Ok((facade, project_id))
 }
 
-/// Serve one project-scoped operation.
-///
-/// **THE ONLY FUNCTION IN THIS CRATE THAT TOUCHES A `Facade`, AND IT RUNS ON
-/// THE STORE THREAD.** Adding an operation means adding an arm here; there is
-/// nowhere else it could be added, which is the property the door is for.
-///
-/// `runtime` is the daemon's own tokio handle, and it is here for one arm:
-/// the store thread is a plain `std::thread`, so a future produced by the
-/// facade is driven by [`block_on`] inside this handle's context, and no
-/// second runtime starts.
+/// The item paths both of [`resolve_view`]'s refusals name, with each kind's
+/// id in the waist's own sentence of its form (ST0095 WP-11, AC-11.2): an
+/// ordinal and a hashed id, for a thread and for an issue, spelled nowhere
+/// here, so the remedies follow the waist and the two cannot drift apart.
+/// Each refusal carries the whole of it, since each is read alone.
+fn item_paths() -> String {
+  format!(
+    "`/thread/<id>` or `/issue/<id>`, where {} and {}",
+    intentsvcs::id::THREAD_ID_FORM,
+    intentsvcs::id::ISSUE_ID_FORM
+  )
+}
+
 /// One `nav` path as the address it names.
 ///
 /// **BOTH STEPS ARE `nav`'s, AND NEITHER IS RE-SPELLED HERE.** `View::parse`
@@ -861,13 +864,19 @@ fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
   let view = intentsvcs::nav::View::parse(path).ok_or_else(|| {
     Response::error(
       format!("`{path}` is not a path this project can name"),
-      "paths are `/{kind}/{id}` -- `/thread/ST0000`, `/issue/0021`. A spelling that names nothing is refused as a spelling rather than resolved to something near it.".to_string(),
+      format!(
+        "paths are `/<kind>/<id>`: {}. A spelling that names nothing is refused as a spelling rather than resolved to something near it.",
+        item_paths()
+      ),
     )
   })?;
   let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
     Response::error(
       format!("`{path}` does not name a single entity with a form"),
-      "a form is one item: `/thread/ST0000` or `/issue/0021`. A collection, a child collection and the settings screen are views this operation does not answer.".to_string(),
+      format!(
+        "a form is one item, {}. A collection, a child collection and the settings screen are views this operation does not answer.",
+        item_paths()
+      ),
     )
   })?;
   Ok(intentsvcs::address::Address {
@@ -877,6 +886,16 @@ fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
   })
 }
 
+/// Serve one project-scoped operation.
+///
+/// **THE ONLY FUNCTION IN THIS CRATE THAT TOUCHES A `Facade`, AND IT RUNS ON
+/// THE STORE THREAD.** Adding an operation means adding an arm here; there is
+/// nowhere else it could be added, which is the property the door is for.
+///
+/// `runtime` is the daemon's own tokio handle, and it is here for one arm:
+/// the store thread is a plain `std::thread`, so a future produced by the
+/// facade is driven by [`block_on`] inside this handle's context, and no
+/// second runtime starts.
 fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Response {
   match op {
     // **THE ARM IS THIN BECAUSE THE DOOR IS ELSEWHERE, WHICH IS THE POINT OF
@@ -1081,10 +1100,74 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
 
 #[cfg(test)]
 mod tests {
-  use super::open_facade;
+  use super::{open_facade, resolve_view};
+  use intentsvcs::address::Entity;
   use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
+  use intentsvcs::id::{
+    EXAMPLE_HEX, ISSUE_ID_FORM, ISSUE_MARKER, IssueId, THREAD_ID_FORM, THREAD_PREFIX, ThreadId,
+  };
   use intentsvcs::model::WbItemKind;
   use intentsvcs::project::Project;
+  use intentsvcs::wire::Response;
+
+  /// The message and the remedy of a refused path.
+  fn refusal_of(path: &str) -> (String, String) {
+    match resolve_view(path) {
+      Err(Response::Error { message, remedy }) => (message, remedy),
+      other => panic!("`{path}` must be refused, got {other:?}"),
+    }
+  }
+
+  // ST0095 AT-11.2: the arm below.
+  /// ST0095 WP-11 (AC-11.2): the served page's two refusals each name both id
+  /// families for both kinds, in the waist's own sentences of a thread's and
+  /// an issue's id, and a hashed path resolves as an ordinal one does, its id
+  /// carried unchanged.
+  #[test]
+  fn the_served_pages_refusals_name_both_families_and_a_hashed_path_resolves() {
+    // One path the grammar refuses (an empty segment), and one real view that
+    // is not a single item (a collection), each pinned to its own refusal by
+    // that refusal's message, so neither can quietly stand in for the other.
+    for (refused, which) in [
+      ("/thread//x", "is not a path this project can name"),
+      ("/thread", "does not name a single entity with a form"),
+    ] {
+      let (message, remedy) = refusal_of(refused);
+      assert!(
+        message.contains(which),
+        "`{refused}` reached another refusal: {message}"
+      );
+      for form in [THREAD_ID_FORM, ISSUE_ID_FORM] {
+        assert!(
+          remedy.contains(form),
+          "`{refused}`'s remedy does not carry `{form}`: {remedy}"
+        );
+      }
+    }
+
+    let thread = ThreadId::parse(&format!("{THREAD_PREFIX}{EXAMPLE_HEX}"))
+      .expect("the worked example is a hashed thread id")
+      .shown();
+    match resolve_view(&format!("/thread/{thread}")) {
+      Ok(address) => assert!(
+        matches!(&address.entity, Entity::Thread { id } if *id == thread),
+        "`/thread/{thread}` resolved to {:?}",
+        address.entity
+      ),
+      Err(refused) => panic!("`/thread/{thread}` was refused: {refused:?}"),
+    }
+    let issue = IssueId::parse(&format!("{ISSUE_MARKER}{EXAMPLE_HEX}"))
+      .expect("the worked example is a hashed issue id")
+      .shown();
+    match resolve_view(&format!("/issue/{issue}")) {
+      Ok(address) => assert!(
+        matches!(&address.entity, Entity::Issue { id } if *id == issue),
+        "`/issue/{issue}` resolved to {:?}",
+        address.entity
+      ),
+      Err(refused) => panic!("`/issue/{issue}` was refused: {refused:?}"),
+    }
+  }
 
   /// ST0092 WP-05 (vc's ruling on INV-12, condition 3): the facade the daemon
   /// opens carries no caller, so on a board that declares a team a write as the
