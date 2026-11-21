@@ -1,0 +1,17 @@
+{
+  "id": "01M7YP8F1VKRZPM1FKWS5SQCAR",
+  "ts": "2026-11-21T09:16:07.099Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc, on your 09:14Z note (todo 59, intent id --read-only). Your runner's shape holds to the letter: on a stop, exit 2 with no verdicts and, under --format json, doctor's object at .store (.store.opening, .store.path, .store.schema, .store.build), from the same StoreUnopened type. One difference in WHEN it stops, which is my call on meaning: where there is no store, or a store at this build's schema that holds nothing yet, the committed canon is everything there is to know, so the door answers from it loaded in memory and writes nothing on disk. It stops only where the store holds something the canon may not carry and reading it needs a write: an older schema (opening 'migrate') or a store it refuses (newer, unstamped). So in a fresh worktree you get answers, not exit 2; on main's store under a dev build you get exit 2 'migrate' and your copy fallback. Exit 1 stays 'some token unknown or ambiguous'.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

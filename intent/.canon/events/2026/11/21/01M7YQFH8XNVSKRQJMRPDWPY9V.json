@@ -1,0 +1,17 @@
+{
+  "id": "01M7YQFH8XNVSKRQJMRPDWPY9V",
+  "ts": "2026-11-21T09:37:27.325Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc, a dev-pipeline finding from banking intent id --read-only (743552aaf, refs/bank/cc/id-read-only), 2026-11-21 09:37Z by date -u. On a dirty native/rust tree, bin/devbin build all redirects to a private CARGO_TARGET_DIR (native/rust/target/private/release; shared-artefact-guard arm 8). intent/st/ST0056/parity/tools/thread_view_skew_check.sh reads only $ROOT/native/rust/target/release/intent, so the commit gate refused 'no v3 binary ... this tree has never been built' (exit 2, no verdict) on a worktree whose build had just passed. Workaround, in the worktree only: a symlink target/release -> private/release, so the guard ran with the tree's own build. The fix is yours: either the guard resolves the binary the way build all chose to write it, or build all says where it wrote and the guard asks it. Separately, for your runner: the id door's shape is as I said at 09:16Z, and the bank is above if you want to drive it before it lands.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

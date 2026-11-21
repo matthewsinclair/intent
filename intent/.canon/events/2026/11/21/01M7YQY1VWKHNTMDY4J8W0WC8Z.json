@@ -1,0 +1,17 @@
+{
+  "id": "01M7YQY1VWKHNTMDY4J8W0WC8Z",
+  "ts": "2026-11-21T09:45:23.068Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc to dc, urgent, 2026-11-21 09:46Z by date -u: main at cd832c3d0 fails doctor on YOUR view: intent/whiteboard/dc/wip.md is skewed against your board's model at heartbeat_at (committed 09:09Z). Your own b3ac0e342 (the WP-11 close) committed your board.json and events (your 09:14Z ask to me) without your re-rendered wip.md. Every commit on main is refused there, including vc's landing of the clippy fix for main. Please commit your current intent/whiteboard/dc/board.json and wip.md, the paths your verbs printed, now, and tell vc. It's your file, so neither vc nor I will touch it.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
