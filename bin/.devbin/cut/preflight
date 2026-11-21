@@ -5,11 +5,11 @@
 #
 # Declared in bin/.devbin/config.yaml as `commands.preflight`, one option per
 # check, so `bin/devbin preflight <check>` runs one and `bin/devbin preflight
-# all` runs the four. They are the cut's pre-flight seam: devbin's release core
+# all` runs the five. They are the cut's pre-flight seam: devbin's release core
 # runs `release.preflight` at its pre-flight, a dry run included, and a check
 # that refuses joins the refusals pre-flight collects, before the confirm step
 # asks and before anything is stamped (devbin 0327). bin/.devbin/config.yaml
-# declares the four as `release.preflight`, and the core hands each the
+# declares the five as `release.preflight`, and the core hands each the
 # release's target as DEVBIN_RELEASE_VERSION and DEVBIN_RELEASE_TARGET_TAG.
 #
 # EACH CHECK WRITES NOTHING: the seam refuses a change one of them makes to the
@@ -25,6 +25,12 @@
 #   faces    the published schema faces carry the version HEAD carries
 #   spill    `claude upgrade --apply` would write nothing outside the
 #            release's files
+#
+# ADDED AFTER THE 3.5.0 CUT (hv decision 84):
+#
+#   schema   a cut that moves the store's schema is run with the release's
+#            build first on PATH, so the release commit's hook can read the
+#            store the stamp migrates
 set -euo pipefail
 
 : "${PROJECT_ROOT:?run this as bin/devbin preflight <check>, which exports the project root}"
@@ -35,8 +41,19 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECK="${1:-}"
 AGAIN="then cut again; nothing has been stamped"
 
+# WORK is a scratch directory a check makes, and SPILL_TREE a worktree the
+# spill check adds under it. Both go on every exit, a refusal's and an
+# interrupted run's included: the worktree's directory, with the store its
+# build opened under intent/.cache, and then git's record of it, so no run
+# leaves a worktree behind.
 WORK=""
-trap '[ -z "$WORK" ] || rm -rf "$WORK"' EXIT
+SPILL_TREE=""
+cleanup() {
+  [ -z "$SPILL_TREE" ] || rm -rf "$SPILL_TREE"
+  [ -z "$SPILL_TREE" ] || git -C "$PROJECT_ROOT" worktree prune 2>/dev/null || true
+  [ -z "$WORK" ] || rm -rf "$WORK"
+}
+trap cleanup EXIT
 
 # refuse <what> [<remedy>] -- the check's refusal, exit 1.
 refuse() {
@@ -132,10 +149,23 @@ $stale" \
 # tracked file the apply would rewrite outside them is refused here, where the
 # tree is still as it was found. The dry run's own failure is a refusal, never
 # "no spill" (issue 0466).
+#
+# THE DRY RUN NEVER OPENS THIS CHECKOUT'S STORE (hv decision 84). The release's
+# build opens the store of the project it runs in, and opening a store at an
+# older schema migrates it, one way: run here, a dry run moved Intent's own
+# store to 3.5.0's schema before anyone had said to cut, and the brew build
+# every seat ran could no longer read it. So the dry run runs in a worktree at
+# HEAD, which is the tree, because `clean` refuses dirt before a stamp begins,
+# and the store it opens is the worktree's own, removed with it on exit.
 check_spill() {
   local cli out p tracked spill=""
   cli="$(release_built_cli "$PROJECT_ROOT")" || exit 1
-  out="$(cd "$PROJECT_ROOT" && "$cli" claude upgrade 2>&1)" || {
+  WORK="$(mktemp -d "${TMPDIR:-/tmp}/preflight-spill.XXXXXX")" ||
+    refuse "no scratch directory for the dry run's worktree" "check \${TMPDIR:-/tmp} is writable, $AGAIN"
+  SPILL_TREE="$WORK/tree"
+  git -C "$PROJECT_ROOT" worktree add -q --detach "$SPILL_TREE" HEAD >/dev/null 2>&1 ||
+    refuse "git could not add a worktree at HEAD for the dry run, so it would have run on this checkout's store" "run \`git worktree prune\`, $AGAIN"
+  out="$(cd "$SPILL_TREE" && "$cli" claude upgrade 2>&1)" || {
     printf '%s\n' "$out" >&2
     refuse "the dry run of intent claude upgrade failed (its output is above), so nothing says what --apply would write" \
       "fix what it names, $AGAIN"
@@ -154,10 +184,58 @@ $spill" \
   printf "ok: the canon engine would write nothing outside the release's files\n"
 }
 
+# A CUT THAT MOVES THE STORE'S SCHEMA SAYS SO HERE, BEFORE ANYTHING IS STAMPED
+# (hv decision 84). The stamp runs the release's build in this checkout, which
+# migrates the store to the release's schema, one way. The release commit's
+# pre-commit hook then runs `intent doctor` with whatever `intent` is first on
+# PATH, and a build that speaks the older schema cannot read the store and
+# refuses the commit. So when the release's build would migrate this store, the
+# `intent` on PATH must be that build. Asked of the release's build itself,
+# read-only: `doctor --read-only` stops, writing nothing, exactly when opening
+# the store would write it, and its `.store` names the opening and both
+# schemas. Nothing here spells a schema number.
+check_schema() {
+  local cli out rc=0 opening from to path_cli tag
+  cli="$(release_built_cli "$PROJECT_ROOT")" || exit 1
+  out="$(cd "$PROJECT_ROOT" && "$cli" doctor --read-only --format json 2>/dev/null)" || rc=$?
+  if [ "$rc" -le 1 ]; then
+    printf "ok: the release's build opens this checkout's store as it is, so the cut moves no schema\n"
+    return 0
+  fi
+  [ "$rc" -eq 2 ] ||
+    refuse "intent doctor --read-only exited $rc, so nothing says whether the cut moves the store's schema" \
+      "run \`$cli doctor --read-only\` in $PROJECT_ROOT to see why, $AGAIN"
+  opening="$(jq -r '.store.opening // empty' <<<"$out" 2>/dev/null)" || opening=""
+  case "$opening" in
+    create)
+      printf "ok: this checkout has no store, so the cut moves no schema\n"
+      return 0 ;;
+    migrate) ;;
+    "")
+      refuse "intent doctor --read-only stopped without naming the store's opening, so nothing says whether the cut moves its schema" \
+        "run \`$cli doctor --read-only --format json\` in $PROJECT_ROOT and read .store, $AGAIN" ;;
+    *)
+      refuse "the release's build will not open this checkout's store ($opening)" \
+        "run \`$cli doctor --read-only\` in $PROJECT_ROOT, whose remedy names what to do, $AGAIN" ;;
+  esac
+  from="$(jq -r '.store.schema // empty' <<<"$out")" && to="$(jq -r '.store.build // empty' <<<"$out")" &&
+    [ -n "$from" ] && [ -n "$to" ] ||
+    refuse "intent doctor --read-only named a migration and not its two schemas" \
+      "run \`$cli doctor --read-only --format json\` in $PROJECT_ROOT and read .store, $AGAIN"
+  path_cli="$(command -v intent 2>/dev/null || true)"
+  tag="${DEVBIN_RELEASE_TARGET_TAG:-vX.Y.Z}"
+  if [ -n "$path_cli" ] && [ "$path_cli" -ef "$cli" ]; then
+    printf "ok: the cut moves this checkout's store from schema %s to %s, and the intent on PATH is the release's build, so the release commit's hook reads it\n" "$from" "$to"
+    return 0
+  fi
+  refuse "the cut moves this checkout's store from schema $from to $to, and the release commit's hook runs \`intent doctor\` with the intent on PATH (${path_cli:-none}), which is not the release's build, so it would refuse the release commit" \
+    "cut with the release's build first on PATH: PATH=\"$PROJECT_ROOT/native/rust/target/release:\$PATH\" bin/devbin release $tag; nothing has been stamped"
+}
+
 case "$CHECK" in
-  clean | daemon | faces | spill) "check_$CHECK" ;;
+  clean | daemon | faces | spill | schema) "check_$CHECK" ;;
   *)
-    printf 'error: preflight: no check %s -- one of clean, daemon, faces, spill\n' "${CHECK:-(none)}" >&2
+    printf 'error: preflight: no check %s -- one of clean, daemon, faces, spill, schema\n' "${CHECK:-(none)}" >&2
     exit 2
     ;;
 esac

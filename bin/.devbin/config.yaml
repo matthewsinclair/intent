@@ -381,6 +381,9 @@ commands:
       spill:
         summary: claude upgrade --apply would write nothing outside the release's files
         run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/preflight spill
+      schema:
+        summary: a cut that moves the store's schema runs with the release's build first on PATH
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/preflight schema
 
   # THE STAMP'S run: LINES ARE NOT WRAPPED, the one exception to the rule at the
   # head of commands: the core reads a derived step's stdout as the paths the
@@ -522,7 +525,7 @@ commands:
 # named and recorded as not run.
 #
 # `preflight` IS INTENT'S OWN PRE-FLIGHT (ST0091 AC-01.3, devbin 0327): the
-# four read-only checks of bin/.devbin/cut/preflight, which the core runs at its
+# five read-only checks of bin/.devbin/cut/preflight, which the core runs at its
 # pre-flight, a dry run's included, after its own checks and before the
 # confirm, each refusal named beside the core's. One line a check, so every
 # refusal names its check. A live intentd refuses the cut here, before anything
@@ -553,6 +556,7 @@ release:
     - preflight daemon
     - preflight faces
     - preflight spill
+    - preflight schema
   gates:
     - gate all
     - build all

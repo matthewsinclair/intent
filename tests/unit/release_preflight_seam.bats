@@ -37,8 +37,9 @@ make_repo() {
 }
 
 # write_release_cli -- the release pair's intent, answering what the checks
-# ask: `daemon status --format json`, whose state is STUB_DAEMON, and `claude
-# upgrade`'s dry run, which would write nothing.
+# ask: `daemon status --format json`, whose state is STUB_DAEMON, `claude
+# upgrade`'s dry run, which would write nothing, and `doctor --read-only`,
+# which opens the store as it is, so the cut moves no schema.
 write_release_cli() {
   local bin="$REPO/native/rust/target/release/intent"
   mkdir -p "$(dirname "$bin")"
@@ -47,6 +48,7 @@ write_release_cli() {
 case "$1 ${2:-}" in
   "daemon status") printf '{"state":"%s"}\n' "${STUB_DAEMON:-stopped}" ;;
   "claude upgrade") ;;
+  "doctor --read-only") printf '{}\n' ;;
   *) echo "stub intent: unexpected arguments: $*" >&2; exit 2 ;;
 esac
 EOF
