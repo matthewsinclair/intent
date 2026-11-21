@@ -6,7 +6,9 @@
 # ST0091 AT-03.2 cites this file for AC-03.2.
 #
 # devbin's release core runs `bin/devbin cut publish` and then `bin/devbin brew
-# smoke --at-tag` as its after: commands, both under the cut's yes. The arms
+# smoke --at-tag` as its after: commands, both under the cut's yes; a cut that
+# holds the tap (hv decision 77) runs `cut publish --hold-tap` alone, and `cut
+# tap` runs the formula and the smoke on hv's word. The arms
 # drive each as the core does, in a scratch repository tagged as a release, with
 # PROJECT_ROOT pointed at it and stand-ins where the subject is what the step
 # does with an answer: a `bin/devbin` that logs each step it is asked for, a
@@ -70,10 +72,12 @@ write_pair() {
 
 hold_all() { printf '%s\n' $MAC_ASSETS >"$HELD"; }
 
+# publish [<option>] -- the script as the core or `bin/devbin cut <option>` runs
+# it, its stdout in $output and its stderr in $ERR.
 publish() {
   ERR="${TEST_TEMP_DIR}/publish.err"
   run env PROJECT_ROOT="$REPO" PATH="$STUBS:$PATH" ${CONFIRMED:+DEVBIN_RELEASE_CONFIRMED=$CONFIRMED} \
-    bash -c '"$1" 2>"$2"' _ "$PUBLISH" "$ERR"
+    bash -c '"$1" "${@:3}" 2>"$2"' _ "$PUBLISH" "$ERR" "$@"
 }
 
 err_has() {
@@ -145,6 +149,96 @@ $(cat "$CALLS")"
   assert_failure
   err_has "no release tag is at HEAD"
   [ ! -s "$CALLS" ] || fail "a step ran with no release to publish: $(cat "$CALLS")"
+}
+
+# hv decision 77: the cut can hold the tap. `cut publish --hold-tap` publishes
+# the release's macOS assets and sums and stops before the formula, and `cut
+# tap` (the same script, `--tap`) runs the two steps it left, on hv's word.
+@test "hv decision 77: --hold-tap publishes the macOS assets and the sums, never runs the formula, and its last line names the hold and cut tap" {
+  make_repo
+  publish --hold-tap
+  assert_success
+  calls_are "macos publish" "release attach v3.3.0"
+  local last="${lines[${#lines[@]} - 1]}"
+  [[ "$last" == *"tap held (hv decision 77)"* ]] || fail "the last line does not name the hold: $last"
+  [[ "$last" == *"\`bin/devbin cut tap\` at the tag"* ]] || fail "the last line does not name the next step: $last"
+}
+
+@test "hv decision 77: a failed step under --hold-tap names --hold-tap as the remedy, never the plain publish that pushes the tap" {
+  make_repo
+  export STUB_FAIL="macos publish"
+  publish --hold-tap
+  assert_failure
+  calls_are "macos publish"
+  err_has "\`bin/devbin cut publish --hold-tap\` at the tag"
+  ! grep -qF -- "\`bin/devbin cut publish\` at the tag" "$ERR" || fail "a held cut's remedy offers the plain publish: $(cat "$ERR")"
+  err_has "the tap is as it was"
+}
+
+@test "hv decision 77: cut tap over a release missing a macOS asset is refused before the formula, naming the held publish" {
+  make_repo
+  publish --tap
+  assert_failure
+  [ ! -s "$CALLS" ] || fail "a step ran over a release without its macOS assets: $(cat "$CALLS")"
+  err_has "error: cut tap: macos:"
+  err_has "does not hold every macOS asset"
+  err_has "\`bin/devbin cut publish --hold-tap\` at the tag"
+}
+
+@test "hv decision 77: cut tap runs the formula, then the smoke at the tag, and nothing the held publish already did" {
+  make_repo
+  hold_all
+  publish --tap
+  assert_success
+  calls_are "formula publish --pull" "brew smoke --at-tag"
+  assert_output_contains "cut tap: the tap carries v3.3.0"
+}
+
+@test "hv decision 77: a failed formula stops cut tap before the smoke, the tap is as it was, and the remedy is cut tap again" {
+  make_repo
+  hold_all
+  export STUB_FAIL="formula publish --pull"
+  publish --tap
+  assert_failure
+  calls_are "formula publish --pull"
+  err_has "error: cut tap: formula:"
+  err_has "run \`bin/devbin cut tap\` again at the tag"
+  err_has "the tap is as it was"
+}
+
+@test "hv decision 77: a failed smoke after cut tap says the tap now carries the release" {
+  make_repo
+  hold_all
+  export STUB_FAIL="brew smoke --at-tag"
+  publish --tap
+  assert_failure
+  calls_are "formula publish --pull" "brew smoke --at-tag"
+  err_has "error: cut tap: smoke:"
+  err_has "the tap carries v3.3.0"
+}
+
+@test "hv decision 77: an option the script does not know, or a second option, is refused before any step" {
+  make_repo
+  publish --tap-now
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status"
+  err_has "unknown option --tap-now"
+  publish --hold-tap --tap
+  [ "$status" -eq 2 ] || fail "expected exit 2 for two options, got $status"
+  err_has "one option at most"
+  [ ! -s "$CALLS" ] || fail "a step ran under a refused option: $(cat "$CALLS")"
+}
+
+# The dry run's after row prints release.after as the core reads it
+# (lib/cmd/release, cut_run), so this reads it with the core's own reader. The
+# commit that puts release.after back after the tap changes this arm with it.
+@test "hv decision 77: release.after, as the core reads it for the dry run's after row, is cut publish --hold-tap alone, and cut tap is out of cut all" {
+  run bash -c 'L="$1/bin/.devbin/lib"; . "$L/helpers"; . "$L/config"; cfg_load "$1/bin/.devbin/config.yaml" && cfg_release_list after' _ "$INTENT_PROJECT_ROOT"
+  assert_success
+  [ "$output" = "bin/devbin cut publish --hold-tap" ] || fail "release.after is not the held line alone: $output"
+  run bash -c 'L="$1/bin/.devbin/lib"; . "$L/helpers"; . "$L/config"; cfg_load "$1/bin/.devbin/config.yaml" && cfg_get commands.cut.options.tap.run && cfg_get commands.cut.options.tap.in_all' _ "$INTENT_PROJECT_ROOT"
+  assert_success
+  [ "$output" = "bin/.devbin/cmd/measured --exec bin/.devbin/cut/publish --tap
+false" ] || fail "cut tap is not the publish script's --tap, out of cut all: $output"
 }
 
 # vc's ruling: the core runs the smoke even when publish failed before it, and

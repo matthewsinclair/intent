@@ -39,7 +39,35 @@
 # THE YES IS THE CUT'S. Under the core, DEVBIN_RELEASE_CONFIRMED names the tag
 # the person said yes to, and `formula publish` reads it; by hand there is no
 # such mark, and `formula publish` asks at the terminal.
+#
+# THE TAP CAN BE HELD (hv decision 77). With `--hold-tap` (`bin/devbin cut
+# publish --hold-tap`) the macos and sums steps run as above and the formula
+# step does not: the release and its assets are public, the tap still serves
+# the release before it, and the last line names the one command that finishes
+# the job. That command is `bin/devbin cut tap`, which runs this script with
+# `--tap`: over a release holding every macOS asset, the formula step, then
+# `bin/devbin brew smoke --at-tag`, the two steps the hold left undone, in the
+# order the cut runs them, and the first failure stops the rest. A held cut's
+# remedies name `cut publish --hold-tap`, never the plain publish, which would
+# push the tap. Running it twice is harmless, since `formula publish`
+# does nothing when the tap already carries the render. A held cut's
+# release.after is `bin/devbin cut publish --hold-tap` alone, because the smoke
+# run during the hold would only say the tap is not at the tag.
 set -euo pipefail
+
+# The mode: the whole publication, the publication held before the tap, or the
+# tap alone. WHO is what every line printed here calls the command.
+mode=all WHO="cut publish"
+case "${1:-}" in
+  "") ;;
+  --hold-tap) mode=hold ;;
+  --tap) mode=tap WHO="cut tap" ;;
+  *)
+    printf 'error: cut publish: unknown option %s -- only --hold-tap, or --tap as bin/devbin cut tap runs it\n' "$1" >&2
+    exit 2
+    ;;
+esac
+[ "$#" -le 1 ] || { printf 'error: %s: one option at most, and it was given: %s\n' "$WHO" "$*" >&2; exit 2; }
 
 : "${PROJECT_ROOT:?run this as bin/devbin cut publish, which exports the project root}"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,18 +79,26 @@ ROOT="$PROJECT_ROOT"
 . "$shared/brew.lib"
 
 DEVBIN="$PROJECT_ROOT/bin/devbin"
-AGAIN="then run the same cut again, or \`bin/devbin cut publish\` at the tag; each step reads what is already done"
+# AGAIN is every refusal's remedy, and its one owner, so it follows the mode: a
+# held cut's remedy must never be the plain publish, which pushes the tap, and
+# the tap alone is finished by `cut tap`, not by running the cut again.
+case "$mode" in
+  all) AGAIN="then run the same cut again, or \`bin/devbin cut publish\` at the tag; each step reads what is already done" ;;
+  hold) AGAIN="then run the same cut again, or \`bin/devbin cut publish --hold-tap\` at the tag; each step reads what is already done, and the tap stays held" ;;
+  tap) AGAIN="then run \`bin/devbin cut tap\` again at the tag; the formula step does nothing when the tap already carries the render" ;;
+esac
 
-# refuse <step> <what> [<remedy>] -- stop here, exit 1, saying which step and
-# that nothing after it ran.
+# refuse <step> <what> [<remedy>] [<left>] -- stop here, exit 1, saying which
+# step and what it left: that nothing after it ran, so the tap is as it was,
+# unless <left> says otherwise.
 refuse() {
-  printf 'error: cut publish: %s: %s\n' "$1" "$2" >&2
+  printf 'error: %s: %s: %s\n' "$WHO" "$1" "$2" >&2
   printf '  remedy: %s\n' "${3:-$AGAIN}" >&2
-  printf '  nothing after the %s step ran, so the tap is as it was\n' "$1" >&2
+  printf '  %s\n' "${4:-nothing after the $1 step ran, so the tap is as it was}" >&2
   exit 1
 }
 
-say() { printf 'cut publish: %s\n' "$*"; }
+say() { printf '%s: %s\n' "$WHO" "$*"; }
 
 # The tag at HEAD, the release this publishes: exactly one `v*` tag, and the
 # tag the cut confirmed where the core says which.
@@ -87,6 +123,24 @@ while IFS= read -r a; do
   [ -n "$a" ] || continue
   if grep -qxF -- "$a" <<<"$published"; then held="$held $a"; else missing="$missing $a"; fi
 done <<<"$mac_assets"
+
+# THE TAP ALONE: what a held cut left undone, on hv's word. A tap ahead of its
+# assets breaks every upgrade, so it moves only over a release holding every
+# macOS asset, which the held publish uploaded before it wrote the sums.
+if [ "$mode" = tap ]; then
+  [ -z "$missing" ] ||
+    refuse macos "$tag does not hold every macOS asset (missing$missing), so the tap would send \`brew upgrade\` to assets the release does not have" \
+      "run \`bin/devbin cut publish --hold-tap\` at the tag, which uploads them and writes the sums, then \`bin/devbin cut tap\`"
+  (cd "$PROJECT_ROOT" && "$DEVBIN" formula publish --pull) ||
+    refuse formula "bin/devbin formula publish --pull failed; its output is above"
+  (cd "$PROJECT_ROOT" && "$DEVBIN" brew smoke --at-tag) ||
+    refuse smoke "bin/devbin brew smoke --at-tag failed; its output is above" \
+      "read the smoke's own remedy above, then run \`bin/devbin brew smoke --at-tag\` at the tag" \
+      "the tap carries $tag, so \`brew upgrade\` now reaches it"
+  say "the tap carries $tag, and the smoke installed it cold from the tap"
+  exit 0
+fi
+
 if [ -z "$missing" ]; then
   say "macos: $tag already holds every macOS asset,$held, so nothing is uploaded"
 elif [ -n "$held" ]; then
@@ -100,7 +154,7 @@ elif [ -n "$held" ]; then
   done
   refuse macos "$tag holds some macOS assets and not others: held$held; missing$missing" \
     "delete the held ones, which \`macos publish\` will not upload over:$deletes
-    then run the same cut again, or \`bin/devbin cut publish\` at the tag"
+    $AGAIN"
 else
   (cd "$PROJECT_ROOT" && "$DEVBIN" macos publish) ||
     refuse macos "bin/devbin macos publish failed; its output is above" \
@@ -109,6 +163,11 @@ fi
 
 (cd "$PROJECT_ROOT" && "$DEVBIN" release attach "$tag") ||
   refuse sums "bin/devbin release attach $tag failed; its output is above"
+
+if [ "$mode" = hold ]; then
+  say "tap held (hv decision 77): $tag, its macOS assets and SHA256SUMS are published, and the tap still serves the release before it. On hv's word, run \`bin/devbin cut tap\` at the tag"
+  exit 0
+fi
 
 (cd "$PROJECT_ROOT" && "$DEVBIN" formula publish --pull) ||
   refuse formula "bin/devbin formula publish --pull failed; its output is above"

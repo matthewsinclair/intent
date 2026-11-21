@@ -447,16 +447,24 @@ commands:
         run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/gate doctor
 
   # THE CUT'S PUBLICATION (ST0091 WP-03, vc decision 118): `cut publish` is the
-  # first of the cut's two after: commands, bin/.devbin/cut/publish, which
-  # builds the pair at the tag, ships the macOS assets, writes SHA256SUMS over
-  # every asset and pushes the tap, stopping at the first failure.
+  # first of the cut's after: commands, bin/.devbin/cut/publish, which
+  # ships the macOS assets the macOS leg staged, writes SHA256SUMS over every
+  # asset and pushes the tap, stopping at the first failure. With --hold-tap it
+  # stops before the tap, and `cut tap` finishes the job on hv's word: the
+  # formula, then the smoke (hv decision 77).
   cut:
     group: Release
     summary: The cut's publication, after the release object exists
     options:
       publish:
-        summary: the pair at the tag, the macOS assets, SHA256SUMS and the tap, stopping at the first failure
+        summary: the macOS assets, SHA256SUMS and the tap, stopping at the first failure; --hold-tap stops before the tap
         run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/publish
+      tap:
+        summary: the tap a held publish left, then brew smoke --at-tag, stopping at the first failure
+        run: bin/.devbin/cmd/measured --exec bin/.devbin/cut/publish --tap
+        # Out of `cut all`, which stays the publication alone: the tap is run by
+        # name, on hv's word.
+        in_all: false
 
   # devbin's built-in formula (lib/cmd/formula), opted into here and configured
   # by the formula: block at the end of this file.
@@ -551,9 +559,14 @@ release:
     - test shell
   legs:
     - kovacs
+  # THIS CUT HOLDS THE TAP (hv decision 77): `cut publish --hold-tap` publishes
+  # the release and its sums and leaves the tap where it was, and `bin/devbin
+  # cut tap` runs the formula and then `brew smoke --at-tag` on hv's word. The
+  # commit after that tap puts these lines back, so the next cut is not held:
+  #   - bin/devbin cut publish
+  #   - bin/devbin brew smoke --at-tag
   after:
-    - bin/devbin cut publish
-    - bin/devbin brew smoke --at-tag
+    - bin/devbin cut publish --hold-tap
   derived:
     - bin/devbin stamp config
     - bin/devbin stamp lock
