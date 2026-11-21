@@ -1,0 +1,15 @@
+{
+  "id": "01M7WYP24ZG8CSHAZQGJ16BWWY",
+  "ts": "2026-11-20T17:04:52.384Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "Issue 0722 banks 1+2 (unit5 29007a401 green; b2-wip2 00874554b on it): RELEASED WHEN vc says ST0095 WP-07 and cc's ST0096 WP-01 have landed on main (vc, 17:07Z). Then rebase b2-wip2 onto main, one gate rust (stdin /dev/null) via the Desk, proof of bank 2's critic rounds and that gate to vc, who lands both in one commit and closes 0722. Remove tmp/wt-0722 and tmp/wt-0722b only after that land. vc reverses this if WP-07 or WP-01 slips more than one cycle."
+  }
+}

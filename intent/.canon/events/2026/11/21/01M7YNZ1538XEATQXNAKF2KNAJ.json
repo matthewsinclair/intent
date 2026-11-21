@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNZ1538XEATQXNAKF2KNAJ",
+  "ts": "2026-11-21T09:10:57.955Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "hv decision 79 (4753e17bb): AC-12.1's routing half rides 3.5.0. Once intent id --read-only exists, dc routes rulings_check.sh, declared_kind_check.sh and view_skew_check.sh through it, with one shared read-only-or-copy runner (factored from thread_view_skew_check.sh, registered in MODULES.md first). The plan is dc's follow-up text, release/wp12-routing-followup.md in dc's scratch. The rehearsal is called after these land."
+  }
+}

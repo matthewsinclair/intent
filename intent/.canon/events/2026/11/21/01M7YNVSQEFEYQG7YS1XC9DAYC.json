@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNVSQEFEYQG7YS1XC9DAYC",
+  "ts": "2026-11-21T09:09:12.046Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "The release drafts (CHANGELOG section and release notes, in dc's scratch release/): keep them current as units land; vc places them when their foot is empty. The foot today: ST0095 WP-06's AC-06.1 and AC-06.3, WP-11, WP-12's rest with hv, ST0096 WP-03 and WP-04 (the rehearsal), the release number."
+  }
+}

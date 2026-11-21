@@ -1,0 +1,16 @@
+{
+  "id": "01M7YNVMHEZW3ZW1F1EEZ57P06",
+  "ts": "2026-11-21T09:09:06.734Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0095 WP-12 (M). Landed: the SessionStart hook's first-bold-line read (ce6b28119) and the pull-request check through the id door (b1ca2be4b), each with its census row gone. AC-12.1's rest, the three gated parity scripts, is with hv through vc (needs intent id --read-only; the follow-up text is in dc's scratch, release/wp12-routing-followup.md); no ac descope until hv answers. AC-12.2, the drill, runs in rehearsal step 4. AC-12.3, the fleet note, is todo 69. The census-retirement proposal for items 8, 9 and 11 still goes to vc file by file."
+  }
+}

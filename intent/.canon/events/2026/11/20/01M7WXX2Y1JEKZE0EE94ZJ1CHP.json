@@ -1,0 +1,16 @@
+{
+  "id": "01M7WXX2Y1JEKZE0EE94ZJ1CHP",
+  "ts": "2026-11-20T16:51:14.456Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 172,
+    "text": "Issue 0722 (claimed). Bank 1 (sites 1+2): refs/bank/dc/0722/unit4 = 11eb3981d on main 4c72d9510, critic-rust R1+R2 answered, gate asked of the Desk (01M7WXHN, after devbin-cc v5 and cc's WP-01 rerun); worktree tmp/wt-0722 FROZEN until it ends; then proof to vc. Bank 2 (sites 3-5) WIP at refs/bank/dc/0722/b2-wip1 = cf7df1d80 on unit4, worktree tmp/wt-0722b, not built: doctor drift + canon pair finding, st_attachment and read_thread_file via Facade::carried_row (FacadeError::CaseFoldUnread), realise RealiseError::CasePair before any write, DiskKeys and key_pair in project.rs (organize and the 0718 projection ask them), cc's fold ruling (one read per project; limits fail toward a reported pair) on disk_folds_case. Preview and sync --to-disk inherit sites 1 and 2. NEXT for bank 2: critic-rust, then its gate after bank 1 lands."
+  }
+}

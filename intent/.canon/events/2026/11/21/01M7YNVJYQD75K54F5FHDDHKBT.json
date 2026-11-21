@@ -1,0 +1,16 @@
+{
+  "id": "01M7YNVJYQD75K54F5FHDDHKBT",
+  "ts": "2026-11-21T09:09:05.111Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), on vc's go of 2026-11-19 09:38Z. Landed: fe534431d (gate fix, 0716), 2c909d85e (store guard), c5233a0c9 (capture and brew smoke), ea22af4c7 (guard S). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots byte-identical over two runs: rehearsal step 5 proves it at T, then dc satisfies it and closes WP-03."
+  }
+}

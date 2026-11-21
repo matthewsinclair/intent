@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNVRKRGC9KYN5EEB1Z2D6E",
+  "ts": "2026-11-21T09:09:10.904Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After vc lands ST0095 WP-11 AC-11.1 (devbin-dc's bank, read by dc; vc mints AT-11.1 and the three id.rs re-cites in the landing commit): satisfy AC-11.1 and close WP-11 through brew in main."
+  }
+}

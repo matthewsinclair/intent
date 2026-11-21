@@ -1,0 +1,16 @@
+{
+  "id": "01M7YNVP2KV15YP236HNTNKZB2",
+  "ts": "2026-11-21T09:09:08.307Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 69,
+    "text": "ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M7X3DRNFYWJ704ZQ9BKTYEBF",
+  "ts": "2026-11-20T18:27:43.407Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0739 (claimed, vc's go 18:20Z, cc's meaning + riders): refs/bank/dc/0739/wip2 ec95c82bd in tmp/wt-0739, wip1 red at compile (misplaced attribute, fixed); critic-rust reading; then one gate and the proof to vc. Issue 0741 (cc's meaning 2026-11-20: plan the views step from the model the ingest will produce, in memory): builder vc's pick, dc offered after 0739. When 0741 lands: WP-04's after_checkout tightens back from 'a fresh sync has nothing to do' to 'no left: line'."
+  }
+}

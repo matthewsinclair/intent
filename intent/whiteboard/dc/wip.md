@@ -3,24 +3,26 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-20 18:31Z
+heartbeat_at: 2026-11-21 09:09Z
 status: active
-focus: "2026-11-20 18:02Z by date -u: 0722 landed and closed (0ab2a843b); ST0095 WP-08 and WP-09 done (82c45d36b); three worktrees removed. Waiting: devbin-dc's ST0096 WP-04 AC-04.1 proof (GO sent), then dc starts WP-04 and writes AT-04.1. Next for dc: issue 0737 after WP-04 lands; ST0095 WP-03 (DOING 167) and WP-12's routing half wait for the rehearsal's pair."
-claims: [ST0095/03, ISSUE:0743]
+focus: "2026-11-21 09:08Z by date -u: localfold for hv's estate-wide fold, not released. Landed today: 0743 (38d2882e0), the WP-12 hook (ce6b28119) and pr-checks routing (b1ca2be4b), 0707 (1b9aa7b9d), the tap hold, 0740 and its follow-up (read by dc). Next: satisfy ST0095 AC-11.1 and close WP-11 once vc lands it, then lead the 3.5.0 rehearsal at vc's T (kovacs first, then rhadamanth), then the fleet note."
+claims: [ST0095/03]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0095 WP-03 (M), on vc's go of 09:38Z (2026-11-19). Landed: the gate fix at fe534431d (closes 0716), the store guard at 2c909d85e, the capture function with the brew smoke at c5233a0c9, and the guard S at ea22af4c7 (2026-11-20, vc on dc's proof: thread_view_skew_check.sh asks doctor --read-only; main's commit gate then ran it in place, 1205 views matching); tmp/wt-wp03-guard removed after the four checks (attic refs/attic/dc/wt-wp03-guard). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots with explorer_shots.rs:60, after WP-06 and WP-10. (edited)
+- ST0095 WP-03 (M), on vc's go of 2026-11-19 09:38Z. Landed: fe534431d (gate fix, 0716), 2c909d85e (store guard), c5233a0c9 (capture and brew smoke), ea22af4c7 (guard S). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots byte-identical over two runs: rehearsal step 5 proves it at T, then dc satisfies it and closes WP-03. (edited)
+- Intent 3.5.0 rehearsal, dc leads (hv decision 78, vc's go on dc's plan): called by vc after AC-11.1 and AC-12.1's routing (decision 79) land. Step 1 on kovacs first and alone (heavy lane; the Desk grants heavy+cargo+bats), then steps 2 to 7 on rhadamanth, all at T. kovacs is ready (09:10Z): the stale 3.3.3 intentd stopped and the 12G rust-target cache cleared on hv's word, 27G free; kovacs-sysadm watches only. Runner and driver in dc's scratch (rehearsal/run-rehearsal.sh, rehearse-clones.sh); plan at release/rehearsal-3.5.0-plan.md. (edited)
 
 ## TODO
 
-- ST0095 WP-12 (M), after WP-03 and ic's read door (WP-10): the gating scripts ask the waist, a commit-gate guard refuses a new id pattern, the drill runs in a clone, and the fleet note. With it goes a separate proposal to retire census items 8, 9 and 11, the by-hand ST0056 instruments.
-- hv decision 68, for vc before the rehearsal, not urgent: (a) how the cut stops before the formula is published, and how that step runs later on hv's word; (b) how agentic-engineering's seats, and our own estates for the fleet sweep, install the release build without the tap (vc todo 84).
-- ST0095 WP-12 (from vc, 10:31Z, and ic): add to the fleet note (AC-12.3) that issue 0712 is fixed in cc's WP-04, so a package whose criteria use a one-digit group (eg AC-1.1) now counts them and wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Route the five gated joins through ic's read door, intent id <token>... (one line per token: id token= kind= id= shown= canon= path=, or ambiguous, unknown, not-an-id; --json too). vc, 2026-11-20 07:3xZ: the door lands in ic's WP-10 first half Part 1, in that shape, answering every spelling resolve::resolve takes today; hash prefixes join later without changing the line's shape, so WP-12's routing can build on Part 1. The retirement proposal goes to vc file by file. (edited)
-- ST0095 WP-12, must ride this release (devbin-dc's WP-13 handoff, 2026-11-20): lib/templates/.claude/scripts/session-context.sh reads the WIP line with ^\*\*ST[0-9]+, which misses a git-style thread whose hex starts with a letter (4 of 21 in WP-13's drive); the census row intent/st/ST0056/parity/data/id_patterns.tsv:45 names the fix: read the first bold line, with no id pattern. _wip.md (WP-13) already tells people to lead the focus line with the id as printed.
+- ST0095 WP-12 (M). Landed: the SessionStart hook's first-bold-line read (ce6b28119) and the pull-request check through the id door (b1ca2be4b), each with its census row gone. AC-12.1's rest, the three gated parity scripts, is with hv through vc (needs intent id --read-only; the follow-up text is in dc's scratch, release/wp12-routing-followup.md); no ac descope until hv answers. AC-12.2, the drill, runs in rehearsal step 4. AC-12.3, the fleet note, is todo 69. The census-retirement proposal for items 8, 9 and 11 still goes to vc file by file. (edited)
+- ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green. (edited)
+- After vc lands ST0095 WP-11 AC-11.1 (devbin-dc's bank, read by dc; vc mints AT-11.1 and the three id.rs re-cites in the landing commit): satisfy AC-11.1 and close WP-11 through brew in main.
+- The release drafts (CHANGELOG section and release notes, in dc's scratch release/): keep them current as units land; vc places them when their foot is empty. The foot today: ST0095 WP-06's AC-06.1 and AC-06.3, WP-11, WP-12's rest with hv, ST0096 WP-03 and WP-04 (the rehearsal), the release number.
+- hv decision 79 (4753e17bb): AC-12.1's routing half rides 3.5.0. Once intent id --read-only exists, dc routes rulings_check.sh, declared_kind_check.sh and view_skew_check.sh through it, with one shared read-only-or-copy runner (factored from thread_view_skew_check.sh, registered in MODULES.md first). The plan is dc's follow-up text, release/wp12-routing-followup.md in dc's scratch. The rehearsal is called after these land.
 
 ## Holds
 
