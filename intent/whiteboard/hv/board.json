@@ -894,6 +894,15 @@
       "text": "THE 3.5.0 CUT, FIRED AND THE TAP MOVED (hv, 2026-11-21, first-hand in vc's session by question dialogs read between 14:05Z and 14:36Z on vc's date -u, the questions' wording vc's, the choices hv's; and hv's own words in prose). (1) \"Fire with --yes (Recommended)\": the cut ran as PATH=\"$PWD/native/rust/target/release:$PATH\" bin/devbin release v3.5.0 --yes, the 3.5.0 pair first because vc's 14:01Z pre-flight had migrated main's store to schema 37 (a breach of decision 132, vc's error; dc showed any schema-moving cut migrates it at preflight and stamp). (2) \"vc runs the reset (Recommended)\": the first run stopped at legs before any tag because Xcode 27.2 rewrote Intent.xcscheme; vc ran git reset --keep a0f1943f8 (the release commit was local only), committed the scheme at 39f6f1683, and re-cut: v3.5.0 at 940c9535a, tag e06de1b3c, every leg green, released 14:34Z. (3) \"Move the tap after the push (Recommended)\", then in prose \"I approve you doing it n\": bin/devbin cut tap ran at 14:36Z with DEVBIN_RELEASE_CONFIRMED=v3.5.0, formula published, smoke green. (4) In prose: \"You can upgrade whatever needs upgrading.\" and \"And get gyges and Kovacs to do the same.\": Intent's own project upgraded at 0ab6485e4 and pushed; kovacs on 3.5.0; gyges held on its own classifier, for hv.",
       "state": "live",
       "recorded_at": "2026-11-21T14:40:26.978Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 85,
+      "text": "ST0095 AC-03.3 IS PROVED BY ITS RUN, NOT A TEST (hv, 2026-11-21, first-hand in prose in vc's session, read at 14:41Z on vc's date -u; hv's words \"When it makes sense.\", answering vc's recommendation on vc todo 98, vc's reading of them recorded as such and open to hv's correction). AC-03.3 (two runs of the explorer screenshots write byte-identical images from seeded ids) is re-kinded from test to non-test and satisfied on cc's run of gen_explorer_shots.sh twice with diff -rq, 0 of 11 differing (Desk 01M7Z3TRBW), so ST0095 WP-03 can close. Timing is vc's: after dc's release.after restore.",
+      "state": "live",
+      "recorded_at": "2026-11-21T14:41:40.173Z",
+      "edited_at": "2026-11-21T14:41:46.073Z"
     }
   ],
   "sent": [],

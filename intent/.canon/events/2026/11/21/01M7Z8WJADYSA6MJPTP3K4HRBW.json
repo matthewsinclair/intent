@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z8WJADYSA6MJPTP3K4HRBW",
+  "ts": "2026-11-21T14:41:40.173Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "ST0095 AC-03.3 IS PROVED BY ITS RUN, NOT A TEST (hv, 2026-11-21, first-hand in prose in vc's session, read at 14:41Z on vc's date -u; hv's words \"When it makes sense.\", answering vc's recommendation on vc todo 98, vc's reading of them recorded as such and open to hv's correction). AC-03.3 (two runs of the explorer screenshots write byte-identical images from seeded ids) is re-kinded from test to non-test and satisfied on cc's run of gen_explorer_shots.sh twice with diff -rq, 0 of 11 differing (Desk 01M7Z3TRBW), so ST0095 WP-03 can close. Timing is vc's: after dc's release.after restore."
+  }
+}
