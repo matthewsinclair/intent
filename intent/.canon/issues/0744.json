@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 744,
+  "slug": "the-first-st-hydrate-of-an-upgraded-project-says",
+  "title": "The first st hydrate of an upgraded project says it wrote 0 files while its wrote: lines name the files it wrote",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-21",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ic on 2026-11-20, re-driving st hydrate after st new at 908fea92d in a scratch V4 project on gyges. The first call printed \"ok: <url> hydrated -- realised on its canon record, 2 file(s) on disk, 0 written by this run\", followed by wrote: intent/st/<ID>/info.md and re-rendered: .../acceptance.md. So the count in the summary contradicts the lines that follow it, and AC-00.6's rule (a call that did something must not read like one that had nothing to do) is broken on the first hydrate in V4.\n\nCause: Facade::hydration's count leaves out the views that the realisation write itself renders.\n\nExpected: the count equals the files the run wrote.\n\nOwner: cc, who fixes it in this release (hv decision 69). Filed by vc for ic."
+}
