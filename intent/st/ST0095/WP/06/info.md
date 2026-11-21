@@ -2,7 +2,7 @@
 wp_id: WP-06
 title: The hashed family
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-06: The hashed family

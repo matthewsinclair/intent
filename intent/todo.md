@@ -14,7 +14,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 03: The commit gate spares the main store; scripts capture ids
   - [x] 04: The waist: one module owns an id
   - [-] 05: The merge knows both families
-  - [-] 06: The hashed family
+  - [x] 06: The hashed family
   - [x] 07: Prefix resolution
   - [x] 08: The order
   - [x] 09: Criteria follow their package, and doctor verifies

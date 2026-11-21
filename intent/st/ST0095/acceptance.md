@@ -49,11 +49,11 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-05.3 An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id. -- satisfied: yes (computed)
 - AC-05.4 Two branches that each add a work package to one thread merge with both packages kept and no claim moved. -- satisfied: yes (computed)
 
-### WP-06 -- The hashed family (status: WIP)
+### WP-06 -- The hashed family (status: Done)
 
-- AC-06.1 Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair. -- satisfied: no (computed)
+- AC-06.1 Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair. -- satisfied: yes (computed)
 - AC-06.2 A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin. -- satisfied: yes (computed)
-- AC-06.3 No verb mints an ordinal. -- satisfied: no (computed)
+- AC-06.3 No verb mints an ordinal. -- satisfied: yes (computed)
 - AC-06.4 intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id. -- satisfied: yes (computed)
 - AC-06.5 A canon file whose name is neither family is refused by name, and none is skipped. -- satisfied: yes (computed)
 - AC-06.6 (non-test) Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing. -- evidence: refs/bank/devbin-dc/st0095/wp13/drive-log-run2 (blob 8bad2f3d0), section 'UPGRADE 4: an older Intent on the upgraded project': brew 3.4.0 (461e39ba145d) runs st list on the upgraded project and prints 'could not read the committed canon' with one schema-invalid finding per canon file, rc=1. Every 3.4.0 verb reads the canon first, so none reaches a write; the drive ran a read verb and captured no git status after it -- satisfied: yes
@@ -134,9 +134,11 @@ _(no tests in this group)_
 - AT-05.3 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:202` -- covers AC-05.3 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-05.4 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:779` -- covers AC-05.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
-### WP-06 -- The hashed family (status: WIP)
+### WP-06 -- The hashed family (status: Done)
 
+- AT-06.1 `native/rust/crates/intent-cli/tests/two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair.rs:29` -- covers AC-06.1 -- status: green -- green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0
 - AT-06.2 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:63` -- covers AC-06.2 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-06.3 `native/rust/crates/intent-cli/tests/no_verb_mints_an_ordinal.rs:34` -- covers AC-06.3 -- status: green -- green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0
 - AT-06.4 `native/rust/crates/intentsvcs/tests/canon_round_trip.rs:405` -- covers AC-06.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.5 `native/rust/crates/intentsvcs/tests/ingest_refusal.rs:363` -- covers AC-06.5 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.7 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:78` -- covers AC-06.7 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
