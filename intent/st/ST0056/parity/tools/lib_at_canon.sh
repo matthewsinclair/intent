@@ -59,6 +59,8 @@
 AT_CANON_DIR="intent/.canon/st"
 AT_CANON_SCHEMA="schema/thread.schema.json"
 AT_CANON_DEFS="ThreadStatus AtStatus AtKind"
+# A row file of the release format: <canon>/records/<ID>/at/<AT>.json.
+AT_CANON_ROW_RE='/records/[^/]+/at/[^/]+\.json$'
 
 # The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
 # shellcheck source=lib_citation.sh
@@ -216,7 +218,14 @@ AT_CANON_SCAN_JQ='
       end;
   inputs
   | ("FILE\t" + (input_filename | tojson)),
-    ( (input_filename | split("/") | last | sub("\\.json$"; "")) as $name
+    ( if (input_filename | test($row_re)) then
+        (input_filename | split("/") | .[-3]) as $name
+        | ($name | shown) as $tid
+        | if ($name | clean | not) then bad($tid; "the thread record directory name holds a control character")
+          else "COUNT\t1", row($tid)
+          end
+      else
+      (input_filename | split("/") | last | sub("\\.json$"; "")) as $name
       | ($name | shown) as $tid
       | if ($name | clean | not) then bad($tid; "the thread file name holds a control character")
         elif type != "object" then bad($tid; "the thread canon is " + type + ", not an object")
@@ -227,18 +236,38 @@ AT_CANON_SCAN_JQ='
            else (.tests // []) as $rows
              | ("COUNT\t" + ($rows | length | tostring)), ($rows[] | row($tid))
            end)
-        end )
+        end
+      end )
 '
 
+# A thread's own file comes first and its row files after it, so a tool's
+# at_thread runs before the at_row calls for that thread. A thread written in
+# the release format (thread@4.0, ST0096 WP-05) carries no `tests`: each AT row
+# is its own file at <canon>/records/<ID>/at/<AT>.json, beside <canon>/st/, and
+# one read here as a row of <ID>. A thread in the flat format has no such
+# directory, so both formats read the same until every machine has upgraded.
+at_canon_expand() {
+  local f a
+  AT_CANON_INPUTS=()
+  for f in "$@"; do
+    AT_CANON_INPUTS+=("$f")
+    for a in "${f%/st/*}/records/$(basename "$f" .json)/at/"*.json; do
+      [ -f "$a" ] && AT_CANON_INPUTS+=("$a")
+    done
+  done
+}
+
 at_canon_read() {
-  local scan
+  local scan threads="$#"
+  at_canon_expand "$@"
+  set -- "${AT_CANON_INPUTS[@]}"
   # JQ READS ITS FILES AS ONE STREAM, so a file cut off mid-value runs on into
   # the next and jq's message names that next file. On a failure each file is
   # parsed alone, and every one jq cannot parse is named with jq's own words;
   # the stream's message is printed only when no single file explains it. A
   # cut-off file the next one completes parses as a stream, and the count of
   # values per file below refuses it.
-  scan="$(jq -n -r --argjson v "$AT_CANON_VOCAB" --arg line_re "$CITATION_LINE_RE" "$AT_CANON_SCAN_JQ" "$@" 2>/dev/null)" || {
+  scan="$(jq -n -r --argjson v "$AT_CANON_VOCAB" --arg line_re "$CITATION_LINE_RE" --arg row_re "$AT_CANON_ROW_RE" "$AT_CANON_SCAN_JQ" "$@" 2>/dev/null)" || {
     local f why named=0
     for f in "$@"; do
       why="$(jq empty "$f" 2>&1)" || {
@@ -247,13 +276,13 @@ at_canon_read() {
       }
     done
     [ "$named" -gt 0 ] ||
-      jq -n -r --argjson v "$AT_CANON_VOCAB" --arg line_re "$CITATION_LINE_RE" "$AT_CANON_SCAN_JQ" "$@" 2>&1 >/dev/null | sed 's/^/error: /' >&2
+      jq -n -r --argjson v "$AT_CANON_VOCAB" --arg line_re "$CITATION_LINE_RE" --arg row_re "$AT_CANON_ROW_RE" "$AT_CANON_SCAN_JQ" "$@" 2>&1 >/dev/null | sed 's/^/error: /' >&2
     at_canon_refuse "the thread canon could not be read as JSON (each file jq cannot parse is named above)" \
       "check \`jq . $AT_CANON_DIR/<ID>.json\`; an unreadable canon must refuse, never report clean"
     return
   }
   [ -n "$scan" ] || {
-    at_canon_refuse "read $# thread canon file(s) and the canon pass printed nothing" \
+    at_canon_refuse "read $threads thread canon file(s) and the canon pass printed nothing" \
       "an empty thread file holds no JSON value; this reader reads .status and .tests[] in $AT_CANON_DIR/<ID>.json"
     return
   }
@@ -288,7 +317,7 @@ at_canon_read() {
   # status is read too, since 0 and 1 are answers and 2 is a failure.
   local names named n grc
   names="$(jq -n -r '$ARGS.positional[] | tojson' --args "$@")" && [ -n "$names" ] || {
-    at_canon_refuse "could not list the $# thread canon file(s) to count their JSON values" \
+    at_canon_refuse "could not list the $# canon file(s) to count their JSON values" \
       "this reader needs jq 1.6 or later, for --args"
     return
   }
@@ -310,8 +339,8 @@ at_canon_read() {
     return
   fi
   if [ "$AT_CANON_ROWS" -eq 0 ]; then
-    at_canon_refuse "no AT rows in $# thread canon file(s)" \
-      "check the canon carries .tests[]; a read with no rows is not a clean run"
+    at_canon_refuse "no AT rows in $threads thread canon file(s)" \
+      "check the canon carries .tests[], or rows under records/<ID>/at/; a read with no rows is not a clean run"
     return
   fi
 

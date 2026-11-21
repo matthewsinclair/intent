@@ -70,6 +70,10 @@ ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 die() { echo "error: $1" >&2; exit 2; }
 
 cd "$ROOT" || die "cannot reach the project root at $ROOT"
+ATT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/canon-commit.XXXXXX")" ||
+  die "no temporary directory to read the attachment records into, so this commit is unchecked rather than clean"
+ONLY=""
+trap 'rm -rf "$ATT_DIR"; [ -z "$ONLY" ] || rm -f "$ONLY" "$ONLY.i"' EXIT
 git rev-parse --git-dir >/dev/null 2>&1 ||
   die "not a git checkout, so there is no commit for canon to disagree with"
 command -v jq >/dev/null || die "jq is required to read a thread's attachments"
@@ -128,6 +132,87 @@ canon_files_at() {
   printf '%s\n' "$nested$flat" | grep -v '^$' || true
 }
 
+# ------------------------------------------------------- attachment records
+# A THREAD'S ATTACHMENTS, READ FROM EITHER CANON FORMAT, AND ONLY HERE. The flat
+# format carries them as `.attachments[]` in the thread file. The release format
+# (thread@4.0, ST0096 WP-05) carries none there: each attachment is its own file
+# at intent/.canon/records/<ID>/attachments/<path>.json, holding the object one
+# `.attachments[]` element held, where <ID> is the thread file's own name. Every
+# reader below asks atts_at, so no reader can see one format and miss the other.
+#
+# The release format's records are read ONCE PER REVISION, through one `git
+# cat-file --batch` whose header is the record's thread as a JSON string, so jq
+# reads the whole stream as thread, record, thread, record. A record jq cannot
+# read, or a stream that does not pair, refuses: a lost record would shrink the
+# population and read as clean.
+CANON_RECORDS='intent/.canon/records'
+CANON_ATT_RECORD='^intent/\.canon/records/[^/][^/]*/attachments/.*\.json$'
+
+# The revision a cache is kept for: its commit, or `index` for the index.
+att_key() {
+  if [ "$STAGED" -eq 1 ] && [ -z "$1" ]; then
+    printf 'index'
+  else
+    git rev-parse --verify --quiet "$1^{commit}" 2>/dev/null
+  fi
+}
+
+# atts_load <rev> -- the release format's records at <rev>, read once into
+# $ATT_DIR/<key>/<thread>.jsonl, one compact object per line. On disk rather
+# than in a variable, so a reader in a subshell finds what an earlier one read.
+atts_load() {
+  local rev="$1" key list d
+  key="$(att_key "$rev")" || return 0
+  [ -n "$key" ] || return 0
+  d="$ATT_DIR/$key"
+  [ -d "$d" ] && return 0
+  if [ "$key" = index ]; then
+    list="$(git ls-files --cached -- "$CANON_RECORDS" 2>/dev/null)"
+  else
+    list="$(git ls-tree -r --name-only "$rev" -- "$CANON_RECORDS" 2>/dev/null)"
+  fi
+  list="$(printf '%s\n' "$list" | grep -E "$CANON_ATT_RECORD" || true)"
+  rm -rf "${d:?}.part" && mkdir -p "$d.part" || {
+    echo "error: CANNOT MEASURE -- no room under $ATT_DIR to read the attachment records into." >&2
+    return 2
+  }
+  if [ -n "$list" ]; then
+    printf '%s\n' "$list" | awk -F/ -v r="$rev" '{ print r ":" $0 " " $4 }' |
+      git cat-file --batch='"%(rest)"' |
+      jq -n -r '[inputs] as $a
+        | if ($a | length) % 2 != 0 then error("the attachment records did not read as thread and record pairs") else . end
+        | range(0; ($a | length); 2) as $i
+        | if ($a[$i] | type) != "string" or ($a[$i + 1] | type) != "object"
+          then error("an attachment record of " + ($a[$i] | tojson) + " is not an object") else . end
+        | $a[$i] + "\t" + ($a[$i + 1] | tojson)' >"$d.part/all" || {
+      echo "error: CANNOT MEASURE -- the attachment records under $CANON_RECORDS at ${rev:-the index} could not be read (jq's message above says why)." >&2
+      return 2
+    }
+    awk -F'\t' -v d="$d.part" '{ f = d "/" $1 ".jsonl"; print substr($0, length($1) + 2) >> f; close(f) }' "$d.part/all" || {
+      echo "error: CANNOT MEASURE -- the attachment records at ${rev:-the index} could not be filed by thread." >&2
+      return 2
+    }
+    rm -f "$d.part/all"
+  fi
+  mv "$d.part" "$d"
+}
+
+# atts_at <rev> <thread canon file> -- that thread's attachments, one compact
+# JSON object per line: its `.attachments[]`, then its release-format records.
+atts_at() {
+  local rev="$1" tj="$2" base key
+  git show "$rev:$tj" 2>/dev/null | jq -c '(.attachments // [])[]' 2>/dev/null
+  case "$tj" in
+    intent/.canon/st/*.json) ;;
+    *) return 0 ;;
+  esac
+  base="${tj##*/}"
+  base="${base%.json}"
+  atts_load "$rev" || return 2
+  key="$(att_key "$rev")" || return 0
+  [ ! -f "$ATT_DIR/$key/$base.jsonl" ] || cat "$ATT_DIR/$key/$base.jsonl"
+}
+
 # The thread id, READ FROM THE CANON'S CONTENT. Empty (never a guess) on absence;
 # every caller checks, because `die` inside $( ) exits only the subshell.
 id_at() {
@@ -184,7 +269,7 @@ att_blobs_at() {
   while read -r tj; do
     [ -n "$tj" ] || continue
     adir="$(att_dir_of "$tj")" || return 2
-    git show "$rev:$tj" 2>/dev/null | jq -r --arg d "$adir" '(.attachments // [])[] | "\($d)/\(.path)"' 2>/dev/null
+    atts_at "$rev" "$tj" | jq -r --arg d "$adir" '"\($d)/\(.path)"' 2>/dev/null
   done <<< "$files"
 }
 
@@ -206,7 +291,7 @@ threads_at() {
       echo "    Canon without an id is a defect in the canon, not in this tool. Refusing rather than" >&2
       echo "    dropping the thread: a population silently reduced by one still closes arithmetically." >&2
       return 2; }
-    n="$(git show "$rev:$tj" 2>/dev/null | jq '(.attachments // []) | length' 2>/dev/null)"
+    n="$(atts_at "$rev" "$tj" | grep -c .)"
     echo "$st ${n:-0}"
   done <<< "$files"
 }
@@ -225,8 +310,27 @@ threads_at() {
 # realised, and history before `.intentfiles` existed (2026-08-19) behaves
 # exactly as it did before this arm was written. That is the safe direction: this
 # arm can then only over-report, never under-report.
+#
+# **THE RELEASE FORMAT CARRIES REALISATION IN THE THREAD ITSELF** (thread@4.0,
+# ST0096 WP-05): `intent upgrade` removes `.intentfiles`, and the thread file's
+# `realised` is true for a thread on disk and absent otherwise, the schema's
+# own words. So a thread file of any schema but the flat format's
+# (intent/thread@3.x) is asked, and its answer is the whole answer; reading the
+# missing `.intentfiles` there would count every thread realised and report
+# each dehydrated thread's attachments ABSENT. A thread file that cannot be
+# read as one refuses with status 2, which the caller passes on.
 realised_at() {
-  local rev="$1" st="$2" decl
+  local rev="$1" st="$2" tj="${3:-}" decl form
+  if [ -n "$tj" ]; then
+    form="$(git show "$rev:$tj" 2>/dev/null |
+      jq -r 'if (.schema // "") | startswith("intent/thread@3.") then "flat" elif .realised == true then "yes" else "no" end' 2>/dev/null)"
+    case "$form" in
+      (yes) return 0 ;;
+      (no) return 1 ;;
+      (flat) ;;
+      (*) echo "error: CANNOT MEASURE -- $st's canon at ${rev:-the index}:$tj could not be read to say whether it is realised" >&2; return 2 ;;
+    esac
+  fi
   decl="$(git show "$rev:intent/.intentfiles" 2>/dev/null)" || return 0
   [ -n "$decl" ] || return 0
   grep -qE "^STEELTHREAD:${st}([[:space:]]|#|$)" <<< "$decl"
@@ -239,14 +343,14 @@ realised_at() {
 # An attachment with no `text` hashes the empty string, which cannot match a
 # recorded sha, so it reports rather than passing silently.
 canon_text_sha() {
-  git show "$1:$2" 2>/dev/null |
-    jq -j --arg p "$3" '(.attachments // [])[] | select(.path==$p) | .text // empty' 2>/dev/null |
+  atts_at "$1" "$2" |
+    jq -j --arg p "$3" 'select(.path==$p) | .text // empty' 2>/dev/null |
     shasum -a 256
 }
 
 # Emits "<thread>/<path> DIVERGED|ABSENT" per bad attachment at $1.
 diverged_at() {
-  local rev="$1" only="${2:-}" tj st adir atts sha path blob have files
+  local rev="$1" only="${2:-}" tj st adir atts sha path blob have files rrc
   [ "$STAGED" -eq 1 ] && [ -z "$rev" ] ||
     git rev-parse --verify --quiet "$rev^{commit}" >/dev/null || return 0
   files="$(canon_files_at "$rev")" || return 2
@@ -255,7 +359,7 @@ diverged_at() {
     st="$(id_at "$rev" "$tj")"
     [ -n "$st" ] || { echo "error: CANNOT MEASURE -- canon at $rev:$tj carries no .id" >&2; return 2; }
     adir="$(att_dir_of "$tj")" || return 2
-    atts="$(git show "$rev:$tj" 2>/dev/null | jq -r '(.attachments // [])[] | "\(.sha256) \(.path)"' 2>/dev/null)"
+    atts="$(atts_at "$rev" "$tj" | jq -r '"\(.sha256) \(.path)"' 2>/dev/null)"
     [ -n "$atts" ] || continue
     while read -r sha path; do
       [ -n "$path" ] || continue
@@ -286,7 +390,10 @@ diverged_at() {
         # ingested `c4f9bcbe`'s uncommitted bytes, so its text hashes correctly
         # and it would sail through. The `.intentfiles` arm is the whole
         # difference between fixing this guard and quietly retiring it.
-        if realised_at "$rev" "$st"; then
+        rrc=0
+        realised_at "$rev" "$st" "$tj" || rrc=$?
+        [ "$rrc" -le 1 ] || return 2
+        if [ "$rrc" -eq 0 ]; then
           echo "$st/$path ABSENT"; continue
         fi
         have="$(canon_text_sha "$rev" "$tj" "$path")"
@@ -326,6 +433,7 @@ done
 # slip rather than as the index.
 if [ "$STAGED" -eq 1 ]; then SUBJECT="the index (staged)"; PARENT="HEAD"; else SUBJECT="$REV"; PARENT="$REV^"; fi
 
+atts_load "$REV" || exit 2
 subjects="$(threads_at "$REV")" || exit 2
 [ -n "$subjects" ] || die "CANNOT MEASURE -- $SUBJECT carries thread canon under neither intent/st/<ID>/thread.json nor intent/.canon/st/<ID>.json"
 total=0
@@ -364,7 +472,8 @@ if [ "$HIST" -gt 0 ]; then
     rthreads="$(threads_at "$r")" || exit 2
     while read -r st n; do [ -n "$st" ] && rtot=$((rtot + n)); done <<< "$rthreads"
     if [ "$rtot" -eq 0 ]; then vac=$((vac + 1)); prev=""; continue; fi
-    cur="$(diverged_at "$r" | awk '{print $1}' | sort)" || exit 2
+    cur="$(diverged_at "$r")" || exit 2
+    cur="$(printf '%s\n' "$cur" | awk '{print $1}' | sort)"
     measured=$((measured + 1))
     [ -n "$cur" ] && anydis=$((anydis + 1))
     new="$(comm -23 <(printf '%s\n' "$cur" | grep -v '^$') <(printf '%s\n' "$prev" | grep -v '^$') 2>/dev/null)"
@@ -423,12 +532,16 @@ if [ "$EXHAUSTIVE" -eq 0 ] &&
   else
     changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
   fi
-  ONLY="$(mktemp)"; trap 'rm -f "$ONLY"' EXIT
+  ONLY="$(mktemp)"
   # a thread whose canon moved: every one of its attachments is back in scope
   printf '%s\n' "$changed" | grep -E "$CANON_NESTED|$CANON_FLAT" | while read -r tj; do
     adir="$(att_dir_of "$tj")" || exit 2
-    git show "$REV:$tj" 2>/dev/null | jq -r --arg d "$adir" '(.attachments // [])[] | "\($d)/\(.path)"' 2>/dev/null
+    atts_at "$REV" "$tj" | jq -r --arg d "$adir" '"\($d)/\(.path)"' 2>/dev/null
   done >> "$ONLY"
+  # an attachment record of the release format that moved: the attachment it
+  # records is back in scope, at the blob path its thread's directory gives it
+  printf '%s\n' "$changed" | grep -E "$CANON_ATT_RECORD" |
+    sed -E 's#^intent/\.canon/records/([^/]+)/attachments/(.*)\.json$#intent/st/\1/\2#' >> "$ONLY"
   # an attachment whose own bytes moved -- the blob path IS the key, so no strip
   # and no id are involved. Over-inclusive by design: a non-attachment under
   # either root adds a key nothing matches, which widens scope and never narrows it.
@@ -450,7 +563,8 @@ if [ "$EXHAUSTIVE" -eq 0 ] &&
   echo "canon-commit: EXAMINED $scoped of $total -- narrowed to the attachment path(s) whose bytes or whose thread's canon THIS COMMIT changed. The other $((total - scoped)) carry their parent's status by construction and cannot be an ADD. --exhaustive examines all $total."
 fi
 
-cur="$(diverged_at "$REV" ${ONLY:+"$ONLY"} | sort)" || exit 2
+cur="$(diverged_at "$REV" ${ONLY:+"$ONLY"})" || exit 2
+cur="$(printf '%s\n' "$cur" | grep -v '^$' | sort)"
 curp="$(printf '%s\n' "$cur" | awk '{print $1}' | grep -v '^$' | sort)"
 
 if [ -z "$curp" ]; then
@@ -477,7 +591,8 @@ fi
 # and returns 0 for, reporting NO inherited divergence over a population it
 # never read. A silent empty comparison, in the arm whose whole job is to
 # separate what this commit adds from what it inherited.
-parent="$(diverged_at "$PARENT" ${ONLY:+"$ONLY"} | awk '{print $1}' | grep -v '^$' | sort)" || exit 2
+parent="$(diverged_at "$PARENT" ${ONLY:+"$ONLY"})" || exit 2
+parent="$(printf '%s\n' "$parent" | awk '{print $1}' | grep -v '^$' | sort)"
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 inherited="$(comm -12 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"
 

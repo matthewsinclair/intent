@@ -125,18 +125,26 @@ else
   # **NOT `committed`** -- this is the on-disk extract, verdict-bearing as it
   # stands in the working tree. See the header: the old label said `committed`
   # and three nodes read it as a git read.
-  SOURCE_LABEL="canon extract as it stands in the WORKING TREE: intent/.canon/st/*.json"
+  SOURCE_LABEL="canon extract as it stands in the WORKING TREE: intent/.canon/st/*.json and intent/.canon/records/*/at/*.json"
   # **ONE jq OVER EVERY THREAD, NOT ONE PER THREAD.** The per-file loop spawned
   # 69 processes and was most of a second; `input_filename` carries the thread id
   # that `basename` was being spawned to supply. Cost is a disposition argument,
   # so a tool asking to be gated does not get to be gratuitously slow first.
+  # BOTH CANON FORMATS, by lib_at_canon.sh's one rule for where a thread's rows
+  # are: `.tests[]` in a flat thread file, or one file per row under
+  # records/<ID>/at/ in the release format (thread@4.0, ST0096 WP-05).
+  # shellcheck source=lib_at_canon.sh
+  . "$HERE/lib_at_canon.sh" || { echo "declared-kind: cannot read lib_at_canon.sh beside this tool" >&2; exit 2; }
+  at_canon_expand "$CANON_DIR"/*.json
   CITE_TSV="$(
-    jq -r --arg line_re "$CITATION_LINE_RE" '
-      (input_filename | sub(".*/"; "") | sub("\\.json$"; "")) as $t
-      | (.tests // [])[]
+    jq -r --arg line_re "$CITATION_LINE_RE" --arg row_re "$AT_CANON_ROW_RE" '
+      (input_filename | test($row_re)) as $row_file
+      | (if $row_file then input_filename | split("/") | .[-3]
+         else input_filename | sub(".*/"; "") | sub("\\.json$"; "") end) as $t
+      | (if $row_file then [.] else (.tests // []) end)[]
       | select((.file // "") != "")
       | [$t, .id, .status, (.file | sub($line_re; ""))] | @tsv
-    ' "$CANON_DIR"/*.json
+    ' "${AT_CANON_INPUTS[@]}"
   )"
 fi
 
