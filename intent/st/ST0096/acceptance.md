@@ -39,11 +39,11 @@ title: A forge merges every open merge request: no file that every record shares
 - AC-04.1 Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: yes (computed)
 - AC-04.2 (non-test) Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled. -- satisfied: no
 
-### WP-05 -- Each work package, criterion and test has its own canon file (status: WIP)
+### WP-05 -- Each work package, criterion and test has its own canon file (status: Done)
 
 - AC-05.1 A thread's canon in the release's format is one file for the thread's own fields and one file per work package, criterion, test and attachment under .canon/records/<thread>/, each named by its record's stored id or label, and no file lists, counts or orders a thread's children: the thread's records directory holds them, read in the waist's order. -- satisfied: yes (computed)
 - AC-05.2 Two branches from one base, one adding a work package to a thread and the other adding a criterion and a test to the same thread, change disjoint files, and git merges them with no conflict; intent doctor is clean on the merge. (dc's AC-04.2 proves the same through the forge stand-in; this is the unit's own two-branch test.) -- satisfied: yes (computed)
-- AC-05.3 intent upgrade moves an existing thread to that layout byte-for-byte the same on two clones upgraded apart, and changes no id and no value; no committed view is rendered from more than one record, so the cover renders only the thread's own fields (hv decision 74); the closed records' views still committed on main are removed by the upgrade under removed:; an attachment whose bytes on disk differ from canon is refused by name and never removed; and a canon case pair (two attachments whose paths differ only in case, issue 0722) is refused by name before the split, since a folding disk would put both in one canon file. -- satisfied: no (computed)
+- AC-05.3 intent upgrade moves an existing thread to that layout byte-for-byte the same on two clones upgraded apart, and changes no id and no value; no committed view is rendered from more than one record, so the cover renders only the thread's own fields (hv decision 74); the closed records' views still committed on main are removed by the upgrade under removed:; an attachment whose bytes on disk differ from canon is refused by name and never removed; and a canon case pair (two attachments whose paths differ only in case, issue 0722) is refused by name before the split, since a folding disk would put both in one canon file. -- satisfied: yes (computed)
 
 ## Acceptance Tests
 
@@ -71,10 +71,12 @@ _(no tests in this group)_
 
 - AT-04.1 `native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:43` -- covers AC-04.1 -- status: green -- Regression arm, landed at 26c4b0ca0 (devbin-dc, Desk 01M7X3PX): no red on its base cbae96463, since WP-01, WP-02 and ST0095 WP-06 carry the behaviour; set red only because to-write cannot go straight to green. Green: 2 passed, then bin/devbin gate rust exit 0 on d779837ef, 2026-11-20 18:51Z; after-checkout bar is dc's interim (no step a person must run or confirm, doctor 0, clean tree) until issue 0741 lands.
 
-### WP-05 -- Each work package, criterion and test has its own canon file (status: WIP)
+### WP-05 -- Each work package, criterion and test has its own canon file (status: Done)
 
 - AT-05.1 `native/rust/crates/intentsvcs/tests/a_thread_is_its_records_files.rs:68` -- covers AC-05.1 -- status: green -- green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed A2 at 7e34615f2
 - AT-05.2 `native/rust/crates/intent-cli/tests/two_branches_that_change_one_thread_merge_clean.rs:29` -- covers AC-05.2 -- status: green -- green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed A2 at 7e34615f2
+- AT-05.3 `native/rust/crates/intentsvcs/tests/the_upgrade_writes_the_releases_layout.rs:63` -- covers AC-05.3 -- status: green -- the file's other AC-05.3 arms: an_upgrade_removes_a_closed_issues_view_and_names_it, an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_write, two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write; green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1
+- AT-05.4 `native/rust/crates/intentsvcs/src/views.rs:3327` -- covers AC-05.3 -- status: green -- green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1
 
 ---
 

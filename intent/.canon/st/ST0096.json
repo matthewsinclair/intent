@@ -50,7 +50,7 @@
       "seq": 5,
       "title": "Each work package, criterion and test has its own canon file",
       "scope": "L",
-      "status": "wip",
+      "status": "done",
       "objective": "Two merge requests that change the same thread merge on a forge with no hand step: each work package, criterion and test lives in its own canon file, and the thread's views are laid out so that no two of them share a file (hv decision 70).",
       "body": "- **Why**: a thread's canon is one file today, `intent/.canon/st/<id>.json`, holding its packages, criteria, tests and attachments, and its `info.md` and `acceptance.md` list them all. So two merge requests that each add a work package, a criterion or a test to one thread conflict there. hv decision 70 closes this in this release, against vc's recommendation, and hv decision 71 starts the thread.\n- **Its meaning is cc's, and the views' shape ic's.** cc designs the split after ST0095 WP-04 lands: how a thread's canon divides, how the split rides ST0095's schema change so that a project migrates once, and what `intent upgrade` does to an existing thread. ic says how the thread views divide so that no two records share one. vc writes the design into `design.md` before any code, with this package's criteria, its size, and whether the views need a package of their own.\n- **It lands before WP-04**, whose proof carries the same-thread case (AC-04.2).\n",
       "preamble": ""
@@ -262,6 +262,26 @@
       ],
       "status": "green",
       "note": "green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed A2 at 7e34615f2"
+    },
+    {
+      "id": "AT-05.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/the_upgrade_writes_the_releases_layout.rs:63",
+      "covers": [
+        "AC-05.3"
+      ],
+      "status": "green",
+      "note": "the file's other AC-05.3 arms: an_upgrade_removes_a_closed_issues_view_and_names_it, an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_write, two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write; green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1"
+    },
+    {
+      "id": "AT-05.4",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/src/views.rs:3327",
+      "covers": [
+        "AC-05.3"
+      ],
+      "status": "green",
+      "note": "green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1"
     }
   ],
   "attachments": [
