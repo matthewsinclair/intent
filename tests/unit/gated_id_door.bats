@@ -263,3 +263,44 @@ store_sum() {
   [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
   assert_output_contains "bin/devbin build all"
 }
+
+# --- lib_read_only.sh's copy -----------------------------------------------
+
+# copy <root> -- ro_copy over <root> under the callers' own options, then list
+# what the copy holds, sorted. The copy route runs where the pair would migrate
+# the store, which only an older store reaches from a script, so ro_copy is
+# driven directly.
+copy() {
+  mkdir -p "$TEST_TEMP_DIR/work"
+  run "$(sh_for_gate)" -c 'set -uo pipefail; . "$1/lib_read_only.sh"; RO_ROOT="$2"; RO_TAG=t; RO_WORK="$3"; ro_copy; cd "$3/copy" && find intent \( -type f -o -type l \) | LC_ALL=C sort' _ "$TOOLS" "$1" "$TEST_TEMP_DIR/work"
+}
+
+@test "the copy carries what git sees under intent/, and no ignored .DS_Store, store or backup" {
+  git -C "$PROJ" init -q
+  printf '.DS_Store\n' >"$PROJ/.gitignore"
+  git -C "$PROJ" add -A
+  git -C "$PROJ" -c user.name=t -c user.email=t@t.invalid -c commit.gpgsign=false commit -q -m fixture
+  printf 'untracked, not ignored\n' >"$PROJ/intent/new-note.md"
+  printf '\0\1\2' >"$PROJ/intent/.DS_Store"
+  printf '\0\1\2' >"$PROJ/intent/st/.DS_Store"
+  mkdir -p "$PROJ/intent/.backup" && printf 'old\n' >"$PROJ/intent/.backup/store.bak"
+  local expected
+  expected="$(cd "$PROJ" && git ls-files --cached --others --exclude-standard -- intent ':!intent/.cache' ':!intent/.backup' | LC_ALL=C sort)"
+  [ -n "$expected" ] || fail "the fixture holds nothing under intent/ to copy"
+  copy "$PROJ"
+  assert_success
+  [ "$output" = "$expected" ] || fail "the copy holds:
+$output
+git sees:
+$expected"
+  refute_output_contains ".DS_Store"
+  refute_output_contains "intent/.cache/"
+  refute_output_contains "intent/.backup/"
+}
+
+@test "the copy refuses, never reads as clean, where git cannot list the files" {
+  # setup's project is not a git work tree until an arm makes it one.
+  copy "$PROJ"
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
+  assert_output_contains "git could not list the files under intent/"
+}

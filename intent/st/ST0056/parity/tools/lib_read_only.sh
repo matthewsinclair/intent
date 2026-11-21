@@ -126,17 +126,25 @@ ro_require_bin() {
 # ro_copy -- make the copy of intent/ once per run, at $RO_WORK/copy.
 ro_copy() {
   [ -d "$RO_WORK/copy/intent" ] && return 0
-  local clone entry
-  clone=(cp -R)
-  [ "$(uname -s)" = Darwin ] && clone=(cp -c -R)
-  mkdir -p "$RO_WORK/copy/intent" ||
-    ro_die "could not make $RO_WORK/copy/intent to run on a copy in, so this commit is unchecked rather than clean"
-  for entry in "$RO_ROOT"/intent/* "$RO_ROOT"/intent/.[!.]*; do
-    [ -e "$entry" ] || continue
-    case "${entry##*/}" in .backup | .cache) continue ;; esac
-    "${clone[@]}" "$entry" "$RO_WORK/copy/intent/" ||
-      ro_die "could not copy $entry to run on a copy of intent/, so this commit is unchecked rather than clean"
-  done
+  # THE COPY IS THE WORK TREE'S intent/ AS GIT SEES IT: every file git tracks
+  # there, and every untracked one it does not ignore, which is canon a verb has
+  # written and nobody has staged yet. An ignored file stays out, and with it a
+  # Finder .DS_Store, which a store built from canon refuses as an unknown file
+  # shape, so copying it left the gate with no verdict on any Mac a person had
+  # browsed. The store and its backups (.cache, .backup) are named and kept out
+  # whatever .gitignore says, because a copy holding the store is the thing this
+  # route exists to avoid. A tracked file deleted in the work tree is left out,
+  # as the work tree has it; a symlink is carried as a link, dangling or not.
+  mkdir -p "$RO_WORK/copy" ||
+    ro_die "could not make $RO_WORK/copy to run on a copy in, so this commit is unchecked rather than clean"
+  (cd "$RO_ROOT" && git ls-files -z --cached --others --exclude-standard -- intent ':!intent/.cache' ':!intent/.backup') >"$RO_WORK/copy.list" ||
+    ro_die "git could not list the files under intent/ to copy, so this commit is unchecked rather than clean"
+  (cd "$RO_ROOT" && while IFS= read -r -d '' p; do
+    if [ -e "$p" ] || [ -L "$p" ]; then printf '%s\0' "$p"; fi
+  done <"$RO_WORK/copy.list" | tar --null -T - -cf -) | (cd "$RO_WORK/copy" && tar -xf -) ||
+    ro_die "could not copy the files under intent/ into $RO_WORK/copy, so this commit is unchecked rather than clean"
+  [ -d "$RO_WORK/copy/intent" ] ||
+    ro_die "the copy of intent/ in $RO_WORK/copy holds nothing, so this commit is unchecked rather than clean"
 }
 
 # ro_on_copy <verb> [args...] -- run the verb on the copy, without --read-only.
