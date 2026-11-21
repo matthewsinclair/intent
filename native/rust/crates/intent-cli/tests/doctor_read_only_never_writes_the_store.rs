@@ -6,15 +6,13 @@
 //! left byte for byte, and one that opening would migrate or make is not
 //! opened at all, exit 2, with `--format json` naming why.
 //!
-//! An older store is made by stamping the header's `user_version` (bytes 60
-//! to 63, big-endian) one below this build's, because this crate never links
-//! SQLite (design D06). The stamp is what the decision reads, and the store is
+//! An older store is made by `common::stamp_older_schema`, on a store that is
 //! checkpointed first, so no write-ahead log holds a page 1 that shadows it.
 
-use crate::common::{ok, run};
+use crate::common::{
+  STORE, assert_checkpointed, assert_no_wal_frames, ok, run, stamp_older_schema,
+};
 use intentsvcs::store::SCHEMA_VERSION;
-
-const STORE: &str = "intent/.cache/intent.db";
 
 /// `doctor --read-only --format json` in `root`: its JSON and its exit code.
 fn doctor_read_only(root: &std::path::Path) -> (serde_json::Value, i32) {
@@ -32,10 +30,7 @@ fn a_current_store_is_judged_untouched_and_one_it_would_write_is_not_opened() {
   // A verb that opens the store, so there is one at this build's schema.
   ok(root, &["st", "list"]);
   let db = root.join(STORE);
-  assert!(
-    db.is_file() && !root.join(format!("{STORE}-wal")).exists(),
-    "the verbs leave a checkpointed store, so its header is its stamp"
-  );
+  assert_checkpointed(&db);
 
   // A store at this build's schema: a verdict, and not one byte written.
   let current = std::fs::read(&db).expect("read the store");
@@ -52,12 +47,10 @@ fn a_current_store_is_judged_untouched_and_one_it_would_write_is_not_opened() {
     current,
     "--read-only wrote to a store it could open as it stands"
   );
+  assert_no_wal_frames(&db, "doctor --read-only on a current store");
 
   // An older store: not opened, exit 2, and the JSON says it would migrate.
-  let older = SCHEMA_VERSION - 1;
-  let mut stamped = current;
-  stamped[60..64].copy_from_slice(&older.to_be_bytes());
-  std::fs::write(&db, &stamped).expect("stamp an older schema");
+  let (stamped, older) = stamp_older_schema(&db);
   let (json, code) = doctor_read_only(root);
   assert_eq!(
     (
@@ -79,6 +72,7 @@ fn a_current_store_is_judged_untouched_and_one_it_would_write_is_not_opened() {
     stamped,
     "--read-only migrated the store it refused to open"
   );
+  assert_no_wal_frames(&db, "doctor --read-only on an older store");
 
   // No store: not made, exit 2, and the JSON says opening would create it.
   std::fs::remove_file(&db).expect("remove the store");

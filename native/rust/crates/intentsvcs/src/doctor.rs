@@ -557,6 +557,23 @@ pub struct StoreUnopened {
 }
 
 impl StoreUnopened {
+  /// The store at `project`'s path that `opening` would write: the one place
+  /// the object `--format json` prints is assembled, for `doctor --read-only`
+  /// and `id --read-only` alike (AC-12.1), so the runner that reads it reads
+  /// one shape.
+  pub fn of(project: &Project, opening: crate::store::Opening) -> Self {
+    Self {
+      path: project.relative(&project.db_path()),
+      schema: match opening {
+        crate::store::Opening::Migrate { from } => Some(from),
+        _ => None,
+      },
+      build: crate::store::SCHEMA_VERSION,
+      opening: opening.word(),
+      plan: opening,
+    }
+  }
+
   /// The refusal a person reads in place of a verdict.
   pub fn refusal(&self) -> crate::store::StoreError {
     crate::store::StoreError::WouldWrite {
@@ -573,21 +590,11 @@ impl StoreUnopened {
 pub(crate) fn read_only_stop(
   project: &Project,
 ) -> Result<Option<StoreUnopened>, crate::store::StoreError> {
-  let path = project.db_path();
-  let opening = Store::opening_at(&path)?;
+  let opening = Store::opening_at(&project.db_path())?;
   if !opening.writes() {
     return Ok(None);
   }
-  Ok(Some(StoreUnopened {
-    path: project.relative(&path),
-    schema: match opening {
-      crate::store::Opening::Migrate { from } => Some(from),
-      _ => None,
-    },
-    build: crate::store::SCHEMA_VERSION,
-    opening: opening.word(),
-    plan: opening,
-  }))
+  Ok(Some(StoreUnopened::of(project, opening)))
 }
 
 /// The project's store for a check, or `None` when there is no file: a

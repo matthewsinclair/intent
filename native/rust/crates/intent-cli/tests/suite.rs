@@ -189,6 +189,8 @@ mod guards_surface;
 mod hook_compat;
 #[path = "hv_seat_door.rs"]
 mod hv_seat_door;
+#[path = "id_read_only_never_writes_the_store.rs"]
+mod id_read_only_never_writes_the_store;
 #[path = "info_exit_code.rs"]
 mod info_exit_code;
 #[path = "ingest_command.rs"]

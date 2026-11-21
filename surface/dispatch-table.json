@@ -11664,6 +11664,16 @@
           "disposition": "keep",
           "exposed_on_mcp": false,
           "disposition_basis": "`--format`, not `--json`, on hv's 2026-08-21 spelling ruling for new surface. The terminal form is one line per token, its first word the answer (`id`, `ambiguous`, `unknown` or `not-an-id`) and the rest `key=value` fields, so a shell script reads it with `read`; the json form is the facade's answers serialised whole. The MCP tool always answers the structured form."
+        },
+        {
+          "spellings": [
+            "--read-only"
+          ],
+          "type": "bool",
+          "help": "Write nothing: answer from the store as it stands, or from the committed canon where there is no store yet; where reading the store needs migrating it, answer nothing and exit 2",
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT. ST0095 AC-12.1's routing half, first step (hv decision 79): the commit gate's parity scripts ask ids through this door, and a dev build must never write the store it reads (decision 132). Meaning cc's, shape doctor's `--read-only` (issue 0717), so one runner serves both: where the store is at an older schema, the run answers no token, writes nothing and exits 2, and `--format json` prints doctor's `store` object (path, schema, build, opening); a store this build refuses (newer, unstamped) is refused as every door refuses it. Where there is no store, or one at this build's schema that holds nothing yet, the committed canon is all there is, so the door answers from it loaded in memory and writes nothing on disk. Exit 1 keeps its meaning: some token is not an id here. Not on MCP: the MCP tool opens per request through the ordinary door."
         }
       ],
       "v2": "new-surface",

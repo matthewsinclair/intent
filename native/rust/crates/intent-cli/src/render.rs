@@ -8641,7 +8641,19 @@ fn id_verb(m: &ArgMatches) -> Result<(), Failure> {
   use intentsvcs::facade::IdAnswer;
   let format = enum_flag(m, "id", "--format")?;
   let (project, ctx) = context()?;
-  let facade = engine(project, ctx, StoreNeed::Shared)?;
+  // **`--read-only` WRITES NOTHING ON DISK** (AC-12.1, hv decision 79): what
+  // it answers from, and where it stops, is the library's
+  // `Facade::open_read_only`; the stop is rendered as doctor renders its own.
+  let facade = if m.get_flag("read-only") {
+    match Facade::open_read_only(project, ctx).map_err(fail)? {
+      intentsvcs::facade::ReadOnly::Opened(facade) => facade,
+      intentsvcs::facade::ReadOnly::Stopped(stop) => {
+        return Err(print_read_only_stop(&format, &stop));
+      }
+    }
+  } else {
+    engine(project, ctx, StoreNeed::Shared)?
+  };
   let mut answers: Vec<IdAnswer> = Vec::new();
   for token in m.get_many::<String>("token").into_iter().flatten() {
     answers.push(facade.id_of(token).map_err(fail)?);
@@ -8658,6 +8670,18 @@ fn id_verb(m: &ArgMatches) -> Result<(), Failure> {
   } else {
     Err(Failure::Verdict)
   }
+}
+
+/// A `--read-only` run that stopped where reading the store would write it:
+/// PRINTS, under `--format json`, the store's object on stdout at `.store`,
+/// and returns the refusal with its remedy as exit 2, this build unable to answer without a
+/// write. One rendering for `doctor --read-only` and `id --read-only`, so the
+/// gate's one runner reads one shape (AC-12.1).
+fn print_read_only_stop(format: &str, stop: &intentsvcs::doctor::StoreUnopened) -> Failure {
+  if format == "json" {
+    println!("{}", serde_json::json!({ "store": stop }));
+  }
+  Failure::Unavailable(stop.refusal().render())
 }
 
 /// One answer as its terminal line.
@@ -9030,12 +9054,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   let (opened, judged) = if read_only {
     match Facade::doctor_read_only(&project, &ctx, scope) {
       Ok(report) => (None, Some(report)),
-      Err(stop) => {
-        if format == "json" {
-          println!("{}", serde_json::json!({ "store": stop }));
-        }
-        return Err(Failure::Unavailable(stop.refusal().render()));
-      }
+      Err(stop) => return Err(print_read_only_stop(&format, &stop)),
     }
   } else {
     (

@@ -1249,25 +1249,8 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
   // `doctor` rebuilds from canon and compares, so "the store disagrees with
   // the files" is a reported finding with a named remedy. That is the trade
   // hv is making, made explicit rather than assumed.
-  let (threads, issues) = store.load_canon()?;
-  // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
-  // pays, and a model with no boards is one whose next thread mutation
-  // re-derives the index without them and whose corpus survey leaves
-  // `board.json` in as a file.
-  //
-  // **AND A BOARD IS CONTENT, SO IT MAKES THE STORE WARM** (issue 0535). An
-  // estate whose store holds boards and no thread or issue would otherwise take
-  // the cold path at every open. That is the same line `Store::warm_if_cold`
-  // draws under the lock.
-  let boards = store.hydrate_boards()?;
-  if !threads.is_empty() || !issues.is_empty() || !boards.is_empty() {
-    return Ok(Canon {
-      threads,
-      issues,
-      sections: read_sections(project, store)?,
-      boards,
-      declaration: store.wb_declaration()?,
-    });
+  if let Some(canon) = load_warm(project, store)? {
+    return Ok(canon);
   }
 
   // Cold store: ingest once, from the files, and warm it.
@@ -1284,6 +1267,37 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
   recording(store, |store| {
     resync_inner(project, store, &Scope::All, Load::WarmIfCold)
   })
+}
+
+/// The model a warm store holds, read and nothing written, or `None` when the
+/// store is cold: the half of [`load_fresh`] that only reads, and the whole of
+/// what `intent id --read-only` may do with a store (AC-12.1).
+///
+/// **A COLD STORE IS `None`, NEVER AN EMPTY MODEL.** An empty model answers
+/// "no such record" for every id, which is a confident wrong answer about an
+/// estate the store has simply not been given yet.
+pub(crate) fn load_warm(project: &Project, store: &Store) -> Result<Option<Canon>, IngestError> {
+  let (threads, issues) = store.load_canon()?;
+  // **THE STORE'S BOARDS, NOT NONE.** This is the open nearly every command
+  // pays, and a model with no boards is one whose next thread mutation
+  // re-derives the index without them and whose corpus survey leaves
+  // `board.json` in as a file.
+  //
+  // **AND A BOARD IS CONTENT, SO IT MAKES THE STORE WARM** (issue 0535). An
+  // estate whose store holds boards and no thread or issue would otherwise take
+  // the cold path at every open. That is the same line `Store::warm_if_cold`
+  // draws under the lock.
+  let boards = store.hydrate_boards()?;
+  if threads.is_empty() && issues.is_empty() && boards.is_empty() {
+    return Ok(None);
+  }
+  Ok(Some(Canon {
+    threads,
+    issues,
+    sections: read_sections(project, store)?,
+    boards,
+    declaration: store.wb_declaration()?,
+  }))
 }
 
 /// What a load from the files does to a store that already holds an estate.

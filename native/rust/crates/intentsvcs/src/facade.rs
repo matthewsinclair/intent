@@ -281,6 +281,14 @@ pub struct Upgraded {
   pub on_a_clean_tree: bool,
 }
 
+/// What [`Facade::open_read_only`] opened, or where it stopped (AC-12.1).
+pub enum ReadOnly {
+  /// A facade whose every read writes nothing on disk.
+  Opened(Facade),
+  /// The store reading would have to migrate: nothing was answered or written.
+  Stopped(crate::doctor::StoreUnopened),
+}
+
 /// Whether git tracks a project's store (issue 0551).
 ///
 /// **THREE ANSWERS, BECAUSE A GIT THAT CANNOT BE ASKED IS NOT A STORE THAT IS
@@ -5621,6 +5629,54 @@ impl Facade {
     let seen = store.data_version().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
     Ok(Self::over(project, ctx, store, canon, seen))
+  }
+
+  /// Open a project for a read that writes nothing on disk: `intent id
+  /// --read-only`, the first door of ST0095 AC-12.1's routing half (hv
+  /// decision 79), through which the commit gate's scripts ask ids without a
+  /// dev build writing the store it reads (decision 132).
+  ///
+  /// **WHAT IT ANSWERS FROM IS cc's MEANING, AND IT FOLLOWS FROM WHAT THE
+  /// STORE HOLDS.** The store is the truth and the canon its extract, so:
+  /// - a store at this build's schema that holds the estate is read as it
+  ///   stands, through [`Store::open_read_only`], and nothing is ingested;
+  /// - no store, or one at this build's schema that holds nothing yet, has
+  ///   nothing the committed canon does not carry, so the answer comes from
+  ///   the canon loaded into a store in memory, exactly as
+  ///   [`Facade::open_in_memory`] loads it, and no file is written;
+  /// - an older store may hold what the canon does not, and reading it means
+  ///   migrating it, so the door stops with doctor's [`StoreUnopened`], whose
+  ///   object `--format json` prints for one runner to read for both doors;
+  /// - a store this build refuses (newer, unstamped) is refused as every door
+  ///   refuses it.
+  ///
+  /// **NO DAEMON QUESTION**, unlike the in-process engine's one door: that
+  /// rule keeps two engines from both ingesting one tree, and this open
+  /// ingests into nothing on disk.
+  ///
+  /// [`StoreUnopened`]: crate::doctor::StoreUnopened
+  pub fn open_read_only(project: Project, ctx: FacadeContext) -> Result<ReadOnly, FacadeError> {
+    use crate::store::Opening as StoreOpening;
+    Self::readable(&project)?;
+    let path = project.db_path();
+    match Store::opening_at(&path).map_err(FacadeError::Store)? {
+      StoreOpening::Create => Self::open_in_memory(project, ctx).map(ReadOnly::Opened),
+      stop @ StoreOpening::Migrate { .. } => Ok(ReadOnly::Stopped(
+        crate::doctor::StoreUnopened::of(&project, stop),
+      )),
+      // `open_read_only` asks the decision again, so a store a peer moved since
+      // the line above is refused by it rather than read on a stale answer.
+      StoreOpening::Open | StoreOpening::Refuse(_) => {
+        let store = Store::open_read_only(&path).map_err(FacadeError::Store)?;
+        let seen = store.data_version().map_err(FacadeError::Store)?;
+        match ingest::load_warm(&project, &store)? {
+          Some(canon) => Ok(ReadOnly::Opened(Self::over(
+            project, ctx, store, canon, seen,
+          ))),
+          None => Self::open_in_memory(project, ctx).map(ReadOnly::Opened),
+        }
+      }
+    }
   }
 
   /// Reload the canon if another connection has committed since it was read,
