@@ -2,7 +2,7 @@
 wp_id: WP-12
 title: The pipeline asks the waist; the drill; the fleet
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-12: The pipeline asks the waist; the drill; the fleet
