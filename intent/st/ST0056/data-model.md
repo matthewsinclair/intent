@@ -98,27 +98,29 @@ Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the watermark 
 
 ### steel_thread (`intent/.canon/st/<ID>.json`, the thread canon)
 
-| Field          | Type    | Notes                                                                                                          |
-| -------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| schema         | string  | `intent/thread@3.0` -- lets validators pick the schema                                                         |
-| id             | string  | `ST0056`                                                                                                       |
-| title          | string  |                                                                                                                |
-| slug           | string? |                                                                                                                |
-| preamble       | string  | authored prose ABOVE the first `## `, minus the `# ` title -- carried verbatim, never classified; may be empty |
-| objective      | string  | authored prose; may be empty (see below)                                                                       |
-| context        | string  | authored prose, markdown, carried verbatim                                                                     |
-| related        | array   | `{id, note?}` -- the Related Steel Threads block                                                               |
-| body           | string  | authored prose, every other section verbatim -- the thread-level twin of D28's WP catch-all; may be empty      |
-| status         | enum    | `triage · not-started · wip · hold · completed · cancelled` -- **`tbc` is NOT a v3 value** (see below)         |
-| status\_reason | string? | the reason for the CURRENT status; cleared by any transition that does not carry one                           |
-| fiat           | object? | the fiat-close record, present exactly when the thread reached `completed` through `st.fc` (Machine 1)         |
-| created        | date    |                                                                                                                |
-| completed      | date?   |                                                                                                                |
-| acceptance     | enum?   | `exempt` (ST0048) or absent = enforced                                                                         |
-| wps            | array   | work_package records, ordered by seq                                                                           |
-| criteria       | array   | acceptance_criterion records                                                                                   |
-| tests          | array   | acceptance_test records                                                                                        |
-| attachments    | array   | every other authored file under the thread directory, carried verbatim (see below)                             |
+| Field          | Type     | Notes                                                                                                                                                                 |
+| -------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| schema         | string   | `intent/thread@4.0` -- lets validators pick the schema; `@3.0` is 3.4.x's ordinal format, which `intent upgrade` moves to this one                                    |
+| id             | string   | the natural id: `ST` and four digits for an ordinal, eg `ST0056`, or its hashed id. Global identity is `(project_id, id)`                                             |
+| origin         | string?  | the id of the creation event a hashed id was minted from: the id is its marker and the front of this one's SHA-256, so it is never stored twice; absent on an ordinal |
+| title          | string   |                                                                                                                                                                       |
+| slug           | string?  |                                                                                                                                                                       |
+| preamble       | string   | authored prose ABOVE the first `## `, minus the `# ` title -- carried verbatim, never classified; may be empty                                                        |
+| objective      | string   | authored prose; may be empty (see below)                                                                                                                              |
+| context        | string   | authored prose, markdown, carried verbatim                                                                                                                            |
+| related        | array    | `{id, note?}` -- the Related Steel Threads block                                                                                                                      |
+| body           | string   | authored prose, every other section verbatim -- the thread-level twin of D28's WP catch-all; may be empty                                                             |
+| status         | enum     | `triage · not-started · wip · hold · completed · cancelled` -- **`tbc` is NOT a v3 value** (see below)                                                                |
+| status\_reason | string?  | the reason for the CURRENT status; cleared by any transition that does not carry one                                                                                  |
+| fiat           | object?  | the fiat-close record, present exactly when the thread reached `completed` through `st.fc` (Machine 1)                                                                |
+| created        | date     |                                                                                                                                                                       |
+| completed      | date?    |                                                                                                                                                                       |
+| acceptance     | enum?    | `exempt` (ST0048) or absent = enforced                                                                                                                                |
+| realised       | boolean? | whether the thread's files are on disk (Machine 6); absent means not realised                                                                                         |
+| wps            | array    | work_package records, in the one record order (`id::record_order`): ordinals by number, then hashed packages by `origin`                                              |
+| criteria       | array    | acceptance_criterion records                                                                                                                                          |
+| tests          | array    | acceptance_test records                                                                                                                                               |
+| attachments    | array    | every other authored file under the thread directory, carried verbatim (see below)                                                                                    |
 
 **`tbc` is not a thread status value.** The ratified machine (Machine 1 below) has no such state; `triage` is the real entry state. And v2's `tbc` means **To Be Commenced**, not triage -- so it maps to `not-started`, never to `triage` (migration.md carries the rule and ic's independent witness for it). **v3 must not read `--status tbc` as `Triage` nor abbreviate `Triage` as `TBC`**: reusing the letters is exactly how a mapping rule gets undone by a surface. `st list --status tbc` is accepted and filters on `not-started` (v2's synonym, the same mapping the migrator applies), and that is deliberate (vc, 2026-09-14; `design.md`'s Parity contract section carries the line); nothing reads `tbc` as `Triage`.
 
@@ -208,19 +210,20 @@ Deferring this to WP-10 was the rejected option. The migrator would have discove
 
 ### work_package (inside the thread canon)
 
-| Field          | Type    | Notes                                                                                                                              |
-| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| seq            | int     | rendered `WP-01`                                                                                                                   |
-| title          | string  |                                                                                                                                    |
-| scope          | enum?   | `XS · S · M · L · XL · XXL`; absent exactly when `scope_legacy` holds a v2 value outside the set (see below)                       |
-| scope\_legacy  | object? | the marked-legacy carry form, `{raw}`                                                                                              |
-| status         | enum    | `not-started · wip · done · cancelled`                                                                                             |
-| status\_legacy | object? | a v2 status outside the vocabulary, carried verbatim beside the status it was read as                                              |
-| status\_reason | string? | as `steel_thread.status_reason` -- current status only, cleared by a transition carrying none                                      |
-| fiat           | object? | the fiat-close record, present exactly when the package reached `done` through `wp.fc` (Machine 2)                                 |
-| preamble       | string  | as `steel_thread.preamble`; may be empty                                                                                           |
-| objective      | string  | authored prose, the `## Objective` section (D28); may be empty                                                                     |
-| body           | string  | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
+| Field          | Type    | Notes                                                                                                                                      |
+| -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| id             | string  | the package's id within its thread: two digits for an ordinal, eg `01`, rendered `WP-01`, or its hashed id. Replaces 3.4.x's integer `seq` |
+| origin         | string? | as `steel_thread.origin`: the creation event a hashed id was minted from; absent on an ordinal                                             |
+| title          | string  |                                                                                                                                            |
+| scope          | enum?   | `XS · S · M · L · XL · XXL`; absent exactly when `scope_legacy` holds a v2 value outside the set (see below)                               |
+| scope\_legacy  | object? | the marked-legacy carry form, `{raw}`                                                                                                      |
+| status         | enum    | `not-started · wip · done · cancelled`                                                                                                     |
+| status\_legacy | object? | a v2 status outside the vocabulary, carried verbatim beside the status it was read as                                                      |
+| status\_reason | string? | as `steel_thread.status_reason` -- current status only, cleared by a transition carrying none                                              |
+| fiat           | object? | the fiat-close record, present exactly when the package reached `done` through `wp.fc` (Machine 2)                                         |
+| preamble       | string  | as `steel_thread.preamble`; may be empty                                                                                                   |
+| objective      | string  | authored prose, the `## Objective` section (D28); may be empty                                                                             |
+| body           | string  | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured         |
 
 #### scope: canonicalisation is not loss, but one v2 value is outside the set
 
@@ -399,18 +402,20 @@ Evidence about the invocation that recorded a fiat close. **Collected by the ser
 
 ### issue (`intent/.canon/issues/<nnnn>.json`, body included)
 
-| Field    | Type    | Notes                                                                                                     |
-| -------- | ------- | --------------------------------------------------------------------------------------------------------- |
-| schema   | string  | `intent/issue@3.0`                                                                                        |
-| number   | int     | rendered `0021`                                                                                           |
-| slug     | string  |                                                                                                           |
-| title    | string  |                                                                                                           |
-| status   | enum    | `open · closed` -- directories stop encoding status (parity deviation, see parity.md)                     |
-| severity | string? | `critical · high · medium · low`, refused at the door on write; an out-of-roster stored value still reads |
-| created  | date    |                                                                                                           |
-| closed   | date?   |                                                                                                           |
-| reporter | string? |                                                                                                           |
-| body     | string  | the authored issue text, carried verbatim (see below)                                                     |
+| Field    | Type     | Notes                                                                                                      |
+| -------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| schema   | string   | `intent/issue@4.0`; `@3.0` is 3.4.x's ordinal format, which `intent upgrade` moves to this one             |
+| id       | string   | the issue's id: four digits for an ordinal, eg `0021`, or its hashed id. Replaces 3.4.x's integer `number` |
+| origin   | string?  | as `steel_thread.origin`: the creation event a hashed id was minted from; absent on an ordinal             |
+| slug     | string   |                                                                                                            |
+| title    | string   |                                                                                                            |
+| status   | enum     | `open · closed` -- directories stop encoding status (parity deviation, see parity.md)                      |
+| severity | string?  | `critical · high · medium · low`, refused at the door on write; an out-of-roster stored value still reads  |
+| created  | date     |                                                                                                            |
+| closed   | date?    |                                                                                                            |
+| reporter | string?  |                                                                                                            |
+| realised | boolean? | whether the issue's view is on disk (Machine 7); absent means not realised                                 |
+| body     | string   | the authored issue text, carried verbatim (see below)                                                      |
 
 **The body lives in the JSON (hv ruling, 2026-08-18).** Before the ruling the spec named a sibling authored `issues/<n>.md` while `schema/issue.schema.json` declared `body`, and neither was implemented: no canon file carried a `body` key, so the authored issue text lived ONLY in `intent/.cache/intent.db`. That path is gitignored, so by D29 the content was never canon and by D34 it never travelled -- **absent from every clone, and nothing anywhere said so.** It surfaced only because `sync --to-store` replaced the store from an extract that had never carried it.
 
