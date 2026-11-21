@@ -3095,7 +3095,8 @@
       "kind": "todo",
       "seq": 97,
       "text": "3.5.0 TO THE CUT (hv decisions 79 to 83). On main by 12:50Z: WP-11 AC-11.1 (33d631cbc), intent id --read-only (cd832c3d0, clippy fix 4b24577e7), AC-12.1 routing (a3e3e6461; split e555b136f, by-hand half to ST0097), 0745 (64864b7c3, closed 687b5f271), release debt (10141745e, rehearsal tip; kovacs leg GREEN there, record sealed in tmp/wt-rehearsal-10141745e), ro_copy fix (a51da38a0), release text (526c54bc7, a 0707 GAP for cc), AC-03.3 code (a3945b02c, a2c4fa1e2). LEFT: (1) dc's ELIDE fix in explorer_shots.rs (the landing still draws 3.4.0); (2) cc's 0746 (upgrade removes a tracked view only when byte-equal to the earlier format's render; 0316 holds) stacked on it, ONE run = final T's gate: commit first, gate all, test shell, shots twice + diff -rq, images-only commit if any; fills the GAP; (3) step 3 re-run at T; dc compares leg_config_lines 10141745e vs T and copies the kovacs record to main's tmp/release/legs/kovacs (rerun the leg if they differ); (4) Desk announces, vc stops intentd, real dry run in vc's session (signing creds in the keychain, gh logged in), hv confirms after: = cut publish --hold-tap; (5) cut and push from vc's session (decision 80); restart intentd from a Claude shell with CLAUDE_CONFIG_DIR. RULE: commit first, then gate. Main's store stays schema 35: brew first in main.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-21T14:58:12.365Z",
       "recorded_at": "2026-11-21T09:10:28.187Z",
       "edited_at": "2026-11-21T12:50:50.357Z"
     },
@@ -3104,8 +3105,17 @@
       "kind": "todo",
       "seq": 98,
       "text": "For hv on return: ST0095 AC-03.3 (byte-identical screenshots from seeded ids) is kind test, but its proof is cc's run of gen_explorer_shots.sh twice with diff -rq, 0 of 11 differing (Desk 01M7Z3TRBW), not a committed test. vc ruled (c) while hv is AFK: unsatisfied, WP-03 open, the cut not blocked. vc recommends (a): re-kind it to non-test and satisfy it on that run. (b) is a new test that runs the generator twice.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-21T14:58:13.403Z",
       "recorded_at": "2026-11-21T13:54:33.298Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 99,
+      "text": "ST0095's close is waiting on hv's word: AC-00.1, an independent whole-tree Highlander sweep of every id concern in every language, with the start-of-thread findings (refs/bank/vc/st0095/highlander-*) resolved or answered; and AC-00.2, each unit's critic-per-diff record read by vc. Every AT row conforms, and these two block the thread gate.",
+      "state": "live",
+      "recorded_at": "2026-11-21T14:58:19.310Z"
     }
   ],
   "sent": [

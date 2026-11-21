@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z9V21EC0JD4WJM9991M595",
+  "ts": "2026-11-21T14:58:19.310Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST0095's close is waiting on hv's word: AC-00.1, an independent whole-tree Highlander sweep of every id concern in every language, with the start-of-thread findings (refs/bank/vc/st0095/highlander-*) resolved or answered; and AC-00.2, each unit's critic-per-diff record read by vc. Every AT row conforms, and these two block the thread gate."
+  }
+}
