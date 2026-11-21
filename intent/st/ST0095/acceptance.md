@@ -56,7 +56,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-06.3 No verb mints an ordinal. -- satisfied: no (computed)
 - AC-06.4 intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id. -- satisfied: yes (computed)
 - AC-06.5 A canon file whose name is neither family is refused by name, and none is skipped. -- satisfied: yes (computed)
-- AC-06.6 (non-test) Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing. -- satisfied: no
+- AC-06.6 (non-test) Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing. -- evidence: refs/bank/devbin-dc/st0095/wp13/drive-log-run2 (blob 8bad2f3d0), section 'UPGRADE 4: an older Intent on the upgraded project': brew 3.4.0 (461e39ba145d) runs st list on the upgraded project and prints 'could not read the committed canon' with one schema-invalid finding per canon file, rc=1. Every 3.4.0 verb reads the canon first, so none reaches a write; the drive ran a read verb and captured no git status after it -- satisfied: yes
 - AC-06.7 A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw. -- satisfied: yes (computed)
 
 ### WP-07 -- Prefix resolution (status: Done)
