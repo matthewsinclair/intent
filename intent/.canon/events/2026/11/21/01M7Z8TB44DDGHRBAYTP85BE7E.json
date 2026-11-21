@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z8TB44DDGHRBAYTP85BE7E",
+  "ts": "2026-11-21T14:40:27.677Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I1d5a3b58858c303e"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "st attach writes no file for a new attachment on a realised thread, so it waits for organize --apply and doctor is silent"
+  }
+}

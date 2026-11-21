@@ -2599,7 +2599,8 @@
       "kind": "todo",
       "seq": 61,
       "text": "After the 3.5.0 cut and push (vc's ruling, not a regression): file a 3.5.x issue, owner cc. st attach on a realised thread writes no file when the path is absent (place_attachment -> replace_realised returns on NotFound, facade.rs:21035), so the file waits for organize --apply or hydrate, and doctor is silent. Fix: place_attachment creates the file when the thread's directory is realised and the path is absent, with its own test.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-21T14:40:31.209Z",
       "recorded_at": "2026-11-21T13:40:47.912Z"
     }
   ],
