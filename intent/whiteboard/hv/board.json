@@ -870,6 +870,14 @@
       "text": "vc COMMITS ic's UNCOMMITTED FILES WHILE ic STAYS PAUSED (hv, 2026-11-21, by selection in vc's question dialog; the question's and option's wording vc's, the choice hv's and vc's recommendation): \"vc commits them (Recommended)\". The eight paths are ic's four AT-11.2 and AC-11.2 events (01M7YAG*, 01M7YAH5), ic's two board events of 2026-11-20 (01M7WV0W, 01M7WWA4), and ic/board.json and ic/wip.md, so the cut's preflight meets a clean tree. A one-off exception to the single-writer rule, named in the commit; ic stays paused.",
       "state": "live",
       "recorded_at": "2026-11-21T09:49:52.425Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 82,
+      "text": "AC-03.3 IS BUILT IN 3.5.0 (hv, 2026-11-21, by selection in vc's question dialog, read by vc at 11:34Z on its date -u; the question's and options' wording vc's, the choice hv's and vc's recommendation): \"Build it in 3.5.0 (Recommended)\". The explorer screenshots stay byte-identical across runs on hashed ids: a test-only seed for event ids that only gen_explorer_shots.sh uses, and the tool reads each id back from its verb's output. Size M, one more full-check run before the cut; decision 69 holds whole. vc applies decision 69 to the rehearsal's other finding the same way: intent upgrade itself clears a tracked view of a record it does not realise (issue 0707's residue), rather than the docs alone.",
+      "state": "live",
+      "recorded_at": "2026-11-21T11:34:48.206Z"
     }
   ],
   "sent": [],
