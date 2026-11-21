@@ -1,6 +1,6 @@
-# Known defects in v3.4.0
+# Known defects in v3.5.0
 
-**Every defect on this page has been run against the build v3.4.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.3.3 (dev, 0d7de711bc35) dev`, each in a fresh scratch project under an isolated `HOME`. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.5.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.4.0 (dev, 039f3099866e) dev`, each in a fresh scratch project under an isolated `HOME`. A project this build makes mints git-style ids, so the threads and work packages in the transcripts below carry ids such as `ST73aa287b16c054f6`, and a run of your own will mint different ones. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-17T12:40:53.221Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -39,7 +39,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.3.3, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.4.0, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -49,14 +49,14 @@ at exit 1. `intent issues list` and `intent todo`, which have nothing to do with
 
 ## Threads
 
-**`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). After writing a body with `intent set intent:///threads/ST0001/wp/01 body <text>` and hydrating the thread, `intent/st/ST0001/WP/01/info.md` is on disk carrying that body, and:
+**`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). After writing a body with `intent set intent:///threads/<thread>/wp/<package> body <text>` and hydrating the thread, `intent/st/<thread>/WP/<package>/info.md` is on disk carrying that body, and:
 
 ```
-  $ intent wp show ST0001/01
-  ST0001/WP-01: first package
+  $ intent wp show ST73aa287b16c054f6/a4576708
+  ST73aa287/WP-a457: first package
   status: Not Started
   scope: S
-  criteria: none scoped to ST0001/01
+  criteria: none scoped to ST73aa287/a457
 ```
 
 None of the body is shown. `intent wp --help` describes the verb as `Show work package info.md`, so the description and the behaviour disagree. Read the file directly if you want its body.
@@ -66,19 +66,19 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 **The close gate passes a test row that cites no file** (`intent#0213`, and `intent#0229`, a second row for the same code site filed from an independent report). Create an AT with the default `--kind test` and no `--file`, take it red and then green, and both of these exit 0:
 
 ```
-  $ intent at lint ST0001
-  lint: ST0001 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
-  $ intent ac gate ST0001
-  gate: ST0001 PASS -- 1/1 satisfied
+  $ intent at lint STb54622e7fd14fe7a
+  lint: STb54622e7fd14fe7a ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
+  $ intent ac gate STb54622e7fd14fe7a
+  gate: STb54622e7fd14fe7a PASS -- 1/1 satisfied
 ```
 
 `at lint` names the row it did not examine and still answers `ok`; `ac gate` passes over it and says nothing.
 
 **A wrong file is caught and no file is not.** On a row citing a file that does not exist, `intent at red` and `intent at green` each refuse at exit 1 (``AT-01.2 cites `tests/missing.rs`, which does not exist, so `green` would make it a live absent_at finding``); on a row citing nothing, `intent at green` answers `ok: AT-01.1 -> green`. So a thread whose test rows lack readable citations can pass its own close gate over evidence nothing read. Read the `not examined` clause of `at lint` before trusting a gate PASS, and give every test row a file with `intent at edit <ST> <AT> --file <path>`.
 
-**The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). A test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed** (`git status` lists it untracked), returns `gate: ST0001 PASS -- 1/1 satisfied` at exit 0 -- and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
+**The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). A test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed** (`git status` lists it untracked), returns `gate: <thread> PASS -- 1/1 satisfied` at exit 0 -- and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
 
-Two controls make it sharp. Remove the file from the worktree and the gate flips to `gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): AT-01.1 cites a file that does not exist: tests/probe.rs`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
+Two controls make it sharp. Remove the file from the worktree and the gate flips to `gate: <thread> BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): AT-01.1 cites a file that does not exist: tests/probe.rs`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
 
 ## The rule critics
 
@@ -104,4 +104,4 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 `intent --version` names the build you are on, as `intent <version> (<tree>, <sha>) <kind>`. The tree is where the binary is installed: `brew` for a Homebrew install, `dev` for a build in a git checkout, `opt` for a tree `intent install` published, and `unknown` when it is none of these. The sha is the commit the binary was built at, followed by `+dirty` in a dev tree when the build, or a file it reads from the tree, differs from that commit. The last word says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.4.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `id`, `origin`, `realised`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.5.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
