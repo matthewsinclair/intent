@@ -1451,12 +1451,6 @@ fn test_line(t: &AcceptanceTest) -> String {
 /// Ordering matches v2's index exactly: in-flight threads first, then closed
 /// ones, each block by id descending. Taken from the committed exemplar and
 /// confirmed against `update_steel_threads_index` (`bin/intent_st:244`).
-/// THE thread ordering: open threads first, then newest id first.
-///
-/// One function because `intent st list` and the generated index must agree --
-/// `tests/unit/output_width.bats` asserts `st list --status all` and `st sync`
-/// render byte-identically, and two sorts that happen to match today would
-/// satisfy it until one of them changed.
 /// How many of an [`index_order`] run are still OPEN -- the index the closed
 /// ones begin at, and so the boundary between the two groups.
 ///
@@ -1473,22 +1467,37 @@ pub fn open_run(ordered: &[&Thread]) -> usize {
   ordered.iter().take_while(|t| !t.status.is_closed()).count()
 }
 
+/// THE thread ordering: open threads first, then newest first.
+///
+/// **NEWEST IS THE ONE RECORD ORDER REVERSED** (issue 0743): ordinals by
+/// number, hashed ids by when they were made, every hashed one above every
+/// ordinal. Compared by id, a git-style id's place said nothing about its
+/// age.
+///
+/// One function because `intent st list` and the generated index must agree --
+/// `tests/unit/output_width.bats` asserts `st list --status all` and `st sync`
+/// render byte-identically, and two sorts that happen to match today would
+/// satisfy it until one of them changed.
 pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
-  open_then_newest(threads, |t| t.status.is_closed(), |a, b| b.id.cmp(&a.id))
+  open_then_newest(
+    threads,
+    |t| t.status.is_closed(),
+    |a, b| crate::id::record_order(b, a),
+  )
 }
 
-/// THE issue ordering for the explorer: open issues first, then newest number
-/// first, which is the thread rule applied one entity over (hv, 2026-09-14:
+/// THE issue ordering for the explorer: open issues first, then newest first
+/// (the one record order reversed, issue 0743), which is the thread rule applied one entity over (hv, 2026-09-14:
 /// `/issues` listed oldest first with no seam, where `/threads` has both).
 ///
-/// **NOT `Facade::issue_list`'s NUMBER ORDER, WHICH STAYS AS IT IS.** That is
+/// **NOT `Facade::issue_list`'s RECORD ORDER, WHICH STAYS AS IT IS.** That is
 /// the order `intent issues list`, the MCP tool and the GraphQL face print;
 /// this is the collection order [`issue_open_run`] marks the seam in.
 pub fn issue_index_order(issues: &[Issue]) -> Vec<&Issue> {
   open_then_newest(
     issues,
     |i| i.status.is_closed(),
-    |a, b| b.number.cmp(&a.number),
+    |a, b| crate::id::record_order(b, a),
   )
 }
 

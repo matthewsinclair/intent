@@ -5949,8 +5949,8 @@ impl Facade {
   // Reads
   // -------------------------------------------------------------------------
 
-  /// Threads in the order the index renders them -- open first, newest id
-  /// first. Ascending id would have been the obvious choice and is wrong:
+  /// Threads in the order the index renders them -- open first, newest
+  /// first, the one record order reversed (issue 0743). Ascending id would have been the obvious choice and is wrong:
   /// v2 lists newest-first, and `st list` has to agree with the generated
   /// index byte for byte.
   pub fn st_list(&self) -> Vec<&Thread> {
@@ -5977,7 +5977,7 @@ impl Facade {
 
   /// Every issue in the explorer's collection order: open first, then newest
   /// first ([`views::issue_index_order`]), beside [`Self::issue_list`]'s
-  /// number order.
+  /// record order.
   pub fn issue_index(&self) -> Vec<&crate::model::Issue> {
     views::issue_index_order(&self.canon.issues)
   }

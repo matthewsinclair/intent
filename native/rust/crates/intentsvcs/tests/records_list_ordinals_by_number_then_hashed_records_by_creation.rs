@@ -158,3 +158,64 @@ fn the_disk_read_lists_hashed_threads_and_issues_by_creation_not_by_their_file_n
     "and hashed issues likewise"
   );
 }
+
+/// Issue 0743: **the two newest-first orders the views draw are the one record
+/// order reversed.** `st list`, the generated thread index and the explorer's
+/// /threads call `views::index_order`, and the explorer's /issues calls
+/// `views::issue_index_order`. Both compared ids as text, so git-style ids
+/// came out in hex order. Every record of a kind shares one status, so the
+/// open/closed split does not enter, and every hashed pair runs against its creation.
+#[test]
+fn the_views_newest_first_orders_list_hashed_records_newest_made_first_above_the_ordinals() {
+  let (early, late) = against_creation(ThreadId::from_origin);
+  let hashed = |origin: &str| {
+    let mut thread = sample_thread("ST0001");
+    thread.id = ThreadId::from_origin(origin);
+    thread.origin = Some(origin.to_string());
+    thread
+  };
+  let threads = [
+    hashed(early),
+    sample_thread("ST0010"),
+    hashed(late),
+    sample_thread("ST0002"),
+  ];
+  let order: Vec<ThreadId> = intentsvcs::views::index_order(&threads)
+    .iter()
+    .map(|t| t.id.clone())
+    .collect();
+  let ordinal_thread = |id: &str| ThreadId::parse(id).expect("an ordinal thread");
+  assert_eq!(
+    order,
+    [
+      ThreadId::from_origin(late),
+      ThreadId::from_origin(early),
+      ordinal_thread("ST0010"),
+      ordinal_thread("ST0002"),
+    ],
+    "threads list newest made first, hashed above ordinals, ordinals by number"
+  );
+
+  let (early, late) = against_creation(IssueId::from_origin);
+  let ordinal = |n| IssueId::from_ordinal(n).expect("an ordinal");
+  let issues = [
+    issue(IssueId::from_origin(early), Some(early)),
+    issue(ordinal(10), None),
+    issue(IssueId::from_origin(late), Some(late)),
+    issue(ordinal(2), None),
+  ];
+  let order: Vec<IssueId> = intentsvcs::views::issue_index_order(&issues)
+    .iter()
+    .map(|i| i.number)
+    .collect();
+  assert_eq!(
+    order,
+    [
+      IssueId::from_origin(late),
+      IssueId::from_origin(early),
+      ordinal(10),
+      ordinal(2),
+    ],
+    "and issues likewise"
+  );
+}
