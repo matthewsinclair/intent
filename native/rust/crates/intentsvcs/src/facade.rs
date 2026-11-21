@@ -37,6 +37,7 @@
 //! event log that did not record when things happened would not be one.
 
 use serde_json::{Value, json};
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::address::{Address, Entity as AddrEntity, Format as AddrFormat};
 use crate::contract::{self, Scope, Verdict};
@@ -275,10 +276,253 @@ pub struct Upgraded {
   /// conflict ST0096 removes.
   pub aggregate_untrack: AggregateUntrack,
   /// Whether this run passed a clean-tree guard before its first write: the
-  /// v2 conversion's, or the move to the release's canon format (ST0096). Only
-  /// then is every change in the tree this run's, so only then may the closing
-  /// line tell the operator to stage them all.
+  /// v2 conversion's, or the move to the release's canon format (ST0096).
+  ///
+  /// **IT SAYS WHETHER THE INDEX WAS READ, AND SO WHETHER A PLAIN COMMIT IS
+  /// EXACT** (intent-cc's ruling on issue 0745). A run that passed the guard
+  /// found the index holding nothing, so once the paths file's paths are staged a
+  /// plain `git commit` carries this run's changes and nothing else. A
+  /// convergent re-run never asked, and the index may hold someone's staged
+  /// work, which a plain commit would sweep in, so its closing line says to
+  /// read the index first.
   pub on_a_clean_tree: bool,
+  /// Every path this run wrote whose bytes changed, relative to the project
+  /// root, that git can stage (issue 0745). Each step names only a change it
+  /// made, so a convergent re-run names nothing.
+  ///
+  /// **THE PATHS FILE'S SET AND THE REPORT'S ARE ONE SET** (intent-cc's
+  /// ruling): inside a work tree a path git ignores is left out, because `git
+  /// add` refuses it and stages nothing; outside one, or when git could not be
+  /// asked, nothing is filtered. A path left out is still said where it is said
+  /// by its own line, eg `removed:` for the empty event log.
+  pub wrote: BTreeSet<std::path::PathBuf>,
+  /// Every path this run removed, on [`Upgraded::wrote`]'s terms: inside a
+  /// work tree only those the index holds, since a removed file git never had
+  /// is nothing to stage.
+  pub removed: BTreeSet<std::path::PathBuf>,
+  /// The file naming [`Upgraded::wrote`] and [`Upgraded::removed`] for
+  /// `git add --pathspec-from-file`, or why there is none.
+  pub paths_file: UpgradePaths,
+}
+
+impl Upgraded {
+  /// [`Upgraded::wrote`] and [`Upgraded::removed`] counted by the directory
+  /// each path is in, the project root as `./`: what the report prints, one
+  /// line a directory, where a first upgrade's thousands of paths would bury
+  /// every other line.
+  pub fn by_directory(&self) -> BTreeMap<String, DirectoryChanges> {
+    let directory = |path: &std::path::Path| {
+      path
+        .parent()
+        .map(|dir| crate::project::relative(std::path::Path::new(""), dir))
+        .filter(|dir| !dir.is_empty())
+        .map_or_else(|| "./".to_string(), |dir| format!("{dir}/"))
+    };
+    let mut dirs: BTreeMap<String, DirectoryChanges> = BTreeMap::new();
+    for path in &self.wrote {
+      dirs.entry(directory(path)).or_default().written += 1;
+    }
+    for path in &self.removed {
+      dirs.entry(directory(path)).or_default().removed += 1;
+    }
+    dirs
+  }
+
+  /// What the operator does to commit this run (issue 0745), decided here so
+  /// the renderer only words it.
+  ///
+  /// **A RUN THAT ONLY UNTRACKED STILL OWES A COMMIT** (intent-cc's ruling): a
+  /// staged deletion, the aggregate views' or the store's once its `untrack:`
+  /// step has run, is carried by a plain commit, so "nothing to commit" is for
+  /// an empty paths file and no `untrack:` line at all.
+  pub fn closing(&self) -> Closing {
+    let untrack_the_store_first = matches!(self.store_tracking, StoreTracking::Tracked(_));
+    let untracked_views = matches!(
+      &self.aggregate_untrack,
+      AggregateUntrack::Untracked(paths) if !paths.is_empty()
+    );
+    let step = match &self.paths_file {
+      UpgradePaths::Written(path) if !self.wrote.is_empty() || !self.removed.is_empty() => {
+        ClosingStep::StageThePaths(path.clone())
+      }
+      UpgradePaths::Written(path) if untracked_views || untrack_the_store_first => {
+        ClosingStep::CommitTheStagedDeletions(path.clone())
+      }
+      UpgradePaths::Written(_) => ClosingStep::NothingToCommit,
+      UpgradePaths::NoWorkTree => ClosingStep::NotAWorkTree,
+      UpgradePaths::Unasked(_) | UpgradePaths::NotWritten(_) => ClosingStep::CommitWhatIsNamed,
+    };
+    Closing {
+      step,
+      untrack_the_store_first,
+      read_the_index_first: !self.on_a_clean_tree,
+    }
+  }
+}
+
+/// How an upgrade's run is committed (issue 0745): [`Upgraded::closing`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Closing {
+  pub step: ClosingStep,
+  /// The store is tracked, so its `untrack:` step runs before anything else.
+  pub untrack_the_store_first: bool,
+  /// The run passed no clean-tree guard, so the index may hold someone's
+  /// staged work, which a plain commit would sweep in.
+  pub read_the_index_first: bool,
+}
+
+/// The commit an upgrade's run owes (issue 0745).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ClosingStep {
+  /// Stage the paths file's paths, at this project-relative path, from the
+  /// project root, then a plain commit, which carries any staged deletion.
+  StageThePaths(String),
+  /// Nothing to stage, but deletions are staged: a plain commit. The paths
+  /// file, empty, is still the one the index is read against.
+  CommitTheStagedDeletions(String),
+  /// Nothing for git to commit.
+  NothingToCommit,
+  /// Not a git work tree, so nothing to commit and no commit to make.
+  NotAWorkTree,
+  /// Git's filter never ran, so there is no paths file: every path in
+  /// [`Upgraded::wrote`] and [`Upgraded::removed`] is named on its own `wrote:`
+  /// or `removed:` line, true commit lines here, and those are committed
+  /// (intent-cc's ruling).
+  CommitWhatIsNamed,
+}
+
+/// How many of one directory's paths an upgrade wrote and removed (issue 0745).
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct DirectoryChanges {
+  pub written: usize,
+  pub removed: usize,
+}
+
+/// The upgrade's file of its own paths (issue 0745): written last, holding
+/// every path in [`Upgraded::wrote`] and [`Upgraded::removed`], NUL-separated,
+/// for `git add --pathspec-from-file --pathspec-file-nul`. Per-machine, under
+/// the ignored `.cache/`, and overwritten by each run; a run that writes none
+/// removes the last run's, so the file never names another run's paths.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UpgradePaths {
+  /// Written, at this project-relative path.
+  Written(String),
+  /// Not a git work tree: nothing to stage, so no file.
+  NoWorkTree,
+  /// Git could not be asked which paths it can stage, and why. **No filter is
+  /// guessed at**, so no file is written.
+  Unasked(String),
+  /// The file could not be written, or the last run's could not be removed,
+  /// and why. The upgrade had landed by then, so this is reported, never
+  /// returned.
+  NotWritten(String),
+}
+
+/// What an upgrade's steps changed, as they change it (issue 0745), each path
+/// keyed relative to the project root as it is recorded, so two spellings of
+/// one file are one entry. The last act on a path wins, so a view written and
+/// then removed is a removal.
+#[derive(Debug, Default)]
+struct Ledger {
+  wrote: BTreeSet<String>,
+  removed: BTreeSet<String>,
+}
+
+impl Ledger {
+  fn wrote(&mut self, project: &Project, path: &std::path::Path) {
+    let path = project.relative(path);
+    self.removed.remove(&path);
+    self.wrote.insert(path);
+  }
+
+  fn removed(&mut self, project: &Project, path: &std::path::Path) {
+    let path = project.relative(path);
+    self.wrote.remove(&path);
+    self.removed.insert(path);
+  }
+}
+
+/// The ledger as the report and the paths file give it (issue 0745): inside a
+/// work tree, only the paths git can stage, written to
+/// [`Project::upgrade_paths`].
+///
+/// **ONE SET FOR THE FILE AND THE REPORT, AND GIT IS ASKED, NEVER GUESSED AT**
+/// (intent-cc's ruling). A git that cannot be asked leaves the ledger
+/// unfiltered and writes no file; outside a work tree there is nothing to
+/// stage, so there is none either, and either way the last run's is removed.
+/// The upgrade has landed when this runs, so a failure is said in
+/// [`UpgradePaths::NotWritten`], never returned.
+fn settle_the_ledger(
+  project: &Project,
+  ledger: Ledger,
+) -> (
+  BTreeSet<std::path::PathBuf>,
+  BTreeSet<std::path::PathBuf>,
+  UpgradePaths,
+) {
+  let as_paths = |paths: BTreeSet<String>| -> BTreeSet<std::path::PathBuf> {
+    paths.into_iter().map(std::path::PathBuf::from).collect()
+  };
+  let root = project.root();
+  let stageable = match crate::gitstate::work_tree(root) {
+    Ok(false) => Err(UpgradePaths::NoWorkTree),
+    Ok(true) => crate::gitstate::stageable(
+      root,
+      &ledger.wrote.union(&ledger.removed).cloned().collect(),
+    )
+    .map_err(|cause| UpgradePaths::Unasked(cause.to_string())),
+    Err(cause) => Err(UpgradePaths::Unasked(cause.to_string())),
+  };
+  let stageable = match stageable {
+    Ok(stageable) => stageable,
+    Err(none) => {
+      let none = without_the_last_runs_paths(project, none);
+      return (as_paths(ledger.wrote), as_paths(ledger.removed), none);
+    }
+  };
+  let path = project.upgrade_paths();
+  let mut set = WriteSet::new();
+  set.add(
+    path.clone(),
+    stageable
+      .iter()
+      .map(|staged| format!("{staged}\0"))
+      .collect(),
+  );
+  let paths_file = match set.commit() {
+    Ok(applied) => {
+      applied.keep();
+      UpgradePaths::Written(project.relative(&path))
+    }
+    Err(cause) => without_the_last_runs_paths(project, UpgradePaths::NotWritten(cause.to_string())),
+  };
+  (
+    as_paths(ledger.wrote.intersection(&stageable).cloned().collect()),
+    as_paths(ledger.removed.intersection(&stageable).cloned().collect()),
+    paths_file,
+  )
+}
+
+/// `none`, once the last run's paths file is gone, so it never names another
+/// run's paths beside this run's line saying there is none. A removal that
+/// fails is said with the reason there is none, never dropped.
+fn without_the_last_runs_paths(project: &Project, none: UpgradePaths) -> UpgradePaths {
+  let path = project.upgrade_paths();
+  match std::fs::remove_file(&path) {
+    Ok(()) => none,
+    Err(cause) if cause.kind() == std::io::ErrorKind::NotFound => none,
+    Err(cause) => {
+      let why = match &none {
+        UpgradePaths::NoWorkTree => "not a git work tree".to_string(),
+        UpgradePaths::Unasked(why) | UpgradePaths::NotWritten(why) => why.clone(),
+        UpgradePaths::Written(_) => String::new(),
+      };
+      UpgradePaths::NotWritten(format!(
+        "{why}; and the last run's {} could not be removed, so it still names that run's paths: {cause}",
+        project.relative(&path)
+      ))
+    }
+  }
 }
 
 /// What [`Facade::open_read_only`] opened, or where it stopped (AC-12.1).
@@ -483,11 +727,13 @@ fn issue_home(project: &Project, id: &str) -> Result<std::path::PathBuf, FacadeE
 }
 
 /// Remove `.intentfiles` once `intent upgrade` has folded it into the records
-/// (ST0096 WP-01). Absent is the ordinary state of a re-run.
-fn remove_folded_manifest(project: &Project) -> Result<(), std::io::Error> {
+/// (ST0096 WP-01). Absent is the ordinary state of a re-run. Whether it
+/// removed one, for the upgrade's ledger (issue 0745).
+fn remove_folded_manifest(project: &Project) -> Result<bool, std::io::Error> {
   match std::fs::remove_file(project.intentfiles_path()) {
-    Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(()),
-    other => other,
+    Ok(()) => Ok(true),
+    Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(false),
+    Err(source) => Err(source),
   }
 }
 
@@ -770,7 +1016,8 @@ fn message_says<'a>(events: &'a [Envelope], origin: &'a Envelope) -> &'a serde_j
 }
 
 /// Write a committed file for every PROJECT event the store holds and the tree
-/// lacks, and return how many were written (ST0078 P1's backfill, AC-01.4).
+/// lacks, and return the paths it wrote (ST0078 P1's backfill, AC-01.4; named
+/// rather than counted for the upgrade's ledger, issue 0745).
 ///
 /// **ONCE AND IDEMPOTENTLY, BY CONSTRUCTION.** A file whose path exists is
 /// skipped and never compared: an event file is never rewritten, so after the
@@ -783,7 +1030,7 @@ fn message_says<'a>(events: &'a [Envelope], origin: &'a Envelope) -> &'a serde_j
 pub(crate) fn backfill_event_files(
   project: &Project,
   store: &mut Store,
-) -> Result<usize, FacadeError> {
+) -> Result<Vec<std::path::PathBuf>, FacadeError> {
   let mut set = WriteSet::new();
   for event in store.events()? {
     if !crate::event::travels(&event.op) {
@@ -796,23 +1043,27 @@ pub(crate) fn backfill_event_files(
     set.add(path, body);
   }
   if set.is_empty() {
-    return Ok(0);
+    return Ok(Vec::new());
   }
   let applied = set.commit()?;
   let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
   applied.keep();
   ingest::record_canon_files(project, store, &landed)?;
-  Ok(landed.len())
+  Ok(landed)
 }
 
-pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
+/// Converge `.gitignore` on the rules a project ignores, and return its path
+/// when its bytes changed (issue 0745), `None` when they already agreed.
+pub(crate) fn converge_gitignore(
+  project: &Project,
+) -> Result<Option<std::path::PathBuf>, std::io::Error> {
   let dir = project
     .intent_dir()
     .file_name()
     .map(|n| n.to_string_lossy().into_owned())
     .unwrap_or_else(|| "intent".to_string());
   let path = project.root().join(".gitignore");
-  let current = std::fs::read_to_string(&path).unwrap_or_default();
+  let current = read_unless_absent(&path)?;
   let mut next = current.clone();
   // **EVERY RULE IS SPELT FROM THE PROJECT'S OWN RELATIVE PATH**, as the
   // aggregate views' patterns are, so an intent directory below the root is
@@ -839,9 +1090,10 @@ pub(crate) fn converge_gitignore(project: &Project) -> Result<(), std::io::Error
     next = without_rule(&next, &format!("{dir}/{member}"), &format!("# {why}"));
   }
   if next == current {
-    return Ok(());
+    return Ok(None);
   }
-  std::fs::write(&path, next)
+  std::fs::write(&path, next)?;
+  Ok(Some(path))
 }
 
 /// Remove the empty, untracked `intent/events.jsonl` an earlier upgrade left
@@ -967,9 +1219,9 @@ fn without_rule(text: &str, rule: &str, comment: &str) -> String {
 pub(crate) fn converge_formatter_exclusion(
   project: &Project,
 ) -> Result<Vec<String>, std::io::Error> {
-  let path = project.root().join(".prettierignore");
-  let current = std::fs::read_to_string(&path).unwrap_or_default();
-  let missing = formatter_exclusion_missing(project);
+  let path = formatter_ignore_path(project);
+  let current = read_unless_absent(&path)?;
+  let missing = uncovered_patterns(&current, project.generated_view_patterns());
   if missing.is_empty() {
     return Ok(missing);
   }
@@ -990,12 +1242,37 @@ pub(crate) fn converge_formatter_exclusion(
   Ok(missing)
 }
 
+/// The formatter's ignore file, which [`converge_formatter_exclusion`] appends
+/// to: one home for its path, which the upgrade's ledger names too (issue 0745).
+pub(crate) fn formatter_ignore_path(project: &Project) -> std::path::PathBuf {
+  project.root().join(".prettierignore")
+}
+
 /// The generated views' formatter-ignore patterns a project's `.prettierignore`
 /// does not cover: what [`converge_formatter_exclusion`] appends, asked without
 /// writing so a dry run can report it (0378).
-pub(crate) fn formatter_exclusion_missing(project: &Project) -> Vec<String> {
-  let current = std::fs::read_to_string(project.root().join(".prettierignore")).unwrap_or_default();
-  uncovered_patterns(&current, project.generated_view_patterns())
+pub(crate) fn formatter_exclusion_missing(
+  project: &Project,
+) -> Result<Vec<String>, std::io::Error> {
+  let current = read_unless_absent(&formatter_ignore_path(project))?;
+  Ok(uncovered_patterns(
+    &current,
+    project.generated_view_patterns(),
+  ))
+}
+
+/// A file's text, or "" when there is no file.
+///
+/// **ONLY AN ABSENT FILE READS AS EMPTY.** The ignore-file converges read every
+/// failure as "", so a `.gitignore` or `.prettierignore` they could not read
+/// (no permission, bytes that are not UTF-8) was overwritten with Intent's rules
+/// alone, the operator's lines gone, and since issue 0745 that overwrite would
+/// be named for the upgrade's commit. Any other failure is the error.
+fn read_unless_absent(path: &std::path::Path) -> Result<String, std::io::Error> {
+  match std::fs::read_to_string(path) {
+    Err(cause) if cause.kind() == std::io::ErrorKind::NotFound => Ok(String::new()),
+    read => read,
+  }
 }
 
 /// The patterns in `wanted` that no line of `ignore_file` covers.
@@ -1060,12 +1337,6 @@ fn probe_matcher(ignore_file: &str) -> Option<ignore::gitignore::Gitignore> {
   builder.build().ok()
 }
 
-/// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
-/// MIGRATION** -- see [`Facade::upgrade`] for the three reasons.
-///
-/// The file is rewritten from its parsed form with only this key replaced, so
-/// an unknown key a project carries survives: `config.json` is the operator's
-/// file and the migration has no business pruning it.
 /// **THE CANON FORMAT MOVES TO THE RELEASE'S, BEFORE THE AGGREGATE VIEWS LEAVE
 /// GIT'S INDEX AND THE STAMP** (ST0095 WP-06, design "Upgrading a project";
 /// ST0096 WP-02 put the untrack between this and the stamp). A git that refuses
@@ -1078,8 +1349,13 @@ fn probe_matcher(ignore_file: &str) -> Option<ignore::gitignore::Gitignore> {
 /// or a migration rung seeded, and records the same state in the store, which
 /// every writer reads. An upgrade stopped before it leaves the file naming
 /// 3.4.0's format, whose reader takes each record by its own schema, and the
-/// next upgrade writes it.
-fn move_the_canon_format(project: &Project, store: &Store) -> Result<(), FacadeError> {
+/// next upgrade writes it. Returns what it wrote, for the upgrade's ledger
+/// (issue 0745): `project.json` when its bytes changed, and nothing on a
+/// re-run that finds them right.
+fn move_the_canon_format(
+  project: &Project,
+  store: &Store,
+) -> Result<Vec<std::path::PathBuf>, FacadeError> {
   let format = crate::canon_format::CanonFormat::CURRENT;
   let watermark = store.todo_watermark()?;
   let mut set = WriteSet::new();
@@ -1087,12 +1363,22 @@ fn move_the_canon_format(project: &Project, store: &Store) -> Result<(), FacadeE
     project.project_json(),
     crate::canon_format::encode_project_state(watermark.clone(), format)?,
   );
-  set.commit()?.keep();
+  let applied = set.commit()?;
+  let wrote: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
+  applied.keep();
   store.set_project_state(&crate::model::ProjectState::new(watermark, format))?;
-  Ok(())
+  Ok(wrote)
 }
 
-fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
+/// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
+/// MIGRATION** -- see [`Facade::upgrade`] for the three reasons.
+///
+/// The file is rewritten from its parsed form with only this key replaced, so
+/// an unknown key a project carries survives: `config.json` is the operator's
+/// file and the migration has no business pruning it. Returns its path when
+/// the bytes changed, for the upgrade's ledger (issue 0745): a re-run whose
+/// stamp is already there writes nothing.
+fn stamp_version(project: &Project) -> Result<Option<std::path::PathBuf>, std::io::Error> {
   let path = Project::config_path(project.root());
   let text = std::fs::read_to_string(&path)?;
   let mut value: serde_json::Value = serde_json::from_str(&text).map_err(std::io::Error::other)?;
@@ -1170,7 +1456,11 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
 
   let mut out = serde_json::to_string_pretty(&value).map_err(std::io::Error::other)?;
   out.push('\n');
-  std::fs::write(&path, out)
+  if out == text {
+    return Ok(None);
+  }
+  std::fs::write(&path, out)?;
+  Ok(Some(path))
 }
 
 /// What `Facade::export` produced -- **a document, or a realised tree**.
@@ -5884,6 +6174,10 @@ impl Facade {
 
     let files = writes.len();
     let applied = writes.commit()?;
+    // What the plan's commit changed, read now: `written` skips a path whose
+    // bytes already matched, so a convergent re-run names none (issue 0745).
+    let plan_wrote: Vec<std::path::PathBuf> =
+      applied.written().map(std::path::PathBuf::from).collect();
 
     // Everything past here has files on disk, so a failure unwinds them rather
     // than leaving a half-converted estate. `keep()` is reached only once the
@@ -5891,7 +6185,8 @@ impl Facade {
     // Returns what the prune did, because the caller reports it and a closure
     // that swallowed it would make the removal unreviewable.
     // What the prune removed, what it deferred, the leftovers it judged, the
-    // events backfilled, and the old single-file log's fate (issue 0459).
+    // events backfilled, the old single-file log's fate (issue 0459), and the
+    // ledger of every path the steps changed (issue 0745).
     type Finished = (
       Vec<std::path::PathBuf>,
       Vec<std::path::PathBuf>,
@@ -5899,6 +6194,7 @@ impl Facade {
       usize,
       Option<EventLogLeftover>,
       AggregateUntrack,
+      Ledger,
     );
     // Whether the fold has a manifest to remove, read before the run removes it.
     let manifest_folded = project
@@ -5906,6 +6202,13 @@ impl Facade {
       .exists()
       .then(|| project.intentfiles_path());
     let finish = || -> Result<Finished, FacadeError> {
+      // **EACH STEP NAMES ONLY WHAT IT CHANGED** (issue 0745, intent-cc's
+      // design): a WriteSet's `written`, and a std::fs step's path only when its
+      // bytes moved, so a convergent re-run's ledger is empty.
+      let mut ledger = Ledger::default();
+      for path in &plan_wrote {
+        ledger.wrote(project, path);
+      }
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
       // **AND THE PROJECT STATE, WHICH THE REBUILD DOES NOT CARRY** (issue
@@ -5953,25 +6256,42 @@ impl Facade {
               step: "removing the v2 tree the store now holds",
               cause,
             })?;
+            ledger.removed(project, path);
             pruned.push(path.clone());
           }
         }
       }
-      converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
-        step: "adding the per-machine artefacts and the aggregate views to .gitignore",
-        cause,
-      })?;
+      let gitignore =
+        converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
+          step: "adding the per-machine artefacts and the aggregate views to .gitignore",
+          cause,
+        })?;
+      if let Some(path) = gitignore {
+        ledger.wrote(project, &path);
+      }
       let event_log_leftover =
         remove_event_log_leftover(project).map_err(|cause| FacadeError::MigrationHalted {
           step: "removing the empty event log an earlier upgrade left",
           cause,
         })?;
-      let events_backfilled = backfill_event_files(project, &mut store)?;
-      converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {
-        step: "keeping the formatter off generated views",
-        cause,
-      })?;
-      move_the_canon_format(project, &store)?;
+      if let Some(EventLogLeftover::Removed(path)) = &event_log_leftover {
+        ledger.removed(project, path);
+      }
+      let backfilled = backfill_event_files(project, &mut store)?;
+      for path in &backfilled {
+        ledger.wrote(project, path);
+      }
+      let excluded =
+        converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {
+          step: "keeping the formatter off generated views",
+          cause,
+        })?;
+      if !excluded.is_empty() {
+        ledger.wrote(project, &formatter_ignore_path(project));
+      }
+      for path in move_the_canon_format(project, &store)? {
+        ledger.wrote(project, &path);
+      }
       // **THE AGGREGATE VIEWS LEAVE GIT'S INDEX LAST BEFORE THE STAMP** (ST0096,
       // AC-02.1), so a git that cannot be asked halts the upgrade unstamped and
       // re-runnable, and no fallible step between the untrack and the stamp can
@@ -5979,27 +6299,35 @@ impl Facade {
       // every view whose deletion is still staged.
       let aggregate_untrack =
         untrack_aggregate_views(project).map_err(FacadeError::AggregateViewsNotUntracked)?;
-      stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
+      let stamped = stamp_version(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "stamping the project version",
         cause,
       })?;
+      if let Some(path) = stamped {
+        ledger.wrote(project, &path);
+      }
       // **THE MANIFEST GOES LAST, AFTER THE FORMAT HAS MOVED** (ST0096 WP-01).
       // The plan folded its rows into the records it wrote. Stopped before
       // this line, the project is in the release's format with a manifest
       // nothing reads, and a re-run keeps what the records say and removes it.
       // Removed before the format moved, a re-run would read 3.4.0's format
       // with no manifest and fold the default over the rows.
-      remove_folded_manifest(project).map_err(|cause| FacadeError::MigrationHalted {
-        step: "removing the realisation manifest the records now carry",
-        cause,
-      })?;
+      let folded =
+        remove_folded_manifest(project).map_err(|cause| FacadeError::MigrationHalted {
+          step: "removing the realisation manifest the records now carry",
+          cause,
+        })?;
+      if folded {
+        ledger.removed(project, &project.intentfiles_path());
+      }
       Ok((
         pruned,
         deferred,
         leftovers,
-        events_backfilled,
+        backfilled.len(),
         event_log_leftover,
         aggregate_untrack,
+        ledger,
       ))
     };
     match finish() {
@@ -6010,6 +6338,7 @@ impl Facade {
         events_backfilled,
         event_log_leftover,
         aggregate_untrack,
+        mut ledger,
       )) => {
         applied.keep();
         // **THE VIEWS OF EVERY UNDECLARED RECORD GO, THROUGH ORGANIZE'S OWN
@@ -6034,14 +6363,22 @@ impl Facade {
           Err(cause) => Err(cause.to_string()),
         };
         let (dehydrated, dehydrate_refused) = match examined {
-          Ok(report) => (
-            report.dehydrated,
-            report
-              .refused
-              .iter()
-              .map(crate::remedy::Remedy::render)
-              .collect(),
-          ),
+          Ok(report) => {
+            for path in report.hydrated.iter().chain(&report.rewritten) {
+              ledger.wrote(project, path);
+            }
+            for path in report.dehydrated.iter().chain(&report.pruned_legacy) {
+              ledger.removed(project, path);
+            }
+            (
+              report.dehydrated,
+              report
+                .refused
+                .iter()
+                .map(crate::remedy::Remedy::render)
+                .collect(),
+            )
+          }
           Err(cause) => (
             Vec::new(),
             vec![format!(
@@ -6050,7 +6387,13 @@ impl Facade {
           ),
         };
         let store_tracking = store_tracking(project);
+        // **THE PATHS FILE IS WRITTEN LAST, AFTER THE DEHYDRATE** (intent-cc's
+        // ruling on issue 0745), so it names every path the run changed.
+        let (wrote, removed, paths_file) = settle_the_ledger(project, ledger);
         Ok(Upgraded {
+          wrote,
+          removed,
+          paths_file,
           on_a_clean_tree,
           store_tracking,
           aggregate_untrack,
@@ -7347,8 +7690,15 @@ impl Facade {
     )
     .map_err(FacadeError::Canon)?;
     // Issue 0378: a consumer that took canon before the exclusion covered every generated view never received the rest, and no verb converged it.
+    let ignore_file = formatter_ignore_path(&self.project);
     let excluded = if opts.report {
-      formatter_exclusion_missing(&self.project)
+      // A report only reads the file, so a failure is a read's.
+      formatter_exclusion_missing(&self.project).map_err(|source| {
+        FacadeError::Canon(crate::canon::CanonError::Unreadable {
+          path: ignore_file,
+          source,
+        })
+      })?
     } else {
       let written: Vec<std::path::PathBuf> =
         applied.written.iter().map(|w| w.path.clone()).collect();
@@ -7358,14 +7708,12 @@ impl Facade {
       self.landed.extend(written);
       let added = converge_formatter_exclusion(&self.project).map_err(|source| {
         FacadeError::Canon(crate::canon::CanonError::Unwritable {
-          path: self.project.root().join(".prettierignore"),
+          path: ignore_file,
           source,
         })
       })?;
       if !added.is_empty() {
-        self
-          .landed
-          .push(self.project.root().join(".prettierignore"));
+        self.landed.push(formatter_ignore_path(&self.project));
       }
       added
     };

@@ -2666,18 +2666,31 @@ impl Project {
     self.intent_dir().join(canon_issue_rel(id))
   }
 
+  /// The per-machine directory beside the canon (D21): the store and every
+  /// file kept with it, ignored and never committed. One home for its path.
+  pub fn cache_dir(&self) -> PathBuf {
+    self.intent_dir().join(".cache")
+  }
+
   /// The SQLite db (D21) -- gitignored, and the durable SSOT rather than a
   /// cache. Gitignored is about TRANSPORT, not authority: the committed
   /// extract is how the estate travels, and the store is re-created from it on
   /// a fresh clone.
   pub fn db_path(&self) -> PathBuf {
-    self.intent_dir().join(".cache").join("intent.db")
+    self.cache_dir().join("intent.db")
+  }
+
+  /// The manifest of the paths the last `intent upgrade` wrote or removed, for
+  /// `git add --pathspec-from-file` (issue 0745): beside the store, ignored
+  /// with it, per-machine and never committed.
+  pub fn upgrade_paths(&self) -> PathBuf {
+    self.cache_dir().join("upgrade.paths")
   }
 
   /// The lock a board write holds from reading the store to recording what it
   /// landed (issue 0662), beside the store it serialises and gitignored with it.
   pub fn board_lock_path(&self) -> PathBuf {
-    self.intent_dir().join(".cache").join("board.lock")
+    self.cache_dir().join("board.lock")
   }
 
   /// Where a language's level-3 toolchain builds (ST0076 WP-05, vc decision 25
@@ -2685,7 +2698,7 @@ impl Project {
   /// project's build directory, so resolving a project leaves its own build
   /// artefacts as they were.
   pub fn resolve_cache_dir(&self, lang: &str) -> PathBuf {
-    self.intent_dir().join(".cache").join("resolve").join(lang)
+    self.cache_dir().join("resolve").join(lang)
   }
 
   /// The thread index view, one of [`INDEX_VIEWS`]. Beside the threads it

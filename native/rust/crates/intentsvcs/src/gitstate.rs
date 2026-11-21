@@ -25,6 +25,7 @@
 //! failed is a typed error with a remedy, because a plan built on an index it
 //! could not read would say nothing was unmerged exactly when it could not look.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 use std::process::Command;
 
@@ -220,13 +221,7 @@ pub fn files_under(root: &Path, rev: &str, prefix: &str) -> Result<Vec<String>, 
     root,
     &["ls-tree", "-r", "-z", "--name-only", rev, "--", prefix],
   )?;
-  Ok(
-    out
-      .split(|b| *b == 0)
-      .filter(|r| !r.is_empty())
-      .map(|r| String::from_utf8_lossy(r).to_string())
-      .collect(),
-  )
+  Ok(nul_records(&out).collect())
 }
 
 /// Is `path` in the index? Outside a work tree nothing is.
@@ -271,6 +266,48 @@ pub fn staged_deletions_matching(
   )
 }
 
+/// The members of `paths`, each relative to `root`, that `git add` can stage:
+/// those the index holds and those on disk that git does not ignore (issue
+/// 0745).
+///
+/// **ONE CALL, AND `git add` IS WHY IT IS ASKED AT ALL.** Given a pathspec it
+/// cannot stage, an ignored file or a removed file the index never held,
+/// `git add --pathspec-from-file` stops at the first one and stages nothing.
+/// The index and the untracked files git does not ignore are listed once and
+/// `paths` is read against that list, so a first upgrade's thousands of paths
+/// cost one process and never meet the command line's length limit. Asked only
+/// inside a work tree; a git that refuses is the error, never a set to guess at.
+pub fn stageable(root: &Path, paths: &BTreeSet<String>) -> Result<BTreeSet<String>, GitStateError> {
+  if paths.is_empty() {
+    return Ok(BTreeSet::new());
+  }
+  let out = run(
+    root,
+    &[
+      "ls-files",
+      "-z",
+      "--cached",
+      "--others",
+      "--exclude-standard",
+    ],
+  )?;
+  Ok(
+    nul_records(&out)
+      .filter(|listed| paths.contains(listed))
+      .collect(),
+  )
+}
+
+/// The records of git's `-z` output: NUL-separated, the empty ones (the
+/// trailing NUL's) dropped, each read as text. **ONE READING** of every `-z`
+/// answer this module takes as a list of paths.
+fn nul_records(out: &[u8]) -> impl Iterator<Item = String> + '_ {
+  out
+    .split(|b| *b == 0)
+    .filter(|r| !r.is_empty())
+    .map(|r| String::from_utf8_lossy(r).to_string())
+}
+
 /// Patterns as git's `:(glob)` pathspecs, `*` within one segment, as
 /// `.gitignore` reads them.
 fn globs(patterns: &[String]) -> Vec<String> {
@@ -297,11 +334,7 @@ fn matching(
   args.push("--");
   args.extend(pathspecs.iter().map(String::as_str));
   let out = run(root, &args)?;
-  let mut paths: Vec<String> = out
-    .split(|b| *b == 0)
-    .filter(|r| !r.is_empty())
-    .map(|r| String::from_utf8_lossy(r).to_string())
-    .collect();
+  let mut paths: Vec<String> = nul_records(&out).collect();
   paths.sort();
   paths.dedup();
   Ok(paths)
@@ -338,13 +371,7 @@ pub fn staged(root: &Path, paths: &[String]) -> Result<Vec<String>, GitStateErro
   let mut args = vec!["diff", "--cached", "--name-only", "--relative", "-z", "--"];
   args.extend(paths.iter().map(String::as_str));
   let out = run(root, &args)?;
-  Ok(
-    out
-      .split(|b| *b == 0)
-      .filter(|r| !r.is_empty())
-      .map(|r| String::from_utf8_lossy(r).to_string())
-      .collect(),
-  )
+  Ok(nul_records(&out).collect())
 }
 
 /// The files under `prefix` whose WORK TREE bytes HEAD does not already hold,
@@ -384,11 +411,8 @@ pub fn uncommitted(root: &Path, prefix: &str) -> Result<Vec<String>, GitStateErr
   } else {
     run(root, &["ls-files", "--cached", "-z", "--", prefix])?
   };
-  let mut paths: Vec<String> = untracked
-    .split(|b| *b == 0)
-    .chain(tracked.split(|b| *b == 0))
-    .filter(|r| !r.is_empty())
-    .map(|r| String::from_utf8_lossy(r).to_string())
+  let mut paths: Vec<String> = nul_records(&untracked)
+    .chain(nul_records(&tracked))
     .collect();
   paths.sort();
   paths.dedup();

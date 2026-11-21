@@ -523,7 +523,9 @@ Both clones print those same six lines; the store's total under them differs, be
   $ intent upgrade
   ...
   untrack: git tracks intent/.cache/intent.db, and the ignore rule this upgrade wrote does not untrack it -- run `git rm --cached intent/.cache/intent.db` and commit that with this upgrade, or every commit carries this machine's store
-  ok: this project is now Intent ... -- commit the changes named above
+    intent/.config/: 1 written, 0 removed
+  paths: intent/.cache/upgrade.paths -- every path this run wrote or removed, for the closing line's git add; ignored, never committed
+  ok: this project is now Intent ... -- run the untrack: step above first, then, from the project root, stage exactly what this run changed with `git add --pathspec-from-file=intent/.cache/upgrade.paths --pathspec-file-nul`, then commit with a plain `git commit`, which carries the deletions this run staged with it; this run did not check the index, so read `git diff --cached --name-only` before the commit; anything there that is not in intent/.cache/upgrade.paths is not this run's
   $ intent doctor
   advisory: store-tracked -- 1 finding, not counted in the verdict
   ...
@@ -531,9 +533,13 @@ Both clones print those same six lines; the store's total under them differs, be
   $ git status --short --untracked-files=all
   D  intent/.cache/intent.db
    M intent/.config/config.json
+  $ git add --pathspec-from-file=intent/.cache/upgrade.paths --pathspec-file-nul
+  $ git commit -q -m "the upgrade, the store untracked"
+  $ git status --short --untracked-files=all
+  $ git ls-files intent/.cache
 ```
 
-Commit all of it. Left tracked, the store rides in every teammate's next commit, and their pulls collide on it. `git ls-files intent/.cache` then lists nothing.
+The upgrade counts what it changed by directory and names every path in `intent/.cache/upgrade.paths`, a file each run writes for this machine and nobody commits. Its closing line's two steps stage those paths and commit them with the store's staged deletion, and `git status` and `git ls-files intent/.cache` then list nothing. This project was born in the current format, so the upgrade is a convergent re-run that did not check the index, and the line says to read it first. Left tracked, the store rides in every teammate's next commit, and their pulls collide on it.
 
 ## Everyone runs a compatible Intent
 

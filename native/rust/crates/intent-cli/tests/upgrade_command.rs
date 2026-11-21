@@ -641,14 +641,7 @@ fn a_hook_canon_cannot_rewrite_is_named_with_its_reason() {
 
 /// `git` in `root`, asserted to succeed.
 fn git(root: &std::path::Path, args: &[&str]) {
-  let ok = std::process::Command::new("git")
-    .args(args)
-    .current_dir(root)
-    .stdin(testkit::lifeline_for(args))
-    .status()
-    .expect("run git")
-    .success();
-  assert!(ok, "git {args:?} failed at {}", root.display());
+  git_out(root, args);
 }
 
 /// Issue 0551: **A STORE GIT TRACKS IS NAMED, BY THE UPGRADE AND BY DOCTOR.**
@@ -753,5 +746,148 @@ fn a_flat_on_hold_thread_converts_to_an_estate_doctor_passes() {
   assert!(
     !format!("{out}{err}").contains("refusing to dehydrate"),
     "the second upgrade refuses the held thread's view: {out}{err}"
+  );
+}
+
+/// `git` in `root`, asserted to succeed, answering what it printed.
+fn git_out(root: &std::path::Path, args: &[&str]) -> Vec<u8> {
+  let out = std::process::Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .stdin(testkit::lifeline_for(args))
+    .output()
+    .expect("run git");
+  assert!(
+    out.status.success(),
+    "git {args:?} failed at {}: {}",
+    root.display(),
+    String::from_utf8_lossy(&out.stderr)
+  );
+  out.stdout
+}
+
+/// NUL-separated paths, as a set.
+fn nul_paths(bytes: &[u8]) -> std::collections::BTreeSet<String> {
+  bytes
+    .split(|b| *b == 0)
+    .filter(|path| !path.is_empty())
+    .map(|path| String::from_utf8_lossy(path).into_owned())
+    .collect()
+}
+
+/// Issue 0745. **THE UPGRADE NAMES EVERY PATH IT CHANGED IN A MANIFEST, AND
+/// ITS CLOSING LINE COMMITS EXACTLY THOSE.** A 3.4.0 project whose aggregate
+/// views git tracks, as 3.4.0 committed them, is upgraded through the binary.
+/// What `git status` shows changed, less the views the run untracked (their
+/// deletion is staged and they stay on disk, ignored), is the manifest's set.
+/// The closing line's two steps, `git add` from the manifest and a plain
+/// commit, leave nothing behind, the staged deletions included. A second run
+/// changes nothing, writes an empty manifest, and says so.
+#[test]
+fn the_upgrade_names_every_path_it_changed_and_its_two_steps_commit_them() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "manifest-fixture"], root);
+  assert_eq!(code, 0, "init: {err}");
+  crate::common::born_ordinal(root);
+  crate::common::seed_init_manifest(root);
+  let st = intentsvcs::id::ThreadId::from_ordinal(1)
+    .expect("an ordinal thread")
+    .stored();
+  crate::common::seed_ordinal_thread(root, &st, "An ordinal thread", &[(1, "A package")]);
+  crate::common::seed_ordinal_issue(root, 1, "An ordinal issue");
+  let (_, err, code) = run(&["st", "list"], root);
+  assert_eq!(code, 0, "the 3.4.0 project renders its views: {err}");
+  git_ready(root);
+  // 3.4.0 committed its aggregate views: every file git ignores but the store.
+  let ignored: Vec<String> = nul_paths(&git_out(
+    root,
+    &[
+      "ls-files",
+      "-z",
+      "--others",
+      "--ignored",
+      "--exclude-standard",
+    ],
+  ))
+  .into_iter()
+  .filter(|path| !path.starts_with("intent/.cache/"))
+  .collect();
+  assert!(
+    !ignored.is_empty(),
+    "the fixture has no aggregate view on disk to track"
+  );
+  let mut add = vec!["add", "-f", "--"];
+  add.extend(ignored.iter().map(String::as_str));
+  git(root, &add);
+  git(
+    root,
+    &["commit", "-q", "-m", "the views, as 3.4.0 committed them"],
+  );
+
+  let (_, err, code) = run(&["upgrade"], root);
+  assert_eq!(code, 0, "upgrade: {err}");
+  let paths_file = "intent/.cache/upgrade.paths";
+  let manifest_path = root.join(paths_file);
+  let manifest = nul_paths(&std::fs::read(&manifest_path).expect("the manifest is written"));
+  assert!(
+    manifest.contains("intent/.intentfiles"),
+    "the first upgrade does not name the manifest it folded and removed: {err}"
+  );
+  let untracked: std::collections::BTreeSet<String> = err
+    .lines()
+    .filter_map(|line| line.strip_prefix("untracked: "))
+    .filter_map(|rest| rest.split(" -- ").next())
+    .map(str::to_string)
+    .collect();
+  assert!(
+    !untracked.is_empty(),
+    "the upgrade untracked no aggregate view: {err}"
+  );
+  let changed: std::collections::BTreeSet<String> = crate::common::git_changed(root)
+    .difference(&untracked)
+    .cloned()
+    .collect();
+  assert_eq!(
+    changed, manifest,
+    "what git shows changed, less the untracked views, is not the manifest: {err}"
+  );
+  assert!(
+    err.contains(&format!(
+      "from the project root, stage exactly what this run changed with `git add --pathspec-from-file={paths_file} --pathspec-file-nul`, then commit with a plain `git commit`"
+    )),
+    "the closing line does not give the two steps: {err}"
+  );
+  assert!(
+    err.contains(&format!("paths: {paths_file} -- "))
+      && !err.contains(&format!("wrote: {paths_file}")),
+    "the paths file is named on a paths: line, never a wrote: line, which is a commit line: {err}"
+  );
+
+  git(
+    root,
+    &[
+      "add",
+      &format!("--pathspec-from-file={paths_file}"),
+      "--pathspec-file-nul",
+    ],
+  );
+  git(root, &["commit", "-q", "-m", "the upgrade"]);
+  assert_eq!(
+    crate::common::git_changed(root),
+    std::collections::BTreeSet::new(),
+    "the two steps left a change behind: {err}"
+  );
+
+  let (_, err, code) = run(&["upgrade"], root);
+  assert_eq!(code, 0, "second run: {err}");
+  assert_eq!(
+    nul_paths(&std::fs::read(&manifest_path).expect("the second run writes its manifest")),
+    std::collections::BTreeSet::new(),
+    "a second run names a path: {err}"
+  );
+  assert!(
+    err.contains("this run left nothing for git to commit"),
+    "the second run does not say it left nothing to commit: {err}"
   );
 }

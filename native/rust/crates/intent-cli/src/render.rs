@@ -6213,33 +6213,89 @@ fn upgrade() -> Result<(), Failure> {
       );
     }
   }
-  // **THE CLEAN-TREE SENTENCE IS EARNED, NOT ASSUMED** (intent-cc's wording):
-  // only a run that passed a clean-tree guard says every change is its own. A
-  // convergent re-run says what it did above and claims nothing about the tree.
-  //
-  // **A TRACKED STORE IS UNTRACKED FIRST** (intent-cc's ruling (a), driven:
-  // once `git rm --cached` has run, `git add -A` stages the store's deletion
-  // and never the store, since `.cache` is ignored). A store git could not be
-  // asked about may be tracked, so that run claims nothing.
-  use intentsvcs::facade::StoreTracking;
-  match (done.on_a_clean_tree, &done.store_tracking) {
-    (true, StoreTracking::Untracked) => eprintln!(
-      "ok: this project is now Intent v{} -- upgrade ran on a clean tree, so every change in it is \
-       the upgrade's: stage them all before anything else touches the tree (`git add -A`) and \
-       commit with a plain `git commit`; the aggregate views stay out of git",
-      intentsvcs::faces::INTENT_VER
+  // **WHAT THIS RUN CHANGED, ONE LINE A DIRECTORY, AND THE FILE THAT NAMES
+  // EVERY PATH** (issue 0745, intent-cc's design): the file's set and these
+  // counts are one set, so what the line counts is what `git add` stages.
+  use intentsvcs::facade::{ClosingStep, UpgradePaths};
+  for (dir, changes) in done.by_directory() {
+    eprintln!(
+      "  {dir}: {} written, {} removed",
+      changes.written, changes.removed
+    );
+  }
+  // **NEVER `wrote:`, WHICH IS A COMMIT LINE** (intent-cc's read): the file is
+  // ignored, and `git add` refuses an ignored path, the failure the stageable
+  // filter exists to prevent.
+  match &done.paths_file {
+    UpgradePaths::Written(path) => eprintln!(
+      "paths: {path} -- every path this run wrote or removed, for the closing line's git add; \
+       ignored, never committed"
     ),
-    (true, StoreTracking::Tracked(_)) => eprintln!(
-      "ok: this project is now Intent v{} -- upgrade ran on a clean tree, so every change in it is \
-       the upgrade's: run the untrack: step above first, then, before anything else touches the \
-       tree, stage everything (`git add -A`) and commit with a plain `git commit`; the aggregate \
-       views stay out of git",
-      intentsvcs::faces::INTENT_VER
+    UpgradePaths::Unasked(cause) => eprintln!(
+      "note: git was not asked which paths it can stage: {cause} -- so no file of this run's paths was written"
     ),
-    (false, _) | (true, StoreTracking::Unasked(_)) => eprintln!(
-      "ok: this project is now Intent v{} -- commit the changes named above",
-      intentsvcs::faces::INTENT_VER
+    UpgradePaths::NotWritten(cause) => {
+      eprintln!("warning: the file of this run's paths was not written: {cause}")
+    }
+    UpgradePaths::NoWorkTree => {}
+  }
+  // **THE CLOSING LINE, IN intent-cc'S WORDS; WHICH ONE IS THE FACADE'S CALL**
+  // (`Upgraded::closing`). A pathspec commit is `--only`, so it refuses a new
+  // file and leaves a staged deletion out: `git add` from the file and a plain
+  // commit carry both, from the project root, which the file's paths are
+  // relative to.
+  let closing = done.closing();
+  let untrack_first = closing.untrack_the_store_first;
+  let index = |path: &str| {
+    if closing.read_the_index_first {
+      format!(
+        "; this run did not check the index, so read `git diff --cached --name-only` before the \
+         commit; anything there that is not in {path} is not this run's"
+      )
+    } else {
+      String::new()
+    }
+  };
+  let ver = intentsvcs::faces::INTENT_VER;
+  match &closing.step {
+    ClosingStep::StageThePaths(path) => eprintln!(
+      "ok: this project is now Intent v{ver} -- {}from the project root, stage exactly what this \
+       run changed with `git add --pathspec-from-file={path} --pathspec-file-nul`, then commit \
+       with a plain `git commit`, which carries the deletions this run staged with it{}",
+      if untrack_first {
+        "run the untrack: step above first, then, "
+      } else {
+        ""
+      },
+      index(path)
     ),
+    ClosingStep::CommitTheStagedDeletions(path) => eprintln!(
+      "ok: this project is now Intent v{ver} -- {}commit the staged deletions with a plain `git \
+       commit`{}",
+      if untrack_first {
+        "run the untrack: step above first, then "
+      } else {
+        ""
+      },
+      index(path)
+    ),
+    ClosingStep::NothingToCommit => {
+      eprintln!("ok: this project is now Intent v{ver} -- this run left nothing for git to commit")
+    }
+    ClosingStep::NotAWorkTree => eprintln!(
+      "ok: this project is now Intent v{ver} -- not a git work tree, so there is nothing to commit"
+    ),
+    // Git's filter never ran, so every path is named here, on true commit
+    // lines, and "named above" is so (intent-cc's ruling).
+    ClosingStep::CommitWhatIsNamed => {
+      for path in &done.wrote {
+        eprintln!("wrote: {}", path.display());
+      }
+      for path in &done.removed {
+        eprintln!("removed: {}", path.display());
+      }
+      eprintln!("ok: this project is now Intent v{ver} -- commit the changes named above")
+    }
   }
   Ok(())
 }
