@@ -1234,10 +1234,15 @@ fn wp_new_defaults_to_v2s_template_scope() {
   let dir = project();
   let root = dir.path();
   let st = crate::common::created(&ok(root, &["st", "new", "a thread"]));
-  ok(root, &["wp", "new", st.as_str(), "a package"]);
+  let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "a package"]));
 
-  let canon =
-    std::fs::read_to_string(root.join(format!("intent/.canon/st/{st}.json"))).expect("canon");
+  // The package's own canon file (ST0096 WP-05).
+  let pkg = crate::common::package_of(&wp).stored();
+  let canon = std::fs::read_to_string(crate::common::canon_file(
+    root,
+    &intentsvcs::project::canon_wp_rel(&st, &pkg),
+  ))
+  .expect("canon");
   assert!(
     canon.contains("\"scope\": \"S\""),
     "the canon carries S, as v2's template seeds: {canon}"
@@ -1265,7 +1270,8 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "Ingest and views"]));
   let pkg = crate::common::package_of(&wp).stored();
 
-  let canon_path = root.join(format!("intent/.canon/st/{st}.json"));
+  // The package's own canon file, where its body lives (ST0096 WP-05).
+  let canon_path = crate::common::canon_file(root, &intentsvcs::project::canon_wp_rel(&st, &pkg));
   let view_path = root.join(format!("intent/st/{st}/WP/{pkg}/info.md"));
   let authored = "## Why the incumbents go\n\nA section the template never named, carried verbatim.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.";
   let text = std::fs::read_to_string(&canon_path).expect("canon");
@@ -1376,7 +1382,13 @@ fn a_work_package_status_reason_reaches_the_human_face_too() {
     &["wp", "reopen", "ST0001/01", "--reason", "CANARY-WP-PLUGH"],
   );
 
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  // The package's own canon file (ST0096 WP-05).
+  let pkg = crate::common::package_of("ST0001/01").stored();
+  let canon = std::fs::read_to_string(crate::common::canon_file(
+    root,
+    &intentsvcs::project::canon_wp_rel("ST0001", &pkg),
+  ))
+  .expect("canon");
   assert!(
     canon.contains("CANARY-WP-PLUGH"),
     "CONTROL: `wp reopen` must have fired -- an `already WIP` no-op writes nothing and makes the face's silence meaningless:\n{canon}"
@@ -1489,7 +1501,15 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
     "the reply names the canonical id: {said}"
   );
 
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  // Each attachment is a record file of its own (ST0096 WP-05).
+  let attachment = |path: &str| {
+    std::fs::read_to_string(crate::common::canon_file(
+      root,
+      &intentsvcs::project::canon_attachment_rel("ST0001", path),
+    ))
+    .expect("the attachment's canon")
+  };
+  let canon = attachment("design.md");
   assert!(
     canon.contains("the original"),
     "the content reached canon: {canon}"
@@ -1500,7 +1520,7 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
   // withheld from MCP: an agent must not irreversibly replace an attachment.
   std::fs::write(&src, "# design\n\nrewritten\n").expect("rewrite source");
   ok(root, &["st", "attach", "s1", "design.md", "--from", from]);
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  let canon = attachment("design.md");
   assert!(canon.contains("rewritten"), "the second write landed");
   assert!(
     !canon.contains("the original"),
@@ -1540,7 +1560,7 @@ fn st_attach_writes_an_attachments_content_and_refuses_what_it_cannot_carry() {
     "a small binary is carried as opaque bytes: {}",
     String::from_utf8_lossy(&out.stderr)
   );
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  let canon = attachment("opaque.dat");
   assert!(
     canon.contains("opaque.dat"),
     "and it reaches canon by name: {canon}"

@@ -191,7 +191,10 @@ fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
 
   // The body is authored prose in a modelled field (D22/D28), so it is set in
   // canon and brought in through the ingest gate -- not written to a view.
-  let canon_path = root.join(format!("intent/.canon/st/{st}.json"));
+  // The package's own canon file (ST0096 WP-05): the thread's carries a
+  // `body` of its own, so an edit there would set the wrong one.
+  let pkg = crate::common::package_of(&wp).stored();
+  let canon_path = crate::common::canon_file(root, &intentsvcs::project::canon_wp_rel(&st, &pkg));
   let text = std::fs::read_to_string(&canon_path).expect("canon");
   let edited = text.replace(
     "\"body\": \"\"",

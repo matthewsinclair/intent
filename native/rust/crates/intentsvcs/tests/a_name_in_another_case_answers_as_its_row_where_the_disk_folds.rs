@@ -72,7 +72,9 @@ fn doctor_compares_a_twin_as_the_row_where_the_disk_folds_and_names_the_pair_whe
 
 #[test]
 fn doctor_names_a_pair_held_in_canon_whatever_the_disk_does() {
-  let fx = Fixture::new();
+  // 3.4.0's format, children inline: the release's gives each row its own
+  // file and refuses two that one disk would store as one (ST0096 WP-05).
+  let fx = Fixture::ordinal();
   fx.write_thread(&thread_holding_a_pair());
   let canon_file = fx.canon_rel(ID);
   let pairs = findings(&fx, FindingClass::CasePair);

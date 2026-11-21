@@ -30,22 +30,31 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
 
   // Plant one v2-grammar citation on the live thread, the shape the migration
   // carries whole: no `file`, a `legacy.raw` with `::` in it.
-  let canon = root.join(format!("intent/.canon/st/{st}.json"));
-  let mut thread: serde_json::Value =
-    serde_json::from_str(&std::fs::read_to_string(&canon).expect("read canon"))
-      .expect("canon is json");
-  thread["criteria"] = serde_json::json!([
-    {"id": "AC-01.1", "text": "the thing works", "kind": "test", "state": {"is": "computed"}}
-  ]);
-  thread["tests"] = serde_json::json!([
-    {"id": "AT-01.1", "kind": "test", "covers": ["AC-01.1"], "status": "green",
-     "legacy": {"raw": "apps/x/test/y_test.exs::a name with spaces"}}
-  ]);
-  std::fs::write(
-    &canon,
-    serde_json::to_string_pretty(&thread).expect("render"),
-  )
-  .expect("write canon");
+  // Each record is a file of its own (ST0096 WP-05).
+  let records = [
+    (
+      intentsvcs::project::canon_ac_rel(&st, "AC-01.1"),
+      serde_json::json!(
+        {"id": "AC-01.1", "text": "the thing works", "kind": "test", "state": {"is": "computed"}}
+      ),
+    ),
+    (
+      intentsvcs::project::canon_at_rel(&st, "AT-01.1"),
+      serde_json::json!(
+        {"id": "AT-01.1", "kind": "test", "covers": ["AC-01.1"], "status": "green",
+         "legacy": {"raw": "apps/x/test/y_test.exs::a name with spaces"}}
+      ),
+    ),
+  ];
+  for (rel, record) in records {
+    let path = crate::common::canon_file(root, &rel);
+    std::fs::create_dir_all(path.parent().expect("the record's directory")).expect("mkdir");
+    std::fs::write(
+      &path,
+      serde_json::to_string_pretty(&record).expect("render"),
+    )
+    .expect("write the record");
+  }
 
   // A canon edited by hand leaves the store and the views behind it, and a
   // fresh store has no snapshot: bring all three into step so the ONLY thing
@@ -100,9 +109,12 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
     verbose.contains("advisory: 1 finding, not counted in the verdict"),
     "--verbose heads the group with its class and count: {verbose}"
   );
+  // The artefact is the test's own record file (ST0096 WP-05), the file a
+  // person opens to rewrite it.
   assert!(
     verbose.contains(&format!(
-      "  intent/.canon/st/{st}.json -- AT-01.1 carries a legacy reference"
+      "  intent/{} -- AT-01.1 carries a legacy reference",
+      intentsvcs::project::canon_at_rel(st.as_str(), "AT-01.1")
     )),
     "--verbose still names every member by artefact: {verbose}"
   );

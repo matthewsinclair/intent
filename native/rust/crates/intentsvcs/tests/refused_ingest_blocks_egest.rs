@@ -66,6 +66,13 @@ use intentsvcs::sync::Scope;
 const AUTHORED: &str =
   "a write path whose input was refused must not then be used as a source of truth";
 
+/// A project in 3.4.0's format, children inline, so a thread's file can carry
+/// the duplicate below: in the release's each test is the file its id names,
+/// so two with one id cannot be written at all (ST0096 WP-05).
+fn duplicable() -> Fixture {
+  Fixture::ordinal()
+}
+
 /// Canon carrying an authored edit AND the defect that refuses it.
 ///
 /// **The two travel together on purpose** -- that is the situation, not a
@@ -105,7 +112,7 @@ fn canon_with_an_authored_edit_and_a_duplicate(fx: &Fixture) -> Thread {
 /// the refusal; the assertion below would hold for a loud egest too.
 #[test]
 fn an_egest_from_a_store_whose_last_ingest_was_refused_is_not_silent() {
-  let fx = Fixture::new();
+  let fx = duplicable();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
@@ -142,7 +149,7 @@ fn an_egest_from_a_store_whose_last_ingest_was_refused_is_not_silent() {
 /// an egest that refuses and destroys the file anyway.
 #[test]
 fn the_authored_edit_survives_the_egest_that_used_to_destroy_it() {
-  let fx = Fixture::new();
+  let fx = duplicable();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
@@ -190,7 +197,7 @@ fn an_egest_after_a_successful_ingest_runs() {
 /// the failure.
 #[test]
 fn repairing_the_canon_and_re_ingesting_clears_the_block() {
-  let fx = Fixture::new();
+  let fx = duplicable();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
@@ -223,7 +230,7 @@ fn repairing_the_canon_and_re_ingesting_clears_the_block() {
 /// `doctor` needs this, and so does anything reporting estate health.
 #[test]
 fn the_store_records_the_outcome_of_its_last_ingest() {
-  let fx = Fixture::new();
+  let fx = duplicable();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
@@ -276,7 +283,7 @@ fn the_store_records_the_outcome_of_its_last_ingest() {
 /// because it never existed anywhere to be re-opened.
 #[test]
 fn the_block_is_still_there_for_the_next_process() {
-  let fx = Fixture::new();
+  let fx = duplicable();
   fx.write_thread(&sample_thread("ST0056"));
 
   {

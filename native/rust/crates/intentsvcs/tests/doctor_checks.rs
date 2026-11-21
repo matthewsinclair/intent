@@ -163,9 +163,40 @@ fn an_acceptance_test_covering_nothing_is_found() {
   assert!(details(&run(&fx)).contains("covers nothing"));
 }
 
+/// **A finding about a child names the file a person opens to fix it**
+/// (ST0096 WP-05): in the release's format that is the child's own record
+/// file, and in 3.4.0's it is still the thread's file, which holds every child.
+#[test]
+fn a_finding_about_a_test_names_the_file_the_test_is_in() {
+  for (fx, record) in [(Fixture::new(), true), (Fixture::ordinal(), false)] {
+    let mut thread = clean_thread("ST0001");
+    thread.tests[0].covers = vec![];
+    seed(&fx, &thread);
+    let project = fx.project();
+    let file = match record {
+      true => project.relative(
+        &project.intent_dir().join(intentsvcs::project::canon_at_rel(
+          "ST0001",
+          &thread.tests[0].id,
+        )),
+      ),
+      false => project.relative(&project.thread_json("ST0001")),
+    };
+    let found = run(&fx);
+    assert!(
+      found
+        .iter()
+        .any(|f| f.file == file && f.detail.contains("covers nothing")),
+      "the finding names {file}: {found:?}"
+    );
+  }
+}
+
 #[test]
 fn a_duplicate_criterion_id_within_a_thread_is_found() {
-  let fx = Fixture::new();
+  // 3.4.0's format, children inline: in the release's a criterion is the file
+  // its id names, so two with one id cannot be written (ST0096 WP-05).
+  let fx = Fixture::ordinal();
   let mut thread = clean_thread("ST0001");
   let mut dup = thread.criteria[0].clone();
   dup.text = "a second criterion wearing the same id".to_string();
@@ -333,8 +364,11 @@ fn a_test_backed_criterion_carrying_stored_satisfaction_is_found() {
   fx.write_thread(&thread);
 
   let found = details(&run(&fx));
+  // The criterion is a file of its own in the release's format (ST0096
+  // WP-05), so the schema names that file and the field within it.
+  let record = intentsvcs::project::canon_ac_rel("ST0001", &thread.criteria[0].id);
   assert!(
-    found.contains("/criteria/0/state"),
+    found.contains(&record) && found.contains("/state"),
     "doctor still diagnoses it, and names the criterion: {found}"
   );
   assert!(
@@ -664,7 +698,9 @@ fn a_file_with_conflict_markers_is_reported_unparsed() {
 /// open, because that is exactly when someone reaches for it.
 #[test]
 fn doctor_runs_on_a_project_that_cannot_be_opened() {
-  let fx = Fixture::new();
+  // 3.4.0's format, children inline: in the release's a criterion is the file
+  // its id names, so two with one id cannot be written (ST0096 WP-05).
+  let fx = Fixture::ordinal();
   let mut thread = clean_thread("ST0001");
   let mut dup = thread.criteria[0].clone();
   dup.kind = AcKind::NonTest;

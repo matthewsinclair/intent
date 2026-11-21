@@ -73,6 +73,12 @@ fn dehydrated(fx: &Fixture) {
   );
 }
 
+/// The canon file of the criterion the writes below withdraw: its own, since
+/// each criterion is a file of its own (ST0096 WP-05).
+fn withdrawn_criterion(fx: &Fixture) -> String {
+  fx.read_intent(&intentsvcs::project::canon_ac_rel("ST0001", "AC-03.2"))
+}
+
 /// **CANON ALWAYS.** The change reaches the committed extract even though the
 /// artefact has no files.
 #[test]
@@ -94,7 +100,7 @@ fn a_write_to_a_dehydrated_artefact_reaches_canon() {
   )
   .expect("withdrawing a non-test criterion is legal on a completed thread");
 
-  let canon = fx.read_canon("ST0001");
+  let canon = withdrawn_criterion(&fx);
   assert!(
     canon.contains("withdrawn"),
     "the decision is in the committed extract:\n{canon}"
@@ -304,8 +310,7 @@ fn the_store_and_canon_agree_after_a_dehydrated_write() {
     "the DB is first and it has the change"
   );
   assert!(
-    fx.read_canon("ST0001")
-      .contains("the premise did not reproduce -- zzz-canary"),
+    withdrawn_criterion(&fx).contains("the premise did not reproduce -- zzz-canary"),
     "and canon is not a second opinion"
   );
 }

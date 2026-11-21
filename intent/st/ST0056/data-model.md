@@ -877,6 +877,8 @@ States: `false` | `true`. **Entry: `false`.** Whether a thread's files are on di
 | `true`   | `false` | `st.triage`    | --    |
 | `true`   | `false` | `st.dehydrate` | --    |
 
+**`organize --default` and `organize --default --force` set `realised` from status in bulk, outside Machine 6** (hv decision 75). They are the reset of every record's realisation to the default (every WIP thread and every open issue realised, nothing else), not a transition of one record, so the machine gains no edge for them. A person's hydrate or dehydrate is Machine 6's; the reset overwrites those choices, which is why `--force` needs a person to confirm it.
+
 ### Machine 7 -- Issue realisation (`Issue.realised`)
 
 States: `false` | `true`. **Entry: `true`.** Whether an issue's view is on disk (ST0096 WP-01, R1).

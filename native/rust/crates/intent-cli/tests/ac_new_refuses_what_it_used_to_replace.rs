@@ -56,17 +56,11 @@ fn run(cwd: &Path, args: &[&str]) -> (String, String, i32) {
 /// The stored criterion, read out of canon rather than out of a rendering.
 /// **The rendering is the thing under test in half these arms**, so asserting
 /// against it would let a broken write and a broken renderer cancel out.
+///
+/// The criterion's own canon file, since each is a file of its own (ST0096
+/// WP-05).
 fn stored(cwd: &Path, st: &str, ac: &str) -> serde_json::Value {
-  let text = std::fs::read_to_string(cwd.join(format!("intent/.canon/st/{st}.json")))
-    .expect("the thread's canon file");
-  let thread: serde_json::Value = serde_json::from_str(&text).expect("canon is JSON");
-  thread["criteria"]
-    .as_array()
-    .expect("criteria")
-    .iter()
-    .find(|c| c["id"] == ac)
-    .unwrap_or_else(|| panic!("{ac} is not in canon"))
-    .clone()
+  crate::common::canon_json(cwd, &intentsvcs::project::canon_ac_rel(st, ac))
 }
 
 /// A project with one thread and one TEST-BACKED criterion -- the shape that
@@ -317,15 +311,11 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
   assert_eq!(code, 0, "the re-cite must succeed: {err:?}");
   assert!(out.contains("re-cited"), "{out:?}");
 
-  let text = std::fs::read_to_string(dir.path().join(format!("intent/.canon/st/{st}.json")))
-    .expect("canon file");
-  let thread: serde_json::Value = serde_json::from_str(&text).expect("canon is JSON");
-  let row = thread["tests"]
-    .as_array()
-    .expect("tests")
-    .iter()
-    .find(|t| t["id"] == "AT-01.1")
-    .expect("the row");
+  // The test's own canon file (ST0096 WP-05).
+  let row = crate::common::canon_json(
+    dir.path(),
+    &intentsvcs::project::canon_at_rel(&st, "AT-01.1"),
+  );
 
   assert_eq!(row["file"], "tests/moved.rs", "the re-cite did not land");
   assert_eq!(

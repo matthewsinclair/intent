@@ -205,3 +205,83 @@ fn a_file_in_a_records_directory_that_is_no_record_is_named() {
     "the stray file is named: {findings:?}"
   );
 }
+
+#[test]
+fn a_detached_attachments_record_file_leaves_the_disk() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+  let thread = facade.st_show("ST0001").expect("the fixture thread");
+  let path = thread.attachments[0].path.clone();
+  let kept: Vec<String> = thread.attachments[1..]
+    .iter()
+    .map(|a| a.path.clone())
+    .collect();
+  let intent = fx.project().intent_dir();
+  let record = intent.join(canon_attachment_rel("ST0001", &path));
+  assert!(record.is_file(), "the attachment's record file was written");
+  let address = intentsvcs::address::parse(&format!("intent:///threads/ST0001/attachments/{path}"))
+    .expect("an attachment address");
+  facade.detach_attachment(&address).expect("the detach");
+  assert!(
+    !record.exists(),
+    "a record the store no longer holds leaves its file behind"
+  );
+  for other in kept {
+    assert!(
+      intent
+        .join(canon_attachment_rel("ST0001", &other))
+        .is_file(),
+      "{other}'s record file is kept"
+    );
+  }
+}
+
+#[test]
+fn a_thread_file_in_the_release_format_that_lists_its_children_is_refused() {
+  let fx = Fixture::new();
+  let thread = sample_thread("ST0001");
+  lay_out(&fx, &thread);
+  let own = fx.project().thread_json("ST0001");
+  let mut value: serde_json::Value =
+    serde_json::from_str(&std::fs::read_to_string(&own).expect("the own file"))
+      .expect("the own file parses");
+  value["wps"] = serde_json::to_value(&thread.wps).expect("the packages");
+  std::fs::write(&own, value.to_string()).expect("list the packages inline");
+  let own = fx.project().relative(&own);
+  let findings = refused(&fx);
+  assert!(
+    findings
+      .iter()
+      .any(|f| f.class == FindingClass::SchemaInvalid && f.file == own),
+    "the own file that lists its children is refused by name: {findings:?}"
+  );
+}
+
+#[test]
+fn criteria_read_from_their_files_take_the_label_order() {
+  use intentsvcs::id::label_order;
+  let mut labels = vec!["AC-01.10", "AC-02.1", "AC-01.2", "AC-01.1"];
+  labels.sort_by(|a, b| label_order(a, b));
+  assert_eq!(labels, ["AC-01.1", "AC-01.2", "AC-01.10", "AC-02.1"]);
+}
+
+#[test]
+fn records_whose_thread_has_no_file_of_its_own_are_named() {
+  let fx = Fixture::new();
+  let thread = sample_thread("ST0001");
+  lay_out(&fx, &thread);
+  std::fs::remove_file(fx.project().thread_json("ST0001")).expect("drop the thread's own file");
+  let records = fx
+    .project()
+    .intent_dir()
+    .join(intentsvcs::project::canon_records_rel("ST0001"));
+  let records = fx.project().relative(&records);
+  let findings = refused(&fx);
+  assert!(
+    findings
+      .iter()
+      .any(|f| f.class == FindingClass::UnknownFileShape && f.file == records),
+    "the records nothing reads are named: {findings:?}"
+  );
+}

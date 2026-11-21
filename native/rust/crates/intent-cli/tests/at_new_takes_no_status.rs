@@ -31,12 +31,23 @@ fn run(cwd: &Path, args: &[&str]) -> (String, String, i32) {
 }
 
 /// The stored test rows of the thread whose id is `st`, read out of canon
-/// rather than out of a rendering.
+/// rather than out of a rendering: each is a file of its own in the thread's
+/// test directory (ST0096 WP-05), which is absent while it holds none.
 fn stored_tests(cwd: &Path, st: &str) -> Vec<serde_json::Value> {
-  let text = std::fs::read_to_string(cwd.join(format!("intent/.canon/st/{st}.json")))
-    .expect("the thread's canon file");
-  let thread: serde_json::Value = serde_json::from_str(&text).expect("canon is JSON");
-  thread["tests"].as_array().cloned().unwrap_or_default()
+  use intentsvcs::project::{CANON_AT_DIR, canon_children_rel};
+  let dir = crate::common::canon_file(cwd, &canon_children_rel(st, CANON_AT_DIR));
+  let entries = match std::fs::read_dir(&dir) {
+    Ok(entries) => entries,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Vec::new(),
+    Err(e) => panic!("list {}: {e}", dir.display()),
+  };
+  entries
+    .map(|entry| {
+      let path = entry.expect("a directory entry").path();
+      let text = std::fs::read_to_string(&path).expect("a test's canon file");
+      serde_json::from_str(&text).expect("canon is JSON")
+    })
+    .collect()
 }
 
 /// A project with one thread and one test-backed criterion for a row to cover.

@@ -352,6 +352,8 @@ mod the_structural_doors_take_the_filters;
 mod the_web_face_answers_on_the_published_port;
 #[path = "twin_spellings_agree.rs"]
 mod twin_spellings_agree;
+#[path = "two_branches_that_change_one_thread_merge_clean.rs"]
+mod two_branches_that_change_one_thread_merge_clean;
 #[path = "two_clones_that_mint_one_id_are_repaired_by_remint.rs"]
 mod two_clones_that_mint_one_id_are_repaired_by_remint;
 #[path = "uninstall_names_what_it_removed.rs"]

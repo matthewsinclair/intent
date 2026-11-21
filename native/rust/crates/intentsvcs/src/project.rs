@@ -1576,7 +1576,14 @@ pub const CANON_ATTACHMENTS_DIR: &str = "attachments";
 /// One kind of a thread's records in the release's format, relative to the
 /// intent directory: `.canon/records/<thread>/<dir>` (ST0096 WP-05).
 pub fn canon_children_rel(thread: &str, dir: &str) -> String {
-  format!("{CANON_RECORDS_DIR}/{thread}/{dir}")
+  format!("{}/{dir}", canon_records_rel(thread))
+}
+
+/// One thread's records directory, relative to the intent directory:
+/// `.canon/records/<thread>`, which holds a directory per kind of child
+/// (ST0096 WP-05). A renumber moves it whole.
+pub fn canon_records_rel(thread: &str) -> String {
+  format!("{CANON_RECORDS_DIR}/{thread}")
 }
 
 /// One work package's canon path in the release's format, relative to the
@@ -2795,6 +2802,11 @@ impl Project {
       }
       let id = ThreadId::parse(&stem(&name)?).ok()?;
       return (self.thread_json(&id) == path).then_some(Named::Thread(id));
+    }
+    // A record file of a thread's in the release's format (ST0096 WP-05):
+    // `.canon/records/<thread>/<kind>/...` is the thread's.
+    if let Some((name, true)) = head(self.intent_dir().join(CANON_RECORDS_DIR)) {
+      return ThreadId::parse(&name).ok().map(Named::Thread);
     }
     if let Some((name, false)) = head(self.issues_dir()) {
       let number = IssueId::parse(&stem(&name)?).ok()?;

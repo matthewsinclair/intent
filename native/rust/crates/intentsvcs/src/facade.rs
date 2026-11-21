@@ -4999,6 +4999,10 @@ struct Projection {
   /// Each thread and issue canon file in `set`, with the subject a refusal
   /// names: the thread id, or `issue 0260`.
   canon_files: Vec<(std::path::PathBuf, String)>,
+  /// Record files this projection's threads no longer hold (ST0096 WP-05),
+  /// for the caller that lands `set` to remove once it has landed, and name
+  /// under `removed:`.
+  orphans: Vec<std::path::PathBuf>,
 }
 
 /// One ingest pass between its snapshot and its file commit (issue `0441`):
@@ -10627,7 +10631,12 @@ impl Facade {
   fn land_board_write(&mut self, acting: &[&str]) -> Result<(), FacadeError> {
     let _held = self.lock_boards()?;
     self.reindex_boards()?;
-    let Projection { set, canon_files } = self.projection(&self.canon, &[], &[], None, None)?;
+    // No thread is projected here, so no record file is orphaned.
+    let Projection {
+      set,
+      canon_files,
+      orphans: _,
+    } = self.projection(&self.canon, &[], &[], None, None)?;
     let whiteboard = self.project.whiteboard_dir();
     let rendered: std::collections::BTreeSet<std::path::PathBuf> =
       set.writes().map(|(path, _)| path.to_path_buf()).collect();
@@ -13052,6 +13061,7 @@ impl Facade {
     let Projection {
       mut set,
       canon_files,
+      orphans,
     } = self.projection(&canon, &all_threads, &all_issues, None, None)?;
     for (path, content) in self.attachments_the_disk_lacks(&canon, scope)? {
       set.add_bytes(path, content);
@@ -13062,6 +13072,7 @@ impl Facade {
     self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     self.record_landed(&canon_files, &landed)?;
+    self.remove_orphans(&orphans)?;
     // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
     // bytes already match, so a sync over an estate that already agrees writes
     // nothing -- and recording the SET would put an act that did not happen
@@ -13116,8 +13127,17 @@ impl Facade {
   /// kept out of the record, and named in [`Self::take_notes`], by the same
   /// `leave_boards` a board write asks.
   pub fn sync_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
-    let (canon, count, Projection { set, canon_files }) =
-      self.render_from_disk(scope, ingest::Load::Restore)?;
+    // The canon was read from the disk, every record file included, so none
+    // is orphaned.
+    let (
+      canon,
+      count,
+      Projection {
+        set,
+        canon_files,
+        orphans: _,
+      },
+    ) = self.render_from_disk(scope, ingest::Load::Restore)?;
     let (set, canon_files) = self.leave_boards(set, canon_files, &[])?;
     let applied = set.commit()?;
     self.note_landed(&applied);
@@ -14340,7 +14360,12 @@ impl Facade {
       baseline,
       canon,
       count,
-      projection: Projection { set, canon_files },
+      // Read from the disk, every record file included, so none is orphaned.
+      projection: Projection {
+        set,
+        canon_files,
+        orphans: _,
+      },
       taken,
     } = render;
     // **A BOARD AHEAD OF THE STORE IS NOT PROJECTED OVER** (issue 0554 (b)).
@@ -15203,10 +15228,8 @@ impl Facade {
     // written exactly as 3.4.0 writes it, so nothing is rewritten behind the
     // user's back and a machine still on 3.4.0 keeps working beside this one.
     let format = self.canon_format()?;
+    let mut orphans: Vec<std::path::PathBuf> = Vec::new();
     for thread in threads {
-      let path = self.project.thread_json(&thread.id);
-      canon_files.push((path.clone(), thread.id.shown()));
-      set.add(path, crate::canon_format::encode_thread(thread, format)?);
       // **THE BYTES THE CANON FILE NAMES LAND BESIDE IT (0084).** Canon names an
       // opaque attachment by hash and size and keeps its bytes in a sidecar;
       // without this write the next read of canon found the name and not the
@@ -15230,6 +15253,24 @@ impl Facade {
       for (rel, raw) in crate::export::thread_blobs(thread) {
         set.add_bytes(self.project.intent_dir().join(rel), raw);
       }
+      // **THE THREAD'S FILES, IN THE ORDER A READER CAN STOP AT** (ST0096
+      // WP-05): the bytes above, then each record, then the thread's own file.
+      // A reader takes a thread's children by its own file's format, so a
+      // write cut short leaves either the old own file, which a re-run
+      // rewrites, or a new one whose records are all on disk already.
+      let own_rel = crate::project::canon_thread_rel(&thread.id.stored());
+      let (own, records): (Vec<_>, Vec<_>) =
+        crate::canon_format::encode_thread_files(thread, format)?
+          .into_iter()
+          .partition(|(rel, _)| *rel == own_rel);
+      let written: std::collections::BTreeSet<String> =
+        records.iter().map(|(rel, _)| rel.clone()).collect();
+      for (rel, bytes) in records.into_iter().chain(own) {
+        let path = self.project.intent_dir().join(rel);
+        canon_files.push((path.clone(), thread.id.shown()));
+        set.add(path, bytes);
+      }
+      orphans.extend(self.orphaned_records(&thread.id.stored(), &written));
     }
     for issue in issues {
       let path = self.project.issue_json(issue.number);
@@ -15408,7 +15449,62 @@ impl Facade {
       }
       set.add(view.path, view.content);
     }
-    Ok(Projection { set, canon_files })
+    Ok(Projection {
+      set,
+      canon_files,
+      orphans,
+    })
+  }
+
+  /// The record files on disk under `thread`'s records directory that the
+  /// thread's write does not write (ST0096 WP-05): a work package, criterion,
+  /// test or attachment the store no longer holds, whose file would otherwise
+  /// be read back as a record it is not.
+  ///
+  /// **ONLY `.json` FILES**: those are the records. Anything else there is not
+  /// this write's to remove, and ingest names it (`UnknownFileShape`). A
+  /// thread in 3.4.0's format writes no records, so it has none to orphan.
+  fn orphaned_records(
+    &self,
+    thread: &str,
+    written: &std::collections::BTreeSet<String>,
+  ) -> Vec<std::path::PathBuf> {
+    let root = self
+      .project
+      .intent_dir()
+      .join(crate::project::canon_records_rel(thread));
+    Project::files_in(&root)
+      .into_iter()
+      .map(|rel| root.join(rel))
+      .filter(|path| path.extension().is_some_and(|x| x == "json"))
+      .filter(|path| {
+        path
+          .strip_prefix(self.project.intent_dir())
+          .map(|rel| !written.contains(&rel.to_string_lossy().into_owned()))
+          .unwrap_or(false)
+      })
+      .collect()
+  }
+
+  /// Remove each record file [`Facade::orphaned_records`] found, once the
+  /// write beside it has landed, and name it under `removed:`. One already
+  /// gone is not an error: the file is what was to go.
+  fn remove_orphans(&mut self, orphans: &[std::path::PathBuf]) -> Result<(), FacadeError> {
+    let mut gone = Vec::new();
+    for path in orphans {
+      match std::fs::remove_file(path) {
+        Ok(()) => gone.push(path.clone()),
+        Err(source) if source.kind() == std::io::ErrorKind::NotFound => {}
+        Err(source) => {
+          self.note_removed(&gone)?;
+          return Err(FacadeError::Ingest(IngestError::Io {
+            path: self.project.relative(path),
+            source,
+          }));
+        }
+      }
+    }
+    self.note_removed(&gone)
   }
 
   /// **The attachments the store carries and the disk lacks, for an egest to
@@ -16966,12 +17062,24 @@ impl Facade {
       to: new.to_string(),
       sigil: Sigil::SteelThread,
       // The realised directory carries the attachments, the views and any file
-      // nobody modelled; the canon directory carries the opaque sidecars.
+      // nobody modelled; the canon directory carries the opaque sidecars; the
+      // records directory carries each child's file in the release's format
+      // (ST0096 WP-05), which the write then rewrites in place.
       moves: vec![
         (self.project.thread_dir(old), self.project.thread_dir(new)),
         (
           self.project.canon_st_dir().join(old),
           self.project.canon_st_dir().join(new),
+        ),
+        (
+          self
+            .project
+            .intent_dir()
+            .join(crate::project::canon_records_rel(old)),
+          self
+            .project
+            .intent_dir()
+            .join(crate::project::canon_records_rel(new)),
         ),
       ],
       stale: vec![self.project.thread_json(old)],
@@ -22289,6 +22397,7 @@ impl Facade {
     let Projection {
       mut set,
       canon_files,
+      orphans,
     } = match projected {
       Ok(projection) => projection,
       Err(cause) => {
@@ -22370,7 +22479,8 @@ impl Facade {
     self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
-    let after_write = self
+    // Both run whatever the other answers; the first to fail is the note.
+    let unindexed = self
       .record_landed(&canon_files, &landed)
       .err()
       .map(|cause| {
@@ -22380,6 +22490,14 @@ impl Facade {
           UNINDEXED_REMEDY,
         )
       });
+    let unremoved = self.remove_orphans(&orphans).err().map(|cause| {
+      Note::after_write(
+        "removing the files of records the store no longer holds",
+        &cause,
+        RERENDER_REMEDY,
+      )
+    });
+    let after_write = unindexed.or(unremoved);
     Ok(Applied {
       foreign,
       after_write,
@@ -22427,8 +22545,9 @@ impl Facade {
     // project still in 3.4.0's would read as changed.
     let format = self.canon_format()?;
     for thread in &self.canon.threads {
-      let json = crate::canon_format::encode_thread(thread, format)?;
-      before.insert(self.project.thread_json(&thread.id), json.into_bytes());
+      for (rel, json) in crate::canon_format::encode_thread_files(thread, format)? {
+        before.insert(self.project.intent_dir().join(rel), json.into_bytes());
+      }
     }
     for issue in &self.canon.issues {
       let json = crate::canon_format::encode_issue(issue, format)?;

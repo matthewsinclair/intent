@@ -901,10 +901,15 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
 
   let thread: Value = serde_json::from_str(&fx.read_canon("ST0056")).expect("plain JSON");
   assert_eq!(thread["id"], "ST0056");
+  // A criterion is a file of its own (ST0096 WP-05), read here the same way.
+  let label = &sample_thread("ST0056").criteria[0].id;
+  let criterion: Value =
+    serde_json::from_str(&fx.read_intent(&intentsvcs::project::canon_ac_rel("ST0056", label)))
+      .expect("plain JSON");
+  assert_eq!(criterion["id"], label.as_str());
   assert!(
-    thread["criteria"][0]["state"]["is"].is_string(),
-    "a criterion's state is legible without knowing the enum: {}",
-    thread["criteria"][0]
+    criterion["state"]["is"].is_string(),
+    "a criterion's state is legible without knowing the enum: {criterion}"
   );
 
   let issue: Value =

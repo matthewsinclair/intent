@@ -243,6 +243,22 @@ fn read_thread_file(
   Ok((thread, format))
 }
 
+/// The format one thread's own file is written in, by the schema it carries:
+/// whether its children are inside it (3.4.0's) or in record files of their
+/// own (the release's, ST0096 WP-05). Doctor asks it to name the file a
+/// finding about a child lives in.
+pub fn thread_file_format(project: &Project, id: &str) -> Result<CanonFormat, Vec<Finding>> {
+  let rel = project.relative(&project.thread_json(id));
+  let text = std::fs::read_to_string(project.thread_json(id)).map_err(|e| {
+    vec![Finding::new(
+      &rel,
+      FindingClass::SchemaInvalid,
+      format!("could not read the thread's file: {e}"),
+    )]
+  })?;
+  format_of(&rel, &parse_json(&rel, &text)?, CanonKind::Thread)
+}
+
 /// Validate ONE issue's committed canon: parse, then the two checks that only
 /// make sense against the number the file was found under.
 ///
@@ -448,6 +464,8 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
       Err(mut found) => findings.append(&mut found),
     }
   }
+
+  findings.extend(records_without_a_thread(project)?);
 
   for number in project.issue_numbers()? {
     let path = project.issue_json(number);
@@ -769,6 +787,27 @@ fn read_children(project: &Project, thread: &mut Thread) -> Result<Vec<Finding>,
   };
   let id = thread.id.stored();
   let mut findings = Vec::new();
+  // **A FILE IN THE RELEASE'S FORMAT LISTS NO CHILD**: each is a file of its
+  // own, so a list here is a second copy of some record, and reading both would
+  // hold that record twice. Refused by name rather than merged.
+  let inline = [
+    ("work packages", thread.wps.len()),
+    ("criteria", thread.criteria.len()),
+    ("tests", thread.tests.len()),
+    ("attachments", thread.attachments.len()),
+  ];
+  if let Some((kind, _)) = inline.iter().find(|(_, held)| *held > 0) {
+    findings.push(Finding::new(
+      project.relative(&project.thread_json(&id)),
+      FindingClass::SchemaInvalid,
+      format!(
+        "is in the release's canon format and lists its {kind}, which live in files of their \
+         own under {}",
+        crate::project::canon_records_rel(&id)
+      ),
+    ));
+    return Ok(findings);
+  }
   thread.wps.extend(read_records(
     project,
     &id,
@@ -798,18 +837,23 @@ fn read_children(project: &Project, thread: &mut Thread) -> Result<Vec<Finding>,
     |a: &Attachment| canon_attachment_rel(&id, &a.path),
   )?);
   // Packages are in the one order wherever a thread is read (ST0095 WP-08).
-  // Criteria, tests and attachments keep the order the store gives them, as
-  // in a thread file, and the files are read in path order. One order for
-  // those three across the store and the disk comes with the writer's switch
-  // to this layout, since a thread's file still lists them until then.
+  // Criteria and tests take the label order (`id::label_order`), since a file
+  // name's text order would put AC-01.10 before AC-01.2. Attachments are in
+  // path order, as the walk read them.
   thread.wps.sort_by(crate::id::record_order);
+  thread
+    .criteria
+    .sort_by(|a, b| crate::id::label_order(&a.id, &b.id));
+  thread
+    .tests
+    .sort_by(|a, b| crate::id::label_order(&a.id, &b.id));
   Ok(findings)
 }
 
 /// Every record of one kind in a thread's directory, with a finding for each
 /// file that does not parse as `T` or whose path is not the one `rel_of` gives
 /// its record.
-fn read_records<T: DeserializeOwned>(
+fn read_records<T: Validated>(
   project: &Project,
   thread: &str,
   dir: &str,
@@ -836,7 +880,7 @@ fn read_records<T: DeserializeOwned>(
         continue;
       }
     };
-    match serde_json::from_value::<T>(value) {
+    match validated::<T>(&rel, value) {
       Ok(record) => {
         let named = project.relative(&project.intent_dir().join(rel_of(&record)));
         if named == rel {
@@ -849,14 +893,47 @@ fn read_records<T: DeserializeOwned>(
           ));
         }
       }
-      Err(e) => findings.push(Finding::new(
-        &rel,
-        FindingClass::SchemaInvalid,
-        e.to_string(),
-      )),
+      Err(mut found) => findings.append(&mut found),
     }
   }
   Ok(records)
+}
+
+/// A finding for each directory under the records root whose thread has no
+/// file of its own (ST0096 WP-05): records nothing reads, since a thread's
+/// children are read through its own file. Named rather than skipped, so a
+/// merge or a hand move that left them is seen.
+fn records_without_a_thread(project: &Project) -> Result<Vec<Finding>, IngestError> {
+  let root = project.intent_dir().join(crate::project::CANON_RECORDS_DIR);
+  let entries = match std::fs::read_dir(&root) {
+    Ok(entries) => entries,
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+    Err(source) => {
+      return Err(IngestError::Io {
+        path: root.display().to_string(),
+        source,
+      });
+    }
+  };
+  let mut findings = Vec::new();
+  for entry in entries {
+    let entry = entry.map_err(|source| IngestError::Io {
+      path: root.display().to_string(),
+      source,
+    })?;
+    let name = entry.file_name().to_string_lossy().into_owned();
+    if entry.path().is_dir() && !project.thread_json(&name).is_file() {
+      findings.push(Finding::new(
+        project.relative(&entry.path()),
+        FindingClass::UnknownFileShape,
+        format!(
+          "holds records of {name}, which has no canon file of its own at {}",
+          crate::project::canon_thread_rel(&name)
+        ),
+      ));
+    }
+  }
+  Ok(findings)
 }
 
 /// The record files under one of a thread's record directories, recursively
@@ -1467,7 +1544,29 @@ fn decide_estate(
   for id in ids {
     let held = held_threads.iter().find(|t| t.id == id);
     let disk = disk_threads.iter().find(|t| t.id == id);
-    let chosen = if scope.selects(&id) && takes(project.thread_json(&id)) {
+    // **A THREAD IS ITS OWN FILE AND ITS RECORDS' FILES** (ST0096 WP-05), so
+    // the disk speaks for it when any of them says something the store did not
+    // write: a branch switch that adds or drops a work package's file leaves
+    // the thread's own file as it was.
+    let records = format!(
+      "{}/",
+      project.relative(
+        &project
+          .intent_dir()
+          .join(crate::project::canon_records_rel(&id.stored()))
+      )
+    );
+    let record_moved = || {
+      let on_record: std::collections::BTreeSet<&String> = read
+        .keys()
+        .chain(recorded.0.keys())
+        .filter(|rel| rel.starts_with(&records))
+        .collect();
+      on_record
+        .into_iter()
+        .any(|rel| takes(project.root().join(rel)))
+    };
+    let chosen = if scope.selects(&id) && (takes(project.thread_json(&id)) || record_moved()) {
       disk
     } else {
       held
@@ -2095,6 +2194,36 @@ impl Validated for Thread {
   fn validator() -> &'static jsonschema::Validator {
     static V: OnceLock<jsonschema::Validator> = OnceLock::new();
     V.get_or_init(compile::<Thread>)
+  }
+}
+
+// A record in its own file (ST0096 WP-05) meets the schema its inline form
+// did, by the same generator.
+impl Validated for WorkPackage {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<WorkPackage>)
+  }
+}
+
+impl Validated for Criterion {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<Criterion>)
+  }
+}
+
+impl Validated for AcceptanceTest {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<AcceptanceTest>)
+  }
+}
+
+impl Validated for Attachment {
+  fn validator() -> &'static jsonschema::Validator {
+    static V: OnceLock<jsonschema::Validator> = OnceLock::new();
+    V.get_or_init(compile::<Attachment>)
   }
 }
 

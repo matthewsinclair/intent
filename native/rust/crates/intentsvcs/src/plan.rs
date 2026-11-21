@@ -695,6 +695,19 @@ pub fn classify(
             out.take_sides.push(path.to_string());
           }
         }
+        // **A RECORD'S OWN FILE IS NOT A SIDECAR** (ST0096 WP-05): two sides
+        // that changed one work package, criterion, test or attachment record
+        // changed one record, which is a person's call, as a thread's own
+        // file is. Two sides that changed two records changed two files, and
+        // git merged them before this ran.
+        Some(Named::Thread(_))
+          if path.starts_with(&format!(
+            "{}/",
+            project.relative(&project.intent_dir().join(crate::project::CANON_RECORDS_DIR))
+          )) =>
+        {
+          out.take_sides.push(path.to_string())
+        }
         Some(Named::Thread(id)) => sidecars.push((Named::Thread(id), path.to_string())),
         Some(Named::Issue(_)) | None => out.take_sides.push(path.to_string()),
       }

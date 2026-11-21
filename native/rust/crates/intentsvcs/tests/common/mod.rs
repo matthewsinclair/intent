@@ -207,12 +207,17 @@ impl Fixture {
   /// valid estate and would block every gate test for the wrong reason, so the
   /// stub carries its id exactly as a real test would.
   pub fn write_thread(&self, thread: &Thread) {
-    let path = self.project().thread_json(&thread.id);
-    std::fs::create_dir_all(path.parent().expect("thread dir")).expect("mkdir st");
-    // In the project's own canon format (ST0095 WP-06), as every writer does.
+    // In the project's own canon format (ST0095 WP-06) and its layout, one
+    // file or one per record (ST0096 WP-05), as every writer does.
     let format = intentsvcs::ingest::canon_format(&self.project()).expect("the canon format");
-    let canon = intentsvcs::canon_format::encode_thread(thread, format).expect("render canon");
-    std::fs::write(&path, canon).expect("write thread");
+    let intent = self.project().intent_dir();
+    for (rel, canon) in
+      intentsvcs::canon_format::encode_thread_files(thread, format).expect("render canon")
+    {
+      let path = intent.join(rel);
+      std::fs::create_dir_all(path.parent().expect("a canon dir")).expect("mkdir canon");
+      std::fs::write(&path, canon).expect("write thread");
+    }
     // **ONE STUB PER FILE, CARRYING EVERY ROW THAT CITES IT** (issue 0665).
     // A stub per ROW let the last row citing a shared file overwrite the ids
     // of the rows before it, and only the close gate's L3 exemption for a
@@ -272,6 +277,13 @@ impl Fixture {
   pub fn read_canon(&self, id: &str) -> String {
     std::fs::read_to_string(self.canon_path(id))
       .unwrap_or_else(|e| panic!("read canon for {id}: {e}"))
+  }
+
+  /// One canon file by its path relative to the intent directory, as
+  /// `canon_ac_rel` and its kin name a thread's records (ST0096 WP-05).
+  pub fn read_intent(&self, rel: &str) -> String {
+    let path = self.project().intent_dir().join(rel);
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
   }
 
   /// The canon path as the tool REPORTS it -- relative to the project root,

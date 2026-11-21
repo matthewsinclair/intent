@@ -4210,8 +4210,11 @@ impl WbWrite<'_> {
 /// guards. **One write is the exception, and it is a known limit:** a
 /// renumber (`st_move`, `issue_move`) moves its canon files BEFORE it lands
 /// the store, so a write by another process in that window is refused, and
-/// the same command run again passes. Its owner is A2 (ST0096 WP-05), which
-/// lands the store before it moves the canon (cc, 2026-11-20).
+/// the same command run again passes. **No order of its steps closes the
+/// window** (cc, 2026-11-20): landing the store first leaves the OLD canon
+/// file on disk, no longer held, until the renumber removes it, and a peer is
+/// refused the same way. Only a lock across processes would close it, which a
+/// safe refusal that passes on a re-run does not warrant.
 ///
 /// **PURE**: `held` is what [`crate::ingest::canon_paths_of`] gives for the
 /// store's record ids, `carried` what it gives for this checkout's ids, and

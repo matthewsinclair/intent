@@ -34,9 +34,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::canon_format::{
-  CanonFormat, CanonFormatError, encode_issue, encode_project_state, encode_thread,
-};
+use crate::canon_format::{CanonFormat, CanonFormatError, encode_issue, encode_project_state};
 use crate::event::{self, Envelope};
 use crate::faces::INTENT_VER;
 use crate::model::{Issue, Thread, to_canonical_json};
@@ -535,7 +533,7 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, CanonFormat
   Ok(out)
 }
 
-/// One canon file per thread and per issue in `bundle`, in `format`, and
+/// Every canon file of each thread and issue in `bundle`, in `format`, and
 /// nothing else: [`canon_parts`] without the project state, for `intent
 /// upgrade`, which writes every record in the release's format before it
 /// writes the one file that says so (ST0095 WP-06).
@@ -545,10 +543,9 @@ pub fn record_parts(
 ) -> Result<Vec<(String, String)>, CanonFormatError> {
   let mut out = Vec::with_capacity(bundle.threads.len() + bundle.issues.len() + 1);
   for thread in &bundle.threads {
-    out.push((
-      crate::project::canon_thread_rel(&thread.id),
-      encode_thread(thread, format)?,
-    ));
+    // A thread is one file in 3.4.0's format and a file per record in the
+    // release's (ST0096 WP-05), by the one encoder of its layout.
+    out.extend(crate::canon_format::encode_thread_files(thread, format)?);
   }
   for issue in &bundle.issues {
     out.push((

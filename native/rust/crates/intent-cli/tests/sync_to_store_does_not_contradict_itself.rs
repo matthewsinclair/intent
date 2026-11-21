@@ -96,8 +96,12 @@ fn a_run_that_did_overwrite_still_says_so() {
   let (dir, st) = seeded();
 
   // Make the extract genuinely differ from the store, which is the only state
-  // in which `replaced` is a true word.
-  let extract = dir.path().join(format!("intent/.canon/st/{st}.json"));
+  // in which `replaced` is a true word. The citation is the test's, so it is
+  // in the test's own canon file (ST0096 WP-05).
+  let extract = crate::common::canon_file(
+    dir.path(),
+    &intentsvcs::project::canon_at_rel(&st, "AT-01.1"),
+  );
   let text = std::fs::read_to_string(&extract).expect("read the extract");
   assert!(
     text.contains("test/probe_test.exs"),
@@ -144,13 +148,23 @@ fn the_confirmation_names_its_scope_and_counts_what_changed() {
   let (dir, st) = seeded();
   let issue = crate::common::created(&run(dir.path(), &["issues", "add", "An issue"]).0);
 
-  let thread = dir.path().join(format!("intent/.canon/st/{st}.json"));
-  let text = std::fs::read_to_string(&thread).expect("read the thread's extract");
+  // The citation is the test's, so it is in the test's own canon file
+  // (ST0096 WP-05), not the thread's.
+  let cited = crate::common::canon_file(
+    dir.path(),
+    &intentsvcs::project::canon_at_rel(&st, "AT-01.1"),
+  );
+  let text = std::fs::read_to_string(&cited).expect("read the test's extract");
+  assert!(
+    text.contains("test/probe_test.exs"),
+    "the fixture's citation is not in the test's extract, so the edit below would change \
+     nothing and this arm would pass vacuously"
+  );
   std::fs::write(
-    &thread,
+    &cited,
     text.replace("test/probe_test.exs", "test/changed_test.exs"),
   )
-  .expect("write the thread's extract");
+  .expect("write the test's extract");
   let (out, rc) = run(dir.path(), &["sync", "--to-store", st.as_str()]);
   assert_eq!(rc, 0, "sync --to-store {st} refused: {out}");
   let ok = ok_line(&out);

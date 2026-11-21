@@ -430,14 +430,10 @@ fn satisfaction_has_no_second_home_to_go_stale() {
     .at_set("ST0056", "AT-03.7", AtStatus::Red, None)
     .unwrap();
 
-  let canon = fx.read_canon("ST0056");
-  let value: serde_json::Value = serde_json::from_str(&canon).expect("parse canon");
-  let criterion = value["criteria"]
-    .as_array()
-    .expect("criteria")
-    .iter()
-    .find(|c| c["id"] == "AC-03.1")
-    .expect("AC-03.1");
+  // The criterion's own canon file (ST0096 WP-05).
+  let criterion: serde_json::Value =
+    serde_json::from_str(&fx.read_intent(&intentsvcs::project::canon_ac_rel("ST0056", "AC-03.1")))
+      .expect("parse AC-03.1's canon");
   assert!(
     criterion.get("satisfied").is_none(),
     "a test-backed criterion carries no satisfied field in canon; there is nowhere for a stale answer to live: {criterion}"

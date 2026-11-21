@@ -654,12 +654,11 @@ fn two_clones_each_add_a_work_package(
   (pulled, bobs, alices)
 }
 
-/// Issue 0555, and ST0095 WP-06: **TWO CLONES THAT EACH ADD A WORK PACKAGE TO
-/// ONE THREAD KEEP BOTH, WITH NO REPAIR AND NO MOVED CLAIM.** Each package's
-/// id is minted from its own creation event, so the two never share one. Git
-/// still sees a thread both sides changed, whose only offer used to be taking
-/// a side, which drops one person's package. The plan reads the merge's three
-/// versions, sees that adding packages is all either side did, and keeps both.
+/// Issue 0555, ST0095 WP-06 and ST0096 WP-05: **TWO CLONES THAT EACH ADD A
+/// WORK PACKAGE TO ONE THREAD KEEP BOTH, WITH NO REPAIR AND NO MOVED CLAIM.**
+/// Each package is its own record file under the thread's records directory,
+/// so git merges the pull with no conflict, and both packages and Bob's claim
+/// survive it with nothing to take a side on.
 // ST0095 AT-05.1: the arm below.
 #[test]
 fn two_clones_that_each_add_a_work_package_keep_both() {
@@ -685,20 +684,19 @@ fn two_clones_that_each_add_a_work_package_keep_both() {
       .intent_ok(&bob, &["wb", "claim", package, "--node", "bo"]);
   });
   assert_ne!(bobs, alices, "two clones minted one package id");
-  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.text);
+  assert_eq!(
+    pulled.code, 0,
+    "each package is its own record file, so the pull merges with no conflict: {}",
+    pulled.text
+  );
 
   let plan = team.forge.intent_said(&bob, &["sync"]);
   assert!(
-    plan.text.contains(&format!(
-      "both sides added work packages to {onboarding}: every one is kept, staged"
-    )),
-    "{}",
+    !plan.text.contains("take a side") && !plan.text.contains("renumber"),
+    "a merge of two added packages plans no repair and takes no side: {}",
     plan.text
   );
-  assert!(!plan.text.contains("take a side"), "{}", plan.text);
 
-  team.forge.intent_ok(&bob, &["sync", "--apply", "--yes"]);
-  team.forge.commit(&bob, &["--no-edit"]);
   let listed = team
     .forge
     .intent_said(&bob, &["wp", "list", onboarding.as_str()]);
@@ -731,13 +729,24 @@ fn two_clones_that_each_add_a_work_package_keep_both() {
   );
 }
 
-/// The control, and the limit the CHANGELOG states: **A THREAD WHOSE OTHER
-/// FIELDS MOVED TOO STILL TAKES A SIDE.** Bob retitled the thread as well as
-/// adding a package, so the thread is not only packages both sides added.
+/// The control, and the limit the CHANGELOG states: **A THREAD WHOSE OWN
+/// FIELDS BOTH SIDES MOVED STILL TAKES A SIDE.** Since ST0096 WP-05 a package
+/// is its own record file, so both clones also retitle the thread differently,
+/// which conflicts in the thread's own file and leaves a person to choose.
 #[test]
 fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
   let (team, onboarding) = Team::new();
-  let bob = team.bob();
+  let (alice, bob) = (team.alice(), team.bob());
+  // Committed with Alice's package by the helper's `commit_all`.
+  team.forge.intent_ok(
+    &alice,
+    &[
+      "set",
+      onboarding.as_str(),
+      "title",
+      "Onboarding guide, Alice's title",
+    ],
+  );
   let (pulled, _, _) = two_clones_each_add_a_work_package(&team, &onboarding, |_| {
     team.forge.intent_ok(
       &bob,
@@ -745,11 +754,15 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
         "set",
         onboarding.as_str(),
         "title",
-        "Onboarding guide, retitled",
+        "Onboarding guide, Bob's title",
       ],
     );
   });
-  assert_ne!(pulled.code, 0, "the pull did not conflict: {}", pulled.text);
+  assert_ne!(
+    pulled.code, 0,
+    "both sides retitled the thread, so its own file conflicts: {}",
+    pulled.text
+  );
 
   let plan = team.forge.intent_said(&bob, &["sync"]);
   assert!(plan.text.contains("take a side"), "{}", plan.text);
@@ -758,9 +771,9 @@ fn a_thread_changed_beyond_its_work_packages_still_takes_a_side() {
 
 /// ST0095 WP-06, AC-06.1: **TWO CLONES THAT EACH MINT A THREAD AND A WORK
 /// PACKAGE IN ONE SHARED THREAD FROM ONE BASE MERGE WITH DIFFERENT IDS AND NO
-/// REPAIR.** Nothing is renumbered and no side is taken: the plan keeps both
-/// sides' packages and regenerates the views, and every id either side minted
-/// is there after. (An issue each, the criterion's third record, also declares
+/// REPAIR.** Since ST0096 WP-05 every minted record is its own file, so the
+/// pull merges with no conflict, the plan renumbers nothing and takes no side,
+/// and every id either side minted is there after. (An issue each, the criterion's third record, also declares
 /// a row in `.intentfiles`, which leaves git with ST0096, so that half is
 /// proven once ST0096 lands.)
 // ST0095 AT-05.4: the arm below.
@@ -790,7 +803,12 @@ fn two_clones_that_each_mint_merge_with_no_repair() {
   team.forge.git_said(&alice, &["push", "-q"]);
   let bobs = mint(&bob, "Bob");
   team.forge.commit_all(&bob, "Bob's two");
-  team.forge.git_try(&bob, &["pull", "-q", "--no-rebase"]);
+  let pulled = Said::from(team.forge.git_try(&bob, &["pull", "-q", "--no-rebase"]));
+  assert_eq!(
+    pulled.code, 0,
+    "every minted record is its own file, so the pull merges with no conflict: {}",
+    pulled.text
+  );
   for (a, b) in alices.iter().zip(&bobs) {
     assert_ne!(a, b, "two clones minted one id");
   }
@@ -801,8 +819,6 @@ fn two_clones_that_each_mint_merge_with_no_repair() {
     "a merge of minted ids plans no repair and takes no side: {}",
     plan.text
   );
-  team.forge.intent_ok(&bob, &["sync", "--apply", "--yes"]);
-  team.forge.commit(&bob, &["--no-edit"]);
   let threads = team
     .forge
     .intent_said(&bob, &["st", "list", "--status", "all"])

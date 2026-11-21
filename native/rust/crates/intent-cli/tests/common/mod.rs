@@ -17,6 +17,25 @@
 
 pub mod level_three;
 
+/// The path of one of `root`'s canon files, from its path relative to the
+/// intent directory, as `intentsvcs::project::canon_ac_rel` and its kin name a
+/// thread's records (ST0096 WP-05).
+pub fn canon_file(root: &std::path::Path, rel: &str) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .intent_dir()
+    .join(rel)
+}
+
+/// One of `root`'s canon files, by its path relative to the intent directory,
+/// parsed as plain JSON.
+pub fn canon_json(root: &std::path::Path, rel: &str) -> serde_json::Value {
+  let path = canon_file(root, rel);
+  let text =
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+  serde_json::from_str(&text).unwrap_or_else(|e| panic!("{} is JSON: {e}", path.display()))
+}
+
 /// Give a project made by hand the project state `intent init` writes, through
 /// the library's one encoder, so it is in the release's canon format and its
 /// mints are not refused as those of a project `intent upgrade` has not moved

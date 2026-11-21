@@ -773,13 +773,13 @@ fn examine(
   report.issues_checked = canon.issues.len();
 
   for thread in &canon.threads {
-    let file = project.relative(&project.thread_json(&thread.id));
+    let files = ThreadFiles::of(project, thread);
     // **`model_checks` PRODUCES; `Report::admit` DECIDES.** The check stays a
     // pure producer of findings about one thread and knows nothing about the
     // run's scope, so the policy has one home and the producer cannot drift
     // from it. That is this project's own PFIC in the small.
     let mut found = Vec::new();
-    model_checks(thread, &canon, &file, &mut found);
+    model_checks(thread, &canon, &files, &mut found);
     report.admit(thread, found);
   }
 
@@ -859,12 +859,12 @@ fn last_renders(
 fn closed_contract_drift(canon: &Canon, project: &Project, report: &mut Report) {
   let refs = crate::contract::ProjectRefs::new(project.root(), &canon.threads);
   for thread in &canon.threads {
-    let file = project.relative(&project.thread_json(&thread.id));
+    let files = ThreadFiles::of(project, thread);
     let found = crate::contract::completed_thread_drift(thread, &refs)
       .into_iter()
       .map(|(at, finding)| {
         Finding::new(
-          file.clone(),
+          files.at(&at),
           FindingClass::ClosedContractDrift,
           format!(
             "{}'s {at} is green on a completed thread, and {finding}",
@@ -937,7 +937,7 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
     if thread.acceptance.is_some() || thread.criteria.is_empty() {
       continue;
     }
-    let file = project.relative(&project.thread_json(&thread.id));
+    let files = ThreadFiles::of(project, thread);
     for wp in &thread.wps {
       // **A WP WITH NO CRITERIA OF ITS OWN PASSES ITS GATE VACUOUSLY, AND THE
       // SECOND CUT OF THIS REPORTED TWO OF THEM.** `gate` filters the thread's
@@ -1035,7 +1035,7 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
       // something this arm measures. A real finding is the best possible cover
       // for an invented mechanism attached to it; the remedy on the class names
       // the causes as possibilities, where a detail line reads as a reading.
-      found.push(Finding::new(file.clone(), class, detail));
+      found.push(Finding::new(files.wp(&wp.seq.stored()), class, detail));
     }
     report.admit(thread, found);
   }
@@ -1058,8 +1058,60 @@ fn ingest_findings(e: &crate::ingest::IngestError) -> Vec<Finding> {
 // Model integrity
 // ---------------------------------------------------------------------------
 
-fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Finding>) {
-  let mut add = |detail: String, class: FindingClass| {
+/// The file a finding about a thread or one of its children names (ST0096
+/// WP-05): in the release's format a work package, criterion, test or
+/// attachment is a record file of its own, and the finding names that file,
+/// which is the one a person opens to fix it. In 3.4.0's format every child is
+/// inside the thread's own file, so every finding names that.
+struct ThreadFiles {
+  own: String,
+  /// The intent directory, project-relative, and the thread's stored id, when
+  /// the thread's own file is in the release's format.
+  records: Option<(String, String)>,
+}
+
+impl ThreadFiles {
+  fn of(project: &Project, thread: &Thread) -> Self {
+    let own = project.relative(&project.thread_json(&thread.id));
+    // **BY THE THREAD FILE'S OWN FORMAT**, as ingest reads it. The canon was
+    // read whole before any check runs, so this second read of the schema
+    // fails only if the file changed under the run; the finding then names
+    // the thread's own file, which still holds the thread.
+    let records = match crate::ingest::thread_file_format(project, &thread.id) {
+      Ok(crate::canon_format::CanonFormat::V4) => {
+        Some((project.relative(&project.intent_dir()), thread.id.stored()))
+      }
+      Ok(crate::canon_format::CanonFormat::V3) | Err(_) => None,
+    };
+    Self { own, records }
+  }
+
+  fn child(&self, rel: impl FnOnce(&str) -> String) -> String {
+    match &self.records {
+      Some((intent, thread)) => format!("{intent}/{}", rel(thread)),
+      None => self.own.clone(),
+    }
+  }
+
+  fn wp(&self, id: &str) -> String {
+    self.child(|thread| crate::project::canon_wp_rel(thread, id))
+  }
+
+  fn ac(&self, label: &str) -> String {
+    self.child(|thread| crate::project::canon_ac_rel(thread, label))
+  }
+
+  fn at(&self, label: &str) -> String {
+    self.child(|thread| crate::project::canon_at_rel(thread, label))
+  }
+
+  fn attachment(&self, path: &str) -> String {
+    self.child(|thread| crate::project::canon_attachment_rel(thread, path))
+  }
+}
+
+fn model_checks(thread: &Thread, canon: &Canon, files: &ThreadFiles, out: &mut Vec<Finding>) {
+  let mut add = |file: String, detail: String, class: FindingClass| {
     out.push(Finding::new(file, class, detail));
   };
 
@@ -1085,6 +1137,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     // as the one with nothing to say about it.
     let Some(content) = a.as_bytes() else {
       add(
+        files.attachment(&a.path),
         format!(
           "attachment {} is opaque and carries no bytes -- canon names {} byte(s) at sha256 {} \
            and the sidecar was not loaded",
@@ -1097,6 +1150,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     let actual = crate::model::sha256_hex(content);
     if actual != a.sha256 {
       add(
+        files.attachment(&a.path),
         format!(
           "attachment {} carries sha256 {} and its content hashes to {actual}",
           a.path, a.sha256
@@ -1105,6 +1159,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       );
     } else if a.bytes as usize != content.len() {
       add(
+        files.attachment(&a.path),
         format!(
           "attachment {} records {} bytes and its content is {}",
           a.path,
@@ -1164,6 +1219,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   for wp in &thread.wps {
     if wp.scope.is_some() && wp.scope_legacy.is_some() {
       add(
+        files.wp(&wp.seq.stored()),
         format!(
           "{} records a scope AND carries a legacy one ({:?}) -- these are alternatives, not a pair",
           wp.seq.heading(),
@@ -1174,6 +1230,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     }
     if wp.scope_legacy.is_some() && !thread.status.is_closed() {
       add(
+        files.wp(&wp.seq.stored()),
         format!(
           "{} carries a legacy scope and its thread is still {} -- well-formed, nothing blocked; worth rewriting in the v3 vocabulary next time the thread is touched",
           wp.seq.heading(),
@@ -1201,6 +1258,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   for at in &thread.tests {
     if at.file.is_some() && at.legacy.is_some() {
       add(
+        files.at(&at.id),
         format!(
           "{} cites a test file AND carries a legacy reference ({:?}) -- these are alternatives, not a pair",
           at.id,
@@ -1211,6 +1269,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     }
     if at.legacy.is_some() && !thread.status.is_closed() {
       add(
+        files.at(&at.id),
         format!(
           "{} carries a legacy reference and its thread is still {} -- it RESOLVES, nothing blocked; worth rewriting in the v3 grammar next time the thread is touched",
           at.id,
@@ -1249,6 +1308,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     for id in &ids {
       if seen.contains(&id) {
         add(
+          files.own.clone(),
           format!(
             "{kind} {id} is declared more than once in {}",
             thread.id.shown()
@@ -1266,11 +1326,12 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // of its packages'. And two of its packages whose short forms are equal are
   // named, advisory (AC-09.3); a package pair is compared only within its thread.
   if let Some(detail) = unverified("steel thread", &thread.id, thread.origin.as_deref()) {
-    add(detail, FindingClass::IdNotFromOrigin);
+    add(files.own.clone(), detail, FindingClass::IdNotFromOrigin);
   }
   for wp in &thread.wps {
     if let Some(detail) = unverified("work package", &wp.seq, wp.origin.as_deref()) {
       add(
+        files.wp(&wp.seq.stored()),
         format!("{} in {}", detail, thread.id.shown()),
         FindingClass::IdNotFromOrigin,
       );
@@ -1278,6 +1339,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   }
   for (detail, _) in shared_short_forms("work packages", thread.wps.iter().map(|wp| &wp.seq)) {
     add(
+      files.own.clone(),
       format!("{detail}, in {}", thread.id.shown()),
       FindingClass::ShortFormShared,
     );
@@ -1290,6 +1352,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   for test in &thread.tests {
     if test.covers.is_empty() {
       add(
+        files.at(&test.id),
         format!(
           "{} covers nothing, so no criterion can ever be satisfied by it",
           test.id
@@ -1300,6 +1363,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     for ac in &test.covers {
       if !thread.criteria.iter().any(|c| &c.id == ac) {
         add(
+          files.at(&test.id),
           format!(
             "{} covers {ac}, which is not a criterion of {}",
             test.id,
@@ -1317,6 +1381,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       && test.status != AtStatus::ToWrite
     {
       add(
+        files.at(&test.id),
         format!(
           "{} is a test row at {} with no file reference",
           test.id,
@@ -1356,6 +1421,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
         ),
       };
       add(
+        files.at(&test.id),
         format!("{} {complaint}", test.id),
         FindingClass::ModelInconsistent,
       );
@@ -1410,6 +1476,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       && !thread.wps.iter().any(|w| w.seq == seq)
     {
       add(
+        files.ac(&criterion.id),
         format!(
           "{} belongs to {}, which {} does not have",
           criterion.id,
@@ -1460,6 +1527,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
         ),
       };
       add(
+        files.ac(&criterion.id),
         format!("{} {complaint}", criterion.id),
         FindingClass::ModelInconsistent,
       );
@@ -1483,6 +1551,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       && evidence.trim().is_empty()
     {
       add(
+        files.ac(&criterion.id),
         format!(
           "{} records satisfied with no evidence, and a non-test criterion has nothing else to show -- there is no test to re-run to find out whether it holds",
           criterion.id
@@ -1498,6 +1567,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       && !canon.threads.iter().any(|t| &t.id == to)
     {
       add(
+        files.ac(&criterion.id),
         format!(
           "{} is descoped to {}, which is not a steel thread in this project",
           criterion.id,
@@ -1512,6 +1582,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   for related in &thread.related {
     if !canon.threads.iter().any(|t| t.id == related.id) {
       add(
+        files.own.clone(),
         format!(
           "{} names {} as related, and there is no such steel thread",
           thread.id.shown(),
@@ -1556,6 +1627,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     // count and the exit code keyed on the class being spelled `Advisory`, so
     // a correctly-relabelled finding would still have been counted.
     (status, None) if status.is_closed() => add(
+      files.own.clone(),
       format!(
         "{} is {} with no completion date",
         thread.id.shown(),
@@ -1564,6 +1636,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       FindingClass::FieldNotRecorded,
     ),
     (status, Some(date)) if !status.is_closed() => add(
+      files.own.clone(),
       format!(
         "{} carries a completion date ({date}) while its status is {}",
         thread.id.shown(),

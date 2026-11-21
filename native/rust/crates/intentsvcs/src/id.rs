@@ -2098,6 +2098,46 @@ pub fn record_order<R: Ordered>(a: &R, b: &R) -> Ordering {
   }
 }
 
+/// **THE ORDER OF A THREAD'S CRITERIA AND TESTS AS ITS RECORD FILES GIVE
+/// THEM** (ST0096 WP-05): by label, each run of digits compared as a number
+/// and every other run as text, so `AC-01.2` comes before `AC-01.10`, which
+/// a file name's text order would put first.
+///
+/// **A READER'S ORDER, NOT A STORED ONE.** No file holds an order, so a thread
+/// read from its records takes this one, and a store loaded from them keeps
+/// it. A store that minted the labels keeps the order it minted them in until
+/// it next loads from the disk. No canon byte depends on either, because each
+/// record is a file of its own.
+pub fn label_order(a: &str, b: &str) -> Ordering {
+  fn runs(label: &str) -> Vec<(bool, &str)> {
+    let mut out: Vec<(bool, &str)> = Vec::new();
+    let mut start = 0;
+    let bytes = label.as_bytes();
+    for i in 1..=bytes.len() {
+      if i == bytes.len() || bytes[i].is_ascii_digit() != bytes[start].is_ascii_digit() {
+        out.push((bytes[start].is_ascii_digit(), &label[start..i]));
+        start = i;
+      }
+    }
+    out
+  }
+  let (x, y) = (runs(a), runs(b));
+  for ((xd, xs), (yd, ys)) in x.iter().zip(&y) {
+    let step = match (xd, yd) {
+      (true, true) => xs
+        .trim_start_matches('0')
+        .len()
+        .cmp(&ys.trim_start_matches('0').len())
+        .then_with(|| xs.trim_start_matches('0').cmp(ys.trim_start_matches('0'))),
+      _ => xs.cmp(ys),
+    };
+    if step != Ordering::Equal {
+      return step;
+    }
+  }
+  x.len().cmp(&y.len()).then_with(|| a.cmp(b))
+}
+
 // ---------------------------------------------------------------------------
 // The faces: canon (serde), the published JSON Schema, the store and GraphQL.
 //

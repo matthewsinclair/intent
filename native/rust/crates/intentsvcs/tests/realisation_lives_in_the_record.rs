@@ -29,11 +29,25 @@ fn outside(project: &Project, record: &Record<'_>, written: &Written) -> Vec<Str
   let rel = |p: std::path::PathBuf| project.relative(&p);
   let lists = [rel(project.steel_threads_view()), rel(project.todo_view())];
   let events = rel(project.events_dir());
-  let (canon, home) = match record {
-    Record::Thread(id) => (rel(project.thread_json(id)), rel(project.thread_dir(id))),
+  // A thread's canon is its own file and its records' files (ST0096 WP-05),
+  // so its records directory is its record too.
+  let (canon, home, records) = match record {
+    Record::Thread(id) => (
+      rel(project.thread_json(id)),
+      rel(project.thread_dir(id)),
+      Some(format!(
+        "{}/",
+        rel(
+          project
+            .intent_dir()
+            .join(intentsvcs::project::canon_records_rel(id))
+        )
+      )),
+    ),
     Record::Issue(number) => (
       rel(project.issue_json(*number)),
       rel(project.issue_view(*number)),
+      None,
     ),
   };
   written
@@ -43,6 +57,9 @@ fn outside(project: &Project, record: &Record<'_>, written: &Written) -> Vec<Str
     .filter(|path| {
       !(**path == canon
         || path.starts_with(&home)
+        || records
+          .as_ref()
+          .is_some_and(|dir| path.starts_with(dir.as_str()))
         || path.starts_with(&events)
         || lists.contains(path))
     })

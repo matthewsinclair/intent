@@ -168,10 +168,20 @@ impl crate::remedy::Remedy for CanonFormatError {
   }
 }
 
-/// A thread's canon bytes in `format`: the one encoder every thread write asks.
+/// The bytes of a thread's own canon file in `format`
+/// ([`crate::project::canon_thread_rel`]): in 3.4.0's format the whole
+/// thread, children inline; in the release's its own fields only, since each
+/// child is a file of its own (ST0096 WP-05). A writer of the whole thread asks
+/// [`encode_thread_files`], which builds on this.
 pub fn encode_thread(thread: &Thread, format: CanonFormat) -> Result<String, CanonFormatError> {
   Ok(match format {
-    CanonFormat::V4 => to_canonical_json(thread)?,
+    CanonFormat::V4 => to_canonical_json(&Thread {
+      wps: Vec::new(),
+      criteria: Vec::new(),
+      tests: Vec::new(),
+      attachments: Vec::new(),
+      ..thread.clone()
+    })?,
     CanonFormat::V3 => to_canonical_json(&ThreadV3::try_from(thread)?)?,
   })
 }
@@ -212,14 +222,7 @@ pub fn encode_thread_files(
     }
     CanonFormat::V4 => {}
   }
-  let own = Thread {
-    wps: Vec::new(),
-    criteria: Vec::new(),
-    tests: Vec::new(),
-    attachments: Vec::new(),
-    ..thread.clone()
-  };
-  let mut files = vec![(canon_thread_rel(&id), to_canonical_json(&own)?)];
+  let mut files = vec![(canon_thread_rel(&id), encode_thread(thread, format)?)];
   for wp in &thread.wps {
     files.push((canon_wp_rel(&id, &wp.seq.stored()), to_canonical_json(wp)?));
   }

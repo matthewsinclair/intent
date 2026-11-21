@@ -1,0 +1,14 @@
+{
+  "id": "01M7YF8YFZSGPR8TVK0VDG575Z",
+  "ts": "2026-11-21T07:14:02.883Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0096/AC-05.1"
+  },
+  "payload": {
+    "text": "A thread's canon in the release's format is one file for the thread's own fields and one file per work package, criterion, test and attachment under .canon/records/<thread>/, each named by its record's stored id or label, and no file lists, counts or orders a thread's children: the thread's records directory holds them, read in the waist's order."
+  }
+}

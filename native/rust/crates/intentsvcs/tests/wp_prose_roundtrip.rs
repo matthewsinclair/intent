@@ -22,7 +22,7 @@
 //! it) from this one (does the rendering preserve it).
 
 use crate::common::{Fixture, ctx, sample_thread, wp};
-use intentsvcs::model::to_canonical_json;
+use intentsvcs::canon_format::{CanonFormat, encode_thread_files};
 use intentsvcs::views;
 
 /// The section headings `sample_thread`'s WP-03 body carries, none of which
@@ -98,21 +98,28 @@ fn rendering_leaves_the_canon_byte_identical() {
   let project = fx.project();
   let thread = sample_thread("ST0001");
 
-  let path = project.thread_json(&thread.id);
-  std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-  let before = to_canonical_json(&thread).expect("serialise");
-  std::fs::write(&path, &before).expect("write canon");
+  // Every file of the thread's layout: its own and one per child (ST0096
+  // WP-05), the package whose prose is under test among them.
+  let intent_dir = project.intent_dir();
+  let before = encode_thread_files(&thread, CanonFormat::V4).expect("serialise");
+  for (rel, text) in &before {
+    let path = intent_dir.join(rel);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(&path, text).expect("write canon");
+  }
 
   let mut store = intentsvcs::store::Store::open_in_memory().expect("store");
   let canon = intentsvcs::ingest::resync(&project, &mut store, &intentsvcs::sync::Scope::All)
     .expect("resync");
   views::write_all(&project, &canon, &ctx()).expect("write views");
 
-  let after = std::fs::read_to_string(&path).expect("read canon");
-  assert_eq!(
-    before, after,
-    "the round trip must not rewrite a file it merely read"
-  );
+  for (rel, text) in &before {
+    let after = std::fs::read_to_string(intent_dir.join(rel)).expect("read canon");
+    assert_eq!(
+      *text, after,
+      "the round trip must not rewrite a file it merely read: {rel}"
+    );
+  }
   assert!(
     project.wp_info_view("ST0001", wp(3)).is_file(),
     "and the view it renders is where the model says it goes"

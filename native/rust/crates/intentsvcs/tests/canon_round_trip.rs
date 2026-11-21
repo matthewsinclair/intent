@@ -28,9 +28,13 @@
 use std::collections::BTreeSet;
 
 use crate::common::{Fixture, PROJECT_ID, sample_thread};
+use intentsvcs::canon_format::{CanonFormat, encode_thread_files};
 use intentsvcs::model::{
   AcceptanceMode, AcceptanceTest, AtKind, AtStatus, FiatRecord, ISSUE_SCHEMA, Invoker, Issue,
   IssueStatus, Thread, to_canonical_json,
+};
+use intentsvcs::project::{
+  canon_ac_rel, canon_at_rel, canon_attachment_rel, canon_blob_rel, canon_wp_rel,
 };
 
 /// Every optional field populated, on top of the shared markup-bearing
@@ -177,6 +181,27 @@ fn canon_written_where_the_exporter_names_it_is_canon_the_readers_can_open() {
   let mut resolved = BTreeSet::new();
   for t in &threads {
     resolved.insert(project.thread_json(&t.id));
+    // Each child is a file of its own in the release's format (ST0096 WP-05),
+    // resolved by the path functions the reader lists its records with.
+    let id = t.id.stored();
+    let records = t
+      .wps
+      .iter()
+      .map(|w| canon_wp_rel(&id, &w.seq.stored()))
+      .chain(t.criteria.iter().map(|c| canon_ac_rel(&id, &c.id)))
+      .chain(t.tests.iter().map(|a| canon_at_rel(&id, &a.id)))
+      .chain(
+        t.attachments
+          .iter()
+          .map(|a| canon_attachment_rel(&id, &a.path)),
+      )
+      .chain(
+        t.attachments
+          .iter()
+          .filter(|a| a.is_opaque())
+          .map(|a| canon_blob_rel(&id, &a.path)),
+      );
+    resolved.extend(records.map(|rel| intent_dir.join(rel)));
   }
   for i in &issues {
     resolved.insert(project.issue_json(i.number));
@@ -211,10 +236,15 @@ fn canon_survives_the_store_byte_for_byte() {
   let project = fx.project();
 
   let threads = [maximal_thread("ST0001"), maximal_thread("ST0002")];
+  // A thread is its own file and one file per child in the release's format
+  // (ST0096 WP-05), so every file the layout names is written and compared.
+  let intent_dir = project.intent_dir();
   for t in &threads {
-    let path = project.thread_json(&t.id);
-    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-    std::fs::write(&path, to_canonical_json(t).expect("serialise")).expect("write canon");
+    for (rel, text) in encode_thread_files(t, CanonFormat::V4).expect("serialise") {
+      let path = intent_dir.join(rel);
+      std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+      std::fs::write(&path, text).expect("write canon");
+    }
   }
   let issues = [issue(1), issue(2)];
   std::fs::create_dir_all(project.issues_dir()).expect("mkdir issues");
@@ -234,14 +264,16 @@ fn canon_survives_the_store_byte_for_byte() {
   assert_eq!(out_issues.len(), issues.len(), "every issue came back");
 
   for thread in &out_threads {
-    let on_disk = std::fs::read_to_string(project.thread_json(&thread.id)).expect("read canon");
-    assert_eq!(
-      to_canonical_json(thread).expect("serialise"),
-      on_disk,
-      "{} does not survive the store byte for byte -- the DB is only safe to \
-       delete if what it gives back IS the file",
-      thread.id.shown()
-    );
+    for (rel, text) in encode_thread_files(thread, CanonFormat::V4).expect("serialise") {
+      let on_disk = std::fs::read_to_string(intent_dir.join(&rel)).expect("read canon");
+      assert_eq!(
+        text,
+        on_disk,
+        "{} does not survive the store byte for byte at {rel} -- the DB is only \
+         safe to delete if what it gives back IS the file",
+        thread.id.shown()
+      );
+    }
   }
   for issue in &out_issues {
     let on_disk = std::fs::read_to_string(project.issue_json(issue.number)).expect("read issue");

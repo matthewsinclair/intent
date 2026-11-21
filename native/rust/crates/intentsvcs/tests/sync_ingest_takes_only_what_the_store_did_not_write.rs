@@ -95,6 +95,12 @@ fn a_recorded_file_the_pull_removed_takes_the_removal() {
   // with no canon reads as an unmigrated v2 thread, which a pull never leaves.
   std::fs::remove_file(fx.canon_path("ST0002")).expect("the pull removes the file");
   let _ = std::fs::remove_dir_all(fx.project().thread_dir("ST0002"));
+  // And its records' files, which a pull removes with it (ST0096 WP-05).
+  let _ = std::fs::remove_dir_all(
+    fx.project()
+      .intent_dir()
+      .join(intentsvcs::project::canon_records_rel("ST0002")),
+  );
   let ingested = fx
     .facade_on_disk()
     .ingest_from_disk(&Scope::All)
@@ -202,6 +208,12 @@ fn the_plan_predicts_the_apply_and_writes_nothing() {
   fx.write_thread(&edited);
   std::fs::remove_file(fx.canon_path("ST0003")).expect("the pull removes ST0003");
   let _ = std::fs::remove_dir_all(fx.project().thread_dir("ST0003"));
+  // And its records' files, which a pull removes with it (ST0096 WP-05).
+  let _ = std::fs::remove_dir_all(
+    fx.project()
+      .intent_dir()
+      .join(intentsvcs::project::canon_records_rel("ST0003")),
+  );
   let before = crate::common::tree(fx.root());
   let stored_before = crate::common::store_thread_ids(&fx.project());
 
