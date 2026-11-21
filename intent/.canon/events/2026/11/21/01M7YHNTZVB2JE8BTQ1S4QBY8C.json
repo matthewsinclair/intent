@@ -1,0 +1,15 @@
+{
+  "id": "01M7YHNTZVB2JE8BTQ1S4QBY8C",
+  "ts": "2026-11-21T07:56:02.430Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0745"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "intent upgrade names what it wrote, so the rule 'commit what the verbs printed' holds for it too"
+  }
+}

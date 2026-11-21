@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 745,
+  "slug": "intent-upgrade-names-what-it-wrote-so-the-rule-c",
+  "title": "intent upgrade names what it wrote, so the rule 'commit what the verbs printed' holds for it too",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-21",
+  "reporter": "Matthew Sinclair",
+  "body": "Every verb that writes a tracked file names it on a wrote: or removed: line, and the rule is to commit exactly those paths. intent upgrade prints none, because it rewrites every canon file in the project (thousands of paths on a large estate), so its success line tells a person to stage everything with git add -A. That is safe only because upgrade refuses a tree that isn't clean (ST0096 WP-05, cc's ruling of 2026-11-21).\n\nFix: upgrade names what it wrote in a form a person or script can commit by: a per-directory summary, or a written manifest of paths. It needs a design first, so it is larger than S.\n\nOwner: cc. Not in 3.5.0 by cc's sizing. Under hv decision 69, vc puts its deferral to hv with the cut question. Filed by vc on cc's ruling."
+}
