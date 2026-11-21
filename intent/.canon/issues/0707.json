@@ -3,9 +3,10 @@
   "number": 707,
   "slug": "a-project-made-with-an-older-intent-keeps-closed",
   "title": "A project made with an older Intent keeps closed threads' views that sync --apply --yes removes on every branch",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-19",
+  "closed": "2026-11-21",
   "reporter": "Matthew Sinclair",
   "body": "Reported from an attendee's practice repository, made with 3.2.8 and now on 3.4.0, and reproduced on brew 3.4.0 on 2026-11-19 (vc). Main tracks the views of closed threads that `.intentfiles` no longer lists. doctor counts nothing. `intent sync` plans \"views (reversible): write 0 view(s) and remove 3\"; a hook, or a run without a terminal, leaves the step, and `--yes` removes the files.\n\nThe step that resolves a merge's view conflicts needs `--yes`, so every branch deletes the same files, and every merge request carries the same deletion until main does it once. Nothing says so.\n\nExpected: `intent upgrade`, or doctor on a default run, names the views the manifest no longer declares and the one commit that removes them. What upgrade does is cc's; what doctor says is ic's.\n"
 }
