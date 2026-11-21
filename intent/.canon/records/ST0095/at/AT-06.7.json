@@ -1,7 +1,7 @@
 {
   "id": "AT-06.7",
   "kind": "test",
-  "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:78",
+  "file": "native/rust/crates/intentsvcs/tests/the_one_mint.rs:80",
   "covers": [
     "AC-06.7"
   ],
