@@ -120,6 +120,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::Mint(_)
     | FacadeError::NotYetUpgraded { .. }
     | FacadeError::NothingToRemint { .. }
+    // ST0096 WP-05: a merge where taking a side would drop a work package. It is
+    // about what the two branches hold, never a field left out of the call.
+    | FacadeError::PackagesAddedInOneFile { .. }
+    | FacadeError::PackageAddedTwice { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

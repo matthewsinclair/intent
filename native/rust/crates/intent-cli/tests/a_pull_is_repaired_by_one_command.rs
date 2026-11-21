@@ -430,3 +430,103 @@ fn a_canon_content_conflict_needs_a_person_and_yes_does_not_answer_it() {
   let shown = forge.intent_ok(&team.bob, &["st", "show", st.as_str()]);
   assert!(shown.contains("Alice's title"), "{shown}");
 }
+
+/// ST0096 WP-05, on intent-vc's ruling that retired the step which kept both
+/// (issue 0709): **IN 3.4.0'S FORMAT A THREAD BOTH SIDES ADDED A WORK PACKAGE
+/// TO IS REFUSED, NOT OFFERED AS A SIDE TO TAKE.** Its packages are inside its
+/// own file, so taking either side would drop the other side's package while
+/// reading as an ordinary choice (issue 0555). The plan and the apply both
+/// refuse, name the file and the fix 3.4.0 had, and write nothing. **AND THAT
+/// FIX HOLDS**: each side's mint committed its `wp.new` event, and with the
+/// file resolved by hand, one package renumbered, `sync --apply --yes` and
+/// `doctor` both pass.
+#[test]
+fn a_thread_both_sides_added_packages_to_in_the_ordinal_format_is_refused() {
+  let forge = Forge::new();
+  let alice = forge.clone_as("alice");
+  forge.intent_ok(&alice, &["init", "Team"]);
+  crate::common::born_ordinal(&alice);
+  let id = intentsvcs::id::ThreadId::from_ordinal(7)
+    .expect("an ordinal thread")
+    .stored();
+  let first = (1, "First");
+  crate::common::seed_ordinal_thread(&alice, &id, "Onboarding", &[first]);
+  forge.commit_all(&alice, "a thread in the ordinal format");
+  forge.git(&alice, &["push", "-q", "origin", "HEAD:main"]);
+  let bob = forge.clone_as("bob");
+  forge.intent_ok(&bob, &["sync", "--apply"]);
+
+  let package = intentsvcs::id::wp_address(
+    &id,
+    intentsvcs::id::WpId::from_ordinal(2).expect("an ordinal package"),
+  );
+  crate::common::seed_ordinal_thread(&alice, &id, "Onboarding", &[first, (2, "Alice's")]);
+  crate::common::seed_creation_event(&alice, ALICES_CREATION, "wp.new", "wp", &package);
+  forge.commit_all(&alice, "alice: a package");
+  forge.git(&alice, &["push", "-q", "origin", "HEAD:main"]);
+  crate::common::seed_ordinal_thread(&bob, &id, "Onboarding", &[first, (2, "Bob's")]);
+  crate::common::seed_creation_event(&bob, BOBS_CREATION, "wp.new", "wp", &package);
+  forge.commit_all(&bob, "bob: a package");
+  let merge = Said::from(forge.git_try(&bob, &["pull", "-q", "--no-rebase", "origin", "main"]));
+  assert_ne!(
+    merge.code, 0,
+    "the fixture needs the merge to stop on the thread's file:\n{}",
+    merge.text
+  );
+  let project = intentsvcs::project::Project::open(&bob).expect("Bob's project");
+  let canon = project.relative(&project.thread_json(&id));
+  let before = forge.git(&bob, &["status", "--porcelain"]);
+
+  for args in [&["sync"][..], &["sync", "--apply", "--yes"][..]] {
+    let refused = forge.intent_said(&bob, args);
+    assert_eq!(
+      refused.code, 1,
+      "`intent {args:?}` refuses: {}",
+      refused.text
+    );
+    assert!(
+      refused.text.contains(&format!(
+        "both sides of this merge added work packages to {id}, which this project's ordinal \
+         format keeps inside {canon}"
+      )),
+      "`intent {args:?}` names the thread and its file: {}",
+      refused.text
+    );
+    assert!(
+      refused
+        .text
+        .contains("give one of them the next number no package in the thread uses"),
+      "`intent {args:?}` names the fix a merge in this format always had: {}",
+      refused.text
+    );
+    assert!(
+      !refused.text.contains("take a side ("),
+      "`intent {args:?}` offers no side to take: {}",
+      refused.text
+    );
+    assert_eq!(
+      forge.git(&bob, &["status", "--porcelain"]),
+      before,
+      "`intent {args:?}` wrote nothing"
+    );
+  }
+
+  // The remedy, as a person runs it: both packages kept in the thread's file,
+  // the pulled one moved to the next number the thread does not use.
+  crate::common::seed_ordinal_thread(
+    &bob,
+    &id,
+    "Onboarding",
+    &[first, (2, "Bob's"), (3, "Alice's")],
+  );
+  forge.git(&bob, &["add", canon.as_str()]);
+  forge.intent_ok(&bob, &["sync", "--apply", "--yes"]);
+  let packages = forge.intent_ok(&bob, &["wp", "list", id.as_str()]);
+  for title in ["Bob's", "Alice's"] {
+    assert!(
+      packages.contains(title),
+      "{title} package is kept: {packages}"
+    );
+  }
+  forge.intent_ok(&bob, &["doctor"]);
+}

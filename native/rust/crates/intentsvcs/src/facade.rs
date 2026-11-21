@@ -1578,6 +1578,31 @@ pub enum FacadeError {
      which an older Intent still opens without reading a git-style id"
   )]
   NotYetUpgraded { verb: String },
+  /// **A MERGE IN 3.4.0'S FORMAT WHERE BOTH SIDES ADDED WORK PACKAGES TO ONE
+  /// THREAD** (ST0096 WP-05, intent-vc's ruling on issue 0709, which retired
+  /// the step that kept both). The packages are inside the thread's file at
+  /// `path`, so a side taken drops the other side's while reading as an ordinary
+  /// choice (issue 0555). Refused while planning, before anything is written.
+  #[error(
+    "`sync` refused, and nothing was written: both sides of this merge added work packages to \
+     {thread}, which this project's ordinal format keeps inside {path}, so taking either side \
+     would drop the other side's"
+  )]
+  PackagesAddedInOneFile { thread: String, path: String },
+  /// **A WORK PACKAGE FILE BOTH SIDES ADDED UNDER ONE ID** (ST0096 WP-05,
+  /// intent-cc's ruling on issue 0709): two packages that one file at `path`
+  /// cannot hold, which only an ordinal two branches made before the upgrade
+  /// can share. A side taken drops one (issue 0555), so it is refused while
+  /// planning, before anything is written.
+  #[error(
+    "`sync` refused, and nothing was written: both sides of this merge added a work package as \
+     {thread}/{package} ({path}), and taking either side would drop the other side's"
+  )]
+  PackageAddedTwice {
+    thread: String,
+    package: String,
+    path: String,
+  },
   /// A re-mint asked of a git-style id (ST0095 WP-06): such an id never
   /// collides, so nothing ever moves one.
   #[error("{id} is already a git-style id, which never collides, so there is nothing to re-mint")]
@@ -3589,6 +3614,22 @@ impl crate::remedy::Remedy for FacadeError {
          changes no id, and an older Intent then refuses the project by name instead of \
          misreading it, so upgrade Intent first on every machine that opens it"
         .to_string(),
+      Self::PackagesAddedInOneFile { path, .. } => format!(
+        "resolve {path} by hand, as 3.4.0 resolved it: keep both sides' packages \
+         and give one of them the next number no package in the thread uses, then `git add` it \
+         and run `intent sync --apply --yes`. Do not take a side here: either side drops a package"
+      ),
+      Self::PackageAddedTwice {
+        thread, package, ..
+      } => format!(
+        "abort the merge with `git merge --abort`. Then, on your own branch and not the one you \
+         pulled, re-create its package with `intent wp new {thread} \"<its title>\"`, which gives \
+         it a git-style id no other branch can share. Carry its objective across with `intent set \
+         {thread}/<the id wp new printed> objective --from <file>`, and its body with `intent set \
+         {thread}/<the id wp new printed> body --from <file>`. Cancel the old one with `intent wp \
+         cancel {thread}/{package} --reason \"re-created as <the id wp new printed> to merge\"`; \
+         commit, and merge again. The old package's id and history stay with the cancelled one"
+      ),
       Self::NoSuchWorkPackage { st, .. } => contract::see_the_work_packages(st),
       Self::NoSuchCriterion { st, .. } => {
         format!("run `intent ac list {st}` to see the criteria in its contract")
@@ -13224,7 +13265,7 @@ impl Facade {
     use crate::plan::Step;
     let root = self.project.root();
     let mut steps = Vec::new();
-    let mut conflicts = if crate::gitstate::is_work_tree(root) {
+    let conflicts = if crate::gitstate::is_work_tree(root) {
       // **NOT WHILE A MERGE IS IN PROGRESS**: mid-pull the upstream's commits
       // are the ones being merged, and telling a person to pull them in the
       // middle of their pull is the one wrong thing to say.
@@ -13254,31 +13295,31 @@ impl Facade {
       minted.push(to.clone());
       steps.push(Step::renumber(from.clone(), to, origin));
     }
-    // **A THREAD BOTH SIDES ADDED WORK PACKAGES TO IS A THREAD BOTH SIDES
-    // CHANGED** to git, so it arrives here as a side to take; the three
-    // versions tell the two apart, and keeping both sides' packages replaces
-    // the choice (issue 0555, ST0095 WP-06).
-    let mut sides = Vec::new();
-    for path in std::mem::take(&mut conflicts.take_sides) {
-      match self.packages_both_sides_added_at(&path)? {
-        Some((id, found)) => {
-          conflicts.packages_kept.push(path.clone());
-          let moves = found
-            .moves
-            .iter()
-            .map(|(from, to, _)| {
-              (
-                crate::id::wp_address(&id, *from),
-                crate::id::wp_address(&id, *to),
-              )
-            })
-            .collect();
-          steps.push(Step::keep_packages(id, moves));
-        }
-        None => sides.push(path),
+    // **A THREAD BOTH SIDES ADDED WORK PACKAGES TO, IN 3.4.0'S FORMAT, IS
+    // REFUSED, NOT OFFERED AS A SIDE TO TAKE** (ST0096 WP-05, intent-vc's
+    // ruling on issue 0709). Its packages are inside the thread's file, so
+    // taking either side drops the other's package, which is issue 0555; the
+    // person who picks a side cannot see that the other side held new work.
+    // Refused while planning, so nothing is written. In the release's format a
+    // package is a file of its own and the thread's file lists none, so this
+    // never refuses there.
+    // A package file both sides added under one id, in the release's format, is
+    // refused the same way and for the same reason (`plan::classify`).
+    for path in &conflicts.take_sides {
+      if let Some(thread) = self.thread_both_sides_added_packages_to(path)? {
+        return Err(FacadeError::PackagesAddedInOneFile {
+          thread,
+          path: path.clone(),
+        });
       }
     }
-    conflicts.take_sides = sides;
+    if let Some(added) = conflicts.packages_added_twice.first() {
+      return Err(FacadeError::PackageAddedTwice {
+        thread: added.thread.clone(),
+        package: added.package.clone(),
+        path: added.path.clone(),
+      });
+    }
     for path in &conflicts.take_sides {
       steps.push(Step::take_side(path.clone()));
     }
@@ -13698,7 +13739,6 @@ impl Facade {
         }
         (Action::TakeSide { path }, Decision::Take(side)) => self.take_side(path, side)?,
         (Action::Renumber { from, to, origin }, _) => self.renumber_in_merge(from, to, origin)?,
-        (Action::KeepPackages { thread, .. }, _) => self.keep_packages_in_merge(thread)?,
         (Action::Ingest { .. }, _) => {
           self.write_views_from_store(&unmerged_views)?;
           let boards = self.carry_pulled_boards()?;
@@ -13847,21 +13887,12 @@ impl Facade {
     Ok((written, unrendered))
   }
 
-  /// The thread at a canon path both sides changed, when what both did was
-  /// add work packages to it (issue 0555, ST0095 WP-06): its id and the union
-  /// the merge keeps, from the merge's three versions, `:1` the base, `:2` this
-  /// clone's and `:3` the pulled one, each read by its own schema. `None` for
-  /// any other path, or when a version is missing or is not a thread.
-  ///
-  /// **AN ORDINAL BOTH SIDES ADDED MOVES TO A GIT-STYLE ID DERIVED FROM ITS
-  /// OWN CREATION EVENT**, which this clone's log holds for a package this
-  /// clone added, so the plan and its apply agree. Where the log holds none,
-  /// nothing names the event its id would derive from, and the thread is left
-  /// to a person, as any other change is.
-  fn packages_both_sides_added_at(
-    &self,
-    path: &str,
-  ) -> Result<Option<(String, crate::plan::PackagesBothSidesAdded)>, FacadeError> {
+  /// The thread whose own file is at `path`, when both sides of the merge added
+  /// work packages to it ([`crate::plan::both_sides_added_packages`]), read
+  /// from the merge's three versions: `:1` the base, `:2` this clone's and `:3`
+  /// the pulled one, each by its own schema. `None` for any other path, or when
+  /// a version is missing or is not a thread, which leaves it a side to take.
+  fn thread_both_sides_added_packages_to(&self, path: &str) -> Result<Option<String>, FacadeError> {
     let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
     let Some(id) = path
       .strip_prefix(&canon_st)
@@ -13884,158 +13915,10 @@ impl Facade {
       };
       versions.push(thread);
     }
-    let mut refused = None;
-    let found = crate::plan::packages_both_sides_added(
-      &versions[0],
-      &versions[1],
-      &versions[2],
-      |seq, taken| {
-        if let Err(before) = self.refuse_before_the_upgrade("sync") {
-          refused = Some(before);
-          return None;
-        }
-        let logged = match self.creation_origin("wp.new", &crate::id::wp_address(id, seq)) {
-          Ok(logged) => logged?,
-          Err(e) => {
-            refused = Some(e);
-            return None;
-          }
-        };
-        let mut draws =
-          std::iter::once(logged).chain(std::iter::repeat_with(crate::event::next_id));
-        match crate::id::mint(taken, || draws.next().unwrap_or_else(crate::event::next_id)) {
-          Ok(minted) => Some(minted),
-          Err(e) => {
-            refused = Some(e.into());
-            None
-          }
-        }
-      },
-    );
-    if let Some(e) = refused {
-      return Err(e);
-    }
-    Ok(found.map(|found| (id.to_string(), found)))
-  }
-
-  /// Keep every work package both sides added to `thread`, in the middle of the
-  /// merge (issue 0555, ST0095 WP-06): the union is written as this clone's
-  /// thread, an ordinal both sides added moves to its git-style id, a claim on
-  /// a moved package moves with it, and every path touched is staged.
-  fn keep_packages_in_merge(&mut self, thread: &str) -> Result<String, FacadeError> {
-    let root = self.project.root().to_path_buf();
-    let id = thread.to_string();
-    let path = self.project.relative(&self.project.thread_json(&id));
-    if !crate::gitstate::unmerged(&root)?
-      .iter()
-      .any(|u| u.path == path)
-    {
-      return Ok(format!("the work packages of {id} are already kept"));
-    }
-    let Some((_, found)) = self.packages_both_sides_added_at(&path)? else {
-      return Err(FacadeError::SyncDiskStep {
-        step: format!("keep the work packages both sides added to {id}"),
-        source: std::io::Error::other(
-          "the merge no longer shows both sides only adding work packages to it -- run `intent sync` again for a fresh plan",
-        ),
-      });
-    };
-    let pairs: Vec<(crate::id::WpId, crate::id::WpId)> = found
-      .moves
-      .iter()
-      .map(|(from, to, _)| (*from, *to))
-      .collect();
-    // The act's event file is this renumber's to stage, like the canon file;
-    // it is the one the write adds under the events directory.
-    let events_before = Project::files_in(&self.project.events_dir());
-    let mut next = self.canon.clone();
-    match next.threads.iter_mut().find(|t| t.id == id) {
-      Some(thread) => *thread = found.merged.clone(),
-      None => return Err(FacadeError::NoSuchThread { id }),
-    }
-    let (claims, _) = crate::renumber::work_package_claims(&self.canon.boards, &id, &pairs);
-    let moves: Vec<String> = pairs
-      .iter()
-      .map(|(f, t)| {
-        format!(
-          "{} -> {}",
-          crate::id::wp_address(&id, *f),
-          crate::id::wp_address(&id, *t)
-        )
-      })
-      .collect();
-    // **A MOVE IS A RENUMBER IN THE LOG, AND A UNION THAT MOVES NOTHING IS A
-    // WRITE OF THE WHOLE THREAD BY THE MERGE**, so the log says which happened.
-    let (op, kind, payload) = if moves.is_empty() {
-      (
-        "thread.put",
-        crate::id::IdKind::Thread,
-        json!({ "via": "merge" }),
-      )
-    } else {
-      (
-        "wp.renumber",
-        crate::id::IdKind::WorkPackage,
-        json!({ "moves": moves, "mid_merge": true }),
-      )
-    };
-    // A repair inside `sync --apply`'s merge, before its ingest: unchecked,
-    // as `renumber_in_merge`'s is (issue 0739).
-    let applied = self.land(
-      op,
-      Subject::of(kind, id.clone()),
-      payload,
-      next,
-      crate::store::ProjectStateEdit::Unchanged,
-    )?;
-    let mut notes = Outcome::Moved.with_overwrites(applied).notes().to_vec();
-    if !claims.is_empty() {
-      let mark = self.after_write.len();
-      for (node, list) in &claims {
-        let event = self.wb_event("wp.renumber", node, json!({ "moves": moves }));
-        self
-          .store
-          .wb_write(&event, |w| w.set_claims(node, list))
-          .map_err(FacadeError::Store)?;
-      }
-      let moved: Vec<&str> = claims.iter().map(|(node, _)| node.as_str()).collect();
-      self.land_board_write_noting(&moved)?;
-      notes.extend(self.after_write.drain(mark..));
-    }
-    self.after_write.extend(notes);
-    let mut staged = vec![path];
-    let events = self.project.events_dir();
-    staged.extend(
-      Project::files_in(&events)
-        .into_iter()
-        .filter(|file| !events_before.contains(file))
-        .map(|file| self.project.relative(&events.join(file))),
-    );
-    for (node, _) in &claims {
-      for view in [
-        self.project.board_json(node),
-        self.project.wb_board_view(node),
-      ] {
-        if view.exists() {
-          staged.push(self.project.relative(&view));
-        }
-      }
-    }
-    for (_, seq) in &pairs {
-      let dir = self.project.wp_dir(&id, *seq);
-      for file in Project::files_in(&dir) {
-        staged.push(self.project.relative(&dir.join(file)));
-      }
-    }
-    crate::gitstate::stage(&root, &staged)?;
-    Ok(if moves.is_empty() {
-      format!("the work packages both sides added to {id}: every one kept, staged")
-    } else {
-      format!(
-        "the work packages both sides added to {id}: every one kept, this clone's moved ({}), staged",
-        moves.join(", ")
-      )
-    })
+    Ok(
+      crate::plan::both_sides_added_packages(&versions[0], &versions[1], &versions[2])
+        .then(|| id.to_string()),
+    )
   }
 
   /// Renumber an id both sides minted, in the middle of the merge (AC-05.2).

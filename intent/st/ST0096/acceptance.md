@@ -53,8 +53,8 @@ _(no tests in this group)_
 
 ### WP-01 -- Realisation lives in the record, and the manifest goes (status: Done)
 
-- AT-01.1 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:58` -- covers AC-01.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
-- AT-01.2 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:182` -- covers AC-01.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
+- AT-01.1 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:75` -- covers AC-01.1 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
+- AT-01.2 `native/rust/crates/intentsvcs/tests/realisation_lives_in_the_record.rs:199` -- covers AC-01.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ST0096 WP-01's gate at efa722ffc (Desk 01M7WZB9M6, 17:21Z by date -u), landed at 9a87b035c
 
 ### WP-02 -- The two lists leave git (status: Done)
 

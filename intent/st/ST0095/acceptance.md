@@ -130,14 +130,14 @@ _(no tests in this group)_
 
 ### WP-05 -- The merge knows both families (status: WIP)
 
-- AT-05.1 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:663` -- covers AC-05.1 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-05.1 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:662` -- covers AC-05.1 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-05.3 `native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs:202` -- covers AC-05.3 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
-- AT-05.4 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:766` -- covers AC-05.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-05.4 `native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:779` -- covers AC-05.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
 ### WP-06 -- The hashed family (status: WIP)
 
 - AT-06.2 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:63` -- covers AC-06.2 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
-- AT-06.4 `native/rust/crates/intentsvcs/tests/canon_round_trip.rs:373` -- covers AC-06.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
+- AT-06.4 `native/rust/crates/intentsvcs/tests/canon_round_trip.rs:405` -- covers AC-06.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.5 `native/rust/crates/intentsvcs/tests/ingest_refusal.rs:363` -- covers AC-06.5 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.7 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:78` -- covers AC-06.7 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 
@@ -150,8 +150,8 @@ _(no tests in this group)_
 
 ### WP-08 -- The order (status: Done)
 
-- AT-08.1 `native/rust/crates/intentsvcs/src/id.rs:2885` -- covers AC-08.1 -- status: green -- Written after the land. Red on the base: it has no id::record_order. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
-- AT-08.2 `native/rust/crates/intentsvcs/src/id.rs:2931` -- covers AC-08.2 -- status: green -- Written after the land. A regression arm, with no red on the base by construction: ordinals alone order by number before and after WP-08. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-08.1 `native/rust/crates/intentsvcs/src/id.rs:2925` -- covers AC-08.1 -- status: green -- Written after the land. Red on the base: it has no id::record_order. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-08.2 `native/rust/crates/intentsvcs/src/id.rs:2971` -- covers AC-08.2 -- status: green -- Written after the land. A regression arm, with no red on the base by construction: ordinals alone order by number before and after WP-08. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 
 ### WP-09 -- Criteria follow their package, and doctor verifies (status: Done)
 
@@ -189,7 +189,7 @@ _(no tests in this group)_
 
 ### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
-- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2679` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
+- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2719` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.2 `native/rust/crates/intent-cli/tests/search_surface.rs:184` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.3 `native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:23` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.4 `native/rust/crates/intentsvcs/tests/retired_st_prefix.rs:134` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u

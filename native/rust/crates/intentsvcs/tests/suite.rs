@@ -67,6 +67,8 @@ mod a_message_id_from_the_old_shape_is_the_same_everywhere;
 mod a_mutation_does_not_duplicate_the_prose_index;
 #[path = "a_name_in_another_case_answers_as_its_row_where_the_disk_folds.rs"]
 mod a_name_in_another_case_answers_as_its_row_where_the_disk_folds;
+#[path = "a_package_both_sides_added_is_refused_not_taken.rs"]
+mod a_package_both_sides_added_is_refused_not_taken;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]
 mod a_re_cite_keeps_what_it_was_not_given;
 #[path = "a_resolved_reference_joins_a_written_one.rs"]

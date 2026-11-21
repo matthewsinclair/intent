@@ -556,7 +556,7 @@
     {
       "id": "AT-05.1",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:663",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:662",
       "covers": [
         "AC-05.1"
       ],
@@ -576,7 +576,7 @@
     {
       "id": "AT-05.4",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:766",
+      "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs:779",
       "covers": [
         "AC-05.4"
       ],
@@ -596,7 +596,7 @@
     {
       "id": "AT-06.4",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:373",
+      "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:405",
       "covers": [
         "AC-06.4"
       ],
@@ -666,7 +666,7 @@
     {
       "id": "AT-08.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2885",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2925",
       "covers": [
         "AC-08.1"
       ],
@@ -676,7 +676,7 @@
     {
       "id": "AT-08.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2931",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2971",
       "covers": [
         "AC-08.2"
       ],
@@ -856,7 +856,7 @@
     {
       "id": "AT-14.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2679",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2719",
       "covers": [
         "AC-14.1"
       ],
