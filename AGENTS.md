@@ -45,16 +45,18 @@ intent st list      # list steel threads
 
 ## Steel Thread + Work Package Process
 
-Work is organised into numbered **steel threads** (`ST####`), each containing **work packages** (`WP`). Threads live in the project store. A thread's directory, `intent/st/<ID>/` with `info.md` as the entry point, is on disk while `intent/.intentfiles` declares it (`intent st hydrate` / `intent st dehydrate`).
+Work is organised into **steel threads**, each containing **work packages** (`WP`). Threads live in the project store. A thread's directory, `intent/st/<ID>/` with `info.md` as the entry point, is on disk while the thread is realised (`intent st hydrate` / `intent st dehydrate`).
+
+**Intent mints every id, and you read it off the `created:` line.** A thread, package or issue made now has a git-style id: `ST3f9a2c1` for a thread, `ST3f9a2c1/c2e4` for one of its work packages, `I3f9a2c1` for an issue. One made before the project took git-style ids keeps its ordinal: `ST0000`, `ST0000/01`, issue `0000`. Every command takes both, and any unique prefix of at least four hex of a git-style id, or five if they are all digits.
 
 ```bash
-intent st list               # list steel threads
-intent st new "Title"        # create new
-intent st show <id>          # inspect
-intent wp list <STID>        # list work packages
-intent wp new <STID> "..."   # create work package
-intent wp start <STID/NN>    # mark WIP
-intent wp done <STID/NN>     # mark done
+intent st list                 # list steel threads
+intent st new "Title"          # create new
+intent st show <id>            # inspect
+intent wp list <thread>        # list work packages
+intent wp new <thread> "..."   # create work package
+intent wp start <thread>/<pkg> # mark WIP
+intent wp done <thread>/<pkg>  # mark done
 ```
 
 Never create steel thread or work package directories by hand -- always use the CLI.
