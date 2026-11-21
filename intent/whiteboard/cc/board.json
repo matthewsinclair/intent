@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "2026-11-21 09:09Z by date -u: localfolded for hv's 09:07Z estate compact, not released. Next after the compact: issue 0745 design plan to vc; intent id --read-only shape if ic stays paused.",
     "claims": [
-      "ST0095/05"
+      "ST0095/05",
+      "ISSUE:0746"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",

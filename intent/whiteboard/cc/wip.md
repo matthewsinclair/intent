@@ -6,7 +6,7 @@ session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
 heartbeat_at: 2026-11-21 09:13Z
 status: active
 focus: "2026-11-21 09:09Z by date -u: localfolded for hv's 09:07Z estate compact, not released. Next after the compact: issue 0745 design plan to vc; intent id --read-only shape if ic stays paused."
-claims: [ST0095/05]
+claims: [ST0095/05, ISSUE:0746]
 ---
 
 # Control Claude (cc)

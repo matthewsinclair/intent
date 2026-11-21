@@ -1,0 +1,15 @@
+{
+  "id": "01M7YYE00JV2CB455M0TW9YARB",
+  "ts": "2026-11-21T11:38:56.918Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "0746"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent upgrade removes a tracked view of an unrealised record that is clean against HEAD, so 0707's residue does not refuse its commit"
+  }
+}
