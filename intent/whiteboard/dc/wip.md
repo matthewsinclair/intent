@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 09:09Z
+heartbeat_at: 2026-11-21 09:45Z
 status: active
 focus: "2026-11-21 09:08Z by date -u: localfold for hv's estate-wide fold, not released. Landed today: 0743 (38d2882e0), the WP-12 hook (ce6b28119) and pr-checks routing (b1ca2be4b), 0707 (1b9aa7b9d), the tap hold, 0740 and its follow-up (read by dc). Next: satisfy ST0095 AC-11.1 and close WP-11 once vc lands it, then lead the 3.5.0 rehearsal at vc's T (kovacs first, then rhadamanth), then the fleet note."
 claims: [ST0095/03]
@@ -20,7 +20,6 @@ claims: [ST0095/03]
 
 - ST0095 WP-12 (M). Landed: the SessionStart hook's first-bold-line read (ce6b28119) and the pull-request check through the id door (b1ca2be4b), each with its census row gone. AC-12.1's rest, the three gated parity scripts, is with hv through vc (needs intent id --read-only; the follow-up text is in dc's scratch, release/wp12-routing-followup.md); no ac descope until hv answers. AC-12.2, the drill, runs in rehearsal step 4. AC-12.3, the fleet note, is todo 69. The census-retirement proposal for items 8, 9 and 11 still goes to vc file by file. (edited)
 - ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green. (edited)
-- After vc lands ST0095 WP-11 AC-11.1 (devbin-dc's bank, read by dc; vc mints AT-11.1 and the three id.rs re-cites in the landing commit): satisfy AC-11.1 and close WP-11 through brew in main.
 - The release drafts (CHANGELOG section and release notes, in dc's scratch release/): keep them current as units land; vc places them when their foot is empty. The foot today: ST0095 WP-06's AC-06.1 and AC-06.3, WP-11, WP-12's rest with hv, ST0096 WP-03 and WP-04 (the rehearsal), the release number.
 - hv decision 79 (4753e17bb): AC-12.1's routing half rides 3.5.0. Once intent id --read-only exists, dc routes rulings_check.sh, declared_kind_check.sh and view_skew_check.sh through it, with one shared read-only-or-copy runner (factored from thread_view_skew_check.sh, registered in MODULES.md first). The plan is dc's follow-up text, release/wp12-routing-followup.md in dc's scratch. The rehearsal is called after these land.
 

@@ -5,7 +5,7 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-21T09:13:26.982Z",
+    "heartbeat_at": "2026-11-21T09:45:55.330Z",
     "status": "active",
     "focus": "2026-11-21 09:08Z by date -u: localfold for hv's estate-wide fold, not released. Landed today: 0743 (38d2882e0), the WP-12 hook (ce6b28119) and pr-checks routing (b1ca2be4b), 0707 (1b9aa7b9d), the tap hold, 0740 and its follow-up (read by dc). Next: satisfy ST0095 AC-11.1 and close WP-11 once vc lands it, then lead the 3.5.0 rehearsal at vc's T (kovacs first, then rhadamanth), then the fleet note.",
     "claims": [
@@ -3284,7 +3284,8 @@
       "kind": "todo",
       "seq": 84,
       "text": "After vc lands ST0095 WP-11 AC-11.1 (devbin-dc's bank, read by dc; vc mints AT-11.1 and the three id.rs re-cites in the landing commit): satisfy AC-11.1 and close WP-11 through brew in main.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-21T09:18:53.596Z",
       "recorded_at": "2026-11-21T09:09:10.904Z"
     },
     {

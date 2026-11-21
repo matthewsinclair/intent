@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNVQDSJ8S6ZVWKXMZ17RZT",
+  "ts": "2026-11-21T09:09:09.689Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Intent 3.5.0 rehearsal, dc leads (hv decision 78, vc's go on dc's plan): called by vc after AC-11.1 and AC-12.1's routing (decision 79) land. Step 1 on kovacs first and alone (heavy lane; the Desk grants heavy+cargo+bats), then steps 2 to 7 on rhadamanth, all at T. kovacs is ready (09:10Z): the stale 3.3.3 intentd stopped and the 12G rust-target cache cleared on hv's word, 27G free; kovacs-sysadm watches only. Runner and driver in dc's scratch (rehearsal/run-rehearsal.sh, rehearse-clones.sh); plan at release/rehearsal-3.5.0-plan.md."
+  }
+}
