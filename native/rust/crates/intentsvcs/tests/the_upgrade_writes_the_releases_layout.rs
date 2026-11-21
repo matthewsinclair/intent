@@ -205,6 +205,10 @@ fn an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_wr
   let on_disk = fx.project().thread_dir(&thread.id).join(&attachment.path);
   std::fs::create_dir_all(on_disk.parent().expect("a parent")).expect("mkdir");
   std::fs::write(&on_disk, "an edit the store never took\n").expect("edit the attachment");
+  // Committed, so the tree is clean and the format move's dirty-tree guard
+  // passes: what this arm refuses is canon and disk disagreeing, which a
+  // clean tree can still hold.
+  fx.git_commit_all();
   let before = estate(fx.root());
 
   match Facade::upgrade(&fx.project(), &facade_ctx()) {
@@ -245,5 +249,64 @@ fn two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write(
     crate::common::changed(&before, &after),
     Vec::<String>::new(),
     "the refused upgrade wrote"
+  );
+}
+
+/// **THE MOVE TO THE RELEASE'S FORMAT REFUSES A DIRTY TREE, AS THE V2
+/// CONVERSION DOES** (intent-cc's ruling, on devbin-cc's drive of a 3.4.x
+/// project that upgraded at exit 0 over a tracked edit and an untracked file).
+/// The move is one commit whose revert is the rollback, so it refuses before
+/// any write and names every path, the untracked one too.
+#[test]
+fn a_dirty_tree_refuses_the_format_move_naming_every_path_and_writing_nothing() {
+  let fx = ordinal_estate(&[sample_thread("ST0001")]);
+  fx.write_file("NOTES.md", "notes\n");
+  fx.git_commit_all();
+  fx.write_file("NOTES.md", "notes\nan edit not yet committed\n");
+  fx.write_file("untracked.txt", "scratch work\n");
+  let before = estate(fx.root());
+
+  match Facade::upgrade(&fx.project(), &facade_ctx()) {
+    Err(FacadeError::MigrationOverDirtyTree { paths }) => {
+      let named: Vec<&str> = paths.iter().map(|p| p.path.as_str()).collect();
+      for path in ["NOTES.md", "untracked.txt"] {
+        assert!(
+          named.contains(&path),
+          "the refusal does not name {path}: {named:?}"
+        );
+      }
+    }
+    other => panic!("a dirty tree must refuse the format move, got {other:?}"),
+  }
+  let after = estate(fx.root());
+  assert_eq!(
+    crate::common::changed(&before, &after),
+    Vec::<String>::new(),
+    "the refused upgrade wrote"
+  );
+}
+
+/// **A RE-RUN THAT MOVES NO FORMAT STILL RUNS ON A DIRTY TREE**, as the
+/// convergent upgrade always has, and makes no claim about the tree: only a run
+/// that passed a clean-tree guard may say every change is its own.
+#[test]
+fn a_re_run_on_an_upgraded_project_runs_on_a_dirty_tree_and_claims_nothing_about_it() {
+  let fx = ordinal_estate(&[sample_thread("ST0001")]);
+  let first =
+    Facade::upgrade(&fx.project(), &facade_ctx()).expect("the first upgrade, on a clean tree");
+  assert!(
+    first.on_a_clean_tree,
+    "the format move passed its guard, so it may say so"
+  );
+  fx.write_file("NOTES.md", "notes\n");
+  fx.git_commit_all();
+  fx.write_file("NOTES.md", "notes\nan edit not yet committed\n");
+  fx.write_file("untracked.txt", "scratch work\n");
+
+  let again = Facade::upgrade(&fx.project(), &facade_ctx())
+    .expect("a re-run moves no format, so it runs on a dirty tree");
+  assert!(
+    !again.on_a_clean_tree,
+    "a run that passed no guard claims nothing about the tree"
   );
 }

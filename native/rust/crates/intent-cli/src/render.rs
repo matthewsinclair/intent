@@ -6213,10 +6213,34 @@ fn upgrade() -> Result<(), Failure> {
       );
     }
   }
-  eprintln!(
-    "ok: this project is now Intent v{} -- commit the canon and the generated views",
-    intentsvcs::faces::INTENT_VER
-  );
+  // **THE CLEAN-TREE SENTENCE IS EARNED, NOT ASSUMED** (intent-cc's wording):
+  // only a run that passed a clean-tree guard says every change is its own. A
+  // convergent re-run says what it did above and claims nothing about the tree.
+  //
+  // **A TRACKED STORE IS UNTRACKED FIRST** (intent-cc's ruling (a), driven:
+  // once `git rm --cached` has run, `git add -A` stages the store's deletion
+  // and never the store, since `.cache` is ignored). A store git could not be
+  // asked about may be tracked, so that run claims nothing.
+  use intentsvcs::facade::StoreTracking;
+  match (done.on_a_clean_tree, &done.store_tracking) {
+    (true, StoreTracking::Untracked) => eprintln!(
+      "ok: this project is now Intent v{} -- upgrade ran on a clean tree, so every change in it is \
+       the upgrade's: stage them all before anything else touches the tree (`git add -A`) and \
+       commit with a plain `git commit`; the aggregate views stay out of git",
+      intentsvcs::faces::INTENT_VER
+    ),
+    (true, StoreTracking::Tracked(_)) => eprintln!(
+      "ok: this project is now Intent v{} -- upgrade ran on a clean tree, so every change in it is \
+       the upgrade's: run the untrack: step above first, then, before anything else touches the \
+       tree, stage everything (`git add -A`) and commit with a plain `git commit`; the aggregate \
+       views stay out of git",
+      intentsvcs::faces::INTENT_VER
+    ),
+    (false, _) | (true, StoreTracking::Unasked(_)) => eprintln!(
+      "ok: this project is now Intent v{} -- commit the changes named above",
+      intentsvcs::faces::INTENT_VER
+    ),
+  }
   Ok(())
 }
 

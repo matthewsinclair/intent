@@ -523,7 +523,7 @@ Both clones print those same six lines; the store's total under them differs, be
   $ intent upgrade
   ...
   untrack: git tracks intent/.cache/intent.db, and the ignore rule this upgrade wrote does not untrack it -- run `git rm --cached intent/.cache/intent.db` and commit that with this upgrade, or every commit carries this machine's store
-  ok: this project is now Intent ... -- commit the canon and the generated views
+  ok: this project is now Intent ... -- commit the changes named above
   $ intent doctor
   advisory: store-tracked -- 1 finding, not counted in the verdict
   ...

@@ -274,6 +274,11 @@ pub struct Upgraded {
   /// a project it marks upgraded with them still tracked keeps the merge
   /// conflict ST0096 removes.
   pub aggregate_untrack: AggregateUntrack,
+  /// Whether this run passed a clean-tree guard before its first write: the
+  /// v2 conversion's, or the move to the release's canon format (ST0096). Only
+  /// then is every change in the tree this run's, so only then may the closing
+  /// line tell the operator to stage them all.
+  pub on_a_clean_tree: bool,
 }
 
 /// Whether git tracks a project's store (issue 0551).
@@ -1901,13 +1906,15 @@ pub enum FacadeError {
   /// message picking one would be wrong half the time; the remedy names both.
   #[error("git reports no work tree at this project, so a migration here would have no undo")]
   MigrationWithoutGit,
-  /// The conversion path met a working tree carrying work that is not committed.
+  /// A one-shot conversion met a working tree carrying work that is not
+  /// committed: the v2 conversion, or the move to the release's canon format
+  /// (ST0096, intent-cc's ruling).
   ///
   /// **The dirt that matters is measured against HEAD, not the index** -- see
   /// [`crate::sync::tree_state`]. `git commit` records the index as it stands,
   /// so staged work rides the migration commit, and a revert then takes it too.
   ///
-  /// **Scoped to the conversion path and NEVER to the verb** (vc's ruling on
+  /// **Scoped to the one-shot conversions and NEVER to the verb** (vc's ruling on
   /// cc's measurement, 2026-09-05). `intent upgrade` is the convergent
   /// orchestrator and gets run routinely: hung on the verb this refuses 11 of
   /// 18 fleet members today, hung on the conversion it refuses 1 of 1 -- the
@@ -5745,20 +5752,57 @@ impl Facade {
     //
     // **THEY LIVE INSIDE THE `Pending` ARM, WHICH IS THE SCOPING RATHER THAN A
     // COMMENT ABOUT IT.** `Migration::Done` is the convergent re-run, and
-    // neither of these may reach it: measured across 18 fleet members, the dirt
-    // check refuses 11 of them on the verb and 1 of 1 on the conversion.
-    if let crate::project::Migration::Pending(pending) = project.migration() {
-      if pending.below_floor {
-        return Err(FacadeError::BelowMigrationFloor(pending));
-      }
-      match crate::sync::tree_state(project.root()) {
-        crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
-        crate::sync::TreeState::Dirty(paths) => {
-          return Err(FacadeError::MigrationOverDirtyTree { paths });
+    // neither reaches it: measured across 18 fleet members, the dirt check
+    // refuses 11 of them on the verb and 1 of 1 on the conversion. The one
+    // exception is the dirt check on a run that moves the canon format, below.
+    //
+    // **AND THE MOVE TO THE RELEASE'S CANON FORMAT IS A ONE-SHOT CONVERSION
+    // TOO** (ST0096, intent-cc's ruling, driven by devbin-cc: a 3.4.x project
+    // with a tracked edit and an untracked file upgraded at exit 0, its own
+    // changes beside the person's). It is one commit whose revert is the
+    // rollback, as the v2 conversion is, so it refuses a dirty tree before any
+    // write, for the same reason and in the same words. A convergent re-run
+    // that moves no format still runs on whatever the tree holds.
+    //
+    // `on_a_clean_tree` is true only when a guard passed, so only then may the
+    // closing line say that every change in the tree is the upgrade's.
+    let on_a_clean_tree = match project.migration() {
+      crate::project::Migration::Pending(pending) => {
+        if pending.below_floor {
+          return Err(FacadeError::BelowMigrationFloor(pending));
         }
-        crate::sync::TreeState::Clean => {}
+        match crate::sync::tree_state(project.root()) {
+          crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
+          crate::sync::TreeState::Dirty(paths) => {
+            return Err(FacadeError::MigrationOverDirtyTree { paths });
+          }
+          crate::sync::TreeState::Clean => true,
+        }
       }
-    }
+      crate::project::Migration::Done => {
+        // A format that does not read is its own error, said as such, and never
+        // taken for a move: its remedy is not "commit first".
+        let format = crate::ingest::canon_format(project)
+          .map_err(|found| FacadeError::Ingest(crate::finding::Refusal::new(found).into()))?;
+        let moves_format = format != crate::canon_format::CanonFormat::CURRENT;
+        match (moves_format, crate::sync::tree_state(project.root())) {
+          (true, crate::sync::TreeState::Dirty(paths)) => {
+            return Err(FacadeError::MigrationOverDirtyTree { paths });
+          }
+          (true, crate::sync::TreeState::Clean) => true,
+          // **NO WORK TREE, NO GUARD** (intent-cc's ruling). The guard keeps one
+          // commit that `git revert` can undo, and nobody else's work swept into
+          // it; with no work tree neither exists, so there is nothing to keep.
+          // The v2 conversion's MigrationWithoutGit is a rule about its
+          // documented rollback, and the format move does not inherit it. The
+          // run claims nothing about a tree it does not have.
+          (true, crate::sync::TreeState::NoWorkTree) => false,
+          // A convergent re-run that moves no format runs on whatever the tree
+          // holds, as it always has, and claims nothing about it.
+          (false, _) => false,
+        }
+      }
+    };
 
     let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
       step: "reading the v2 estate",
@@ -5946,6 +5990,7 @@ impl Facade {
         };
         let store_tracking = store_tracking(project);
         Ok(Upgraded {
+          on_a_clean_tree,
           store_tracking,
           aggregate_untrack,
           dehydrated,
