@@ -6,7 +6,7 @@ session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
 heartbeat_at: 2026-11-21 09:13Z
 status: active
 focus: "2026-11-21 09:09Z by date -u: localfolded for hv's 09:07Z estate compact, not released. Next after the compact: issue 0745 design plan to vc; intent id --read-only shape if ic stays paused."
-claims: [ST0095/05, ISSUE:0745]
+claims: [ST0095/05]
 ---
 
 # Control Claude (cc)
@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2. (WP-06's C2, W11 and W15 are answered: one mint at 3b3c53742, AC-06.5, and the malformed-id remint arm at d88b1dccd.) (edited)
-- Issue 0745 (rides 3.5.0, hv decision 79 at 4753e17bb): intent upgrade names what it wrote, so 'commit what the verbs printed' holds for it. Design first, a per-directory summary or a manifest; plan to vc before code.
 
 ## Holds
 

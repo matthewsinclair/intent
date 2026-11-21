@@ -9,8 +9,7 @@
     "status": "active",
     "focus": "2026-11-21 09:09Z by date -u: localfolded for hv's 09:07Z estate compact, not released. Next after the compact: issue 0745 design plan to vc; intent id --read-only shape if ic stays paused.",
     "claims": [
-      "ST0095/05",
-      "ISSUE:0745"
+      "ST0095/05"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2572,7 +2571,8 @@
       "kind": "todo",
       "seq": 58,
       "text": "Issue 0745 (rides 3.5.0, hv decision 79 at 4753e17bb): intent upgrade names what it wrote, so 'commit what the verbs printed' holds for it. Design first, a per-directory summary or a manifest; plan to vc before code.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-21T10:36:47.297Z",
       "recorded_at": "2026-11-21T09:10:07.209Z"
     },
     {
