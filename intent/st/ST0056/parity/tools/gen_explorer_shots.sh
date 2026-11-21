@@ -297,15 +297,28 @@ seed_shopfront
 seed_warehouse
 intent discover "$DEMO" >> "$LOG"
 export PATH="$UNSEEDED_PATH"
-unset INTENT_SEEDED_IDS
+# THE LIVE SHOT MINTS TOO: its `intent issues add` runs while the list is on
+# screen, so its id must come from the same sequence, or each run draws a
+# different one. The shots run with a one-verb shim first on PATH: `issues add`
+# goes to the seeded intent, with INTENT_SEEDED_IDS still naming the sequence,
+# and everything else, the explorer included, to the tree's own pair.
+UNSEEDED="$(command -v intent)"
+mkdir -p "$TMP/shim"
+cat > "$TMP/shim/intent" <<EOF
+#!/bin/sh
+[ "\$1 \$2" = "issues add" ] && exec "$SEEDED" "\$@"
+exec "$UNSEEDED" "\$@"
+EOF
+chmod +x "$TMP/shim/intent"
 SEED_DATES+=("$(date -u +%F)" "$(date +%F)")
 DATE_ARGS=()
 while read -r d; do
   DATE_ARGS+=(--seed-date "$d")
 done < <(printf '%s\n' "${SEED_DATES[@]}" | sort -u)
 
-"$SHOTS" --cwd "$DEMO/shopfront" --out "$TMP/svg" --thread "$T1" \
+PATH="$TMP/shim:$PATH" "$SHOTS" --cwd "$DEMO/shopfront" --out "$TMP/svg" --thread "$T1" \
   --version "$VERSION" --commit "$COMMIT" "${DATE_ARGS[@]}"
+unset INTENT_SEEDED_IDS
 
 mkdir -p "$OUTDIR"
 for svg in "$TMP"/svg/*.svg; do
