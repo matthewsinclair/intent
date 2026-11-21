@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z2HQCVV8Q0VDEE82WTPYZ8",
+  "ts": "2026-11-21T12:50:53.467Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue 0746 (claimed; hv decision 82, rides 3.5.0): reworked to vc's old-format-render ruling, uncommitted in tmp/wt-0746 on 526c54bc7 (the HEAD-rule try parked at refs/bank/cc/attic/0746-head-rule). ST0093 check green on a scratch clone (doctor 0 findings). Next: stack on dc's ELIDE commit (cherry-pick, AC-03.3 touched facade.rs and render.rs), close 0746 in the worktree so the close rides the landing, then one Desk run of ~/Devel/scratch/intent-cc/t0746/run-0746.sh = T's whole gate (gate all, test shell, shots twice with diff -rq, images-only commit if they change); bank and send vc the ref."
+  }
+}
