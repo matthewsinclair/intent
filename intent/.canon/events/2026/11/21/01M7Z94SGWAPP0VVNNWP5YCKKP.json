@@ -1,0 +1,14 @@
+{
+  "id": "01M7Z94SGWAPP0VVNNWP5YCKKP",
+  "ts": "2026-11-21T14:46:09.696Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-12.3"
+  },
+  "payload": {
+    "evidence": "the fleet's upgrade note for 3.5.0, attached to ST0095 as fleet-note.md and read by intent-vc: every machine upgrades Intent (brew, with intentd stopped and one start route kept) before any hashed record is committed in a project, then each estate runs intent upgrade once per project with its two git steps and intent claude upgrade --apply; it names issue 0712's one-digit criterion groups (182 rows in Devbin, Lamplight and Prolix) and the new id shapes; the Desk relays it word for word to each estate's vc"
+  }
+}

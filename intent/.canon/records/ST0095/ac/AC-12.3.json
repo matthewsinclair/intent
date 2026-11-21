@@ -3,6 +3,7 @@
   "text": "The fleet's upgrade note says what each estate does, and every machine upgrades before any hashed record is committed there.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "the fleet's upgrade note for 3.5.0, attached to ST0095 as fleet-note.md and read by intent-vc: every machine upgrades Intent (brew, with intentd stopped and one start route kept) before any hashed record is committed in a project, then each estate runs intent upgrade once per project with its two git steps and intent claude upgrade --apply; it names issue 0712's one-digit criterion groups (182 rows in Devbin, Lamplight and Prolix) and the new id shapes; the Desk relays it word for word to each estate's vc"
   }
 }

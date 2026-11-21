@@ -1,0 +1,20 @@
+{
+  "id": "01M7Z94F4Z0CSA6E2TMWBM8T98",
+  "ts": "2026-11-21T14:45:59.071Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "disk.hydrate",
+  "subject": {
+    "type": "paths",
+    "id": "fe0da6d7-6cca-425a-abca-b31e3c399be1"
+  },
+  "payload": {
+    "hydrated": [
+      "intent/st/ST0095/fleet-note.md"
+    ],
+    "id": "ST0095",
+    "pinned": false,
+    "rewritten": [],
+    "sigil": "STEELTHREAD"
+  }
+}
