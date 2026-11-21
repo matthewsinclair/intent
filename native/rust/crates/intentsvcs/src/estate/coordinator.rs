@@ -171,6 +171,9 @@ pub fn init(dir: &Path, home: &Path, version: &str) -> Result<Vec<Rendered>, Ini
     version,
     todo_watermark: None,
     devbin: crate::rootfiles::has_devbin(&dir),
+    // A coordinator directory is no project and its files read no format, so
+    // it names the one a new project is born in.
+    canon_format: crate::canon_format::CanonFormat::CURRENT,
   };
   let mut planned: Vec<(PathBuf, String)> = Vec::with_capacity(FILES.len());
   let mut differs = Vec::new();

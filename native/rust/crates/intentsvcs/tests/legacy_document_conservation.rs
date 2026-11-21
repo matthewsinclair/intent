@@ -27,7 +27,22 @@
 
 use crate::common::Fixture;
 use intentsvcs::legacy;
-use intentsvcs::model::to_canonical_json;
+use intentsvcs::model::Thread;
+use intentsvcs::project::Project;
+
+/// Phase B's write of one migrated thread, as every writer lays a thread out:
+/// in the project's own canon format and its layout, one file, or one per
+/// record (ST0096 WP-05).
+fn write_migrated(project: &Project, thread: &Thread) {
+  let format = intentsvcs::ingest::canon_format(project).expect("the canon format");
+  for (rel, canon) in
+    intentsvcs::canon_format::encode_thread_files(thread, format).expect("render canon")
+  {
+    let path = project.intent_dir().join(rel);
+    std::fs::create_dir_all(path.parent().expect("a canon dir")).expect("mkdir canon");
+    std::fs::write(&path, canon).expect("write canon");
+  }
+}
 
 /// The authored heading order, chosen so that **sorted and authored cannot
 /// coincide**: it is very nearly reverse-alphabetical.
@@ -184,15 +199,8 @@ fn a_thread_with_canon_is_read_from_canon_and_its_view_is_not_parsed() {
     first.already_migrated
   );
 
-  // Phase B's write, reduced to the one artefact that matters here.
-  let project = fixture.project();
-  let canon = project.thread_json("ST0001");
-  std::fs::create_dir_all(canon.parent().expect("parent")).expect("mkdir");
-  std::fs::write(
-    &canon,
-    to_canonical_json(&first.threads[0]).expect("serialise"),
-  )
-  .expect("write canon");
+  // Phase B's write, reduced to the one thread that matters here.
+  write_migrated(&fixture.project(), &first.threads[0]);
 
   // The decoy: a generated-looking view where the v2 source used to be. It
   // carries a marker no canon holds, and the accreting sections that caused the
@@ -319,13 +327,7 @@ fn a_migrated_thread_in_two_places_is_loaded_once_and_does_not_block() {
   );
 
   // Now migrate the flat one.
-  let canon = project.thread_json("ST0001");
-  std::fs::create_dir_all(canon.parent().expect("parent")).expect("mkdir");
-  std::fs::write(
-    &canon,
-    to_canonical_json(&first.threads[0]).expect("serialise"),
-  )
-  .expect("write canon");
+  write_migrated(&project, &first.threads[0]);
 
   let second = legacy::scan(&project).expect("re-scan");
   assert_eq!(

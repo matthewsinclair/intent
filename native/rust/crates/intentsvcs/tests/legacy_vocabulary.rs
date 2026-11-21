@@ -282,7 +282,8 @@ fn deferred_and_pending_still_default_and_still_report_it() {
 /// beside it as `status_legacy`, the shape `scope_legacy` already has. Driven
 /// through the migration and then a projection from the store, because a
 /// field the store does not hold is dropped by the next `--to-disk` as surely
-/// as by the migrator. Read as JSON off canon, which is where both land.
+/// as by the migrator. Read off canon through the waist, which is where both
+/// land.
 #[test]
 fn a_defaulted_work_package_status_carries_what_v2_wrote_through_the_store() {
   let fixture = Fixture::new();
@@ -291,15 +292,18 @@ fn a_defaulted_work_package_status_carries_what_v2_wrote_through_the_store() {
   intentsvcs::facade::Facade::upgrade(&fixture.project(), &crate::common::facade_ctx())
     .expect("a closed thread converts, carrying what it cannot map");
 
-  let wp = |when: &str| -> serde_json::Value {
-    let canon: serde_json::Value =
-      serde_json::from_str(&fixture.read(&fixture.canon_rel("ST0001"))).expect("canon is JSON");
-    let wp = canon["wps"][0].clone();
+  // The package is read through the waist (`ingest::read`) after the migration
+  // and after the projection, since both write the release's layout, where the
+  // package is a record file of its own and the thread's file lists none
+  // (ST0096 WP-05).
+  let read_through_the_waist = |when: &str| -> serde_json::Value {
+    let canon = intentsvcs::ingest::read(&fixture.project()).expect("canon reads");
+    let wp = serde_json::to_value(&canon.threads[0].wps[0]).expect("a package is JSON");
     assert_eq!(wp["status"], "not-started", "{when}: the default stands");
     wp
   };
   assert_eq!(
-    wp("after the migration")["status_legacy"]["raw"],
+    read_through_the_waist("after the migration")["status_legacy"]["raw"],
     "Deferred",
     "the migration defaulted the status and kept nothing of what v2 wrote"
   );
@@ -309,7 +313,7 @@ fn a_defaulted_work_package_status_carries_what_v2_wrote_through_the_store() {
     .sync_to_disk(&intentsvcs::sync::Scope::All)
     .expect("canon is re-projected from the store");
   assert_eq!(
-    wp("after a projection from the store")["status_legacy"]["raw"],
+    read_through_the_waist("after a projection from the store")["status_legacy"]["raw"],
     "Deferred",
     "the store does not hold the carried spelling, so re-projecting canon dropped it"
   );

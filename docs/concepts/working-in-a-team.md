@@ -17,13 +17,13 @@ The page walks one project from its first push to GitHub through the pull reques
 
 ## What travels and what does not
 
-| Travels in git                                                              | Stays on your machine                                                                |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `intent/.canon/st/` and `intent/.canon/issues/`: one JSON file per record   | `intent/.cache/`: the store, `intent/.cache/intent.db`                               |
-| `intent/.canon/events/YYYY/MM/DD/`: one JSON file per project act           | Machine events, as [the store](the-store.md#what-lives-only-in-the-store) lists them |
-| A realised thread's `info.md` and its packages' `info.md`; `intent/issues/` | `intent/.backup/`: backups                                                           |
-| `intent/.config/config.json`, `intent/.canon/project.json`                  | `intent/st/steel_threads.md`, `intent/todo.md`, each thread's `acceptance.md`        |
-| `intent/whiteboard/<node>/`: each board's `board.json` and its views        | The search index                                                                     |
+| Travels in git                                                                                                                                                                       | Stays on your machine                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `intent/.canon/st/`, `intent/.canon/records/` and `intent/.canon/issues/`: one file per record in an upgraded project, where 3.4.0's format keeps a thread's records in its one file | `intent/.cache/`: the store, `intent/.cache/intent.db`                               |
+| `intent/.canon/events/YYYY/MM/DD/`: one JSON file per project act                                                                                                                    | Machine events, as [the store](the-store.md#what-lives-only-in-the-store) lists them |
+| A realised thread's `info.md` and its packages' `info.md`; `intent/issues/`                                                                                                          | `intent/.backup/`: backups                                                           |
+| `intent/.config/config.json`, `intent/.canon/project.json`                                                                                                                           | `intent/st/steel_threads.md`, `intent/todo.md`, each thread's `acceptance.md`        |
+| `intent/whiteboard/<node>/`: each board's `board.json` and its views                                                                                                                 | The search index                                                                     |
 
 **Your store is truth on your machine, and the canon is how it reaches anyone else's.** A clone's store starts empty and is built from the committed canon on the first verb, so a fresh clone needs no step of its own for the model.
 
@@ -71,7 +71,7 @@ Everyone else clones the repository and runs two commands:
 
 ## What a reviewer reads in a pull request
 
-**Review the canon, not the views.** A thread's change arrives as a diff of its canon file under `intent/.canon/st/`, which has a schema and diffs field by field, beside one event file per act. The views are generated from the same JSON and say the same thing at more length. Alice's branch, which creates a thread, starts it and adds a work package:
+**Review the canon, not the views.** A thread's change arrives as a diff of its canon files: in an upgraded project, its own file under `intent/.canon/st/` and one file per work package, criterion, test and attachment record under `intent/.canon/records/<thread>/`, each with a schema and diffing field by field, beside one event file per act. The views are generated from the same JSON and say the same thing at more length. Alice's branch, which creates a thread, starts it and adds a work package:
 
 ```
   $ intent st new "Onboarding guide"

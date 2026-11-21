@@ -5865,7 +5865,7 @@ impl Facade {
         aggregate_untrack,
       )) => {
         applied.keep();
-        // **THE VIEWS OF EVERY UNDECLARED THREAD GO, THROUGH ORGANIZE'S OWN
+        // **THE VIEWS OF EVERY UNDECLARED RECORD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
         // renders no undeclared thread's views and the gate removed only a
         // byte-identical one, so a view an earlier binary rendered for a thread
@@ -5882,7 +5882,7 @@ impl Facade {
         // examined" before its `ok:` and skipped this step.
         let examined = match Project::open(project.root()) {
           Ok(stamped) => Facade::open(stamped, ctx.clone())
-            .and_then(|mut f| f.dehydrate_undeclared_thread_views())
+            .and_then(|mut f| f.dehydrate_undeclared_record_views())
             .map_err(|cause| cause.to_string()),
           Err(cause) => Err(cause.to_string()),
         };
@@ -5898,7 +5898,7 @@ impl Facade {
           Err(cause) => (
             Vec::new(),
             vec![format!(
-              "the views of undeclared threads were not examined: {cause}"
+              "the views of undeclared records were not examined: {cause}"
             )],
           ),
         };
@@ -5956,6 +5956,7 @@ impl Facade {
       version: &self.ctx.version,
       todo_watermark: self.store.todo_watermark().map_err(FacadeError::Store)?,
       devbin: crate::rootfiles::has_devbin(self.project.root()),
+      canon_format: self.canon_format()?,
     })
   }
 
@@ -7097,6 +7098,7 @@ impl Facade {
       version: &self.ctx.version,
       todo_watermark: None,
       devbin: crate::rootfiles::has_devbin(self.project.root()),
+      canon_format: self.canon_format()?,
     };
     Ok(crate::rootfiles::render(
       &home,
@@ -7156,6 +7158,7 @@ impl Facade {
       version: &self.ctx.version,
       todo_watermark: None,
       devbin: crate::rootfiles::has_devbin(self.project.root()),
+      canon_format: self.canon_format()?,
     };
     let root = self.project.root().to_path_buf();
     let done = crate::canon::relayout(&root, &home, self.project.config(), &ctx, target)
@@ -7183,6 +7186,7 @@ impl Facade {
       version: &self.ctx.version,
       todo_watermark: None,
       devbin: crate::rootfiles::has_devbin(self.project.root()),
+      canon_format: self.canon_format()?,
     };
     let applied = crate::canon::apply(
       self.project.root(),
@@ -8381,15 +8385,17 @@ impl Facade {
     self.organize_run(mode, shown, false)
   }
 
-  /// Remove the views of every thread the manifest leaves undeclared, through
-  /// organize's own plan, gate and record, and nothing else (issue 0316).
+  /// Remove the views of every record, thread or issue, the manifest leaves
+  /// undeclared, through organize's own plan, gate and record, and nothing else
+  /// (issue 0316; issues too since ST0096 WP-05, whose upgrade leaves a closed
+  /// issue undeclared as it leaves a closed thread).
   ///
   /// `upgrade` is the caller: it is the one verb that knows it has just changed
   /// the declaration, and the one place a view an earlier binary rendered for a
-  /// now-undeclared thread can be given an owner without a new rule. Its
+  /// now-undeclared record can be given an owner without a new rule. Its
   /// refusals are organize's -- a hand edit, an unmet precondition -- and are
   /// reported, never bypassed.
-  pub fn dehydrate_undeclared_thread_views(&mut self) -> Result<organize::Report, FacadeError> {
+  pub fn dehydrate_undeclared_record_views(&mut self) -> Result<organize::Report, FacadeError> {
     self.organize_run(organize::Mode::Apply, None, true)
   }
 
@@ -8422,13 +8428,13 @@ impl Facade {
   }
 
   /// One run of organize, shared by [`Facade::organize_as_shown`] and
-  /// [`Facade::dehydrate_undeclared_thread_views`], so the second is the first
+  /// [`Facade::dehydrate_undeclared_record_views`], so the second is the first
   /// with its steps narrowed and never a second implementation of either.
   fn organize_run(
     &mut self,
     mode: organize::Mode,
     shown: Option<&str>,
-    undeclared_thread_views_only: bool,
+    undeclared_record_views_only: bool,
   ) -> Result<organize::Report, FacadeError> {
     // **NOTHING REGENERATES `.intentfiles`, BY hv's RULING (`d2b63bc3`).** organize
     // is: read the list, hydrate what is in it, dehydrate what is on disk and
@@ -8445,10 +8451,11 @@ impl Facade {
     // `intentfiles::render` had no production caller because **the thing it
     // does is not needed**, not because anybody forgot to wire it.
     let (plan, previous) = self.organize_plan_over(&self.canon, None)?;
-    // Issue 0316: a thread's generated view reaches a Dehydrate step only when
-    // the thread is undeclared, so "a view with a thread owner" is exactly the
-    // undeclared threads' views -- attachments and issues stay out.
-    let plan = if undeclared_thread_views_only {
+    // Issue 0316: a record's generated view reaches a Dehydrate step only when
+    // the record is undeclared, so "a view with a record owner" is exactly the
+    // undeclared records' views, threads' and issues' (ST0096 WP-05) --
+    // attachments stay out, since no render produces them.
+    let plan = if undeclared_record_views_only {
       let views: std::collections::BTreeSet<std::path::PathBuf> = {
         let ctx = self.render_ctx()?;
         views::render_all(&self.project, &self.canon, &ctx)
@@ -8457,7 +8464,8 @@ impl Facade {
           .collect()
       };
       let canon = &self.canon;
-      plan.only_dehydrating(|p| views.contains(p) && self.owning_thread(p, canon).is_some())
+      plan
+        .only_dehydrating(|p| views.contains(p) && views::owner(&self.project, p, canon).is_some())
     } else {
       plan
     };
@@ -10215,6 +10223,7 @@ impl Facade {
       version: &self.ctx.version,
       todo_watermark: None,
       devbin: crate::rootfiles::has_devbin(self.project.root()),
+      canon_format: self.canon_format()?,
     };
     let rendered = crate::roster_readme::render(&template, &roster, self.project.config(), &ctx)
       .map_err(|fault| template_fault(fault.to_string()))?;
@@ -16334,6 +16343,7 @@ impl Facade {
         version: &ctx.version,
         todo_watermark,
         devbin: crate::rootfiles::has_devbin(project.root()),
+        canon_format: crate::intentfiles::reported_format(project),
       },
       store,
       scope,

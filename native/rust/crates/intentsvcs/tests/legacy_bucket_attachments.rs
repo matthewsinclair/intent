@@ -182,7 +182,9 @@ fn the_planned_canon_holds_every_bucketed_files_content() {
   let canon: String = planned
     .writes
     .writes()
-    .filter(|(path, _)| path.to_string_lossy().contains("/.canon/st/"))
+    // All of canon: in the release's layout a text attachment is its own
+    // record under `.canon/records/`, beside its thread's file (ST0096 WP-05).
+    .filter(|(path, _)| path.to_string_lossy().contains("/.canon/"))
     .map(|(_, content)| String::from_utf8_lossy(content))
     .collect::<Vec<_>>()
     .join("\n");

@@ -147,7 +147,7 @@ pub enum Blocked {
   /// artefact for an operator to go and repair. Reported rather than unwrapped
   /// because a panic in the middle of a migration is the one failure mode with
   /// no message and no remedy.
-  #[error("the migration's own canon would not serialise")]
+  #[error("the migration's own canon could not be encoded")]
   Canon {
     #[source]
     source: crate::canon_format::CanonFormatError,
@@ -208,6 +208,25 @@ pub enum Blocked {
     #[source]
     source: std::io::Error,
   },
+  /// An attachment of a thread this upgrade leaves unrealised holds bytes on
+  /// disk its canon does not record, so removing the thread's views would
+  /// lose an edit never synced (ST0096 WP-05, AC-05.3). A realised thread's
+  /// attachment stays on disk untouched, so only these are asked.
+  #[error(
+    "{path} differs from the attachment its thread's canon records, and the upgrade would remove it with the thread's other files"
+  )]
+  DirtyAttachment { path: String },
+  /// An attachment of a thread this upgrade leaves unrealised could not be read,
+  /// so whether it holds an edit never synced is unanswered, and unanswered is
+  /// refused, as organize refuses it.
+  #[error(
+    "{path} could not be read, so whether it holds an edit its thread's canon does not record is unknown"
+  )]
+  AttachmentUnreadable {
+    path: String,
+    #[source]
+    source: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for Blocked {
@@ -215,10 +234,13 @@ impl crate::remedy::Remedy for Blocked {
     match self {
       // The findings above have each named their own artefact and action;
       // `Refusal` already says so in the words the rest of the tool uses.
-      Self::Residue(refusal) | Self::ProjectState(refusal) => crate::remedy::Remedy::remedy(refusal),
-      Self::Canon { .. } => {
-        "nothing in the project needs repair and a re-run will reproduce this -- report it with the cause line above, which names the field that would not serialise".to_string()
+      Self::Residue(refusal) | Self::ProjectState(refusal) => {
+        crate::remedy::Remedy::remedy(refusal)
       }
+      // The encoder's own remedy, which tells a record that would not serialise
+      // (a defect to report) from two of a thread's files that would be one
+      // (a rename the operator makes).
+      Self::Canon { source } => crate::remedy::Remedy::remedy(source),
       Self::Collision { path } => format!(
         "two artefacts in the v2 estate resolve to {path}; rename or remove one of them under v2 tooling, then re-run the migration"
       ),
@@ -228,6 +250,12 @@ impl crate::remedy::Remedy for Blocked {
       Self::Manifest { cause, .. } => crate::remedy::Remedy::remedy(cause),
       Self::ManifestUnreadable { path, .. } => format!(
         "make {path} readable (the cause line names why it is not), then run `intent upgrade` again; nothing was written"
+      ),
+      Self::DirtyAttachment { path } => format!(
+        "nothing was written. Keep the edit with `intent sync --to-store`, which takes {path} into the store, or restore the file from git if the canon is right, then run `intent upgrade` again"
+      ),
+      Self::AttachmentUnreadable { path, .. } => format!(
+        "nothing was written. Make {path} readable (the cause line names why it is not), then run `intent upgrade` again"
       ),
       Self::Conservation { expected, actual } => format!(
         "{} artefact(s) produced no canon; nothing in the project caused this and a re-run will reproduce it -- report it",
@@ -532,10 +560,16 @@ fn assemble(
   let todo_watermark = crate::ingest::read_project_state(project)
     .map_err(|findings| Blocked::ProjectState(Refusal::new(findings)))?
     .and_then(|state| state.todo_watermark);
+  // The format the upgrade WRITES, one binding for the views and the records'
+  // files below, so a cover renders in the format its records are written in.
+  // Named apart from `format` below, the project's own on-disk format, which
+  // decides how the manifest is read and nothing that is written.
+  let target = crate::canon_format::CanonFormat::CURRENT;
   let ctx_render = RenderContext {
     version: &ctx.version,
     todo_watermark,
     devbin: crate::rootfiles::has_devbin(project.root()),
+    canon_format: target,
   };
 
   // `render_all` reads only `threads`, and `sections` is authored prose that
@@ -637,10 +671,42 @@ fn assemble(
   };
   let mut canon = canon;
   crate::intentfiles::fold_onto(&realised, &mut canon.threads, &mut canon.issues);
-  let unrealised: Vec<PathBuf> = canon
+
+  // **AN UNSYNCED ATTACHMENT EDIT IS REFUSED BEFORE ANY WRITE** (ST0096 WP-05,
+  // AC-05.3; cc's meaning). An unrealised thread's attachment that holds an
+  // edit never synced would be lost when its views go, so it is compared with
+  // the canon before anything moves; a file the check cannot read is
+  // unanswered, and unanswered is refused, as organize refuses it. A case pair
+  // among a thread's attachments is issue 0711's guard's, below.
+  let unrealised_threads: Vec<&Thread> = canon
     .threads
     .iter()
     .filter(|t| !realised.declares(&t.id))
+    .collect();
+  for thread in &unrealised_threads {
+    let dir = project.thread_dir(&thread.id);
+    for attachment in &thread.attachments {
+      let path = dir.join(&attachment.path);
+      let differs = match std::fs::read(&path) {
+        Ok(bytes) => crate::model::sha256_hex(&bytes) != attachment.sha256,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+        Err(source) => {
+          return Err(Blocked::AttachmentUnreadable {
+            path: project.relative(&path),
+            source,
+          });
+        }
+      };
+      if differs {
+        return Err(Blocked::DirtyAttachment {
+          path: project.relative(&path),
+        });
+      }
+    }
+  }
+
+  let unrealised: Vec<PathBuf> = unrealised_threads
+    .iter()
     .map(|t| project.thread_dir(&t.id))
     .collect();
   // **AN UNDECLARED ISSUE IS NOT REALISED EITHER** (issue 0320). The filter
@@ -667,9 +733,15 @@ fn assemble(
     declaration: _,
   } = canon;
 
-  // One thread.json per thread and one <n>.json per issue -- stated from the
-  // model, before the exporter is asked anything. No event log (issue 0457).
-  let expected = threads.len() + issues.len();
+  // One canon file per record (ST0096 WP-05, cc's meaning): each thread's own,
+  // one per work package, criterion, test and attachment, and one per issue --
+  // stated from the model, before the encoder is asked anything, so a record
+  // the encoder dropped is counted missing. No event log (issue 0457).
+  let expected = threads
+    .iter()
+    .map(|t| 1 + t.wps.len() + t.criteria.len() + t.tests.len() + t.attachments.len())
+    .sum::<usize>()
+    + issues.len();
 
   // `project_id` is empty on a pre-migration project and `Bundle` records that
   // honestly rather than inventing one.
@@ -691,9 +763,57 @@ fn assemble(
   // the rewrite `intent upgrade` makes once, deterministic, so two clones
   // upgraded apart write the same bytes. It changes no id. The one file whose
   // schema says the format, `project.json`, is written by the facade last.
+  //
+  // **EACH THREAD IS SPLIT INTO ITS RECORDS' FILES** (ST0096 WP-05, AC-05.3)
+  // through the one encoder of a thread's layout, so two branches upgraded
+  // apart write the same files and a second run writes nothing. Each issue is
+  // its one file, through the one encoder of an issue.
+  //
+  // **A THREAD'S RECORDS ARE WRITTEN BEFORE ITS OWN FILE** (cc, 2026-11-20).
+  // `ingest` reads a thread's children by the format of its own file, and the
+  // write set commits in the order it is given, so an upgrade cut short leaves
+  // each thread either with its 3.4.0 file whole or with a release-format own
+  // file whose records are all on disk; a re-run rewrites any stray record.
+  // The facade writes `project.json` after the whole set, as it always has.
   let bundle = Bundle::new(&ctx.project_id, threads, issues, Vec::new());
-  let parts = export::record_parts(&bundle, crate::canon_format::CanonFormat::CURRENT)
-    .map_err(|source| Blocked::Canon { source })?;
+  // **EVERY ATTACHMENT, NOT ONLY THE BYTES THIS BATCH CARRIES** (issue 0711).
+  // A text attachment rides inline in its thread's canon, and a thread read
+  // back from canon carries no sidecar bytes, so neither reaches the batch as a
+  // file of its own. Realising the thread writes each of them to its own path
+  // in the thread's directory, so each is keyed there.
+  let attachment_paths: Vec<PathBuf> = bundle
+    .threads
+    .iter()
+    .flat_map(|thread| {
+      let dir = project.thread_dir(&thread.id);
+      thread
+        .attachments
+        .iter()
+        .map(move |attachment| dir.join(&attachment.path))
+    })
+    .collect();
+  // **THE ATTACHMENTS ARE KEYED BEFORE ANY RECORD IS ENCODED** (ST0096 WP-05,
+  // cc's ruling (a)). In the release's layout an attachment's record file and
+  // its bytes are both built from its path, so a pair the key equates is a pair
+  // on each of them; asked here first, the refusal names the attachments
+  // themselves, and the encoder's own check never meets a pair in an upgrade.
+  one_file_each(project, &attachment_paths)?;
+  let mut parts: Vec<(String, String)> = Vec::with_capacity(expected);
+  for thread in &bundle.threads {
+    let files = crate::canon_format::encode_thread_files(thread, target)
+      .map_err(|source| Blocked::Canon { source })?;
+    let own = crate::project::canon_thread_rel(&thread.id.stored());
+    let (own, records): (Vec<_>, Vec<_>) = files.into_iter().partition(|(rel, _)| *rel == own);
+    parts.extend(records);
+    parts.extend(own);
+  }
+  for issue in &bundle.issues {
+    parts.push((
+      crate::project::canon_issue_rel(issue.number),
+      crate::canon_format::encode_issue(issue, target)
+        .map_err(|source| Blocked::Canon { source })?,
+    ));
+  }
   if parts.len() != expected {
     return Err(Blocked::Conservation {
       expected,
@@ -720,59 +840,26 @@ fn assemble(
     .map(|(rel, raw)| (intent_dir.join(rel), raw))
     .collect();
 
-  // **EVERY ATTACHMENT, NOT ONLY THE BYTES THIS BATCH CARRIES** (issue 0711).
-  // A text attachment rides inline in its thread's canon, and a thread read
-  // back from canon carries no sidecar bytes, so neither reaches the batch as a
-  // file of its own. Realising the thread writes each of them to its own path
-  // in the thread's directory, so each is keyed there.
-  let realised: Vec<PathBuf> = bundle
-    .threads
-    .iter()
-    .flat_map(|thread| {
-      let dir = project.thread_dir(&thread.id);
-      thread
-        .attachments
-        .iter()
-        .map(move |attachment| dir.join(&attachment.path))
-    })
-    .collect();
-
-  // ONE FILE ON SOME DISK IS ONE FILE (issue 0711, cc's ruling). Every path the
-  // batch writes, and every attachment's realised path, is keyed by the
-  // one-file key, so two that some disk stores as one file are refused before
-  // anything is written, on every file system. What the key equates, and what
-  // it does not, is its own doc's to say.
-  {
-    let mut seen: BTreeMap<String, &PathBuf> = BTreeMap::new();
-    for path in batch
+  // Every path the batch writes, and every attachment's realised path again,
+  // through the same guard: a record file or a view can meet another only here.
+  one_file_each(
+    project,
+    batch
       .iter()
       .map(|(p, _)| p)
       .chain(blobs.iter().map(|(p, _)| p))
-      .chain(realised.iter())
-    {
-      if let Some(first) = seen.insert(crate::project::one_file_key(path), path) {
-        // `relative` spells a path by its components, so two spellings of one
-        // file on every disk (`a/./b.png` and `a/b.png`) read alike here, and
-        // what is left to tell two keyed-alike paths apart is case.
-        let (first, path) = (project.relative(first), project.relative(path));
-        return Err(if first == path {
-          Blocked::Collision { path }
-        } else {
-          Blocked::CaseCollision {
-            path: first,
-            other: path,
-          }
-        });
-      }
-    }
-  }
+      .chain(attachment_paths.iter()),
+  )?;
 
+  // The opaque bytes first, so no canon file is on disk before the bytes it
+  // names, and then the batch in its order: each thread's records before its
+  // own file.
   let mut writes = WriteSet::new();
-  for (path, content) in batch {
-    writes.add(path, content);
-  }
   for (path, raw) in blobs {
     writes.add_bytes(path, raw);
+  }
+  for (path, content) in batch {
+    writes.add(path, content);
   }
 
   Ok(Plan {
@@ -793,6 +880,34 @@ fn assemble(
     bucket_ingested: Vec::new(),
     bucket_not_ingested: Vec::new(),
   })
+}
+
+/// ONE FILE ON SOME DISK IS ONE FILE (issue 0711, cc's ruling): the first two
+/// of `paths` that the one-file key equates are refused, before anything is
+/// written, on every file system. What the key equates, and what it does not,
+/// is its own doc's to say.
+fn one_file_each<'a>(
+  project: &Project,
+  paths: impl IntoIterator<Item = &'a PathBuf>,
+) -> Result<(), Blocked> {
+  let mut seen: BTreeMap<String, &PathBuf> = BTreeMap::new();
+  for path in paths {
+    if let Some(first) = seen.insert(crate::project::one_file_key(path), path) {
+      // `relative` spells a path by its components, so two spellings of one
+      // file on every disk (`a/./b.png` and `a/b.png`) read alike here, and
+      // what is left to tell two keyed-alike paths apart is case.
+      let (first, path) = (project.relative(first), project.relative(path));
+      return Err(if first == path {
+        Blocked::Collision { path }
+      } else {
+        Blocked::CaseCollision {
+          path: first,
+          other: path,
+        }
+      });
+    }
+  }
+  Ok(())
 }
 
 #[cfg(test)]
@@ -1164,6 +1279,7 @@ mod tests {
 
     let mut thread = thread("ST0001");
     thread.wps = vec![wp(1), wp(12)];
+    let packages = thread.wps.len();
 
     let planned = plan(
       &project,
@@ -1175,10 +1291,12 @@ mod tests {
     )
     .expect("plan");
 
-    // canon: 1 thread, and no event log (issue 0457). views: info + acceptance + 2 WP covers +
-    // the index and the todo view. The globals are the two I left out of this
-    // line first time round, and the count is what said so.
-    assert_eq!(planned.writes.len(), 1 + 6);
+    // canon: the thread's own file and one per work package in the release's
+    // layout (ST0096 WP-05), and no event log (issue 0457). views: info and
+    // acceptance, a cover per work package, and the index and the todo view.
+    let canon = 1 + packages;
+    let views = 2 + packages + 2;
+    assert_eq!(planned.writes.len(), canon + views);
     planned.writes.commit().expect("commit").keep();
 
     let after = tree(dir.path());
@@ -1243,6 +1361,62 @@ mod tests {
         planned.writes.len(),
         canon + views,
         "{threads} thread(s) + {issues} issue(s)"
+      );
+    }
+  }
+
+  /// cc, 2026-11-20: `ingest` reads a thread's children by the format of its own
+  /// file, so an upgrade cut short is re-runnable only while each thread's
+  /// records reach disk before its own file. The write set commits in the order
+  /// it is given, so the order planned is the order written.
+  #[test]
+  fn each_threads_records_are_planned_before_its_own_file() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let project = project(dir.path());
+    let mut carrier = thread("ST0001");
+    carrier.wps = vec![wp(1), wp(2)];
+
+    let planned = plan(
+      &project,
+      &ctx(),
+      Scan {
+        threads: vec![carrier.clone()],
+        ..Default::default()
+      },
+    )
+    .expect("plan");
+    let order: Vec<PathBuf> = planned
+      .writes
+      .writes()
+      .map(|(path, _)| path.to_path_buf())
+      .collect();
+
+    let intent = project.intent_dir();
+    let own = intent.join(crate::project::canon_thread_rel(&carrier.id.stored()));
+    let own_at = order
+      .iter()
+      .position(|p| *p == own)
+      .expect("the thread's own file is planned");
+    let records: Vec<PathBuf> =
+      crate::canon_format::encode_thread_files(&carrier, crate::canon_format::CanonFormat::CURRENT)
+        .expect("the layout")
+        .into_iter()
+        .map(|(rel, _)| intent.join(rel))
+        .filter(|p| *p != own)
+        .collect();
+    assert!(
+      !records.is_empty(),
+      "the carrier must have records, or the order is not tested"
+    );
+    for record in &records {
+      let at = order
+        .iter()
+        .position(|p| p == record)
+        .unwrap_or_else(|| panic!("{} is not planned", record.display()));
+      assert!(
+        at < own_at,
+        "{} is planned after its thread's own file",
+        record.display()
       );
     }
   }

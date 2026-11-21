@@ -551,6 +551,8 @@ mod the_shell_page_reads_the_fields_the_wire_sends;
 mod the_switch_points_the_link_set;
 #[path = "the_tree_function_names_the_running_tree.rs"]
 mod the_tree_function_names_the_running_tree;
+#[path = "the_upgrade_writes_the_releases_layout.rs"]
+mod the_upgrade_writes_the_releases_layout;
 #[path = "thread_body_conservation.rs"]
 mod thread_body_conservation;
 #[path = "thread_prose_carried.rs"]

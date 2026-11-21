@@ -382,6 +382,9 @@ pub fn generate(
     version,
     todo_watermark: None,
     devbin: has_devbin(root),
+    // No root file reads the format, so this path names the one a new
+    // project is born in rather than reading a project it does not have.
+    canon_format: crate::canon_format::CanonFormat::CURRENT,
   };
   sync(root, &home, name, cfg, &ctx)
 }

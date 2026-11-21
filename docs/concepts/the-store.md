@@ -8,11 +8,11 @@ Intent v2 kept everything in Markdown files and derived what it needed by parsin
 
 v3 inverts it. Objects live in a store with a real schema, and the Markdown you read is generated from them.
 
-| Layer              | What it is                                       | Who writes it                                                                          |
-| ------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| **The store**      | `intent/.cache/intent.db`: the source of truth   | The tool, via its verbs                                                                |
-| **Canon extracts** | `intent/.canon/st/<ID>.json`: tracked in git     | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
-| **Views**          | `intent/st/<ID>/*.md`: generated, human-readable | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
+| Layer              | What it is                                                                                                                                                                                             | Who writes it                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **The store**      | `intent/.cache/intent.db`: the source of truth                                                                                                                                                         | The tool, via its verbs                                                                |
+| **Canon extracts** | `intent/.canon/st/<ID>.json`, the thread's own fields, and in an upgraded project one file per work package, criterion, test and attachment record under `intent/.canon/records/<ID>/`: tracked in git | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
+| **Views**          | `intent/st/<ID>/*.md`: generated, human-readable                                                                                                                                                       | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
 
 **The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is truth on the machine that holds it, and what reaches your colleagues is the JSON extract, which has a schema and diffs sensibly; a fresh clone builds its store from the extracts on the first verb. **`intent init` writes the ignore lines** for the store and the backups (`intent/.cache/`, `intent/.backup/`). [Working in a team](working-in-a-team.md) is the whole two-clone story.
 
@@ -22,7 +22,7 @@ v3 inverts it. Objects live in a store with a real schema, and the Markdown you 
 
 The views under `intent/st/<ID>/`, the thread cover `info.md` and `acceptance.md`, are **generated**. A hand edit to one is lost at the next render, and `intent doctor` reports it as view skew until then. The cover's `## Objective` and `## Context` are carried back into the store only in some cases, so do not rely on it: write them with `intent set`. **An attachment, such as a thread's `design.md`, is not a view.** It is yours, and an edit to it is kept.
 
-If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back, having first settled any hand edit to that thread's `info.md` with `intent set`, because the scoped `--to-store` also reads the cover back:
+If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back. In an upgraded project a thread's own fields are in its file under `intent/.canon/st/`, each of its work packages, criteria, tests and attachment records is a file of its own under `intent/.canon/records/<ID>/`, and an opaque attachment's bytes stay under `intent/.canon/st/<ID>/`. In 3.4.0's format the thread's one file holds all of them but the bytes. Settle any hand edit to that thread's `info.md` with `intent set` first, because the scoped `--to-store` also reads the cover back:
 
 ```
   $ $EDITOR intent/.canon/st/ST04750e14f8ff7e39.json

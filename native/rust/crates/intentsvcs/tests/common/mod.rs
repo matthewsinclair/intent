@@ -49,6 +49,7 @@ pub fn ctx() -> RenderContext<'static> {
     version: VERSION,
     todo_watermark: None,
     devbin: false,
+    canon_format: intentsvcs::canon_format::CanonFormat::V3,
   }
 }
 

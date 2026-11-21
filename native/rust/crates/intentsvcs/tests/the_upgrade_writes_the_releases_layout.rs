@@ -1,0 +1,248 @@
+//! ST0096 WP-05 slice B (AC-05.3): **`intent upgrade` writes a 3.4.0 project's
+//! canon in the release's layout, the same files on every copy, and refuses
+//! before any write what the layout cannot carry.**
+//!
+//! A thread goes from one file to one for its own fields and one per work
+//! package, criterion, test and attachment; no id and no value moves (the
+//! cover's shape is `views.rs`'s own test). A closed record's views go with the upgrade, through organize's own
+//! plan and gate. Two things are refused before anything is written: an
+//! attachment of an unrealised thread holding an edit its canon does not
+//! record, and two attachments of one thread a disk that folds case stores as
+//! one file (issue 0711's guard, asked before any record is encoded).
+
+use crate::common::{Fixture, ctx, facade_ctx, sample_issue, sample_thread, tree};
+use intentsvcs::facade::{Facade, FacadeError};
+use intentsvcs::id::Named;
+use intentsvcs::migrate::Blocked;
+use intentsvcs::model::{Attachment, Thread, ThreadStatus};
+use intentsvcs::views;
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+
+/// The ordinal of the issue every estate here holds.
+const ISSUE: u32 = 7;
+
+/// The canon under `fx`, each file's bytes keyed by its path: every record's
+/// file and the project state. The event log is left out, because each event
+/// carries the moment of its own write and is not a record's layout.
+fn canon_files(fx: &Fixture) -> BTreeMap<String, Vec<u8>> {
+  let project = fx.project();
+  let canon = project
+    .project_json()
+    .parent()
+    .expect("the canon directory")
+    .to_path_buf();
+  let events = project.relative(&project.events_dir());
+  tree(&canon)
+    .into_iter()
+    .filter(|(rel, _)| !project.relative(&canon.join(rel)).starts_with(&events))
+    .collect()
+}
+
+/// A 3.4.0 project holding `threads` and the sample issue, in git.
+fn ordinal_estate(threads: &[Thread]) -> Fixture {
+  let fx = Fixture::ordinal();
+  for thread in threads {
+    fx.write_thread(thread);
+  }
+  fx.write_issue(&sample_issue(ISSUE));
+  fx.git_init();
+  fx.git_commit_all();
+  fx
+}
+
+/// The whole tree under `root` but the store's own files, which a refused
+/// upgrade may open and which are not the project's.
+fn estate(root: &Path) -> BTreeMap<String, Vec<u8>> {
+  tree(root)
+    .into_iter()
+    .filter(|(rel, _)| !rel.split('/').any(|part| part == ".cache"))
+    .collect()
+}
+
+#[test]
+fn two_copies_upgraded_apart_write_the_same_files_and_move_no_id_or_value() {
+  let thread = sample_thread("ST0001");
+  let issue = sample_issue(ISSUE);
+  for (kind, empty) in [
+    ("work packages", thread.wps.is_empty()),
+    ("criteria", thread.criteria.is_empty()),
+    ("tests", thread.tests.is_empty()),
+    ("attachments", thread.attachments.is_empty()),
+  ] {
+    assert!(
+      !empty,
+      "the sample must carry {kind}, or their staying put is not tested"
+    );
+  }
+  let copies = [
+    ordinal_estate(std::slice::from_ref(&thread)),
+    ordinal_estate(std::slice::from_ref(&thread)),
+  ];
+  for fx in &copies {
+    Facade::upgrade(&fx.project(), &facade_ctx()).expect("the upgrade");
+  }
+  let [a, b] = &copies;
+  assert_eq!(
+    canon_files(a),
+    canon_files(b),
+    "two copies upgraded apart wrote different canon"
+  );
+
+  let read = intentsvcs::ingest::read(&a.project()).expect("the upgraded canon reads");
+  let upgraded = read
+    .threads
+    .iter()
+    .find(|t| t.id == thread.id)
+    .expect("the thread keeps its id");
+  // As sets, keyed by each record's own name: a record's file is the record,
+  // and no file holds an order (A1's layout).
+  fn keyed<T: Clone>(records: &[T], key: impl Fn(&T) -> String) -> BTreeMap<String, T> {
+    records.iter().map(|r| (key(r), r.clone())).collect()
+  }
+  assert_eq!(
+    keyed(&upgraded.wps, |w| w.seq.stored()),
+    keyed(&thread.wps, |w| w.seq.stored()),
+    "a work package moved"
+  );
+  assert_eq!(
+    keyed(&upgraded.criteria, |c| c.id.clone()),
+    keyed(&thread.criteria, |c| c.id.clone()),
+    "a criterion moved"
+  );
+  assert_eq!(
+    keyed(&upgraded.tests, |t| t.id.clone()),
+    keyed(&thread.tests, |t| t.id.clone()),
+    "a test moved"
+  );
+  assert_eq!(
+    keyed(&upgraded.attachments, |a| a.path.clone()),
+    keyed(&thread.attachments, |a| a.path.clone()),
+    "an attachment moved"
+  );
+  assert_eq!(
+    (&upgraded.title, &upgraded.objective, &upgraded.context),
+    (&thread.title, &thread.objective, &thread.context),
+    "the thread's own fields moved"
+  );
+  let read_issue = read
+    .issues
+    .iter()
+    .find(|i| i.number == issue.number)
+    .expect("the issue keeps its number");
+  assert_eq!(
+    (&read_issue.title, &read_issue.body, read_issue.status),
+    (&issue.title, &issue.body, issue.status),
+    "the issue's fields moved"
+  );
+
+  let own = std::fs::read_to_string(a.project().thread_json(&thread.id)).expect("the own file");
+  let own: serde_json::Value = serde_json::from_str(&own).expect("the own file is json");
+  for key in ["wps", "criteria", "tests", "attachments"] {
+    assert!(
+      own.get(key).is_none(),
+      "the upgraded thread's own file still lists its {key}"
+    );
+  }
+}
+
+#[test]
+fn an_upgrade_removes_a_closed_issues_view_and_names_it() {
+  let fx = ordinal_estate(&[]);
+  let mut issue = sample_issue(ISSUE);
+  issue.realised = false;
+  fx.write_issue(&issue);
+  // The view as this build renders it, so the gate has no edit to refuse.
+  let project = fx.project();
+  let canon = intentsvcs::ingest::read(&project).expect("the estate reads");
+  let written: Vec<PathBuf> = views::render_all(&project, &canon, &ctx())
+    .into_iter()
+    .filter(|v| matches!(views::owner(&project, &v.path, &canon), Some(Named::Issue(n)) if n == issue.number))
+    .map(|v| {
+      std::fs::create_dir_all(v.path.parent().expect("a parent")).expect("mkdir");
+      std::fs::write(&v.path, &v.content).expect("write the issue's view");
+      v.path
+    })
+    .collect();
+  assert!(
+    !written.is_empty(),
+    "the fixture rendered no view for the issue"
+  );
+  fx.git_commit_all();
+
+  let done = Facade::upgrade(&fx.project(), &facade_ctx()).expect("the upgrade");
+  assert!(
+    done.dehydrate_refused.is_empty(),
+    "the closed issue's view was refused: {:?}",
+    done.dehydrate_refused
+  );
+  for view in &written {
+    assert!(
+      !view.exists(),
+      "{} is still on disk: a closed issue's view outlived the upgrade",
+      view.display()
+    );
+    assert!(
+      done.dehydrated.contains(view),
+      "{} went without being named in the report: {:?}",
+      view.display(),
+      done.dehydrated
+    );
+  }
+}
+
+#[test]
+fn an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_write() {
+  // A closed thread: a 3.4.0 project with no manifest realises its WIP threads
+  // alone, so the upgrade leaves this one unrealised and removes its files.
+  let mut thread = sample_thread("ST0001");
+  thread.status = ThreadStatus::Completed;
+  thread.completed = Some(thread.created.clone());
+  thread.realised = false;
+  let fx = ordinal_estate(std::slice::from_ref(&thread));
+  let attachment = &thread.attachments[0];
+  let on_disk = fx.project().thread_dir(&thread.id).join(&attachment.path);
+  std::fs::create_dir_all(on_disk.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(&on_disk, "an edit the store never took\n").expect("edit the attachment");
+  let before = estate(fx.root());
+
+  match Facade::upgrade(&fx.project(), &facade_ctx()) {
+    Err(FacadeError::MigrationBlocked(Blocked::DirtyAttachment { path })) => assert_eq!(
+      path,
+      fx.project().relative(&on_disk),
+      "the refusal names another file"
+    ),
+    other => panic!("an unsynced attachment edit must be refused, got {other:?}"),
+  }
+  let after = estate(fx.root());
+  assert_eq!(
+    crate::common::changed(&before, &after),
+    Vec::<String>::new(),
+    "the refused upgrade wrote"
+  );
+}
+
+#[test]
+fn two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write() {
+  let mut thread = sample_thread("ST0001");
+  let name = thread.attachments[0].path.clone();
+  thread
+    .attachments
+    .push(Attachment::new(name.to_uppercase(), "the other spelling\n"));
+  let fx = ordinal_estate(std::slice::from_ref(&thread));
+  let before = estate(fx.root());
+
+  match Facade::upgrade(&fx.project(), &facade_ctx()) {
+    Err(FacadeError::MigrationBlocked(Blocked::CaseCollision { path, other })) => assert!(
+      path.ends_with(&name) && other.ends_with(&name.to_uppercase()),
+      "the refusal names another pair: {path}, {other}"
+    ),
+    other => panic!("a case pair must be refused, got {other:?}"),
+  }
+  let after = estate(fx.root());
+  assert_eq!(
+    crate::common::changed(&before, &after),
+    Vec::<String>::new(),
+    "the refused upgrade wrote"
+  );
+}

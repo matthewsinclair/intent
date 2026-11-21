@@ -2864,6 +2864,7 @@ fn root_file_findings(project: &Project, ctx: &RenderContext<'_>) -> Vec<Finding
     version: ctx.version,
     todo_watermark: None,
     devbin: crate::rootfiles::has_devbin(root),
+    canon_format: crate::intentfiles::reported_format(project),
   };
   let opts = crate::canon::Options {
     report: true,

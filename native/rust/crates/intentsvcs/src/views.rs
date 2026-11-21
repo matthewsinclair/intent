@@ -93,6 +93,14 @@ pub struct RenderContext<'a> {
   /// config's declared commands (issue 0678). A fact about the project's tree,
   /// never about the moment of rendering.
   pub devbin: bool,
+  /// The canon format this render is for (ST0096 WP-05): in the release's,
+  /// a thread's cover renders its own fields only, and its work packages and
+  /// criteria are records read through their own verbs. Project state, owned
+  /// for the reason [`Self::todo_watermark`] gives: each builder reads it from
+  /// the one reader it has (the facade from the store, a door outside it
+  /// through [`crate::intentfiles::reported_format`]), so a projection and
+  /// doctor's re-render of it agree.
+  pub canon_format: crate::canon_format::CanonFormat,
 }
 
 /// One rendered view: where it goes and what it says.
@@ -407,28 +415,6 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
     out.push_str("\n\n");
   }
 
-  if !thread.wps.is_empty() && !carries_heading(&thread.body, "Work Packages") {
-    out.push_str("## Work Packages\n\n");
-    let rows: Vec<Vec<String>> = thread
-      .wps
-      .iter()
-      .map(|wp| {
-        vec![
-          wp.seq.heading(),
-          cell(&wp.title),
-          wp.scope_display(),
-          wp.status.display().to_string(),
-        ]
-      })
-      .collect();
-    out.push_str(&table(
-      &["WP", "Title", "Size", "Status"],
-      &rows,
-      TableMode::Markdown,
-    ));
-    out.push('\n');
-  }
-
   // **An authored section wins and the generated default defers**, the same
   // rule `wp_info` carries and for the same reason: the author's copy states
   // their project's own convention, and the generated one asserts ours.
@@ -441,11 +427,53 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   // parsing `related` rather than a companion to it** (vc's ruling). Landing
   // that field alone would run a renderer path never once exercised on a
   // migrated estate and double 52 threads in the same commit.
-  if !carries_heading(&thread.body, "Acceptance") {
-    out.push_str("## Acceptance\n\n");
-    out.push_str(&format!(
-      "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n"
-    ));
+  //
+  // **IN THE RELEASE'S FORMAT THE COVER RENDERS ITS THREAD'S OWN FIELDS ONLY**
+  // (ST0096 WP-05, hv decision 74): each work package, criterion and test is a
+  // record of its own, so a view rendered from them cannot stay in git, and
+  // both sections point at the verbs that read them, in ic's words. They render
+  // whether or not the thread has packages, because the cover no longer knows.
+  // 3.4.0's cover is unchanged. One match, so a format added later is a
+  // compile error here rather than a cover with neither section.
+  match ctx.canon_format {
+    crate::canon_format::CanonFormat::V4 => {
+      let st = thread.id.shown();
+      if !carries_heading(&thread.body, "Work Packages") {
+        out.push_str(&work_packages_pointer(&st));
+      }
+      if !carries_heading(&thread.body, "Acceptance") {
+        out.push_str(&acceptance_pointer(&st));
+      }
+    }
+    crate::canon_format::CanonFormat::V3 => {
+      if !thread.wps.is_empty() && !carries_heading(&thread.body, "Work Packages") {
+        out.push_str("## Work Packages\n\n");
+        let rows: Vec<Vec<String>> = thread
+          .wps
+          .iter()
+          .map(|wp| {
+            vec![
+              wp.seq.heading(),
+              cell(&wp.title),
+              wp.scope_display(),
+              wp.status.display().to_string(),
+            ]
+          })
+          .collect();
+        out.push_str(&table(
+          &["WP", "Title", "Size", "Status"],
+          &rows,
+          TableMode::Markdown,
+        ));
+        out.push('\n');
+      }
+      if !carries_heading(&thread.body, "Acceptance") {
+        out.push_str("## Acceptance\n\n");
+        out.push_str(&format!(
+          "Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: {CONTRACT_VERBS}. This cover never restates them.\n\n"
+        ));
+      }
+    }
   }
 
   if !thread.related.is_empty() && !carries_heading(&thread.body, "Related Steel Threads") {
@@ -530,6 +558,23 @@ const INFO_GENERATED_SECTIONS: &[&str] = &["Work Packages", "Acceptance", "Relat
 /// sync --to-store`, as though these verbs did not exist -- a hand-edit of
 /// canon, the route they retired. Every spelling here is a shipped verb.
 const CONTRACT_VERBS: &str = "`intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state";
+
+/// A thread cover's `## Work Packages` section in the release's format, for
+/// the thread shown as `st` (ST0096 WP-05; ic's words on cc's meaning): where
+/// the packages are read, since each is a record of its own.
+fn work_packages_pointer(st: &str) -> String {
+  format!(
+    "## Work Packages\n\nEach work package is a record of its own: `intent wp list {st}` lists them, and `intent wp show {st}/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.\n\n"
+  )
+}
+
+/// A thread cover's `## Acceptance` section in the release's format, for the
+/// thread shown as `st` (ST0096 WP-05; ic's words on cc's meaning).
+fn acceptance_pointer(st: &str) -> String {
+  format!(
+    "## Acceptance\n\nAcceptance criteria and tests are records of their own: `intent ac list {st}` and `intent at list {st}` list them, and `intent ac gate {st}` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: {CONTRACT_VERBS}. This cover never restates them.\n\n"
+  )
+}
 
 /// What [`info_read_back`] recovered: the two authored sections, as edited.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -617,6 +662,7 @@ pub fn info_read_back(
     version: stamped.unwrap_or(ctx.version),
     todo_watermark: ctx.todo_watermark.clone(),
     devbin: ctx.devbin,
+    canon_format: ctx.canon_format,
   };
   let rendered = info(thread, &ctx);
 
@@ -3183,7 +3229,74 @@ mod tests {
       version: "3.0.0-test",
       todo_watermark: None,
       devbin: false,
+      canon_format: crate::canon_format::CanonFormat::V3,
     }
+  }
+
+  /// A rendered view cut at each `## ` heading: the text before the first, then
+  /// each section with its heading, in order.
+  fn sections(text: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = vec![(String::new(), String::new())];
+    for line in text.split_inclusive('\n') {
+      if let Some(heading) = line.strip_prefix("## ") {
+        out.push((heading.trim_end().to_string(), String::new()));
+      }
+      if let Some(last) = out.last_mut() {
+        last.1.push_str(line);
+      }
+    }
+    out
+  }
+
+  /// ST0096 WP-05 (AC-05.3): in the release's format a cover differs from
+  /// 3.4.0's by its two generated sections alone, each replaced by its pointer;
+  /// every other byte, the authored ones and the frame, is the same.
+  #[test]
+  fn the_cover_changes_only_by_its_two_sections_in_the_releases_format() {
+    let t = with_wp("ST0075", "wip", "not-started");
+    let ordinal = info(&t, &ctx());
+    let release = info(
+      &t,
+      &RenderContext {
+        canon_format: crate::canon_format::CanonFormat::V4,
+        ..ctx()
+      },
+    );
+
+    // The trailing banner sits inside the last section's chunk, so it is cut
+    // off first and kept as it is: it is the frame, not a section.
+    let cut = ordinal
+      .rfind(BANNER_MARKER)
+      .map(|at| at + "\n\n".len())
+      .expect("a rendered cover ends with its banner");
+    let (body, banner) = ordinal.split_at(cut);
+    let ordinal_sections = sections(body);
+    let table = ordinal_sections
+      .iter()
+      .find(|(h, _)| h == "Work Packages")
+      .expect("3.4.0's cover renders the work package table");
+    for wp in &t.wps {
+      assert!(
+        table.1.contains(&wp.title),
+        "3.4.0's table does not list {}",
+        wp.title
+      );
+    }
+
+    let st = t.id.shown();
+    let expected: String = ordinal_sections
+      .iter()
+      .map(|(heading, text)| match heading.as_str() {
+        "Work Packages" => work_packages_pointer(&st),
+        "Acceptance" => acceptance_pointer(&st),
+        _ => text.clone(),
+      })
+      .collect();
+    let expected = expected + banner;
+    assert_eq!(
+      release, expected,
+      "the release's cover differs from 3.4.0's by more than its two sections"
+    );
   }
 
   /// hv, 2026-09-25: a view's footer names the major alone, so a patch or a
@@ -3197,6 +3310,7 @@ mod tests {
         version: "3.2.1",
         todo_watermark: None,
         devbin: false,
+        canon_format: crate::canon_format::CanonFormat::V3,
       },
     );
     let at_minor = info(
@@ -3205,6 +3319,7 @@ mod tests {
         version: "3.3.0",
         todo_watermark: None,
         devbin: false,
+        canon_format: crate::canon_format::CanonFormat::V3,
       },
     );
     assert!(
@@ -3554,6 +3669,7 @@ mod tests {
         version: "2.9.9-test",
         todo_watermark: None,
         devbin: false,
+        canon_format: crate::canon_format::CanonFormat::V3,
       },
     ));
     assert!(
@@ -3598,6 +3714,7 @@ mod tests {
         version: "2.9.9-test",
         todo_watermark: None,
         devbin: false,
+        canon_format: crate::canon_format::CanonFormat::V3,
       },
     );
     for kind in [ViewKind::Board, ViewKind::Inbox, ViewKind::Other] {
@@ -3651,6 +3768,7 @@ mod tests {
         version: "3.2.4-test",
         todo_watermark: None,
         devbin: false,
+        canon_format: crate::canon_format::CanonFormat::V3,
       },
     )
     .replacen(heading, marked, 1);
@@ -3684,6 +3802,7 @@ mod tests {
       version: "3.0.0-test",
       todo_watermark: Some(mark.to_string()),
       devbin: false,
+      canon_format: crate::canon_format::CanonFormat::V3,
     }
   }
 

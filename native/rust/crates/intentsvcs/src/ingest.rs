@@ -203,7 +203,39 @@ impl From<Refusal> for IngestError {
 /// its error type. `read` propagates an unreadable file as an `IngestError`;
 /// `legacy.rs` has already established the file exists.
 pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
-  read_thread_file(project, id, text).map(|(thread, _)| thread)
+  let (mut thread, format) = read_thread_file(project, id, text)?;
+  // **THE WHOLE THREAD, AS [`read`] HOLDS IT** (ST0096 WP-05): a caller that
+  // asks what canon carries, as the upgrade's bucket ingest asks of an
+  // attachment, reads the children in the release's layout too, or a record
+  // canon holds reads as one it lacks. A child that will not read refuses the
+  // thread, as every other finding here does.
+  let found = children_of(project, &mut thread, format).map_err(|e| {
+    vec![Finding::new(
+      project.relative(&project.thread_json(id)),
+      FindingClass::SchemaInvalid,
+      format!("could not read the thread's records: {e}"),
+    )]
+  })?;
+  if found.is_empty() {
+    Ok(thread)
+  } else {
+    Err(found)
+  }
+}
+
+/// The children of a thread whose own file is in `format`, added to `thread`:
+/// none for 3.4.0's, whose file holds them, and each record's own file for the
+/// release's (ST0096 WP-05). The one place the layout decides where a thread's
+/// children are read from, for [`read`] and [`read_thread`] alike.
+fn children_of(
+  project: &Project,
+  thread: &mut Thread,
+  format: CanonFormat,
+) -> Result<Vec<Finding>, IngestError> {
+  match format {
+    CanonFormat::V4 => read_children(project, thread),
+    CanonFormat::V3 => Ok(Vec::new()),
+  }
 }
 
 /// [`read_thread`], with the format the file is written in, which says where
@@ -454,10 +486,7 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
         // of here holds bytes for every opaque attachment or refuses. So are
         // the children with files of their own (ST0096 WP-05), by the layout
         // the thread's file is in.
-        match format {
-          CanonFormat::V4 => findings.append(&mut read_children(project, &mut thread)?),
-          CanonFormat::V3 => {}
-        }
+        findings.append(&mut children_of(project, &mut thread, format)?);
         findings.append(&mut load_blobs(project, &mut thread));
         canon.threads.push(thread);
       }
@@ -1939,6 +1968,7 @@ fn carry_info_round_trip(
     version: crate::faces::INTENT_VER,
     todo_watermark: None,
     devbin: crate::rootfiles::has_devbin(project.root()),
+    canon_format: crate::intentfiles::reported_format(project),
   };
   let mut findings = Vec::new();
 

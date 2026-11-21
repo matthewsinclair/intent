@@ -43,6 +43,7 @@ fn ctx() -> RenderContext<'static> {
     // Root files only; nothing here renders todo.md.
     todo_watermark: None,
     devbin: false,
+    canon_format: intentsvcs::canon_format::CanonFormat::V3,
   }
 }
 

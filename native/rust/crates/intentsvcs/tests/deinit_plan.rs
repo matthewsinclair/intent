@@ -15,6 +15,7 @@ const CTX: RenderContext<'static> = RenderContext {
   version: env!("CARGO_PKG_VERSION"),
   todo_watermark: None,
   devbin: false,
+  canon_format: intentsvcs::canon_format::CanonFormat::CURRENT,
 };
 
 struct Fixture {

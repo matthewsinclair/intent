@@ -6582,6 +6582,9 @@ fn deinit(m: &ArgMatches) -> Result<(), Failure> {
     version: env!("CARGO_PKG_VERSION"),
     todo_watermark: None,
     devbin: intentsvcs::rootfiles::has_devbin(&root),
+    // Only root files and hooks render here, and neither reads the format, so
+    // the reporter's fallback for an unreadable project state misleads nothing.
+    canon_format: intentsvcs::intentfiles::reported_format(&project),
   };
   let scope = deinit::Scope {
     project: &project,

@@ -503,6 +503,15 @@ pub fn init_with_languages(
   let project = crate::project::Project::open(root)
     .map_err(|cause| InitError::Io(root.to_path_buf(), std::io::Error::other(cause)))?;
 
+  // **A NEW PROJECT IS BORN IN THE RELEASE'S CANON FORMAT** (ST0095 WP-06).
+  // The format is the project state's schema, and a project without one is
+  // one `intent upgrade` has not moved, whose first mint refuses (hv decision
+  // 70). A new project has nothing to move, so it starts in the format that
+  // mints: recorded in the store, which every writer reads, and in
+  // `.canon/project.json`, which carries it to a clone. The root files and
+  // views below render in it too.
+  let format = crate::canon_format::CanonFormat::CURRENT;
+
   // **THE GENERATED ROOT FILES, AND THEY CANNOT BE WRITTEN WITH THE REST.**
   // Every `At` above is a template copy that needs nothing but the four tokens;
   // these are rendered from PROJECT STATE, so they cannot be written until the
@@ -528,6 +537,7 @@ pub fn init_with_languages(
     // store, so the aggregate views below match what `sync --to-disk` writes.
     todo_watermark: None,
     devbin: crate::rootfiles::has_devbin(root),
+    canon_format: format,
   };
   for (dest, body) in &generated {
     let content = crate::rootfiles::substitute(body, project.config(), &ctx)
@@ -550,13 +560,6 @@ pub fn init_with_languages(
     written.push(view.path);
   }
 
-  // **A NEW PROJECT IS BORN IN THE RELEASE'S CANON FORMAT** (ST0095 WP-06).
-  // The format is the project state's schema, and a project without one is
-  // one `intent upgrade` has not moved, whose first mint refuses (hv decision
-  // 70). A new project has nothing to move, so it starts in the format that
-  // mints: recorded in the store, which every writer reads, and in
-  // `.canon/project.json`, which carries it to a clone.
-  let format = crate::canon_format::CanonFormat::CURRENT;
   store
     .set_project_state(&crate::model::ProjectState::new(None, format))
     .map_err(InitError::Store)?;

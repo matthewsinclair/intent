@@ -1007,6 +1007,7 @@ fn skew_is_judged_against_the_rendering_version() {
     version: "9.9.9-not-the-fixture-version",
     todo_watermark: None,
     devbin: false,
+    canon_format: intentsvcs::canon_format::CanonFormat::V3,
   };
   let findings =
     intentsvcs::doctor::diagnose(&fx.project(), &other, None, intentsvcs::doctor::Scope::All)
