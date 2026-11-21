@@ -559,14 +559,9 @@ release:
     - test shell
   legs:
     - kovacs
-  # THIS CUT HOLDS THE TAP (hv decision 77): `cut publish --hold-tap` publishes
-  # the release and its sums and leaves the tap where it was, and `bin/devbin
-  # cut tap` runs the formula and then `brew smoke --at-tag` on hv's word. The
-  # commit after that tap puts these lines back, so the next cut is not held:
-  #   - bin/devbin cut publish
-  #   - bin/devbin brew smoke --at-tag
   after:
-    - bin/devbin cut publish --hold-tap
+    - bin/devbin cut publish
+    - bin/devbin brew smoke --at-tag
   derived:
     - bin/devbin stamp config
     - bin/devbin stamp lock

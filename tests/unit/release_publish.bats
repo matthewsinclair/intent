@@ -229,12 +229,13 @@ $(cat "$CALLS")"
 }
 
 # The dry run's after row prints release.after as the core reads it
-# (lib/cmd/release, cut_run), so this reads it with the core's own reader. The
-# commit that puts release.after back after the tap changes this arm with it.
-@test "hv decision 77: release.after, as the core reads it for the dry run's after row, is cut publish --hold-tap alone, and cut tap is out of cut all" {
+# (lib/cmd/release, cut_run), so this reads it with the core's own reader. A
+# cut that holds the tap again changes release.after and this arm together.
+@test "release.after, as the core reads it for the dry run's after row, is cut publish then brew smoke --at-tag, and cut tap stays out of cut all for a held cut (hv decision 77)" {
   run bash -c 'L="$1/bin/.devbin/lib"; . "$L/helpers"; . "$L/config"; cfg_load "$1/bin/.devbin/config.yaml" && cfg_release_list after' _ "$INTENT_PROJECT_ROOT"
   assert_success
-  [ "$output" = "bin/devbin cut publish --hold-tap" ] || fail "release.after is not the held line alone: $output"
+  [ "$output" = "bin/devbin cut publish
+bin/devbin brew smoke --at-tag" ] || fail "release.after is not the publication then the smoke: $output"
   run bash -c 'L="$1/bin/.devbin/lib"; . "$L/helpers"; . "$L/config"; cfg_load "$1/bin/.devbin/config.yaml" && cfg_get commands.cut.options.tap.run && cfg_get commands.cut.options.tap.in_all' _ "$INTENT_PROJECT_ROOT"
   assert_success
   [ "$output" = "bin/.devbin/cmd/measured --exec bin/.devbin/cut/publish --tap
