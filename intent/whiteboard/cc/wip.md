@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-20 17:40Z
+heartbeat_at: 2026-11-20 18:42Z
 status: active
 focus: "2026-11-20 17:40Z by date -u: localfolded for hv's compact, not released. ST0096/01 landed and closed out; ST0096/05 next (plan to vc first). Claims ST0095/05, ST0095/06, ST0096/05."
 claims: [ST0095/05, ST0095/06, ST0096/05]
@@ -13,13 +13,11 @@ claims: [ST0095/05, ST0095/06, ST0096/05]
 
 ## DOING
 
-- ST0095/05+06 LANDED at ed302b7e4 (vc), and seven criteria satisfied by green ATs at 7af1d65ce. Worktree tmp/wt-st0095-wp0506 removed by the four checks at 2026-11-20 15:12Z by date -u (attic refs/attic/cc/st0095/wp0506-wt-head). Still open on WP-06: AC-06.3 waits on ic's remint doors, AC-06.1's issue half on ST0096 WP-01, AC-06.6 on the drill. The shared set is frozen until the release: build nothing into it. NEXT for cc, on vc's go: ST0096 WP-01, then WP-05. (edited)
-- ST0096/05 (L), split on vc's go into A1 (codec), A2 (writer, removals, moves; AC-05.1/05.2) and B (devbin-cc: upgrade split, closed views removed, refusals, cover; AC-05.3). A1 GREEN at ccb885ea6 (Desk 01M7X37J, 18:30Z), banked refs/bank/cc/st0096/wp05-a1-on-eabd29999 (patch-id 2327baf7b83d), proof sent to vc; worktree tmp/wt-st0096-wp05 branch cc/st0096-wp05-a1 off eabd29999. B's brief banked refs/bank/cc/st0096/wp05-sliceB-brief, sent to devbin-cc. NEXT, A2 on A1: projection() writes through encode_thread_files and removes child files whose record left; renumber/remint moves; ingest's orphan child finding; extend dc's split canon_paths (0739) to child files; sync.rs's canon-path-to-thread mapping; one order for criteria/tests/attachments across store and disk in V4; the AC-05.2 two-branch merge test; data-model.md note (todo 57, hv decision 75). Stay out of Facade::upgrade (B's) and dc's 0741 plan builder. (edited)
+_(none)_
 
 ## TODO
 
-- WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06: C2, one mint retiring next_thread_id, next_issue_number and next_free_id's arithmetic; W11, a canon file of neither family refused by name (AC-06.5); W15, st remint's malformed-id refusals. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2.
-- With ST0096/05, if data-model.md is touched: name organize --default/--force's setting of realised from status as the bulk reset outside the per-record Machine 6 (hv decision 75, recorded at 0288accdf; no new edge). Not worth a commit alone.
+- WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06 (done at 3b3c53742): C2 and W11 are discharged (one mint, no next_* arithmetic left; AC-06.5); W15, st remint's malformed-id refusals, still to check. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2. (edited)
 
 ## Holds
 

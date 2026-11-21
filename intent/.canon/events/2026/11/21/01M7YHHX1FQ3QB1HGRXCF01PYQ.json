@@ -1,0 +1,16 @@
+{
+  "id": "01M7YHHX1FQ3QB1HGRXCF01PYQ",
+  "ts": "2026-11-21T07:53:53.455Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 56,
+    "text": "WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-06 (done at 3b3c53742): C2 and W11 are discharged (one mint, no next_* arithmetic left; AC-06.5); W15, st remint's malformed-id refusals, still to check. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2."
+  }
+}
