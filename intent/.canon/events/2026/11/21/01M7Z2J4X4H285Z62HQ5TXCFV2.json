@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z2J4X4H285Z62HQ5TXCFV2",
+  "ts": "2026-11-21T12:51:07.659Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 85,
+    "text": "The release text is PLACED at 526c54bc7: CHANGELOG.md's ## [3.5.0] and docs/releases/3.5.0/RELEASE_NOTES.md, checked against main. One marked GAP in each, issue 0707's remedy, which intent-cc's 0746 unit fills before the cut. Keep both current as the final units land (AC-03.3's shots, 0746)."
+  }
+}

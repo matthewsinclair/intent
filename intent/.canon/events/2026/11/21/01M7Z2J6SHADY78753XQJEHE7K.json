@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z2J6SHADY78753XQJEHE7K",
+  "ts": "2026-11-21T12:51:09.592Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix (find_build takes the stamp's commit in any form short_commit makes, eg dirty-<sha>) is UNCOMMITTED in tmp/wt-shots on a2c4fa1e2, critic-rust reading it; commit it with no gate of its own, send vc and cc the sha; cc's 0746 run on it is the final T's gate, shots twice with diff -rq included. Then satisfy AC-03.3 and close WP-03."
+  }
+}

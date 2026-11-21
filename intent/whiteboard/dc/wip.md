@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 09:45Z
+heartbeat_at: 2026-11-21 12:51Z
 status: active
-focus: "2026-11-21 09:08Z by date -u: localfold for hv's estate-wide fold, not released. Landed today: 0743 (38d2882e0), the WP-12 hook (ce6b28119) and pr-checks routing (b1ca2be4b), 0707 (1b9aa7b9d), the tap hold, 0740 and its follow-up (read by dc). Next: satisfy ST0095 AC-11.1 and close WP-11 once vc lands it, then lead the 3.5.0 rehearsal at vc's T (kovacs first, then rhadamanth), then the fleet note."
+focus: "2026-11-21 12:51Z by date -u: localfold for hv's 12:50Z compact, not released. Next: commit the ELIDE fix (tmp/wt-shots, critic-rust reading) and send vc and cc the sha; cc's 0746 run is the final T's gate; then rehearsal step 3's re-run, the leg-config compare and the kovacs record copy to main, then the cut. Keep tmp/wt-rehearsal-10141745e."
 claims: [ST0095/03]
 ---
 
@@ -13,16 +13,16 @@ claims: [ST0095/03]
 
 ## DOING
 
-- ST0095 WP-03 (M), on vc's go of 2026-11-19 09:38Z. Landed: fe534431d (gate fix, 0716), 2c909d85e (store guard), c5233a0c9 (capture and brew smoke), ea22af4c7 (guard S). AC-03.4 and AC-03.5 satisfied. OPEN only for AC-03.3, the explorer screenshots byte-identical over two runs: rehearsal step 5 proves it at T, then dc satisfies it and closes WP-03. (edited)
-- Intent 3.5.0 rehearsal, dc leads (hv decision 78, vc's go on dc's plan): called by vc after AC-11.1 and AC-12.1's routing (decision 79) land. Step 1 on kovacs first and alone (heavy lane; the Desk grants heavy+cargo+bats), then steps 2 to 7 on rhadamanth, all at T. kovacs is ready (09:10Z): the stale 3.3.3 intentd stopped and the 12G rust-target cache cleared on hv's word, 27G free; kovacs-sysadm watches only. Runner and driver in dc's scratch (rehearsal/run-rehearsal.sh, rehearse-clones.sh); plan at release/rehearsal-3.5.0-plan.md. (edited)
+- ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix (find_build takes the stamp's commit in any form short_commit makes, eg dirty-<sha>) is UNCOMMITTED in tmp/wt-shots on a2c4fa1e2, critic-rust reading it; commit it with no gate of its own, send vc and cc the sha; cc's 0746 run on it is the final T's gate, shots twice with diff -rq included. Then satisfy AC-03.3 and close WP-03. (edited)
+- Intent 3.5.0 rehearsal (hv decision 78), dc leads, at T 10141745e then a51da38a0. Step 1 kovacs GREEN (3 gates, from tmp/wt-rehearsal-10141745e: KEEP it until the cut tags; its sealed leg record is copied to main's tmp/release/legs/kovacs before the cut, after comparing leg_config_lines at 10141745e and the final T). Step 2 build GREEN. Step 3 (clones) RED on the 0707 deadlock, now intent-cc's 0746 (the upgrade dehydrates HEAD-clean views of unrealised records); re-run at the final T in the product's order (driver rehearse-clones.sh restored). Step 4 (shots) re-runs as part of cc's final run. Step 5 DONE: release check shows after: bin/devbin cut publish --hold-tap alone; hv's terminal needs intent daemon stop, gh auth and the Developer ID and APPLE_* set. Report to vc and the Desk at the end; then ST0096 AC-03.1, ST0095 AC-03.3 and AC-12.2. (edited)
 
 ## TODO
 
-- ST0095 WP-12 (M). Landed: the SessionStart hook's first-bold-line read (ce6b28119) and the pull-request check through the id door (b1ca2be4b), each with its census row gone. AC-12.1's rest, the three gated parity scripts, is with hv through vc (needs intent id --read-only; the follow-up text is in dc's scratch, release/wp12-routing-followup.md); no ac descope until hv answers. AC-12.2, the drill, runs in rehearsal step 4. AC-12.3, the fleet note, is todo 69. The census-retirement proposal for items 8, 9 and 11 still goes to vc file by file. (edited)
+- ST0095 WP-12 (M). AC-12.1 satisfied at e555b136f: the hook (ce6b28119), pr-checks (b1ca2be4b) and the three gated parity scripts (a3e3e6461, ro_copy fix a51da38a0) ask the id door; AT-12.1 cites tests/unit/gated_id_door.bats. The by-hand half is AC-12.4, descoped to ST0097. OPEN: AC-12.2, the drill (rehearsal step 3's re-run at the final T), and AC-12.3, the fleet note (todo 69). (edited)
 - ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green. (edited)
-- The release drafts (CHANGELOG section and release notes, in dc's scratch release/): keep them current as units land; vc places them when their foot is empty. The foot today: ST0095 WP-06's AC-06.1 and AC-06.3, WP-11, WP-12's rest with hv, ST0096 WP-03 and WP-04 (the rehearsal), the release number.
-- hv decision 79 (4753e17bb): AC-12.1's routing half rides 3.5.0. Once intent id --read-only exists, dc routes rulings_check.sh, declared_kind_check.sh and view_skew_check.sh through it, with one shared read-only-or-copy runner (factored from thread_view_skew_check.sh, registered in MODULES.md first). The plan is dc's follow-up text, release/wp12-routing-followup.md in dc's scratch. The rehearsal is called after these land.
+- The release text is PLACED at 526c54bc7: CHANGELOG.md's ## [3.5.0] and docs/releases/3.5.0/RELEASE_NOTES.md, checked against main. One marked GAP in each, issue 0707's remedy, which intent-cc's 0746 unit fills before the cut. Keep both current as the final units land (AC-03.3's shots, 0746). (edited)
 - After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so).
+- After the 3.5.0 cut (cc's question, 2026-11-21): the gated id scripts refuse when the tree's pair is behind the door (no --read-only), which blocked every commit on main until step 2's build. Should a stale pair on a board-only commit refuse, or say what it could not check and pass? Today it refuses: safe, and it blocks every seat.
 
 ## Holds
 

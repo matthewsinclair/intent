@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z2JB3F8G6532DHMWK88Y20",
+  "ts": "2026-11-21T12:51:14.120Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After the 3.5.0 cut (cc's question, 2026-11-21): the gated id scripts refuse when the tree's pair is behind the door (no --read-only), which blocked every commit on main until step 2's build. Should a stale pair on a board-only commit refuse, or say what it could not check and pass? Today it refuses: safe, and it blocks every seat."
+  }
+}

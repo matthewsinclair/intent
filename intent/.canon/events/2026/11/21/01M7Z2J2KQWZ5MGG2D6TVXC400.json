@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z2J2KQWZ5MGG2D6TVXC400",
+  "ts": "2026-11-21T12:51:04.951Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0095 WP-12 (M). AC-12.1 satisfied at e555b136f: the hook (ce6b28119), pr-checks (b1ca2be4b) and the three gated parity scripts (a3e3e6461, ro_copy fix a51da38a0) ask the id door; AT-12.1 cites tests/unit/gated_id_door.bats. The by-hand half is AC-12.4, descoped to ST0097. OPEN: AC-12.2, the drill (rehearsal step 3's re-run at the final T), and AC-12.3, the fleet note (todo 69)."
+  }
+}
