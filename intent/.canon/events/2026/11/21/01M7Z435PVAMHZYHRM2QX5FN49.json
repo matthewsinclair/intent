@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z435PVAMHZYHRM2QX5FN49",
+  "ts": "2026-11-21T13:17:53.755Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 173,
+    "text": "Intent 3.5.0 rehearsal (hv decision 78), dc leads. Step 1 kovacs GREEN at 10141745e (from tmp/wt-rehearsal-10141745e, KEEP until the cut tags). Leg config COMPARED: bin/.devbin/config.yaml and lib are byte-identical at 10141745e, main and cc's tip 5ebb09841, so the record stands for the final T; its three files are COPIED into main's tmp/release/legs/kovacs (adds only, no collision), and step 5's run 2 pre-flight with that record named no kovacs refusal. Step 2 build GREEN. Step 4 shots: green in cc's run (diff -rq 0 of 11 at 982563ea9). Step 3 (clones) re-runs at the final T vc names once it lands cc's stack (a25624fa6, 982563ea9, 5ebb09841, on dc's 2614b16bd). Step 5 DONE: hv's terminal needs intent daemon stop, gh auth and the Developer ID and APPLE_* set. Then the report to vc and the Desk, ST0096 AC-03.1, ST0095 AC-03.3 and AC-12.2."
+  }
+}
