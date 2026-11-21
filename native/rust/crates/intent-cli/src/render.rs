@@ -14578,7 +14578,7 @@ fn print_notes(notes: &[Note], subject: &str) {
       Note::DehydratesOnNextOrganize { paths, format } => {
         eprintln!(
           "note: this {} {subject}, so the next `intent organize --apply` will remove:",
-          intentsvcs::intentfiles::closing_unrealises(*format)
+          intentsvcs::intentfiles::RealisationWords::closing_unrealises(*format)
         );
         for path in paths {
           eprintln!("  {path}");
@@ -14587,7 +14587,7 @@ fn print_notes(notes: &[Note], subject: &str) {
           // The flag is named with the verbs that take it: `fc` shares this
           // note and has no `--keep` (issue 0566).
           "  remedy: `intent st hydrate {subject}` writes them back from the store, and `st done --keep` or `st cancel --keep` {}",
-          intentsvcs::intentfiles::closing_kept(*format)
+          intentsvcs::intentfiles::RealisationWords::closing_kept(*format)
         );
       }
       // **THE INDEX IS WHAT A PLAIN `git commit` CARRIES**, and a commit a gate

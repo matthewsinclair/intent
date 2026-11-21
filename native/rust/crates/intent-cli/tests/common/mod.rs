@@ -2029,3 +2029,20 @@ fn views_done(applied: &str) -> (usize, usize) {
     })
     .unwrap_or((0, 0))
 }
+
+/// The remedy doctor prints for the group `member` is listed under: the
+/// nearest `  remedy: ` line above it, without its lead (issue 0740). Doctor
+/// prints a group's one remedy beneath its header and above its members
+/// (`render::print_grouped`), so a finding's own line carries no remedy.
+pub fn remedy_above<'a>(out: &'a str, member: &str) -> &'a str {
+  let lines: Vec<&str> = out.lines().collect();
+  let at = lines
+    .iter()
+    .position(|line| *line == member)
+    .unwrap_or_else(|| panic!("{member:?} is not a line of:\n{out}"));
+  lines[..at]
+    .iter()
+    .rev()
+    .find_map(|line| line.strip_prefix("  remedy: "))
+    .unwrap_or_else(|| panic!("no remedy line above {member:?} in:\n{out}"))
+}

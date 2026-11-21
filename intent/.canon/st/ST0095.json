@@ -339,7 +339,7 @@
     },
     {
       "id": "AC-06.6",
-      "text": "Brew 3.4.0 refuses an upgraded project by the schema's name and deletes nothing.",
+      "text": "Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing.",
       "kind": "non-test",
       "state": {
         "is": "unsatisfied"

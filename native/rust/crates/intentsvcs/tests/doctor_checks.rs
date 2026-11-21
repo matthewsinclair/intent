@@ -637,13 +637,13 @@ fn a_view_a_formatter_rewrote_names_the_formatter() {
     .filter(|f| f.class == FindingClass::ViewSkew)
     .collect();
   let text = details(&skew);
+  // Issue 0740: the formatter's shape is a fact of the detail, and the
+  // converge that keeps it off is the remedy's.
   assert!(
-    text.contains("formatter"),
-    "the finding names a formatter as the likely second writer: {text}"
-  );
-  assert!(
-    text.contains("intent claude upgrade --apply"),
-    "and the converge that keeps it off: {text}"
+    skew.iter().any(|f| f.detail.contains("formatter")
+      && !f.detail.contains(".prettierignore")
+      && f.remedy().contains("intent claude upgrade --apply")),
+    "the detail names a formatter's shape and the remedy the converge that keeps it off: {text}"
   );
 }
 
@@ -1023,7 +1023,9 @@ fn skew_is_judged_against_the_rendering_version() {
   // of the value that reached the renderer rather than of a difference existing.
   assert!(
     findings.iter().any(|f| f.class == FindingClass::StaleRender
-      && f.detail.contains("renders v9 ")
+      // The detail ends at the rendered version: the verb is the finding's
+      // remedy now (issue 0740), not a tail after it.
+      && f.detail.ends_with("renders v9")
       && f.detail.contains(&format!(
         "Intent v{} ",
         intentsvcs::views::banner_version(VERSION)

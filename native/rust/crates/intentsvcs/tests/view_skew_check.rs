@@ -453,16 +453,21 @@ fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
   assert_eq!(findings.len(), 1, "{findings:?}");
   assert_eq!(findings[0].file, "intent/issues/0021.md");
   assert_eq!(findings[0].class, FindingClass::ViewSkew);
+  // Issue 0740: the detail says what is true of the view, the key included,
+  // and the finding's one remedy says what clears it.
   let detail = &findings[0].detail;
+  let remedy = findings[0].remedy();
   assert!(
-    detail.contains("delete it")
-      && detail.contains("`ISSUE:0021`")
-      && detail.contains("`intent organize --apply`"),
-    "the remedy names removing the file or declaring it: {detail}"
+    detail.contains("`ISSUE:0021`") && detail.contains("is not declared in"),
+    "the detail names the issue's key and that nothing declares it: {detail}"
   );
   assert!(
-    !detail.contains("`intent sync --to-disk` regenerates it"),
-    "and never the sync that skips an undeclared view: {detail}"
+    remedy.contains("delete it") && remedy.contains("`intent organize --apply`"),
+    "the remedy names removing the file or declaring it: {remedy}"
+  );
+  assert!(
+    !remedy.contains("`intent sync --to-disk` regenerates it"),
+    "and never the sync that skips an undeclared view: {remedy}"
   );
 }
 
@@ -503,12 +508,21 @@ fn a_skewed_unrealised_view_names_what_realises_it_in_each_format() {
     let nothing = Realised::Declared(std::collections::BTreeSet::new());
     views::skew(&project, &canon, &ctx(), &nothing)
   };
+  // What a finding says and the one remedy it names (issue 0740): the hydrate
+  // verb is a remedy, and the issue's realisation a fact of its detail.
+  let found =
+    |findings: &[intentsvcs::finding::Finding], rel: &str| -> intentsvcs::finding::Finding {
+      findings
+        .iter()
+        .find(|f| f.file == rel && f.class == FindingClass::ViewSkew)
+        .cloned()
+        .unwrap_or_else(|| panic!("a skew finding for {rel}: {findings:?}"))
+    };
   let said = |findings: &[intentsvcs::finding::Finding], rel: &str| -> String {
-    findings
-      .iter()
-      .find(|f| f.file == rel && f.class == FindingClass::ViewSkew)
-      .map(|f| f.detail.clone())
-      .unwrap_or_else(|| panic!("a skew finding for {rel}: {findings:?}"))
+    found(findings, rel).detail
+  };
+  let remedied = |findings: &[intentsvcs::finding::Finding], rel: &str| -> String {
+    found(findings, rel).remedy().to_string()
   };
   let rels_of = |fx: &Fixture| {
     let project = fx.project();
@@ -519,7 +533,7 @@ fn a_skewed_unrealised_view_names_what_realises_it_in_each_format() {
   let findings = skewed(&ordinal);
   let [thread_rel, closed_rel, _] = rels_of(&ordinal);
   assert!(
-    said(&findings, &thread_rel).contains("pins ST0056 in `intent/.intentfiles`"),
+    remedied(&findings, &thread_rel).contains("pins ST0056 in `intent/.intentfiles`"),
     "3.4.0's format names the manifest by its path: {findings:?}"
   );
   assert!(
@@ -531,7 +545,7 @@ fn a_skewed_unrealised_view_names_what_realises_it_in_each_format() {
   let findings = skewed(&upgraded);
   let [thread_rel, closed_rel, open_rel] = rels_of(&upgraded);
   assert!(
-    said(&findings, &thread_rel).contains("sets ST0056 realised on its canon record"),
+    remedied(&findings, &thread_rel).contains("sets ST0056 realised on its canon record"),
     "an upgraded project names the record: {findings:?}"
   );
   assert!(

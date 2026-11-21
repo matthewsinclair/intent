@@ -3610,10 +3610,11 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NothingToRemint { .. } => "nothing was written. Only an ordinal two branches both \
          minted needs a re-mint; a git-style id stays as it is"
         .to_string(),
-      Self::NotYetUpgraded { .. } => "run `intent upgrade` once and commit what it prints. It \
-         changes no id, and an older Intent then refuses the project by name instead of \
-         misreading it, so upgrade Intent first on every machine that opens it"
-        .to_string(),
+      Self::NotYetUpgraded { .. } => format!(
+        "{}. {}",
+        crate::finding::UPGRADE_ONCE,
+        crate::finding::OLDER_INTENT_CANNOT_READ
+      ),
       Self::PackagesAddedInOneFile { path, .. } => format!(
         "resolve {path} by hand, as 3.4.0 resolved it: keep both sides' packages \
          and give one of them the next number no package in the thread uses, then `git add` it \
@@ -4326,7 +4327,7 @@ pub enum Note {
     paths: Vec<String>,
     /// The format the project keeps realisation in, so the note says what
     /// the close does to it in that format's words (todo 78):
-    /// [`intentfiles::closing_unrealises`], [`intentfiles::closing_kept`].
+    /// [`intentfiles::RealisationWords::closing_unrealises`], [`intentfiles::RealisationWords::closing_kept`].
     format: crate::canon_format::CanonFormat,
   },
   /// A board edit rewrote files that were already STAGED, so the index may

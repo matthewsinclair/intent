@@ -86,16 +86,18 @@ fn the_remedy_printed_for_a_closed_threads_stale_view_clears_the_finding() {
     line.contains("the store changed after it was last rendered"),
     "the finding still offers only a hand edit as the cause: {line}"
   );
+  // Issue 0740: the finding's one remedy is its group's, printed above it.
+  let remedy = crate::common::remedy_above(&before, line);
   assert!(
-    !line.contains("sync --to-disk"),
-    "the finding names `sync --to-disk`, which does not rewrite an unlisted thread's view: {line}"
+    !remedy.contains("sync --to-disk"),
+    "the remedy names `sync --to-disk`, which does not rewrite an unlisted thread's view: {remedy}"
   );
 
-  // Read the command out of the finding, then run exactly that.
-  let command = line
+  // Read the command out of the remedy, then run exactly that.
+  let command = remedy
     .split('`')
     .find(|span| span.starts_with("intent "))
-    .unwrap_or_else(|| panic!("the finding names no command: {line}"));
+    .unwrap_or_else(|| panic!("the remedy names no command: {remedy}"));
   // **THE FLAG IS PART OF THE REMEDY NOW** (hv, 2026-09-12: silent deletion).
   // `st hydrate` refuses a view whose bytes differ from the render, which is
   // this finding's exact signature, so the bare verb would send the operator to
@@ -154,17 +156,19 @@ fn a_carriable_cover_edit_names_the_verb_that_keeps_it() {
     .lines()
     .find(|l| l.contains(&format!("st/{st}/info.md")) && l.contains("differs from the model"))
     .unwrap_or_else(|| panic!("the edited cover was not reported at all:\n{before}"));
-  let command = line
+  // Issue 0740: the finding's one remedy is its group's, printed above it.
+  let remedy = crate::common::remedy_above(&before, line);
+  let command = remedy
     .split('`')
     .find(|span| span.starts_with("intent "))
-    .unwrap_or_else(|| panic!("the finding names no command: {line}"));
+    .unwrap_or_else(|| panic!("the remedy names no command: {remedy}"));
   assert_eq!(
     command, "intent sync --to-store",
-    "the first command named keeps the edit: {line}"
+    "the first command named keeps the edit: {remedy}"
   );
   assert!(
-    line.contains("keeps"),
-    "the finding says the edit is kept: {line}"
+    remedy.contains("keeps"),
+    "the remedy says the edit is kept: {remedy}"
   );
 
   let args: Vec<&str> = command.split_whitespace().skip(1).collect();

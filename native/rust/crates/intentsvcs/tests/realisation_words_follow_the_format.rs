@@ -5,7 +5,7 @@
 
 use intentsvcs::canon_format::CanonFormat;
 use intentsvcs::facade::Declared;
-use intentsvcs::intentfiles::{RealisedCount, closing_kept, closing_unrealises, named, words};
+use intentsvcs::intentfiles::{RealisationWords, RealisedCount, named, words};
 
 use crate::common::Fixture;
 
@@ -207,15 +207,51 @@ fn an_upgraded_project_says_what_its_records_carry() {
   }
 }
 
-/// A close's note says what it does to realisation in each format's words:
-/// 3.4.0's manifest unlists, and an upgraded record is unrealised.
+/// The two words a close's note takes from the format: 3.4.0's manifest
+/// unlists, and an upgraded record is unrealised. The note they make is read
+/// whole, as the verb prints it, in intent-cli's
+/// a_close_names_what_the_next_organize_removes.rs.
 #[test]
-fn a_closes_note_names_realisation_in_its_formats_words() {
-  assert_eq!(closing_unrealises(CanonFormat::V3), "unlists");
-  assert_eq!(closing_kept(CanonFormat::V3), "closes without unlisting");
-  assert_eq!(closing_unrealises(CanonFormat::V4), "unrealises");
+fn the_closing_words_are_each_formats_own() {
   assert_eq!(
-    closing_kept(CanonFormat::V4),
+    RealisationWords::closing_unrealises(CanonFormat::V3),
+    "unlists"
+  );
+  assert_eq!(
+    RealisationWords::closing_kept(CanonFormat::V3),
+    "closes without unlisting"
+  );
+  assert_eq!(
+    RealisationWords::closing_unrealises(CanonFormat::V4),
+    "unrealises"
+  );
+  assert_eq!(
+    RealisationWords::closing_kept(CanonFormat::V4),
     "closes and leaves it realised"
   );
+}
+
+/// The close note's machine form carries the paths and nothing of the
+/// format: the format is how the note is WORDED, and a reader of the JSON
+/// reads no words (todo 78, critic-rust on 630f7d0f8).
+#[test]
+fn the_close_notes_json_is_its_kind_and_paths_in_either_format() {
+  for format in [CanonFormat::V3, CanonFormat::V4] {
+    let json =
+      intentsvcs::facade::notes_json(&[intentsvcs::facade::Note::DehydratesOnNextOrganize {
+        paths: vec!["intent/st/ST0001/info.md".to_string()],
+        format,
+      }]);
+    let note = json
+      .as_array()
+      .and_then(|notes| notes.first())
+      .and_then(|note| note.as_object())
+      .unwrap_or_else(|| panic!("one note object in {json}"));
+    let keys: std::collections::BTreeSet<&str> = note.keys().map(String::as_str).collect();
+    assert_eq!(
+      keys,
+      ["kind", "paths"].into_iter().collect(),
+      "{format:?}: {json}"
+    );
+  }
 }

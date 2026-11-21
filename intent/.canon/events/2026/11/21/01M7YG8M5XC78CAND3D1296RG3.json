@@ -1,0 +1,14 @@
+{
+  "id": "01M7YG8M5XC78CAND3D1296RG3",
+  "ts": "2026-11-21T07:31:20.896Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-06.6"
+  },
+  "payload": {
+    "text": "Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing."
+  }
+}

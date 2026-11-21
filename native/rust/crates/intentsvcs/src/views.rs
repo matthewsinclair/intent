@@ -2806,21 +2806,27 @@ pub fn skew_against(
         // **NO ID IN IT, so every view one verb clears in one directory reads
         // the same**, and `doctor -v` lists them on one line rather than one
         // line each (`finding::members_by_directory`).
+        // An unrealised view's remedy says why no sync re-renders it before
+        // the verb that clears it (WP-10's sentence, kept whole by issue 0740):
+        // the reason is what tells the operator the removal loses nothing.
         let clears = match &owner {
           Some(Undeclared::Record(_)) => format!(
             "{realised_by} does not realise it, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
           ),
           Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it".to_string(),
         };
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::StaleRender,
-          format!(
-            "rendered by Intent v{} and this binary renders v{} -- {clears}",
-            declared_version(&on_disk).unwrap_or("<none>"),
-            declared_version(&view.content).unwrap_or("<none>"),
-          ),
-        ));
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::StaleRender,
+            format!(
+              "rendered by Intent v{} and this binary renders v{}",
+              declared_version(&on_disk).unwrap_or("<none>"),
+              declared_version(&view.content).unwrap_or("<none>"),
+            ),
+          )
+          .with_remedy(clears),
+        );
       }
       // **A BOARD AN OLDER INTENT WROTE IS STALE, NOT SKEWED** (issue 0532),
       // asked here for the footer question's reason: an estate whose boards
@@ -2831,16 +2837,20 @@ pub fn skew_against(
         if rendered_by_an_older_intent(kind, &on_disk, &view.content)
           == Some(OlderRender::BoardBefore0532) =>
       {
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::StaleRender,
-          format!(
-            "rendered by an older Intent (v{}; this binary renders v{}) -- only the indentation of a multi-line item's continuation lines differs, and any text the renderer owns; `{}`'s next board write re-renders it, and `intent sync --to-disk` re-renders every board at once",
-            declared_version(&on_disk).unwrap_or("<none>"),
-            declared_version(&view.content).unwrap_or("<none>"),
-            board_node.as_deref().unwrap_or_default(),
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::StaleRender,
+            format!(
+              "rendered by an older Intent (v{}; this binary renders v{}): only the indentation of a multi-line item's continuation lines differs, and any text the renderer owns",
+              declared_version(&on_disk).unwrap_or("<none>"),
+              declared_version(&view.content).unwrap_or("<none>"),
+            ),
+          )
+          .with_remedy(
+            "the node's next board write re-renders it, and `intent sync --to-disk` re-renders every board at once",
           ),
-        ));
+        );
       }
       // **AN INBOX AN OLDER INTENT WROTE IS STALE, NOT SKEWED** (issue 0612),
       // for 0532's reason: the view stopped showing handled state when the
@@ -2852,15 +2862,20 @@ pub fn skew_against(
         if rendered_by_an_older_intent(kind, &on_disk, &view.content)
           == Some(OlderRender::InboxBefore0612) =>
       {
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::StaleRender,
-          format!(
-            "rendered by an older Intent (v{}; this binary renders v{}) -- only the `(handled)` marks on its headings differ, which an inbox no longer shows, and any text the renderer owns; its sender's next board write re-renders it, and `intent sync --to-disk` re-renders every view at once",
-            declared_version(&on_disk).unwrap_or("<none>"),
-            declared_version(&view.content).unwrap_or("<none>"),
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::StaleRender,
+            format!(
+              "rendered by an older Intent (v{}; this binary renders v{}): only the `(handled)` marks on its headings differ, which an inbox no longer shows, and any text the renderer owns",
+              declared_version(&on_disk).unwrap_or("<none>"),
+              declared_version(&view.content).unwrap_or("<none>"),
+            ),
+          )
+          .with_remedy(
+            "its sender's next board write re-renders it, and `intent sync --to-disk` re-renders every view at once",
           ),
-        ));
+        );
       }
       // **A HAND EDIT THE STORE CAN CARRY BACK IS NAMED WITH THE VERB THAT
       // KEEPS IT** (issue 0556). The arm below names only regeneration, which
@@ -2873,16 +2888,21 @@ pub fn skew_against(
           && cover_thread(project, canon, &view.path)
             .is_some_and(|thread| carriable_cover(thread, ctx, &on_disk)) =>
       {
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::ViewSkew,
-          format!(
-            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}) in its Objective or Context, which a hand edit changes and the store carries back -- `intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it",
-            on_disk.len(),
-            view.content.len(),
-            first_difference(&on_disk, &view.content),
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::ViewSkew,
+            format!(
+              "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}) in its Objective or Context, which a hand edit changes and the store carries back",
+              on_disk.len(),
+              view.content.len(),
+              first_difference(&on_disk, &view.content),
+            ),
+          )
+          .with_remedy(
+            "`intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it",
           ),
-        ));
+        );
       }
       // **A VIEW THE STORE ITSELF LAST RENDERED IS A WRITE STILL LANDING, NOT A
       // HAND EDIT** (issue 0630). A write set lands one file at a time, a
@@ -2892,19 +2912,23 @@ pub fn skew_against(
       // A view's row is its renderer's alone, because a scan never writes one,
       // so a hand edit matches no row and falls through, counted.
       Ok(on_disk) if last_render(&rel, &crate::model::sha256_hex(on_disk.as_bytes())) => {
+        // **THE NODE IS IN THE REMEDY BECAUSE THE VERB CANNOT RUN WITHOUT IT**,
+        // as hydrate's thread is (issue 0740 keeps this remedy as written):
+        // `wb touch` writes one node's board.
         let remedy = match &board_node {
           Some(node) => format!(
             "`intent wb touch --node {node}` re-renders it, and `intent sync --to-disk` re-renders every view"
           ),
           None => "`intent sync --to-disk` re-renders it".to_string(),
         };
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::StoreStale,
-          format!(
-            "generated view differs from the model and is, byte for byte, the store's last render of it: a write is still landing, or landed without its views -- {remedy}"
-          ),
-        ));
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::StoreStale,
+            "generated view differs from the model and is, byte for byte, the store's last render of it: a write is still landing, or landed without its views",
+          )
+          .with_remedy(remedy),
+        );
       }
       Ok(on_disk) => {
         // **THE SAME PREDICATE, NOT A SECOND READING OF THE MANIFEST.** This
@@ -2915,7 +2939,12 @@ pub fn skew_against(
           Some(Undeclared::Record(Named::Thread(id))) => Some(id.stored()),
           Some(Undeclared::Record(Named::Issue(_))) | Some(Undeclared::Board(_)) | None => None,
         };
-        let remedy = match (&unlisted, &owner) {
+        // **WHAT IS TRUE GOES IN THE DETAIL, WHAT TO DO IN THE REMEDY** (issue
+        // 0740, on 0738's `Finding::with_remedy`): each arm below says a fact
+        // about the view, which the detail carries, and a verb, which is the
+        // finding's one remedy. No id in a remedy but hydrate's, which needs
+        // the thread to run.
+        let (fact, verb) = match (&unlisted, &owner) {
           // **THE FLAG IS IN THE REMEDY BECAUSE THE VERB NOW REFUSES WITHOUT
           // IT** (hv, 2026-09-12: silent deletion). `st hydrate` will not write
           // over a view whose bytes differ from the render -- which is this
@@ -2924,14 +2953,17 @@ pub fn skew_against(
           // finding's own paragraph says the difference has two causes and
           // nothing here can tell them apart, so the remedy names the discard
           // it performs rather than implying a regeneration that loses nothing.
-          (Some(id), _) => match format {
-            crate::canon_format::CanonFormat::V3 => format!(
-              "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in {realised_by}"
-            ),
-            crate::canon_format::CanonFormat::V4 => format!(
-              "`intent st hydrate {id} --overwrite` regenerates it from the store and sets {id} realised on {realised_by}"
-            ),
-          },
+          (Some(id), _) => (
+            String::new(),
+            match format {
+              crate::canon_format::CanonFormat::V3 => format!(
+                "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in {realised_by}"
+              ),
+              crate::canon_format::CanonFormat::V4 => format!(
+                "`intent st hydrate {id} --overwrite` regenerates it from the store and sets {id} realised on {realised_by}"
+              ),
+            },
+          ),
           // **AN UNDECLARED ISSUE'S VIEW HAS NO VERB THAT REWRITES IT** (issue
           // 0412). `sync --to-disk` skips it because nothing realises it (the
           // manifest in 3.4.0's format, its record once upgraded), and `organize --apply` refuses to remove it because it
@@ -2939,11 +2971,19 @@ pub fn skew_against(
           // arm used to name exited 0 and left the finding standing. The two
           // routes that DO clear it are removing the file or declaring it.
           (None, Some(Undeclared::Record(Named::Issue(number)))) => match format {
-            crate::canon_format::CanonFormat::V3 => format!(
-              "issue {} is not declared in {manifest}, so no sync rewrites this file and `intent organize --apply` will not remove it. If nobody edited it, delete it; to have it regenerated from the store instead, add `{}` to {manifest} and run `intent organize --apply`, which rewrites it",
-              number.shown(),
-              crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, &number.stored()),
-              manifest = realised_by
+            crate::canon_format::CanonFormat::V3 => (
+              format!(
+                "; issue {} is not declared in {manifest} (its key is `{}`), so no sync rewrites this file and `intent organize --apply` will not remove it",
+                number.shown(),
+                crate::intentfiles::declared_key(
+                  crate::intentfiles::Sigil::Issue,
+                  &number.stored()
+                ),
+                manifest = realised_by
+              ),
+              format!(
+                "if nobody edited it, delete it; to have it regenerated from the store instead, add the issue's key to {realised_by} and run `intent organize --apply`, which rewrites it"
+              ),
             ),
             // **IN AN UPGRADED PROJECT THE RECORD SAYS, AND NO VERB REALISES
             // ONE ISSUE** (cc's meaning, ST0096 WP-01). Closing an issue
@@ -2971,35 +3011,53 @@ pub fn skew_against(
                 }
                 None => "is not realised by any record",
               };
-              format!(
-                "issue {} {why}, and no sync rewrites this file; nothing here can tell a stale render from a hand edit. If nobody edited it, delete it: the store keeps the issue in full",
-                number.shown()
+              (
+                format!(
+                  "; issue {} {why}, and no sync rewrites this file",
+                  number.shown()
+                ),
+                "if nobody edited it, delete it: the store keeps the issue in full".to_string(),
               )
             }
           },
-          _ => "`intent sync --to-disk` regenerates it from the store".to_string(),
+          _ => (
+            String::new(),
+            "`intent sync --to-disk` regenerates it from the store".to_string(),
+          ),
         };
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::ViewSkew,
-          format!(
-            "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}): either it was edited by hand, or the store changed after it was last rendered{} -- {remedy}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model{}",
-            on_disk.len(),
-            view.content.len(),
-            first_difference(&on_disk, &view.content),
-            if unlisted.is_some() {
-              " (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind)"
-            } else {
-              ""
-            },
-            // Issue 0378: a formatter's rewrite read as a hand edit, with nothing naming the second writer.
-            if differs_as_a_formatter_would(&on_disk, &view.content) {
-              "; the difference is one a formatter makes (a collapsed blank-line run, or `*x*` become `_x_`), so a formatter is the likely second writer -- `intent claude upgrade --apply` adds the generated views to `.prettierignore`"
+        // Issue 0378: a formatter's rewrite read as a hand edit, with nothing
+        // naming the second writer. The shape is a fact; the cure is a verb.
+        let formatter = differs_as_a_formatter_would(&on_disk, &view.content);
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::ViewSkew,
+            format!(
+              "generated view differs from the model ({} bytes on disk, {} rendered, first difference at byte {}): either it was edited by hand, or the store changed after it was last rendered{}{fact}{}",
+              on_disk.len(),
+              view.content.len(),
+              first_difference(&on_disk, &view.content),
+              if unlisted.is_some() {
+                " (before v3.0.1, a change to a thread `.intentfiles` does not list left its views behind)"
+              } else {
+                ""
+              },
+              if formatter {
+                "; the difference is one a formatter makes (a collapsed blank-line run, or `*x*` become `_x_`)"
+              } else {
+                ""
+              }
+            ),
+          )
+          .with_remedy(format!(
+            "{verb}, DISCARDING a hand edit if there is one; to keep an edit, make the change through the CLI so it lands in the model{}",
+            if formatter {
+              ". A formatter is the likely second writer: `intent claude upgrade --apply` adds the generated views to `.prettierignore`"
             } else {
               ""
             }
-          ),
-        ));
+          )),
+        );
       }
       // **ABSENT IS SILENCE ONLY WHERE THE MANIFEST SAYS THE ARTEFACT IS NOT
       // REALISED, and that silence is bounded rather than blanket.** Under
@@ -3023,11 +3081,10 @@ pub fn skew_against(
       // The two paths now answer the same question the same way.
       Err(_) => {
         if owner.is_none() {
-          findings.push(Finding::new(
-            &rel,
-            FindingClass::ViewSkew,
-            "generated view is missing -- `intent sync --to-disk` regenerates it from the store",
-          ));
+          findings.push(
+            Finding::new(&rel, FindingClass::ViewSkew, "generated view is missing")
+              .with_remedy("`intent sync --to-disk` regenerates it from the store"),
+          );
         }
       }
     }
@@ -3051,27 +3108,36 @@ const UNREALISED_VIEW_KEPT: &str =
 /// directory's worth reads the same.
 fn own_render_finding(view: &View, rel: &str, owner: Option<&Undeclared>) -> Option<Finding> {
   let realised = owner.is_none();
-  let stale = |detail: String| Some(Finding::new(rel, FindingClass::AggregateViewStale, detail));
+  // The detail says what is true of the view and the remedy what clears it
+  // (issue 0740, on 0738's `Finding::with_remedy`).
+  let stale = |detail: String, remedy: &str| {
+    Some(Finding::new(rel, FindingClass::AggregateViewStale, detail).with_remedy(remedy))
+  };
   match std::fs::read_to_string(&view.path) {
     Err(e) if e.kind() == std::io::ErrorKind::NotFound => realised.then(|| {
       Finding::new(
         rel,
         FindingClass::AggregateViewStale,
-        "missing: this clone has not rendered it from its store -- `intent sync --to-disk` renders it",
+        "missing: this clone has not rendered it from its store",
       )
+      .with_remedy("`intent sync --to-disk` renders it")
     }),
-    Err(e) => stale(format!(
-      "could not be read ({e}), so whether it is this clone's current render is not known -- `intent sync --to-disk` renders it again"
-    )),
+    Err(e) => stale(
+      format!(
+        "could not be read ({e}), so whether it is this clone's current render is not known"
+      ),
+      "`intent sync --to-disk` renders it again",
+    ),
     Ok(on_disk) if on_disk == view.content => (!realised)
       .then(|| Finding::new(rel, FindingClass::UnrealisedView, UNREALISED_VIEW_KEPT)),
     Ok(_) if realised => stale(
-      "differs from what the store renders, so this clone's render is behind its store -- `intent sync --to-disk` re-renders it"
-        .to_string(),
+      "differs from what the store renders, so this clone's render is behind its store".to_string(),
+      "`intent sync --to-disk` re-renders it",
     ),
     Ok(_) => stale(
-      "differs from what the store renders, for a record the project does not realise, so no sync re-renders or removes it -- git does not carry it, so deleting it loses nothing the store holds"
+      "differs from what the store renders, for a record the project does not realise, so no sync re-renders or removes it"
         .to_string(),
+      "delete it: git does not carry it, so deleting it loses nothing the store holds",
     ),
   }
 }

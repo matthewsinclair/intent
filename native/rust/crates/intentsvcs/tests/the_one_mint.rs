@@ -253,11 +253,29 @@ fn every_mint_refuses_before_the_upgrade_and_writes_nothing() {
          format, which an older Intent still opens without reading a git-style id"
       )
     );
+    // Issue 0740, cc's ruling: an older Intent reads each canon file as
+    // schema-invalid, so the sentence is the measured one, from its one home.
     assert_eq!(
       refused.remedy(),
-      "run `intent upgrade` once and commit what it prints. It changes no id, and an older \
-       Intent then refuses the project by name instead of misreading it, so upgrade Intent \
-       first on every machine that opens it"
+      format!(
+        "{}. {}",
+        intentsvcs::finding::UPGRADE_ONCE,
+        intentsvcs::finding::OLDER_INTENT_CANNOT_READ
+      )
+    );
+    assert!(
+      refused
+        .remedy()
+        .starts_with("run `intent upgrade` once and commit what it prints. It changes no id. "),
+      "{}",
+      refused.remedy()
+    );
+    assert!(
+      intentsvcs::finding::OLDER_INTENT_CANNOT_READ.starts_with(
+        "Intent 3.4.x cannot read an upgraded project: it reports each canon file as schema-invalid"
+      ),
+      "{}",
+      intentsvcs::finding::OLDER_INTENT_CANNOT_READ
     );
   }
   assert_eq!(

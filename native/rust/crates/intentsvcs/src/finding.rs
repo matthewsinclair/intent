@@ -617,6 +617,16 @@ macro_rules! cannot_honour {
     "the value is well-formed and the data cannot honour it"
   };
 }
+macro_rules! upgrade_once {
+  () => {
+    "run `intent upgrade` once and commit what it prints. It changes no id"
+  };
+}
+macro_rules! older_intent_cannot_read {
+  () => {
+    "Intent 3.4.x cannot read an upgraded project: it reports each canon file as schema-invalid and changes nothing, so upgrade Intent on every machine first"
+  };
+}
 
 /// What stays true of an unmigrated project's every finding, for a finding
 /// whose own remedy replaces `Unmigrated`'s class remedy (issue 0738).
@@ -625,6 +635,16 @@ pub const DOWNSTREAM_OF_MIGRATION: &str = downstream_of_migration!();
 /// What stays true of every unhonourable setting, for a finding whose own
 /// remedy replaces `UnhonourableSetting`'s class remedy (issue 0738).
 pub const CANNOT_HONOUR: &str = cannot_honour!();
+
+/// What a project behind its canon format does first, said once for the
+/// canon-format-behind advisory and the mint's refusal remedy (issue 0740).
+pub const UPGRADE_ONCE: &str = upgrade_once!();
+
+/// What an older Intent does with a project `intent upgrade` has moved, said
+/// once for the canon-format-behind advisory and the mint's refusal remedy
+/// (issue 0740, cc's ruling): the measured behaviour, each canon file
+/// schema-invalid and nothing changed, not a refusal by name.
+pub const OLDER_INTENT_CANNOT_READ: &str = older_intent_cannot_read!();
 
 impl FindingClass {
   /// Rank, wire spelling and REMEDY, from ONE exhaustive match.
@@ -771,7 +791,7 @@ impl FindingClass {
       Self::ViewSkew => (
         6,
         "view-skew",
-        "each finding's line names what clears it -- regenerating a view DISCARDS a hand edit, so copy anything you meant to keep out first",
+        "`intent sync --to-disk` regenerates a view from the store, and that DISCARDS a hand edit: copy anything you meant to keep out first, or make the change through the CLI so it lands in the model",
       ),
       // Rank 6 beside `ViewSkew`: same subject, same place in the report, and
       // an operator reading the two together is reading one story about their
@@ -780,7 +800,7 @@ impl FindingClass {
       Self::StaleRender => (
         6,
         "stale-render",
-        "each view's line names the verb that clears it: `intent sync --to-disk` re-renders a realised view, and `intent sync --apply` removes an unrealised one, which the store still holds in full. Only text the renderer owns differs -- the footer, or the Acceptance paragraph it writes -- so there is no hand edit to lose",
+        "`intent sync --to-disk` re-renders a realised view, and `intent sync --apply` removes an unrealised one, which the store still holds in full. Only text the renderer owns differs -- the footer, or the Acceptance paragraph it writes -- so there is no hand edit to lose",
       ),
       Self::RootFileBehind => (
         6,
@@ -790,7 +810,11 @@ impl FindingClass {
       Self::CanonFormatBehind => (
         6,
         "canon-format-behind",
-        "run `intent upgrade` once and commit what it prints. It changes no id, and until it runs Intent works on this project's existing ids and refuses only to mint a new one. Upgrade Intent first on every machine that opens the project, because an older Intent refuses it afterwards",
+        concat!(
+          upgrade_once!(),
+          ", and until it runs Intent works on this project's existing ids and refuses only to mint a new one. ",
+          older_intent_cannot_read!()
+        ),
       ),
       Self::StoreTracked => (
         6,
@@ -810,7 +834,7 @@ impl FindingClass {
       Self::AggregateViewStale => (
         6,
         "aggregate-view-stale",
-        "bring this clone's render up to date with the verb the finding names: `intent sync --to-disk` renders every view the project realises from its store. Not counted: git does not carry the view, so a commit carries it neither when it is missing nor when it is stale",
+        "`intent sync --to-disk` brings this clone's render up to date: it renders every view the project realises from its store. Not counted: git does not carry the view, so a commit carries it neither when it is missing nor when it is stale",
       ),
       Self::DropboxCacheUnmarked => (
         6,

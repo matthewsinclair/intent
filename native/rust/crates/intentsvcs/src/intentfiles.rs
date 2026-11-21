@@ -447,23 +447,24 @@ impl RealisationWords {
       "    applying the reset realisation in the same run."
     }
   }
-}
 
-/// What a close does to a record's realisation, as its note says it (todo
-/// 78): 3.4.0's manifest unlists it, and an upgraded project's record is
-/// unrealised.
-pub fn closing_unrealises(format: crate::canon_format::CanonFormat) -> &'static str {
-  match format {
-    crate::canon_format::CanonFormat::V3 => "unlists",
-    crate::canon_format::CanonFormat::V4 => "unrealises",
+  /// What a close does to a record's realisation, as its note says it (todo
+  /// 78): 3.4.0's manifest unlists it, and an upgraded project's record is
+  /// unrealised. Associated rather than a method, because the note carries
+  /// only the format; here so every per-format realisation word has one home.
+  pub fn closing_unrealises(format: crate::canon_format::CanonFormat) -> &'static str {
+    match format {
+      crate::canon_format::CanonFormat::V3 => "unlists",
+      crate::canon_format::CanonFormat::V4 => "unrealises",
+    }
   }
-}
 
-/// What a close with `--keep` does instead, as the same note says it.
-pub fn closing_kept(format: crate::canon_format::CanonFormat) -> &'static str {
-  match format {
-    crate::canon_format::CanonFormat::V3 => "closes without unlisting",
-    crate::canon_format::CanonFormat::V4 => "closes and leaves it realised",
+  /// What a close with `--keep` does instead, as the same note says it.
+  pub fn closing_kept(format: crate::canon_format::CanonFormat) -> &'static str {
+    match format {
+      crate::canon_format::CanonFormat::V3 => "closes without unlisting",
+      crate::canon_format::CanonFormat::V4 => "closes and leaves it realised",
+    }
   }
 }
 

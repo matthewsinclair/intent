@@ -41,20 +41,22 @@ fn age_the_issue_views(root: &Path) -> Vec<String> {
   names
 }
 
-/// The one `doctor -v` line that lists the issue views, and the command in it.
-fn the_issue_line(root: &Path) -> (String, String) {
+/// The one `doctor -v` line that lists the issue views, the remedy its group
+/// prints above it (issue 0740), and the command in that remedy.
+fn the_issue_line(root: &Path) -> (String, String, String) {
   let (_, out) = intent(root, &["doctor", "-v"]);
   let line = out
     .lines()
     .find(|l| l.trim_start().starts_with("intent/issues/ -- "))
     .unwrap_or_else(|| panic!("no grouped line for intent/issues/:\n{out}"))
     .to_string();
-  let command = line
+  let remedy = crate::common::remedy_above(&out, &line).to_string();
+  let command = remedy
     .split('`')
     .find(|span| span.starts_with("intent sync"))
-    .unwrap_or_else(|| panic!("the line names no verb: {line}"))
+    .unwrap_or_else(|| panic!("the remedy names no verb: {remedy}"))
     .to_string();
-  (line, command)
+  (line, remedy, command)
 }
 
 /// Three issues, raised and realised: their ids, in the order they were raised.
@@ -88,7 +90,7 @@ fn realised_stale_views_are_one_line_naming_the_verb_that_re_renders_them() {
     })
     .collect();
 
-  let (line, command) = the_issue_line(root);
+  let (line, _, command) = the_issue_line(root);
   assert!(
     line.contains("3 views"),
     "the group counts its members: {line}"
@@ -123,12 +125,12 @@ fn unrealised_stale_views_name_the_verb_that_removes_them() {
     "the closed issues' views are still on disk: {names:?}"
   );
 
-  let (line, command) = the_issue_line(root);
+  let (_, remedy, command) = the_issue_line(root);
   // An upgraded project: the closed issue's record is what does not realise
-  // it (ST0096 WP-01, cc's wording).
+  // it (ST0096 WP-01, cc's wording), said in the remedy that removes it.
   assert!(
-    line.contains("its canon record does not realise it"),
-    "{line}"
+    remedy.contains("its canon record does not realise it"),
+    "{remedy}"
   );
   assert_eq!(command, "intent sync --apply");
 
