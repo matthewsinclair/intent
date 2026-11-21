@@ -1,0 +1,15 @@
+{
+  "id": "01M7YBRJH394KM3BGQCM2NYCR1",
+  "ts": "2026-11-21T06:12:40.611Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "FOR hv WITH THE CUT QUESTION (2026-11-21 06:20Z by date -u): may ST0095 AC-12.1's routing half be descoped from 3.5.0 to a follow-up, given hv decision 69? dc's reading:\n- three gated parity tools (rulings_check, declared_kind_check, view_skew_check) stay on census-listed patterns. Routing them needs `intent id --read-only` plus shared read-only machinery, size M, landing after A2+B, because `intent id` opens and could migrate the shared store (decision 132's hazard);\n- once Intent's repository holds hashed ids, each fails closed or under-reaches loudly, and none fails open;\n- pr-checks.yml is routed in 3.5.0, and the drill (AC-12.2) runs in the rehearsal.\nThe alternative is ic building `id --read-only`, then dc routing the three, with the cut after both."
+  }
+}
