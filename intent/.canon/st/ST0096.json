@@ -234,6 +234,16 @@
       "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), the arm unchanged since it landed at c7e1cee74"
     },
     {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "tests/unit/stale_at_check.bats",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "green",
+      "note": "the rows are read from the thread canon, never a rendered acceptance.md, so the gate judges the same whether the aggregate views are tracked, untracked or absent. Red on ST0096 WP-03's base 617a3babd: its stale_at_check.sh refuses a fresh clone whose views are untracked (the 3.5.0 rehearsal's step 3 CONTROL, rc 1, at 039f30998). Green at 039f30998: test shell 921 ok and 0 not ok (Desk 01M7Z5GWQP, measured 39288e516 clean, patch-identical to 039f30998), and the rehearsal's step 3 (Desk 01M7Z5MP, 24 of 24): a fresh clone with no view on disk commits through the hook, and precommit --all and doctor pass, on the upgraded canon too"
+    },
+    {
       "id": "AT-04.1",
       "kind": "test",
       "file": "native/rust/crates/intent-cli/tests/five_merge_requests_merge_in_turn_as_a_forge_merges_them.rs:43",

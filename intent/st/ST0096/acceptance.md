@@ -32,7 +32,7 @@ title: A forge merges every open merge request: no file that every record shares
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 
-- AC-03.1 The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set. -- satisfied: no (computed)
+- AC-03.1 The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set. -- satisfied: yes (computed)
 
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: WIP)
 
@@ -65,7 +65,7 @@ _(no tests in this group)_
 
 ### WP-03 -- The commit gate and the pull-request check follow (status: WIP)
 
-_(no tests in this group)_
+- AT-03.1 `tests/unit/stale_at_check.bats` -- covers AC-03.1 -- status: green -- the rows are read from the thread canon, never a rendered acceptance.md, so the gate judges the same whether the aggregate views are tracked, untracked or absent. Red on ST0096 WP-03's base 617a3babd: its stale_at_check.sh refuses a fresh clone whose views are untracked (the 3.5.0 rehearsal's step 3 CONTROL, rc 1, at 039f30998). Green at 039f30998: test shell 921 ok and 0 not ok (Desk 01M7Z5GWQP, measured 39288e516 clean, patch-identical to 039f30998), and the rehearsal's step 3 (Desk 01M7Z5MP, 24 of 24): a fresh clone with no view on disk commits through the hook, and precommit --all and doctor pass, on the upgraded canon too
 
 ### WP-04 -- The proof: five merge requests through a forge stand-in (status: WIP)
 

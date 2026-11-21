@@ -1,0 +1,14 @@
+{
+  "id": "01M7Z62806H8PZ26BSYQ540E74",
+  "ts": "2026-11-21T13:52:20.490Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-12.2"
+  },
+  "payload": {
+    "evidence": "the 3.5.0 rehearsal's step 3 at main 039f30998 (Desk 01M7Z5MPDZXSFY9DCY2YDQP96A, 2026-11-21 13:51Z, 24 judged and 0 failed): in a clone of 039f30998 upgraded by the pair built at T, a hashed thread, work package and issue committed through the commit gate, then bin/devbin precommit --all, intent doctor and .github/scripts/pr-thread-ref.sh naming the thread, each rc 0"
+  }
+}

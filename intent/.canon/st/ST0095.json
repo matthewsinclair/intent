@@ -488,7 +488,8 @@
       "text": "The drill: a clone of this repository upgraded with the new build carries a hashed thread, work package and issue through the whole commit gate, doctor and the pull-request check, before the rehearsal.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "the 3.5.0 rehearsal's step 3 at main 039f30998 (Desk 01M7Z5MPDZXSFY9DCY2YDQP96A, 2026-11-21 13:51Z, 24 judged and 0 failed): in a clone of 039f30998 upgraded by the pair built at T, a hashed thread, work package and issue committed through the commit gate, then bin/devbin precommit --all, intent doctor and .github/scripts/pr-thread-ref.sh naming the thread, each rc 0"
       }
     },
     {
