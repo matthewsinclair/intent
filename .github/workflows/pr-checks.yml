@@ -28,35 +28,11 @@ jobs:
         # it, so a description's `$(...)` or unbalanced quote would run as code.
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          echo "Checking if PR references a steel thread..."
-
-          # Check if it contains a steel thread reference (ST####)
-          if echo "$PR_BODY" | grep -qE "ST[0-9]{4}"; then
-            echo "✅ Steel thread reference found"
-            THREAD_ID=$(echo "$PR_BODY" | grep -oE "ST[0-9]{4}" | head -1)
-            echo "Referenced thread: $THREAD_ID"
-
-            # ASK THE TOOL, DO NOT REIMPLEMENT ITS LAYOUT RULE. `st show` exits 0
-            # when the thread exists and 1 when it does not, whatever its status
-            # and whether or not it is on disk: v3 holds status as a FIELD, and a
-            # thread has files under `intent/st/<ID>/` only once hydrated, while
-            # its record is always in `intent/.canon/st/<ID>.json`. A directory
-            # layout does not survive the port; a command name does.
-            #
-            # Driven 2026-09-11 in a fresh clone under an empty HOME, which is
-            # what this job has: WIP, Completed, Cancelled and never-hydrated
-            # threads return 0, and an absent ID returns 1.
-            if native/rust/target/release/intent st show "$THREAD_ID" >/dev/null 2>&1; then
-              echo "✅ Steel thread ${THREAD_ID} exists"
-            else
-              echo "❌ Error: Steel thread ${THREAD_ID} not found"
-              exit 1
-            fi
-          else
-            echo "ℹ️  No steel thread reference found in PR description"
-            echo "Consider referencing the related steel thread (ST####) in your PR"
-          fi
+          INTENT_BIN: native/rust/target/release/intent
+        # THE DOOR, NOT A PATTERN (ST0095 WP-12): the script asks `intent id` which
+        # word of the body names a thread, so a git-style id is found as an
+        # ordinal is, and a binary without the door fails the job.
+        run: .github/scripts/pr-thread-ref.sh
 
   check-documentation:
     name: Documentation Checks

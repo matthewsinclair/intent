@@ -13,7 +13,6 @@
 # (WP-10: is this token an id, of which kind, and which record does it name).
 # Until the build the gate runs carries that door, a step that asks it says so,
 # and never reads the door's absence as an answer.
-.github/workflows/pr-checks.yml	ST[0-9]{4}	a thread id in the pull request's body	the door's kind answer for each token of the body
 intent/st/ST0056/parity/tools/conservation_check.sh	(ST[0-9]+)/WP/([0-9]+)	a thread and package from a disposition's path	the door's record answer for the path
 intent/st/ST0056/parity/tools/conservation_check.sh	(ST[0-9]+)/info	a thread from a disposition's path	the door's record answer for the path
 intent/st/ST0056/parity/tools/conservation_check.sh	-path '*/WP/*'	the realised package covers	the door's record answer for each info.md found
