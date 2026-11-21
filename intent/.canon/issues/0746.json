@@ -3,9 +3,10 @@
   "number": 746,
   "slug": "intent-upgrade-removes-a-tracked-view-of-an-unre",
   "title": "intent upgrade removes a tracked view of an unrealised record that is clean against HEAD, so 0707's residue does not refuse its commit",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-21",
+  "closed": "2026-11-21",
   "reporter": "Matthew Sinclair",
   "body": "Seen on the 3.5.0 rehearsal (dc, on a clone of T 10141745e). `intent upgrade` lands, then doctor refuses its commit with view-skew on intent/st/ST0093/info.md (\"1845 bytes on disk, 1536 rendered\"). ST0093 is a record the project does not realise, but git tracks its views (issue 0707's residue). The release format re-shapes a thread's cover, and the upgrade re-renders only realised views, so this tracked cover stays in 3.4.0's shape. The post-landing dehydrate goes through organize's gate, which refuses a view that differs from its render as a possible hand edit. After the format move that difference is the renderer's, not a person's, so nothing short of an overwrite clears it. The workaround, brew 3.4.0's `organize --apply` before the upgrade, is gone for anyone who ran `brew upgrade` first.\n\nMeaning (cc): a tracked view of an unrealised record whose work-tree bytes equal HEAD's blob loses nothing when removed, because git holds every byte and `git checkout` restores it. The upgrade's post-landing dehydrate takes such a view, names it on a `removed:` line and in upgrade.paths, so the closing line's `git add` stages the deletion. A view that is dirty against HEAD stays refused as a possible hand edit, as now. organize's own rule does not change.\n\nRides 3.5.0 (hv decision 82, by decision 69). install.md's step 3 loses the organize step. Owner: cc.\n"
 }
