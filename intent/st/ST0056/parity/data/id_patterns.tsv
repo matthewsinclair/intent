@@ -42,4 +42,3 @@ intent/st/ST0057/parity/tools/canon_clone_completeness.sh	s/^\(ST[0-9][0-9]*\) .
 intent/st/ST0057/parity/tools/canon_clone_completeness.sh	s/^\([0-9][0-9][0-9][0-9]\) .*/	issue ids from a list	the list verb's machine form, its id column
 intent/st/ST0057/parity/tools/canon_concurrent_diff.sh	\(ST[0-9][0-9]*\)	thread ids from a list	the list verb's machine form, its id column
 intent/st/ST0057/parity/tools/sparse_tree_equals_manifest.sh	ST[0-9][0-9][0-9][0-9])	a manifest entry's id	retirement proposed with realise_plan.sh (WP-12 scope)
-lib/templates/.claude/scripts/session-context.sh	'^\*\*ST[0-9]+'	the first bold focus line of wip.md	a read of the first bold line, with no id pattern (WP-12 scope)

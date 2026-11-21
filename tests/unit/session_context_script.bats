@@ -59,6 +59,37 @@ EOF
   assert_output_contains "WIP: ST0035"
 }
 
+@test "the WIP line is the first bold line, so a git-style id whose hex opens with a letter is found (ST0095 WP-12)" {
+  mkdir -p "$TEST_TEMP_DIR/proj/intent"
+  cd "$TEST_TEMP_DIR/proj"
+  cat > intent/wip.md <<'EOF'
+# Work In Progress
+
+Lead each focus item with its thread's id in bold.
+
+## Current Focus
+
+**STa3f9c21: git-style ids everywhere**
+
+**ST0035 (Canonical LLM Config) next.**
+EOF
+
+  CLAUDE_PROJECT_DIR="$PWD" run bash "$SCRIPT" < /dev/null
+  assert_success
+  assert_output_contains "WIP: STa3f9c21: git-style ids everywhere"
+  refute_output_contains "WIP: ST0035"
+}
+
+@test "the unfilled template's placeholder focus line is not shown as WIP" {
+  mkdir -p "$TEST_TEMP_DIR/proj/intent"
+  cd "$TEST_TEMP_DIR/proj"
+  cp "${INTENT_PROJECT_ROOT}/lib/templates/prj/_wip.md" intent/wip.md
+
+  CLAUDE_PROJECT_DIR="$PWD" run bash "$SCRIPT" < /dev/null
+  assert_success
+  refute_output_contains "WIP: "
+}
+
 @test "emits project name and git context without wip.md" {
   mkdir -p "$TEST_TEMP_DIR/proj"
   cd "$TEST_TEMP_DIR/proj"

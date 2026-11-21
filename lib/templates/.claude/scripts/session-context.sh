@@ -5,8 +5,12 @@
 # Purpose:
 #   Emit Intent project context as a system-reminder to Claude Code so every
 #   session knows which project, branch, and active steel thread it is
-#   resuming. The thread is the first line of `intent/wip.md` that begins
-#   `**ST<digits>`; a wip.md with no such line yields no `WIP:` line.
+#   resuming. The focus is the first line of `intent/wip.md` that opens in bold,
+#   which the wip.md template leads with the thread id as Intent printed it, of
+#   either id family. No id pattern is read, so a git-style id whose hex opens
+#   with a letter is found as an ordinal is. The template's unfilled
+#   `**<thread id>` placeholder is skipped, and a wip.md with no other bold
+#   line yields no `WIP:` line.
 #
 # Contract:
 #   - Invoked by `.claude/settings.json` SessionStart hook.
@@ -44,7 +48,7 @@ wip_summary=""
 wip_file="$project_dir/intent/wip.md"
 if [ -f "$wip_file" ]; then
   wip_summary="$(
-    grep -m1 -E '^\*\*ST[0-9]+' "$wip_file" 2>/dev/null \
+    grep -m1 -E '^\*\*[^*<[:space:]]' "$wip_file" 2>/dev/null \
       | sed -e 's/\*\*//g' -e 's/  */ /g' \
       | cut -c1-160 \
       || true
