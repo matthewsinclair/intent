@@ -1,0 +1,15 @@
+{
+  "id": "01M7YAE1XZ4E3BQSQ5ZNBS43KV",
+  "ts": "2026-11-21T05:49:27.359Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "THE TAP IS HELD BY THE CUT ITSELF, AND OUR MACHINES RUN THE RELEASE FROM THE OPT TREE UNTIL THE TAP MOVES (hv, answering todo 68 on dc's proposal, first-hand in vc's session, read by vc at 2026-11-21 05:47Z on its date -u; hv chose the options vc put, each marked recommended). (1) Build the hold before the kovacs rehearsal, so the rehearsal drives it. `cut publish --hold-tap` stops after the macOS and sums steps and prints the one command to finish. A new `cut tap` runs `formula publish --pull`, then `brew smoke --at-tag`. For this cut, release.after is `cut publish --hold-tap` alone, so the dry run hv confirms shows the hold. vc runs `bin/devbin cut tap` on hv's word, and a commit restores release.after. (2) Until the tap moves, rhadamanth, gyges and kovacs run the release from the dev/opt/brew contract's opt tree, once per machine at the tag: `bin/devbin build all`, then `intent install --prefix ~/.local/opt/intent`, then `intent use opt --prefix ~/.local/opt/intent`, then `intent upgrade` once per project. It moves every estate on the machine, AE's seats included, and seats restart from a login shell. Intent.app stays on the cask's 3.4.x. When the tap moves: `intent use brew`, then `brew upgrade`."
+  }
+}

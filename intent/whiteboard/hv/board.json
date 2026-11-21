@@ -829,6 +829,14 @@
       "text": "LENT SEATS KEEP WORKING ON THIS RELEASE THROUGH THE DESK HOLD (hv, 2026-11-20, first-hand in vc's session, read at 18:35Z on vc's date -u; hv's own words). The Desk took hv's 18:35Z hold (\"hold on the bounce other than intent-* for the release\") as also covering devbin-dc and devbin-cc, its seats lent to Intent, and paused devbin-dc's ST0096 WP-04 run 4. vc asked hv whether they keep going. hv chose \"Keep both\", then said: \"Ok, push on. Get this done. Intent is P0.\" So devbin-dc finishes WP-04 AC-04.1 and devbin-cc finishes 0738 and then WP-05 slice B; vc passed the ruling to the Desk.",
       "state": "live",
       "recorded_at": "2026-11-20T18:35:59.471Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 77,
+      "text": "THE TAP IS HELD BY THE CUT ITSELF, AND OUR MACHINES RUN THE RELEASE FROM THE OPT TREE UNTIL THE TAP MOVES (hv, answering todo 68 on dc's proposal, first-hand in vc's session, read by vc at 2026-11-21 05:47Z on its date -u; hv chose the options vc put, each marked recommended). (1) Build the hold before the kovacs rehearsal, so the rehearsal drives it. `cut publish --hold-tap` stops after the macOS and sums steps and prints the one command to finish. A new `cut tap` runs `formula publish --pull`, then `brew smoke --at-tag`. For this cut, release.after is `cut publish --hold-tap` alone, so the dry run hv confirms shows the hold. vc runs `bin/devbin cut tap` on hv's word, and a commit restores release.after. (2) Until the tap moves, rhadamanth, gyges and kovacs run the release from the dev/opt/brew contract's opt tree, once per machine at the tag: `bin/devbin build all`, then `intent install --prefix ~/.local/opt/intent`, then `intent use opt --prefix ~/.local/opt/intent`, then `intent upgrade` once per project. It moves every estate on the machine, AE's seats included, and seats restart from a login shell. Intent.app stays on the cask's 3.4.x. When the tap moves: `intent use brew`, then `brew upgrade`.",
+      "state": "live",
+      "recorded_at": "2026-11-21T05:49:27.359Z"
     }
   ],
   "sent": [],
