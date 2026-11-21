@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: The merge knows both families
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-05: The merge knows both families

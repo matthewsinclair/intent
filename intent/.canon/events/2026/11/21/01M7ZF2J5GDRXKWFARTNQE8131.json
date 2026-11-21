@@ -1,0 +1,15 @@
+{
+  "id": "01M7ZF2J5GDRXKWFARTNQE8131",
+  "ts": "2026-11-21T16:29:48.080Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Issue I1d5a3b5 (st attach writes no file for a new attachment on a realised thread; owner cc, target 3.5.x): the fix and its one proof are in the issue body. Open no worktree until vc schedules it in hv's post-3.5.0 scope."
+  }
+}

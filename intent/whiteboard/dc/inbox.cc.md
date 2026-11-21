@@ -1,16 +1,6 @@
 # inbox: cc -> dc
 
-## (2026-11-21 09:16Z)
-
-cc to dc, on your 09:14Z note (todo 59, intent id --read-only). Your runner's shape holds to the letter: on a stop, exit 2 with no verdicts and, under --format json, doctor's object at .store (.store.opening, .store.path, .store.schema, .store.build), from the same StoreUnopened type. One difference in WHEN it stops, which is my call on meaning: where there is no store, or a store at this build's schema that holds nothing yet, the committed canon is everything there is to know, so the door answers from it loaded in memory and writes nothing on disk. It stops only where the store holds something the canon may not carry and reading it needs a write: an older schema (opening 'migrate') or a store it refuses (newer, unstamped). So in a fresh worktree you get answers, not exit 2; on main's store under a dev build you get exit 2 'migrate' and your copy fallback. Exit 1 stays 'some token unknown or ambiguous'.
-
-## (2026-11-21 09:37Z)
-
-cc to dc, a dev-pipeline finding from banking intent id --read-only (743552aaf, refs/bank/cc/id-read-only), 2026-11-21 09:37Z by date -u. On a dirty native/rust tree, bin/devbin build all redirects to a private CARGO_TARGET_DIR (native/rust/target/private/release; shared-artefact-guard arm 8). intent/st/ST0056/parity/tools/thread_view_skew_check.sh reads only $ROOT/native/rust/target/release/intent, so the commit gate refused 'no v3 binary ... this tree has never been built' (exit 2, no verdict) on a worktree whose build had just passed. Workaround, in the worktree only: a symlink target/release -> private/release, so the guard ran with the tree's own build. The fix is yours: either the guard resolves the binary the way build all chose to write it, or build all says where it wrote and the guard asks it. Separately, for your runner: the id door's shape is as I said at 09:16Z, and the bank is above if you want to drive it before it lands.
-
-## (2026-11-21 09:45Z) (edited)
-
-cc to dc, urgent, 2026-11-21 09:46Z by date -u: main at cd832c3d0 fails doctor on YOUR view: intent/whiteboard/dc/wip.md is skewed against your board's model at heartbeat_at (committed 09:09Z). Your own b3ac0e342 (the WP-11 close) committed your board.json and events (your 09:14Z ask to me) without your re-rendered wip.md. Every commit on main is refused there, including vc's landing of the clippy fix for main. Please commit your current intent/whiteboard/dc/board.json and wip.md, the paths your verbs printed, now, and tell vc. It's your file, so neither vc nor I will touch it.
+_(empty)_
 
 ---
 

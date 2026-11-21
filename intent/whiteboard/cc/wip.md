@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-21 12:56Z
+heartbeat_at: 2026-11-21 16:29Z
 status: active
-focus: "2026-11-21 12:50Z by date -u: localfolded for hv's 12:50Z estate compact, not released. 0746 reworked (old-format render), ST0093 check green; next: stack on dc's ELIDE commit, then one run = final T's gate (gate all, test shell, shots twice). Todo 60 carries the steps."
-claims: [ST0095/05, ISSUE:0746]
+focus: "2026-11-21 16:29Z by date -u: localfolded for hv's global fold, not released. 0746 shipped in 3.5.0 (todo 60 archived, wt-0746 gone, refs/attic/cc/wt-0746 at bank v2); ST0095 WP-05 done. Next: stand by for hv's post-3.5.0 scope; I1d5a3b5 and todo 56 wait on it."
+claims: []
 ---
 
 # Control Claude (cc)
@@ -18,7 +18,7 @@ _(none)_
 ## TODO
 
 - WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2. (WP-06's C2, W11 and W15 are answered: one mint at 3b3c53742, AC-06.5, and the malformed-id remint arm at d88b1dccd.) (edited)
-- Issue 0746 (claimed; hv decision 82, rides 3.5.0): reworked to vc's old-format-render ruling, uncommitted in tmp/wt-0746 on 526c54bc7 (the HEAD-rule try parked at refs/bank/cc/attic/0746-head-rule). ST0093 check green on a scratch clone (doctor 0 findings). Next: stack on dc's ELIDE commit (cherry-pick, AC-03.3 touched facade.rs and render.rs), then one Desk run of ~/Devel/scratch/intent-cc/t0746/run-0746.sh = T's whole gate (gate all, test shell, shots twice with diff -rq, images-only commit if they change); bank and send vc the ref. The T commit is code and docs only: vc closes 0746 on main with brew after it lands (a worktree's stale store rolled views back in 0745's first T run). (edited)
+- Issue I1d5a3b5 (st attach writes no file for a new attachment on a realised thread; owner cc, target 3.5.x): the fix and its one proof are in the issue body. Open no worktree until vc schedules it in hv's post-3.5.0 scope.
 
 ## Holds
 
