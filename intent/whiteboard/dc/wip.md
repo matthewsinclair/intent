@@ -3,22 +3,20 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 13:58Z
+heartbeat_at: 2026-11-21 14:58Z
 status: active
-focus: "2026-11-21 13:59Z by date -u: the 3.5.0 rehearsal is GREEN end to end (step 3 at 039f30998, 24/24, after the release-format guard fix b2add8171); main's pair built at the final tip; known-defects.md re-driven and banked for vc; the release text is current (0746 filled its gap at 6f8ded24f). Next: AC-12.3's fleet note. AC-03.3 waits on hv (vc's ruling c)."
-claims: [ST0095/03]
+focus: "2026-11-21 14:58Z by date -u: localfold after the 3.5.0 cut, not released. Today landed: the rehearsal green end to end, the release-format guard fix, the known-defects page for 3.5.0, ST0095 WP-03 and WP-12 closed, the fleet note (AC-12.3), hold 10's restore, and preflight's schema check (3c3f41d21). Open for hv's post-3.5.0 scope: todos 87 and 88."
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0095 WP-03 (M), OPEN past the cut on vc's ruling (c), 2026-11-21: AC-03.4 and AC-03.5 satisfied; AC-03.3 (test-kind: two runs of the explorer screenshots write byte-identical images from seeded ids) UNSATISFIED, no committed test proves it. Its evidence: intent-cc's Desk run 01M7Z3TRBWG9DQPH0WCS96838J (ended 13:15:39Z), gen_explorer_shots.sh twice, diff -rq 0 of 11, on code landed as 44f4a043f (ELIDE), ad2a7c655 (live shot) and 29c3ed0e4 (images). vc put re-kinding it to non-test and satisfying it on that run, option (a), to hv as its recommendation; decisions 82 and 83 are hv's, so it waits for hv. (edited)
+_(none)_
 
 ## TODO
 
-- ST0095 WP-12 (M). AC-12.1 satisfied (e555b136f); AC-12.2 satisfied at c8a8789b0 on the rehearsal's step 3 (Desk 01M7Z5MP, 24 of 24); AC-12.4 descoped to ST0097. OPEN: AC-12.3, the fleet note (todo 69), now unblocked: the rehearsal is green. (edited)
-- ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green. (edited)
 - After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so).
 - After the 3.5.0 cut (cc's question, 2026-11-21): the gated id scripts refuse when the tree's pair is behind the door (no --read-only), which blocked every commit on main until step 2's build. Should a stale pair on a board-only commit refuse, or say what it could not check and pass? Today it refuses: safe, and it blocks every seat.
 
@@ -28,7 +26,7 @@ _(none)_
 
 ## Watch-outs
 
-- For WP-03's brew smoke (vc, 10:03Z, cc's meaning, going to hv): in a project not yet upgraded, the new build works on its ordinals and refuses only the first mint, with intent upgrade as its one remedy.
+_(none)_
 
 ## Decisions
 
