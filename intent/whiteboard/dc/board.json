@@ -3303,6 +3303,14 @@
       "text": "hv decision 79 (4753e17bb): AC-12.1's routing half rides 3.5.0. Once intent id --read-only exists, dc routes rulings_check.sh, declared_kind_check.sh and view_skew_check.sh through it, with one shared read-only-or-copy runner (factored from thread_view_skew_check.sh, registered in MODULES.md first). The plan is dc's follow-up text, release/wp12-routing-followup.md in dc's scratch. The rehearsal is called after these land.",
       "state": "live",
       "recorded_at": "2026-11-21T09:10:57.955Z"
+    },
+    {
+      "node": "dc",
+      "kind": "todo",
+      "seq": 87,
+      "text": "After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so).",
+      "state": "live",
+      "recorded_at": "2026-11-21T10:07:03.257Z"
     }
   ],
   "sent": [

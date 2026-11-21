@@ -1,0 +1,15 @@
+{
+  "id": "01M7YS5QJSB42YS700PGK7386R",
+  "ts": "2026-11-21T10:07:03.257Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so)."
+  }
+}
