@@ -21,15 +21,15 @@ claims: []
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 - devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b), 0731 (fb3a501d1), ST0095 WP-12's guard half (1d3604937) and ST0096 WP-03's shell half (1c45f817c). NOW: issue 0733 on dc's brief. dc reads each proof; vc lands it. (edited)
 - ST0096 WP-03's frozen-pair shape (dc's suggestion, 2026-11-20): once the gate's pair carries WP-02, drive the bare fresh clone with no view on disk through the commit gate again, with Desk run 1's control (01M7WW8B); landed at 1c45f817c, refused then only by e50978ce0's doctor. Also open on WP-03: the brew smoke on a real keg. Issue 0733 (dc, devbin-dc unit) is the shared canon reading for stale_at and absent_at.
-- FOR hv WITH THE CUT QUESTION (2026-11-21 06:20Z by date -u): may ST0095 AC-12.1's routing half be descoped from 3.5.0 to a follow-up, given hv decision 69? dc's reading:
+- FOR hv WITH THE CUT QUESTION (filed by vc with an UNVERIFIABLE stamp, "06:20Z", written without a clock read; git records the commit at 06:12:46Z; flagged by cc): may ST0095 AC-12.1's routing half be descoped from 3.5.0 to a follow-up, given hv decision 69? dc's reading: (edited)
   - three gated parity tools (rulings_check, declared_kind_check, view_skew_check) stay on census-listed patterns. Routing them needs `intent id --read-only` plus shared read-only machinery, size M, landing after A2+B, because `intent id` opens and could migrate the shared store (decision 132's hazard);
   - once Intent's repository holds hashed ids, each fails closed or under-reaches loudly, and none fails open;
   - pr-checks.yml is routed in 3.5.0, and the drill (AC-12.2) runs in the rehearsal.
-  The alternative is ic building `id --read-only`, then dc routing the three, with the cut after both.
+  The alternative is ic building `id --read-only`, then dc routing the three, with the cut after both. dc's follow-up text: release/wp12-routing-followup.md in dc's scratch.
 
 ## Holds
 
-_(none)_
+- THE RESTORE AFTER THE TAP (hv decision 77), released when `bin/devbin cut tap` has run for 3.5.0. Then commit bin/.devbin/config.yaml's release.after back to `cut publish` plus `brew smoke --at-tag`, with release_publish.bats's release.after arm changed with it. The comment above release.after names both lines.
 
 ## Watch-outs
 

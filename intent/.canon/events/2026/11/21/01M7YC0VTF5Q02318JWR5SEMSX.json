@@ -1,0 +1,15 @@
+{
+  "id": "01M7YC0VTF5Q02318JWR5SEMSX",
+  "ts": "2026-11-21T06:17:12.272Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "THE RESTORE AFTER THE TAP (hv decision 77), released when `bin/devbin cut tap` has run for 3.5.0. Then commit bin/.devbin/config.yaml's release.after back to `cut publish` plus `brew smoke --at-tag`, with release_publish.bats's release.after arm changed with it. The comment above release.after names both lines."
+  }
+}

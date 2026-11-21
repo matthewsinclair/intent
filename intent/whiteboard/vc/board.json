@@ -3067,9 +3067,18 @@
       "node": "vc",
       "kind": "todo",
       "seq": 95,
-      "text": "FOR hv WITH THE CUT QUESTION (2026-11-21 06:20Z by date -u): may ST0095 AC-12.1's routing half be descoped from 3.5.0 to a follow-up, given hv decision 69? dc's reading:\n- three gated parity tools (rulings_check, declared_kind_check, view_skew_check) stay on census-listed patterns. Routing them needs `intent id --read-only` plus shared read-only machinery, size M, landing after A2+B, because `intent id` opens and could migrate the shared store (decision 132's hazard);\n- once Intent's repository holds hashed ids, each fails closed or under-reaches loudly, and none fails open;\n- pr-checks.yml is routed in 3.5.0, and the drill (AC-12.2) runs in the rehearsal.\nThe alternative is ic building `id --read-only`, then dc routing the three, with the cut after both.",
+      "text": "FOR hv WITH THE CUT QUESTION (filed by vc with an UNVERIFIABLE stamp, \"06:20Z\", written without a clock read; git records the commit at 06:12:46Z; flagged by cc): may ST0095 AC-12.1's routing half be descoped from 3.5.0 to a follow-up, given hv decision 69? dc's reading:\n- three gated parity tools (rulings_check, declared_kind_check, view_skew_check) stay on census-listed patterns. Routing them needs `intent id --read-only` plus shared read-only machinery, size M, landing after A2+B, because `intent id` opens and could migrate the shared store (decision 132's hazard);\n- once Intent's repository holds hashed ids, each fails closed or under-reaches loudly, and none fails open;\n- pr-checks.yml is routed in 3.5.0, and the drill (AC-12.2) runs in the rehearsal.\nThe alternative is ic building `id --read-only`, then dc routing the three, with the cut after both. dc's follow-up text: release/wp12-routing-followup.md in dc's scratch.",
       "state": "live",
-      "recorded_at": "2026-11-21T06:12:40.611Z"
+      "recorded_at": "2026-11-21T06:12:40.611Z",
+      "edited_at": "2026-11-21T06:17:25.628Z"
+    },
+    {
+      "node": "vc",
+      "kind": "hold",
+      "seq": 10,
+      "text": "THE RESTORE AFTER THE TAP (hv decision 77), released when `bin/devbin cut tap` has run for 3.5.0. Then commit bin/.devbin/config.yaml's release.after back to `cut publish` plus `brew smoke --at-tag`, with release_publish.bats's release.after arm changed with it. The comment above release.after names both lines.",
+      "state": "live",
+      "recorded_at": "2026-11-21T06:17:12.271Z"
     }
   ],
   "sent": [
