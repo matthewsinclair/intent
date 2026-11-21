@@ -853,6 +853,15 @@
       "text": "BOTH RIDE 3.5.0 (hv, 2026-11-21, first-hand in vc's question dialog, read by vc at the clock line of this commit; hv's option labels quoted). (1) ST0095 AC-12.1's routing half: \"Build it in 3.5.0\". `intent id --read-only` (size M) comes first, then rulings_check, declared_kind_check and view_skew_check are routed through it with shared read-only machinery, before the cut. (2) Issue 0745: \"Build it in 3.5.0\". `intent upgrade` names what it wrote (a per-directory summary or a written manifest, cc's design) before the cut. hv decision 69 holds without exception. Both ship after hv's 09:07Z estate fold and compact.",
       "state": "live",
       "recorded_at": "2026-11-21T09:08:54.241Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 80,
+      "text": "vc MAY PUSH (hv, 2026-11-21, first-hand in prose in vc's session, read by vc at 09:24Z on its date -u; hv's own words): \"Crack on, tell me when it's ready to push, and you have the authority to push as needed.\" vc's reading, not hv's words: vc pushes Intent's main and the 3.5.0 release to origin as the work needs, without waiting for hv's keystroke, and tells hv when the release is ready and when it is pushed. hv decisions 68 and 77 still hold: the tap's formula moves only on hv's word, through `bin/devbin cut tap`. The force-push and --no-confirm bans stand.",
+      "state": "live",
+      "recorded_at": "2026-11-21T09:24:48.912Z",
+      "edited_at": "2026-11-21T09:25:02.701Z"
     }
   ],
   "sent": [],

@@ -1,0 +1,15 @@
+{
+  "id": "01M7YPRCMG0RFM4CN7SQD1RVHF",
+  "ts": "2026-11-21T09:24:48.912Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "vc MAY PUSH (hv, 2026-11-21, first-hand in prose in vc's session, read by vc at 09:24Z on its date -u; hv's own words): \"Crack on, tell me when it's ready to push, and you have the authority to push as needed.\" vc's reading, not hv's words: vc pushes Intent's main and the 3.5.0 release to origin as the work needs, without waiting for hv's keystroke, and tells hv when the release is ready and when it is pushed. hv decisions 68 and 77 still hold: the tap's formula moves only on hv's word, through `bin/devbin cut tap`. The force-push and --no-confirm bans stand."
+  }
+}
