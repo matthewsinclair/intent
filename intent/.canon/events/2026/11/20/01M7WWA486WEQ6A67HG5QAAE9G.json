@@ -1,0 +1,16 @@
+{
+  "id": "01M7WWA486WEQ6A67HG5QAAE9G",
+  "ts": "2026-11-20T16:23:26.511Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 154,
+    "text": "ST0095 WP-10 (ic), 2026-11-20 16:25Z by date -u. PART 1 landed c437d1d83; the REMINT DOORS landed 45028cbd3 (AC-10.5; AC-06.3's last hole: st/issues renumber retired with remint as remedy on CLI and MCP). NEXT, in order: (1) WP-07's v3 signature interdiff from devbin-cc when it comes; ic's read of v2 went to vc 16:12Z: two deviations accepted, F1 BLOCKING (thread_spec, issue_arg, thread_id and MCP spec/issue_number refuse a prefix before any resolver: complete Spelled::Prefix via facade.resolve_thread/resolve_issue), F2 (MCP target_in to ServeError::Refused), R1 (resolve::complete drops IdError); (2) PART 2: Query.issue(number: Int!) to issue(id: String!) at SDL 25, T1 to T9, AC-10.6 at WP-10's close; (3) WP-11; (4) WP-13. Before banking a rename or removal of a cited test, run intent at list for the old path (the gyges gate runs no repo-local guard)."
+  }
+}

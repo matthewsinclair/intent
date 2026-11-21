@@ -1,0 +1,15 @@
+{
+  "id": "01M7YR68X971BHX9WAHEAHQ8QR",
+  "ts": "2026-11-21T09:49:52.425Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "vc COMMITS ic's UNCOMMITTED FILES WHILE ic STAYS PAUSED (hv, 2026-11-21, by selection in vc's question dialog; the question's and option's wording vc's, the choice hv's and vc's recommendation): \"vc commits them (Recommended)\". The eight paths are ic's four AT-11.2 and AC-11.2 events (01M7YAG*, 01M7YAH5), ic's two board events of 2026-11-20 (01M7WV0W, 01M7WWA4), and ic/board.json and ic/wip.md, so the cut's preflight meets a clean tree. A one-off exception to the single-writer rule, named in the commit; ic stays paused."
+  }
+}

@@ -862,6 +862,14 @@
       "state": "live",
       "recorded_at": "2026-11-21T09:24:48.912Z",
       "edited_at": "2026-11-21T09:25:02.701Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 81,
+      "text": "vc COMMITS ic's UNCOMMITTED FILES WHILE ic STAYS PAUSED (hv, 2026-11-21, by selection in vc's question dialog; the question's and option's wording vc's, the choice hv's and vc's recommendation): \"vc commits them (Recommended)\". The eight paths are ic's four AT-11.2 and AC-11.2 events (01M7YAG*, 01M7YAH5), ic's two board events of 2026-11-20 (01M7WV0W, 01M7WWA4), and ic/board.json and ic/wip.md, so the cut's preflight meets a clean tree. A one-off exception to the single-writer rule, named in the commit; ic stays paused.",
+      "state": "live",
+      "recorded_at": "2026-11-21T09:49:52.425Z"
     }
   ],
   "sent": [],

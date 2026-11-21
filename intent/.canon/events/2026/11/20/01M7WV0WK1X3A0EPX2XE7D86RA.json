@@ -1,0 +1,15 @@
+{
+  "id": "01M7WV0WK1X3A0EPX2XE7D86RA",
+  "ts": "2026-11-20T16:00:52.833Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "After cc's ST0096 WP-01 lands (refs/bank/cc/st0096/wp01-*): (1) reword hydrate/dehydrate/organize --default lines that now name the canon record via intentfiles::named; (2) measure st hydrate and st dehydrate's populations.self_loop no_op values, now 'unexamined by driving', and replace them; (3) the .intentfiles wording in views.rs doctor findings (~2717, 2834, 2843), finding.rs:670 and lib/templates/llm/_AGENTS.md, either fixed in the code or covered by WP-13's docs"
+  }
+}

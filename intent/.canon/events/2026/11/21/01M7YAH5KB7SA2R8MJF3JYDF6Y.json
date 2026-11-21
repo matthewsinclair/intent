@@ -1,0 +1,14 @@
+{
+  "id": "01M7YAH5KB7SA2R8MJF3JYDF6Y",
+  "ts": "2026-11-21T05:51:09.423Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-11.2"
+  },
+  "payload": {
+    "evidence": "9df6dfad4: AT-11.2 (intentd store.rs) and the hashed-fixture arm in native/macos/Intent/IntentTests/ProjectServiceTests.swift:17, gated by devbin-cc and read by ic and vc"
+  }
+}

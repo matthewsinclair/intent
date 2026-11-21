@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "28a359a5-1850-47c1-a5e7-f9db7e58d7a4",
-    "heartbeat_at": "2026-11-20T19:02:52.585Z",
+    "heartbeat_at": "2026-11-21T09:13:04.328Z",
     "status": "active",
-    "focus": "ST0095 WP-10 DONE (landed 42de84456, closed dfff5ca5b). Next, plans to vc before each build: issue 0736 (T7 scanners), todo 78 items 1 and 2, issue 0740 (stale-render remedies onto Finding::with_remedy); then WP-11, then WP-13 docs",
+    "focus": "0736 LANDED 3ab17d4a8 and closed; ST0095 re-cites at 779236bfc (lint 34/34). Todo 78 plan to vc and V4 wording to cc, awaiting go. Then 0740 (plan first), WP-11, WP-13 docs",
     "claims": [
       "ST0095/10"
     ],
