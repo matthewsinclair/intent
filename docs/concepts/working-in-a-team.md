@@ -426,6 +426,20 @@ Without a terminal, `--apply` leaves the move and says how to run it:
 
 Your thread moves to the git-style id its creation event makes, the pulled thread keeps the ordinal, and both are staged. `ST7ea9238` is the thread Alice made after the upgrade, which the merge brought.
 
+### A work package both branches made
+
+**Nothing moves a work package.** `intent st remint` and `intent issues remint` move a thread or an issue, and there is no such verb for a package. Two branches cut before the upgrade can each add the same ordinal package to one thread, and once both have upgraded, each holds it as the same record file, `intent/.canon/records/ST0001/wp/02.json`. Git stops on an add/add conflict in that file, and taking either side would drop the other person's package, so `intent sync` refuses, with or without `--apply`, and writes nothing:
+
+```
+  $ git merge --no-ff origin/main -m "merge main"
+  CONFLICT (add/add): Merge conflict in intent/.canon/records/ST0001/wp/02.json
+  $ intent sync
+  error: `sync` refused, and nothing was written: both sides of this merge added a work package as ST0001/02 (intent/.canon/records/ST0001/wp/02.json), and taking either side would drop the other side's
+    remedy: abort the merge with `git merge --abort`. Then, on your own branch and not the one you pulled, re-create its package with `intent wp new ST0001 "<its title>"`, which gives it a git-style id no other branch can share. Carry its objective across with `intent set ST0001/<the id wp new printed> objective --from <file>`, and its body with `intent set ST0001/<the id wp new printed> body --from <file>`. Cancel the old one with `intent wp cancel ST0001/02 --reason "re-created as <the id wp new printed> to merge"`; commit, and merge again. The old package's id and history stay with the cancelled one
+```
+
+The remedy is the way through: abort the merge, re-create your branch's package under a git-style id, carry its prose across, cancel the ordinal one, and merge again. The cancelled package keeps its id and its history. Branches that add work packages to the same thread are best merged before the project upgrades, and then there is nothing to re-create.
+
 ## When two people edit one thread
 
 Two people who change different fields of one thread conflict on neighbouring lines of its canon JSON:
