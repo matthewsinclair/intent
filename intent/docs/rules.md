@@ -243,7 +243,7 @@ Critics are thin orchestrators. On invocation, a Critic re-reads the rule librar
 1. **Agnostic rules**: `intent claude rules list --lang agnostic`.
 2. **Language rules, mode-filtered by category**: `intent claude rules list --lang <lang>`, keeping category `code` in `code` mode (for `critic-elixir` also `ash`, `phoenix` and `lv`) or `test` in `test` mode.
 3. **Extension rules**: not read in v3 (`userstate::ext_base()` answers `None`), so `intent claude rules list`/`show` serve canon only.
-4. **Upstream interop** (Elixir only): if `~/.claude/plugins/elixir-test-critic/rules/` exists, its rules are deduped against Intent rules by `upstream_id:`. Absence is silent.
+4. **Nothing else.** A Critic takes the rules these commands serve as the complete set: it reads no extension or plugin directory itself, including `~/.claude/plugins/elixir-test-critic/`, and a rule's `upstream_id:` records where it came from and loads nothing (`intent/docs/critics.md`).
 
 For each loaded rule, the Critic applies the Detection heuristic from the `## Detection` section to the target files. Findings cite rule IDs; the report groups by severity.
 
@@ -259,7 +259,7 @@ Extension rule packs at `~/.local/share/intent/ext/<name>/rules/<lang>/<category
 
 ## Attribution policy
 
-Intent's rule schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, copyright 2026 Manuel Zubieta), pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`. Upstream rules are not part of Intent's discovery: `critic-elixir` loads them itself when the upstream plugin is installed under `~/.claude/plugins/elixir-test-critic/`, deduped by `upstream_id`, and a copied upstream rule keeps an `ETC-*` id that `intent claude rules validate` refuses.
+Intent's rule schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, copyright 2026 Manuel Zubieta), pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`. Upstream rules are not part of Intent's discovery, and no Critic loads them, even when the upstream plugin is installed under `~/.claude/plugins/elixir-test-critic/`. A copied upstream rule keeps an `ETC-*` id that `intent claude rules validate` refuses.
 
 Tiers of borrowing:
 

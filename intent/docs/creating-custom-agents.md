@@ -171,7 +171,7 @@ Create the metadata configuration:
 }
 ```
 
-**Conventional fields** (Intent does not read `metadata.json`; the canon subagents that carry one use these):
+**Conventional fields** (Intent does not read `metadata.json`, and no canon subagent carries one; these are the fields a subagent that does conventionally uses):
 
 - `name`: Must match directory name and agent.md frontmatter
 - `version`: Semantic version (start with 1.0.0)
@@ -392,7 +392,6 @@ Design agents to work together in complex workflows:
 
 This agent works well with:
 
-- `intent` agent for project structure
 - `critic-<lang>` for rule-library review
 - `socrates` for architectural decisions
 ```

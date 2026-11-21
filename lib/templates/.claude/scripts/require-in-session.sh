@@ -149,6 +149,6 @@ Run /in-session now -- it loads project coding standards and releases this gate.
 (Expected sentinel: ${sentinel})
 EOM
 if [ -n "$jq_absent" ]; then
-  printf '%s\n' "note: jq is not on PATH. This gate works without it; the opt-in post-tool hooks do nothing without it and the pre-commit gate runs no language critic (docs/install.md)." >&2
+  printf '%s\n' "note: jq is not on PATH. This gate and the pre-commit gate work without it; the opt-in post-tool hooks do nothing without it (docs/install.md)." >&2
 fi
 exit 2

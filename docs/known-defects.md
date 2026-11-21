@@ -35,7 +35,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ## A stray directory disables the whole project
 
-**An `STnnnn` directory anywhere under `intent/st/` that holds a thread's files is picked up as a thread, and one it cannot read stops commands that have nothing to do with it** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
+**A directory directly under `intent/st/`, or one level below one, that holds an `info.md` and no `thread.json` is picked up as a thread, and one it cannot read stops commands that have nothing to do with it** (`intent#0011`). A staging copy at `intent/st/staging/ST0099/` holding `info.md` and `acceptance.md`, copied from a thread this build rendered, is enough. What you get is not a duplicate row in a listing, it is:
 
 ```
   $ intent st list
@@ -104,4 +104,4 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 `intent --version` names the build you are on, as `intent <version> (<tree>, <sha>) <kind>`. The tree is where the binary is installed: `brew` for a Homebrew install, `dev` for a build in a git checkout, `opt` for a tree `intent install` published, and `unknown` when it is none of these. The sha is the commit the binary was built at, followed by `+dirty` in a dev tree when the build, or a file it reads from the tree, differs from that commit. The last word says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in -- `intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build -- so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.3.1, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `number`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.4.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**

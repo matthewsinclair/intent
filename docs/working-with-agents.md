@@ -22,11 +22,11 @@ This regenerates `AGENTS.md` from Intent's template and the project's configurat
 
 The contract is split across these files, and the split is deliberate:
 
-| File             | What it is                                                   | Who writes it                                                                                          |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `AGENTS.md`      | The tool-agnostic contract, for agents that read `AGENTS.md` | `intent init`, then `intent agents sync` or `intent claude upgrade --apply`                            |
-| `CLAUDE.md`      | A Claude Code overlay, adding what is Claude-specific        | `intent init`, then `intent claude upgrade --apply`, keeping what you write between its `user` markers |
-| `usage-rules.md` | Terse DO / NEVER rules, an Elixir-community convention       | Seeded by `intent claude upgrade --apply` when absent, then yours                                      |
+| File             | What it is                                                   | Who writes it                                                                                                             |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`      | The tool-agnostic contract, for agents that read `AGENTS.md` | `intent init`, then `intent agents sync` or `intent claude upgrade --apply`                                               |
+| `CLAUDE.md`      | A Claude Code overlay, adding what is Claude-specific        | `intent init`, then `intent claude upgrade --apply`, keeping what you write between its `user` markers                    |
+| `usage-rules.md` | Terse DO / NEVER rules, an Elixir-community convention       | Seeded by `intent claude upgrade --apply` when absent in the root layout (never under `contracts: dotclaude`), then yours |
 
 `intent claude upgrade` reports what it would write and changes nothing until you pass `--apply`. With `--apply` it also writes `.intent_critic.yml`, the pre-commit gate and the post-pull hooks (`post-merge`, `post-checkout`, `post-rewrite`, which run `intent sync --apply` for you), and it wires the Claude Code harness, session hooks in `.claude/settings.json` and the MCP server in `.mcp.json`, unless you pass `--skip-settings`, which leaves both alone. **A `CLAUDE.md` you wrote yourself, without the generated footer, is held back** rather than overwritten; `--force` overwrites it.
 
@@ -79,13 +79,13 @@ Inside Claude Code the same critics are subagents:
 
 **Critics read the library rather than embedding it**, so a rule fixed once is fixed for every critic that applies it — including the headless runner the commit gate uses.
 
-**One limit worth knowing before you rely on them.** The headless runner honours only rules whose detection is a greppable pattern or a named tool it can run, such as `shellcheck` or `clippy`, and it names a tool-armed rule it did not run. A rule whose real check needs judgement is not silently approximated by a weaker grep — the runner refuses it and says so. **A mechanical check standing in for a judgement it cannot make is worse than no check**, because it reports clean.
+**One limit worth knowing before you rely on them.** The headless runner honours only rules whose detection is a greppable pattern or a named tool it runs on each file, which today is `shellcheck`, and it names a tool-armed rule it did not run. A rule whose real check needs judgement is not silently approximated by a weaker grep: the runner refuses it and says so. **A mechanical check standing in for a judgement it cannot make is worse than no check**, because it reports clean.
 
 **Deeper:** [`intent/docs/critics.md`](../intent/docs/critics.md) — the critic contract and how to write one.
 
 ## The commit gate
 
-`intent claude upgrade --apply` installs a pre-commit gate. It runs the critics for your declared languages over the staged files, and the guards on Intent's roster, each only where its subject exists: a whiteboard timestamp that did not come from a clock, a whiteboard header written as escaped YAML, an ignore rule that would hide `intent/.canon/`, lines removed from an append-only path, and staged files that do not match the formatters the project declares. It also runs `intent doctor`, refusing a commit whose views disagree with the store, and any guards the project declares under `guards` in `intent/.config/config.json`.
+`intent claude upgrade --apply` installs a pre-commit gate. It runs the critics for your declared languages over the staged files, and the guards on Intent's roster, each only where its subject exists: a whiteboard timestamp that did not come from a clock, a whiteboard header written as escaped YAML, an ignore rule that would hide `intent/.canon/`, lines removed from an append-only path, a staged Markdown verblock that carries history or prose, and staged files that do not match the formatters the project declares. It also runs `intent doctor`, refusing a commit whose views disagree with the store, and any guards the project declares under `guards` in `intent/.config/config.json`.
 
 **They are backstops on specific failures, not a review.** Passing them means you did not do one of a short list of known-bad things. The guard bodies are read from the installed tool at commit time, through the install pointer `intent bootstrap` records, so a fixed guard reaches your project as soon as the Intent on this machine carries it, without reinstalling the hook.
 

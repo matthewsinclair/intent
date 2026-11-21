@@ -218,10 +218,6 @@ Or, if you have a manual backup elsewhere, restore from that.
 
 Two top-level Intent-owned directories (`intent/` and `.intent/`) was a smell. The fix is structural: nest configuration under the existing `intent/` umbrella so the project root surfaces exactly one Intent directory. Cosmetic on the surface, but it removes a class of "where does this go?" question for both authors and downstream tooling.
 
-**Does this affect `~/.intent/ext/`?**
-
-No. The user-level extension root is unrelated to per-project metadata and is not touched by the migration. `intent ext list`, `intent ext show`, and any extension you have installed continue to work without changes.
-
 **What if I had custom files under `.intent/`?**
 
 They move with everything else. The migration relocates the entire directory tree, not a curated subset. Your custom files end up at `intent/.config/<your-file>` with permissions and content preserved (atomic `mv`; or `cp -a` for cross-filesystem).

@@ -17,7 +17,7 @@ This is the supported path. The formula installs the CLI (`intent`), the daemon 
 
 **On macOS the formula is Apple silicon only.** It declares `depends_on arch: :arm64` inside `on_macos`, and no Intel Mac binary is built. On Linux it installs the package for the machine's architecture: see [Linux](#linux). Anywhere else, build [from source](#from-source).
 
-**Intent's hooks need `jq` on `PATH`.** macOS 15 and later ship it at `/usr/bin/jq`; on an earlier macOS, or on Linux, install it (`brew install jq`, or your distribution's package). Without it the opt-in post-tool hooks do nothing, and the pre-commit gate cannot read the project's declared languages, so it runs no language critic and says so on every commit.
+**Intent's opt-in post-tool hooks need `jq` on `PATH`.** macOS 15 and later ship it at `/usr/bin/jq`; on an earlier macOS, or on Linux, install it (`brew install jq`, or your distribution's package). Without it those hooks do nothing. The session gate and the pre-commit gate work without it: the pre-commit gate reads the declared languages through `intent lang declared`.
 
 **The CLI does not need the daemon.** Every `intent` command does its work in-process unless you pass `--daemon`, with two exceptions: `intent graphql` is answered only by a running `intentd`, and `intent browse` (like `intent edit --browser`) opens a page that a running `intentd` serves. Neither starts one for you. If you want `intentd` running, `intent daemon start` starts it, and `intent daemon status` and `intent daemon stop` do what they say. `intent daemon start --at-login` also enrols it to start at login, as a LaunchAgent at `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist`, and `intent daemon stop --at-login` removes that enrolment. Enrolment at login is macOS only: off macOS both forms refuse before writing anything, and the refusal names `intent daemon start` without the flag. The formula also declares a Homebrew service, so `brew services start matthewsinclair/intent/intent` keeps `intentd` running under launchd instead; its stdout goes to `intentd.log` and its stderr to `intentd.err.log` under `~/.local/state/intent`, the files `intent daemon logs` reads, and `intent bootstrap` makes that directory, so run it once before the first `brew services start`. A shell that sets `XDG_STATE_HOME` moves where `intent daemon logs` reads, while the service still writes under `~/.local/state/intent`, because a service's environment carries no `XDG_STATE_HOME`.
 
@@ -44,7 +44,7 @@ Then, in a new project:
   $ intent doctor
 ```
 
-`intent doctor` reports `0 finding(s)` in a project `intent init` has just written, and [Getting started](getting-started.md) goes on from there. Intent's hooks need `jq` on `PATH` here too ([above](#homebrew-macos-on-apple-silicon)).
+`intent doctor` reports `0 finding(s)` in a project `intent init` has just written, and [Getting started](getting-started.md) goes on from there. Intent's opt-in post-tool hooks need `jq` on `PATH` here too ([above](#homebrew-macos-on-apple-silicon)).
 
 **The daemon runs as it does on macOS, without enrolment at login.** `intent daemon start`, `intent daemon status` and `intent daemon stop` work as above, and both `--at-login` forms refuse before writing anything. The formula's Homebrew service would run `intentd` under systemd's user manager through `brew services`, and no run has proven that on Linux yet.
 

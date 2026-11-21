@@ -139,7 +139,7 @@ A project's own guards are declared in `intent/.config/config.json`, and the run
 - **`when` is optional.** It names a path, and the guard is skipped as not applicable when that path does not exist, like the shipped guards. A guard with no `when` runs on every commit.
 - **A guard answers with its exit code, and the runner reads a project's guards the way it reads its own.** `0` means the guard ran and passed. `3` means not applicable: the guard is counted under `skipped` and never blocks, which is how a guard whose subject is not a path settles its own applicability. Any other code blocks the commit and is counted under `ran`: `1` is a refusal, and `2` is a shell's own error, such as a script that does not parse, so a guard that crashes blocks rather than passing. A guard that already exits `3` for a reason of its own stops blocking under this gate, so a refusal exits `1`.
 - **The declaration is tracked, so a fresh clone runs the same guards as the checkout it came from.** A guard wired by hand into `.git/hooks/pre-commit` is not: `.git/hooks` is never cloned, and neither is `core.hooksPath`, which lives in `.git/config`.
-- **A declared guard that cannot run blocks the commit** (once the guard runner is found; see above) and says why: its body is missing, it is not executable, it is not tracked (a clone would not receive it), or the `guards` array cannot be read (it is not valid JSON, `run` is not a non-empty array of strings, or `jq` is absent). The summary line counts project guards separately: `project: N ran, M skipped (not applicable)`.
+- **A declared guard that cannot run blocks the commit** (once the guard runner is found; see above) and says why: its body is missing, it is not executable, it is not tracked (a clone would not receive it), or `intent guards`, which reads and validates the `guards` array, refuses it (it is not valid JSON, or `run` is not a non-empty array of strings). When `intent guards` exits `4` because the project's config cannot be read at all, the declared guards are not run, the gate says so, and `intent doctor` names the cause. The summary line counts project guards separately: `project: N ran, M skipped (not applicable)`.
 - `--list-guards` prints the declared guards after the shipped ones, and its fifth column says whose each row is: `intent` or `project`.
 - `intent lang init` and `intent lang remove` rewrite `config.json` and keep the `guards` array as it was written.
 
@@ -164,13 +164,13 @@ A project's own guards are declared in `intent/.config/config.json`, and the run
 
 ## Language detection
 
-The hook reads the explicit `languages` array from `intent/.config/config.json` and dispatches one critic per entry:
+The hook asks the binary for the explicit `languages` array in `intent/.config/config.json` and dispatches one critic per entry:
 
 ```bash
-jq -r '(.languages // []) | .[]' intent/.config/config.json
+intent lang declared
 ```
 
-An empty or absent array means no language critics run, and so does a machine without `jq`; either way the gate prints a `0 of 0 declared language(s)` line naming which of the two it was. This replaced filesystem-marker detection (`mix.exs` ⇒ elixir, and so on) in v2.11.0 / ST0037, on the grounds that file presence is not evidence of language-in-use. Declare with `intent lang init <lang>`; remove with `intent lang remove <lang>`.
+An empty or absent array means no language critics run, and the gate prints a `0 of 0 declared language(s)` line that says so. When `intent lang declared` exits `4` because the config cannot be read, no language critic runs and the same line says the languages are unknown; any other refusal refuses the commit. This replaced filesystem-marker detection (`mix.exs` ⇒ elixir, and so on) in v2.11.0 / ST0037, on the grounds that file presence is not evidence of language-in-use. Declare with `intent lang init <lang>`; remove with `intent lang remove <lang>`.
 
 `intent critic` owns the code-versus-prose classification from its single registry, so a prose discipline (`author`, `content`) returns a clean no-op here rather than needing the hook to know anything about languages.
 

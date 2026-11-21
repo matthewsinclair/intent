@@ -39,7 +39,7 @@ Views are realised lazily. Whether a thread is on disk is a field of its own rec
 
 `intent llm guide` prints the command reference for the build you are running. It is generated from the dispatch table compiled into the binary, so it lists what that build ships, no more and nothing missing. `docs/reference/cut-surface.md` in the repository is the same register at a named revision. **Where this document names a command and the generated reference disagrees, the reference wins**, because it is measured from the dispatch table and this document is prose.
 
-This document and its siblings under `intent/docs/` live in Intent's repository, https://github.com/matthewsinclair/intent. A packaged install carries `lib/templates/`, the whole of `intent/plugins/claude/` (rules, skills, scripts and subagents) and `intent/plugins/agents/plugin.json`, and no `intent/docs/`.
+This document and its siblings under `intent/docs/` live in Intent's repository, https://github.com/matthewsinclair/intent. A packaged install carries `lib/templates/`, the whole of `intent/plugins/claude/` (rules, skills, scripts and subagents), `intent/plugins/agents/plugin.json`, and one file from `intent/docs/`: `critics.md`, the critic contract `intent claude rules contract` reads.
 
 ## Table of contents
 
@@ -238,7 +238,7 @@ The primary critic cadence is the git `pre-commit` hook, and `intent claude upgr
 - `pre-commit.intent` is a shim. It reads the install root from `~/.local/share/intent/home` and execs that install's gate, `lib/templates/hooks/pre-commit.sh`. When the pointer is absent or names something that is not an install, it refuses the commit rather than skipping.
 - The same run installs `post-merge`, `post-checkout` and `post-rewrite` blocks, each with a carrier from `lib/templates/hooks/post-pull.sh`, which runs `intent sync --apply` after a pull, a checkout or a rewrite.
 
-The gate runs a roster of repository guards, each only when its subject exists — whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, lines removed from an append-only path, a staged verblock that carries a second version stamp or runs past 100 characters (`verblock-guard.sh`, `IN-PR-STYLE-005`), and staged bytes the project's declared `formatters` (in `intent/.config/config.json`) would change (`staged-format-guard.sh`, which refuses and never writes) — and then `intent critic <lang> --staged --severity-min <sev>` once per declared language. The gate reads the declared languages with `jq`: on a machine without it no language critic runs, and every commit says so (`NO code critic ran in this commit`, `why: jq is not installed`) without being blocked by it. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine), and on `intent doctor` exiting 1; a doctor exit other than 0 or 1 is the gate's own breakage and fails open. The threshold is `severity_min` from `.intent_critic.yml`.
+The gate runs a roster of repository guards, each only when its subject exists: whiteboard timestamps and whiteboard header escaping (`intent/whiteboard/`), an ignore rule reaching `intent/.canon/`, lines removed from an append-only path, a staged verblock that carries a second version stamp or runs past 100 characters (`verblock-guard.sh`, `IN-PR-STYLE-005`), and staged bytes the project's declared `formatters` (in `intent/.config/config.json`) would change (`staged-format-guard.sh`, which refuses and never writes). Then it runs `intent critic <lang> --staged --severity-min <sev>` once per declared language. The gate reads the declared languages with `intent lang declared`, so it needs no `jq`. When none are declared, or the config cannot be read (`lang declared` exits 4), no language critic runs and every commit says so (`NO code critic ran in this commit`, with a `why:` line) without being blocked by it; any other refusal from `lang declared` refuses the commit. It blocks the commit on any guard refusal, on findings at or above the threshold (critic exit 1), and on a refusal (critic exit 3: a rule the project arms needs a tool that is absent on this machine), and on `intent doctor` exiting 1; a doctor exit other than 0 or 1 is the gate's own breakage and fails open. The threshold is `severity_min` from `.intent_critic.yml`.
 
 A project's own guards are declared in `intent/.config/config.json` as a `guards` array (each an argv `run` and an optional `when` path), and the gate runs them after Intent's roster. The declaration is tracked, so a fresh clone runs the same guards as the checkout it came from; a guard wired by hand into `.git/hooks/pre-commit` is lost on every clone, and `intent doctor` reports one as an advisory. The shape and the refusals are in `intent/docs/pre-commit-hook.md` under Project guards.
 
@@ -324,6 +324,9 @@ Ship shape (strict-gate default):
 
 ```json
 {
+  "permissions": {
+    "deny": ["Edit(/AGENTS.md)", "Edit(/.claude/AGENTS.md)"]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -376,9 +379,9 @@ How it works:
 The strict `UserPromptSubmit` hook uses a sentinel file to track whether `/in-session` has run in the current conversation. First-prompt flow:
 
 1. User types a message. `UserPromptSubmit` hook fires.
-2. A prompt starting with `/` passes. The prompt is read with `jq` where it is on PATH and from the raw payload where it is not. Otherwise the script checks for `/tmp/intent/in-session-<session_id>.sentinel`, where `<session_id>` is `$CLAUDE_CODE_SESSION_ID` (or `unknown` when that is unset). Absent → exit 2, which blocks the prompt, with this on stderr: _"Intent project: /in-session must run before your first prompt. Run /in-session now -- it loads project coding standards and releases this gate."_ followed by the expected sentinel path.
+2. A prompt starting with `/` passes. The prompt is read with `jq` where it is on PATH and from the raw payload where it is not. Otherwise the script checks for `/tmp/intent/in-session-<session_id>.sentinel`, where `<session_id>` is `$CLAUDE_CODE_SESSION_ID` (or `unknown` when that is unset). When `/in-session`'s `release-gate.sh` is not installed, the hook writes the sentinel itself, says in a `systemMessage` that the gate is off on this machine and names `intent claude skills install in-session`, and exits 0. Otherwise a missing sentinel → exit 2, which blocks the prompt, with this on stderr: _"Intent project: /in-session must run before your first prompt. Run /in-session now -- it loads project coding standards and releases this gate."_ followed by the expected sentinel path.
 3. User (or Claude, reading the message) invokes `/in-session`. The skill's `release-gate.sh` creates the sentinel.
-4. Next prompt: sentinel present → hook exits silently. User's prompt reaches Claude normally.
+4. Next prompt: sentinel present → the prompt reaches Claude normally and the hook exits 0. It may still print two notes: that the project's declared languages moved since `/in-session` ran, naming `/in-session` again, and any Desk asks waiting in `intent estate slots pending`.
 
 Why this design: Claude Code's hook API does not let a hook directly invoke a slash command. Sentinel-file tracking lets the hook fire every turn cheaply (one stat call) while only blocking until the session is bootstrapped.
 
@@ -433,7 +436,7 @@ Full contract in `intent/docs/critics.md`.
 The session-bootstrap flow handled by the `/in-session` skill:
 
 1. Invoke `/in-essentials` (universal workflow rules and formatting standards), whatever the project's languages.
-2. Read the `languages` array from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' ...`). For each language listed, invoke its essentials skill if one exists. `elixir` has `/in-elixir-essentials` + `/in-elixir-testing`, `author` has `/in-author-essentials`, and `content` has `/in-content-essentials`; Rust, Swift, Lua, and shell carry their coding rules through the rule library the installed tool serves (`intent claude rules list --lang <lang>`) and the `critic-<lang>` subagent applied on demand.
+2. Read the `languages` array in `intent/.config/config.json` through `intent lang declared`, one language per line. For each language listed, invoke its essentials skill if one exists. `elixir` has `/in-elixir-essentials` + `/in-elixir-testing`, `author` has `/in-author-essentials`, and `content` has `/in-content-essentials`; Rust, Swift, Lua, and shell carry their coding rules through the rule library the installed tool serves (`intent claude rules list --lang <lang>`) and the `critic-<lang>` subagent applied on demand.
 3. Elixir dep fan-out, when `mix.exs` is present:
    - `:ash` or `:ash_postgres` in `mix.exs` → `/in-ash-ecto-essentials`.
    - `:phoenix_live_view` in `mix.exs` → `/in-phoenix-liveview`.
@@ -546,12 +549,11 @@ intent lang init <lang> [<lang> ...]   # Declare one or more languages (idempote
 intent lang remove <lang> [<lang> ...] # Undeclare one or more languages (alias: rm)
 ```
 
-Or, at fresh project init time, via the `--lang` flag (comma- or space-separated), followed by `intent agents sync`: as built, `init --lang` generates `AGENTS.md` before it declares the languages, so the file says none are declared until a sync regenerates it (issue 0557).
+Or, at fresh project init time, via the `--lang` flag (comma- or space-separated). `init` declares the languages in the config's first write, so the `AGENTS.md` it renders already names them.
 
 ```bash
 intent init "My Project" --lang elixir             # one language
 intent init "My Project" --lang elixir,rust,shell  # or several
-intent agents sync                                 # then: AGENTS.md names them
 ```
 
 What `intent lang init <lang>` does: it adds the language to the `languages` array in `intent/.config/config.json`, and installs nothing into the project. The language's rules are served by the installed tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`). The declaration is what `AGENTS.md`'s language blocks, `/in-session`'s skill fan-out and the pre-commit gate's per-language critics read. `AGENTS.md` is not regenerated by the declaration: run `intent agents sync` (or `intent claude upgrade --apply`) afterwards.
