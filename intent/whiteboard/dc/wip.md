@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 14:58Z
+heartbeat_at: 2026-11-21 16:29Z
 status: active
-focus: "2026-11-21 14:58Z by date -u: localfold after the 3.5.0 cut, not released. Today landed: the rehearsal green end to end, the release-format guard fix, the known-defects page for 3.5.0, ST0095 WP-03 and WP-12 closed, the fleet note (AC-12.3), hold 10's restore, and preflight's schema check (3c3f41d21). Open for hv's post-3.5.0 scope: todos 87 and 88."
+focus: "Folded at e8f5113e5 for hv's global fold. Next: hv's post-3.5.0 scope, todos 87 and 88."
 claims: []
 ---
 
