@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z2V8DDAWWEJF3GNBKMAB3M",
+  "ts": "2026-11-21T12:56:05.805Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix is COMMITTED at 2614b16bd on a2c4fa1e2 (bank refs/bank/dc/st0095/elide/v1), sent to vc and cc at 12:55Z; cc stacks 0746 on it, and cc's one Desk run (shots twice with diff -rq included) is the final T's gate. Then satisfy AC-03.3 and close WP-03."
+  }
+}

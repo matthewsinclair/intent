@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 12:51Z
+heartbeat_at: 2026-11-21 12:56Z
 status: active
-focus: "2026-11-21 12:51Z by date -u: localfold for hv's 12:50Z compact, not released. Next: commit the ELIDE fix (tmp/wt-shots, critic-rust reading) and send vc and cc the sha; cc's 0746 run is the final T's gate; then rehearsal step 3's re-run, the leg-config compare and the kovacs record copy to main, then the cut. Keep tmp/wt-rehearsal-10141745e."
+focus: "2026-11-21 12:56Z by date -u: ELIDE fix committed 2614b16bd and sent to vc and cc. Waiting on cc's 0746 run (the final T's gate); then rehearsal step 3's re-run, the leg-config compare and the kovacs record copy to main, then the cut. Keep tmp/wt-rehearsal-10141745e."
 claims: [ST0095/03]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0095/03]
 
 ## DOING
 
-- ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix (find_build takes the stamp's commit in any form short_commit makes, eg dirty-<sha>) is UNCOMMITTED in tmp/wt-shots on a2c4fa1e2, critic-rust reading it; commit it with no gate of its own, send vc and cc the sha; cc's 0746 run on it is the final T's gate, shots twice with diff -rq included. Then satisfy AC-03.3 and close WP-03. (edited)
+- ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix is COMMITTED at 2614b16bd on a2c4fa1e2 (bank refs/bank/dc/st0095/elide/v1), sent to vc and cc at 12:55Z; cc stacks 0746 on it, and cc's one Desk run (shots twice with diff -rq included) is the final T's gate. Then satisfy AC-03.3 and close WP-03. (edited)
 - Intent 3.5.0 rehearsal (hv decision 78), dc leads, at T 10141745e then a51da38a0. Step 1 kovacs GREEN (3 gates, from tmp/wt-rehearsal-10141745e: KEEP it until the cut tags; its sealed leg record is copied to main's tmp/release/legs/kovacs before the cut, after comparing leg_config_lines at 10141745e and the final T). Step 2 build GREEN. Step 3 (clones) RED on the 0707 deadlock, now intent-cc's 0746 (the upgrade dehydrates HEAD-clean views of unrealised records); re-run at the final T in the product's order (driver rehearse-clones.sh restored). Step 4 (shots) re-runs as part of cc's final run. Step 5 DONE: release check shows after: bin/devbin cut publish --hold-tap alone; hv's terminal needs intent daemon stop, gh auth and the Developer ID and APPLE_* set. Report to vc and the Desk at the end; then ST0096 AC-03.1, ST0095 AC-03.3 and AC-12.2. (edited)
 
 ## TODO
