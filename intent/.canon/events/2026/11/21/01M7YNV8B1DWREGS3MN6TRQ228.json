@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNV8B1DWREGS3MN6TRQ228",
+  "ts": "2026-11-21T09:08:54.241Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "BOTH RIDE 3.5.0 (hv, 2026-11-21, first-hand in vc's question dialog, read by vc at the clock line of this commit; hv's option labels quoted). (1) ST0095 AC-12.1's routing half: \"Build it in 3.5.0\". `intent id --read-only` (size M) comes first, then rulings_check, declared_kind_check and view_skew_check are routed through it with shared read-only machinery, before the cut. (2) Issue 0745: \"Build it in 3.5.0\". `intent upgrade` names what it wrote (a per-directory summary or a written manifest, cc's design) before the cut. hv decision 69 holds without exception. Both ship after hv's 09:07Z estate fold and compact."
+  }
+}
