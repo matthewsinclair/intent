@@ -205,6 +205,10 @@ pub enum InitError {
   /// never reaches [`crate::project::Project::open`], where every other door
   /// meets the same refusal. Carries the repository's path.
   BareRepository(PathBuf),
+  /// The project's first event could not be minted: in the seeded build only,
+  /// its sequence file gave no next id (ST0095 AC-03.3). It is minted before
+  /// the store opens, so nothing was written.
+  Mint(crate::id::MintError),
 }
 
 impl std::fmt::Display for InitError {
@@ -256,6 +260,14 @@ impl std::fmt::Display for InitError {
           f,
           "{refusal}\n  remedy: {}. This run wrote nothing.",
           refusal.remedy()
+        )
+      }
+      Self::Mint(cause) => {
+        use crate::remedy::Remedy;
+        write!(
+          f,
+          "{cause}\n  remedy: {}. Nothing was written.",
+          cause.remedy()
         )
       }
     }
@@ -402,28 +414,31 @@ pub fn init_with_languages(
     return Err(InitError::WouldOverwrite(occupied));
   }
 
-  let mut store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
-  let cache_marking = store.take_cache_marking();
   // The event names who created the project by the rule every later event
   // uses (ST0078 P1), so an `init` with no recorded author names git's identity.
   let principal = crate::facade::author_at(root, author);
-  let stamp = store
-    .append_event(&Envelope::minted(
-      &principal,
-      project_name,
-      "init",
-      // The subject of an `init` event is the PROJECT, which has no natural
-      // id of its own the way a thread does -- its name is the id anyone would
-      // use to refer to it, and the project_id field beside it carries the
-      // same value. Written out rather than reached for through a constructor
-      // that does not exist.
-      Subject {
-        kind: "project".to_string(),
-        id: project_name.to_string(),
-      },
-      serde_json::json!({ "intent_version": intent_version }),
-    ))
-    .map_err(InitError::Store)?;
+  // **MINTED BEFORE THE STORE IS OPENED**, so a mint that fails (the seeded
+  // build's sequence file, ST0095 AC-03.3) leaves no store behind for the next
+  // `init` to refuse as an occupied path.
+  let created = Envelope::minted(
+    &principal,
+    project_name,
+    "init",
+    // The subject of an `init` event is the PROJECT, which has no natural
+    // id of its own the way a thread does -- its name is the id anyone would
+    // use to refer to it, and the project_id field beside it carries the
+    // same value. Written out rather than reached for through a constructor
+    // that does not exist.
+    Subject {
+      kind: "project".to_string(),
+      id: project_name.to_string(),
+    },
+    serde_json::json!({ "intent_version": intent_version }),
+  )
+  .map_err(InitError::Mint)?;
+  let mut store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
+  let cache_marking = store.take_cache_marking();
+  let stamp = store.append_event(&created).map_err(InitError::Store)?;
 
   // The schedule's default has ONE home: [`crate::project::BackupConfig`]. A
   // second literal here is how a default drifts from the thing that reads it.

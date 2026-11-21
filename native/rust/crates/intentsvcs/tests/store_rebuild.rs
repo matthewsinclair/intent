@@ -210,7 +210,8 @@ fn event_log_is_not_derived_and_survives_rebuild() {
       id: "ST0056/02".to_string(),
     },
     serde_json::json!({"from": "not-started", "to": "wip"}),
-  );
+  )
+  .expect("a default build mints every id");
   store.append_event(&envelope).expect("append");
 
   // A rebuild wipes derived tables only; the log is append-only state.

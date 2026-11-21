@@ -7993,7 +7993,7 @@ impl Facade {
         id: self.ctx.project_id.clone(),
       },
       payload,
-    );
+    )?;
     self
       .store
       .append_event(&envelope)
@@ -9985,7 +9985,7 @@ impl Facade {
         id: self.ctx.project_id.clone(),
       },
       json!({ "nodes": nodes, "from": "headers" }),
-    );
+    )?;
     let registered = self
       .store
       .wb_write(&event, |w| w.register_nodes(&nodes, false))
@@ -10035,7 +10035,7 @@ impl Facade {
           "wb.register",
           moniker,
           json!({ "name": name, "role": role, "reinstated": true }),
-        );
+        )?;
         self
           .store
           .wb_write(&event, |w| w.set_retired(moniker, None))
@@ -10091,7 +10091,7 @@ impl Facade {
       "wb.register",
       moniker,
       json!({ "name": name, "role": role }),
-    );
+    )?;
     let written = self
       .store
       .wb_write(&event, |w| {
@@ -10168,7 +10168,7 @@ impl Facade {
         claims: leaver.node.claims.clone(),
       });
     }
-    let event = self.wb_event("wb.retire", moniker, json!({ "reason": reason }));
+    let event = self.wb_event("wb.retire", moniker, json!({ "reason": reason }))?;
     let retired = crate::model::WbRetired {
       at: event.ts.clone(),
       reason: reason.to_string(),
@@ -10235,7 +10235,7 @@ impl Facade {
         "held_name": held.node.name,
         "held_role": held.node.role,
       }),
-    );
+    )?;
     self
       .store
       .wb_write(&event, |w| w.set_identity(moniker, name, role))
@@ -10588,7 +10588,7 @@ impl Facade {
         "retired": retiring,
         "declaration": declaration_moves,
       }),
-    );
+    )?;
     let at = event.ts.clone();
     let moved = self
       .store
@@ -10786,7 +10786,7 @@ impl Facade {
           .as_ref(),
       )
       .map_err(FacadeError::Store)?;
-    let event = self.wb_event("wb.init", "preview", json!({}));
+    let event = self.wb_event("wb.init", "preview", json!({}))?;
     let at = event.ts.clone();
     shadow
       .wb_write(&event, |w| {
@@ -10821,7 +10821,7 @@ impl Facade {
   /// shows its profile's default. Says whether the row moved.
   pub fn wb_remit(&mut self, moniker: &str, remit: Option<&str>) -> Result<bool, FacadeError> {
     self.require_migrated(moniker)?;
-    let event = self.wb_event("wb.remit", moniker, json!({ "remit": remit }));
+    let event = self.wb_event("wb.remit", moniker, json!({ "remit": remit }))?;
     let moved = self
       .store
       .wb_write(&event, |w| w.set_remit(moniker, remit))
@@ -10838,8 +10838,13 @@ impl Facade {
   /// **THE ACTING NODE IS THE SUBJECT**, so a node's history is one filter on
   /// the log. For `ask` and `announce` that is the sender: sending is the
   /// sender's act, and the recipient is an argument.
-  fn wb_event(&self, op: &str, node: &str, payload: serde_json::Value) -> Envelope {
-    Envelope::minted(
+  fn wb_event(
+    &self,
+    op: &str,
+    node: &str,
+    payload: serde_json::Value,
+  ) -> Result<Envelope, FacadeError> {
+    Ok(Envelope::minted(
       &self.ctx.principal,
       &self.ctx.project_id,
       op,
@@ -10848,7 +10853,7 @@ impl Facade {
         id: node.to_string(),
       },
       payload,
-    )
+    )?)
   }
 
   /// The host's estate (ST0086): every Claude Code session on it, joined to
@@ -11715,7 +11720,7 @@ impl Facade {
   pub fn wb_touch(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
-    let event = self.wb_event("wb.touch", node, json!({}));
+    let event = self.wb_event("wb.touch", node, json!({}))?;
     self
       .store
       .wb_write(&event, |w| w.touch(node))
@@ -11734,7 +11739,7 @@ impl Facade {
   pub fn wb_release(&mut self, node: &str) -> Result<(), FacadeError> {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
-    let event = self.wb_event("wb.release", node, json!({}));
+    let event = self.wb_event("wb.release", node, json!({}))?;
     self
       .store
       .wb_write(&event, |w| {
@@ -11784,7 +11789,7 @@ impl Facade {
       "wb.pickup",
       node,
       json!({ "session_id": session_id, "focus": focus }),
-    );
+    )?;
     self
       .store
       .wb_write(&event, |w| {
@@ -11996,7 +12001,7 @@ impl Facade {
     } else {
       "wb.add"
     };
-    let event = self.wb_event(op, node, json!({ "kind": wire, "text": text }));
+    let event = self.wb_event(op, node, json!({ "kind": wire, "text": text }))?;
     let seq = self
       .store
       .wb_write(&event, |w| w.insert_item(node, &wire, text, None))
@@ -12257,7 +12262,7 @@ impl Facade {
       "wb.migrate",
       node,
       json!({ "items": source.items.len(), "messages": messages.len() }),
-    );
+    )?;
     self
       .store
       .wb_write(&event, |w| {
@@ -12451,7 +12456,7 @@ impl Facade {
     self.require_writer_as(node)?;
     self.require_migrated(node)?;
     let wire = crate::model::enum_str(&kind);
-    let event = self.wb_event("wb.archive", node, json!({ "kind": wire, "seq": seq }));
+    let event = self.wb_event("wb.archive", node, json!({ "kind": wire, "seq": seq }))?;
     let moved = self
       .store
       .wb_write(&event, |w| w.archive_item(node, &wire, seq))
@@ -12492,7 +12497,7 @@ impl Facade {
       ..
     } = self.resolve_message(sender, recipient, id)?;
     let row_id = rows[index].id;
-    let template = self.wb_event("wb.archive", sender, json!({}));
+    let template = self.wb_event("wb.archive", sender, json!({}))?;
     let moved = self
       .store
       .wb_write_then_record(
@@ -12541,7 +12546,7 @@ impl Facade {
     if let Some(recipient) = recipient {
       self.require_migrated(recipient)?;
     }
-    let template = self.wb_event("wb.archive", sender, json!({}));
+    let template = self.wb_event("wb.archive", sender, json!({}))?;
     let archived = self
       .store
       .wb_write_then_record(
@@ -12655,7 +12660,7 @@ impl Facade {
           "wb.edit",
           node,
           json!({ "kind": wire, "seq": seq, "text": text }),
-        );
+        )?;
         self
           .store
           .wb_write(&event, |w| w.set_item_text(node, &wire, seq, text))
@@ -12894,7 +12899,7 @@ impl Facade {
             "n": n,
             "text": text,
           }),
-        );
+        )?;
         self
           .store
           .wb_write(&event, |w| w.set_message_body(&ids, text))
@@ -13186,7 +13191,7 @@ impl Facade {
       return Ok(false);
     }
     claims.push(claim.to_string());
-    let event = self.wb_event("wb.claim", node, json!({ "claim": claim }));
+    let event = self.wb_event("wb.claim", node, json!({ "claim": claim }))?;
     self
       .store
       .wb_write(&event, |w| w.set_claims(node, &claims))
@@ -13217,7 +13222,7 @@ impl Facade {
     if kept.len() == claims.len() {
       return Ok(false);
     }
-    let event = self.wb_event("wb.unclaim", node, json!({ "claim": claim }));
+    let event = self.wb_event("wb.unclaim", node, json!({ "claim": claim }))?;
     self
       .store
       .wb_write(&event, |w| w.set_claims(node, &kept))
@@ -13292,7 +13297,7 @@ impl Facade {
       "wb.ask",
       sender,
       json!({ "recipient": recipient, "body": body, "re": re, "fyi": fyi }),
-    );
+    )?;
     self
       .store
       .wb_write(&event, |w| {
@@ -13369,7 +13374,7 @@ impl Facade {
       "wb.announce",
       sender,
       json!({ "recipients": recipients, "body": body }),
-    );
+    )?;
     self
       .store
       .wb_write(&event, |w| {
@@ -13394,7 +13399,7 @@ impl Facade {
     self.require_writer_as(recipient)?;
     self.require_migrated(recipient)?;
     self.require_registered(sender)?;
-    let event = self.wb_event("wb.clear", recipient, json!({ "sender": sender }));
+    let event = self.wb_event("wb.clear", recipient, json!({ "sender": sender }))?;
     let cleared = self
       .store
       .wb_write(&event, |w| w.clear_inbox(sender, recipient))
@@ -14098,9 +14103,12 @@ impl Facade {
     &self,
     op: &str,
     subject: &str,
-  ) -> Result<impl FnMut() -> String + use<>, FacadeError> {
+  ) -> Result<impl FnMut() -> Result<String, crate::id::MintError> + use<>, FacadeError> {
     let mut logged = self.creation_origin(op, subject)?;
-    Ok(move || logged.take().unwrap_or_else(crate::event::next_id))
+    Ok(move || match logged.take() {
+      Some(origin) => Ok(origin),
+      None => crate::event::next_id(),
+    })
   }
 
   /// `intent sync --apply`: the plan, applied (ST0078 WP-05, AC-05.1 to 05.4).
@@ -15391,7 +15399,7 @@ impl Facade {
         id: self.ctx.project_id.clone(),
       },
       serde_json::Value::Null,
-    );
+    )?;
     let stamp = self
       .store
       .append_event(&envelope)
@@ -17702,12 +17710,18 @@ impl Facade {
       // The boards whose claims did move: theirs land, as any act's does (0614).
       let mut moved: Vec<&str> = Vec::new();
       for (node, claims) in &model.claims {
-        let event = self.wb_event("st.renumber", node, json!({ "from": from, "to": to }));
-        if let Err(cause) = self
-          .store
-          .wb_write(&event, |w| w.set_claims(node, claims))
-          .map_err(FacadeError::Store)
-        {
+        // The renumber is already in the store, so a mint that fails here (the
+        // seeded build's sequence file, ST0095 AC-03.3) is noted like the write
+        // beside it, never returned: returning would skip the boards that did move.
+        let moved_claims = self
+          .wb_event("st.renumber", node, json!({ "from": from, "to": to }))
+          .and_then(|event| {
+            self
+              .store
+              .wb_write(&event, |w| w.set_claims(node, claims))
+              .map_err(FacadeError::Store)
+          });
+        if let Err(cause) = moved_claims {
           rewritten.retain(|line| !line.starts_with(&format!("{node}'s claims:")));
           notes.push(Note::after_write(
             &format!("moving {node}'s claims"),
@@ -18118,7 +18132,7 @@ impl Facade {
         "to": crate::model::enum_str(&status),
         "reason": reason,
       }),
-    );
+    )?;
     let mut envelopes = vec![envelope];
     // **THE CASCADE IS KEYED ON THE RECORD, NOT ON THE OP, and that is the point
     // of putting it here.** A fiat close is the only thread transition that
@@ -18136,7 +18150,7 @@ impl Facade {
         id,
         &ancestor_event,
         record,
-      ));
+      )?);
     }
     // **A REMOVAL IS EDITED AFTER `apply` AND AN ADDITION BEFORE IT** (issue
     // 0079) -- see [`Facade::edit_list`] for why each order is chosen for its
@@ -18692,7 +18706,7 @@ impl Facade {
         "to": crate::model::enum_str(&status),
         "reason": reason,
       }),
-    );
+    )?;
     let mut envelopes = vec![envelope];
     // **SCOPED TO THIS PACKAGE'S OWN GROUP, so a package close does not reach a
     // sibling's criteria.** `Some(seq)` selects the AC group exactly as
@@ -18711,7 +18725,7 @@ impl Facade {
         &ancestor,
         &ancestor_event,
         record,
-      ));
+      )?);
     }
     // Issue 0337: a close on an unwritten objective warns rather than passing in silence.
     let unwritten = status == WpStatus::Done
@@ -22043,7 +22057,7 @@ impl Facade {
         op,
         subject,
         payload,
-      ),
+      )?,
     })
   }
 
@@ -22108,7 +22122,7 @@ impl Facade {
       op,
       subject,
       payload,
-    );
+    )?;
     self.land_envelopes(&[envelope], next, project_state)
   }
 
@@ -22147,7 +22161,7 @@ impl Facade {
     ancestor: &str,
     ancestor_event: &str,
     record: &crate::model::FiatRecord,
-  ) -> Vec<Envelope> {
+  ) -> Result<Vec<Envelope>, crate::id::MintError> {
     let inherited = |extra: Option<&str>| crate::model::FiatRecord {
       because: record.because.clone(),
       by: record.by.clone(),
@@ -22165,7 +22179,9 @@ impl Facade {
     };
     let thread_id = thread.id.clone();
     let mut out = Vec::new();
-    let mut mint = |op: &str, subject: Subject| {
+    // A mint that fails (the seeded build's sequence file, ST0095 AC-03.3) ends
+    // the cascade at once, so no later mint advances the sequence for nothing.
+    let mut mint = |op: &str, subject: Subject| -> Result<(), crate::id::MintError> {
       out.push(Envelope::minted(
         &ctx.principal,
         &ctx.project_id,
@@ -22177,7 +22193,8 @@ impl Facade {
           "inherited_from": ancestor,
           "inherited_event": ancestor_event,
         }),
-      ));
+      )?);
+      Ok(())
     };
 
     // Work packages, thread close only -- a package close does not reach its
@@ -22198,7 +22215,7 @@ impl Facade {
               crate::id::IdKind::WorkPackage,
               crate::id::wp_address(&thread_id, wp.seq),
             ),
-          );
+          )?;
         }
       }
     }
@@ -22215,7 +22232,7 @@ impl Facade {
             kind: "ac".to_string(),
             id: format!("{}/{}", thread_id.as_str(), ac.id),
           },
-        );
+        )?;
       }
     }
 
@@ -22241,11 +22258,11 @@ impl Facade {
             kind: "at".to_string(),
             id: format!("{}/{}", thread_id.as_str(), at.id),
           },
-        );
+        )?;
       }
     }
 
-    out
+    Ok(out)
   }
 
   /// Refuse a write over a store that does not hold the canon this checkout

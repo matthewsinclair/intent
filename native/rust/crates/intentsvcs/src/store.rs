@@ -2527,6 +2527,10 @@ pub enum StoreError {
     #[source]
     cause: rusqlite::Error,
   },
+  /// A whiteboard message's id could not be minted: in the seeded build only,
+  /// its sequence file gave no next id (ST0095 AC-03.3). Nothing was written.
+  #[error(transparent)]
+  Mint(#[from] crate::id::MintError),
 }
 
 /// Is this SQLite failure the writer lock held past the wait? The one test
@@ -2733,6 +2737,7 @@ impl crate::remedy::Remedy for StoreError {
       Self::MigrationLeftDanglingRows { .. } => {
         "the migration was rolled back and the store is untouched at its previous version -- this is a defect in intent rather than in your data; report it with the version `intent doctor` prints".to_string()
       }
+      Self::Mint(cause) => crate::remedy::Remedy::remedy(cause),
     }
   }
 }
@@ -3871,7 +3876,7 @@ impl WbWrite<'_> {
     fyi: bool,
     authored_at: Option<&str>,
   ) -> Result<String, StoreError> {
-    let mid = crate::event::next_id();
+    let mid = crate::event::next_id()?;
     self.moved += self.tx.execute(
       "INSERT INTO wb_message (mid, sender, recipient, body, re, fyi, recorded_at, authored_at, \
        updated_at) \

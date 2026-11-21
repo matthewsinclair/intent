@@ -93,16 +93,65 @@ if [ -z "$VERSION" ] || [ -z "$COMMIT" ]; then
   exit 1
 fi
 
-# Built before HOME moves, and --locked, because a run of this must never
-# rewrite the lock.
-SHOTS="$(cargo build --quiet --locked --manifest-path "$ROOT/native/rust/Cargo.toml" \
-  -p intent-cli --example explorer_shots --message-format=json-render-diagnostics \
-  | jq -r 'select(.reason == "compiler-artifact" and .target.name == "explorer_shots") | .executable')" \
-  || { echo "error: cargo could not build the explorer_shots example (its diagnostics are above)" >&2; exit 1; }
-if [ -z "$SHOTS" ] || [ ! -x "$SHOTS" ]; then
-  echo "error: cargo built no explorer_shots example to run" >&2
-  exit 1
-fi
+# built_executable <target> <what> <cargo build args...> -- build one target,
+# --quiet and --locked because a run of this must never rewrite the lock, and
+# print the executable cargo reports for it. A failed build, or one that names
+# no executable, refuses: the one reading of a cargo build this script makes.
+built_executable() {
+  local target="$1" what="$2" path
+  shift 2
+  path="$(cargo build --quiet --locked --manifest-path "$ROOT/native/rust/Cargo.toml" "$@" \
+    --message-format=json-render-diagnostics \
+    | jq -r --arg t "$target" \
+      'select(.reason == "compiler-artifact" and .target.name == $t and .executable != null) | .executable')" \
+    || { echo "error: cargo could not build $what (its diagnostics are above)" >&2; exit 1; }
+  if [ -z "$path" ] || [ ! -x "$path" ]; then
+    echo "error: cargo built no $what" >&2
+    exit 1
+  fi
+  printf '%s\n' "$path"
+}
+
+# Built before HOME moves.
+SHOTS="$(built_executable explorer_shots "the explorer_shots example" -p intent-cli --example explorer_shots)"
+
+# THE SEED'S OWN `intent` (ST0095 AC-03.3): a debug build with the `seeded-ids`
+# feature, which takes its event ids from the sequence file INTENT_SEEDED_IDS
+# names, so two runs of this script mint the same ids and write the same images.
+# A release build cannot carry the feature, and the binary a person installs
+# has no seed at all. Built into a target directory of its own, never the
+# shared one, so the tree's own pair is never a seeded one. Only `intent` is
+# built: the seeding verbs never reach intentd.
+SEEDED="$(built_executable intent "the seeded intent" \
+  --target-dir "$ROOT/native/rust/target/seeded-ids" -p intent-cli --bin intent --features seeded-ids)"
+SEEDED_BIN="$(dirname "$SEEDED")"
+
+# The day the seed's ids are minted on: the example's PINNED_DATE, the one date
+# every shot draws, read from its source so the date has one home. A run on any
+# day then mints the same ids, so a regeneration moves no published pixel.
+EXAMPLE="$ROOT/native/rust/crates/intent-cli/examples/explorer_shots.rs"
+ID_DATE="$(sed -n 's/^const PINNED_DATE: &str = "\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\)";$/\1/p' "$EXAMPLE")"
+[ -n "$ID_DATE" ] \
+  || die "no PINNED_DATE in $EXAMPLE" "the seed mints its ids on the example's pinned date: restore \`const PINNED_DATE: &str = \"YYYY-MM-DD\";\` there"
+
+# The start of the sequence: a ULID whose time half is $1 (YYYY-MM-DD) at
+# 00:00Z and whose random half is zero, so the ids read as that day. Each mint
+# takes the next ULID after the one the file holds (event.rs), so the first id
+# minted is this one's increment.
+seed_ulid() {
+  local secs ms alphabet out i
+  secs="$(date -u -j -f '%Y-%m-%d %H:%M:%S' "$1 00:00:00" +%s 2>/dev/null)" \
+    || secs="$(date -u -d "$1 00:00:00" +%s 2>/dev/null)" \
+    || die "cannot turn the date $1 into epoch seconds" "check PINNED_DATE in $EXAMPLE is a real YYYY-MM-DD date; this date(1) takes neither BSD's -j -f nor GNU's -d"
+  ms=$((secs * 1000))
+  alphabet=0123456789ABCDEFGHJKMNPQRSTVWXYZ
+  out=""
+  for i in 0 1 2 3 4 5 6 7 8 9; do
+    out="${alphabet:$((ms % 32)):1}$out"
+    ms=$((ms / 32))
+  done
+  printf '%s0000000000000000\n' "$out"
+}
 
 TMP="$(mktemp -d)"
 mkdir "$DEMO"
@@ -239,9 +288,16 @@ seed_warehouse() {
 # The dates the seed can stamp, in UTC and in local time, read on both sides
 # of seeding so a run that crosses midnight is covered too.
 SEED_DATES=("$(date -u +%F)" "$(date +%F)")
+# Seed with the seeded intent first on PATH and its sequence file named, and with
+# nothing else: the shots render as they always have.
+seed_ulid "$ID_DATE" > "$TMP/ids"
+UNSEEDED_PATH="$PATH"
+export PATH="$SEEDED_BIN:$PATH" INTENT_SEEDED_IDS="$TMP/ids"
 seed_shopfront
 seed_warehouse
 intent discover "$DEMO" >> "$LOG"
+export PATH="$UNSEEDED_PATH"
+unset INTENT_SEEDED_IDS
 SEED_DATES+=("$(date -u +%F)" "$(date +%F)")
 DATE_ARGS=()
 while read -r d; do

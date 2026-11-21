@@ -50,13 +50,15 @@ fn issue_beside(id: &IssueId) -> IssueId {
 }
 
 /// The draws a scripted mint is handed, in order.
-fn scripted<'a>(origins: &'a [&'a str]) -> impl FnMut() -> String + 'a {
+fn scripted<'a>(origins: &'a [&'a str]) -> impl FnMut() -> Result<String, MintError> + 'a {
   let mut next = origins.iter();
   move || {
-    next
-      .next()
-      .expect("the mint drew more than the script holds")
-      .to_string()
+    Ok(
+      next
+        .next()
+        .expect("the mint drew more than the script holds")
+        .to_string(),
+    )
   }
 }
 
@@ -132,7 +134,7 @@ fn the_mint_refuses_after_its_bounded_draws() {
   let mut drawn = 0;
   let refused = mint(&visible, || {
     drawn += 1;
-    FIXTURE_ORIGIN.to_string()
+    Ok(FIXTURE_ORIGIN.to_string())
   })
   .expect_err("every draw shows a visible short form");
   assert_eq!(

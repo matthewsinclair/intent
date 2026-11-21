@@ -146,6 +146,10 @@ pub enum SlotError {
   },
   #[error("which sessions are alive could not be read: {why}")]
   NoLiveness { why: String },
+  /// A request's id could not be minted: in the seeded build only, its sequence
+  /// file gave no next id (ST0095 AC-03.3).
+  #[error(transparent)]
+  Mint(#[from] crate::id::MintError),
 }
 
 impl crate::remedy::Remedy for SlotError {
@@ -179,6 +183,7 @@ impl crate::remedy::Remedy for SlotError {
       Self::Unwritable { .. } => "check that the estate's state directory is writable. The record was not changed.".to_string(),
       Self::Unremovable { .. } => "check the file's permissions. Nothing else was changed.".to_string(),
       Self::NoLiveness { .. } => "a take must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone controller from a live one. Nothing was written.".to_string(),
+      Self::Mint(cause) => crate::remedy::Remedy::remedy(cause),
     }
   }
 }
@@ -1216,7 +1221,7 @@ pub fn hold(
       lane: l.to_string(),
     });
   }
-  let id = crate::event::next_id();
+  let id = crate::event::next_id()?;
   let path = holds_dir(dirs).join(format!("{id}.json"));
   write_once(
     &path,
@@ -1409,7 +1414,7 @@ pub fn ask(
       reference: None,
     }))
     .collect();
-  let id = crate::event::next_id();
+  let id = crate::event::next_id()?;
   let path = requests_dir(dirs).join(&id).join("ask.json");
   write_once(
     &path,

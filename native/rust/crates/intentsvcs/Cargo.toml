@@ -81,6 +81,15 @@ lang-lua = ["dep:tree-sitter-lua"]
 # `shell` in a project's `languages` maps here: bash is the syntax the shell
 # rules are written against.
 lang-bash = ["dep:tree-sitter-bash"]
+# **SEEDED EVENT IDS, FOR THE EXPLORER SHOTS' OWN DEBUG BUILD AND NOTHING ELSE**
+# (ST0095 AC-03.3, intent-cc's design). Off by default, and a release build with
+# it does not compile (`event.rs`), so a binary a person can install carries no
+# seed: no env name, no code path, nothing to refuse. With it, `event::next_id`
+# takes its ids from the sequence file `INTENT_SEEDED_IDS` names, so two runs of
+# one command sequence mint the same ids.
+# So `--all-features --release` is refused on purpose; the one --all-features
+# run devbin makes, `dormancy`, is a debug test run, and gates nothing.
+seeded-ids = []
 
 [dev-dependencies]
 testkit = { path = "../testkit" }

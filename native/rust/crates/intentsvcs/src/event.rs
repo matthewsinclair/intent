@@ -385,7 +385,16 @@ impl Subject {
 /// **THE CRATE'S ONE MINTER**: a whiteboard message's id comes from here too
 /// (issue 0612), so an announce's rows, minted in one transaction, sort in the
 /// order they were written, as a cascade's events do.
-pub(crate) fn next_id() -> String {
+///
+/// **FALLIBLE ONLY IN THE SEEDED BUILD** (ST0095 AC-03.3, intent-cc's design).
+/// A default build always answers `Ok`; a `seeded-ids` build with
+/// `INTENT_SEEDED_IDS` set takes the id from that sequence file and refuses,
+/// rather than falling back to a random id, when the file cannot give one.
+pub(crate) fn next_id() -> Result<String, crate::id::MintError> {
+  #[cfg(feature = "seeded-ids")]
+  if let Some(seeded) = seeded::next() {
+    return seeded;
+  }
   use std::sync::Mutex;
   static GEN: Mutex<Option<ulid::Generator>> = Mutex::new(None);
   let mut guard = match GEN.lock() {
@@ -395,9 +404,86 @@ pub(crate) fn next_id() -> String {
     Err(poisoned) => poisoned.into_inner(),
   };
   let generator = guard.get_or_insert_with(ulid::Generator::new);
-  match generator.generate() {
+  Ok(match generator.generate() {
     Ok(id) => id.to_string(),
     Err(_) => ulid::Ulid::new().to_string(),
+  })
+}
+
+/// **NO RELEASE BUILD MAY CARRY THE SEED** (ST0095 AC-03.3, intent-cc's rule):
+/// a binary a person can install has no env name, no code path and nothing to
+/// refuse. The feature exists for the explorer shots' own debug build alone.
+#[cfg(all(feature = "seeded-ids", not(debug_assertions)))]
+compile_error!(
+  "seeded-ids makes colliding ids for the explorer shots' debug build; no release build may carry it"
+);
+
+/// The seeded build's minter (ST0095 AC-03.3): ids from a sequence file, so two
+/// runs of one command sequence mint the same ids.
+///
+/// **A FILE, NOT A SEED NUMBER**, because every `intent` the shots script runs
+/// is a new process: an in-process counter restarts with each, and the second
+/// command would mint the first's ids. The file carries the sequence across
+/// processes. Each mint reads the last ULID, takes its `increment()`, writes it
+/// back and returns it, so ids stay monotonic and lexical order is still mint
+/// order, as [`next_id`] promises. The script writes the first ULID.
+///
+/// **ONE WRITER AT A TIME, WHICH THE SHOTS SCRIPT IS.** The read and the write
+/// back hold no lock, so two processes minting from one file at once could take
+/// one id twice. The script runs its verbs one after another and nothing else
+/// names the file, so that never happens; a caller that ran mints in parallel
+/// would need a lock first. The write goes through a sibling file and a rename,
+/// so a reader never meets a half-written one.
+#[cfg(feature = "seeded-ids")]
+pub(crate) mod seeded {
+  use crate::id::MintError;
+  use std::path::Path;
+
+  /// What a refused seeded mint tells the operator: beside the one read of the
+  /// name, so the two cannot drift apart (critic-rust, Highlander).
+  pub(crate) fn remedy(file: &Path) -> String {
+    format!(
+      "this command minted no id from the sequence. Write a starting ULID to {}, as \
+       gen_explorer_shots.sh does, or unset INTENT_SEEDED_IDS",
+      file.display()
+    )
+  }
+
+  /// The next id from the sequence file `INTENT_SEEDED_IDS` names, or `None`
+  /// when the name is unset and the build mints as a default one does.
+  ///
+  /// **THE ONE READ OF THE NAME, WRITTEN AS A LITERAL AND ONLY IN THIS
+  /// FEATURE-GATED MODULE** (hv's ruling on the AC-11.3 guard):
+  /// `no_intent_home.rs` lists it under `FEATURE_ONLY`, proves it sits here
+  /// and nowhere else, and that `seeded-ids` is in no crate's defaults, so the
+  /// shipped surface still reads exactly its `ALLOWED` names.
+  pub(super) fn next() -> Option<Result<String, MintError>> {
+    let file = std::env::var_os("INTENT_SEEDED_IDS")?;
+    Some(from_file(Path::new(&file)))
+  }
+
+  fn from_file(file: &Path) -> Result<String, MintError> {
+    let refused = |why: String| MintError::Seeded {
+      file: file.to_path_buf(),
+      why,
+    };
+    let text =
+      std::fs::read_to_string(file).map_err(|e| refused(format!("cannot read it: {e}")))?;
+    let last: ulid::Ulid = text
+      .trim()
+      .parse()
+      .map_err(|e| refused(format!("it does not hold a ULID: {e}")))?;
+    let next = last
+      .increment()
+      .ok_or_else(|| refused(format!("{last} has no next ULID")))?
+      .to_string();
+    let mut staged = file.as_os_str().to_owned();
+    staged.push(".next");
+    let staged = std::path::PathBuf::from(staged);
+    std::fs::write(&staged, format!("{next}\n"))
+      .and_then(|()| std::fs::rename(&staged, file))
+      .map_err(|e| refused(format!("cannot write the next one back: {e}")))?;
+    Ok(next)
   }
 }
 
@@ -421,14 +507,24 @@ impl Envelope {
   /// [`to_jsonl`] refuses it: an unwritten envelope serialised into the
   /// history file would be a record claiming to have happened at the start of
   /// time.
+  ///
+  /// It fails only where the crate's event-id minter does: in the seeded
+  /// build, when its sequence file cannot give the next id (ST0095 AC-03.3).
   pub fn minted(
     principal: &str,
     project_id: &str,
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
-  ) -> Self {
-    Self::minted_as(next_id(), principal, project_id, op, subject, payload)
+  ) -> Result<Self, crate::id::MintError> {
+    Ok(Self::minted_as(
+      next_id()?,
+      principal,
+      project_id,
+      op,
+      subject,
+      payload,
+    ))
   }
 
   /// [`Envelope::minted`] with its id already drawn: a record's creation event,
@@ -712,7 +808,8 @@ mod tests {
       "st.new",
       Subject::of(crate::id::IdKind::Thread, "ST0001"),
       serde_json::json!({}),
-    );
+    )
+    .expect("a default build mints every id");
     e.ts = text.to_string();
     e
   }

@@ -86,6 +86,7 @@ lang-elixir = ["intentsvcs/lang-elixir"]
 lang-swift = ["intentsvcs/lang-swift"]
 lang-lua = ["intentsvcs/lang-lua"]
 lang-bash = ["intentsvcs/lang-bash"]
+seeded-ids = ["intentsvcs/seeded-ids"]
 
 [dev-dependencies]
 testkit = { path = "../testkit" }

@@ -32,6 +32,7 @@ fn minted() -> Envelope {
     subject(),
     serde_json::json!({"from": "not-started", "to": "wip"}),
   )
+  .expect("a default build mints every id")
 }
 
 /// A minted envelope has NO time, and the database gives it one.

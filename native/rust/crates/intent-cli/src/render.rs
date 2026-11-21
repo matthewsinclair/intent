@@ -9814,11 +9814,14 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
       // THE REFUSALS TAKE THE REFUSAL'S CODE. `WouldOverwrite` and
       // `Undeclarable` are the same kind of no as `AlreadyAProject` -- a verb
       // declining a job it could have done -- and `guide.rs` says that is a 1.
+      // A seeded build's sequence file that gives no id (ST0095 AC-03.3) is the
+      // same refusal every other verb gives through `FacadeError::Mint`: a 1.
       // The variants below are the tool unable to act at all, which is the 2.
       intentsvcs::init::InitError::AlreadyAProject(_)
       | intentsvcs::init::InitError::WouldOverwrite(_)
       | intentsvcs::init::InitError::Undeclarable(_)
-      | intentsvcs::init::InitError::BareRepository(_) => Failure::Error(message),
+      | intentsvcs::init::InitError::BareRepository(_)
+      | intentsvcs::init::InitError::Mint(_) => Failure::Error(message),
       _ => Failure::Unavailable(message),
     }
   })?;

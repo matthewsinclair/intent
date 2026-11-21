@@ -168,6 +168,85 @@ const CONFINED: &[(&str, &str)] = &[
   ("CLAUDE_CODE_SESSION_ID", "crates/intent-cli/src/render.rs"),
 ];
 
+/// A variable read only under a non-release cargo feature, in exactly one file:
+/// `(name, file, feature)`.
+///
+/// **hv RULED THIS LIST ON 2026-11-21 (decision 83), FOR ST0095 AC-03.3, AND
+/// IT IS NOT A SIDE DOOR TO `ALLOWED`.** The explorer shots' seeded build takes its event ids
+/// from the file `INTENT_SEEDED_IDS` names; no binary a person installs has the
+/// feature, so the shipped surface still reads exactly the names above. The
+/// test below proves each entry three ways (intent-cc's conditions): the read
+/// sits in its one file, every mention of the name there lies inside an item
+/// gated on the feature, and no crate's `default` features carry it, read from
+/// each Cargo.toml rather than restated. The feature's `compile_error!` without
+/// debug_assertions is the build-time half: no release build can carry it.
+///
+/// A new entry needs what an `ALLOWED` row needs: a ruling, and a reason here.
+const FEATURE_ONLY: &[(&str, &str, &str)] = &[(
+  "INTENT_SEEDED_IDS",
+  "crates/intentsvcs/src/event.rs",
+  "seeded-ids",
+)];
+
+/// Whether every mention of `name` as a string literal in `code` lies inside a
+/// top-level item whose attribute line is `#[cfg(feature = "<feature>")]`. The
+/// item is found by walking up to the nearest line that starts at column zero
+/// and is not a closing brace; `code` has its comment lines stripped already.
+/// **It relies on rustfmt's layout**, which CI's `cargo fmt --check` holds: an
+/// item written indented at the top level would not read as an item here.
+fn only_under_feature(code: &str, name: &str, feature: &str) -> bool {
+  let gate = format!("#[cfg(feature = \"{feature}\")]");
+  let quoted = format!("\"{name}\"");
+  let lines: Vec<&str> = code.lines().collect();
+  let mut found = false;
+  for (at, line) in lines.iter().enumerate() {
+    if !line.contains(&quoted) {
+      continue;
+    }
+    found = true;
+    let item = (0..=at).rev().find(|&i| {
+      let l = lines[i];
+      !l.is_empty() && !l.starts_with(char::is_whitespace) && !l.starts_with('}')
+    });
+    let gated = item.is_some_and(|i| i > 0 && lines[i - 1].trim() == gate);
+    if !gated {
+      return false;
+    }
+  }
+  found
+}
+
+/// Where a manifest names `feature`: `(definitions, other_mentions)`, its comment
+/// lines skipped. A definition is a line that opens `<feature> =`, the feature's
+/// own entry or a pass-through of it.
+///
+/// **ANY OTHER MENTION IS ONE THE SHIPPED BUILD COULD TURN ON**, whatever its
+/// shape: a `default` list (on one line or several), another feature that
+/// reaches it, or a dependency's `features = [...]`. So the proof is not "absent
+/// from `default`", which a multi-line array or a second hop slips past, but
+/// "named nowhere but its own definition".
+fn feature_mentions(manifest: &str, feature: &str) -> (usize, Vec<String>) {
+  let quoted = format!("\"{feature}\"");
+  let passed = format!("/{feature}\"");
+  let mut definitions = 0;
+  let mut others = Vec::new();
+  for line in manifest.lines() {
+    let line = line.trim();
+    if line.starts_with('#') {
+      continue;
+    }
+    let defines = line
+      .strip_prefix(feature)
+      .is_some_and(|rest| rest.trim_start().starts_with('='));
+    if defines {
+      definitions += 1;
+    } else if line.contains(&quoted) || line.contains(&passed) {
+      others.push(line.to_string());
+    }
+  }
+  (definitions, others)
+}
+
 /// Every `.rs` under every crate's `src/`, discovered by walking.
 ///
 /// **`src/` only, unlike `one_clock.rs`, and the difference is the rule rather
@@ -323,6 +402,7 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
   );
 
   let mut named = BTreeSet::new();
+  let mut feature_only_seen = BTreeSet::new();
   let mut offenders = Vec::new();
 
   for file in &files {
@@ -331,6 +411,7 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
       .unwrap_or(file)
       .display()
       .to_string();
+    let posix = shown.replace('\\', "/");
     let code = code_of(file);
     for import in env_imports(&code) {
       offenders.push(format!(
@@ -340,11 +421,24 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
     for read in env_reads(&code) {
       match read {
         Read::Named(name) => {
-          if !ALLOWED.contains(&name.as_str()) {
-            offenders.push(format!("{shown}: reads ${name}"));
+          let feature_only = FEATURE_ONLY.iter().find(|(n, _, _)| *n == name);
+          match feature_only {
+            // Its one file: proven below, with the defaults. It never joins
+            // `named`, the shipped surface's set.
+            Some((_, home, _)) if posix == *home => {
+              feature_only_seen.insert(name);
+              continue;
+            }
+            Some((_, home, feature)) => offenders.push(format!(
+              "{shown}: reads ${name}, which is read only under the `{feature}` feature and only in {home}"
+            )),
+            None if !ALLOWED.contains(&name.as_str()) => {
+              offenders.push(format!("{shown}: reads ${name}"));
+            }
+            None => {}
           }
           if let Some((_, sole)) = CONFINED.iter().find(|(n, _)| *n == name)
-            && shown.replace('\\', "/") != *sole
+            && posix != *sole
           {
             offenders.push(format!(
               "{shown}: reads ${name}, which is allowed only in {sole} -- route it through that module rather than reading it here"
@@ -377,6 +471,56 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
     named.contains("COLUMNS"),
     "the scanner found no read of $COLUMNS, which render.rs demonstrably does -- so the scanner is broken and its clean result above means nothing. Found: {named:?}"
   );
+
+  // **EACH FEATURE_ONLY ENTRY, PROVEN OUT OF WHAT SHIPS** (hv's ruling,
+  // intent-cc's conditions): one ruling per name, found where it says, every
+  // mention gated on its feature, and the feature named in no manifest but by its
+  // own definition, so nothing a person builds turns it on.
+  for (name, _, _) in FEATURE_ONLY {
+    assert!(
+      !ALLOWED.contains(name) && !CONFINED.iter().any(|(n, _)| n == name),
+      "${name} is in FEATURE_ONLY and in ALLOWED or CONFINED too: each name takes exactly one ruling"
+    );
+  }
+  // Every manifest: the workspace root's, and each crate's that has a `src/`,
+  // none of them dropped quietly.
+  let mut manifests = vec![root.join("Cargo.toml")];
+  for entry in std::fs::read_dir(root.join("crates")).expect("read the crates dir") {
+    let dir = entry.expect("read a crates entry").path();
+    if dir.join("src").is_dir() {
+      manifests.push(dir.join("Cargo.toml"));
+    }
+  }
+  let read = |manifest: &Path| {
+    std::fs::read_to_string(manifest).unwrap_or_else(|e| panic!("read {}: {e}", manifest.display()))
+  };
+  for (name, home, feature) in FEATURE_ONLY {
+    assert!(
+      feature_only_seen.contains(*name),
+      "the scanner found no read of ${name} in {home}, which FEATURE_ONLY says is there -- the entry is stale or the scanner is broken"
+    );
+    assert!(
+      only_under_feature(&code_of(&root.join(home)), name, feature),
+      "{home} mentions \"{name}\" outside an item gated on `#[cfg(feature = \"{feature}\")]`, so the shipped binary could read it"
+    );
+    let mut defined = 0;
+    for manifest in &manifests {
+      let (definitions, others) = feature_mentions(&read(manifest.as_path()), feature);
+      defined += definitions;
+      assert!(
+        others.is_empty(),
+        "{} names `{feature}` outside its own definition, so a build of it can turn ${name} on whatever FEATURE_ONLY calls it:\n  {}",
+        manifest.display(),
+        others.join("\n  ")
+      );
+    }
+    // The positive control: a reader that found no definition anywhere would
+    // pass the line above by reading nothing.
+    assert!(
+      defined > 0,
+      "no manifest defines `{feature}`, so the check above read nothing that names it"
+    );
+  }
 }
 
 /// The three environments a machine can be in, as far as `INTENT_HOME` goes.

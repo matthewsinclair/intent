@@ -47,6 +47,8 @@ mod a_close_names_what_the_next_organize_removes;
 mod a_closed_stdout_ends_quietly;
 #[path = "a_creating_verb_names_what_it_overwrote.rs"]
 mod a_creating_verb_names_what_it_overwrote;
+#[path = "a_default_build_has_no_seeded_ids.rs"]
+mod a_default_build_has_no_seeded_ids;
 #[path = "a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict.rs"]
 mod a_doctor_acknowledgement_stays_visible_and_leaves_the_verdict;
 #[path = "a_door_takes_a_hashed_ids_prefix.rs"]

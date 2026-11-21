@@ -114,7 +114,8 @@ fn plant(fx: &Fixture, op: &str) {
       id: crate::common::PROJECT_ID.to_string(),
     },
     serde_json::json!({}),
-  );
+  )
+  .expect("a default build mints every id");
   facade
     .store()
     .append_event(&envelope)

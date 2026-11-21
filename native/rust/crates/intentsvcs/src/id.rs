@@ -806,8 +806,11 @@ impl Mintable for IssueId {
   }
 }
 
-/// Why the one mint made no id. Nothing was written: the mint runs inside the
-/// verb that asked, before any write.
+/// Why a mint made no id. A record id's mint ([`mint`]) runs inside the verb
+/// that asked, before any write, so `Taken` and `ShortFormsShared` wrote
+/// nothing. `Seeded` comes from the crate's event-id minter, which some verbs
+/// reach after an act (organize's record of what it moved), so it claims
+/// nothing about writes: a verb that had already written names that itself.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MintError {
   /// The id a draw derived is one this clone already holds. At sixty-four bits
@@ -816,6 +819,16 @@ pub enum MintError {
   /// Every one of [`MINT_DRAWS`] draws gave a short form a visible record of
   /// the kind already shows.
   ShortFormsShared { what: &'static str, draws: usize },
+  /// The seeded build's sequence file could not give the next event id (ST0095
+  /// AC-03.3): absent, unreadable, not a ULID, or at the end of its increments.
+  /// **No fallback to a random id**, which would make the run look reproducible
+  /// when it is not. Only a build with the `seeded-ids` feature, and so only a
+  /// debug build, has this variant.
+  #[cfg(feature = "seeded-ids")]
+  Seeded {
+    file: std::path::PathBuf,
+    why: String,
+  },
 }
 
 impl fmt::Display for MintError {
@@ -831,6 +844,12 @@ impl fmt::Display for MintError {
         f,
         "every one of {draws} new {what} ids shows a short form a {what} here already shows"
       ),
+      #[cfg(feature = "seeded-ids")]
+      MintError::Seeded { file, why } => write!(
+        f,
+        "the seeded id sequence at {} gave no next id: {why}",
+        file.display()
+      ),
     }
   }
 }
@@ -839,9 +858,15 @@ impl std::error::Error for MintError {}
 
 impl crate::remedy::Remedy for MintError {
   fn remedy(&self) -> String {
-    "nothing was written. A mint draws a fresh creation event for every id, so this is a defect \
-     in Intent, not in the project: report it with the command that met it"
-      .to_string()
+    match self {
+      #[cfg(feature = "seeded-ids")]
+      MintError::Seeded { file, .. } => crate::event::seeded::remedy(file),
+      MintError::Taken { .. } | MintError::ShortFormsShared { .. } => {
+        "nothing was written. A mint draws a fresh creation event for every id, so this is a \
+         defect in Intent, not in the project: report it with the command that met it"
+          .to_string()
+      }
+    }
   }
 }
 
@@ -869,13 +894,14 @@ pub fn verify<I: Mintable>(id: &I, origin: Option<&str>) -> bool {
 /// It refuses an id equal to a visible one, which at sixty-four bits never
 /// fires. It draws again while the new short form equals a visible record's,
 /// so two records that have met never show one short form, and it refuses
-/// after [`MINT_DRAWS`] draws rather than loop.
+/// after [`MINT_DRAWS`] draws rather than loop. A draw that cannot give an id
+/// (the seeded build's sequence file, ST0095 AC-03.3) is the refusal it names.
 pub fn mint<I: Mintable>(
   visible: &[I],
-  mut draw: impl FnMut() -> String,
+  mut draw: impl FnMut() -> Result<String, MintError>,
 ) -> Result<(String, I), MintError> {
   for _ in 0..MINT_DRAWS {
-    let origin = draw();
+    let origin = draw()?;
     let id = I::minted_from(&origin);
     if visible.contains(&id) {
       return Err(MintError::Taken {

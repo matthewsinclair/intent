@@ -172,7 +172,7 @@ fn create_issue(
       id: issue.number.stored(),
     },
     serde_json::json!({}),
-  );
+  )?;
   store.commit_mutation(intentsvcs::store::Mutation {
     threads: &[],
     issues: &[issue],
