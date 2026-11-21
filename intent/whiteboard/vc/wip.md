@@ -26,6 +26,7 @@ claims: []
   - once Intent's repository holds hashed ids, each fails closed or under-reaches loudly, and none fails open;
   - pr-checks.yml is routed in 3.5.0, and the drill (AC-12.2) runs in the rehearsal.
   The alternative is ic building `id --read-only`, then dc routing the three, with the cut after both. dc's follow-up text: release/wp12-routing-followup.md in dc's scratch.
+- FOR hv WHEN BACK, with the cut question and todo 95 (read at the clock line above): (1) start kovacs-sysadm so the rehearsal's step 1 (release gates --leg kovacs at tip T) can run; the rhadamanth steps run first. (2) issue 0745 (upgrade names what it wrote), sized larger than S by cc: may it be deferred from 3.5.0, given hv decision 69?
 
 ## Holds
 

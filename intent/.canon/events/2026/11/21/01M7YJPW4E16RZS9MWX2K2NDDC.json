@@ -1,0 +1,15 @@
+{
+  "id": "01M7YJPW4E16RZS9MWX2K2NDDC",
+  "ts": "2026-11-21T08:14:04.942Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "FOR hv WHEN BACK, with the cut question and todo 95 (read at the clock line above): (1) start kovacs-sysadm so the rehearsal's step 1 (release gates --leg kovacs at tip T) can run; the rhadamanth steps run first. (2) issue 0745 (upgrade names what it wrote), sized larger than S by cc: may it be deferred from 3.5.0, given hv decision 69?"
+  }
+}

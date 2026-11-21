@@ -3079,6 +3079,14 @@
       "text": "THE RESTORE AFTER THE TAP (hv decision 77), released when `bin/devbin cut tap` has run for 3.5.0. Then commit bin/.devbin/config.yaml's release.after back to `cut publish` plus `brew smoke --at-tag`, with release_publish.bats's release.after arm changed with it. The comment above release.after names both lines.",
       "state": "live",
       "recorded_at": "2026-11-21T06:17:12.271Z"
+    },
+    {
+      "node": "vc",
+      "kind": "todo",
+      "seq": 96,
+      "text": "FOR hv WHEN BACK, with the cut question and todo 95 (read at the clock line above): (1) start kovacs-sysadm so the rehearsal's step 1 (release gates --leg kovacs at tip T) can run; the rhadamanth steps run first. (2) issue 0745 (upgrade names what it wrote), sized larger than S by cc: may it be deferred from 3.5.0, given hv decision 69?",
+      "state": "live",
+      "recorded_at": "2026-11-21T08:14:04.942Z"
     }
   ],
   "sent": [
