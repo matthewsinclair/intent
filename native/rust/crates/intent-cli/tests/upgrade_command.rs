@@ -891,3 +891,88 @@ fn the_upgrade_names_every_path_it_changed_and_its_two_steps_commit_them() {
     "the second run does not say it left nothing to commit: {err}"
   );
 }
+
+/// Issue 0746 (0707's residue, hv decision 82). **A TRACKED VIEW OF A RECORD
+/// THE PROJECT NO LONGER REALISES IS REMOVED BY THE UPGRADE, AND ITS COMMIT
+/// PASSES DOCTOR.** A 3.4.0 project realised a thread with a package, so its
+/// cover was rendered in 3.4.0's shape and committed; then the thread left the
+/// manifest and its views stayed tracked. The release's cover differs from
+/// that one because the renderer changed, which the gate against today's
+/// render cannot tell from a hand edit, so before this the upgrade left the
+/// cover and doctor refused its commit. The cover is exactly what 3.4.0's
+/// format renders, so the upgrade removes it, names it, stages it through the
+/// closing line's two steps, and the commit leaves doctor nothing to refuse.
+/// A view carrying a person's edit is still kept: that arm is issue 0316's, in
+/// `upgrade_dehydrates_undeclared_thread_views`.
+#[test]
+fn the_upgrade_removes_a_tracked_view_of_an_unrealised_record_and_its_commit_passes_doctor() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "residue-fixture"], root);
+  assert_eq!(code, 0, "init: {err}");
+  crate::common::born_ordinal(root);
+  let st = intentsvcs::id::ThreadId::from_ordinal(1)
+    .expect("an ordinal thread")
+    .stored();
+  let package = "A package";
+  crate::common::seed_ordinal_thread(root, &st, "A thread once realised", &[(1, package)]);
+  let project = intentsvcs::project::Project::open(root).expect("the fixture project");
+  // Realised as 3.4.0 realised it, through the verb that hydrates.
+  let (_, err, code) = run(&["st", "hydrate", &st], root);
+  assert_eq!(code, 0, "the 3.4.0 project realises its thread: {err}");
+  let cover = project.st_dir().join(&st).join("info.md");
+  // **THE CONTROL**: 3.4.0's cover tables each package by title, and the
+  // release's cover replaces the table with a pointer to `intent wp list`. So
+  // this cover differs from its release render in text a person could have
+  // written, the gate against today's render keeps it, and only the gate
+  // against 3.4.0's render clears it.
+  assert!(
+    std::fs::read_to_string(&cover).is_ok_and(|text| text.contains(&format!("| {package}"))),
+    "the fixture's cover does not table its package in 3.4.0's shape: {err}"
+  );
+  git_ready(root);
+  // 0707's residue: the thread leaves the manifest and its views stay tracked.
+  crate::common::seed_init_manifest(root);
+  git(root, &["add", "--", "intent/.intentfiles"]);
+  git(
+    root,
+    &[
+      "commit",
+      "-q",
+      "-m",
+      "the thread unrealised, its views still tracked",
+    ],
+  );
+
+  let (_, err, code) = run(&["upgrade"], root);
+  assert_eq!(code, 0, "upgrade: {err}");
+  let cover_rel = project.relative(&cover);
+  assert!(
+    !cover.exists()
+      && err.contains(&format!(
+        "removed: {cover_rel} -- a view of a record this project does not realise"
+      )),
+    "the upgrade did not remove and name the cover 3.4.0's format renders: {err}"
+  );
+  let paths_file = "intent/.cache/upgrade.paths";
+  assert!(
+    nul_paths(&std::fs::read(root.join(paths_file)).expect("the paths file is written"))
+      .contains(&cover_rel),
+    "the paths file does not carry the cover's deletion: {err}"
+  );
+
+  git(
+    root,
+    &[
+      "add",
+      &format!("--pathspec-from-file={paths_file}"),
+      "--pathspec-file-nul",
+    ],
+  );
+  git(root, &["commit", "-q", "-m", "the upgrade"]);
+  let (out, derr, code) = run(&["doctor"], root);
+  assert_eq!(
+    code, 0,
+    "doctor refuses the upgrade's commit:\n{out}{derr}\nupgrade said:\n{err}"
+  );
+}

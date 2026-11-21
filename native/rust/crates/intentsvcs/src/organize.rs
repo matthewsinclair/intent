@@ -267,6 +267,20 @@ pub struct Plan {
   /// still holds their files (issue 0209). Their steps are absent from `steps`,
   /// and [`Plan::run`] reports each one as a refusal.
   pub held: Vec<Held>,
+  /// Each removal's render in an earlier canon format, which [`Plan::run`]
+  /// also gates it against (issue 0746). Empty on every plan but the one
+  /// [`Plan::with_earlier_renders`] fills, which only the upgrade's
+  /// post-landing dehydrate asks for: organize's own rule is unchanged.
+  ///
+  /// **A VIEW THE OLD RENDERER WOULD WRITE CARRIES NO HAND EDIT.** After the
+  /// move to the release's canon format, a tracked view of a record the
+  /// project does not realise differs from its render because the renderer
+  /// changed, which the gate against today's render cannot tell from a person's
+  /// edit. Against the render in the format the view was written in, it can:
+  /// the same [`gate`], with its footer tolerance and nothing wider, so a view
+  /// carrying any byte a person wrote, committed or not, is still kept (issue
+  /// 0316 holds whole).
+  pub earlier_renders: BTreeMap<PathBuf, Vec<u8>>,
 }
 
 /// A declared thread whose realisation is held back (issue 0209).
@@ -290,6 +304,20 @@ pub struct Held {
 }
 
 impl Plan {
+  /// [`gate`] against today's render, and, where it refuses, against the
+  /// step's render in an earlier canon format (issue 0746): one gate, asked of
+  /// each render this plan holds, and the first refusal kept for the report.
+  fn gate_in_any_format(&self, step: &Step) -> Result<(), OrganizeError> {
+    gate(step).or_else(|refused| match self.earlier_renders.get(&step.path) {
+      Some(earlier) => gate(&Step {
+        content: Some(earlier.clone()),
+        ..step.clone()
+      })
+      .map_err(|_| refused),
+      None => Err(refused),
+    })
+  }
+
   /// The thread that owns a step's path, as [`Project::owner_of`] answers it.
   fn thread_of(&self, path: &Path) -> Option<String> {
     let owner = self.project.owner_of(path);
@@ -318,6 +346,15 @@ impl Plan {
         .collect(),
       leftovers: crate::legacy::Leftovers::default(),
       held: Vec::new(),
+      ..self
+    }
+  }
+
+  /// This plan, with each removal also gated against its render in an
+  /// earlier canon format: see [`Plan::earlier_renders`] (issue 0746).
+  pub fn with_earlier_renders(self, earlier_renders: BTreeMap<PathBuf, Vec<u8>>) -> Plan {
+    Plan {
+      earlier_renders,
       ..self
     }
   }
@@ -1013,6 +1050,7 @@ pub fn plan(
     estate_root: project.st_dir(),
     project: project.clone(),
     held,
+    earlier_renders: BTreeMap::new(),
   }
 }
 
@@ -1533,7 +1571,7 @@ impl Plan {
       // Every step is gated first, and one refusal withholds the rest of its thread; an issue view stays per file.
       let gated: Vec<(&Step, Result<(), OrganizeError>)> = self
         .with(Action::Dehydrate)
-        .map(|step| (step, gate(step)))
+        .map(|step| (step, self.gate_in_any_format(step)))
         .collect();
       let refused_threads: BTreeSet<String> = gated
         .iter()

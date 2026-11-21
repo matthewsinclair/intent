@@ -6127,9 +6127,13 @@ fn upgrade() -> Result<(), Failure> {
     eprintln!("removed: {} (folded into the records)", path.display());
   }
   // **THE VIEWS OF UNDECLARED THREADS, NAMED PATH BY PATH** (issue 0316), and
-  // every refusal in organize's own words.
+  // every refusal in organize's own words. A `removed:` line, project-relative,
+  // because each is a deletion the closing line's commit carries (issue 0746).
   for path in &done.dehydrated {
-    eprintln!("dehydrated: {}", path.display());
+    eprintln!(
+      "removed: {} -- a view of a record this project does not realise",
+      project.relative(path)
+    );
   }
   // **COUNTED, NOT NAMED** (ST0078 P1's backfill): a file per event the store
   // already held, which is a project's whole history on its first run and

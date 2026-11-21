@@ -62,6 +62,12 @@ impl CanonFormat {
   /// The format a new project is born in, and the one `intent upgrade` writes.
   pub const CURRENT: Self = Self::V4;
 
+  /// Every format before [`CanonFormat::CURRENT`], oldest first: the ones a
+  /// view an earlier Intent rendered may have been written in, which the
+  /// upgrade's post-landing dehydrate renders again to tell a renderer's change
+  /// from a person's (issue 0746). A format added later joins it here.
+  pub const EARLIER: [Self; 1] = [Self::V3];
+
   /// The schema a `kind` file carries in this format: the one table of them.
   pub fn schema(self, kind: CanonKind) -> &'static str {
     match (self, kind) {

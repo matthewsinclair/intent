@@ -6344,7 +6344,8 @@ impl Facade {
         // **THE VIEWS OF EVERY UNDECLARED RECORD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
         // renders no undeclared thread's views and the gate removed only a
-        // byte-identical one, so a view an earlier binary rendered for a thread
+        // byte-identical one (and, since issue 0746, one identical to its render
+        // in an earlier canon format), so a view an earlier binary rendered for a thread
         // this run left undeclared had no owner, and an upgraded estate handed
         // its operator a hand deletion. The migration has LANDED by this line,
         // so a failure here is reported beside the refusals rather than
@@ -8890,7 +8891,9 @@ impl Facade {
   /// the declaration, and the one place a view an earlier binary rendered for a
   /// now-undeclared record can be given an owner without a new rule. Its
   /// refusals are organize's -- a hand edit, an unmet precondition -- and are
-  /// reported, never bypassed.
+  /// reported, never bypassed. A view is also gated against its render in an
+  /// earlier canon format (issue 0746, [`organize::Plan::earlier_renders`]),
+  /// so one the old renderer would write goes and a hand edit still stays.
   pub fn dehydrate_undeclared_record_views(&mut self) -> Result<organize::Report, FacadeError> {
     self.organize_run(organize::Mode::Apply, None, true)
   }
@@ -8960,8 +8963,31 @@ impl Facade {
           .collect()
       };
       let canon = &self.canon;
-      plan
-        .only_dehydrating(|p| views.contains(p) && views::owner(&self.project, p, canon).is_some())
+      let plan = plan
+        .only_dehydrating(|p| views.contains(p) && views::owner(&self.project, p, canon).is_some());
+      // **A VIEW THE OLD RENDERER WOULD WRITE IS GATED AGAINST THAT RENDER TOO**
+      // (issue 0746, cc's meaning, vc's ruling). This run is the upgrade's,
+      // after the move to the release's canon format, where a tracked view of
+      // an unrealised record differs from today's render because the renderer
+      // changed. Each candidate is also rendered in every earlier format and
+      // met by the same gate, footer tolerance and nothing wider, so a view
+      // carrying any byte a person wrote, committed or not, is still kept.
+      let mut earlier = BTreeMap::new();
+      for format in crate::canon_format::CanonFormat::EARLIER {
+        let mut ctx = self.render_ctx()?;
+        ctx.canon_format = format;
+        for view in views::render_all(&self.project, &self.canon, &ctx) {
+          if plan
+            .with(organize::Action::Dehydrate)
+            .any(|s| s.path == view.path)
+          {
+            earlier
+              .entry(view.path)
+              .or_insert_with(|| view.content.into_bytes());
+          }
+        }
+      }
+      plan.with_earlier_renders(earlier)
     } else {
       plan
     };
@@ -9266,6 +9292,8 @@ impl Facade {
       estate_root: whole.estate_root,
       project: whole.project,
       held: Vec::new(),
+      // Only the upgrade's run renders in an earlier format (issue 0746).
+      earlier_renders: BTreeMap::new(),
     };
     // **THE BYTES THAT WOULD GO ARE READ BEFORE ANY ARE WRITTEN.** A `Verify`
     // step is a view this artefact owns that is already on disk; the plan
@@ -9782,6 +9810,8 @@ impl Facade {
       estate_root: whole.estate_root,
       project: whole.project,
       held: Vec::new(),
+      // Only the upgrade's run renders in an earlier format (issue 0746).
+      earlier_renders: BTreeMap::new(),
     };
     // **ANNOUNCED HERE, WHICH IS THE LAST MOMENT BEFORE ANYTHING IS
     // IRREVERSIBLE.** Every refusal above has already been taken, so what is

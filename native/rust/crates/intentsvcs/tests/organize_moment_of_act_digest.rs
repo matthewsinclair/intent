@@ -73,6 +73,7 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
       estate_root: fx.path(""),
       project: fx.project(),
       held: Vec::new(),
+      earlier_renders: std::collections::BTreeMap::new(),
     },
   )
 }
