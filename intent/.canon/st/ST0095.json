@@ -607,7 +607,7 @@
     {
       "id": "AT-06.3",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/no_verb_mints_an_ordinal.rs:34",
+      "file": "native/rust/crates/intent-cli/tests/no_verb_mints_an_ordinal.rs:18",
       "covers": [
         "AC-06.3"
       ],

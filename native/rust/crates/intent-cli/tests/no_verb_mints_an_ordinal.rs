@@ -12,24 +12,8 @@
 //! below are named by hand: nothing in the tree lists which verbs mint, so a
 //! new one must be added here.
 
-use crate::common::{created, ok, run};
+use crate::common::{canon_files, created, ok, run};
 use intentsvcs::id::{IssueId, ThreadId};
-use std::collections::BTreeMap;
-use std::path::Path;
-
-/// Every file under the project's committed canon with its bytes, so a
-/// refusal can be shown to have written nothing: in 3.4.0's format a package
-/// is inside its thread's file, so a write would change a file, not add one.
-fn canon_files(root: &Path) -> BTreeMap<std::path::PathBuf, Vec<u8>> {
-  let canon = root.join("intent/.canon");
-  intentsvcs::project::Project::files_in(&canon)
-    .into_iter()
-    .map(|rel| {
-      let bytes = std::fs::read(canon.join(&rel)).expect("read a canon file");
-      (rel, bytes)
-    })
-    .collect()
-}
 
 // ST0095 AT-06.3: the arm below.
 #[test]

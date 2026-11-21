@@ -248,6 +248,8 @@ mod the_mcp_organize_door_answers_in_project_relative_paths;
 #[path = "one_dispatch_home.rs"]
 mod one_dispatch_home;
 
+#[path = "a_remint_refuses_a_malformed_id.rs"]
+mod a_remint_refuses_a_malformed_id;
 #[path = "no_verb_mints_an_ordinal.rs"]
 mod no_verb_mints_an_ordinal;
 #[path = "one_home_for_the_ext_base.rs"]

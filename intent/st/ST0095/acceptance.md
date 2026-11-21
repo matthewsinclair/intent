@@ -138,7 +138,7 @@ _(no tests in this group)_
 
 - AT-06.1 `native/rust/crates/intent-cli/tests/two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair.rs:29` -- covers AC-06.1 -- status: green -- green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0
 - AT-06.2 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:63` -- covers AC-06.2 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
-- AT-06.3 `native/rust/crates/intent-cli/tests/no_verb_mints_an_ordinal.rs:34` -- covers AC-06.3 -- status: green -- green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0
+- AT-06.3 `native/rust/crates/intent-cli/tests/no_verb_mints_an_ordinal.rs:18` -- covers AC-06.3 -- status: green -- green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0
 - AT-06.4 `native/rust/crates/intentsvcs/tests/canon_round_trip.rs:405` -- covers AC-06.4 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.5 `native/rust/crates/intentsvcs/tests/ingest_refusal.rs:363` -- covers AC-06.5 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4
 - AT-06.7 `native/rust/crates/intentsvcs/tests/the_one_mint.rs:78` -- covers AC-06.7 -- status: green -- the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4

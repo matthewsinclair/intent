@@ -1514,6 +1514,21 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
   out
 }
 
+/// Every file under a project's committed canon with its bytes, through the
+/// library's one walk: for an arm that shows a refusal wrote nothing. Bytes,
+/// not paths alone, because in 3.4.0's format a package is inside its thread's
+/// file, so a write changes a file rather than adding one.
+pub fn canon_files(root: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+  let canon = root.join("intent/.canon");
+  intentsvcs::project::Project::files_in(&canon)
+    .into_iter()
+    .map(|rel| {
+      let bytes = std::fs::read(canon.join(&rel)).expect("read a canon file");
+      (rel, bytes)
+    })
+    .collect()
+}
+
 /// A run's two streams as one text, with whether it exited 0: for an arm that
 /// reads a refusal's text as readily as a success's. The one copy of what six
 /// test files each defined for themselves.
