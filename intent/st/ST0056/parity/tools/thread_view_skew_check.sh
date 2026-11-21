@@ -60,7 +60,14 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # directory that exists, so it fails as a wrong answer rather than as an error.
 ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
-die() { echo "thread-view-skew: $*" >&2; exit 2; }
+# How the pair is found, refused when absent, and run without migrating this
+# checkout's store lives once in lib_read_only.sh, and so does a refusal: die is
+# its ro_die, which says this tool's name and exits 2.
+# shellcheck source=lib_read_only.sh
+. "$HERE/lib_read_only.sh"
+RO_ROOT="$ROOT"
+RO_TAG="thread-view-skew"
+die() { ro_die "$*"; }
 
 CHANGED=""
 TRIGGERED=0
@@ -72,43 +79,11 @@ fi
 
 # THE BINARY IS RESOLVED BY ABSOLUTE PATH because this arm judges the views the
 # tree's own build renders, and `intent` on PATH is the installed release.
-BIN="$ROOT/native/rust/target/release/intent"
-if [ ! -x "$BIN" ]; then
-  # REFUSES, IT DOES NOT SKIP (hv ruling 4 as scoped by vc 2026-08-27, authority
-  # vc). This arm used to name the gap and exit 0, which was the defect rather
-  # than the mitigation: exit 0 is the SAME STATUS a run that examined every
-  # view returns, so no caller reading the exit code could tell 288 views
-  # checked from 0 views checked. The warning text was the only carrier of the
-  # difference, and text is what a gate summary drops. That is
-  # IN-AG-NO-SILENT-001, not a preference.
-  #
-  # THE TWO STATES BELOW ARE SEPARATED BECAUSE THE BLOCKED READER IS THE POINT.
-  # A refusal that reads like a defect gets worked around, and a guard that gets
-  # worked around is worth less than the silent one it replaced. Whoever meets
-  # this at 2am must be able to tell "wait and retry" from "something is broken"
-  # WITHOUT opening this file.
-  if [ -d "$ROOT/native/rust/target/release" ]; then
-    # TRANSIENT. A release directory means a build has run in this tree, so the
-    # binary is absent because something removed it. cargo clears the artefact
-    # before writing the new one; that window was measured at ~66 seconds on
-    # this estate, and a commit landing inside it is ordinary peer concurrency
-    # rather than a fault.
-    echo "thread-view-skew: REFUSING -- no v3 binary at $BIN, but $ROOT/native/rust/target/release exists, so a build has run here and this is almost certainly A REBUILD IN PROGRESS." >&2
-    echo "  THIS IS TRANSIENT AND NOTHING IS BROKEN. The window is about 60 seconds. Wait, then retry the commit." >&2
-    echo "  If it persists past a couple of minutes the pair is genuinely gone -- remedy: \`bin/devbin build all\`." >&2
-  else
-    # NOT TRANSIENT. No release directory at all, so this tree has never been
-    # built and waiting will not help.
-    echo "thread-view-skew: REFUSING -- no v3 binary at $BIN and no release directory, so this tree has never been built." >&2
-    echo "  THIS IS NOT TRANSIENT. Waiting will not help." >&2
-    echo "  Remedy: \`bin/devbin build all\`." >&2
-  fi
-  echo "  Why this refuses rather than skipping: without the binary every generated thread view goes UNCHECKED, and exiting 0 would report that as a pass." >&2
-  exit 2
-fi
+ro_require_bin
+BIN="$RO_BIN"
 
-command -v jq >/dev/null 2>&1 ||
-  die "jq is not on PATH, and it is what reads doctor's report, so this commit is unchecked rather than clean"
+# jq reads the control below before ro_json runs, so it is asked for here.
+ro_require_jq
 
 # The class this arm reads, spelled once: the control and the read both take it
 # from here.
@@ -139,29 +114,16 @@ $CONTROL"
 fi
 
 # THIS TOOL NEVER MIGRATES OR MAKES THE STORE IT JUDGES (ST0095 WP-03, AC-03.1).
-# `doctor` opens this checkout's store, and a build whose store schema is newer
-# migrates a store as it opens it, one way: the release installed from brew
-# then refuses it. Every seat in this checkout shares the build above, so one
-# rebuild after a schema bump would migrate the main store at the next commit,
-# whoever made it. The shipped half of the commit gate runs its own `intent
-# doctor` earlier, through PATH: that is the installed release while brew comes
-# first on PATH, and this build after `intent use dev`, which then opens the
-# store before this tool runs and is out of its reach (issue 0717; vc decision
-# 132 keeps the seats on brew).
-#
-# So doctor is asked with --read-only (issue 0717), which asks the store's one
-# open-or-migrate decision, `store::Opening::decide`, before it opens the store
-# for write. Where opening would make the store or migrate it, doctor judges
-# nothing and exits 2, and its JSON names what opening would do at
-# `.store.opening`; it prints that object only for such a stop, so this tool
-# takes any word there as the stop and keeps no list of its own. It then judges
-# a copy of this checkout's intent/ with no store in it, which doctor builds
-# from canon as a fresh clone does, and the checkout's store is not opened for
-# write, and neither migrated nor made. Otherwise doctor judges the store in
-# place, read-only, and writes nothing to it. A store newer than the build, or
-# one written before the stamp, is judged in place too: this build cannot read
-# its render record, so doctor reports that as a finding of its own and judges
-# the views with no render record, as on the copy.
+# The shipped half of the commit gate runs its own `intent doctor` earlier,
+# through PATH: that is the installed release while brew comes first on PATH,
+# and this build after `intent use dev`, which then opens the store before this
+# tool runs and is out of its reach (issue 0717; vc decision 132 keeps the seats
+# on brew). Here doctor runs through lib_read_only.sh, which says why and how:
+# in place with --read-only, or on a copy of intent/ where opening the store
+# would make or migrate it. A store newer than the build, or one written before
+# the stamp, is judged in place too: this build cannot read its render record,
+# so doctor reports that as a finding of its own and judges the views with no
+# render record, as on the copy.
 #
 # Measured with one thread cover edited by hand: on 2026-11-19, at 1184 views,
 # the copy named that view and no other; on 2026-11-20, at 1201 views with the
@@ -170,40 +132,12 @@ fi
 # view the store re-rendered and nobody has written yet, which reads as
 # store-stale in place and is not this tool's class, reads as view-skew in the
 # copy: on the copy path, a peer's write still landing can block a commit that
-# stages that view. `.cache` stays out of the copy because it holds the store
-# (and the search index), which is what leaves the copy with no store, and
-# `.backup` because it holds the store's backups, about 3.4 GB together.
-cd "$ROOT" || die "could not enter $ROOT to run doctor there, so this commit is unchecked rather than clean"
-OUT="$("$BIN" doctor --read-only --format json 2>"$WORK/read-only.err")"
-RC=$?
-RUN="in place with --read-only"
-# Exit 2 is also any other run doctor could not answer, so only a report that
-# names a store opening would write sends this to the copy.
-OPENING=""
-[ "$RC" -eq 2 ] &&
-  OPENING="$(printf '%s' "$OUT" | jq -er '.store.opening | strings' 2>/dev/null)"
-if [ -n "$OPENING" ]; then
-  # doctor's own refusal is not replayed here: its remedy, run it without
-  # --read-only, is the migration this tool exists to prevent, and the line
-  # below says what the stop said.
-  HOLDS="$(printf '%s' "$OUT" | jq -r '"\(.store.path), its schema \(.store.schema // "none"), this build'"'"'s \(.store.build)"' 2>/dev/null)"
-  clone=(cp -R)
-  [ "$(uname -s)" = Darwin ] && clone=(cp -c -R)
-  mkdir -p "$WORK/copy/intent" || die "could not make $WORK/copy/intent to judge a copy in, so this commit is unchecked rather than clean"
-  for entry in "$ROOT"/intent/* "$ROOT"/intent/.[!.]*; do
-    [ -e "$entry" ] || continue
-    case "${entry##*/}" in .backup | .cache) continue ;; esac
-    "${clone[@]}" "$entry" "$WORK/copy/intent/" ||
-      die "could not copy $entry to judge a copy of intent/, so this commit is unchecked rather than clean"
-  done
-  echo "thread-view-skew: doctor --read-only says opening this checkout's store ($HOLDS) would $OPENING it, so doctor judges a copy of intent/, and this checkout's store is not opened for write, and neither migrated nor made." >&2
-  cd "$WORK/copy" || die "could not enter $WORK/copy to run doctor there, so this commit is unchecked rather than clean"
-  OUT="$("$BIN" doctor --format json)"
-  RC=$?
-  RUN="on a copy of intent/"
-else
-  cat "$WORK/read-only.err" >&2
-fi
+# stages that view.
+RO_WORK="$WORK"
+ro_json doctor
+OUT="$RO_OUT"
+RC="$RO_RC"
+RUN="$RO_RUN"
 # `doctor` exits 1 for findings of ANY class, so its exit code is not this
 # instrument's verdict and must not be read as one. It also exits 1 for a usage
 # error, eg a build older than issue 0717 that does not know --read-only, which

@@ -143,6 +143,51 @@ fi
 [ -n "$CITE_TSV" ] || { echo "declared-kind: no citations found -- refusing rather than reporting a clean estate over an empty set" >&2; exit 2; }
 
 # ---------------------------------------------------------------------------
+# WHICH CITED DIRECTORIES ARE THREADS, ASKED OF THE ID DOOR (ST0095 AC-12.1).
+# A parity instrument lives at `intent/st/<thread>/parity/tools/`, and whether
+# `<thread>` is a thread is the door's answer, not a pattern here, so an
+# instrument under a hashed thread is judged as one under an ordinal is. Every
+# candidate directory goes to the door in one call, read-only through
+# lib_read_only.sh, which refuses rather than migrates this checkout's store. A
+# directory the door does not answer as a thread is not an instrument's home,
+# and its row is left unjudged and listed as such.
+# ---------------------------------------------------------------------------
+# shellcheck source=lib_read_only.sh
+. "$HERE/lib_read_only.sh"
+RO_ROOT="$ROOT"
+RO_TAG="declared-kind"
+RO_WORK="$(mktemp -d "${TMPDIR:-/tmp}/declared-kind.XXXXXX")" ||
+  ro_die "no temporary directory for the id door's run, so this commit is unchecked rather than clean"
+trap 'rm -rf "$RO_WORK"' EXIT
+# tool_shape <path> -- the layout of a parity instrument, `intent/st/<dir>/
+# parity/tools/<script>`; whether `<dir>` is a thread is the door's to say.
+# Prints `<dir>` for such a path, through lib_read_only.sh's one reading of it.
+tool_shape() {
+  local asks dir
+  case "$1" in *.sh | *.bash) ;; *) return 1 ;; esac
+  asks="$(ro_st_tokens "$1")"
+  [ -n "$asks" ] || return 1
+  dir="${asks%%$'\t'*}"
+  [ "$1" = "intent/st/$dir/parity/tools/${1##*/}" ] || return 1
+  printf '%s' "$dir"
+}
+
+# The paths read exactly as the main loop below reads them, so the two cannot
+# disagree on a row.
+tool_paths=()
+while IFS=$'\t' read -r _ _ _ file; do
+  tool_shape "${file:-}" >/dev/null && tool_paths+=("$file")
+done <<<"$CITE_TSV"
+[ "${#tool_paths[@]}" -eq 0 ] || ro_ids_for "${tool_paths[@]}"
+
+# parity_tool <path> -- true when <path> is a script in a thread's parity tools.
+parity_tool() {
+  local dir
+  dir="$(tool_shape "$1")" || return 1
+  ro_id_is "$dir" thread
+}
+
+# ---------------------------------------------------------------------------
 # The roster, read from the tool that owns it. NOT a second copy: this asks
 # `runner_roster_check.sh` what disposition it holds for a file, rather than
 # minting a parallel list that would drift from it.
@@ -171,14 +216,15 @@ roster_disposition() {
 # ---------------------------------------------------------------------------
 kind_disagreement() {
   local path="$1" abs="$ROOT/$1"
+  if parity_tool "$path"; then
+    local d; d="$(roster_disposition "$(basename "$path")")"
+    case "$d" in
+      UNROSTERED)        echo "declares a parity instrument; the roster does not carry it at all" ;;
+      not-an-instrument) echo "declares a witness; the roster records it as not-an-instrument, which forms no verdict" ;;
+    esac
+    return 0
+  fi
   case "$path" in
-    intent/st/ST[0-9][0-9][0-9][0-9]/parity/tools/*.sh|intent/st/ST[0-9][0-9][0-9][0-9]/parity/tools/*.bash)
-      local d; d="$(roster_disposition "$(basename "$path")")"
-      case "$d" in
-        UNROSTERED)        echo "declares a parity instrument; the roster does not carry it at all" ;;
-        not-an-instrument) echo "declares a witness; the roster records it as not-an-instrument, which forms no verdict" ;;
-      esac
-      ;;
     native/rust/crates/*/tests/*.rs)
       grep -qE '#\[(tokio::)?test\]' "$abs" || echo "declares a Rust integration test; the file carries no #[test]"
       ;;
@@ -196,8 +242,8 @@ kind_disagreement() {
 }
 
 judged_kind() {
+  parity_tool "$1" && return 0
   case "$1" in
-    intent/st/ST[0-9][0-9][0-9][0-9]/parity/tools/*.sh|intent/st/ST[0-9][0-9][0-9][0-9]/parity/tools/*.bash) return 0 ;;
     native/rust/crates/*/tests/*.rs) return 0 ;;
     native/rust/crates/*/src/*.rs|native/rust/crates/*/src/*/*.rs|native/rust/crates/*/src/*/*/*.rs) return 0 ;;
     *.bats) return 0 ;;

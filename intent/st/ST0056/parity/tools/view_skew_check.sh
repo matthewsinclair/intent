@@ -95,13 +95,16 @@ CHECKABLE="surface/dispatch-table.md|gen_dispatch_table.sh|surface/dispatch-tabl
 # finding about the apparatus, and burying it as an omission is how a guard
 # quietly stops covering what it claims to.
 # ---------------------------------------------------------------------------
-UNCHECKABLE="$(cat <<'EOF'
+# Read by `read -d ''`, not `$(cat <<'EOF' ...)`: bash 3.2, which the commit
+# gate may run, mis-parses a heredoc inside a command substitution whose text
+# holds an apostrophe or a parenthesis, and refuses the whole file.
+UNCHECKABLE=""
+IFS= read -r -d '' UNCHECKABLE <<'EOF' || true
 intent/st/ST0056/parity/register.md|WT ONLY -- a detached worktree at the measured revision, which is not a file and cannot be committed. CORRECTED 2026-08-16: this line used to say the generator "needs SP (raw burn.tsv, untracked and absent)". The burn input is committed at tools/burn-baseline.tsv and gen_register.sh now DEFAULTS to it, so SP is an override rather than a precondition. Verified today: byte-identical to the committed artefact with no SP and no BURN.
 intent/st/ST0056/parity/pertest.md|WT ONLY, same as register.md. CORRECTED 2026-08-16: this line used to say the generator needs "the ephemeral TAP ... which is not committed". The TAP corpus IS committed at tools/tap-baseline/ (196 files) and TAP_DIR defaults to it; BURN now defaults to the committed twin too. Verified today: byte-identical with no SP, no BURN and no TAP_DIR.
 intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). NOT un-re-derivable any more, only un-CHEAPLY-checkable: the probe TSV is committed at parity/probes/toplevel.tsv and the generator is a formatter fixed point, so a fresh render reproduces the committed files exactly. What it still needs is $WT, a detached worktree at the measured revision, because the verb and flag extractors read the v2 SOURCE rather than the probe data -- seconds of setup per run, and a slow gate is one that gets bypassed with --no-verify. To check on demand: git worktree add --detach <dir> 69d42a7, then SP=<scratch> WT=<dir> OUTDIR=<out> gen_inventory.sh, then diff against parity/.
 intent/st/ST0056/parity/cmd-*.md|same as README.md. 27 files, verified 27/27 BYTE-IDENTICAL to a fresh render on 2026-08-15 -- so these have a real content check now, just not one a pre-commit hook can afford. THIS ENTRY USED TO CLAIM committing the TSV would promote all 27 to CHECKABLE in one move. That was wrong twice over: the TSV was necessary and not sufficient (the worktree remains), and the generator ALSO emitted unaligned tables and a trailing blank line, so its output could never equal the committed file no matter what the input was. Both found by committing the TSV and actually running it. Recorded rather than quietly corrected, because a guard that names its own highest-leverage fix and is mistaken about it sends the next person the same way.
 EOF
-)"
 
 # ---------------------------------------------------------------------------
 # AUTHORED -- view-or-glob | what it is
@@ -114,13 +117,16 @@ EOF
 # Found the moment the first authored file landed in surface/ and the guard
 # refused it, which is the backstop working.
 # ---------------------------------------------------------------------------
-AUTHORED="$(cat <<'EOF'
+# Read by `read -d ''`, not `$(cat <<'EOF' ...)`: bash 3.2, which the commit
+# gate may run, mis-parses a heredoc inside a command substitution whose text
+# holds an apostrophe or a parenthesis, and refuses the whole file.
+AUTHORED=""
+IFS= read -r -d '' AUTHORED <<'EOF' || true
 surface/agent-guide.spec.md|The AC-09.4 spec for the `intent llm` agent guide (ic). Authored, not generated: it describes what the guide contains and where each half comes from. There is no canon it derives from, so there is nothing to check it against and nothing missing.
 intent/st/ST0056/parity/ac-09_6-mcp-facade-read.md|The AC-09.6 read (ic, 2026-08-30): the classified partition of every MCP-exposed row and the decision list for hv. Authored evidence, not generated -- its numbers came from a scratchpad instrument whose controls and defects it records, and the durable artefact is the JUDGEMENT, which no generator can re-produce. The 59 facade declarations it grounds live in surface/dispatch-table.json, where the skew pair above already checks them.
 intent/st/ST0056/parity/ac-09_5-resources-design.md|The AC-09.5 resources design (ic, 2026-08-31): the reasoning behind vc's bound (A) -- resources serve entity models through the existing st_show/wp_show/issue_show doors, the URI grammar derives from nav.rs's kinds, and the one build decision is the render seam (one shared entity-to-text renderer so "contents match st show" is byte-identical). Authored design record, not generated: it carries a ruling's argument and the measurement that wip.md and the boards have no CLI read to match, and the durable artefact is the JUDGEMENT, which no generator can re-produce. Cites AT-09.5; the surface it designs lands in mcp.rs and its witness in mcp_resources.rs.
 intent/st/ST0056/parity/ac-06_1-unstable-causes.md|The AC-06.1 read (cc, 2026-08-31): why 27 files in the BATS estate are UNSTABLE, resolved to four causes with 25 of them at one commit. Authored evidence, not generated -- it runs HALF of burn.sh deliberately (the default binding alone decides UNSTABLE; the second run exists to compute a delta nobody needs here) so that NO baseline is produced and vc ruling that the new baseline stays out is honoured literally rather than measured around. The durable artefact is the CAUSE ATTRIBUTION and the controls it survived, which no generator can re-produce; the per-file numbers it rests on are re-derivable by re-running the estate at the named revision.
 EOF
-)"
 
 # ---------------------------------------------------------------------------
 # PATH TRIGGERING. A full check costs ~4s wall, and a slow gate gets --no-verify'd,
@@ -234,14 +240,52 @@ fi
 # reader the category was EMPTY when it was UNCOVERED -- different claims, one
 # of them true, and the false one arrives at the moment an operator is looking
 # for reassurance. This does not check them; it refuses to imply it did.
+#
+# WHETHER A PATH IS A THREAD VIEW IS THE ID DOOR'S ANSWER (ST0095 AC-12.1): a
+# view lives at `intent/st/<thread>/info.md`, `acceptance.md` or
+# `WP/<package>/info.md`, and whether `<thread>` is a thread is asked of the
+# door, never matched by a pattern here, so a hashed thread's view is named as
+# an ordinal's is. Every candidate directory goes to the door in one call,
+# read-only through lib_read_only.sh, which refuses rather than migrates this
+# checkout's store, and only when the change carries a candidate at all.
 thread_views=""
-if [ "$TRIGGERED" -eq 1 ]; then
+unconfirmed=""
+# Asked only on a run that is otherwise clean: the note below prints only then,
+# and a door that cannot answer must not turn a skew finding into a refusal
+# that hides it.
+if [ "$TRIGGERED" -eq 1 ] && [ "$rc" -eq 0 ]; then
+  # shellcheck source=lib_read_only.sh
+  . "$HERE/lib_read_only.sh"
+  view_paths=()
   for p in $CHANGED; do
-    case "$p" in
-      intent/st/ST*/info.md|intent/st/ST*/acceptance.md|intent/st/ST*/WP/*/info.md)
-        thread_views="$thread_views  $p"$'\n' ;;
+    case "${p##*/}" in info.md | acceptance.md) ;; *) continue ;; esac
+    asks="$(ro_st_tokens "$p")"
+    [ -n "$asks" ] || continue
+    file="${p#intent/st/"${asks%%$'\t'*}"/}"
+    case "$asks" in
+      *$'\t'wp) ;;
+      *) case "$file" in info.md | acceptance.md) ;; *) continue ;; esac ;;
     esac
+    view_paths+=("$p")
   done
+  if [ "${#view_paths[@]}" -gt 0 ]; then
+    RO_ROOT="$ROOT"
+    RO_TAG="skew"
+    RO_WORK="$(mktemp -d "${TMPDIR:-/tmp}/view-skew.XXXXXX")" ||
+      ro_die "no temporary directory for the id door's run, so this commit is unchecked rather than clean"
+    trap 'rm -rf "$RO_WORK"' EXIT
+    ro_ids_for "${view_paths[@]}"
+    for p in "${view_paths[@]}"; do
+      confirmed=1
+      while IFS=$'\t' read -r token kind; do
+        ro_id_is "$token" "$kind" && continue
+        confirmed=0
+        unconfirmed="$unconfirmed  $p -- the door answers $(ro_id_answer "$token") for $kind $token"$'\n'
+        break
+      done <<<"$(ro_st_tokens "$p")"
+      [ "$confirmed" -eq 1 ] && thread_views="$thread_views  $p"$'\n'
+    done
+  fi
 fi
 
 if [ "$rc" -eq 0 ]; then
@@ -272,6 +316,12 @@ if [ "$rc" -eq 0 ]; then
     echo "      ROSTER'S ANSWER, NOT THIS TOOL'S -- runner_roster_check.sh is the authority."
     echo "      What this line records is the boundary of THIS check: the files above are"
     echo "      outside its population, so its result above says nothing about them."
+  fi
+  if [ -n "$unconfirmed" ]; then
+    # Shaped like a thread view, and the door does not answer it as one, so it is
+    # named here with the door's answer rather than dropped from the list above.
+    echo "skew: NOT A THREAD VIEW by the id door's answer, so neither this tool nor thread_view_skew_check.sh covers it:"
+    printf '%s' "$unconfirmed"
   fi
 fi
 

@@ -115,16 +115,11 @@ trap staged_cleanup EXIT
 
 TABLE_GIVEN="${TABLE:+yes}"
 TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
-# **NOT STAGED, AND THE LIMIT IS REAL RATHER THAN AN OVERSIGHT.** These two are
-# DIRECTORY SCANS, and `git show :<dir>` does not exist -- so the issue estate
-# below is still read from the working tree and a peer s mid-work issue file is
+# **NOT STAGED, AND THE LIMIT IS REAL RATHER THAN AN OVERSIGHT.** Whether a
+# record's issue or thread RESOLVES is asked of the id door below, which reads
+# the project's store and canon as they stand, so a peer's mid-work issue is
 # still visible to this check. It matters less than the table did (the question
-# asked of them is whether a cited issue number RESOLVES, not what it says), and
-# it is not nothing. A directory population needs `git ls-files`, a different
-# mechanism; inventing one unasked inside the convergence that exists to stop
-# there being two would be the joke telling itself.
-ISSUES_DIR="${ISSUES_DIR:-$REPO_ROOT/intent/issues}"
-ISSUES_CANON="${ISSUES_CANON:-$REPO_ROOT/intent/.canon/issues}"
+# is whether a cited id RESOLVES, not what it says), and it is not nothing.
 
 die() { echo "error: $1" >&2; exit 2; }
 
@@ -158,18 +153,36 @@ ROWS="$(jq -r '
 
 [ -n "$ROWS" ] || die "no unit in the table declares \`target.rulings\` -- this check would report a vacuous green over an empty set, so it refuses instead"
 
-# Issue numbers the tree can still resolve.  CLOSED counts: an issue in CLOSED/ is
-# as durable a record as one in OPEN/ ever was, and more so now OPEN/ is empty by
-# ruling.
-RESOLVABLE=""
-if [ -d "$ISSUES_CANON" ]; then
-  RESOLVABLE="$(find "$ISSUES_CANON" -maxdepth 1 -type f -name '*.json' 2>/dev/null |
-    sed 's|.*/||' | grep -Eo '^[0-9]{3,4}' | sort -u)"
-fi
-if [ -d "$ISSUES_DIR" ]; then
-  RESOLVABLE="$(printf '%s\n%s\n' "$RESOLVABLE" \
-    "$(find "$ISSUES_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null |
-      sed 's|.*/||' | grep -Eo '^[0-9]{3,4}')" | grep -v '^$' | sort -u)"
+# THE IDS THE RECORDS CITE, ASKED OF THE ID DOOR ONCE (ST0095 AC-12.1). An
+# `issue <id>` record's id, and the directory of a record naming a file under
+# `intent/st/<thread>/`, go to the door in one call, read-only through
+# lib_read_only.sh, which refuses rather than migrates this checkout's store.
+# Which of them is an issue or a thread, and which canon file holds it, is the
+# door's answer, so a hashed id resolves as an ordinal does and no id pattern is
+# spelled here. A closed issue resolves: it is as durable a record as an open one.
+# shellcheck source=lib_read_only.sh
+. "$HERE/lib_read_only.sh"
+RO_ROOT="$REPO_ROOT"
+RO_TAG="rulings"
+RO_WORK="$(mktemp -d "${TMPDIR:-/tmp}/rulings.XXXXXX")" ||
+  die "no temporary directory for the id door's run"
+trap 'staged_cleanup; rm -rf "$RO_WORK"' EXIT
+# An issue record is asked by its address, `intent:///issues/<id>`, which names the
+# issue collection alone: bare digits such as 0088 also spell thread ST0088, and
+# the door rightly answers them ambiguous.
+# Each case arm below opens with `(`: bash 3.2 reads an arm's bare `)` inside
+# `$( )` as the substitution's end. No comment goes inside it, for the same reason.
+DOOR_TOKENS="$(printf '%s\n' "$ROWS" | cut -f5 | while IFS= read -r rec; do
+  case "$rec" in
+    ("issue "?*) printf 'intent:///issues/%s\n' "${rec#issue }" ;;
+    (*) ro_st_tokens "${rec%%:*}" | cut -f1 ;;
+  esac
+done | awk 'NF && !seen[$0]++')"
+if [ -n "$DOOR_TOKENS" ]; then
+  ro_require_bin
+  tokens=()
+  while IFS= read -r t; do tokens+=("$t"); done <<<"$DOOR_TOKENS"
+  ro_ids "${tokens[@]}"
 fi
 
 # DOES THE DECLARED RECORD LEAD ANYWHERE?
@@ -186,22 +199,33 @@ fi
 # from that canon, and an attachment's full text is in it.  So a record naming
 # either lasts as long as the thread does, and reading it as dangling kept
 # threads realised for this script's sake.  A file the canon does not carry
-# still dangles.
-CANON_ST="${CANON_ST:-$REPO_ROOT/intent/.canon/st}"
+# still dangles. Whether `<thread>` is a thread, and which canon file holds it,
+# is the id door's answer, read above.
 in_thread_canon() {
-  local rel="$1" id file canon
-  case "$rel" in
-    intent/st/ST[0-9][0-9][0-9][0-9]/*) ;;
-    *) return 1 ;;
-  esac
-  id="${rel#intent/st/}"
-  file="${id#*/}"
-  id="${id%%/*}"
-  canon="$CANON_ST/$id.json"
+  local rel="$1" asks tok kind id canon file stored
+  # What the path asks of the door is lib_read_only.sh's one reading of it, and
+  # each question must have been answered yes: the thread, and for a package's
+  # view (`WP/<package>/info.md`) the package too.
+  asks="$(ro_st_tokens "$rel")"
+  [ -n "$asks" ] || return 1
+  while IFS=$'\t' read -r tok kind; do
+    ro_id_is "$tok" "$kind" || return 1
+  done <<<"$asks"
+  id="${asks%%$'\t'*}"
+  canon="$REPO_ROOT/$(ro_id_canon "$id")"
   [ -f "$canon" ] || return 1
+  case "$asks" in *$'\t'wp) return 0 ;; esac
+  file="${rel#intent/st/"$id"/}"
   case "$file" in
-    info.md | acceptance.md | WP/[0-9][0-9]/info.md) return 0 ;;
+    info.md | acceptance.md) return 0 ;;
   esac
+  # An attachment's record is in the thread's file in 3.4.0's canon format, and
+  # a file of its own in the release's (ST0096 WP-05):
+  # `intent/.canon/records/<stored id>/attachments/<path>.json`, beside the
+  # thread's file the door named, whose name is the stored id.
+  stored="${canon##*/}"
+  stored="${stored%.json}"
+  [ -f "$REPO_ROOT/intent/.canon/records/$stored/attachments/$file.json" ] && return 0
   jq -e --arg p "$file" 'any(.attachments[]?; .path == $p)' "$canon" >/dev/null 2>&1
 }
 
@@ -211,8 +235,8 @@ record_resolves() {
     parity.md)
       [ -f "$ST_DIR/parity.md" ]
       ;;
-    "issue "[0-9]*)
-      grep -qx "$(grep -Eo '[0-9]{3,4}' <<<"$rec")" <<<"$RESOLVABLE"
+    "issue "?*)
+      ro_id_is "intent:///issues/${rec#issue }" issue
       ;;
     *.md|*.rs|*.sh|*.json|*.toml|*.txt|*.md:*|*.rs:*|*.sh:*|*.json:*|*.toml:*|*.txt:*)
       [ -e "$REPO_ROOT/${rec%%:*}" ] || [ -e "$ST_DIR/${rec%%:*}" ] || in_thread_canon "${rec%%:*}"
