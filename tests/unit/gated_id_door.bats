@@ -3,6 +3,8 @@
 # of an id pattern (ST0095 AC-12.1, hv decision 79): rulings_check.sh,
 # declared_kind_check.sh and view_skew_check.sh, through lib_read_only.sh.
 #
+# ST0095 AT-12.1 cites this file for AC-12.1.
+#
 # Each case runs in a throwaway project made by the binary under test, under a
 # sandboxed HOME, with that binary linked as the project's own pair, so the
 # thread and issue it cites are ones that build minted, in the family it mints.
