@@ -3,20 +3,8 @@
 //! Baize reporting "N finding(s)" at exit 1 for N rows its own text called
 //! "ADVISORY, not a refusal". This is the only arm that reads the rendered
 //! line, so it is the only arm a mutation of the renderer can red.
-use std::path::Path;
 
-fn intent(root: &Path, args: &[&str]) -> (bool, String) {
-  let out = crate::common::intent()
-    .args(args)
-    .current_dir(root)
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .unwrap_or_else(|e| panic!("could not run `intent {args:?}`: {e}"));
-  (
-    out.status.success(),
-    String::from_utf8_lossy(&out.stdout).into_owned() + &String::from_utf8_lossy(&out.stderr),
-  )
-}
+use crate::common::run_joined as intent;
 
 #[test]
 fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {

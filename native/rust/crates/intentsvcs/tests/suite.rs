@@ -477,6 +477,8 @@ mod root_files_generated;
 #[path = "schema_faces_drift.rs"]
 mod schema_faces_drift;
 
+#[path = "a_one_digit_group_is_judged_by_its_package_gate.rs"]
+mod a_one_digit_group_is_judged_by_its_package_gate;
 #[path = "a_prefix_names_one_record.rs"]
 mod a_prefix_names_one_record;
 #[path = "a_pull_into_a_cold_warmed_store_carries_its_board.rs"]

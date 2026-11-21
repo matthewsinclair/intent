@@ -1514,6 +1514,14 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
   out
 }
 
+/// A run's two streams as one text, with whether it exited 0: for an arm that
+/// reads a refusal's text as readily as a success's. The one copy of what six
+/// test files each defined for themselves.
+pub fn run_joined(cwd: &Path, args: &[&str]) -> (bool, String) {
+  let said = Said::from(run(cwd, args));
+  (said.code == 0, said.text)
+}
+
 /// What a run printed, both streams as one text, and its exit code: for an
 /// arm that reads a line whichever stream carries it, as a git hook's line is
 /// on stderr while the command's own is on stdout.

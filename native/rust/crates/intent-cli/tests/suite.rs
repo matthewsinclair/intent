@@ -326,6 +326,8 @@ mod the_daemon_harness_can_restart;
 mod the_daemon_takes_the_backup_itself;
 #[path = "the_event_log_travels.rs"]
 mod the_event_log_travels;
+#[path = "the_first_hydrate_counts_what_it_wrote.rs"]
+mod the_first_hydrate_counts_what_it_wrote;
 #[path = "the_index_report_names_its_reconcile_time.rs"]
 mod the_index_report_names_its_reconcile_time;
 #[path = "the_index_report_names_level_three_as_search_does.rs"]

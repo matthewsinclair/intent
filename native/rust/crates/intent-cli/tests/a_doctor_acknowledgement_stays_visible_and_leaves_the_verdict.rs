@@ -22,18 +22,7 @@
 
 use std::path::Path;
 
-fn intent(root: &Path, args: &[&str]) -> (bool, String) {
-  let out = crate::common::intent()
-    .args(args)
-    .current_dir(root)
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .unwrap_or_else(|e| panic!("could not run `intent {args:?}`: {e}"));
-  (
-    out.status.success(),
-    String::from_utf8_lossy(&out.stdout).into_owned() + &String::from_utf8_lossy(&out.stderr),
-  )
-}
+use crate::common::run_joined as intent;
 
 /// Put `acknowledged` into the project's config as its `doctor` block.
 fn acknowledge(root: &Path, acknowledged: serde_json::Value) {

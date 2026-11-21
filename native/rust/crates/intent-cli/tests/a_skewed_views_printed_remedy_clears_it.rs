@@ -15,18 +15,7 @@
 
 use std::path::Path;
 
-fn intent(root: &Path, args: &[&str]) -> (bool, String) {
-  let out = crate::common::intent()
-    .args(args)
-    .current_dir(root)
-    .stdin(testkit::lifeline_for(args))
-    .output()
-    .unwrap_or_else(|e| panic!("could not run `intent {args:?}`: {e}"));
-  (
-    out.status.success(),
-    String::from_utf8_lossy(&out.stdout).into_owned() + &String::from_utf8_lossy(&out.stderr),
-  )
-}
+use crate::common::run_joined as intent;
 
 fn step(root: &Path, args: &[&str]) -> String {
   let (ok, out) = intent(root, args);

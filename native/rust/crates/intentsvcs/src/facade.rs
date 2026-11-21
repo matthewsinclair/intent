@@ -8736,11 +8736,17 @@ impl Facade {
     // STEP ONE: PIN. First, and unconditionally, because it is the step the
     // obvious ordering skips. An upgraded project pins on the record itself
     // (ST0096 WP-01); 3.4.0's format pins in `.intentfiles`.
+    // **WHAT THE PIN ITSELF LANDS IS THIS CALL'S WRITE TOO** (ic, 2026-11-21): on an
+    // upgraded project the pin is a write of the record, and its projection
+    // renders the views the record now realises, so the organize run below
+    // finds them in place and writes nothing. They are still this call's.
+    let landed_before_pin = self.landed.len();
     let pin_moved = if self.realisation_on_records()? {
       self.realise_record(sigil, &id, true, "hydrate")?
     } else {
       self.pin_in_manifest(sigil, &id)?
     };
+    let landed_by_pin = landed_before_pin..self.landed.len();
 
     // STEP TWO: MATERIALISE. Independent of the first -- it runs whether or not
     // the pin moved, and the pin ran whether or not this will write anything.
@@ -8956,6 +8962,15 @@ impl Facade {
     // not erase the record of an act that completed.
     if let Some(refusal) = run.refused.into_iter().next() {
       return Err(FacadeError::Organize(refusal));
+    }
+    // The count names what this call wrote, the pin's renders with the run's,
+    // so it agrees with the `wrote:` lines the drain prints from `landed`.
+    let mut wrote = wrote;
+    let by_pin = &self.landed[landed_by_pin];
+    for path in owned.iter().filter(|p| by_pin.contains(p)) {
+      if !wrote.contains(path) {
+        wrote.push(path.clone());
+      }
     }
     Ok(Hydration {
       paths: owned,
