@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-21 09:50Z
+heartbeat_at: 2026-11-21 12:50Z
 status: active
-focus: "2026-11-20 16:22Z by date -u: LOCALFOLDED for hv's second compact, not released. Landed since the first: 7ed879ab3 (WP-14), 1d3604937 (WP-12 guard), c7e1cee74, 45028cbd3 and d663e3ea6 (ic: ST0096 WP-02 and remint), and cc2358b01 (dc: 0718, 0715 and 0729). Next: land WP-07 v3+ (devbin-cc, after cc's meaning read), cc's ST0096 WP-01, dc's 0722 and devbin-dc's ST0096 WP-03. For hv: organize --default (DOING 63)."
+focus: "2026-11-21 12:50Z by date -u: localfolded for hv's 12:50Z compact, not released. 3.5.0 is at its last unit: dc's ELIDE fix, then cc's 0746 as the final T's gate, then step 3, the leg compare, hv's dry-run look, the cut and push. Todo 97 has it all."
 claims: []
 ---
 
@@ -21,7 +21,7 @@ claims: []
 - When a build of the release that carries ST0095 exists (eg its candidate), tell agentic-engineering-vc, through the Desk, how AE's seats install it without the tap (hv decision 68). dc proposes the route, together with how the cut holds its formula step until hv's word.
 - devbin-dc, lent by the Desk (hv decision 72), on dc's briefs. DONE: 0723+0724 (9e533703e), 0725 to 0728 (dddd6345b), 0731 (fb3a501d1), ST0095 WP-12's guard half (1d3604937) and ST0096 WP-03's shell half (1c45f817c). NOW: issue 0733 on dc's brief. dc reads each proof; vc lands it. (edited)
 - ST0096 WP-03's frozen-pair shape (dc's suggestion, 2026-11-20): once the gate's pair carries WP-02, drive the bare fresh clone with no view on disk through the commit gate again, with Desk run 1's control (01M7WW8B); landed at 1c45f817c, refused then only by e50978ce0's doctor. Also open on WP-03: the brew smoke on a real keg. Issue 0733 (dc, devbin-dc unit) is the shared canon reading for stale_at and absent_at.
-- AFTER hv's 09:07Z COMPACT (hv decision 79, 4753e17bb), before the rehearsal: (1) `intent id --read-only`, ic's door; cc takes it if ic is still paused; (2) dc routes rulings_check, declared_kind_check and view_skew_check through it with shared read-only machinery (AC-12.1); (3) cc's issue 0745, upgrade names what it wrote, design first; (4) devbin-dc's ST0095 WP-11 AC-11.1 rebase (01M7YJQ7), which vc lands with AT-11.1 and three id.rs re-cites read off the landed tree. Then vc calls tip T: kovacs step 1 first and alone, through kovacs-sysadm (it lives on kovacs and is up), then dc's steps 2 to 7. Also: ic's four AT-11.2 and AC-11.2 event files are uncommitted. dc's abd7dacbf swept their ST0095.json effect in by path, so ic commits the events when hv lifts its pause.
+- 3.5.0 TO THE CUT (hv decisions 79 to 83). On main by 12:50Z: WP-11 AC-11.1 (33d631cbc), intent id --read-only (cd832c3d0, clippy fix 4b24577e7), AC-12.1 routing (a3e3e6461; split e555b136f, by-hand half to ST0097), 0745 (64864b7c3, closed 687b5f271), release debt (10141745e, rehearsal tip; kovacs leg GREEN there, record sealed in tmp/wt-rehearsal-10141745e), ro_copy fix (a51da38a0), release text (526c54bc7, a 0707 GAP for cc), AC-03.3 code (a3945b02c, a2c4fa1e2). LEFT: (1) dc's ELIDE fix in explorer_shots.rs (the landing still draws 3.4.0); (2) cc's 0746 (upgrade removes a tracked view only when byte-equal to the earlier format's render; 0316 holds) stacked on it, ONE run = final T's gate: commit first, gate all, test shell, shots twice + diff -rq, images-only commit if any; fills the GAP; (3) step 3 re-run at T; dc compares leg_config_lines 10141745e vs T and copies the kovacs record to main's tmp/release/legs/kovacs (rerun the leg if they differ); (4) Desk announces, vc stops intentd, real dry run in vc's session (signing creds in the keychain, gh logged in), hv confirms after: = cut publish --hold-tap; (5) cut and push from vc's session (decision 80); restart intentd from a Claude shell with CLAUDE_CONFIG_DIR. RULE: commit first, then gate. Main's store stays schema 35: brew first in main. (edited)
 
 ## Holds
 

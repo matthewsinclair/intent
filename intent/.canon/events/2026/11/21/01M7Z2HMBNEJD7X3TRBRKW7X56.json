@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z2HMBNEJD7X3TRBRKW7X56",
+  "ts": "2026-11-21T12:50:50.357Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 97,
+    "text": "3.5.0 TO THE CUT (hv decisions 79 to 83). On main by 12:50Z: WP-11 AC-11.1 (33d631cbc), intent id --read-only (cd832c3d0, clippy fix 4b24577e7), AC-12.1 routing (a3e3e6461; split e555b136f, by-hand half to ST0097), 0745 (64864b7c3, closed 687b5f271), release debt (10141745e, rehearsal tip; kovacs leg GREEN there, record sealed in tmp/wt-rehearsal-10141745e), ro_copy fix (a51da38a0), release text (526c54bc7, a 0707 GAP for cc), AC-03.3 code (a3945b02c, a2c4fa1e2). LEFT: (1) dc's ELIDE fix in explorer_shots.rs (the landing still draws 3.4.0); (2) cc's 0746 (upgrade removes a tracked view only when byte-equal to the earlier format's render; 0316 holds) stacked on it, ONE run = final T's gate: commit first, gate all, test shell, shots twice + diff -rq, images-only commit if any; fills the GAP; (3) step 3 re-run at T; dc compares leg_config_lines 10141745e vs T and copies the kovacs record to main's tmp/release/legs/kovacs (rerun the leg if they differ); (4) Desk announces, vc stops intentd, real dry run in vc's session (signing creds in the keychain, gh logged in), hv confirms after: = cut publish --hold-tap; (5) cut and push from vc's session (decision 80); restart intentd from a Claude shell with CLAUDE_CONFIG_DIR. RULE: commit first, then gate. Main's store stays schema 35: brew first in main."
+  }
+}
