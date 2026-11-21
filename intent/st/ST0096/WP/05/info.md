@@ -2,7 +2,7 @@
 wp_id: WP-05
 title: Each work package, criterion and test has its own canon file
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-05: Each work package, criterion and test has its own canon file

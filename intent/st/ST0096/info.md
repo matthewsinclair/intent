@@ -20,13 +20,13 @@ hv decision 66 rules the fix: the two generated lists leave git, and whether a r
 
 ## Work Packages
 
-| WP    | Title                                                        | Size | Status      |
-| ----- | ------------------------------------------------------------ | ---- | ----------- |
-| WP-01 | Realisation lives in the record, and the manifest goes       | M    | Done        |
-| WP-02 | The two lists leave git                                      | M    | Done        |
-| WP-03 | The commit gate and the pull-request check follow            | S    | WIP         |
-| WP-04 | The proof: five merge requests through a forge stand-in      | S    | WIP         |
-| WP-05 | Each work package, criterion and test has its own canon file | L    | Not Started |
+| WP    | Title                                                        | Size | Status |
+| ----- | ------------------------------------------------------------ | ---- | ------ |
+| WP-01 | Realisation lives in the record, and the manifest goes       | M    | Done   |
+| WP-02 | The two lists leave git                                      | M    | Done   |
+| WP-03 | The commit gate and the pull-request check follow            | S    | WIP    |
+| WP-04 | The proof: five merge requests through a forge stand-in      | S    | WIP    |
+| WP-05 | Each work package, criterion and test has its own canon file | L    | WIP    |
 
 ## Acceptance
 
