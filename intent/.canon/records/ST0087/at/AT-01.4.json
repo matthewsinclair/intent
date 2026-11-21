@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/arguments_do_not_start_a_daemon.rs",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "green",
+  "note": "arms: version_still_answers_and_serves_nothing, with the bats fixtures macos_release_assets.bats and burn_subject_provenance.bats driven in the judge; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+}

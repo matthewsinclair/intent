@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 506,
+  "schema": "intent/issue@4.0",
+  "id": "0506",
   "slug": "the-guard-runner-counts-every-dispatched-guard-a",
   "title": "the guard runner counts every dispatched guard as RAN, so a guard that is not applicable cannot say so",
   "status": "closed",

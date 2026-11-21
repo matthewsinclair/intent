@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 444,
+  "schema": "intent/issue@4.0",
+  "id": "0444",
   "slug": "the-wb-migrate-register-note-and-facade-wb-migra",
   "title": "the wb migrate register note and Facade::wb_migrate's doc say an over-bound migrated inbox refuses new sends, which 0374's landing made false",
   "status": "closed",

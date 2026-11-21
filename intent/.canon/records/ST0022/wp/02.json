@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "Slug Generation System",
+  "scope": "M",
+  "status": "done",
+  "objective": "Auto-generate a slug from the title when creating a steel thread, store it in frontmatter, and display it in listings instead of the full title.",
+  "body": "## Deliverables\n\n- `slugify()` function in `bin/intent_st` (lowercase, replace non-alnum with hyphens, collapse runs, strip leading/trailing hyphens, max 50 chars)\n- `slug:` field added to template `lib/templates/prj/st/ST####/info.md`\n- `slug:` field populated in both template-sed and heredoc paths of `st new`\n- `st list` shows \"Slug\" column instead of \"Title\" column\n- `st sync --write` writes slug to steel_threads.md index\n- Slug extracted from frontmatter in list/sync code path\n- Fallback to title for pre-existing STs without `slug:` field\n\n## Slug Algorithm\n\n```\n1. Lowercase the entire string\n2. Replace any run of non-alphanumeric characters with a single hyphen\n3. Strip leading and trailing hyphens\n4. If length > 50, truncate at the last hyphen before position 50\n   (if no hyphen found, hard-truncate at 50)\n5. Strip any trailing hyphen from truncation\n```\n\n## Acceptance Criteria\n\n- [ ] `intent st new \"My Cool Feature\"` creates frontmatter with `slug: my-cool-feature`\n- [ ] `intent st new \"Ash/Ecto Database Layer\"` creates `slug: ash-ecto-database-layer`\n- [ ] Title longer than 50 chars produces slug truncated to <= 50 chars\n- [ ] `intent st list --status all` shows slug column instead of title column\n- [ ] `steel_threads.md` index uses slug instead of title after `st sync --write`\n- [ ] Pre-existing STs without `slug:` field show title as fallback in listings\n- [ ] BATS tests cover slugification edge cases (special chars, long titles, Unicode)\n- [ ] BATS tests cover slug display in `st list`\n\n## Dependencies\n\n- WP-01 (escape function must be in place for sed substitution of slug)",
+  "preamble": ""
+}

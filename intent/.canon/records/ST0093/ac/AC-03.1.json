@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "in-whiteboard's validation node lands work on its builder's evidence, runs no suite of its own, and is measured by the time from a builder's green to main.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "6acaba3cb: intent/plugins/claude/skills/in-whiteboard/SKILL.md (Node roles) and intent/plugins/claude/teams/TERMS.md"
+  }
+}

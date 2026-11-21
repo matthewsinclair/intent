@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_in_session_skill.bats.default.tap",
+  "text": "1..14\nok 1 in-session skill exists\nok 2 in-session declares description and chains_to frontmatter\nok 3 in-session references the universal skills unconditionally\nok 4 in-session reads languages from intent/.config/config.json\nok 5 in-session does not probe filesystem markers for language detection\nok 6 in-session names Elixir and author as the languages with essentials skills\nok 7 in-session wires the author fan-out (table row + chains_to)\nok 8 in-session wires the content fan-out (table row + chains_to)\nok 9 in-session does not reference phantom rust/swift/lua/shell essentials skills\nok 10 in-session points at rule packs for non-Elixir languages via the CLI\nok 11 in-session fans out to Ash and LiveView skills on mix.exs match\nok 12 CLAUDE.md instructs post-compact invocation of /in-session\nok 13 in-session SKILL.md invokes release-gate.sh, not inline awk\nok 14 in-session ships release-gate.sh in scripts/\n",
+  "bytes": 919,
+  "sha256": "68eeda9f6f52a591564e80b19562233315f578d370bea339e29dbd69de5a99ba"
+}

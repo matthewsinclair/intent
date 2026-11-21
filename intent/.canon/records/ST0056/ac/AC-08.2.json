@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.2",
+  "text": "The dual-path conformance suite is green across the verb surface (in-process vs daemon, identical results)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

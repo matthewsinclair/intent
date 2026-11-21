@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 678,
+  "schema": "intent/issue@4.0",
+  "id": "0678",
   "slug": "a-project-without-bin-devbin-cannot-declare-its",
   "title": "A project without bin/devbin cannot declare its own build and test commands for AGENTS.md",
   "status": "closed",

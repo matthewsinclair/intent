@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 9,
+  "schema": "intent/issue@4.0",
+  "id": "0009",
   "slug": "intent-agents-sync-answers-what-languages-by",
   "title": "intent agents sync answers 'what languages?' by filesystem probe while the rest of Intent reads the declared languages array",
   "status": "closed",

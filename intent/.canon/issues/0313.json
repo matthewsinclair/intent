@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 313,
+  "schema": "intent/issue@4.0",
+  "id": "0313",
   "slug": "doctor-gate-the-store-vs-rebuild-arm-refuses-a-c",
   "title": "doctor gate: the store-vs-rebuild arm refuses a commit over a store the commit does not contain, on every peer write in a shared tree",
   "status": "closed",

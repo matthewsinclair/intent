@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 4,
+  "schema": "intent/issue@4.0",
+  "id": "0004",
   "slug": "intent-ac-gate-exits-0-for-an-unresolvable-st-wp",
   "title": "intent ac gate exits 0 for an unresolvable ST/WP: the close-gate passes when it evaluated nothing",
   "status": "closed",

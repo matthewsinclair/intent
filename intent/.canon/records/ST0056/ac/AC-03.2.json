@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "View rendering is deterministic and idempotent: same model renders the same bytes, twice, on both platforms -- **and idempotent THROUGH the project's markdown formatter, not merely through the renderer**: the rendered bytes are a fixed point, so running the formatter over a freshly generated view changes nothing (ic's ruling, accepted 2026-08-15). Held on a consequence, not on tidiness: AC-03.4 regenerates a committed view and requires an empty diff, so a renderer idempotent only against itself makes that check fire permanently on a file nobody touched, and the first thing anyone does with a check that cries wolf is switch it off -- the false-green family arriving through the front door. Three measured instances in one artefact family in one day (`dispatch-table.md`, `register.md`, `pertest.md`), and they split across two causes that both have to hold: **layout** (column widths the formatter re-aligns) and **markup** (canonical forms the formatter rewrites, eg `*emphasis*` to `_emphasis_`). Fixing it at the renderer is one change; fixing it at the skew check is an exception per view forever",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

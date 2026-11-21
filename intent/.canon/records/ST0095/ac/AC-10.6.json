@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.6",
+  "text": "One command answers, for a token, whether it is an id, of which kind, and which record it names.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

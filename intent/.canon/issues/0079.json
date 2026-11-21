@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 79,
+  "schema": "intent/issue@4.0",
+  "id": "0079",
   "slug": "st-new-reports-created-at-rc-0-and-lists-the-thr",
   "title": "st new reports 'created' at rc=0 and lists the thread in .intentfiles exactly like a materialised one, but writes no files; only sync --to-disk materialises it, and --dehydrate's own help implies the default writes them",
   "status": "closed",

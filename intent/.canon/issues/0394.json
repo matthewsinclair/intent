@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 394,
+  "schema": "intent/issue@4.0",
+  "id": "0394",
   "slug": "st-attach-has-no-detach-so-an-attachment-can-onl",
   "title": "st attach has no detach, so an attachment can only leave through canon",
   "status": "closed",

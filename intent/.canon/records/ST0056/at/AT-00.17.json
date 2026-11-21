@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.17",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/no_pm_state_in_output.rs",
+  "covers": [
+    "AC-00.9"
+  ],
+  "status": "green",
+  "note": "GREEN. 13/13 at 4a9a0056 with the corpus arm RUNNING -- the park was honoured, not relaxed. Covers AC-00.9's THIRD surface, the one hv extended the row to on 2026-08-20: files Intent WRITES INTO other people's repositories, which AT-00.8's OUTPUT scan is structurally blind to. Measured 93 citations across 27 of 228 payload files when written (hv's extension measured 80 across 25 ten days earlier, so the surface had GROWN while nothing watched it); cleared the same day, vc taking 26 files and dc the fiat-close rule. THE DISCRIMINATOR IS REFERENT, NOT SHAPE -- AT-00.8's own method rather than a second invention. Both controls run and gate: a corpus positive control (an empty payload would pass every arm for free) and a both-directions discrimination on a SYNTHETIC roster, so the control does not move when somebody creates a thread. TWO EXEMPTIONS, BOTH PROVEN RATHER THAN ASSERTED: format templates must carry a template marker AND contain no resolving ST id, so the exemption cannot swallow a real citation (it nearly did -- the template carried 'Exemption (ST0048)'); and register-structural ids are COMPUTED from every thread's canon, because a cited file is REQUIRED to name the row citing it. That second one was found by breaking it twice -- AT-10.13 then AT-01.5 -- and the first fix read only ST0056's canon, which is AC-00.11's own shape in my own instrument. AND THE CONTROL REFUTED THE CRITERION'S TEXT: AC-00.9 calls 'intent st show ST0042' a placeholder that happens to be four digits, and ST0042, ST0005 and ST0001 ALL RESOLVE here, so every shipped worked example was a citation by the row's own definition. They now use ST0000, which this file already names as the only id guaranteed to resolve for the reader."
+}

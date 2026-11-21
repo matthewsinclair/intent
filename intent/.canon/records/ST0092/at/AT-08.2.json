@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-08.2"
+  ],
+  "status": "green",
+  "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: cc's control take succeeded with no hv words; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
+}

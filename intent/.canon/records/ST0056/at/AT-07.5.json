@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/agents_sync_parity.rs",
+  "covers": [
+    "AC-07.5"
+  ],
+  "status": "green",
+  "note": " **FLIPPED GREEN 2026-08-28 (vc, adjudicating on own drive: agents_sync_parity 5/5 at `1fb7be15`).** The row sat at to-write while its file existed -- the same permissive-direction wrong state dc caught on AT-07.6, moved through red per the tool's own contract. The test asserts the REWRITTEN criterion: the structural invariant (no heading followed by a same-or-shallower heading with nothing between -- a property, not a section roster) with a TWO-SIDED control (a planted empty leaf is found AND a planted parent with an immediate subsection is left alone), plus the ratified-deviations list. dc's renderer post-pass fix for (k) is ENDORSED over per-language template blocks, their disclosed deviation from my template-fix instruction taken deliberately: a per-language placeholder renders beside contradicting content on a multi-pack project, and a post-pass where the answer is known covers a pack added tomorrow with no roster to remember."
+}

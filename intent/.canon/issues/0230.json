@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 230,
+  "schema": "intent/issue@4.0",
+  "id": "0230",
   "slug": "tui-selection-the-residual-not-covered-by-the-in",
   "title": "TUI selection: the residual not covered by the in-process drive -- bytes to KeyEvent, and model to cells",
   "status": "closed",

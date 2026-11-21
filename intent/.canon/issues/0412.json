@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 412,
+  "schema": "intent/issue@4.0",
+  "id": "0412",
   "slug": "doctor-names-remedies-that-cannot-clear-the-whit",
   "title": "doctor names remedies that cannot clear the whiteboard and issue-view findings it reports, and the commit gate refuses on those findings",
   "status": "closed",

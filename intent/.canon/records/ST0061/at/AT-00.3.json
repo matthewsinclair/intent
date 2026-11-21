@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
+  "covers": [
+    "AC-00.3"
+  ],
+  "status": "green",
+  "note": "Forces a refusal, then reads .intentfiles and asserts it is byte-identical. The control is a PERMITTED run on the same fixture, where the entry does go."
+}

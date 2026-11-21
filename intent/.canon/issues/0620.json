@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 620,
+  "schema": "intent/issue@4.0",
+  "id": "0620",
   "slug": "the-menu-masthead-s-512-px-logo-is-a-second-copy",
   "title": "The menu masthead's 512 px logo is a second copy of the app icon that int macos app-icons does not write",
   "status": "closed",

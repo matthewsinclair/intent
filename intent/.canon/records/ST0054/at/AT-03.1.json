@@ -1,0 +1,11 @@
+{
+  "id": "AT-03.1",
+  "kind": "non-test",
+  "prose": "read the `_usage-rules.md` template",
+  "covers": [
+    "AC-03.1",
+    "AC-03.2"
+  ],
+  "status": "n-a",
+  "note": "doc / eyeball"
+}

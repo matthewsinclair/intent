@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "(F-UPG-3) After any interruption, a re-run performs exactly the remaining work; applicability is decided by probing on-disk state (or a step-scoped sentinel), never the top-level stamp. No step ever writes a version newer than its own step. The stamp is written once, last.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

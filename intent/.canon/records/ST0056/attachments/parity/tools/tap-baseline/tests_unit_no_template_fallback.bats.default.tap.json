@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_no_template_fallback.bats.default.tap",
+  "text": "1..7\nok 1 st new fails loudly when the steel-thread templates are missing\nok 2 st new leaves nothing behind when it refuses\nok 3 wp new fails loudly when the work-package template is missing\nok 4 wp new leaves no work-package directory behind when it refuses\nok 5 a healthy install still creates all five steel-thread documents\nok 6 a healthy wp carries the template's Acceptance pointer, not the retired checkbox form\nok 7 no info.md-shaped heredoc remains in the ST or WP creators\n",
+  "bytes": 483,
+  "sha256": "00f0f55eb39fd258a92b8aa492835b7522e1f44341ca9322519556959f1b002a"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.9",
+  "text": "A build of this thread reads a board at schema `intent/board@4.0` unchanged.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

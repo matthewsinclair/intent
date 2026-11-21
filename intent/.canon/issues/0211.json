@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 211,
+  "schema": "intent/issue@4.0",
+  "id": "0211",
   "slug": "a-criterion-cannot-name-what-would-discharge-it",
   "title": "A criterion cannot name what would discharge it until it is discharged",
   "status": "closed",

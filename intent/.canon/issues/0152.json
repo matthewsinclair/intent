@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 152,
+  "schema": "intent/issue@4.0",
+  "id": "0152",
   "slug": "a-contended-write-waits-five-seconds-on-a-timeou",
   "title": "a contended write waits five seconds on a timeout nobody chose, set by a dependency default that is invisible to every reader of our source",
   "status": "closed",

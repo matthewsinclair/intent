@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 734,
+  "schema": "intent/issue@4.0",
+  "id": "0734",
   "slug": "dual-path-conformance-hangs-on-estate-statusline",
   "title": "dual_path_conformance hangs on estate statusline when the suite's stdin never closes",
   "status": "closed",

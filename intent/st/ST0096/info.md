@@ -20,17 +20,11 @@ hv decision 66 rules the fix: the two generated lists leave git, and whether a r
 
 ## Work Packages
 
-| WP    | Title                                                        | Size | Status |
-| ----- | ------------------------------------------------------------ | ---- | ------ |
-| WP-01 | Realisation lives in the record, and the manifest goes       | M    | Done   |
-| WP-02 | The two lists leave git                                      | M    | Done   |
-| WP-03 | The commit gate and the pull-request check follow            | S    | WIP    |
-| WP-04 | The proof: five merge requests through a forge stand-in      | S    | WIP    |
-| WP-05 | Each work package, criterion and test has its own canon file | L    | Done   |
+Each work package is a record of its own: `intent wp list ST0096` lists them, and `intent wp show ST0096/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
+Acceptance criteria and tests are records of their own: `intent ac list ST0096` and `intent at list ST0096` list them, and `intent ac gate ST0096` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
 
 ---
 

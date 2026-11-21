@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "`intent todo done` INHERITS the ST0048 acceptance close-gate (D2): a unit with a BLOCKED contract is refused, the gate's message is surfaced verbatim, and status is left unchanged (no bypass).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

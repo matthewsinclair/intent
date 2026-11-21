@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.4",
+  "text": "The generated part states nothing that the profiles and the store do not declare, which is issue 0672's lesson: rendered for two projects with the same declaration and remits, it differs only in the project's name.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

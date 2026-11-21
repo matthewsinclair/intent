@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 713,
+  "schema": "intent/issue@4.0",
+  "id": "0713",
   "slug": "four-doors-read-an-id-raw-instead-of-through-the",
   "title": "Four doors read an id raw instead of through the thread door, so events --subject 94 finds nothing where ST0094 finds its events",
   "status": "closed",

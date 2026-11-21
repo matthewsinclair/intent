@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 187,
+  "schema": "intent/issue@4.0",
+  "id": "0187",
   "slug": "intent-init-lang-refuses-with-a-reason-that-expi",
   "title": "intent init --lang refuses with a reason that expired: it says lang init is not implemented, and it is",
   "status": "closed",

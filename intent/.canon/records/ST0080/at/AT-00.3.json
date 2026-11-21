@@ -1,0 +1,9 @@
+{
+  "id": "AT-00.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs",
+  "covers": [
+    "AC-00.3"
+  ],
+  "status": "green"
+}

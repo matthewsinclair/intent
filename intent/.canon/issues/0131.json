@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 131,
+  "schema": "intent/issue@4.0",
+  "id": "0131",
   "slug": "issues-add-is-a-create-implemented-as-an-upsert",
   "title": "issues add is a create implemented as an upsert, so two concurrent filings both report created and one is silently replaced",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-14.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_archival.rs",
+  "covers": [
+    "AC-14.6"
+  ],
+  "status": "to-write"
+}

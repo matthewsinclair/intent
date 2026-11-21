@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.5",
+  "text": "The same rows are served to agents as a read-only MCP tool.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

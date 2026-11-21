@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.3",
+  "text": "Intent's own board is converged first: ac is registered, dc reads devx, the README is rendered with its previous text below the marker, and the commit carries exactly what `intent wb init --apply` printed.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "69879b5eb: Intent's board converged first; ac and dc read unchanged, README rendered with its old text inside the block and pruned, the commit carries what wb init team --apply printed plus the prune"
+  }
+}

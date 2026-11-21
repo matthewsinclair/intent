@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.2",
+  "text": "A new id is its kind's marker and the front of the SHA-256 of its creation event's id, 16 hex for a thread and an issue and 8 for a work package, and the record carries that event's id as origin.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

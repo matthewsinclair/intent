@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "`check` still reports stale rows (a registry row whose file is gone) -- no regression on existing behaviour.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

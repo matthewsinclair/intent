@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 575,
+  "schema": "intent/issue@4.0",
+  "id": "0575",
   "slug": "intent-claude-rules-validate-reports-a-false-dup",
   "title": "intent claude rules validate reports a false duplicate id when a canon rule is named by a relative path",
   "status": "closed",

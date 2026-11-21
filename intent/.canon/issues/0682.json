@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 682,
+  "schema": "intent/issue@4.0",
+  "id": "0682",
   "slug": "the-release-gate-s-rust-worktree-is-made-under-t",
   "title": "The release gate's rust worktree is made under TMPDIR, which a host with a small /tmp cannot hold",
   "status": "closed",

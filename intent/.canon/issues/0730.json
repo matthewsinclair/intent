@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 730,
+  "schema": "intent/issue@4.0",
+  "id": "0730",
   "slug": "two-ways-of-asking-git-whether-a-path-is-tracked",
   "title": "Two ways of asking git whether a path is tracked, with two answers for a git that cannot be asked",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.1",
+  "text": "Every search answer carries `index.resolution`, index-wide, naming each language whose level 3 is not current as missing, failed, stale (with its paths) or unresolved, in words one function owns and the register quotes verbatim; a reference whose key joins exactly one current resolved row answers at `level` 3 with `target`, `target_path` and `target_line`, one joining several keeps its syntax level and carries them as `candidates`, and one in a stale file keeps its syntax level; the terminal, the explorer and the MCP tool say the same.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

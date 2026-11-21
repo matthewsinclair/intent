@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 124,
+  "schema": "intent/issue@4.0",
+  "id": "0124",
   "slug": "v2-ingest-discards-authored-prose-that-sits-betw",
   "title": "v2 ingest discards authored prose that sits BETWEEN two recognised fields: the surviving row is grammatical and reads complete",
   "status": "closed",

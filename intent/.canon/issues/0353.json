@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 353,
+  "schema": "intent/issue@4.0",
+  "id": "0353",
   "slug": "the-v3-0-0-migration-writes-a-v2-non-test-criter",
   "title": "The v3.0.0 migration writes a v2 non-test criterion as kind test, and no verb re-kinds it",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "On rhadamanth, from a login session started after Molt-matts' PATH prepend, `intent use dev`, `intent use opt` and `intent use brew` run in turn, each followed by the version line and `intent doctor` with the shadow check passing, and the transcript is attached to this thread.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0087/wp05-ac051.md (record 581f9e573696, attached 78f5ec3e9; run 2 verified by vc 2026-10-30, PASS at 18:59:05Z)"
+  }
+}

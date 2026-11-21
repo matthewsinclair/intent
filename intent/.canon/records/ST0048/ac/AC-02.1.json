@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "The stamped `acceptance.md` template documents the `acceptance: exempt` marker and ships WITHOUT it (default = enforced).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "template documents 'acceptance: exempt' in the preamble and ships WITHOUT the marker (default = enforced)"
+  }
+}

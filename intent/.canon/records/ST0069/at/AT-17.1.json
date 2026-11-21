@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+  "covers": [
+    "AC-17.1"
+  ],
+  "status": "green",
+  "note": "Drives the door against a real store: five write shapes refused with the read-only remedy, a batch refused, ATTACH and PRAGMA refused by name, and the thread count read before and after so a refusal for another reason fails the case. The gate's own directions are unit-tested in intentsvcs::sql_gate, including the over-refusal control."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-11.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+  "covers": [
+    "AC-11.4"
+  ],
+  "status": "green",
+  "note": "Survival byte for byte, and the follow-up preview reporting the undeclared thread's files as blocked removals rather than as nothing. WHAT IT CANNOT ESTABLISH: the survival clause is held up by the DEHYDRATION GATE, not by the verb declining to act -- measured, an applying --default reds only the creation arm next door, never this one, because the gate refuses removal on a project declaring no preconditions. And the blocked figure is a count of FILES: no line of the report names the thread, so 'reports the non-WIP threads' is met only by arithmetic that is unambiguous with exactly one undeclared thread."
+}

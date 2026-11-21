@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.1",
+  "text": "The controller's duties have one template source: the coordinator's `AGENTS.md` that `intent estate init` renders and the brief a hat-wearing node is given carry the same duties text from it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 390,
+  "schema": "intent/issue@4.0",
+  "id": "0390",
   "slug": "the-whiteboard-header-guard-refuses-an-escaped-v",
   "title": "the whiteboard header guard refuses an escaped value but not a value detached from its key (Laksa's check 2), and ships with no harness",
   "status": "closed",

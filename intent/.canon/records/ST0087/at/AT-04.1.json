@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "test",
+  "file": "tests/unit/brew_formula.bats",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "row written after the arms landed; red is the machine's route to a verdict, not a failing run. Green: brew_formula.bats in vc's stacked judge run 3 (END 09:32Z by vc's clock) with 0087-04 v3, landed at 25d3730f7, and again by vc on refs/bank/dc/0087-04/test-do-v1, landed at 5a75c673f. Arms by clause: render and publish from the release's version and per-asset checksums (a release formula carries the macOS branch and both Linux architectures; brew render takes a release tag; brew render writes <out>; a macOS hash SHA256SUMS.txt does not record refuses; publish leaves a release's other assets alone); the manifest in T3's form with managed_by brew (the two manifest arms); both binaries linked into Homebrew's bin (installs into libexec and symlinks bin); the version line in test do (its own arm, from test-do-v1); the caveats name intent bootstrap (issue 0527's caveat arm) and intent use (the intent use caveat arm)."
+}

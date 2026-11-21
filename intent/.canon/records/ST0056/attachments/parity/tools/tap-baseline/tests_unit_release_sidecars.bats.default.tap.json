@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_release_sidecars.bats.default.tap",
+  "text": "1..11\nok 1 intent build release is syntactically valid\nok 2 the sidecar list is declared once and covers every file a release stamps\nok 3 the commit stages the sidecar list rather than a hardcoded set\nok 4 the detect step is scoped to the same list the commit stages\nok 5 config.json and CLAUDE.md are stamped before the commit, not after the tag\nok 6 intent build release delegates CLAUDE.md rather than rendering the template itself\nok 7 intent build release refuses to tag a tree left dirty by the sidecar sync\nok 8 intent build release documents the in-progress CHANGELOG convention\nok 9 intent_upgrade routes its stamp through the shared helper\nok 10 intent build release pins INTENT_HOME to the checkout being released\nok 11 the CLAUDE.md refresh skips the .claude/ stack\n",
+  "bytes": 778,
+  "sha256": "1a98607ab1b1babbaf0ea48039cdf993b25198ee02348e9174de3f5b104e9fce"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 191,
+  "schema": "intent/issue@4.0",
+  "id": "0191",
   "slug": "a-register-row-cannot-say-which-build-it-describ",
   "title": "a register row cannot say WHICH BUILD it describes, so the open set silently mixes main with the shipped tag",
   "status": "closed",

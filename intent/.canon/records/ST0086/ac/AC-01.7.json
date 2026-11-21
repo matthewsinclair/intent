@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.7",
+  "text": "Every error path of the estate verbs and the reader returns a typed error carrying a remedy, nothing is rescued and swallowed, and an unreadable session file is reported, not raised.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

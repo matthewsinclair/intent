@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 588,
+  "schema": "intent/issue@4.0",
+  "id": "0588",
   "slug": "an-h2-line-inside-a-thread-s-objective-or-contex",
   "title": "an H2 line inside a thread's Objective or Context breaks the cover read-back: a false CoverEditNotCarried refusal, and sync --to-store would split the field",
   "status": "closed",

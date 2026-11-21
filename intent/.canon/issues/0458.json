@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 458,
+  "schema": "intent/issue@4.0",
+  "id": "0458",
   "slug": "the-append-only-guard-still-guards-and-describes",
   "title": "the append-only guard still guards and describes intent/events.jsonl, a file no verb writes",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "`subagents/intent`, `subagents/socrates/README.md` and the eight `metadata.json` are gone, `payload.rs` and the installer agree, and `plugin.json` is gone or its reader is named by hv's ruling.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

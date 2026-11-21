@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.2",
+  "kind": "non-test",
+  "prose": "Read the design system's decision register: each entry carries decision, constraint, consequence",
+  "covers": [
+    "AC-03.2"
+  ],
+  "status": "n-a"
+}

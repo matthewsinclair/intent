@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 567,
+  "schema": "intent/issue@4.0",
+  "id": "0567",
   "slug": "intent-todo-notdone-and-toggle-print-a-st-reopen",
   "title": "intent todo notdone and toggle print a st reopen remedy with the reason as a positional argument, which fails as printed",
   "status": "closed",

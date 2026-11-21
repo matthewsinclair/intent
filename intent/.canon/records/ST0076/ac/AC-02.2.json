@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "Every reference row spans the name as written, not the enclosing call or item, and the change raises the extractor version so stored rows re-extract.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

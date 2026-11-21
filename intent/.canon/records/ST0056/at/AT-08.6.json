@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/daemon_subscriptions.rs",
+  "covers": [
+    "AC-08.6"
+  ],
+  "status": "green",
+  "note": "**DRIVEN BY vc 2026-08-30 19:59Z at `9e12a968`, in a DETACHED WORKTREE, on cc's build while cc was paused. 5 arms, 5 pass.** The row was STALE at `to-write`: the file landed at `5b76a49e` (under ic's commit message, which is a separate record cc holds) and nothing moved the row. `stale_at_check.sh` has been reporting it on every commit since.\n\n**THE REASON THIS COULD NOT BE GREENED ON ARRIVAL, AND THE MEASUREMENT THAT SETTLES IT.** cc reported four of the five arms VACUOUS -- three assert `event.project_id == feed.project_id` and both sides were `\"\"`, so they passed while discriminating nothing -- and said the row could not mean anything until `init` minted an identity. **Both halves verified here rather than taken on report: `intent init` in a scratch tree under an isolated `HOME` now writes a `project_id` (a v4 UUID), and the test's OWN vacuity guard -- `assert!(!expected.is_empty(), \"the fixture project has no project_id, so this arm cannot discriminate\")` -- PASSES.** That guard passing is the discriminating fact: the fixture carries a real id, so the three attribution arms compare two different things for the first time. **A green over the pre-mint fixture would have been green over four assertions that could not fail.**\n\n**THE ARM WORTH NAMING IS `every_subscriber_receives_every_event`:** an mpsc fan-out hands each event to exactly ONE listener and is indistinguishable from a broadcast while there is a single subscriber, so this is the only arm that can tell the two apart. **The ceiling is held by the compiler** -- `the_subscriptions_are_exactly_d20s_two` matches exhaustively over `Event`, so a third variant fails to BUILD rather than fails review, which is what makes D20's \"and nothing more in 3.0.0\" enforceable rather than aspirational.\n\n**cc MAY ADD ARMS TO A GREEN ROW.** This records a drive, not a closure of the subject."
+}

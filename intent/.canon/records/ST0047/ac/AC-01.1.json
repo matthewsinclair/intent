@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "`ws new <wsid>` scaffolds a Protocol-3.0 node: `<wsid>/wip.md` with valid frontmatter (node, name, role, session*id, heartbeat_at, status, focus, claims), `<wsid>/.history/.gitkeep`, and an inbox (`# inbox: <peer> -> <wsid>` header + `*(empty)\\_` sentinel) for every existing peer.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

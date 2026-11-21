@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "tests/unit/critic_prose.bats",
+  "covers": [
+    "AC-03.1",
+    "AC-03.2"
+  ],
+  "status": "green"
+}

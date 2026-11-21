@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.7",
+  "text": "`rusqlite` appears in exactly one Cargo.toml (intentsvcs) and the dual-path conformance suite (in-process vs intentd, identical results) is green across the verb surface",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

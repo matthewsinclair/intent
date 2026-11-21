@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0038: critic-elixir false positives on canonical OTP/Mix idioms\n\n## Approach\n\n[Planned approach for implementing this steel thread, including methodology and key steps]\n\n## Design Decisions\n\n[Key design decisions and their rationale]\n\n## Architecture\n\n[Architectural considerations and diagrams if applicable]\n\n## Alternatives Considered\n\n[Other approaches that were considered and why they were not chosen]\n",
+  "bytes": 421,
+  "sha256": "c2fb0ab8ae2818114a6552ed9c844935d769b78361bf0d9a82d26970fc1ac87a"
+}

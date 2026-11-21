@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.6",
+  "text": "`add --severity SEV` sets the frontmatter severity; omitted defaults to `medium`; an invalid severity fails via `error()`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

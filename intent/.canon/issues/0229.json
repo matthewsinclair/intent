@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 229,
+  "schema": "intent/issue@4.0",
+  "id": "0229",
   "slug": "the-close-gate-skips-l2-l3-on-any-test-row-carry",
   "title": "the close gate skips L2/L3 on any test row carrying no file, counts it toward the pass, and never says so",
   "status": "closed",

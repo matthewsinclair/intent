@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 543,
+  "schema": "intent/issue@4.0",
+  "id": "0543",
   "slug": "the-explorer-s-omnibox-keeps-its-old-index-after",
   "title": "The explorer's omnibox keeps its old index after a / command or an editor hand-off, so an entity just created cannot be found",
   "status": "closed",

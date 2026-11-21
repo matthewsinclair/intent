@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 323,
+  "schema": "intent/issue@4.0",
+  "id": "0323",
   "slug": "intent-init-does-not-keep-the-store-out-of-git",
   "title": "intent init does not keep the store out of git",
   "status": "closed",

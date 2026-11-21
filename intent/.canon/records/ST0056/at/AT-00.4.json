@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/mcp_surface.rs",
+  "covers": [
+    "AC-00.4"
+  ],
+  "status": "green",
+  "note": "mcp_surface.rs witnesses AC-00.4's surface half: the tiered typed tools are published and intent_graphql is among them. The bridging-to-intentd half is AT-09.2's, driven against a real daemon in graphql_escape_hatch.rs and cited rather than re-driven. Greened by ic 2026-08-31."
+}

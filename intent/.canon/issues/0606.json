@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 606,
+  "schema": "intent/issue@4.0",
+  "id": "0606",
   "slug": "claude-upgrade-apply-overwrites-the-owner-s-keys",
   "title": "claude upgrade --apply overwrites the owner's keys in a marker-carrying .claude/settings.json",
   "status": "closed",

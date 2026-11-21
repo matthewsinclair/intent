@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.3",
+  "text": "The two-form detrope (D5) is wired: the mechanical trope pass (`IN-AU-STYLE-005`) runs by default; the full `/in-detrope` diagnosis (`IN-AU-CRAFT-003`) is emitted as a handoff recommendation, never invoked by the critic.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "agent.md Two-form detrope: STYLE-005 mechanical pass by default; CRAFT-003 /in-detrope emitted as handoff, never invoked; guarded"
+  }
+}

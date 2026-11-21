@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 590,
+  "schema": "intent/issue@4.0",
+  "id": "0590",
   "slug": "issues-verbs-act-only-on-the-working-directory-s",
   "title": "issues verbs act only on the working directory's project, so filing into another registered project means cd-ing into it first: add intent issues --project <project>",
   "status": "closed",

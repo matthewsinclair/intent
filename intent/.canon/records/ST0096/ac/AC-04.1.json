@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "Five merge requests opened from one main, in two clones and two worktrees, each creating and starting a thread and adding a work package and an issue, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

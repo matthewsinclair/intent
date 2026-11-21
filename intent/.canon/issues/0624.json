@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 624,
+  "schema": "intent/issue@4.0",
+  "id": "0624",
   "slug": "intent-issues-edit-and-close-write-tracked-files",
   "title": "intent issues edit and close write tracked files but print no wrote: lines, so the commit rule cannot be followed mechanically for them",
   "status": "closed",

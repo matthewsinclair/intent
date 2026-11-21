@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 337,
+  "schema": "intent/issue@4.0",
+  "id": "0337",
   "slug": "the-acceptance-verbs-enforce-less-than-the-docs",
   "title": "The acceptance verbs enforce less than the docs promise: at green from to-write, at na on a test row, silent closes on a placeholder objective",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "`_usage-rules.md` no longer carries a staleable hard-coded Intent version, or the version is unambiguously refresh-on-upgrade.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "_usage-rules.md: staleable 'v[[INTENT_VERSION]]' removed; now 'This project uses Intent. Run intent doctor for the installed version'"
+  }
+}

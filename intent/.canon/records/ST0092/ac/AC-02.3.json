@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "`intent wb profile list` names each shipped profile and whether it is a base or a layer, `intent wb profile show <name>` prints its seats, its mediator and its brief, and `intent wb profile terms` prints the terms document; all three answer in a directory that is no Intent project.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

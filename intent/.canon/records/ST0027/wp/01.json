@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Steel thread docs + skill scaffold",
+  "scope": "S",
+  "status": "done",
+  "objective": "[Clear statement of what this work package aims to accomplish]",
+  "body": "## Acceptance Criteria\n\n- [ ] Criterion 1\n- [ ] Criterion 2",
+  "preamble": ""
+}

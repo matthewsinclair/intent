@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "A store that lags the committed canon is reported on a default intent doctor run as store-stale, shown and not counted, with the exit code untouched.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

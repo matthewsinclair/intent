@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/nav.rs",
+  "covers": [
+    "AC-17.7"
+  ],
+  "status": "green",
+  "note": "Reachable AND leavable is walked over every view the real declaration can produce, in both directions and from every depth, rather than spot-checked: no_level_can_be_entered_and_not_left and a_stack_of_any_depth_unwinds_to_its_root_and_stops_there. The DERIVATION half is held in intentsvcs/tests/nav_is_the_shared_path_contract.rs, and views.rs holds one row per declared kind at the root. 101 passed at 87123458."
+}

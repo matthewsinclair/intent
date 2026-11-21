@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.4",
+  "text": "The clap layer holds no business logic (parse -> facade -> render only)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "vc review at 9a45340: clap layer is 713 lines across 5 files; zero rusqlite/Connection/std::fs/Path::new reaches (the single grep match is a comment in lib.rs stating rusqlite is absent); one serde_json::from_str loads the dispatch SSOT; the only clock is today() at render.rs:66, read at the outermost layer and injected inward [CLOCK CLAUSE SUPERSEDED 2026-08-15 by D42"
+  }
+}

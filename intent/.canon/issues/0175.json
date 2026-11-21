@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 175,
+  "schema": "intent/issue@4.0",
+  "id": "0175",
   "slug": "agents-family-root-answers-rc-2-not-implemented",
   "title": "agents family-root answers rc=2 'not implemented yet' while agents sync and agents validate answer 0",
   "status": "closed",

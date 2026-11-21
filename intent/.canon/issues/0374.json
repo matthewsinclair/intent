@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 374,
+  "schema": "intent/issue@4.0",
+  "id": "0374",
   "slug": "wb-migrate-carries-hand-authored-entries-as-live",
   "title": "wb migrate carries hand-authored entries as live, so a migrated inbox can be born over the message bound and block its sender",
   "status": "closed",

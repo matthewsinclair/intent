@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "No test in intentsvcs or intentd names an id it expects a mint to produce: each binds what the mint returned.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "ae11d9939: cc's bank wp01-v1 (patch-id 9a84ec4da587) landed by vc on cc's proof, bin/devbin gate rust green at the base plus the bank, and cc's reading of every predicting site in intentsvcs and intentd"
+  }
+}

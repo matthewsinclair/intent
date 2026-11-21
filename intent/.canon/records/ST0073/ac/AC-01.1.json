@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "**A daemon whose owner is SIGKILLed exits on its own, and the test kills the owner in a way NO `Drop`, handler or atexit can survive.** A test that terminated its parent politely would be measuring the path that already works. The arm asserts the daemon process is GONE, by pid, not that a socket stopped answering -- a wedged process holding the store still fails to answer and would satisfy the weaker check while being the exact defect this thread exists to remove.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

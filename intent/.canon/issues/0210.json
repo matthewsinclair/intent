@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 210,
+  "schema": "intent/issue@4.0",
+  "id": "0210",
   "slug": "shared-thread-canon-commits-deadlock-under-inten",
   "title": "shared-thread canon commits deadlock under intentd auto-ingest; the guard names the file, not the culprit",
   "status": "closed",

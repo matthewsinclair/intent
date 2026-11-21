@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.1",
+  "text": "Two clones, and two worktrees, that each mint a thread, a work package in one shared thread, and an issue from one base, merge with different ids and no repair.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

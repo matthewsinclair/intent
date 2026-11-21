@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 639,
+  "schema": "intent/issue@4.0",
+  "id": "0639",
   "slug": "legal-pairs-carries-a-per-pair-row-count-that-ev",
   "title": "legal_pairs carries a per-pair row count that every table change corrects by hand",
   "status": "closed",

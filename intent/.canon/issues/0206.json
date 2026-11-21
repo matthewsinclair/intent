@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 206,
+  "schema": "intent/issue@4.0",
+  "id": "0206",
   "slug": "canon-verbs-are-a-read-modify-write-with-no-comp",
   "title": "canon verbs are a read-modify-write with no compare-and-swap, so two concurrent sessions on one thread silently lose a write",
   "status": "closed",

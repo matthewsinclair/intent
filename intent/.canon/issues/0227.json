@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 227,
+  "schema": "intent/issue@4.0",
+  "id": "0227",
   "slug": "acceptance-exempt-has-a-complete-read-path-and-n",
   "title": "acceptance: exempt has a complete read path and no writer -- the only assignment in the workspace is inside a test",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.3",
+  "text": "A bare query is text and `--sql` is the only structured door; nothing is auto-detected from the query's first word.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 163,
+  "schema": "intent/issue@4.0",
+  "id": "0163",
   "slug": "intent-daemon-start-stop-are-declared-in-help-an",
   "title": "intent daemon start/stop are declared in --help and unwired",
   "status": "closed",

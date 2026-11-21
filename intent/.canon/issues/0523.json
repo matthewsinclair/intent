@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 523,
+  "schema": "intent/issue@4.0",
+  "id": "0523",
   "slug": "intent-wb-has-no-verb-to-correct-or-redact-an-it",
   "title": "intent wb has no verb to correct or redact an item's text, and the old text survives in its originating event file",
   "status": "closed",

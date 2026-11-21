@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_intent_upgrade_dispatcher.bats.default.tap",
+  "text": "1..6\nok 1 v2.10.x project lands at current target stamp, not hard-coded 2.11.0\nok 2 v2.11.x project upgrades to current target without 'Unknown version'\nok 3 v2.11.7+ upgrade installs in-whiteboard skill\nok 4 v2.11.11+ upgrade wires canon subagent sync\nok 5 v2.11.11+ upgrade narrates subagent sync at runtime\nok 6 upgrade aborts before migration when backup cannot be created\n",
+  "bytes": 377,
+  "sha256": "5bb449fd1b5721c51534c4e2ab85178b447f3bd1b5e7a706b687fd9be49d760b"
+}

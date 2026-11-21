@@ -1,0 +1,10 @@
+{
+  "id": "AC-12.4",
+  "text": "The by-hand parity scripts the id census still lists (the manual conservation_check, v2_estate_issue_carry, sync_issue_loss, upgrade_issue_loss, canon_clone_completeness, sparse_tree_equals_manifest, canon_concurrent_diff, v2_prose_survival, estate_census and docs_defect_disposition_check, and realise_plan.sh, 22 census rows) ask the id door or are retired.",
+  "kind": "test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0097",
+    "by": "vc, under hv's pen (decision 4), on hv decision 79, 2026-11-21"
+  }
+}

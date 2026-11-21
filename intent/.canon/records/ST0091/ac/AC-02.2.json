@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "`bin/int prepush` keeps its frozen-remote refusal, and a push neither requires a kovacs summary nor clones and builds the workspace.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

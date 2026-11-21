@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.8",
+  "text": "**R8 -- auditable without becoming the disclosure.** `vault list` and `vault audit` emit names and references and never material, asserted by seeding known material and requiring it ABSENT from their output. The fence regex is anchored and lowercase so it cannot match ordinary config or prose. **ENTRY NAMES LIVE INSIDE THE CIPHERTEXT, so `list` decrypts and fails with `Locked` when no identity is reachable.** The rejected alternative was a cleartext name header making `list` cheap and lock-independent -- rejected because **the inventory is itself sensitive**, and a 644 store carrying a name header would disclose which entries exist for which profiles, which would make AC-00.12's `warn` on the store an understatement rather than a calibration. Raised by Lamplight's verification as an R8/S1 interaction neither side had resolved.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

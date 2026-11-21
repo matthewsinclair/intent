@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "impl.md dogfood (mechanical tier; D3/D4 evidence) + WP05 wiring tests (in_session_skill/critic_dispatch) + hv sign-off 'ship as minor v2.15.0' (2026-07-03); live Task(critic-author) available post-restart"
+  }
+}

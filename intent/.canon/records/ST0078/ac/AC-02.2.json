@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "intent issues renumber <old> <new> does the same for an issue: refuses a taken id, rewrites the canon file, its name and its view, emits its own event, and prints the prose references it did not rewrite.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

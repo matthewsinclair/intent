@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "Serialise/deserialise laws hold under proptest, and an unknown field in canonical JSON is refused by name, never dropped",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

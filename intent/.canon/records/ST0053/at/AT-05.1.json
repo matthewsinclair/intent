@@ -1,0 +1,9 @@
+{
+  "id": "AT-05.1",
+  "kind": "test",
+  "file": "tests/unit/in_content_essentials_skill.bats",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green"
+}

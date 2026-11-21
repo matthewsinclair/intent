@@ -1,0 +1,9 @@
+{
+  "id": "AT-19.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs",
+  "covers": [
+    "AC-19.1"
+  ],
+  "status": "green"
+}

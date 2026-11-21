@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 569,
+  "schema": "intent/issue@4.0",
+  "id": "0569",
   "slug": "with-no-intentd-running-intent-sync-to-store-car",
   "title": "with no intentd running, intent sync --to-store carries no hand edit to a cover, because nothing records the cover as touched",
   "status": "closed",

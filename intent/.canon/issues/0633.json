@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 633,
+  "schema": "intent/issue@4.0",
+  "id": "0633",
   "slug": "intent-claude-upgrade-apply-appends-single-prett",
   "title": "intent claude upgrade --apply appends single-* .prettierignore patterns a file's ** patterns already cover, so every run dirties the tree",
   "status": "closed",

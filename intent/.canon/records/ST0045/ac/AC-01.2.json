@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "The empty hidden archive dir scaffolding is documented: each node's `.history/` is tracked via `.history/.gitkeep` (git does not track empty directories).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "SKILL.md file-layout .history/.gitkeep + scaffolding note"
+  }
+}

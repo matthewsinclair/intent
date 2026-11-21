@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_ac_offscope_states.bats.default.tap",
+  "text": "1..12\nok 1 a descoped AC stops blocking and the gate passes a genuinely finished thread\nok 2 off-scope ACs are reported separately, never folded away\nok 3 the audit trail lands on the line, which is the whole point over deleting it\nok 4 a descope names a real thread, never itself, and never nothing\nok 5 a withdrawal without a stated reason is refused\nok 6 rescope and reinstate undo their own state and refuse the other's\nok 7 an off-scope AC is not re-entered by another off-scope verb\nok 8 a descoped test-backed AC is off-scope before it is hunted for a covering AT\nok 9 an off-scope AC cannot be satisfied, and the refusal names the undo\nok 10 a contract emptied by off-scope moves is refused, not passed on an empty set\nok 11 a field value carrying the delimiter is refused rather than mangled\nok 12 satisfied: n/a is read as itself, not as a truncated token\n",
+  "bytes": 866,
+  "sha256": "a9c500198092a03a4a3fa3c311b3362b43336c12cfd6e5a9712dcdb438f2ba52"
+}

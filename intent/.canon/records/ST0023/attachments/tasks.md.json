@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0023: Remove Backlog from Intent\n\n## Tasks\n\n- [x] WP01: Remove Backlog from documentation (docs, TPD, blogs)\n- [x] WP02: Remove Backlog from LLM templates\n- [x] WP03: Remove Backlog from subagent definitions\n- [x] WP04: Remove Backlog CLI commands and config from bin/\n- [x] WP05: Remove Backlog config keys from JSON files\n- [x] WP06: Remove/update test files\n- [x] WP07: CI/CD, examples, and cleanup\n- [x] WP08: Version bump, CHANGELOG, treeindex, release\n\n## Additional Work\n\n- [x] Consolidated duplicate `version`/`intent_version` config fields to just `intent_version`\n- [x] Cleaned global agent manifest description\n- [x] Cleaned stale STP/backlog entries from .claude/settings.local.json\n- [x] Fixed test side-effect: tests modifying real source agent.md (sandbox approach)\n- [x] Highlander Rule audit: identified 25 violations, documented in ST0025\n\n## Dependencies\n\n- WP01 completed before WP02-WP08\n- WP04+WP05+WP06 executed as group\n- WP08 last (depends on all others)\n",
+  "bytes": 992,
+  "sha256": "980cfe58ee37baf2bdbe74d31f0a85bf10ce2c013d35a040345a892de6b4f728"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/elixir_references_resolve_through_the_compiler_tracer.rs",
+  "covers": [
+    "AC-06.1"
+  ],
+  "status": "green",
+  "note": "Red on 1a25373a6 before WP-06: the arm does not compile there, because that tree has no `intentsvcs::index::elixir_tracer` and no `resolved::OPERATOR`: 2 errors (E0432) in the intentsvcs suite, compiled in dc's worktree with its own target, the reader and the operator's move taken out as a saved patch and put back. Green at 810f67985 (WP-06 landing, patch-id b33d87e0, vc's GO): the checked-in trace of a tiny Mix project, captured from a forced compile with Intent's tracer on Elixir 1.20.4 and OTP 29, resolves its written references through the facade to what the compiler named, stores no expansion (no `String.Chars.to_string/1` beside a written `to_string`), counts operator and quoted references by reason, and holds the conservation law over its call, module and quoted records; a program that does not exist is recorded as missing and named; a project whose index holds `mix.exs` only below its root is not applicable; through a stand-in program, the compile builds `dev` under `intent/.cache/resolve/elixir` and never the project's `_build`, seeds from `_build/dev/lib`, is forced on the first run, `--full` and a build made again because `mix.lock` moved and incremental otherwise, and a failed compile records the file and line Mix names while the rows stored before still answer; a fault the tracer could not record and a forced compile that traced nothing fail the run; and the needs_the_toolchain arms run real Elixir: the same project end to end, again incrementally, then with a broken file that fails the run at its file and line and leaves the stored rows marked stale by the file's hash, and the tracer turning every fault into a record or a prefixed line and returning `:ok`. Gate: whole intentsvcs, intent-cli and intentd suites, the toolchain step, workspace clippy and CI's restriction clippy."
+}

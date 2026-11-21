@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 387,
+  "schema": "intent/issue@4.0",
+  "id": "0387",
   "slug": "the-release-commit-stamps-the-version-without-re",
   "title": "the release commit stamps the version without re-rendering the realised views, so every view's footer trails the cut until its next write rewrites it",
   "status": "closed",

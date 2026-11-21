@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.18",
+  "kind": "non-test",
+  "prose": "clean-machine transcript on gyges, ~/intent-clean-install.log from intent/st/ST0056/gyges-brief.md, steps 2, 4 and 5: the documented brew install matthewsinclair/intent/intent exits 0; bootstrap, init, st new and doctor succeed in a fresh git project; and intent daemon status, start, status, st list --daemon, restart, stop and status run in that order, reporting not running, running with an address, answered, running, and not running; the daemon logs show the start and the restart with no error, panic or fatal line; and no intentd process is left after stop (pgrep rc 1).",
+  "covers": [
+    "AC-00.5"
+  ],
+  "status": "n-a",
+  "note": "Minted 2026-08-29 by vc: AC-00.5 had NO covering AT, so its unsatisfied state was an absence rather than a measurement."
+}

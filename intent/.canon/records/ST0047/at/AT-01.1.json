@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "tests/unit/claude_with_intent.bats",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "test: \"AT-01.1 ws new scaffolds a protocol-3.0 node\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). A whiteboard node is a ROW in the store now, so the verb this drove has no subject: `intent wb register` creates a node, `intent wb status` lists them, `intent wb archive` retires an item, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for."
+}

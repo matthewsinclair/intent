@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 125,
+  "schema": "intent/issue@4.0",
+  "id": "0125",
   "slug": "three-register-checks-read-the-dispatch-table-fr",
   "title": "three register checks read the dispatch table from the WORKING TREE, so one node's mid-edit refuses every other node's commit",
   "status": "closed",

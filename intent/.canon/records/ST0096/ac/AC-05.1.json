@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "A thread's canon in the release's format is one file for the thread's own fields and one file per work package, criterion, test and attachment under .canon/records/<thread>/, each named by its record's stored id or label, and no file lists, counts or orders a thread's children: the thread's records directory holds them, read in the waist's order.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

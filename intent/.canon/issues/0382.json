@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 382,
+  "schema": "intent/issue@4.0",
+  "id": "0382",
   "slug": "a-carried-inbox-entry-renders-with-the-carry-s-r",
   "title": "a carried inbox entry renders with the carry's recorded_at rather than its written stamp, so a migrated inbox loses its ordering",
   "status": "closed",

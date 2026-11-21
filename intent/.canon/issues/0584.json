@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 584,
+  "schema": "intent/issue@4.0",
+  "id": "0584",
   "slug": "the-rule-library-links-a-principle-to-its-rules",
   "title": "the rule library links a principle to its rules in three fields, and rules validate compares none of them",
   "status": "closed",

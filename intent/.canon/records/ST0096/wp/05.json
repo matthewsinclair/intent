@@ -1,0 +1,9 @@
+{
+  "id": "05",
+  "title": "Each work package, criterion and test has its own canon file",
+  "scope": "L",
+  "status": "done",
+  "objective": "Two merge requests that change the same thread merge on a forge with no hand step: each work package, criterion and test lives in its own canon file, and the thread's views are laid out so that no two of them share a file (hv decision 70).",
+  "body": "- **Why**: a thread's canon is one file today, `intent/.canon/st/<id>.json`, holding its packages, criteria, tests and attachments, and its `info.md` and `acceptance.md` list them all. So two merge requests that each add a work package, a criterion or a test to one thread conflict there. hv decision 70 closes this in this release, against vc's recommendation, and hv decision 71 starts the thread.\n- **Its meaning is cc's, and the views' shape ic's.** cc designs the split after ST0095 WP-04 lands: how a thread's canon divides, how the split rides ST0095's schema change so that a project migrates once, and what `intent upgrade` does to an existing thread. ic says how the thread views divide so that no two records share one. vc writes the design into `design.md` before any code, with this package's criteria, its size, and whether the views need a package of their own.\n- **It lands before WP-04**, whose proof carries the same-thread case (AC-04.2).\n",
+  "preamble": ""
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
+  "covers": [
+    "AC-00.2"
+  ],
+  "status": "green",
+  "note": "Two arms against the one wildcard: an opaque attachment carrying None, and a hand-edited view whose bytes differ. Both refuse by name; every file survives."
+}

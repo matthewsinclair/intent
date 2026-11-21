@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 642,
+  "schema": "intent/issue@4.0",
+  "id": "0642",
   "slug": "st-attach-prints-no-wrote-line-for-the-event-and",
   "title": "st attach prints no wrote: line for the event and canon row it writes",
   "status": "closed",

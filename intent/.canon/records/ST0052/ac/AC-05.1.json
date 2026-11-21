@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "The `/in-author-essentials` skill exists (`SKILL.md`, valid frontmatter) and carries the authoring pipeline (outline -> draft -> mechanical detrope -> revise -> structural check), references the nine `IN-AU-*` rule ids, and is renderer-safe (no em dashes, no `$N` positional tokens).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

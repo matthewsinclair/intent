@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "The dispatch table is the SSOT: the clap surface and help text are generated from it, asserted by test",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

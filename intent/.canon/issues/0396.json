@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 396,
+  "schema": "intent/issue@4.0",
+  "id": "0396",
   "slug": "at-edit-s-register-row-says-kind-is-deliberately",
   "title": "at edit's register row says --kind is deliberately absent, and the verb has taken it since 0146",
   "status": "closed",

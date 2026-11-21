@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Skill Dependency Chains",
+  "scope": "S",
+  "status": "done",
+  "objective": "Add `chains_to:` frontmatter field to Intent's workflow skills, creating a navigable skill graph without auto-activation. When a skill completes, Claude should suggest the next skill(s) in the chain.",
+  "body": "## Deliverables\n\n### Frontmatter additions\n\nAdd `chains_to:` to these 4 workflow skills:\n\n| Skill       | `chains_to:`             | Rationale                                           |\n| ----------- | ------------------------ | --------------------------------------------------- |\n| `in-start`  | `[\"in-plan\", \"in-next\"]` | After orientation, either plan new work or continue |\n| `in-plan`   | `[\"in-next\"]`            | After planning, pick the first work unit            |\n| `in-next`   | `[\"in-plan\"]`            | After picking work, may need to plan it             |\n| `in-finish` | `[\"in-verify\"]`          | Before finishing, verify claims (requires WP-03)    |\n\n### Skill chain section\n\nAdd a brief \"Skill Chain\" section at the bottom of each modified skill:\n\n```markdown\n\n## Skill Chain\n\nAfter completing this skill, consider:\n\n- `/in-plan` -- if starting new work that needs planning\n- `/in-next` -- if continuing existing work\n```\n\n### No infrastructure changes\n\nThe `chains_to:` field is purely semantic. Claude reads it from SKILL.md frontmatter when the skill is loaded. No changes to `intent_claude_skills`, `claude_plugin_helpers.sh`, or manifests.\n\n## Acceptance Criteria\n\n- [ ] 4 skills have `chains_to:` in frontmatter\n- [ ] Each skill has a \"Skill Chain\" section at the bottom\n- [ ] `intent claude skills sync` works without errors\n- [ ] Existing tests pass\n\n## Dependencies\n\n- None (can be done independently)\n- WP-03 (`in-verify`) should exist before `in-finish` chains to it",
+  "preamble": ""
+}

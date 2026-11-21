@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.2",
+  "text": "`intent claude hook <name>` output is byte-compatible with v2 for every shipped hook; consumer settings.json untouched",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

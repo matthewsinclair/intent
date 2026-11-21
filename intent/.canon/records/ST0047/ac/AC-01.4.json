@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "On a whiteboard's first creation, `hv` is provisioned as Workstream Zero by default; working nodes appear only on an explicit `ws new`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

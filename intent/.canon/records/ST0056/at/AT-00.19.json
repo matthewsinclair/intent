@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.19",
+  "kind": "non-test",
+  "prose": "The prune commit d5998ac37 and AC-00.6's four falsifiers, driven at ab1bcaaa7; see the criterion's evidence.",
+  "covers": [
+    "AC-00.6"
+  ],
+  "status": "n-a",
+  "note": "Minted 2026-08-29 by vc: AC-00.6 had NO covering AT. -- RETIRED at the 3.0.1 cut unwritten: AC-00.6 is satisfied by the evidence of the prune commit d5998ac37 and the four falsifiers driven after it, recorded on the criterion"
+}

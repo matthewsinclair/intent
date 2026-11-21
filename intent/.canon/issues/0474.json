@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 474,
+  "schema": "intent/issue@4.0",
+  "id": "0474",
   "slug": "devbin-dogfood-s-own-expiry-has-passed-delegate",
   "title": "devbin dogfood's own expiry has passed: delegate to intent init or delete it",
   "status": "closed",

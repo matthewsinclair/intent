@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 559,
+  "schema": "intent/issue@4.0",
+  "id": "0559",
   "slug": "the-readme-quickstart-s-st-edit-route-loses-a-th",
   "title": "the README quickstart's st edit route loses a thread's objective at the next write, with a git recovery a fresh project cannot use",
   "status": "closed",

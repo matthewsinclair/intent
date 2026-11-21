@@ -1,0 +1,11 @@
+{
+  "id": "AT-08.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-08.1",
+    "AC-08.3"
+  ],
+  "status": "green",
+  "note": "red at b64665225 on the code as it was, desk run 01M73J11PV8GCHWZGF7M97J64H: the mediator's pickup printed no hat, no duties and no asks waiting; green at 806a81a66, judged by vc on tree 78028952b20f (desk run 01M73MB6F43GHCQNPN4DWRDJEC)"
+}

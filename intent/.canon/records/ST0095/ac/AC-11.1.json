@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.1",
+  "text": "The TUI lists, opens and moves between hashed threads, work packages and issues, and an all-digit id keeps its leading zero.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

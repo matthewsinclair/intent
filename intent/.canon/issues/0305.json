@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 305,
+  "schema": "intent/issue@4.0",
+  "id": "0305",
   "slug": "a-flag-declaring-arity-1-n-swallows-the-next-pos",
   "title": "A flag declaring arity 1..n swallows the next positional and refuses the repetition its help renders",
   "status": "closed",

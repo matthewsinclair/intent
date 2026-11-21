@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/issue_realised_form.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green"
+}

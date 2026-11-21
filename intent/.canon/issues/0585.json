@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 585,
+  "schema": "intent/issue@4.0",
+  "id": "0585",
   "slug": "pr-checks-yml-substitutes-a-pull-request-s-descr",
   "title": "pr-checks.yml substitutes a pull request's description into a shell script, so the description runs as code, and three CI steps pass when their own command fails",
   "status": "closed",

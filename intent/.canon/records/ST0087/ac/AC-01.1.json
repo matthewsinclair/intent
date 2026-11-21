@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "One function in intentsvcs names the running tree in the contract's order, brew when the manifest says `managed_by: brew`, opt when its `tool` is intent, dev when the root is a git work tree with no manifest, unknown otherwise, reading the manifest before the path and answering brew for a manifest-less keg whose root resolves under the opt link; every caller asks it, and doctor fails on unknown and on a dev tree whose git cannot be read.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

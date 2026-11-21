@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 314,
+  "schema": "intent/issue@4.0",
+  "id": "0314",
   "slug": "at-edit-a-re-cite-of-a-legacy-row-keeps-the-lega",
   "title": "at edit: a re-cite of a legacy row keeps the legacy reference, so the rewrite doctor asks for produces the blocking finding",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 538,
+  "schema": "intent/issue@4.0",
+  "id": "0538",
   "slug": "the-chain-block-claude-upgrade-writes-has-no-els",
   "title": "The chain block claude upgrade writes has no else, so an absent carrier skips every gate in silence",
   "status": "closed",

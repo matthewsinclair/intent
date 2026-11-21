@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.2",
+  "text": "CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "CHANGELOG `## [2.14.0]` (ST0050 + ST0051); impl.md as-built; tasks.md WP checklist"
+  }
+}

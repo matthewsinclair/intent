@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/view_skew_check.rs",
+  "covers": [
+    "AC-03.4"
+  ],
+  "status": "green"
+}

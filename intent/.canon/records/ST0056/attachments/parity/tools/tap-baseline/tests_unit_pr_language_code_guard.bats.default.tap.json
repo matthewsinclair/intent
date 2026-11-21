@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_pr_language_code_guard.bats.default.tap",
+  "text": "1..4\nok 1 rules validate accepts a well-formed IN-PR prose id\nok 2 rules validate rejects a malformed IN-PR id (bad zero-padding)\nok 3 rules validate rejects a lowercase pr language code\nok 4 prose is registered in the canon-enumeration LANG_SUBDIRS default\n",
+  "bytes": 258,
+  "sha256": "4deaba9d097c4dac3957a303409da9162f1304cac505ada1724ebc5657d0155b"
+}

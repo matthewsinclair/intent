@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 495,
+  "schema": "intent/issue@4.0",
+  "id": "0495",
   "slug": "doctor-s-store-versus-canon-check-does-not-cover",
   "title": "doctor's store-versus-canon check does not cover whiteboard items, so a board row the store holds and canon does not is reported by nothing",
   "status": "closed",

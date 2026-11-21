@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "`intent/docs/releasing.md` no longer unlinks and pins the keg, `bin/int brew smoke --reinstall` leaves the keg linked, and `docs/install.md`'s maintainer section documents the three trees, the per-tree upgrade procedure of T6 and the PATH hazard the shadow check cannot see, while the user's docs name brew alone.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "25d3730f7 (refs/bank/dc/0087-04/v3, judged in vc's run 3 and landed by vc): intent/docs/releasing.md has no unlink or pin step, and says brew is the resting state and nothing unlinks or pins the keg (decision 80); bin/int brew smoke --reinstall reinstalls cold from the tap, then its \"the keg is linked\" check asserts that Homebrew's bin/intent resolves into the keg; docs/install.md's \"For the maintainer of a dev checkout\" section names the dev, opt and brew trees, each tree's upgrade procedure, and the PATH hazard (the switch governs login shells only, and intent doctor cannot see a session started without the login PATH), and says everything above it names Homebrew alone, which the page's other sections do."
+  }
+}

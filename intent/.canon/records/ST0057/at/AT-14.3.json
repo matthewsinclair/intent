@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/todo_watermark.rs",
+  "covers": [
+    "AC-14.3"
+  ],
+  "status": "green",
+  "note": "Asserts the event is still ONE, and still carries the full instant the database set, on shape rather than on value -- a test that knew the value would have to read a clock, which is what the database stamp exists to avoid (D42)."
+}

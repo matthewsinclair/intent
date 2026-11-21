@@ -1,0 +1,9 @@
+{
+  "id": "AT-09.3",
+  "kind": "non-test",
+  "prose": "vc has run the banked census (refs/bank/vc/st0092/census-boards.zsh) against a build carrying WP-09 and recorded each class's count for each project, and hv has ruled with that table in front of hv whether any class gates after the sweep.",
+  "covers": [
+    "AC-09.3"
+  ],
+  "status": "n-a"
+}

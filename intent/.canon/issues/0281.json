@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 281,
+  "schema": "intent/issue@4.0",
+  "id": "0281",
   "slug": "intentcli-swift-131-assigns-the-console-tail-s-l",
   "title": "IntentCLI.swift:131 assigns the console tail's lifecycle to a verb that does not exist",
   "status": "closed",

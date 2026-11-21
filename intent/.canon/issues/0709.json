@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 709,
+  "schema": "intent/issue@4.0",
+  "id": "0709",
   "slug": "mid-merge-wp-renumber-records-kind-wp-with-the-b",
   "title": "mid-merge wp.renumber records kind wp with the bare thread id as its subject, so events --subject on the package never finds it",
   "status": "closed",

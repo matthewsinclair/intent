@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 239,
+  "schema": "intent/issue@4.0",
+  "id": "0239",
   "slug": "bare-intent-agents-says-the-command-is-not-imple",
   "title": "bare `intent agents` says the command is not implemented while its own remedy line points at five verbs that are",
   "status": "closed",

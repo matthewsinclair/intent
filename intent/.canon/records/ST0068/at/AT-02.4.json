@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.4",
+  "kind": "non-test",
+  "prose": "Read the reference output's provenance header for the revision it names",
+  "covers": [
+    "AC-02.4"
+  ],
+  "status": "n-a",
+  "note": "Provenance header read on index.md and intent-st.md; names generator, revision and baseline."
+}

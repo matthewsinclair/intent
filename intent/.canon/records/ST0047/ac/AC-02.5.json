@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.5",
+  "text": "The launched posture is the hv-intended `auto` mode (not accept-edits / bypass), confirmed against the TUI status line.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "live 2026-06-25: permission-mode=auto recorded in both ic/vc transcripts"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.4",
+  "text": "When the recorded controller's session is gone, `intent estate status` says the desk is orphaned and prints the step that takes it, and no node's pickup or board shows the hat.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

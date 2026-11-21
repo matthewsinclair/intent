@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "Version stamped 2.13.1 (config.json + templates) + a CHANGELOG entry.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "v2.13.1 tagged (d01a1b2) + pushed to both remotes + GitHub release; VERSION=2.13.1; config.json intent_version=2.13.1 (intent upgrade stamp)"
+  }
+}

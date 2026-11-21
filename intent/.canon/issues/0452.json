@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 452,
+  "schema": "intent/issue@4.0",
+  "id": "0452",
   "slug": "docs-reference-renders-a-register-note-on-argume",
   "title": "docs/reference renders a register note on argument rows and never on an entry, so an entry's own note reaches no page -- deliberate omission or generator gap?",
   "status": "closed",

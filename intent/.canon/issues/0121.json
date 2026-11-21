@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 121,
+  "schema": "intent/issue@4.0",
+  "id": "0121",
   "slug": "st-list-defaults-to-in-progress-only-and-its-out",
   "title": "st list defaults to in-progress only and its output discloses the filter nowhere",
   "status": "closed",

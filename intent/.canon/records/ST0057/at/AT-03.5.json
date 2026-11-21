@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/sync_reports_uncommitted_attachment.rs",
+  "covers": [
+    "AC-03.5"
+  ],
+  "status": "green",
+  "note": "**GREEN. 7 arms pass at `18a9ab6b`, file TRACKED and byte-identical to HEAD.** **THE COMPARISON IS AGAINST THE INDEX AND THE STAGED ARM IS THE WHOLE PROOF: `git commit` records the INDEX, so the index is what the next commit will hold. Compare against HEAD and every staged file reports as uncommitted -- the normal state of a commit being assembled.** An implementation keyed on HEAD passes every other arm in the file and fails only that one, and it is PAIRED: unstage the same bytes and they report again, so it cannot pass by the check having gone quiet. **TWO QUERIES, BECAUSE _not in the index_ HAS TWO SHAPES: `diff-files` answers only for TRACKED files, so a check built on it alone is silent about a file the index has never heard of -- which is exactly the file whose bytes are least likely to be in any commit.** **`None` FOR NO-REPOSITORY RATHER THAN AN EMPTY LIST, and the CLI prints the difference: _nothing is uncommitted_ is a clean bill of health, _I could not ask_ is the ABSENCE of one, and collapsing them lets a project with no git report as fully committed.** **It REPORTS before the write and does not refuse** -- a dirty tree is nobody's problem, the harm is at the COMMIT, and AC-03.6 is that gate. **And the estate's known `.webloc` violator is now a FIXTURE rather than only a hazard**: `-z` with NUL splitting, never whitespace, with an arm asserting a spaced path is ONE finding, killed by the mutation that adds a space to the split predicate and by nothing else."
+}

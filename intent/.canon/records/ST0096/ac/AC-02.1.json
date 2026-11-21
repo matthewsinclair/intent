@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "A new project and an upgraded one keep intent/st/steel_threads.md, intent/todo.md and every thread's intent/st/<ST>/acceptance.md on disk and out of git, and the verbs and intent sync keep them current.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

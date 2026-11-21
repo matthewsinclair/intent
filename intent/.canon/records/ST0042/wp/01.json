@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Eliminate config eval",
+  "scope": "S",
+  "status": "done",
+  "objective": "Remove the `eval` of jq-interpolated config values from `load_intent_config` (theme T1, confirmed by PoC). A value containing `$(...)`, backticks, or `$VAR` in a checked-in `intent/.config/config.json` (or `~/.config/intent/config.json`) currently executes arbitrary shell on the next project-scoped `intent` command. Recorded as a robustness/design defect per the audit framing -- the fix is to stop evaling, not to sanitise.",
+  "body": "## Evidence\n\n- `bin/intent_config:35` -- jq `to_entries` interpolation builds `key=\"value\"` strings from raw JSON values.\n- `bin/intent_config:84` and `:96` -- `eval` of that output.\n- Reached from `bin/intent:181-183` for every non-global command.\n- PoC (run + reverted during review): `\"author\": \"$(touch /tmp/intent_eval_pwned)\"` created the marker on `intent st list`.\n\n## Deliverables\n\n- `load_intent_config` reads each known config field with a field-wise `jq -r '.field'` read (the `get_config_field` approach already in `intent_helpers`), assigning variables directly with no `eval` anywhere in the path.\n- Regression test: a config value containing `$(...)` / backticks is loaded verbatim into the variable and executes nothing.\n- Existing config-loading behaviour preserved (defaults, local-over-global precedence).\n\n## Acceptance Criteria\n\n- [ ] No `eval` remains in `bin/intent_config` (or anywhere on the config-load path).\n- [ ] PoC config value no longer executes; the literal string lands in the variable.\n- [ ] Regression test red-phase-proven against the pre-fix code where practical, green after.\n- [ ] Full bats suite green; critic-shell clean on touched scripts.\n\n## Dependencies\n\n- WP-09 part A (fake-HOME test helper) should land first so suite runs are safe; otherwise none.",
+  "preamble": ""
+}

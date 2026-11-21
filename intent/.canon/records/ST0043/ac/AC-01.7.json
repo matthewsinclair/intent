@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.7",
+  "text": "`tests/unit/intent_upgrade_dispatcher.bats` and the affected migration bats are rewritten to the new architecture; below-v2.9.0 migration tests (incl. `ext_migration.bats`) deleted; the full suite is green.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "full suite green (matts) 2026-06-15"
+  }
+}

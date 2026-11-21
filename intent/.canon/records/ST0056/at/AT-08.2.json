@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs",
+  "covers": [
+    "AC-08.2"
+  ],
+  "status": "green",
+  "note": "Driven by vc 2026-08-30 on cc's build. `every_servable_verb_answers_identically_locally_and_through_a_real_daemon` and `the_dispatch_counter_can_tell_the_two_paths_apart` both green in `daemon_and_local_agree`, against a REAL intentd rather than a listener. RULED ONTO THE BUILT PATH BY vc: the declared path could not host the criterion's own claim, because `cargo test -p intent-cli` does not build a sibling package's binaries -- the symptom is a 400-attempt timeout naming nothing, hit independently by cc and vc in one afternoon, which is why the test's panic message now explains it."
+}

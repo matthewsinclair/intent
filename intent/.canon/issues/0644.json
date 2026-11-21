@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 644,
+  "schema": "intent/issue@4.0",
+  "id": "0644",
   "slug": "the-commit-gate-s-chain-block-cannot-find-its-gi",
   "title": "the commit gate's chain block cannot find its gitignored carrier from a linked worktree, so every worktree commit is refused with GATE ABSENT and a remedy that must not run there",
   "status": "closed",

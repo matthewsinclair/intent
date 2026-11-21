@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 469,
+  "schema": "intent/issue@4.0",
+  "id": "0469",
   "slug": "release-the-stamp-step-discards-sync-to-disk-s-o",
   "title": "release: the stamp step discards sync --to-disk's output and aborts naming nothing",
   "status": "closed",

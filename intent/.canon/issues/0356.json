@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 356,
+  "schema": "intent/issue@4.0",
+  "id": "0356",
   "slug": "the-semantic-tier-counts-hits-it-cannot-return-w",
   "title": "the semantic tier counts hits it cannot return when no embedder is configured",
   "status": "closed",

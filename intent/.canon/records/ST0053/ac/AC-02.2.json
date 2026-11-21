@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The content pack owns six web-distinct rules -- `style` (mechanical): page meta present (title/description/canonical), image alt-text, descriptive link text; `craft` (judgment): scannability, primary CTA, reading-level target -- each schema-valid and enumerated under `--lang content`. The generic prose hygiene (filler, vanity metrics, headings, trope pass) is the shared `IN-PR-*` base, not re-authored here.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

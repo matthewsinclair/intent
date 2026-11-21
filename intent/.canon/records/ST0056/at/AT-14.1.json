@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_model.rs",
+  "covers": [
+    "AC-14.1"
+  ],
+  "status": "to-write",
+  "note": "canon round-trip plus a rebuild-from-canon byte comparison"
+}

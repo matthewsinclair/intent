@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0005: Initialization Command\n\n## Tasks\n\n- [x] Design the directory structure to be created during initialization\n- [x] Implement the basic `stp init` command\n- [x] Add logic to copy templates from the template directory\n- [x] Create a configuration file for project-specific settings\n- [x] Add support for customizing project metadata during initialization\n- [x] Add verification to prevent re-initialization of existing projects\n- [x] Implement error handling and user feedback\n- [x] Document the initialization process\n- [x] Test initialization on different operating systems\n",
+  "bytes": 590,
+  "sha256": "0d399d126915329a6c0e13c37ab083145033b4dae0bfa8a71a032ae72eb36b68"
+}

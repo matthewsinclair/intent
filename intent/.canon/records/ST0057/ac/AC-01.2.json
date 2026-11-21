@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "**No path under `intent/.canon/` is matched by any ignore rule, and a fresh clone contains canon for every artefact the source tree has** (D29). This is the criterion that makes a clone complete; it is checked by cloning, never by reading `.gitignore`, because the question is what git DOES and not what a rule appears to say.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 136,
+  "schema": "intent/issue@4.0",
+  "id": "0136",
   "slug": "deny-unknown-fields-does-not-apply-to-acstate-co",
   "title": "deny_unknown_fields does not apply to AcState::Computed -- a unit variant under internal tagging silently accepts unknown keys",
   "status": "closed",

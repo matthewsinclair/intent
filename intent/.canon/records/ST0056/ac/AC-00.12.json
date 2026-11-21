@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.12",
+  "text": "**A PARTITION PRINTED BY AN INSTRUMENT MUST ASSERT ITS OWN CLOSURE IN THE OUTPUT, AND THE CLOSURE MUST BE OVER THE POPULATION THE CRITERION IS ABOUT.** (vc 2026-08-19, on three instances by three nodes in one morning.) Distinct from AC-00.11: there, M was derived from the wrong SET; here every member was examined and the PARTITION of M is wrong. **Wrong M versus wrong partition of M.** Instances: cc's `2+53+1+2 = 58` against 57 rows, because the table HEADER carries the literal `Completed` and was counted as a member of the population it labels; ic's `canon_commit_check.sh` printing `EXAMINED 2 of 1 ... the other -1`; cc's `8 carried + 3 DERIVED = 11` against 10 `CREATE TABLE`, because `doc_sections` is `CREATE VIRTUAL TABLE` and invisible to a `^CREATE TABLE` count. **THE LOUDNESS WAS LUCK, NOT DESIGN** (ic): the `-1` was caught only because subtraction produced an IMPOSSIBLE value -- **a `+1` remainder would have been as silent as cc's 58.** So the requirement is that the instrument STATES the sum and asserts it closes, rather than leaving a reader to add up. **AND CLOSING OVER THE WRONG WHOLE IS ITS OWN DEFECT** (cc): a table count would have failed AT-01.7 for a reason unrelated to its criterion. **cc's corollary, which is why this is a criterion and not a sweep: at one Completed fewer they would have matched the recorded figure and been WRONG WITH CORROBORATION -- a remembered figure is not independent confirmation when the same method produced it.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

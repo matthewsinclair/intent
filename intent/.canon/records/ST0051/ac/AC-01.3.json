@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "`get_default_width` is the sole file-width source, reuses `read_config_field`, and leaves `get_terminal_width` unchanged (Highlander -- no duplicate width logic).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "review of `bin/intent_helpers` (get_default_width wraps get_config_field; get_terminal_width untouched)"
+  }
+}

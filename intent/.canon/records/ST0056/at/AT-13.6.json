@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/search_degradation.rs",
+  "covers": [
+    "AC-13.6"
+  ],
+  "status": "to-write"
+}

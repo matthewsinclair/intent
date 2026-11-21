@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 512,
+  "schema": "intent/issue@4.0",
+  "id": "0512",
   "slug": "the-bats-suite-has-three-behaviours-for-a-missin",
   "title": "the bats suite has three behaviours for a missing armed tool, and the default one fails unintelligibly",
   "status": "closed",

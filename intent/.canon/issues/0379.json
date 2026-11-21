@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 379,
+  "schema": "intent/issue@4.0",
+  "id": "0379",
   "slug": "wb-register-on-one-node-renders-its-board-over-t",
   "title": "wb register on one node renders its board over the hand-authored wip.md that wb migrate reads, so register then migrate carries an empty board",
   "status": "closed",

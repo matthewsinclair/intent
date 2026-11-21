@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "Create elixir-essentials Skill",
+  "scope": "S",
+  "status": "done",
+  "objective": "Create an installable skill that enforces core Elixir coding patterns during code generation, fixing the problem of Claude defaulting to imperative nested conditionals.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/skills/elixir-essentials/SKILL.md` (~100-150 lines)\n\n## Installs To\n\n`.claude/skills/elixir-essentials/SKILL.md` in target projects\n\n## Mandatory Rules (8)\n\n1. **Multi-clause pattern matching over conditionals** — NEVER nested `if/case/cond` on struct/map fields\n2. **`@impl true` on all behaviour callbacks** — mount, handle_event, handle_info, init, etc.\n3. **Tagged tuples for fallible functions** — `{:ok, result}` or `{:error, reason}`, never bare nil\n4. **`with` for railway-oriented composition** — chain 2+ fallible operations\n5. **Pipe operator for transformations** — 2+ transforms use pipes, data is first argument\n6. **Naming conventions** — `?` for booleans, `!` for raising, `_` for unused\n7. **Assertive data access** — `struct.field` for required, `map[:key]` for optional\n8. **No debug artifacts** — no `IO.inspect/2`, no `dbg()`, no `IO.puts` debugging\n\nEach rule includes a concrete before/after code example.\n\n## Acceptance Criteria\n\n- [ ] File exists at correct path\n- [ ] Under 150 lines\n- [ ] 8 mandatory rules, each with before/after example\n- [ ] No overlap with ash-ecto-essentials or phoenix-liveview skills\n- [ ] Pure language patterns only (no framework specifics)\n\n## Dependencies\n\n- WP-01 (distilled rules are the basis)",
+  "preamble": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.5",
+  "text": "Debounced gitignore-aware watching drives ingest on external edits",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

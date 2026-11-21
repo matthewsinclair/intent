@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 224,
+  "schema": "intent/issue@4.0",
+  "id": "0224",
   "slug": "init-seeds-an-elixir-decision-tree-into-every-pr",
   "title": "init seeds an Elixir decision tree into every project and Destination cannot decline it",
   "status": "closed",

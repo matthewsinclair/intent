@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/seat_brief.rs",
+  "covers": [
+    "AC-06.5"
+  ],
+  "status": "green",
+  "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): wb_brief_prints_a_seat_and_its_launch_steps_and_writes_nothing failed: unrecognized subcommand 'brief'. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+}

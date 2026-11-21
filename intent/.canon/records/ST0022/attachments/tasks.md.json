@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0022: Harden `st new`\n\nAll tasks completed. See [done.md](done.md) for full list.\n\n## Dependencies\n\n```\nWP-01 -> WP-02 -> WP-03 -> WP-04\n```\n",
+  "bytes": 153,
+  "sha256": "60e1c1b37de975fcd8b668dd16911453efeb50e2a8b198033256b5f79655a3c4"
+}

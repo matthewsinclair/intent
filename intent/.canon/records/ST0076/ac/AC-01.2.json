@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "One symbol row per (name node, kind) in every language, fixed at extraction and never by a `DISTINCT` at read; a definition's own name is never also a reference to it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

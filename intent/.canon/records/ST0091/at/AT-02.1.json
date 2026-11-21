@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "tests/unit/prepush_push_range.bats",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "release check names kovacs as the cut's leg, and preflight-linux.sh and preflight.lib are gone; arm 8. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file it cites with the file's id lines (vc's ruling); the file was on main before, so the row could not be minted before this commit. Red on the code as it was: arm 8 red on the tree before WP-02; it passes on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
+}

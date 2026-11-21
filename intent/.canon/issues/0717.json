@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 717,
+  "schema": "intent/issue@4.0",
+  "id": "0717",
   "slug": "no-door-says-whether-opening-a-store-would-migra",
   "title": "No door says whether opening a store would migrate it, so the commit gate's view-skew check keeps a second copy of Store::init's decision",
   "status": "closed",

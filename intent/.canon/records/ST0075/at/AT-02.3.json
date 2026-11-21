@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.3",
+  "kind": "non-test",
+  "file": "native/macos/Intent/IntentTests/ConsoleTests.swift",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "n-a",
+  "note": "red at 3e1578d03, one mutation per criterion's subject in one app-test run, reverted after and the worktree's tree proven unchanged: with the ring never dropping a line, testTheRingKeepsTheLastLinesAndSaysHowManyItDropped failed; green at 3e1578d03 as banked in refs/bank/ic/st0075-wp02 (76ec91175): app-test ran 49 tests with 0 failures; rebanked at 878804412 after Decision A landed, changing only two comments in Theme.swift, not re-run; n/a from 2026-10-22: issue 0607 replaced Intent.app's own Console with the macOS Console app and removed ConsoleTests.swift with it (bank refs/bank/ic/0607/fix); re-kinded non-test on vc's ruling of 2026-10-22, once L5 asked only about criteria still in scope, so the row no longer cites a deleted file as a passing test"
+}

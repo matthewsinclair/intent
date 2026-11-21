@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.2",
+  "kind": "non-test",
+  "prose": "A READ OF THE SURVIVING CANON SET, ONE INSTRUCTION AT A TIME, ASKING TWO QUESTIONS OF EACH: can an agent execute this with the tools it has, and would following it leave a trace that distinguishes compliance from non-compliance? NON-TEST BECAUSE BOTH QUESTIONS ARE JUDGEMENTS ABOUT MEANING. Whether \"check the registry first\" is executable depends on how large the registry is and what reading costs -- a grep can find the sentence and cannot weigh it. The verdict vocabulary is hv's own: keep / correct / retire / MISGUIDED. THE EXEMPLAR IS ALREADY IN CANON AND IS THE CALIBRATION FOR THE REST: `MODULES.md` runs to hundreds of kilobytes across hundreds of rows, so \"read it first\" is not an instruction anyone can follow, and every agent told to read it did something else instead -- silently, because an approximation does not report itself. WHAT THE READER MUST NOT DO IS ACCEPT AN INSTRUCTION BECAUSE IT IS FOLLOWED IN PRACTICE: an instruction that is approximated looks obeyed from the outside, and the approximation is what has actually been learned.",
+  "covers": [
+    "AC-00.2"
+  ],
+  "status": "n-a",
+  "note": "NOT YET DONE. The WP-02 catalogue read all 25 skills against hv's vocabulary on 2026-08-28, so the raw material exists -- but it was a review of the set AS IT WAS, and this row is about the set that SURVIVES the rationalisation, which has not been cut yet. Citing the catalogue for it would be evidence about a different population."
+}

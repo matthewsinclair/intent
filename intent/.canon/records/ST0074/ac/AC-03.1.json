@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "The project registry is one file that a human can edit by hand and the tool reads and rewrites without losing what the human wrote.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_switch_points_the_link_set.rs",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green",
+  "note": "row written after the arm landed; red is the machine's route to a verdict, not a failing run. Green in ic's combined rejudge at e756e484a (2026-10-25 18:07Z-18:11Z, molt-vc's desk), landed at ec266c998; AT-03.4's Swift arm passed app-test at f2f9c5779 (67 of 67)"
+}

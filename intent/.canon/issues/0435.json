@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 435,
+  "schema": "intent/issue@4.0",
+  "id": "0435",
   "slug": "the-explorer-s-search-pane-never-draws-its-fresh",
   "title": "The explorer's search pane never draws its freshness or level note: the loop clears the notice right after setting it",
   "status": "closed",

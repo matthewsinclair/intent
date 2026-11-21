@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 386,
+  "schema": "intent/issue@4.0",
+  "id": "0386",
   "slug": "release-patch-aborts-at-its-canon-step-with-the",
   "title": "release --patch aborts at its canon step with the version stamped and uncommitted, so the re-run it asks for fails its own clean-tree gate, and the message denies a --skip-settings v3 has",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 338,
+  "schema": "intent/issue@4.0",
+  "id": "0338",
   "slug": "st0057-s-projection-hydrate-writes-nothing-for-a",
   "title": "ST0057's projection: hydrate writes nothing for an opaque attachment, the two-region manifest code survives, cross-project addresses parse and every door refuses them while AC-07.6 reads green",
   "status": "closed",

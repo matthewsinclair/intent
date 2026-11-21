@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.2",
+  "text": "**R2 -- ONE code path on macOS and Linux, not two supported ones.** The store and identity layers carry no platform-conditional code at all; the only `cfg`-gated code in the capability is the passphrase-cache adapter, **and the adapter has a null implementation the test exercises** -- because a platform difference that is only ever exercised on one platform is a divergence nobody measures. **BOUNDED EXCEPTION, stated rather than implied:** with a PASSPHRASE-PROTECTED identity on a host with no working keyring and no step-0 override, macOS resolves at rung 2 and headless Linux returns `Locked` -- same store, same posture, divergent outcome. That is the right failure (typed, never a wrong answer) and it is still platform-divergent behaviour that R2 as written does not permit, so this criterion asserts one code path **in the default posture** and asserts the exception's boundary in the hardened one. Raised by Lamplight's verification 2026-08-25 as a precision problem in R2 that the design exposed.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

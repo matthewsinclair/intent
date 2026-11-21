@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/extract_flags.sh",
+  "text": "#!/bin/bash\n# extract_flags.sh <script> -- long/short flags parsed by a script.\n# Flags appear as case arms at ANY nesting depth (arg-parsing loops are nested\n# inside verb arms), which is the opposite of extract_verbs.sh's depth-1 rule.\n# Alternation arms (--write|-w) are split.\nset -u\nawk '\n  /^[[:space:]]*-[-a-zA-Z0-9|_=-]*\\)/ {\n    line=$0\n    sub(/^[[:space:]]*/,\"\",line); sub(/\\).*$/,\"\",line); gsub(/\"/,\"\",line)\n    n=split(line,p,\"|\")\n    for(i=1;i<=n;i++) if (p[i] ~ /^-/) print p[i]\n  }\n' \"$1\" | sort -u\n",
+  "bytes": 515,
+  "sha256": "3db761a41b6206a038e82c131c736049b6654cdb5ef2dd8a3c322ee0a5fc9e95"
+}

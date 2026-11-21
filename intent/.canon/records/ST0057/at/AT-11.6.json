@@ -1,0 +1,10 @@
+{
+  "id": "AT-11.6",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/organize_default_force_applies.rs",
+  "covers": [
+    "AC-11.6"
+  ],
+  "status": "green",
+  "note": "Driven through the BINARY on a real pseudo-terminal, because AC-11.6's subject is gated on IsTerminal and no other test in this estate can reach it -- organize_default_declaration.rs names that gap in its own module doc. The harness is self-controlling: a pty that failed to present a terminal makes the binary take the no-tty branch and every assertion reds naming the refusal, so there is no separate harness test. WHAT THE ROW DOES NOT COVER, stated rather than left to be noticed: the per-step byte gate (organize::gate) is not exercised here -- this fixture's held removals are stopped by the ESTATE-wide precondition gate, which is a different mechanism, and AC-11.6's parenthetical about matching shas belongs to the other one."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "`intent estate watch <class> <pattern>` writes `census/watches/<class>.json` and changes the pattern on repeat, `intent estate unwatch <class>` removes it, each prints its `wrote:` or `removed:` line, the pattern is a regular expression matched against the process command line, and the census counts no class nobody declared.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

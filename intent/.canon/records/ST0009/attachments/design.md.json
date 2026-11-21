@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0009: Process Refinement\n\n## Approach\n\n1. Gather feedback from initial STP users\n2. Identify common pain points and improvement opportunities\n3. Prioritize refinements based on impact and implementation effort\n4. Implement improvements iteratively\n5. Test refinements with users and gather additional feedback\n",
+  "bytes": 323,
+  "sha256": "af49fee8147433e117f7eaeb3b999c864cf3e34182671f3d0513eba8c5c92411"
+}

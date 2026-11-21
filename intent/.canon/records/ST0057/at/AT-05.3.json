@@ -1,0 +1,9 @@
+{
+  "id": "AT-05.3",
+  "kind": "non-test",
+  "prose": "vc reads the dispatch and confirms a single path-printing implementation and no `wip` verb",
+  "covers": [
+    "AC-05.3"
+  ],
+  "status": "n-a"
+}

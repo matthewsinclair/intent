@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 288,
+  "schema": "intent/issue@4.0",
+  "id": "0288",
   "slug": "intent-critic-yml-has-no-single-reader-severity",
   "title": "`.intent_critic.yml` has no single reader: `severity_min` is honoured by the gate and ignored by the runner people test with",
   "status": "closed",

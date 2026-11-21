@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 398,
+  "schema": "intent/issue@4.0",
+  "id": "0398",
   "slug": "st-show-ignores-its-declared-file-argument-and-p",
   "title": "st show ignores its declared file argument and prints the cover for every value",
   "status": "closed",

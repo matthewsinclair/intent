@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 316,
+  "schema": "intent/issue@4.0",
+  "id": "0316",
   "slug": "upgrade-leaves-an-undeclared-closed-thread-s-sta",
   "title": "upgrade leaves an undeclared closed thread's stale views for the operator to delete by hand",
   "status": "closed",

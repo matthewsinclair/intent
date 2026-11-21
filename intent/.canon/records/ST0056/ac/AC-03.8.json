@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.8",
+  "text": "Canon round-trips through the store: for every entity this WP ingests, canon -> DB -> canon is byte-identical, and a field that cannot survive the round-trip fails here rather than at migration. The first half of ic's egest-symmetry proposal, accepted 2026-08-15, and homed here rather than at WP-10 because this is where an unreversible FIELD is still cheap to change -- discovering it at WP-10 is ic's own \"worst possible moment\" argument applied to our schedule. AC-03.6 already holds the hardest single piece (prose bodies byte-identical out of FTS); this generalises it to the whole model. Adding it reopens nothing that AC-03.7 has not already reopened, which is what makes the placement free",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

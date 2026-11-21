@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.2",
+  "text": "Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_subkind_is_a_word_the_index_writes.rs",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "Red on 70c65b464 before WP-04: the arm does not compile there, because the index has no subkind roster (`symbols::subkinds`) and search has no filter words (`search::FilterWords`). Green at e5b7feb1b (WP-04 landing, patch-id 013ce9d4, vc's GO): every subkind the extractor writes for a Rust and an Elixir fixture is in its language's roster, Elixir's clause words come from elixir.scm, a language with no query has no roster, and an unknown subkind is refused with the roster of the languages in scope."
+}

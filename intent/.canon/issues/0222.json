@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 222,
+  "schema": "intent/issue@4.0",
+  "id": "0222",
   "slug": "explorer-s-thread-list-wants-the-st-list-columns",
   "title": "explorer's thread list wants the st list columns, and they need WP-17's row type",
   "status": "closed",

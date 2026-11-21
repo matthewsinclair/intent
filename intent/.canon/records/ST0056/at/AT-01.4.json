@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.4",
+  "kind": "non-test",
+  "prose": "design.md decision log gains the four closures",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "n-a"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "The `in-whiteboard` skill is Protocol 3.0 and generic: per-node `<node>/` directories, single-writer `wip.md` plus per-sender `inbox.<sender>.md`, the `hv` hypervisor convention, and no roster baked into the skill (nodes discovered by listing `intent/whiteboard/*/`).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "in-whiteboard SKILL.md is Protocol 3.0 + generic (per-node dirs, single-writer inboxes, hv node, no baked roster); shipped in v2.12.0 (matts)"
+  }
+}

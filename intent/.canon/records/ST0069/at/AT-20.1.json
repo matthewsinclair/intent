@@ -1,0 +1,10 @@
+{
+  "id": "AT-20.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs",
+  "covers": [
+    "AC-20.1"
+  ],
+  "status": "green",
+  "note": "The first half: a declared language's file names its symbols through the index, driven end to end with --features lang-rust because every grammar is off until hv rules the size line. The second half -- a language absent from the array parses nothing -- is ic's absent-language arm in index::symbols; one criterion answered in two files is one record or it is neither."
+}

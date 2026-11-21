@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/rust_references_resolve_through_rust_analyzer.rs",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green",
+  "note": "Red on bd4430428 before the Rust reader: the arm does not compile there, because that tree has no intentsvcs::index::rust_analyzer or intentsvcs::index::scip (read from the tree, not run). Green at 92cc064d3 (the Rust reader, judged as patch-id 73e75262 in one whole-suite run and landed as d23dd52b with dc's devbin toolchain option 5f5682c9; vc's GO): the checked-in export of a tiny crate resolves Widget::new(3), store::open(..) and widget.size() to tiny::Widget::new(), tiny::store::open() and tiny::Widget::size() at their definitions, the method and not the field of the same name, counts four locals and three operator references by reason, and holds the conservation law over every reference occurrence in the export; a program that does not exist is recorded as missing and named; a project whose index holds no Cargo.toml is not applicable; and the needs_the_toolchain arm runs the real rust-analyzer over the same crate, building under intent/.cache/resolve/rust and never the crate's target/, green in the judging run's toolchain step, which is the cargo line dc's devbin option runs."
+}

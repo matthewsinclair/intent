@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "**Fixture homes do not accumulate: a suite run leaves the /tmp population no larger than it found it**, and the sweep that guarantees it runs at START rather than at exit. Exit is the path that does not run when a build is killed, which is the condition that produced all 669.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

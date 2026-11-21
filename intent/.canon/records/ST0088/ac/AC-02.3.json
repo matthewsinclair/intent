@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "No skill or skill script hardcodes `~/.claude`; each reads the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so a machine with `CLAUDE_CONFIG_DIR` set is found by every skill locator. (The templates, subagents and the critic contract are AC-03.4, WP-03.)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

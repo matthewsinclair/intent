@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 106,
+  "schema": "intent/issue@4.0",
+  "id": "0106",
   "slug": "doctor-s-hook-carrier-advisory-carries-the-at-gr",
   "title": "doctor's hook-carrier advisory carries the AT-grammar remedy text",
   "status": "closed",

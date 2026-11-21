@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 318,
+  "schema": "intent/issue@4.0",
+  "id": "0318",
   "slug": "organize-preview-prints-one-error-line-per-un-in",
   "title": "organize preview prints one error line per un-ingested v2 bucket file, 184 on Laksa, where one class line would do",
   "status": "closed",

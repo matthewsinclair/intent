@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.1",
+  "text": "An apply renders `intent/whiteboard/README.md` from one template under `lib/templates/`: a title, the declared profiles, a roster table with each seat's moniker, name, role, driver and remit, its columns padded so that the project's formatter leaves it unchanged, the route to hv, which names the mediator as the one reader of hv's inbox, and the verb that prints the terms.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 638,
+  "schema": "intent/issue@4.0",
+  "id": "0638",
   "slug": "st-dehydrate-st-renumber-and-issues-renumber-lea",
   "title": "st dehydrate, st renumber and issues renumber leave the store's file_index row for every path they remove",
   "status": "closed",

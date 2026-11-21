@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 122,
+  "schema": "intent/issue@4.0",
+  "id": "0122",
   "slug": "modules-check-and-find-route-the-operator-to-int",
   "title": "modules check and find route the operator to `intent upgrade`, which cannot help: the remedy cites the canon as authority for behaviour the canon ended on 2026-08-24",
   "status": "closed",

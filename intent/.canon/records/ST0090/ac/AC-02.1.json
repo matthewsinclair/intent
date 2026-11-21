@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "Intent.app's Rebuild Search Index item carries a second line, `reconciled <age> ago` in Gtools' age words, from the `reconciled_at` that `intent index status --json` names, and none when the CLI names none; its title and busy caption do not change.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

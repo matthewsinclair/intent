@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 537,
+  "schema": "intent/issue@4.0",
+  "id": "0537",
   "slug": "intent-critic-staged-lists-the-index-s-paths-and",
   "title": "intent critic --staged lists the index's paths and judges the work tree's bytes",
   "status": "closed",

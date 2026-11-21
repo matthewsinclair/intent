@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 108,
+  "schema": "intent/issue@4.0",
+  "id": "0108",
   "slug": "a-shim-carrier-reports-gate-not-running-on-every",
   "title": "a shim carrier reports gate-not-running on every estate that adopts it, as a counted RED",
   "status": "closed",

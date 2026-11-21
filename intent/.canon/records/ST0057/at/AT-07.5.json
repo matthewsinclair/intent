@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.5",
+  "kind": "test",
+  "file": "intent/st/ST0057/parity/tools/no_daemon_required.sh",
+  "covers": [
+    "AC-07.5"
+  ],
+  "status": "green",
+  "note": "STATE UNCHANGED, CAVEAT RECORDED 2026-08-31 (vc), from a sweep of every green row citing a MANUAL instrument. Re-driven, the tool exits 2: arm B (structural -- intent-cli declares no intentd dependency, no socket client in sources) PASSES, and arm A (behavioural -- a dehydrated estate answers every read) REFUSES with 'an intentd process is already running, this arm cannot distinguish a daemon-free read from a daemon-served one while it is up'. THAT IS A REFUSAL AND NOT A FAILURE, which is why the row stays green rather than going red -- red asserts the cited artefact fails, and it does not. WHAT IS TRUE AND WAS NOT RECORDED: the behavioural half is NOT RE-VERIFIABLE ON THIS MACHINE while a daemon runs, and one runs essentially always with four sessions live. So the green rests on a moment nobody can reproduce on demand. Same shape as this estate's declared exclusions for shutdown and launchd: confirming the property costs the thing every peer depends on. Re-establishing it needs a scheduled daemon-down window, which is hv's to authorise, not a node's to take."
+}

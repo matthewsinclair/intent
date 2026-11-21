@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.3",
+  "text": "DONE membership tolerates both timestamp forms: a legacy `completed: YYYYMMDD` and an ISO `completed:` are each compared correctly against `<T>` (legacy read as that day's 00:00:00Z).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

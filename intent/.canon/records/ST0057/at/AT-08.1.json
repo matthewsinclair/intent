@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/write_path_canon_always.rs",
+  "covers": [
+    "AC-08.1"
+  ],
+  "status": "green",
+  "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "`_AGENTS.md`, `_CLAUDE.md` and `_usage-rules.md` carry no Socrates and Diogenes FAQ, no security boilerplate, no v2-era interop prose and no instruction another loaded file owns; the Rules of the Road table has one home; `agents_sync_parity.rs` and `claude_md_template.bats` pass.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

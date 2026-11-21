@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.3",
+  "text": "The author canon templates at `templates/author/{RULES.md,ARCHITECTURE.md}` carry the two-tier framing and the book/course IA (parts/chapters/modules/objectives), citing `IN-AU-*` ids.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "templates/author/RULES.md (two-tier framing + NEVER-DO citing IN-AU-*) + ARCHITECTURE.md (book/course IA: work layout, unit structure, objectives, pipeline, review)"
+  }
+}

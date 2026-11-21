@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.4",
+  "text": "Every facade error is typed and renders a remedy with its full cause chain (no same-text-for-different-causes collapses)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

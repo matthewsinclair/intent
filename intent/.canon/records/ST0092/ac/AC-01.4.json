@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.4",
+  "text": "It defines the hat and names the Desk as one, and it names sleeve agents and estate agents as kinds owned by Molt and Gtools without defining the contract of either.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/plugins/claude/teams/TERMS.md, 'A hat' defines the hat and names the Desk and the pen as hats; 'Other kinds of Claude' names sleeve agents (Molt) and estate agents (Gtools) and defines the contract of neither."
+  }
+}

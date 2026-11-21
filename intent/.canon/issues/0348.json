@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 348,
+  "schema": "intent/issue@4.0",
+  "id": "0348",
   "slug": "a-registered-test-module-whose-file-is-not-in-th",
   "title": "A registered test module whose file is not in the commit builds nowhere but on the machine that has it",
   "status": "closed",

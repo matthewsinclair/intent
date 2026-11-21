@@ -1,0 +1,12 @@
+{
+  "id": "AT-01.1",
+  "kind": "non-test",
+  "prose": "read the rewritten interop section against the v1.x model in design.md",
+  "covers": [
+    "AC-01.1",
+    "AC-01.2",
+    "AC-01.3"
+  ],
+  "status": "n-a",
+  "note": "doc / eyeball"
+}

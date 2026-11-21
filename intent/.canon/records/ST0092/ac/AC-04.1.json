@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "`intent wb retire <moniker> --reason \"<why>\"` retires a node: `intent wb status` lists it only with `--all`, an ask to it is refused and names the retirement, an announce skips it, and its board and every message it sent or received stay readable.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 494,
+  "schema": "intent/issue@4.0",
+  "id": "0494",
   "slug": "an-event-s-ts-is-taken-when-the-write-got-throug",
   "title": "An event's ts is taken when the write got through rather than when the act was recorded, so ordering by it across a contended burst gives the wrong order",
   "status": "closed",

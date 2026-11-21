@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 632,
+  "schema": "intent/issue@4.0",
+  "id": "0632",
   "slug": "organize-sync-st-hydrate-and-dehydrate-renumber",
   "title": "organize, sync, st hydrate and dehydrate, renumber, claude upgrade, agents sync, lang init and remove, and init print no wrote: lines",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-11.4",
+  "kind": "non-test",
+  "prose": "sha256 of the published artefact compared against the tap formula's",
+  "covers": [
+    "AC-11.4"
+  ],
+  "status": "n-a"
+}

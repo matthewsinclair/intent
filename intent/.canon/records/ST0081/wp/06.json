@@ -1,0 +1,9 @@
+{
+  "id": "06",
+  "title": "The Homebrew formula installs Intent on Linux",
+  "scope": "M",
+  "status": "done",
+  "objective": "The formula the release tooling writes for `matthewsinclair/homebrew-intent` carries x86_64 and aarch64 Linux entries beside the macOS one, so `brew install matthewsinclair/intent/intent` works on Linux with no source checkout.",
+  "body": "## As built\n\n- The tap's formula keeps macOS arm64 under `on_macos` and points `on_linux`'s `on_intel` and `on_arm` at the release's musl packages; `depends_on :macos` is gone.\n- AC-06.1 is satisfied from kovacs: `brew install matthewsinclair/intent/intent` from the published tap installed v3.2.5's aarch64 package.\n\n## Open\n\nA macOS re-proof on a Mac with no checkout is hv's loop-back, carried in `intent/wip.md`'s TODO; no criterion carries it.\n",
+  "preamble": ""
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/legacy_leftovers.rs",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "green"
+}

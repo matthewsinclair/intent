@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 714,
+  "schema": "intent/issue@4.0",
+  "id": "0714",
   "slug": "with-the-st0056-tools-absent-the-commit-gate-ref",
   "title": "With the ST0056 tools absent, the commit gate refuses by crashing at exit 127, and says the gates were skipped",
   "status": "closed",

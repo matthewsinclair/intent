@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 334,
+  "schema": "intent/issue@4.0",
+  "id": "0334",
   "slug": "reported-by-dc-s-agents-and-not-re-driven-edit-s",
   "title": "Reported by dc's agents and not re-driven: edit's paths and refusals, an Immutable field that accepts a set, a raw sqlite lock",
   "status": "closed",

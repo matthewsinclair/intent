@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.2",
+  "text": "ac/at operations implement the four AC states with computed satisfaction for test-backed ACs (never stored) and inline evidence for non-test",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

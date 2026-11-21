@@ -1,0 +1,9 @@
+{
+  "id": "10",
+  "title": "Intent Usage-Rules.md",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create a comprehensive usage-rules.md for Intent itself, following the Ash usage-rules.md pattern, so LLMs know how to use Intent correctly.",
+  "body": "## Deliverables\n\n- `usage-rules.md` in Intent's package root (<500 lines)\n\n## Content Structure\n\n1. **What Intent is** — one paragraph\n2. **Project structure** — directory layout with purposes\n3. **Core commands** — every command with usage, options, examples\n4. **Steel thread methodology** — create, manage, complete steel threads\n5. **LLM guidance file conventions** — AGENTS.md, RULES.md, ARCHITECTURE.md\n6. **Treeindex conventions** — usage and maintenance\n7. **Common workflows** — step-by-step for typical tasks\n8. **NEVER DO** — common LLM mistakes with Intent\n\n## Format\n\n- Direct imperative voice (\"Use X\", \"Never Y\")\n- Concrete command examples for every concept\n- No preamble or motivation — just \"here's how to use this tool\"\n- Under 500 lines — dense and scannable\n- Organized by topic with clear headers\n\n## Acceptance Criteria\n\n- [ ] Covers all Intent commands with examples\n- [ ] Follows imperative voice convention throughout\n- [ ] Under 500 lines\n- [ ] NEVER DO section covers common LLM mistakes\n- [ ] An LLM reading this file can correctly use Intent without additional guidance\n\n## Dependencies\n\n- WP-06 (references skill commands)\n- WP-07 (references template system)",
+  "preamble": ""
+}

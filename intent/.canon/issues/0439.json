@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 439,
+  "schema": "intent/issue@4.0",
+  "id": "0439",
   "slug": "wb-migrate-reads-an-already-rendered-inbox-view",
   "title": "wb migrate reads an already-rendered inbox view as hand-authored and refuses on Intent's own footer",
   "status": "closed",

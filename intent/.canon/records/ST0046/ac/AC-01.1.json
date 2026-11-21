@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "`intent modules check` flags a top-level module that exists on disk but has no `MODULES.md` row -- exits 1 and names the module + path.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

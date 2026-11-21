@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 524,
+  "schema": "intent/issue@4.0",
+  "id": "0524",
   "slug": "dispatch-ssot-s-shared-outside-any-project-tempd",
   "title": "dispatch_ssot's shared outside-any-project TempDir is initialised by a sibling arm mid-run, so the outs alias arm reds at random",
   "status": "closed",

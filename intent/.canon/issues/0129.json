@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 129,
+  "schema": "intent/issue@4.0",
+  "id": "0129",
   "slug": "v2-ingest-rewrites-an-authored-full-stop-into-it",
   "title": "v2 ingest rewrites an authored full stop into ' -- ', its own field delimiter, so a row gains a boundary its author never wrote",
   "status": "closed",

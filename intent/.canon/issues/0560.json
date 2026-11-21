@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 560,
+  "schema": "intent/issue@4.0",
+  "id": "0560",
   "slug": "intent-app-status-tells-a-user-with-no-app-to-ru",
   "title": "intent app status tells a user with no app to run bin/devbin, which only Intent's own development tree has",
   "status": "closed",

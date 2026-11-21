@@ -1,0 +1,9 @@
+{
+  "id": "AT-12.4",
+  "kind": "non-test",
+  "prose": "release record: tag on both remotes, GitHub release, formula",
+  "covers": [
+    "AC-12.4"
+  ],
+  "status": "n-a"
+}

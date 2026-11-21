@@ -1,0 +1,9 @@
+{
+  "id": "AT-12.2",
+  "kind": "test",
+  "prose": "to-write: blocked behind AT-12.1 -- the assertion depends on the ruled form.",
+  "covers": [
+    "AC-12.2"
+  ],
+  "status": "to-write"
+}

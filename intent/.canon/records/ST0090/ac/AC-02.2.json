@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "A rebuild that exits non-zero, or cannot be run, raises an alert titled `Rebuild failed` carrying the CLI's own `error:` and `remedy:` lines, as Gtools' `Refresh failed` does.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.2",
+  "kind": "non-test",
+  "prose": "The doctor-on-the-merge-result job in .github/workflows/pr-checks.yml builds intent-cli in release and runs intent doctor on the pull request's merge result, failing on a finding; section 7 of working-in-a-team-drive.log ran the same doctor on a fresh clone of the drive's merge result: 0 findings",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "n-a",
+  "note": "shown by ic's two P4 drives of 2026-09-18 on 79d536c16 (run-p4.sh: 94 commands 11:44Z, then 104 commands 11:52Z with the schema-refusal section vc's judging asked for), judged by vc at patch-id 99aba30af"
+}

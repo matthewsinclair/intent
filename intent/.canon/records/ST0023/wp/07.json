@@ -1,0 +1,8 @@
+{
+  "id": "07",
+  "title": "CI/CD, Examples, and Cleanup",
+  "status": "not-started",
+  "objective": "",
+  "body": "## Scope\n\nCI pipeline, example projects, project backlog directory.\n\n## Directories to DELETE\n\n- backlog/ (project's own)\n- examples/hello-world/backlog/\n- examples/v0.0.0-project/backlog/\n- examples/v1.2.0-project/backlog/\n- examples/v1.2.1-project/backlog/\n\n## Files to Edit\n\n- .github/workflows/tests.yml - Remove Node.js setup\n- examples/hello-world/README.md, CLAUDE.md, intent/st/ST0001/design.md, info.md\n- examples/v0.0.0-project/.gitignore\n- examples/v1.2.0-project/.gitignore\n- examples/v1.2.1-project/.gitignore\n\n## Acceptance Criteria\n\n- CI has no Node.js or Backlog.md steps\n- No example has backlog/ directory\n- Project backlog/ removed",
+  "preamble": ""
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "green",
+  "note": "red on the base: the AT hunk alone, applied to c3514e151 in a throwaway worktree, does not compile: E0425 no `render::outstanding_view` at cli_end_to_end.rs:1912 and :1922 (measured 2026-09-22 between 07:34Z and 07:35Z); then green at 52cd8b55d: vc judged the bank at patch-id cbf0c5180 on base c3514e151, and the whole workspace suite ran rc 0 in a private worktree with this test among it"
+}

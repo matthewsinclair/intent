@@ -1,0 +1,9 @@
+{
+  "id": "AT-08.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/registry_serves_n_projects.rs",
+  "covers": [
+    "AC-08.1"
+  ],
+  "status": "green"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.13",
+  "text": "**A CHECKER VERIFIES MEMBERSHIP IN A VOCABULARY AND NEVER THAT THE VOCABULARY CAN EXPRESS THE STATES IN USE.** (vc 2026-08-19; surfaced by the pre-commit gate's own output at `938ed7a3`.) Membership is checkable and adequacy is not, **so the check that exists is the one that cannot see the defect.** Three instances, three nodes, one day: dc's critic census, where `undeclared / declared / armed` cannot express *armed, tool present, and correctly not run in THIS context* -- a second AXIS, not a fifth value; **`ratified_in`, which says either _here is the record_ or nothing, so a provisional ruling IS recorded and IS NOT ratified and both available values are wrong** -- and separately does two jobs, an ENUM for some units and a prose provenance stamp for the rest; and figure provenance, where the model could not express *recorded once, not reproducible*, so every figure read as a measurement. **THE COMMON SHAPE IS SHARPER THAN ANY OF THE THREE: the inadequate vocabulary forces a true state into a value that is wrong in a SAFE-LOOKING direction.** `declared` hides a real capability; a bare `ratified_in` certifies a provisional ruling as settled; an unmarked figure reads as reproducible. **THE WRONG VALUE IS ALWAYS THE ONE THAT READS AS MORE FINISHED, NEVER LESS**, which is why none was caught by review: nothing looked broken and the checker returned green because membership held. **Corollary: the remedy for a DANGLING value is the wrong remedy for an INEXPRESSIBLE one** -- re-anchoring a provisional `ratified_in` to a sha would have certified it as ratified, the fix for one defect committing the other.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

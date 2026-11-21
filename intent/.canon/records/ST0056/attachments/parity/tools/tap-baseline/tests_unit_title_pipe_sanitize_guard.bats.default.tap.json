@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_title_pipe_sanitize_guard.bats.default.tap",
+  "text": "1..3\nok 1 helper: sanitize_title replaces every pipe with a slash\nok 2 st new: a piped title stores no raw pipe in the ST heading\nok 3 wp new: a piped title stores no raw pipe in the wp title\n",
+  "bytes": 192,
+  "sha256": "92724d88fe02a088278e5ea4b4345185b62d97df31e929415d87ca7ae9e4179e"
+}

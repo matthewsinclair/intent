@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "The `style` tier carries greppable Detection (mechanical); the `craft` tier is judgment / critic-as-reader; each rule's severity + category are correct.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "style tier greppable (warning/reco); craft tier judgment (recommendation); category+severity split guarded by rule_pack_author.bats"
+  }
+}

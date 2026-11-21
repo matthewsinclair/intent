@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_in_author_essentials_skill.bats.mutant.tap",
+  "text": "1..6\nok 1 in-author-essentials skill exists\nok 2 in-author-essentials declares description and chains_to frontmatter\nok 3 in-author-essentials carries the authoring pipeline steps\nok 4 in-author-essentials references the prose base + author rules by ID\nok 5 in-author-essentials wires the two-form detrope (mechanical default + /in-detrope handoff)\nok 6 in-author-essentials is renderer-safe (no em dash, no positional tokens)\n",
+  "bytes": 427,
+  "sha256": "c940fed41b672d0d063ae5382f655e9929061b0e1f1831edc6fa08dc000dfd47"
+}

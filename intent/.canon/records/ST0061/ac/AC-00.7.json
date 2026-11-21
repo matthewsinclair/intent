@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.7",
+  "text": "**WIRING THIS VERB LEAVES A TEST WHOSE NAME ASSERTS SOMETHING IT NEVER CHECKED.** `render.rs`'s `an_unwired_verb_in_a_wired_family_is_sent_to_that_family` uses `st dehydrate` as its fixture and **will keep passing after wiring** -- because `unwired()` is a pure function that interpolates the verb into a message and only ever consults whether the FAMILY ships verbs. The verb's own wired-ness is never read. So the fixture is decorative: the test would pass identically for `st list`. **This is `IN-AG-RED-CONTROL-001` in its quietest form -- not a control that broke, but one that never could break, wearing a name that says it does.** Two changes: the fixture moves to a verb that is genuinely unwired (`bootstrap` or `repair`, the only two left in this family once `dehydrate` lands and with `st organize` retired), and the test gains the assertion its name always implied -- that dispatching that verb through `st()` actually REACHES `unwired`, rather than that `unwired()` formats a string when called by hand.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

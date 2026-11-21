@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.2",
+  "text": "`intent organize --default` on a project whose file is present changes not one byte of it, prints that it is present and how many lines it declares, names `--force`, and exits 0; `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

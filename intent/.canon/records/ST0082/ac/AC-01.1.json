@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "Following the docs, a fresh WSL distro goes from no Intent to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, and every command on the WSL page has been run.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

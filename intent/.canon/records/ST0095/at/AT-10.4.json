@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:28",
+  "covers": [
+    "AC-10.2"
+  ],
+  "status": "green",
+  "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 80497e0c8 on 9a87b035c (gyges, 17:35Z to 17:41Z by date -u), whose tree landed at fa5ebbbbf; the marker line over each arm is a comment"
+}

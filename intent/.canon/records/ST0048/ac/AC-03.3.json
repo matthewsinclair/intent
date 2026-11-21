@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.3",
+  "text": "Dogfood: ST0048's own contract passes the NEW gate at close (`intent ac gate ST0048` exit 0 with real, satisfied ACs) -- the feature gates its own steel thread.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "dogfood: WP-01 + WP-02 both closed THROUGH the hardened gate (done: ST0048/WP-01, ST0048/WP-02)"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "`/projects` in the explorer lists the registry's projects and opens the one picked.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

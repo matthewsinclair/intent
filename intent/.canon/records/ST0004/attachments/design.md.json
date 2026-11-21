@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0004: Steel Thread Commands\n\n## Approach\n\n1. Design a command-line interface for managing steel threads\n2. Implement the core `stp_st` script with subcommands\n3. Create templates for steel thread documents\n4. Implement a steel thread index for tracking all threads\n5. Ensure user-friendly error handling and documentation\n",
+  "bytes": 335,
+  "sha256": "b176d4ffb50b2b5b4e83007fa5d156c82cdc16eef71ec43f712898ff98ab9e76"
+}

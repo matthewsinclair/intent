@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/a_search_by_target_asks_one_question.rs",
+  "covers": [
+    "AC-07.2"
+  ],
+  "status": "green",
+  "note": "Red on 73c427a93 before WP-07: the arm does not compile there, because `search::UNKNOWN_TARGET` does not exist, and neither does the reader seam its shared estate implements (`Resolver::manifest`, `resolved::Manifest`, `rust_analyzer::MANIFEST`); and the installed pair at ea81a6c58, whose binary source equals that tree's, refuses `intent search --target` as an unexpected argument. Green at 828794ec7 (WP-07 landing, patch-id 4bad6a9b, vc's GO): `--target crate::helper()` lists the two references and no definition, and narrows `--context`, `--outline`, `--path`, `--subkind`, `--in`, `--lang`, `--limit` and a text query; a key naming another target too reads `one of 2`; a kind filter that leaves references out is refused with a target, and so is `--daemon`; the MCP tool's `target` answers the same groups and the SQL door's `resolved.target` the same rows; `--target helper` is refused naming `crate::helper()`, and a target nothing is near answers empty with the note that a target nothing references and a misspelt one read the same, on both faces; a file that moved on disk takes no hit and is named in `index.stale`, and once read again its stale resolution is named in the note; an index with no stored resolution is refused with the remedy `intent index resolve` on both faces. Gate: whole intentsvcs, intent-cli and intentd suites."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "Strict ingest refuses schema-invalid canon with file + finding named, exit non-zero, nothing partially loaded. **POSTURE RULED 2026-08-15 (cc asked before absorbing it): refusing the CORPUS rather than the entity is UPHELD.** A criterion carrying a nonsense `kind`/`state` pair now stops the whole estate loading, which is a real escalation from \"doctor reports it\". **It is right, and the reason is D34 rather than strictness for its own sake: ingest is a RESTORE**, and a restore that partially succeeds leaves the DB neither the old truth nor the new -- strictly worse than refusing. AC-04.1 already requires the DB write all-or-nothing; this is the same property one layer up. The blast radius is also narrower than it reads: under D01-reversed the daily driver answers from the DB and touches files only when the store is COLD, so this is \"a cold store cannot be built from an invalid corpus\", not \"one bad AC breaks `st list` forever\". **Two conditions, and the second is a CONTRACT requirement rather than an observation of current behaviour, because it is exactly what regresses silently: (1) the refusal names the file, the JSON pointer AND a remedy the reader can act on** -- naming the location without an action is where this posture becomes hostile; **(2) `intent doctor` MUST keep working when ingest refuses.** It is the diagnostic of last resort, and a refusal that names a file while the only investigative tool has also stopped leaves a user holding a location and nothing to look at it with. cc reports doctor currently returns findings and exits cleanly; this makes that a requirement so it cannot quietly stop being true",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

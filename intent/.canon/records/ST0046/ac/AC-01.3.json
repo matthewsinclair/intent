@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "`check` respects the configured exclusion set (test / support / generated dirs, `deps`, `_build` are not flagged).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

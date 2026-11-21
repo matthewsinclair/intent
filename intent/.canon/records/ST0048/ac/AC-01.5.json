@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.5",
+  "text": "`intent wp done <st>/NN` honours the ratified WP-granularity rule (design.md D3, WP-lenient): a WP with no own `AC-NN.x` closes iff the thread carries >=1 real AC or is exempt; a fully-empty, non-exempt thread BLOCKS `wp done`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 144,
+  "schema": "intent/issue@4.0",
+  "id": "0144",
   "slug": "st-edit-on-an-unknown-id-registers-it-in-tracked",
   "title": "st edit on an unknown id registers it in tracked .intentfiles, and the file argument decides",
   "status": "closed",

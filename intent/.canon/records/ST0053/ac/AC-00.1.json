@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "The content pack ships whole: the `IN-PR-*` prose base, the `IN-CO-*` content pack, the renamed `critic-prose`, `intent lang init content` canon, the `/in-content-essentials` skill, and `content -> critic-prose` dispatch -- strictly opt-in, with zero behaviour change until a project runs `intent lang init content`; hv accepts the dogfood (WP-06).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "all six WPs closed through their gates; docs/blog dogfood run + findings applied; hv signed off (2026-07-08)"
+  }
+}

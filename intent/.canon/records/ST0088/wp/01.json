@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "The culls hv ruled: the in-tca family, in-cost-analysis, in-debug, with their triage rows and callers",
+  "scope": "S",
+  "status": "done",
+  "objective": "Remove from `intent/plugins/claude/skills/` the five `in-tca-*` directories with their scripts, `in-cost-analysis` with its script and rates, and `in-debug`; remove each one's row from `intent/docs/skills-triage.md` and its caller lines (the `in-debug` line in `lib/templates/llm/_usage-rules.md`; the `in-tca-*` references in `intent/docs/total-codebase-audit.md`, which stays as the written procedure a session follows with the critics, naming no skill). Nothing else moves in this package. Judge: the intent-cli suite (its corpus tests: the triage doc covers the catalogue, every skill has a live caller, cross-references resolve, no unshipped verb, no PM state in output), the bats under tests/unit that pin the skills (the startup size cap, in_session_skill, docs_completeness), prettier on the two docs, the critic leg on any shell file; heavy, booked with molt-vc. Owner: ic. Size S.",
+  "body": "",
+  "preamble": ""
+}

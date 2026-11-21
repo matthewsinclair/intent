@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 712,
+  "schema": "intent/issue@4.0",
+  "id": "0712",
   "slug": "a-work-package-s-gate-passes-unjudged-when-its-c",
   "title": "A work package's gate passes unjudged when its criteria use a one-digit group (AC-1.1)",
   "status": "closed",

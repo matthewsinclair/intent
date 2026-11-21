@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0001: Directory Structure\n\n## Tasks\n\n- [x] Create root level directory structure\n- [x] Create subdirectories for each component\n- [x] Create placeholder files for templates\n- [x] Document directory structure in the technical product design\n- [ ] Create symbolic links or references between related directories\n- [ ] Validate directory structure against requirements\n",
+  "bytes": 378,
+  "sha256": "bd9ea9c2a51916fae22ce5a373db4ac485206df3ebfc288b4d644e8567b59edf"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-13.1",
+  "kind": "test",
+  "file": "tests/retirement_guard.bash",
+  "covers": [
+    "AC-13.1"
+  ],
+  "status": "to-write",
+  "note": "greps the whole repo for treeindex and in-handoff references after the prune"
+}

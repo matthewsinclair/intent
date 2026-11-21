@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 195,
+  "schema": "intent/issue@4.0",
+  "id": "0195",
   "slug": "intent-search-reports-every-hit-at-line-0-and-re",
   "title": "intent search reports every hit at line 0 and repeats one file per match, so a result set cannot be navigated",
   "status": "closed",

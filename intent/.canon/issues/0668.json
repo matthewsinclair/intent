@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 668,
+  "schema": "intent/issue@4.0",
+  "id": "0668",
   "slug": "a-controller-s-revoke-before-a-start-leaves-the",
   "title": "A controller's revoke before a start leaves the asker no --place-of hand-back, so a run pulled back for load loses its place",
   "status": "closed",

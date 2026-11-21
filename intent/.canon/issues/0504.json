@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 504,
+  "schema": "intent/issue@4.0",
+  "id": "0504",
   "slug": "intent-set-st-completed-records-a-value-that-is",
   "title": "intent set <ST> completed records a value that is not a date, and a completion date on a thread that is not closed",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 616,
+  "schema": "intent/issue@4.0",
+  "id": "0616",
   "slug": "the-commit-gate-parses-and-validates-guards-with",
   "title": "The commit gate parses and validates guards with its own jq program, beside the binary's Config.guards",
   "status": "closed",

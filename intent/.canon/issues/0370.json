@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 370,
+  "schema": "intent/issue@4.0",
+  "id": "0370",
   "slug": "a-search-over-an-index-holding-skipped-files-ans",
   "title": "a search over an index holding skipped files answers complete: true with an empty skipped list",
   "status": "closed",

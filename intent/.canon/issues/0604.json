@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 604,
+  "schema": "intent/issue@4.0",
+  "id": "0604",
   "slug": "claude-config-dir-relocates-claude-but-intent-s",
   "title": "CLAUDE_CONFIG_DIR relocates ~/.claude, but Intent's skill install, the in-session release line and the prompt gate all name $HOME/.claude",
   "status": "closed",

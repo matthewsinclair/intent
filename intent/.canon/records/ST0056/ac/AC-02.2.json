@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The three schema faces (JSON Schema, DDL, SDL) are generated, committed, and CI fails on drift between types and committed faces",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

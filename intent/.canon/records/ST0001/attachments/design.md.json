@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0001: Directory Structure\n\n## Approach\n\n1. Create the primary directories based on the specification\n2. Create placeholder files to maintain directory structure\n3. Set up the necessary template directory structure\n4. Document the directory layout for future reference\n",
+  "bytes": 281,
+  "sha256": "b261333045e91263bb58219e5d67900f8fc9c7df51ae3588f085ae132e3230fd"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-05.6",
+  "kind": "non-test",
+  "prose": "the `INTENT_BIN` default read from the harness, plus the amended comments naming the ratified deviation",
+  "covers": [
+    "AC-05.6"
+  ],
+  "status": "n-a"
+}

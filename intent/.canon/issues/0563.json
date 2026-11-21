@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 563,
+  "schema": "intent/issue@4.0",
+  "id": "0563",
   "slug": "the-session-gate-depends-on-jq-and-without-it-bl",
   "title": "the session gate depends on jq, and without it blocks every prompt, /in-session included",
   "status": "closed",

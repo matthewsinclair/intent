@@ -1,0 +1,9 @@
+{
+  "id": "11",
+  "title": "Diogenes Test Architect Subagent + intent-elixir-testing Skill",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create a two-part testing quality system for Elixir projects:\n\n1. **Diogenes subagent** -- a Socratic dialog agent that extracts module intent and produces formal test specifications, then validates tests against those specifications\n2. **intent-elixir-testing skill** -- 8 always-on rules that enforce test quality when Claude writes ExUnit tests\n\nThe subagent addresses the root cause of bad AI-generated tests: Claude writes \"shape tests\" that check data structure rather than behavior, uses control flow in test bodies that hides failures, and produces fake implementations that pass by design.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/diogenes/agent.md` -- Diogenes subagent\n- `intent/plugins/claude/skills/intent-elixir-testing/SKILL.md` -- Testing skill (8 rules)\n- `tests/unit/test_diogenes.bats` -- BATS tests for both artifacts\n- Updated documentation across all project docs\n\n## Design\n\nTwo-persona Socratic dialog (Aristotle + Diogenes) with two modes:\n\n- **specify**: 5-phase dialog to analyze a module and produce a `*.spec.md` file\n- **validate**: gap analysis comparing a spec against its test file\n\nSee `design.md` for full architecture.\n\n## Acceptance Criteria\n\n- [ ] Diogenes subagent installable via `intent claude subagents install diogenes`\n- [ ] intent-elixir-testing skill installable via `intent claude skills install intent-elixir-testing`\n- [ ] Both appear in `list` commands\n- [ ] Both sync correctly via `sync` commands\n- [ ] BATS tests pass\n- [ ] Tested against at least one real Elixir project\n\n## Dependencies\n\n- WP-05 (testing.md reference doc -- existing foundation)\n- WP-06 (skills infrastructure -- already built)",
+  "preamble": ""
+}

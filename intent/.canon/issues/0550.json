@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 550,
+  "schema": "intent/issue@4.0",
+  "id": "0550",
   "slug": "the-explorer-s-help-takes-its-name-column-from-i",
   "title": "the explorer's /help takes its name column from its longest section heading, so every meaning starts far right and is cut at ordinary widths",
   "status": "closed",

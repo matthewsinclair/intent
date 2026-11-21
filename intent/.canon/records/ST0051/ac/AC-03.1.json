@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "every other file-generating command is either non-columnar (width-agnostic) or routed through `get_default_width` for its file output; the audit is recorded in `impl.md`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "`impl.md` generator-audit table"
+  }
+}

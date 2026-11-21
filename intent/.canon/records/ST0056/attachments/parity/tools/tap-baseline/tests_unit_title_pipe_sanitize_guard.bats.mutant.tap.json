@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_title_pipe_sanitize_guard.bats.mutant.tap",
+  "text": "1..3\nok 1 helper: sanitize_title replaces every pipe with a slash\nnot ok 2 st new: a piped title stores no raw pipe in the ST heading\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/title_pipe_sanitize_guard.bats, line 31)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 3 wp new: a piped title stores no raw pipe in the wp title\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/title_pipe_sanitize_guard.bats, line 40)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\n",
+  "bytes": 706,
+  "sha256": "3ead5feca22f16e1b2d3f2b09a483a9cb30686e402eac02d769cd69b693f912c"
+}

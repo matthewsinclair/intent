@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "`intent init --contracts dotclaude` creates the project with both contracts under `.claude/` and the key in its config; `intent init` without the flag writes `root` behaviour and no key.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (init with dotclaude writes both contracts under .claude/ and the key; init without writes the root layout and no key); AT-03.2 green (intent init --contracts dotclaude through the binary)"
+  }
+}

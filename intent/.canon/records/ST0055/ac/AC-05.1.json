@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "Every fleet project with an `intent/issues/` tree (Lamplight, Conflab, Utilz, Intent) is normalised to the ratified canon: directory-per-issue `{OPEN,CLOSED}/NNNN/NNNN-slug.md`, `RESOLVED` -> CLOSED, vendored `_templ/` removed (Intent now owns the template).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "Utilz (0171297), Lamplight (7058fd3a8), Conflab (49428b4f), Intent (issue 0001) all dir-per-issue, statuses CLOSED, _templ dropped; verified via intent issues list --kind all"
+  }
+}

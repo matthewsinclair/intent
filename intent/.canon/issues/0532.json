@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 532,
+  "schema": "intent/issue@4.0",
+  "id": "0532",
   "slug": "a-board-view-does-not-indent-a-multi-line-item-s",
   "title": "A board view does not indent a multi-line item's continuation lines: its sub-bullets render as sibling items, and a fenced block in an item can swallow the rest of the board",
   "status": "closed",

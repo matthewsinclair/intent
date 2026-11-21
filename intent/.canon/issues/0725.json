@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 725,
+  "schema": "intent/issue@4.0",
+  "id": "0725",
   "slug": "precommit-still-reads-three-guards-two-ways-thre",
   "title": "precommit still reads three guards two ways: thread_view_skew_check, residue_class_check, runner_roster_check",
   "status": "closed",

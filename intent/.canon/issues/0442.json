@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 442,
+  "schema": "intent/issue@4.0",
+  "id": "0442",
   "slug": "the-store-s-fts5-index-for-src-sections-goes-mal",
   "title": "the store's FTS5 index for src_sections goes malformed, so a plain `intent search` on an affected term fails while `intent doctor` reads the store clean",
   "status": "closed",

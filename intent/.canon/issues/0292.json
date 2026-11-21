@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 292,
+  "schema": "intent/issue@4.0",
+  "id": "0292",
   "slug": "1-789-commits-carry-banned-claude-attribution-an",
   "title": "1,789 commits carry banned Claude attribution and no commit-msg hook exists to refuse it -- this issue was originally filed with its sign inverted",
   "status": "closed",

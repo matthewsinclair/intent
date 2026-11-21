@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 169,
+  "schema": "intent/issue@4.0",
+  "id": "0169",
   "slug": "init-and-limit-exit-2-for-conditions-guide-rs-as",
   "title": "init and --limit exit 2 for conditions guide.rs assigns to exit 1, and the gate fails open on 2",
   "status": "closed",

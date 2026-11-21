@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_reference_resolves.rs",
+  "covers": [
+    "AC-00.1"
+  ],
+  "status": "to-write",
+  "note": "Round-trips a reference to material through the resolver, and asserts the config file holds only the reference."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.1",
+  "text": "Every verb this thread adds has a dispatch-table row that states its recoverability, its `when_to_use` and its MCP disposition, and `intent llm guide` prints it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

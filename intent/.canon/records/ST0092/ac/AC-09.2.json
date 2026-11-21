@@ -1,0 +1,8 @@
+{
+  "id": "AC-09.2",
+  "text": "None of these classes refuses a commit: the pre-commit gate passes a tree that carries each.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

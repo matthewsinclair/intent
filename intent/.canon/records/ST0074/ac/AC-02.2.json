@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "While intentd is not live (stale, absent or unknown), the status line carries no port and no thread count, and a stale daemon's line names its pid and says to investigate it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

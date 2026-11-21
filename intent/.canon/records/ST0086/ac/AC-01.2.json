@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "The reader reads Claude Code's own session files under the config dir and never writes them; a test pins exactly the fields it relies on (pid, procStart, sessionId, cwd, name, status, startedAt, updatedAt), and a file lacking one is listed under `unreadable` with the field named, never dropped.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

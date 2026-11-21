@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 214,
+  "schema": "intent/issue@4.0",
+  "id": "0214",
   "slug": "form-field-editable-linked-its-guard-by-a-name-t",
   "title": "form::Field::editable linked its guard by a name the guard never had -- the guard exists, the link was dead",
   "status": "closed",

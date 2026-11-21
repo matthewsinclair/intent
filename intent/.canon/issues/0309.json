@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 309,
+  "schema": "intent/issue@4.0",
+  "id": "0309",
   "slug": "a-patch-release-makes-every-generated-view-a-vie",
   "title": "A patch release makes every generated view a view-skew finding: the footer carries the binary version",
   "status": "closed",

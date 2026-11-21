@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_thread_is_its_records_files.rs:68",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green",
+  "note": "green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed A2 at 7e34615f2"
+}

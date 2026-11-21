@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/legacy_document_conservation.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green"
+}

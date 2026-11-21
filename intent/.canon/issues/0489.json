@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 489,
+  "schema": "intent/issue@4.0",
+  "id": "0489",
   "slug": "wb-migrate-s-uncarried-list-cannot-tell-a-state",
   "title": "wb migrate's uncarried list cannot tell a state-bearing sub-heading or lead from a date, and italic intros carry as items",
   "status": "closed",

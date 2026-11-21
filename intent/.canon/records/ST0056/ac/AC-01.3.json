@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "The parity contract exists: v2 command-surface inventory + the keep/retire/deviate register format",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0056/parity.md"
+  }
+}

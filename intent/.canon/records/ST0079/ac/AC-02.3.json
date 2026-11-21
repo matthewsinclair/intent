@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "Below the table one line counts the rows of each kind shown against how many of that kind exist, and a thread shown only as a work package's parent is counted apart from the outstanding threads; with nothing outstanding that line is printed alone, so an empty result reads as none of N rather than as missing data.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "`critic-shell` review of `bin/intent_issues` is clean (Highlander / Thin-Coordinator / No-Silent-Errors).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "critic-shell re-review: 0 critical, 0 warning; Highlander/Thin-Coordinator/portability clean"
+  }
+}

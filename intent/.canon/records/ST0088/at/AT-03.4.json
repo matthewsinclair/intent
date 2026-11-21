@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.4",
+  "kind": "test",
+  "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+  "covers": [
+    "AC-03.4"
+  ],
+  "status": "green",
+  "note": "the corpus arm widened by WP-03 to _CLAUDE.md, the subagents and the critic contract: every file naming ~/.claude reads CLAUDE_CONFIG_DIR"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.6",
+  "text": "Generated views have exactly one writer: `intent init` and migration converge a formatter-exclusion for tool-owned paths, and a format pass over a freshly-rendered view leaves it byte-unchanged in a consumer repo as well as this one",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 62,
+  "schema": "intent/issue@4.0",
+  "id": "0062",
   "slug": "the-file-enum-on-edit-and-st-edit-is-declared-an",
   "title": "The file enum on `edit` and `st edit` is declared and nothing enforces it",
   "status": "closed",

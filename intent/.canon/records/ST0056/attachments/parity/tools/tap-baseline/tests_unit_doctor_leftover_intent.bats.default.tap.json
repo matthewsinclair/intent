@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_doctor_leftover_intent.bats.default.tap",
+  "text": "1..5\nok 1 doctor: 'leftover .intent' check passes when no .intent/ exists\nok 2 doctor: 'leftover .intent' check warns when .intent/ AND intent/.config/ both exist\nok 3 doctor: leftover-.intent warning surfaces git-rm recovery hint\nok 4 doctor: leftover-.intent check is silent in --quiet mode when ok\nok 5 doctor: leftover-.intent check still warns in --quiet mode\n",
+  "bytes": 365,
+  "sha256": "321efbfbd5d000c4f343b5fa422f8831aefcefae218035a0fe654ad141441267"
+}

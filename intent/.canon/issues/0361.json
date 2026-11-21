@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 361,
+  "schema": "intent/issue@4.0",
+  "id": "0361",
   "slug": "search-s-prose-form-prints-a-hit-s-section-label",
   "title": "search's prose form prints a hit's section label, not the line that matched",
   "status": "closed",

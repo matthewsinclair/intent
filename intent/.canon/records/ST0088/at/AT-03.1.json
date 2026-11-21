@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "tests/unit/claude_md_template.bats",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "the template arms named by AC-03.1: the memory line under CLAUDE_CONFIG_DIR, and the file map and critic dispatch in _AGENTS.md alone"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "tests/unit/whiteboard_protocol_3_guard.bats",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "test: in-whiteboard SKILL.md has no live 2.0 references"
+}

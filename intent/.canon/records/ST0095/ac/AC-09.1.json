@@ -1,0 +1,8 @@
+{
+  "id": "AC-09.1",
+  "text": "wp done refuses a hashed work package while a criterion of its own is unsatisfied.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

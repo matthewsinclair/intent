@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 299,
+  "schema": "intent/issue@4.0",
+  "id": "0299",
   "slug": "0267-s-fix-landed-and-its-diagnostic-did-not-the",
   "title": "0267's fix landed and its diagnostic did not -- the cross-thread refusal is byte-identical to the no-id refusal, and for the cross-thread case its sentence is false",
   "status": "closed",

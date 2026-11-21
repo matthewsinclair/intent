@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 154,
+  "schema": "intent/issue@4.0",
+  "id": "0154",
   "slug": "no-entity-s-authored-prose-can-be-edited-after-c",
   "title": "no entity's authored prose can be edited after creation: issue bodies, issue titles and work package bodies all have write-once doors",
   "status": "closed",

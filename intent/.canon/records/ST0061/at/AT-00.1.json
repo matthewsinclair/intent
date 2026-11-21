@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/st_dehydrate_round_trips_with_hydrate.rs",
+  "covers": [
+    "AC-00.1"
+  ],
+  "status": "green",
+  "note": "hydrate -> dehydrate -> hydrate on one thread; asserts the tree is byte-identical to the start and the manifest entry returns. THE CONTROL IS THE MIDDLE STATE, and it is what the round trip cannot supply: measured, a dehydrate that removes nothing round-trips PERFECTLY, so the entry leaving the manifest and the files leaving the disk are both asserted between the two hydrations. Five source mutations, applied and reverted one at a time, each redden a named assertion; the table is in the test file. Known limitation: nothing here covers a thread with attachments."
+}

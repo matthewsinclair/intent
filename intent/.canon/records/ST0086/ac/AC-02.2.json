@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The daemon's census tick measures the load averages and counts the running processes of each declared class, attributing each to the project whose tree holds its working directory and counting the rest as unattributed, keeps a history ring the page draws as the last hour, and reaps the WIP record of a gone session on the tick.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 269,
+  "schema": "intent/issue@4.0",
+  "id": "0269",
   "slug": "every-instrument-in-the-coverage-space-starts-fr",
   "title": "every instrument in the coverage space starts from a ROW, so a test file no row cites is invisible to all of them -- 151 of 279, uncounted and unowned",
   "status": "closed",

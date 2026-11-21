@@ -1,5 +1,5 @@
 {
-  "schema": "intent/thread@3.0",
+  "schema": "intent/thread@4.0",
   "id": "ST0071",
   "title": "help",
   "slug": "help",

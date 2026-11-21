@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 321,
+  "schema": "intent/issue@4.0",
+  "id": "0321",
   "slug": "intentd-log-lines-carry-no-timestamp-so-a-restar",
   "title": "intentd.log lines carry no timestamp, so a restart's cause cannot be tied to a time",
   "status": "closed",

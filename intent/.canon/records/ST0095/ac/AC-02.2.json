@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "No intent-cli test names an id it expects a mint to produce, and one helper beside result_lines is the only place a CLI test reads one.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "ed1caeb36: ic's bank wp02 (patch-id 97c87b96bb5a) landed by vc on ic's proof; no intent-cli test names an id it expects a mint to produce, and tests/common's created() is the one reader of a minted id"
+  }
+}

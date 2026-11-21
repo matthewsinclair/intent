@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "`intent at list <stid>[/NN]` lists ATs (id, cited `path::name`, status); `intent ac list <stid>[/NN]` lists ACs with covering AT + derived satisfied state.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.2",
+  "text": "`intent wb ask hv` from any other node is refused with a remedy that names the mediator and can be run as written, and a message from the human seat to any node but the mediator is refused the same way.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 155,
+  "schema": "intent/issue@4.0",
+  "id": "0155",
   "slug": "rule-validator-bats-asserts-an-absolute-corpus-w",
   "title": "rule_validator.bats asserts an absolute corpus-wide failure count inside a test about duplicate ids",
   "status": "closed",

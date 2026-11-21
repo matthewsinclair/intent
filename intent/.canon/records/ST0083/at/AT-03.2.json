@@ -1,0 +1,12 @@
+{
+  "id": "AT-03.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/agents_sync_parity.rs",
+  "covers": [
+    "AC-03.1",
+    "AC-03.2",
+    "AC-02.2"
+  ],
+  "status": "green",
+  "note": "RED at base 8a8509258: the arm cannot compile or run there, because what it calls does not exist at that commit -- git grep finds no `pub fn relayout`, no `pub fn agents_layout`, no Contracts parameter on init_with_languages and no `agents layout` row in the dispatch table at 8a8509258, and one of each in the landed tree. GREEN on tmp/wt-cc-0083's own build in WP-03's judging run on vc's GO, 2026-10-15 11:31Z to 11:38Z (intent-cli targeted 18 passed), and in intent-cli's whole suite after the declared-values fix at 11:39Z (1138 passed, 0 failed); landed at 2d9b4de1a with the bank's patch-id ebde4dc9dec0."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 531,
+  "schema": "intent/issue@4.0",
+  "id": "0531",
   "slug": "wb-show-all-and-wb-pickup-all-print-a-handled-me",
   "title": "wb show --all and wb pickup --all print a handled message with no (handled), so the one listing meant to show handled messages cannot say which they are",
   "status": "closed",

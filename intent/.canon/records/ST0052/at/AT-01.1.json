@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "tests/unit/au_language_code_guard.bats",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green"
+}

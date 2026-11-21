@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The \"Detrope: two forms, one home\" section lives in `in-detrope` alone, and `in-author-essentials` and `in-content-essentials` point at it rather than restating it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

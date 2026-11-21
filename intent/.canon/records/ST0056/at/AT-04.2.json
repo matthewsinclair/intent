@@ -1,0 +1,9 @@
+{
+  "id": "AT-04.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/facade_acceptance.rs",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "green"
+}

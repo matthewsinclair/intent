@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 420,
+  "schema": "intent/issue@4.0",
+  "id": "0420",
   "slug": "a-store-write-can-meet-a-write-lock-held-over-5s",
   "title": "A store write can meet a write lock held over 5s with intentd alone on the store",
   "status": "closed",

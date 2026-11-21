@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.4",
+  "text": "the regenerated `steel_threads.md` renders every current thread's slug without ellipsis at width 120.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "the committed `intent/st/steel_threads.md` (ST0046 slug renders in full)"
+  }
+}

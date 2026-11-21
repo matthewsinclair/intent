@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 595,
+  "schema": "intent/issue@4.0",
+  "id": "0595",
   "slug": "bin-int-linux-doctor-exits-127-with-no-output-on",
   "title": "bin/int linux doctor exits 127 with no output on a host without Rust, the one case it exists to explain",
   "status": "closed",

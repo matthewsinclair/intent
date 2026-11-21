@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.2",
+  "kind": "test",
+  "file": "tests/unit/claude_with_intent.bats",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "green",
+  "note": "test: \"AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). THIS ROW'S ARM WAS ALREADY FAILING AT HEAD AND NOTHING REPORTED IT: it asserted the in-whiteboard skill names `intent claude ws new`, and AC-14.10 rewrote that skill onto `intent wb` at 124aa0d6f -- the requirement being MET is what broke the test asserting the opposite. The property it reached for is `no_skill_names_an_unshipped_verb.rs`, which derives its roster from the register."
+}

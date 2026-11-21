@@ -1,0 +1,9 @@
+{
+  "id": "AC-13.1",
+  "text": "No page, skill, rule or template teaches minting or predicting an ordinal, and each that teaches an id teaches both families and the prefix.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
+  }
+}

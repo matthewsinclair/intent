@@ -1,0 +1,9 @@
+{
+  "id": "AT-11.1",
+  "kind": "non-test",
+  "prose": "clean-machine transcript on gyges, ~/intent-clean-install.log from intent/st/ST0056/gyges-brief.md, steps 1 to 3: on a machine with no Intent tap, trust entry, binary or config, the documented brew install matthewsinclair/intent/intent of the published tag exits 0 without brew trust or brew tap; intent --version and intentd --version both report that tag's version; and both binaries pass codesign --verify --strict, carry Authority=Developer ID Application: Geodica Pty Ltd (76BQL8L47U) with flags=0x10000(runtime), and are accepted by spctl --assess --type open --context context:primary-signature as source=Notarized Developer ID.",
+  "covers": [
+    "AC-11.1"
+  ],
+  "status": "n-a"
+}

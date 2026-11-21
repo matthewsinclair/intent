@@ -1,0 +1,11 @@
+{
+  "id": "AT-02.3",
+  "kind": "non-test",
+  "file": "tests/unit/output_width.bats",
+  "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "n-a",
+  "note": "test: explicit_width_overrides_both -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
+}

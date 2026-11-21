@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.5",
+  "text": "A hand edit outside the preserved block is skew that `intent doctor` reports, and an apply refuses to render over it, before anything is written, naming the lines and the remedy; a README that is only out of date re-renders; and a re-render with nothing changed writes nothing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

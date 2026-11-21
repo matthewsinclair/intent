@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "intent daemon logs --follow leaves no tail running once it ends, whether it is sent SIGTERM, SIGINT or SIGKILL or its stdin closes (issue 0281's ruling)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

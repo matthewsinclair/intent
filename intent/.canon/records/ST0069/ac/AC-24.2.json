@@ -1,0 +1,8 @@
+{
+  "id": "AC-24.2",
+  "text": "The MCP search tools' descriptions state when to use them and when not to, in the terms a model matches on, and are generated from the register rows like every tool description.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

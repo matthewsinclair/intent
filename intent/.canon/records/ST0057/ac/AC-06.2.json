@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.2",
+  "text": "**It is regenerable and never authoritative**: written under `.backup/text/<UTC>/`, with no import path and `classify` never seeing a path under it. Checked by asserting the absence of a read-back route, not by intending one.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

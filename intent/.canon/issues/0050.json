@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 50,
+  "schema": "intent/issue@4.0",
+  "id": "0050",
   "slug": "nineteen-render-arms-discard-the-facade-outcome",
   "title": "nineteen render arms discard the facade Outcome, so intent st done prints ok: done for a no-op while intent todo done -- which delegates to it -- reports the no-op",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/todo_watermark.rs",
+  "covers": [
+    "AC-14.2"
+  ],
+  "status": "green",
+  "note": "The load-bearing arm appends a todo.flush event DIRECTLY to the log, dated far in the future, and asserts the cutoff does not move -- under the old rule that event would have become the cutoff. Mutation-checked 2026-08-27 via in_done_bucket."
+}

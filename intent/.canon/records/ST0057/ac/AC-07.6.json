@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.6",
+  "text": "**Empty authority means THIS project.** A cross-project reference carries the slug, parses and round-trips, and every door that takes an address refuses it by name before resolving anything against this project, with a remedy that spells this project's own address; no door resolves another project's address. A reference that hard-codes the project name breaks on rename or fork, so the empty form is the one intra-project prose must use.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

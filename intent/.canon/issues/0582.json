@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 582,
+  "schema": "intent/issue@4.0",
+  "id": "0582",
   "slug": "the-critic-subagents-never-read-a-rule-s-status",
   "title": "the critic subagents never read a rule's status, so a draft or deprecated rule would be applied by /in-review",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-15.3",
+  "kind": "test",
+  "covers": [
+    "AC-15.3"
+  ],
+  "status": "to-write",
+  "note": "Driven through a consumer install; a clean source directory is not evidence the removal propagated."
+}

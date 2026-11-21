@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 565,
+  "schema": "intent/issue@4.0",
+  "id": "0565",
   "slug": "claude-upgrade-reports-every-existing-seed-as-pr",
   "title": "claude upgrade reports every existing seed as preserved, byte-identical ones included",
   "status": "closed",

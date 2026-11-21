@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 128,
+  "schema": "intent/issue@4.0",
+  "id": "0128",
   "slug": "rulings-check-gates-at-exit-1-on-findings-while",
   "title": "rulings_check gates at exit 1 on findings while the runner documents the five register checks as report-only and reports exit 2",
   "status": "closed",

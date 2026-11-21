@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.8",
+  "text": "**THE TUI REACHES EVERY AUTHORED ARTEFACT OF AN ENTITY AND REFUSES A GENERATED VIEW BY NAMING IT.** The file vocabulary the tool already states is `info, design, impl, tasks, acceptance`; some are authored and some are rendered, and **offering an edit that the next render discards is worse than refusing it** -- the estate has five open issues that are prose destroyed by a writer that was only supposed to read. **The authored/generated split is READ from the model, never hard-coded in the realiser**, so `info.md` changing disposition under the round-trip moves this behaviour without touching the TUI.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

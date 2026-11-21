@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.8",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/search_answers_one_envelope.rs",
+  "covers": [
+    "AC-14.8"
+  ],
+  "status": "green",
+  "note": "Boards and inboxes are indexed from their rows under their view paths and found by the same search as the rest of the corpus: a hold and a message come back as file hits at intent/whiteboard/cc/wip.md and inbox.vc.md after a thread mutation and a fresh open of the store, and an archived item leaves the index. Measured through intent search on a scratch estate as well: 17 board sections held across writes, thread writes and searches, one hit per word, board.json not answering."
+}

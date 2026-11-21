@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 287,
+  "schema": "intent/issue@4.0",
+  "id": "0287",
   "slug": "shared-artefact-build-guard-arm-6b-enforces-the",
   "title": "shared_artefact_build_guard arm 6b enforces the 0285 scope property and cannot see a generated embed, so it passed on the lib/templates gap",
   "status": "closed",

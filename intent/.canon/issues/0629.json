@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 629,
+  "schema": "intent/issue@4.0",
+  "id": "0629",
   "slug": "the-staged-format-guard-checks-a-declared-elixir",
   "title": "The staged-format guard checks a declared elixir formatter on .ex and .exs alone, so a .heex file the project's .formatter.exs formats passes the commit gate unchecked, and it boots mix once per staged file",
   "status": "closed",

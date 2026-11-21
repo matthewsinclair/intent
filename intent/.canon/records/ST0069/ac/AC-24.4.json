@@ -1,0 +1,8 @@
+{
+  "id": "AC-24.4",
+  "text": "A PostToolUse hook served by the install appends the index's structural answer for the symbol a grep pattern named; it never blocks, and it appends nothing when the envelope says the index is not complete for the paths involved.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

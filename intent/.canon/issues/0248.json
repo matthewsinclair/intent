@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 248,
+  "schema": "intent/issue@4.0",
+  "id": "0248",
   "slug": "render-rs-has-three-homes-for-render-the-family",
   "title": "render.rs has three homes for render-the-family-help and they have already drifted: two refuse an absent family, one panics, and both policies are argued in their own comments",
   "status": "closed",

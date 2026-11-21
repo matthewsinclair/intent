@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 581,
+  "schema": "intent/issue@4.0",
+  "id": "0581",
   "slug": "the-shell-critic-s-census-says-no-rule-was-asked",
   "title": "the shell critic's census says no rule was asked while it reports findings, when shellcheck declines a file in the run",
   "status": "closed",

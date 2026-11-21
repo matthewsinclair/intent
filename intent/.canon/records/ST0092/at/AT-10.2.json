@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.2",
+  "kind": "non-test",
+  "prose": "ic has read every new help line, refusal and exit code against the tool's voice and exit-code contract, and recorded the read.",
+  "covers": [
+    "AC-10.2"
+  ],
+  "status": "n-a",
+  "note": "ic's read, 2026-11-11. Refusals and exits, read before the landing of 5b597abd9: voice and exit 1 consistent, nothing to correct. Help lines, read on brew 3.3.0 (1e423060f919): wb brief, profile, init, remit and retire --help all exit 0 in the tool's voice; two differences found, wb brief --launch's help in lowercase and wb brief <MONIKER> with no argument help, filed with the guide's missing when_to_use as issue 0681 for the next release on vc's ruling (no code in 3.3.0)."
+}

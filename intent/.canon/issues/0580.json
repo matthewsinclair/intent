@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 580,
+  "schema": "intent/issue@4.0",
+  "id": "0580",
   "slug": "intent-at-edit-kind-resets-a-row-to-to-write-and",
   "title": "intent at edit --kind resets a row to to-write and drops its verdict in silence, where its help says it refuses a status the new kind cannot hold",
   "status": "closed",

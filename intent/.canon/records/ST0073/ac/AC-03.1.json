@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "**The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

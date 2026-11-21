@@ -1,0 +1,9 @@
+{
+  "id": "06",
+  "title": "The release pipeline, briefed to devbin's core",
+  "scope": "S",
+  "status": "done",
+  "objective": "Brief the release pipeline's changes to devbin's core and put Intent's cut on them: new legs rehearsed on their hosts, parallel bats, warm gate trees, the pair built once, and signing and notarising before the tag (design.md, the plan's B).",
+  "body": "",
+  "preamble": ""
+}

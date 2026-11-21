@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.2",
+  "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

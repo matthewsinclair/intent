@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 145,
+  "schema": "intent/issue@4.0",
+  "id": "0145",
   "slug": "st-edit-writes-on-its-rc-1-refusal-for-a-known-t",
   "title": "st edit writes on its rc=1 refusal for a known thread, and the remedy names an empty list",
   "status": "closed",

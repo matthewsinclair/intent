@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "**`.intentfiles` is tracked, and a realisation change lands in the working tree together with the manifest line that caused it** -- the reviewability property the committed-manifest ruling rests on. Checked by observing the changed-path set after an `organize` that changes realisation.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

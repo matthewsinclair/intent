@@ -1,0 +1,9 @@
+{
+  "id": "07",
+  "title": "Prefix resolution",
+  "scope": "M",
+  "status": "done",
+  "objective": "One resolver turns what a person typed into the one record it names, or says which records it could name, and nothing stored is ever a prefix.",
+  "body": "Seat: cc. Size: M.\n\n## Scope\n\n- `resolve.rs` (`:92-135`) takes a spelling and the project's ids, and returns the id, the candidates of an ambiguous prefix, or not found. It is the only place a prefix is expanded, for the CLI, the TUI and MCP.\n- An ordinal-shaped spelling is always the ordinal. A hash prefix is at least 4 hex characters.\n- The facade's verbs take typed ids. Claims (`facade.rs:11454`, `11477`), `events --subject` (`:7138`) and `Scope::selects` (`sync.rs:411-418`) resolve before they compare, and keep comparing whole ids.\n- The pure spelling stays pure: MCP validates its arguments with no store (`mcp.rs:1915`).\n\n## Order\n\nAfter WP-06.\n\n## Proof\n\nThe waist's own tests, with hashed records seeded through the fixture writer, two that share a short form among them.\n",
+  "preamble": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.3",
+  "text": "**R3 -- headless-safe with no daemon.** Every verb succeeds with the `intentd` socket absent, no desktop session, and no D-Bus, proven by a test that forces the keychain adapter null rather than by running on a machine that happens to lack one. **A green that depends on the test host's configuration is not evidence for this criterion.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

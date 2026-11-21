@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 448,
+  "schema": "intent/issue@4.0",
+  "id": "0448",
   "slug": "intent-init-writes-no-steel-threads-md-or-todo-m",
   "title": "intent init writes no steel_threads.md or todo.md, so the first commit after claude upgrade --apply is refused by the gate it just installed",
   "status": "closed",

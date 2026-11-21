@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_test_autopsy.bats.default.tap",
+  "text": "1..19\nok 1 in-autopsy SKILL.md exists in source\nok 2 in-autopsy scripts directory exists\nok 3 in-autopsy autopsy.exs exists\nok 4 in-autopsy banned-words.txt exists\nok 5 in-autopsy SKILL.md has frontmatter with description\nok 6 claude skills list shows in-autopsy\nok 7 claude skills list shows in-autopsy as NOT INSTALLED\nok 8 claude skills install copies SKILL.md for in-autopsy\nok 9 claude skills install copies scripts directory for in-autopsy\nok 10 claude skills install --all includes in-autopsy with scripts\nok 11 existing skills still install correctly with directory copy\nok 12 in-autopsy shows as INSTALLED after install\nok 13 claude skills sync updates in-autopsy scripts\nok 14 claude skills show displays in-autopsy info\nok 15 claude skills show in-autopsy extracts description from frontmatter\nok 16 claude skills uninstall removes in-autopsy completely\nok 17 autopsy.exs --help shows usage\nok 18 banned-words.txt has expected format\nok 19 in-autopsy full lifecycle: install, sync, uninstall\n",
+  "bytes": 1003,
+  "sha256": "9d8c45e73a921f23c4a395638b3032048f032fbe04ab84760b8db85ec5573e30"
+}

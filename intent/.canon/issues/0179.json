@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 179,
+  "schema": "intent/issue@4.0",
+  "id": "0179",
   "slug": "0178-carries-a-wrong-mechanism-clause-and-there",
   "title": "0178 carries a wrong mechanism clause, and there is no verb that can correct an issue body",
   "status": "closed",

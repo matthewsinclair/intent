@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "`intent install [--prefix <dir>] [--force] [--managed-by brew]` runs in dev only and is refused by name from opt and brew; it refuses a dirty runtime set by name with no override while live project records never count; the prefix comes from `--prefix`, else `INTENT_INSTALL_PREFIX`, else it refuses by name; an existing prefix is replaced only with `--force` and only over a manifest saying `tool: intent`; and the layout it writes is the keg's libexec layout exactly.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

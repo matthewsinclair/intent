@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.5",
+  "text": "`doctor` does not report a flushed `todo.md` as hand-edited. It reads the cutoff from a file rather than from a store, so it agrees with the renderer with or without a database. Named in the cover as a hazard THIS design introduces and has to answer for, rather than as an incidental.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

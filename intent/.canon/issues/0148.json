@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 148,
+  "schema": "intent/issue@4.0",
+  "id": "0148",
   "slug": "editing-a-realised-attachment-aborts-the-suite-f",
   "title": "editing a realised attachment aborts the suite for every node, and the only fix adopts other nodes' uncommitted bytes into canon while warning nobody but the actor",
   "status": "closed",

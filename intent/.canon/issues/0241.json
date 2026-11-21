@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 241,
+  "schema": "intent/issue@4.0",
+  "id": "0241",
   "slug": "the-web-shell-discards-every-daemon-refusal-beca",
   "title": "the web shell discards every daemon refusal because it reads a field the daemon does not send",
   "status": "closed",

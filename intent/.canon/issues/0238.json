@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 238,
+  "schema": "intent/issue@4.0",
+  "id": "0238",
   "slug": "an-addressed-entity-is-never-checked-to-exist-be",
   "title": "An addressed entity is never checked to exist before a path or a URL is handed back",
   "status": "closed",

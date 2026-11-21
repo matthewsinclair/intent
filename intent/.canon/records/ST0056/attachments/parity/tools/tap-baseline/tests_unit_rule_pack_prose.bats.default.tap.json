@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_prose.bats.default.tap",
+  "text": "1..12\nok 1 prose pack: every catalogued rule exists\nok 2 prose pack has the expected total rule count\nok 3 prose pack: each rule declares its canonical id\nok 4 prose pack: each rule declares language: prose\nok 5 prose pack: each rule carries its IN-AU migration alias\nok 6 prose pack: each rule passes intent claude rules validate\nok 7 prose pack: rules list reports every prose id\nok 8 prose pack: every rule is the mechanical style tier\nok 9 prose pack: each rule has a fenced markdown block in Bad section\nok 10 prose pack: no sibling .md example files alongside RULE.md\nok 11 prose pack: mechanical trope pass cites the in-detrope catalogue\nok 12 prose pack: no vendored trope-indicator file (Highlander)\n",
+  "bytes": 709,
+  "sha256": "fd40d5d19fc361da95212bdc7c80b108ab248cbfab501b2b4fa0840680c4574e"
+}

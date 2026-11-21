@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.5",
+  "text": "`intent agents sync` output preserves v2's STRUCTURAL CONTRACT for a corpus project -- every section the contract requires is present and non-empty (an empty section renders a placeholder line, never a bare heading), the project name renders from config, the footer is stable across runs -- with divergences from v2's literal output permitted ONLY where ratified in `intent/st/ST0056/parity.md` (`agents sync deviations -- ratified 2026-08-28`). **Byte-parity against v2 is REFUSED as the mechanism:** v2's dated footer differs from itself across days, and v2 renders the directory name where the config disagrees, so byte-equality would assert staleness and enshrine a v2 bug as the contract. **[REWRITTEN 2026-08-28 (vc, on dc's driven eleven-class comparison; AC-11.1's precedent -- the row named a mechanism that made it unsatisfiable by construction. Original text: `intent agents sync output matches v2 for a corpus project, modulo ratified deviations`.)]**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

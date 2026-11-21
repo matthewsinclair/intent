@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 192,
+  "schema": "intent/issue@4.0",
+  "id": "0192",
   "slug": "st-edit-hands-back-the-path-to-a-generated-view",
   "title": "st edit hands back the path to a generated view and the next render destroys the edit, where the published tag refused",
   "status": "closed",

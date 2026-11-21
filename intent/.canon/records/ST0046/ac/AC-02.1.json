@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "`intent modules sync` (or `check --write`) adds a row for every unregistered top-level module; afterwards `intent modules check` exits 0.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

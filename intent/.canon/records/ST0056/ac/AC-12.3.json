@@ -1,0 +1,9 @@
+{
+  "id": "AC-12.3",
+  "text": "Release docs written BEFORE the cut so the tag carries them",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "vc 2026-08-29: docs/releases/3.0.1/RELEASE_NOTES.md exists before the cut, 5309 bytes, sections Provenance / Fixed / Added / Removed / Upgrading. Written against the CUT rather than main: ic verified issues edit and st edit --editor absent on three independent surfaces (register, source, binary --help) and left both out, carrying a provenance paragraph saying anything ruled-but-unlanded is deliberately absent. THE ORDERING IS WHAT THIS CRITERION ASSERTS AND IT IS MET AND UNFALSIFIABLE LATER -- the notes cannot become written-after-the-cut. That the tag actually carries them is a separate condition, tracked as ST0068 AC-04.2, and is NOT claimed here."
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 133,
+  "schema": "intent/issue@4.0",
+  "id": "0133",
   "slug": "the-ingest-destroys-the-evidence-clause-of-every",
   "title": "the ingest DESTROYS the evidence clause of every criterion authored unsatisfied, because a wildcard arm routes it to a unit variant with nowhere to put it -- live in the shipped build, deterministic, and every future hop receives it",
   "status": "closed",

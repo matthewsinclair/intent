@@ -1,0 +1,9 @@
+{
+  "id": "AT-19.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_search_names_what_it_could_not_answer.rs",
+  "covers": [
+    "AC-19.3"
+  ],
+  "status": "green"
+}

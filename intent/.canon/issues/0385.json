@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 385,
+  "schema": "intent/issue@4.0",
+  "id": "0385",
   "slug": "a-write-after-a-version-change-warns-that-it-ove",
   "title": "a write after a version change warns that it overwrote a hand edit when only the view footer version stamp differs",
   "status": "closed",

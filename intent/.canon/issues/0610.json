@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 610,
+  "schema": "intent/issue@4.0",
+  "id": "0610",
   "slug": "wb-ask-re-accepts-a-partial-anchor-and-renders-a",
   "title": "wb ask --re accepts a partial anchor and renders a malformed Re: line",
   "status": "closed",

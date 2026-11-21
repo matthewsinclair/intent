@@ -1,0 +1,9 @@
+{
+  "id": "04",
+  "title": "Create LiveView Reference Doc + Skill",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create comprehensive LiveView guidance covering operational patterns missing from current agent.md — two-phase rendering, streams, navigation semantics, error boundaries.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/liveview.md` — reference doc (~200-300 lines)\n- `intent/plugins/claude/skills/phoenix-liveview/SKILL.md` — skill (~120 lines)\n\n## Coverage Gaps Being Filled\n\n- `connected?/1` guidance (prevents PubSub bugs during static render)\n- Two-phase rendering (mount called twice: static then connected)\n- `stream/3` for efficient large-list handling (Phoenix 1.7+)\n- `push_navigate/2` vs `push_patch/2` semantics\n- File upload patterns and security\n- Error boundary patterns\n- `assign_async/3` for non-blocking data loading\n\n## Skill Rules (~7)\n\n1. Two-phase mount — guard PubSub/async with `connected?(socket)`\n2. Streams for large lists — never assign full collections\n3. `@impl true` on all callbacks\n4. Thin LiveViews — domain logic in context/domain modules\n5. `push_navigate` vs `push_patch` — correct semantics\n6. `assign_async` for non-blocking data loading\n7. Component extraction for repeated HEEX patterns\n\n## Acceptance Criteria\n\n- [ ] Reference doc covers all gaps listed above\n- [ ] Skill under 150 lines with ~7 rules + examples\n- [ ] No overlap with elixir-essentials or ash-ecto-essentials\n- [ ] Covers Phoenix 1.7+ patterns (streams, verified routes)\n\n## Dependencies\n\n- WP-01 (distilled rules inform LiveView patterns)",
+  "preamble": ""
+}

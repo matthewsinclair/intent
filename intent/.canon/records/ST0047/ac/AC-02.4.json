@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.4",
+  "text": "A live `start ic` in Baize lands an interactive session that runs /in-session (gate released via the slash-exemption), picks up the cc opening assignment, and presents a plan.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "live 2026-06-25: bin/claude_with_intent start ic|vc booted sessions 201b7944/0ebe187b, ran /in-session+pickup, no typing"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "On a real Windows machine, Intent installed under WSL from a tagged release by following the docs reports its version, passes `intent doctor`, and creates and lists a thread in a project in the WSL filesystem.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 429,
+  "schema": "intent/issue@4.0",
+  "id": "0429",
   "slug": "index-references-inside-a-macro-invocation-are-m",
   "title": "Index references inside a macro invocation are missing from context and ref answers, which still say complete",
   "status": "closed",

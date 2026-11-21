@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 94,
+  "schema": "intent/issue@4.0",
+  "id": "0094",
   "slug": "the-harness-date-leads-date-u-by-a-day-for-one-h",
   "title": "the harness date leads date -u by a day for one hour every night, and a node that checks whether they agree finds nothing wrong for the other twenty-three",
   "status": "closed",

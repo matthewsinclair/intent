@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.5",
+  "text": "A hit's line is reported only when the indexed bytes match the disk; otherwise the hit carries no line and says stale.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

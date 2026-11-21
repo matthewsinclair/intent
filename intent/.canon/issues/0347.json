@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 347,
+  "schema": "intent/issue@4.0",
+  "id": "0347",
   "slug": "the-rulings-gate-and-dehydration-collide-a-ratif",
   "title": "The rulings gate and dehydration collide: a ratified ruling cites a thread file that a done thread's unlisting takes off the disk",
   "status": "closed",

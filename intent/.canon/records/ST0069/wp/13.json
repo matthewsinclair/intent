@@ -1,0 +1,10 @@
+{
+  "id": "13",
+  "title": "Project search: full-text, structural, and the agent search surface",
+  "scope": "XL",
+  "status": "cancelled",
+  "status_reason": "Split at the 2026-09-12 re-elaboration into packages that each close on their own criteria; its design is carried into this thread's design.md and its criteria are re-keyed to the packages that deliver them",
+  "objective": "Moved whole from ST0056 WP-13 with its 9 criteria at 3432644cc; the move minted the criteria and not the work package, so they named a WP this thread did not have. The design stays in ST0056/WP/13.",
+  "body": "",
+  "preamble": ""
+}

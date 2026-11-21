@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.9",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/run.rs",
+  "covers": [
+    "AC-17.9"
+  ],
+  "status": "green",
+  "note": "Both halves. Always-visible is asserted on the COMPOSED lines over every mode at every viewport the chrome survives, plus a narrow case proving the mode survives clipping because it is first on the row. ESC-is-total is mode.rs (walks toward the rest state from every mode that owns it, with only EMBED exempt and the exemption checking its own premise) and app.rs (holding ESC gets you out). The in-flight edit disposition is stated on the edge itself as discard, and the whole table is checked against the ratified design. 101 passed at 87123458.\n\nRE-DRIVEN AGAINST THE COLLAPSED MACHINE (ic, 2026-09-02). The row is re-attested, not merely carried: hv ratified the OMNI/MENU/EDIT design and NAV was folded into the composer, so both halves changed subject. ALWAYS-VISIBLE NOW ASSERTS THE LAMP, NOT THE MACHINE'S NAME -- Mode::lamp() shows FIELD and EMBED both as EDIT, and the two tests that swept Mode::ALL demanding name() on screen were asserting a word the design forbids printing. They were RIGHT to fail; the assertions were the defect, and the criterion now excludes the reading that produced them. The same defect had a second home in layout.rs, which spanned the mode chip with name() while the foot writes lamp() -- five characters of colour on the four-character word EDIT. ESC-IS-TOTAL NARROWED VISIBLY: total means every state the TUI owns the keyboard in, with EMBED declared as the one exemption rather than filtered out. ESC-ON-EMPTY IS ASSERTED AS A SELF-LOOP, affirmatively, so the no-op is a behaviour and not an absent branch. The whole table is still checked against the ratified design, and that check is what held the design and the code together through the collapse: it was RED by construction while EDGES ran ahead of section 3, and went green only when the design write landed. 196 passed, measured at 88cfc2c3 with this change uncommitted -- THE FIGURE DESCRIBES THE WORKING TREE THIS COMMIT LANDS, NOT A PRIOR COMMIT."
+}

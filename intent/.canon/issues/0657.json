@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 657,
+  "schema": "intent/issue@4.0",
+  "id": "0657",
   "slug": "install-refuses-on-any-head-past-the-built-sha-j",
   "title": "install refuses on any HEAD past the built sha; judge currency by DIRT_SCOPE",
   "status": "closed",

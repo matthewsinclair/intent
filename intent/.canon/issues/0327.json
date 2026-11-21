@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 327,
+  "schema": "intent/issue@4.0",
+  "id": "0327",
   "slug": "the-app-not-installed-remedy-names-bin-devbin-wh",
   "title": "The app-not-installed remedy names bin/devbin, which a Homebrew user does not have",
   "status": "closed",

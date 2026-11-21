@@ -1,0 +1,9 @@
+{
+  "id": "AT-12.3",
+  "kind": "non-test",
+  "prose": "tag contents carry history + release notes",
+  "covers": [
+    "AC-12.3"
+  ],
+  "status": "n-a"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs",
+  "covers": [
+    "AC-01.3"
+  ],
+  "status": "green",
+  "note": "Structural: asserts the lifeline path carries no interval to configure. GREEN 2026-09-10, positive-controlled on the EXTRACTION rather than on the source -- a slice that missed its target would contain none of the markers and pass every assertion below it. Its first form was keyed on the VARIABLE NAME and failed on main.rs's own prose explaining why that variable was removed: mention versus use, committed inside the guard against it. Now keyed on env::var within the impl block, so recording the reason for a decision is no longer a violation of it."
+}

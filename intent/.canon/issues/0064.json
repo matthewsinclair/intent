@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 64,
+  "schema": "intent/issue@4.0",
+  "id": "0064",
   "slug": "flag-reachability-matches-a-flag-id-across-the-w",
   "title": "flag_reachability matches a flag id across the whole renderer, not per entry -- so wiring one command silently removes another from the inherited set",
   "status": "closed",

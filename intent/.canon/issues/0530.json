@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 530,
+  "schema": "intent/issue@4.0",
+  "id": "0530",
   "slug": "wb-claim-and-wb-unclaim-print-a-bare-id-in-help",
   "title": "wb claim and wb unclaim print a bare <ID> in --help, and the claim forms are said from a second home on MCP and not at all in the whiteboard skill",
   "status": "closed",

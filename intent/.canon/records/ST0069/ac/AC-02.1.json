@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "Migration ingests every bucket-only file under a v2 thread directory (`intent/st/COMPLETED|CANCELLED|NOT-STARTED/<ID>/**`) as an attachment of its thread, the naming gate permitting, with the authored lines of the v2 `acceptance.md` preamble into `preamble`; verified PER FILE by a content probe, a distinctive phrase from each ingested file found in the store afterwards and a phrase never ingested returning nothing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

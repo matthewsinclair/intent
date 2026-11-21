@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 634,
+  "schema": "intent/issue@4.0",
+  "id": "0634",
   "slug": "intent-app-has-no-homebrew-cask-so-every-sleeve",
   "title": "Intent.app has no Homebrew cask, so every sleeve installs and upgrades the app by hand while brew upgrades the CLI",
   "status": "closed",

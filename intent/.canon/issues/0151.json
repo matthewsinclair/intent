@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 151,
+  "schema": "intent/issue@4.0",
+  "id": "0151",
   "slug": "no-verb-changes-an-issue-s-title-so-a-measurably",
   "title": "no verb changes an issue's title, so a measurably false title is permanent -- and the issue that would record this cannot record it",
   "status": "closed",

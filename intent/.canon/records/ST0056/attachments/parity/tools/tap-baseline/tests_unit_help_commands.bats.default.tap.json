@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_help_commands.bats.default.tap",
+  "text": "1..12\nok 1 help displays general help when no command is specified\nok 2 help displays command-specific help when a command is specified\nok 3 help shows short descriptions for all commands\nok 4 help handles unknown commands correctly\nok 5 help works with --help flag\nok 6 help shows proper command categories\nok 7 help shows claude and plugin in core section\nok 8 help plugin shows plugin help file\nok 9 help claude shows claude help file\nok 10 help agents shows corrected agents help\nok 11 help Other: shows lang as a one-liner, not its whole help doc\nok 12 help Other: strips the comment prefix from a double-dash header (critic)\n",
+  "bytes": 631,
+  "sha256": "3991c7d560dc9019640af1aaa1920f8bc3ebd38589fbedcb9e312f79202b3c4a"
+}

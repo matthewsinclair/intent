@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 166,
+  "schema": "intent/issue@4.0",
+  "id": "0166",
   "slug": "ac-17-10-widened-a-design-constraint-s-subject-w",
   "title": "AC-17.10 widened a design constraint's subject without widening its reason, so the register and tui-design.md disagree about whether a second realiser is a Highlander defect",
   "status": "closed",

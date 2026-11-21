@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.2",
+  "text": "`intent estate lane open <lane> --type <type> --capacity <n>` writes `lanes/<lane>.json` and changes the capacity on repeat, `lane close <lane>` refuses while anything is granted in it, and a lane type is whatever the controller names, nothing being built in.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

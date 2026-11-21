@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 741,
+  "schema": "intent/issue@4.0",
+  "id": "0741",
   "slug": "after-a-pull-of-records-another-copy-minted-sync",
   "title": "After a pull of records another copy minted, sync --apply leaves a stale views step for a person, which does nothing when run",
   "status": "closed",

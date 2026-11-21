@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 324,
+  "schema": "intent/issue@4.0",
+  "id": "0324",
   "slug": "st-done-ignores-work-package-status-so-a-thread",
   "title": "st done ignores work-package status, so a thread closes with a not-started WP",
   "status": "closed",

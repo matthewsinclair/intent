@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 492,
+  "schema": "intent/issue@4.0",
+  "id": "0492",
   "slug": "a-workspace-test-run-publishes-a-worktree-binary",
   "title": "A workspace test run publishes a worktree binary's own root as the machine's install pointer, and every estate's gate then runs that tree's guards silently",
   "status": "closed",

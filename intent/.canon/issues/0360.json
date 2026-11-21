@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 360,
+  "schema": "intent/issue@4.0",
+  "id": "0360",
   "slug": "a-text-hit-on-a-whiteboard-file-renders-twice-on",
   "title": "a text hit on a whiteboard file renders twice, once by path and once by node moniker",
   "status": "closed",

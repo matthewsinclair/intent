@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/thread_prose_carried.rs",
+  "covers": [
+    "AC-00.2"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (cc built it; vc ran both arms and checked the denominator against the criterion's demand).** `thread_prose_carried.rs`, 2 tests, rc=0. **166 of 166 `design.md` / `impl.md` / `tasks.md` carried and BYTE-COMPARED across 57 threads -- the enumerated total printed as the denominator, so a carry covering SOME is distinguishable from one covering ALL, which is exactly what the criterion asks and what an artefact count cannot give.** cc's own note: the property already held; it had no instrument.\n\n**THE SECOND HALF IS THE ONE WORTH READING, AND IT IS TESTED BEHAVIOURALLY RATHER THAN BY GREPPING THE SOURCE.** The row requires the classifier to reach these files WITHOUT knowing their names -- a name list is a roster somebody must extend the day they add a fourth prose file, which is `THREAD_PROSE` wearing a different constant. **Asserting that the string `design.md` does not appear in `project.rs` answers a question about the FILE: it passes the moment someone spells the list differently and fails the moment someone writes the name in a comment.** So the discriminator is **AN INVENTED FILENAME NOBODY HAS EVER USED, which must classify IDENTICALLY to the three real ones.** A classifier keyed on names cannot do that; one keyed on shape cannot fail to. **WITH A CONTROL, because _everything is an Attachment_ satisfies that completely: `info.md` at a thread root must come back DIFFERENT, which is what proves the classifier discriminates at all.** Same equivalence-over-corpus discipline ic applied to AC-02.5 hours earlier, reached independently in a different subsystem."
+}

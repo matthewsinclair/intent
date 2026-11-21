@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 544,
+  "schema": "intent/issue@4.0",
+  "id": "0544",
   "slug": "the-shell-critic-asks-nothing-of-a-sourced-bash",
   "title": "The shell critic asks nothing of a sourced bash library with no shebang, so the release machinery's seven .lib files are never linted",
   "status": "closed",

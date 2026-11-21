@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 70,
+  "schema": "intent/issue@4.0",
+  "id": "0070",
   "slug": "intent-upgrade-destroys-every-issue-in-an-alread",
   "title": "intent upgrade destroys every issue in an already-migrated v3 project",
   "status": "closed",

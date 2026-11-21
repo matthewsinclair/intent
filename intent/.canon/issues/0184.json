@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 184,
+  "schema": "intent/issue@4.0",
+  "id": "0184",
   "slug": "canon-commit-check-s-remedy-is-inert-for-an-atta",
   "title": "canon_commit_check's remedy is inert for an attachment -- sync is not the writer, st attach is",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "The author pack retains only its discipline-specific rules -- one style rule (front-matter/objectives) plus the four craft rules (5 total) -- each still schema-valid and enumerated under `--lang author`; no moved rule remains under `rules/author/`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

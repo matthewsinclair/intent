@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "`in-essentials` states once, and no other loaded file restates: commit what a verb printed under `wrote:`, `removed:` and `re-rendered:`; `intent outstanding` for the flat view; `intent estate status` before a heavy run and `intent estate wip` for a session with no board; the thread and package lifecycle verbs beyond new, start and done; what `intent doctor` reports and the gate's exit codes; and `no_skill_names_an_unshipped_verb` passes.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

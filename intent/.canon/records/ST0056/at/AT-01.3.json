@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.3",
+  "kind": "non-test",
+  "prose": "parity inventory + register reviewed against `bin/`",
+  "covers": [
+    "AC-01.3"
+  ],
+  "status": "n-a"
+}

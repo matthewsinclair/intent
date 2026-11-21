@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 423,
+  "schema": "intent/issue@4.0",
+  "id": "0423",
   "slug": "intent-app-start-and-app-restart-report-a-launch",
   "title": "intent app start and app restart report a launch that succeeded as a failure -- the wait for the app to register was 2 s",
   "status": "closed",

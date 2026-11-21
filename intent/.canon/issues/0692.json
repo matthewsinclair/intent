@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 692,
+  "schema": "intent/issue@4.0",
+  "id": "0692",
   "slug": "estate-slots-wait-re-parses-the-whole-slots-hist",
   "title": "estate slots wait re-parses the whole slots history every 500 ms tick, so each waiter costs 17-34% CPU",
   "status": "closed",

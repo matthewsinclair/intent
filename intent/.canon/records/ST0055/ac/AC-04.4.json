@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.4",
+  "text": "`intent doctor` is green after a scaffold.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent doctor: all checks passed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "The shipped close-gate matches the hv ruling: a WP/ST with no verifiable contract (zero in-scope ACs, or no `acceptance.md`) fails to close, and `acceptance: exempt` is the sole, visible escape.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "hv signed off 2026-06-29 (whiteboard session); fix + 2.13.x release notes reviewed"
+  }
+}

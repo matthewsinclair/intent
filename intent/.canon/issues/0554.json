@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 554,
+  "schema": "intent/issue@4.0",
+  "id": "0554",
   "slug": "a-pull-brings-a-teammate-s-board-files-but-not-t",
   "title": "a pull brings a teammate's board files but not their rows into the store, and the counted skew it causes names a remedy that refuses",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 410,
+  "schema": "intent/issue@4.0",
+  "id": "0410",
   "slug": "wb-register-with-arguments-finds-a-node-s-hand-a",
   "title": "wb register with arguments finds a node's hand-authored board and never compares its header, so a foreign identity was written over the node",
   "status": "closed",

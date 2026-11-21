@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 226,
+  "schema": "intent/issue@4.0",
+  "id": "0226",
   "slug": "st-new-fails-on-a-watched-project-once-the-corpu",
   "title": "st new fails on a WATCHED project once the corpus is large enough: the daemon's render races the verb's own render and the write hits a path that is transiently absent",
   "status": "closed",

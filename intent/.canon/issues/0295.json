@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 295,
+  "schema": "intent/issue@4.0",
+  "id": "0295",
   "slug": "flag-reachability-s-self-validation-is-red-on-ma",
   "title": "flag_reachability's self-validation is RED on main: a correct verbosity consolidation moved a read into a shape the scanner cannot see, and the file says every verdict is unsafe until it passes",
   "status": "closed",

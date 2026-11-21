@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 694,
+  "schema": "intent/issue@4.0",
+  "id": "0694",
   "slug": "docs-banking-md-says-a-worktree-commit-is-refuse",
   "title": "docs/banking.md says a worktree commit is refused as GATE ABSENT, which 0644 fixed in 3.2.7",
   "status": "closed",

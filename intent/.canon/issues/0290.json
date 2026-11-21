@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 290,
+  "schema": "intent/issue@4.0",
+  "id": "0290",
   "slug": "facade-rs-is-9-403-lines-across-156-functions-me",
   "title": "facade.rs is 9,403 lines across 156 functions (median 28) -- same flat shape as render.rs, split post-tag",
   "status": "closed",

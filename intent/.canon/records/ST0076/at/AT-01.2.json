@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/one_definition_is_one_symbol_row.rs",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "green",
+  "note": "Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a Rust and a Swift method defined once are one definition row, red on HEAD before WP-01. Gate: whole intentsvcs and intent-cli suites."
+}

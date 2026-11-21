@@ -1,0 +1,9 @@
+{
+  "id": "AT-05.3",
+  "kind": "non-test",
+  "prose": "the register reviewed complete, no unclassified rows",
+  "covers": [
+    "AC-05.3"
+  ],
+  "status": "n-a"
+}

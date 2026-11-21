@@ -1,0 +1,9 @@
+{
+  "id": "04",
+  "title": "No chain broadcasts, no bare pickup commits",
+  "scope": "S",
+  "status": "done",
+  "objective": "Each seat commits its own paths with git commit --only and broadcasts no start or end around it, and a pickup or heartbeat alone is not committed (design.md, the plan's A4).",
+  "body": "",
+  "preamble": ""
+}

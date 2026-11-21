@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.8",
+  "text": "A grant names every lane the run holds (`--lane heavy,cargo,bats`) and is refused, naming the lane and its count, when it would put any of them over its capacity, counting granted and running in each; a lane of capacity one that every heavy grant names, and a `cargo` lane that every cargo run names, kovacs included, are each one run at a time; `--lane none` grants a negligible run into no lane, counting against no capacity.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

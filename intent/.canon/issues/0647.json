@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 647,
+  "schema": "intent/issue@4.0",
+  "id": "0647",
   "slug": "the-version-line-drops-at-root-hv-ruled-it-idiot",
   "title": "the version line drops ` at <root>`: hv ruled it idiotic beside `which intent`; the line is `intent <version> (<tree>, <sha12>[+dirty]) <provenance>`",
   "status": "closed",

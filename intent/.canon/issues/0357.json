@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 357,
+  "schema": "intent/issue@4.0",
+  "id": "0357",
   "slug": "search-s-returned-count-and-its-note-disagree-wi",
   "title": "search's returned count and its note disagree with the rows the answer carries",
   "status": "closed",

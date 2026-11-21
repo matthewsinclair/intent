@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/export_round_trip.rs",
+  "covers": [
+    "AC-06.6"
+  ],
+  "status": "green",
+  "note": "GREEN, DRIVEN BY vc 2026-08-31: `cargo test -p intentsvcs --test export_round_trip`, 10/10. **THE ROW AND ITS CITATION WERE CONSISTENT WITH EACH OTHER AND BOTH WRONG**, which is why nothing caught it: the citation named `intent-cli/tests/export_roundtrip.rs` -- wrong crate AND wrong spelling -- so a reader chasing it found nothing and concluded the test was unwritten, which is what the row already said. Third instance of this class closed today. **AND `to-write` WAS FALSE WHILE THE ROW WAS ALSO UNSATISFIABLE**: the file existed with eight arms green, and `Realises` and `md` appeared ZERO times in it, so neither the status nor the coverage was right. **THE ARM THAT HID IT WAS THE ANTI-VACUITY ARM** (cc, `49d8b24e`): `the_roster_carries_both_kinds_so_neither_arm_is_asserted_over_an_empty_set` counted two kinds after hv ruled a third disposition in on 2026-08-20, so the arm whose entire job is refusing to assert over an empty set was itself asserting over a stale population -- and its NAME stated the membership rule that had gone stale. Now ten arms over an exhaustive `match`, so a fourth `Projection` variant fails to COMPILE rather than falling out of every bucket; driven to red four ways, control green at 10/10."
+}

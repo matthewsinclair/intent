@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "Session launcher: start|st with provision-if-absent",
+  "scope": "S",
+  "status": "done",
+  "objective": "The headline command: `start <ws>` launches a Claude Code session bound to a workstream with the verified flag combo and a composed context, lands it interactive, and waits. Includes the provision-if-absent flow and the `CWI_DRY_RUN` test seam.",
+  "body": "## Deliverables\n\n- `start|st <ws>`: assembles `claude --effort max --permission-mode auto --append-system-prompt \"$(compose_ctx <ws>)\" \"/in-session\"` (the verified 2.1.191 form).\n- `compose_ctx <ws>`: identity line + `.claude/restart.md` + the standing daily-plan-then-wait instruction (board excluded -- pickup reads it live).\n- `CWI_DRY_RUN` / `--dry-run`: print the assembled argv instead of exec (the unit-test hook + safe preview).\n- Provision-if-absent: absent `<ws>` -> report + prompt; `n` exits clean, `y` -> `ws new` then launch.\n- Resolve the proceed-to-plan spike (does the `/in-session` seed flow into the plan, or need a nudge); confirm the `auto` posture against the TUI status line + lock the value.\n- AT-02.1..02.3 (dry-run-backed) + AC-02.4/02.5 live-launch evidence.\n\n## Dependencies\n\n- WP-01 (`ws new` -- the provision-if-absent path calls it; `start` targets a provisioned workstream).\n- External: Claude Code >= 2.1.191; `require-in-session.sh` slash-exemption (the seed relies on it).",
+  "preamble": ""
+}

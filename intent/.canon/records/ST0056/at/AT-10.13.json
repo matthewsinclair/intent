@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.13",
+  "kind": "test",
+  "file": "lib/templates/hooks/append-only-guard.sh",
+  "covers": [
+    "AC-10.13"
+  ],
+  "status": "green",
+  "note": "**ARITHMETIC ON A DIFF, IN THE GATE THAT ALREADY RUNS THE CLOCK GUARD. Refuse any commit that REMOVES lines from an append-only path.** It needs no knowledge of what the operation intended and **cannot false-positive, because an append-only log only ever grows** -- which is why this is a guard rather than care. **TWO PATHS, TWO MEMBERS, BOTH MEASURED: `intent/whiteboard/<node>/.history/**` (492 lines, 2026-08-17) and `intent/events.jsonl` (19 events, 2026-08-19).** **MUTATION REQUIRED IN BOTH DIRECTIONS: a commit that appends must pass; a commit that removes even one line must be refused** -- and the guard must be driven against a real removal rather than reasoned about, because the first instance survived a full session with every human-facing check reading correct. **LEAN BY INSTRUCTION (hv: _bike-shedding_): no options, no config, no design.** **AND IT LANDS IN A SHIPPED CONSUMER SURFACE** -- every project inherits it on the next `intent upgrade`, which is the reason for lean rather than an argument against building it. **STATUS to-write -> GREEN 2026-08-19 (cc drove it; vc moved the row).** Nine arms in an ISOLATED scratch repo, both directions and both members: PASS on an unrelated file, on an APPEND to both subjects, on a repo that never had either subject, on subjects present and untouched, and on a NEW `.history` file; **REFUSE on removing one line from `events.jsonl`, on removing lines from `.history/`, on truncating `events.jsonl` to zero, and on deleting the file entirely.** Both real incidents reproduced. Rostered by dc at `2870b99d`, **and all four guards were traced dispatching rather than assumed to.** **The stale-AT guard flagged this row itself while cc was committing -- _the file EXISTS while the row says to-write_ -- and it was right that presence is not greenness, which is why the nine arms are recorded here rather than the file's existence.**"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "A second apply writes nothing and says so, and `intent wb init --apply` with no profile named re-applies the board's declaration.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

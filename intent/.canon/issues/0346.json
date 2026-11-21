@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 346,
+  "schema": "intent/issue@4.0",
+  "id": "0346",
   "slug": "set-ac-kind-non-test-leaves-state-computed-which",
   "title": "set <ac> kind non-test leaves state computed, which is illegal for a non-test criterion",
   "status": "closed",

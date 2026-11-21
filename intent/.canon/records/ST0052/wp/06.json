@@ -1,0 +1,9 @@
+{
+  "id": "06",
+  "title": "Dogfood, docs, and close",
+  "scope": "M",
+  "status": "done",
+  "objective": "Prove the assembled pack on a real authoring artifact, document it, and close ST0052 through its acceptance gate.",
+  "body": "## Deliverables\n\n- Dogfood: run `critic-author` (+ `/in-author-essentials`) on a real authoring artifact (the agentic course / a blog draft); capture and act on findings.\n- Docs: README + `usage-rules.md` + CHANGELOG entry + `docs/releases/<version>/` release note.\n- Acceptance: populate + satisfy the remaining `acceptance.md` ACs (per-WP + the ST-level sign-off, hv as verifier); close through the gate; relocate ST0052 to `intent/st/COMPLETED/`.\n\n## Dependencies\n\n- WP01-WP05 (dogfood needs the full pack assembled).",
+  "preamble": ""
+}

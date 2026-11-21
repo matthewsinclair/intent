@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "Without `--apply` it writes nothing and prints, for each seat, register, correct with the old and the new value, unchanged, or outside the profile, and then every view it would write or remove.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

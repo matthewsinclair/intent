@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wb_hv.rs",
+  "covers": [
+    "AC-05.7"
+  ],
+  "status": "green",
+  "note": "Holds behaviour already true before WP-05, which the package must not lose (hv decision 35's fourth ruling), so it has no red: in desk slot 01M74STTN131RBVM4NY0M0QJ60 (08:02:41Z to 08:09:05Z), red tree 982b0befe20c on 1c3001fb2, which is 1c3001fb2 plus intentsvcs/tests/wb_hv.rs, intent-cli/tests/hv_seat_door.rs, the test-side MCP driver and the two suite registrations, and nothing else, at_05_7 passed, as it must. Green in the same slot on 1c3001fb2 plus WP-05, before the carry onto 8f3da433f. Set red at the landing only because the row machine declares green from red alone; it never failed. Green at 2bb9392ca, whose code tree is 753a8290e2f8: vc's full judge of 36e400d93151 on 8f3da433f in slot 01M74TJVHPMXQQMBJZNYAT76GK (09:49:02Z to 10:10:34Z, Rust 3621 passed 0 failed, bats 816 ok), and the table delta to 753a8290e2f8 checked warm in slot 01M751DMQZYKRWZR52DBMBDZ5C (intent-cli 1299 passed 0 failed)."
+}

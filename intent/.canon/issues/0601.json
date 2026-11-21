@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 601,
+  "schema": "intent/issue@4.0",
+  "id": "0601",
   "slug": "intent-claude-upgrade-apply-wires-the-userprompt",
   "title": "intent claude upgrade --apply wires the UserPromptSubmit gate without installing the skill that releases it: on a fresh machine every prompt is refused until intent claude skills install in-session, which nothing on the install path names",
   "status": "closed",

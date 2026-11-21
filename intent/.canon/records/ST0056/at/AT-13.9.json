@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.9",
+  "kind": "non-test",
+  "prose": "design.md carries the T3/T4 staging with S1-S5 shown sufficient",
+  "covers": [
+    "AC-13.9"
+  ],
+  "status": "n-a"
+}

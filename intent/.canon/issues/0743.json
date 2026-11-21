@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 743,
+  "schema": "intent/issue@4.0",
+  "id": "0743",
   "slug": "st-list-and-the-generated-thread-index-order-git",
   "title": "st list and the generated thread index order git-style threads by their hex, not by when they were made: views::index_order and issue_index_order compare ids as text, which WP-08's one record order missed",
   "status": "closed",

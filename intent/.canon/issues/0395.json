@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 395,
+  "schema": "intent/issue@4.0",
+  "id": "0395",
   "slug": "macos-drops-the-arguments-after-16-of-its-21-sub",
   "title": "macos drops the arguments after 16 of its 21 subcommands, so macos prepare --help runs the whole sign, notarise and stage chain instead of printing help",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.9",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/corpus_machine_independence.rs",
+  "covers": [
+    "AC-03.7"
+  ],
+  "status": "green"
+}

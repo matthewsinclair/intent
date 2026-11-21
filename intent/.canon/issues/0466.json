@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 466,
+  "schema": "intent/issue@4.0",
+  "id": "0466",
   "slug": "release-the-early-canon-spill-check-discards-cla",
   "title": "release: the early canon-spill check discards claude upgrade's failure and reads it as no spill",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "The formula is rendered, never typed, by `bin/int brew formula` with `render` and `publish` from the release's version and per-asset checksums; it installs the signed release assets, writes `<root>/.intent-install` in T3's form with `managed_by: brew`, links both binaries into Homebrew's bin, runs the version line in `test do`, and its caveats name `intent bootstrap` and `intent use`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

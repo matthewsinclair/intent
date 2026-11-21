@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 249,
+  "schema": "intent/issue@4.0",
+  "id": "0249",
   "slug": "implemented-check-sh-derives-and-double-guards-t",
   "title": "implemented_check.sh derives and double-guards the needle it owns while hardcoding five clap strings it does not, and one of those five is already dead",
   "status": "closed",

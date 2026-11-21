@@ -1,0 +1,9 @@
+{
+  "id": "AT-21.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
+  "covers": [
+    "AC-21.1"
+  ],
+  "status": "green"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/address_views_have_no_url.rs",
+  "covers": [
+    "AC-07.2"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 4 tests, plus a fifth added because the mutation pass refused to close. **THIS ROW IS THE DAY'S STRONGEST ARGUMENT FOR MUTATION TESTING: SEVEN ARMS, SIX RED, AND ARM 6 SURVIVED.** A parser matching `[\"threads\", id, ..]` and IGNORING THE REMAINDER passed ALL TWENTY tests while resolving `intent:///threads/ST0056/anything/at/all` to the bare thread. **That is not a missing edge case -- IT MAKES THIS CRITERION'S REFUSAL A NAME MATCH RATHER THAN A RULE.** `/threads/ST0056/info.md` is refused only because `info.md` sits on a `VIEW_NAMES` list; under the mutant `/threads/ST0056/whatever.md` resolves to the thread and silently drops the segment. **THE SCHEME BECOMES A PATH ALIAS ONE UNLISTED FILENAME AT A TIME, which is verbatim what this row exists to prevent -- and all four original tests passed while it was true.** **THE BEHAVIOUR WAS ALREADY CORRECT; THE TEST WAS MISSING, so nothing would have stopped someone simplifying the catch-all arm later and nothing would have caught them.** Closed by `trailing_segments_are_refused_rather_than_truncated`, which carries the discriminating half that stops it degenerating into a segment count: **an ATTACHMENT path is legitimately variable-length and must still resolve.** Arm 6 now goes red."
+}

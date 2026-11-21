@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "A file beside the threads that is not under a thread directory, such as a tool tree like `ST0056/parity/tools/`, is neither an attachment candidate nor pruned; the Intent estate own unclaimed tooling is the discriminating case.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.3",
+  "text": "**EVERY WRITE GOES THROUGH `intentsvcs`, AND NEITHER REALISER TOUCHES SQLite.** The TUI and the web face are CLIENTS exactly as the CLI and `intentd` are (`design.md:18`, hv 2026-08-15: the typed API is the only door in, which is what makes conformance structural). **A realiser holding a `rusqlite` dependency fails this criterion by construction** -- `AC-02.5` already requires `rusqlite` in exactly one Cargo.toml and this row is asserted against that same check rather than beside it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

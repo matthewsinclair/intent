@@ -1,0 +1,8 @@
+{
+  "id": "AC-22.2",
+  "text": "`--no-reconcile` answers from the index as it stands and names what moved.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

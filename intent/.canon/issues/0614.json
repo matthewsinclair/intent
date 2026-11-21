@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 614,
+  "schema": "intent/issue@4.0",
+  "id": "0614",
   "slug": "in-a-linked-worktree-the-post-merge-post-rewrite",
   "title": "In a linked worktree the post-merge, post-rewrite and branch-switch carriers sync against the worktree's own older store and can re-render views backwards",
   "status": "closed",

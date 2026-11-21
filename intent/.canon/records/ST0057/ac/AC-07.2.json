@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.2",
+  "text": "**Views get NO address.** A reference to a view resolves to its entity or is rejected; no path segment names a view. This is what stops the scheme becoming a path alias and re-creating, inside the scheme, the conditionality it exists to remove.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

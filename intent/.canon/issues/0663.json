@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 663,
+  "schema": "intent/issue@4.0",
+  "id": "0663",
   "slug": "estate-page-the-host-panel-s-hv-line-does-not-wr",
   "title": "estate page: the HOST panel's hv: line does not wrap, so it widens the panel and squashes the LAST HOUR graph",
   "status": "closed",

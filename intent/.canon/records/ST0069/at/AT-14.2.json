@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wb_views_are_generated.rs",
+  "covers": [
+    "AC-14.2"
+  ],
+  "status": "green",
+  "note": "Satisfied at the cutover. Regeneration reproduces the committed bytes and a hand edit of a node's board is view skew once its node has rows (a_hand_edited_board_is_view_skew_once_its_node_has_rows); a hand-authored whiteboard with no rows has no view and no skew; a board write lands the node's view on disk at the write (8157bd1fc); a node registered from its header refuses a board write until it is migrated (18beb05a9). The unit half is the two renderers in views.rs (a229c1cf5); render_all names their live paths (e3ce17dbb)."
+}

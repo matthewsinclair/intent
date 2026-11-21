@@ -1,0 +1,10 @@
+{
+  "id": "AT-13.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/background_index.rs",
+  "covers": [
+    "AC-13.7"
+  ],
+  "status": "to-write",
+  "note": "daemon and daemonless results compared, the dual-path pattern"
+}

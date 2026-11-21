@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 598,
+  "schema": "intent/issue@4.0",
+  "id": "0598",
   "slug": "claude-md-s-copy-of-the-four-rule-index-lost-its",
   "title": "CLAUDE.md's copy of the four-rule index lost its reason when CLAUDE.md began importing AGENTS.md: retire it or restate it",
   "status": "closed",

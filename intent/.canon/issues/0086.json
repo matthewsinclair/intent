@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 86,
+  "schema": "intent/issue@4.0",
+  "id": "0086",
   "slug": "intent-help-is-retired-while-help-answers-one-ca",
   "title": "intent help is retired while --help answers: one capability present by one spelling and absent by the other, and a test REQUIRES the false remedy that says it has no replacement",
   "status": "closed",

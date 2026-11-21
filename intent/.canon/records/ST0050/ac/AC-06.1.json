@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.1",
+  "text": "`intent st done` stamps the frontmatter `completed:` as an ISO 8601 UTC timestamp (`YYYY-MM-DDThh:mm:ssZ`), not a bare `%Y%m%d` date. (The human `- **Completed**:` body bullet stays a `%Y-%m-%d` date; `steel_threads.md` renders the date part -- an ISO `completed:` on the fallback render path is truncated to its date.)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

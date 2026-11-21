@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.2",
+  "text": "On a scratch copy of Laksa, the level-3 callers of `Map.get/2` are listed without any call to `Access.get`, `Process.get` or `Keyword.get`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0076/ac-06.2-drives.md"
+  }
+}

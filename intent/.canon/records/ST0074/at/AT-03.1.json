@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/projects.rs",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "projects::tests::a_rewrite_keeps_what_the_operator_wrote, green at 2123f7c08"
+}

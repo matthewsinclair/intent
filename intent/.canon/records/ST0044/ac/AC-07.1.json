@@ -1,0 +1,9 @@
+{
+  "id": "AC-07.1",
+  "text": "ST0043 and ST0044 each carry an `acceptance.md`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

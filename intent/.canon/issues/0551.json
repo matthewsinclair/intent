@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 551,
+  "schema": "intent/issue@4.0",
+  "id": "0551",
   "slug": "a-project-v3-0-x-initialised-keeps-its-store-tra",
   "title": "a project v3.0.x initialised keeps its store tracked in git after upgrade, and nothing says so",
   "status": "closed",

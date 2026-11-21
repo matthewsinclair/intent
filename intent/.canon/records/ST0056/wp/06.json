@@ -1,0 +1,9 @@
+{
+  "id": "06",
+  "title": "CLI parity long tail",
+  "scope": "XL",
+  "status": "done",
+  "objective": "Port the remaining command surface behind the conformance ladder, command by command, until the v2 suite cannot tell the difference except where the ratified register says so.",
+  "body": "## Deliverables\n\n- issues, todo, doctor, config, lang, init/bootstrap, organize, learn, llm, modules, ext, plugin, treeindex/fileindex, st_zero, info, help\n- Each command lands facade + CLI + conformance results together; deviations recorded in the register at land time, never discovered later\n- doctor rebuilt as model/DB integrity queries + file checks (including the WP-03 skew check and unparsed-state reporting)\n- The retire/deviate register complete across the surface\n\n## Dependencies\n\n- WP-05. Interleaves freely with WP-07 after WP-04.",
+  "preamble": ""
+}

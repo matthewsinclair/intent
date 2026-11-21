@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/view_skew_check.rs",
+  "covers": [
+    "AC-10.1"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-20 at `b082b488`, and mutation-proven in BOTH directions rather than observed once.** `absence_is_silence_only_where_the_manifest_says_undeclared` drives one fixture with the same two files missing and only the manifest differing: undeclared -> silent, declared -> both files named. **Either arm alone passes on a bug**, which is why they are one test. Mutants, both driven: reverting to the pre-fix `Err(_) => push` fails the undeclared arm (1 test red); replacing it with a blanket `Err(_) => {}` fails THREE tests including the pre-existing `a_missing_view_is_reported_as_skew`. **Nothing passes both by accident.** Measured on the live estate: `doctor` 235 findings at rc=1 -> 1, the survivor being the real `ST0011` row; removing a view of a DECLARED thread returns it to 2; restoring returns it to 1."
+}

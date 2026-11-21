@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 459,
+  "schema": "intent/issue@4.0",
+  "id": "0459",
   "slug": "intent-upgrade-leaves-the-empty-intent-events-js",
   "title": "intent upgrade leaves the empty intent/events.jsonl an earlier upgrade wrote, untracked once the rule that hid it is retired",
   "status": "closed",

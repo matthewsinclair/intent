@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.1",
+  "text": "A fresh `intent init` works offline from the binary alone (embedded canon); the 0022 broken-install class is unconstructible",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

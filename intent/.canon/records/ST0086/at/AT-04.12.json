@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.12",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/slots.rs",
+  "covers": [
+    "AC-04.12"
+  ],
+  "status": "green",
+  "note": "arms: estate::slots::tests::a_request_folds_through_its_files_and_capacity_holds_in_every_lane_named, which asserts the NamedMismatch text; green in judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY) over the landed tree, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550)"
+}

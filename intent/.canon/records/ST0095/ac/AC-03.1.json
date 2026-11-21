@@ -1,0 +1,10 @@
+{
+  "id": "AC-03.1",
+  "text": "A commit made with a build whose store schema is newer than the checkout's store leaves that store at its own schema: the commit gate judges a copy.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "Restated as AC-03.4, non-test, with the same text: its proof is a driven run of the guard against a schema-33 store and with no store, which no committed test carries, and a criterion's kind cannot be changed in place. This replaces the withdrawal just before it, whose reason ended in a garbled placeholder.",
+    "by": "vc"
+  }
+}

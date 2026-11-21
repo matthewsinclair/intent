@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 617,
+  "schema": "intent/issue@4.0",
+  "id": "0617",
   "slug": "the-advisory-hook-keeps-its-own-extension-to-lan",
   "title": "The advisory hook keeps its own extension-to-language map beside the binary's lang_of",
   "status": "closed",

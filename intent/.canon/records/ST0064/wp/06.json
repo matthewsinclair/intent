@@ -1,0 +1,10 @@
+{
+  "id": "06",
+  "title": "The int macos build, run, test, install and notarise pipeline (AC-01.7)",
+  "scope": "S",
+  "status": "cancelled",
+  "status_reason": "Superseded: the nine criteria bind to WP-01 by their AC-01.N id prefix, so WP-01 owns the whole acceptance boundary and these own no criteria the gate can see; per-row dependencies live on the criteria (vc ruled 2026-08-31, hv's port sizing). Created in error by ic without checking the criterion binding.",
+  "objective": "",
+  "body": "",
+  "preamble": ""
+}

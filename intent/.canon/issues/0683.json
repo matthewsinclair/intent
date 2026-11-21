@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 683,
+  "schema": "intent/issue@4.0",
+  "id": "0683",
   "slug": "bin-devbin-prepush-judges-a-delete-only-push-by",
   "title": "bin/devbin prepush judges a delete-only push by the pair's currency, though it sends no commit",
   "status": "closed",

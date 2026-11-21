@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 720,
+  "schema": "intent/issue@4.0",
+  "id": "0720",
   "slug": "bin-devbin-cut-gate-reads-a-guard-s-exit-status",
   "title": "bin/.devbin/cut/gate reads a guard's exit status through its own copy of precommit's tool_verdict",
   "status": "closed",

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_claude_md_template.bats.default.tap",
+  "text": "1..13\nok 1 template exists\nok 2 template is within the 100-line budget\nok 3 template references AGENTS.md as the primary contract\nok 4 template directs Claude to run /in-session\nok 5 template references persistent memory directory\nok 6 template references .claude/settings.json hooks\nok 7 template includes a file map with canon landmarks\nok 8 template cross-references rule IDs without duplicating rule text\nok 9 template includes critic dispatch section\nok 10 template includes user-preservation markers\nok 11 template uses the four canonical placeholders\nok 12 template routes rule access through the CLI, not a local rules directory\nok 13 intent init on a scratch project substitutes all placeholders\n",
+  "bytes": 705,
+  "sha256": "74c0536ac2a85c38cb4a975d805dca5248480c8c4c1b231bfd936ee2c1f09dd1"
+}

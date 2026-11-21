@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 579,
+  "schema": "intent/issue@4.0",
+  "id": "0579",
   "slug": "two-thread-templates-in-the-embedded-prj-tree-ar",
   "title": "two thread templates in the embedded prj tree are rendered by nothing and read only by a pin test",
   "status": "closed",

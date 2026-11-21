@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_canon_set_is_derived.rs",
+  "covers": [
+    "AC-00.7"
+  ],
+  "status": "green",
+  "note": "INSTRUMENT NOT BUILT. What it must do: derive the canon set -- bootstrap documents and skills -- from the tree and the canon, and establish that no consumer of that set carries a hand-written list of its members. THE ROW IS ABOUT THE SET, NOT ABOUT ANY REVIEW, so the check is live at any moment and does not depend on a review having happened. THE POSITIVE CONTROL IS THE WHOLE INSTRUMENT: add a document or a skill to the tree and every derived enumeration must grow without an edit. A check that merely asserts \"the list matches the tree today\" passes on a hand-written list that happens to be current, which is the state this row exists to make impossible rather than to detect -- and it is the state a list is in right up until the moment it is wrong.\nBUILT AND GREEN 2026-09-02: `native/rust/crates/intent-cli/tests/the_canon_set_is_derived.rs`. Three arms, and the two planted ones are the row. The shipped tree derives the three bootstrap documents plus the skills, with a guard that a tiny population is a parse failure rather than a clean result. CONTROL ONE: against a planted tree, adding a document AND a skill must make the enumeration grow by exactly those two with no code edited -- a hand-written list cannot pass that and a derivation cannot fail it, which is the only arm that tells the two apart. CONTROL TWO, the other direction: a member REMOVED must leave the set, because a stale list gets that wrong the opposite way -- it goes on naming something that is gone, and a coverage claim over it then reports examining a file that does not exist.\n\nREACH DECLARED: this establishes the SET is derivable, not that every CONSUMER of it derives rather than lists. `/in-session`'s language table is hand-written prose and is a legitimate finding for AC-00.2's read, because whether a table is a stale copy or a deliberate mapping is a judgement this check cannot make."
+}

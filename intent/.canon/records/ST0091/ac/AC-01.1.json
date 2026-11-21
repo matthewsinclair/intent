@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "`bin/devbin release` cuts Intent through devbin's core: the schema bless, the lock refresh, `agents sync`, `claude upgrade --apply` and `sync --to-disk` run as `derived:` steps, `bin/devbin release check` names every derived step and gate, the dry run names every leg and runs no derived step and no gate, and `bin/.devbin/cmd/build.d/release` is gone.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

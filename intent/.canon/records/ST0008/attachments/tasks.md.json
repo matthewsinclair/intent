@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0008: LLM Integration\n\n## Tasks\n\n- [x] Create an LLM preamble file structure\n- [x] Add LLM context sections to all templates\n- [x] Develop standard prompts for common tasks\n- [x] Implement LLM-aware document formatting\n- [x] Create guidance for effective prompt engineering\n- [x] Document LLM integration features\n- [x] Test LLM effectiveness with various tasks\n- [x] Develop best practices for human-LLM collaboration\n- [x] Implement feedback from LLM integration testing\n",
+  "bytes": 485,
+  "sha256": "51038ed65d10704179ac451b660fa0c1c984c9fa20b90b7375fb12f4ae9e4302"
+}

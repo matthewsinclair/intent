@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 556,
+  "schema": "intent/issue@4.0",
+  "id": "0556",
   "slug": "doctor-s-view-skew-finding-on-a-hand-edit-the-st",
   "title": "doctor's view-skew finding on a hand edit the store can carry back names only the discarding sync --to-disk",
   "status": "closed",

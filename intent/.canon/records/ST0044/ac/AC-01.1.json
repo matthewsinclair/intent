@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "`intent st new` stamps `acceptance.md` into every new ST's doc-set (default on, via the `lib/templates/prj/st/ST####/*.md` glob).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/st_commands.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

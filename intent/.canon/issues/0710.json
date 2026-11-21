@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 710,
+  "schema": "intent/issue@4.0",
+  "id": "0710",
   "slug": "wb-claim-s-refusal-line-says-a-claim-must-be-a-s",
   "title": "wb claim's refusal line says a claim must be a steel thread or work package, while its own remedy names issues too",
   "status": "closed",

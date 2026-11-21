@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 431,
+  "schema": "intent/issue@4.0",
+  "id": "0431",
   "slug": "intent-app-status-and-restart-never-see-the-runn",
   "title": "intent app status and restart never see the running app on macOS 27, because lsappinfo's output changed shape",
   "status": "closed",

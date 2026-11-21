@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 279,
+  "schema": "intent/issue@4.0",
+  "id": "0279",
   "slug": "eight-test-files-hardcode-the-value-of-install-m",
   "title": "Eight test files hardcode the value of install::MARKER, two of them beside a comment naming it",
   "status": "closed",

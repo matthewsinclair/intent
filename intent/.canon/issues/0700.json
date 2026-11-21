@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 700,
+  "schema": "intent/issue@4.0",
+  "id": "0700",
   "slug": "the-critic-subagents-installed-in-a-project-cann",
   "title": "The critic subagents installed in a project cannot read the critic contract: the release ships no copy of critics.md, no critic's agent.md points at it, and no CLI command serves it",
   "status": "closed",

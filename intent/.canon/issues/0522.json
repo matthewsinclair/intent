@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 522,
+  "schema": "intent/issue@4.0",
+  "id": "0522",
   "slug": "wb-register-s-two-argument-refusals-carry-no-rem",
   "title": "wb register's two argument refusals carry no remedy, so the form that works is never shown",
   "status": "closed",

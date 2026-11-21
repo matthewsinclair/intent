@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "A code file whose symbols an older extractor wrote is re-extracted by the next reconcile, and a store migrated to the typed schema keeps its rows until then; two row shapes never answer one query.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

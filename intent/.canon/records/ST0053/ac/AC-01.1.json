@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "The `PR` (prose) language code is admitted by the rule-id validator (a well-formed `IN-PR-*` id validates; a malformed one still fails) and `prose` is registered in the canon-enumeration `LANG_SUBDIRS`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

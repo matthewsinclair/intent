@@ -1,0 +1,9 @@
+{
+  "id": "AT-16.4",
+  "kind": "test",
+  "covers": [
+    "AC-16.4"
+  ],
+  "status": "to-write",
+  "note": "Red demonstrated in BOTH directions before any green is trusted."
+}

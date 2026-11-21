@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 690,
+  "schema": "intent/issue@4.0",
+  "id": "0690",
   "slug": "intent-daemon-start-with-a-pipe-on-stdin-can-sta",
   "title": "`intent daemon start` with a pipe on stdin can start a daemon that stops at once, and its refusal's remedy does not name the lifeline",
   "status": "closed",

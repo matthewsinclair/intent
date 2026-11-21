@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 570,
+  "schema": "intent/issue@4.0",
+  "id": "0570",
   "slug": "doctor-s-gate-not-running-finding-says-commits-g",
   "title": "doctor's gate-not-running finding says commits go through ungated and that no verb repairs it, and both are false",
   "status": "closed",

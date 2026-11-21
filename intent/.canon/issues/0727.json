@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 727,
+  "schema": "intent/issue@4.0",
+  "id": "0727",
   "slug": "pipefail-sigpipe-check-sh-a-hand-written-count-a",
   "title": "pipefail_sigpipe_check.sh: a hand-written count, a -q it cannot see, an awk status it drops, and set -uo without a reason",
   "status": "closed",

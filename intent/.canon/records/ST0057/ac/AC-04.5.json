@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.5",
+  "text": "**`organize` refuses when the tree digest computed immediately before the irreversible step differs from the one it measured, and the refusal names the difference.** It locks against ANY process, not other `organize` runs -- every read verb materialises the store on access, so \"the estate was quiet when I measured\" is not establishable over any window.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

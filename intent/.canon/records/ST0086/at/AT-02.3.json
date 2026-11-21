@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "green",
+  "note": "arms: watch_declares_a_class_the_status_lists_and_unwatch_removes_it, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

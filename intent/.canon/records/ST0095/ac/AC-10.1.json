@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.1",
+  "text": "Every verb, MCP tool and address that takes an id takes a whole id of either family or a unique prefix, and refuses an ambiguous prefix with each candidate's id, kind, title and created date.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

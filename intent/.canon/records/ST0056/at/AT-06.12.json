@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.12",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/operator_id_spellings.rs",
+  "covers": [
+    "AC-06.12"
+  ],
+  "status": "green",
+  "note": "Landed `58979836`; full Rust suite green, no failures. **MUTATION-PROVEN IN SEVEN DIRECTIONS, AND THE HARNESS ITSELF HAD TO BE FIXED FIRST.** Each of width-check, wrong-collection refusal, the s/i branches, case-insensitivity, the ST-before-s tag order, the agnostic door's refusal and the suffix strip was removed in turn and the matching arm read RED; baseline and restore green. **THE FIRST RUN REPORTED `RESTORED -> RED` OVER A CORRECT TREE**: the harness restored with `mv`, which PRESERVES the backup's mtime, so cargo served a binary built from the mutated source -- a control lying in the safe-looking direction, and the same class as `init` reading the embed while `render` reads disk. Fixed to `cp` + `touch` and re-driven clean. **Two arms pin behaviour v2 HAS and this must not**: `foo` must not become `STfoo`, `99999` must not become `ST99999`. They are tested rather than trusted to the port's judgement because the shape of a port is to reproduce, and reproducing was wrong twice. The five-form arm was driven in the v2 checkout BEFORE being pinned, which is what makes it a measurement rather than a reading of the source."
+}

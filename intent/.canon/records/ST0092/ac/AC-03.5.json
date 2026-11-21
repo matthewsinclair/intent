@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.5",
+  "text": "A base other than the declared one is refused and names `--change`; a layer on a board with no base is refused; and a hand-authored node that has not been migrated is refused before anything is written, naming `intent wb migrate`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

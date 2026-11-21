@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.4",
+  "text": "**`intent init` creates a working project from an empty directory, and the text realisation is exercised end-to-end from one.** `init` was unimplemented when this row was written, and this is a PRECONDITION of the assurance rather than a neighbouring gap: you cannot demonstrate a fallback from a clean directory if you cannot create a clean directory.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

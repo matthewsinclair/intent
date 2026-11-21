@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 100,
+  "schema": "intent/issue@4.0",
+  "id": "0100",
   "slug": "unmappable-wp-status-defaults-in-silence-while-u",
   "title": "Unmappable WP status defaults in silence while unmappable scope is carried",
   "status": "closed",

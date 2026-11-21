@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.3",
+  "text": "Back-filled into Laksa + Lamplight + Intent (each runs `intent claude start <ws>` against its own whiteboard).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "2026-06-25 smoke"
+  }
+}

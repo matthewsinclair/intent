@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 265,
+  "schema": "intent/issue@4.0",
+  "id": "0265",
   "slug": "the-close-gate-resolves-every-ac-at-reference-ag",
   "title": "the close gate resolves every AC/AT reference against the WORKING TREE and no lifecycle verb commits, so a thread closes PASS on canon that exists on one node's disk -- and unlike 0174 the wrong tree makes it pass, not refuse",
   "status": "closed",

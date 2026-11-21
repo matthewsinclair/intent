@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.11",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/backup_snapshot.rs",
+  "covers": [
+    "AC-03.10"
+  ],
+  "status": "green",
+  "note": "**the discriminating case is a WAL-resident write with the writer connection still open**: mutate through the facade, do NOT checkpoint, then assert the snapshot contains the mutation. Measured 2026-08-15 on the real shape -- live 50 rows, `VACUUM INTO` 50, naive `cp` **0**, and the bad copy opens cleanly and reports no error. A test that closes the DB before snapshotting PASSES ON THE DEFECT, because a lone reader closing cleanly checkpoints and truncates the WAL; that is how the first attempt at this measurement failed to reproduce it"
+}

@@ -1,0 +1,6 @@
+{
+  "path": "impl.md",
+  "text": "# Implementation - ST0014: Directory Structure for Steel Threads\n\n## Implementation Notes\n\nThe implementation includes:\n\n- Directory structure: COMPLETED, NOT-STARTED, CANCELLED directories\n- Files in IN-PROGRESS and ON-HOLD status stay in the main directory\n- The organize_st.sh script handles moving files to their appropriate directories\n- The upgrade script runs organize_st.sh to ensure files are in the right places\n",
+  "bytes": 422,
+  "sha256": "4bc2d2f45a1d47f2c6481c42ad4bc04d709bb15f1297c48a3bf5ad54eb97ea27"
+}

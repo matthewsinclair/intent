@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "A merge of two branches that each minted hashed records plans no step that takes a side.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 158,
+  "schema": "intent/issue@4.0",
+  "id": "0158",
   "slug": "at-fc-on-a-sole-cover-is-silent-and-a-fiat-close",
   "title": "at fc on a sole cover is silent, and a fiat-closed AT is indistinguishable from a red one",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "Bare `intent llm` serves the agent guide rather than refusing as not-implemented, and `intent llm guide` continues to serve it under its own name.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "vc validation drive 2026-08-28: llm_serves_the_guide_and_the_rules 4/4 (identity assertion with length-and-content control), dispatch_ssot 18/18; built be3edf70"
+  }
+}

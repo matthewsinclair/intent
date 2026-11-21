@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.3",
+  "text": "`slots ask <type> \"<what>\" [--lane <lane>]` writes `requests/<id>/ask.json` and prints the id; `grant <id> --lane <lane>`, `deny <id> \"<why>\"`, `revoke <id> \"<why>\"`, `start <id>` and `release <id>` each write their one file; a request's state is the fold of the files present (asked, granted, running, ended, denied, revoked); and a grant that would put the lane over its capacity, counting granted and running, is refused naming the count.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

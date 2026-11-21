@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.11",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_typed_failure.rs",
+  "covers": [
+    "AC-00.11"
+  ],
+  "status": "to-write",
+  "note": "One case per `VaultError` variant, asserting the exit code is distinct AND that stdout is empty -- a typed error that still printed something would satisfy the type and not the requirement."
+}

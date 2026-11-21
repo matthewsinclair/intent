@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_doctor_leftover_intent.bats.mutant.tap",
+  "text": "1..5\nnot ok 1 doctor: 'leftover .intent' check passes when no .intent/ exists\n# (in test file tests/unit/doctor_leftover_intent.bats, line 15)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 2 doctor: 'leftover .intent' check warns when .intent/ AND intent/.config/ both exist\n# (in test file tests/unit/doctor_leftover_intent.bats, line 28)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 3 doctor: leftover-.intent warning surfaces git-rm recovery hint\n# (in test file tests/unit/doctor_leftover_intent.bats, line 40)\n#   `[[ \"$output\" == *\"git rm -rf .intent/\"* ]]' failed\nnot ok 4 doctor: leftover-.intent check is silent in --quiet mode when ok\n# (in test file tests/unit/doctor_leftover_intent.bats, line 50)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 5 doctor: leftover-.intent check still warns in --quiet mode\n# (in test file tests/unit/doctor_leftover_intent.bats, line 62)\n#   `[[ \"$output\" == *\"warning\"* ]]' failed\n",
+  "bytes": 909,
+  "sha256": "ffa2baef9497ea623c19f333361fbce3791c1f4be961529b85d8f8b01862669b"
+}

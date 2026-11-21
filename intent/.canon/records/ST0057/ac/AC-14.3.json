@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.3",
+  "text": "History is untouched by the move. `a flush happened at T` stays in the log as a `todo.flush` event carrying the full instant the database set, every flush is still kept, and two machines logs still merge. The field stopped answering a second question; it did not stop existing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

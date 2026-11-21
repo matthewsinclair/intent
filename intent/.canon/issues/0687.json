@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 687,
+  "schema": "intent/issue@4.0",
+  "id": "0687",
   "slug": "a-debug-build-of-intent-app-registers-itself-as",
   "title": "A Debug build of Intent.app registers itself as the login item, and a reboot then starts it in place of the installed app",
   "status": "closed",

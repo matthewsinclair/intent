@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 291,
+  "schema": "intent/issue@4.0",
+  "id": "0291",
   "slug": "intent-edit-wp-thread-seq-path-returns-the-paren",
   "title": "intent edit wp <thread>/<seq> --path returns the parent thread's file at rc=0, where it refused a week ago",
   "status": "closed",

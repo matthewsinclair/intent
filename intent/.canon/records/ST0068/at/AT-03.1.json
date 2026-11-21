@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.1",
+  "kind": "non-test",
+  "prose": "Laksa builds the page and reports whether it had to invent an answer",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "n-a"
+}

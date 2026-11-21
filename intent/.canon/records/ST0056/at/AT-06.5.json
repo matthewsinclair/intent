@@ -1,0 +1,9 @@
+{
+  "id": "AT-06.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/schema_command.rs",
+  "covers": [
+    "AC-06.5"
+  ],
+  "status": "green"
+}

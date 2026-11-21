@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 502,
+  "schema": "intent/issue@4.0",
+  "id": "0502",
   "slug": "the-explorer-s-hint-line-names-enter-as-edit-on",
   "title": "the explorer's hint line names Enter as edit on a label row, where Enter does nothing",
   "status": "closed",

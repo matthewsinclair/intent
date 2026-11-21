@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 491,
+  "schema": "intent/issue@4.0",
+  "id": "0491",
   "slug": "daemon-logs-prints-and-follows-no-tail-survives",
   "title": "daemon_logs_prints_and_follows::no_tail_survives_follow_however_it_ends hangs forever under an ignored SIGINT: an unbounded child.wait(), and a killed child reads as a pass",
   "status": "closed",

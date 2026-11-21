@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.6",
+  "text": "output is prettier-stable: the generator's output equals the post-prettier file byte-for-byte (no reflow churn on commit).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

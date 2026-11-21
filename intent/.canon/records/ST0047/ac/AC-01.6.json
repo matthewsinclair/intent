@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.6",
+  "text": "Regenerating the Baize `hv`+`cc`+`ic`+`vc` skeleton via `ws new` reproduces the hand-scaffolded golden reference (structural diff empty, modulo authored board content).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "dogfood 2026-06-25: ws new hv/cc/ic/vc reproduces the Baize golden board (28 paths); cwi_test.sh green"
+  }
+}

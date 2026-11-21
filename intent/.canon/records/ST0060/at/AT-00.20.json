@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.20",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_entry_is_a_tuple.rs",
+  "covers": [
+    "AC-00.20"
+  ],
+  "status": "to-write",
+  "note": "Round-trips `{key_id, value}`; asserts `run` injects under the id with NO mapping given; asserts a second entry claiming a live `key_id` in the same profile is REFUSED at write; asserts `list` emits the id and **that the material is absent from its output**; and asserts an entry whose `key_id` differs from its entry name injects under the id, not the name -- the `CONFLAB_MATTS_API_KEY` case, which is the one a derivation would silently get wrong. Plus a `Debug` arm: the rendering contains the id and **does not contain the material**."
+}

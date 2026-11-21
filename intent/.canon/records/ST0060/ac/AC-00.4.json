@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.4",
+  "text": "**R4 -- reachable before a project's toolchain is.** `intent vault get vault:<p>/<n>` resolves from a working directory inside no Intent project at all. The project is IN the reference, so resolution never consults the cwd -- which is what makes this mechanical rather than aspirational. **AND THE EMPTY AUTHORITY IS REFUSED.** `intent:///profiles/prod/secrets/api-key` is a legal address meaning _this project_, resolved from the working directory -- **for a credential that reintroduces exactly the cwd dependence this criterion exists to forbid.** A credential reference that means different things in different directories is the class of footgun this thread exists to remove.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

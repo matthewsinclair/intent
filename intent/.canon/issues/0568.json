@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 568,
+  "schema": "intent/issue@4.0",
+  "id": "0568",
   "slug": "intent-sync-to-store-folds-a-thread-s-body-into",
   "title": "intent sync --to-store folds a thread's body into its context when it carries a cover edit back, compounding on each carry",
   "status": "closed",

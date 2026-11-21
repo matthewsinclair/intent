@@ -1,0 +1,9 @@
+{
+  "id": "03",
+  "title": "Create Ash/Ecto Reference Doc + Skill",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create comprehensive Ash/Ecto database access guidance — reference doc for deep consultation and skill for always-on enforcement. Ash-first, never raw Ecto.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/ash-ecto.md` — reference doc (~200-400 lines)\n- `intent/plugins/claude/skills/ash-ecto-essentials/SKILL.md` — skill (~150 lines)\n\n## Design Principles\n\n**Critical: Ash-first, never raw Ecto.**\n\n- No `mix ecto.gen.migration` — always `mix ash.codegen`\n- No direct Repo calls — all through Ash domain code interfaces\n- No raw Ecto.Query in web modules — use Ash.Query or code interface options\n- Explicitly conform to `deps/ash/usage-rules.md` and `deps/ash_ai/usage-rules.md`\n\n## Skill Rules (7)\n\n1. All database access through domain code interfaces\n2. `mix ash.codegen <name>` for migrations, never `mix ecto.gen.migration`\n3. Set actor on query/changeset, not on action call\n4. Prefer code interface options over manual Ash.Query pipelines\n5. Custom change/validation modules, not anonymous functions\n6. Atomic changes preferred; `require_atomic? false` only when necessary\n7. `Ash.Query.filter` is a macro — always `require Ash.Query`\n\n## Acceptance Criteria\n\n- [ ] Reference doc covers migrations, code interfaces, queries, relationships, changes, validations, preparations, notifiers, error handling\n- [ ] Skill under 150 lines with 7 rules + examples\n- [ ] References `deps/ash/usage-rules.md` as authoritative source\n- [ ] No overlap with elixir-essentials or phoenix-liveview skills\n- [ ] No raw Ecto patterns taught (Ash way only)\n\n## Dependencies\n\n- WP-01 (distilled rules inform Ash-specific patterns)",
+  "preamble": ""
+}

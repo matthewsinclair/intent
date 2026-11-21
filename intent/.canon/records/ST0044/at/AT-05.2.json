@@ -1,0 +1,11 @@
+{
+  "id": "AT-05.2",
+  "kind": "non-test",
+  "file": "tests/unit/st_new_acceptance.bats",
+  "prose": "Witness tests/unit/st_new_acceptance.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
+  "covers": [
+    "AC-05.2"
+  ],
+  "status": "n-a",
+  "note": "test: st show and edit know the acceptance file type -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_new_acceptance.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
+}

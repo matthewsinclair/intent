@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.1",
+  "text": "Lexical search returns hits across prose and source in one envelope, grouped by tier, ranked within a tier, never blended.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

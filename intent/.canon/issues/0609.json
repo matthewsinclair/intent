@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 609,
+  "schema": "intent/issue@4.0",
+  "id": "0609",
   "slug": "intent-init-wb-register-and-claude-start-all-run",
   "title": "intent init, wb register and claude start all run inside a bare git repository",
   "status": "closed",

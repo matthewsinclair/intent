@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 519,
+  "schema": "intent/issue@4.0",
+  "id": "0519",
   "slug": "the-rule-for-what-a-board-may-claim-is-stated-in",
   "title": "the rule for what a board may claim is stated in prose in two independent places",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-05.4",
+  "kind": "non-test",
+  "prose": "clap-layer review against the thin-coordinator rule",
+  "covers": [
+    "AC-05.4"
+  ],
+  "status": "n-a"
+}

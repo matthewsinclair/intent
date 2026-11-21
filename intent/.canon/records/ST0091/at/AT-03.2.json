@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.2",
+  "kind": "test",
+  "file": "tests/unit/release_publish.bats",
+  "covers": [
+    "AC-03.2"
+  ],
+  "status": "green",
+  "note": "macos prepare refuses a pair that is not a release build of HEAD, and the formula names the stage's assets; banked at refs/bank/dc/st0091/wp03-v1 (blob d168a870bb99, patch-id 6f6bb9badad3), on wp02-v1's tip tree, not yet on main; it stays to-write until the train lands. Run on the tree before WP-03, every arm of the file is red. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp03-v3 (blob 70446cb16981, patch-id b38ca167b7cc), which superseded the wp03-v1 named above: v2 printed one delete command per held asset in the partial-release refusal, v3 the shellcheck directive and the arms' ids. Green is vc's, from its judged run of the train. Red on the code as it was: release_publish.bats arms 8 and 9 red on the tree before WP-03; both pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
+}

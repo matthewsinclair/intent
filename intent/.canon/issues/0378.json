@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 378,
+  "schema": "intent/issue@4.0",
+  "id": "0378",
   "slug": "a-consumer-migrated-before-the-formatter-exclusi",
   "title": "A consumer migrated before the formatter exclusion existed never receives it, so its pre-commit formatter rewrites a view after the doctor gate, and one rewritten view refuses every later commit",
   "status": "closed",

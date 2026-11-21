@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 433,
+  "schema": "intent/issue@4.0",
+  "id": "0433",
   "slug": "wb-pickup-records-the-session-id-only-when-sessi",
   "title": "wb pickup records the session id only when --session is passed, so a node's header names a dead session",
   "status": "closed",

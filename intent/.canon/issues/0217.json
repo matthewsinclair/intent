@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 217,
+  "schema": "intent/issue@4.0",
+  "id": "0217",
   "slug": "the-parity-apparatus-checks-table-to-surface-onl",
   "title": "the parity apparatus checks table-to-surface only, so a built subcommand the table does not declare is invisible to every instrument",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 661,
+  "schema": "intent/issue@4.0",
+  "id": "0661",
   "slug": "intent-estate-slots-release-lists-named-in-its-h",
   "title": "intent estate slots release lists --named in its help but refuses the flag",
   "status": "closed",

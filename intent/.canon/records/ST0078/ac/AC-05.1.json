@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "intent sync reads the store, the tree and git's status and prints the plan it would apply as ordered steps, each with its recoverability, under a digest, and writes nothing; intent sync --apply applies it; --plan <digest> refuses when the tree has moved since the plan was shown.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

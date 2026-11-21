@@ -1,0 +1,9 @@
+{
+  "id": "AT-04.2",
+  "kind": "non-test",
+  "prose": "git tag --contains on the doc commits against the v3.0.1 tag",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "n-a"
+}

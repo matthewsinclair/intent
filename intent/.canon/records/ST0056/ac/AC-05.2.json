@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.2",
+  "text": "The core families (st, wp, ac, at, todo) **and their read verbs** (list, show, status) are green via `INTENT_BIN` **on the NARROWED conformance contract** -- stdout, exit codes and behaviour, per the ratified parity contract at design.md:146 -- with voice and exit codes byte-compatible; a v2 test may leave that contract ONLY by a register classification of `retire` or `deviate` recorded at land time for a design-consequence reason, never because it failed. The whole-estate number is AC-00.1's, not this one's",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/conformance/run_v2_suite.bash was green when this row was last recorded (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

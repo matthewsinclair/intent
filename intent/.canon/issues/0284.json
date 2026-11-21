@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 284,
+  "schema": "intent/issue@4.0",
+  "id": "0284",
   "slug": "the-test-suite-leaks-daemonised-intentd-processe",
   "title": "the test suite leaks daemonised intentd processes: 27 orphans, 249 minutes of CPU, none answering",
   "status": "closed",

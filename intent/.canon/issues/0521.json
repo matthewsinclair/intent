@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 521,
+  "schema": "intent/issue@4.0",
+  "id": "0521",
   "slug": "ci-s-intent-tests-workflow-is-red-on-both-legs-e",
   "title": "CI's Intent Tests workflow is red on both legs: every arm of prepush_push_range.bats fails since aba799696 (0518)",
   "status": "closed",

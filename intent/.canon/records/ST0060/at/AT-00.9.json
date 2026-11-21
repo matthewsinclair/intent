@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.9",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_profiles.rs",
+  "covers": [
+    "AC-00.9"
+  ],
+  "status": "to-write",
+  "note": "Two profiles, one entry name, different material. Covers the two-segment form defaulting to `default`."
+}

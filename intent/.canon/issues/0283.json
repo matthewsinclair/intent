@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 283,
+  "schema": "intent/issue@4.0",
+  "id": "0283",
   "slug": "doctor-and-organize-both-read-divergence-as-auth",
   "title": "doctor and organize both read divergence as authored-content-at-risk, and neither entertains the store being newer",
   "status": "closed",

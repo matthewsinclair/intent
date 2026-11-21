@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 596,
+  "schema": "intent/issue@4.0",
+  "id": "0596",
   "slug": "a-first-v2-conversion-prints-the-views-of-undecl",
   "title": "A first v2 conversion prints \"the views of undeclared threads were not examined\" before its ok:, because the upgrade opens its facade on the Project discovered before the conversion",
   "status": "closed",

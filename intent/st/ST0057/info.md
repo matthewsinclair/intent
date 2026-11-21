@@ -26,26 +26,11 @@ The design is ratified as D57-1 through D57-9 in `design.md`. This contract is d
 
 ## Work Packages
 
-| WP    | Title                                                                                                                                 | Size | Status    |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------- |
-| WP-01 | Canon relocation to intent/.canon/                                                                                                    | M    | Done      |
-| WP-02 | .intentfiles: the manifest and its refusing grammar                                                                                   | S    | Done      |
-| WP-03 | Attachment canon: opaque as file, and the naming gate                                                                                 | M    | Done      |
-| WP-04 | intent organize: four answers, one refusal, one gate                                                                                  | L    | Done      |
-| WP-05 | intent edit <ID>                                                                                                                      | S    | Done      |
-| WP-06 | The full text realisation, and the refusal that expires                                                                               | M    | Done      |
-| WP-07 | intent:// addressing and read resolution                                                                                              | L    | Done      |
-| WP-08 | The mutation surface: write-by-address and the missing verbs                                                                          | L    | Done      |
-| WP-09 | The event log records the model and not the disk                                                                                      | S    | Done      |
-| WP-10 | doctor reports a dehydrated view as missing                                                                                           | S    | Done      |
-| WP-11 | Default disposition realises WIP threads only: organize --default writes .intentfiles; init, migration and upgrade share the function | S    | Done      |
-| WP-12 | Issues get a realised form and a sigil, then join the default declaration                                                             | S    | Cancelled |
-| WP-13 | The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket               | S    | Cancelled |
-| WP-14 | The DONE cutoff is canon state, not history: it travels by git                                                                        | M    | Done      |
+Each work package is a record of its own: `intent wp list ST0057` lists them, and `intent wp show ST0057/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
+Acceptance criteria and tests are records of their own: `intent ac list ST0057` and `intent at list ST0057` list them, and `intent ac gate ST0057` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
 
 ---
 

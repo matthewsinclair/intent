@@ -1,0 +1,10 @@
+{
+  "id": "04",
+  "title": "First install on a real Windows machine",
+  "scope": "XS",
+  "status": "cancelled",
+  "status_reason": "Moved to ST0082 as its WP-02 on hv's ruling of 2026-10-14: ST0081 became the Homebrew thread and its WSL work became ST0082, which depends on it. AC-04.1 is descoped to ST0082.",
+  "objective": "A developer installs Intent from a tagged release under WSL on a real Windows machine by following the docs, and reports `intent --version`, `intent doctor`, and one thread created and listed in a project in the WSL filesystem. hv arranges the run through the other estate; Intent's nodes cannot run it.",
+  "body": "",
+  "preamble": ""
+}

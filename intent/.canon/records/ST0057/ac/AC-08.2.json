@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.2",
+  "text": "**`GET ?format=json`, modify, `PUT` the same shape back is lossless for every field of every entity** -- the interchange format IS the mutation format, denominator printed over the field set. This gives ST0056's AC-02.6 its second job: a field that does not round-trip is now a field that cannot be WRITTEN.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

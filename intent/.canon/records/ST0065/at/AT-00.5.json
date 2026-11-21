@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/skills_sync.rs",
+  "covers": [
+    "AC-00.5"
+  ],
+  "status": "green",
+  "note": "`a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it` in `native/rust/crates/intentsvcs/tests/skills_sync.rs`, driven in that file's own disposable tempdir fixture -- install tree, Claude target and manifest all throwaway, no real user state touched. TWO ARMS, AND THE SECOND IS WHY THE FIRST IS A FINDING RATHER THAN A COMPLAINT. Arm one deletes the canon source and syncs: outcome `SourceMissing`, the installed payload still present, the manifest entry still present. Arm two uninstalls WITH THE CANON SOURCE ALREADY GONE -- which is the ordering claim the retirement sequence rests on, since uninstall does not read canon -- and both remaining locations are reached. WITHOUT ARM TWO THE ROW READS AS `the tool cannot prune`, WHICH IS FALSE and would send the next reader to build a pruner that already exists. THE VERSION IS NAMED IN THE TEST BECAUSE IN A PORT A DATE IS NOT A VERSION: this drives v3's `intentsvcs::payload`; v2's `bin/intent_upgrade` ran a skills sync on every upgrade so the orphan was at least reported there, and that line is still present and still accurate AND IS NOT A FACT ABOUT THE SHIPPED TOOL. WHAT UNINSTALL LEAVES, MEASURED RATHER THAN ASSUMED: it removes the files it wrote and leaves the now-empty directory, which is INERT -- `installed()` does not list it and a following sync reports no step for it at all. The first draft asserted the directory was gone, which was stronger than the criterion and turned an accurate result into an alarming one. BOTH ARMS DRIVEN RED: simulating a sync that prunes fails arm one with a message telling the reader to reword the ROW rather than relax the test, because if sync ever learns to prune, this criterion's second half is obsolete rather than violated."
+}

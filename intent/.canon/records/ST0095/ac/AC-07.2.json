@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.2",
+  "text": "Canon, claims, .intentfiles, related, criterion groups and event subjects carry whole ids, never a prefix.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

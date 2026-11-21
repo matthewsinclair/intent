@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.2",
+  "text": "The plan handles a pull's aftermath in order: a branch behind its upstream is reported and nothing is run; a store that lags canon is ingested; an unmerged generated view is regenerated from the merged canon and staged; a canon add/add is repaired by renumbering the local id to the next free one; a canon content conflict asks for a side; stale views are regenerated; a stale index is refreshed (the incremental reconcile search runs, never the full rebuild); doctor runs last and its verdict is the exit code.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

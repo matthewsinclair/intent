@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 273,
+  "schema": "intent/issue@4.0",
+  "id": "0273",
   "slug": "at-lint-counts-rows-it-cannot-examine-as-conform",
   "title": "at lint counts rows it cannot examine as conforming: a legacy.raw citation is invisible to every check",
   "status": "closed",

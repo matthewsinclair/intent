@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "Every author rule (style + craft) is schema-valid: `intent claude rules validate` passes it (frontmatter + all nine sections + a well-formed `IN-AU-*` id).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

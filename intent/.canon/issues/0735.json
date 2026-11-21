@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 735,
+  "schema": "intent/issue@4.0",
+  "id": "0735",
   "slug": "ingest-accepts-an-event-whose-ts-is-not-an-rfc-3",
   "title": "Ingest accepts an event whose ts is not an RFC 3339 stamp",
   "status": "closed",

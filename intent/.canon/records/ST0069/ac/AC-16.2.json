@@ -1,0 +1,8 @@
+{
+  "id": "AC-16.2",
+  "text": "**THE CHECK RUNS OVER EVERY MODELLED ENTITY AND PRINTS ITS DENOMINATOR.** `N of N entities checked, M properties` in the output -- because a check that silently skipped an entity and a check that found nothing produce the same line otherwise. **THE POPULATION IS DERIVED FROM THE SCHEMA AT RUN TIME AND IS NOT ENUMERATED HERE.** This row carried a nine-name list until 2026-08-29 and the list was WRONG -- derivation yields eleven, the two it omitted being `Invoker` and `Subject` -- **so the criterion warning against \"a list maintained beside it\" was itself that list, in the same sentence.** (vc, on ic's measurement; the row is reworded rather than corrected in place because the enumeration was the defect, not its contents.) **`Invoker` is the live proof: it is growing under ST0066 AC-00.2's invoker evidence right now, and an entity outside the checked population grows uncontracted, which is `issue.body`'s exact shape and the 434KB this WP exists because of.**\n\n**MOVED FROM `ST0056` ON 2026-08-30 (hv's ruling, performed by vc).** The requirement is UNCHANGED and UNBUILT; only the thread it is counted against moved, so that `ST0056`'s gate measures what 3.0.1 ships rather than what v3 eventually will. **This was not a descope for a green** -- `ST0056` remained BLOCKED across the move. hv's own sequencing is the warrant: *fully ship v3 with all functionality, intentd is one of those priorities; once that's done, we can do tree-sitter and full search.*",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

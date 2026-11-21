@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/address_md_is_the_hydrated_bytes.rs",
+  "covers": [
+    "AC-07.4"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 5 tests. `serve_md` SELECTS from `views::render_all` and never renders -- arm 1 renders directly instead and kills 3 of the 5. **The structural arm reads `address.rs` for calls to the per-view renderers AND carries a positive guard that it still goes through `render_all`, or the first assertion passes vacuously the day someone deletes the call: a NEGATIVE assertion with no positive companion is satisfied by removing its subject.** **TWO COLLECTION ADDRESSES ADDED, AND RULED NOT A DESIGN CHANGE (ic asked to be checked rather than nodded at; vc ruled from D57-8's own prose).** `Entity::Threads` and `Entity::AcCollection` are absent from D57-8's nine-form list and PRESENT IN ITS PROSE: _If an entity has more than one rendering, it is UNDER-ADDRESSED. `/threads/ST0056` returns the cover; `/threads/ST0056/ac` returns the acceptance view_, and separately, server-assigned ids are _a POST to the COLLECTION address, which returns the new address_. **THE NINE-FORM LIST ENUMERATES ARTEFACT FORMS AND IS NOT A CLOSED GRAMMAR.** **AND THE DERIVATION IS WHAT MAKES THIS NOT AN INVENTION: without `/threads/{id}/ac` THE ACCEPTANCE VIEW HAS NO ADDRESS AT ALL, while AC-07.4 requires `?format=md` to serve what `organize` would hydrate -- which includes `acceptance.md` -- and the only alternative, giving the VIEW an address, is exactly what D57-8 forbids in the sentence _VIEWS GET NO URL, and this is what stops the scheme becoming a path alias_.** The COLLECTION is the addressee and the VIEW is its representation, which is D57-8's own entity-versus-representation split applied rather than extended. **So the enum is right and the doc comment is wrong: a tenth ARTEFACT form is a design change; a collection address is not.**"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 685,
+  "schema": "intent/issue@4.0",
+  "id": "0685",
   "slug": "a-newer-build-s-first-board-write-re-renders-eve",
   "title": "A newer build's first board write re-renders every older-shape board, and the roster apply that is the shape's mechanical commit does not name them",
   "status": "closed",

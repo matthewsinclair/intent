@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_view_render.rs",
+  "covers": [
+    "AC-14.2"
+  ],
+  "status": "to-write",
+  "note": "idempotent THROUGH the formatter, per ic's three measured instances"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/sync_plan_and_apply_from_the_command_line.rs",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green",
+  "note": "judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+}

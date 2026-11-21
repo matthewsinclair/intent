@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.1",
+  "kind": "test",
+  "prose": "to-write: the assertion depends on which remedy hv rules -- an ingest is checked by content arriving, a mark-stale by a reader being warned. Kind is TEST because both remedies are testable and `kind` cannot be changed after mint.",
+  "covers": [
+    "AC-13.1"
+  ],
+  "status": "to-write"
+}

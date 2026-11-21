@@ -1,0 +1,9 @@
+{
+  "id": "07",
+  "title": "Reconcile MODULES.md registry",
+  "scope": "XS",
+  "status": "done",
+  "objective": "Restore the Highlander-registry integrity of `intent/llm/MODULES.md` (theme T7) so the check-before-you-create gate works.",
+  "body": "## Evidence\n\n- F-ARCH-8: three live subagents on disk (`intent`, `diogenes`, `socrates`) unregistered in MODULES.md.\n- F-DOCS-13: `needs_v2_9_0_upgrade` registry row describes config-file-reading behaviour the function (which takes a version arg) does not have, with a stale `.intent/` path.\n\n## Deliverables\n\n- Rows for the three subagents added with accurate descriptions.\n- `needs_v2_9_0_upgrade` row corrected to the function's real signature/behaviour and current path.\n- A quick sweep for any other rows describing behaviour that drifted (bounded: registry vs reality spot-check, not a re-audit).\n\n## Acceptance Criteria\n\n- [ ] Every live module/subagent on disk has a truthful MODULES.md row.\n- [ ] No row references the pre-v2.10 `.intent/` path.\n\n## Dependencies\n\n- Coordinates with WP-05 (relocated helpers get rows) and WP-06 (deleted modules lose rows). Cheap to do mid-stream and re-touch.",
+  "preamble": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "Doctor in opt and brew checks the manifest body and names every file that drifted, and names an opt manifest missing a header key as an old manifest with its remedy; a keg with no manifest whose root resolves under the opt link is a note naming `brew upgrade intent`, never a failure.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

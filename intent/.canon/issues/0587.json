@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 587,
+  "schema": "intent/issue@4.0",
+  "id": "0587",
   "slug": "docs-backup-snapshots-copy-the-whole-store-so-da",
   "title": "docs: backup snapshots copy the whole store, so daily backups of a large store add up; say so beside backup.keep",
   "status": "closed",

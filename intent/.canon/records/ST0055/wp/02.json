@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all",
+  "scope": "S",
+  "status": "done",
+  "objective": "[Clear statement of what this work package aims to accomplish]",
+  "body": "",
+  "preamble": ""
+}

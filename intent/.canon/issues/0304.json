@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 304,
+  "schema": "intent/issue@4.0",
+  "id": "0304",
   "slug": "one-document-in-both-corpora-answers-a-search-tw",
   "title": "one document in both corpora answers a search twice",
   "status": "closed",

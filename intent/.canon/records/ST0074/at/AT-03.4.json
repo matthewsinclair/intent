@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/the_daemon_lists_the_project_registry.rs",
+  "covers": [
+    "AC-03.4"
+  ],
+  "status": "green",
+  "note": "red with listed::start disabled (never listed in 10s), green at 2123f7c08"
+}

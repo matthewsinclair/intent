@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "`ws new <wsid>` refuses with a non-zero exit and zero mutation when `<wsid>` already exists.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "The view ends with the counts line `intent outs` prints, and with nothing outstanding it shows that line alone.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

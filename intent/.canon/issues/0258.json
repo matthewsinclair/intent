@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 258,
+  "schema": "intent/issue@4.0",
+  "id": "0258",
   "slug": "work-handed-to-a-node-reaches-no-surface-that-no",
   "title": "work handed to a node reaches no surface that node reads: the register can record an assignment and cannot deliver one",
   "status": "closed",

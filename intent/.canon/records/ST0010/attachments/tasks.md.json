@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0010: Anthropic MCP Integration\n\n## Tasks\n\n- [ ] Research and document current MCP capabilities and limitations\n- [ ] Analyze STP commands to identify candidates for MCP integration\n- [ ] Design MCP integration architecture for STP\n- [ ] Implement prototype for at least one command (eg \"stp st done\")\n- [ ] Test the implementation with various scenarios\n- [ ] Document the implementation and usage guidelines\n- [ ] Create examples of MCP-enhanced STP commands\n",
+  "bytes": 473,
+  "sha256": "94d0c82ee9d2cd028c5db2613a00caed74b47b4831b2e6d868a38261b6de94e2"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 499,
+  "schema": "intent/issue@4.0",
+  "id": "0499",
   "slug": "wb-migrate-reports-a-snapshot-count-that-does-no",
   "title": "wb migrate reports a snapshot count that does not match the snapshot files it leaves, so a carrier checking its dropped units were kept cannot read the line",
   "status": "closed",

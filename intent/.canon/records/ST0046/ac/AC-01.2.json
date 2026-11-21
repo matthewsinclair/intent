@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "`check` is umbrella-aware: it enumerates modules under every `apps/*/lib` source root, not just `./lib`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

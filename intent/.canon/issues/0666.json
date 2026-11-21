@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 666,
+  "schema": "intent/issue@4.0",
+  "id": "0666",
   "slug": "intent-daemon-start-at-login-says-ok-and-enrols",
   "title": "intent daemon start --at-login says ok and enrols nothing when a daemon is already running",
   "status": "closed",

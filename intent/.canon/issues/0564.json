@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 564,
+  "schema": "intent/issue@4.0",
+  "id": "0564",
   "slug": "claude-upgrade-seeds-intent-critic-yml-through-t",
   "title": "claude upgrade seeds .intent_critic.yml through the Markdown filler, so a new project's seed is invalid YAML",
   "status": "closed",

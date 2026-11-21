@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.9",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_migrate.rs",
+  "covers": [
+    "AC-14.9"
+  ],
+  "status": "to-write",
+  "note": "red-first against the live three-node board as the fixture"
+}

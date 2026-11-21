@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 577,
+  "schema": "intent/issue@4.0",
+  "id": "0577",
   "slug": "the-hook-timeouts-in-the-settings-template-are-r",
   "title": "the hook timeouts in the settings template are read as seconds, so 3000 means fifty minutes where milliseconds were meant",
   "status": "closed",

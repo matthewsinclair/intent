@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_sql_door_is_read_only.rs",
+  "covers": [
+    "AC-17.3"
+  ],
+  "status": "green",
+  "note": "A bare query beginning with select is answered as a text search, and a query with --sql together is a usage error rather than a precedence rule."
+}

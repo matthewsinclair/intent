@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 424,
+  "schema": "intent/issue@4.0",
+  "id": "0424",
   "slug": "wb-register-skips-a-board-whose-header-lacks-nod",
   "title": "wb register skips a board whose header lacks node, name or role, reports nothing and exits 0, so the roster is silently one node short",
   "status": "closed",

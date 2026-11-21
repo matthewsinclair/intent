@@ -1,0 +1,8 @@
+{
+  "id": "AC-20.5",
+  "text": "References are named as name-matched on every surface and never as callers.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

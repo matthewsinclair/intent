@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 246,
+  "schema": "intent/issue@4.0",
+  "id": "0246",
   "slug": "register-md-classifies-keep-on-a-burn-that-canno",
   "title": "register.md classifies keep on a burn that cannot see whether a file passes, and the v2 trunk prune keys off the word keep: skills_commands.bats is keep at 39/39 burn and fails 37 of 39",
   "status": "closed",

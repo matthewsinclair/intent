@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.10",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/slots.rs",
+  "covers": [
+    "AC-04.10"
+  ],
+  "status": "green",
+  "note": "arms: estate::slots::tests::only_the_controller_grants_and_only_the_asker_starts; green in judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY) over the landed tree, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550)"
+}

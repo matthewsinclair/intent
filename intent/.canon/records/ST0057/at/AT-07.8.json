@@ -1,0 +1,9 @@
+{
+  "id": "AT-07.8",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/another_projects_address_is_refused_by_name.rs",
+  "covers": [
+    "AC-07.6"
+  ],
+  "status": "green"
+}

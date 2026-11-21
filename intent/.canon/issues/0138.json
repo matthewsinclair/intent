@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 138,
+  "schema": "intent/issue@4.0",
+  "id": "0138",
   "slug": "the-v2-ingest-has-two-behaviours-for-one-input-s",
   "title": "The v2 ingest has two behaviours for one input shape and only the destructive one is detectable",
   "status": "closed",

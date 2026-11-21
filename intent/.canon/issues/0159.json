@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 159,
+  "schema": "intent/issue@4.0",
+  "id": "0159",
   "slug": "fiatrecord-at-is-empty-in-the-store-for-every-ki",
   "title": "FiatRecord.at is empty in the store for every kind, and never stamped at all for ST and WP",
   "status": "closed",

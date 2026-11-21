@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 113,
+  "schema": "intent/issue@4.0",
+  "id": "0113",
   "slug": "guard-home-check-s-installed-copy-arm-reads-the",
   "title": "guard_home_check's installed-copy arm reads the carrier for the gate body's override, so the shim reads as predating the template forever",
   "status": "closed",

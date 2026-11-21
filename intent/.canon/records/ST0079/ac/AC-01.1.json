@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "In the explorer, `/outstanding` and `/outs` each open a view of the rows `intent outs` prints, read from `Facade::outstanding` and laid out in the order it returns them, each row with its kind (ST, WP or Issue) leftmost, then ID, Status and Title.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

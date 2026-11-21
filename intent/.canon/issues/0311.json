@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 311,
+  "schema": "intent/issue@4.0",
+  "id": "0311",
   "slug": "two-daemon-subscriptions-arms-red-intermittently",
   "title": "Two daemon_subscriptions arms red intermittently at base: a setup write reaches the next observation window",
   "status": "closed",

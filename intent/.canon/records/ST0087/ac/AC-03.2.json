@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "The shadow check, in doctor and in bare `use`, fails when a link in the set exists but is not the first hit on PATH or when the set is split across trees, names what shadows or splits it, and compares resolved directories rather than path strings.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

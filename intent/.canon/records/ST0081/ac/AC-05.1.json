@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "On Linux, `intent daemon start --at-login` and `intent daemon stop --at-login` refuse before writing anything, naming login enrolment as macOS-only and `intent daemon start` without the flag as the way to run the daemon.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.15",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/one_dispatch_home.rs",
+  "covers": [
+    "AC-17.15"
+  ],
+  "status": "green",
+  "note": "TWO HALVES, AND THE SECOND IS THE ONE NO BEHAVIOURAL TEST CAN SEE. The DERIVATION half is `every_cli_offer_carries_claps_own_about_text` (`native/rust/crates/intent-cli/src/tui/commands.rs`): every offered verb resolves to a real clap subcommand and its blurb IS that subcommand's `get_about()`, character for character -- hv's own requirement, that the palette not dupe what `--help` already says. Driven red by drifting one blurb from clap's text. The ONE-DISPATCH-HOME half is `native/rust/crates/intent-cli/tests/one_dispatch_home.rs`, which is a SOURCE-READING guard for the reason `dep_graph_guard.rs` is one: the property is about how many places a thing is WRITTEN, and a second copy answers identically on the day it is written, which is exactly why it gets written. Two arms -- `render::run` has exactly one caller and it is `lib.rs`, and `main` delegates rather than performing the sequence, the case the first arm is weakest against. Driven red by planting a second dispatch home in the TUI realiser; it names the offending path. THE GUARD FOUND A THIRD COPY ALREADY IN THE TREE: `via_library` in `dual_path_conformance.rs` hand-rolled parse-then-run with its own exit-code mapping, in the file whose entire job is proving the library route and the shipped binary agree -- so the route it compared against the binary was one nothing shipped. It now calls `intent_cli::dispatch`. WHAT THIS ROW CANNOT SEE: the guard matches TEXT, so a caller reaching the sequence through an alias, a re-export or a macro is outside its reach."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "It gives the moniker, name, role, driver and default remit of each seat, vc, cc, ic, ac, dc, hv, gc, sc and sv, with the role words validation, control, interface, authoring, devx, hypervisor, generalist and supervisor, and it says a moniker is never written as a name or as a role.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/plugins/claude/teams/TERMS.md, 'The seats': one row each for vc, cc, ic, ac, dc, hv, gc, sc and sv with moniker, name, role, driver and default remit, and 'A moniker is never written as a name or as a role.'"
+  }
+}

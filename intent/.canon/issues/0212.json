@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 212,
+  "schema": "intent/issue@4.0",
+  "id": "0212",
   "slug": "a-watcher-driven-ingest-silently-reverts-a-compl",
   "title": "A watcher-driven ingest silently reverts a completed store write when the on-disk extract lags",
   "status": "closed",

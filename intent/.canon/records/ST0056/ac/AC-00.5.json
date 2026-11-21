@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.5",
+  "text": "`brew install` on a clean macOS machine yields a working `intent` + daemon lifecycle",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0056/gyges-install.md (hv's terminal on gyges, 2026-09-21, read by vc 16:24Z): brew install from the tap over the network, bootstrap, intent and intentd 3.2.0 at 4e2f908a5, daemon start and status, explore at 3.2.0"
+  }
+}

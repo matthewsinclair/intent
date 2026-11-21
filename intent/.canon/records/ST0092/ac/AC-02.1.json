@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "The plugin canon ships the profiles team, solo, supervisor and supervised under one schema, and `intent wb profile validate` passes on the shipped set.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

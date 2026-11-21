@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_attribution_compliance.bats.default.tap",
+  "text": "1..7\nok 1 attribution file exists\nok 2 attribution file carries the pinned upstream commit\nok 3 attribution file carries the MIT copyright\nok 4 attribution file carries the MIT permission text\nok 5 every rule with upstream_id has a matching attribution row\nok 6 attribution table lists exactly the rules with upstream_id set\nok 7 every upstream_id is a non-empty kebab-case slug\n",
+  "bytes": 379,
+  "sha256": "066e00e896e5e058b6c6ec0e80af3186ae76c1903baa08414e0967b93eb406ac"
+}

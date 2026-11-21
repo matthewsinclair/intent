@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 637,
+  "schema": "intent/issue@4.0",
+  "id": "0637",
   "slug": "v3-2-6-s-tag-is-red-on-ubuntu-clippy-a-linux-onl",
   "title": "v3.2.6's tag is red on ubuntu clippy: a Linux-only lint in an example, and a preflight that never ran rust.yml's lines",
   "status": "closed",

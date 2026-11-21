@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 366,
+  "schema": "intent/issue@4.0",
+  "id": "0366",
   "slug": "the-daemon-never-builds-its-search-index-when-it",
   "title": "the daemon never builds its search index when it opens a project; daemon-served search answers from whichever watcher events happened to arrive",
   "status": "closed",

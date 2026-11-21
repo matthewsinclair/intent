@@ -1,0 +1,10 @@
+{
+  "id": "AT-18.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/a_source_edit_reaches_the_index_and_costs_canon_nothing.rs",
+  "covers": [
+    "AC-18.4"
+  ],
+  "status": "green",
+  "note": "dc's daemon half: a source edit reaches the index through its own watch registration and the canon path never hears about it, which is the two-registration ruling as an arm. The engine half is cc's one_ignore_statement_answers_both_questions in the_index_scope_is_the_repository.rs -- the scanner and the watcher asking one scope object -- and index::reconcile::changed_under, which the dispatch calls and which never descends from a root event."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 82,
+  "schema": "intent/issue@4.0",
+  "id": "0082",
   "slug": "sync-to-disk-silently-does-not-materialise-a-new",
   "title": "sync --to-disk silently does not materialise a new attachment, so a free file authored in canon alone never reaches disk",
   "status": "closed",

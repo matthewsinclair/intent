@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.1",
+  "text": "Every listing orders ordinals by number, then hashed records by creation, in its present buckets and direction.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

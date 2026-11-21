@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 732,
+  "schema": "intent/issue@4.0",
+  "id": "0732",
   "slug": "day-of-event-folds-a-store-read-failure-into-cre",
   "title": "day_of_event folds a store read failure into created: None, so a missing event and an unreadable store read alike",
   "status": "closed",

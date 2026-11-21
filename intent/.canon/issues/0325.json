@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 325,
+  "schema": "intent/issue@4.0",
+  "id": "0325",
   "slug": "at-new-covers-missing-ac-refuses-correctly-but-w",
   "title": "at new --covers <missing AC> refuses correctly but with a PUT/POST remedy unrelated to the error",
   "status": "closed",

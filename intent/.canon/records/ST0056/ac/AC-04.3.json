@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.3",
+  "text": "The close-gate reads the model and reproduces v2 gate verdicts -- including every one of v2's own gate rules that remains constructible in v3, each with its own distinguishable diagnosis, proven against contracts built to trip them rather than against a corpus that happens to be clean",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

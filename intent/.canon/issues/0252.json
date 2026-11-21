@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 252,
+  "schema": "intent/issue@4.0",
+  "id": "0252",
   "slug": "dispatch-table-json-declares-help-h-as-an-intrin",
   "title": "dispatch-table.json declares --help/-h as an intrinsic row on 10 rows and declares no row for --version/-V",
   "status": "closed",

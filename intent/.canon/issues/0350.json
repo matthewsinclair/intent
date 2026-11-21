@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 350,
+  "schema": "intent/issue@4.0",
+  "id": "0350",
   "slug": "intent-critic-answers-outside-a-project-indistin",
   "title": "intent critic answers outside a project, indistinguishably from inside one",
   "status": "closed",

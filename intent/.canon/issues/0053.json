@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 53,
+  "schema": "intent/issue@4.0",
+  "id": "0053",
   "slug": "ac-rescope-and-ac-reinstate-refuse-a-legal-self",
   "title": "ac rescope and ac reinstate refuse a legal self-loop at exit 1 -- 0051's mechanism surviving twenty lines from the copy cc fixed, and the refusal names the wrong verb",
   "status": "closed",

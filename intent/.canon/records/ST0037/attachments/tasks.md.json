@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0037: Language config: replace filesystem probes with explicit config\n\n## Tasks\n\n- [ ] Task 1\n- [ ] Task 2\n- [ ] Task 3\n- ...\n\n## Task Notes\n\n[Additional notes about specific tasks if needed]\n\n## Dependencies\n\n[Task dependencies and sequencing requirements]\n",
+  "bytes": 270,
+  "sha256": "d9d7391f0e7ad5a4fd951903122da4fbea8609cfd3d35c9c00f752140110a51a"
+}

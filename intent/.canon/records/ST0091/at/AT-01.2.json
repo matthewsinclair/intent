@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "tests/unit/releasestamp_lib.bats",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "The cut's helpers in releasestamp.lib, the lock and footer arms re-homed from the retired driver's tests; banked at refs/bank/dc/st0091/wp01a-v1 (blob c96b329f9f42, patch-id 6c2b14cb5b1c), not yet on main; it stays to-write until the train lands, where it moves red then green against the judge run. Moved red at its landing (2026-11-10, dc), in the commit that adds the file, with the file's id lines (vc's ruling). The bank that landed is wp01a-v2 (blob 91b283aadaca, patch-id 118866bca26c), which superseded the wp01a-v1 named above. Green is vc's, from its judged run of the train. Red on the code as it was: all 13 arms red on the tree before bank 2 (8770037a2); all 13 pass on this commit. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
+}

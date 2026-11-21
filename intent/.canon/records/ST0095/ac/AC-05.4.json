@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.4",
+  "text": "Two branches that each add a work package to one thread merge with both packages kept and no claim moved.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

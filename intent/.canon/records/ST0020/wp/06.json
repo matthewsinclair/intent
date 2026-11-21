@@ -1,0 +1,9 @@
+{
+  "id": "06",
+  "title": "Skill Installation Infrastructure",
+  "scope": "L",
+  "status": "done",
+  "objective": "Create `intent claude skills` CLI command for managing skill lifecycle, mirroring the existing subagent architecture.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/bin/intent_claude_skills` — new CLI command\n- BATS tests for all subcommands\n\n## Commands\n\n- `intent claude skills list` — show available and installed skills\n- `intent claude skills install <name>` — copy SKILL.md to `.claude/skills/<name>/`\n- `intent claude skills sync` — update installed skills (SHA256 checksums)\n- `intent claude skills uninstall <name>` — remove skill from project\n- `intent claude skills show <name>` — display skill content and status\n\n## Architecture\n\n- Source directory: `intent/plugins/claude/skills/<name>/SKILL.md`\n- Target directory: `.claude/skills/<name>/SKILL.md` in target projects\n- Manifest: `~/.intent/skills/installed-skills.json` (SHA256 pattern from subagents)\n\n## Implementation Approach\n\nFactor out common install/sync/uninstall logic from `intent_claude_subagents` into shared functions. Build `intent_claude_skills` using the same patterns. Register in Intent's CLI command routing.\n\n## Acceptance Criteria\n\n- [ ] All 5 subcommands working\n- [ ] SHA256 manifest tracking matches subagent pattern\n- [ ] BATS tests for install, sync, uninstall, list, show\n- [ ] Command registered in Intent CLI routing\n- [ ] Installs SKILL.md to correct target path\n- [ ] Sync detects modified/stale skills correctly\n\n## Dependencies\n\n- WP-02 (needs at least one skill to install/test with)",
+  "preamble": ""
+}

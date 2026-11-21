@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 308,
+  "schema": "intent/issue@4.0",
+  "id": "0308",
   "slug": "the-pre-commit-gate-never-runs-intent-doctor-so",
   "title": "The pre-commit gate never runs intent doctor, so a commit onto a red estate is accepted in silence",
   "status": "closed",

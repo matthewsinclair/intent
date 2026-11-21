@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.7",
+  "text": "A mint whose short form equals that of a visible record of its own kind draws a new creation event id before anything is written, and refuses loudly after its last draw.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

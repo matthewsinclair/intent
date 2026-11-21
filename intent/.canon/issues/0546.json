@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 546,
+  "schema": "intent/issue@4.0",
+  "id": "0546",
   "slug": "the-release-step-s-push-is-refused-by-the-pre-pu",
   "title": "The release step's push is refused by the pre-push check: its version bump changes native/rust, and it never rebuilds the delivered pair",
   "status": "closed",

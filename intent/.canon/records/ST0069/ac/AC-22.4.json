@@ -1,0 +1,8 @@
+{
+  "id": "AC-22.4",
+  "text": "A daemon builds its index when it opens a project: a daemon-served search finds a file below the root that was on disk before the daemon started, with no watcher event naming it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

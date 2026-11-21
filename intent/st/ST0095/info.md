@@ -18,26 +18,11 @@ hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted hig
 
 ## Work Packages
 
-| WP    | Title                                                      | Size | Status      |
-| ----- | ---------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Core tests take ids from the mint                          | S    | Done        |
-| WP-02 | The mint verbs say their id, and CLI tests read it         | M    | Done        |
-| WP-03 | The commit gate spares the main store; scripts capture ids | M    | WIP         |
-| WP-04 | The waist: one module owns an id                           | L    | Done        |
-| WP-05 | The merge knows both families                              | S    | WIP         |
-| WP-06 | The hashed family                                          | L    | Done        |
-| WP-07 | Prefix resolution                                          | M    | Done        |
-| WP-08 | The order                                                  | S    | Done        |
-| WP-09 | Criteria follow their package, and doctor verifies         | S    | Done        |
-| WP-10 | Every door takes and shows both families                   | L    | Done        |
-| WP-11 | The TUI, the app and the served page                       | M    | Done        |
-| WP-12 | The pipeline asks the waist; the drill; the fleet          | M    | Not Started |
-| WP-13 | Docs, skills, rules and templates teach the new ids        | L    | Not Started |
-| WP-14 | Kind tags and the owner of a path have one home            | S    | Done        |
+Each work package is a record of its own: `intent wp list ST0095` lists them, and `intent wp show ST0095/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
+Acceptance criteria and tests are records of their own: `intent ac list ST0095` and `intent at list ST0095` list them, and `intent ac gate ST0095` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
 
 ---
 

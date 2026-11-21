@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.1",
+  "text": "A project's backup.schedule fires for a project intentd never opens: intent explore takes a due backup after its load and before the terminal is taken, through backup::if_due, the one composition intentd's sweep also calls, and announces the wait on stderr first.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

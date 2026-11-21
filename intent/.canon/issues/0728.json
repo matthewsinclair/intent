@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 728,
+  "schema": "intent/issue@4.0",
+  "id": "0728",
   "slug": "cut-gate-s-check-rust-decides-its-reds-inline-a",
   "title": "cut/gate's check_rust decides its reds inline: a pure reds_confined would hold the three-way read",
   "status": "closed",

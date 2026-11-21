@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.3",
+  "kind": "non-test",
+  "prose": "A READ OF THE SURVIVING CANON SET FOR CLAIMS ABOUT TOOL BEHAVIOUR -- a flag, an exit code, a spelling, a default -- ASKING OF EACH WHETHER THE TOOL ITSELF ANSWERS THE SAME QUESTION. Where it does, the document must point at the answering verb rather than restate the answer. NON-TEST BECAUSE THE JUDGEMENT IS WHETHER A SENTENCE IS A CLAIM ABOUT THE BUILD AT ALL, which is a reading, not a pattern: \"run `intent upgrade` to convert\" is a claim about a verb existing, \"`--skip-settings` was not carried into v3\" is a claim about a build, and no grep separates them. THE READ IS AGAINST A NAMED BUILD AND SAYS WHICH, because a claim about the tool is a claim about a REVISION and this estate is a port -- a v2-true sentence reads identically after it stops being true of v3, and a re-drive aimed at its CITATION passes. WHAT MAKES A SURVIVING CLAIM ACCEPTABLE IS NOT THAT IT IS CURRENTLY TRUE: it is that something other than a human's memory will notice when it stops being.",
+  "covers": [
+    "AC-00.3"
+  ],
+  "status": "n-a",
+  "note": "NOT YET DONE, and it needs a BUILD named at the time of the read rather than a date. The WP-01 catalogue measured against `intent 3.0.0 (4479264f)` on 2026-08-28, with a scratch `intent init` in an empty directory as its control -- which is the right shape -- but that build is many commits behind and the surviving set has not been cut yet. THIS NOTE WAS WRITTEN TWICE: the first attempt passed it as an inline double-quoted shell argument, and zsh executed every backticked span in it as a command. Both citations were replaced with nothing, the row was created, and the tool printed `ok`. The note read plausibly and had silently lost the two facts it existed to carry."
+}

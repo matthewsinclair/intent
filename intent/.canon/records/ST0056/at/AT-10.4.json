@@ -1,0 +1,9 @@
+{
+  "id": "AT-10.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/migrate_hooks_continuity.rs",
+  "covers": [
+    "AC-10.4"
+  ],
+  "status": "green"
+}

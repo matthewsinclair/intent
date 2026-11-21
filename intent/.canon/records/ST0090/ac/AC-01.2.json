@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "`intent index status`, `intent index rebuild` and `intent index resolve` name that state on each language's first line, with the stored line, the dropped line, the extractor line and every stale path below it as today, and a search answer's `index.resolution` names the same state for the same run.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

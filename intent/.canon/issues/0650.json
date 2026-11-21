@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 650,
+  "schema": "intent/issue@4.0",
+  "id": "0650",
   "slug": "tracked-githooks-dispatchers-ship-in-every-proje",
   "title": "Tracked .githooks dispatchers ship in every project's release archive",
   "status": "closed",

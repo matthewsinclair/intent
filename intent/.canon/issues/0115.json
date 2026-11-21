@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 115,
+  "schema": "intent/issue@4.0",
+  "id": "0115",
   "slug": "claude-upgrade-report-mode-prints-the-canon-rost",
   "title": "claude upgrade report mode prints the canon roster, not a diff, so a clean estate and a stale one look identical",
   "status": "closed",

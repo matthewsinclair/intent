@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.1",
+  "kind": "non-test",
+  "prose": "hv reads design.md at the pre-kickoff check-in and ratifies or amends",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "n-a"
+}

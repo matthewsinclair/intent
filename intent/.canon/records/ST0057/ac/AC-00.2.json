@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.2",
+  "text": "**`THREAD_PROSE` names no filename in the classifier, and every `design.md`, `impl.md` and `tasks.md` under `intent/st/` is carried as an attachment** (D57-6). Property, not count: for every file matching the three names, the artefact is present in canon and its bytes round-trip. The enumerated total is printed as the denominator, so a carry that covers some is distinguishable from one that covers all.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

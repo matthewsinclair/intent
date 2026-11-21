@@ -1,0 +1,10 @@
+{
+  "id": "AT-09.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/mcp_bridge_restart.rs",
+  "covers": [
+    "AC-09.3"
+  ],
+  "status": "green",
+  "note": "mcp_bridge_restart.rs drives a real daemon restart under one home (cc's RealDaemon::restart, d39d29eb): a graphql bridge call answers through the first daemon, the daemon is restarted (new serving pid, endpoint UNCHANGED -- the socket is fixed per home so pid is the witness), and a fresh bridge call re-resolves per request (hatch.rs resolves candidates on every call) and reaches the NEW daemon, its dispatch counter moving. A client that resolved once at startup would hit a dead socket; per-request resolution reaches the live one. Greened by ic 2026-08-31."
+}

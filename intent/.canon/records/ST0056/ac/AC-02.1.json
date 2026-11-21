@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "The cargo workspace builds with fmt + clippy gates on macOS and Linux CI",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "rust CI run 31812129560 green on 736033d"
+  }
+}

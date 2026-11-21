@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/daemon_lifecycle.rs",
+  "covers": [
+    "AC-08.7"
+  ],
+  "status": "green",
+  "note": "**DRIVEN BY vc 2026-08-30 20:25Z at `1bc23052`, in a detached worktree. 6/6 in the file; THIS ROW IS ARMS 5-6 ONLY**: `a_stale_launchagent_is_regenerated_when_the_daemon_boots` and `booting_does_not_enrol_a_machine_that_never_asked`.\n\n**THE OLD CITATION NAMED `intentd/tests/policy_stamp_healing.rs`, WHICH EXISTS NOWHERE IN THE ESTATE.** Not a directory error like its siblings -- that filename has never existed. The behaviour was built inside `daemon_lifecycle.rs` because both healing arms need the same `Machine` harness (start, stop, `state_dir`, Drop) the lifecycle arms use.\n\n**THIS ROW AND `AT-08.4` NOW CITE THE SAME FILE, WHICH IS WHY BOTH NAME THEIR ARMS.** A bare filename on both would mean greening one greens the other by inspection, and the citation would stop being the criterion's own check clause -- `AC-08.8`'s standard, applied here before it could be broken rather than after. **The two-arm split is the honest one: 1-4 are LIFECYCLE (`AC-08.4`), 5-6 are POLICY-STAMP SELF-HEALING (`AC-08.7`), and they share only a harness.**\n\n**THE SECOND ARM IS THE ONE THAT MAKES THE FIRST MEAN ANYTHING.** `a_stale_launchagent_is_regenerated_when_the_daemon_boots` alone passes on a daemon that regenerates a plist for EVERY machine on every boot, which would enrol operators who never asked for a LaunchAgent. `booting_does_not_enrol_a_machine_that_never_asked` is the negative side, and self-healing without it is not a policy, it is a side effect."
+}

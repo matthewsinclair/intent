@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "The shipped `in-whiteboard/SKILL.md` contains no live references to the retired 2.0 model (`asks.md`, `lamplight.md`, `cookies.md`, the flat per-stream files, the `to:` / `from:` ask header) except where explicitly naming them as retired.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

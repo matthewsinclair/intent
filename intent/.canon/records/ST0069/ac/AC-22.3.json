@@ -1,0 +1,8 @@
+{
+  "id": "AC-22.3",
+  "text": "`Op::Search` crosses the wire carrying the same envelope.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

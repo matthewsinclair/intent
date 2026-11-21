@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/flush_is_one_transaction.rs",
+  "covers": [
+    "AC-14.7"
+  ],
+  "status": "green",
+  "note": "BUILT AND PROVEN 2026-08-27 (hv ruled BUILD IT, first-hand, in ic's session). The criterion was UNBUILT rather than uncovered: todo_flush committed apply()'s transaction with the todo.flush event in it and then wrote the watermark through a separate unwrapped INSERT. The watermark write is now inside commit_mutation's existing transaction, carried by an explicit ProjectStateEdit on Mutation -- an explicit parameter and NOT a third reader of the op string, because the op vocabulary already has two consumers that fail in opposite directions (vc's F1). The unwrapped Store::flush_todo_watermark is REMOVED rather than left beside it. THE PROOF IS AN INJECTION THAT FAILS THE WRITE AND LEAVES THE READ WORKING: the project table is replaced under a live facade with one permitting a NULL watermark and refusing any value, so the failure lands exactly where the old shape had already committed. Measured: under the old two-transaction shape the event SURVIVES and this test reds; under one transaction it rolls back. WHAT THE FIRST ATTEMPT GOT WRONG, kept because it is the reason the fixture is so specific: dropping the table outright made todo_flush die at its READ of the watermark, before the two-write window, so the test passed under BOTH implementations and proved nothing."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 736,
+  "schema": "intent/issue@4.0",
+  "id": "0736",
   "slug": "four-test-id-scanners-see-only-ordinal-ids-so-th",
   "title": "Four test id scanners see only ordinal ids, so their leak and status checks miss every hashed id",
   "status": "closed",

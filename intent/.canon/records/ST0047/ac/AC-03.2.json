@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "`ws hygiene [<ws>]` validates structure (every node: parseable `wip.md` frontmatter + `.history/.gitkeep`; every inbox: header + sentinel-or-entries) and exits non-zero with a report on violation.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

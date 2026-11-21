@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.7",
+  "text": "`intent todo` / `intent todo list` prints `todo.md` (generating it first if absent); `intent todo help` prints usage.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

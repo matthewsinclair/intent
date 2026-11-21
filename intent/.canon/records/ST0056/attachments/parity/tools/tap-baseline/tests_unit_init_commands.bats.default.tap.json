@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_init_commands.bats.default.tap",
+  "text": "1..13\nok 1 init uses directory name if no project name given\nok 2 init creates a project in the current directory by default\nok 3 init creates a project in a specified directory\nok 4 init creates proper configuration file\nok 5 init creates required project files\nok 6 init fails on existing Intent project\nok 7 init creates proper directory permissions\nok 8 init --with-st0000 creates project with ST0000 deliverables\nok 9 init --with-st0000 flag works before project name\nok 10 init without --with-st0000 does not run ST0000 bootstrap\nok 11 init --with-st0000 installs Elixir deliverables when mix.exs present\nok 12 init respects author from git config\nok 13 interactive agent install routes through the claude subagents dispatcher\n",
+  "bytes": 733,
+  "sha256": "554a444c843ef818cc5e727d627b3a10b92cbf8de72e81a32189ed25f7b365e4"
+}

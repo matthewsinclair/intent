@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/graphql_reads_through_the_facade.rs",
+  "covers": [
+    "AC-14.7"
+  ],
+  "status": "green",
+  "note": "The wb family is served by intent wb from the store in-process (the register rows and render arms for status, show, ask, announce, add, decide, archive, claim, unclaim, clear, touch, release, pickup, register, migrate) and any node's board is readable over GraphQL: one document through Facade::graphql against a real store reads boards and board(node), with an unregistered moniker answering null."
+}

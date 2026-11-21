@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_st_new_acceptance.bats.mutant.tap",
+  "text": "1..3\nnot ok 1 info templates reference acceptance.md and restate no ACs\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/st_new_acceptance.bats, line 23)\n#   `run run_intent st new \"Ref Thread\"; assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 2 st show and edit know the acceptance file type\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/st_new_acceptance.bats, line 40)\n#   `run run_intent st new \"Doc Thread\"; assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nok 3 open STs ST0043 and ST0044 each have an acceptance.md\n",
+  "bytes": 749,
+  "sha256": "56d8cc255518f9f90e1c86bfc4f020491144a89130d9537f786ef16825204449"
+}

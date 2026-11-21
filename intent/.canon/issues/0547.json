@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 547,
+  "schema": "intent/issue@4.0",
+  "id": "0547",
   "slug": "the-hook-shim-s-where-names-an-empty-install-poi",
   "title": "The hook shim's --where names an empty install pointer UNUSABLE, where its own gate path and bootstrap --check name it ABSENT",
   "status": "closed",

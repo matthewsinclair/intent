@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.1",
+  "text": "The five-step is documented and mapped onto the skill set; the open-gate and close-gate are described where a builder will meet them",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "working-with-llms.md D11 + in-plan/in-verify/in-finish pointers"
+  }
+}

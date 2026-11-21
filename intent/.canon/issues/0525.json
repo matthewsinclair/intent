@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 525,
+  "schema": "intent/issue@4.0",
+  "id": "0525",
   "slug": "an-edited-board-item-or-message-carries-no-mark",
   "title": "An edited board item or message carries no mark, so a peer who acted on it cannot see that it changed",
   "status": "closed",

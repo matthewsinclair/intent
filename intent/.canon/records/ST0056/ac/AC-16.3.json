@@ -1,0 +1,11 @@
+{
+  "id": "AC-16.3",
+  "text": "**A table the parser cannot read FAILS LOUDLY and is never skipped.** `data-model.md` is hand-authored markdown with prose between its tables, so an unparseable table is the likely case rather than the exotic one -- and a skipped entity reported as checked is the defect this WP exists to remove, one level up. The refusal names the entity and the table it could not read.",
+  "kind": "test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0069",
+    "by": "hv via vc",
+    "reason": "3.0.1 cut scope, hv ruling 2026-08-30. Never-started feature work moved whole so ST0056's gate measures what 3.0.1 ships. NOT a descope-for-a-green: ST0056 stays BLOCKED after the move. WP-14's declared WP-14-blocks-WP-12 coupling was MEASURED and does not hold -- intent claude ws is native in v3 (new/list/archive/hygiene), so pruning bin/ under AC-12.1 does not remove the whiteboard tooling, and intent wb does not exist. The requirement is unchanged and unbuilt; only the thread it is counted against moved."
+  }
+}

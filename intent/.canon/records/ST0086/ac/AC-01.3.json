@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "Project, node, focus and claims are joined, never stored: the project is the Intent project whose tree holds the session's cwd, a cwd in a git worktree folding to its main checkout; node, focus and claims come from the board whose recorded session id matches, read from the rendered `board.json` header under board schema 3.0 and 4.0 alike, and the reader opens no store.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

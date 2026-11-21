@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 671,
+  "schema": "intent/issue@4.0",
+  "id": "0671",
   "slug": "intentd-started-without-claude-config-dir-sees-n",
   "title": "intentd started without CLAUDE_CONFIG_DIR sees no Claude session, so the estate page marks every running slot ORPHANED",
   "status": "closed",

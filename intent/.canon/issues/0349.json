@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 349,
+  "schema": "intent/issue@4.0",
+  "id": "0349",
   "slug": "tests-that-read-this-repository-instead-of-a-fix",
   "title": "Tests that read this repository instead of a fixture red whenever the estate is mid-flight",
   "status": "closed",

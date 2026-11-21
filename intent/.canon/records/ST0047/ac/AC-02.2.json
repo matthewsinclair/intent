@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "`compose_ctx <ws>` output carries the workstream identity line, `.claude/restart.md`, and the standing \"show a daily plan, then wait\" instruction; it does not bake in the live board.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

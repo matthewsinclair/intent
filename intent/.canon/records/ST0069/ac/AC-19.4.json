@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.4",
+  "text": "Source text is tokenised without stemming and snake_case splits into its words; the tokeniser decision carries its measured recall on an identifier fixture.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

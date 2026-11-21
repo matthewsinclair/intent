@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "`in-standards` is gone; `in-essentials` carries its one unique section and none of its copied ones; every former caller of `in-standards` names `in-essentials` or nothing; and the index-first paragraph keeps its authored population (`prior_art_route.bats`).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

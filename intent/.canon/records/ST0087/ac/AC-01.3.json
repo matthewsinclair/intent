@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "`intent --version`, `intent version`, intentd's own version print and doctor's first human line come from one formatter and read `intent <version> (<tree>, <sha12>[+dirty]) [<provenance>]`: the sha is the built commit read from the binary and never HEAD, `+dirty` appears only in dev and only when the support set differs from the built commit or the pair was built dirty, the provenance word follows the parenthesis, and a dev tree whose git cannot be read prints `(dev, unknown)`. (The root left the line on hv's ruling of 2026-10-25, decision 82, issue 0647; `which intent` says where the binary is.)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.3",
+  "text": "A stale, partial or empty index is named in the envelope and on the terminal, or the query refuses with the remedy; a confident subset is never returned.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

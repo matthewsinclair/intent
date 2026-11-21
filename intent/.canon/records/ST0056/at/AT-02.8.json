@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.8",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/record_timestamps.rs",
+  "covers": [
+    "AC-02.8"
+  ],
+  "status": "green",
+  "note": "**and the guard `one_clock.rs` must be widened to walk `tests/` as well as `src/`, or the ban is unenforced exactly where fixtures are written.** -- **the discriminating case is a row whose timestamp the CALLER supplied, and a test that reads the column back passes on the defect** -- the column is populated either way. Prove the DATABASE wrote it: insert through the facade with no time available to the caller at all, and assert the column is non-null and ordered. Second arm: two writes in sequence must be non-decreasing, which is the property a read-then-write gap cannot guarantee. Third: `event_log.ts` must stop being an argument to `Envelope::new`"
+}

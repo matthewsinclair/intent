@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/error_remedies.rs",
+  "covers": [
+    "AC-14.5"
+  ],
+  "status": "green",
+  "note": "Satisfied as built with its limit on the record (vc, 2026-09-12). Every write the API takes names its acting node and touches only that node's board, or the inbox it sends into. error_remedies.rs provokes the refusal of a write whose acting node is not registered, by name with the roster. A write that names no acting node at all is refused before it reaches the facade, by the renderer's acting_node, rather than guessed. THE LIMIT: the acting node's identity is the caller's claim through --node; structural enforcement needs it sourced from somewhere the caller does not choose, which is with hv beside INTENT_NODE."
+}

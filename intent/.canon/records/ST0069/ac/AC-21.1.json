@@ -1,0 +1,8 @@
+{
+  "id": "AC-21.1",
+  "text": "`/search <query>` in the explorer opens a resident results pane whose rows are the envelope's hits, with the freshness line in the INFO section.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

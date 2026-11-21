@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 18,
+  "schema": "intent/issue@4.0",
+  "id": "0018",
   "slug": "intent-treeindex-is-committed-a-machine-local",
   "title": "intent/.treeindex/** is committed: a machine-local derived cache is tracked as project state, and nothing ignores it",
   "status": "closed",

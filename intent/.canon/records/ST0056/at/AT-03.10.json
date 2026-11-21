@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.10",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/sync_direction.rs",
+  "covers": [
+    "AC-03.9"
+  ],
+  "status": "green",
+  "note": "the discriminating case is a STALE-file restore: mutate through the facade, do not sync outward, then run the disk-to-db direction and assert it refuses (or names the loss) rather than silently reverting the mutation; plus the bare verb refusing to choose **RESTORED after `intent at` destroyed it -- issue 0033.** Verified green 2026-08-15: 6 tests, including `a_restore_from_stale_files_destroys_a_change_the_store_alone_holds` and `the_overwrite_is_named_before_the_restore_runs`."
+}

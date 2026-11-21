@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.5",
+  "text": "`intent organise --default` and `intent organize --default` are one code path: the alias reaches the same handler and the two invocations produce byte-identical files and output.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

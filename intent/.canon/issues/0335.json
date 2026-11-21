@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 335,
+  "schema": "intent/issue@4.0",
+  "id": "0335",
   "slug": "ci-swift-and-skill-scripts-tests-yml-never-runs",
   "title": "CI, Swift and skill scripts: tests.yml never runs the built intent, a stdout-before-stderr deadlock, a false LEAKED, WP directories the store never registers",
   "status": "closed",

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_elixir.bats.default.tap",
+  "text": "1..6\nok 1 elixir pack: every catalogued rule exists\nok 2 elixir pack has the expected total rule count\nok 3 elixir pack: each rule declares its canonical id\nok 4 elixir pack: each rule declares language: elixir\nok 5 elixir pack: each rule passes intent claude rules validate\nok 6 elixir pack: rules list reports every elixir id\n",
+  "bytes": 328,
+  "sha256": "bc64932f2f3b2fdd2eef4135a912765fd5bb076a3882f9a9ba5a2b21a0fa0129"
+}

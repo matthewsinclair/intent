@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 403,
+  "schema": "intent/issue@4.0",
+  "id": "0403",
   "slug": "wb-migrate-turns-a-board-s-sub-headings-into-ite",
   "title": "wb migrate turns a board's ### sub-headings into items that carry a literal ###, so the grouping they recorded survives only as order within a kind",
   "status": "closed",

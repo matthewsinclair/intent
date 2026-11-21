@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.4",
+  "text": "`--kind open|closed|all` filters the listing; an empty bucket prints a clean empty state, not an error; an invalid `--kind` fails via `error()`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

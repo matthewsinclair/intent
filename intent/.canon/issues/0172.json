@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 172,
+  "schema": "intent/issue@4.0",
+  "id": "0172",
   "slug": "intentd-holds-no-persisted-project-registry-so-a",
   "title": "intentd holds no persisted project registry, so a login-started daemon backs up nothing until something contacts it",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "non-test",
+  "prose": "Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "n-a",
+  "note": "Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself."
+}

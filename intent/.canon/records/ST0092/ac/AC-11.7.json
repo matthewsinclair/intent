@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.7",
+  "text": "The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with hv's words.",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0094"
+  }
+}

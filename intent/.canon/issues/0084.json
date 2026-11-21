@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 84,
+  "schema": "intent/issue@4.0",
+  "id": "0084",
   "slug": "one-fact-refused-in-two-homes-and-only-one-retirement",
   "title": "A retired refusal left two survivors: ingest refuses a thread on a label the collector had already stopped honouring, and the finding class still hands out a remedy that destroys the artefact",
   "status": "closed",

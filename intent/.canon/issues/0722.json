@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 722,
+  "schema": "intent/issue@4.0",
+  "id": "0722",
   "slug": "doors-that-read-a-live-disk-compare-attachment-p",
   "title": "Doors that read a live disk compare attachment paths exactly, so a case-only rename is a second file to them",
   "status": "closed",

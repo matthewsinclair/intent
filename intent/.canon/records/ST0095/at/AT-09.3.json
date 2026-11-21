@@ -1,0 +1,10 @@
+{
+  "id": "AT-09.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:87",
+  "covers": [
+    "AC-09.3"
+  ],
+  "status": "green",
+  "note": "Written after the land. Red on the base: doctor has no ShortFormShared advisory, and it counted a short-form pair as DuplicateId. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.6",
+  "text": "An unknown profile name is refused with the shipped names in its remedy, and nothing is read from `~/.local/share/intent/ext/`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

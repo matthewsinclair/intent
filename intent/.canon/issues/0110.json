@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 110,
+  "schema": "intent/issue@4.0",
+  "id": "0110",
   "slug": "claude-upgrade-cannot-converge-on-agents-md-the",
   "title": "claude upgrade cannot converge on AGENTS.md: the renderer emits spacing prettier rejects",
   "status": "closed",

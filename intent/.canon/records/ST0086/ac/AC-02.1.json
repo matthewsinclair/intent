@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "intentd answers the page's data call `{\"op\":\"form\",\"view\":\"/estate/status\",\"root\":...}` with `result: estate_status` carrying the reader's JSON; /estate/status is a route in the one shell document fed by `/op`, the daemon renders no HTML for it, and `/op` refuses without the bearer token as every op does.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

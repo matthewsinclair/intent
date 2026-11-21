@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 695,
+  "schema": "intent/issue@4.0",
+  "id": "0695",
   "slug": "wb-init-team-s-first-apply-rendered-the-mediator",
   "title": "wb init team's first --apply rendered the mediator's moniker in the roster README where its display name belongs",
   "status": "closed",

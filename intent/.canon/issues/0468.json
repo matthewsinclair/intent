@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 468,
+  "schema": "intent/issue@4.0",
+  "id": "0468",
   "slug": "release-the-stamp-step-s-in-process-sync-to-disk",
   "title": "release: the stamp step's in-process sync --to-disk refuses beside a watching intentd",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/store_schema_version.rs",
+  "covers": [
+    "AC-02.7"
+  ],
+  "status": "green",
+  "note": "**the discriminating case is a store written BEFORE a schema change, and a test that opens a freshly-created store passes on the defect** -- fourth instance of that class today, alongside `openness.rs` passing on the tables that already have file forms, the WAL probe that closed the DB before snapshotting, and dc's vacuous `INTENT_HOME` run. Build the fixture by opening a store, applying an older DDL, then opening it with the current code and asserting the open REFUSES with a named remedy. Asserting only that a query fails is the wrong assertion: it tests where the defect surfaces rather than the invariant, and it goes green the day someone changes the query **RESTORED after `intent at` destroyed it -- issue 0033.** Verified green 2026-08-15: 6 tests, discriminating case present."
+}

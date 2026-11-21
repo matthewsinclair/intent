@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_no_absolute_home_paths.bats.default.tap",
+  "text": "1..10\nok 1 the shipped .claude/ template carries no absolute home path\nok 2 this project's own TRACKED .claude/ stack carries no absolute home path\nok 3 settings.json needs no substitution and is byte-identical to the template\nok 4 the canon engine has no INTENT_HOME substitution left to reintroduce it\nok 5 a scaffolded project's hooks are portable and actually run\nok 6 the hook runner passes stdin and the exit code through untouched\nok 7 the treeindex cache is not tracked, and the ignore rule keeps it that way\nok 8 the canon gitignore seam carries the treeindex rule to a consumer\nok 9 an already-tracked consumer cache is REPORTED, never untracked for them\nok 10 an unknown hook name is refused by name, not left to the shell\n",
+  "bytes": 734,
+  "sha256": "3c04c653798e91ae3f4b2701a736e7dfb3d7fbf31d22f657b1f15447bf7155f6"
+}

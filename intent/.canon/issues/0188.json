@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 188,
+  "schema": "intent/issue@4.0",
+  "id": "0188",
   "slug": "the-register-cannot-record-why-an-issue-was-clos",
   "title": "the register cannot record WHY an issue was closed, so no instrument can tell a fix from a wontfix",
   "status": "closed",

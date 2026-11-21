@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 368,
+  "schema": "intent/issue@4.0",
+  "id": "0368",
   "slug": "tests-unit-claude-md-template-bats-writes-author",
   "title": "tests/unit/claude_md_template.bats writes {\"author\":\"TestUser\"} into the REAL ~/.intent/config.json",
   "status": "closed",

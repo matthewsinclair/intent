@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "non-test",
+  "prose": "read `/in-standards` Step 3",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "n-a",
+  "note": "doc / eyeball"
+}

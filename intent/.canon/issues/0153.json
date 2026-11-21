@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 153,
+  "schema": "intent/issue@4.0",
+  "id": "0153",
   "slug": "intent-edit-refuses-the-address-form-its-own-rem",
   "title": "intent edit refuses the address form its own remedy tells the operator to use",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "**A daemon started WITHOUT a lifeline serves until signalled -- the production path, asserted rather than assumed.** This is the control on AC-01.1 and it is the row that matters most: an implementation that exits when no lifeline was passed would sail through AC-01.1 and silently kill the `launchd` daemon, whose plist is `KeepAlive false` with no socket activation, so it would not come back until next login. **The failure would present as 'the daemon is sometimes not running' and nothing would name this change.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

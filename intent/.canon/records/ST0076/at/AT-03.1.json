@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_are_qualified_elixir_references.rs",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "Red on d4d61052c before WP-03, with cc's shapes (patch-id 69d6653d) and the query as it stood: all ten arms failed in wt-wp03 on its own target at 13:27Z, against the query whose published gap was that a remote call such as Repo.get(..) is a reference to get without its module and alias is not expanded. Green at 997d760b1 (WP-03 landing, patch-id 4b4ef24b, vc's GO, judged with cc's shapes as one train on d4d61052c): remote calls, captures and pipe targets carry their module at level 2 with the arity written or piped; local calls, local captures and local pipe targets stay unqualified at level 1; use, import, require and alias name the whole module, one row per brace entry; the file's aliases and `__MODULE__` expand within the enclosing do-block."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 520,
+  "schema": "intent/issue@4.0",
+  "id": "0520",
   "slug": "the-explorer-does-not-automatically-refresh-when",
   "title": "The explorer does not automatically refresh when underlying data changes",
   "status": "closed",

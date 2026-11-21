@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.7",
+  "text": "A render refuses, before anything is written and naming the line, a README whose block markers are anything but one start followed by one end, and a first render refuses one that holds either marker.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 608,
+  "schema": "intent/issue@4.0",
+  "id": "0608",
   "slug": "devbin-canon-bats-hides-the-canon-sweep-s-output",
   "title": "devbin_canon.bats hides the canon sweep's output, so a CI red there cannot say what it saw (one Ubuntu flake at v3.2.4)",
   "status": "closed",

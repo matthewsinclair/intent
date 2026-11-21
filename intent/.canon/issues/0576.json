@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 576,
+  "schema": "intent/issue@4.0",
+  "id": "0576",
   "slug": "the-stop-hook-prints-its-in-finish-reminder-as-p",
   "title": "the Stop hook prints its /in-finish reminder as plain stdout, which Claude Code may send only to its debug log",
   "status": "closed",

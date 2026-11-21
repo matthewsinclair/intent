@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 742,
+  "schema": "intent/issue@4.0",
+  "id": "0742",
   "slug": "after-a-pull-sync-s-views-step-can-promise-write",
   "title": "After a pull, sync's views step can promise writes its run does not make: its preview reads the tree and the DONE cutoff before its own ingest step writes them",
   "status": "closed",

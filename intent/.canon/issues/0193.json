@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 193,
+  "schema": "intent/issue@4.0",
+  "id": "0193",
   "slug": "getting-started-tells-the-reader-st-edit-design",
   "title": "getting-started tells the reader st edit design works, and it refuses on both binaries because design is not a member of a v3 thread",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 719,
+  "schema": "intent/issue@4.0",
+  "id": "0719",
   "slug": "project-classify-reads-a-view-s-name-by-exact-st",
   "title": "Project::classify reads a view's name by exact string, so an author's Acceptance.md is carried as an attachment that a case-insensitive disk stores as the view's file",
   "status": "closed",

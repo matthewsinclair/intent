@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/fleet-runs/canary.verdict",
+  "text": "named -- artefact conservation clean; prose residue 2, both one defect, unnamed by the migration\nDriven by cc 2026-08-31 09:29Z on the pinned canary with ic's landed conservation_check.sh.\n  with --dispositions: ALTERED 2, without-a-destination 0, 543 findings\n  artefact: DOUBLED 194 + RELOCATED 192 = 386, STRANDED 0, ALTERED-ATTACHMENT 0\n  both zeros shown able to fire by planted mutations on COMPLETED/ST0001/design.md\nThe 2: issue CLOSED/0059 carries two `## Related` sections with different authored\nbodies; canon holds one. NAMED here, not named by the migration -- so this member\ndoes not satisfy either disjunct of AC-10.5 and the verdict is recorded as such.\n",
+  "bytes": 670,
+  "sha256": "6406a3d98a7adf60086d4704af11664cc2bebbcf5cd4bc90b91466cbaaaaf615"
+}

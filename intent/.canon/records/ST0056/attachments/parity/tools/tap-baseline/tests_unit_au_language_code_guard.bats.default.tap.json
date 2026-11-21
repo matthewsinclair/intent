@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_au_language_code_guard.bats.default.tap",
+  "text": "1..4\nok 1 rules validate accepts a well-formed IN-AU author id\nok 2 rules validate rejects a malformed IN-AU id (bad zero-padding)\nok 3 rules validate rejects a lowercase au language code\nok 4 author is registered in the canon-enumeration LANG_SUBDIRS default\n",
+  "bytes": 260,
+  "sha256": "4407b08c3c053b8e57c6788e5d88797f5e46c16e420bb4e7521f9bb51db0ec37"
+}

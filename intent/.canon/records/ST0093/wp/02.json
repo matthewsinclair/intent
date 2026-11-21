@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "Sync the installed skills; in-verify leaves the fold",
+  "scope": "S",
+  "status": "done",
+  "objective": "Take in-verify out of in-finish's chain, and sync every machine's installed skills to the release that carries this thread's skill text (design.md, the plan's A2).",
+  "body": "",
+  "preamble": ""
+}

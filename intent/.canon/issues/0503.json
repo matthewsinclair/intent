@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 503,
+  "schema": "intent/issue@4.0",
+  "id": "0503",
   "slug": "st-done-date-on-a-thread-already-completed-answe",
   "title": "st done --date on a thread already Completed answers ok at rc 0 and records no date, even a malformed one",
   "status": "closed",

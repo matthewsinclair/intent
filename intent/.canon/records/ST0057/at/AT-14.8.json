@@ -1,0 +1,9 @@
+{
+  "id": "AT-14.8",
+  "kind": "test",
+  "prose": "NOT BUILT, not merely untested. `git log -S TODO_FLUSH -- native/rust/crates/intentsvcs/src/migrate.rs` is EMPTY: the migration the cover names as the one and last exception to AC-14.2 was never written. The `todo_watermark: None` at migrate.rs:465 is the v2->v3 conversion and is correct there for the reason beside it -- a conversion has never been flushed. Measured 2026-08-27: 2 of 14 estates with a .canon/ carry project.json; the other 12 have none, and carry_project_state is absent-leaves-the-store-alone, so a machine that has never run a command in those 12 has no cutoff at all. That is this gap seen from the other end.",
+  "covers": [
+    "AC-14.8"
+  ],
+  "status": "to-write"
+}

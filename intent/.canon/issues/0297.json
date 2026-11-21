@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 297,
+  "schema": "intent/issue@4.0",
+  "id": "0297",
   "slug": "test-spawned-intentd-processes-are-never-reaped",
   "title": "test-spawned intentd processes are never reaped: 28 alive, none with a live working directory",
   "status": "closed",

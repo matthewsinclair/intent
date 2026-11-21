@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "**`organize` implements exactly the five rows of D57-3's table and every row is exercised**, with the fifth -- a path the renderer does not produce -- REPORTED and never removed. `organize` must not be the thing that decides an unrecognised file is rubbish.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

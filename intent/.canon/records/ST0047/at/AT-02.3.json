@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.3",
+  "kind": "test",
+  "file": "tests/unit/claude_with_intent.bats",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "green",
+  "note": "test: \"AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches\" The arm it cites was retired with the `claude ws` family by ST0069 AC-14.12 at 6de123412. Status stays GREEN and is not withdrawn: this was true when the thread closed on 2026-06-25, and a landed record is corrected FORWARD rather than rewritten (hv, 2026-08-21; ruled onto this row by vc, 2026-09-13). Its subject moved rather than ending: `start` on a node that is not on the board now REFUSES and names `intent wb register`, driven by `an_absent_node_is_refused_and_told_where_to_register_it` in `native/rust/crates/intent-cli/tests/claude_cwi_door.rs`."
+}

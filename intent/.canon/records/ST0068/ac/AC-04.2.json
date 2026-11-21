@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "The doc set is in the same tag as v3.0.1, not a later one",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "git tag --contains names v3.0.1 for the whole docs/reference regen (28ac7a017) and the 3.0.1 CHANGELOG and release notes (d5334200e), as does dc's own check of its four cut commits. The doc set is in the same tag as v3.0.1."
+  }
+}

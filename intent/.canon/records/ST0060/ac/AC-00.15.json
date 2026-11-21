@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.15",
+  "text": "**ADDED -- the measured consumer actually migrates.** Lamplight's three profiles import out of `~/.lamplight/config.toml`, the source is rewritten to references, and `bin/ll cli` reads through the vault. **Evidence is a Lamplight-side report, not an Intent-side test** -- Intent can prove the capability works and cannot prove a consumer adopted it.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

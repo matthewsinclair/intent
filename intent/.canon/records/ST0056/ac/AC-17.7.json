@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.7",
+  "text": "**NAV IS DERIVED FROM THE MODEL, NOT HAND-BUILT, AND EVERY LEVEL IS REACHABLE AND LEAVABLE.** Up and down traverse entity-kind -> collection -> item -> child (entities -> steel threads -> ST0068 -> its work packages), for ST, WP and ISSUE alike, and the traversal is generated from the schema relations rather than from a hand-written menu -- **a hand-written navigation tree is the same second home as a hand-written field list and goes stale the same way** (`AC-17.2`). **No level can be entered that cannot be left**, which is `no_state_can_be_entered_and_not_left` applied to navigation, and it is asserted by walking every level in both directions rather than by spot-checking a path.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

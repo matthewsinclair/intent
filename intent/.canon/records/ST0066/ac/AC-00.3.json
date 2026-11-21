@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.3",
+  "text": "FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from; no cascaded child renders as ordinarily closed.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "driven 2026-08-30 (dc), model AND render, on a fresh fixture. `fc ST0001` from `wip` cascaded to every open child: gate BLOCKED 0/2 -> PASS 0/2 satisfied, 2 fiat-closed. MODEL: each cascaded child carries `inherited_from: ST0001` and a shared `inherited_event` ULID (01M19A1NBMPKPCW95J6GV1MWVZ) naming the one act, while the ancestor's OWN record carries `inherited_from: null` -- so an individual judgement and a cascaded one are distinguishable by query, not by reading the prose. A WP-level close cascades only into its own scope (`inherited_from: ST0001/01` on AC-01.1, ST-level AC-00.1 untouched). RENDER, which is the half a model check does not reach: the generated acceptance view reads `AC-00.1 (non-test) ST-level criterion -- FIAT-CLOSED (by cascade from ST0001): <reason> (by matts, no tty, 2026-08-30T12:24:27.252Z)`, and the AT row likewise carries `status: fiat-closed -- FIAT-CLOSED (by cascade from ...)`. `grep -c 'satisfied: yes'` over that view is 0: NO cascaded child renders as ordinarily closed."
+  }
+}

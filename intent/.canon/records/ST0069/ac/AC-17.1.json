@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.1",
+  "text": "`intent search --sql <statement>` runs one read statement on a connection opened read-only and returns rows; a write, a second statement or a state-changing pragma is refused with the remedy naming the read-only contract.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

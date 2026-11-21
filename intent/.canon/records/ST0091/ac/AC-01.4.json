@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "The pair the cut builds at the release commit passes issue 0518's currency verdict when the release push runs.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

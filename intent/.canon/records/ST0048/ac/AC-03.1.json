@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "`docs/releases/2.13.1/RELEASE_NOTES.md` exists and LEADS with the behaviour change + the migration recipe (author ACs, or add `acceptance: exempt`).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "docs/releases/2.13.1/RELEASE_NOTES.md authored"
+  }
+}

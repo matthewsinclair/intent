@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.2",
+  "text": "The signing/notarisation decision is recorded and implemented",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "D38 (design.md) + int macos stage|sign|notarize|verify|checksum implemented and canaried both ways, run as one pass by int macos prepare; verify_notarised remains ONE implementation serving verify and checksum. Apple Accepted three times"
+  }
+}

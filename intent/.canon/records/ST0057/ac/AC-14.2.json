@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.2",
+  "text": "ONE home, and no fallback: nothing derives the cutoff from the event log. `event::todo_watermark` is REMOVED rather than kept as a fallback, so a `todo.flush` event appended directly to the log -- dated in the future -- does not move the cutoff. A fallback would be two homes for one value with both answers looking plausible, which is the defect this criterion exists to prevent rather than a style preference.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

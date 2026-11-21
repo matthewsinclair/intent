@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 672,
+  "schema": "intent/issue@4.0",
+  "id": "0672",
   "slug": "intent-agents-sync-writes-each-declared-language",
   "title": "intent agents sync writes each declared language's default build and test commands into AGENTS.md, which are wrong for a project that builds another way",
   "status": "closed",

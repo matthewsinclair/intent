@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.5",
+  "text": "`intent schema` prints the three committed faces (JSON Schema, DDL, SDL), and what it prints is byte-identical to the files under `schema/` (re-homed from WP-02's deliverable list -- see the WP-02 note below)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

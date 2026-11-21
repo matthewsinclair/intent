@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 127,
+  "schema": "intent/issue@4.0",
+  "id": "0127",
   "slug": "v2-ingest-can-drop-the-note-field-entirely-leavi",
   "title": "v2 ingest can drop the note FIELD entirely, leaving only a legacy.raw stub -- and a length delta reports the stub as a surviving short statement",
   "status": "closed",

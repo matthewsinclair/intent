@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 440,
+  "schema": "intent/issue@4.0",
+  "id": "0440",
   "slug": "intent-index-status-prints-an-incremental-run-s",
   "title": "intent index status prints an incremental run's counts as the language's level 3, so an Elixir run that recompiled nothing reads matched 0 while every row stays stored",
   "status": "closed",

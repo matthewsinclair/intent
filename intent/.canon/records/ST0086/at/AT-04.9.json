@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.9",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/slots.rs",
+  "covers": [
+    "AC-04.9"
+  ],
+  "status": "green",
+  "note": "arms: estate::slots::tests::a_hold_refuses_grants_naming_it_until_it_is_released; green in judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY) over the landed tree, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550)"
+}

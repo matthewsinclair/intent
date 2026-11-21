@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.6",
+  "text": "`intent wb init <base> --change --apply` registers the new base's seats and retires those of the old base that the new one does not declare, its dry run lists both, and a re-apply without `--change` retires nothing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

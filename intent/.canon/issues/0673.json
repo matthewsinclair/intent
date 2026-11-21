@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 673,
+  "schema": "intent/issue@4.0",
+  "id": "0673",
   "slug": "testkit-s-a-run-leaves-no-corpse-of-its-own-behi",
   "title": "testkit's a_run_leaves_no_corpse_of_its_own_behind races its sibling's sweep, which can remove the probe's fixtures between planting and counting",
   "status": "closed",

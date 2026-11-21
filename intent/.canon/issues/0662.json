@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 662,
+  "schema": "intent/issue@4.0",
+  "id": "0662",
   "slug": "two-board-writes-in-the-same-second-leave-a-stor",
   "title": "Two board writes in the same second leave a store edit with no event file and a stale board.json",
   "status": "closed",

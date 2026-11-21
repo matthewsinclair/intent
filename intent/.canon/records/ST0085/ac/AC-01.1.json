@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "The inventory names every surface through which text Intent stores or ships reaches an agent as prompt text, live or historical, and for each says where it lives, how an agent reads it, whether and by what route it can surface a stale copy, and what marks a non-live copy today; it proposes no fix.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0085/inventory.md at 622c1940a, accepted by vc as WP-01's report on 2026-10-23"
+  }
+}

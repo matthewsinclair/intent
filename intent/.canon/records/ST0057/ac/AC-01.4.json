@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "**Two threads edited concurrently produce diffs in two distinct files**, which is the property that rejected the consolidated `threads.jsonl` (D57-1 option B). Checked by editing two threads and observing the changed-path set, not by inspecting the layout.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 417,
+  "schema": "intent/issue@4.0",
+  "id": "0417",
   "slug": "no-verb-corrects-a-node-s-name-or-role-so-a-mist",
   "title": "no verb corrects a node's name or role, so a mistaken registration is undone only by editing a generated file or the store",
   "status": "closed",

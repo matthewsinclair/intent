@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.2",
+  "text": "doctor is rebuilt as model/DB integrity queries + file checks including the skew check and unparsed-state reporting",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

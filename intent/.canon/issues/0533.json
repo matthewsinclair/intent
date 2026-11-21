@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 533,
+  "schema": "intent/issue@4.0",
+  "id": "0533",
   "slug": "nothing-in-intent-answers-where-the-gate-s-insta",
   "title": "Nothing in Intent answers where the gate's install root resolves, so a consumer copies the shim's resolution to check it",
   "status": "closed",

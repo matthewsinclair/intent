@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 655,
+  "schema": "intent/issue@4.0",
+  "id": "0655",
   "slug": "intent-use-brew-refuses-without-naming-the-links",
   "title": "intent use brew refuses without naming the links it would have removed or why no Homebrew copy would answer (A4)",
   "status": "closed",

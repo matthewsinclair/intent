@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.1",
+  "kind": "non-test",
+  "prose": "Drive docs/getting-started.md on a machine that has never seen this repository, following only the published pages and RUNNING every command rather than reading it, terminating at `intent ac gate` returning PASS on a thread the reader created. Prose strengthened 2026-08-31 (vc) on dc's finding: it read `follow getting-started end to end on a fresh project and reach a satisfied criterion`, which was AC-02.1's bar BEFORE the 2026-08-30 rewrite, so the driven row and the read row had drifted apart and a build could have gone green on the weaker one.",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "n-a"
+}

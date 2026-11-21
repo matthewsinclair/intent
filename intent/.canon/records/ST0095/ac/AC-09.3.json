@@ -1,0 +1,8 @@
+{
+  "id": "AC-09.3",
+  "text": "acceptance.md lists a hashed package's criteria under its heading, and doctor names two records of one kind that share a short form as an advisory.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

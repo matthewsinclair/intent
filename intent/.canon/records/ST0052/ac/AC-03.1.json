@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "The `critic-author` subagent exists (`agent.md` + `metadata.json`), declares tools `Read, Grep, Glob, Bash` and neither `Write` nor `Edit`, and is registered in `.manifest/global-agents.json`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-10.2",
+  "text": "ic has read every new help line, refusal and exit code against the tool's voice and its exit-code contract, corrected what differed, and recorded the read on its board.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "AT-10.2: ic's read of 2026-11-11 on brew 3.3.0; the two help differences filed as issue 0681 on vc's ruling"
+  }
+}

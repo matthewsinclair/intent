@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 409,
+  "schema": "intent/issue@4.0",
+  "id": "0409",
   "slug": "wb-migrate-s-uncarried-line-reads-the-same-for-a",
   "title": "wb migrate's uncarried: line reads the same for a file left in place as for content it lost",
   "status": "closed",

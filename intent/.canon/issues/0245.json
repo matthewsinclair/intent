@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 245,
+  "schema": "intent/issue@4.0",
+  "id": "0245",
   "slug": "wp-show-prints-a-four-line-header-while-the-disp",
   "title": "wp show prints a four-line header while the dispatch table declares it shows the work package info.md",
   "status": "closed",

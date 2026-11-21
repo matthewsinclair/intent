@@ -1,0 +1,11 @@
+{
+  "id": "AC-03.1",
+  "text": "Following the docs' Linux install takes a fresh WSL distro from a release download to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, and every command on the page has been run.",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0082",
+    "by": "hv, 2026-10-14; numbering under vc's pen",
+    "reason": "The WSL walk-through moved to ST0082 with the WSL page on hv's ruling of 2026-10-14; the Linux install half is AC-03.3, through Homebrew."
+  }
+}

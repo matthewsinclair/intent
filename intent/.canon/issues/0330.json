@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 330,
+  "schema": "intent/issue@4.0",
+  "id": "0330",
   "slug": "parity-tools-that-still-point-at-the-deleted-v2",
   "title": "Parity tools that still point at the deleted v2 estate",
   "status": "closed",

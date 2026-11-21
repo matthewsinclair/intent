@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "The design records cc's choice between R1 and R2 with its reason before WP-01's code starts, with the disposition of ST0095 WP-05's .intentfiles set merge and of issue 0704.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0096/design.md: 'Realisation leaves the shared manifest' records cc's choice of R1 with its reason, and 'What this changes in ST0095' records that WP-05 drops its .intentfiles set merge and that issue 0704 is superseded; cc's calls of 2026-11-19, recorded by vc"
+  }
+}

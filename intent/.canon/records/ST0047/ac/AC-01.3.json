@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "`ws new` accepts any short-ish slug `[a-z0-9-]` and rejects an invalid id (uppercase / space / path separator / over-long) with a typed error, no partial scaffold. (No-Silent)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.3",
+  "text": "`intent wb announce` sends no copy to the human seat.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

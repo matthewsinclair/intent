@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "Under `dotclaude`, `intent init`, `intent agents init`, `intent agents sync`, `intent agents validate` and `intent claude upgrade --apply` read and write `.claude/AGENTS.md` and `.claude/CLAUDE.md` and never a root copy, and `usage-rules.md` is not seeded; under `root` every one of them behaves as in 3.2.3, and `usage-rules.md` stays at the root in both.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0) on a85dfbdf0 (WP-02); AT-02.1 green (agents sync, validate and claude upgrade write and read .claude/ under dotclaude and seed no usage-rules.md); AT-03.2 green (through the binary: init --contracts dotclaude, then agents init, sync and validate at .claude/AGENTS.md with no root copy)"
+  }
+}

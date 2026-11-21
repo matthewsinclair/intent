@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "No page documents a verb, flag or behaviour absent from the release that page describes -- measured against the cut, never against main",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "vc 2026-08-29: 126 distinct verbs named across 27 pages checked against the register and the v3.0.0 tag register. No verb is named on a non-reference page that is retired or absent from the release; the reference pages mark ac edit and at edit 'no -- newer than the release'. Checker positive-controlled on three probes (st frobnicate UNKNOWN, st repair RETIRED, st new shipped) and two of its own artefacts were found and fixed first: it filtered reference pages by basename so docs/reference/intent-st.md read as prose, and it treated 'critic rust' (verb + argument) as a subcommand."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/the_daemon_answers_the_estate_unbound.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "arms: the_estate_is_answered_for_a_root_that_names_no_project, the_estate_form_is_answered_unbound_and_no_other_view_is; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

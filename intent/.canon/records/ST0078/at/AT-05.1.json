@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/a_pull_is_repaired_by_one_command.rs",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green",
+  "note": "judged green by dc's P5 runs of 2026-09-18: the whole run at patch-id 20e99be51 (scratchpad p5-logs) and the intentsvcs re-run at d40af6929 (p5-logs-2), landed patch-id d40af6929"
+}

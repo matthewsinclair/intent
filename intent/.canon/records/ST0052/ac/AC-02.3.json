@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.3",
+  "text": "The mechanical trope pass references `in-detrope/data/trope-catalog.md` (the single trope home), not a duplicated indicator set.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "mechanical-trope-pass Detection cites in-detrope/data/trope-catalog.md; no vendored indicators (guarded)"
+  }
+}

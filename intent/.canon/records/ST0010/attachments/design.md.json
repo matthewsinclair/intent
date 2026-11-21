@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0010: Anthropic MCP Integration\n\n## Approach\n\n1. Research Anthropic's MCP specification and implementation requirements\n2. Identify STP commands that would benefit from LLM integration\n3. Design a lightweight MCP integration layer for STP scripts\n4. Prototype the integration with at least one STP command (eg \"stp st done STID\")\n5. Evaluate effectiveness and limitations\n6. Document the approach and implementation details\n",
+  "bytes": 437,
+  "sha256": "0f758d03ab9285ac8d0d9834c21f6df8e27ff8880add2e62ac0f6dc05d0e29d1"
+}

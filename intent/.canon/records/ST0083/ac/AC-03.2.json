@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "`intent agents layout <root|dotclaude>` sets the key and moves both contracts to the layout named, through git when they are tracked; it refuses by name when the destination already holds a different file, removes a `usage-rules.md` byte-identical to its seed when moving to `dotclaude`, reports an authored one and leaves it, and says what it moved.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "2d9b4de1a (ST0083 WP-03, patch-id ebde4dc9dec0); AT-03.1 green (agents layout moves both contracts and sets the key, removes a seeded usage-rules.md, names and leaves an authored one, refuses a destination holding other bytes with nothing moved and the key unchanged, stages tracked moves as renames, and moves back to root); AT-03.2 green (agents layout root through the binary, naming each move)"
+  }
+}

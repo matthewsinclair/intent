@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "`organize --default` writes a declaration of exactly the open threads and the open issues; `issue new` adds its id to the manifest and closing the issue removes it, so a closed issue is undeclared and its file is dehydrated on apply.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 135,
+  "schema": "intent/issue@4.0",
+  "id": "0135",
   "slug": "a-create-on-a-child-row-reads-canon-loaded-at-fa",
   "title": "a create on a child row reads canon loaded at facade open, so two facades can still both take one id",
   "status": "closed",

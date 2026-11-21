@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.4",
+  "text": "`rules/author/index.json` is regenerated and lists the author rules.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "rules/index.json regenerated; lists all 9 IN-AU-* rules"
+  }
+}

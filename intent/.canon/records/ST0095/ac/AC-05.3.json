@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.3",
+  "text": "An ordinal both sides minted before the upgrade is repaired at the merge by moving this clone's record to a hashed id.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

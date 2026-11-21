@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 703,
+  "schema": "intent/issue@4.0",
+  "id": "0703",
   "slug": "a-test-that-sandboxes-home-still-reaches-a-live",
   "title": "A test that sandboxes HOME still reaches a live intentd where XDG_RUNTIME_DIR is set: daemon_commands.bats's absent arms go red on a host running intentd",
   "status": "closed",

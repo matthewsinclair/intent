@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "`intent index status --json` and `intent index rebuild --json` name the same state for each language as the text does, and the last run's own outcome stays readable as a fact of its own; a renamed field is named under the next version in CHANGELOG.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

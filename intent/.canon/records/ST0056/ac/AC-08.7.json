@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.7",
+  "text": "Policy-stamp self-healing works: a generated local artefact whose version marker is missing or stale is regenerated on boot, and an old install heals without a migration",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

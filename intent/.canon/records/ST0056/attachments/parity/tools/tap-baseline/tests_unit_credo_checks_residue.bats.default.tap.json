@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_credo_checks_residue.bats.default.tap",
+  "text": "1..6\nok 1 doctor: check passes when no credo_checks/ exists\nok 2 doctor: an unwired credo_checks/ is reported as never having run\nok 3 doctor: a wired credo_checks/ is reported as live, with the Credo version caveat\nok 4 doctor: a stale .credo.exs registration is reported when the directory is gone\nok 5 doctor: the mix.exs elixirc_paths end is named, with line numbers\nok 6 doctor: residue warns and never errors, so it cannot abort a release\n",
+  "bytes": 445,
+  "sha256": "3d4329c480a2699dd5c79c6d0574a5a48fc260d1783913089be78ca21f8e9437"
+}

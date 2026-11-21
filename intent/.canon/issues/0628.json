@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 628,
+  "schema": "intent/issue@4.0",
+  "id": "0628",
   "slug": "an-early-exit-reader-on-a-pipe-inside-a-pipefail",
   "title": "An early-exit reader on a pipe inside a pipefail shell script fails the pipeline whenever its writer still has a write to make, so the script ends or takes the wrong branch: 35 sites, one of which reddened CI after the 3.2.5 cut",
   "status": "closed",

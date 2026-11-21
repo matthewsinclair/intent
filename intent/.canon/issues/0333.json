@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 333,
+  "schema": "intent/issue@4.0",
+  "id": "0333",
   "slug": "driven-on-the-keg-at-new-s-argument-order-the-in",
   "title": "Driven on the keg: at new's argument order, the intent@2 remedy no tap has, and a pre-v2.10 project told there is no project",
   "status": "closed",

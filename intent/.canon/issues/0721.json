@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 721,
+  "schema": "intent/issue@4.0",
+  "id": "0721",
   "slug": "intent-doctor-is-declared-a-read-and-writes-by-d",
   "title": "intent doctor is declared a read and writes by default: the register re-declares it as a write",
   "status": "closed",

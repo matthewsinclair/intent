@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 480,
+  "schema": "intent/issue@4.0",
+  "id": "0480",
   "slug": "the-at-na-refusal-s-remedy-names-an-intent-at-ne",
   "title": "the at na refusal's remedy names an intent at new --status flag that does not exist",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 78,
+  "schema": "intent/issue@4.0",
+  "id": "0078",
   "slug": "claude-skills-uninstall-force-reports-ok-1-chang",
   "title": "claude skills uninstall --force reports 'ok: 1 changed' at rc=0 while leaving the skill on disk and fully loadable",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 669,
+  "schema": "intent/issue@4.0",
+  "id": "0669",
   "slug": "search-s-outline-context-and-listing-doors-never",
   "title": "search's outline, context and listing doors never reconcile when answered in-process, while a text query does",
   "status": "closed",

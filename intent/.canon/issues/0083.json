@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 83,
+  "schema": "intent/issue@4.0",
+  "id": "0083",
   "slug": "st-hydrate-reports-exists-for-a-file-it-just-cre",
   "title": "st hydrate reports 'exists' for a file it just created, so its output cannot distinguish a restore from a no-op",
   "status": "closed",

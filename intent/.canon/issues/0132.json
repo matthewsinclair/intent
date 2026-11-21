@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 132,
+  "schema": "intent/issue@4.0",
+  "id": "0132",
   "slug": "no-cargo-test-invocation-passes-no-fail-fast-so",
   "title": "no cargo test invocation passes --no-fail-fast, so CI and the release gate walk an unknown prefix of the suite on any red -- the verdict is sound and every count is a lower bound",
   "status": "closed",

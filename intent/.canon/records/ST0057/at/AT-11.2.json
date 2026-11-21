@@ -1,0 +1,10 @@
+{
+  "id": "AT-11.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/exit_codes.rs",
+  "covers": [
+    "AC-11.2"
+  ],
+  "status": "green",
+  "note": "The control is that a usage error also exits 1, so the MESSAGE is the discriminator and not the code -- asserting the number alone stays green through a mutation that changes the cause. Does NOT drive the tty-confirmed --force arm (AC-11.6, blocked on hv). Six mutations, table in the test doc."
+}

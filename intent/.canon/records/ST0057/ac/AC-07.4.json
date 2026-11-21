@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.4",
+  "text": "**`?format=md` serves `View.content` from `views::render_all`, so the served bytes EQUAL the file `organize` would hydrate by construction rather than by test** -- `View.path` is literally where it would land. One renderer, three jobs.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

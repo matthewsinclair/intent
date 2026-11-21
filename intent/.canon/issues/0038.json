@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 38,
+  "schema": "intent/issue@4.0",
+  "id": "0038",
   "slug": "v3-exits-1-for-an-unimplemented-command-so-a",
   "title": "v3 exits 1 for an unimplemented command, so a migrated project's pre-commit gate blocks every commit",
   "status": "closed",

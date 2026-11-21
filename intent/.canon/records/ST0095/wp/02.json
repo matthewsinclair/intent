@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "The mint verbs say their id, and CLI tests read it",
+  "scope": "M",
+  "status": "done",
+  "objective": "`st new`, `wp new` and `issues add` each say the id they minted in one machine-readable form, and every intent-cli test reads it from there.",
+  "body": "Seat: ic. Size: M.\n\n## Scope\n\n- Today `st new` prints `created: ST0001`, and `issues add` prints `created: intent/.canon/issues/0001.json` and then `0001:<title>` (`cli_end_to_end.rs:128-133`, `212-218`). Neither has a machine form. Give the three verbs one, the same for all three. Its shape is ic's call (dc's census, section 2, banked under `refs/bank/dc/st0095/`).\n- One capture helper in `intent-cli/tests/common/mod.rs`, beside `result_lines` (`:1184`), is the only place a CLI test learns a minted id.\n- Convert intent-cli's tests that predict a mint: 54 files drive the binary's mints.\n- Regenerate `docs/reference` in the commit that changes help or the register, or the cut's reference gate refuses.\n\n## Out of scope\n\n- `cli_end_to_end.rs:128-133`, `169-171` and `212-218`, which assert the ordinal scheme itself. They change in WP-10.\n\n## Order\n\nFirst, beside WP-01 and WP-03. Behaviour-neutral.\n\n## Proof\n\nThe cut's own gate.\n",
+  "preamble": ""
+}

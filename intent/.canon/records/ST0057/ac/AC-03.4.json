@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "**`sha256` in canon detects a working-copy edit by COMPARISON rather than inference**: an attachment modified on disk without the store knowing is reported by `doctor` as divergence, and the report names the path.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

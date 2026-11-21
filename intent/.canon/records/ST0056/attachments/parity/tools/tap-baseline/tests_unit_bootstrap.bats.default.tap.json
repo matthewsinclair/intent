@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_bootstrap.bats.default.tap",
+  "text": "1..5\nok 1 intent_bootstrap creates global config directory\nok 2 intent_bootstrap creates default config.json\nok 3 intent_bootstrap provides PATH setup instructions\nok 4 intent_bootstrap handles existing config gracefully\nok 5 intent_bootstrap runs doctor after setup\n",
+  "bytes": 267,
+  "sha256": "638854e6c650e740a112a86339175f382c0b99e912158e23bccbf3da1cb99b6d"
+}

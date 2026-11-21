@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 286,
+  "schema": "intent/issue@4.0",
+  "id": "0286",
   "slug": "0282-s-hygiene-check-counts-four-sections-and-na",
   "title": "0282's hygiene check counts four sections and names a remedy for one, so on vc's board the warning cannot be cleared by doing what it says",
   "status": "closed",

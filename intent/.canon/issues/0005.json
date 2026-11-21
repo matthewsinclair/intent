@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 5,
+  "schema": "intent/issue@4.0",
+  "id": "0005",
   "slug": "intent-lang-init-writes-an-install-relative-rule",
   "title": "intent lang init writes an install-relative rule-pack path into the consumer project's RULES.md, where it dangles",
   "status": "closed",

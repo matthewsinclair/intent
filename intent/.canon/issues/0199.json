@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 199,
+  "schema": "intent/issue@4.0",
+  "id": "0199",
   "slug": "the-canon-commit-gate-blocks-the-commit-and-its",
   "title": "the canon-commit gate blocks the commit and its own remedy cannot unblock it, because st attach does not write the extract the way the remedy says it does",
   "status": "closed",

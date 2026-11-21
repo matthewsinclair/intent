@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "The skew check catches a hand-edited generated view and names the file (never silently outvotes it)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

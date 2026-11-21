@@ -1,0 +1,10 @@
+{
+  "id": "AC-03.2",
+  "text": "The brew smoke passes whatever id the mint returns.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "Restated as AC-03.5, non-test, with the same text: its proof is a driven run of bin/devbin brew smoke against the installed keg, which no committed test carries, and a criterion's kind cannot be changed in place.",
+    "by": "vc"
+  }
+}

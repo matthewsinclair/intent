@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.4",
+  "text": "intent upgrade rewrites an existing project's canon format to the same bytes on two clones upgraded apart, and changes no id.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

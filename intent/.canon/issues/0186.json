@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 186,
+  "schema": "intent/issue@4.0",
+  "id": "0186",
   "slug": "an-at-row-that-is-written-passing-and-outside-th",
   "title": "an AT row that is written, passing and outside the default suite has no status a machine can read",
   "status": "closed",

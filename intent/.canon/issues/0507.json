@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 507,
+  "schema": "intent/issue@4.0",
+  "id": "0507",
   "slug": "a-prose-comment-in-shellcheck-directive-position",
   "title": "a prose comment in shellcheck directive position silently disarms the checker for the rest of the script",
   "status": "closed",

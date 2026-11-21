@@ -1,0 +1,8 @@
+{
+  "id": "AC-18.1",
+  "text": "The index scope is the gitignore-aware repository: a tracked source file is indexed, a gitignored file never appears in a result, and `.git`, the store's own directory and the backup directory are outside by rule rather than by path shape.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "path": "done.md",
+  "text": "# Done - ST0021: Intent Autopsy\n\nAll 4 work packages completed. Released as part of v2.4.0.\n\n## WP-01: Core Implementation\n\n- [x] Update ST0021 docs (info.md, design.md, tasks.md)\n- [x] Create `autopsy.exs` Elixir script with all modules\n- [x] Create `banned-words.txt` default file\n- [x] Create `intent-autopsy/SKILL.md`\n\n## WP-02: Skills Infrastructure\n\n- [x] Extend `intent_claude_skills` install for full directory copy\n- [x] Verify existing skills still install correctly\n- [x] Add Elixir check to `intent doctor`\n\n## WP-03: Testing\n\n- [x] Create `tests/unit/test_autopsy.bats` (19 tests)\n- [x] Verify all existing tests still pass\n- [x] Test script against real JSONL sessions\n\n## WP-04: Documentation\n\n- [x] Update CHANGELOG.md\n- [x] Update user_guide.md\n- [x] Update reference_guide.md\n- [x] Update deployment_guide.md\n- [x] Update tests/README.md\n",
+  "bytes": 856,
+  "sha256": "ffd28fda2200dfaf1e7720426f0beaa620ae8b50fd4cc09de1aabbd3bc362477"
+}

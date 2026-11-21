@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 369,
+  "schema": "intent/issue@4.0",
+  "id": "0369",
   "slug": "the-search-envelope-never-carries-reconciled-at",
   "title": "the search envelope never carries reconciled_at, and nothing records when the index was last reconciled",
   "status": "closed",

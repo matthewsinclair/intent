@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_are_qualified_references.rs",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "green",
+  "note": "Red on 35c238658 before WP-02: main had no qualifier, no token-tree patterns and call spans over the whole call. Green at d3b69c7de (WP-02 landing, patch-id 8d7b5cbc, vc's GO): a call with arguments over many lines spans its name's line, every reference pattern captures its name node, and EXTRACTOR_VERSION is 2 so rows WP-01 wrote re-extract."
+}

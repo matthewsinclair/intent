@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 430,
+  "schema": "intent/issue@4.0",
+  "id": "0430",
   "slug": "the-mcp-search-tool-reports-binary-and-symlink-s",
   "title": "The MCP search tool reports binary and symlink skips as incomplete, and its description sends code lookups to grep",
   "status": "closed",

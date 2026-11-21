@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "The full-ladder acceptance contract (WP-02..12 AC/AT groups) is authored and ratified",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "hv ratification 2026-08-14: full-ladder contract approved at check-in"
+  }
+}

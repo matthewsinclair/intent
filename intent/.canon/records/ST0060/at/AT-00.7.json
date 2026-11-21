@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_env_only.rs",
+  "covers": [
+    "AC-00.7"
+  ],
+  "status": "to-write",
+  "note": "Sets the per-reference override and **removes every identity route** -- HOME at a temp dir with no identity file, `INTENT_VAULT_IDENTITY` and `INTENT_VAULT_PASSPHRASE` unset, keychain adapter forced null. **Asserts all four are genuinely absent before reading the verdict**, because the criterion this replaces passed by checking only one of them."
+}

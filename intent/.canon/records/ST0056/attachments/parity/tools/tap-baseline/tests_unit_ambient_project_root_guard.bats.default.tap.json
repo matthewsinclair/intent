@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_ambient_project_root_guard.bats.default.tap",
+  "text": "1..4\nok 1 an ambient PROJECT_ROOT does not redirect the subagent manifest\nok 2 an ambient PROJECT_ROOT does not make a non-project look like a project\nok 3 resolve_project_root overwrites an inherited value rather than trusting it\nok 4 resolve_project_root finds the real project when standing in one\n",
+  "bytes": 301,
+  "sha256": "836fb60a1ec16b42505b2607ff2734aadb7532542d5b46cc661946a048c6e68b"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-01.7"
+  ],
+  "status": "green",
+  "note": "arms: wip_refuses_with_a_remedy_when_it_cannot_tell_what_was_meant, watch_refuses_a_bad_class_and_a_bad_pattern_with_a_remedy, statusline_refuses_an_input_that_is_not_json_with_a_remedy, status_browser_refuses_with_no_daemon_and_beside_a_format; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

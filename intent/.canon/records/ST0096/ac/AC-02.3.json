@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "doctor shows an ignored aggregate view that is missing, or that differs from what the store renders, with intent sync --to-disk as the fix, and counts neither, so a fresh clone's first commit passes the commit gate; a view still tracked is counted as today.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

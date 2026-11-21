@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 482,
+  "schema": "intent/issue@4.0",
+  "id": "0482",
   "slug": "intent-s-own-estate-never-received-the-3-1-0-pos",
   "title": "Intent's own estate never received the 3.1.0 post-pull hook carriers the trawl gave every other estate",
   "status": "closed",

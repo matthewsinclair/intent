@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 109,
+  "schema": "intent/issue@4.0",
+  "id": "0109",
   "slug": "int-hooks-routes-a-hook-carrier-defect-to-a-whol",
   "title": "int hooks routes a hook-carrier defect to a whole-canon verb, and the remedy line does not say so",
   "status": "closed",

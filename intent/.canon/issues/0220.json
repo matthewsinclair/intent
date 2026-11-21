@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 220,
+  "schema": "intent/issue@4.0",
+  "id": "0220",
   "slug": "intent-shipped-templates-and-hooks-have-no-per-p",
   "title": "Intent-shipped templates and hooks have no per-project override, so a consumer who finds a wrong value cannot act on it",
   "status": "closed",

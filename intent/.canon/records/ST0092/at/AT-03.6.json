@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wb_init.rs",
+  "covers": [
+    "AC-03.6"
+  ],
+  "status": "green",
+  "note": "Red at the base, driven by cc: the installed 3.2.8 answered `intent wb init team` with `error: unrecognized subcommand 'init'` and `intent wb remit cc x` with `error: unrecognized subcommand 'remit'`, each exit 1 (cc's clock read 05:08:52Z on 2026-11-11 by date -u). The arm drives `Facade::wb_init` and `wb_remit`, which do not exist at the base, so it cannot compile there and no run saw this arm itself fail. Green in cc's run 4 on desk slot 01M74FRBVRXXQZFERBYAG0TFSA, before the carry onto 8dd1a3993. Green at 2b1d00b92, landed on vc's judge: v2's full judge in desk slot 01M74HQ60YDHF5FYKYED886NR9 (05:36:48Z to 05:58:29Z) on tree 92ef202e2506, and v3's contract-row delta verified by vc at 06:01Z."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/search_lexical.rs",
+  "covers": [
+    "AC-13.3"
+  ],
+  "status": "to-write"
+}

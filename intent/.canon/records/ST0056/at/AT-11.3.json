@@ -1,0 +1,9 @@
+{
+  "id": "AT-11.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/no_intent_home.rs",
+  "covers": [
+    "AC-11.3"
+  ],
+  "status": "green"
+}

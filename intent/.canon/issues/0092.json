@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 92,
+  "schema": "intent/issue@4.0",
+  "id": "0092",
   "slug": "a-withhold-outlives-the-reason-it-was-granted-fo",
   "title": "a withhold outlives the reason it was granted for, and two fields agreeing is what a stale pair looks like",
   "status": "closed",

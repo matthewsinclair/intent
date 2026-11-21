@@ -1,0 +1,9 @@
+{
+  "id": "13",
+  "title": "Docs, skills, rules and templates teach the new ids",
+  "scope": "L",
+  "status": "not-started",
+  "objective": "Every page, skill, rule and template that teaches an id teaches both families, how to type one, and what a project does on upgrade.",
+  "body": "Seat: ac, or ic if hv does not start ac. Size: L.\n\n## Scope\n\n- About 90 teaching lines and 221 example lines across 21 files (ic's census, section 1, banked under `refs/bank/ic/st0095/`0).\n- `docs/concepts/working-in-a-team.md`: the five collision sections are rewritten from a drive of the new build, the five-open-merge-requests shape among them, and a new section says what a shared short form is and what the door says about it.\n- The shipped skills (`in-essentials`, `in-whiteboard`, `in-plan`), two rules, one subagent, `_AGENTS.md`, and `_wip.md`.\n- An upgrade note: every machine first; `intent upgrade` once per project; an open branch upgrades before it merges; and nothing is renumbered.\n- The release notes' entry.\n- The 21 reference pages, `cut-surface.md` and the screenshots regenerate in the cut's own steps, and are not written by hand.\n- From the Highlander sweep (vc decision 133, report C at `refs/bank/vc/st0095/highlander-C-non-rust-20261119`): `intent/docs/working-with-llms.md:506` copies the claim-forms sentence and no test holds the copy, so it quotes or points at the waist's sentence of forms instead. The dispatch table's help strings feed `--help`, the guide and `docs/reference`, so a form taught there is written once, in the table.\n\n## Order\n\nThe forms are fixed by this design, so drafting starts at hv's review. The transcripts are driven once WP-10 has landed.\n\n## Proof\n\nEvery command on every changed page has been driven on the new build.\n\n",
+  "preamble": ""
+}

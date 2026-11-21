@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.3",
+  "kind": "test",
+  "file": "tests/unit/brew_formula.bats",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green",
+  "note": "The formula's service block sends intentd's stdout to intentd.log and its stderr to intentd.err.log under the user's state dir, and its comment says so (issue 0667); brew_formula.bats arm 5. Minted at its landing (2026-11-10, dc), in the commit that rewrites the file with its id lines (vc's ruling); the file was on main before. Red on the code as it was: arm 5 red on the tree before WP-03, where the formula sent both streams to one brew log; it passes on this commit. Green is vc's, from its judged run of the train. Green by vc's judge of the train's tip (2026-11-10, desk slot 01M735BRRKYPA217HGB3FW9KZ5, 16:43Z to 17:08Z, on main 1aada1a66 with the six banks stacked): the cited file passed in the whole bats tree and alone at its bank's commit, and again with wp03-v3's arm names; vc verified the landing at b43aa6256 against the judged commit on all 42 paths."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-16.3",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+  "covers": [
+    "AC-16.3"
+  ],
+  "status": "green",
+  "note": "A mapped table that cannot be FOUND or PARSED refuses loudly and is never skipped, naming the entity and the table. DRIVEN: deleting the field rows from 'related' while leaving its heading produces REFUSED (AC-16.3) naming entity Related and table related at its line. The same arm fired on the real document before the tables were written, refusing FiatRecord, Invoker and Subject by name rather than reporting them checked."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "It states hv's contract: hv rules live or in the TUI; the mediator records each ruling on hv's board with its date, its channel and whose wording it is, and presents for review without deciding; hv reads no board unprompted and writes to no inbox; no node waits on hv; and a directive leaves hv's board only on hv's word.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/plugins/claude/teams/TERMS.md, 'hv': hv rules in prose or by choosing among the mediator's options; the mediator records each ruling with its date, channel and whose wording it is; hv reads no board unprompted and writes to no inbox; no seat waits idle on hv; a directive stays until hv withdraws it."
+  }
+}

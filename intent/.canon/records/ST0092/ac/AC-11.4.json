@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.4",
+  "text": "Every board with no running session is converged from vc's session, one commit for each project of exactly what the verb printed; every board whose vc or sc is running is converged by that node on vc's exact step; and vc has read each commit.",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0094"
+  }
+}

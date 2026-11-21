@@ -1,0 +1,10 @@
+{
+  "id": "AT-13.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/search_structural.rs",
+  "covers": [
+    "AC-13.4"
+  ],
+  "status": "to-write",
+  "note": "asserts no grammar loads for an undeclared language"
+}

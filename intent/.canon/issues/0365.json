@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 365,
+  "schema": "intent/issue@4.0",
+  "id": "0365",
   "slug": "a-migrated-message-s-heading-renders-recorded-at",
   "title": "a migrated message's heading renders recorded_at, so the view loses when it was sent",
   "status": "closed",

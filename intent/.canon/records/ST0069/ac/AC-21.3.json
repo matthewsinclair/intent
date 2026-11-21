@@ -1,0 +1,8 @@
+{
+  "id": "AC-21.3",
+  "text": "The pane calls the same facade method as the CLI, and the TUI's pure layers stay pure.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-18.5",
+  "text": "Rendered views under `intent/st/` and the canon extract are not in the disk corpus; an entity's prose is indexed once, from the store.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

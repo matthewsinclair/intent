@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/address_format_set.rs",
+  "covers": [
+    "AC-07.3"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 4 tests. `src/address.rs` is new and covers the nine D57-8 forms, `Format` closed at `json|md`, empty authority, view refusal, and round trip."
+}

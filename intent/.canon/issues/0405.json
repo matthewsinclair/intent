@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 405,
+  "schema": "intent/issue@4.0",
+  "id": "0405",
   "slug": "the-board-render-adds-a-section-the-source-board",
   "title": "the board render adds a section the source board never had and moves Standing directives from first to fourth",
   "status": "closed",

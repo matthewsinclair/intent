@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.4",
+  "text": "GraphQL carries every id as a string, and no URI, claim or manifest row carries a prefix.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

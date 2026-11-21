@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 413,
+  "schema": "intent/issue@4.0",
+  "id": "0413",
   "slug": "intent-claude-start-s-missing-node-remedy-shows",
   "title": "intent claude start's missing-node remedy shows no example display name or role, so the session name gets registered as one",
   "status": "closed",

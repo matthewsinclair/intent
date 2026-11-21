@@ -1,0 +1,8 @@
+{
+  "id": "AC-12.3",
+  "text": "The fleet's upgrade note says what each estate does, and every machine upgrades before any hashed record is committed there.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

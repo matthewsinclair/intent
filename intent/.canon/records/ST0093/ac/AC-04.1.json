@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "Each seat commits its own paths with git commit --only, no seat broadcasts a start or an end around a commit, and a pickup or heartbeat alone is not committed.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "6acaba3cb: in-whiteboard SKILL.md protocol invariants 9 and 10, and TERMS.md 'Talk, and what it costs'"
+  }
+}

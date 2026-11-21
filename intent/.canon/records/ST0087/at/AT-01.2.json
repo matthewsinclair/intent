@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_install_verb_prints_the_runtime_set.rs",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "green",
+  "note": "arms: the_runtime_set_is_printed_one_path_per_line_from_the_one_list; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 296,
+  "schema": "intent/issue@4.0",
+  "id": "0296",
   "slug": "a-work-package-whose-entire-contract-is-descoped",
   "title": "a work package whose entire contract is descoped renders identically to live work on every wp-side surface",
   "status": "closed",

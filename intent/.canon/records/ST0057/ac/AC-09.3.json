@@ -1,0 +1,8 @@
+{
+  "id": "AC-09.3",
+  "text": "**THE HISTORY IS QUERYABLE FROM THE ONE PLACE IT LIVES.** (hv ruling D53, 2026-08-20: _\"we could then trivially expose an intent cli command that gave queryable access to the logs in the db\"_.) `intent events` reads `event_log` from the store and answers without touching disk. **THE VERB IS NOT OPTIONAL POLISH, IT IS THE OTHER HALF OF THE RULING**: dropping the tracked file removes the only way anyone could read the log at all, since **no `events` verb existed in either binary** and the file was the sole reader-facing surface. Removing it without the verb trades an unread projection for an unreadable table. **A DENOMINATOR IS OWED AND IT IS THE ROW COUNT, NOT THE VERB COUNT** -- an `events` that answers only the newest N is a count of containers again. **Filters are the point rather than a convenience**: the table is append-only and monotone, so an unfiltered dump is the one output guaranteed to become unusable, and a reader who must pipe to `grep` has been handed the file back with extra steps. **AND IT MUST BE ABLE TO SAY THAT IT HAS NOTHING**: a fresh clone under D53 has zero events, which is the accepted cost, and **an empty answer must read as `no history in this store` and never as a clean bill of health** -- the exact distinction `critic author` lost by emitting zero bytes at rc=0.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

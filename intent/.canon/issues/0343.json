@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 343,
+  "schema": "intent/issue@4.0",
+  "id": "0343",
   "slug": "organize-apply-leaves-a-tree-half-dehydrated-vie",
   "title": "organize --apply leaves a tree half-dehydrated, views kept and attachments gone",
   "status": "closed",

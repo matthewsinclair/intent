@@ -1,0 +1,10 @@
+{
+  "id": "AT-18.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/index/reconcile.rs",
+  "covers": [
+    "AC-18.3"
+  ],
+  "status": "green",
+  "note": "The missed-edit case driven on a real file -- same length, mtime put back with File::set_times, different bytes, both preconditions asserted -- and put to BOTH policies: canon catches it, source is shown not to. The asymmetry is the design's and the cost is one stale hit against hashing every source file on every reconcile. The pure decision, driven on values, is in index::freshness."
+}

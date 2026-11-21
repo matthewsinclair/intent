@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_credo_checks_residue.bats.mutant.tap",
+  "text": "1..6\nnot ok 1 doctor: check passes when no credo_checks/ exists\n# (in test file tests/unit/credo_checks_residue.bats, line 39)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 2 doctor: an unwired credo_checks/ is reported as never having run\n# (in test file tests/unit/credo_checks_residue.bats, line 51)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 3 doctor: a wired credo_checks/ is reported as live, with the Credo version caveat\n# (in test file tests/unit/credo_checks_residue.bats, line 65)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 4 doctor: a stale .credo.exs registration is reported when the directory is gone\n# (in test file tests/unit/credo_checks_residue.bats, line 79)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 5 doctor: the mix.exs elixirc_paths end is named, with line numbers\n# (in test file tests/unit/credo_checks_residue.bats, line 92)\n#   `[ \"$status\" -eq 0 ]' failed\nnot ok 6 doctor: residue warns and never errors, so it cannot abort a release\n# (in test file tests/unit/credo_checks_residue.bats, line 110)\n#   `[ \"$status\" -eq 0 ]' failed\n",
+  "bytes": 1046,
+  "sha256": "f1a126edc3ef8b465e508a7432d3a4b9c152384583dc40a0f9205f89b28fc53b"
+}

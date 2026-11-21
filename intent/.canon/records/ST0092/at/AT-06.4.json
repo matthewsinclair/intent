@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.4",
+  "kind": "non-test",
+  "prose": "A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, role, remit, mediator and route to hv; vc records that boot by its session id.",
+  "covers": [
+    "AC-06.4"
+  ],
+  "status": "n-a",
+  "note": "Not yet observable: it needs a seat booted on an installed 3.3.0. On vc's ruling (2026-11-11), WP-06 stays WIP until vc records that boot; this row is not taken green before then."
+}

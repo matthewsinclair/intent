@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 312,
+  "schema": "intent/issue@4.0",
+  "id": "0312",
   "slug": "an-enum-positional-s-declared-values-are-not-app",
   "title": "An enum positional's declared values are not applied by the spine, so a catch-all arm writes on any word",
   "status": "closed",

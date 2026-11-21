@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/prose_ingest_fts.rs",
+  "covers": [
+    "AC-03.6"
+  ],
+  "status": "green"
+}

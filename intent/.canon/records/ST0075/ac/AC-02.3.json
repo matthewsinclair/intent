@@ -1,0 +1,10 @@
+{
+  "id": "AC-02.3",
+  "text": "the Console keeps the last lines up to its capacity and drops the oldest, so a command run while the window is closed is there when it opens",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "shipped in ST0075 (2026-09-16); superseded by issue 0607, filed on hv's word 2026-10-17: Intent.app's own Console is replaced by the macOS Console app, and ConsoleTests.swift goes with it",
+    "by": "vc under hv's pen; the removal is hv's (0607)"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 645,
+  "schema": "intent/issue@4.0",
+  "id": "0645",
   "slug": "the-pre-commit-gate-s-doctor-refuses-every-commi",
   "title": "the pre-commit gate's doctor refuses every commit from a linked worktree: the tree function's git spawn into the install tree inherits the hook's absolute GIT_DIR and reads the wrong repository",
   "status": "closed",

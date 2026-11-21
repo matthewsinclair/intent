@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.4",
+  "text": "intent sync reads git's status and its unmerged index, stages only the files it regenerated to resolve a conflict it was asked to resolve, and never runs git pull, git commit or git push.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

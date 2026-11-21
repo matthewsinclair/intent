@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 170,
+  "schema": "intent/issue@4.0",
+  "id": "0170",
   "slug": "address-view-names-and-project-classify-overlap",
   "title": "address::VIEW_NAMES and Project::classify overlap with nothing asserting they agree",
   "status": "closed",

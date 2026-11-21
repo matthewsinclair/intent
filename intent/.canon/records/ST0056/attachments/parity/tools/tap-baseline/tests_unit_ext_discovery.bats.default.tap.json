@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_ext_discovery.bats.default.tap",
+  "text": "1..13\nok 1 subagents list shows ext subagents when INTENT_EXT_DIR is set\nok 2 subagents list tags shadowed canon names with shadows-canon marker\nok 3 INTENT_EXT_DISABLE=1 suppresses ext discovery in subagents list\nok 4 subagents list still shows canon agents when ext is set\nok 5 skills list shows ext skills when INTENT_EXT_DIR is set\nok 6 INTENT_EXT_DISABLE=1 suppresses ext skill discovery\nok 7 skills list still shows canon skills when ext is set\nok 8 claude rules list enumerates ext rules with ext provenance tag\nok 9 INTENT_EXT_DISABLE=1 suppresses ext rule discovery\nok 10 subagents show on a shadowed name emits shadow warning\nok 11 INTENT_EXT_DIR pointing at a nonexistent dir does not crash list commands\nok 12 INTENT_EXT_DIR pointing at an empty dir reports empty extensions\nok 13 ext enumeration skips dotfile and underscore directories\n",
+  "bytes": 850,
+  "sha256": "c71d8c1f0a75c0bae0a7fae9580dda9c35ee410a7a4d03e5b3ac0c35e2b625b4"
+}

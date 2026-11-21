@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 660,
+  "schema": "intent/issue@4.0",
+  "id": "0660",
   "slug": "the-currency-scope-counts-testkit-a-dev-only-cra",
   "title": "The currency scope counts testkit, a dev-only crate, as shipped, so a test-support change puts the delivered pair behind HEAD",
   "status": "closed",

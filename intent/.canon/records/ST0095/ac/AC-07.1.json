@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.1",
+  "text": "A unique prefix of at least four hex characters names its record, an ambiguous one returns every candidate, and an ordinal-shaped spelling is always the ordinal.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

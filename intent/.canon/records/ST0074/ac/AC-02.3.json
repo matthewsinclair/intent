@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "While a lifecycle verb is running, the status line says so and shows no port, because the port from before a restart is dead once its stop returns.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

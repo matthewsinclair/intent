@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 465,
+  "schema": "intent/issue@4.0",
+  "id": "0465",
   "slug": "release-a-failed-prepush-list-frozen-reads-as-no",
   "title": "release: a failed prepush --list-frozen reads as no frozen remotes, so the frozen-remote gate passes unchecked",
   "status": "closed",

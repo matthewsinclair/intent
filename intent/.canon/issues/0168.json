@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 168,
+  "schema": "intent/issue@4.0",
+  "id": "0168",
   "slug": "ac-list-prints-ids-coverage-and-satisfied-but-ne",
   "title": "ac list prints ids, coverage and satisfied but never the criterion text, so a node planning from it is planning from ids -- and there is no ac show",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 68,
+  "schema": "intent/issue@4.0",
+  "id": "0068",
   "slug": "intent-lang-init-must-not-reinstate-the-rules-la",
   "title": "intent lang init must NOT reinstate the RULES-<lang>/ARCHITECTURE-<lang> fan-out when it is implemented in v3: 10 of 10 were verbatim in Intent and nothing read them",
   "status": "closed",

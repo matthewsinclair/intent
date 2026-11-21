@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_search_pane_is_resident.rs",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "green",
+  "note": "Red on 70c65b464 before WP-04: the arm does not compile there, because a hit has no `symbol` facts and `run::arrive` takes no note; driven in a pty before the fix, the pane's info row held only the key hints (issue 0435). Green at e5b7feb1b (WP-04 landing, patch-id 013ce9d4, vc's GO): a symbol hit's row reads `ref call in Other`, the note names level 1 and Rust's macro gap, `run::arrive` puts it on the screen's hint, and a view with no note clears it (issue 0435)."
+}

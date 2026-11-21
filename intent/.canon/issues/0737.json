@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 737,
+  "schema": "intent/issue@4.0",
+  "id": "0737",
   "slug": "three-two-clone-tests-each-carry-their-own-git-a",
   "title": "Three two-clone tests each carry their own git and clone helpers; fold them onto common's Forge",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.16",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/commands.rs",
+  "covers": [
+    "AC-17.16"
+  ],
+  "status": "green",
+  "note": "THREE TESTS IN `native/rust/crates/intent-cli/src/tui/commands.rs`, one per side of the criterion. ADMISSION: `every_roster_name_is_a_real_command` -- every roster name resolves to a real, non-hidden subcommand, so a verb renamed in the dispatch table cannot leave the palette quietly one command shorter. ALLOW-LIST: `the_roster_is_a_strict_subset_of_the_surface_and_omits_the_hazardous_verbs` -- and ITS SECOND ASSERTION IS THE POSITIVE CONTROL ON THE INSTRUMENT, which is the half worth having. A roster \"simplified\" into every subcommand satisfies every other test in the file -- each name resolves, no name collides, every blurb matches -- and would have quietly become the deny-list-by-omission `AC-17.14` refuses. Only the strict-subset assertion tells the two apart, and it was driven red by planting `explore` on the roster. COLLISION: `the_roster_never_collides_with_an_act` -- `/help` is offered exactly once and it is the act, AND the roster carries no act's name, so `vocabulary`'s drop has no work to do; a roster entry that could vanish in silence is a roster nobody can read to find out what runs. VISIBILITY IS RENDERED, NOT ASSERTED SEPARATELY: `help::cli_rows` shows a roster member as `/name` and a non-member bare, so the page does not advertise `/explore` as a thing to try. THE ORDERING THIS RESTS ON IS PINNED SEPARATELY by `every_act_sorts_ahead_of_every_cli_verb`, because the resting palette's act visibility is a CONSEQUENCE of acts sorting first and asserting a consequence that holds by construction is an assertion that cannot go red."
+}

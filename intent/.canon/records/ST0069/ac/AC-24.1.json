@@ -1,0 +1,8 @@
+{
+  "id": "AC-24.1",
+  "text": "A `.mcp.json` naming `intent mcp` is part of the canon `claude upgrade --apply` seeds when absent and never overwrites, so every project's session sees the tools without configuration.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

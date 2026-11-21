@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/daemon_logs_prints_and_follows.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green"
+}

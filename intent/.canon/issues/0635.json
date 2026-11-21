@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 635,
+  "schema": "intent/issue@4.0",
+  "id": "0635",
   "slug": "a-board-git-moved-after-the-store-recorded-it-ta",
   "title": "A board git moved after the store recorded it takes the store's older render on the next write, because 0614's guard spares a board only when the file index holds NO record",
   "status": "closed",

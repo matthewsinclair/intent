@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 460,
+  "schema": "intent/issue@4.0",
+  "id": "0460",
   "slug": "no-verb-writes-a-thread-s-related-links-and-set",
   "title": "No verb writes a thread's related links, and set's refusal names a door that does not exist",
   "status": "closed",

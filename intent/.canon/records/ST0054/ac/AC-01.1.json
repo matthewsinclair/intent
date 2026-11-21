@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "the `working-with-llms.md` interop section describes the v1.x config-driven model (the `:usage_rules` mix.exs key; the three delivery modes inline / link / skills) with NO pre-v1.0 claims (no zero-config auto-include, no arg-driven `usage_rules.sync <file> --link-to-folder`).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "working-with-llms.md 'usage_rules interop' section: v1.x config-driven model, no pre-v1.0 claims"
+  }
+}

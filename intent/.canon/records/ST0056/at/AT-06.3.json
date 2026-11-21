@@ -1,0 +1,9 @@
+{
+  "id": "AT-06.3",
+  "kind": "non-test",
+  "prose": "register diff history shows land-time recording",
+  "covers": [
+    "AC-06.3"
+  ],
+  "status": "n-a"
+}

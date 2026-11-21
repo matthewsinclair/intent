@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 586,
+  "schema": "intent/issue@4.0",
+  "id": "0586",
   "slug": "data-model-md-has-no-contract-row-for-wbitem-edi",
   "title": "data-model.md has no contract row for WbItem.edited_at or WbMessage.edited_at",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 352,
+  "schema": "intent/issue@4.0",
+  "id": "0352",
   "slug": "the-daemon-family-s-timing-arms-are-calibrated-a",
   "title": "The daemon family's timing arms are calibrated against an idle host, and this host has none",
   "status": "closed",

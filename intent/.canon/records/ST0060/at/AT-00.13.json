@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.13",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_material_never_renders.rs",
+  "covers": [
+    "AC-00.13"
+  ],
+  "status": "to-write",
+  "note": "Formats the secret type through `Debug` and `Display` and requires the material absent. **A compile-fail arm is stronger than a runtime one here** and should be preferred if trybuild is already in the tree."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-06.9",
+  "kind": "non-test",
+  "prose": "the `doctor --fix` specification recorded and ruled, or the flag withdrawn",
+  "covers": [
+    "AC-06.9"
+  ],
+  "status": "n-a"
+}

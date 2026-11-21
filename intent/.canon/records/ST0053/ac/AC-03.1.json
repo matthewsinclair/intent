@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "`critic-author` is renamed to `critic-prose`: the subagent directory, `agent.md`, metadata, and the agent manifest all use `critic-prose`; no `critic-author` remains (dir gone, no manifest entry).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

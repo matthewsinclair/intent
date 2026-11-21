@@ -1,0 +1,9 @@
+{
+  "id": "AT-04.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/event_log_envelopes.rs",
+  "covers": [
+    "AC-04.5"
+  ],
+  "status": "green"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 731,
+  "schema": "intent/issue@4.0",
+  "id": "0731",
   "slug": "precommit-swallows-a-git-failure-reading-its-sta",
   "title": "precommit swallows a git failure reading its staged set, and four guard readings say more or less than their status means",
   "status": "closed",

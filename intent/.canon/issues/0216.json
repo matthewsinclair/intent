@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 216,
+  "schema": "intent/issue@4.0",
+  "id": "0216",
   "slug": "a-canon-write-reports-ok-lands-in-the-store-and",
   "title": "a canon write reports ok, lands in the store, and intentd's disk ingest reverts it -- the LAST write of a batch",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 102,
+  "schema": "intent/issue@4.0",
+  "id": "0102",
   "slug": "a-control-validates-the-axis-it-tests-and-is-sil",
   "title": "A control validates the axis it tests and is silent about the one next door",
   "status": "closed",

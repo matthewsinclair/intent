@@ -1,0 +1,9 @@
+{
+  "id": "AT-14.10",
+  "kind": "non-test",
+  "prose": "skill and `ws` command diff reviewed at WP close",
+  "covers": [
+    "AC-14.10"
+  ],
+  "status": "n-a"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.7",
+  "text": "A board that declares no profile renders every pair and takes every ask, as it did before this thread.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 607,
+  "schema": "intent/issue@4.0",
+  "id": "0607",
   "slug": "swap-out-the-bespoke-logging-console-and-use-the",
   "title": "Swap out the bespoke logging console and use the macOS Console app as the menubar app's log viewer, as Utilz menuz does",
   "status": "closed",

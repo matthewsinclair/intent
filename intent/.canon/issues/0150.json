@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 150,
+  "schema": "intent/issue@4.0",
+  "id": "0150",
   "slug": "claude-skills-list-cannot-see-a-skill-directory",
   "title": "claude skills list cannot see a skill directory canon has forgotten, so an orphan is invisible to the only instrument that looks",
   "status": "closed",

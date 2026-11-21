@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 276,
+  "schema": "intent/issue@4.0",
+  "id": "0276",
   "slug": "sync-to-store-has-two-warning-surfaces-and-neith",
   "title": "sync --to-store has two warning surfaces and neither reports a COMMITTED attachment whose bytes differ from canon: one never examines attachments, the other examines git state instead of content, so the divergence enters canon in silence",
   "status": "closed",

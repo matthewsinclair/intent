@@ -1,0 +1,9 @@
+{
+  "id": "AC-08.1",
+  "text": "The parser + gate module is registered in `intent/llm/MODULES.md` before its code exists",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/llm/MODULES.md bin/intent_acceptance row, registered before code (fa90bb2)"
+  }
+}

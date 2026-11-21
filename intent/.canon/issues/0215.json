@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 215,
+  "schema": "intent/issue@4.0",
+  "id": "0215",
   "slug": "llm-usage-rules-is-labelled-v2-parity-and-answer",
   "title": "llm usage_rules is labelled v2 parity and answers about a different file than v2",
   "status": "closed",

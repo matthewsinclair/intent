@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.4",
+  "kind": "test",
+  "file": "intent/st/ST0057/parity/tools/canon_concurrent_diff.sh",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "green",
+  "note": "unwritten -- ST0057 is 0 of 8 WPs. `to-write` is the honest state: the test does not exist, which is not the same as existing and failing."
+}

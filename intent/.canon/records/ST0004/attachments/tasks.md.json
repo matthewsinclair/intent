@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0004: Steel Thread Commands\n\n## Tasks\n\n- [x] Design the command-line interface for `stp st`\n- [x] Implement the `stp st new` command for creating new steel threads\n- [x] Implement the `stp st list` command for listing all steel threads\n- [x] Implement the `stp st show` command for viewing a specific thread\n- [x] Implement the `stp st done` command for marking threads as complete\n- [x] Implement the `stp st edit` command for opening threads in an editor\n- [x] Create a steel thread index file and update mechanism\n- [x] Add error handling and user-friendly messages\n- [x] Write documentation for the steel thread commands\n",
+  "bytes": 637,
+  "sha256": "5ca294c66692b2e10d214c6702b978c75ed496d2e48c24438b5d07427566d44e"
+}

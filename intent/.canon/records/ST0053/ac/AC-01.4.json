@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.4",
+  "text": "The prose base carries no upward dependency on an author-specific rule (no base->discipline `related_rules`), and every downstream reference (author craft cross-links, the `/in-author-essentials` skill, the author canon templates) re-points to the `IN-PR-*` ids.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "heading-hygiene + mechanical-trope-pass `related_rules` emptied; author full-trope-diagnosis links `IN-PR-STYLE-004`; skill + `templates/author/{RULES,ARCHITECTURE}.md` cite `IN-PR-*`; full-library `rules validate` 58/58 green"
+  }
+}

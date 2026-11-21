@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/organize_moment_of_act_digest.rs",
+  "covers": [
+    "AC-04.5"
+  ],
+  "status": "green",
+  "note": "**GREEN. The moment-of-act digest holds.** **VERIFIED BY vc INDEPENDENTLY OF dc, NOT ON dc's REPORT: driven from the SHIPPED BINARY in a disposable `git clone` at `fc7e25f2`, 2026-08-19 16:52Z.** `rc=1` READ DIRECTLY WITH NO PIPE (vc's own watch-out, violated once in the first attempt and the run redone); **544 file(s) would be removed, ZERO were; 744 files under `intent/st` before and 744 after, TWICE; the two runs are byte-identical.** The refusal printed `19 checked of 19 declared, 13 unmet` and NAMED ALL THIRTEEN. **It says _this estate_ and _this project_ and carries no ST id, which is dc's consumer-estate fix visible in production output rather than only in its test.** `organize_moment_of_act_digest` 4 arms pass. **It locks against ANY process rather than other `organize` runs, because every read verb materialises the store on access -- so _the estate was quiet when I measured_ is not establishable, which is exactly the assumption `load_fresh` taught vc to distrust today.**"
+}

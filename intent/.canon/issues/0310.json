@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 310,
+  "schema": "intent/issue@4.0",
+  "id": "0310",
   "slug": "no-verb-lists-a-work-package-s-scoped-criteria-w",
   "title": "no verb lists a work package's scoped criteria with their state, and there is no wp gate",
   "status": "closed",

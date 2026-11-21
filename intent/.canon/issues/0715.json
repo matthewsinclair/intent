@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 715,
+  "schema": "intent/issue@4.0",
+  "id": "0715",
   "slug": "st-attach-from-over-an-existing-attachment-says",
   "title": "st attach --from over an existing attachment says ok and changes nothing while intentd watches the tree",
   "status": "closed",

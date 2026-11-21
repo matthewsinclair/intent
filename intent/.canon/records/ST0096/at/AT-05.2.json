@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/two_branches_that_change_one_thread_merge_clean.rs:29",
+  "covers": [
+    "AC-05.2"
+  ],
+  "status": "green",
+  "note": "green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed A2 at 7e34615f2"
+}

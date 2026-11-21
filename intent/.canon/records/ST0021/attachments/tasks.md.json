@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0021: Intent Autopsy\n\nAll tasks completed. See [done.md](done.md) for full list.\n\n## Dependencies\n\n- WP-01 must complete before WP-02 (script needs to exist for install testing)\n- WP-02 must complete before WP-03 (tests exercise install mechanism)\n- WP-01 through WP-03 before WP-04 (docs reflect final state)\n",
+  "bytes": 322,
+  "sha256": "9529107ee3cd0117aa9b77d692d88436b6f38660fc988169cf6f0e5155ab4f3f"
+}

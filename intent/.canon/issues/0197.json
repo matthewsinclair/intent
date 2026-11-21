@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 197,
+  "schema": "intent/issue@4.0",
+  "id": "0197",
   "slug": "a-to-write-at-s-note-is-write-once-and-correctin",
   "title": "a to-write AT's note is write-once, and correcting it destroys the to-write state",
   "status": "closed",

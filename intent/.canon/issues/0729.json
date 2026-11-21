@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 729,
+  "schema": "intent/issue@4.0",
+  "id": "0729",
   "slug": "sync-s-scan-its-attachment-test-and-attachment-p",
   "title": "sync's scan, its attachment test and attachment_path_fault spell intent/ whatever intent_dir says, and the attachment test is a second owner-of-a-path answer",
   "status": "closed",

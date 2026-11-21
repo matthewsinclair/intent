@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.11",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/one_clock.rs",
+  "covers": [
+    "AC-14.11"
+  ],
+  "status": "green",
+  "note": "No modelled entity carries a caller-authored stamp: nothing in the workspace reads a clock and nothing is exempt, so every stamp is the store's, written as a value at the write rather than as a column default a resync would re-fire. record_timestamps.rs proves the database writes the record stamp when the caller had no time to give; a migrated board's claimed stamps travel in authored_at, never in the service's fields."
+}

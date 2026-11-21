@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.6",
+  "text": "Prose bodies ingest verbatim into FTS-indexed doc_sections; a body round-trips byte-identical out of the store and is retrievable by full-text query",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

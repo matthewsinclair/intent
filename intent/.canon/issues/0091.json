@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 91,
+  "schema": "intent/issue@4.0",
+  "id": "0091",
   "slug": "write-config-materialises-defaults-into-config-j",
   "title": "write_config materialises defaults into config.json, so writing a default stops it being a default and the project silently stops tracking the tool",
   "status": "closed",

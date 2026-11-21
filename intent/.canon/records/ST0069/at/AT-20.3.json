@@ -1,0 +1,10 @@
+{
+  "id": "AT-20.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_answer_the_highlander_question.rs",
+  "covers": [
+    "AC-20.3"
+  ],
+  "status": "green",
+  "note": "Plants the rows a parse would have written and asks the question, because the store's answer is true of every build while a file naming symbols needs a grammar compiled in. The match is exact: --kind def asks whether a thing with that name already exists, and a prefix would answer a softer question. Reporting a reference as a definition reds it alone."
+}

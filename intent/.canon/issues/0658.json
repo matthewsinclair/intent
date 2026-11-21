@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 658,
+  "schema": "intent/issue@4.0",
+  "id": "0658",
   "slug": "the-estate-page-s-plan-usage-blanks-on-a-429-and",
   "title": "the estate page's plan usage blanks on a 429, and intentd re-asks the endpoint every minute with no backoff",
   "status": "closed",

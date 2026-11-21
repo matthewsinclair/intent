@@ -1,0 +1,9 @@
+{
+  "id": "AC-13.2",
+  "text": "The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
+  }
+}

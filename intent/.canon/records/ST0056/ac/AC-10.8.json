@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.8",
+  "text": "**Egest symmetry**: deleting the file estate and egesting from the DB reproduces it, and the only difference is the out-of-model set enumerated at `data-model.md`, **named in the output rather than silently absent**. The second half of ic's proposal, accepted 2026-08-15. **Its original justification is VOID under D36 and is replaced rather than reworded**: it read that \"`rm intent.db` is safe only if files remain to ingest back from, and vice versa\", which prices this AC in an operation that does not exist. **The property it actually tests is unchanged and is stronger stated directly: the two directions must be inverses, so that the extract is a faithful carrier of the DB and not merely a plausible one.** That is D34's precondition -- the extract is the interchange, so a field that egests wrong is data loss at the clone boundary -- and it needs no deletion scenario to matter. What made the old framing worth keeping is the half it exposed, which survives intact: the fleet acceptance fixture tests ingest forward only, and explicitly on semantic completeness rather than byte round-trip. Accepted on the failure shape rather than the feature: this is exactly the class that failed on ic's `burn-baseline.tsv`, where the header asserted the artefact reproduced the register, everyone believed it, nothing checked, and it drifted three rows in silence -- with the difference that an untested egest guarantee only fails on the day someone has already lost the files. D30 shrank this materially by moving the whiteboard, which was the largest entry in the out-of-model set, into the model",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

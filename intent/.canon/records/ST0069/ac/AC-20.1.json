@@ -1,0 +1,8 @@
+{
+  "id": "AC-20.1",
+  "text": "Definition and name-matched reference hits are returned for every language in the project's `languages` array, and a language absent from the array parses nothing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

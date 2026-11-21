@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "st/wp lifecycle verbs (new, start, done, cancel, list, show) run through the facade with **the DB write transactional and all-or-nothing, and the file projection unwound on failure**: a failure mid-write leaves the DB either fully changed or untouched, and leaves the files STALE but never TORN. **The `TornRollback` case -- where the unwind itself fails and the files really are torn -- is a named error and MUST be exercised**, because it is the only path to torn files and it is currently reachable and untested (`write_set.rs:35,114,136`; zero occurrences anywhere under `crates/*/tests/`). (Reworded 2026-08-15 for D01's reversal. The original said \"canon + views + DB written transactionally\" as one guarantee, which is what the reversal deliberately broke apart -- files are now permitted to lag the truth. cc's reading that the guarantee survives is right; the SENTENCE did not, and it claimed a single transaction across three artefacts that the model no longer provides. Stale is the whole meaning of re-creatable; torn is still a defect)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

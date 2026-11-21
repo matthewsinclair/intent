@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 517,
+  "schema": "intent/issue@4.0",
+  "id": "0517",
   "slug": "a-hold-on-a-lib-templates-bank-controls-the-reco",
   "title": "a hold on a lib/templates/ bank controls the record and not the running behaviour, because the working copy IS the install root",
   "status": "closed",

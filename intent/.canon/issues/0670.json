@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 670,
+  "schema": "intent/issue@4.0",
+  "id": "0670",
   "slug": "at-citation-check-a-bare-id-line-on-another-thre",
   "title": "AT citation check: a bare id line on another thread's arm satisfies a same-numbered row, so a row passes with no id over its own arm",
   "status": "closed",

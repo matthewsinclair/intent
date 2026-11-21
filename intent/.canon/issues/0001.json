@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 1,
+  "schema": "intent/issue@4.0",
+  "id": "0001",
   "slug": "pipe-in-a-title-corrupts-markdown-tables",
   "title": "pipe in a title corrupts markdown tables",
   "status": "closed",

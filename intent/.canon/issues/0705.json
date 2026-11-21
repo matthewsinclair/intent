@@ -1,6 +1,7 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 705,
+  "schema": "intent/issue@4.0",
+  "id": "0705",
+  "realised": true,
   "slug": "every-merge-blocks-every-other-open-merge-reques",
   "title": "Every merge blocks every other open merge request on .intentfiles, steel_threads.md and todo.md",
   "status": "open",

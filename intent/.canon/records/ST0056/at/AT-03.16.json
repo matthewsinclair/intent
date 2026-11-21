@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.16",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/egest_refuses_to_empty_the_estate.rs",
+  "covers": [
+    "AC-03.15"
+  ],
+  "status": "green",
+  "note": "red-first needs no broken binary: empty the store, then --to-disk against a 57-thread canon, and assert refusal or a named report. Do NOT drive it with output suppressed -- the original loss was silent only because vc piped the write verb to /dev/null."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/search_surface.rs:184",
+  "covers": [
+    "AC-14.1"
+  ],
+  "status": "green",
+  "note": "Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u"
+}

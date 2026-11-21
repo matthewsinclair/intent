@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 364,
+  "schema": "intent/issue@4.0",
+  "id": "0364",
   "slug": "upgrade-s-pointer-worklist-names-hits-under-hist",
   "title": "upgrade's pointer worklist names hits under .history that the append-only guard refuses to let anyone reword",
   "status": "closed",

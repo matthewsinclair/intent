@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "Ingest of committed event files is additive: a file whose id the store holds is skipped, one it lacks is inserted, a file is never rewritten, and no event_log row is deleted because its file is absent.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

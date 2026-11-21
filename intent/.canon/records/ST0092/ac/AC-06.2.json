@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.2",
+  "text": "A seat that no session has ever picked up is listed like any other and marked never started, in `intent wb pickup` and in `intent wb status`, read from the absence of any recorded session and never from its status or heartbeat, and the time it was registered is not printed as a heartbeat; the human seat, which no session drives, carries no such mark.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

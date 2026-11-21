@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.18",
+  "text": "**ADDED -- RESOLUTION NAMES ITS SOURCE, because step 0 is the only thing in this design that can return a WELL-FORMED WRONG ANSWER.** Material to stdout, **provenance to stderr** -- one line naming which source resolved -- so pipelines are unaffected and a terminal reader cannot miss that an override is in play. `vault doctor` enumerates active step-0 overrides **by NAME only, never value**. **A stale exported variable silently overrides the store for every later read: nothing errors, nothing warns, and the value is well formed.** AC-00.7 proves step 0 CAN resolve without an identity and **no criterion asked WHICH SOURCE ANSWERED** -- the property no green could see. Raised by Lamplight's verification of the R7 fix, 2026-08-25.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

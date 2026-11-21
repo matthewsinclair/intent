@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 612,
+  "schema": "intent/issue@4.0",
+  "id": "0612",
   "slug": "wb-ask-writes-the-message-into-the-recipient-s-b",
   "title": "wb ask writes the message into the recipient's board.json, so no commit the sender may make leaves main right: a fresh checkout either counts view skew or holds no message",
   "status": "closed",

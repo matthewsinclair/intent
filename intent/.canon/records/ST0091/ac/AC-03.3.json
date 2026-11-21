@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.3",
+  "text": "The service block in Intent's formula template points log_path and error_log_path at D19's intentd.log and intentd.err.log under the user's state dir, the files intent daemon logs reads, and its comment says intentd writes every line to stdout or stderr and names where each goes (issue 0667, ruled by hv on 2026-10-31).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "packaging/homebrew/intent.rb at f18bd6945: the service block's log_path and error_log_path name intentd.log and intentd.err.log under the user's state dir, with the comment; AT-03.3 green (brew_formula.bats arm 5)"
+  }
+}

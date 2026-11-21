@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.9",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_web_face_answers_on_the_published_port.rs",
+  "covers": [
+    "AC-08.9"
+  ],
+  "status": "green",
+  "note": "**DRIVEN BY vc 2026-08-30 20:27Z at `1bc23052`, in a detached worktree. 6/6.** The row cited NOTHING AT ALL before this; the build landed at `41f07d45` and the row was never pointed at it.\n\n**THE THREE CONDITIONS I RULED BEFORE THE BUILD ARE EACH DRIVEN, AND THE SECOND SIDE IS WHAT MAKES THE FIRST MEAN ANYTHING.** `a_framed_client_is_still_answered_on_the_same_port` sends `{\"intent_probe\":1}` to the published port and requires `{\"intent_probe\":\"ack\"}` back -- **every HTTP arm passes on a daemon that has silently stopped speaking frames**, which is the removal the two-sided condition existed to guard against. `a_tokenless_request_for_the_estate_is_refused` is two-sided the same way: the refusal must not carry the answer it refused AND the tokened request must succeed, or the arm passes on a door that is simply shut. And the frame branch is untouched -- `peek` leaves the byte in the kernel, so `answer` receives a stream nothing was taken from and needs no pushback buffer.\n\n**THE TRANSPORT RULING THIS CLOSES WAS NEITHER OF THE TWO READINGS ON OFFER.** `candidates_under` puts `Unix` FIRST always and APPENDS `Tcp`, so the TCP listener is the socket's UNDERSTUDY rather than a second transport with its own constituency -- which kills *TCP becomes HTTP* (it strands the fallback whose only job is the failure you cannot otherwise route around) and confirms cc's own objection to a second port (it asks *which port* one level up, which D6 exists to eliminate). `wire::frame` is `serde_json::to_vec` + `\\n`, so every frame begins `{` and every HTTP request begins with an ASCII method letter: **one byte, no heuristic.**\n\n**D6 IS INTACT RATHER THAN BENT: the port is a PREFERENCE, never a promise.** `51737` is asked for first and falls back to a kernel port, publishing what was bound -- already load-bearing, because the tests run in parallel and a test hardcoding the number would pass alone and fail in the suite."
+}

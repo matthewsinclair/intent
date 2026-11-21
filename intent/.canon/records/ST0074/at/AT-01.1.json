@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/app.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "cargo test -p intent-cli --lib --no-fail-fast: 287 passed, 0 failed, at the worktree base 1f8a912cf with 793984a50's bytes; red control: the collection act's push made a no-op fails slash_threads_and_slash_issues_open_their_collections. Literal id added at 5f62b2633."
+}

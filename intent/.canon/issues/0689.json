@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 689,
+  "schema": "intent/issue@4.0",
+  "id": "0689",
   "slug": "intent-app-takes-launchservices-word-for-the-app",
   "title": "intent app takes LaunchServices' word for the app's pid: a record of an exited app reads as running, and beside one the running app reads as not running",
   "status": "closed",

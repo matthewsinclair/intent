@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 706,
+  "schema": "intent/issue@4.0",
+  "id": "0706",
   "slug": "doctor-s-root-file-behind-advisory-says-a-hand-e",
   "title": "doctor's root-file-behind advisory says a hand edit in .claude/settings.json is overwritten, and 3.4.0 keeps a project's deny rules",
   "status": "closed",

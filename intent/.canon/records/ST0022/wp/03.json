@@ -1,0 +1,9 @@
+{
+  "id": "03",
+  "title": "-s|--start Flag for st new",
+  "scope": "S",
+  "status": "done",
+  "objective": "Add a `-s|--start` flag so `intent st new -s \"Title\"` creates and immediately starts the steel thread in one command.",
+  "body": "## Deliverables\n\n- Flag parsing (`-s|--start`) in `new` command, before positional title argument\n- After successful creation with flag, invoke start logic inline:\n  - Update `status:` from `Not Started` to `WIP` in frontmatter\n  - Update `- **Status**:` body line if present\n  - Move directory from `NOT-STARTED/` to `intent/st/`\n  - Update steel threads index\n- Help text updated to show `-s|--start` option\n- BATS tests covering both flag forms and flag position\n\n## Current State\n\nCreating and starting a steel thread requires two commands:\n\n```bash\nintent st new \"Quick Fix\"\nintent st start ST0023\n```\n\nThe user must note the ST ID from the first command's output to pass to the second.\n\n## Target State\n\nA single command creates and starts the steel thread:\n\n```bash\nintent st new -s \"Quick Fix\"\n```\n\nThe steel thread is created directly in `intent/st/` with `status: WIP`.\n\n## Acceptance Criteria\n\n- [ ] `intent st new -s \"Quick Fix\"` creates ST in `intent/st/` with `status: WIP`\n- [ ] `intent st new --start \"Quick Fix\"` also works (long form)\n- [ ] `intent st new \"Regular Thread\"` (without flag) still creates in `NOT-STARTED/` with `status: Not Started`\n- [ ] `intent st new \"Title\" -s` also works (flag after title)\n- [ ] BATS tests cover both `-s` and `--start` forms\n- [ ] BATS test covers flag-after-title position\n\n## Dependencies\n\n- WP-02 (slug must be in place so --start creates a complete ST with slug)",
+  "preamble": ""
+}

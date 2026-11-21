@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/address_resolution_single_home.rs",
+  "covers": [
+    "AC-07.1"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 8 tests. **THE SINGULARITY ARM IS STRUCTURAL RATHER THAN BEHAVIOURAL BECAUSE THE CRITERION SAYS SO** -- _checked by asserting a single implementation, not by comparing two outputs_ -- so it reads the `intent-cli` and `intentd` sources for the scheme literal outside a comment. A second resolver has to spell `intent://` somewhere, and comparing two outputs would pass for as long as the two implementations happened to agree."
+}

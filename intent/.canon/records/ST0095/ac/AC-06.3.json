@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.3",
+  "text": "No verb mints an ordinal.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

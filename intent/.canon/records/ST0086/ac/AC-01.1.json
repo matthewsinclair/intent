@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "One reader in intentsvcs returns the host's estate as one serialisable value, schema `intent/estate-status@1`, with every key present and typed from this package, so no renderer branches on a missing key; a key a later package fills carries the empty value of its declared shape until then.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

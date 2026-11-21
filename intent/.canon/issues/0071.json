@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 71,
+  "schema": "intent/issue@4.0",
+  "id": "0071",
   "slug": "v2-intent-upgrade-blocks-on-an-interactive-read-",
   "title": "v2 intent upgrade blocks on an interactive read with no TTY",
   "status": "closed",

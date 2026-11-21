@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 526,
+  "schema": "intent/issue@4.0",
+  "id": "0526",
   "slug": "the-empty-contract-refusal-says-to-add-a-criteri",
   "title": "The empty-contract refusal says to add a criterion but not to satisfy it, so its remedy leads to a second refusal",
   "status": "closed",

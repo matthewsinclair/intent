@@ -1,0 +1,10 @@
+{
+  "id": "AT-22.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/search_surface.rs",
+  "covers": [
+    "AC-22.2"
+  ],
+  "status": "green",
+  "note": "Both clauses. As it stands: the index still holds the old bytes after the file is rewritten underneath it, so the old word is still found -- which is what a query that had reconciled would NOT return. And names what moved: the path is named on stderr while the hit keeps stdout parseable, and the envelope carries the same fact as `complete: false` with the path in `stale`, which is what a per-path freshness rule reads. The second clause was unguarded until this arm; silencing the warning reddens it and nothing else."
+}

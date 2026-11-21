@@ -1,0 +1,9 @@
+{
+  "id": "AT-16.3",
+  "kind": "test",
+  "covers": [
+    "AC-16.3"
+  ],
+  "status": "to-write",
+  "note": "Unparseable table refuses and names the entity; a silent skip is the failure."
+}

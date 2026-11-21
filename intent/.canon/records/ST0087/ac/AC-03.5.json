@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.5",
+  "text": "`intent use opt` refuses an opt prefix with no manifest by name, since a prefix with no manifest is not Intent's, and names `intent install --prefix <dir>` as the step that makes one.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

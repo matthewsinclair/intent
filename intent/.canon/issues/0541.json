@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 541,
+  "schema": "intent/issue@4.0",
+  "id": "0541",
   "slug": "two-wb-remedies-still-name-the-bare-roster-form",
   "title": "Two wb remedies still name the bare roster form of wb register, which registers nothing on a generated board",
   "status": "closed",

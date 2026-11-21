@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.4",
+  "text": "Hooks continuity: `.claude/settings.json` + `.claude/scripts/**` byte-identical pre/post, asserted not assumed",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

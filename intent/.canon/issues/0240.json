@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 240,
+  "schema": "intent/issue@4.0",
+  "id": "0240",
   "slug": "intent-edit-hands-back-a-path-at-rc-0-for-an-ac",
   "title": "intent edit hands back a path at rc=0 for an Ac, At or Attachment that does not exist",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.2",
+  "text": "Docs shipped: a CHANGELOG v2.15.0 entry, `intent/history/v2.15.0.md`, `docs/releases/2.15.0/RELEASE_NOTES.md`, and `usage-rules.md` author-pack entries (Skills, Subagents, Rule Library, Critics).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "CHANGELOG [2.15.0] + intent/history/v2.15.0.md + docs/releases/2.15.0/RELEASE_NOTES.md + usage-rules author entries"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 270,
+  "schema": "intent/issue@4.0",
+  "id": "0270",
   "slug": "the-at-status-machine-has-no-inverse-for-to-writ",
   "title": "the AT status machine has no inverse for to-write, and the forward step can refuse every commit in the repository",
   "status": "closed",

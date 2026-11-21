@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.3",
+  "text": "A table shows a hashed id by its short form, unclipped, beside ordinals, and the issues table has a Created column.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 500,
+  "schema": "intent/issue@4.0",
+  "id": "0500",
   "slug": "sync-to-disk-refuses-beside-a-daemon-watching-th",
   "title": "sync --to-disk refuses beside a daemon watching the tree, though it runs no ingest and lands only a projection",
   "status": "closed",

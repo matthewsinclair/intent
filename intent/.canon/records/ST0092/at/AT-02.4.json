@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/team_profiles.rs",
+  "covers": [
+    "AC-02.4"
+  ],
+  "status": "green",
+  "note": "Red at the base: the arm drives `intentsvcs::teams`, which does not exist before this bank, and the shipped teams directory held TERMS.md alone, so the arm cannot compile there. No run saw this arm itself fail. Green at 86e180439, landed on vc's judge in desk slot 01M73P2XW3SS0Q7PE5QVRGRNGG (21:34:36Z to 21:55:12Z): the whole Rust workspace 3571 passed and 0 failed, this row's arm among them."
+}

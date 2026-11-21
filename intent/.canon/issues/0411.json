@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 411,
+  "schema": "intent/issue@4.0",
+  "id": "0411",
   "slug": "whiteboard-writes-are-absent-from-event-log-so-n",
   "title": "whiteboard writes are absent from event_log, so nothing can say who wrote a board row, when, or with which arguments",
   "status": "closed",

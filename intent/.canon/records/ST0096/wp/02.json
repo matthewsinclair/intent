@@ -1,0 +1,9 @@
+{
+  "id": "02",
+  "title": "The two lists leave git",
+  "scope": "M",
+  "status": "done",
+  "objective": "`intent/st/steel_threads.md` and `intent/todo.md` are rendered on disk as today and are never tracked: a new project ignores them, and `intent upgrade` takes an existing project's copies out of git's index once.",
+  "body": "Seat: ic, with cc on what `intent upgrade` means. Size: M. Lands after nothing; it can start in ic's slack before ST0095's WP-10.\n\n## Scope\n\n- **`intent init` ignores both lists**, through the writer that writes `intent/.cache/` and `intent/.backup/` into `.gitignore` today.\n- **`intent upgrade` adds the same two lines to an existing project's `.gitignore`** and takes both files out of git's index, leaving them on disk, in the one mechanical change the upgrade already makes. Its output names every path it changed.\n- **The set of generated aggregate views is declared once**, and init, upgrade, doctor and the commit gate (WP-03) read it.\n- **doctor names a project whose lists are still tracked**, with `intent upgrade` as the fix, as an advisory that is not counted, as cc's meaning for a project in today's format says (design.md).\n- **The verbs and `intent sync` keep rendering both lists on disk**, so `intent st list`, `intent todo` and a person reading the files see what they see today.\n- From the Highlander sweep (vc decision 133, report A at `refs/bank/vc/st0095/highlander-A-intentsvcs-20261119`): `todo_update` writes `todo.md` by a second route (`facade.rs:13394`, `13479`). One writer, with cc.\n\n## Out of scope\n\n- Realisation (WP-01). The commit gate and the pull-request check (WP-03).\n- The docs, which ride ST0095's WP-13.\n\n## Proof\n\n- AC-02.1's and AC-02.2's tests.\n- A critic-rust review of the diff, each Highlander finding fixed or answered (AC-00.2).\n\n",
+  "preamble": ""
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.5",
+  "text": "`ws list` prints one line per node (id, status, focus, claims, heartbeat-age) read from each `wip.md` frontmatter, and performs no writes.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

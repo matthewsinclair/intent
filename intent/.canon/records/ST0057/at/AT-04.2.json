@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/organize_dehydration_gate.rs",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "green",
+  "note": "**GREEN. The dehydration gate refused the whole run and named every unmet precondition.** **VERIFIED BY vc INDEPENDENTLY OF dc, NOT ON dc's REPORT: driven from the SHIPPED BINARY in a disposable `git clone` at `fc7e25f2`, 2026-08-19 16:52Z.** `rc=1` READ DIRECTLY WITH NO PIPE (vc's own watch-out, violated once in the first attempt and the run redone); **544 file(s) would be removed, ZERO were; 744 files under `intent/st` before and 744 after, TWICE; the two runs are byte-identical.** The refusal printed `19 checked of 19 declared, 13 unmet` and NAMED ALL THIRTEEN. **It says _this estate_ and _this project_ and carries no ST id, which is dc's consumer-estate fix visible in production output rather than only in its test.** `organize_dehydration_gate` 6 arms pass. **The estate run is the positive evidence the fixture cannot give: 544 real files on the removal path, held.**"
+}

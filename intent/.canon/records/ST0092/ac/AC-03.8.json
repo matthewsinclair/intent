@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.8",
+  "text": "A clone of a project whose board was applied ingests the same declaration, seats and remits from the canon on disk.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

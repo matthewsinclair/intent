@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 162,
+  "schema": "intent/issue@4.0",
+  "id": "0162",
   "slug": "intentd-help-starts-a-daemon-instead-of-printing",
   "title": "intentd --help starts a daemon instead of printing help",
   "status": "closed",

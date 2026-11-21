@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 548,
+  "schema": "intent/issue@4.0",
+  "id": "0548",
   "slug": "search-says-complete-while-a-declared-language-h",
   "title": "Search says complete while a declared language has no grammar",
   "status": "closed",

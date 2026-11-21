@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "TERMS caps a message to a seat at five lines and a report to hv at ten, and no standing rule adds a check without naming what it catches that the checks in place do not.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "6acaba3cb: intent/plugins/claude/teams/TERMS.md, 'Talk, and what it costs' and the rule that a check names what it catches"
+  }
+}

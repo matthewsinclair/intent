@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/cli_end_to_end.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "red on the base b14471926: with cc's three source files reverted to it and these arms kept, the four arms proving AC-02.1 to AC-02.3 ran 0 passed, 4 failed -- then green on the landing 8d1103b3d: the whole-workspace run of 08:16:21Z to 08:23:15Z, 2943 passed and 0 failed, with the shell half, fmt, both clippy lines and doc all rc 0"
+}

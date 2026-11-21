@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "`intent upgrade` is a convergent orchestrator: detect state + numeric semver sanity, then verified backup, then walk an ordered ledger of structural steps (each with a state-based `needs` probe, a `run`, and a postcondition verify), then a single delegation to `intent claude upgrade --apply` for all canon/skills/subagents convergence, then stamp the target once, last. The confirmed defects below are all killed.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

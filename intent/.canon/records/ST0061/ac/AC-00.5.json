@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.5",
+  "text": "**THE ESTATE PRECONDITIONS GATE THIS DOOR TOO.** `preconditions::check` refuses the whole run when any declared precondition is unmet, naming every one of them with a denominator. **A per-thread verb must not be a way around the estate gate**: if it were, the gate would protect only the operator who happened to reach for `organize`, and the narrower verb would be the one that deletes. On an estate with no declaration at all the answer is `NoDeclaration` and the refusal stands.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

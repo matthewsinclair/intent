@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 648,
+  "schema": "intent/issue@4.0",
+  "id": "0648",
   "slug": "the-headless-critic-exits-0-when-it-asked-nothin",
   "title": "the headless critic exits 0 when it asked nothing: the Swift pack arms no rule and a Rust file reached only by clippy-armed rules prints ok, so a judge's critic leg reads nothing judged as clean",
   "status": "closed",

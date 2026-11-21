@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "Validation fails, naming the file and the field, on a base with no mediator, a mediator that is not one of the profile's seats, a duplicate moniker, a role equal to its moniker, a name written as a session name, a second seat driven by the human, a layer that declares a human seat, a profile that names a moniker the seat registry does not hold, a base that lacks any of the four sections its brief is printed from, and a layer that carries one.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

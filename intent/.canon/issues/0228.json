@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 228,
+  "schema": "intent/issue@4.0",
+  "id": "0228",
   "slug": "five-canon-shell-rules-scope-on-bin-with-no-exte",
   "title": "five canon shell rules scope on bin/* with no extension constraint, so the shell critic claims non-shell files -- two are critical",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "**`intent edit <ID>` dispatches on id shape, hydrates when absent, and prints a path that EXISTS after the call** -- for every id shape the verb accepts, denominator printed over that set.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

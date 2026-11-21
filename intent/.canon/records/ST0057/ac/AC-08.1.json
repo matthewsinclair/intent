@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.1",
+  "text": "**The write path is DB first, canon ALWAYS, views IF MARKED.** After any write, canon contains the change whether or not the artefact is realised. Not \"disk if marked\" -- that collapses canon into views and leaves a dehydrated artefact inside a gitignored database, absent from a fresh clone.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "in-finish no longer chains in-verify, and every machine's installed skills are synced to the release that carries this thread's skill text.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "in-finish's canon reads chains_to [\"in-whiteboard\"] since 3.3.1. Installed skills synced to Intent v3.3.2 (7282d3bfc), the release carrying it: rhadamanth 2026-11-13 (sync dry run now 0 would change), gyges and kovacs 2026-11-14 by ssh (in-finish updated; no in-verify left in it). farcaster and pihole could not be reached by ssh from rhadamanth (host key), so are unverified; neither is known to carry Intent."
+  }
+}

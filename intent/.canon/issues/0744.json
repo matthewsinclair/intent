@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 744,
+  "schema": "intent/issue@4.0",
+  "id": "0744",
   "slug": "the-first-st-hydrate-of-an-upgraded-project-says",
   "title": "The first st hydrate of an upgraded project says it wrote 0 files while its wrote: lines name the files it wrote",
   "status": "closed",

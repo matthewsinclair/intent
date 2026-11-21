@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 496,
+  "schema": "intent/issue@4.0",
+  "id": "0496",
   "slug": "a-generated-surface-outside-render-all-is-held-t",
   "title": "A generated surface outside render_all is held to its source by nothing, and doctor cannot say so",
   "status": "closed",

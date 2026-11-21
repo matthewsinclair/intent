@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 602,
+  "schema": "intent/issue@4.0",
+  "id": "0602",
   "slug": "intent-claude-skills-uninstall-removes-a-skill-s",
   "title": "intent claude skills uninstall removes a skill's files and leaves its empty directory under ~/.claude/skills/",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 142,
+  "schema": "intent/issue@4.0",
+  "id": "0142",
   "slug": "at-green-help-asserts-a-guard-the-tool-does-not",
   "title": "at green --help asserts a guard the tool does not enforce",
   "status": "closed",

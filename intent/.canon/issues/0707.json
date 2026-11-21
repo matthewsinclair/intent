@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 707,
+  "schema": "intent/issue@4.0",
+  "id": "0707",
   "slug": "a-project-made-with-an-older-intent-keeps-closed",
   "title": "A project made with an older Intent keeps closed threads' views that sync --apply --yes removes on every branch",
   "status": "closed",

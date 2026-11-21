@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "Every rebuild is still recorded as one block in Intent.app.log, and a rebuild no longer opens the log by itself, while Run Doctor still opens it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

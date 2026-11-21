@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "`intent at green` is reachable only from `red`; `intent at red` / `intent at na` set those states; `done` / `notdone` alias `green` / `red`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

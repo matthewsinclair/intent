@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 708,
+  "schema": "intent/issue@4.0",
+  "id": "0708",
   "slug": "search-reports-a-work-package-s-prose-hit-as-kin",
   "title": "search reports a work package's prose hit as kind file: ingest writes owner type work-package, of_owner maps only wp and work_package",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.4",
+  "kind": "test",
+  "file": "tests/unit/in_author_essentials_skill.bats",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "green",
+  "note": "test: \"references the prose base + author rules by ID\""
+}

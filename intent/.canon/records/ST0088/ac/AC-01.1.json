@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "The catalogue has no `in-tca-*`, `in-cost-analysis` or `in-debug` directory, `intent/docs/skills-triage.md` has no row for them, no prompt or template names them, and the corpus tests pass: the triage doc covers the catalogue, every skill has a live caller, cross-references resolve.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

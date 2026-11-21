@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.16",
+  "text": "**ADDED -- Lamplight's validation node has VERIFIED this design against R1-R12 and reported where it does not satisfy them.** Advisory, which is the whole point: `lamplight-vc` verifies and reports, it does not rule. **AN EARLIER FORM OF THIS CRITERION READ _the requirements provider has RATIFIED this design_, WHICH NAMED AN AUTHORITY THE NODE IT POINTED AT CANNOT EXERCISE** -- unsatisfiable by construction, and well-formed enough that nothing would have reported it. Corrected 2026-08-25 on lamplight-vc's own correction, which arrived in answer to a ROUTING question.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

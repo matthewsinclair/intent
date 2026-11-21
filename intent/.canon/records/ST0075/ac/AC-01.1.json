@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "intent daemon logs prints a header naming both daemon logs, then the last lines of each (40 by default, --lines N), and exits 0",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

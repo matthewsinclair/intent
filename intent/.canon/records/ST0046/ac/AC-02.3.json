@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "`sync` preserves existing rows verbatim -- hand-annotated provenance (ST/WP refs, `Highlander`) and curated thematic sub-sections survive.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

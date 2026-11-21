@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 367,
+  "schema": "intent/issue@4.0",
+  "id": "0367",
   "slug": "st-reopen-realises-a-dehydrated-thread-s-views-b",
   "title": "st reopen realises a dehydrated thread's views but not its attachments, and the canon gate refuses the next commit",
   "status": "closed",

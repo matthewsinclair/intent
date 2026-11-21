@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 359,
+  "schema": "intent/issue@4.0",
+  "id": "0359",
   "slug": "index-status-reports-grammar-unknown-for-author",
   "title": "index status reports grammar unknown for author and content, which have no grammar to have",
   "status": "closed",

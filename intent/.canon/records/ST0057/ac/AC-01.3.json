@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "**The relocation is lossless: every field of every artefact round-trips through the move byte-identically**, denominator printed over the full field set. This is ST0056's AC-02.6 applied to the move -- a field that does not survive the relocation is data loss at the clone boundary.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

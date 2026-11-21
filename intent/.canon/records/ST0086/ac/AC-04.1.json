@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "`intent estate control take` writes `controller.json` beside the lanes with the session, its cross-session name and pid; a second take is refused while the holder's pid is alive, a dead pid allows a new take, `control release` ends it, and lane, grant, deny and revoke writes are accepted from the controller session only.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

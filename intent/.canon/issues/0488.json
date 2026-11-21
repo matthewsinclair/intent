@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 488,
+  "schema": "intent/issue@4.0",
+  "id": "0488",
   "slug": "wb-migrate-carries-a-numbered-list-as-one-item-w",
   "title": "wb migrate carries a numbered list as one item, while bullets carry one per line",
   "status": "closed",

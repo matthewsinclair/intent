@@ -154,3 +154,12 @@ target/
 .githooks/post-checkout.intent
 .githooks/post-merge.intent
 .githooks/post-rewrite.intent
+
+# An Intent view of many records: every clone renders its own from the store, so none is committed.
+intent/st/steel_threads.md
+
+# An Intent view of many records: every clone renders its own from the store, so none is committed.
+intent/todo.md
+
+# An Intent view of many records: every clone renders its own from the store, so none is committed.
+intent/st/*/acceptance.md

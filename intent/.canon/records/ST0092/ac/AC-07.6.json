@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.6",
+  "text": "A seat whose remit was never set shows the profile's default, marked as the default, in the roster table, and a seat whose remit the project set shows the project's words.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

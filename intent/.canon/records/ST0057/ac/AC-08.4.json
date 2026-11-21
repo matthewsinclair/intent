@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.4",
+  "text": "**Caller-assigned ids are a `PUT` to the entity address; server-assigned ids are a `POST` to the COLLECTION address returning the new address.** You cannot address `ST0058` before the tool has decided it is `ST0058`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

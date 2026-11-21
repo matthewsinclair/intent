@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 450,
+  "schema": "intent/issue@4.0",
+  "id": "0450",
   "slug": "the-0442-detector-reported-doc-sections-corrupt",
   "title": "the 0442 detector reported doc_sections corrupt once on the live store while the 3.46.0 daemon was writing it, and two re-reads, the 3.54 CLI on a copy and a search all read clean",
   "status": "closed",

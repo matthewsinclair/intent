@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_usage_endpoint_names_each_failure.rs",
+  "covers": [
+    "AC-02.6"
+  ],
+  "status": "green",
+  "note": "arms: a_good_answer_is_read_and_the_token_rides_stdin_never_argv, the_keychain_item_is_named_by_whether_a_config_dir_is_set_with_no_fallback, a_keychain_that_cannot_run_or_holds_no_token_is_named, a_curl_that_cannot_run_or_reaches_nothing_is_named and a_status_other_than_200_and_an_unparsable_answer_are_named, and for issue 0658 a_429_is_named_with_the_retry_after_it_sent, a_failed_read_keeps_the_last_good_reading_beside_its_failure, a_good_read_waits_read_every_and_a_failure_backs_off and a_kept_reading_stands_until_a_newer_statusline_report (stub security and curl scripts in a tempdir, fixture tokens only, never the real Keychain or the network), and in native/rust/crates/intentd/src/census.rs asking_for_the_estate_arms_the_endpoint_read (the endpoint is read after a status ask) and, for issue 0658, the_endpoint_waits_its_wait_in_whole_ticks_and_one_more (the wait counted in census ticks, no clock read); green in vc's judge run 3 of 2026-10-27 (request 01M5YHGAPFKX6PEWMDREN5BGBY) at base b72f507ac, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550); arms-v3 landed at bd3dbf682 on 2026-10-26, and 0658 v3 at a9cd50adc"
+}

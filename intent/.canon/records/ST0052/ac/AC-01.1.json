@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "A well-formed author rule id (eg `IN-AU-STYLE-001`) passes the rule-id validator, and a malformed id (bad code, missing zero-padding) still fails.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 493,
+  "schema": "intent/issue@4.0",
+  "id": "0493",
   "slug": "an-intent-cli-test-that-spawns-the-binary-withou",
   "title": "An intent-cli test that spawns the binary without a fixture HOME runs the verb against the developer's own per-user state, and nothing refuses one",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 76,
+  "schema": "intent/issue@4.0",
+  "id": "0076",
   "slug": "in-ex-test-001-s-greppable-proxy-matches-its-own",
   "title": "IN-EX-TEST-001's greppable proxy matches its own anti-pattern inside COMMENTS, so documenting why you removed it is itself an offence -- and the rule declares a Critic confirmation step the headless gate structurally cannot perform",
   "status": "closed",

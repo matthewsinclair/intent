@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 173,
+  "schema": "intent/issue@4.0",
+  "id": "0173",
   "slug": "stale-at-check-sh-silently-excludes-live-threads",
   "title": "stale_at_check.sh silently excludes live threads with no acceptance.md, and its skip line reads as complete",
   "status": "closed",

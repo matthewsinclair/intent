@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "`ws hygiene` passes a clean board (zero exit, no mutation beyond formatting) and flags an intentionally-corrupted fixture (bad frontmatter / missing sentinel / oversized).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

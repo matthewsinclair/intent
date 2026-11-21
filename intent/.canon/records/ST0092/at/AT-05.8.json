@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.8",
+  "kind": "non-test",
+  "prose": "intent/plugins/claude/skills/in-whiteboard/SKILL.md says, in the hv node section and the `ask` and `announce` bullets, that on a board that declares a team hv is reached through the mediator, that `wb ask` between hv and any other node is refused with the mediator named, that `wb announce` sends hv no copy, and that a write as hv is taken only from the mediator's session or hv's own shell; it cites the terms document, intent/plugins/claude/teams/TERMS.md, for the mediator, and requires the README to name hv's reader only on a board that declares no team.",
+  "covers": [
+    "AC-05.8"
+  ],
+  "status": "n-a",
+  "note": "The skill at the base says hv's inbox is the escalation surface on every board, requires the README to name who reads hv/inbox.*, and cites no terms document; the wording lands in the same bank as the code, as AC-05.8 requires."
+}

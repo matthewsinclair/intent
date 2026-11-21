@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.4",
+  "text": "Scope is on-demand only -- `bin/intent_critic` (the headless gate) is untouched (deferred D4); the widening is the subagent + its manifest row.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "git diff: subagents/critic-author + .manifest + acceptance.md + tests only; bin/intent_critic untouched (D4)"
+  }
+}

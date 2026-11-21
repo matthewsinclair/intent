@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 718,
+  "schema": "intent/issue@4.0",
+  "id": "0718",
   "slug": "a-thread-can-hold-two-attachments-that-one-disk",
   "title": "A thread can hold two attachments that one disk stores as one file: the attachment door and projection's sidecar write do not ask the one-file key",
   "status": "closed",

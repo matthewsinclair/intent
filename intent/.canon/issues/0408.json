@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 408,
+  "schema": "intent/issue@4.0",
+  "id": "0408",
   "slug": "wb-migrate-drops-a-board-s-lead-paragraphs-and-s",
   "title": "wb migrate drops a board's lead paragraphs and still exits 0, so a scripted migration cannot tell anything was left behind",
   "status": "closed",

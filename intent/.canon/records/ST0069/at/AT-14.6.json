@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wb_archive_frees_the_bound.rs",
+  "covers": [
+    "AC-14.6"
+  ],
+  "status": "green",
+  "note": "Archival is the state change, not a schedule run later (vc's ruling): a kind at its bound refuses, archiving one item admits the next write in that same call; an inbox at its bound refuses, the recipient's clear admits the next message. Nothing is deleted -- the archived item and the handled messages are still rows afterwards."
+}

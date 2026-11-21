@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 194,
+  "schema": "intent/issue@4.0",
+  "id": "0194",
   "slug": "intent-search-passes-the-query-into-fts5-unescap",
   "title": "intent search passes the query into FTS5 unescaped, so any hyphenated term fails with a leaked sqlite error",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-10.6",
+  "kind": "non-test",
+  "prose": "canary rollback exercised and recorded in impl.md",
+  "covers": [
+    "AC-10.6"
+  ],
+  "status": "n-a"
+}

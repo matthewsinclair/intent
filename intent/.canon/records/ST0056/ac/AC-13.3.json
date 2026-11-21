@@ -1,0 +1,11 @@
+{
+  "id": "AC-13.3",
+  "text": "Lexical (FTS5) search returns hits across prose and source in the one result shape `{path, span, kind, tier, score, snippet}`",
+  "kind": "test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0069",
+    "by": "hv via vc",
+    "reason": "3.0.1 cut scope, hv ruling 2026-08-30. Never-started feature work moved whole so ST0056's gate measures what 3.0.1 ships. NOT a descope-for-a-green: ST0056 stays BLOCKED after the move. WP-14's declared WP-14-blocks-WP-12 coupling was MEASURED and does not hold -- intent claude ws is native in v3 (new/list/archive/hygiene), so pruning bin/ under AC-12.1 does not remove the whiteboard tooling, and intent wb does not exist. The requirement is unchanged and unbuilt; only the thread it is counted against moved."
+  }
+}

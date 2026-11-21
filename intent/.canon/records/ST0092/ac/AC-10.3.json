@@ -1,0 +1,9 @@
+{
+  "id": "AC-10.3",
+  "text": "No shipped file defines one of the terms a second time: the `/in-whiteboard` skill, the guide and the roster template cite the terms document, and ic has recorded the search that shows it.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "AT-10.3: ic's search of 2026-11-11, recorded on doing 146"
+  }
+}

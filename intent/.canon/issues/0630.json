@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 630,
+  "schema": "intent/issue@4.0",
+  "id": "0630",
   "slug": "a-peer-s-board-write-that-is-still-landing-refus",
   "title": "A peer's board write that is still landing refuses an unrelated commit: WriteSet renames board.json before wip.md, and doctor counts the old view beside the new canon as a hand edit",
   "status": "closed",

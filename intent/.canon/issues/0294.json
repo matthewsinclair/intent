@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 294,
+  "schema": "intent/issue@4.0",
+  "id": "0294",
   "slug": "int-cli-refuses-every-invocation-because-cmd-cli",
   "title": "int cli refuses every invocation because cmd/cli never sources the lib declaring SHARED_TARGET_DIRT_SCOPES -- and the refusal prints a currency claim it never computed",
   "status": "closed",

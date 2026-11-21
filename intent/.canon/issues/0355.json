@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 355,
+  "schema": "intent/issue@4.0",
+  "id": "0355",
   "slug": "the-index-watch-registration-is-root-recursive-a",
   "title": "the index watch registration is root-recursive and its debouncer cache walks the whole tree, target dirs included, with a stat per entry on every rescan",
   "status": "closed",

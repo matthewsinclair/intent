@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0053: Content project-type pack\n\n## Tasks\n\n- [x] WP01 -- IN-PR-* prose base + author refactor\n- [x] WP02 -- content (CO) rule tiers\n- [x] WP03 -- critic-prose (rename critic-author)\n- [x] WP04 -- content lang canon\n- [x] WP05 -- in-content-essentials skill + dispatch\n- [x] WP06 -- dogfood + docs + close\n\n## Task Notes\n\nBuild order and per-WP acceptance live in `acceptance.md`; design decisions D1-D5 (hv-ratified) in `design.md`. D5=(a): 2.15.1 shipped first (done), the pack ships as 2.16.0.\n\n## Dependencies\n\n- WP02..05 depend on WP01 (the `IN-PR-*` base + the lang-code plumbing pattern).\n- WP06 (dogfood + close) depends on WP02..05 and on hv providing a content target + release framing.\n",
+  "bytes": 708,
+  "sha256": "0322662694ff64f1ee19d14a1d5173c3971172d172fc1ab9f6931de1f69dd8ef"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 422,
+  "schema": "intent/issue@4.0",
+  "id": "0422",
   "slug": "with-the-detail-pane-split-the-list-cannot-scrol",
   "title": "With the detail pane split, the list cannot scroll to the rows below its half -- the scroll was taken against the whole body",
   "status": "closed",

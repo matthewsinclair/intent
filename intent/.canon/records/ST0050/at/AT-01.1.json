@@ -1,0 +1,12 @@
+{
+  "id": "AT-01.1",
+  "kind": "non-test",
+  "file": "tests/unit/intent_todo.bats",
+  "prose": "Witness tests/unit/intent_todo.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
+  "covers": [
+    "AC-01.1",
+    "AC-01.3"
+  ],
+  "status": "n-a",
+  "note": "test: update_projects_buckets_from_status -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_todo.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
+}

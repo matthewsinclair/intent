@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 514,
+  "schema": "intent/issue@4.0",
+  "id": "0514",
   "slug": "the-manifest-module-s-doc-comment-says-issue-is",
   "title": "the manifest module's doc comment says ISSUE: is retired and defends a sigil filter that no longer exists",
   "status": "closed",

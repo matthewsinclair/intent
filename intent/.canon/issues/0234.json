@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 234,
+  "schema": "intent/issue@4.0",
+  "id": "0234",
   "slug": "every-mutation-appends-a-full-copy-of-the-doc-se",
   "title": "Every mutation appends a full copy of the doc-section FTS index; stores grow without bound",
   "status": "closed",

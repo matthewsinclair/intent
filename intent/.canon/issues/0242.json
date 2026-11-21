@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 242,
+  "schema": "intent/issue@4.0",
+  "id": "0242",
   "slug": "the-shipped-pre-commit-gate-reports-its-scope-on",
   "title": "The shipped pre-commit gate reports its scope only on failure, so a gate enforcing nothing is silent and looks identical to one enforcing everything",
   "status": "closed",

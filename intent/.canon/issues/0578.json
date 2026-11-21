@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 578,
+  "schema": "intent/issue@4.0",
+  "id": "0578",
   "slug": "the-opt-in-post-tool-advisory-hands-the-model-a",
   "title": "the opt-in post-tool advisory hands the model a clean critic run's output, because its empty-output test never fires",
   "status": "closed",

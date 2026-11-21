@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "`start <ws>` for an existing workstream assembles `claude --effort max --permission-mode auto --append-system-prompt <ctx> \"/in-session\"` (verified via `CWI_DRY_RUN`).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.1",
+  "text": "The pack is dogfooded: the mechanical `style` tier ran against real prose, the transcript is captured in-repo (`impl.md`), and there are no unresolved defects.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "impl.md WP06 dogfood: mechanical style tier run by hand against the pack's own prose; all hits house-style false positives; no unresolved defects"
+  }
+}

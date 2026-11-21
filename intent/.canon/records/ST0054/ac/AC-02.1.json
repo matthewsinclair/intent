@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "`/in-standards` Step 3 references topical `deps/*/usage-rules/*.md` sub-rule folders, not only the single `deps/*/usage-rules.md`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "in-standards/SKILL.md Step 3 (+ peers in-elixir-essentials, in-ash-ecto-essentials) now reference topical deps/_/usage-rules/_.md sub-rule folders"
+  }
+}

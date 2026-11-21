@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.3",
+  "text": "A live message does not refuse a retirement: one the leaver sent stays in its recipient's inbox until that recipient handles it, and one addressed to the leaver is named in the retirement's report and at its sender's next pickup, where `intent wb archive message` then accepts it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 137,
+  "schema": "intent/issue@4.0",
+  "id": "0137",
   "slug": "ac-list-renders-a-fiat-closed-criterion-as-satis",
   "title": "ac list renders a fiat-closed criterion as satisfied: no -- the second render site goes around the one composer",
   "status": "closed",

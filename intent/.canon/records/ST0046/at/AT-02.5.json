@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.5",
+  "kind": "test",
+  "file": "tests/unit/modules_commands.bats",
+  "covers": [
+    "AC-02.5"
+  ],
+  "status": "to-write",
+  "note": "red-first; modules sync -- deterministic ordering"
+}

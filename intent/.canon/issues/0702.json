@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 702,
+  "schema": "intent/issue@4.0",
+  "id": "0702",
   "slug": "the-reference-index-calls-a-release-s-surface-id",
   "title": "The reference index calls a release's surface identical to the last one when only a verb changed: neither generator compares a command's verb values, so 3.4.0's index says identical to v3.3.3 though it adds claude rules contract",
   "status": "closed",

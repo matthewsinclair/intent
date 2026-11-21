@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 104,
+  "schema": "intent/issue@4.0",
+  "id": "0104",
   "slug": "doctor-prints-its-summary-last-and-spends-55-of",
   "title": "doctor prints its summary last and spends 55% of its bytes repeating four remedy sentences",
   "status": "closed",

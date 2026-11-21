@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 189,
+  "schema": "intent/issue@4.0",
+  "id": "0189",
   "slug": "edit-ignores-the-kind-it-was-given-and-answers-a",
   "title": "edit ignores the KIND it was given and answers about a thread, so 'edit issue 0056 --path' returns thread ST0056's file at rc=0",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-12.4",
+  "text": "(non-test) The release being cut is tagged on both remotes, the GitHub release is published, and the formula is live. REWORDED 2026-09-01 (vc, under the pen, EXECUTING hv's 08:32Z ruling rather than extending it). The row read `v3.0.0` and all three of its clauses were measurably TRUE -- tag `80d8b2ca` on both remotes, release published with three assets, `brew info intent` naming stable 3.0.0 -- so satisfying it AS WRITTEN would have closed the gate row for THIS release on the EVIDENCE OF THE PREVIOUS ONE. Raised by ic 2026-08-29 into hv's inbox and unread until vc's 2026-08-30 pickup. It is deliberately worded as THE RELEASE BEING CUT rather than as a literal version: a criterion naming a version number is a figure, and a figure in a criterion rots at the next release while continuing to read as a requirement -- which is the defect this reword corrects, so re-introducing it with a new number would be the same error one release later.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "v3.0.1 is tagged at a8942aead on both remotes (ls-remote on local and upstream). GitHub release 'Intent v3.0.1' was published 2026-09-11T18:59:31Z, not a draft, with four assets: intent and intentd aarch64-apple-darwin, intent-support.tar.gz, Intent.app.zip. The formula is live in matthewsinclair/homebrew-intent at fc32170, and a cold brew install from the tap installs 3.0.1 (smoke --reinstall rc 0)."
+  }
+}

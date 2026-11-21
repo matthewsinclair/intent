@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 441,
+  "schema": "intent/issue@4.0",
+  "id": "0441",
   "slug": "intentd-s-background-sync-writes-a-render-taken",
   "title": "intentd's background sync writes a render taken before a command-line write over that write's canon and view, silently, until the next write to the subject warns",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-04.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/error_remedies.rs",
+  "covers": [
+    "AC-04.4"
+  ],
+  "status": "green"
+}

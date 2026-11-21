@@ -1,0 +1,8 @@
+{
+  "id": "AC-12.1",
+  "text": "No script the commit gate or CI runs, no hook and no template carries a pattern for an id, and the commit gate refuses a new one. (Scoped to the gated half by vc under hv's pen, on hv decision 79, 2026-11-21; the by-hand half is AC-12.4, descoped.)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

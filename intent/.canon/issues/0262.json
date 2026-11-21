@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 262,
+  "schema": "intent/issue@4.0",
+  "id": "0262",
   "slug": "st-attach-accepts-a-repo-relative-path-reports-o",
   "title": "st attach accepts a repo-relative path, reports ok, and mints a duplicate attachment entry that no verb removes and doctor never reports",
   "status": "closed",

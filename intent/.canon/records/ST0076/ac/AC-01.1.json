@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "For Rust and Elixir, every definition row carries its `subkind`, `container`, `container_kind`, `trait_name`, `arity` and `arity_min` as ST0076's design vocabulary table states, read from the file's own syntax only.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/wb_retire_door.rs",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "Red at 56c58ba4d (desk slot 01M753H005WM1RCM7Y81YEH7XF, on 720c861d7 plus the door file): the door arm at_04_1 failed with `unrecognized subcommand 'retire'`. Green at 8965685b9 (bank (i), vc's full judge in slot 01M755213Q9H499VS3AXT70EBF: Rust 3635 passed 0 failed, bats 816 ok, the contract delta checked warm on tree fea2c595349b): at_04_1 in the door, with wb_retire.rs at_04_1 as the precise half (the board kept, status listing it only with --all)."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The chaining skills (`in-session` pickup step, `in-finish` release step) reference the 3.0 subcommands, and no shipped skill / doc hard-codes the flat-file 2.0 model.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

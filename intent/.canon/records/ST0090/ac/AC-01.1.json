@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "One function in intentsvcs names a language's level-3 state from its stored run and the paths gone stale since: `current` only for a run that stored with nothing stale, `stale` for a stored run with stale paths, the extractor's move included, and the run's own `missing` or `failed` whatever is stale; the search envelope and the index report both ask it, and no face prints `Run::state` as the language's state.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

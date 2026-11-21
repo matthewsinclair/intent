@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "The four shared mechanical rules live once, in the prose base (`rules/prose/style/`): each is schema-valid, declares `language: prose`, is enumerated under `--lang prose`, and carries its `IN-AU-STYLE-*` migration alias.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

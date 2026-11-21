@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.1",
+  "text": "The full command surface is ported and the conformance suite is green minus register-recorded deviations only, with `coverage_map.sh` reporting no command family at zero burning coverage -- `intent config` lands a conformance test BEFORE its behaviour is designed, or the `undefined` ruling on it is unverifiable by construction",
+  "kind": "non-test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "withdrawn 2026-09-11 under hv's instruction to end the acceptance-and-instrument loop and draw a line under 3.0.1. This row demands a proof about an instrument, a register or a baseline, not a behaviour a user of 3.0.1 meets. The record it produced stays where it is; the criterion no longer gates the release."
+  }
+}

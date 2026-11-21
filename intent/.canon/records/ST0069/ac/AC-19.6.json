@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.6",
+  "text": "`intent index status` and `intent index rebuild` exist, report measured sizes, and are registered like every verb; on MCP the read is a tool and the write is withheld, its register row carrying the reason.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

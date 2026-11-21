@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.13",
+  "text": "**A WRITE PATH WHOSE INPUT WAS REFUSED MUST NOT THEN BE USED AS A SOURCE OF TRUTH.** (vc 2026-08-18, from a live instance with vc as the cause.) `sync --to-store` refused a canon extract on a `UNIQUE constraint failed: tests.thread_id, tests.id` and left the store at its previous contents. **`sync --to-disk` then wrote that stale store over canon at rc=0, with nothing in its output indicating the store had rejected the most recent write -- destroying the same authored criterion twice.** The two verbs are documented as opposite directions of one operation and nothing carries the failure of one into the other. **The property required is that the store record whether its last ingest SUCCEEDED, and that any egest from a store whose last ingest was REFUSED either refuse in turn or say so in its output.** A silent rc=0 egest from a known-stale store is a data-loss path that presents as a routine sync. **DISTINCT SUBJECT FROM AC-03.5/AC-03.6 (ic 2026-08-18, catching this before the wrong remedy was cited): those govern ATTACHMENT bytes against a commit; this episode destroyed a CRITERION, which no attachment check reaches.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

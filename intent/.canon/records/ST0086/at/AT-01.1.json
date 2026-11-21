@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "arms: status_json_carries_every_key_of_the_boundary_from_the_first_work_package; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 354,
+  "schema": "intent/issue@4.0",
+  "id": "0354",
   "slug": "intentd-spins-one-core-in-the-store-s-serve-thre",
   "title": "intentd spins one core in the store's serve thread, a million syscalls a second in a condvar wait with no timeout, intermittently and without a known trigger",
   "status": "closed",

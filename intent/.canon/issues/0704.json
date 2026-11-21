@@ -1,6 +1,7 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 704,
+  "schema": "intent/issue@4.0",
+  "id": "0704",
+  "realised": true,
   "slug": "sync-apply-refuses-a-merge-when-both-sides-added",
   "title": "sync --apply refuses a merge when both sides added rows to .intentfiles",
   "status": "open",

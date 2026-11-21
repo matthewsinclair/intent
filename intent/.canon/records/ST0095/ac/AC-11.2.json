@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.2",
+  "text": "The Swift app shows a hashed fixture, and the served page's refusals name both families.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "9df6dfad4: AT-11.2 (intentd store.rs) and the hashed-fixture arm in native/macos/Intent/IntentTests/ProjectServiceTests.swift:17, gated by devbin-cc and read by ic and vc"
+  }
+}

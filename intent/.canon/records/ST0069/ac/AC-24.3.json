@@ -1,0 +1,8 @@
+{
+  "id": "AC-24.3",
+  "text": "`intent search --outline <path>` returns a file's symbols with spans, and `intent search --context <name>` returns a definition and its name-matched references as source spans; each is one facade call and one MCP tool call, in the envelope.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-15.4",
+  "text": "**Every cross-reference in the surviving catalogue resolves**: `chains_to:` frontmatter targets, the `/in-*` skill names skills cite in each other's prose, and the rule ids they name. A retirement that leaves a dangling `chains_to:` has moved the breakage rather than removed it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.14",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/app.rs",
+  "covers": [
+    "AC-17.14"
+  ],
+  "status": "green",
+  "note": "TWO HALVES IN TWO FILES, AND THE ROW CITES BOTH BECAUSE ONE BEING RIGHT IS NO EVIDENCE ABOUT THE OTHER. `a_setting_row_the_allow_list_does_not_carry_is_refused_rather_than_written` (`native/rust/crates/intent-cli/src/tui/app.rs`) is the WRITER half: a spelling the allow-list does not carry is refused rather than written, and it carries its own positive control -- the guard is driven against a planted undeclared row, because a renderer that cannot produce such a row would let the refusal pass untested. `the_settings_view_renders_the_declared_set_and_not_what_the_file_holds` (`native/rust/crates/intent-cli/src/tui/views.rs`) is the RENDERER half, driven against a config fixture carrying the migration marker, the structural key, the author and a key nobody declared -- four rows a derived surface would show and this one must not. THE ALLOW-LIST BEING RIGHT IS NO EVIDENCE THE RENDERER ASKED IT: a view that walked the file's keys would pass every test of the declaration and still put `intent_version` on screen, which is the exact defect `AC-17.14` exists to refuse -- a row an operator can see is a row an operator will eventually try, and that one succeeds. So the two files are named here rather than one being taken as representative."
+}

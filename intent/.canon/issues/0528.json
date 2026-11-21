@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 528,
+  "schema": "intent/issue@4.0",
+  "id": "0528",
   "slug": "v3-s-todo-view-dropped-the-generator-marker-so-u",
   "title": "v3's todo view dropped the generator marker, so Utilz's todo overwrites Intent's intent/todo.md instead of refusing it (Finding C)",
   "status": "closed",

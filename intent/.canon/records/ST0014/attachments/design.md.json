@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0014: Directory Structure for Steel Threads\n\n## Approach\n\n1. Create subdirectories based on status (COMPLETED, NOT-STARTED, CANCELLED)\n2. Modify the ST commands to handle the new directory structure\n3. Update the upgrade script to organize files during upgrades\n4. Update documentation to reflect the new structure\n",
+  "bytes": 328,
+  "sha256": "8523f397aa3b109b38e18c578d362c73d87ff89d5d27369eac27874d10ace13d"
+}

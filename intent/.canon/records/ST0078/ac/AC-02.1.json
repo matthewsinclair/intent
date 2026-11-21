@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "intent st renumber <old> <new> refuses when <new> exists and otherwise rewrites the canon file and its name, the realised directory and views, the .intentfiles rows, related references in other threads, whiteboard claims and the attachment paths the store records, emits its own event, and prints the prose references it found with the index and did not rewrite.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

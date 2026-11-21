@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "`intent st sync --write` sizes `steel_threads.md` from `get_default_width`, independent of the terminal width the command runs under.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

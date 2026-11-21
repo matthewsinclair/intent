@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 147,
+  "schema": "intent/issue@4.0",
+  "id": "0147",
   "slug": "ac-edit-and-at-edit-assert-behavioural-guarantee",
   "title": "ac edit and at edit assert behavioural guarantees in help that 0142's detector cannot see, so the unguarded population is at least 6 not 4",
   "status": "closed",

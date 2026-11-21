@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "A CI job builds intent and runs intent doctor on the merge result, so a merge made on the forge is judged by a gate.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": ".github/workflows/pr-checks.yml job doctor-on-the-merge-result; working-in-a-team-drive.log section 7 (fresh clone of the merge result, doctor 0 findings), AT-04.2"
+  }
+}

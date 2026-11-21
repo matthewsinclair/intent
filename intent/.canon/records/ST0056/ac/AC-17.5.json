@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.5",
+  "text": "**TAB ORDER IS DECLARATION ORDER, IT IS TOTAL, AND IT IS REVERSIBLE.** Every field is reachable going forward and going backward, focus wraps at both ends, and no field can be entered that cannot be left -- **the same no-trap-state property `no_state_can_be_entered_and_not_left` enforces on the transition machine**, applied to focus. Asserted by walking the whole field set in both directions and reconciling against the declaration, never by driving a few tabs and observing that it looked right.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

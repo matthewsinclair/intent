@@ -1,0 +1,9 @@
+{
+  "id": "AT-08.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/cli_routing.rs",
+  "covers": [
+    "AC-08.3"
+  ],
+  "status": "green"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 134,
+  "schema": "intent/issue@4.0",
+  "id": "0134",
   "slug": "no-subset-of-a-file-s-hunks-can-be-committed-whe",
   "title": "no subset of a file's hunks can be committed when a peer is editing the same file -- --only takes the worktree and --cacheinfo does not survive the hook",
   "status": "closed",

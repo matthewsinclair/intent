@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.15",
+  "text": "**THE PALETTE'S CLI ARM HAS ONE DISPATCH HOME AND ONE BLURB SOURCE, AND BOTH ARE THE CLI'S OWN.** (hv ruled `/{cmd} ...` in full 2026-09-02 17:40Z, mutation included; scoped by ic, minted by vc under hv's pen.) The arm calls `spine::parse(argv)` then `render::run(&matches)` and nothing else, **so there is no second argv parser and no second dispatch table**; each offered verb resolves to a real `clap` subcommand and takes its description from that subcommand's own `get_about()`, the same source `/help` walks. **THE FAILURE MODE IS DRIFT, NOT ABSENCE: a hand-typed blurb agrees with `--help` on the day it is written and disagrees thereafter**, and disagreement is invisible because both sides render fine. **DERIVED, NEVER TRANSCRIBED** -- this concretises `IN-AG-HIGHLANDER-001` at the surface where a copy is cheapest to make and hardest to notice.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

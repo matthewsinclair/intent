@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.3",
+  "kind": "non-test",
+  "prose": "No shipped file defines a ST0092 term a second time; the skill, guide and roster template cite the terms document.",
+  "covers": [
+    "AC-10.3"
+  ],
+  "status": "n-a",
+  "note": "ic's search, 2026-11-11: the /in-whiteboard SKILL.md cites intent/plugins/claude/teams/TERMS.md, the roster template cites `intent wb profile terms`, and no dispatch-table row or other shipped file defines a term; recorded on ic's doing 146."
+}

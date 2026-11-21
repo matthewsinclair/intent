@@ -1,0 +1,9 @@
+{
+  "id": "07",
+  "title": "Intent on Ubuntu from its Linux package, as a user uses it",
+  "scope": "S",
+  "status": "done",
+  "objective": "Intent installed from its Linux package, with no source checkout, works on Ubuntu as a user uses it, proven on hv's Ubuntu VM with its uutils coreutils and mawk.",
+  "body": "## As built\n\n- A package drive on kovacs passed every step: version and bootstrap, init and doctor, the thread, work package and acceptance verbs, the whiteboard, the daemon and its `--at-login` refusal, `claude upgrade --apply` with its hooks, and the critic gate.\n- AC-07.1 is satisfied from that drive and hv's Claude Code session on kovacs.\n\nNothing is open.\n",
+  "preamble": ""
+}

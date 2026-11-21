@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 243,
+  "schema": "intent/issue@4.0",
+  "id": "0243",
   "slug": "the-pre-commit-gate-has-no-cost-budget-nothing-m",
   "title": "The pre-commit gate has no cost budget, nothing measures its latency, and it holds the shared index lock for its whole run",
   "status": "closed",

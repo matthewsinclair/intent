@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_estate_reader_pins_claude_codes_session_fields.rs",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "green",
+  "note": "arms: the_macos_session_file_parses_with_every_pinned_field, the_linux_session_file_parses_with_its_tick_count_procstart, removing_any_pinned_field_names_it_in_either_form; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

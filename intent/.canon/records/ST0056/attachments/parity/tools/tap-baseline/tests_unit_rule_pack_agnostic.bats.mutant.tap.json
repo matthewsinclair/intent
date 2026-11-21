@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_agnostic.bats.mutant.tap",
+  "text": "1..11\nok 1 agnostic pack contains all four canonical rules\nok 2 agnostic pack has no unexpected RULE.md files\nok 3 each agnostic rule declares language: agnostic\nok 4 each agnostic rule has a canonical id\nok 5 each agnostic rule has severity critical\nok 6 highlander rule concretises in at least two language packs\nok 7 pfic rule concretises in at least two language packs\nok 8 thin-coordinator rule concretises in at least two language packs\nok 9 no-silent-errors rule concretises in at least two language packs\nnot ok 10 all four agnostic rules pass intent claude rules validate\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/rule_pack_agnostic.bats, line 117)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 11 rules list reports all four agnostic rules\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/rule_pack_agnostic.bats, line 135)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\n",
+  "bytes": 1128,
+  "sha256": "65eafb7ec71a76e36654c78c67abe8e52e7dd353e766f91d716cbfe9812c4e9c"
+}

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_release_gate_script.bats.default.tap",
+  "text": "1..7\nok 1 release-gate.sh exists and is executable\nok 2 release-gate.sh uses pure-shell substitution (no awk $1)\nok 3 release-gate.sh touches the sentinel for CLAUDE_CODE_SESSION_ID\nok 4 release-gate.sh always touches unknown.sentinel\nok 5 release-gate.sh degrades to unknown-only when env var is empty\nok 6 release-gate.sh degrades to unknown-only when env var is unset\nok 7 release-gate.sh ignores any leftover shared state file\n",
+  "bytes": 431,
+  "sha256": "7fce6607f44bb21f5fdd987f642282588c623840fdd625e63e33e89572a13039"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/roster_readme.rs",
+  "covers": [
+    "AC-07.6"
+  ],
+  "status": "green",
+  "note": "roster_readme.rs at_07_6_an_unset_remit_shows_the_default_marked_and_a_set_one_the_projects_words. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
+}

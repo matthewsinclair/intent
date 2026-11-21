@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 716,
+  "schema": "intent/issue@4.0",
+  "id": "0716",
   "slug": "the-st0056-view-skew-gate-has-passed-every-tree",
   "title": "The ST0056 view-skew gate has passed every tree since doctor grouped its report by class on 2026-09-07",
   "status": "closed",

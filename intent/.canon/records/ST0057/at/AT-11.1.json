@@ -1,0 +1,10 @@
+{
+  "id": "AT-11.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+  "covers": [
+    "AC-11.1"
+  ],
+  "status": "green",
+  "note": "Both clauses. The declaration content, and the follow-up preview accepting it (0 diverged, the declared thread accounted for as unchanged or to-hydrate). Mutation table in the test doc. The fixture is fully realised by an ORDERING that reads like it could not matter: the manifest is removed before the first write, and with it absent nobody has said what is realised, so the next write realises the whole estate."
+}

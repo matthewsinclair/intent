@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.11",
+  "text": "**R11 -- typed failure, never an empty string.** Every failure is a `VaultError` variant with a distinct exit code, and a missing entry never returns an empty string or a falsy value. A falsy 'absent' is indistinguishable downstream from 'present and empty' -- the estate's No-Silent rule, and it has cost real time here. **AND A STEP-0 VARIABLE THAT IS SET BUT EMPTY IS `EmptyOverride`, NOT AN ANSWER AND NOT A FALLTHROUGH.** Returning empty material is exactly the falsy-for-absent this criterion forbids, and it is the worst case available because the caller cannot distinguish it from a legitimately empty secret; falling through to the store is also wrong, because a set-but-empty override is an operator error rather than an absence. **AND A DUPLICATE `key_id` WITHIN A PROFILE IS REFUSED AT WRITE**, because two entries injecting one variable is a silent overwrite. **This check IS correctly scoped, unlike the derivation-collision check this design deleted** -- the collision happens within one profile and the check has jurisdiction over exactly that.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

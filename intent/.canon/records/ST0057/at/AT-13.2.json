@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.2",
+  "kind": "test",
+  "prose": "to-write: the probe is buildable today and its subject is not -- there is nothing to probe until the remedy runs.",
+  "covers": [
+    "AC-13.2"
+  ],
+  "status": "to-write"
+}

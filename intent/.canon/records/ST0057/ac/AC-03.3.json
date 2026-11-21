@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "**The naming gate rejects, at ingest, any attachment path that cannot be given both a canon path and a URL -- and rejection is NOT retroactive.** An existing violator (the estate already carries a `.webloc` with spaces in its name) is reported by `organize` as UNCLAIMED under its fifth row and never silently removed.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

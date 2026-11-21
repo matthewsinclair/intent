@@ -1,0 +1,9 @@
+{
+  "id": "AC-07.7",
+  "text": "Every door the `claude` subsystem ships is reachable in an INSTALLED build, and a missing one reds a row rather than shipping silently. **MINTED 2026-08-30 (dc, on vc's ruling that an unnameable criterion is not a criterion -- so it was named).** The WP is titled *Canon and claude subsystem* and its other six criteria are canon/parity MECHANISMS; **not one names the subsystem's own doors.** The doors in scope are `claude ws new|list|archive|hygiene` and `claude start`. **THIS IS NOT A THEORETICAL GAP AND THAT IS WHY IT IS A ROW RATHER THAN A NOTE: the 3.0.0 keg shipped with the `cwi` door MISSING and nothing in WP-07 went red, because no criterion covered it** -- the same shape as `AC-15.3`, which was minted before anyone knew a retirement would strand a directory and is the row that caught it. **WHAT WOULD FALSIFY THIS: any of those doors absent, or refusing for want of its own dependency, in a build INSTALLED THE WAY A CONSUMER INSTALLS IT.** The installed condition is load-bearing rather than pedantic: the keg failure met it and a source-tree run does not, so evidence from `cargo run` or from this checkout cannot satisfy this row.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/st/ST0056/parity/tools/claude_doors_installed_check.sh, driven against the PUBLISHED 3.0.1 keg (KEG=/opt/homebrew/Cellar/intent/3.0.1/bin/intent, cold-installed from the tap by int macos smoke --reinstall at formula fc32170): 5 reachable / 0 unreachable of 5 -- claude ws list, ws new, ws hygiene, ws archive and claude start. The dev-tree control arm also reads 5/5, so the zero is a finding and not a blind harness. rc=0."
+  }
+}

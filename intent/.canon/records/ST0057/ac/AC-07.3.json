@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.3",
+  "text": "**`?format=` accepts exactly `json` and `md` and nothing else, and an entity with more than one rendering is split into distinct addresses rather than gaining a `?view=`.** If an entity has more than one rendering it is UNDER-ADDRESSED.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

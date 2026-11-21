@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_objective_placeholder.bats.default.tap",
+  "text": "1..12\nok 1 st done warns when Objective is still the template placeholder\nok 2 st done still closes the thread despite the warning -- it is voice, not a gate\nok 3 st done names the file where it now lives, not where it was\nok 4 wp done warns when the work package Objective is still the placeholder\nok 5 st done is silent once the Objective says something\nok 6 wp done is silent once the work package Objective says something\nok 7 the check is scoped to Objective -- an unedited Context section does not fire it\nok 8 a thread that QUOTES the placeholder outside Objective does not fire it\nok 9 the ST placeholder constant still matches the steel-thread template\nok 10 the WP placeholder constant still matches the work-package template\nok 11 intent_st carries no second generator of the steel-thread Objective\nok 12 intent_wp carries no second generator of the work-package Objective\n",
+  "bytes": 884,
+  "sha256": "8ae5c611dc9d45c3e8c59b89050a43d9ab8f72f163e396e0083f537c6752df4e"
+}

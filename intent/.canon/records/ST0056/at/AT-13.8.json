@@ -1,0 +1,9 @@
+{
+  "id": "AT-13.8",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/mcp_search_tool.rs",
+  "covers": [
+    "AC-13.8"
+  ],
+  "status": "to-write"
+}

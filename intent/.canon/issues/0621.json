@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 621,
+  "schema": "intent/issue@4.0",
+  "id": "0621",
   "slug": "int-macos-app-test-s-printed-summary-counts-only",
   "title": "int macos app-test's printed summary counts only XCTest, so a Swift Testing suite's results never reach it",
   "status": "closed",

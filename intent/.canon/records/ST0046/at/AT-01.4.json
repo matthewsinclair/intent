@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.4",
+  "kind": "test",
+  "file": "tests/unit/modules_commands.bats",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "to-write",
+  "note": "red-first; modules check -- stale row still flagged"
+}

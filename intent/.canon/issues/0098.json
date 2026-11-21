@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 98,
+  "schema": "intent/issue@4.0",
+  "id": "0098",
   "slug": "migration-completeness-is-unmeasurable-an-estate",
   "title": "Migration completeness is unmeasurable: an estate can be un-migrated or leave thousands of files stranded and nothing reports it",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 498,
+  "schema": "intent/issue@4.0",
+  "id": "0498",
   "slug": "a-committed-inbox-render-shows-a-message-handled",
   "title": "A committed inbox render shows a message handled that its board.json and the event log say was live",
   "status": "closed",

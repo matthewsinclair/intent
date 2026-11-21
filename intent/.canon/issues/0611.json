@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 611,
+  "schema": "intent/issue@4.0",
+  "id": "0611",
   "slug": "passive-prompt-injection-stale-skills-rules-and",
   "title": "Passive prompt injection: stale skills, rules and agent text in git history and archives are acted on as live",
   "status": "closed",

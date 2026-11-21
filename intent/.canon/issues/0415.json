@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 415,
+  "schema": "intent/issue@4.0",
+  "id": "0415",
   "slug": "updated-at-on-whiteboard-rows-is-stamped-at-inse",
   "title": "updated_at on whiteboard rows is stamped at insert and moved by no whiteboard writer",
   "status": "closed",

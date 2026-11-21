@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 603,
+  "schema": "intent/issue@4.0",
+  "id": "0603",
   "slug": "the-lua-rule-pack-has-no-rule-armed-for-the-head",
   "title": "the lua rule pack has no rule armed for the headless critic: all 7 declared unanswerable, so a commit gate asks nothing of Lua",
   "status": "closed",

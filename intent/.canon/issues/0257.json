@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 257,
+  "schema": "intent/issue@4.0",
+  "id": "0257",
   "slug": "every-emitted-remedy-names-something-this-build",
   "title": "every_emitted_remedy_names_something_this_build_can_do is named for usefulness and checks wiredness, so a useless remedy reads as covered",
   "status": "closed",

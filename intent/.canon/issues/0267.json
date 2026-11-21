@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 267,
+  "schema": "intent/issue@4.0",
+  "id": "0267",
   "slug": "acceptance-test-citation-check-unscoped-to-the-t",
   "title": "Acceptance-test citation check: unscoped to the thread, and silently exempt after close",
   "status": "closed",

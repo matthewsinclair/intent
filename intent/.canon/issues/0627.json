@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 627,
+  "schema": "intent/issue@4.0",
+  "id": "0627",
   "slug": "a-handled-message-never-leaves-its-inbox-view-an",
   "title": "A handled message never leaves its inbox view and no verb retires one, so the file a human reads renders cleared messages beside live ones, unmarked",
   "status": "closed",

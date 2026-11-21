@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 165,
+  "schema": "intent/issue@4.0",
+  "id": "0165",
   "slug": "doctor-s-attachment-drift-remedy-names-a-destruc",
   "title": "doctor's attachment-drift remedy names a destructive step that sync --to-disk does not take, and render.rs describes the same flag two ways",
   "status": "closed",

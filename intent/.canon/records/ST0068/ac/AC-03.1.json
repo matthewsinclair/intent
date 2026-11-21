@@ -1,0 +1,10 @@
+{
+  "id": "AC-03.1",
+  "text": "The site design system specifies one page Laksa can build without asking a question this thread could have answered",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0069",
+    "by": "hv"
+  }
+}

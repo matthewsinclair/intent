@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "non-test",
+  "prose": "docs/concepts/working-in-a-team.md is written from a driven run: intent/st/ST0078/working-in-a-team-drive.sh drove every command the page shows, two clones of one bare origin with no daemon, on 79d536c16, and every output line the page quotes is in the attached working-in-a-team-drive.log; the-store.md says the hooks run intent sync --apply after a pull and that --to-store is the restore",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "n-a",
+  "note": "shown by ic's two P4 drives of 2026-09-18 on 79d536c16 (run-p4.sh: 94 commands 11:44Z, then 104 commands 11:52Z with the schema-refusal section vc's judging asked for), judged by vc at patch-id 99aba30af"
+}

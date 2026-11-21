@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 462,
+  "schema": "intent/issue@4.0",
+  "id": "0462",
   "slug": "release-skip-tests-returns-before-the-gh-auth-ch",
   "title": "release: --skip-tests returns before the gh auth check, so an unauthenticated gh is found only after tag and push",
   "status": "closed",

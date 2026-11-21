@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 149,
+  "schema": "intent/issue@4.0",
+  "id": "0149",
   "slug": "intent-edit-ignores-the-kind-argument-it-was-giv",
   "title": "intent edit ignores the kind argument it was given and answers about a steel thread",
   "status": "closed",

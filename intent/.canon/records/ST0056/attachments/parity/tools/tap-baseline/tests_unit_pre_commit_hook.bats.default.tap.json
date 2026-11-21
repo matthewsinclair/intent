@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_pre_commit_hook.bats.default.tap",
+  "text": "1..15\nok 1 hook template exists and is executable\nok 2 hook template syntax is valid\nok 3 staged bad fixture blocks the commit (exit 1)\nok 4 staged good fixture at critical threshold passes (exit 0)\nok 5 --no-verify bypasses the hook\nok 6 single-step case in lib/*.ex does NOT block commit (ST0039 / Conflab regression)\nok 7 compliant async test does NOT block commit (ST0039 / Conflab regression)\nok 8 intent CLI missing → fail-open (exit 0, advisory on stderr)\nok 9 non-Intent repo → fail-open (exit 0, advisory on stderr)\nok 10 reads severity_min from .intent_critic.yml\nok 11 empty languages array → hook runs no critics → commit proceeds\nok 12 languages without elixir → bad elixir fixture not flagged\nok 13 declared prose language (author/content) does not error the gate or fail-open (issue 0003)\nok 14 mixed code+prose: elixir critic still fires, prose skipped cleanly (issue 0003)\nok 15 honours disabled rule id\n",
+  "bytes": 931,
+  "sha256": "94497a740578983c0dc75341e803e5a4e23953b8b39ee4f6782ec4ad2b1c028b"
+}

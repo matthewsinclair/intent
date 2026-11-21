@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/todo_watermark.rs",
+  "covers": [
+    "AC-14.1"
+  ],
+  "status": "green",
+  "note": "The no-store fixture reaches that state by CLONING the extract rather than by deleting a database -- deleting one is the idiom D36 rules out, and it is also the weaker fixture, proving something about a directory that HAD a store when the case under test is one that never did."
+}

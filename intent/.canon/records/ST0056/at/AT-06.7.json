@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wp_prose_roundtrip.rs",
+  "covers": [
+    "AC-06.7"
+  ],
+  "status": "green",
+  "note": "4 tests here plus the body-search arm in `search_surface.rs`. **The discriminating case is a phrase in a WP BODY, never a WP title** -- a title hit cannot be told apart from its parent thread's index entry. cc mutation-proved it: stop indexing WP bodies and the title test STAYS GREEN while only the body test fails. Same OR-not-AND reason as AT-06.4 for why it was held red rather than annotated -- issue 0032."
+}

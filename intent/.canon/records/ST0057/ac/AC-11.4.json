@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.4",
+  "text": "`--default` never removes a file: on a fully realised project with non-WIP threads, `organize --default` followed by `organize` (preview) reports the non-WIP threads as to remove and blocked, and every file that existed before still exists byte for byte.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

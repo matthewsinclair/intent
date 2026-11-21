@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.12",
+  "text": "`slots start <id>` is refused, naming both sets, unless its `--named` set equals the one the ask recorded, so a start on other bytes than the booking named is not covered by its grant.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

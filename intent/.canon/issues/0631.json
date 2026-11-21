@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 631,
+  "schema": "intent/issue@4.0",
+  "id": "0631",
   "slug": "wb-archive-names-its-positional-seq-though-under",
   "title": "wb archive names its positional seq though under message it takes a message's anchor, where wb edit names the same positional id",
   "status": "closed",

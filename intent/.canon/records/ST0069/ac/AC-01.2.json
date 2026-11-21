@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "`ISSUE:<NNNN>` is a sigil the manifest accepts. `organize` previews a declared issue with no file as hydrate and a realised file whose issue is undeclared as dehydrate, and applies both by name; a declared issue with no file is never reported `ok` over zero files, which is the 2026-08-20 defect as the red arm.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

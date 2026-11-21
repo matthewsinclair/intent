@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0012: Document Sync Command\n\n## Tasks\n\n- [x] Add section markers to the steel_threads.md document\n- [x] Create a new `sync` subcommand in the `stp_st` script\n- [x] Implement logic to extract metadata from ST files\n- [x] Add functionality to update sections between markers\n- [x] Add `--write` option for file updates\n- [x] Add `--width` option for configurable table formatting\n- [x] Add documentation for the new command\n- [x] Update tests to ensure proper functionality\n",
+  "bytes": 484,
+  "sha256": "6964df1e3b215e8b786602236a8a0d9abc8af9e638a49e8b4c1428babbbc7aaa"
+}

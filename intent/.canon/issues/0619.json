@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 619,
+  "schema": "intent/issue@4.0",
+  "id": "0619",
   "slug": "a-store-warmed-cold-from-a-clone-s-files-records",
   "title": "A store warmed cold from a clone's files records no board rows in its file index, so a pull that changes a board it already holds is never taken",
   "status": "closed",

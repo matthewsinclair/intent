@@ -1,0 +1,11 @@
+{
+  "id": "09",
+  "title": "Elixir Upgrade Skill",
+  "scope_legacy": {
+    "raw": "Medium-Large"
+  },
+  "status": "done",
+  "objective": "Create upgrade functionality that diagnoses existing Intent+Elixir projects and migrates them to the new three-file guidance system with skills.",
+  "body": "## Deliverables\n\n- Upgrade diagnostic, plan generation, and execution capability\n- Tested on Intent, Prolix, Laksa, and Lamplight projects\n\n## Capabilities\n\n1. **Diagnose** — scan for existing files, report what exists vs missing\n2. **Plan** — generate project-specific upgrade checklist\n3. **Execute** — apply changes with user confirmation at each step\n\n## Files Scanned\n\n- `intent/llm/AGENTS.md` (version, staleness)\n- `intent/llm/RULES.md` (present/absent, shared vs project-specific rules)\n- `intent/llm/ARCHITECTURE.md` (present/absent)\n- `intent/llm/AGENTS-phx.md` (deprecated — merge into RULES.md)\n- `intent/llm/llm_preamble.md` (deprecated — remove)\n- `intent/llm/usage-rules.md` (deprecated — remove)\n- `.claude/skills/` (installed skills)\n- `.claude/agents/` (installed subagents)\n\n## Test Targets\n\n| Project   | Current State                     | Upgrade Needed                           |\n| --------- | --------------------------------- | ---------------------------------------- |\n| Intent    | Stale AGENTS.md, deprecated files | Regenerate AGENTS.md, delete deprecated  |\n| Prolix    | AGENTS.md + AGENTS-phx.md only    | Create RULES/ARCH, merge, install skills |\n| Laksa     | +RULES.md (10 rules)              | Create ARCH, merge AGENTS-phx            |\n| Lamplight | Most complete                     | Install skills, verify formats           |\n\n## Acceptance Criteria\n\n- [ ] Diagnose correctly identifies existing/missing files\n- [ ] Plan generates accurate upgrade steps\n- [ ] Execute applies changes with confirmation\n- [ ] Tested on at least Intent project\n- [ ] Handles deprecated file cleanup\n\n## Dependencies\n\n- WP-02, WP-03, WP-04 (skills to install)\n- WP-06 (skill installation infrastructure)\n- WP-07 (templates for generating missing files)",
+  "preamble": ""
+}

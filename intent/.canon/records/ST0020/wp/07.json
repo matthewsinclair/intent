@@ -1,0 +1,9 @@
+{
+  "id": "07",
+  "title": "RULES.md / ARCHITECTURE.md Templates and Tooling",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create Elixir-specific templates for the three-file LLM guidance system and update `intent agents init` to support `--template elixir`.",
+  "body": "## Deliverables\n\n- `intent/plugins/agents/templates/elixir/AGENTS.md` — Elixir project AGENTS.md template\n- `intent/plugins/agents/templates/elixir/RULES.md` — Pre-populated with distilled Elixir rules\n- `intent/plugins/agents/templates/elixir/ARCHITECTURE.md` — Project structure skeleton\n- Updated `intent agents init` to accept `--template elixir`\n- BATS tests for template functionality\n\n## Template Content\n\n### AGENTS.md Template\n\n- Project overview placeholders\n- Elixir/Erlang version prereqs\n- Mix commands (deps.get, test, format, credo)\n- Installed skills and subagents listing\n\n### RULES.md Template\n\n- Core Elixir rules (from WP-01 distillation)\n- Ash/Phoenix framework rules\n- NEVER DO list\n- Testing conventions\n- Placeholder for project-specific conventions\n\n### ARCHITECTURE.md Template\n\n- System overview placeholder\n- Elixir context/domain map structure\n- Directory structure mapping\n- Integration points placeholder\n- Decision log placeholder\n\n## Acceptance Criteria\n\n- [ ] All three templates exist in correct directory\n- [ ] `intent agents init --template elixir` creates all three files\n- [ ] `intent agents sync` updates AGENTS.md without touching RULES.md or ARCHITECTURE.md\n- [ ] RULES.md includes the shared 8 rules from real project analysis\n- [ ] BATS tests for template init functionality\n\n## Dependencies\n\n- WP-01 (distilled rules for RULES.md template)\n- WP-06 (skill infrastructure referenced in AGENTS.md template)",
+  "preamble": ""
+}

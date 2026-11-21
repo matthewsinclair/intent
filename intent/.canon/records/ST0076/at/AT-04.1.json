@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_structural_doors_take_the_filters.rs",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "Red on 70c65b464 before WP-04: 4 of its 5 arms fail there, because `--subkind` and `--in` are unknown arguments and a context hit carries no container, so the control reads `-` for both definitions of `new`; its SQL-door arm passes there, because WP-01 gave `symbols` its columns. Green at e5b7feb1b (WP-04 landing, patch-id 013ce9d4, vc's GO): `--context` and `--outline` honour `--kind`, `--lang`, `--subkind`, `--in` and `--limit`, and `--tier lexical` on a structural door is refused; a context hit names its subkind, container kind, arity and level; `--subkind method --in AddressError` with no query lists `is_local` alone, `--in AddressError --kind def` lists `new` and `is_local`, and the MCP tool answers the same groups; a search with nothing to search for is refused on both faces, naming `--subkind` and `--in`; an unknown subkind is refused in the same words by both; the SQL door and `schema ddl.sql` carry the symbol columns. Gate: whole intentsvcs, intent-cli and intentd suites."
+}

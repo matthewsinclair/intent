@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 539,
+  "schema": "intent/issue@4.0",
+  "id": "0539",
   "slug": "the-first-write-that-re-renders-a-board-an-older",
   "title": "The first write that re-renders a board an older Intent rendered warns that an edit to a generated file is gone",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 282,
+  "schema": "intent/issue@4.0",
+  "id": "0282",
   "slug": "ws-hygiene-warns-on-every-board-and-names-a-reme",
   "title": "ws hygiene warns on every board and names a remedy the protocol forbids",
   "status": "closed",

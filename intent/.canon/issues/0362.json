@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 362,
+  "schema": "intent/issue@4.0",
+  "id": "0362",
   "slug": "a-board-verb-can-return-before-its-views-are-re",
   "title": "a board verb can return before its views are re-rendered, so the commit after it carries the stale view",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.3",
+  "text": "`--show` takes a comma-separated list of st, wp, is, issue, issues and all, all being the default, and the table shows those kinds and no other; any other value is refused with a remedy naming the accepted values.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

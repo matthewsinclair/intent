@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/attachment_drift_detected.rs",
+  "covers": [
+    "AC-03.4"
+  ],
+  "status": "green",
+  "note": "**GREEN. Divergence by COMPARISON, and the arm that proves it is the one that detects NOTHING (vc verified at `3c6d20f6`, 6 arms pass).** **cc's sharpest arm: a file rewritten with IDENTICAL BYTES moves its mtime and keeps its size, and must produce NO finding. An implementation keyed on metadata passes every other test in the file and fails that one.** That is what _by comparison rather than inference_ means once it is a property instead of a phrase. **AND ABSENCE IS NOT DRIFT -- getting that wrong would have been worse than missing the drift: under `.intentfiles` a dehydrated thread's attachments are LEGITIMATELY GONE, so reporting absence would make `doctor` unhealthy for every dehydrated thread -- a rule flagging a population behaving exactly as designed.** **This row ran into vc's own blast-radius rule and cc did NOT edit the rule to make their remedy pass; see AC-03.3's neighbourhood and `finding_remedies.rs`.**"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 182,
+  "schema": "intent/issue@4.0",
+  "id": "0182",
   "slug": "three-hv-rulings-are-unexecuted-and-fileindex-sh",
   "title": "three hv rulings are unexecuted and fileindex ships the option hv declined -- a fold that keyed on dated instead of done",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 3,
+  "schema": "intent/issue@4.0",
+  "id": "0003",
   "slug": "intent-critic-rejects-declared-author-content",
   "title": "intent critic rejects declared author/content languages: pre-commit gate errors (exit 2) and fail-opens on every commit",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-19.2",
+  "text": "`--json` on the CLI and the MCP tool return the same envelope from the same facade call; `--format` is terminal-channel only and not exposed on MCP.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

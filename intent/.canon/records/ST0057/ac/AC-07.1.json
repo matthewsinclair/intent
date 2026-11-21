@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.1",
+  "text": "**Every entity form in D57-8's list resolves by address, and resolution is implemented ONCE**: the CLI and intentd call the same function in `intentsvcs`. Two resolvers is the failure -- they agree exactly until one moves, with nothing watching. Checked by asserting a single implementation, not by comparing two outputs.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

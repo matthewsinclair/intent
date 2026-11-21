@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 510,
+  "schema": "intent/issue@4.0",
+  "id": "0510",
   "slug": "the-pre-commit-gate-reports-n-of-n-languages-enf",
   "title": "the pre-commit gate reports N of N languages enforced when a project has disabled every rule for one",
   "status": "closed",

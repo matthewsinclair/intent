@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "On a board that declares a profile, the human seat's only inbox pair is with the mediator: no `inbox.hv.md` is rendered in any other node's directory and no `hv/inbox.<node>.md` for any other node.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 67,
+  "schema": "intent/issue@4.0",
+  "id": "0067",
   "slug": "intent-modules-find-is-a-v3-parity-gap-it-works-",
   "title": "intent modules find is a v3 parity gap: it works under v2 and is unimplemented in v3, so a v3-self-hosted project has no working way to query MODULES.md",
   "status": "closed",

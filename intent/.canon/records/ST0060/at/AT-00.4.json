@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_no_cwd_dependency.rs",
+  "covers": [
+    "AC-00.4"
+  ],
+  "status": "to-write",
+  "note": "Runs from a temp dir outside any Intent project and resolves a reference. Positive control: the same run inside a project must give the identical answer, or the cwd is being consulted somewhere."
+}

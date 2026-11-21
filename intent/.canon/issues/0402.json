@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 402,
+  "schema": "intent/issue@4.0",
+  "id": "0402",
   "slug": "a-thread-s-objective-and-context-lose-their-trai",
   "title": "A thread's objective and context lose their trailing newline when a store is populated from the realised tree, so the canon differs by one byte per field from the live store's",
   "status": "closed",

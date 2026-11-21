@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_bounds.rs",
+  "covers": [
+    "AC-14.3"
+  ],
+  "status": "to-write",
+  "note": "the one-byte-over case is the assertion; an at-limit write must succeed in the same test"
+}

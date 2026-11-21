@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 2,
+  "schema": "intent/issue@4.0",
+  "id": "0002",
   "slug": "intent-todo-shows-for-a-non-canonical-status",
   "title": "intent todo shows [?] for a non-canonical status string",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/text_realisation.rs",
+  "covers": [
+    "AC-06.1"
+  ],
+  "status": "green",
+  "note": "**GREEN, AND RE-CITED: the row named `text_realisation_complete.rs`, which does not exist. dc built ONE file with seven arms covering both AC-06.1 and AC-06.2, and both are genuinely carried** (vc verified at `c840251a`, 7 pass, file TRACKED). Arms for this criterion: `every_artefact_canon_holds_reaches_the_realisation`, `the_denominator_follows_the_estate_rather_than_the_writing`, `counts_of_an_empty_estate_is_empty_rather_than_complete_by_accident`, `an_attachment_canon_names_but_carries_no_bytes_is_refused_rather_than_skipped`, `a_text_attachment_is_realised_with_its_bytes`. **THE DENOMINATOR IS ASKED OF CANON AND THE NUMERATOR ACCUMULATES WHILE WRITING, so the two numbers come from genuinely different places -- the mutation making `Counts::of` accumulate instead KILLS THREE TESTS. It is the criterion, not a field.** **`shortfall()` names WHICH population fell short, and that is the criterion's own point rather than a nicety:** _1841 of 1847_ sends a human to diff two trees; _attachments 4 of 10_ sends them to the four threads that have any. **AND CANON NAMING BYTES NOBODY CARRIES IS REFUSED RATHER THAN SKIPPED: skipping counts short with no reason given; an empty write counts COMPLETE over a file the human cannot use** -- which is the partial-export-reading-as-complete failure this row exists to forbid, arriving from inside."
+}

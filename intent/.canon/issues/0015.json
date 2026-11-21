@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 15,
+  "schema": "intent/issue@4.0",
+  "id": "0015",
   "slug": "ac-gate-counts-a-green-at-whose-cited-test-file",
   "title": "ac gate counts a GREEN AT whose cited test file does not exist: the citation is never resolved",
   "status": "closed",

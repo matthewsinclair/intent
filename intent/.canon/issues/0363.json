@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 363,
+  "schema": "intent/issue@4.0",
+  "id": "0363",
   "slug": "upgrade-still-reports-the-whiteboard-as-a-model",
   "title": "upgrade still reports the whiteboard as a model not yet carried after the carrying build landed, and the count grows with the migration",
   "status": "closed",

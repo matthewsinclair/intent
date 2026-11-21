@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "**Form follows content, both ways: no opaque attachment is stored inline and no text attachment is stored as a sibling file.** One rule, checked in both directions -- a check that only catches one direction passes an estate that has drifted the other way.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

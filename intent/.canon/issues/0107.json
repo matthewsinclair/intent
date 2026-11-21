@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 107,
+  "schema": "intent/issue@4.0",
+  "id": "0107",
   "slug": "a-correctly-installed-shim-carrier-reports-as-st",
   "title": "a correctly installed shim carrier reports as STALE, because the check compares it to the gate body",
   "status": "closed",

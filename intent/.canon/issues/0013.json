@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 13,
+  "schema": "intent/issue@4.0",
+  "id": "0013",
   "slug": "intent-ac-has-no-descope-verb-so-an-ac-moved-to",
   "title": "intent ac has no descope verb, so an AC moved to another thread holds its own thread BLOCKED forever",
   "status": "closed",

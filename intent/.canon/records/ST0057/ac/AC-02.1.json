@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "**The grammar REFUSES rather than skips.** The parser accepts exactly `<SIGIL>:<ID>` with sigil in `STEELTHREAD | ISSUE` and an optional trailing comment. For every rejected input the run exits non-zero AND the offending line number appears in the output. No input is silently skipped -- a skipped line drops an artefact from realisation and leaves an estate indistinguishable from one that never listed it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0006: Help System\n\n## Tasks\n\n- [x] Design the help file format and structure\n- [x] Implement the `stp help` command\n- [x] Implement command-specific help (eg `stp help init`)\n- [x] Create help files for all existing commands\n- [x] Add functionality to list all available commands\n- [x] Implement dynamic discovery of commands for help listings\n- [x] Add examples and usage scenarios to help documentation\n- [x] Document the help system and how to extend it\n- [x] Test help system with various commands and scenarios\n",
+  "bytes": 528,
+  "sha256": "c4d9f4212acb489b2aa6648d0939692992f958b9944f46e25d2ccd1ca5237fbc"
+}

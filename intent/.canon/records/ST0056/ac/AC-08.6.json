@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.6",
+  "text": "`projectChanged` and `fileChanged` subscriptions deliver over the socket (D20 -- and nothing more in 3.0.0)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 562,
+  "schema": "intent/issue@4.0",
+  "id": "0562",
   "slug": "the-gate-s-shim-and-the-rust-side-resolve-a-rela",
   "title": "the gate's shim and the Rust side resolve a relative XDG_DATA_HOME differently, so bootstrap says OK while every gated commit is refused",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 203,
+  "schema": "intent/issue@4.0",
+  "id": "0203",
   "slug": "intent-family-help-is-unrecognized-on-9-of-11-fa",
   "title": "intent <family> help is unrecognized on 9 of 11 families and v2 answers six of the nine, so the top-level help restore was a half-fix and command grammar is in scope for parity",
   "status": "closed",

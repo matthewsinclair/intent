@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.3",
+  "text": "The sync scope follows the key: in a `dotclaude` project an edit to `.claude/AGENTS.md` or `.claude/CLAUDE.md` is ingested by `intent sync --to-store` and by the running daemon exactly as an edit to the root copy is in a `root` project, and a root copy in a `dotclaude` project is not in scope.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "a85dfbdf0 (ST0083 WP-02, patch-id a2246ee4ecc9); AT-02.1 green (the scope takes the contracts where the key puts them and leaves a copy elsewhere out, in both layouts); AT-02.2 green (the running daemon ingests a .claude/AGENTS.md edit with nobody running sync); AT-02.3 green (the watcher names a .claude/ contract edit through the leaf, .claude/ and root doors and names nothing for a root copy)"
+  }
+}

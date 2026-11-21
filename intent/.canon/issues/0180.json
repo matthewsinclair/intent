@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 180,
+  "schema": "intent/issue@4.0",
+  "id": "0180",
   "slug": "agents-init-template-is-declared-helped-and-acce",
   "title": "agents init --template is declared, helped and accepted, and no renderer arm reads it",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "One document in the plugin canon, shipped with the install, defines Claude Team, Claude Swarm, Team Profile, node, moniker, name, role, session name, mediator and hat in the words hv ruled on 2026-11-10.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/plugins/claude/teams/TERMS.md, in the plugin canon and shipped with the install, defines Team, Swarm, Profile, node, moniker, name, role, session name, mediator and hat; hv ratified its wording on 2026-11-10 (hv decision 34)."
+  }
+}

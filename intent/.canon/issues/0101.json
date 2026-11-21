@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 101,
+  "schema": "intent/issue@4.0",
+  "id": "0101",
   "slug": "converge-gitignore-omits-the-events-jsonl-rule-i",
   "title": "converge_gitignore omits the events.jsonl rule Intent applies to itself",
   "status": "closed",

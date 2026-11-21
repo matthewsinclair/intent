@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.10",
+  "text": "grant, deny, revoke and the lane and hold writes are refused, by name, from any session but the one `controller.json` records as holding control, the caller being the Claude Code session `CLAUDE_CODE_SESSION_ID` names; start and release are refused from any session but the asker.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

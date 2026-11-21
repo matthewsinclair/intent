@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.4",
+  "text": "The message-entry format is internally consistent and the required-vs-recommended fields are stated (timestamp granularity; `Re:` / `FYI only` optional).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "SKILL.md ### Message-entry format"
+  }
+}

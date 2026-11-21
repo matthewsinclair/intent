@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 476,
+  "schema": "intent/issue@4.0",
+  "id": "0476",
   "slug": "canon-rs-two-stale-comments-the-force-help-quote",
   "title": "canon.rs: two stale comments, the --force help quoted for .mcp.json and init not seeding AGENTS.md",
   "status": "closed",

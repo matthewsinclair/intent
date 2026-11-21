@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.2",
+  "text": "Phase A residue yields BLOCKED with the per-line classed report, atomic: nothing written, exit non-zero",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

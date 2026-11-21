@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "`bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "MODULES.md `Todo view` row; usage-rules.md `### Todo view`; README `See what's in flight`"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 473,
+  "schema": "intent/issue@4.0",
+  "id": "0473",
   "slug": "devbin-macos-publish-app-build-and-app-verify-dr",
   "title": "devbin macos publish, app-build and app-verify drop a second argument without a word",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_prefix_names_one_record.rs:159",
+  "covers": [
+    "AC-07.1"
+  ],
+  "status": "green",
+  "note": "row written after the land: red is the machine's route to green here, not a measured red. green in WP-07 v7's land gate (Desk 01M7WYJ501, 17:09Z by date -u), landed at 62045266e"
+}

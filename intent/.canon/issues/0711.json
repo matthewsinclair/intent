@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 711,
+  "schema": "intent/issue@4.0",
+  "id": "0711",
   "slug": "migrate-s-duplicate-path-guard-compares-paths-by",
   "title": "migrate's duplicate-path guard compares paths byte for byte, so a case-only clash passes it on a case-insensitive disk",
   "status": "closed",

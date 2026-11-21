@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 380,
+  "schema": "intent/issue@4.0",
+  "id": "0380",
   "slug": "wb-migrate-writes-no-views-and-names-no-step-tha",
   "title": "wb migrate writes no views and names no step that does, so a migrated board is left as view-skew and the doctor gate refuses every commit",
   "status": "closed",

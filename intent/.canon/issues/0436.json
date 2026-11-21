@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 436,
+  "schema": "intent/issue@4.0",
+  "id": "0436",
   "slug": "an-ingest-that-meets-a-store-busy-past-its-five",
   "title": "An ingest that meets a store busy past its five-second wait is told to fix artefacts",
   "status": "closed",

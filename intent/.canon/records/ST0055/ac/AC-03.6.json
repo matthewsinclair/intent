@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.6",
+  "text": "An unknown/missing ID on show/close/open fails via `error()` (non-zero, clear message) -- no silent success.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

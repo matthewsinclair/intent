@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "**A daemon whose own state directory is removed stops serving**, driven by removing it under a running daemon, with a positive control that the same daemon was answering immediately before the removal. Without that control the arm passes against a daemon that never started.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

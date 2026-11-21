@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "`intent lang init author` in a fresh project installs `intent/llm/RULES-author.md` and `intent/llm/ARCHITECTURE-author.md`, appends the `author` Language Packs entry to the agnostic `RULES.md`, and adds `author` to `config.json` `languages`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_lang.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

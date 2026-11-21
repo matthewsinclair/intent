@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.2",
+  "text": "One function answers which thread or issue owns a path, every caller asks it, and the project config carries no st_prefix key.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

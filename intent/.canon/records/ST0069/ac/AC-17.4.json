@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.4",
+  "text": "A result capped by `--limit` reports both denominators, matched and returned; a capped result is never a silent subset.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

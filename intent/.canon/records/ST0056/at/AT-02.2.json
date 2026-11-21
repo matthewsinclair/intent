@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/schema_faces_drift.rs",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "green"
+}

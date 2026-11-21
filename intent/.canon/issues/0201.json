@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 201,
+  "schema": "intent/issue@4.0",
+  "id": "0201",
   "slug": "intent-critic-calls-find-project-root-without-so",
   "title": "intent_critic calls find_project_root without sourcing intent_helpers, and 2>/dev/null || true turns the missing symbol into a silently empty project root, so .intent_critic.yml disabled: is dropped",
   "status": "closed",

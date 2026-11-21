@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.19",
+  "text": "**ADDED -- THE ESTATE'S NORMAL ENTRY POINT CAN REACH THE VAULT.** devbin honours `--ivault` -- resolve every `intent://` value in the environment to material before running the child -- **on EVERY terminal path in `run_command` or refused outright, with no partial.** Measured: three terminal paths plus the option-level twin, and **the sealed-gate path (`resolve:722` / `607`) CANNOT be exec-wrapped** because it must return to write its seal; wrapping it turns a sealed gate into a silent one. **A flag honoured on handlers and quietly ignored on catalogue rows is worse than no flag, because the operator believes material was injected** -- and the catalogue rows are `test`, `fmt`, `check`, `docs`, which are `mix` invocations, which is the case a vault exists for. **devbin NEVER parses a reference: literal prefix test only, authoritative parse in `intent3`.** Evidence is a devbin-side report; sizing note carried from devbin-vc, **the runtime is vendored into ELEVEN estates so this is a fleet sweep rather than a commit**. **THE OBLIGATION TO OPEN devbin's THREAD BELONGS TO WHOEVER STARTS ST0060** -- stage 0 of the build breakdown, so devbin never builds against a moving grammar.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

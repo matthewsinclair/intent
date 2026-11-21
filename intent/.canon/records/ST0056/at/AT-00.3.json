@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.3",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/capability_ship_check.sh",
+  "covers": [
+    "AC-00.3"
+  ],
+  "status": "green",
+  "note": "Driven 2026-08-31 and PASS. Four of five capabilities DRIVEN -- project registry, GraphQL, debounced watching (the registry publishes `watched: true` for this project, which beats a declaration because it is the daemon's answer about the world rather than about itself), and CLI-owned launchd (`--at-login` published on start AND stop, with 5 `launchagent::` call sites in the CLI crate). ONE rests on a DECLARATION: the mgmt plane, because driving `shutdown` would kill the daemon four agent sessions on this machine are using. The roster is DERIVED from the running daemon -- serde enumerates the accepted ops in its unknown-variant refusal -- never hand-kept here, and that read is two-sided-controlled in-band. The launchd arm was a MENTION test in its first version and passed for the wrong reason; it is now a call-SITE edge, caught by opening the four files the count rested on."
+}

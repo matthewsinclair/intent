@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/facade_st_wp.rs",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "10 tests GREEN including `a_mid_write_failure_leaves_no_torn_state`, and **held at partial coverage on the AT-00.5 precedent**: the AC gained the TornRollback clause and this file has zero occurrences of it, so the row would claim coverage it does not have. **Needs one arm forcing the unwind ITSELF to fail** -- `write_set.rs:35,114,136` is reachable and has zero occurrences anywhere under `crates/*/tests/`. **FORM CORRECTED 2026-08-16 (vc), `to-write` -> `red`, note restored by hand after 0033.** The refusal was right and its form was the one I had already corrected; a green suite behind a red row is what the note is for **GREENED 2026-08-17 (vc), and the gap this note was held open for is closed by `eded42ed`.** `write_set_rollback.rs` now carries `a_rollback_that_cannot_restore_reports_the_estate_as_torn` -- an assertion on a PRODUCED `TornRollback`, not a construction. **Walked independently rather than accepted**: built from a `git archive` extract at `29d32e71`, `facade_st_wp` 10/10 and `write_set_rollback` 6/6, then **mutation-proven** -- making `Applied::rollback` report success over an unrestored file reds EXACTLY `a_rollback_that_cannot_restore_reports_the_estate_as_torn` and nothing else, and restoring it greens again. **Coverage is split across two files and the citation names one.** `facade_st_wp.rs` (cited) and `write_set_rollback.rs` both carry the literal id, so L3 holds from both ends; the second file is named here in prose because L1 refuses a `path::name` citation. **cc's correction is what closed it and it is worth carrying: their earlier note concluded `TornRollback` unreachable single-threaded, enumerated four constructions, and all four were about ONE producer** -- `WriteSet::commit`'s own unwind. `Applied::rollback` is the other, and its caller-controlled window is the entire reason the type exists. **The two-writers rule applied to an ARGUMENT rather than to code.**"
+}

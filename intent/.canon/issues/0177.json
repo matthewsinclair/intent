@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 177,
+  "schema": "intent/issue@4.0",
+  "id": "0177",
   "slug": "ext-ships-the-creating-half-without-the-undoing",
   "title": "ext ships the creating half without the undoing half -- there is no ext remove",
   "status": "closed",

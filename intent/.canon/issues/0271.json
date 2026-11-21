@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 271,
+  "schema": "intent/issue@4.0",
+  "id": "0271",
   "slug": "migration-md-states-three-preconditions-refused",
   "title": "migration.md states three preconditions refused by name and only the floor exists -- a no-git project converts with exit 0, no undo, and the word git absent from the output",
   "status": "closed",

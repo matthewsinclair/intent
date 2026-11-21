@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.5",
+  "text": "**`.intentfiles` names ARTEFACTS and never enumerates FILES; `Project::classify` remains the single answer to what a file IS.** (vc 2026-08-18, on cc's finding while building the collector.) The two answer different questions -- the manifest answers _which artefacts are realised_, classify answers _what is this file_ -- and they COMPOSE: `STEELTHREAD:ST0056` realises the thread and, through classify, whatever files that thread produces. **Neither may acquire a second, independent enumeration of files**, because two declarations of which-files-matter agree for months and then quietly do not. Held mechanically: the manifest grammar admits no file-valued line, so a second enumeration is unrepresentable rather than merely discouraged.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

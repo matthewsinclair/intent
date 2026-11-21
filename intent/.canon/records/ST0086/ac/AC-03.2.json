@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "/estate re-reads on the explorer's refresh cadence, lists an unreadable session file as unreadable with the field named rather than dropping it, and `/estate` in the omnibox opens it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.1",
+  "text": "**ONE DECLARATION, TWO REALISERS, AND THE SAME EDIT THROUGH EITHER PRODUCES THE SAME MODEL CHANGE.** A form declared once renders in the TUI and in the browser, and an edit made through each reaches an identical store state -- asserted by driving both against the same fixture and diffing the model, never by inspecting the two renderers for similarity. **This is `AC-08.2` one layer up**: in-process and daemon already owe identical results, and two realisers of one declaration owe the same thing for the same reason.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

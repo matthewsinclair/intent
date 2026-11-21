@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.8",
+  "text": "**THE ICON IS INTENT'S TURTLE (`docs/design/intent-logo.*`) AND ITS STATE SEMANTICS ARE DERIVED FROM THE HEALTH PREDICATE, NEVER STORED ALONGSIDE IT.** hv named the asset and the reason on 2026-08-26 -- *slow and steady wins the race* -- and the substantive half of this row is the second clause: the menubar glyph is a RENDERING of the one predicate in `AC-01.2`, computed at paint time, with no cached `lastKnownState` that can outlive what produced it. **A status cached beside the thing it describes is the gate-figure defect in miniature**: two homes, one value, and the stale one is the one on screen.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "Turtle asset + state-derived (ic, HEAD b083fb4c): MenuBarIcon.imageset (menubar_18/36/54.png, template-rendering-intent=template) rasterised from docs/design/intent-logo.svg by 'int macos app-icons' (rsvg-convert), landed d00956ec, turtle visually confirmed. Tint computed at paint time from the one health predicate (Theme.menuBarTint + updateStatusIcon on every observation change), no cached lastKnownState."
+  }
+}

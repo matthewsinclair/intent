@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "the section distinguishes the two `usage-rules.md` artifacts (Intent project-contract vs library per-dep files) explicitly.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "working-with-llms.md interop section names the two usage-rules.md artifacts (Intent project-contract vs library per-dep)"
+  }
+}

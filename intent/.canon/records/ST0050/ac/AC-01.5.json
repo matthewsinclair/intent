@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.5",
+  "text": "`todo.md` contains ONLY the three `## DOING` / `## TODO` / `## DONE:<T>` headings and their data (the `_(none)_` sentinel when a bucket is empty) -- NO title line, NO `_Generated…_` provenance line, NO `_Legend…_` line (hv minimal-output).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

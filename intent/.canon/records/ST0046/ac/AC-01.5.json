@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.5",
+  "text": "Run on the Lamplight umbrella, `check` now flags the known backlog (eg `Lamplight.Ingestor.Parser.Action`) instead of reporting `ok: registry matches filesystem`",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "05",
+  "title": "Short messages, and no check without a named catch",
+  "scope": "S",
+  "status": "done",
+  "objective": "A message to a seat runs to five lines and a report to hv to ten, and a new check names what it catches that the checks in place do not, or is not added (design.md, the plan's A5 and A6).",
+  "body": "",
+  "preamble": ""
+}

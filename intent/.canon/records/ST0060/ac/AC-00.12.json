@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.12",
+  "text": "**R12, STRENGTHENED (S1) -- the posture check names the identity, which R12 does not.** A group- or world-readable IDENTITY is REFUSED; a group-readable STORE warns. R12 asks for a check on the store, motivated by a plaintext config at mode 644 -- but in this design the store is ciphertext, so **the identity is the file whose mode is actually a disclosure and it is the one R12 omits.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

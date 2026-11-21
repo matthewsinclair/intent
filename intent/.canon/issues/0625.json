@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 625,
+  "schema": "intent/issue@4.0",
+  "id": "0625",
   "slug": "docs-install-md-says-intent-app-needs-macos-14-o",
   "title": "docs/install.md says Intent.app needs macOS 14 or later, but since issue 0607 it needs macOS 26, and v3.2.5 shipped with the old floor on that page",
   "status": "closed",

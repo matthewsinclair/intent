@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/wb_retire_door.rs",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "green",
+  "note": "Red at b98a79124 (desk slot 01M7554MRM2GJWAN1N6KDHQWPC, on 8965685b9's tree plus the door file): the door arm at_04_7_and_8 failed because the ask to a retired node succeeded (`ok: vc -> cc`). Green at e993b6bff (bank (ii), vc's full judge in slot 01M757GCPEFGE91WRCCBCVB08Z on tip 125c524fe171: Rust 3638 passed 0 failed, bats 816 ok): at_04_7_and_8 in the door, with wb_retire.rs at_04_7 (the ask refused with WbRecipientRetired naming the seat and reason, nothing written; an announce gives a retired node no copy)."
+}

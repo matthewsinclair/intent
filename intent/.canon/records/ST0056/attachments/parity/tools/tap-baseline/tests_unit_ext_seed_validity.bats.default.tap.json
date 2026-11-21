@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_ext_seed_validity.bats.default.tap",
+  "text": "1..18\nok 1 worker-bee seed directory exists\nok 2 worker-bee seed has extension.json manifest\nok 3 worker-bee seed has README.md\nok 4 worker-bee seed has agent.md at declared contribution path\nok 5 worker-bee seed has metadata.json at declared contribution path\nok 6 worker-bee seed preserves all original resource files\nok 7 worker-bee manifest is valid JSON\nok 8 worker-bee manifest declares schema intent-extension/v1\nok 9 worker-bee manifest name matches directory\nok 10 worker-bee manifest version is semver\nok 11 worker-bee manifest contributes a single subagent\nok 12 worker-bee manifest declares no skills or rules\nok 13 worker-bee seed has no absolute path references\nok 14 worker-bee seed has no $INTENT_HOME references\nok 15 worker-bee seed has no canon subagent path references\nok 16 intent ext validate passes for worker-bee seed\nok 17 canon subagents directory no longer contains worker-bee\nok 18 canon global-agents.json does not list worker-bee\n",
+  "bytes": 960,
+  "sha256": "42c896b8cdc38b78fc695eb6340db18d8eda8ceb3a8c11ae4a72923cd33e6472"
+}

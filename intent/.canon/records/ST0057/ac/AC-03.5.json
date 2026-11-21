@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.5",
+  "text": "**`sync --to-store` REPORTS an attachment whose on-disk bytes differ from what the INDEX holds for that path** (dc 2026-08-18, from a live instance). The ingest path reads the WORKTREE, so an uncommitted edit sitting in the tree is carried into canon by whoever syncs next -- and canon then records an artefact whose bytes exist in NO COMMIT, indistinguishable on inspection from a correct one. **That is AC-11.5(c) of ST0056 arriving in canon rather than in vendored files, and the ratified remedy is NOT applied on this path**: arm 1 of `self_provenance_check.sh` reads `git cat-file blob :$rel` precisely to avoid it, but it validates the manifest and never an attachment, so it passes. **The rule currently exists only as an instruction between nodes -- commit yours first -- and a rule that lives in a peer message is followed until someone is mid-task**, which happened twice in one afternoon, once to the node who wrote the rule.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

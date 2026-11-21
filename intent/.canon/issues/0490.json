@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 490,
+  "schema": "intent/issue@4.0",
+  "id": "0490",
   "slug": "intent-st-attach-does-not-go-through-the-attachm",
   "title": "intent st attach does not go through the attachment naming gate, so canon can hold a name the address layer refuses",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is absent (no contract = fail), and the message names the escape hatch.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

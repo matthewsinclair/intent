@@ -1,0 +1,9 @@
+{
+  "id": "05",
+  "title": "intent daemon start --at-login refuses on Linux before writing anything",
+  "scope": "XS",
+  "status": "done",
+  "objective": "On a machine without launchd, `intent daemon start --at-login` refuses before it writes anything, so no `~/Library/LaunchAgents/` plist appears on Linux, and its remedy names `intent daemon start` without the flag as the way to run the daemon. `intent daemon stop --at-login` refuses the same way. Today `daemon_start` in `intent-cli/src/render.rs` writes the plist through `launchagent::write_plist` and only then fails at `launchctl`, whose `NoLaunchctl` remedy in `intentsvcs/src/launchagent.rs` already says the right thing; the refusal moves ahead of the write. Linux CI runs the test that proves it.",
+  "body": "",
+  "preamble": ""
+}

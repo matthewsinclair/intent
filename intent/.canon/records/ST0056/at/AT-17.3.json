@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/dep_graph_guard.rs",
+  "covers": [
+    "AC-17.3"
+  ],
+  "status": "green",
+  "note": "Asserted against the SAME check AC-02.5 uses rather than beside it, as the criterion instructs: rusqlite appears in exactly one crate manifest, so a realiser holding it fails by construction. Neither intent-cli nor intentd declares it, and every TUI row reaches the store through the intentsvcs facade. 2 passed at 87123458."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.4",
+  "text": "MCP ships: stdio server with the tiered typed tools + `intent_graphql` escape hatch, bridging to intentd when it is up",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

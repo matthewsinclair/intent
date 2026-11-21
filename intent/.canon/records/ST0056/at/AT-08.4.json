@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/daemon_lifecycle.rs",
+  "covers": [
+    "AC-08.4"
+  ],
+  "status": "green",
+  "note": "**DRIVEN BY vc 2026-08-30 20:26Z at `1bc23052`, in a detached worktree. 6/6 in the file; THIS ROW IS ARMS 1-4**: `start_status_stop_is_a_working_lifecycle`, `a_second_start_is_idempotent_and_names_the_running_pid`, `stopping_when_nothing_runs_is_success`, `the_logs_land_where_d19_put_them`. Arms 5-6 are `AT-08.7`, and the file's own header now carries the split.\n\n**THE CITATION WAS WRONG ABOUT THE DIRECTORY, AND THE DIRECTORY WAS NOT A PLACE THE TEST COULD LIVE.** It read `intentd/tests/`; the file is `intent-cli/tests/`. **A package's integration tests build THAT package's binaries, not another package's**, and `daemon start`/`stop`/`--at-login` are the `intent` binary. **One cause, five instances** (`AT-08.2`, `.8` caught singly at greening, then `.4`/`.7`/`.9`): the rows were authored from the test's SUBJECT, the daemon, rather than from its DRIVER, the CLI.\n\n**NOT VACUOUS, CHECKED RATHER THAN INFERRED FROM A 0.16s RUN.** Arm 1 opens with `!answering(&machine)` -- an isolated `HOME` that somehow had a daemon in it would pass the start arm without starting one -- and it requires `start` to REPORT AN ADDRESS rather than merely exit 0, because a spawn succeeding says the kernel made a process and only an address says the daemon bound one. Arm 2's pid is the discriminator: an arm asserting only *nothing broke* would pass on a machine where the first start had failed.\n\n**THIS ROW'S FIRST GREEN LASTED TWO SECONDS AND A PEER'S `sync_from_disk` DESTROYED IT** (`at.set` 20:24:29.945Z, `disk.sync_from_disk` 20:24:31.203Z), reverting BOTH the status and the corrected file path. Recorded here because the loss was silent and the row looked untouched afterwards."
+}

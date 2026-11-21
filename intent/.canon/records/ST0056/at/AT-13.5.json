@@ -1,0 +1,10 @@
+{
+  "id": "AT-13.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/index_staleness.rs",
+  "covers": [
+    "AC-13.5"
+  ],
+  "status": "to-write",
+  "note": "a same-size same-mtime edit in each corpus, with opposite expectations"
+}

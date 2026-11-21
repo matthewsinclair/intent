@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 372,
+  "schema": "intent/issue@4.0",
+  "id": "0372",
   "slug": "the-mcp-search-tool-and-the-explorer-s-search-pa",
   "title": "the MCP search tool and the explorer's /search pane answer without reconciling, so without a daemon they can return a confident subset",
   "status": "closed",

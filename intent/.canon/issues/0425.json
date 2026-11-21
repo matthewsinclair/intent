@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 425,
+  "schema": "intent/issue@4.0",
+  "id": "0425",
   "slug": "intent-daemon-logs-prints-one-log-s-block-after",
   "title": "intent daemon logs prints one log's block after the other, so an older error sits below the newest start line -- merge the backlog by each line's stamp",
   "status": "closed",

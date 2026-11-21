@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 432,
+  "schema": "intent/issue@4.0",
+  "id": "0432",
   "slug": "the-explorer-shows-a-blank-screen-after-returnin",
   "title": "The explorer shows a blank screen after returning from nvim, on hv's terminal",
   "status": "closed",

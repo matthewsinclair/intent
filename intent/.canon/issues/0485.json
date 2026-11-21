@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 485,
+  "schema": "intent/issue@4.0",
+  "id": "0485",
   "slug": "intent-upgrade-writes-an-unflushed-todo-md-on-a",
   "title": "intent upgrade writes an unflushed todo.md on a project that has flushed its DONE list, which doctor then refuses",
   "status": "closed",

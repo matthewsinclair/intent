@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 77,
+  "schema": "intent/issue@4.0",
+  "id": "0077",
   "slug": "v3-claude-upgrade-is-parsed-but-unwired-so-nothi",
   "title": "v3 claude upgrade is parsed but unwired, so nothing regenerates root CLAUDE.md in a v3-self-hosted project",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.5",
+  "text": "hv's directives, decisions and watch-outs print in full at every node's pickup.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

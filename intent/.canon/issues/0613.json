@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 613,
+  "schema": "intent/issue@4.0",
+  "id": "0613",
   "slug": "a-verb-whose-stdout-is-closed-early-panics-exit",
   "title": "A verb whose stdout is closed early panics (exit 101, failed printing to stdout: Broken pipe) instead of ending quietly",
   "status": "closed",

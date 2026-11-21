@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "intent upgrade folds intent/.intentfiles into the records and removes it, byte-deterministically, so a project upgraded on two branches apart merges clean.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

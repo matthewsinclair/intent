@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.5",
+  "text": "`intent estate init [<dir>]` renders a dedicated coordinator's working directory from `lib/templates/estate/` through the same token expander as every root file, with AGENTS.md and CLAUDE.md carrying the coordinator contract and `.claude/settings.json` wiring the `intent claude hook` lifecycle hooks, so a Claude Code session started there is the coordinator with only Intent installed.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

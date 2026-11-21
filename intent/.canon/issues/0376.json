@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 376,
+  "schema": "intent/issue@4.0",
+  "id": "0376",
   "slug": "a-wb-write-that-lands-can-report-failure-on-a-lo",
   "title": "a wb write that lands can report failure on a locked store, and neither lock report says whether the write landed",
   "status": "closed",

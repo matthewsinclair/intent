@@ -1,0 +1,10 @@
+{
+  "id": "AT-22.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/daemon_and_local_agree.rs",
+  "covers": [
+    "AC-22.1"
+  ],
+  "status": "green",
+  "note": "The identity itself, over EVERY servable verb rather than a list the file keeps, so declaring `search` servable put it under the claim. Each comparison is bracketed by the daemon's own dispatch counter: the local run must move it by 0 and the `--daemon` run by exactly 1, so the two answers are known to have come from two different processes rather than from a client that quietly fell back. Non-vacuity is checked BEFORE identity, because two empty answers are identical."
+}

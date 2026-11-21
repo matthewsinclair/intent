@@ -1,0 +1,6 @@
+{
+  "path": "impl.md",
+  "text": "# Implementation - ST0038: critic-elixir false positives on canonical OTP/Mix idioms\n\n## Implementation\n\n[Notes on implementation details, decisions, challenges, and their resolutions]\n\n## Code Examples\n\n[Key code snippets and examples]\n\n## Technical Details\n\n[Specific technical details and considerations]\n\n## Challenges & Solutions\n\n[Challenges encountered during implementation and how they were resolved]\n",
+  "bytes": 410,
+  "sha256": "85f9f8fd9a3b6ede6c42baf8f4193178e17684f643e3033f20c388188ddb0bb1"
+}

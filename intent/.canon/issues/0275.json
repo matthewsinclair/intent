@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 275,
+  "schema": "intent/issue@4.0",
+  "id": "0275",
   "slug": "install-md-nominates-an-install-check-that-retur",
   "title": "install.md nominates an install check that returns 0 on the very fault it names, and the known-defects paragraph reports the wrong symptom",
   "status": "closed",

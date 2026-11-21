@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/todo_watermark.rs",
+  "covers": [
+    "AC-14.6"
+  ],
+  "status": "green",
+  "note": "Asserts the ANCIENT COMPLETION, not the absent value: a build reading absent as 'now' sets no watermark either, so the value alone cannot tell the two apart. Second half is a control that DONE membership responds to the cutoff at all, without which the first half is green under a build that ignores it. Two mutations, both red it."
+}

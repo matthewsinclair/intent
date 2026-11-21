@@ -1,0 +1,9 @@
+{
+  "id": "AT-19.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_source_tokeniser_is_measured.rs",
+  "covers": [
+    "AC-19.4"
+  ],
+  "status": "green"
+}

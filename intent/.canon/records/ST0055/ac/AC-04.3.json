@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.3",
+  "text": "`intent help` / `intent help issues` documents the command and its five verbs.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent help lists issues; intent issues help lists five verbs"
+  }
+}

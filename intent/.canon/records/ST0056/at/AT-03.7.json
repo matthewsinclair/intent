@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/ignored_paths_corpus.rs",
+  "covers": [
+    "AC-03.7"
+  ],
+  "status": "green"
+}

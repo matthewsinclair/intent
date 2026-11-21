@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 516,
+  "schema": "intent/issue@4.0",
+  "id": "0516",
   "slug": "a-whole-suite-intent-cli-run-reds-one-daemon-ing",
   "title": "a whole-suite intent-cli run reds one daemon ingest arm that passes alone, against a 96-second budget",
   "status": "closed",

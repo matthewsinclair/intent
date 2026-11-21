@@ -1,0 +1,9 @@
+{
+  "id": "AT-24.6",
+  "kind": "non-test",
+  "prose": "Specified in the design and not built until hv rules it on. The safety condition is the specification: the redirect fires only when the envelope says the index is COMPLETE for the paths the pattern would have reached, never otherwise -- a redirect answering from a stale index hands the model a confident wrong answer in place of a fresh right one, and the model cannot tell it happened. With three conditions that are each a way that rule could be lost: a pattern that is not symbol-shaped is never redirected, the model is told when a call was redirected, and the redirect shares one freshness rule with dc's PostToolUse hook and owns none of its own.",
+  "covers": [
+    "AC-24.6"
+  ],
+  "status": "n-a"
+}

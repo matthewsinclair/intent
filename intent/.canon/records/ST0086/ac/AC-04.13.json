@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.13",
+  "text": "A grant is refused, naming the gate, while a request named by the ask's `--not-before` has no end file.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-12.2",
+  "kind": "non-test",
+  "prose": "docs sweep reviewed",
+  "covers": [
+    "AC-12.2"
+  ],
+  "status": "n-a"
+}

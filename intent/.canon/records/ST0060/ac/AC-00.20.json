@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.20",
+  "text": "**ADDED -- AN ENTRY IS A TUPLE `{key_id, value}`, SO THE LOCAL NAME AND THE DEPLOYED NAME ARE ONE FACT WITH ONE HOME.** Today they can drift -- `ANTHROPIC_API_KEY` in `fly secrets` and something else locally -- and **nothing notices until a 500 in production**. `key_id` is REQUIRED (optional would give `run` a silent skip path, which is this thread's recurring defect) and is **independent of the entry name**: `CONFLAB_MATTS_API_KEY` against `intent://conflab/profiles/default/secrets/matts-api-key`, because the project is already the authority, so deriving either from the other is the non-injective-mapping problem one layer up. **`key_id` is ALSO NOT the step-0 override variable** -- two projects can both use `API_KEY`, so an override keyed on the id would hit both; the override is namespaced to the reference and the id is not Intent's to namespace. **`run` injects by id and needs no mapping, which removes the LAST declaration site in this design** (`run --ref K=<ref>` was a fourth, unnoticed until hv asked for the tuple; it survives only as a one-off override). **No fly adapter is built**: `list` emits ids, `fly secrets list` prints names, and the parity check is a two-line diff. **Injection is REFERENCE-driven by default, never profile-driven** -- profile-wide injection hands a process material it never asked for, a least-privilege regression arriving as a convenience.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

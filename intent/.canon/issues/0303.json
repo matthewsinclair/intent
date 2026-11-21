@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 303,
+  "schema": "intent/issue@4.0",
+  "id": "0303",
   "slug": "dispatch-table-as-observed-rows-claim-v3-reprodu",
   "title": "dispatch-table as-observed rows claim v3 reproduces v2's measured exits, and five of six sampled against 3.0.1 are false",
   "status": "closed",

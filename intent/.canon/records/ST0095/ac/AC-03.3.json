@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "Two runs of the explorer screenshots write byte-identical images from seeded ids.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

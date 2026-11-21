@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "`intent explore` shows /estate beside /projects, rendered from the same intentsvcs reader as the page and the verb, with each session's state, project and node, line and its age, claims and slots, the host block with the census, and the controller, lanes and queue from the same keys the page reads, rendering their empty values without branching before WP-04 lands.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.4",
+  "text": "An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing that the release before it does not plan on the same commit, and output changes only where an id was spelled two ways, each change listed in the proof.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "cc's smoke in its proof of 2026-11-19 11:55Z, landed at 31dd4430c: the v4 binary on a fresh clone of this project at 4a831efa7 under an isolated HOME; sync --to-disk left git status empty; sync's one remaining step is byte-identical (cmp) to the one brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare; eleven output changes, each where an id was spelled two ways, are listed in the proof."
+  }
+}

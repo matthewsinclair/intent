@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.6",
+  "text": "`todo_watermark` is OPTIONAL, and ABSENT means NEVER FLUSHED. A project that has never flushed carries a `project.json` with no watermark and renders every completed thread in DONE. This is a fact the model can now hold and v2 could not represent: v2 read the cutoff back out of the generated file, so an absent file had to fall back to a clock.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

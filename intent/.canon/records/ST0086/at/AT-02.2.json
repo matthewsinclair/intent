@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/census.rs",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "green",
+  "note": "arms: both_load_forms_read_as_three_numbers, lsof_field_output_maps_each_pid_to_its_cwd, ps_args_keep_the_whole_command_line and every_declared_class_is_a_row_idle_ones_at_zero (the load averages; each process's cwd and whole command line; each declared class counted, its processes attributed to the project whose tree holds their cwd and the rest unattributed), and in native/rust/crates/intentd/src/census.rs the_ring_keeps_the_last_hour_oldest_first and a_round_reaps_on_the_tick_and_reads_the_endpoint_only_when_asked (the history ring, and the reap of a gone session's WIP record on the tick); green in vc's stacked train, run 3's workspace tests at base 51eb26da4 (tip tree 5f0ee67fabfb, none failed), with arms-v3 landed at bd3dbf682 on 2026-10-26"
+}

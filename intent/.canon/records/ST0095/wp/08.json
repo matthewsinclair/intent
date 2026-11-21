@@ -1,0 +1,9 @@
+{
+  "id": "08",
+  "title": "The order",
+  "scope": "S",
+  "status": "done",
+  "objective": "Every listing orders ordinals by number and hashed records by creation, in its present buckets and direction, so a project of ordinals renders exactly as it does today.",
+  "body": "Seat: cc. Size: S.\n\n## Scope\n\n- One comparator in the waist, keyed on the id's family: ordinals first, by number; hashed records after, by `origin`.\n- The store's reads that order by id or number today: `ORDER BY id` (`store.rs:5083`), issues `ORDER BY number` (`:5156-5164`) and work packages `ORDER BY seq` (`:5240-5244`); and the text sorts in ingest (`ingest.rs:1041`, `1144-1150`) and migrate (`migrate.rs:447`).\n- Criteria and tests keep `id_order` in canon. `acceptance.md`'s group order follows the package order.\n\n## Order\n\nAfter WP-06. ic applies the comparator to the views in WP-10.\n\n## Proof\n\n`tests/unit/output_width.bats` and the view goldens are unchanged for a project of ordinals.\n",
+  "preamble": ""
+}

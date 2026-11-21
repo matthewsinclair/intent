@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.2",
+  "text": "vc has measured what the released Intent before this thread does with a board at the new schema, and no project is converged while a machine that reads its board runs an Intent that cannot read it.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "hv upgraded gyges and kovacs to brew 3.3.0 before the sweep wrote any board, and rhadamanth's brew was 3.3.0 from the cut; no machine reading a converged board runs an older Intent (vc decision 131)"
+  }
+}

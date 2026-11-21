@@ -1,0 +1,10 @@
+{
+  "id": "AC-03.2",
+  "text": "Every unresolved design decision reaches the Laksa design agent carrying the decision, the constraint it must respect, and what breaks if it goes the other way",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0069",
+    "by": "hv"
+  }
+}

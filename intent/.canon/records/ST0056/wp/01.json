@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Design canon: architecture, data model, migration and parity specs",
+  "scope": "L",
+  "status": "done",
+  "objective": "Turn the ratified rubber-duck session into the reviewable design canon: everything hv signs off before a line of Rust exists (document-before-code). design.md carries the architecture, truth model, decision log D01-D17 and alternatives; this WP completes the remaining specs and closes the open questions.",
+  "body": "## Deliverables\n\n- design.md at review quality (landed 2026-08-14; maintained through the check-in)\n- The data-model spec: entity tables, `thread.json` / `issues/<n>.json` shapes, first JSON Schema draft\n- The migration spec: two-hop flow, refuse-lossy residue format, canary + fleet-corpus plan\n- The parity contract: v2 command-surface inventory (every command/flag/output/exit code) + the keep/retire/deviate register format\n- The full-ladder acceptance contract: WP-02..12 AC/AT groups in acceptance.md\n- Open questions closed as decision-log additions: one binary vs two, launchd label, 3.0.0 subscription extent, `.cache` layout\n\n## Dependencies\n\n- None. Gate for all subsequent WPs. The command-surface inventory and BATS classification can be delegated (IC-friendly, design-neutral, v2-side).",
+  "preamble": ""
+}

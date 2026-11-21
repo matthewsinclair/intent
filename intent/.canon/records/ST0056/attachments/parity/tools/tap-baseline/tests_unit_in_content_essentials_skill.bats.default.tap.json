@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_in_content_essentials_skill.bats.default.tap",
+  "text": "1..6\nok 1 in-content-essentials skill exists\nok 2 in-content-essentials declares description and chains_to frontmatter\nok 3 in-content-essentials carries the content pipeline steps\nok 4 in-content-essentials references the prose base + content rules by ID\nok 5 in-content-essentials dispatches critic-prose for the mechanical pass\nok 6 in-content-essentials is renderer-safe (no em dash, no positional tokens)\n",
+  "bytes": 410,
+  "sha256": "f863ec482ee8c85ca18a6ee8d8e42bae39ff83273b3f60499672f12f2c02dfb9"
+}

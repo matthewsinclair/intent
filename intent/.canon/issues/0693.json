@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 693,
+  "schema": "intent/issue@4.0",
+  "id": "0693",
   "slug": "claude-skills-subagents-install-an-identical-ins",
   "title": "claude skills|subagents install: an identical installed unit needs a decision and exits 1; sync --help offers --all it refuses; installed_at is the shipped file's mtime",
   "status": "closed",

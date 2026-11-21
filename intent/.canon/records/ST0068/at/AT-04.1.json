@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.1",
+  "kind": "non-test",
+  "prose": "Resolve every link from docs/ into intent/docs/",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "n-a",
+  "note": "Driven by vc, 2026-08-29. The check was vacuous until the links existed; six were added rather than the empty set being reported as a pass."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/wb_command.rs",
+  "covers": [
+    "AC-14.7"
+  ],
+  "status": "to-write",
+  "note": "in-process and GraphQL paths return identical results"
+}

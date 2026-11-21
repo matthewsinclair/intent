@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 200,
+  "schema": "intent/issue@4.0",
+  "id": "0200",
   "slug": "ext-root-dir-has-two-byte-identical-homes-and-th",
   "title": "ext_root_dir has two byte-identical homes, and the comment authorising the second cannot be read by the check that refuses it",
   "status": "closed",

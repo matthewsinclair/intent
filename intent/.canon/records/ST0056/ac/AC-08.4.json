@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.4",
+  "text": "Lifecycle works end to end: launchd install/uninstall, PID discipline with observable cleanup, logs in the named location",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

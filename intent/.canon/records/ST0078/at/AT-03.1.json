@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/a_pull_is_reflected_by_the_next_verb.rs",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "written; the judging run follows -- judged green by dc's P3 runs of 2026-09-18 (scratchpad p3-logs and p3-logs-2), landed patch-id 2c4e35fed"
+}

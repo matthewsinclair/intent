@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 139,
+  "schema": "intent/issue@4.0",
+  "id": "0139",
   "slug": "at-lint-fix-is-advertised-in-help-and-refuses-as",
   "title": "at lint --fix is advertised in --help and refuses as not-implemented when called",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AC-04.2",
+  "text": "An existing project's canon and views are byte-for-byte what they were, intent sync plans nothing, and output changes only where an id was spelled two ways, each change listed in the proof.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "Restated as AC-04.4, non-test: its proof is a driven smoke on a clone of this project, which no committed test carries, and a criterion's kind cannot be changed in place. AC-04.4 also says what the smoke measured: on this repository sync still plans the one step that brew 3.4.0 plans on the same commit, removing 38 committed issue views that intent/.intentfiles does not declare, which is the repository's state and ST0096 WP-01's to settle.",
+    "by": "vc"
+  }
+}

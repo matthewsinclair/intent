@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.6",
+  "text": "Brew 3.4.0 cannot read an upgraded project: it reports each canon file as schema-invalid, says it could not read the committed canon, and changes nothing.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "refs/bank/devbin-dc/st0095/wp13/drive-log-run2 (blob 8bad2f3d0), section 'UPGRADE 4: an older Intent on the upgraded project': brew 3.4.0 (461e39ba145d) runs st list on the upgraded project and prints 'could not read the committed canon' with one schema-invalid finding per canon file, rc=1. Every 3.4.0 verb reads the canon first, so none reaches a write; the drive ran a read verb and captured no git status after it"
+  }
+}

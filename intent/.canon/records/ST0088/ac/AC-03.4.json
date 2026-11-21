@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "No template, subagent or critic-contract file hardcodes `~/.claude`: lib/templates/llm/_CLAUDE.md, subagents/critic-elixir/agent.md and rules/_schema/critic-contract.md read the config dir as `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, pinned by the corpus arm widened to those roots.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

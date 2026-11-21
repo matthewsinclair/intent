@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "ST0045 `tasks.md` + `impl.md` are populated (work breakdown + as-built).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "ST0045 tasks.md + impl.md populated"
+  }
+}

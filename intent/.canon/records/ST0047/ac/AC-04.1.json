@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "The validated capability is invocable as `intent claude start|ws ...` within the existing `intent claude` family.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "wired at `bin/intent` claude dispatch (`start|ws` -> `intent_claude_cwi`); `intent help claude` documents both; smoke + AT-04.1 green"
+  }
+}

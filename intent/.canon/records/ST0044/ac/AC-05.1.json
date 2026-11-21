@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "The `info.md` and `WP/info.md` templates reference `acceptance.md` and contain no restated ACs.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

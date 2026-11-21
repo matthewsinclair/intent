@@ -1,0 +1,8 @@
+{
+  "id": "AC-23.2",
+  "text": "The `Embedder` interface exists with a Null implementation whose `embed` refuses with the remedy naming the `embed` block in `config.json`, and an HTTP implementation against an OpenAI-compatible `http://` endpoint from `config.json`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

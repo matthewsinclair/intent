@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.9",
+  "text": "**R9 -- the profile selects, not just the project.** Two profiles of one project return different material for the same entry name. Lamplight carries three today (`default`, `prod`, `worldwright1`), which is the measured case rather than a hypothetical one.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

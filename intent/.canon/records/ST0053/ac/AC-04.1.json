@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "`intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`. (Allowlist-free: `templates/content/{RULES,ARCHITECTURE}.md` is all that was needed -- `lang init`/`lang list` are dir-driven.)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_lang.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

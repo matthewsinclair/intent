@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_highlander_audit.bats.mutant.tap",
+  "text": "1..4\nok 1 WP03-refactored skills carry no fenced code blocks\nok 2 WP03-refactored skills are thin (under 150 lines)\nok 3 canon subagents directory does not contain elixir subagent\nok 4 canon manifest does not list elixir subagent\n",
+  "bytes": 230,
+  "sha256": "d79177d26fb7c06eb3c1cab8011011e989901fd207157a4c36bde1d873f484ed"
+}

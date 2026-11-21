@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "tests/unit/modules_commands.bats",
+  "covers": [
+    "AC-02.2"
+  ],
+  "status": "to-write",
+  "note": "red-first; modules sync -- idempotent zero-diff on re-run"
+}

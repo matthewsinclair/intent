@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "green",
+  "note": "ingest_takes_what_is_missing_and_changes_nothing_else and the_sync_plan_names_waiting_event_files_and_apply_takes_them; green in P1's whole judging run on 06b0b0c38 over e447f15cf (cc, 2026-09-18)"
+}

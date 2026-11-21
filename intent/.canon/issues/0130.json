@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 130,
+  "schema": "intent/issue@4.0",
+  "id": "0130",
   "slug": "issues-add-allocates-its-number-from-a-stale-in",
   "title": "issues add allocates its number from a stale in-memory snapshot, so two concurrent filings take the same number and the second silently destroys the first -- both are told created:",
   "status": "closed",

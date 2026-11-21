@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 724,
+  "schema": "intent/issue@4.0",
+  "id": "0724",
   "slug": "precommit-s-six-two-way-guards-name-exit-codes-t",
   "title": "precommit's six two-way guards name exit codes their branch never reads",
   "status": "closed",

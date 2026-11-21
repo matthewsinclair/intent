@@ -1,0 +1,11 @@
+{
+  "id": "AC-03.2",
+  "text": "The docs name WSL as Intent's Windows route, tell readers to keep repos in the WSL filesystem rather than under `/mnt/c` and why, and tell them to run Claude Code inside WSL.",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0082",
+    "by": "hv, 2026-10-14; numbering under vc's pen",
+    "reason": "The WSL page moved to ST0082 on hv's ruling of 2026-10-14."
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 93,
+  "schema": "intent/issue@4.0",
+  "id": "0093",
   "slug": "four-pre-commit-arms-report-an-exit-code-nothing",
   "title": "four pre-commit arms report an exit code nothing reads, and one says its findings never gate from inside the branch that gates on them",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.5",
+  "text": "st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

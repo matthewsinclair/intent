@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 341,
+  "schema": "intent/issue@4.0",
+  "id": "0341",
   "slug": "the-dispatch-register-s-v2-exit-tables-claim-v3",
   "title": "The dispatch register's v2 exit tables claim v3 reproduces v2's exits, and the sampled rows are mostly false",
   "status": "closed",

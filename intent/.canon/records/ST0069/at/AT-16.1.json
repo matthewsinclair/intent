@@ -1,0 +1,10 @@
+{
+  "id": "AT-16.1",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+  "covers": [
+    "AC-16.1"
+  ],
+  "status": "green",
+  "note": "The check joins the schema property set to data-model.md's per-entity tables and refuses in BOTH directions: a property with no row (SHIPPED WITH NO CONTRACT ROW) and a row with no property (CONTRACT ROW WITH NO SHIPPED PROPERTY). A sibling of drift_check.sh and never an arm of it -- that one compares generated faces to the Rust types, this compares a prose document to a schema, and their remedies are opposite, a regeneration against an author. It found Attachment.blob on its first run: a row describing a property nothing ships, the more dangerous half, since corrected."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is present but has zero in-scope ACs and no exemption (was a vacuous exit 0).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

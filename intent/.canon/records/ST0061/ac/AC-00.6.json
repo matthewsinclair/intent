@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.6",
+  "text": "**IDEMPOTENT, AND IT NEVER CONFLATES `NOTHING TO DO` WITH `DID SOMETHING`.** `st dehydrate` on a thread already absent from the manifest and absent from disk exits 0 and says so in words distinct from a run that removed files. `unpin` is already idempotent by contract; this criterion is about the REPORT, because a count of removals that reads the same for zero and for one is the class that let `1 refused` speak for 423 files.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

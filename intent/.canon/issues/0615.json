@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 615,
+  "schema": "intent/issue@4.0",
+  "id": "0615",
   "slug": "the-doc-comment-of-canon-holds-a-settings-file-i",
   "title": "The doc comment of canon_holds_a_settings_file_it_did_not_write.rs still describes the whole-file rewrite that 0606 removed",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/search_surface.rs",
+  "covers": [
+    "AC-06.4"
+  ],
+  "status": "green",
+  "note": "10 tests. **Held RED for ~20 minutes on 2026-08-15 while the file itself was passing**, because it covered the hits and not the shape; closed by `an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss`. **The reason the COVERING row had to come off green, rather than a second row at `to-write` naming the gap: `ac gate` satisfies an AC on the FIRST green AT covering it (`bin/intent_acceptance:454` ORs, it does not AND) -- issue 0032.** Until that ANDs, partial coverage can only be recorded by saying something false about the FILE in order to say something true about the CRITERION."
+}

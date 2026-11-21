@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 636,
+  "schema": "intent/issue@4.0",
+  "id": "0636",
   "slug": "fix-in-session-skill-to-safely-handle-being-run",
   "title": "Fix /in-session skill to safely handle being run in non-Intent projects",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.8",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/render.rs",
+  "covers": [
+    "AC-17.8"
+  ],
+  "status": "green",
+  "note": "Five tests, four in render.rs and one in tui/app.rs. REACH is held against the surface own vocabulary in BOTH directions -- arg_values(table, \"edit\", \"file\") -- so neither offering one file nor inventing a sixth passes. THE CONTROL IS the_offered_set_contains_a_generated_view_or_the_refusal_has_no_subject, and it is the check that was missing when this row was first diagnosed: a refusal can only happen if the operator can ask, and the first proposal read the ATTACHMENT set, which carries 301 members on ST0056 with NOT ONE generated view among them -- so the refusal would have been unreachable while the row looked satisfiable. The authored/generated split is read from Project::edit_disposition and asserted per row rather than trusted, and all three dispositions are exercised (3 Open, 1 OpenRoundTrip, 1 Refuse) with the arity asserted so the test cannot silently weaken. The REFUSAL ITSELF is Facade::edit, one door for both callers after AC-05.3 guard caught a second call site; its refusal names the path and carries author_with as its remedy, and edit_prints_a_path_that_exists.rs is where that is driven. Enter reaching Step::Open rather than Step::Hand is asserted in app.rs, because both row kinds claim Embed and a field handoff on an artefact would be a silent wrong-target write. Four mutations driven -- generated view dropped, row kind flattened, disposition decided in the realiser, rows offered to every kind -- each red on exactly the tests that name it. 226 targets, 1766 passed, 0 failed across intent-cli and intentsvcs."
+}

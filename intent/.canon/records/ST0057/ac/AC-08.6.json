@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.6",
+  "text": "**A CRITERION IS CREATABLE THROUGH THE MUTATION SURFACE, NOT ONLY BY HAND-EDITING CANON.** Minted by vc 2026-08-25 on hv's ruling over issue `0088`, which offered three cheaper remedies and took this one. `WP-08`'s own enumerated-gap table names `Criterion create` as **missing** and no criterion covered it: `AC-08.5` covers every writable FIELD, and **creation is not a field**, so the thread's gate PASSed at 51/51 over a stated deliverable. WP-08 nominates `AC-10.11` / `AT-10.11` for the caller-assigned create contract; **ST0057 has no such rows, and ST0056's `AC-10.11` is an interrupted migration reaching the same end state.** Driven rather than grepped, 2026-08-25: `ac --help` lists nine subcommands and `at --help` five, and **not one of the fourteen creates anything** -- every arm is a transition on a row that already exists. The route today is a hand-edit of `.canon/st/<ID>.json` followed by `sync --to-store`, **which is how THIS ROW itself reached canon**, and how `AC-14.12` reached ST0056 the same evening. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent `PUT` to the entity address rather than a `POST` to the collection. **WHAT WOULD FALSIFY THIS: a criterion that can be brought into existence by editing canon but not through the addressed surface, or a create that is not idempotent under repeat.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

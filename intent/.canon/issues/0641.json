@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 641,
+  "schema": "intent/issue@4.0",
+  "id": "0641",
   "slug": "organize-apply-writes-the-cover-over-a-hand-edit",
   "title": "organize --apply writes the cover over a hand-edited info.md put back at a dehydrated thread's path, with no diverged or refused verdict",
   "status": "closed",

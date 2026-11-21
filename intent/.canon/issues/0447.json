@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 447,
+  "schema": "intent/issue@4.0",
+  "id": "0447",
   "slug": "facade-open-s-ingest-reports-a-damaged-fts5-doc",
   "title": "Facade::open's ingest reports a damaged fts5 doc_sections table as 'could not read the committed canon' with a remedy naming artefacts that do not exist",
   "status": "closed",

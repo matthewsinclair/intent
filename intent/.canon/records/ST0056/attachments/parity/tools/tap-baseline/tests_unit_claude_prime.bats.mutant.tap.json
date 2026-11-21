@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_claude_prime.bats.mutant.tap",
+  "text": "1..2\nnot ok 1 claude prime --dry-run previews MEMORY.md without writing\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/claude_prime.bats, line 28)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 2 claude prime writes MEMORY.md under HOME/.claude/projects\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/claude_prime.bats, line 43)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\n",
+  "bytes": 619,
+  "sha256": "331421426c1a411933ebf3acfbf2f40a0e2d226649fb8fbebc9c8bb541e54b48"
+}

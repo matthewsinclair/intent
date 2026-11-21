@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 451,
+  "schema": "intent/issue@4.0",
+  "id": "0451",
   "slug": "cargo-doc-p-intentsvcs-warns-67-times-17-of-them",
   "title": "cargo doc -p intentsvcs warns 67 times, 17 of them broken intra-doc links, so a doc build cannot gate under -D warnings",
   "status": "closed",

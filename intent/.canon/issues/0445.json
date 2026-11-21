@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 445,
+  "schema": "intent/issue@4.0",
+  "id": "0445",
   "slug": "the-dual-path-conformance-test-registers-its-tem",
   "title": "the dual-path conformance test registers its tempdir in the user's real project registry, because discover and explore run in-process under the real HOME and are not declared as acting on ambient state",
   "status": "closed",

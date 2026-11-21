@@ -1,0 +1,10 @@
+{
+  "id": "AT-09.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_hashed_package_is_judged_by_its_own_criteria.rs:26",
+  "covers": [
+    "AC-09.1"
+  ],
+  "status": "green",
+  "note": "Written after the land. A regression arm, with no red on the base: the close gate already reads a group as a typed WpId (issue 0712, ST0095 WP-07). No planted fault (cc, 17:23Z). Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 384,
+  "schema": "intent/issue@4.0",
+  "id": "0384",
   "slug": "wb-migrate-discards-text-written-in-an-inbox-ent",
   "title": "wb migrate discards text written in an inbox entry's heading, so an entry whose text sat there carries with an empty body",
   "status": "closed",

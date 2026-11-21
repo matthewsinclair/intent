@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 90,
+  "schema": "intent/issue@4.0",
+  "id": "0090",
   "slug": "issues-add-creates-a-body-that-no-verb-can-write",
   "title": "issues add creates a body that no verb can write, and the refusal that makes it unreachable names the form instead of the field",
   "status": "closed",

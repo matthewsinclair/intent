@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.2",
+  "text": "`intent estate control take` from a Claude session bound to a node that is not its board's vc is refused with a remedy naming who may take it; with `--hv \"<words>\"` it is taken and the words are recorded; and a session in no project takes it as before.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

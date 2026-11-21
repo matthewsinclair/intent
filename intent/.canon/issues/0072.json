@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 72,
+  "schema": "intent/issue@4.0",
+  "id": "0072",
   "slug": "intent-backup-db-is-empty-no-pre-incident-store-",
   "title": "intent/.backup/db is empty -- no pre-incident store snapshot exists",
   "status": "closed",

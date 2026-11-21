@@ -1,0 +1,8 @@
+{
+  "id": "AC-22.1",
+  "text": "intentd maintains the index incrementally; a daemonless query reconciles first and returns results identical to a daemon-served one for the same tree state.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

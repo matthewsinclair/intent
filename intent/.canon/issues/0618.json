@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 618,
+  "schema": "intent/issue@4.0",
+  "id": "0618",
   "slug": "declared-languages-are-read-from-config-json-wit",
   "title": "Declared languages are read from config.json with jq in five places, because no verb prints them",
   "status": "closed",

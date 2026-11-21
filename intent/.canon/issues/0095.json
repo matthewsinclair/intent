@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 95,
+  "schema": "intent/issue@4.0",
+  "id": "0095",
   "slug": "help",
   "title": "help",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.4",
+  "kind": "test",
+  "file": "tests/unit/modules_commands.bats",
+  "covers": [
+    "AC-02.4"
+  ],
+  "status": "to-write",
+  "note": "red-first; modules sync -- new row module->path + provenance"
+}

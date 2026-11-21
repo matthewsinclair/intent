@@ -1,0 +1,8 @@
+{
+  "id": "AC-18.3",
+  "text": "Two corpora, two staleness policies: canon hashes always; source is stat-then-hash; each is asserted against its own missed-edit case.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

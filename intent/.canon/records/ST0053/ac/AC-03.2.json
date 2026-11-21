@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "`critic-prose` loads the `IN-PR-*` base plus the declared discipline's rules, parameterised by language (author or content, resolved from config `languages`); its `agent.md` cites the `IN-PR-STYLE-004` mechanical pass and preserves the two-form detrope (mechanical default + `IN-AU-CRAFT-003` `/in-detrope` handoff, never invoked).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

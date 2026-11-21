@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The manifest is `<root>/.intent-install` in T3's exact form: a header of `# key: value` lines carrying at least tool, version, source_commit as the full sha and managed_by, then one `shasum -a 256 -c` line per runtime file, path relative to the root, sorted by `LC_ALL=C sort`, the binaries checksummed as installed.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

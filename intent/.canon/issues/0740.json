@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 740,
+  "schema": "intent/issue@4.0",
+  "id": "0740",
   "slug": "the-stale-render-findings-weave-their-remedy-int",
   "title": "The stale-render findings weave their remedy into their prose, so each prints two remedies",
   "status": "closed",

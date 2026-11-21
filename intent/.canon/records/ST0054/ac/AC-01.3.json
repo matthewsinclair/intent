@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "the section documents the `.claude/skills` collision and states Intent's official coexistence policy (Intent projects stay Intent-native; library skill-gen left off).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "working-with-llms.md 'Coexistence policy' subsection: .claude/skills collision + Intent-native policy"
+  }
+}

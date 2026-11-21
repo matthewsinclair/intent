@@ -1,0 +1,9 @@
+{
+  "id": "AT-19.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_search_tool_and_json_are_one_envelope.rs",
+  "covers": [
+    "AC-19.2"
+  ],
+  "status": "green"
+}

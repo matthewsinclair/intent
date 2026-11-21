@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 697,
+  "schema": "intent/issue@4.0",
+  "id": "0697",
   "slug": "the-kept-leg-target-on-kovacs-devbin-gate-cache",
   "title": "The kept leg target on kovacs (DEVBIN_GATE_CACHE) grows without bound",
   "status": "closed",

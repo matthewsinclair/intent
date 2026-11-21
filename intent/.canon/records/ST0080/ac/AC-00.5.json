@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.5",
+  "text": "A due backup that fails, or a backup.schedule that cannot be read, is never silent and the explorer still opens: it is printed on stderr as a warning with its remedy, shown on the explorer's info row, and a failed snapshot is recorded where intent doctor reports it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

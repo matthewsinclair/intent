@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/form_declares_layout_not_the_field_set.rs",
+  "covers": [
+    "AC-17.2"
+  ],
+  "status": "green",
+  "note": "8 passed, 0 failed, 1 ignored at 08de236d with native/rust and surface both clean, run by ic. The ignored row is show_the_writable_population, a declared derivation aid rather than an assertion. Both halves of AC-17.2 are driven from a REFUSAL rather than asserted off a green declaration: forward, a form naming a property the face does not carry is refused at load, which fires the day a model field is renamed; converse, a writable property appearing on no form is NAMED, asserted as an EQUALITY against a declared expectation so that adding a writable field fails this file. The converse is the half that rots, because nothing about a form merely missing a row looks wrong."
+}

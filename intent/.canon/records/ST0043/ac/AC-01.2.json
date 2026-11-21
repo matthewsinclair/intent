@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "(F-UPG-1/2) Semver sanity (refuse downgrade, error on missing VERSION) runs before any mutation; unknown / future versions do not hard-fail mid-mutation; no enumerated `needs_*` globs that break at a future version (eg 2.20.0).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

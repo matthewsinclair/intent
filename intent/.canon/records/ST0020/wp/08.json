@@ -1,0 +1,9 @@
+{
+  "id": "08",
+  "title": "Project Structure Reference Doc",
+  "scope": "S",
+  "status": "done",
+  "objective": "Create a reference doc covering the standard Phoenix/Ash project layout for subagent consultation during code reviews.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/project-structure.md` (~150-250 lines)\n\n## Coverage\n\n- Standard Phoenix project directory layout\n- Ash domain/resource organization patterns\n- Web layer structure (controllers, LiveViews, components)\n- Test directory mirroring conventions\n- Configuration file locations\n- Asset pipeline structure\n- Where new code goes (decision tree)\n\n## Acceptance Criteria\n\n- [ ] Covers standard Phoenix/Ash project layout\n- [ ] 150-250 lines\n- [ ] Provides clear guidance on where new code should be placed\n- [ ] Covers both traditional Phoenix contexts and Ash domain patterns\n\n## Dependencies\n\n- None (can run in parallel with WP-01)",
+  "preamble": ""
+}

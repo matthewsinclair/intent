@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 231,
+  "schema": "intent/issue@4.0",
+  "id": "0231",
   "slug": "tui-repaints-declare-no-frame-boundary-so-real-t",
   "title": "TUI repaints declare no frame boundary, so real terminals can tear -- crossterm ships the fix",
   "status": "closed",

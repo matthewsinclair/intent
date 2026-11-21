@@ -1,0 +1,9 @@
+{
+  "id": "05",
+  "title": "Expand Testing Reference",
+  "scope": "M",
+  "status": "done",
+  "objective": "Create a comprehensive testing reference doc covering all major Elixir testing patterns that LLMs commonly get wrong.",
+  "body": "## Deliverables\n\n- `intent/plugins/claude/subagents/elixir/testing.md` (~200-400 lines)\n\n## Coverage\n\n- **DataCase** — Ecto sandbox, async tests, factory patterns\n- **ConnCase** — Controller tests, auth setup, JSON API testing\n- **LiveView testing** — render_component, live, follow redirect, form events\n- **Mox** — Behaviour-based mocking, expectations, stubs, verify_on_exit\n- **Ash testing** — Domain action tests, policy tests, Ash.Generator, globally unique values\n- **Changeset validation testing** — Error assertion patterns\n- **Async test considerations** — Sandbox ownership, concurrent tests\n- **File upload testing** — LiveView upload patterns\n\n## Acceptance Criteria\n\n- [ ] Covers all 8 areas listed above\n- [ ] Each section has concrete code examples\n- [ ] Follows existing style.md test conventions (success:/failure: prefixes)\n- [ ] References Ash testing patterns from agent.md\n- [ ] 200-400 lines\n\n## Dependencies\n\n- WP-03 (testing references Ecto/Ash patterns)\n- WP-04 (testing references LiveView patterns)",
+  "preamble": ""
+}

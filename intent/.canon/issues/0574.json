@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 574,
+  "schema": "intent/issue@4.0",
+  "id": "0574",
   "slug": "no-guard-checks-what-the-register-renders-into-d",
   "title": "no guard checks what the register renders into docs/reference, so internal notes reached user-facing help and MCP descriptions",
   "status": "closed",

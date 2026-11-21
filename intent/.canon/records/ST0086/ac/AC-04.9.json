@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.9",
+  "text": "`intent estate control hold \"<condition>\"` refuses every grant, naming the hold, until `control unhold <id>`; `intent estate lane hold <lane> \"<condition>\"` refuses every grant naming that lane until `lane unhold <lane> <id>`; the reader lists each standing hold in `holds`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.2",
+  "text": "the DONE bucket is watermarked: the heading is `## DONE:<T>`, where `<T>` is the last-flush instant (ISO 8601 UTC). DONE lists threads whose `completed:` is at or after `<T>`; `update` preserves `<T>` (first generation defaults `<T>` to the start of today, UTC -- reproducing the \"completed today\" view as the zero-flush baseline).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

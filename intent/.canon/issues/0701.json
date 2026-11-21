@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 701,
+  "schema": "intent/issue@4.0",
+  "id": "0701",
   "slug": "the-store-s-write-ahead-log-file-never-shrinks-i",
   "title": "The store's write-ahead log file never shrinks: intent.db-wal keeps the high-water mark of its largest burst (296 MB on rhadamanth) because no connection sets journal_size_limit",
   "status": "closed",

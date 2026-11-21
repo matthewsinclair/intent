@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "An argument after the command is refused on the info row, and nothing runs.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

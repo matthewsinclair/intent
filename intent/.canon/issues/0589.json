@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 589,
+  "schema": "intent/issue@4.0",
+  "id": "0589",
   "slug": "trope-catalogue-fmt-03-s-quote-class-holds-strai",
   "title": "trope catalogue: FMT-03's quote class holds straight quotes where curly ones were meant, so it flags every quote and misses every curly one; five [''] classes miss curly apostrophes the same way",
   "status": "closed",

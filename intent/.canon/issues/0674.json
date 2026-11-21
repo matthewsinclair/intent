@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 674,
+  "schema": "intent/issue@4.0",
+  "id": "0674",
   "slug": "testkit-s-sweep-reads-the-live-pid-set-before-it",
   "title": "testkit's sweep reads the live-pid set before it lists /tmp, so a fixture whose process was born between the two is swept while that process lives",
   "status": "closed",

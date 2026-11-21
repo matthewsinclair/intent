@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/intentfiles_grammar.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 6 tests, and SEVEN mutation arms driven red-on-demand and restored BEFORE the green was called: silent-skip instead of refuse; off-by-one line number; unclosed region reported at EOF rather than at its open point; grammar relaxed inside the generated region; any-non-empty-id accepted so a path leaks in; trailing comment discarded; a bad line in the shipped manifest. **All six tests passed on first run, so the ARMS are the result and the green is not.** **AC-02.5 is held MECHANICALLY rather than by a check** -- an id must satisfy `is_thread_id` or `is_issue_id`, so `STEELTHREAD:intent/st/ST0056/info.md` is a MalformedId and not a special-cased path refusal; arm 5 proves the mechanism by loosening the id test and watching a path walk in."
+}

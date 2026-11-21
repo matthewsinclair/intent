@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 508,
+  "schema": "intent/issue@4.0",
+  "id": "0508",
   "slug": "rust-yml-selects-with-a-paths-allow-list-the-for",
   "title": "rust.yml selects with a paths: allow-list, the form tests.yml's own comment names as this project's false-green class",
   "status": "closed",

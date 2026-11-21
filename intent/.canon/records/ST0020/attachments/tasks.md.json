@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0020: Modernizing Intent's Elixir Support for Agentic Coding\n\nAll tasks completed. See [done.md](done.md) for full list.\n\n## Dependencies\n\n```\nWP-01 --+-- WP-02 ---- WP-06 --+-- WP-09\n         |                       +-- WP-07\n         +-- WP-03 ---- WP-05   +-- WP-10\n         +-- WP-04 --+\n         +-- (WP-08 runs in parallel, no deps)\n         +-- WP-05 + WP-06 ---- WP-11\n```\n",
+  "bytes": 393,
+  "sha256": "a0f3b29c6e0da264758b78b91f289ac3441b599a2c305c61fb23bb28d748f6ec"
+}

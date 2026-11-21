@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_event_log_travels.rs",
+  "covers": [
+    "AC-01.4"
+  ],
+  "status": "green",
+  "note": "upgrade_retires_the_ignore_rule_and_export_keeps_one_file and upgrade_backfills_the_history_the_store_held_once; green in the backfill's whole judging run on 658916fce over f37c63c4a (cc, 2026-09-18)"
+}

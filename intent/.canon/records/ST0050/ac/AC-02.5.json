@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.5",
+  "text": "the ST/WP specifier (`ST0011` / `11` / `ST0011/01` / `11/01`) is parsed via the shared `intent wp` specifier logic, not a reimplementation (Highlander).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "parse_wp_specifier extracted to bin/intent_helpers (Highlander); reused by intent_wp + intent_todo spec_info_file; 1/1 == ST1/1 == ST0001/01 proven"
+  }
+}

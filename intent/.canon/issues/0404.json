@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 404,
+  "schema": "intent/issue@4.0",
+  "id": "0404",
   "slug": "wb-migrate-carries-prose-inside-a-board-section",
   "title": "wb migrate carries prose inside a board section as items and reports nothing, so a sentence such as 'Nothing.' counts as work in flight",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "Rust references by syntax include scoped calls (`Type::f(..)`), type uses in signatures and bodies, and names inside macro invocations, each with its qualifier as written and `level` 2; `intent search --context nearest_project` on this repository lists `views.rs:437` and `views.rs:439` (issue 0429).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

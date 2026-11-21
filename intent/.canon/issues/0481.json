@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 481,
+  "schema": "intent/issue@4.0",
+  "id": "0481",
   "slug": "intentd-s-watcher-arms-go-red-inside-the-release",
   "title": "intentd's watcher arms go red inside the release gate right after the workspace build and pass alone at the same load",
   "status": "closed",

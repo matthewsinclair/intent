@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.4",
+  "text": "The design open questions are closed (one binary vs two, launchd label, 3.0.0 subscription extent, `.cache` layout)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "design.md D18-D21"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 418,
+  "schema": "intent/issue@4.0",
+  "id": "0418",
   "slug": "the-project-picker-is-a-standalone-screen-with-n",
   "title": "The project picker is a standalone screen with no search -- hoist it into the explorer as a projects view reached by /projects, filtered like the omnibox",
   "status": "closed",

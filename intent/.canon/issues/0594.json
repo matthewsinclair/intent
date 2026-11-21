@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 594,
+  "schema": "intent/issue@4.0",
+  "id": "0594",
   "slug": "armed-tool-preconditions-bats-reds-in-any-checko",
   "title": "armed_tool_preconditions.bats reds in any checkout whose path names an armed tool, because its tool grep runs over each line's file path",
   "status": "closed",

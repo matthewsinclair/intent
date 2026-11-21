@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.4",
+  "text": "`slots wait <id>` blocks the requester until a grant or a denial lands, with a timeout; `slots watch` blocks and emits one line per state change under `slots/requests/` in the shape a Monitor consumes; and the UserPromptSubmit hook names the pending asks on the lane types the session controls.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

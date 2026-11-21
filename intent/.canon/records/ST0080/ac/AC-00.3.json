@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.3",
+  "text": "A backup is due once the newest good snapshot is nine tenths of the period old, so daily means once in each day's use and a once-a-morning explore gets a daily backup.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

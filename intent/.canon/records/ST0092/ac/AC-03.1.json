@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "In a project with no whiteboard, `intent wb init team --apply` registers every seat the profile declares with the profile's name and role, writes no remit, records the declaration in the store and as canon under `intent/whiteboard/`, and prints every file it wrote on a `wrote:` line.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.3",
+  "text": "**`organize` NEVER resolves an attachment divergence: it reports the path, names both verbs, and modifies neither side.** Authority follows authorship -- a view diverging means the file is stale, an attachment diverging means the STORE is stale, and one policy for both discards somebody's work.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

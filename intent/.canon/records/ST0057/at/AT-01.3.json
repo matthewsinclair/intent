@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/canon_relocation_roundtrip.rs",
+  "covers": [
+    "AC-01.3"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (cc built it; vc ran both arms and checked the denominator against the criterion's own demand).** `canon_relocation_roundtrip.rs`, 2 tests, rc=0 -- `every_field_of_every_artefact_survives_the_relocation` and `a_field_dropped_in_transit_is_reported_by_name`. **6,268 FIELDS compared across 57 threads and 40 issues, 98 files written through the resolver, ZERO differences.** **THE DENOMINATOR IS FIELDS RATHER THAN ARTEFACTS AND THAT IS THE ROW, NOT A DETAIL: 97 of 97 files present with ONE FIELD SILENTLY ABSENT FROM EACH is a green under any artefact count, and it is data loss at the clone boundary.** The criterion asks for the denominator printed over the FULL FIELD SET and it is. **AND THE LOST-FIELD ARM DROPS AN OPTIONAL FIELD ON PURPOSE (cc): a REQUIRED field is caught by schema validation and refuses loudly, so the lost arm is only ever exercised by optional fields -- which is exactly where silent loss lives.** An arm that dropped a required field would have proven the schema works and said nothing about this row."
+}

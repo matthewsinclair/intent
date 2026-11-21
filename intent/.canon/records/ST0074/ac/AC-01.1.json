@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "The explorer handles /threads and /issues itself: `/threads` and `/issues` open their panes as explorer acts, and `/issues <args>` still runs `intent issues`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

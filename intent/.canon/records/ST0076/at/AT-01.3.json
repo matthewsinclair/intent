@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_are_typed_definitions.rs",
+  "covers": [
+    "AC-01.3"
+  ],
+  "status": "green",
+  "note": "Red on 655bec8a6 before WP-01's first bank: the arms name columns and rows HEAD did not have. Green at f030c8804 (WP-01 landing, patch-id 829dca8a, vc's GO): a file whose version is cleared and rows untyped is re-extracted by the next refresh and no untyped row survives; store_schema_version's earlier-draft arm walks a rung-10 store through the rung 28 rebuilds carrying rows. Gate: whole intentsvcs and intent-cli suites."
+}

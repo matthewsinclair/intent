@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 181,
+  "schema": "intent/issue@4.0",
+  "id": "0181",
   "slug": "llm-usage-rules-symlink-is-declared-helped-and-a",
   "title": "llm usage_rules --symlink is declared, helped and accepted, and llm_usage_rules() takes no ArgMatches",
   "status": "closed",

@@ -1,0 +1,6 @@
+{
+  "path": "impl.md",
+  "text": "# Implementation - ST0046: Add modules (properly) to the intent cli\n\n## Implementation\n\n[Notes on implementation details, decisions, challenges, and their resolutions]\n\n## Code Examples\n\n[Key code snippets and examples]\n\n## Technical Details\n\n[Specific technical details and considerations]\n\n## Challenges & Solutions\n\n[Challenges encountered during implementation and how they were resolved]\n",
+  "bytes": 393,
+  "sha256": "c05c11fd074cc0e39e2f1fedeb93de633b9da1f014f6e67a5624bbf658bd012e"
+}

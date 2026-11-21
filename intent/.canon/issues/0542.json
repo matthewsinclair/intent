@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 542,
+  "schema": "intent/issue@4.0",
+  "id": "0542",
   "slug": "shipped-output-names-intent-s-own-issue-numbers",
   "title": "Shipped output names Intent's own issue numbers, and the project-state scan has no pattern for an issue id",
   "status": "closed",

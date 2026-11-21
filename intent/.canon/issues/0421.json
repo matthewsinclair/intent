@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 421,
+  "schema": "intent/issue@4.0",
+  "id": "0421",
   "slug": "an-in-place-field-edit-shows-an-extra-space-at-t",
   "title": "An in-place field edit shows an extra space at the cursor -- the caret was a glyph spliced into the value, which took a column",
   "status": "closed",

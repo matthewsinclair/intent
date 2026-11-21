@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/daemon_watch.rs",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "green",
+  "note": "RED at base e92c1de20: the arm cannot compile there, because the API it calls does not exist at that commit -- git grep finds no `pub enum Contracts`, no `pub fn root_file_path` and no fallible `Scanned::for_root` at e92c1de20, and one of each at a85dfbdf0. GREEN on tmp/wt-cc-0083's own build in WP-02's judging run on vc's GO, 2026-10-15 11:00Z to 11:08Z, with the workspace at 3164 passed and 0 failed; landed at a85dfbdf0 with the bank's patch-id a2246ee4ecc9. The live-daemon arm a_dotclaude_contract_edit_reaches_the_store_with_nobody_running_sync passed."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 302,
+  "schema": "intent/issue@4.0",
+  "id": "0302",
   "slug": "a-live-daemon-can-outlive-its-own-socket-path-un",
   "title": "a live daemon can outlive its own socket path: unreachable, still holding the store, and indistinguishable from a clean machine",
   "status": "closed",

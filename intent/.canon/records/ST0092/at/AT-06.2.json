@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/seat_brief.rs",
+  "covers": [
+    "AC-06.2"
+  ],
+  "status": "green",
+  "note": "Red at fe689394f's code before WP-06 (desk slot 01M75CJJHQ3V40JH19THJ3KRFW, at e60cb875b on 9efb83598): a_seat_no_session_has_picked_up_is_marked_never_started failed: no never-started mark. Green at b8dffbfe0 (same slot, at its green on 9efb83598: workspace clippy clean, intent-cli 965 passed, intentsvcs 1842 passed)."
+}

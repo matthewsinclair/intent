@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 85,
+  "schema": "intent/issue@4.0",
+  "id": "0085",
   "slug": "post-tool-advisory-s-no-findings-guard-can-never",
   "title": "post-tool-advisory's no-findings guard can never fire: critic always writes header lines to stdout, so a wired advisory hook prints on every Write/Edit",
   "status": "closed",

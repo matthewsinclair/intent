@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.7",
+  "kind": "non-test",
+  "prose": "Drive intent/st/ST0056/parity/tools/claude_doors_installed_check.sh against the PUBLISHED artefact (KEG=<path to the installed intent>). It invokes all five doors AC-07.7 names -- claude ws list|new|hygiene|archive and claude start -- in a project that binary initialised, and scores each by the spine's unwired marker (rc=2 plus 'is a known command that is not implemented yet') rather than by exit code, because claude ws list refusing for want of a whiteboard exits 1 and is the door WORKING. The dev tree runs as a control in the same pass, so an all-unreachable result is a finding rather than a blind harness. claude start is driven only through CWI_DRY_RUN=1: invoked bare it launches a real Claude Code session.",
+  "covers": [
+    "AC-07.7"
+  ],
+  "status": "n-a",
+  "note": "RED, measured rather than assumed, 2026-08-31. Against the published 3.0.0 keg (80d8b2ca) all five doors are UNREACHABLE at rc=2 with the unwired marker; against the tree (abe69906) all five are reachable, with claude start reaching its dry-run exec. That is AC-07.7's own falsifier met exactly -- the doors shipped declared and refusing and no WP-07 criterion went red at the cut. Satisfiable only against the NEXT published artefact: re-run the tool with KEG= pointing at it."
+}

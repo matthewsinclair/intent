@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0002: Core Script Framework\n\n## Tasks\n\n- [x] Implement main `stp` script with command dispatching\n- [x] Implement environment variable handling\n- [x] Implement error handling framework\n- [x] Create the help system script\n- [x] Create help documentation for core commands\n- [x] Implement the init script for project initialization\n- [x] Implement the steel thread management script\n- [x] Test script functionality in various environments\n- [x] Add verbose output mode for debugging\n",
+  "bytes": 493,
+  "sha256": "b240aab6f7a30eebc75df7c6bc2a3d0efe61b4147b32c8529de3207ce57e02a5"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.1",
+  "text": "Rollout is complete: v2.12.0 version bump, CHANGELOG + `intent/history/v2.12.0.md` entry covering Protocol 3.0, and `intent claude skills sync` installs the 3.0 skill.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "CHANGELOG + intent/history/v2.12.0.md written; 3.0 skill synced (in-session/in-finish/in-whiteboard updated); VERSION bump via scripts/release --minor (matts, immediately following)"
+  }
+}

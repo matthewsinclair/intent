@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 75,
+  "schema": "intent/issue@4.0",
+  "id": "0075",
   "slug": "view-skew-check-prints-no-generated-view-was-tou",
   "title": "view_skew_check prints 'no generated view was touched' on a commit that contains one: the message names the general category while the check covers 1 of 269, so a known gap is reported at the gate as an empty category",
   "status": "closed",

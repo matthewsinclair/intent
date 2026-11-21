@@ -1,0 +1,10 @@
+{
+  "id": "AT-11.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/organize_default_declaration.rs",
+  "covers": [
+    "AC-11.5"
+  ],
+  "status": "green",
+  "note": "Same exit code, byte-identical stdout, byte-identical manifest, from two independently initialised projects. The alias reaching a second handler is what byte-identical stdout would expose."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "`use dev` and `use opt` end by exec'ing the new link's `intent daemon restart` and print that binary's version line, never restarting in-process, so the old tree's daemon does not keep serving.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

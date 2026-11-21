@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.2",
+  "text": "`intent explore` outside an Intent project opens the project picker, and leaving the picker returns to the shell.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/intentfiles_names_artefacts_only.rs",
+  "covers": [
+    "AC-02.5"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 5 tests. **THE TEST DESIGN IS THE RESULT, AND IT IS A MUTATION TEST AGAINST THE CRITERION RATHER THAN THE EXEMPLAR.** A corpus of paths was the obvious build and WOULD HAVE PASSED ON THE WRONG IMPLEMENTATION: arm 1 replaces the id predicate with a `/`-and-`.` blacklist, which refuses all nine plausible paths AND ADMITS `STEELTHREAD:README`. So the asserted property is an EQUIVALENCE -- accepted-set == id-set -- swept over near-ids, non-path non-ids, and the real estate's own files read off disk. **The blacklist arm goes red on the equivalence and would have gone green on a path corpus, so the corpus would have certified a parser admitting any non-path string.** **AND THE TEST RESOLVED AN UNRESOLVED QUESTION IN THE PARSER ITSELF: `STEELTHREAD:ST0056 ` is accepted while `is_thread_id(\"ST0056 \")` is false**, which reads as exactly the second id rule AC-02.5 forbids. It is not -- the LINE is trimmed before it is split, so the predicate never sees the space. **TWO RULES AT TWO LEVELS IS FINE; TWO RULES AT ONE LEVEL IS THE DEFECT.** The whitespace tolerance is now a stated decision rather than an accident nobody wrote down, because a trailing space is invisible to a reader and visible in a diff, so refusing it silently and admitting it silently are both wrong."
+}

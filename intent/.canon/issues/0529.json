@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 529,
+  "schema": "intent/issue@4.0",
+  "id": "0529",
   "slug": "a-message-edited-on-one-clone-is-removed-and-re",
   "title": "A message edited on one clone is removed and re-added by a restore on another, because the restore's natural key carries the body, so its place in the inbox and its #<n> move",
   "status": "closed",

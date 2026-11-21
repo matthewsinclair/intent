@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 733,
+  "schema": "intent/issue@4.0",
+  "id": "0733",
   "slug": "stale-at-check-sh-and-absent-at-check-sh-each-de",
   "title": "stale_at_check.sh and absent_at_check.sh each define the thread canon directory and differ on what an unreadable row is",
   "status": "closed",

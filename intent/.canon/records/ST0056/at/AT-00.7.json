@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.7",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/dual_path_conformance.rs",
+  "covers": [
+    "AC-00.7"
+  ],
+  "status": "green",
+  "note": "DRIVEN 2026-08-30 (vc), `cargo test -p intent-cli --test dual_path_conformance`: `invariant_every_shipped_verb_answers_identically_down_every_route` PASSES, 1/1. **The row was STALE, not undriven -- the file existed while the row said to-write, which is the `presence is not greenness` advisory arriving from its own side: presence did not make it green, and driving it did.** **THE CORPUS IS DERIVED, NOT LISTED:** the test walks `dispatch::shipped_entries(&table)`, so M comes from the table rather than from a hand-roster, and an empty corpus is REFUSED in-test (`:387`, _the table is the corpus and an empty corpus passes for free_) -- so this green cannot be the vacuous kind. Three rows carry a declared `HAZARDS` exclusion (`daemon start`, `daemon stop`, `daemon run`), asserted as a SET rather than a list so ordering cannot fail it for a reason unrelated to its subject. **Built against a freshly-built `intentd` first**, because `cargo test -p intent-cli` does not build a sibling package binary and the failure reads as a regression. **AC-00.7 does NOT close on this: its other half is `AT-00.5` (rusqlite Highlander), still red and held deliberately at partial coverage.**"
+}

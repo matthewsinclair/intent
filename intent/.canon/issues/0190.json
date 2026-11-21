@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 190,
+  "schema": "intent/issue@4.0",
+  "id": "0190",
   "slug": "surface-dispatch-table-json-has-duplicate-rows-f",
   "title": "surface/dispatch-table.json has duplicate rows for organize and help, and the organize pair contradicts itself on exposed_on_mcp",
   "status": "closed",

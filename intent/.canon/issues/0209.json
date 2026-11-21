@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 209,
+  "schema": "intent/issue@4.0",
+  "id": "0209",
   "slug": "st-start-realises-from-canon-without-comparing-a",
   "title": "st start realises from canon without comparing against the disk, so an unhydrated thread gets a smaller copy at the authoritative path",
   "status": "closed",

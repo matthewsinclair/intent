@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 461,
+  "schema": "intent/issue@4.0",
+  "id": "0461",
   "slug": "an-authored-info-md-below-a-thread-s-view-depth",
   "title": "An authored info.md below a thread's view depth cannot be carried: classify calls it an attachment and the address parser refuses its name",
   "status": "closed",

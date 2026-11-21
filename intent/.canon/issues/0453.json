@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 453,
+  "schema": "intent/issue@4.0",
+  "id": "0453",
   "slug": "no-verb-repairs-an-unreadable-search-index-table",
   "title": "no verb repairs an unreadable search-index table in place: intent index rebuild opens the store through the same read it would repair",
   "status": "closed",

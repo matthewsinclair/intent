@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "Every reader of the old line is moved and driven against the new one: `gen_explorer_shots.sh`, `version_spellings_agree.rs`, `arguments_do_not_start_a_daemon.rs`, `macos_release_assets.bats` and `burn_subject_provenance.bats`; the gate's self-provenance arm and the build's pair verification still read the embedded source-commit marker, and readers of the version field alone are unchanged.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

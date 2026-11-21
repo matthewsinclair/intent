@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_swift.bats.default.tap",
+  "text": "1..9\nok 1 swift pack: every catalogued rule exists\nok 2 swift pack has the expected total rule count\nok 3 swift pack: each rule declares its canonical id\nok 4 swift pack: each rule declares language: swift\nok 5 swift pack: each rule passes intent claude rules validate\nok 6 swift pack: rules list reports every swift id\nok 7 swift pack: each rule has a fenced swift code block in Bad section\nok 8 swift pack: each rule has a fenced swift code block in Good section\nok 9 swift pack: no sibling .swift files alongside RULE.md\n",
+  "bytes": 524,
+  "sha256": "229f5c80fad688e53704d5288e6792cba50867c8ac6e20e7d1e778d413a2452e"
+}

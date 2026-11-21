@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.7",
+  "text": "**R7 -- CI never HOLDS A VAULT KEY, which is a stronger claim than never needing an identity FILE.** With the per-reference MATERIAL override set (resolution step 0) and **no identity reachable by ANY rung** -- no file, no `INTENT_VAULT_IDENTITY`, no `INTENT_VAULT_PASSPHRASE`, no keychain -- `vault get` returns the material and never touches the store. **THE EARLIER FORM OF THIS CRITERION ASSERTED ONLY THAT NO IDENTITY FILE WAS PRESENT, WHICH TESTS THE ABSENCE OF A FILE WHILE ITS MATERIAL EQUIVALENT SITS IN THE ENVIRONMENT** -- a failed positive control, and the design it certified answered R7 by putting the vault key in CI. Found by Lamplight's verification 2026-08-25; R7's own words are _a vault that CI must unlock is a vault whose key is in CI_.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

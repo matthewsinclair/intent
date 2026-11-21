@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 392,
+  "schema": "intent/issue@4.0",
+  "id": "0392",
   "slug": "canon-ignore-guard-sh-reads-its-rules-from-the-w",
   "title": "canon-ignore-guard.sh reads its rules from the worktree and its attribution from the index, so a staged ignore rule reaching intent/.canon/ can pass",
   "status": "closed",

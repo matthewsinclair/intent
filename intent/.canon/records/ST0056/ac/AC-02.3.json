@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "Deleting the DB and re-creating it from previously extracted canon yields identical queryable content -- **the disk-to-db ingest direction**. (Rationale corrected twice on 2026-08-15. It was written as \"the D01 disposability invariant\"; D01 is reversed and **the DB is the durable SSOT**. This AC does NOT make the DB disposable and must not be read as licensing that: re-creation from an extract is a CAPABILITY -- it is how a colleague reconstitutes state, and how an `.md` or `.json` becomes well-formed DB items, **which it does only by passing through the hard gate of the intentsvcs API**. The AC and its test are unchanged and WP-02 does not reopen)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

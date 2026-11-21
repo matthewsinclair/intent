@@ -1,0 +1,10 @@
+{
+  "id": "AT-09.2",
+  "kind": "non-test",
+  "prose": "the criterion is withdrawn under D53; its subject -- a tracked append-only event file -- no longer exists, so there is nothing to drive",
+  "covers": [
+    "AC-09.2"
+  ],
+  "status": "n-a",
+  "note": "**WITHDRAWN 2026-08-20 (hv ruling D53).** Both arms named a tracked `intent/events.jsonl`: two writers appending concurrently, and a truncating write being refused. **The file is deleted, so neither arm has a subject** -- and the second was always a test of a guard with no call site, which this ruling also retires. **Not withdrawn because it was hard: withdrawn because the thing it tested stopped existing.** Replaced by AT-09.3.\n\n**Two arms, and the second is the one nobody writes.** Arm one: two writers append concurrently and both records survive. Arm two: **a TRUNCATING write over the log is refused** -- which is `append-only-guard.sh`'s declared subject and is currently caught by nothing, since that guard has zero call sites on git's real path (`.git/hooks/pre-commit` -> `pre-commit.intent` -> `bin/int precommit`, neither of which reads the roster naming it). **A test here does not fix the wiring and must not be read as fixing it**; AT-01.5 carries that finding."
+}

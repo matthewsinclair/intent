@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.8",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_backup_cycle_has_one_home.rs",
+  "covers": [
+    "AC-08.8"
+  ],
+  "status": "green",
+  "note": "DRIVEN INDEPENDENTLY 2026-08-30 (vc) IN A DETACHED WORKTREE AT HEAD, 19/19. **RE-CITED BEFORE GREENING, AND THAT ORDER IS THE POINT:** the row cited `intentd/tests/scheduled_backup.rs`, which does not exist -- cc built under three different names -- so greening it as it stood would have minted **the first green row in the estate citing an absent artefact**, the exact 0-to-1 dc stopped the `AT-01.8` delete for. A to-write row citing an absent file is legal and 52 rows do it; a GREEN one is the invariant breaking. **THE CITATION IS THE CRITERION`S OWN CHECK CLAUSE:** `the_backup_cycle_has_one_home.rs` (2) asserts the scheduled and manual paths are the SAME function -- arm 1 forbids a second composer of `take`+`prune`, **arm 2 asserts `cycle` HAS callers, because arm 1 is satisfied most easily by deleting what it forbids.** Two-sided, both arms positive-controlled by cc. Also driven: `a_scheduled_backup_is_the_same_call.rs` (14, `due` + the cycle + doctor reporting + retention plumbing) and `intent-cli/tests/the_daemon_takes_the_backup_itself.rs` (3) against a REAL `intentd` through `RealDaemon`, whose decisive arm is `opening_a_project_twice_does_not_take_two_backups` -- without it an implementation snapshotting on every registration passes the other two and fills `.backup/db/` at the rate its clients reconnect. **MEASURED IN AN ISOLATED WORKTREE BECAUSE THE SHARED TREE COULD NOT BUILD `intent-cli`** (a peer mid-edit had removed a `Mode` variant its committed reader still names) -- a build whose two inputs come from different trees, and the worktree is the answer to it rather than waiting. **`cargo build -p intentd` FIRST**, since `cargo test -p intent-cli` does not build a sibling package binary."
+}

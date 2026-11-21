@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 336,
+  "schema": "intent/issue@4.0",
+  "id": "0336",
   "slug": "a-seeded-usage-rules-md-carries-a-literal-projec",
   "title": "A seeded usage-rules.md carries a literal [[PROJECT_NAME]]",
   "status": "closed",

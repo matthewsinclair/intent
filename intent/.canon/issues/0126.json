@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 126,
+  "schema": "intent/issue@4.0",
+  "id": "0126",
   "slug": "v2-ingest-can-splice-a-row-text-lost-at-the-head",
   "title": "v2 ingest can SPLICE a row -- text lost at the head, a span duplicated in the middle, tail truncated -- so a length delta nets to nothing and reports clean",
   "status": "closed",

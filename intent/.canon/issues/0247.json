@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 247,
+  "schema": "intent/issue@4.0",
+  "id": "0247",
   "slug": "intent-search-leaks-a-raw-sqlite-column-error-on",
   "title": "intent search leaks a raw sqlite column error on ordinary punctuation, and its remedy names a character that works while omitting three that do not",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "`acceptance: exempt` in `acceptance.md` frontmatter opens the gate (exit 0) for a zero-AC contract AND the gate prints an `EXEMPT` line naming the exemption (No-Silent: announced, not silent).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

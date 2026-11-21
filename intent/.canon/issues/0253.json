@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 253,
+  "schema": "intent/issue@4.0",
+  "id": "0253",
   "slug": "the-table-s-upgrade-row-declares-one-flag-group",
   "title": "the table's upgrade row declares one flag group where its own declared v2 twin parses four -- an undeclared flag cannot regress, because nothing compares it",
   "status": "closed",

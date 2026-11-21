@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "non-test",
+  "prose": "Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "n-a",
+  "note": "Driven by vc, 2026-08-29. Positive-controlled: the check was shown to flag a planted rewrite before its pass was accepted."
+}

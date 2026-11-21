@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 592,
+  "schema": "intent/issue@4.0",
+  "id": "0592",
   "slug": "after-a-compact-in-session-re-invokes-skills-the",
   "title": "after a compact, in-session re-invokes skills the compact already carried whole, so a restart loads them twice (about 9.6k tokens in an Elixir project)",
   "status": "closed",

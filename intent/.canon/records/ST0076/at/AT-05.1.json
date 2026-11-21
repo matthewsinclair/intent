@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_resolved_reference_joins_a_written_one.rs",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green",
+  "note": "Red on 5afc4c295 before the level-3 core: the arm does not compile there, because that tree has no intentsvcs::index::resolved (read from the tree, not run). Green at e302be033 (the level-3 core, judged as patch-id d335d31f in one whole-suite run and landed as f7050940, the difference being a two-line type annotation the critic gate required, which vc checked as a tree diff; vc's GO): nine arms prove the join against written references and its conservation law, the per-file replace, the failure record, staleness under another extractor and after an edit, the purge of a path that left the index, a language this build cannot resolve refused by name, and an undeclared reason failing the run. Green again at 92cc064d3 in the Rust reader's judging run (patch-id 73e75262), with its private row helper replaced by the suite's Fixture::resolved_in."
+}

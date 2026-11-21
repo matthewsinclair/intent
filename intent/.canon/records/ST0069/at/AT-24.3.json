@@ -1,0 +1,9 @@
+{
+  "id": "AT-24.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_structural_doors_answer_in_the_envelope.rs",
+  "covers": [
+    "AC-24.3"
+  ],
+  "status": "green"
+}

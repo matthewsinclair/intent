@@ -1,0 +1,9 @@
+{
+  "id": "AT-06.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/doctor_checks.rs",
+  "covers": [
+    "AC-06.2"
+  ],
+  "status": "green"
+}

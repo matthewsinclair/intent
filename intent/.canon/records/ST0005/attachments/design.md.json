@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0005: Initialization Command\n\n## Approach\n\n1. Design the initialization process workflow\n2. Implement the `stp_init` script to create the directory structure\n3. Add functionality to copy template files to their appropriate locations\n4. Create configuration file management\n5. Add customization options for project-specific settings\n",
+  "bytes": 345,
+  "sha256": "40b96e7468fa2b71ac706fda9d2ccc44a41d865d862a8825b66cb9f8041503c0"
+}

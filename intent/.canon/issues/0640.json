@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 640,
+  "schema": "intent/issue@4.0",
+  "id": "0640",
   "slug": "rules-validate-refuses-a-canon-rule-named-by-its",
   "title": "rules validate refuses a canon rule named by its path in a linked worktree: the install root's copy counts as a second declaration",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 738,
+  "schema": "intent/issue@4.0",
+  "id": "0738",
   "slug": "a-finding-prints-its-class-remedy-beside-its-own",
   "title": "A finding prints its class remedy beside its own, so event-file findings give contradicting remedies",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 416,
+  "schema": "intent/issue@4.0",
+  "id": "0416",
   "slug": "wb-pickup-renders-peers-as-headers-only-so-no-no",
   "title": "wb pickup renders peers as headers only, so no node sees another board's watch-outs, decisions or standing directives at boot",
   "status": "closed",

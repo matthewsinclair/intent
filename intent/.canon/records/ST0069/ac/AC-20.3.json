@@ -1,0 +1,8 @@
+{
+  "id": "AC-20.3",
+  "text": "`intent search --kind def <name>` answers whether a thing with that name already exists, from the tree.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

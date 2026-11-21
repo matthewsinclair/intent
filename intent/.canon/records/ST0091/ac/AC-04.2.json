@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "`intent/docs/releasing.md` and `.github/workflows/README.md` describe the cut as built: one command from the yes to the tap with no step between them run by hand, a dry run that predicts and runs no gate, then `brew upgrade` and `intent use brew` on each machine.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/docs/releasing.md and .github/workflows/README.md at b43aa6256, read by vc on 2026-11-10: one cut command from the confirm to the tap, a dry run that prints each step and writes nothing, the failed-publish remedy, then intent use brew"
+  }
+}

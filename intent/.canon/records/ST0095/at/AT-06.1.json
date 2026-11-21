@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair.rs:29",
+  "covers": [
+    "AC-06.1"
+  ],
+  "status": "green",
+  "note": "green in cc's gate (Desk 01M7YH2P) at f1787d26c, landed at 8ae5ce5b0"
+}

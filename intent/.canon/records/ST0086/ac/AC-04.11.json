@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.11",
+  "text": "`intent estate control take` is refused, naming the controller, while the recorded controller's session is live; over a released or gone controller it succeeds under the recorded controller's name, the name read from the caller's own Claude Code session file, and under any other name is refused unless `--hv \"<words>\"` is given, which the take records verbatim; a first take needs no words; the new record names its predecessor.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

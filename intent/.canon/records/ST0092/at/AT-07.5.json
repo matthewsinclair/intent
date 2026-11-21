@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/roster_readme.rs",
+  "covers": [
+    "AC-07.5"
+  ],
+  "status": "green",
+  "note": "roster_readme.rs at_07_5_an_edit_outside_the_block_refuses_and_a_behind_readme_re_renders and at_07_5_a_failed_readme_write_records_nothing_and_the_next_apply_heals: roster-readme-edited and roster-readme-behind shown and never counted, the apply's refusal naming the line, nothing written by a no-op re-render, and a failed write healed. Red at 50f2e2a0b on dc's red run, slot 01M74PTQNMC64XFN87CFSX3NKN, tree fc5583bee7c2: no README was written. Green at 0fc665d63, vc's judged tree (2999e4be9802 at slot 01M74QHVBWBYVXN08M26DKCJNC, with the wording delta to ac99e2502f44 at 01M74RTFDB5VE1WDMV23611EM5)."
+}

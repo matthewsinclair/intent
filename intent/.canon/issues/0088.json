@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 88,
+  "schema": "intent/issue@4.0",
+  "id": "0088",
   "slug": "st0057-prose-cites-six-criterion-ids-that-belong",
   "title": "ST0057 prose cites six criterion ids that belong to other threads, and one of them resolves to a real green criterion about something else entirely",
   "status": "closed",

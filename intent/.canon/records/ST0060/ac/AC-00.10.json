@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.10",
+  "text": "**R10 -- no read verb prompts.** With stdin closed and no passphrase on rungs 1 or 2, `vault get` exits non-zero with `Locked` and a remedy line **rather than blocking**. A prompt inside a pipeline is indistinguishable from a hang, and agents are the primary reader here.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

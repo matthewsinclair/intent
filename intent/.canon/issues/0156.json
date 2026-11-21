@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 156,
+  "schema": "intent/issue@4.0",
+  "id": "0156",
   "slug": "rules-validate-ships-working-in-the-shell-estate",
   "title": "rules validate ships working in the shell estate and is declared-unimplemented in v3",
   "status": "closed",

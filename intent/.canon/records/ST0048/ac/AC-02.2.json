@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.2",
+  "text": "No \"opt-in / legacy-safe / closes exactly as before\" close-gate claim survives in the canon or code comments (gate header `bin/intent_acceptance`, `bin/intent_st` + `bin/intent_wp` consumer comments, `intent/docs/working-with-llms.md` D11); all describe fail-by-default + exemption. (Highlander)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

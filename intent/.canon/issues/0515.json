@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 515,
+  "schema": "intent/issue@4.0",
+  "id": "0515",
   "slug": "the-guard-runner-s-list-guards-cannot-express-a",
   "title": "the guard runner's --list-guards cannot express a self-classifying guard's state, and the fix is a roster-format change",
   "status": "closed",

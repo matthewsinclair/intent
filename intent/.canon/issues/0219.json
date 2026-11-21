@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 219,
+  "schema": "intent/issue@4.0",
+  "id": "0219",
   "slug": "in-ag-pfic-001-has-six-canon-set-homes-stating-a",
   "title": "IN-AG-PFIC-001 has six canon-set homes stating a different rule, and in-review checks the wrong one",
   "status": "closed",

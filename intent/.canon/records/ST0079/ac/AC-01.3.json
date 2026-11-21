@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "Enter on a row opens that thread, work package or issue, and Backspace returns to the view.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

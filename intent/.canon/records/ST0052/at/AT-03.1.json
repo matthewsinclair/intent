@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.1",
+  "kind": "test",
+  "file": "tests/unit/critic_prose.bats",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "deck renamed critic_author -> critic_prose in ST0053 WP03"
+}

@@ -1,0 +1,6 @@
+{
+  "path": "impl.md",
+  "text": "# Implementation - ST0037: Language config: replace filesystem probes with explicit config\n\n## Implementation\n\n[Notes on implementation details, decisions, challenges, and their resolutions]\n\n## Code Examples\n\n[Key code snippets and examples]\n\n## Technical Details\n\n[Specific technical details and considerations]\n\n## Challenges & Solutions\n\n[Challenges encountered during implementation and how they were resolved]\n",
+  "bytes": 416,
+  "sha256": "5028c8f2fc3cc2801d4aeced158151f3399800935b161e210583c00d4d957a3c"
+}

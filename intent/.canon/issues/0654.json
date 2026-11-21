@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 654,
+  "schema": "intent/issue@4.0",
+  "id": "0654",
   "slug": "the-fold-text-names-no-step-that-removes-a-lande",
   "title": "The fold text names no step that removes a landed unit's worktree, so landed worktrees and their build targets stay on disk",
   "status": "closed",

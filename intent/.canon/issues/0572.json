@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 572,
+  "schema": "intent/issue@4.0",
+  "id": "0572",
   "slug": "the-staged-format-guard-reports-a-file-its-elixi",
   "title": "the staged-format guard reports a file its Elixir or Markdown formatter cannot parse as not formatted, where Rust says it could not be checked",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.1",
+  "text": "The DONE cutoff is project-level CANON on disk -- `intent/.canon/project.json` -- so it crosses a git clone: a machine that has never run a command in the project renders the same cutoff, and does not resurrect every completed thread into DONE. NOT `intent/.config/config.json`, which holds choices a person makes and would give one file two writers; NOT the thread canon, because the cutoff is project-level and belongs to no thread. (hv, 2026-08-26: the cutoff is canon state.)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

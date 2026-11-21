@@ -1,0 +1,8 @@
+{
+  "id": "AC-09.3",
+  "text": "Bridge mode survives a daemon restart mid-session via per-request target resolution",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

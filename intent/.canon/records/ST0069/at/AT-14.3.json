@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/error_remedies.rs",
+  "covers": [
+    "AC-14.3"
+  ],
+  "status": "green",
+  "note": "Every over-bound write is provoked and refused by name with its bound and remedy: a body ONE BYTE over body_bytes, an inbox at live_messages, a kind at live_items. Each refusal is a typed FacadeError whose remedy names the verb that frees it; nothing is truncated and nothing over the bound is written."
+}

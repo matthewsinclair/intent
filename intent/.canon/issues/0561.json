@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 561,
+  "schema": "intent/issue@4.0",
+  "id": "0561",
   "slug": "intent-bootstrap-check-reports-ok-for-an-install",
   "title": "intent bootstrap --check reports OK for an install whose gate cannot run",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/upgrade_command.rs",
+  "covers": [
+    "AC-10.1"
+  ],
+  "status": "green",
+  "note": "**RETARGETED FROM `intentsvcs/tests/migrate_floor.rs`, WHICH WAS NEVER WRITTEN AND SHOULD NOT BE.** The test lives where the behaviour is observable, and CLI-observable behaviour belongs in the CLI's tests; **summoning a file into existence because a row names it is the pointer driving the code rather than describing it** (vc ruling 2026-08-17, on cc's ask). cc deliberately did NOT create the cited file while the row read `to-write`, because the stale-AT check refuses a `to-write` row whose cited test already exists -- and that guard is right: **a `to-write` row pointing at a real file is the state where nobody can tell UNWRITTEN from UNRUN.** The id sits on the floor test's own doc comment rather than the module header, so L3 lands on the test the row is about rather than a file holding four. **GREEN ON AN INDEPENDENT MEASUREMENT AGAINST THE ESTATE THAT FOUND THE DEFECT, not on the test's own report**: built from `local/main` carrying `f2b7b97a`, run against a fresh pinned Utilz capture, `intent upgrade` **exits 1** with `this project declares Intent 2.18.0 and is below the migration floor` and a remedy naming `install intent@2 && intent upgrade` -- so the version held, the floor, and the two-hop are all three in the output. **Atomic: `estate_corpus.sh verify` returns 101/101 afterwards and the stamp is untouched at 2.18.0.** **And the control ran in the same session** -- the canary at 2.19.0 still converts, 311 files, exit 0 -- because a refusal arm alone passes against a migrator that refuses everything, which is the exact mirror of the defect being closed (cc's test carries the same control, mutation-verified red at exit 0 with the check removed)"
+}

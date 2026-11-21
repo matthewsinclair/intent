@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 399,
+  "schema": "intent/issue@4.0",
+  "id": "0399",
   "slug": "explorer-a-thread-or-issue-view-splits-in-half-a",
   "title": "explorer: a thread or issue view splits in half, and the selected field's contents render below it",
   "status": "closed",

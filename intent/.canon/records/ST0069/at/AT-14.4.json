@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/no_function_takes_a_time.rs",
+  "covers": [
+    "AC-14.4"
+  ],
+  "status": "green",
+  "note": "Closed by construction at the signature: no function in the CLI or intentsvcs takes a time, so no whiteboard door can be handed a stamp to honour -- heartbeat_at, recorded_at, handled_at and archived_at are all written by the store from its own clock as a value. one_clock.rs is the statement-level half: nothing in the workspace reads a clock."
+}

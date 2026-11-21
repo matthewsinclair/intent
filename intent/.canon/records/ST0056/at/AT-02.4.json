@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/model_laws.rs",
+  "covers": [
+    "AC-02.4"
+  ],
+  "status": "green"
+}

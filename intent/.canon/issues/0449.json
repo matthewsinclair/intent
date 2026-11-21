@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 449,
+  "schema": "intent/issue@4.0",
+  "id": "0449",
   "slug": "the-pre-commit-gate-spends-28-of-its-46-seconds",
   "title": "the pre-commit gate spends 28 of its 46 seconds in pipefail_sigpipe_check.sh forking one grep per line over 28,000 lines on every commit of this repository",
   "status": "closed",

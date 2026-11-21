@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 679,
+  "schema": "intent/issue@4.0",
+  "id": "0679",
   "slug": "two-arms-of-post-tool-symbol-context-bats-test-t",
   "title": "Two arms of post_tool_symbol_context.bats test the hook's freshness gate as it was before 0669 made a search reconcile first",
   "status": "closed",

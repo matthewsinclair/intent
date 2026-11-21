@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.1",
+  "text": "The `/in-content-essentials` skill exists, is renderer-safe (no em dash, no `$N`), carries the content pipeline, and references the prose base + content rule ids.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

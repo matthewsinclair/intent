@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/estate_surface.rs",
+  "covers": [
+    "AC-01.5"
+  ],
+  "status": "green",
+  "note": "arms: status_renders_a_live_node_with_its_board_and_a_gone_session_as_gone, an_unreadable_session_file_is_a_warning_on_stderr_and_the_verb_still_answers; green in the whole-suite judges that landed the estate work on 2026-10-25: ic at 4df0b005f (e9464ad6c), ic at 7ae5bbac9 (b01cec8aa), cc at 3d1d0a269 (4f6b504a8), ic at dad17961e (7536f4009), and the cc 0638 judge at cf1846543 (the intent-cli, intentsvcs and intentd suites whole); cited by vc at the contract's authoring"
+}

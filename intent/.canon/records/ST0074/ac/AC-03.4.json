@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "intentd refreshes what it knows of the machine's projects when the registry file changes, without a restart.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

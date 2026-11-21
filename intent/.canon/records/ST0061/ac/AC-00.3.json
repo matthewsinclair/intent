@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.3",
+  "text": "**THE REFUSAL IS DECIDED BEFORE THE DECLARATION MOVES, AND THIS IS A CONSTRUCTION RATHER THAN AN ORDERING DISCIPLINE.** The plan is computed against the hypothetical unpinned manifest -- `unpin` returns text and `realised_for_action` reads it without writing -- so a refused run leaves `intent/.intentfiles` byte-identical. **A verb that unpinned first would convert a refusal into a DEFERRED DELETION**, performed later by whoever next runs `organize --apply` against a thread the manifest no longer declares, with nobody having decided anything. Asserted by refusing a run and then reading the manifest, not by inspecting the order of two statements.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

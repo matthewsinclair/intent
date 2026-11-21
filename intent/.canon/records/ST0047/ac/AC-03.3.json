@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "`ws hygiene` performs only mechanical tidy (normalise sentinels / format; warn on oversized boards + stale heartbeats); it never archives DOING content (the semantic archive stays the Claude-driven `/in-whiteboard archive`).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

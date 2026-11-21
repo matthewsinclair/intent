@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0007: User Documentation\n\n## Tasks\n\n- [x] Create a documentation template structure\n- [x] Write the user guide covering basic usage\n- [x] Write the reference guide documenting all commands and options\n- [x] Write the deployment guide for system administrators\n- [x] Add usage examples for common scenarios\n- [x] Include troubleshooting information\n- [x] Document customization options\n- [x] Test documentation clarity with sample users\n- [x] Implement feedback from documentation testing\n",
+  "bytes": 500,
+  "sha256": "0f17ba24e16382a955b12e466a0892a23c9924780382b30c517aaa79ba21c5d8"
+}

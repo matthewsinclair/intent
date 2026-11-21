@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 677,
+  "schema": "intent/issue@4.0",
+  "id": "0677",
   "slug": "a-trope-pattern-is-read-by-whichever-grep-the-sh",
   "title": "A trope pattern is read by whichever grep the shell supplies: FMT-02's `[:\\s]` misses the space form under POSIX grep and matches it under ugrep",
   "status": "closed",

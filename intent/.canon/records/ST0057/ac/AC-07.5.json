@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.5",
+  "text": "**NO DAEMON IS REQUIRED TO READ YOUR OWN PROJECT.** With intentd stopped, uninstalled and never started, every address in a FULLY DEHYDRATED estate resolves through the CLI. If reading a dehydrated thread came to need a running daemon, the disk model would have made the estate less accessible than a pile of markdown -- which inverts D57-5's whole reason for existing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

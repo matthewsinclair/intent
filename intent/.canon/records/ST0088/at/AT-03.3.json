@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.3",
+  "kind": "test",
+  "file": "tests/unit/the_critics_and_subagents_say_each_thing_once.bats",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green",
+  "note": "the AT-03.3 arm on the tracked tree: no intent subagent, no socrates README.md, nothing tracked in a canon subagent but agent.md; payload.rs and the installer's agreement is subagents_payload.rs's"
+}

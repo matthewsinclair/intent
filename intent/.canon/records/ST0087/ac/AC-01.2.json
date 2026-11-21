@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "One function lists the runtime set, the support paths git names plus the pair built from the same commit and nothing else, and install and doctor both read it; `intent install --print-runtime-set` prints it from the caller-named pair and is the verb's only mode until WP-02.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

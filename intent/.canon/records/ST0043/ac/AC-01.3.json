@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "Backup is verified -- `error()` on copy failure; no unconditional \"Backup created successfully\". (Already correct in v2.11.14 inline backup; the orchestrator must preserve it.)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

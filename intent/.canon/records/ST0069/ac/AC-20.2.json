@@ -1,0 +1,8 @@
+{
+  "id": "AC-20.2",
+  "text": "Symbols come from each grammar's own tags query; adding a language is a grammar and nothing else.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

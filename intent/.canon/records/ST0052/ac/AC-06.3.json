@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.3",
+  "text": "Release framing ratified: minor v2.15.0 (new non-code project-type surface; opt-in).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "hv directive 2026-07-03: ship as minor v2.15.0"
+  }
+}

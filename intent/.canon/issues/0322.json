@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 322,
+  "schema": "intent/issue@4.0",
+  "id": "0322",
   "slug": "wb-show-and-pickup-print-every-handled-message-i",
   "title": "wb show and pickup print every handled message in full, so a status read is mostly archive",
   "status": "closed",

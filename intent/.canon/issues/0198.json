@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 198,
+  "schema": "intent/issue@4.0",
+  "id": "0198",
   "slug": "an-as-observed-register-row-differs-from-v2-beha",
   "title": "an as-observed register row differs from v2 behaviour and every existing check passes, because nothing compares an as-observed claim to what the command actually does",
   "status": "closed",

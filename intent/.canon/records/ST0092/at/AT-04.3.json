@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/wb_retire.rs",
+  "covers": [
+    "AC-04.3"
+  ],
+  "status": "green",
+  "note": "Red with the door's red at 56c58ba4d (desk slot 01M753H005WM1RCM7Y81YEH7XF): the code had no wb retire, so this file, which lands with the green, names a verb that did not exist, and the door arm at_04_1 failed with `unrecognized subcommand 'retire'`. Green at 8965685b9 (bank (i), vc's full judge in slot 01M755213Q9H499VS3AXT70EBF: Rust 3635 passed 0 failed, bats 816 ok, the contract delta checked warm on tree fea2c595349b): wb_retire.rs at_04_3, a live message to the leaver named in wb retire's report."
+}

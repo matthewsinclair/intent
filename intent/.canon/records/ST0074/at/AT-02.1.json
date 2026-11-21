@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/macos/Intent/IntentTests/HealthTests.swift",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed.; from 2026-10-22 it covers the withdrawn AC-02.1 and asserts layout A's second line under issue 0607 (Health.menuSubtitle and menuSummary): intentd over its state, where AC-02.1's one line was"
+}

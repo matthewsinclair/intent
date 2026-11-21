@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/slots.rs",
+  "covers": [
+    "AC-04.4"
+  ],
+  "status": "green",
+  "note": "arms: estate::slots::tests::every_file_a_step_writes_is_one_state_change_and_answers_follow_the_fold, wait_returns_at_the_limit_unanswered_and_at_once_answered, watch_opens_with_the_waiting_asks_and_ends_when_its_reader_stops and pending_names_the_waiting_asks_to_the_controller_alone; the verbs in native/rust/crates/intent-cli/tests/estate_surface.rs, wait_prints_the_answer_and_exits_by_it, watch_prints_each_change_and_ends_cleanly_when_its_reader_goes and pending_names_the_waiting_ask_to_the_controller_and_nothing_to_others; the UserPromptSubmit hook in tests/unit/require_in_session_gate.bats, from \"a prompt that passes on its sentinel names the controller's waiting asks\" to \"a pending verb that fails neither blocks the prompt nor reaches it\"; green in judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY) over the landed tree, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550); the hook's five ok, 575 to 579, in refs/bank/vc/evidence/judge-run3/bats.log (blob 0d3456839ba0, 847 ok)"
+}

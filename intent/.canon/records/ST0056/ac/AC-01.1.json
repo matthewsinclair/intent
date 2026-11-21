@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "design.md carries the ratified architecture, truth model, decision log D01-D17, alternatives, and stack shortlist",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "hv check-in 2026-08-14: 'ST0056/WP01: Ratified'"
+  }
+}

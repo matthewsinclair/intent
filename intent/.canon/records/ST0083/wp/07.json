@@ -1,0 +1,9 @@
+{
+  "id": "07",
+  "title": "A store under Dropbox is marked ignored for the Dropbox client",
+  "scope": "S",
+  "status": "done",
+  "objective": "A store created under a Dropbox folder is marked ignored for the Dropbox client present (the File Provider and legacy attributes on macOS, `com.dropbox.ignored` on Linux), so a synced content tree never syncs a live SQLite WAL, and doctor names an unmarked one.",
+  "body": "",
+  "preamble": ""
+}

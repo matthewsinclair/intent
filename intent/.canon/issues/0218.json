@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 218,
+  "schema": "intent/issue@4.0",
+  "id": "0218",
   "slug": "intent-claude-skills-uninstall-leaves-an-empty-d",
   "title": "intent claude skills uninstall leaves an empty directory, so a directory count disagrees with a skill count",
   "status": "closed",

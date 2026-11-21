@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "`intent estate wip \"<line>\"` writes only `~/.local/state/intent/estate/<session-id>.json`, schema `intent/estate-session@1`, whole and by atomic rename, and prints `wrote:`; `intent estate prune` removes only Intent's own records for gone sessions and prints `removed:` per file; neither touches a Claude Code file.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

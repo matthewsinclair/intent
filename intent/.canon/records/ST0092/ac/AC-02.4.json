@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "team declares vc, cc, ic, ac, dc and hv with vc the mediator; solo declares gc and hv with gc the mediator; supervisor adds sc and makes it the mediator; and supervised adds sv and leaves the mediator as it was.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

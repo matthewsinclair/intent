@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_test_diogenes.bats.default.tap",
+  "text": "1..19\nok 1 claude subagents list includes diogenes\nok 2 claude subagents list shows diogenes description\nok 3 claude subagents install diogenes installs successfully\nok 4 claude subagents install diogenes creates manifest entry\nok 5 claude subagents install diogenes file has correct content\nok 6 claude subagents show diogenes displays metadata\nok 7 claude subagents sync detects diogenes as up-to-date\nok 8 claude subagents sync detects diogenes modification\nok 9 claude subagents uninstall diogenes removes the file\nok 10 claude skills list includes in-elixir-testing\nok 11 claude skills list shows in-elixir-testing description\nok 12 claude skills install in-elixir-testing installs successfully\nok 13 claude skills install in-elixir-testing creates manifest entry\nok 14 claude skills install in-elixir-testing file has correct content\nok 15 claude skills install --all includes in-elixir-testing\nok 16 claude skills show in-elixir-testing displays content\nok 17 claude skills sync detects in-elixir-testing as up-to-date\nok 18 claude skills sync detects in-elixir-testing modification\nok 19 claude skills uninstall in-elixir-testing removes the file\n",
+  "bytes": 1155,
+  "sha256": "84992cf413e8c6f920389fac8e4ade545325bf84075d15255d7684458b9ce8ca"
+}

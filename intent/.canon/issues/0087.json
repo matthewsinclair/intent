@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 87,
+  "schema": "intent/issue@4.0",
+  "id": "0087",
   "slug": "view-names-claims-project-classify-is-the-single",
   "title": "VIEW_NAMES claims Project::classify is the single answer to what a file is, and classify never reads it: two encodings with different memberships, one asserting it describes the other",
   "status": "closed",

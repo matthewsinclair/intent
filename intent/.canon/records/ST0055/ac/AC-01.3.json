@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "`MODULES.md` carries a row for `bin/intent_issues`, added before the module ships.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "MODULES.md 'Issue tracker' row for bin/intent_issues"
+  }
+}

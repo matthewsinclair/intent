@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.5",
+  "text": "**NO COMMIT MAY ADD AN IGNORE RULE MATCHING ANYTHING UNDER `intent/.canon/`.** (cc 2026-08-18, raised while building WP-01 and declining to mint it themselves.) AC-01.2 checks that canon is committed AT CHECK TIME, by cloning. **This one refuses the EDIT that would break it**, and the gap between those two moments is where the class lives. **The hazard is structural rather than hypothetical: every other `intent/.<x>/` in this tree is gitignored** -- `.treeindex/`, `.cache/`, `.backup/` -- **so the convention here reads _a dot directory under `intent/` is local and never travels_, and `.canon/` is the single deliberate exception.** A future tidy-up adding `intent/.*/` to `.gitignore` is a natural, tidy-looking, correct-SEEMING edit that **would silently un-commit the entire estate.** That is D29's failure with the whole model behind it, and it is the same shape as the 434KB of issue bodies that lived only inside a gitignored store. **A convention that every sibling follows and one exception breaks is not a convention anyone will remember to check.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.2",
+  "text": "The search row's `when_to_use`, the MCP `instructions` line and the explorer's hits say what the index now answers and what it still does not, per level and per language, with no claim wider than the build.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

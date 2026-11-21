@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.5",
+  "kind": "test",
+  "file": "tests/unit/startup_skills_fit_a_compact.bats",
+  "covers": [
+    "AC-02.5"
+  ],
+  "status": "green",
+  "note": "arms: every skill /in-session chains to under the startup size cap; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+}

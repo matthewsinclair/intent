@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "A manifest written with `--managed-by brew` makes `intent install` refuse every write into that tree, naming brew as its manager; an existing opt prefix is replaced only with `--force`, and only over a manifest saying `tool: intent`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

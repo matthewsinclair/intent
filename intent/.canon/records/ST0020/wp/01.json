@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Distill Core Elixir Rules",
+  "scope": "S",
+  "status": "done",
+  "objective": "Deduplicate the 23 core Elixir programming rules in `agent.md` down to ~12 non-overlapping rules organized into clear categories.",
+  "body": "## Deliverables\n\n- Refactored `intent/plugins/claude/subagents/elixir/agent.md` with ~12 distilled rules\n- Rules organized into categories: Data Access, Control Flow, Composition, Error Handling, Code Hygiene\n- Minor alignment updates to `style.md` if needed\n\n## Current State\n\nRules 1-2, 7, 10-11 all cover pipe/composition. Rules 3, 9, 13 all cover pattern matching. Rules 14-15 both cover avoiding if/else. This dilution weakens the signal.\n\n## Target State\n\n~12 rules, each covering a distinct concern, with no overlap. Each rule should be actionable and memorable. The distilled rules become the basis for the `elixir-essentials` skill (WP-02) and RULES.md templates (WP-07).\n\n## Acceptance Criteria\n\n- [ ] No two rules cover the same concept\n- [ ] Each rule is a single clear imperative statement\n- [ ] Rules organized into 5 categories\n- [ ] Existing NEVER DO list preserved unchanged\n- [ ] Framework-specific patterns section unchanged\n- [ ] Code review workflow section unchanged\n- [ ] Antipattern/style guide references unchanged\n\n## Dependencies\n\n- None (foundation for all other WPs)",
+  "preamble": ""
+}

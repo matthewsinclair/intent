@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.4",
+  "text": "A write as the human seat from a Claude session bound to any node but the mediator is refused, and the same write from the mediator's session, or from a shell with no Claude session, is taken.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

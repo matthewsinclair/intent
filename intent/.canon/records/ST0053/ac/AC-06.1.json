@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.1",
+  "text": "A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "real-target dogfood over `docs/blog/*.md` (7 posts; mechanical style tier by hand). Found IN-CO-STYLE-001 x7 (no description/canonical) + IN-PR-STYLE-004 x1 (\"seamless integration\"); false positives (fenced-code H1s, \"overall\" adjective, external-link anchors) rejected by the confirm step. hv ruled: apply the findings (description + canonical GitHub-repo URL added to all 7, \"seamless\" reworded) and drop \"overall\" from IN-PR-STYLE-001. hv signed off 2026-07-08"
+  }
+}

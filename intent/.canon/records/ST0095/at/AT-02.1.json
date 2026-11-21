@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/the_mint_verbs_say_their_id.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "Written with WP-02's code; the row moves through red as the machine requires. Green in ic's bin/devbin gate rust on gyges at f7780b922, the base plus the landed bank (ed1caeb36)."
+}

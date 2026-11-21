@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.3",
+  "text": "A clean estate converts in one commit: structured canon emitted, views regenerated, config stamped 3.0.0 + project_id, DB built, gitignore converged",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

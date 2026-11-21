@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 509,
+  "schema": "intent/issue@4.0",
+  "id": "0509",
   "slug": "organize-s-unclaimed-digest-hashes-absolute-path",
   "title": "organize's unclaimed digest hashes absolute paths while the renderer relativises only what it displays",
   "status": "closed",

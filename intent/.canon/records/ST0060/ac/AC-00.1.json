@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.1",
+  "text": "**R1 -- reference, never material.** A config file carries `vault:<project>/<profile>/<name>` and a resolver turns it into material at the point of need. This is the criterion every other one serves: satisfied properly, the backend becomes swappable without touching a single config file. **THE STEP-0 VARIABLE DERIVATION IS INJECTIVE, ASSERTED AS A PROPERTY OF THE GRAMMAR AND NOT BY A RUNTIME CHECK.** An earlier draft mapped `-`, `_` and `/` all onto `_` -- three characters onto one, so **collisions existed by construction**: `vault:my-app/key`, `vault:my_app/key` and `vault:my/app/key` all derived one variable. Its answer was a collision check in `vault set`, which was **structurally blind** -- stores are per-project, those three references live in three different stores, and the check had no jurisdiction where the collision happens. **It could not have been repaired either: a correct cross-store scan must open every store, which needs the identity, which fails under `Locked` and breaks R10.** The check is deleted and the grammar carries it: `_` is forbidden inside segments, so a single `_` in the derived name can only be a `-` and `__` can only be a separator.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

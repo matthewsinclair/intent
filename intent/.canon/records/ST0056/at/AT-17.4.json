@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/form_declares_layout_not_the_field_set.rs",
+  "covers": [
+    "AC-17.4"
+  ],
+  "status": "green",
+  "note": "8 passed, 0 failed, 1 ignored at 08de236d with native/rust and surface both clean, run by ic. Same file as AT-17.2 by design rather than by convenience: both criteria are load-time REFUSALS over one declaration, and splitting them would put two greps on one loader. The widget vocabulary is asserted as the five the criterion names, and an_unknown_widget_is_refused_by_name drives a planted widget outside that set, so the refusal is measured rather than inferred from a declaration that happens to be valid."
+}

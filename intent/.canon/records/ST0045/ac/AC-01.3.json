@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.3",
+  "text": "The `hv` node variant is documented: human-driven, `session_id` optional or `none`, may carry a standing-directives section beyond the canonical body.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "SKILL.md ### The hv (hypervisor) node"
+  }
+}

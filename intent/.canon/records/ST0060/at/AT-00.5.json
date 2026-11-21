@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_age_interop.rs",
+  "covers": [
+    "AC-00.5"
+  ],
+  "status": "to-write",
+  "note": "Both directions against the stock `age` binary. **Skips loudly rather than silently when `age` is not on PATH** -- a silent skip here would let the one criterion answering the R5 deviation report green having run nothing."
+}

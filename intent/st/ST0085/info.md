@@ -26,13 +26,11 @@ MOVED TO NOT STARTED, STILL DEFERRED (2026-10-28, hv's order relayed by molt-vc 
 
 ## Work Packages
 
-| WP    | Title                                                                             | Size | Status |
-| ----- | --------------------------------------------------------------------------------- | ---- | ------ |
-| WP-01 | Inventory of every surface that feeds prompt text to an agent, live or historical | S    | Done   |
+Each work package is a record of its own: `intent wp list ST0085` lists them, and `intent wp show ST0085/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.
 
 ## Acceptance
 
-Acceptance Criteria and Acceptance Tests are RENDERED into `acceptance.md`, which is a GENERATED VIEW -- a row authored there is discarded by the next sync. The contract is canon in this thread's model, and the verbs write it: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
+Acceptance criteria and tests are records of their own: `intent ac list ST0085` and `intent at list ST0085` list them, and `intent ac gate ST0085` says whether the contract passes. `acceptance.md` beside this file is a GENERATED VIEW of them, and a row authored there is discarded by the next sync. The verbs write the contract: `intent ac new` and `intent at new` mint a row, `intent ac edit` and `intent at edit` reword or re-cite one, and `intent ac satisfy|unsatisfy|descope|rescope|withdraw|reinstate` and `intent at green|red|na` move its state. This cover never restates them.
 
 ---
 

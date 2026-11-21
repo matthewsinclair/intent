@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.14",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/vocab_adequacy_check.sh",
+  "covers": [
+    "AC-00.13"
+  ],
+  "status": "green",
+  "note": "GREEN 2026-08-31 (vc), on hv's ratification of `INV-03` -- put to hv with three options (ratify / decline-and-mint-a-third-state / leave it red) and the first chosen. `vocab_adequacy_check.sh` rc=0, 0 findings over 33 live rows, down from 1; exit code taken WITHOUT a pipe, because `rc=$?` after a pipe reads the last stage and three of us have burned that trap in two days. THE FIX WAS NOT THE ONE THE ROW FORBADE, AND THE DISTINCTION IS THE WHOLE POINT. AC-00.13's corollary is that the remedy for a DANGLING value is the wrong remedy for an INEXPRESSIBLE one, so re-anchoring the enum to agree with the prose would have certified the unfinished state as finished -- committing the defect inside its own remedy. Nothing about the vocabulary changed. What changed is that the outstanding EVENT happened, and the prose now records it, so the field stops declaring a state its own prose denies. THE ROW CLOSES ON THE INSTANCE AND NOT ON THE CLASS, WHICH THE INSTRUMENT SAYS IN ITS OWN OUTPUT: it finds ONE SIGNATURE of an inadequate vocabulary -- a declared state contradicted by the authored prose beside it -- and AC-00.13 states adequacy is not checkable. A vocabulary inadequate with NO prose beside it, or one whose author never noticed, is invisible here BY CONSTRUCTION and is the commoner case, since the signature IS the author noticing and writing it down. So a green here means the estate carries no ADMITTED inexpressible state, never that it carries none. The hedge vocabulary is OPEN and undercounts; its false negatives are the rows whose authors phrased it in their own words."
+}

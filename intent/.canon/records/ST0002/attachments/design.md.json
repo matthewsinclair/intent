@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0002: Core Script Framework\n\n## Approach\n\n1. Create a main `stp` script that handles command dispatching\n2. Implement environment variable handling and script location detection\n3. Create a modular framework for command implementations\n4. Implement error handling and usage information\n5. Create a help system for displaying command documentation\n",
+  "bytes": 360,
+  "sha256": "ea6e559e50a593b3fc3931e7721eb80565a2151a1e738fc79328a6229c566161"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 600,
+  "schema": "intent/issue@4.0",
+  "id": "0600",
   "slug": "int-brew-smoke-s-session-hook-arm-expects-the-ga",
   "title": "int brew smoke's session-hook arm expects the gate hook to pass and has only ever measured whether /in-session left a sentinel on the machine: on a fresh machine the keg's gate refuses, which is correct, and the smoke reads it as red",
   "status": "closed",

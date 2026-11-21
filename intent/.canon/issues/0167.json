@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 167,
+  "schema": "intent/issue@4.0",
+  "id": "0167",
   "slug": "inv-03-declares-ratified-while-its-own-prose-say",
   "title": "INV-03 declares ratified while its own prose says hv ratification is outstanding, and the authored vocabulary can express neither the ruled-but-unratified state nor its absence",
   "status": "closed",

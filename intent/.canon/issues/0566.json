@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 566,
+  "schema": "intent/issue@4.0",
+  "id": "0566",
   "slug": "intent-fc-s-unlisting-note-names-a-keep-flag-fc",
   "title": "intent fc's unlisting note names a --keep flag fc refuses, and the .intentfiles header omits fc among the verbs that unlist",
   "status": "closed",

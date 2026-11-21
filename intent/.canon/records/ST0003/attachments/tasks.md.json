@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0003: Template System\n\n## Tasks\n\n- [x] Design template directory structure\n- [x] Create project document templates (journal, WIP, steel threads)\n- [x] Create engineering document templates (technical product design)\n- [x] Create user document templates (user guide, reference guide, deployment guide)\n- [x] Add LLM-specific guidance sections to all templates\n- [x] Test template instantiation process\n- [x] Document template system in the technical product design\n",
+  "bytes": 476,
+  "sha256": "50483ffcde32d2a8cb5846a779bbb6d317ba60a60ec58375fdcad7c8e8a6017a"
+}

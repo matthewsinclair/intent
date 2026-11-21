@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.4",
+  "text": "Intent.app keeps the link path it resolved and follows it live at every spawn rather than a realpath taken at launch, its tests move off the realpath pin, and `VersionService` parses the new line's tree, sha, optional `+dirty`, root and provenance word, with tests over the new line, its `+dirty` form, the brew form and the `(dev, unknown)` form.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

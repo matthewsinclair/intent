@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 583,
+  "schema": "intent/issue@4.0",
+  "id": "0583",
   "slug": "intent-claude-rules-validate-s-help-says-it-chec",
   "title": "intent claude rules validate's help says it checks required sections, and it checks frontmatter only",
   "status": "closed",

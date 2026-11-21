@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_basic.bats.default.tap",
+  "text": "1..4\nok 1 test helper is loaded\nok 2 intent executable exists\nok 3 can create test project\nok 4 run_intent function works\n",
+  "bytes": 122,
+  "sha256": "c54a977bb5652414f204f63e8703ddf03e423f9992ddd934855f7f75ef2db813"
+}

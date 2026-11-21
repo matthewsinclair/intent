@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/estate/slots.rs",
+  "covers": [
+    "AC-04.6"
+  ],
+  "status": "green",
+  "note": "arms: the reader in estate::slots::tests::every_lane_carries_the_queue_for_its_type_oldest_first and an_unparsable_controller_record_is_carried_as_unreadable; estate status and the explorer's /estate in render::tests::the_estates_host_lines_read_the_census_controller_queue_and_lanes, an_unreadable_controller_record_is_named_on_the_control_line and the_estate_status_table_ends_with_the_hosts_lines, and in native/rust/crates/intent-cli/tests/estate_surface.rs, a_booking_goes_from_ask_to_release_and_the_status_shows_every_step and an_unreadable_controller_record_is_named_where_a_person_looks; the page in native/rust/crates/intentsvcs/tests/the_estate_page_reads_the_keys_the_reader_sends.rs, the_estate_page_reads_no_key_the_reader_never_sends (the control line's controller_unreadable) and the_estate_page_reads_no_lane_key_the_reader_never_sends (a lane's queue); green in judge run 3 (request 01M5YHGAPFKX6PEWMDREN5BGBY) over the landed tree, 3475 ok and 0 failed, each arm with its own ok line in refs/bank/vc/evidence/judge-run3/test.log (blob cd488c87a550)"
+}

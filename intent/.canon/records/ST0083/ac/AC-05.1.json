@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "`lib/templates/.claude/settings.json` carries `permissions.deny` rules `Edit(/AGENTS.md)` and `Edit(/.claude/AGENTS.md)`, no `Write(...)` rule (Claude Code consults `Edit(path)` and `Read(path)` rules only and warns at startup about a `Write(path)` rule; `Edit` rules govern every built-in tool that writes a file) and none against `CLAUDE.md`; the leading `/` anchors each at the project the settings file belongs to, not the current directory; and the file stays byte-identical on every machine.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "WP-05 landed at c4cab2134 on hv's own word in cc's session (\"land WP-05\", 2026-10-16), patch-id edcada5fa2eb from refs/bank/cc/0083/wp05 as vc judged it: lib/templates/.claude/settings.json's permissions.deny reads exactly [\"Edit(/AGENTS.md)\",\"Edit(/.claude/AGENTS.md)\"], with no Write rule and none against CLAUDE.md, and this repository's .claude/settings.json stays byte-identical to it; AT-05.1 green"
+  }
+}

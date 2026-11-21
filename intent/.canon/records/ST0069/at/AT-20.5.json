@@ -1,0 +1,9 @@
+{
+  "id": "AT-20.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/symbols_come_from_the_grammars_own_tags.rs",
+  "covers": [
+    "AC-20.5"
+  ],
+  "status": "green"
+}

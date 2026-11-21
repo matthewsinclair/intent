@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 477,
+  "schema": "intent/issue@4.0",
+  "id": "0477",
   "slug": "intent-init-s-report-of-what-it-wrote-omits-inte",
   "title": "intent init's report of what it wrote omits intent/.config/config.json",
   "status": "closed",

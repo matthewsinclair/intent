@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "`intent discover [fromdir]` registers every config-compatible Intent project it finds under the directory, and names each project it does not register with the reason.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

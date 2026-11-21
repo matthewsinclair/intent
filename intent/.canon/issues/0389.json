@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 389,
+  "schema": "intent/issue@4.0",
+  "id": "0389",
   "slug": "the-release-gate-runs-the-load-sensitive-daemon",
   "title": "the release gate runs the load-sensitive daemon arms in the shared checkout at their test budgets, so an unchanged tree fails and passes by host load",
   "status": "closed",

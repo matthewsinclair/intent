@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "`intent todo done <ST[/NN]>` changes real status by wrapping `intent st done` / `intent wp done`, then regenerates `todo.md` -- it never hand-edits a checkbox or `status:`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

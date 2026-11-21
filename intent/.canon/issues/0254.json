@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 254,
+  "schema": "intent/issue@4.0",
+  "id": "0254",
   "slug": "parity-cmd-md-inventories-name-a-revision-and-no",
   "title": "parity/cmd-*.md inventories name a revision and nothing re-derives them when the source moves -- cmd-upgrade.md is right for 69d42a7 and wrong for today",
   "status": "closed",

@@ -1,0 +1,10 @@
+{
+  "id": "AT-09.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/mcp_surface.rs",
+  "covers": [
+    "AC-09.1"
+  ],
+  "status": "green",
+  "note": "mcp_surface.rs proves PUBLICATION == generation: the tools/list roster on a real stdio session equals SERVED (names, both directions) and each published tool's schema+description equal tools(&table)'s (content), which carries AC-09.1's schemas-from-table and two-declared-fields properties (unit-tested at mcp.rs and dispatch.rs a_row_that_declares_neither_mcp_field_does_not_load) onto the wire. Greened by ic 2026-08-31."
+}

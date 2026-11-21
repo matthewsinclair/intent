@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 419,
+  "schema": "intent/issue@4.0",
+  "id": "0419",
   "slug": "the-explorer-s-projects-list-starts-its-cursor-o",
   "title": "The explorer's projects list starts its cursor on the first row -- start it on the open project, or on the nearest registered one when none is open",
   "status": "closed",

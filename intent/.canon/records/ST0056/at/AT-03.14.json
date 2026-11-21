@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.14",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/refused_ingest_blocks_egest.rs",
+  "covers": [
+    "AC-03.13"
+  ],
+  "status": "green",
+  "note": "**red-first arm is reproducible exactly: put a duplicate `id` in one thread's `tests` array, `sync --to-store` (refuses), then `sync --to-disk` -- the authored edit is destroyed at rc=0.** Assert the egest refuses or names the stale ingest. **Do NOT drive this by suppressing output: the refusal was loud every time and vc piped it to `/dev/null`, which is what made the loss silent.**"
+}

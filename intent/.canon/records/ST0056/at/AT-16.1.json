@@ -1,0 +1,9 @@
+{
+  "id": "AT-16.1",
+  "kind": "test",
+  "covers": [
+    "AC-16.1"
+  ],
+  "status": "to-write",
+  "note": "Both directions; sibling script with its own exit code, not an arm of drift_check.sh."
+}

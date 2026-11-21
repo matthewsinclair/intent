@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 426,
+  "schema": "intent/issue@4.0",
+  "id": "0426",
   "slug": "a-project-s-own-git-hook-guards-are-lost-on-ever",
   "title": "A project's own git hook guards are lost on every fresh clone, silently; Intent's hook carrier wires only Intent's",
   "status": "closed",

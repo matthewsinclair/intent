@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.4",
+  "text": "A pair's inbox views are removed, on `removed:` lines, only when they hold no live message.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "path": "tasks.md",
+  "text": "# Tasks - ST0042: Fable 5 Review of Intent codebase\n\n## Tasks\n\n- [x] Write review methodology (design.md) and coverage map\n- [x] Mechanical sweeps: placeholder drift, hardcoded versions, shellcheck, size outliers\n- [x] Dimension reviews 1-8 per coverage map\n- [x] Dedup + I-verify load-bearing findings\n- [x] Findings into design.md; MFIC leak notes into impl.md\n- [x] Draft proposed WPs with t-shirt sizes (intent wp new)\n- [x] Review gate: user adjudication (2026-06-11: audit retired, WP-06 scoped, patch cadence)\n- [x] Execute approved WPs (all nine, single arc; see impl.md execution notes)\n\n## Task Notes\n\nSlate WP8 (upgrade rethink) became ST0043 rather than a WP here; slate WP9/WP10 map to WP/08 and WP/09 (see design.md directory mapping).\n\n## Dependencies\n\nWP execution order was dependency-driven: test isolation (09a) before anything that runs the suite; config eval (01) before the config-parsing consolidation (05b); canon docs (08) before the prune (06) so doc edits did not race.\n",
+  "bytes": 997,
+  "sha256": "75cfbf8bad98b48d641658121bee2b0f55b40b960781532eb168aebf560da9bf"
+}

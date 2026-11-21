@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/every_face_says_what_level_three_knows.rs",
+  "covers": [
+    "AC-07.1"
+  ],
+  "status": "green",
+  "note": "Red on 73c427a93 before WP-07: the arm does not compile there, because `Facade::with_resolvers`, `search::resolution_phrase` and the states `resolved::MISSING`, `FAILED`, `STALE` and `UNRESOLVED` do not exist, and neither does the reader seam its shared estate implements (`Resolver::manifest`, `resolved::Manifest`, `rust_analyzer::MANIFEST`): 8 errors in the intent-cli suite, compiled in a worktree with its own target. Green at 828794ec7 (WP-07 landing, patch-id 4bad6a9b, vc's GO): with a resolution stored through the door by a handed reader, `--context helper` answers the call at level 3 with `target`, `target_path` and `target_line` flat on the hit and `index.resolution` empty, `--context other` keeps level 1 and lists two `candidates`, and the terminal's row, the MCP envelope and the explorer's row say the same; a file changed since it was resolved keeps its syntax level and `index.resolution` names rust `stale` with its path, and a failed and a missing run are named with their tool, place and detail while what an earlier run stored still answers at level 3, each in `resolution_words` on the terminal and on the explorer's INFO row; a carried language is named only where the index holds its Cargo.toml: with none, neither a missing record nor a failed run asked for by name is named, though `index status` shows the failure, and once one is held the failed run is named and a language with no record reads `unresolved`, its words naming `intent index resolve` as a person's verb that runs the project's build; the register quotes level 3's words and every state's phrase verbatim. Gate: whole intentsvcs, intent-cli and intentd suites."
+}

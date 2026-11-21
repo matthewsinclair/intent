@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.1",
+  "text": "**`intent st dehydrate <ID>` is wired and is the inverse of `st hydrate`.** It removes the `STEELTHREAD:<ID>` entry from `intent/.intentfiles` and removes that thread's realised files, reporting each removed path by name and the manifest it changed. **Proven by ROUND TRIP rather than by two separate assertions**: hydrate, then dehydrate, then hydrate again returns the tree byte for byte -- which is the only check that tests the two verbs against each other rather than each against my expectations of it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

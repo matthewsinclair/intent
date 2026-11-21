@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.13",
+  "text": "**ADDED (S2) -- material must not reach a rendering.** The secret type is `secrecy::SecretString`, derives no `Debug` over raw material, and zeroizes on drop. **R11 governs the return type; the incident that started this thread was a PRINT** -- `#[derive(Debug)]` over a struct holding a raw `String` is the same accident one layer down, and nothing in R11 would catch it. **AND `?format=` IS REFUSED ON A SECRET ADDRESS.** The `intent://` scheme's query asks for a REPRESENTATION of the addressed entity, and **a representation of a secret is precisely what this criterion exists to prevent** -- `?format=json` would be a sanctioned route for material into a serialised structure, through the one part of the scheme designed to hand you a rendering. **THE TUPLE MAKES THIS HARDER AND THE CRITERION STRONGER.** With a bare value, _no `Debug` over material_ was satisfied by OMISSION -- derive nothing and there is nothing to leak. **An entry carrying `key_id` makes `Debug` genuinely DESIRABLE**, because printing the id is what you want when diagnosing an injection. So the entry carries a **hand-written `Debug` that prints the id and REDACTS the value**, and the redaction is **load-bearing rather than achieved by leaving something out**: a derived `Debug` on that struct is a leak arriving as a convenience.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

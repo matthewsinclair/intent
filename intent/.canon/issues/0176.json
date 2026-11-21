@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 176,
+  "schema": "intent/issue@4.0",
+  "id": "0176",
   "slug": "todo-notdone-and-todo-toggle-mutate-through-help",
   "title": "todo notdone and todo toggle mutate through helpers that never pass the Facade",
   "status": "closed",

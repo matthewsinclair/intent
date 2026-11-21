@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.11",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/layout.rs",
+  "covers": [
+    "AC-17.11"
+  ],
+  "status": "green",
+  "note": "Alignment is asserted over every shipped form AND over a fixture whose longest name and longest value both exceed the viewport, counting examined rows so the loop cannot pass by inspecting none. Clipping is visible, never wraps, and never cuts a multi-byte character. The five sections and two rules are checked BY POSITION in layout.rs and again on the painted buffer in draw.rs. 101 passed at 87123458."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 157,
+  "schema": "intent/issue@4.0",
+  "id": "0157",
   "slug": "a-refused-commit-leaves-your-paths-staged-in-the",
   "title": "A refused commit leaves your paths staged in the shared index, and only the next node can see it",
   "status": "closed",

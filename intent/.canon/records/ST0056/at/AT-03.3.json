@@ -1,0 +1,9 @@
+{
+  "id": "AT-03.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/sync_scan.rs",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green"
+}

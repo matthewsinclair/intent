@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 326,
+  "schema": "intent/issue@4.0",
+  "id": "0326",
   "slug": "intent-upgrade-reports-a-whiteboard-still-on-dis",
   "title": "intent upgrade reports a whiteboard still on disk in a project that has none",
   "status": "closed",

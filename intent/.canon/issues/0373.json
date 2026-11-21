@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 373,
+  "schema": "intent/issue@4.0",
+  "id": "0373",
   "slug": "intent-index-status-reports-no-index-sizes-thoug",
   "title": "intent index status reports no index sizes, though the design and AC-19.6 commit it to the measured sizes",
   "status": "closed",

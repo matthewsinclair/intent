@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.2",
+  "text": "`/in-review` dispatches `author -> critic-author` (a `subagent_type=\"critic-author\"` Task example) and documents the D7 exclusion (author-only runs no code critic; a mixed project runs both on their subtrees).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

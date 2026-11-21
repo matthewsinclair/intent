@@ -1,0 +1,10 @@
+{
+  "id": "AT-07.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/address_empty_authority.rs",
+  "covers": [
+    "AC-07.6"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic).** 5 tests, driven in the same pass as AT-07.1/.2/.3 -- 21 tests and seven mutation arms across the four, with every restore verified by absolute path after two relative-path restores silently left mutants live earlier in the day.\n\n2026-09-15 (cc, 0338 (i)): the file now also drives every facade door with a slugged address; AT-07.8 covers the intent-cli doors."
+}

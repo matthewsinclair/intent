@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 10,
+  "schema": "intent/issue@4.0",
+  "id": "0010",
   "slug": "st-done-accepts-a-thread-whose-info-md-objective",
   "title": "st done accepts a thread whose info.md Objective is still the template placeholder",
   "status": "closed",

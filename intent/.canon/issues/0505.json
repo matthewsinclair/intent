@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 505,
+  "schema": "intent/issue@4.0",
+  "id": "0505",
   "slug": "canon-ships-no-staged-blob-format-guard-so-every",
   "title": "canon ships no staged-blob format guard, so every estate hand-wires its own formatter check",
   "status": "closed",

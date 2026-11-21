@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/whiteboard_clock.rs",
+  "covers": [
+    "AC-14.4"
+  ],
+  "status": "to-write",
+  "note": "a caller-supplied stamp is refused, not silently replaced"
+}

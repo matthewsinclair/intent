@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/canon_resolver_singularity.rs",
+  "covers": [
+    "AC-01.6"
+  ],
+  "status": "green",
+  "note": "**Red-first arm is the historical bug, and it is free: `export.rs:386` spelled the canon path independently until cc's WP-01 build unified it.** Re-introduce any second independent spelling and the test must go red. **Drive it by configuring a NON-DEFAULT `intent_dir` and asserting every canon artefact lands under the resolver's answer** -- a site that spells the path itself lands somewhere else, which is the whole failure. **Assert the negative arm too: `thread_dir()` still answers `intent/st/<ID>/` and `info.md`/`acceptance.md` still resolve there**, or a wholesale move passes. **DO NOT ASSERT A COUNT** -- ic withdrew 3-of-17 as a measurement of their probe's reach (one directory of 41 against a repo-wide concern), and vc's narrowed 23 missed `export.rs` entirely. **Both fixtures named in AC-01.6 belong in this file as regression cases**, since each refutes a different sweep. **And the guard cc's board names for the live move is broken as written: bare `intent st list` returns 2, not 57** -- it defaults to in-progress only, `--all` is not a flag, and the invocation that reaches the estate is `st list --status all` (measured 57, breakdown 52 Completed / 2 Cancelled / 2 WIP / 1 NotStarted). The Done population is exactly what a canon move risks and it is structurally absent from the default output."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.2",
+  "text": "Two branches from one base, one adding a work package to a thread and the other adding a criterion and a test to the same thread, change disjoint files, and git merges them with no conflict; intent doctor is clean on the merge. (dc's AC-04.2 proves the same through the forge stand-in; this is the unit's own two-branch test.)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-04.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/close_gate_parity.rs",
+  "covers": [
+    "AC-04.3"
+  ],
+  "status": "green"
+}

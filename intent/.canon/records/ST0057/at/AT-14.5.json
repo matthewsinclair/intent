@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/todo_watermark.rs",
+  "covers": [
+    "AC-14.5"
+  ],
+  "status": "green",
+  "note": "Named in the cover as a hazard this design introduces: projection and doctor must agree about the cutoff or doctor reports todo.md as hand-edited, permanently, with nothing wrong."
+}

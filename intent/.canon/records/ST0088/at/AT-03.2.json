@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.2",
+  "kind": "test",
+  "file": "tests/unit/the_critics_and_subagents_say_each_thing_once.bats",
+  "covers": [
+    "AC-03.2"
+  ],
+  "status": "green",
+  "note": "the five AT-03.2 arms: the Diogenes handoff in critic-elixir alone, each code critic naming intent critic <lang> as the gate's, no description naming rules/, test-check offered exactly where the pack has test rules, and subagents list and intent critic --languages agreeing with the tracked tree"
+}

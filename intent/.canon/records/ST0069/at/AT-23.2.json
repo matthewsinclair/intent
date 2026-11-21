@@ -1,0 +1,10 @@
+{
+  "id": "AT-23.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs",
+  "covers": [
+    "AC-23.2"
+  ],
+  "status": "green",
+  "note": "Two halves, two arms. The Null embedder refuses a semantic query and its remedy names the embed block with its endpoint and model -- it refuses rather than returning zeros, because a zero vector has a cosine with every other vector and an unconfigured project would get a confidently ordered list of nothing. The HTTP embedder is driven against a stub TcpListener answering one canned OpenAI-shaped reply, a double at the external boundary, and the arm asserts both what it POSTs (path, model, text) and what it reads back (vectors at the configured width)."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 406,
+  "schema": "intent/issue@4.0",
+  "id": "0406",
   "slug": "wb-migrate-carries-a-markdown-table-as-one-multi",
   "title": "wb migrate carries a markdown table as one multi-line item, so the table no longer renders",
   "status": "closed",

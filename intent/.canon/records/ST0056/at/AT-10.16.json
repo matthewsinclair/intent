@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.16",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/upgrade_command.rs",
+  "covers": [
+    "AC-10.3"
+  ],
+  "status": "green",
+  "note": "**AC-10.3's SECOND COVERING ROW, AT THE CLI LAYER, AND IT EXISTS BECAUSE THE COVERAGE WAS ALREADY THERE AND UNLINKED (vc 2026-08-20 17:02Z, on cc's finding).** `a_v2_estate_migrates_through_the_binary_and_the_stamp_lands` drove two of AC-10.3's five limbs -- canon emitted, gitignore converged -- end to end through the SHIPPED BINARY, while carrying only `AT-10.1`. **Fifth instance of the uncited-coverage class in one day and the FIRST that is PARTIAL, which is strictly worse to find:** a subject-grep that hits the file tells you nothing about WHICH limbs it reaches, so the practice that recovered the other four cannot recover this one. Now three limbs, with the stamp equality added.\n\n**WHY A SECOND ROW AND NOT A WIDER AT-10.3.** One `file` per row in the schema, and the two rows assert at DIFFERENT LAYERS: AT-10.3 is seven tests in `intentsvcs`, at the library; this is the same limbs through `intent upgrade`, the binary an operator actually runs. **A library green and a CLI green fail independently** -- the dispatch could stop calling the facade and every library test would stay green. Precedent: `AT-10.15`, and AC-00.7 / AC-00.9 / AC-00.11 / AC-03.7 already carry one-AC-two-ATs.\n\n**HELD AT `to-write` ON PURPOSE AND FOR A SHORT WINDOW, AND THIS IS NOT THE DEFECT IT RESEMBLES.** The file exists and the coverage passes; the row waits only for the literal `AT-10.16` to be written into it, which is cc's one-line commit in a file they are actively in. **The commit gate's stale arm WILL name this row, correctly, until that lands.** Recorded so a reader meeting the stale line knows it is a handoff and not an expired citation -- **and the discriminator that separates them is the one driven today: does the cited file carry the row's own literal id?** Zero hits here means not yet, not wrong."
+}

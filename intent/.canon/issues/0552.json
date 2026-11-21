@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 552,
+  "schema": "intent/issue@4.0",
+  "id": "0552",
   "slug": "intent-explore-with-an-address-it-cannot-open-la",
   "title": "intent explore with an address it cannot open lands at the top and wipes the reason before the first frame",
   "status": "closed",

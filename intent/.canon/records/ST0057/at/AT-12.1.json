@@ -1,0 +1,9 @@
+{
+  "id": "AT-12.1",
+  "kind": "test",
+  "prose": "to-write: the covering test cannot be written until hv rules the realised form, because what it asserts depends on which form ships. Kind is TEST rather than non-test deliberately -- `kind` is settable at mint and changeable NOWHERE on either entity (dc, 2026-09-01; AC-04.6 in ST0056 is the row for that hole), so a row minted non-test can never become test-backed, and this behaviour will be tested.",
+  "covers": [
+    "AC-12.1"
+  ],
+  "status": "to-write"
+}

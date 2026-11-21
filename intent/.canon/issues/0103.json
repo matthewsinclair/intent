@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 103,
+  "schema": "intent/issue@4.0",
+  "id": "0103",
   "slug": "wp-list-returns-rc-0-and-zero-rows-for-71-bucket",
   "title": "wp list returns rc=0 and zero rows for 71 bucketed threads whose WPs are in the store",
   "status": "closed",

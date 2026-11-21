@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "`intent issues add \"Title\"` allocates the next zero-padded 4-digit id (max+1 across OPEN+CLOSED), writes `intent/issues/OPEN/NNNN/NNNN-slug.md` with stamped frontmatter (id/title/date/reporter/status=OPEN/severity), and prints `NNNN:Title`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

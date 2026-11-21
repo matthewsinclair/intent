@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "kovacs runs Intent's declared gates at the release commit as a `release.legs` leg inside the cut, and `bin/.devbin/preflight-linux.sh` and `bin/.devbin/cmd/shared/preflight.lib` are gone.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

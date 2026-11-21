@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/canon_relocation.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (cc drove it; vc verified the estate independently of the test).** 4 tests, pass. Estate facts confirmed separately: `intent/.canon/st/` holds 57, `intent/.canon/issues/` holds 40, `git ls-files intent/.canon` returns 97 tracked, and BOTH old paths are empty -- `intent/st/*/thread.json` and `intent/issues/*.json` match nothing. **The criterion is the EQUALITY of the two printed populations rather than either figure, and it holds.**"
+}

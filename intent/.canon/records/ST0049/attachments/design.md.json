@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0049: Comprehensive 2.13.0 release note: how MAAC works\n\n## Approach\n\n[Planned approach for implementing this steel thread, including methodology and key steps]\n\n## Design Decisions\n\n[Key design decisions and their rationale]\n\n## Architecture\n\n[Architectural considerations and diagrams if applicable]\n\n## Alternatives Considered\n\n[Other approaches that were considered and why they were not chosen]\n",
+  "bytes": 413,
+  "sha256": "ca572693aa734b1b6656a134fb1ac94d546f29df3b0d04517929c685d0f7cde1"
+}

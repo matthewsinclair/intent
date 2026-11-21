@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 259,
+  "schema": "intent/issue@4.0",
+  "id": "0259",
   "slug": "a-scoped-intent-sync-to-store-id-refuses-on-view",
   "title": "A scoped 'intent sync --to-store ID' refuses on view-skew belonging to a DIFFERENT thread -- but only when the named thread has work to write, so the estate-wide block is invisible to every node except the one with real work, whose only unblocking move is to discard another node's edit",
   "status": "closed",

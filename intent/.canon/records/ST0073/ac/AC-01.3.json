@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "**The exit is event-driven, not swept: there is no interval to configure and none is configured.** A polled implementation passes AC-01.1 with a long enough test and leaves a window proportional to the poll period, during which the orphan is still holding the store. Evidence is structural -- no timer, no periodic `getppid`, no sleep loop on the lifeline path -- because a timing assertion cannot distinguish a fast poll from an event.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

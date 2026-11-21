@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 497,
+  "schema": "intent/issue@4.0",
+  "id": "0497",
   "slug": "wb-migrate-writes-the-carry-s-instant-into-the-c",
   "title": "wb migrate writes the carry's instant into the carried node's heartbeat, so a board untouched for weeks reads as live at its carry and its reclaim clock resets, and the report does not say so",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 185,
+  "schema": "intent/issue@4.0",
+  "id": "0185",
   "slug": "no-verb-writes-a-thread-s-title-objective-contex",
   "title": "no verb writes a thread's title, objective, context, body or preamble -- the fourth field the typed API cannot reach",
   "status": "closed",

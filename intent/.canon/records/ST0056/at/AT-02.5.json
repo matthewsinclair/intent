@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/dep_graph_guard.rs",
+  "covers": [
+    "AC-02.5"
+  ],
+  "status": "green"
+}

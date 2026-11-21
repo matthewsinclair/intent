@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/text_realisation.rs",
+  "covers": [
+    "AC-06.2"
+  ],
+  "status": "green",
+  "note": "**GREEN, AND RE-CITED off `text_realisation_never_read_back.rs`, which does not exist** (vc verified at `c840251a`). Arms: `the_realisation_is_never_seen_by_the_verb_that_reconciles_the_tree`, `two_realisations_do_not_overwrite_each_other`. **dc's FIRST VERSION OF THIS ARM WAS WRONG IN THE INSTRUCTIVE DIRECTION AND THEY SAID SO: it called `Project::classify` on each realised path and asserted `Unattached`. It failed, and the failure was theirs -- `classify` takes a THREAD-RELATIVE path, so handed a project-relative one it saw `cmd-st.md` and correctly answered `Attachment`.** **THE CRITERION IS NOT WHAT `classify` SAYS WHEN YOU MISLEAD IT; IT IS WHETHER ANYTHING EVER HANDS IT A PATH UNDER `.backup/`.** So the arm now drives the REAL CONSUMER -- realise into `.backup/text/`, run `organize::observe` + `plan`, assert no realised file appears in ANY row, **not even as `Unclaimed`, because `Unclaimed` is still the verb reporting on a file that is none of its business.** Stronger than what dc set out to write, reached only by mis-writing it first. **AND NO TIME CROSSES INTO THE MODULE (D42): `realise()` takes a DESTINATION. The facade mints an envelope with no time, `append_event` returns `RETURNING ts`, and that names the directory. A `stamp: &str` parameter would have been a TIME-TYPED INPUT WEARING A STRING'S CLOTHES**, which is the form D42 is written to catch."
+}

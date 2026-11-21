@@ -1,0 +1,10 @@
+{
+  "id": "AT-16.4",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+  "covers": [
+    "AC-16.4"
+  ],
+  "status": "green",
+  "note": "DRIVEN RED IN BOTH DIRECTIONS on planted defects before any green was trusted, in scratch copies through the MODEL override and never on the shared document. Arm 1, steel_thread loses its slug row -> Thread.slug SHIPPED WITH NO CONTRACT ROW. Arm 2, steel_thread gains a row for a property nothing ships -> Thread.phantom_field CONTRACT ROW WITH NO SHIPPED PROPERTY. Arm 3, related keeps its heading and loses its rows -> REFUSED (AC-16.3). The control is the unplanted run, where none of those lines appears. THE EXIT CODE IS NOT THE DISCRIMINATOR while any pending row stands, so an arm is judged by the finding line it adds; the recipe is in the script header so the drive is reproducible without committing a harness that tests the check."
+}

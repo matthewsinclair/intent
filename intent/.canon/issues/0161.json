@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 161,
+  "schema": "intent/issue@4.0",
+  "id": "0161",
   "slug": "in-rs-code-004-s-proxy-matches-prose-so-document",
   "title": "IN-RS-CODE-004's proxy matches prose, so documenting the fix trips the rule",
   "status": "closed",

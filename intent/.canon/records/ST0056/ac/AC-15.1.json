@@ -1,0 +1,8 @@
+{
+  "id": "AC-15.1",
+  "text": "**The triage table carries a row for EVERY skill in the catalogue, and the denominator is in the output.** One row per skill in `intent/plugins/claude/skills/`, each with a verdict of KEEP, UPDATE or RETIRE and the reason for it -- INCLUDING the rows whose verdict is KEEP with no change. **An absent row and an unexamined skill are the same absence**, and a triage that reports only what it changed has an unmeasured arm which is precisely the skills nobody looked at. The row count is asserted against the catalogue enumerated at close, never against a count carried from when the WP was written.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

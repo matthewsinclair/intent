@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 293,
+  "schema": "intent/issue@4.0",
+  "id": "0293",
   "slug": "dehydrating-a-closed-thread-broke-a-ratified-rul",
   "title": "Dehydrating a closed thread broke a ratified ruling's record and blocked every commit in the repository -- and organise reported it as an ordinary line",
   "status": "closed",

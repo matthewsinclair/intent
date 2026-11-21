@@ -1,0 +1,11 @@
+{
+  "id": "AC-16.2",
+  "text": "**THE CHECK RUNS OVER EVERY MODELLED ENTITY AND PRINTS ITS DENOMINATOR.** `N of N entities checked, M properties` in the output -- because a check that silently skipped an entity and a check that found nothing produce the same line otherwise. **THE POPULATION IS DERIVED FROM THE SCHEMA AT RUN TIME AND IS NOT ENUMERATED HERE.** This row carried a nine-name list until 2026-08-29 and the list was WRONG -- derivation yields eleven, the two it omitted being `Invoker` and `Subject` -- **so the criterion warning against \"a list maintained beside it\" was itself that list, in the same sentence.** (vc, on ic's measurement; the row is reworded rather than corrected in place because the enumeration was the defect, not its contents.) **`Invoker` is the live proof: it is growing under ST0066 AC-00.2's invoker evidence right now, and an entity outside the checked population grows uncontracted, which is `issue.body`'s exact shape and the 434KB this WP exists because of.**",
+  "kind": "test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0069",
+    "by": "hv via vc",
+    "reason": "3.0.1 cut scope, hv ruling 2026-08-30. Never-started feature work moved whole so ST0056's gate measures what 3.0.1 ships. NOT a descope-for-a-green: ST0056 stays BLOCKED after the move. WP-14's declared WP-14-blocks-WP-12 coupling was MEASURED and does not hold -- intent claude ws is native in v3 (new/list/archive/hygiene), so pruning bin/ under AC-12.1 does not remove the whiteboard tooling, and intent wb does not exist. The requirement is unchanged and unbuilt; only the thread it is counted against moved."
+  }
+}

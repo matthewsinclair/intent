@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.2",
+  "text": "`intent explore` run inside an Intent project ensures that project is in the registry and its entry is current.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

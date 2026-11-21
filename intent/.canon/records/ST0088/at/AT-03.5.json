@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.5",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/agents_sync_parity.rs",
+  "covers": [
+    "AC-03.1"
+  ],
+  "status": "green",
+  "note": "agents sync renders the root files from the templates AC-03.1 cut, byte for byte, the parity arm AC-03.1 names"
+}

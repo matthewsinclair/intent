@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 535,
+  "schema": "intent/issue@4.0",
+  "id": "0535",
   "slug": "a-fresh-clone-s-store-holds-no-whiteboard-and-th",
   "title": "A fresh clone's store holds no whiteboard, and the remedies it prints end in wb migrate emptying every node's board.json",
   "status": "closed",

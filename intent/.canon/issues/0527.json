@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 527,
+  "schema": "intent/issue@4.0",
+  "id": "0527",
   "slug": "a-brew-upgrade-deletes-the-keg-the-gate-s-instal",
   "title": "A brew upgrade deletes the keg the gate's install-root pointer names, so every gated commit is refused until intent bootstrap is re-run",
   "status": "closed",

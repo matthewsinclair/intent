@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 375,
+  "schema": "intent/issue@4.0",
+  "id": "0375",
   "slug": "wb-migrate-cannot-carry-the-hv-board-s-standing",
   "title": "wb migrate cannot carry the hv board's standing directives, which have no item kind",
   "status": "closed",

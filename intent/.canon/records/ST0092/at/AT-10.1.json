@@ -1,0 +1,10 @@
+{
+  "id": "AT-10.1",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/dispatch.rs:1816",
+  "covers": [
+    "AC-10.1"
+  ],
+  "status": "green",
+  "note": "ic's read on brew 3.3.0 (1e423060f919), 2026-11-11: every verb ST0092 adds (wb brief, profile, init, remit, retire) has a row in surface/dispatch-table.json declaring when_to_use and exposed_on_mcp; the three mutations declare recoverability (init idempotent, remit and retire reversible) and the two reads declare none, which this test holds for every row. intent llm guide prints all five rows with safety, recoverability, call, does, flags and mcp, but no row's when_to_use, which reaches only the MCP tool descriptions; vc ruled 'prints it' means the row, so AC-10.1 is met, and the gap rides issue 0681 to the next release. The test held before this row was minted, so the row passes through red only because the machine declares green from red alone."
+}

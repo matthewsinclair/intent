@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.2",
+  "kind": "test",
+  "file": "tests/unit/rule_pack_content.bats",
+  "covers": [
+    "AC-02.2",
+    "AC-02.3"
+  ],
+  "status": "green"
+}

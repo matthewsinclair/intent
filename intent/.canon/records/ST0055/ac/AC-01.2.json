@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "The issue template lives at `lib/templates/issues/_ISSUE.md` (Intent-owned single source; no inline heredoc in `bin/intent_issues`).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "lib/templates/issues/_ISSUE.md exists; intent_issues stamps via sed, no heredoc; critic-shell no-heredoc clean"
+  }
+}

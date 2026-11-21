@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.3",
+  "text": "intent upgrade moves an existing thread to that layout byte-for-byte the same on two clones upgraded apart, and changes no id and no value; no committed view is rendered from more than one record, so the cover renders only the thread's own fields (hv decision 74); the closed records' views still committed on main are removed by the upgrade under removed:; an attachment whose bytes on disk differ from canon is refused by name and never removed; and a canon case pair (two attachments whose paths differ only in case, issue 0722) is refused by name before the split, since a folding disk would put both in one canon file.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

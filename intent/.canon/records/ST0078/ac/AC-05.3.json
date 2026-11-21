@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.3",
+  "text": "A quiet step never asks; a reversible step asks y/N and --yes answers it; a non-reversible step always asks a person and no flag or environment variable answers for it; without a terminal and without --yes, --apply runs the quiet steps, skips every ask and prints one line naming what is left, which is what the hooks run.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

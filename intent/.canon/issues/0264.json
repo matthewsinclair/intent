@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 264,
+  "schema": "intent/issue@4.0",
+  "id": "0264",
   "slug": "dist-provenance-txt-s-commit-field-has-two-reade",
   "title": "dist-provenance.txt's commit field has two readers with two different subjects, and it is correct only at a release",
   "status": "closed",

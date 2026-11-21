@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 652,
+  "schema": "intent/issue@4.0",
+  "id": "0652",
   "slug": "nothing-hands-the-operator-the-estate-page-s-url",
   "title": "Nothing hands the operator the estate page's URL with its token: add intent estate status --url, and Copy URL as the last item of Intent.app's intentd menu",
   "status": "closed",

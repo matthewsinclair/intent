@@ -1,0 +1,9 @@
+{
+  "id": "04",
+  "title": "The measurement: bytes before the first prompt, before and after, on the record, and the installed skills re-synced",
+  "scope": "S",
+  "status": "done",
+  "objective": "One method measures the bytes a session reads before its first prompt (the rendered `CLAUDE.md` and `AGENTS.md`, the skills `/in-session` chains to for the project's declared languages, `in-whiteboard` where a whiteboard exists), run before WP-01 lands and after WP-03 lands, in this repository and in a fresh `intent init` project, and the two readings are recorded on this thread. After the landings, `intent claude skills sync` is run on this machine, announced to every vc first as a shared-layer change, and the install carries no culled skill; estates take the templates at their next `intent claude upgrade --apply`, which the fleet sweep after the cut runs. Owner: vc with ic. Size S.",
+  "body": "",
+  "preamble": ""
+}

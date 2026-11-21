@@ -1,0 +1,8 @@
+{
+  "id": "AC-18.4",
+  "text": "The scanner and the watcher read one scope object: a change under a source directory reaches the index through the daemon without a second statement of scope.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

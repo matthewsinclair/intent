@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.13",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/app.rs",
+  "covers": [
+    "AC-17.13"
+  ],
+  "status": "green",
+  "note": "TWO TESTS, AND THE ROW CITES BOTH BECAUSE THE CRITERION IS TWO-SIDED. `every_trigger_the_machine_answers_is_acted_on_by_the_realiser` asks whether every trigger the MACHINE ANSWERS is acted on -- a whole-App comparison with its exemptions asserted by count. `every_offered_command_is_reachable_by_its_name_and_actually_does_something` asks the other side: whether every act the VOCABULARY OFFERS can be reached by its own name and then performs. Both live in `native/rust/crates/intent-cli/src/tui/app.rs`. CITING ONE WOULD LEAVE THE OTHER HALF UNCOVERED WITH THE ROW LOOKING SATISFIED, and the two halves are what `Hotkey` slipped between: it was declared, emitted, reachable and consumed by nothing, and every invariant that asked only the first question passed it. The second test carries its own control -- its baseline is an app that CLOSED THE PALETTE WITHOUT RUNNING ANYTHING, because comparing against the pre-Enter state counts the palette's own bookkeeping as an effect and passes for an act that does nothing whatever. That control was driven: un-arming the view stack makes `/back` a true no-op at the root, and the first version of the test stayed green."
+}

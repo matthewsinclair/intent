@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_release_script.bats.default.tap",
+  "text": "1..12\nok 1 release --dry-run --patch prints plan and does not commit/tag/push\nok 2 release --dry-run with explicit vX.Y.Z\nok 3 release --dry-run --major bumps major version\nok 4 release fails when no version arg provided\nok 5 release fails when bump flag mixed with explicit version\nok 6 release fails when target is not greater than current\nok 7 release fails when CHANGELOG has no section for target\nok 8 release fails on dirty working tree\nok 9 release accepts CHANGELOG date that is today\nok 10 release rejects stale CHANGELOG date without --allow-stale-date\nok 11 release accepts stale CHANGELOG date with --allow-stale-date\nok 12 release --help shows usage\n",
+  "bytes": 663,
+  "sha256": "1c4cd553180468d6244e3e1863542ee16f0d6e1c877c8463d59dc4c393e82912"
+}

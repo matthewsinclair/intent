@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 11,
+  "schema": "intent/issue@4.0",
+  "id": "0011",
   "slug": "intent-st-list-enumerates-any-stnnnn-directory-at",
   "title": "\"intent st list enumerates any STnnnn directory at any depth: a staging area under intent/st/ silently becomes duplicate live threads\"",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "The `CO` (content) language code is admitted by the validator and `content` is registered in `LANG_SUBDIRS`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

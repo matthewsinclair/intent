@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.5",
+  "text": "Registering a retired moniker again reinstates the same node with its board and never makes a second.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

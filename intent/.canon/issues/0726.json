@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 726,
+  "schema": "intent/issue@4.0",
+  "id": "0726",
   "slug": "reference-current-check-sh-reads-diff-s-2-as-sta",
   "title": "reference_current_check.sh reads diff's 2 as stale, so cut/gate can claim docs/reference is stale after a run that never compared",
   "status": "closed",

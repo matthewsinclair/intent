@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.2",
+  "text": "`ws new` and the `/in-whiteboard` skill share one format SSOT (the skill points at the script; no divergent scaffold logic). (Highlander)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "SKILL.md \"Scaffolding a node\" repointed at `intent claude ws new` + the lazy-inbox drift reconciled to the script; AT-04.2 green"
+  }
+}

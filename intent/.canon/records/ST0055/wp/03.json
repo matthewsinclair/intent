@@ -1,0 +1,9 @@
+{
+  "id": "03",
+  "title": "Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror)",
+  "scope": "S",
+  "status": "done",
+  "objective": "[Clear statement of what this work package aims to accomplish]",
+  "body": "",
+  "preamble": ""
+}

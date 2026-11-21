@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 235,
+  "schema": "intent/issue@4.0",
+  "id": "0235",
   "slug": "a-running-intentd-cannot-say-which-build-it-is-a",
   "title": "A running intentd cannot say which build it is, and status reads like it answered that",
   "status": "closed",

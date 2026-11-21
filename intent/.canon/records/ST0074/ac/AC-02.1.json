@@ -1,0 +1,10 @@
+{
+  "id": "AC-02.1",
+  "text": "While intentd is live, the menubar status line names the place, the state and the details on one line: `intentd :<port>`, `active`, and the steel-thread count. The port is read from the url the daemon published, and the count appears only once the project query has answered.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "shipped in ST0074; superseded by issue 0607's layout A on hv's word, 2026-10-22: the place is the intentd row's title and the state and details its second line",
+    "by": "vc under hv's pen; the layout is hv's (0607)"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.1",
+  "kind": "test",
+  "file": "tests/unit/no_absolute_home_paths.bats",
+  "covers": [
+    "AC-05.1"
+  ],
+  "status": "green",
+  "note": "the arm \"the settings template denies editing the generated AGENTS.md in both layouts, and nothing more\", landed with WP-05 at c4cab2134. Red at 92d5a77ce, the commit before WP-05: the template's .permissions.deny reads null there, not the two Edit rules the arm asserts (measured 2026-10-16 by jq on that commit's template). Green at c4cab2134: the arm passes on main, 31 of 31 across require_in_session_gate, no_absolute_home_paths and release_gate_script, and was green in vc's whole-suite judging of refs/bank/cc/0083/wp05"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 301,
+  "schema": "intent/issue@4.0",
+  "id": "0301",
   "slug": "intent-daemon-status-returns-an-identical-ok-lin",
   "title": "`intent daemon status` returns an identical ok: line at rc=0 whether many intentd hold the store or none do",
   "status": "closed",

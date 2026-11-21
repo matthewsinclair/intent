@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 111,
+  "schema": "intent/issue@4.0",
+  "id": "0111",
   "slug": "sync-to-store-reported-overwriting-nothing-and",
   "title": "sync --to-store reported overwriting nothing and replacing the store in one breath, and its agreement verdict never examined an ADD",
   "status": "closed",

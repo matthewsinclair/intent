@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 656,
+  "schema": "intent/issue@4.0",
+  "id": "0656",
   "slug": "0654-s-fold-step-refuses-its-own-normal-case-a-b",
   "title": "0654's fold step refuses its own normal case: a banked worktree keeps its landed bank staged, and a plain git worktree remove refuses a staged change",
   "status": "closed",

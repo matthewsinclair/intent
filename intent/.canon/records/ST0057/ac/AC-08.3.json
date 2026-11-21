@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.3",
+  "text": "**`PUT` accepts json only and rejects md -- except for attachments, where text-in is correct.** The exception is not an exception: an attachment is authored on disk, so authority runs the other way. Authorship decides direction, and `Project::classify` is the single answer to what a file is.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

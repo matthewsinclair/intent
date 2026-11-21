@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_index.bats.default.tap",
+  "text": "1..8\nok 1 rules index regenerates index.json\nok 2 rules index is deterministic - running twice produces byte-identical output\nok 3 rules index output declares the v1 schema\nok 4 rules index populates intent_version from VERSION\nok 5 rules index populates upstream_pin from attribution file\nok 6 rules index includes the four agnostic rules and the promoted exemplar\nok 7 rules index does not include ext rules (extensions are runtime-only)\nok 8 rules index sorts keys for stable diff\n",
+  "bytes": 484,
+  "sha256": "e480d9dcc708fff4daba5a92096d50e7c15635eac3723804b8a2ce1c42ae1c89"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 467,
+  "schema": "intent/issue@4.0",
+  "id": "0467",
   "slug": "release-the-spill-remedies-restore-from-the-inde",
   "title": "release: the spill remedies restore from the index where the faces are staged, and a declined push says re-run",
   "status": "closed",

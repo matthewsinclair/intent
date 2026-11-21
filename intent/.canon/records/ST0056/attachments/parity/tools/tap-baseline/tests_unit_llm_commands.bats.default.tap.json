@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_llm_commands.bats.default.tap",
+  "text": "1..5\nok 1 llm with no arguments shows usage\nok 2 llm usage_rules displays the root canon usage-rules.md\nok 3 llm usage_rules --symlink creates a symlink in the target directory\nok 4 llm usage_rules --symlink errors on a missing target directory\nok 5 llm errors on an unknown subcommand\n",
+  "bytes": 286,
+  "sha256": "a4f39a52b12fce8302f9f7a692583cc6b0f0bbc1b7a281b72664320543e481cd"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.1",
+  "text": "Inbox-file initialization is specified in the skill: the `# inbox: <sender> -> <recipient>` header + single-writer note + the `_(empty)_` sentinel, and which subcommand creates an absent inbox on first send.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "SKILL.md ## inbox.<sender>.md shape + ask step 1"
+  }
+}

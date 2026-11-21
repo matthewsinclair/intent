@@ -1,0 +1,10 @@
+{
+  "id": "AT-18.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/index/corpus.rs",
+  "covers": [
+    "AC-18.5"
+  ],
+  "status": "green",
+  "note": "A rendered view and the canon extract are the store's prose seen twice, so they are not in the disk corpus, and the exclusion asks the RENDERER rather than matching a path shape -- with the control that a file the renderer does not produce, in the same directory, stays in the corpus. index::reconcile's survey arm drives the same rule over a real tree, where the absence is correct rather than a skip: a view is not a file the index declined."
+}

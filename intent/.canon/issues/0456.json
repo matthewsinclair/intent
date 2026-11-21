@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 456,
+  "schema": "intent/issue@4.0",
+  "id": "0456",
   "slug": "a-write-on-a-branch-that-never-committed-intent",
   "title": "a write on a branch that never committed intent/.canon/project.json creates it untracked, and the next merge of that branch refuses over it; the post-checkout hook exposes it on every branch switch",
   "status": "closed",

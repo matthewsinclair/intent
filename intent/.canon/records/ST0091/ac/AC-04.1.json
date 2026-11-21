@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.1",
+  "text": "`tests.yml` and `linux-release.yml` fire on `candidate/` refs and not on tags; `rust.yml` runs inside `tests.yml`'s run on a candidate, so the cut reads one verdict, and no tag starts it; the macOS legs run on a candidate, and a candidate's run that skipped a leg does not read green; and `bin/devbin release check` passes on Intent's tree.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

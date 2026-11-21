@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 280,
+  "schema": "intent/issue@4.0",
+  "id": "0280",
   "slug": "skills-sync-reports-a-conflict-for-skills-whose",
   "title": "skills sync reports a conflict for skills whose canon and installed trees are byte-identical",
   "status": "closed",

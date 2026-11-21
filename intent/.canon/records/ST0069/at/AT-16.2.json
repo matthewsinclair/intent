@@ -1,0 +1,10 @@
+{
+  "id": "AT-16.2",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/contract_check.sh",
+  "covers": [
+    "AC-16.2"
+  ],
+  "status": "green",
+  "note": "The denominator prints on every run, found and not-found alike. THE POPULATION IS DERIVED AT RUN TIME ON BOTH SIDES and is enumerated nowhere: schema side from the three published faces, document side from every heading whose first following table is a field table. That derivation is why file_index and doc_section are not claimed -- they describe themselves in inline prose and are not entity tables, measured from the document rather than decided in the tool. The criterion's own nine-name list was falsified by derivation; it now yields twelve where the row says eleven."
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 487,
+  "schema": "intent/issue@4.0",
+  "id": "0487",
   "slug": "wb-announce-beside-peers-running-pickup-lands-th",
   "title": "wb announce beside peers running pickup lands the row and not the views, and its warning names no remedy",
   "status": "closed",

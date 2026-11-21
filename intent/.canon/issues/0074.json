@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 74,
+  "schema": "intent/issue@4.0",
+  "id": "0074",
   "slug": "intent-critic-reports-no-staged-elixir-files-to-",
   "title": "intent critic reports 'no staged elixir files to scan' when it means 'no coverage for the files you staged' -- 60 .heex files across three fleet estates read as nothing to scan",
   "status": "closed",

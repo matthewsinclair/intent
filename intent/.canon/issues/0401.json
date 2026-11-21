@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 401,
+  "schema": "intent/issue@4.0",
+  "id": "0401",
   "slug": "intentd-s-notices-that-carry-a-remedy-open-with",
   "title": "intentd's notices that carry a remedy open with no severity token, so a failure reads like a record",
   "status": "closed",

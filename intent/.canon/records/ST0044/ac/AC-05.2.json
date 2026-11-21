@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.2",
+  "text": "`intent st show <id> acceptance` displays `acceptance.md` and `intent st show <id> all` includes it in the doc-set; `intent st edit <id> <type>` (incl. `acceptance`) prints the file's absolute path instead of launching an editor.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 667,
+  "schema": "intent/issue@4.0",
+  "id": "0667",
   "slug": "under-brew-services-intentd-logs-only-to-brew-s",
   "title": "Under brew services intentd logs only to brew's log_path, so intent daemon logs reads a file nothing writes",
   "status": "closed",

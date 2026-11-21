@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 558,
+  "schema": "intent/issue@4.0",
+  "id": "0558",
   "slug": "intent-init-points-at-help-for-the-family-notes",
   "title": "intent init points at --help for the family notes of the templates it did not write, and --help has none",
   "status": "closed",

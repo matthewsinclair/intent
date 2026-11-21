@@ -1,0 +1,9 @@
+{
+  "id": "04",
+  "title": "doctor: both layouts present, a held settings file with a dead hook command, an empty or placeholder author",
+  "scope": "S",
+  "status": "done",
+  "objective": "`intent doctor` names what the layout work leaves exposed: a contract present in both layouts, a held `.claude/settings.json` whose hook command names a path that does not exist, an empty or placeholder author, and the dead v2 `.claude/scripts/` copies nothing references.",
+  "body": "",
+  "preamble": ""
+}

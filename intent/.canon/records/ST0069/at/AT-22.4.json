@@ -1,0 +1,10 @@
+{
+  "id": "AT-22.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentd/tests/a_daemon_indexes_a_project_when_it_opens_it.rs",
+  "covers": [
+    "AC-22.4"
+  ],
+  "status": "green",
+  "note": "Red on the unfixed tree (f0486c55d, native identical to e70c3528a), green on the 0366 fix; intentd suite --no-fail-fast after cargo build -p intentd."
+}

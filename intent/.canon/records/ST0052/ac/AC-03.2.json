@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "`agent.md` honours the two-tier contract (D3): a mechanical `style` pass by default (`review`) and a judgment `craft` pass on instruction (`craft-check`); it reports only and never writes, edits, or runs external fixers.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "agent.md: review (style/mechanical, default) + craft-check (craft/judgment, on instruction); read-only, no autofix; guarded by critic_author.bats"
+  }
+}

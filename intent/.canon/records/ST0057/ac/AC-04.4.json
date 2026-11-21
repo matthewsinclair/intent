@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.4",
+  "text": "**`organize` run twice changes nothing, INCLUDING mtimes**: the second run writes zero files. Measured as the count of files whose mtime moved, which must be zero -- not as a content diff, because the defect being closed is a byte-identical re-emission that moves mtime and corrupts `file_index`'s clean/changed state.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

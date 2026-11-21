@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.6",
+  "text": "**The estate's own test assertions may assert v2 where v2 is the incumbent, and a v2 assertion failing against v3 for a `parity.md`-ratified class is the harness working rather than a stale test.** Ruled 2026-08-15 (vc) **correcting my own ruling of an hour earlier**, on ic's refusal to act on it: I had said the two `assert_failure` assertions on `init --help` should flip with the `--help` correction. **They must not.** The estate defaults to `INTENT_BIN=bin/intent` and reaches v3 only under the conformance runner's override, so those assertions assert **the incumbent, correctly** -- flipping them turns v2's own suite red against a binary that has not changed, **and deletes the evidence that a deviation exists, which is what the register is for.** The harness already carries the right model, _\"EXPECT RED, AND EXPECT IT FOR RATIFIED REASONS\"_. **What DOES bind is the prose beside the assertion**: a comment stating a retired convention (`# init --help exits non-zero (usage convention)`) is how a retired rule comes back, and it is amended to name the ratified deviation instead -- comment text only",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/lib/test_helper.bash:21 (estate default INTENT_BIN=bin/intent, the incumbent); the two amended comments at tests/unit/global_commands.bats:71-79 and tests/unit/intent_init_lang_flag.bats:21-31, both naming the ratified Corrected-class deviation (hv 2026-08-14, INV-07) in place of the retired usage-convention wording, both assertions left as assert_failure; verified green against the incumbent by vc 2026-08-15, zero failures in both files, ok 1 and ok 9 being the two assertions in question"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AC-12.1",
+  "text": "A realised issue form is RULED by hv and implemented, and `.intentfiles` carries the `ISSUE` sigil again -- with `ISSUE:<id>` reporting over the file or files it names rather than `ok` over zero files. MINTED 2026-09-01 (vc). WHY THIS ROW DID NOT EXIST: hv retired the sigil on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files, an issue living in the store with no file to realise -- and the work package that would restore it has carried an OBJECTIVE and NO CONTRACT ever since, so ST0057 read PASS with WP-12 unstarted. THE ROW IS WRITTEN AS AGREEMENT, NOT COVERAGE: it binds that the decision is TAKEN and BUILT, and deliberately does not pick between one file per issue under `intent/issues/` and a single rendered `intent/issues.md`, because that choice is hv and a criterion that pre-empts it would force scope under cover of recording it.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "WP-12 was cancelled in this thread and delivered as ST0069 WP-01, whose criteria carry this behaviour and pass (ST0069 gate PASS); withdrawn at the close-out of 2026-09-15.",
+    "by": "vc, under D47"
+  }
+}

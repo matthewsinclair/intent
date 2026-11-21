@@ -1,0 +1,10 @@
+{
+  "id": "AT-13.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/index_scope.rs",
+  "covers": [
+    "AC-13.2"
+  ],
+  "status": "to-write",
+  "note": "includes a gitignored file that must never surface"
+}

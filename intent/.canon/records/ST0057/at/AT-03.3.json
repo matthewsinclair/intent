@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/attachment_naming_gate.rs",
+  "covers": [
+    "AC-03.3"
+  ],
+  "status": "green",
+  "note": "**GREEN. 7 arms pass at `61b93440`, file TRACKED.** The `.webloc` the estate already carried is a FIXTURE here rather than only a hazard."
+}

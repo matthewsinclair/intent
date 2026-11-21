@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "`sync` is idempotent: a second run produces a zero diff.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

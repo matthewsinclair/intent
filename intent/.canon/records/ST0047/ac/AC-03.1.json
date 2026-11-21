@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "`ws archive <wsid>` retires a node out of active discovery (eg to `.archived/<wsid>/`) with its `.history/` intact; the node no longer appears in `ws list`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

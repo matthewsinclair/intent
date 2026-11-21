@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 739,
+  "schema": "intent/issue@4.0",
+  "id": "0739",
   "slug": "a-working-copy-that-switches-branches-without-it",
   "title": "A working copy that switches branches without its hooks re-renders another branch's records, then refuses the project as unmigrated",
   "status": "closed",

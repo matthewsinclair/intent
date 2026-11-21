@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 260,
+  "schema": "intent/issue@4.0",
+  "id": "0260",
   "slug": "a-stale-runtime-store-regenerates-the-on-disk-ex",
   "title": "A stale runtime store REGENERATES the on-disk extract from its stale contents -- ORIGINAL REPORT NEEDS RE-EXAMINATION (the reporter's second reproduction is withdrawn as a misreading of canon vs extract); what survives is that the v3 migration froze generated sections into authored body on 326 of 358 threads, so the projection silently outranks the model",
   "status": "closed",

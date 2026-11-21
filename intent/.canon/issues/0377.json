@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 377,
+  "schema": "intent/issue@4.0",
+  "id": "0377",
   "slug": "the-canon-watcher-s-file-id-cache-walks-the-inte",
   "title": "the canon watcher's file-ID cache walks the intent tree on every event, so a commit costs the daemon about ten seconds of system time",
   "status": "closed",

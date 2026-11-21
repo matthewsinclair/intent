@@ -1,0 +1,10 @@
+{
+  "id": "AC-13.1",
+  "text": "hv has RULED between INGEST-THEN-REMOVE and MARK-STALE for the v2 `st/COMPLETED/` bucket, and the ruling is executed on the canary. MINTED 2026-09-01 (vc), written as AGREEMENT rather than coverage -- WP-13 has carried a PROPOSED remedy and no contract, so ST0057 read PASS with the work unstarted. THE STAKES ARE MEASURED, NOT ASSERTED: on Devbin, 24 of 54 bucket files have NO COPY ANYWHERE ELSE, and the estate restart brief routes two of its five opening questions into bucket-only paths -- so a prune WITHOUT ingest breaks the pointers that bootstrap every session there. vc `collapse-buckets.sh` was halted for exactly this reason. The row does not pick the answer: ingest-then-remove and mark-stale are both coherent and they lead to different tools.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "WP-13 was cancelled in this thread and delivered as ST0069 WP-02, whose criteria carry this behaviour and pass (ST0069 gate PASS); withdrawn at the close-out of 2026-09-15.",
+    "by": "vc, under D47"
+  }
+}

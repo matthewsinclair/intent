@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.11",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/timestamp_authority.rs",
+  "covers": [
+    "AC-14.11"
+  ],
+  "status": "to-write",
+  "note": "**method CORRECTED under D36 before the test was written, which is the cheap moment**: it specified `rm intent.db` then rebuild, so the spec itself priced the work in an operation that must not exist. Reconstitute from ABSENCE instead -- stamp, record the value, egest the extract, open a store that was never created, ingest through the gate, assert BYTE-IDENTICAL. Same code path, and a closer model of the only case that occurs (a fresh clone has never had a DB). Two discriminating cases, both of which a naive test passes on: asserting only that a stamp EXISTS after reconstitution passes on the defect, and a DB-side column default must be caught rather than accommodated -- under D34's bidirectional sync a re-inserting disk-to-db pass lets a default re-stamp rows silently and identically to a correct value"
+}

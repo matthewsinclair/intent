@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "`get_default_width` returns 120 when `dft_width` is absent or empty in config.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

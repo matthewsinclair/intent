@@ -1,0 +1,9 @@
+{
+  "id": "AT-10.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/unmigrated_project.rs",
+  "covers": [
+    "AC-10.7"
+  ],
+  "status": "green"
+}

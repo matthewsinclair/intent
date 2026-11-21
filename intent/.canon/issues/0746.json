@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 746,
+  "schema": "intent/issue@4.0",
+  "id": "0746",
   "slug": "intent-upgrade-removes-a-tracked-view-of-an-unre",
   "title": "intent upgrade removes a tracked view of an unrealised record that is clean against HEAD, so 0707's residue does not refuse its commit",
   "status": "closed",

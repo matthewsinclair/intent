@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.6",
+  "text": "`estate status` and `estate wip` are exposed on MCP and `estate prune`, `estate watch`, `estate unwatch` and `estate statusline` are withheld, each dispatch row carrying its reason (decision 75), and `estate status --json` prints the reader's value unchanged.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

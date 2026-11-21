@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.3",
+  "text": "`intent init` leaves `intent/.intentfiles` present, carrying the standard header and no `STEELTHREAD:` line; the migration writes it declaring the WIP set of the converted corpus and realises only those threads; `intent upgrade` writes it declaring the WIP set when it is absent and touches nothing when it is present -- and all three reach the same function, proven by one test that changes the function and sees all three callers move.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

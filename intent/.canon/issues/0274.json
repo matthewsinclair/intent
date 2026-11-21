@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 274,
+  "schema": "intent/issue@4.0",
+  "id": "0274",
   "slug": "getting-started-s-first-tree-shows-three-things",
   "title": "getting-started's first tree shows three things intent init does not create, and one nothing on the page creates",
   "status": "closed",

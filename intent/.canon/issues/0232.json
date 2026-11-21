@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 232,
+  "schema": "intent/issue@4.0",
+  "id": "0232",
   "slug": "wp-08-closed-at-12-12-with-no-conformance-instru",
   "title": "WP-08 closed at 12/12 with no conformance instrument whose subject is the daemon",
   "status": "closed",

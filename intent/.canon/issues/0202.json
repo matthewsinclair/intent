@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 202,
+  "schema": "intent/issue@4.0",
+  "id": "0202",
   "slug": "not-a-defect-the-scaffolding-test-invokes-the-pr",
   "title": "NOT A DEFECT: the scaffolding test invokes the pruned v2 intent_claude_upgrade; v3 writes .claude/settings.json correctly from the template",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.3",
+  "text": "intentsvcs::id is registered in intent/llm/MODULES.md before the file exists.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "fa86e7e35: intentsvcs::id registered in intent/llm/MODULES.md, landed while id.rs exists on no branch of main"
+  }
+}

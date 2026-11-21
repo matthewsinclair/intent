@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.10",
+  "kind": "test",
+  "file": "intent/st/ST0056/parity/tools/rig_selftest.sh",
+  "covers": [
+    "AC-00.10"
+  ],
+  "status": "red",
+  "note": "HELD RED DELIBERATELY AND THE INSTRUMENT PASSES -- 18 of 24 refusal sites driven, six named as out of reach in the criterion. Red because the coverage is partial and because `rev_with_override`'s own path is undriven, NOT because the selftest fails. A reader hunting a broken instrument here will not find one. **THE `18 of 24` IN THIS NOTE IS RETRACTED** (ic measured, vc ruled, 2026-08-18): 18 is a CASE count of which only 12 expect exit 2, and 24 is a left-margin `die` scan blind to `|| die` (15), case-arm (2), a bare `STATUS=2` (`:1158`) and three `return 1` paths (`:1182`). **Measured by the observable: 12 of 45, and 45 is a STATED BOUNDARY, not a closed set** -- `:955` inherits `STATUS=$?` from dc's verdict tool. **_Six out of reach_ is struck as a total; the set is 33.** **RE-READ THE STANDING SENTENCE ABOVE IN THAT LIGHT: _a reader hunting a broken instrument here will not find one_ was written against 75% and the observable says 27%.** The sentence is still true about the selftest FAILING and was never true as a coverage claim. **The derived figure lands with ic's rebuild; this row carries the retraction NOW rather than waiting for it.** **THE REBUILD HAS LANDED (ic, 2026-08-18/19), so this note no longer describes a pending future: the derived figure is `12 of 45`, and 45 is a STATED BOUNDARY rather than a closed set.** Recorded here because a note that goes on predicting an event after it has happened is a second copy on its own decay schedule -- the class this row's own criterion exists to catch."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-04.6",
+  "text": "The page, the TUI and `estate status` show the controller or NO CONTROLLER, every lane with its type, capacity, holders and the queue for its type, oldest first, and each session's row shows the slots it holds; a session holding a running slot in any lane reads as heavy.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

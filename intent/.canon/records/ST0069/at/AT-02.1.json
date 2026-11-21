@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/legacy_bucket_attachments.rs",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.14",
+  "text": "**ADDED -- the daemon path and the in-process path agree.** Same reference, same material, same exit code, with the socket present and absent. This is the ST0056 WP-08 routing rule (_socket present -> daemon; absent -> in-process; never two engines_) applied to a second capability, so the rows land in WP-08's existing dual-path conformance suite rather than in a suite of their own.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

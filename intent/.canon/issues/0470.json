@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 470,
+  "schema": "intent/issue@4.0",
+  "id": "0470",
   "slug": "release-a-silenced-worktree-remove-a-version-tha",
   "title": "release: a silenced worktree remove, a VERSION that falls back to 0.0.0, and unchecked mktemp/cp under set -u only",
   "status": "closed",

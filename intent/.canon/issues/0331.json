@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 331,
+  "schema": "intent/issue@4.0",
+  "id": "0331",
   "slug": "dead-artefacts-held-in-place-by-code-or-an-open",
   "title": "Dead artefacts held in place by code or an open ruling, and stale comments a doc sweep cannot reach",
   "status": "closed",

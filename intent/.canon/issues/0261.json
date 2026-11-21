@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 261,
+  "schema": "intent/issue@4.0",
+  "id": "0261",
   "slug": "whiteboard-clock-guard-sh-cannot-see-a-fabricate",
   "title": "whiteboard-clock-guard.sh cannot see a fabricated timestamp in an archive filename: .history is excluded by path and the guard reads only added content lines",
   "status": "closed",

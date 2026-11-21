@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.5",
+  "text": "`intent wb brief <moniker>` prints the seat's brief, and with `--launch` its launch steps, on a board that declares a profile, and writes nothing: no heartbeat moves, no session is recorded and no file changes.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

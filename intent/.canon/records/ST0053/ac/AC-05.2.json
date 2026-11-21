@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.2",
+  "text": "`content -> critic-prose` is wired into `/in-review` (dispatch map + the generalised \"Prose projects\" note + Task example) and `/in-session` (fan-out table row + `chains_to`); a prose-only project (`[author]` or `[content]`) runs no code critic, a mixed project runs each critic on its own subtree, and a project declaring both applies both discipline packs.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

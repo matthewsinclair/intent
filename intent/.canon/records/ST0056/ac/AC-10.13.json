@@ -1,0 +1,8 @@
+{
+  "id": "AC-10.13",
+  "text": "**AN APPEND-ONLY LOG MUST NOT BE TRUNCATED BY ANY SHIPPED VERB, AND A VERB THAT WRITES HISTORY MUST RECORD ITS OWN RUN.** (cc 2026-08-19, from an incident on the live tree.) **MEASURED: `intent upgrade` truncated `intent/events.jsonl` to zero -- 19 events destroyed, spanning ST0057's creation through WP-01's start -- AND WROTE NO EVENT FOR ITS OWN RUN, so the operation that destroyed the audit trail left no trace in it.** Diagnosed at `migrate.rs:306`, which passes `Vec::new()` for events while the bundle writer overwrites the file: **the module's rationale is sound for a fresh v2 estate and false on a re-run, which the verb itself detects and prints.** **SECOND MEMBER OF A CLASS WHOSE FIRST WAS `.history/` ON 2026-08-17** -- 492 lines destroyed by a write where an append was meant, in a commit whose subject said the board had been folded, **surviving a full session because every human-facing check read correct afterwards.** **THE SECOND MEMBER ARRIVED WHILE THE GUARD PROPOSED FOR THE FIRST SAT UNRULED**, which is the argument rather than the incident. **AND THIS ONE IS NASTIER** (dc): *the operation that destroyed the record is the operation that should have written to it.* **The only signal in the first case was `514 deletions against 75 insertions` on a commit nobody expected deletions in -- so the remedy is arithmetic on a diff, which needs no knowledge of intent and cannot false-positive, because an append-only log only ever grows.**",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

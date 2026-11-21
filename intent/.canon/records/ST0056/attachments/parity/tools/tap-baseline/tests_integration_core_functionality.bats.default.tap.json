@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_integration_core_functionality.bats.default.tap",
+  "text": "1..4\nok 1 intent shows info when run with no args\nok 2 intent help works globally\nok 3 intent st list requires project and shows clear error\nok 4 no more silent failures - all commands give feedback\n",
+  "bytes": 199,
+  "sha256": "088af85fa63fc5427d39c53c836e5c4078fa80032ff36f24d6f82cf472672395"
+}

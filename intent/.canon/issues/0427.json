@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 427,
+  "schema": "intent/issue@4.0",
+  "id": "0427",
   "slug": "the-index-s-grep-hook-answers-only-the-grep-tool",
   "title": "The index's grep hook answers only the Grep tool, which sessions do not use, and is off in Intent",
   "status": "closed",

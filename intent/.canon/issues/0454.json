@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 454,
+  "schema": "intent/issue@4.0",
+  "id": "0454",
   "slug": "doctor-s-store-stale-check-creates-a-store-on-a",
   "title": "doctor's store-stale check creates a store on a project that has none, reasoning from the D01 cache era",
   "status": "closed",

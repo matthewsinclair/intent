@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.2",
+  "text": "backup.schedule accepts hourly, daily and weekly with their meanings unchanged, and <N>h or <N>d with N a whole number of at least 1; any other value, off included, is carried as written and reported, never rounded, and backup.enabled: false stays the one off switch.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

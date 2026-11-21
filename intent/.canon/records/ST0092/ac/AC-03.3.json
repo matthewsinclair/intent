@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "On a board whose nodes hold items, messages, handled marks, claims, archives, heartbeats, status, focus and remits, an apply changes names, roles and the roster set and nothing else: those fields of every `board.json` are byte for byte what they were.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

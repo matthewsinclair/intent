@@ -1,0 +1,10 @@
+{
+  "id": "AT-18.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_index_is_built_from_the_tree_and_read_from_the_store.rs",
+  "covers": [
+    "AC-18.2"
+  ],
+  "status": "green",
+  "note": "A rebuild records every in-scope path with the reason the index does not hold it, and status READS THAT BACK rather than walking: a status that surveyed would describe the world and could never say the index is empty. The skipped paths are listed and not counted, because a count is silence with a number on it. Also here: the cap the project sets, a writer's silence not erasing what the index holds, and a declared language that names no symbols saying why. ic's surface arms render the same rows."
+}

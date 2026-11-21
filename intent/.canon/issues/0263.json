@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 263,
+  "schema": "intent/issue@4.0",
+  "id": "0263",
   "slug": "prettierignore-s-header-states-the-retired-prett",
   "title": ".prettierignore's header states the retired prettier --write mechanism in the present tense, names a hook file that does not exist, and the grep that would check it returns the gate's own remedy string",
   "status": "closed",

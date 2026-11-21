@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 116,
+  "schema": "intent/issue@4.0",
+  "id": "0116",
   "slug": "the-ac-at-model-cannot-express-partial-coverage",
   "title": "The AC/AT model cannot express partial coverage, so a half-covered criterion gates green",
   "status": "closed",

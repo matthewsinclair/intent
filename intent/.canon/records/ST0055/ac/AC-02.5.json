@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.5",
+  "text": "The first `add` lazily scaffolds `intent/issues/{OPEN,CLOSED}/` (with `.gitkeep`); no per-project `_templ/` is written.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.8",
+  "text": "The `/in-whiteboard` skill says what the tool does about hv, `ask` and `announce` in the same landing as this package, cites the terms document for its words, and no longer requires the README to name hv's reader.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "intent/plugins/claude/skills/in-whiteboard/SKILL.md at 2bb9392ca: the hv node section and the ask and announce bullets say hv is reached through the mediator on a declared board, that wb ask between hv and any other node is refused naming the mediator, that wb announce sends hv no copy, and that a write as hv is taken only from the mediator's session or a shell with no session, citing intent/plugins/claude/teams/TERMS.md; it no longer requires the README to name hv's reader"
+  }
+}

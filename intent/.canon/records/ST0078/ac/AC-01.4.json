@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "intent upgrade removes the intent/events.jsonl ignore line and adds nothing, and writes, once and idempotently, an event file for every project event the store already holds and the tree lacks, so a project's history from before this change travels too; intent export keeps producing the single-file form on demand.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-16.2",
+  "kind": "test",
+  "covers": [
+    "AC-16.2"
+  ],
+  "status": "to-write",
+  "note": "Denominator in the output and derived from the schema, not from a list maintained beside it."
+}

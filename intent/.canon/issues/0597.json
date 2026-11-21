@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 597,
+  "schema": "intent/issue@4.0",
+  "id": "0597",
   "slug": "a-v2-thread-outside-the-status-buckets-eg-one-on",
   "title": "A v2 thread outside the status buckets, eg one On Hold, keeps its v2 info.md after the upgrade: doctor exits 1 on the fresh estate and the next upgrade refuses to dehydrate it",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AC-15.2",
+  "text": "**No surviving skill names a verb, flag, path or file layout that the shipped surface does not carry, measured against the dispatch table rather than against memory of it.** A skill keyed to a v2 name keeps reading as correct prose while pointing at nothing, which is the keyed-versus-derived class arriving through documentation. The check is two-sided: it must find a planted stale reference before its zero is believed.",
+  "kind": "test",
+  "state": {
+    "is": "withdrawn",
+    "reason": "withdrawn 2026-09-11 under hv's instruction to end the acceptance-and-instrument loop and draw a line under 3.0.1. This row demands a proof about an instrument, a register or a baseline, not a behaviour a user of 3.0.1 meets. The record it produced stays where it is; the criterion no longer gates the release."
+  }
+}

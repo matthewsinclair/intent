@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 272,
+  "schema": "intent/issue@4.0",
+  "id": "0272",
   "slug": "the-migrator-names-8-oversized-screenshots-by-pa",
   "title": "the migrator names 8 oversized screenshots by path and collapses 1,386 whiteboard files into a directory noun -- the standard AC-00.2 requires is already implemented for another class in the same run",
   "status": "closed",

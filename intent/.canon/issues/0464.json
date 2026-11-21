@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 464,
+  "schema": "intent/issue@4.0",
+  "id": "0464",
   "slug": "release-the-footer-only-view-classifier-drops-bu",
   "title": "release: the footer-only view classifier drops bullet and blank lines, so a real view change is folded into the release commit",
   "status": "closed",

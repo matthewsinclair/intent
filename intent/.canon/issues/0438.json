@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 438,
+  "schema": "intent/issue@4.0",
+  "id": "0438",
   "slug": "wb-migrate-drop-uncarried-loses-an-inbox-s-uncar",
   "title": "wb migrate --drop-uncarried loses an inbox's uncarried lines: only wip.md is snapshotted",
   "status": "closed",

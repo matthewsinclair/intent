@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 233,
+  "schema": "intent/issue@4.0",
+  "id": "0233",
   "slug": "runner-roster-check-sh-reads-an-unstaged-tool-as",
   "title": "runner_roster_check.sh reads an unstaged tool as an absent one, and prescribes deleting the roster row",
   "status": "closed",

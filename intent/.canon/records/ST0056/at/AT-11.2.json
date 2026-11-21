@@ -1,0 +1,9 @@
+{
+  "id": "AT-11.2",
+  "kind": "non-test",
+  "prose": "notarised artefact verified against the recorded decision",
+  "covers": [
+    "AC-11.2"
+  ],
+  "status": "n-a"
+}

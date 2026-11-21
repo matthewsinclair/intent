@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 344,
+  "schema": "intent/issue@4.0",
+  "id": "0344",
   "slug": "a-stranger-s-brew-tap-may-refuse-our-tap-as-untr",
   "title": "A stranger's brew tap may refuse our tap as untrusted",
   "status": "closed",

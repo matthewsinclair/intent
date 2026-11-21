@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.1",
+  "text": "The registry serves N projects with per-connection binding; a moved or deleted root surfaces in doctor, never as a crash",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

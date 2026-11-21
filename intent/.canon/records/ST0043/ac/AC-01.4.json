@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.4",
+  "text": "Canon files have a single writer and the stamp has a single technology. `intent_upgrade` is the sole stamper (jq); `intent claude upgrade` is the sole canon engine (its `VERSION_BUMP` action + the two `sed` stamps stripped).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

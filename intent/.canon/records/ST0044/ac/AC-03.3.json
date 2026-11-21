@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.3",
+  "text": "`intent ac status <stid>` reports N/M ACs satisfied and the close-gate verdict (PASS / BLOCKED).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

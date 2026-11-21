@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.6",
+  "text": "`intent use` refuses every write into a tree whose manifest says `managed_by: brew`, naming brew as its manager, so a brew keg is never repointed or edited by the switch.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

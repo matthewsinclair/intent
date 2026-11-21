@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/openness.rs",
+  "covers": [
+    "AC-14.1"
+  ],
+  "status": "green",
+  "note": "The coordination entities round-trip through their file form, both halves of the criterion driven in openness.rs. The round trip: the fixture registers two nodes and writes a board item and an inbox message into their rows, extracts to disk, restores on a clone that never held the store, and reads the item back with the stamp it claimed in authored_at and the message back with its body -- the fields a lossy extract drops first, because nothing re-derives them. The bytes: re_emitting_the_extract_reproduces_it_byte_for_byte emits, clones, reads back and emits again, and holds a board's board.json to the same byte-for-byte rule as a thread's and an issue's extract."
+}

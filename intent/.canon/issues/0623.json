@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 623,
+  "schema": "intent/issue@4.0",
+  "id": "0623",
   "slug": "releasing-md-says-two-screenshot-runs-over-an-un",
   "title": "releasing.md says two screenshot runs over an unchanged explorer are byte-identical, but runs on different days differ by the demo seed's created date",
   "status": "closed",

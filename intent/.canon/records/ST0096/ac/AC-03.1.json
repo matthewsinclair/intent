@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "The repository's commit gate and pull-request check pass on a project with its aggregate views (the two lists and every thread's acceptance.md) tracked and on one with them untracked, and read their paths from the one declared set.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

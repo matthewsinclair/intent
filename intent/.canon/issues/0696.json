@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 696,
+  "schema": "intent/issue@4.0",
+  "id": "0696",
   "slug": "sync-to-disk-lands-beside-a-watching-daemon-and",
   "title": "sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest flakes under load",
   "status": "closed",

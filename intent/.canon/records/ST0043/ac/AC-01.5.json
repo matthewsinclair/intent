@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.5",
+  "text": "Migration code moves out of `bin/intent_helpers` (sourced by all commands, consumed only by upgrade) into upgrade-only scope (`bin/intent_migrations`); `detect_project_version` stays shared.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

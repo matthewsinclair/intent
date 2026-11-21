@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 388,
+  "schema": "intent/issue@4.0",
+  "id": "0388",
   "slug": "arguments-do-not-start-a-daemon-spawns-gnu-timeo",
   "title": "arguments_do_not_start_a_daemon spawns GNU timeout, which the macOS CI runner lacks, so its arms panic on the macos-latest leg",
   "status": "closed",

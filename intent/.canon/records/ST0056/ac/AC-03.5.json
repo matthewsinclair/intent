@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.5",
+  "text": "A conflict-markered artefact enters the named unparsed state; commands needing it refuse with the finding; v2's silent grep-through is unconstructible",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

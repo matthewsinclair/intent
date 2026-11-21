@@ -1,0 +1,8 @@
+{
+  "id": "AC-11.1",
+  "text": "`intent organize --default` on a project whose `intent/.intentfiles` is absent writes it declaring exactly the threads whose status is WIP and, since ST0069 WP-01, every open issue (hv, 2026-08-26, first-hand: \"It should ONLY HAVE WIP STs\" -- Not Started, Triage, Completed and Cancelled live in the store, and `st hydrate <ID>` realises any of them), one `STEELTHREAD:<ID>` or `ISSUE:<NNNN>` line each, and exits 0; `intent organize` then reports every declared thread unchanged or to hydrate and nothing diverged.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

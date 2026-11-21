@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.3",
+  "text": "No `IN-CO-*` rule duplicates an `IN-PR-*` mechanical rule (Highlander).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "rule_pack_content.bats asserts no content dir reuses a prose-base slug and no content rule declares an `IN-PR-*` id; the content style tier is web-specific (meta/alt/links), disjoint from the base"
+  }
+}

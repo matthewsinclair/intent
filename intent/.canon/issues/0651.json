@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 651,
+  "schema": "intent/issue@4.0",
+  "id": "0651",
   "slug": "the-no-pm-state-guard-does-not-read-the-agent-gu",
   "title": "the no-PM-state guard does not read the agent guide, which prints the dispatch table's invariant and row text into every project",
   "status": "closed",

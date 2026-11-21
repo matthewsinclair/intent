@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 591,
+  "schema": "intent/issue@4.0",
+  "id": "0591",
   "slug": "the-in-whiteboard-skill-is-51-kb-past-the-20-000",
   "title": "the in-whiteboard skill is 51 KB, past the 20,000 characters a compact carries, so every compact costs every node a full reload (about 18k tokens)",
   "status": "closed",

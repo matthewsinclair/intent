@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 237,
+  "schema": "intent/issue@4.0",
+  "id": "0237",
   "slug": "the-canon-git-divergence-check-belongs-in-intent",
   "title": "The canon-git divergence check belongs in intent doctor: every Intent project has the exposure, bin/.devbin reaches only this one",
   "status": "closed",

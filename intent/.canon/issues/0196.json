@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 196,
+  "schema": "intent/issue@4.0",
+  "id": "0196",
   "slug": "int-build-all-deletes-the-shared-binary-pair-bef",
   "title": "int build all deletes the shared binary pair before building and restores nothing when the build or verification fails",
   "status": "closed",

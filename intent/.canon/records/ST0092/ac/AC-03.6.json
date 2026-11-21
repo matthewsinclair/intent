@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.6",
+  "text": "`intent wb register` of a moniker the declared profiles name is taken only with the profile's name and role, and its refusal prints them; a moniker they do not name registers as before, and the dry run reports it as outside the profile.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

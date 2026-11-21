@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 626,
+  "schema": "intent/issue@4.0",
+  "id": "0626",
   "slug": "the-support-tarball-is-tarred-from-the-release-m",
   "title": "the support tarball is tarred from the release machine's working copy, so v3.2.5's carries three empty directories git does not track and the asset is not a function of the tag",
   "status": "closed",

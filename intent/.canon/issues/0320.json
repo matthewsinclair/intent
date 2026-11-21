@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 320,
+  "schema": "intent/issue@4.0",
+  "id": "0320",
   "slug": "upgrade-realises-a-closed-issue-s-view-that-orga",
   "title": "upgrade realises a closed issue's view that organize then unclaims",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 289,
+  "schema": "intent/issue@4.0",
+  "id": "0289",
   "slug": "render-rs-is-10-570-lines-and-is-a-flat-table-of",
   "title": "render.rs is 10,570 lines and is a flat table of 161 verb renderers in one file -- split by family, post-tag",
   "status": "closed",

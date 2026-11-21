@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/views.rs:3327",
+  "covers": [
+    "AC-05.3"
+  ],
+  "status": "green",
+  "note": "green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1"
+}

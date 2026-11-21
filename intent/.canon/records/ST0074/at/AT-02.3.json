@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.3",
+  "kind": "test",
+  "file": "native/macos/Intent/IntentTests/HealthTests.swift",
+  "covers": [
+    "AC-02.3"
+  ],
+  "status": "green",
+  "note": "bin/int macos app-test at 133061d7f's Swift bytes (ids added as comments after the run): 32 tests, 0 failures, IntentTests passed."
+}

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_intent_init_lang_flag.bats.default.tap",
+  "text": "1..7\nok 1 intent init --help mentions --lang\nok 2 intent init --lang requires an argument\nok 3 intent init --lang elixir installs single language\nok 4 intent init --lang elixir,rust,shell installs all three\nok 5 intent init --lang=elixir (equals form) also works\nok 6 intent init with no --lang produces agnostic-canon-only project\nok 7 intent init --lang bogus,elixir installs elixir, errors on bogus\n",
+  "bytes": 402,
+  "sha256": "70141a3a99d500f6deecad4b9029f1c12fde6f9fafe396c84834e7f4b583528d"
+}

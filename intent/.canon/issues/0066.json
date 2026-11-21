@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 66,
+  "schema": "intent/issue@4.0",
+  "id": "0066",
   "slug": "intent-st-resolves-four-of-five-status-directori",
   "title": "intent st resolves four of five status directories: _inbox/ is invisible to st show/list, ac gate, at lint and todo, so a resolver-blind spot reads as thread-absent",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-00.3",
+  "kind": "non-test",
+  "prose": "`conservation_check.sh` run at full scope over a named revision; vc reads the verdict and records the revision in the finding",
+  "covers": [
+    "AC-00.3"
+  ],
+  "status": "n-a"
+}

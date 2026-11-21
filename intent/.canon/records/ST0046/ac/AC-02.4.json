@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "Each new row carries the correct `module -> path` mapping and a default `auto-discovered` provenance.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

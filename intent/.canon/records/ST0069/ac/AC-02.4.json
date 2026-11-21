@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.4",
+  "text": "Migration and `organize` report every authored file that names a bucket path as a worklist and rewrite none of them.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

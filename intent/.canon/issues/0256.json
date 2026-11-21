@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 256,
+  "schema": "intent/issue@4.0",
+  "id": "0256",
   "slug": "intent-doctor-s-model-inconsistency-check-ignore",
   "title": "intent doctor infers a criterion's work package from its ID prefix and flags every criterion whose WP is absent, consulting no state at all -- so there is no way to record a WP descoped together with its criteria, and 62 rows a human deliberately retired are reported as residue (38% of one estate's finding count)",
   "status": "closed",

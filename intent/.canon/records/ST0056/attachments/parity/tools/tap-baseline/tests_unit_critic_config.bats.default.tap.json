@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_critic_config.bats.default.tap",
+  "text": "1..10\nok 1 config: sample file exists at rules/_schema/\nok 2 config: sample file documents the three schema keys\nok 3 config: sample disabled entries carry a # reason comment\nok 4 config: critics.md documents every sample key\nok 5 config: without .intent_critic.yml the finding fires (defaults path)\nok 6 config: disabled rule id suppresses the finding\nok 7 config: disabling one rule does not suppress others\nok 8 config: hook passes severity_min from .intent_critic.yml to the runner\nok 9 config: hook falls back to warning on an invalid severity_min value\nok 10 config: hook defaults to warning when .intent_critic.yml is absent\n",
+  "bytes": 632,
+  "sha256": "e59fdfe8050bdd419ac1f9998e1de85eb6a1a17802b422041ab9f5aba3f97ffb"
+}

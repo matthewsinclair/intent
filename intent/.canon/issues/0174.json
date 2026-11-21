@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 174,
+  "schema": "intent/issue@4.0",
+  "id": "0174",
   "slug": "two-pre-commit-guards-take-their-population-from",
   "title": "two pre-commit guards take their population from the worktree or ambient index, so any node's uncommitted work blocks every other node",
   "status": "closed",

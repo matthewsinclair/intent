@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 414,
+  "schema": "intent/issue@4.0",
+  "id": "0414",
   "slug": "sync-to-store-prints-that-nothing-the-store-held",
   "title": "sync --to-store prints that nothing the store held was overwritten while it renumbers whiteboard rows and changes a node row",
   "status": "closed",

@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.1",
+  "text": "st new, wp new and issues add each print the id they minted in one machine-readable form, the same for all three.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

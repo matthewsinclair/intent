@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.2",
+  "kind": "test",
+  "file": "tests/unit/critic_dispatch.bats",
+  "covers": [
+    "AC-05.2"
+  ],
+  "status": "green",
+  "note": "content cases; also exercised by tests/unit/in_session_skill.bats"
+}

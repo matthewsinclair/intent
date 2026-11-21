@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.5",
+  "text": "The brew smoke passes whatever id the mint returns.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "dc's proof of refs/bank/dc/st0095/wp03-capture-wip3 (538e58d46), sent to vc 2026-11-19 11:21Z and landed by vc: bin/devbin brew smoke from the capture worktree against the installed 3.4.0 keg (461e39ba145d) at 10:58:02Z, rc 0, every arm ok; arm 7 takes the fixture's id from minted_id in bin/.devbin/cmd/shared/mint.lib and names the thread by its title, so no id is predicted. Only comments changed after the run. 3.4.0's first mint is ST0001, so the base passes too: the first run whose first mint is a hash is the cut's own brew smoke on the release keg."
+  }
+}

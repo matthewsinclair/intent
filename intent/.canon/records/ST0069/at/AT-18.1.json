@@ -1,0 +1,10 @@
+{
+  "id": "AT-18.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_index_scope_is_the_repository.rs",
+  "covers": [
+    "AC-18.1"
+  ],
+  "status": "green",
+  "note": "Seven arms over the scope: a tracked source file in and a gitignored one out; .git, the store and the backup out by RULE rather than by path shape, with the fixture deliberately not gitignoring them so the rule is what excludes them; the walk not descending into what it ignores, proved semantically by a nested .gitignore that is decisive to a walk that descends and unreachable to one that prunes; the sync corpus unchanged; one ignore statement answering both questions; the ancestry and no-git conditions that the change of instrument would otherwise have dropped. Every probe is put to real git check-ignore with core.excludesFile=/dev/null, so the answer is not a property of the machine."
+}

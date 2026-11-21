@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.7",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_estate_page_reads_the_keys_the_reader_sends.rs",
+  "covers": [
+    "AC-04.7"
+  ],
+  "status": "green",
+  "note": "The page reads no key the reader never sends: the strip's recent, queue and sessions reads are a subset of the reader's serialised keys, taken from estate::join rather than a list. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure. Green again over the stacking in vc's targeted run 4 (request 01M5YKGTAK325EY94E646KE2D5) on ic's pipeline-stack-v1, landed at f08a5d20d: this file's two arms each have their ok line in refs/bank/vc/evidence/judge-run4/test-intentsvcs-page.log (blob 3c4530a5724b). The stacking itself is layout, read rather than tested: in ic's render-states.sh render of the full fixture, the stack column holds exactly the orphaned and running cells and closes before the granted and asked ones (refs/bank/vc/evidence/judge-run4/estate-full.html, blob db2b8f43c943, and estate-full.png, blob ddbbeab99b7c)."
+}

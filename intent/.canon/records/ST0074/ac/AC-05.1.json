@@ -1,0 +1,9 @@
+{
+  "id": "AC-05.1",
+  "text": "hv has ruled where intentd's durable configuration lives, and design.md records the ruling.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "f2452077a"
+  }
+}

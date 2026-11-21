@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "tests/unit/the_skill_corpus_keeps_one_home_each.bats",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "arms: in-standards gone, in-essentials present, no file under the corpus roots naming in-standards but the triage record; the index-first population by prior_art_route.bats; green in ic's bats runs on 2026-10-25 (the new one-home arms red on planted violations and green restored, startup_skills_fit_a_compact and prior_art_route ok) and the corpus tests in the intent-cli suite of the ST0088 WP-01 and WP-02 judge at 1c8d893e3 and 89c40ffaf; cited by vc at the landing"
+}

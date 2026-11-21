@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.3",
+  "text": "The stat-scan detects external edits by content hash, including a same-size same-mtime rewrite",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

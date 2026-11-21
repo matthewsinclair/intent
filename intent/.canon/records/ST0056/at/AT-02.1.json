@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.1",
+  "kind": "non-test",
+  "prose": "first green CI run on macOS + Linux with fmt/clippy gates",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "n-a"
+}

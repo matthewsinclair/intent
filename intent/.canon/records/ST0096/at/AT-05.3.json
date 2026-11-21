@@ -1,0 +1,10 @@
+{
+  "id": "AT-05.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_upgrade_writes_the_releases_layout.rs:63",
+  "covers": [
+    "AC-05.3"
+  ],
+  "status": "green",
+  "note": "the file's other AC-05.3 arms: an_upgrade_removes_a_closed_issues_view_and_names_it, an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_write, two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write; green in the WP-05 stack's gate (Desk 01M7YDN2, devbin-cc) that landed B at b72925a04; marked in devbin-cc's team-page commit, landed at c41c816f1"
+}

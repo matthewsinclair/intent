@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 540,
+  "schema": "intent/issue@4.0",
+  "id": "0540",
   "slug": "the-brew-caveat-sends-a-machine-to-bootstrap-onl",
   "title": "The brew caveat sends a machine to bootstrap only when the old keg is gone, so a deferred cleanup breaks the gate later",
   "status": "closed",

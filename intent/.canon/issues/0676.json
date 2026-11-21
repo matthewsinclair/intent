@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 676,
+  "schema": "intent/issue@4.0",
+  "id": "0676",
   "slug": "a-seat-that-boots-before-the-project-s-languages",
   "title": "A seat that boots before the project's languages are declared loads no language skills, and nothing compares the two again",
   "status": "closed",

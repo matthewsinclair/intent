@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.2",
+  "text": "Everything inside the template's preserved block is carried byte for byte across every re-render, by the function that carries CLAUDE.md's block and by no copy of it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

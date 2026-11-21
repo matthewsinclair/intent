@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 471,
+  "schema": "intent/issue@4.0",
+  "id": "0471",
   "slug": "devbin-canon-exits-1-when-its-controls-fail-the",
   "title": "devbin canon exits 1 when its controls fail, the code its header reserves for a real divergence",
   "status": "closed",

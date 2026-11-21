@@ -1,0 +1,10 @@
+{
+  "id": "AT-02.1",
+  "kind": "test",
+  "file": "tests/unit/claude_with_intent.bats",
+  "covers": [
+    "AC-02.1"
+  ],
+  "status": "green",
+  "note": "test: \"AT-02.1 start assembles the verified claude argv (dry-run)\""
+}

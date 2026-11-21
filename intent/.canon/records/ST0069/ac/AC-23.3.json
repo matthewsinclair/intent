@@ -1,0 +1,8 @@
+{
+  "id": "AC-23.3",
+  "text": "The vector schema is a recorded migration; semantic hits are a tier group ranked within itself.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

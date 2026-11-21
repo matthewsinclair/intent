@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 434,
+  "schema": "intent/issue@4.0",
+  "id": "0434",
   "slug": "intentd-writes-an-ingest-failure-s-remedy-line-t",
   "title": "intentd writes an ingest failure's remedy line twice, and its index-refresh notice carries no severity token",
   "status": "closed",

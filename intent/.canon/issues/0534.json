@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 534,
+  "schema": "intent/issue@4.0",
+  "id": "0534",
   "slug": "intent-version-prints-one-shape-for-a-release-an",
   "title": "intent --version prints one shape for a release and a dev build, so its output cannot say which is installed",
   "status": "closed",

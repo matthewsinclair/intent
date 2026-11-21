@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.3",
+  "text": "`start <ws>` for an ABSENT workstream stops, reports non-existence, and prompts to create; `n` exits with zero mutation, `y` runs `ws new` then launches. (No-Silent)",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

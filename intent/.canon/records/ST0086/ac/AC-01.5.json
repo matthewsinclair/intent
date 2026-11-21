@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.5",
+  "text": "A session whose pid is dead, or whose pid now belongs to a process started at a different time than its procStart (ctime via `ps` on macOS, clock ticks via `/proc/<pid>/stat` on Linux), renders as gone; a failed liveness read lists the file as unreadable and calls nobody gone; paused is a board's paused status and heavy is a running slot the session holds.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

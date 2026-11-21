@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 250,
+  "schema": "intent/issue@4.0",
+  "id": "0250",
   "slug": "nothing-re-drives-an-open-issue-so-a-fixed-but-o",
   "title": "nothing re-drives an open issue, so a fixed-but-open row reads as live and its cost lands on whoever cites it: two worked instances in one day",
   "status": "closed",

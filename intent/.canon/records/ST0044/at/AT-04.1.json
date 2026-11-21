@@ -1,0 +1,11 @@
+{
+  "id": "AT-04.1",
+  "kind": "non-test",
+  "file": "tests/unit/acceptance_close_gate.bats",
+  "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
+  "covers": [
+    "AC-04.1"
+  ],
+  "status": "n-a",
+  "note": "test: wp done is blocked while a WP AC is uncovered -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
+}

@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0031: TCA suite hardening (post-Lamplight ST0121)\n\n## Approach\n\n[Planned approach for implementing this steel thread, including methodology and key steps]\n\n## Design Decisions\n\n[Key design decisions and their rationale]\n\n## Architecture\n\n[Architectural considerations and diagrams if applicable]\n\n## Alternatives Considered\n\n[Other approaches that were considered and why they were not chosen]\n",
+  "bytes": 407,
+  "sha256": "9e40cc90f9b9f79583bc938357cd8eb86b346f2e66e71c634f577182f441394a"
+}

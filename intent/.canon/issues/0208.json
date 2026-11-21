@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 208,
+  "schema": "intent/issue@4.0",
+  "id": "0208",
   "slug": "five-nodes-write-one-tree-under-one-git-identity",
   "title": "five nodes write one tree under one git identity, and content commits record no node -- so ownership is not mechanically recoverable",
   "status": "closed",

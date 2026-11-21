@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 486,
+  "schema": "intent/issue@4.0",
+  "id": "0486",
   "slug": "wb-register-records-one-event-file-where-the-ski",
   "title": "wb register records one event file where the skill and changelog say it writes no file",
   "status": "closed",

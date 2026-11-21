@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 437,
+  "schema": "intent/issue@4.0",
+  "id": "0437",
   "slug": "in-rs-code-004-s-gate-proxy-reads-a-nested-gener",
   "title": "IN-RS-CODE-004's gate proxy reads a nested generic ending in String as Result<T, String>",
   "status": "closed",

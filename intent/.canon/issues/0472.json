@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 472,
+  "schema": "intent/issue@4.0",
+  "id": "0472",
   "slug": "devbin-hosting-s-read-only-sweep-drives-agents-s",
   "title": "devbin hosting's read-only sweep drives agents sync, a writer, and the retired fileindex",
   "status": "closed",

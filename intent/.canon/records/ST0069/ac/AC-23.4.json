@@ -1,0 +1,9 @@
+{
+  "id": "AC-23.4",
+  "text": "The local-runtime decision is put to hv with the measured costs of each shape.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "ST0069 design.md, T3 section: the Local-runtime record measured by cc on 2026-09-12 at 3ade8dea3 (report b70a0f97e) and the ruling under the pen that no Local runtime ships in 3.0.2"
+  }
+}

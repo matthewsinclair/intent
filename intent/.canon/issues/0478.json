@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 478,
+  "schema": "intent/issue@4.0",
+  "id": "0478",
   "slug": "post-tool-advisory-sh-prints-plain-stdout-at-exi",
   "title": "post-tool-advisory.sh prints plain stdout at exit 0, which a PostToolUse hook's model may never see",
   "status": "closed",

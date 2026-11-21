@@ -1,0 +1,10 @@
+{
+  "id": "AT-12.1",
+  "kind": "test",
+  "file": "tests/unit/gated_id_door.bats",
+  "covers": [
+    "AC-12.1"
+  ],
+  "status": "green",
+  "note": "the three gated parity scripts ask the id door, read-only, in place of their patterns (refs/bank/dc/st0095/ac12-route/v1, landed a3e3e6461); the refusal of a new pattern is id_pattern_check.sh, gated, whose census only shrinks. Red: the arms, written on base 4b24577e7, where each gated script matched a four-digit ordinal and a hashed record dangled or went unjudged. Green on F 4b24577e7: Desk 01M7YR2W (build all, check clippy, gate rust, each rc 0) and 01M7YS30 (test shell, all 914, 0 failed); landed a3e3e6461"
+}

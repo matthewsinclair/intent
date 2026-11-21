@@ -1,0 +1,10 @@
+{
+  "id": "AT-17.17",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/run.rs",
+  "covers": [
+    "AC-17.17"
+  ],
+  "status": "green",
+  "note": "`a_command_that_returns_waits_for_the_operator_before_the_terminal_comes_back` in `native/rust/crates/intent-cli/src/tui/run.rs`. THE SEAM VC RULED FOR: `Session` gained `run_command` and `wait_for_operator` as REQUIRED methods, and `Step::Run`'s body moved into `run_one_command`, which takes a `Borrowed<S>` and a `Session` and therefore needs no terminal. ONE LOG, WRITTEN BY BOTH THE SCREEN AND THE SESSION, which is what makes the interleaving visible at all -- two separate logs would prove both things happened and nothing about their order, which is the entire property. Three assertions: the terminal is given back BEFORE the command runs (a command printing into somebody else's raw mode and alternate screen is what the seam exists to avoid); the command runs BEFORE the operator is asked to acknowledge it; and the wait precedes the RE-TAKE, which is the property the row is actually about, because the re-take is what repaints over the output. REQUIRED METHODS RATHER THAN DEFAULTED ONES, DELIBERATELY: two implementations forward to a wrapped session (`&mut S` and `Lending`), and a forwarder that inherited a default would quietly read the real stdin from inside a test. The compiler found every impl; a default would have found none. DRIVEN RED BY DELETING THE PAUSE, which is exactly how it would be lost -- a `read_line` under a `println!` reads as leftover scaffolding -- and it fails with `wait never happened at all` and the log printed. AND THE TEST CAUGHT ITS OWN INSTRUMENT FIRST: locating the FIRST `enter_raw` found the initial take rather than the re-take, so a correct implementation failed until the setup was cleared out of the log. The bookkeeping the harness itself performs is not evidence about the thing under test, in either direction."
+}

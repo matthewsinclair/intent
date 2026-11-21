@@ -1,0 +1,6 @@
+{
+  "path": "WP/15/canary-reports/prolix.md",
+  "text": "---\nverblock: \"27 Apr 2026:v0.1: matts - Prolix canary report\"\nproject: Prolix\nwp: ST0035/WP-15\nstatus: pass\ndate: 2026-04-27\ncommit: 4508e94\n---\n\n# Prolix canary report\n\n## Outcome\n\n**Pass.** Eighth canary of the v2.10.0 canon. Clean apply once stale `.intent/config.json` was reset. No surprises.\n\n## Pre-flight\n\n- **Working-tree state**: `M .intent/config.json` (stale manual bump). Reset to HEAD.\n- **HEAD before**: `20560e9`. Doctor clean. Remotes: `local`, `upstream`. Pushed to `local` only.\n\n## Apply summary\n\n`intent upgrade` ran the chain `2.9.0 -> 2.10.0`. Standard canon plus PLANT MODULES.md and DECISION_TREE.md (RULES.md and ARCHITECTURE.md already present). Foreign pre-commit chained via marker block.\n\n## 12-point verification\n\nAll 12 points pass.\n\n## Project-specific notes\n\n- **AGENTS.md was a symlink** (legacy v2.4.0-era pattern); now a real file at root.\n- **CLAUDE.md left alone** (user-authored).\n- **`/AGENTS.md.bak` added to .gitignore**.\n\n## Decision\n\n**Proceed.** Next: MicroGPTEx.\n",
+  "bytes": 1011,
+  "sha256": "7af6d86c000269fb6f9a20b86c97e5cb7477c8798c9ca07560cc6eeaecd39cc5"
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 684,
+  "schema": "intent/issue@4.0",
+  "id": "0684",
   "slug": "wb-init-apply-renders-a-roster-readme-the-pretti",
   "title": "wb init --apply renders a roster README the prettier gate refuses",
   "status": "closed",

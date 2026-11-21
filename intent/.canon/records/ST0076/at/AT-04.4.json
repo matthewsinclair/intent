@@ -1,0 +1,10 @@
+{
+  "id": "AT-04.4",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/mcp.rs",
+  "covers": [
+    "AC-04.2"
+  ],
+  "status": "green",
+  "note": "Red on 70c65b464 before WP-04: the arm does not compile there, because neither `search::level_words` nor `symbols::what_a_reference_misses` exists. Green at e5b7feb1b (WP-04 landing, patch-id 013ce9d4, vc's GO): the search row's `when_to_use` and the MCP instructions carry level 1's and level 2's words and every language's gap from `what_a_reference_misses`, verbatim."
+}

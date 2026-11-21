@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 699,
+  "schema": "intent/issue@4.0",
+  "id": "0699",
   "slug": "bin-devbin-gate-rust-help-runs-the-real-gate-int",
   "title": "bin/devbin gate rust --help runs the real gate: Intent's cut/gate reads only its first argument, so a trailing --help starts a heavy build with no Desk slot",
   "status": "closed",

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_config.bats.default.tap",
+  "text": "1..7\nok 1 PROJECT_ROOT is detected correctly\nok 2 config.json is loaded correctly\nok 3 legacy stp structure is detected\nok 4 missing config shows appropriate error\nok 5 config values with shell metacharacters are never evaled\nok 6 version-fallback literal exists at exactly one site (Highlander, ST0042 WP-05)\nok 7 ext-root expansion is not inlined outside intent_helpers (Highlander, ST0042 WP-05)\n",
+  "bytes": 399,
+  "sha256": "5da6dbd016d53a7f07dd8676c20b1993221b20719f8129dc63831712f757dcfb"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-07.3",
+  "text": "The first render, over a README that Intent has never rendered, carries the whole existing file inside the preserved block and says so, except a frontmatter block that opens the existing file, which is dropped and named in the report.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

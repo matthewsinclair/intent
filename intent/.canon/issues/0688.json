@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 688,
+  "schema": "intent/issue@4.0",
+  "id": "0688",
   "slug": "no-daemon-required-sh-s-inside-the-project-guard",
   "title": "no_daemon_required.sh's inside-the-project guard is an unbounded prefix, so it refuses a scratch directory beside the tree",
   "status": "closed",

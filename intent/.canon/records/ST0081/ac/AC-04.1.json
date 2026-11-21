@@ -1,0 +1,11 @@
+{
+  "id": "AC-04.1",
+  "text": "On a real Windows machine, Intent installed under WSL from a tagged release by following the docs reports its version, passes `intent doctor`, and creates and lists a thread in a project in the WSL filesystem.",
+  "kind": "non-test",
+  "state": {
+    "is": "descoped",
+    "to": "ST0082",
+    "by": "hv, 2026-10-14; numbering under vc's pen",
+    "reason": "The real Windows install moved to ST0082 with WP-04 on hv's ruling of 2026-10-14."
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 599,
+  "schema": "intent/issue@4.0",
+  "id": "0599",
   "slug": "intent-version-migrates-and-removes-a-legacy-int",
   "title": "intent --version migrates and removes a legacy ~/.intent: the XDG move runs from main before dispatch, so a read verb writes the user's home",
   "status": "closed",

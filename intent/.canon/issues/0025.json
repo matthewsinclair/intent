@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 25,
+  "schema": "intent/issue@4.0",
+  "id": "0025",
   "slug": "an-inherited-project-root-decides-project-vs",
   "title": "an inherited PROJECT_ROOT decides project-vs-global without any resolution, so intent writes into whatever tree a parent process names",
   "status": "closed",

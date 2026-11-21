@@ -1,5 +1,5 @@
 {
-  "schema": "intent/thread@3.0",
+  "schema": "intent/thread@4.0",
   "id": "ST0084",
   "title": "Relocate the parity tooling and reference generators out of intent/st/ST0056 so completed threads can leave the disk",
   "slug": "relocate-the-parity-tooling-and-reference-genera",

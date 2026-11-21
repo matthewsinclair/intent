@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.4",
+  "text": "Deleting the generated view does not undo a flush. A generated view is disposable by construction -- `sync --to-disk` rewrites it, `doctor` regenerates it to compare, and deleting it is supposed to be safe -- so durable state living there means deleting a derived file silently resets the flush and resurrects every item ever flushed. That is the v2 defect this work package exists to close.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

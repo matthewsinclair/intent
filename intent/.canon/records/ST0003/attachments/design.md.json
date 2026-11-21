@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0003: Template System\n\n## Approach\n\n1. Identify all document types that require templates\n2. Create template files with placeholder content and instructions\n3. Design a template directory structure that mirrors the final document structure\n4. Implement consistent formatting and styles across all templates\n5. Add LLM-specific guidance within templates\n",
+  "bytes": 366,
+  "sha256": "70a3d7b201c1c5ee2e1a329338db377fc66e3a06182efb79095cb8af454baa5b"
+}

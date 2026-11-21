@@ -1,0 +1,8 @@
+{
+  "id": "AC-17.2",
+  "text": "The rows carry the store's schema version, and `--json` emits the same envelope the MCP tool returns for the same statement.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

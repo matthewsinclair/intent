@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.10",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_never_prompts.rs",
+  "covers": [
+    "AC-00.10"
+  ],
+  "status": "to-write",
+  "note": "Stdin closed, no passphrase available, bounded timeout. **The timeout is the assertion** -- a prompt and a hang are the same observation without it."
+}

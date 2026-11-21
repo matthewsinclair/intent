@@ -1,0 +1,10 @@
+{
+  "id": "AT-23.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_semantic_tier_is_staged_and_its_seams_hold.rs",
+  "covers": [
+    "AC-23.3"
+  ],
+  "status": "green",
+  "note": "Planted vectors, a query through the trait with a test-only embedder, one semantic group ranked by cosine with another model's vector correctly absent from the answer, and the tiers already built still present -- the envelope's shape unchanged, which is AC-23.1's seam proof in the same arm. A fourth arm states the half this one rests on: a project with no embedder has no semantic group rather than an empty one. The rung itself is held by the ladder's own pins, not by an arm."
+}

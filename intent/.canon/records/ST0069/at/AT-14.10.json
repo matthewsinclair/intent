@@ -1,0 +1,10 @@
+{
+  "id": "AT-14.10",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/no_skill_names_an_unshipped_verb.rs",
+  "covers": [
+    "AC-14.10"
+  ],
+  "status": "green",
+  "note": "Green at 6de123412. The row's remaining red axis was the `intent claude ws` family, which AC-14.12 retires: the register row is retired on both fields, so `dispatch::shipped_entries` no longer carries the verb and no shipped skill names it. The verb-and-flag axis was already green through the same instrument, `no_skill_names_an_unshipped_verb`, which derives its roster from the register rather than from a hand-written list."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/facade_dehydrate.rs",
+  "covers": [
+    "AC-00.5"
+  ],
+  "status": "green",
+  "note": "An estate whose declaration is unmet refuses with the denominator; an estate with no declaration refuses as NoDeclaration. Control: the met estate permits."
+}

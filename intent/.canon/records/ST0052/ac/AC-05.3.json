@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.3",
+  "text": "`/in-session` lists an `author` fan-out row invoking `/in-author-essentials` and includes `in-author-essentials` in `chains_to`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

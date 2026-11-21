@@ -1,0 +1,8 @@
+{
+  "id": "AC-00.5",
+  "text": "**R5 -- age format, both directions.** A store written by `intent` decrypts with the stock `age` binary, and a store written by stock `age` is read by `intent`. **This criterion is what the R5 deviation (crate rather than shelled binary) is answerable to** -- format compatibility is the thing R5's reasoning actually protects, so it is the thing asserted.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

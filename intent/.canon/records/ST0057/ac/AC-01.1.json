@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "**Canon for every thread and every issue resolves under `intent/.canon/`, one file per artefact, and `intent/st/` holds no `thread.json`.** Both populations are printed and the canon count equals the artefact count -- the criterion is the equality, not either figure.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

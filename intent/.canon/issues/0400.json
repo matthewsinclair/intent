@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 400,
+  "schema": "intent/issue@4.0",
+  "id": "0400",
   "slug": "set-writes-thread-acceptance-which-is-declared-i",
   "title": "`set` writes `Thread.acceptance`, which is declared Immutable, and it is the only verb that writes the exemption the close gate tells you to declare",
   "status": "closed",

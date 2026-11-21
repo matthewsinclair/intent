@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 691,
+  "schema": "intent/issue@4.0",
+  "id": "0691",
   "slug": "the-estate-page-s-plan-usage-blanks-on-a-429-aft",
   "title": "the estate page's plan usage blanks on a 429 after an intentd restart: 0658's kept reading lives only in memory",
   "status": "closed",

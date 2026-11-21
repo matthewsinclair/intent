@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The prune removes the v2 buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex`, at migration for a new conversion and under `organize --apply` for an already-migrated estate, and REFUSES by name while any bucket file content is not held by the store, so a prune that ingested nothing removes nothing.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

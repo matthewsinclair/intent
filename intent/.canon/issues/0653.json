@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 653,
+  "schema": "intent/issue@4.0",
+  "id": "0653",
   "slug": "verblocks-carry-history-and-prose-against-hv-s-r",
   "title": "Verblocks carry history and prose against hv's rule, and nothing in Intent says or checks so: IN-PR-STYLE-005, a staged-markdown verblock guard, and two pointers",
   "status": "closed",

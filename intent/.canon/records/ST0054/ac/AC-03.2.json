@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "`_usage-rules.md` notes the distinction between Intent's project-contract file and the library's per-dep `usage-rules.md`.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "_usage-rules.md new 2nd paragraph distinguishes this project-contract file from the library's per-dep usage-rules.md"
+  }
+}

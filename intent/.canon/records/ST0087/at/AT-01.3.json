@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.3",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/tests/version_spellings_agree.rs",
+  "covers": [
+    "AC-01.3"
+  ],
+  "status": "green",
+  "note": "arms: the_flag_and_its_subcommand_twin_are_one_capability and the_version_line_ends_in_its_kind_and_a_release_names_a_clean_commit; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+}

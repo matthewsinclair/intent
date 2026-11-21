@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Linux release binaries built by GitHub Actions",
+  "scope": "S",
+  "status": "done",
+  "objective": "A workflow builds `intent` and `intentd` for x86_64 and aarch64 Linux, packages them with the support payload, proves the packaged `intent --version` runs at an old distribution floor, and keeps each package as a workflow artifact.",
+  "body": "## As built\n\n- `.github/workflows/linux-release.yml` builds both musl triples, packages them with the support payload and smokes each in `oraclelinux:7-slim`; satisfied from run 39854556183.\n- The binaries are static against musl, so no glibc floor applies.\n- `intent-support.tar.gz` serves Linux unchanged.\n\nNothing is open.\n",
+  "preamble": ""
+}

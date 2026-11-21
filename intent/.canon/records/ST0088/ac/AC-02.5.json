@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.5",
+  "text": "`in-finish`, `in-review`, `in-plan`, `in-whiteboard` and `_wip.md` are trimmed as the review names, and every skill `/in-session` chains to stays under the startup size cap (`startup_skills_fit_a_compact.bats`).",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

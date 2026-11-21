@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 383,
+  "schema": "intent/issue@4.0",
+  "id": "0383",
   "slug": "wb-migrate-carries-a-header-claim-verbatim-in-a",
   "title": "wb migrate carries a header claim verbatim in a form wb claim refuses",
   "status": "closed",

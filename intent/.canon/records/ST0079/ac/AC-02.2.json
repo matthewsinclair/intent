@@ -1,0 +1,8 @@
+{
+  "id": "AC-02.2",
+  "text": "The outstanding threads it lists are exactly those bare `intent st list` lists and the issues exactly those bare `intent issues` lists, in the same order; a work package is listed when it is WIP, under any thread, with its id as STxxxx/NN, and a thread bare `intent st list` does not list is shown as that work package's parent row, with the thread's own status, placed among the threads where `intent st list --status all` places it.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

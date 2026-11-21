@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 536,
+  "schema": "intent/issue@4.0",
+  "id": "0536",
   "slug": "the-shell-critic-asks-no-rule-of-an-extensionles",
   "title": "The shell critic asks no rule of an extensionless script outside a directory named bin, and still reports it clean",
   "status": "closed",

@@ -1,0 +1,9 @@
+{
+  "id": "AT-01.2",
+  "kind": "non-test",
+  "prose": "this contract carries ratified WP-02..12 groups at WP-01 close",
+  "covers": [
+    "AC-01.2"
+  ],
+  "status": "n-a"
+}

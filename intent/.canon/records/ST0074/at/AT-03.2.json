@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/src/projects.rs",
+  "covers": [
+    "AC-03.2"
+  ],
+  "status": "green",
+  "note": "projects::tests::a_root_is_added_once_and_a_newer_schema_is_left_alone, green at 2123f7c08"
+}

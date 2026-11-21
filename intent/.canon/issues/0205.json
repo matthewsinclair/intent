@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 205,
+  "schema": "intent/issue@4.0",
+  "id": "0205",
   "slug": "apparatus-data-tables-are-plain-double-quoted-sh",
   "title": "apparatus data-tables are plain double-quoted shell strings, so a literal quote in a note becomes shell and bash -n passes",
   "status": "closed",

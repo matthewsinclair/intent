@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 339,
+  "schema": "intent/issue@4.0",
+  "id": "0339",
   "slug": "st0056-s-design-docs-versus-the-build-todo-windo",
   "title": "ST0056's design docs versus the build: todo.window_hours applied by nothing, an export schema nothing publishes, a no-op clippy arm behind a critical rule",
   "status": "closed",

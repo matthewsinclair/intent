@@ -1,6 +1,7 @@
 {
-  "schema": "intent/thread@3.0",
+  "schema": "intent/thread@4.0",
   "id": "ST0082",
+  "realised": true,
   "title": "Intent on Windows through WSL 2: Intent's Linux install inside WSL, no native port",
   "slug": "intent-on-windows-through-wsl-2-intent-s-linux-i",
   "status": "not-started",
@@ -13,52 +14,6 @@
     {
       "id": "ST0081",
       "note": "ST0082 depends on ST0081: Intent is installed inside WSL by the Linux install ST0081 delivers, Homebrew on Linux (hv, 2026-10-14)"
-    }
-  ],
-  "wps": [
-    {
-      "seq": 1,
-      "title": "The WSL page",
-      "scope": "XS",
-      "status": "not-started",
-      "objective": "The docs carry a WSL page, `docs/windows-wsl.md`, linked from `docs/index.md`: WSL is Intent's Windows route; Intent is installed inside WSL by the Linux install in `docs/install.md#linux`, which the page links to and never restates; repos are kept in the WSL filesystem rather than under `/mnt/c`, and why; Claude Code runs inside WSL; and shellcheck, git and jq are named beside Intent. Every command on the page is run before it is written down. Carried from ST0081's WP-03 on 2026-10-14. Its bank carries the CHANGELOG line for the WSL page, which ST0081's Linux line no longer covers (vc, 2026-10-14).",
-      "body": "",
-      "preamble": ""
-    },
-    {
-      "seq": 2,
-      "title": "First install on a real Windows machine",
-      "scope": "XS",
-      "status": "not-started",
-      "objective": "A developer installs Intent from a tagged release under WSL on a real Windows machine by following the docs, and reports `intent --version`, `intent doctor`, and one thread created and listed in a project in the WSL filesystem. hv arranges the run through the other estate; Intent's nodes cannot run it. Carried from ST0081's WP-04 on 2026-10-14.",
-      "body": "",
-      "preamble": ""
-    }
-  ],
-  "criteria": [
-    {
-      "id": "AC-01.1",
-      "text": "Following the docs, a fresh WSL distro goes from no Intent to an `intent --version` that names the release and an `intent doctor` with no finding in a new project, and every command on the WSL page has been run.",
-      "kind": "non-test",
-      "state": {
-        "is": "unsatisfied"
-      }
-    },
-    {
-      "id": "AC-01.2",
-      "text": "The docs name WSL as Intent's Windows route, tell readers to keep repos in the WSL filesystem rather than under `/mnt/c` and why, and tell them to run Claude Code inside WSL.",
-      "kind": "non-test",
-      "state": {
-        "is": "unsatisfied"
-      }
-    },
-    {
-      "id": "AC-02.1",
-      "text": "On a real Windows machine, Intent installed under WSL from a tagged release by following the docs reports its version, passes `intent doctor`, and creates and lists a thread in a project in the WSL filesystem.",
-      "kind": "non-test",
-      "state": {
-        "is": "unsatisfied"
-      }
     }
   ]
 }

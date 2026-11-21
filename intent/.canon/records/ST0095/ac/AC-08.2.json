@@ -1,0 +1,8 @@
+{
+  "id": "AC-08.2",
+  "text": "A project that holds only ordinals renders every view as it did before.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

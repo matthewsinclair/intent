@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.2",
+  "kind": "test",
+  "file": "native/rust/crates/intent-cli/src/tui/run.rs",
+  "covers": [
+    "AC-03.2"
+  ],
+  "status": "green",
+  "note": "The explorer's /estate re-reads on the tick and no other view does (tui::run::tests::the_estate_follows_the_clock_and_no_other_view_does); /estate opens once and refuses an argument (tui/app.rs slash_estate_opens_the_estate_once_and_takes_no_argument); unreadable rows in the order test in tui/views.rs. Green in ic's combined judge at e756e484a over ea94f91b0 (18:07Z to 18:11Z on 2026-10-25), run after the arm landed ahead of judge on hv's word: the intentsvcs, intent-cli and intentd suites with no failure."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.4",
+  "text": "`intent index status` and `intent index rebuild`, text and JSON, name when the index was last reconciled, read from the store's `reconciled_at` and never from a clock at render, and an index with no stamp names none.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

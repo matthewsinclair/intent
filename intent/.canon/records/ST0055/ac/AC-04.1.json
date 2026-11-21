@@ -1,0 +1,9 @@
+{
+  "id": "AC-04.1",
+  "text": "The new bats suite is green (matts runs the full suite).",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "matts ran the full suite: all tests pass"
+  }
+}

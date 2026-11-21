@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 643,
+  "schema": "intent/issue@4.0",
+  "id": "0643",
   "slug": "at-new-and-the-sync-side-acceptance-writes-sort",
   "title": "at new and the sync-side acceptance writes sort a thread's tests and criteria by string id, so AT-01.10 lands before AT-01.2 and one new row re-sorts the whole array in canon",
   "status": "closed",

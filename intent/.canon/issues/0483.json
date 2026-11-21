@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 483,
+  "schema": "intent/issue@4.0",
+  "id": "0483",
   "slug": "post-checkout-intent-runs-intent-sync-apply-in-e",
   "title": "post-checkout.intent runs intent sync --apply in every new git worktree, and what that does there is unmeasured",
   "status": "closed",

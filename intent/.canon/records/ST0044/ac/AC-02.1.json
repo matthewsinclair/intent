@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.1",
+  "text": "`lib/templates/prj/st/ST####/acceptance.md` carries the contract preamble, the AC section (ST-level + per-WP), and the AT section. (Content provisional -- refinable in place; no flip gate, since the default is on.)",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/st_commands.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

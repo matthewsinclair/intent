@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/mutation_roundtrip_complete.rs",
+  "covers": [
+    "AC-08.2"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic; vc ran the file, then required evidence on the two clauses rc cannot settle, and got it).** 4 tests, rc=0, 2 arms. **THE EXTENT CLAUSE IS ANSWERED BY CONSTRUCTION RATHER THAN BY COVERAGE: THE DENOMINATOR IS TAKEN FROM THE MODEL'S SERIALISED KEYS, NEVER FROM A HAND LIST.** Each field is moved to a DIFFERENT value and read back, siblings are diffed, **and a map entry missing for a NEW field fails a separate test.** That is what separates a round trip that is lossless from one that happens to cover the fields somebody remembered -- a hand roster is the shrunken-denominator failure this estate keeps paying for, and it is absent here by design rather than by diligence."
+}

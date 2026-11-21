@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 178,
+  "schema": "intent/issue@4.0",
+  "id": "0178",
   "slug": "every-instrument-reads-the-worktree-so-a-defect",
   "title": "Every instrument reads the WORKTREE, so a defect that exists only in the COMMIT has no witness but a clone nobody has made",
   "status": "closed",

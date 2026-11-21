@@ -1,0 +1,6 @@
+{
+  "path": "design.md",
+  "text": "# Design - ST0006: Help System\n\n## Approach\n\n1. Design the help system architecture\n2. Create a help file format and structure\n3. Implement the `stp help` command and its subcommands\n4. Create help files for all existing commands\n5. Ensure the help system is extensible for future commands\n",
+  "bytes": 290,
+  "sha256": "0409d8894bb660588c7e5d04e0e5ad328618d58bc6b355b2a9c270a973041649"
+}

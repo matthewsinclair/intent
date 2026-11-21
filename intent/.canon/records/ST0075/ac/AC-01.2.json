@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.2",
+  "text": "a daemon log that intentd has not written yet is named as absent in the header, never skipped in silence",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

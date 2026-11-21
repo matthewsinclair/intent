@@ -1,0 +1,8 @@
+{
+  "id": "AC-14.7",
+  "text": "`Facade::todo_flush` records BOTH the history and the state in ONE transaction -- the `todo.flush` event and the project state together -- so neither can land without the other. An event written without the state leaves a flush that no cutoff reflects; a state written without the event loses the history D53 keeps.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

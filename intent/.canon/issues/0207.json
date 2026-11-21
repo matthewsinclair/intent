@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 207,
+  "schema": "intent/issue@4.0",
+  "id": "0207",
   "slug": "at-green-red-na-note-replaces-a-row-s-note-whole",
   "title": "at green/red/na --note replaces a row's note wholesale, so recording a status change destroys the row's adjudication history",
   "status": "closed",

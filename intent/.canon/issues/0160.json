@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 160,
+  "schema": "intent/issue@4.0",
+  "id": "0160",
   "slug": "ac-00-11-names-c51f10d5-for-a-defect-that-does-n",
   "title": "AC-00.11 names c51f10d5 for a defect that does not reproduce there, and AT-00.11 is blocked on a real positive control",
   "status": "closed",

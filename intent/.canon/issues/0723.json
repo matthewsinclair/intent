@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 723,
+  "schema": "intent/issue@4.0",
+  "id": "0723",
   "slug": "cut-gate-s-test-for-a-load-sensitive-red-reads-a",
   "title": "cut/gate's test for a load-sensitive red reads a SIGPIPE as confined, and the SIGPIPE guard does not reach the gates",
   "status": "closed",

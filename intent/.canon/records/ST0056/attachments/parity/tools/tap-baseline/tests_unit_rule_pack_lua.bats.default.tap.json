@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_lua.bats.default.tap",
+  "text": "1..9\nok 1 lua pack: every catalogued rule exists\nok 2 lua pack has the expected total rule count\nok 3 lua pack: each rule declares its canonical id\nok 4 lua pack: each rule declares language: lua\nok 5 lua pack: each rule passes intent claude rules validate\nok 6 lua pack: rules list reports every lua id\nok 7 lua pack: each rule has a fenced lua code block in Bad section\nok 8 lua pack: each rule has a fenced lua code block in Good section\nok 9 lua pack: no sibling .lua files alongside RULE.md\n",
+  "bytes": 496,
+  "sha256": "5267238a1b92e00e93d7c466ac98fa63369599ecc2e952fe7dd23baa9da4e0c3"
+}

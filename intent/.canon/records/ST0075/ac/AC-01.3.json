@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "intent daemon logs --follow prints lines the daemon appends after it started, until it is terminated",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-01.2",
+  "text": "All four ID/validation sites carry `author`/`AU` consistently.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex"
+  }
+}

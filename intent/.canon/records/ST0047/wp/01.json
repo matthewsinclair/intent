@@ -1,0 +1,9 @@
+{
+  "id": "01",
+  "title": "Whiteboard provisioner: ws new + ws list",
+  "scope": "S",
+  "status": "done",
+  "objective": "The deterministic node scaffolder and roster read -- the automated form of the Protocol 3.0 \"Scaffolding a node\". `ws new <wsid>` provisions a workstream to spec (any short-ish slug; `hv` as Workstream Zero on first creation); `ws list` reports the roster from frontmatter. This is the foundation `start` (WP-02) and the lifecycle ops (WP-03) build on.",
+  "body": "## Deliverables\n\n- `bin/claude_with_intent` skeleton (POSIX sh, `bin/cli` house style, subcommand dispatch) with `ws new` + `ws list`.\n- `ws new`: scaffolds `<wsid>/wip.md` (valid frontmatter), `<wsid>/.history/.gitkeep`, per-peer inboxes (header + `_(empty)_`); idempotent-safe (refuse-on-exist); id validation (No-Silent).\n- `hv` provisioned as Workstream Zero on first whiteboard creation; working nodes made-to-order.\n- `ws list`: one line per node from `wip.md` frontmatter, read-only.\n- The shell-test harness selection (bats vs plain-sh-runner) + AT-01.1..01.5.\n- Dogfood: regenerate the Baize `hv`+`cc`+`ic`+`vc` skeleton, diff against the golden reference (AC-01.6).\n\n## Dependencies\n\n- None (foundation WP). Reads the Protocol 3.0 format (the `/in-whiteboard` skill / README) as the scaffold spec.",
+  "preamble": ""
+}

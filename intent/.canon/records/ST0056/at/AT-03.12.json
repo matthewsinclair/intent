@@ -1,0 +1,10 @@
+{
+  "id": "AT-03.12",
+  "kind": "non-test",
+  "prose": "the criterion is withdrawn under D53; `cold_start_history.rs` is deleted because all three of its legs -- the projection writing the file, the file, and the restore refusing a damaged line -- no longer exist",
+  "covers": [
+    "AC-03.11"
+  ],
+  "status": "n-a",
+  "note": "**REMOVED WITH ITS SUBJECT 2026-08-20, NOT ABANDONED.** The file proved a real defect and proved it well: `resync` rebuilt seven tables and skipped the eighth, so every fresh clone answered correctly and had no history at all. **Its fixture discipline is the part worth carrying forward** -- the obvious version of that test passes on the defect, because a store that already holds its events survives a `resync` whether or not the cold path restores anything, so the fixture had to be a project that never had a database rather than one whose database was removed. That distinction outlives this row and should be reached for the next time a cold-start claim is tested."
+}

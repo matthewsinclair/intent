@@ -1,0 +1,8 @@
+{
+  "id": "AC-06.5",
+  "text": "A canon file whose name is neither family is refused by name, and none is skipped.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

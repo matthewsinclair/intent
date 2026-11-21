@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 665,
+  "schema": "intent/issue@4.0",
+  "id": "0665",
   "slug": "a-green-at-row-on-a-completed-thread-stays-confo",
   "title": "A green AT row on a completed thread stays conforming after the test it cites is deleted: the closed-thread L3 exemption hides the drift",
   "status": "closed",

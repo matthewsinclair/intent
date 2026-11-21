@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.5",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/a_due_backup_is_taken_by_whichever_door_asks.rs",
+  "covers": [
+    "AC-00.5"
+  ],
+  "status": "green",
+  "note": "Driven in a pty through pyte on 2026-09-25 in a fresh init project under a short HOME: due, not due and a bad schedule; the bad-schedule case warned on stderr with its remedy, named it on the info row, took nothing, and the explorer opened."
+}

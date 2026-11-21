@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 236,
+  "schema": "intent/issue@4.0",
+  "id": "0236",
   "slug": "claude-skills-subagents-install-all-root-canon-n",
   "title": "claude skills/subagents install --all: root canon names it four times, v2 shipped it, v3 refuses it at rc=1 as if the operator mistyped",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 112,
+  "schema": "intent/issue@4.0",
+  "id": "0112",
   "slug": "view-skew-check-still-prints-no-gate-runs-thread",
   "title": "view_skew_check still prints 'no gate runs thread_view_skew' one section above the gate running it",
   "status": "closed",

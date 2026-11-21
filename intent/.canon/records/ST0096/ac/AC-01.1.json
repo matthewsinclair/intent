@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.1",
+  "text": "Every verb in design.md's census table writes no file outside the thread or issue it changes: that record's canon file, its events and its realised views.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AC-02.3",
+  "text": "an explicit `--width N` overrides both the file path and the stdout path.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 571,
+  "schema": "intent/issue@4.0",
+  "id": "0571",
   "slug": "intent-bootstrap-check-s-divergence-note-says-th",
   "title": "intent bootstrap --check's divergence note says the pointer's install runs the guards, when the running intent's install does",
   "status": "closed",

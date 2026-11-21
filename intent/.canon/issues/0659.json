@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 659,
+  "schema": "intent/issue@4.0",
+  "id": "0659",
   "slug": "estate-page-reports-usage-endpoint-failed-before",
   "title": "estate page reports \"usage endpoint failed\" before intentd's first endpoint read",
   "status": "closed",

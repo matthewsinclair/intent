@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.5",
+  "text": "`intent todo done --prune` emits the pruned DONE items to stdout (for the caller to archive, eg `>> intent/done.md`; the advisory note goes to stderr), and then flushes.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "tests/unit/intent_todo.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "AT-24.7",
+  "kind": "non-test",
+  "prose": "Specified in the design and not built, with its data source MEASURED rather than assumed (2026-09-12): the store holds no commit-to-thread link, so the join is git's pickaxe for the introducing commit and the commit message for the thread -- and of 5,932 commits since 2026-08-01, 1,212 name a thread and 1,802 name a criterion, so four in five cannot be attributed at all. The specification carries what that forces: an id parsed from a message is resolved against the store before it is shown, unattributed is said rather than guessed, and the pickaxe is off the default path.",
+  "covers": [
+    "AC-24.7"
+  ],
+  "status": "n-a"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-01.1",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/the_tree_function_names_the_running_tree.rs",
+  "covers": [
+    "AC-01.1"
+  ],
+  "status": "green",
+  "note": "arms: a_manifest_managed_by_brew_is_brew_before_its_tool_is_read and the file's other arms over the four answers, the sha source, dirty both ways and unreadable git; green in cc's judge at 47eb2d2c7 on 2026-10-25 (fmt, build, both clippy legs, the intentsvcs, intent-cli and intentd suites whole, the two bats files, the drives; the critic leg 0 red of 12 judged), landed at 976fad577 and bb4bb4e70; cited by vc at the landing"
+}

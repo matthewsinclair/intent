@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 266,
+  "schema": "intent/issue@4.0",
+  "id": "0266",
   "slug": "v3-0-0-claude-upgrade-writes-a-pre-commit-chain",
   "title": "v3.0.0 claude upgrade writes a pre-commit chain block whose target no code in that build ever writes, so the installed gate enforces nothing and doctor never looks",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 221,
+  "schema": "intent/issue@4.0",
+  "id": "0221",
   "slug": "a-node-that-dies-without-release-reads-as-active",
   "title": "A node that dies without release reads as active to every peer for seven days, and no control can see it",
   "status": "closed",

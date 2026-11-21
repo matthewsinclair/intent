@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 114,
+  "schema": "intent/issue@4.0",
+  "id": "0114",
   "slug": "the-attachment-carrier-has-a-per-file-cap-and-no",
   "title": "The attachment carrier has a per-file cap and no per-thread total, all inline in one versioned JSON",
   "status": "closed",

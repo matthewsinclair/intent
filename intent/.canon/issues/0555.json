@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 555,
+  "schema": "intent/issue@4.0",
+  "id": "0555",
   "slug": "a-work-package-id-collision-between-two-clones-p",
   "title": "a work-package id collision between two clones plans only taking a side, where a thread or issue collision plans a renumber",
   "status": "closed",

@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 593,
+  "schema": "intent/issue@4.0",
+  "id": "0593",
   "slug": "in-essentials-in-standards-and-in-session-carry",
   "title": "in-essentials, in-standards and in-session carry dated history that every session loads with their rules",
   "status": "closed",

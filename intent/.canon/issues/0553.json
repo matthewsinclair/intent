@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 553,
+  "schema": "intent/issue@4.0",
+  "id": "0553",
   "slug": "the-explorer-refuses-a-valid-work-package-addres",
   "title": "the explorer refuses a valid work-package address: its zero-padded item matches no row, because rows are named by the bare sequence",
   "status": "closed",

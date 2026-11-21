@@ -1,0 +1,9 @@
+{
+  "id": "AT-02.6",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/openness.rs",
+  "covers": [
+    "AC-02.6"
+  ],
+  "status": "green"
+}

@@ -1,0 +1,6 @@
+{
+  "path": "parity/tools/tap-baseline/tests_unit_co_language_code_guard.bats.default.tap",
+  "text": "1..4\nok 1 rules validate accepts a well-formed IN-CO content id\nok 2 rules validate rejects a malformed IN-CO id (bad zero-padding)\nok 3 rules validate rejects a lowercase co language code\nok 4 content is registered in the canon-enumeration LANG_SUBDIRS default\n",
+  "bytes": 262,
+  "sha256": "6347fdc8d6419ae6108e66fd2db265effd281992c619eb4f84e5604c50d655ee"
+}

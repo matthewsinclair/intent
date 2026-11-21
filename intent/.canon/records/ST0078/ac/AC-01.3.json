@@ -1,0 +1,8 @@
+{
+  "id": "AC-01.3",
+  "text": "intent doctor reports an event file that does not parse or whose id disagrees with its name, and reports a committed event the store lacks as store-stale; nothing rebuilds state from events and doctor never reconciles canon against them.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

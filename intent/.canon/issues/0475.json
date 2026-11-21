@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 475,
+  "schema": "intent/issue@4.0",
+  "id": "0475",
   "slug": "intent-claude-rules-index-gets-clap-s-unknown-su",
   "title": "intent claude rules index gets clap's unknown-subcommand error at exit 1, not the retired refusal at exit 2",
   "status": "closed",

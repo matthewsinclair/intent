@@ -1,0 +1,8 @@
+{
+  "id": "AC-05.6",
+  "text": "An apply refuses to drop an hv inbox view that holds a live message and names each one with its sender, proceeds once the mediator has cleared them, and leaves every one readable with `--all`.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

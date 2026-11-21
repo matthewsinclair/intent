@@ -1,0 +1,9 @@
+{
+  "id": "04",
+  "title": "Plan Granularity Standards",
+  "scope": "S",
+  "status": "done",
+  "objective": "Add a \"Plan Quality Standards\" section to `in-plan/SKILL.md` that enforces specific granularity requirements for workplans. Adapted from Superpowers' `writing-plans` skill, which demands complete, executable steps with no ambiguity.",
+  "body": "## Deliverables\n\n### New section in `in-plan/SKILL.md`\n\nInsert after \"### 2. Show detailed workplan\" and before \"### 3. Invoke relevant coding skills\":\n\n```markdown\n### 3. Plan quality standards\n\nEvery plan must meet these standards before presenting to the user:\n\n**No placeholders**: Plans must not contain \"TBD\", \"TODO\", \"handle edge cases\", \"implement as needed\", or similar deferred language. If you don't know the answer yet, that's a question for the user, not a placeholder.\n\n**Specific file paths**: Every step must name the files it will create or modify. \"Update the config\" is not a step. \"Add pool_size to config/runtime.exs\" is.\n\n**Small steps**: Each step should be independently verifiable. If a step modifies more than 3 files, split it. If a step takes more than a few minutes of coding, split it.\n\n**Verification per step**: Each step includes how to verify it worked (test command, build command, or manual check). A step without verification is not a step.\n```\n\nRenumber subsequent sections (current \"### 3\" becomes \"### 4\", etc.).\n\n## Acceptance Criteria\n\n- [ ] `in-plan/SKILL.md` has \"Plan quality standards\" section\n- [ ] Existing procedure sections renumbered correctly\n- [ ] No em dashes in added content\n- [ ] `intent claude skills sync` works\n\n## Dependencies\n\n- Coordinate with WP-01 (chains_to) and WP-02 (Red Flags) if modifying `in-plan` in the same session\n- No hard dependency -- can be merged cleanly if done separately",
+  "preamble": ""
+}

@@ -1,0 +1,10 @@
+{
+  "id": "AT-06.4",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/canon_round_trip.rs:405",
+  "covers": [
+    "AC-06.4"
+  ],
+  "status": "green",
+  "note": "the test is written; the machine is to-write, red, green. Green in bin/devbin gate rust at a577deb9f, 2026-11-20 15:02Z to 15:06Z by date -u; landed in ed302b7e4"
+}

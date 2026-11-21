@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 143,
+  "schema": "intent/issue@4.0",
+  "id": "0143",
   "slug": "no-v3-equivalent-of-intent-claude-upgrade-skip-s",
   "title": "no v3 equivalent of intent claude upgrade --skip-settings",
   "status": "closed",

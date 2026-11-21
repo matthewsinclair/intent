@@ -1,0 +1,9 @@
+{
+  "id": "20",
+  "title": "Structural search: tree-sitter symbols per declared language, and the agent canon that uses them",
+  "scope": "L",
+  "status": "done",
+  "objective": "Structural search: definitions and name-matched references for every language the project declares, from tree-sitter through each grammar's own tags query, and the agent canon repointed at it so `intent search --kind def` answers the Highlander question from the tree.",
+  "body": "Design: design.md, T2 and the agent canon. Grammars for Rust, Elixir, Swift and Lua compiled in by default, with Bash declared behind `lang-bash` and off because its grammar ships no tags query (ruled 2026-09-12); a file is parsed only for a language in the project's `languages` array. Definitions and name-matched references in one `symbols` table with spans, told apart by `kind`; references are named as name-matched on every surface and never as callers. The binary-size delta per grammar was measured and recorded before it shipped, and the line was ruled under the pen on 2026-09-12: rust, elixir, swift and lua on by default. Every skill, template and rule that named `intent modules find` for a lookup names `intent search --kind def` first and the agent guide regenerates; `intent modules find` stays in 3.0.2 as the registry fallback (ruled 2026-09-12; AC-20.6 withdrawn naming AC-24.5). Depends on WP-19.\n",
+  "preamble": ""
+}

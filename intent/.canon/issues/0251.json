@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 251,
+  "schema": "intent/issue@4.0",
+  "id": "0251",
   "slug": "the-acceptance-gate-treats-an-at-row-s-multi-fil",
   "title": "The acceptance gate treats an AT row's multi-file ' + ' citation as one path, so three rows citing only files that DO exist are reported missing and their threads block -- and the finding cannot be told apart from a genuinely absent file, while the cheapest repair deletes evidence",
   "status": "closed",

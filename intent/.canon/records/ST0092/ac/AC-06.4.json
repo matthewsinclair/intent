@@ -1,0 +1,9 @@
+{
+  "id": "AC-06.4",
+  "text": "A session launched with `intent claude start <node>` on a converged board, to which hv types nothing, states its own seat, which only the launcher can give it, and its role, its remit, the mediator and its route to hv, which its pickup gives it; vc records that boot by its session id.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "session 7683276e-e120-4768-84a2-a8267004e72d (intent-vc), launched by intent claude start vc on brew 3.3.0 (1e423060f919) at 2026-11-12 04:44:33Z on Intent's converged board. Its launcher gave its seat and its pickup printed role, remit, mediator and route to hv before hv typed anything; recorded by vc"
+  }
+}

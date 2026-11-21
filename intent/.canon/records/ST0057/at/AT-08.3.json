@@ -1,0 +1,10 @@
+{
+  "id": "AT-08.3",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/mutation_put_format_by_authorship.rs",
+  "covers": [
+    "AC-08.3"
+  ],
+  "status": "green",
+  "note": "**GREEN 2026-08-19 (ic; vc ran the file, then required evidence on the exception limb).** 5 tests, rc=0, 5 mutation arms shared with AT-08.4. **BOTH LIMBS EVIDENCED, which is exactly what the row needed: json accepted, md REFUSED, and the attachment exception honoured BY AUTHORSHIP rather than by a special case** -- `Project::classify` stays the single answer to what a file is, so the asymmetry is implementable rather than aspirational. Two refusals beyond the row's text: **the body id must match the address**, and **a cross-project address is refused rather than written locally.** The conjunction risk vc flagged -- a test satisfying the rejection limb alone and reading as complete -- does not apply here, because the exception is DRIVEN rather than asserted."
+}

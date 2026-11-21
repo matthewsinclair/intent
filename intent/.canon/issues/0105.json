@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 105,
+  "schema": "intent/issue@4.0",
+  "id": "0105",
   "slug": "doctor-s-gate-check-tests-the-carrier-for-a-guar",
   "title": "doctor's gate check tests the carrier for a guard runner the shim never names, so every v3 estate reports GateNotRunning while its guards run",
   "status": "closed",

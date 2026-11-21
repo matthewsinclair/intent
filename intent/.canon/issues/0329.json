@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 329,
+  "schema": "intent/issue@4.0",
+  "id": "0329",
   "slug": "rule-proxies-that-contradict-their-own-rule",
   "title": "Rule proxies that contradict their own rule",
   "status": "closed",

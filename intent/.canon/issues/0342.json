@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 342,
+  "schema": "intent/issue@4.0",
+  "id": "0342",
   "slug": "view-skew-rot-doctor-compares-the-generator-bann",
   "title": "View-skew rot: doctor compares the generator banner, so every cut leaves every untouched view skewed until something re-renders it",
   "status": "closed",

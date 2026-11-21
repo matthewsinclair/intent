@@ -1,0 +1,8 @@
+{
+  "id": "AC-03.1",
+  "text": "**An opaque attachment's bytes live in canon as a file at `intent/.canon/st/<ID>/<path>`, and hydration reproduces the working copy byte-identically from it.** Denominator printed over every opaque attachment in the estate. Until this holds an opaque attachment cannot be dehydrated at all, because there is no source beside it in the commit.",
+  "kind": "test",
+  "state": {
+    "is": "computed"
+  }
+}

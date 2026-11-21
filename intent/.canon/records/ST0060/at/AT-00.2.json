@@ -1,0 +1,10 @@
+{
+  "id": "AT-00.2",
+  "kind": "test",
+  "file": "native/rust/crates/intentsvcs/tests/vault_one_code_path.rs",
+  "covers": [
+    "AC-00.2"
+  ],
+  "status": "to-write",
+  "note": "**Burns first**: forces the null passphrase adapter and requires the store/identity layers to behave identically. Also greps the capability for `cfg(target_os` outside the adapter module and fails on a hit -- the assertion is about WHERE platform code is allowed to be, which no behavioural test can make."
+}

@@ -1,0 +1,11 @@
+{
+  "id": "AT-00.1",
+  "kind": "non-test",
+  "file": "tests/conformance/run_v2_suite.bash",
+  "prose": "Witness tests/conformance/run_v2_suite.bash, red when this row was last recorded; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). The criterion it covers was withdrawn by hv on 2026-09-11.",
+  "covers": [
+    "AC-00.1"
+  ],
+  "status": "n-a",
+  "note": "**the harness EXISTS and this row was wrong at `to-write`, which is why it is red rather than merely unwritten.** It retargets through ic's `INTENT_BIN` seam (`tests/lib/test_helper.bash:21`), and **it BURNS FIRST** -- points `INTENT_BIN` at `/usr/bin/false` and requires the named files to fail before trusting any result, which is the only thing that catches a file resolving `intent` some other way and never seeing the override. Red for two named reasons, not for being unbuilt: **the surface is not ported (WP-04 is the v2 replacement and is unbuilt), so the estate cannot be green**; and this AC additionally carries the burning-coverage clause I added on 2026-08-14 against ic's `config` finding -- **no command family at zero burning coverage** -- which `coverage_map.sh` reports and which no run has yet cleared. **AC-00.1's deferred non-core `pending` rows are DISCHARGED (ic, 2026-09-09) and this row is no longer where they are gated** -- every `pending` register row carries per-test rows and conserves against the file-level register, mutation-controlled in four arms with a refusal over an empty population; the derivation sits on the criterion. **This row stays red for its OTHER two named reasons, and a reader must not take the discharge as movement on either.** **A first run coming back green would mean the file list had been scoped to what already passes**, which the harness says of itself in its own header. The full 100-file estate is deliberately not the default because hv runs the full suite externally; a harness that invites a long unattended run from a tool session is one that will be run that way by accident -- RETIRED at the 3.0.1 cut: its witness tests/conformance/run_v2_suite.bash went with the v2 shell (ST0056 AC-00.6), red, and the criterion it covers was withdrawn by hv on 2026-09-11; the runner's record stands at its commits"
+}

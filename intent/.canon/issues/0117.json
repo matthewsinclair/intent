@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 117,
+  "schema": "intent/issue@4.0",
+  "id": "0117",
   "slug": "three-sibling-parity-tools-carry-three-root-reso",
   "title": "Three sibling parity tools carry three root-resolution contracts, deciding fixture-drivability by accident",
   "status": "closed",

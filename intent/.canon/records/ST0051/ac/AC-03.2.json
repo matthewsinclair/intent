@@ -1,0 +1,9 @@
+{
+  "id": "AC-03.2",
+  "text": "the file-vs-stdout width rule is documented where a future generator author will see it.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "`usage-rules.md` \"### Generated file width\" + the `get_default_width` helper comment + MODULES.md"
+  }
+}

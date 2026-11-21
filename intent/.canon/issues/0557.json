@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 557,
+  "schema": "intent/issue@4.0",
+  "id": "0557",
   "slug": "intent-init-lang-writes-agents-md-before-it-decl",
   "title": "intent init --lang writes AGENTS.md before it declares the languages, so the contract says none are declared",
   "status": "closed",

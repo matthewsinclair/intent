@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 16,
+  "schema": "intent/issue@4.0",
+  "id": "0016",
   "slug": "project-template-bakes-an-absolute-intent-home",
   "title": "Project template bakes an absolute INTENT_HOME path into .claude/settings.json",
   "status": "closed",

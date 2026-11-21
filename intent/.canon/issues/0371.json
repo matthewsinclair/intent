@@ -1,6 +1,6 @@
 {
-  "schema": "intent/issue@3.0",
-  "number": 371,
+  "schema": "intent/issue@4.0",
+  "id": "0371",
   "slug": "src-sections-name-parts-is-never-filled-so-the-w",
   "title": "src_sections.name_parts is never filled, so the words inside a CamelCase name are not searchable",
   "status": "closed",
