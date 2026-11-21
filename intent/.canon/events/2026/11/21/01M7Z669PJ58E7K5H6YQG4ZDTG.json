@@ -1,0 +1,15 @@
+{
+  "id": "01M7Z669PJ58E7K5H6YQG4ZDTG",
+  "ts": "2026-11-21T13:54:33.298Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "For hv on return: ST0095 AC-03.3 (byte-identical screenshots from seeded ids) is kind test, but its proof is cc's run of gen_explorer_shots.sh twice with diff -rq, 0 of 11 differing (Desk 01M7Z3TRBW), not a committed test. vc ruled (c) while hv is AFK: unsatisfied, WP-03 open, the cut not blocked. vc recommends (a): re-kind it to non-test and satisfy it on that run. (b) is a new test that runs the generator twice."
+  }
+}
