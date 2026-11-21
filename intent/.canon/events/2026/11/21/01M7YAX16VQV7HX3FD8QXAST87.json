@@ -1,0 +1,14 @@
+{
+  "id": "01M7YAX16VQV7HX3FD8QXAST87",
+  "ts": "2026-11-21T05:57:38.143Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-13.1"
+  },
+  "payload": {
+    "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
+  }
+}

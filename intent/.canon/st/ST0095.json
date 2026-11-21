@@ -470,7 +470,8 @@
       "text": "The Swift app shows a hashed fixture, and the served page's refusals name both families.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "9df6dfad4: AT-11.2 (intentd store.rs) and the hashed-fixture arm in native/macos/Intent/IntentTests/ProjectServiceTests.swift:17, gated by devbin-cc and read by ic and vc"
       }
     },
     {
@@ -502,7 +503,8 @@
       "text": "No page, skill, rule or template teaches minting or predicting an ordinal, and each that teaches an id teaches both families and the prefix.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
       }
     },
     {
@@ -510,7 +512,8 @@
       "text": "The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
       }
     },
     {
@@ -518,7 +521,8 @@
       "text": "The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2"
       }
     },
     {
@@ -838,6 +842,16 @@
       ],
       "status": "green",
       "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment"
+    },
+    {
+      "id": "AT-11.2",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/src/store.rs:1121",
+      "covers": [
+        "AC-11.2"
+      ],
+      "status": "green",
+      "note": "the served page's two refusals each name both id families in the waist's own sentences, and a hashed path resolves with its id carried unchanged. Green at 9df6dfad4 (devbin-cc's gate, read by ic and vc)"
     },
     {
       "id": "AT-14.1",

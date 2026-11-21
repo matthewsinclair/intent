@@ -87,7 +87,7 @@ title: Git-style ids: threads, work packages and issues unique by construction
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 
 - AC-11.1 The TUI lists, opens and moves between hashed threads, work packages and issues, and an all-digit id keeps its leading zero. -- satisfied: no (computed)
-- AC-11.2 (non-test) The Swift app shows a hashed fixture, and the served page's refusals name both families. -- satisfied: no
+- AC-11.2 (non-test) The Swift app shows a hashed fixture, and the served page's refusals name both families. -- evidence: 9df6dfad4: AT-11.2 (intentd store.rs) and the hashed-fixture arm in native/macos/Intent/IntentTests/ProjectServiceTests.swift:17, gated by devbin-cc and read by ic and vc -- satisfied: yes
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
 
@@ -97,9 +97,9 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-13 -- Docs, skills, rules and templates teach the new ids (status: Not Started)
 
-- AC-13.1 (non-test) No page, skill, rule or template teaches minting or predicting an ordinal, and each that teaches an id teaches both families and the prefix. -- satisfied: no
-- AC-13.2 (non-test) The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven. -- satisfied: no
-- AC-13.3 (non-test) The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered. -- satisfied: no
+- AC-13.1 (non-test) No page, skill, rule or template teaches minting or predicting an ordinal, and each that teaches an id teaches both families and the prefix. -- evidence: landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2 -- satisfied: yes
+- AC-13.2 (non-test) The team page's collision sections are written from a drive of the new build in which the five-open-merge-requests shape mints five different ids, and every command on every changed page was driven. -- evidence: landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2 -- satisfied: yes
+- AC-13.3 (non-test) The upgrade note and the release notes say what a project does on upgrade, and that nothing is renumbered. -- evidence: landed 4a4930e4e; gate 01M7XBC3 (rust rc 0, shell 884 ok); drive log refs/bank/devbin-dc/st0095/wp13/drive-log-run2 -- satisfied: yes
 
 ### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
@@ -177,7 +177,7 @@ _(no tests in this group)_
 
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 
-_(no tests in this group)_
+- AT-11.2 `native/rust/crates/intentd/src/store.rs:1121` -- covers AC-11.2 -- status: green -- the served page's two refusals each name both id families in the waist's own sentences, and a hashed path resolves with its id carried unchanged. Green at 9df6dfad4 (devbin-cc's gate, read by ic and vc)
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
 
