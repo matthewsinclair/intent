@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "dbaff1e1-9b17-4902-94e9-603a011ae24c",
-    "heartbeat_at": "2026-11-21T12:51:00.905Z",
+    "heartbeat_at": "2026-11-21T12:56:42.645Z",
     "status": "active",
     "focus": "2026-11-21 12:50Z by date -u: localfolded for hv's 12:50Z estate compact, not released. 0746 reworked (old-format render), ST0093 check green; next: stack on dc's ELIDE commit, then one run = final T's gate (gate all, test shell, shots twice). Todo 60 carries the steps.",
     "claims": [
@@ -2593,6 +2593,14 @@
       "state": "live",
       "recorded_at": "2026-11-21T12:50:53.467Z",
       "edited_at": "2026-11-21T12:54:16.974Z"
+    },
+    {
+      "node": "cc",
+      "kind": "todo",
+      "seq": 61,
+      "text": "After the 3.5.0 cut and push (vc's ruling, not a regression): file a 3.5.x issue, owner cc. st attach on a realised thread writes no file when the path is absent (place_attachment -> replace_realised returns on NotFound, facade.rs:21035), so the file waits for organize --apply or hydrate, and doctor is silent. Fix: place_attachment creates the file when the thread's directory is realised and the path is absent, with its own test.",
+      "state": "live",
+      "recorded_at": "2026-11-21T13:40:47.912Z"
     }
   ],
   "sent": [
