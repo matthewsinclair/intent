@@ -57,7 +57,11 @@ const SLASH: &[u8] = b"/";
 const CTRL_C: &[u8] = b"\x03";
 
 const EXPLORE: &[&str] = &["intent", "explore"];
-const EXPLORE_THREAD: &[&str] = &["intent", "explore", "ST0001"];
+/// Where a shot opens a thread: the thread the seed minted, given with `--thread`
+/// (ST0095 AC-03.3). A project mints a git-style id, so no id is spelled here, and
+/// [`take`] puts the minted one where [`THREAD`] stands.
+const THREAD: &str = "<thread>";
+const EXPLORE_THREAD: &[&str] = &["intent", "explore", THREAD];
 
 /// One thing done to the explorer before its screen is read. The steps are
 /// keys a reader can press, and nothing else, except `Run`, which is a command
@@ -791,10 +795,11 @@ struct Context {
   commit: String,
   only: Vec<String>,
   seed_dates: Vec<String>,
+  thread: String,
   env: Vec<(OsString, OsString)>,
 }
 
-const USAGE: &str = "usage: explorer_shots --cwd <dir> --out <dir> --version <v> --commit <sha> [--only <a,b>] [--seed-date <YYYY-MM-DD>]...";
+const USAGE: &str = "usage: explorer_shots --cwd <dir> --out <dir> --version <v> --commit <sha> --thread <id> [--only <a,b>] [--seed-date <YYYY-MM-DD>]...";
 
 fn is_date(s: &str) -> bool {
   let b = s.as_bytes();
@@ -813,7 +818,7 @@ fn required<T>(value: Option<T>, flag: &str) -> Result<T, String> {
 }
 
 fn parse(mut args: impl Iterator<Item = String>) -> Result<Context, String> {
-  let (mut cwd, mut out, mut version, mut commit) = (None, None, None, None);
+  let (mut cwd, mut out, mut version, mut commit, mut thread) = (None, None, None, None, None);
   let (mut only, mut seed_dates) = (Vec::new(), Vec::new());
   while let Some(flag) = args.next() {
     let mut value = || {
@@ -826,6 +831,7 @@ fn parse(mut args: impl Iterator<Item = String>) -> Result<Context, String> {
       "--out" => out = Some(PathBuf::from(value()?)),
       "--version" => version = Some(value()?),
       "--commit" => commit = Some(value()?),
+      "--thread" => thread = Some(value()?),
       "--only" => {
         only = value()?
           .split(',')
@@ -867,12 +873,18 @@ fn parse(mut args: impl Iterator<Item = String>) -> Result<Context, String> {
     commit: required(commit, "--commit")?,
     only,
     seed_dates,
+    thread: required(thread, "--thread")?,
     env,
   })
 }
 
 fn take(shot: &Shot, ctx: &Context) -> Result<(), String> {
-  let mut session = Session::start(shot.argv, &ctx.env, &ctx.cwd)
+  let argv: Vec<&str> = shot
+    .argv
+    .iter()
+    .map(|a| if *a == THREAD { ctx.thread.as_str() } else { a })
+    .collect();
+  let mut session = Session::start(&argv, &ctx.env, &ctx.cwd)
     .map_err(|e| format!("could not start the explorer for `{}`: {e}", shot.name))?;
   let taken = session.shoot(shot, ctx);
   let closed = session

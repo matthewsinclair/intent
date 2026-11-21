@@ -126,6 +126,29 @@ set_from() {
   intent set "$1" "$2" --from "$PROSE" >> "$LOG"
 }
 
+# mint <verb...> -- run a verb that mints, keep its output in LOG, and print the id
+# it names on its `created:` line, which is how a script reads a minted id (ST0095
+# WP-02). A project mints git-style ids, so no id is spelled in this file: each
+# is the one the verb printed (ST0095 AC-03.3). A verb that refuses, or mints
+# nothing, is a step that failed: its whole output goes to stderr, since LOG is
+# removed with the run, and it exits 1, which under -e the assignment it feeds
+# carries out of the seed.
+mint() {
+  local out id
+  out="$(intent "$@" 2>&1)" || {
+    printf '%s\n' "$out" >> "$LOG"
+    printf 'error: `intent %s` refused while seeding:\n%s\n' "$*" "$out" >&2
+    exit 1
+  }
+  printf '%s\n' "$out" >> "$LOG"
+  id="$(printf '%s\n' "$out" | awk '$1 == "created:" { print $2; exit }')"
+  [ -n "$id" ] || {
+    printf 'error: `intent %s` printed no created: line:\n%s\n' "$*" "$out" >&2
+    exit 1
+  }
+  printf '%s' "$id"
+}
+
 # Every command below is one a reader could type. The test files exist
 # because `at green` refuses a row whose file is missing or does not carry
 # the row's id.
@@ -137,64 +160,64 @@ seed_shopfront() {
   jq '.author = "Demo"' intent/.config/config.json > "$TMP/config.json"
   cp "$TMP/config.json" intent/.config/config.json
 
-  intent st new "Accept card payments" --start >> "$LOG"
-  set_from ST0001 objective <<'TXT'
+  T1="$(mint st new "Accept card payments" --start)"
+  set_from "$T1" objective <<'TXT'
 Take card payments at checkout without the card number ever reaching our servers.
 
 The payment form hands the card to the processor and gets back a token; everything after that works on the token alone. An order exists only once a charge has been captured, and every captured charge ends in exactly one receipt.
 TXT
-  set_from ST0001 context <<'TXT'
+  set_from "$T1" context <<'TXT'
 Today checkout takes orders on account only. Card payments are the most requested feature from the shop's customers, and the processor's hosted form keeps us out of card-data scope.
 TXT
-  intent wp new ST0001 "Tokenise the card in the payment form" >> "$LOG"
-  intent wp new ST0001 "Charge, capture and record the order" >> "$LOG"
-  intent wp new ST0001 "Email a receipt" >> "$LOG"
-  set_from intent:///threads/ST0001/wp/01 objective <<'TXT'
+  W1="$(mint wp new "$T1" "Tokenise the card in the payment form")"
+  W2="$(mint wp new "$T1" "Charge, capture and record the order")"
+  W3="$(mint wp new "$T1" "Email a receipt")"
+  set_from "$W1" objective <<'TXT'
 The processor's hosted field takes the card number and hands back a token, so the number never reaches our servers.
 TXT
-  set_from intent:///threads/ST0001/wp/02 objective <<'TXT'
+  set_from "$W2" objective <<'TXT'
 Charge the token, capture on success, and write the order only once the capture is confirmed.
 TXT
-  set_from intent:///threads/ST0001/wp/03 objective <<'TXT'
+  set_from "$W3" objective <<'TXT'
 Send one receipt per captured charge, even when the processor calls back twice.
 TXT
-  intent wp start ST0001/01 >> "$LOG"
+  intent wp start "$W1" >> "$LOG"
 
-  intent ac new ST0001 AC-00.1 --text "The payment page names the processor that handles the card" >> "$LOG"
-  intent ac new ST0001 AC-01.1 --kind test --text "The card number never reaches our servers: the form posts a token" >> "$LOG"
-  intent ac new ST0001 AC-02.1 --kind test --text "A card the processor declines leaves no order behind" >> "$LOG"
-  intent ac new ST0001 AC-02.2 --kind test --text "A captured charge is recorded as exactly one order" >> "$LOG"
-  intent ac new ST0001 AC-03.1 --kind test --text "A captured charge sends exactly one receipt" >> "$LOG"
+  intent ac new "$T1" AC-00.1 --text "The payment page names the processor that handles the card" >> "$LOG"
+  intent ac new "$T1" AC-01.1 --kind test --text "The card number never reaches our servers: the form posts a token" >> "$LOG"
+  intent ac new "$T1" AC-02.1 --kind test --text "A card the processor declines leaves no order behind" >> "$LOG"
+  intent ac new "$T1" AC-02.2 --kind test --text "A captured charge is recorded as exactly one order" >> "$LOG"
+  intent ac new "$T1" AC-03.1 --kind test --text "A captured charge sends exactly one receipt" >> "$LOG"
   mkdir -p test/payments
   printf '# AT-01.1: the payment form posts a token, never the card number\n' > test/payments/tokenise_test.exs
   printf '# AT-02.1: a declined card leaves no order behind\n' > test/payments/decline_test.exs
   printf '# AT-02.2: a captured charge is recorded as exactly one order\n' > test/payments/capture_test.exs
-  intent at new ST0001 AT-01.1 --covers AC-01.1 --file test/payments/tokenise_test.exs >> "$LOG"
-  intent at new ST0001 AT-02.1 --covers AC-02.1 --file test/payments/decline_test.exs >> "$LOG"
-  intent at new ST0001 AT-02.2 --covers AC-02.2 --file test/payments/capture_test.exs >> "$LOG"
-  intent at red ST0001 AT-01.1 >> "$LOG"
-  intent at green ST0001 AT-01.1 >> "$LOG"
-  intent at red ST0001 AT-02.1 >> "$LOG"
-  intent at green ST0001 AT-02.1 >> "$LOG"
-  intent at red ST0001 AT-02.2 --note "fails when the processor sends the capture callback twice" >> "$LOG"
-  intent ac satisfy ST0001 AC-00.1 --evidence "Checked on the staging payment page" >> "$LOG"
-  intent wp done ST0001/01 >> "$LOG"
-  intent wp start ST0001/02 >> "$LOG"
+  intent at new "$T1" AT-01.1 --covers AC-01.1 --file test/payments/tokenise_test.exs >> "$LOG"
+  intent at new "$T1" AT-02.1 --covers AC-02.1 --file test/payments/decline_test.exs >> "$LOG"
+  intent at new "$T1" AT-02.2 --covers AC-02.2 --file test/payments/capture_test.exs >> "$LOG"
+  intent at red "$T1" AT-01.1 >> "$LOG"
+  intent at green "$T1" AT-01.1 >> "$LOG"
+  intent at red "$T1" AT-02.1 >> "$LOG"
+  intent at green "$T1" AT-02.1 >> "$LOG"
+  intent at red "$T1" AT-02.2 --note "fails when the processor sends the capture callback twice" >> "$LOG"
+  intent ac satisfy "$T1" AC-00.1 --evidence "Checked on the staging payment page" >> "$LOG"
+  intent wp done "$W1" >> "$LOG"
+  intent wp start "$W2" >> "$LOG"
 
-  intent st new "Refunds from the order page" >> "$LOG"
-  set_from ST0002 objective <<'TXT'
+  T2="$(mint st new "Refunds from the order page")"
+  set_from "$T2" objective <<'TXT'
 Let staff refund all or part of a captured charge from the order page, and record who refunded what and why.
 TXT
 
-  intent st new "Rate-limit the public API" --start >> "$LOG"
-  set_from ST0003 objective <<'TXT'
+  T3="$(mint st new "Rate-limit the public API" --start)"
+  set_from "$T3" objective <<'TXT'
 Stop one API key from starving the others: every key gets a token bucket, and a request over its limit is answered 429 with a Retry-After header.
 TXT
-  intent wp new ST0003 "A token bucket per API key" >> "$LOG"
-  set_from intent:///threads/ST0003/wp/01 objective <<'TXT'
+  W4="$(mint wp new "$T3" "A token bucket per API key")"
+  set_from "$W4" objective <<'TXT'
 Keep one bucket per key, refill it at the key's rate, and refuse a request that finds it empty.
 TXT
-  intent wp start ST0003/01 >> "$LOG"
+  intent wp start "$W4" >> "$LOG"
 
   intent issues add "The pay button submits twice on a slow connection" --severity high \
     --body "On a throttled connection a second click on Pay starts a second charge before the first returns." >> "$LOG"
@@ -225,7 +248,7 @@ while read -r d; do
   DATE_ARGS+=(--seed-date "$d")
 done < <(printf '%s\n' "${SEED_DATES[@]}" | sort -u)
 
-"$SHOTS" --cwd "$DEMO/shopfront" --out "$TMP/svg" \
+"$SHOTS" --cwd "$DEMO/shopfront" --out "$TMP/svg" --thread "$T1" \
   --version "$VERSION" --commit "$COMMIT" "${DATE_ARGS[@]}"
 
 mkdir -p "$OUTDIR"
