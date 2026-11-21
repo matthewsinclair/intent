@@ -248,8 +248,13 @@ fn a_registered_unmigrated_board_is_an_advisory_naming_the_migration_and_never_s
   assert_eq!(advisories[0].file, "intent/whiteboard/dc/wip.md");
   assert_eq!(advisories[0].class, FindingClass::Advisory);
   assert!(
-    advisories[0].detail.contains("`intent wb migrate dc`"),
+    advisories[0].remedy().contains("`intent wb migrate dc`"),
     "the remedy is the migration: {}",
+    advisories[0].remedy()
+  );
+  assert!(
+    !advisories[0].detail.contains("wb migrate"),
+    "and the detail says only what is true, the verb being the remedy's (issue 0740's follow-up): {}",
     advisories[0].detail
   );
 }

@@ -181,7 +181,7 @@ An empty or absent array means no language critics run, and the gate prints a `0
 After the critics, the gate runs `intent doctor` and reads its exit code and nothing else. It does not parse doctor's output or decide which of its classes matter: doctor splits its own classes into counted findings and advisories, and it carries that split in its exit code, which the release preflight also reads.
 
 - Exit `0` prints `intent doctor gate: estate clean.` and the commit proceeds.
-- Exit `1` prints doctor's findings, then `intent doctor: the estate disagrees with the store -- commit refused.` Each finding names what clears it. Regenerating a view discards a hand edit, so copy out anything you meant to keep first.
+- Exit `1` prints doctor's findings, then `intent doctor: the estate disagrees with the store -- commit refused.` Each group of findings prints one `remedy:` line, which names what clears them. Regenerating a view discards a hand edit, so copy out anything you meant to keep first.
 - Any other exit prints `intent doctor did not check (exit N) -- estate health is UNENFORCED in this commit.` and lets the commit through. This includes `4`, an estate doctor could not judge, and an older binary without the verb.
 
 There is no flag that skips this arm; `git commit --no-verify` bypasses it along with every other arm. The critic arm and the doctor arm both report before either one refuses, so a commit carrying both kinds of defect shows both. The guards are different: a guard refusal ends the gate at once, so neither the critic nor the doctor arm runs in that attempt, and no `--no-verify` reminder is printed. The merge result of a pull request is checked by the same verb in CI: see `doctor-on-the-merge-result` in `.github/workflows/pr-checks.yml`.

@@ -2747,13 +2747,20 @@ pub fn skew_against(
     // that is early rather than one that is broken.
     if let Some(Undeclared::Board(node)) = &owner {
       if view.path == project.wb_board_view(node) && view.path.exists() {
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::Advisory,
-          format!(
-            "`{node}` is registered and not migrated: this board and its inboxes are still hand-authored markdown, and nothing renders over them or compares them against the model -- `intent wb migrate {node}` carries them into the model, after which they are generated views"
-          ),
-        ));
+        // The node is in the remedy because the verb cannot run without it,
+        // as hydrate's thread is (issue 0740's follow-up).
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::Advisory,
+            format!(
+              "`{node}` is registered and not migrated: this board and its inboxes are still hand-authored markdown, and nothing renders over them or compares them against the model"
+            ),
+          )
+          .with_remedy(format!(
+            "`intent wb migrate {node}` carries this board and its inboxes into the model, after which they are generated views"
+          )),
+        );
       }
       continue;
     }

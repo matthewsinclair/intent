@@ -775,8 +775,8 @@ case "$doctor_rc" in
     echo "" >&2
     [ -n "$doctor_out" ] && printf '%s\n' "$doctor_out" >&2
     echo "intent doctor: the estate disagrees with the store -- commit refused." >&2
-    echo "  each finding above names what clears it; regenerating a view DISCARDS a hand" >&2
-    echo "  edit, so copy anything you meant to keep out of it first." >&2
+    echo "  each group's remedy line above names what clears it; regenerating a view" >&2
+    echo "  DISCARDS a hand edit, so copy anything you meant to keep out of it first." >&2
     echo "  to bypass this one commit (use sparingly): git commit --no-verify" >&2
     ;;
   *)

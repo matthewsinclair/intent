@@ -126,6 +126,25 @@ fn failure_an_edit_outside_the_allow_list_refuses_and_the_store_is_untouched() {
     said.contains("Objective") && said.contains("Context"),
     "the refusal must say which sections DO round trip, or it is a dead end: {said}"
   );
+  // Issue 0740's follow-up: the finding says what is read back, and its one
+  // remedy says where to put the text, so the two never print twice.
+  let intentsvcs::ingest::IngestError::Refused(refusal) = &err else {
+    panic!("a refusal carrying findings: {said}")
+  };
+  let preamble = refusal
+    .findings
+    .iter()
+    .find(|f| f.detail.contains("preamble"))
+    .unwrap_or_else(|| panic!("a finding on the preamble: {said}"));
+  assert!(
+    !preamble.detail.contains("move the text"),
+    "the detail still carries the remedy: {preamble:?}"
+  );
+  assert_eq!(
+    preamble.remedy(),
+    "move the text into `## Objective` or `## Context`, or discard it",
+    "{preamble:?}"
+  );
 
   // **THE FILE IS UNTOUCHED TOO.** A refusal that repaired the view would
   // destroy the operator's text while telling them it had refused.

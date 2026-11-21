@@ -1995,11 +1995,20 @@ fn carry_info_round_trip(
       // operator's edit while saying nothing at all.
       Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
       Err(e) => {
-        findings.push(Finding::new(
-          &rel,
-          FindingClass::ViewSkew,
-          format!("the cover could not be read, so any edit in it cannot be carried: {e}"),
-        ));
+        // The detail says what is true and the remedy what clears it (issue
+        // 0740's follow-up, on 0738's `Finding::with_remedy`): the class's
+        // fallback names a regeneration, which would discard the very edit
+        // this cover could not be read for.
+        findings.push(
+          Finding::new(
+            &rel,
+            FindingClass::ViewSkew,
+            format!("the cover could not be read, so any edit in it cannot be carried: {e}"),
+          )
+          .with_remedy(
+            "make the file readable again (its permissions, or the disk it is on), then run the same sync: nothing in it is carried or discarded until it can be read",
+          ),
+        );
         continue;
       }
     };
@@ -2010,19 +2019,27 @@ fn carry_info_round_trip(
         thread.context = carried.context;
       }
       Err(sections) => {
+        // What is read back is a fact of the detail; where to put the text
+        // is the remedy (issue 0740's follow-up).
+        let read_back = crate::views::INFO_ROUND_TRIP_SECTIONS
+          .iter()
+          .map(|s| format!("`## {s}`"))
+          .collect::<Vec<_>>();
         for section in sections {
-          findings.push(Finding::new(
-            &rel,
-            FindingClass::ViewSkew,
-            format!(
-              "{section} was edited by hand and does not round-trip -- only {} are read back, so move the text into one of those or discard it",
-              crate::views::INFO_ROUND_TRIP_SECTIONS
-                .iter()
-                .map(|s| format!("`## {s}`"))
-                .collect::<Vec<_>>()
-                .join(" and ")
-            ),
-          ));
+          findings.push(
+            Finding::new(
+              &rel,
+              FindingClass::ViewSkew,
+              format!(
+                "{section} was edited by hand and does not round-trip: only {} are read back",
+                read_back.join(" and ")
+              ),
+            )
+            .with_remedy(format!(
+              "move the text into {}, or discard it",
+              read_back.join(" or ")
+            )),
+          );
         }
       }
     }
