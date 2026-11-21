@@ -2623,14 +2623,11 @@ fn hydrated(argument: &str, overwrite: bool) -> Result<(), Failure> {
   // operator who typed `ST0000` is told what it was promoted to, which is the
   // one place the bare-id shorthand can be seen doing its work; echoing their
   // own argument back would confirm only that it was received.
-  let listed_in = facade.realisation_named(true).map_err(fail)?;
+  let words = facade.realisation_words().map_err(fail)?;
   let project = facade.project();
   println!(
-    "ok: {} hydrated -- listed in {}, {} file(s) on disk, {} written by this run",
-    address.to_url(),
-    listed_in,
-    done.paths.len(),
-    done.wrote.len()
+    "{}",
+    words.hydrated(&address.to_url(), done.paths.len(), done.wrote.len())
   );
   // **THE WRITTEN SUBSET IS THE ONE PRINTER'S, SO ONLY `exists` STAYS HERE**
   // (issue 0632): a `wrote:` label of this verb's own beside the printer's
@@ -2674,7 +2671,7 @@ fn dehydrated(argument: &str) -> Result<(), Failure> {
     })
     .map_err(fail)?;
 
-  let manifest = facade.realisation_named(true).map_err(fail)?;
+  let words = facade.realisation_words().map_err(fail)?;
 
   // **AC-00.6: `NOTHING TO DO` AND `DID SOMETHING` MUST NOT READ THE SAME**, and
   // the two axes are reported SEPARATELY because they move independently.
@@ -2685,20 +2682,17 @@ fn dehydrated(argument: &str) -> Result<(), Failure> {
   // that disagreement unreportable. This is the class that let `1 refused`
   // speak for 423 files.
   if !done.unlisted && done.removed.is_empty() && done.pruned.is_empty() {
-    println!(
-      "ok: {} was already dehydrated -- not listed in {manifest}, nothing realised to remove",
-      address.to_url()
-    );
+    println!("{}", words.already_dehydrated(&address.to_url()));
     return Ok(());
   }
 
   println!("ok: {} dehydrated", address.to_url());
   if done.unlisted {
-    println!("  delisted: {manifest}");
+    println!("{}", words.unrealised());
   } else {
     // Reached when the files were present and the id was never listed. Saying
     // nothing here would let the run read as an ordinary delisting.
-    println!("  unchanged: {manifest} -- the id was not listed, and the files were present anyway");
+    println!("{}", words.unchanged());
   }
   // Each removed file is named by the one printer below, as `removed:` (issue
   // 0632), so the past tense still answers the `to-remove:` lines above.
@@ -6258,7 +6252,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // project state that does not read names the manifest, as 3.4.0's did, and
   // the facade opened below refuses it by name.
   let format = intentsvcs::intentfiles::reported_format(&project);
-  let manifest = intentsvcs::intentfiles::named(&project, format, false);
+  let words = intentsvcs::intentfiles::words(&project, format);
 
   // **THE TTY IS CHECKED BEFORE THE FACADE IS EVEN OPENED, SO A REFUSAL CANNOT
   // HAVE WRITTEN ANYTHING (AC-11.2).** Not an ordering convention: nothing
@@ -6274,9 +6268,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // override, because a flag-driven force would make this criterion
   // unmeasurable rather than merely weaker.
   if force && !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
-    return Err(Failure::Error(format!(
-      "error: `--default --force` regenerates `{manifest}` from status and needs a person to confirm it\n  remedy: run it in a terminal. There is deliberately no flag or environment variable that answers for you -- bare `intent organize --default` writes the declaration when there is none and changes nothing when there is"
-    )));
+    return Err(Failure::Error(words.default_needs_a_person()));
   }
 
   let mut facade = engine(project.clone(), ctx, StoreNeed::Shared)?;
@@ -6291,21 +6283,9 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
     // prompt is the one piece of prose in this estate whose whole job is to be
     // accurate at the moment a human decides, so it names the act, names what
     // survives it, and names the spelling that does not do it.
-    println!("about to regenerate {manifest} from thread status, and then APPLY it.");
-    println!(
-      "this is the destructive arm: it realises every thread the regenerated file declares, and it REMOVES the files of every realised thread it does not."
-    );
-    println!(
-      "a thread whose preconditions are unmet keeps every one of its files, and the refusal names the thread and the precondition."
-    );
-    println!(
-      "{}",
-      if format == intentsvcs::canon_format::CanonFormat::V3 {
-        "`intent organize --default` without --force writes the declaration and removes nothing."
-      } else {
-        "`intent organize --default` without --force reports what the records declare and changes nothing."
-      }
-    );
+    for line in words.default_prompt() {
+      println!("{line}");
+    }
     print!("proceed? [y/N] ");
     use std::io::Write as _;
     let _ = std::io::stdout().flush();
@@ -6317,9 +6297,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
     // empty line, which is what an operator who hit return without reading
     // produces. A prompt whose default is yes is a prompt that did not ask.
     if answer.trim() != "y" {
-      return Err(Failure::Error(format!(
-        "error: not confirmed, so `{manifest}` is unchanged"
-      )));
+      return Err(Failure::Error(words.default_not_confirmed()));
     }
   }
 
@@ -6329,27 +6307,8 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // left-alone, and regenerated are different events; a report that reads the
   // same for the first and third would make the safe run indistinguishable from
   // the destructive one.
-  if !done.wrote {
-    println!(
-      "ok: {manifest} is already present and declares {} entr{}",
-      done.declares,
-      if done.declares == 1 { "y" } else { "ies" }
-    );
-    println!(
-      "    nothing was written. `intent organize --default --force` regenerates it from status, after confirming on a terminal."
-    );
-  } else if done.was_present {
-    println!(
-      "ok: {manifest} regenerated from status -- now declares {} entr{}",
-      done.declares,
-      if done.declares == 1 { "y" } else { "ies" }
-    );
-  } else {
-    println!(
-      "ok: {manifest} written -- declares {} entr{} (every WIP thread, and nothing else)",
-      done.declares,
-      if done.declares == 1 { "y" } else { "ies" }
-    );
+  for line in words.default_outcome(&done, force) {
+    println!("{line}");
   }
   // **THE TWO ARMS FORK HERE, AND THE SENTENCE BELOW IS WHY THE FORK EXISTS.**
   // It used to be unconditional and said `no file was created or removed, IN
@@ -6363,9 +6322,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // a committed event file. The sentence is about the realised threads, and
   // saying "no file" would be false on every run.
   if !force {
-    println!(
-      "    no thread file was created or removed. `intent organize` previews what this declaration implies."
-    );
+    println!("{}", words.default_left_alone());
     return Ok(());
   }
 
@@ -6378,7 +6335,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // and that reservation is about the BARE verb: a run that decides what should
   // be realised and acts on it cannot be previewed, so it is available only
   // behind `--force` and a confirmed human, which is the shape hv ruled.
-  println!("    applying the regenerated declaration in the same run.");
+  println!("{}", words.default_applying());
   // **THE PLAN IS PRINTED BEFORE THE ACT HERE TOO** (hv, 2026-09-12). The
   // confirm above keeps its ratified position and wording: it is asked BEFORE
   // the declaration is regenerated, and the plan is a plan OF the regenerated
@@ -14615,9 +14572,10 @@ fn print_notes(notes: &[Note], subject: &str) {
       // record rather than a warning off the act -- but a file leaving the
       // working tree unnamed is the silent half, whether or not it is
       // recoverable.
-      Note::DehydratesOnNextOrganize(paths) => {
+      Note::DehydratesOnNextOrganize { paths, format } => {
         eprintln!(
-          "note: this unlists {subject}, so the next `intent organize --apply` will remove:"
+          "note: this {} {subject}, so the next `intent organize --apply` will remove:",
+          intentsvcs::intentfiles::closing_unrealises(*format)
         );
         for path in paths {
           eprintln!("  {path}");
@@ -14625,7 +14583,8 @@ fn print_notes(notes: &[Note], subject: &str) {
         eprintln!(
           // The flag is named with the verbs that take it: `fc` shares this
           // note and has no `--keep` (issue 0566).
-          "  remedy: `intent st hydrate {subject}` writes them back from the store, and `st done --keep` or `st cancel --keep` closes without unlisting"
+          "  remedy: `intent st hydrate {subject}` writes them back from the store, and `st done --keep` or `st cancel --keep` {}",
+          intentsvcs::intentfiles::closing_kept(*format)
         );
       }
       // **THE INDEX IS WHAT A PLAIN `git commit` CARRIES**, and a commit a gate

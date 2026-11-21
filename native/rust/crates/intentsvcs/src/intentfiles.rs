@@ -257,6 +257,231 @@ pub fn named(
   }
 }
 
+/// **WHAT A VERB THAT SETS REALISATION SAYS, IN THE FORMAT THE PROJECT KEEPS
+/// IT** (todo 78, on ST0096 WP-01). `st hydrate`, `st dehydrate` and
+/// `organize --default` print sentences about where realisation lives, and
+/// 3.4.0's manifest and an upgraded project's records need different ones,
+/// not one sentence with [`named`]'s phrase dropped in. The words for each
+/// format are here, beside [`named`], so a face picks none of them.
+///
+/// **3.4.0'S SENTENCES ARE KEPT BYTE FOR BYTE.** An upgraded project's are
+/// cc's meaning (2026-11-20): hydrate sets a record realised and dehydrate
+/// sets it unrealised, and `--default --force` RESETS every record's choice
+/// from status (hv decision 75), realising every WIP thread and every open
+/// issue, counted apart so neither hides in the other.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RealisationWords {
+  format: crate::canon_format::CanonFormat,
+  /// [`named`] for one record: the manifest's path, or `its canon record`.
+  named: String,
+}
+
+/// The words for `project` in `format`: see [`RealisationWords`].
+pub fn words(
+  project: &crate::project::Project,
+  format: crate::canon_format::CanonFormat,
+) -> RealisationWords {
+  RealisationWords {
+    format,
+    named: named(project, format, true),
+  }
+}
+
+impl RealisationWords {
+  fn manifest(&self) -> bool {
+    self.format == crate::canon_format::CanonFormat::V3
+  }
+
+  /// `st hydrate`'s report: `url` realised, `on_disk` files present and
+  /// `written` of them written by this run.
+  pub fn hydrated(&self, url: &str, on_disk: usize, written: usize) -> String {
+    let named = &self.named;
+    let where_ = if self.manifest() {
+      format!("listed in {named}")
+    } else {
+      format!("realised on {named}")
+    };
+    format!(
+      "ok: {url} hydrated -- {where_}, {on_disk} file(s) on disk, {written} written by this run"
+    )
+  }
+
+  /// `st dehydrate` on a record that was not realised and had nothing on disk.
+  pub fn already_dehydrated(&self, url: &str) -> String {
+    let named = &self.named;
+    let where_ = if self.manifest() {
+      format!("not listed in {named}")
+    } else {
+      format!("not realised on {named}")
+    };
+    format!("ok: {url} was already dehydrated -- {where_}, nothing realised to remove")
+  }
+
+  /// `st dehydrate`'s line for the record it unrealised.
+  pub fn unrealised(&self) -> String {
+    let named = &self.named;
+    if self.manifest() {
+      format!("  delisted: {named}")
+    } else {
+      format!("  unrealised: {named}")
+    }
+  }
+
+  /// `st dehydrate`'s line for a record that was not realised while its files
+  /// were present anyway.
+  pub fn unchanged(&self) -> String {
+    let named = &self.named;
+    if self.manifest() {
+      format!("  unchanged: {named} -- the id was not listed, and the files were present anyway")
+    } else {
+      format!("  unchanged: {named} -- the id was not realised, and the files were present anyway")
+    }
+  }
+
+  /// `organize --default --force` refused with no person to confirm it: the
+  /// error and its remedy.
+  pub fn default_needs_a_person(&self) -> String {
+    let named = &self.named;
+    if self.manifest() {
+      format!(
+        "error: `--default --force` regenerates `{named}` from status and needs a person to confirm it\n  remedy: run it in a terminal. There is deliberately no flag or environment variable that answers for you -- bare `intent organize --default` writes the declaration when there is none and changes nothing when there is"
+      )
+    } else {
+      "error: `--default --force` resets every canon record's realisation from status and needs a person to confirm it\n  remedy: run it in a terminal. There is deliberately no flag or environment variable that answers for you -- bare `intent organize --default` reports what the records declare and changes nothing".to_string()
+    }
+  }
+
+  /// The lines `organize --default --force` prints before it asks.
+  pub fn default_prompt(&self) -> Vec<String> {
+    let named = &self.named;
+    let unmet = "a thread whose preconditions are unmet keeps every one of its files, and the refusal names the thread and the precondition.".to_string();
+    if self.manifest() {
+      vec![
+        format!("about to regenerate {named} from thread status, and then APPLY it."),
+        "this is the destructive arm: it realises every thread the regenerated file declares, and it REMOVES the files of every realised thread it does not.".to_string(),
+        unmet,
+        "`intent organize --default` without --force writes the declaration and removes nothing.".to_string(),
+      ]
+    } else {
+      vec![
+        "about to reset every canon record's realisation from thread status, and then APPLY it.".to_string(),
+        "this is the destructive arm: it realises every thread and issue the reset realises, and it REMOVES the files of every realised record it does not.".to_string(),
+        unmet,
+        "`intent organize --default` without --force reports what the records declare and changes nothing.".to_string(),
+      ]
+    }
+  }
+
+  /// `organize --default --force` answered with anything but `y`.
+  pub fn default_not_confirmed(&self) -> String {
+    let named = &self.named;
+    if self.manifest() {
+      format!("error: not confirmed, so `{named}` is unchanged")
+    } else {
+      "error: not confirmed, so no canon record's realisation changed".to_string()
+    }
+  }
+
+  /// `organize --default`'s report of what it did, `forced` whether `--force`
+  /// asked for the reset.
+  ///
+  /// **THE REPORT FOLLOWS WHAT THE FACADE DID, NOT THE FORMAT THE WORDS WERE
+  /// BUILT FOR.** [`crate::facade::Declared`] carries per-kind counts exactly
+  /// when the records hold realisation, so a report of the records' counts is
+  /// never worded as a manifest's entries, whatever a face read the format as.
+  pub fn default_outcome(&self, done: &crate::facade::Declared, forced: bool) -> Vec<String> {
+    let named = &self.named;
+    let entries = |n: usize| format!("{n} entr{}", if n == 1 { "y" } else { "ies" });
+    match &done.realised {
+      Some(count) => {
+        let realised = format!(
+          "{} thread(s) and {} issue(s) realised",
+          count.threads, count.issues
+        );
+        match (forced, done.wrote) {
+          (false, _) => vec![
+            format!("ok: realisation is already recorded on the canon records -- {realised}"),
+            "    nothing was written. `intent organize --default --force` resets it from status, after confirming on a terminal.".to_string(),
+          ],
+          (true, true) => vec![format!(
+            "ok: realisation reset from status -- now {realised} (every WIP thread and every open issue)"
+          )],
+          (true, false) => vec![format!(
+            "ok: realisation reset from status -- every record already matched it, so none changed: {realised} (every WIP thread and every open issue)"
+          )],
+        }
+      }
+      None if !done.wrote => vec![
+        format!(
+          "ok: {named} is already present and declares {}",
+          entries(done.declares)
+        ),
+        "    nothing was written. `intent organize --default --force` regenerates it from status, after confirming on a terminal.".to_string(),
+      ],
+      None if done.was_present => vec![format!(
+        "ok: {named} regenerated from status -- now declares {}",
+        entries(done.declares)
+      )],
+      None => vec![format!(
+        "ok: {named} written -- declares {} (every WIP thread, and nothing else)",
+        entries(done.declares)
+      )],
+    }
+  }
+
+  /// The line `organize --default` ends with when `--force` was not given:
+  /// nothing on disk moved.
+  pub fn default_left_alone(&self) -> &'static str {
+    if self.manifest() {
+      "    no thread file was created or removed. `intent organize` previews what this declaration implies."
+    } else {
+      "    no thread file was created or removed. `intent organize` previews what the records' realisation implies."
+    }
+  }
+
+  /// The line before `organize --default --force` applies what it set.
+  pub fn default_applying(&self) -> &'static str {
+    if self.manifest() {
+      "    applying the regenerated declaration in the same run."
+    } else {
+      "    applying the reset realisation in the same run."
+    }
+  }
+}
+
+/// What a close does to a record's realisation, as its note says it (todo
+/// 78): 3.4.0's manifest unlists it, and an upgraded project's record is
+/// unrealised.
+pub fn closing_unrealises(format: crate::canon_format::CanonFormat) -> &'static str {
+  match format {
+    crate::canon_format::CanonFormat::V3 => "unlists",
+    crate::canon_format::CanonFormat::V4 => "unrealises",
+  }
+}
+
+/// What a close with `--keep` does instead, as the same note says it.
+pub fn closing_kept(format: crate::canon_format::CanonFormat) -> &'static str {
+  match format {
+    crate::canon_format::CanonFormat::V3 => "closes without unlisting",
+    crate::canon_format::CanonFormat::V4 => "closes and leaves it realised",
+  }
+}
+
+/// How many records of each kind declare themselves realised: the counts a
+/// report gives, apart so neither hides in the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RealisedCount {
+  pub threads: usize,
+  pub issues: usize,
+}
+
+impl RealisedCount {
+  /// Threads and issues together.
+  pub fn total(&self) -> usize {
+    self.threads + self.issues
+  }
+}
+
 /// The format realisation is answered in, for a REPORTER that must keep
 /// going: a project state that does not read is taken as 3.4.0's format, the
 /// manifest's, because doctor reports that state as its own finding
@@ -288,9 +513,13 @@ pub fn fold_onto(realised: &Realised, threads: &mut [model::Thread], issues: &mu
   }
 }
 
-/// How many records declare themselves realised: the count a report gives.
-pub fn realised_count(threads: &[model::Thread], issues: &[model::Issue]) -> usize {
-  threads.iter().filter(|t| t.realised).count() + issues.iter().filter(|i| i.realised).count()
+/// How many records of each kind declare themselves realised: the counts a
+/// report gives.
+pub fn realised_count(threads: &[model::Thread], issues: &[model::Issue]) -> RealisedCount {
+  RealisedCount {
+    threads: threads.iter().filter(|t| t.realised).count(),
+    issues: issues.iter().filter(|i| i.realised).count(),
+  }
 }
 
 /// What an upgraded project's records declare realised, keyed as the manifest

@@ -1245,6 +1245,10 @@ pub struct Declared {
   /// How many entries the file declares NOW -- after the write when there was
   /// one, and as found when there was not.
   pub declares: usize,
+  /// In an upgraded project, the records realised NOW, threads and issues
+  /// apart (todo 78); `None` in 3.4.0's format, whose report counts the
+  /// manifest's entries.
+  pub realised: Option<intentfiles::RealisedCount>,
 }
 
 /// What [`Facade::hydration`] did (0083).
@@ -4277,7 +4281,13 @@ pub enum Note {
   /// the same argument `Facade::closing_notes` already makes): the close
   /// itself removes nothing, so this is the moment the operator can still
   /// decide otherwise.
-  DehydratesOnNextOrganize(Vec<String>),
+  DehydratesOnNextOrganize {
+    paths: Vec<String>,
+    /// The format the project keeps realisation in, so the note says what
+    /// the close does to it in that format's words (todo 78):
+    /// [`intentfiles::closing_unrealises`], [`intentfiles::closing_kept`].
+    format: crate::canon_format::CanonFormat,
+  },
   /// A board edit rewrote files that were already STAGED, so the index may
   /// still hold the text the edit replaced (issue 0523). Project-relative.
   ///
@@ -4663,7 +4673,7 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       Note::StatusResetByRekind { row, kind, from, to } => serde_json::json!({
         "kind": "status-reset-by-rekind", "row": row, "to_kind": kind, "from": from, "to": to,
       }),
-      Note::DehydratesOnNextOrganize(paths) => serde_json::json!({
+      Note::DehydratesOnNextOrganize { paths, .. } => serde_json::json!({
         "kind": "dehydrates-on-next-organize", "paths": paths,
       }),
       Note::StagedBeforeTheEdit(paths) => serde_json::json!({
@@ -8984,6 +8994,7 @@ impl Facade {
           wrote: false,
           was_present: true,
           declares,
+          realised: None,
         });
       }
     }
@@ -9024,6 +9035,7 @@ impl Facade {
       wrote: true,
       was_present: existing.is_some(),
       declares,
+      realised: None,
     })
   }
 
@@ -9035,17 +9047,20 @@ impl Facade {
   fn declare_default_on_records(&mut self, force: bool) -> Result<Declared, FacadeError> {
     let path = self.project.canon_dir();
     if !force {
+      let count = intentfiles::realised_count(&self.canon.threads, &self.canon.issues);
       return Ok(Declared {
         path,
         wrote: false,
         was_present: true,
-        declares: intentfiles::realised_count(&self.canon.threads, &self.canon.issues),
+        declares: count.total(),
+        realised: Some(count),
       });
     }
     let default = intentfiles::default_for(&self.canon.threads, &self.canon.issues);
     let mut next = self.canon.clone();
     intentfiles::fold_onto(&default, &mut next.threads, &mut next.issues);
-    let declares = intentfiles::realised_count(&next.threads, &next.issues);
+    let count = intentfiles::realised_count(&next.threads, &next.issues);
+    let declares = count.total();
     let changed = next.threads != self.canon.threads || next.issues != self.canon.issues;
     if changed {
       let applied = self.apply(
@@ -9064,6 +9079,7 @@ impl Facade {
       wrote: changed,
       was_present: true,
       declares,
+      realised: Some(count),
     })
   }
 
@@ -15097,10 +15113,10 @@ impl Facade {
     ))
   }
 
-  /// Where this project keeps realisation, as a report names it (ST0096
-  /// WP-01): see [`intentfiles::named`].
-  pub fn realisation_named(&self, one: bool) -> Result<String, FacadeError> {
-    Ok(intentfiles::named(&self.project, self.canon_format()?, one))
+  /// What a verb that sets realisation says in this project's format (todo
+  /// 78, on ST0096 WP-01): see [`intentfiles::RealisationWords`].
+  pub fn realisation_words(&self) -> Result<intentfiles::RealisationWords, FacadeError> {
+    Ok(intentfiles::words(&self.project, self.canon_format()?))
   }
 
   /// Whether realisation is carried by the records (an upgraded project) and
@@ -22477,7 +22493,10 @@ impl Facade {
     // working tree, and it left without being named.
     let mut notes = match self.dehydration_paths(id)? {
       paths if paths.is_empty() => Vec::new(),
-      paths => vec![Note::DehydratesOnNextOrganize(paths)],
+      paths => vec![Note::DehydratesOnNextOrganize {
+        paths,
+        format: self.canon_format()?,
+      }],
     };
     // **THE ATTACHMENT QUESTION IS ASKED OF A THREAD THAT HAS ATTACHMENTS**, and
     // an attachment-less thread cannot be uncertain about them -- see this

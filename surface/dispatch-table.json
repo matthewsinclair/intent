@@ -870,7 +870,7 @@
           "owner_wp": "ST0057 WP-02",
           "target": {
             "state": "new-surface",
-            "no_op": "unexamined by driving the verb twice. Read from `render.rs` (`fn hydrated`), ST0096 WP-01: the second call prints `ok: <address> hydrated -- listed in <where>, <n> file(s) on disk, 0 written by this run`, exit 0, where `<where>` is `.intentfiles` in 3.4.0's format and `its canon record` once the project is upgraded."
+            "no_op": "**MEASURED** by driving the verb twice through the dev binary at daf2417d2 (ic, 2026-11-20, todo 78, on gyges in scratch projects with their own HOME, never the main checkout's store), once in each format. The second call prints `ok: <address> hydrated -- listed in intent/.intentfiles, <n> file(s) on disk, 0 written by this run` in 3.4.0's format (a project brew's 3.4.0 made) and `ok: <address> hydrated -- realised on its canon record, <n> file(s) on disk, 0 written by this run` once the project is upgraded, exit 0 in both. The words for each format are `intentfiles::RealisationWords`."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
@@ -895,7 +895,7 @@
           "owner_wp": "ST0057 WP-02",
           "target": {
             "state": "new-surface",
-            "no_op": "unexamined by driving the verb twice. Read from `render.rs` (`fn dehydrated`), ST0096 WP-01: the second call prints `ok: <address> was already dehydrated -- not listed in <where>, nothing realised to remove`, exit 0, where `<where>` is `.intentfiles` in 3.4.0's format and `its canon record` once the project is upgraded."
+            "no_op": "**MEASURED** by driving the verb twice through the dev binary at daf2417d2 (ic, 2026-11-20, todo 78, on gyges in scratch projects with their own HOME, never the main checkout's store), once in each format. The second call prints `ok: <address> was already dehydrated -- not listed in intent/.intentfiles, nothing realised to remove` in 3.4.0's format (a project brew's 3.4.0 made) and `ok: <address> was already dehydrated -- not realised on its canon record, nothing realised to remove` once the project is upgraded, exit 0 in both. The first call says `delisted: intent/.intentfiles` and `unrealised: its canon record` respectively. The words for each format are `intentfiles::RealisationWords`."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,

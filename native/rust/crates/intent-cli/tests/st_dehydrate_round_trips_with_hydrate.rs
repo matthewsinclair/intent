@@ -335,7 +335,7 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
   assert!(
     stdout
       .lines()
-      .any(|l| l.trim() == "delisted: its canon record"),
+      .any(|l| l.trim() == "unrealised: its canon record"),
     "the run changed the declaration on the record and did not name it -- stdout: {stdout}"
   );
 }

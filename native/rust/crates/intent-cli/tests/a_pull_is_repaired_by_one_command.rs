@@ -192,7 +192,7 @@ fn the_plan_writes_nothing_and_an_apply_after_the_tree_moved_is_refused() {
   );
 }
 
-/// AT-05.2 and AT-05.4: **a merge stopped on an id both clones minted is
+/// AT-05.3: **a merge stopped on an id both clones minted is
 /// repaired by `--apply --yes`**: this clone's thread moves to the next id free
 /// in the store and the tree, the pulled one keeps its id, the store takes the
 /// merged canon, and doctor's verdict is the exit code. No view is left
@@ -336,7 +336,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   );
 }
 
-/// AT-05.3: **a canon content conflict always asks a person, and `--yes`
+/// **A canon content conflict always asks a person, and `--yes`
 /// does not answer it.** With no terminal it is left and named, and the steps
 /// that read the merged canon wait. Answered -- here by the library's `ask`,
 /// the one door the terminal prompt also goes through -- it takes the side

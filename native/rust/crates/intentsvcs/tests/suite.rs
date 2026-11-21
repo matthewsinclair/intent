@@ -450,6 +450,8 @@ mod prose_ingest_fts;
 mod realisation_is_recorded;
 #[path = "realisation_lives_in_the_record.rs"]
 mod realisation_lives_in_the_record;
+#[path = "realisation_words_follow_the_format.rs"]
+mod realisation_words_follow_the_format;
 #[path = "record_timestamps.rs"]
 mod record_timestamps;
 #[path = "records_list_ordinals_by_number_then_hashed_records_by_creation.rs"]
