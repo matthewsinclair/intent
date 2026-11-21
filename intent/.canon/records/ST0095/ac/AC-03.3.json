@@ -1,8 +1,9 @@
 {
   "id": "AC-03.3",
   "text": "Two runs of the explorer screenshots write byte-identical images from seeded ids.",
-  "kind": "test",
+  "kind": "non-test",
   "state": {
-    "is": "computed"
+    "is": "satisfied",
+    "evidence": "intent-cc's Desk run 01M7Z3TRBWG9DQPH0WCS96838J (ended 2026-11-21 13:15:39Z): gen_explorer_shots.sh twice on code landed as 44f4a043f, ad2a7c655 and 29c3ed0e4 in v3.5.0, diff -rq 0 of 11 images differing; re-kinded to non-test and satisfied on that run by hv decision 85"
   }
 }
