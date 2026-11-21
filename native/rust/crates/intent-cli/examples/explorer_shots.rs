@@ -349,7 +349,7 @@ impl Session {
     ] {
       if !needle.is_empty() && shown.contains(needle) {
         return Err(format!(
-          "`{}` still shows the {label} `{needle}` after elision -- add a pattern to ELIDE for where the explorer draws it",
+          "`{}` still shows the {label} `{needle}` after elision -- teach find_build where the explorer draws it",
           shot.name
         ));
       }
@@ -616,13 +616,16 @@ fn find_build(line: &[Glyph], turtle: bool) -> Option<(usize, usize)> {
       return None;
     }
     i += 2;
-    let hex = run(i, |s| {
-      s.len() == 1 && matches!(s.as_bytes()[0], b'0'..=b'9' | b'a'..=b'f')
-    });
-    if !(7..=40).contains(&hex) || !is(i + hex, ")") {
+    // The commit as the explorer's stamp writes it, up to its `)`: eight hex, or
+    // `dirty-` and eight hex for a build of a tree with changes, or a value that
+    // is no sha passed through whole, eg `unknown` (layout.rs's short_commit).
+    // Matching only hex left a dirty build's version on screen, which the check
+    // after elision then refused (the 3.5.0 rehearsal, 2026-11-21).
+    let commit = run(i, |s| s != ")" && s != " ");
+    if commit == 0 || !is(i + commit, ")") {
       return None;
     }
-    Some((start, i + hex + 1))
+    Some((start, i + commit + 1))
   })
 }
 
