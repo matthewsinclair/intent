@@ -148,7 +148,7 @@ commit_fixture() {
   assert_output_contains "ADDS 0"
 }
 
-@test "canon-commit: a realised thread's attachment whose file differs from its record is DIVERGED" {
+@test "canon-commit: a realised thread's attachment whose file differs from its record is an ADD this commit refuses" {
   verb st start "$THREAD"
   printf 'the design\n' >"$TEST_TEMP_DIR/design.md"
   verb st attach "$THREAD" design.md --from "$TEST_TEMP_DIR/design.md"
@@ -162,5 +162,6 @@ commit_fixture() {
   tool canon_commit_check HEAD --exhaustive
   [ "$status" -eq 1 ] || fail "expected exit 1, got $status: $output"
   assert_output_contains "$n recorded attachment(s)"
-  assert_output_contains "design.md DIVERGED"
+  assert_output_contains "ADDS $n of $n attachment(s) examined"
+  assert_output_contains "/design.md"
 }
