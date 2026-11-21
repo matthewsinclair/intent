@@ -837,6 +837,14 @@
       "text": "THE TAP IS HELD BY THE CUT ITSELF, AND OUR MACHINES RUN THE RELEASE FROM THE OPT TREE UNTIL THE TAP MOVES (hv, answering todo 68 on dc's proposal, first-hand in vc's session, read by vc at 2026-11-21 05:47Z on its date -u; hv chose the options vc put, each marked recommended). (1) Build the hold before the kovacs rehearsal, so the rehearsal drives it. `cut publish --hold-tap` stops after the macOS and sums steps and prints the one command to finish. A new `cut tap` runs `formula publish --pull`, then `brew smoke --at-tag`. For this cut, release.after is `cut publish --hold-tap` alone, so the dry run hv confirms shows the hold. vc runs `bin/devbin cut tap` on hv's word, and a commit restores release.after. (2) Until the tap moves, rhadamanth, gyges and kovacs run the release from the dev/opt/brew contract's opt tree, once per machine at the tag: `bin/devbin build all`, then `intent install --prefix ~/.local/opt/intent`, then `intent use opt --prefix ~/.local/opt/intent`, then `intent upgrade` once per project. It moves every estate on the machine, AE's seats included, and seats restart from a login shell. Intent.app stays on the cask's 3.4.x. When the tap moves: `intent use brew`, then `brew upgrade`.",
       "state": "live",
       "recorded_at": "2026-11-21T05:49:27.359Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 78,
+      "text": "RELEASE DAY: SEATS RUN THE REHEARSAL, AND THE DESK FILLS IDLE WINDOWS (hv, 2026-11-21, answering devbin-vc's question dialog, read by 06:02Z on devbin-vc's date -u and relayed by devbin-vc to vc; hv's option labels quoted). hv wants Intent 3.5.x built and shipped today, and is away from the keyboard for a few hours. (1) \"Seats run it (Recommended)\": Intent's seats drive the kovacs rehearsal through kovacs-sysadm, booked on the Desk. It carries WP-12's routing half, ST0095 WP-03's screenshots and the brew smoke, and its proof goes to the Desk and vc. (2) \"Ship it all\": once every gate is green at the exact tip and the rehearsal has passed, cut 3.5.0, push it upstream and publish it. vc takes everything to the last outward step: the push, the release object and the tap. vc puts that step to hv first-hand in vc's own window, because a peer's relay does not stand in for hv's word on an irreversible publish, and hv decision 77 has the tap move on hv's word. (3) \"Fill idle windows\": other estates run only when Intent's lanes are empty and nothing Intent has asked for or announced would overlap. Intent's asks never wait, and cc's gates run alone.",
+      "state": "live",
+      "recorded_at": "2026-11-21T06:02:49.462Z"
     }
   ],
   "sent": [],
