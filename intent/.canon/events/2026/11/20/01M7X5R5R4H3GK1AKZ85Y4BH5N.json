@@ -1,0 +1,16 @@
+{
+  "id": "01M7X5R5R4H3GK1AKZ85Y4BH5N",
+  "ts": "2026-11-20T19:08:21.636Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 122,
+    "text": "ST0096/05 (L), split on vc's go into A1 (codec), A2 (writer, removals, moves; AC-05.1/05.2) and B (devbin-cc: upgrade split, closed views removed, refusals, cover; AC-05.3). A1 v2 GREEN at 1196d528a (Desk 01M7X56Y, 2026-11-20 19:07Z by date -u), banked refs/bank/cc/st0096/wp05-a1-v2-on-eabd29999 (blob b030f78cbfd0, patch-id c24e9f66e415), superseding v1. On critic-rust's critical finding the records moved to .canon/records/<thread>/{wp,ac,at,attachments}/, with attachment bytes alone in .canon/st/<thread>/, and children are read by the thread file's own schema. Proof, critic answers and design.md amendment sent to vc. B rebases onto v2 (CALL 2 (a): 0711's guard is the one case-pair refusal; write order: bytes, records, own file, project.json). NEXT, A2 on v2: writers through encode_thread_files, plus refusing a V4 own file that lists children inline; removal of child files whose record left; renumber/remint moves, landing the store BEFORE the canon (0739's window); ingest's orphan finding; extend dc's canon_paths and sync.rs's path mapping and owner_of to .canon/records/; one order for criteria/tests/attachments across store and disk; the AC-05.2 merge test; data-model.md note (todo 57)."
+  }
+}
