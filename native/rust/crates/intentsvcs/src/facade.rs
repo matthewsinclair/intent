@@ -283,8 +283,9 @@ pub struct Upgraded {
 
 /// What [`Facade::open_read_only`] opened, or where it stopped (AC-12.1).
 pub enum ReadOnly {
-  /// A facade whose every read writes nothing on disk.
-  Opened(Facade),
+  /// A facade whose every read writes nothing on disk, boxed because a
+  /// facade is large and the stop small (clippy::large_enum_variant).
+  Opened(Box<Facade>),
   /// The store reading would have to migrate: nothing was answered or written.
   Stopped(crate::doctor::StoreUnopened),
 }
@@ -5660,7 +5661,9 @@ impl Facade {
     Self::readable(&project)?;
     let path = project.db_path();
     match Store::opening_at(&path).map_err(FacadeError::Store)? {
-      StoreOpening::Create => Self::open_in_memory(project, ctx).map(ReadOnly::Opened),
+      StoreOpening::Create => Self::open_in_memory(project, ctx)
+        .map(Box::new)
+        .map(ReadOnly::Opened),
       stop @ StoreOpening::Migrate { .. } => Ok(ReadOnly::Stopped(
         crate::doctor::StoreUnopened::of(&project, stop),
       )),
@@ -5670,10 +5673,12 @@ impl Facade {
         let store = Store::open_read_only(&path).map_err(FacadeError::Store)?;
         let seen = store.data_version().map_err(FacadeError::Store)?;
         match ingest::load_warm(&project, &store)? {
-          Some(canon) => Ok(ReadOnly::Opened(Self::over(
+          Some(canon) => Ok(ReadOnly::Opened(Box::new(Self::over(
             project, ctx, store, canon, seen,
-          ))),
-          None => Self::open_in_memory(project, ctx).map(ReadOnly::Opened),
+          )))),
+          None => Self::open_in_memory(project, ctx)
+            .map(Box::new)
+            .map(ReadOnly::Opened),
         }
       }
     }

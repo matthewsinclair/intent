@@ -8646,7 +8646,7 @@ fn id_verb(m: &ArgMatches) -> Result<(), Failure> {
   // `Facade::open_read_only`; the stop is rendered as doctor renders its own.
   let facade = if m.get_flag("read-only") {
     match Facade::open_read_only(project, ctx).map_err(fail)? {
-      intentsvcs::facade::ReadOnly::Opened(facade) => facade,
+      intentsvcs::facade::ReadOnly::Opened(facade) => *facade,
       intentsvcs::facade::ReadOnly::Stopped(stop) => {
         return Err(print_read_only_stop(&format, &stop));
       }
