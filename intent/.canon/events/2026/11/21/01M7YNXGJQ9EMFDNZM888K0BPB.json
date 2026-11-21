@@ -1,0 +1,15 @@
+{
+  "id": "01M7YNXGJQ9EMFDNZM888K0BPB",
+  "ts": "2026-11-21T09:10:08.215Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "intent id --read-only, the first step of AC-12.1's routing half (rides 3.5.0, hv decision 79). ic's door; cc takes it if vc asks while ic is paused. Shape: open through store::Opening::decide as doctor does, writing nothing. Think the shape before vc asks."
+  }
+}
