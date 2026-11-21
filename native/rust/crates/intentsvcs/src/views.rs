@@ -3324,6 +3324,7 @@ mod tests {
   /// ST0096 WP-05 (AC-05.3): in the release's format a cover differs from
   /// 3.4.0's by its two generated sections alone, each replaced by its pointer;
   /// every other byte, the authored ones and the frame, is the same.
+  // ST0096 AT-05.4: the arm below.
   #[test]
   fn the_cover_changes_only_by_its_two_sections_in_the_releases_format() {
     let t = with_wp("ST0075", "wip", "not-started");

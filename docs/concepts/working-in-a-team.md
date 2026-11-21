@@ -75,21 +75,22 @@ Everyone else clones the repository and runs two commands:
 
 ```
   $ intent st new "Onboarding guide"
-  created: ST3060b2b2d824b45f
-  $ intent st start ST3060b2b2d824b45f
-  $ intent wp new ST3060b2b2d824b45f "Write the guide"
-  created: ST3060b2b2d824b45f/8819193e
+  created: ST4b4eb72f245b76fa
+  $ intent st start ST4b4eb72f245b76fa
+  $ intent wp new ST4b4eb72f245b76fa "Write the guide"
+  created: ST4b4eb72f245b76fa/91398ca6
   $ git diff --stat main...alice/onboarding
-   .../2026/11/20/01M7X9BTTMWWV0SFYZA1CZKDTT.json     | 14 ++++++++++
-   .../2026/11/20/01M7X9BTVKB26T00ZXVPR1TJDN.json     | 16 +++++++++++
-   .../2026/11/20/01M7X9BTWS1YASTM79Z048YHC6.json     | 15 +++++++++++
-   intent/.canon/st/ST3060b2b2d824b45f.json           | 26 ++++++++++++++++++
-   intent/st/ST3060b2b2d824b45f/WP/8819193e/info.md   | 20 ++++++++++++++
-   intent/st/ST3060b2b2d824b45f/info.md               | 31 ++++++++++++++++++++++
-   6 files changed, 122 insertions(+)
+   .../2026/11/21/01M7YGFYY7E8EGQMDDYT9VT0FQ.json     | 14 +++++++++++
+   .../2026/11/21/01M7YGFYZ2B8JNMPADKR3TDGBT.json     | 16 ++++++++++++
+   .../2026/11/21/01M7YGFZ05N90C5ZCT8JYPKWFF.json     | 15 +++++++++++
+   .../records/ST4b4eb72f245b76fa/wp/91398ca6.json    | 10 ++++++++
+   intent/.canon/st/ST4b4eb72f245b76fa.json           | 14 +++++++++++
+   intent/st/ST4b4eb72f245b76fa/WP/91398ca6/info.md   | 20 +++++++++++++++
+   intent/st/ST4b4eb72f245b76fa/info.md               | 29 ++++++++++++++++++++++
+   7 files changed, 118 insertions(+)
 ```
 
-The canon file and the directory are named by the thread's whole id. Tables and messages print its short form, `ST3060b2b`, and any unique prefix of at least four hex, or five if they are all digits, names it in every command.
+The canon file and the directory are named by the thread's whole id. Tables and messages print its short form, `ST4b4eb72`, and any unique prefix of at least four hex, or five if they are all digits, names it in every command.
 
 Things worth checking in the JSON: the status transition is the one the PR describes, a criterion's state moved because a test moved, and nothing changed that the PR does not mention.
 
@@ -97,7 +98,7 @@ Switching back to `main` leaves the tree clean, and the branch merges:
 
 ```
   $ git switch main
-  intent (post-checkout): took 1 change(s) from the files into the store: ST3060b2b (removed)
+  intent (post-checkout): took 1 change(s) from the files into the store: ST4b4eb72 (removed)
   $ git merge --no-ff alice/onboarding
 ```
 
@@ -108,22 +109,23 @@ Switching back to `main` leaves the tree clean, and the branch merges:
 ```
   $ git merge --squash origin/alice/checklist
   ...
-   create mode 100644 intent/.canon/events/2026/11/20/01M7X9BWD0N0XZKAT2E673TMEY.json
-   create mode 100644 intent/.canon/events/2026/11/20/01M7X9BWPXM0073JXAQQHS5G6S.json
-   create mode 100644 intent/.canon/st/ST1e403319943ee5c7.json
+   create mode 100644 intent/.canon/events/2026/11/21/01M7YGG0HHZM3YQG1KXB0E9SQQ.json
+   create mode 100644 intent/.canon/events/2026/11/21/01M7YGG0VCF1AMCW3N3DEWSAJV.json
+   create mode 100644 intent/.canon/records/ST7cb716537f3a55f7/wp/4fd54db4.json
+   create mode 100644 intent/.canon/st/ST7cb716537f3a55f7.json
 ```
 
 On Alice's own clone, switching to `main` takes the thread out of her store, because `main` does not carry it yet, and the pull puts it back:
 
 ```
   $ git switch main
-  intent (post-checkout): took 1 change(s) from the files into the store: ST1e40331 (removed)
+  intent (post-checkout): took 1 change(s) from the files into the store: ST7cb7165 (removed)
   $ git pull
-  intent (post-merge): took 1 change(s) from the files into the store: ST1e40331
+  intent (post-merge): took 1 change(s) from the files into the store: ST7cb7165
   $ git branch -D alice/checklist
 ```
 
-A rebase merge replays the branch's commits onto `main` and reads the same way: Alice's third pull request, rebase-merged, came back through the same two hook lines for its thread, `STb580080`.
+A rebase merge replays the branch's commits onto `main` and reads the same way: Alice's third pull request, rebase-merged, came back through the same two hook lines for its thread, `STa411cff`.
 
 ## After a pull
 
@@ -131,10 +133,10 @@ A rebase merge replays the branch's commits onto `main` and reads the same way: 
 
 ```
   $ git pull
-  $ intent st show ST1e403319943ee5c7
-  ST1e40331: Release checklist
+  $ intent st show ST7cb716537f3a55f7
+  ST7cb7165: Release checklist
   status: Triage
-  created: 2026-11-20
+  created: 2026-11-21
   objective: _(not yet written)_
 ```
 
@@ -144,13 +146,13 @@ From then on, the hook prints one line whenever it changed the store, here for t
 
 ```
   $ git pull
-  intent (post-merge): took 1 change(s) from the files into the store: ST9d5e063; and 1 event file(s)
+  intent (post-merge): took 1 change(s) from the files into the store: ST9defc91; and 1 event file(s)
 ```
 
 `intent sync` with no flag prints the plan for this clone and writes nothing. `--apply` applies it and runs `doctor` last, whose verdict is the exit code. Each step says what kind it is:
 
 - **quiet** steps run without asking: taking the files into the store, taking event files, regenerating views and bringing the search index up to date.
-- **reversible** steps, such as keeping both sides' work packages, moving an ordinal both sides made, or staging a regenerated view, are what `--yes` answers.
+- **reversible** steps, such as moving an ordinal both sides made or staging a regenerated view, are what `--yes` answers.
 - a **non-reversible** step, taking one side of a conflicting canon file, is always left for a person, and no flag answers for it.
 
 Without a terminal and without `--yes`, `--apply` runs the quiet steps and names what it left.
@@ -161,8 +163,8 @@ A rebase checks out what you pulled and then replays your own commits over it, s
 
 ```
   $ git pull --rebase
-  intent (post-checkout): took 2 change(s) from the files into the store: ST3060b2b, issue I57cb7bd; and 1 event file(s)
-  intent (post-rewrite): took 1 change(s) from the files into the store: ST3060b2b
+  intent (post-checkout): took 2 change(s) from the files into the store: ST4b4eb72, issue I18b15ff; and 1 event file(s)
+  intent (post-rewrite): took 1 change(s) from the files into the store: ST4b4eb72
 ```
 
 The first line takes the pulled tree, where the guide has no context yet; the second takes Bob's replayed commit back. Nothing is left for him to do.
@@ -175,7 +177,7 @@ A running intentd changes nothing about a pull. The hook takes the change as it 
   $ intent daemon start
   ok: intentd is answering at ...
   $ git pull
-  intent (post-merge): took 1 change(s) from the files into the store: ST9d5e063; and 1 event file(s)
+  intent (post-merge): took 1 change(s) from the files into the store: ST9defc91; and 1 event file(s)
   $ intent sync
   plan: nothing to do -- this clone's store already holds what the files say (plan ...)
 ```
@@ -194,22 +196,22 @@ A `git reset --hard` moves the canon under a store that still holds the old mode
 **Run `intent sync --apply` before the first write, not after it.** A write to a stale store projects the old model over the new canon. Here Bob's write undid Alice's pulled retitle, and said so:
 
 ```
-  $ intent set ST1e403319943ee5c7 context "Requested by support; retitled upstream"
+  $ intent set ST7cb716537f3a55f7 context "Requested by support; retitled upstream"
   warning: overwrote bytes that were not the store's render -- an edit to a generated file is gone:
-    intent/.canon/st/ST1e403319943ee5c7.json
+    intent/.canon/st/ST7cb716537f3a55f7.json
     remedy: a generated view has one writer, so recover the text with `git diff` / `git checkout` if you need it, and make the change through the verb that owns the field
   $ git diff --stat
-   intent/.canon/st/ST1e403319943ee5c7.json | 4 ++--
+   intent/.canon/st/ST7cb716537f3a55f7.json | 4 ++--
 ```
 
 After `git checkout -- .` to throw that away, the same write after a sync touches only the field it names:
 
 ```
   $ intent sync --apply
-  ok: took 1 change(s) from the files into the store: ST1e40331; and 1 event file(s)
-  $ intent set ST1e403319943ee5c7 context "Requested by support; retitled upstream"
+  ok: took 1 change(s) from the files into the store: ST7cb7165; and 1 event file(s)
+  $ intent set ST7cb716537f3a55f7 context "Requested by support; retitled upstream"
   $ git diff --stat
-   intent/.canon/st/ST1e403319943ee5c7.json | 2 +-
+   intent/.canon/st/ST7cb716537f3a55f7.json | 2 +-
 ```
 
 ## Five pull requests open at once
@@ -217,18 +219,18 @@ After `git checkout -- .` to throw that away, the same write after a sync touche
 **Intent takes each new id from the act that created the record, so ids made on different branches never meet.** Alice and Bob opened five pull requests, merge requests on some forges, from one commit of `main`, each creating a thread, a work package and an issue:
 
 ```
-  $ git switch -c mr-one 463eaca06d8ddd2f1f9e24602a8fdc3a9ad4e27a
+  $ git switch -c mr-one 9051f342481b04c031d74b0f8dde42e28d1ac565
   $ intent st new "Thread from mr-one"
-  created: STa1db81b2549e0378
-  $ intent wp new STa1db81b2549e0378 "Package from mr-one"
-  created: STa1db81b2549e0378/2d979fb1
+  created: ST77357a3549283257
+  $ intent wp new ST77357a3549283257 "Package from mr-one"
+  created: ST77357a3549283257/e371c5cd
   $ intent issues add "Issue from mr-one"
-  created: I3d9fbd87d844b6f6
+  created: I5329ed75e1ddea17
   ...
-  created: STad16411974dbfd49
-  created: STa8a9047163f1b939
-  created: ST77a728a44a1c0b63
-  created: ST7831dca650a06511
+  created: STd7fda24d9849f171
+  created: ST7383ecc81819c81a
+  created: ST611eb238952866cb
+  created: ST03d5003c259b406b
 ```
 
 The forge merged them one after another, and none of them conflicted:
@@ -245,78 +247,116 @@ Alice's pull takes all five threads, with their packages, and all five issues, a
 
 ```
   $ git pull
-  intent (post-merge): took 10 change(s) from the files into the store: ST77a728a, ST7831dca, STa1db81b, STa8a9047, STad16411, issue I010191d, issue I18c0e2d, issue I24d5bbf, issue I3d9fbd8, issue I816b7b2; and 6 event file(s)
+  intent (post-merge): took 10 change(s) from the files into the store: ST03d5003, ST611eb23, ST7383ecc, ST77357a3, STd7fda24, issue I17b3ac6, issue I5329ed7, issue I62ee3a9, issue I7e413e3, issue Iecf8348; and 6 event file(s)
+  $ intent st list --status all
+  alice          | Title                             | Status    | Created          | Completed
+  ---------------|-----------------------------------|-----------|------------------|-----------------
+  ST03d5003      | Thread from mr-five               | Triage    | 2026-11-21       |
+  ST611eb23      | Thread from mr-four               | Triage    | 2026-11-21       |
+  ST7383ecc      | Thread from mr-three              | Triage    | 2026-11-21       |
+  STd7fda24      | Thread from mr-two                | Triage    | 2026-11-21       |
+  ST77357a3      | Thread from mr-one                | Triage    | 2026-11-21       |
+  ST9defc91      | Security review                   | Triage    | 2026-11-21       |
+  STa411cff      | Triage rota                       | Triage    | 2026-11-21       |
+  ST7cb7165      | Release checklist, v2             | Triage    | 2026-11-21       |
+  ST4b4eb72      | Onboarding guide                  | WIP       | 2026-11-21       |
   $ intent issues list
   ID            | Status     | Sev        | Created           | Title
   --------------|------------|------------|-------------------|---------------------------------------
-  I57cb7bd      | OPEN       | medium     | 2026-11-20        | Login fails on Safari
-  I3d9fbd8      | OPEN       | medium     | 2026-11-20        | Issue from mr-one
-  I18c0e2d      | OPEN       | medium     | 2026-11-20        | Issue from mr-two
-  I816b7b2      | OPEN       | medium     | 2026-11-20        | Issue from mr-three
-  I24d5bbf      | OPEN       | medium     | 2026-11-20        | Issue from mr-four
-  I010191d      | OPEN       | medium     | 2026-11-20        | Issue from mr-five
+  I18b15ff      | OPEN       | medium     | 2026-11-21        | Login fails on Safari
+  I5329ed7      | OPEN       | medium     | 2026-11-21        | Issue from mr-one
+  Iecf8348      | OPEN       | medium     | 2026-11-21        | Issue from mr-two
+  I17b3ac6      | OPEN       | medium     | 2026-11-21        | Issue from mr-three
+  I62ee3a9      | OPEN       | medium     | 2026-11-21        | Issue from mr-four
+  I7e413e3      | OPEN       | medium     | 2026-11-21        | Issue from mr-five
   $ intent doctor
-  doctor: 0 finding(s) across 9 thread(s), 6 issue(s), 33 view(s), 62 file(s) -- ...
+  doctor: 0 finding(s) across 9 thread(s), 6 issue(s), 33 view(s), 69 file(s) -- ...
 ```
 
-`intent issues list` and `intent wp list` show records in the order they were made, so the issue from the oldest request comes first, after any ordinals the project has from before it took these ids, in number order.
+`intent issues list` and `intent wp list` show records in the order they were made, so the issue from the oldest request comes first, after any ordinals the project has from before it took these ids, in number order. `intent st list` lists threads the other way round, newest made first, so the thread from the last request leads it.
 
 ### A work package each, in one thread: both are kept
 
-A thread's work packages live in its canon file, so two people who each add one to the same thread before pulling meet a conflict in that file, and in the thread's realised `info.md`. `intent sync` reads the merge's three versions of the canon. When adding packages is all either side did, it keeps every one:
+Each work package is its own record file under `intent/.canon/records/<thread>/wp/`, so two people who each add one to the same thread before pulling change different files, and the pull merges them without a conflict. The hook takes the merge into the store, and `intent sync` finds nothing left to do:
 
 ```
   $ git pull --no-rebase
-  CONFLICT (content): Merge conflict in intent/.canon/st/ST3060b2b2d824b45f.json
-  CONFLICT (content): Merge conflict in intent/st/ST3060b2b2d824b45f/info.md
-  $ intent sync --apply --yes
-    1. keep packages (reversible): both sides added work packages to ST3060b2b2d824b45f: every one is kept, staged
-  ...
-  ok: the work packages both sides added to ST3060b2b2d824b45f: every one kept, staged
-  ok: took 1 event file(s) from the files into the store
-  ok: regenerated and staged 1 view(s): intent/st/ST3060b2b2d824b45f/info.md
-  $ git commit --no-edit
-  $ intent wp list ST3060b2b2d824b45f
+  Merge made by the 'ort' strategy.
+   .../2026/11/21/01M7YGGH125HN56CV0RFPHS4CJ.json       | 15 +++++++++++++++
+   .../records/ST4b4eb72f245b76fa/wp/26c3c491.json      | 10 ++++++++++
+   intent/st/ST4b4eb72f245b76fa/WP/26c3c491/info.md     | 20 ++++++++++++++++++++
+   3 files changed, 45 insertions(+)
+  intent (post-merge): took 1 change(s) from the files into the store: ST4b4eb72; and 1 event file(s)
+  $ intent sync
+  plan: nothing to do -- this clone's store already holds what the files say (plan ...)
+  $ intent wp list ST4b4eb72f245b76fa
   WP        | Title                                         | Scope       | Status
   ----------|-----------------------------------------------|-------------|---------------------------
-  8819      | Write the guide                               | S           | Not Started
-  6390      | Record a walkthrough                          | S           | Not Started
-  3079      | Add a glossary                                | S           | Not Started
-  6486      | Add screenshots                               | S           | Not Started
+  9139      | Write the guide                               | S           | Not Started
+  1f4b      | Record a walkthrough                          | S           | Not Started
+  26c3      | Add a glossary                                | S           | Not Started
+  28d4      | Add screenshots                               | S           | Not Started
 ```
 
-**When either side changed anything else on the thread as well**, such as its title, a criterion or an attachment, the plan offers only taking a side, as [two people editing one thread](#when-two-people-edit-one-thread) do. Taking a side drops the other person's work package. The route that loses nothing is to abandon the merge, drop your commit, take the pull and add yours again with `intent wp new`.
+**When either side also changed the thread itself**, such as its title, the thread's own file and its `info.md` conflict as [two people editing one thread](#when-two-people-edit-one-thread) do, and `intent sync` plans taking a side. The work packages are in their own files, so taking a side on those two files keeps both people's packages. Here Alice added "Write the FAQ" and Bob "Record a video", both retitled the thread, and Bob took the pulled side of its file. Its `info.md` is a view, which the plan's resolve-views step regenerates from the merged canon; here Bob took the pulled side of it by hand as well:
+
+```
+  $ git pull --no-rebase
+  CONFLICT (content): Merge conflict in intent/.canon/st/ST4b4eb72f245b76fa.json
+  CONFLICT (content): Merge conflict in intent/st/ST4b4eb72f245b76fa/info.md
+  $ git diff --name-only --diff-filter=U
+  intent/.canon/st/ST4b4eb72f245b76fa.json
+  intent/st/ST4b4eb72f245b76fa/info.md
+  $ intent sync
+    1. take a side (non-reversible): both sides changed intent/.canon/st/ST4b4eb72f245b76fa.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
+  ...
+  $ git checkout --theirs -- intent/.canon/st/ST4b4eb72f245b76fa.json
+  $ git add -- intent/.canon/st/ST4b4eb72f245b76fa.json
+  $ git checkout --theirs -- intent/st/ST4b4eb72f245b76fa/info.md
+  $ git add -- intent/st/ST4b4eb72f245b76fa/info.md
+  $ intent sync --apply --yes
+  ok: took 1 change(s) from the files into the store: ST4b4eb72; and 2 event file(s)
+  $ git commit --no-edit
+  $ intent wp list ST4b4eb72f245b76fa
+  WP        | Title                                         | Scope       | Status
+  ----------|-----------------------------------------------|-------------|---------------------------
+  9139      | Write the guide                               | S           | Not Started
+  1f4b      | Record a walkthrough                          | S           | Not Started
+  26c3      | Add a glossary                                | S           | Not Started
+  28d4      | Add screenshots                               | S           | Not Started
+  d8fb      | Write the FAQ                                 | S           | Not Started
+  4dc1      | Record a video                                | S           | Not Started
+```
 
 ### When two records share a short form
 
-A short form is a prefix of the whole id: seven hex for a thread or an issue, four for a work package within its thread. A new record never takes a short form that a record you can already see has, because Intent draws again when it would. Two branches can still each make one that shares a short form, and a package's four hex make that the likely case: it took the drive 108 packages on Bob's branch, against 300 on Alice's, before one matched.
+A short form is a prefix of the whole id: seven hex for a thread or an issue, four for a work package within its thread. A new record never takes a short form that a record you can already see has, because Intent draws again when it would. Two branches can still each make one that shares a short form, and a package's four hex make that the likely case: it took the drive 157 packages on Bob's branch, against 300 on Alice's, before one matched.
 
 ```
   $ git merge --no-edit origin/alice/many
-  CONFLICT (content): Merge conflict in intent/.canon/st/ST1ef5fac8e26c9455.json
-  $ intent sync --apply --yes
-  ok: the work packages both sides added to ST1ef5fac8e26c9455: every one kept, staged
+  Merge made by the 'ort' strategy.
   ...
+  intent (post-merge): took 1 change(s) from the files into the store: ST0be0f44; and 300 event file(s)
   $ intent doctor --verbose
   ...
   advisory: short-form-shared -- 1 finding, not counted in the verdict
     remedy: nothing to do: each id is whole in canon, and a door handed this short form names both records and asks for more of the id
-    intent/.canon/st/ST1ef5fac8e26c9455.json -- 2 work packages share the short form ff4d: ff4ddbac, ff4d93b5, in ST1ef5fac
+    intent/.canon/st/ST0be0f441ef2bcbe9.json -- 2 work packages share the short form 7691: 769171ff, 7691f6e8, in ST0be0f44
 ```
 
 **Nothing is lost and nothing needs moving.** Each record keeps its whole id. A command handed the shared short form names both and asks for more of the id, and one more hex is enough:
 
 ```
-  $ intent wp show ST1ef5fac8e26c9455/ff4d
-  error: `ST1ef5fac8e26c9455/ff4d` names 2 records in this project: ST1ef5fac/ff4d (wp, "Bob's package 107", created 2026-11-20); ST1ef5fac/ff4d (wp, "Alice's package 173", created 2026-11-20)
-    remedy: name the one you meant by more of its id, or by all of it: `ST1ef5fac8e26c9455/ff4d93b5`, `ST1ef5fac8e26c9455/ff4ddbac`
-  $ intent id ST1ef5fac8e26c9455/ff4d
-  ambiguous token=ST1ef5fac8e26c9455/ff4d kind=wp,wp candidates=ST1ef5fac8e26c9455/ff4d93b5,ST1ef5fac8e26c9455/ff4ddbac
-  $ intent wp show ST1ef5fac8e26c9455/ff4d9
-  ST1ef5fac/WP-ff4d: Bob's package 107
+  $ intent wp show ST0be0f441ef2bcbe9/7691
+  error: `ST0be0f441ef2bcbe9/7691` names 2 records in this project: ST0be0f44/7691 (wp, "Alice's package 180", created 2026-11-21); ST0be0f44/7691 (wp, "Bob's package 156", created 2026-11-21)
+    remedy: name the one you meant by more of its id, or by all of it: `ST0be0f441ef2bcbe9/769171ff`, `ST0be0f441ef2bcbe9/7691f6e8`
+  $ intent id ST0be0f441ef2bcbe9/7691
+  ambiguous token=ST0be0f441ef2bcbe9/7691 kind=wp,wp candidates=ST0be0f441ef2bcbe9/769171ff,ST0be0f441ef2bcbe9/7691f6e8
+  $ intent wp show ST0be0f441ef2bcbe9/76917
+  ST0be0f44/WP-7691: Alice's package 180
   status: Not Started
   scope: S
-  criteria: none scoped to ST1ef5fac/ff4d
+  criteria: none scoped to ST0be0f44/7691
 ```
 
 `intent id` answers a script the same question without failing on it: `ambiguous` and both whole ids. A thread's or an issue's seven hex become likely to be shared only in a project of tens of thousands of records, and the same rules hold.
@@ -340,10 +380,10 @@ A short form is a prefix of the whole id: seven hex for a thread or an issue, fo
 ```
   $ git merge --abort
   $ intent st remint ST0002
-  ok: ST0002 reminted to STf84ad01962bb14d4
+  ok: ST0002 reminted to ST7af9f07b39a9ac1e
   moved: intent/.canon/st/ST0002.json removed
   $ intent issues remint 0001
-  ok: issue 0001 reminted to I3bd079d2ed4dbaf0
+  ok: issue 0001 reminted to Ic0d8a781e9061bfc
   moved: intent/.canon/issues/0001.json removed
   moved: intent/issues/0001.md removed
 ```
@@ -358,8 +398,8 @@ A short form is a prefix of the whole id: seven hex for a thread or an issue, fo
   $ git merge --no-ff origin/main
   CONFLICT (add/add): Merge conflict in intent/.canon/st/ST0003.json
   $ intent sync
-  plan: 5 step(s) for this clone (plan cdd41dd4...), and nothing has been written -- `intent sync --apply` applies them
-    1. renumber (reversible): both sides minted steel thread ST0003: this clone's moves to STd0107cfa50e897e3 and the pulled one keeps ST0003, both staged
+  plan: 5 step(s) for this clone (plan d22a5ea2...), and nothing has been written -- `intent sync --apply` applies them
+    1. renumber (reversible): both sides minted steel thread ST0003: this clone's moves to ST5240297c84266496 and the pulled one keeps ST0003, both staged
     2. ingest (quiet): take the merged canon into the store; what it takes can be read once the conflicts are resolved
     3. views (quiet): regenerate the views the merged canon changes; which ones can be read once the conflicts are resolved
     4. events (quiet): 4 event file(s) to take
@@ -379,12 +419,12 @@ Without a terminal, `--apply` leaves the move and says how to run it:
 ```
   $ intent sync --apply --yes
   ...
-  ok: renumbered this clone's ST0003 to STd0107cfa50e897e3, kept the pulled ST0003, and staged 2 path(s)
-  ok: took 4 change(s) from the files into the store: ST0002, ST0003, STfd23168, issue 0001
+  ok: renumbered this clone's ST0003 to ST5240297c84266496, kept the pulled ST0003, and staged 2 path(s)
+  ok: took 4 change(s) from the files into the store: ST0002, ST0003, ST7ea9238, issue 0001
   $ git commit --no-edit
 ```
 
-Your thread moves to the git-style id its creation event makes, the pulled thread keeps the ordinal, and both are staged. `STfd23168` is the thread Alice made after the upgrade, which the merge brought.
+Your thread moves to the git-style id its creation event makes, the pulled thread keeps the ordinal, and both are staged. `ST7ea9238` is the thread Alice made after the upgrade, which the merge brought.
 
 ## When two people edit one thread
 
@@ -392,47 +432,49 @@ Two people who change different fields of one thread conflict on neighbouring li
 
 ```
   $ git pull --no-rebase
-  CONFLICT (content): Merge conflict in intent/.canon/st/ST1e403319943ee5c7.json
+  CONFLICT (content): Merge conflict in intent/.canon/st/ST7cb716537f3a55f7.json
   $ intent sync
-    1. take a side (non-reversible): both sides changed intent/.canon/st/ST1e403319943ee5c7.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
+    1. take a side (non-reversible): both sides changed intent/.canon/st/ST7cb716537f3a55f7.json: a person chooses ours or theirs, and it is staged -- or resolve it by hand and `git add` it
 ```
 
 **Resolve the JSON by hand, keeping both edits, and stage it before you sync.** Until it is staged, git still lists it as unmerged and the plan keeps the take-a-side step:
 
 ```
-  $ $EDITOR intent/.canon/st/ST1e403319943ee5c7.json
-  $ git add intent/.canon/st/ST1e403319943ee5c7.json
+  $ $EDITOR intent/.canon/st/ST7cb716537f3a55f7.json
+  $ git add intent/.canon/st/ST7cb716537f3a55f7.json
   $ intent sync --apply --yes
-  ok: took 1 change(s) from the files into the store: ST1e40331; and 1 event file(s)
-  $ grep -n -E '"objective"|"context"' intent/.canon/st/ST1e403319943ee5c7.json
+  ok: took 1 change(s) from the files into the store: ST7cb7165; and 1 event file(s)
+  $ grep -n -E '"objective"|"context"' intent/.canon/st/ST7cb716537f3a55f7.json
   9:  "objective": "Bring a new engineer to a first merged PR in a day",
   10:  "context": "Requested by support after three onboarding escalations",
 ```
 
 `intent st show` prints only a thread's objective, so read the merged fields in the JSON.
 
-**Never merge a generated view by hand.** The two lists and each thread's `acceptance.md` travel in no commit, so they never conflict. A realised thread's `info.md` and its packages' `info.md` are committed, and two branches that both change a thread conflict in them too: `intent sync --apply --yes` regenerates and stages each one from the merged canon, as the packages above show.
+**Never merge a generated view by hand.** The two lists and each thread's `acceptance.md` travel in no commit, so they never conflict. A realised thread's `info.md` and its packages' `info.md` are committed, and two branches that both change a thread conflict in them too: `intent sync --apply --yes` regenerates and stages each one from the merged canon.
 
 ## Commit the views with what they were rendered from
 
 **A view committed without the change it renders from fails the gate on every other clone.** The commit gate `claude upgrade --apply` installs runs `doctor`, and refuses a commit whose views disagree with the store. Here Bob edited a thread's Objective in `info.md` by hand and committed without a sync:
 
 ```
-  intent/st/STb580080523fa4fa9/info.md -- generated view differs from the model (871 bytes on disk, 840 rendered, first difference at byte 128) in its Objective or Context, which a hand edit changes and the store carries back -- `intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it
+  residue: view-skew -- 1 finding
+    remedy: `intent sync --to-store` carries the edit into the store and keeps it; `intent sync --to-disk` would regenerate the cover from the store and discard it
+    intent/st/STa411cff18551711c/info.md -- generated view differs from the model (1244 bytes on disk, 1213 rendered, first difference at byte 128) in its Objective or Context, which a hand edit changes and the store carries back
   intent doctor: the estate disagrees with the store -- commit refused.
 ```
 
-The Objective and the Context are the two sections of `info.md` the store takes back, so the finding names the verb that keeps the edit. Run it, and the commit passes:
+The Objective and the Context are the two sections of `info.md` the store takes back, so the finding's remedy names the verb that keeps the edit. Run it, and the commit passes:
 
 ```
   $ intent sync --to-store
   warning: replacing the store from the extract OVERWRITES:
-    STb580080: intent/st/STb580080523fa4fa9/info.md carries an edit to its Objective or Context, which REPLACES the store's
+    STa411cff: intent/st/STa411cff18551711c/info.md carries an edit to its Objective or Context, which REPLACES the store's
   ok: store replaced from the canon extract, taking the 1 difference(s) listed above
-  $ intent st show STb580080523fa4fa9
-  STb580080: Triage rota
+  $ intent st show STa411cff18551711c
+  STa411cff: Triage rota
   status: WIP
-  created: 2026-11-20
+  created: 2026-11-21
   objective:
     Edited by hand and not synced. _(not yet written)_
 ```
@@ -446,14 +488,13 @@ The same holds for anything generated from one store state: commit it together. 
 Every project act is its own file under `intent/.canon/events/`, carrying who did it, so a teammate's acts are in your event log after a pull:
 
 ```
-  $ intent events --subject ST1e403319943ee5c7
-  2026-11-20T20:11:33.153Z  01M7X9BWD0N0XZKAT2E673TMEY  st.new  ST1e403319943ee5c7  by Alice <alice@example.com>
-  2026-11-20T20:11:41.124Z  01M7X9C4638KWV6SWR288EJ3KR  thread.set  ST1e403319943ee5c7  by Alice <alice@example.com>
-  2026-11-20T20:11:41.699Z  01M7X9C4R3DS6F8BH4X5YEDWGQ  thread.set  ST1e403319943ee5c7  by Bob <bob@example.com>
-  2026-11-20T20:11:42.102Z  01M7X9C54PJR9C081P1ZEX733Y  thread.set  ST1e403319943ee5c7  by Bob <bob@example.com>
-  2026-11-20T20:12:15.600Z  01M7X9D5VGN1H2VHSSPS5WYYNY  thread.set  ST1e403319943ee5c7  by Alice <alice@example.com>
-  2026-11-20T20:12:16.004Z  01M7X9D684E47G65PZGXW53K08  thread.set  ST1e403319943ee5c7  by Bob <bob@example.com>
-  events: showing 6 of 6 matched, 349 in this store.
+  2026-11-21T07:35:22.929Z  01M7YGG0HHZM3YQG1KXB0E9SQQ  st.new  ST7cb716537f3a55f7  by Alice <alice@example.com>
+  2026-11-21T07:35:31.342Z  01M7YGG8REMNNQ2AK2ZNP8P8EM  thread.set  ST7cb716537f3a55f7  by Alice <alice@example.com>
+  2026-11-21T07:35:31.955Z  01M7YGG9BKE5P5GHK51BQYT99Q  thread.set  ST7cb716537f3a55f7  by Bob <bob@example.com>
+  2026-11-21T07:35:32.351Z  01M7YGG9QZC6D01FTZFFGM23E1  thread.set  ST7cb716537f3a55f7  by Bob <bob@example.com>
+  2026-11-21T07:36:19.750Z  01M7YGHR16MVS7PKEH2WRAH9SZ  thread.set  ST7cb716537f3a55f7  by Alice <alice@example.com>
+  2026-11-21T07:36:20.465Z  01M7YGHRQH5DW2N50VM7JYVQQE  thread.set  ST7cb716537f3a55f7  by Bob <bob@example.com>
+  events: showing 6 of 6 matched, 353 in this store.
 ```
 
 Both clones print those same six lines; the store's total under them differs, because each store also holds its own machine events. The author is git's identity. Machine events, [listed on the store's page](the-store.md#what-lives-only-in-the-store), stay in the store, because they describe one machine and would be false on every other. The thread's id is made from the id of its `st.new` event, which is why two clones never mint the same one.
@@ -485,20 +526,20 @@ Commit all of it. Left tracked, the store rides in every teammate's next commit,
 `intent/.config/config.json` records the `intent_version` that wrote the project. Each canon file names its schema, and a binary refuses one it does not know. Here one file claims a newer schema than this Intent reads:
 
 ```
-  $ grep -n '"schema"' intent/.canon/st/ST1e403319943ee5c7.json
+  $ grep -n '"schema"' intent/.canon/st/ST7cb716537f3a55f7.json
   2:  "schema": "intent/thread@9.0",
   $ intent sync --apply
   error: could not read the committed canon
-    caused by: residue: intent/.canon/st/ST1e403319943ee5c7.json -- schema-invalid -- schema is "intent/thread@9.0"; this binary reads "intent/thread@4.0" or "intent/thread@3.0"
+    caused by: residue: intent/.canon/st/ST7cb716537f3a55f7.json -- schema-invalid -- schema is "intent/thread@9.0"; this binary reads "intent/thread@4.0" or "intent/thread@3.0"
     remedy: correct the field named above; `intent schema` prints the shape the file must match
   error: refused 1 finding(s) -- schema-invalid: 1
   $ intent doctor
   residue: schema-invalid -- 1 finding
-    intent/.canon/st/ST1e403319943ee5c7.json -- schema is "intent/thread@9.0"; this binary reads "intent/thread@4.0" or "intent/thread@3.0"
+    intent/.canon/st/ST7cb716537f3a55f7.json -- schema is "intent/thread@9.0"; this binary reads "intent/thread@4.0" or "intent/thread@3.0"
   doctor: 1 finding(s) -- the estate could not be read, so no thread, issue, view or file was checked -- ...
 ```
 
-A read verb such as `intent st show ST1e403319943ee5c7` still answers, from what the store held before: the store is truth on your machine, and it is a sync that reads the canon. Nothing more arrives until the clone runs an Intent that reads the newer schema. An Intent from before git-style ids refuses an upgraded project the same way, naming each canon file it cannot read. **Upgrade together.**
+A read verb such as `intent st show ST7cb716537f3a55f7` still answers, from what the store held before: the store is truth on your machine, and it is a sync that reads the canon. Nothing more arrives until the clone runs an Intent that reads the newer schema. Intent 3.4.x cannot read an upgraded project at all: it reports each canon file as schema-invalid and changes nothing. **Upgrade together.**
 
 ## The whiteboard across clones
 
@@ -507,8 +548,8 @@ A whiteboard's boards are committed files, and they travel like the rest of the 
 A claim names a thread as its id, a work package as its address, or an issue as `ISSUE:` and its id, each copied whole from the `created:` line that made it:
 
 ```
-  $ intent wb claim ST3060b2b2d824b45f --node al
-  ok: al claims ST3060b2b2d824b45f
+  $ intent wb claim ST4b4eb72f245b76fa --node al
+  ok: al claims ST4b4eb72f245b76fa
 ```
 
 Bob's ask names what it wrote, and he commits exactly that:
@@ -516,7 +557,7 @@ Bob's ask names what it wrote, and he commits exactly that:
 ```
   $ intent wb ask al "Can I take the release checklist?" --node bo
   ok: bo -> al
-  wrote: intent/.canon/events/2026/11/20/01M7X9DBB1W3F82JS2SAZR86E0.json
+  wrote: intent/.canon/events/2026/11/21/01M7YGJ11H0289ACKH6SVAFH52.json
   wrote: intent/whiteboard/al/inbox.bo.md
   wrote: intent/whiteboard/bo/board.json
 ```
@@ -583,7 +624,7 @@ A finding fails the job. The runner's store is cold and is built from the commit
   $ intent doctor
   advisory: aggregate-view-stale -- 4 findings, not counted in the verdict
   ...
-  doctor: 0 finding(s) across 10 thread(s), 6 issue(s), 42 view(s), 83 file(s) -- ...
+  doctor: 0 finding(s) across 10 thread(s), 6 issue(s), 44 view(s), 100 file(s) -- ...
 ```
 
 ### Make it a required check

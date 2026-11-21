@@ -60,6 +60,7 @@ fn estate(root: &Path) -> BTreeMap<String, Vec<u8>> {
     .collect()
 }
 
+// ST0096 AT-05.3: the arm below.
 #[test]
 fn two_copies_upgraded_apart_write_the_same_files_and_move_no_id_or_value() {
   let thread = sample_thread("ST0001");
