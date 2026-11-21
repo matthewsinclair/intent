@@ -248,6 +248,8 @@ mod the_mcp_organize_door_answers_in_project_relative_paths;
 #[path = "one_dispatch_home.rs"]
 mod one_dispatch_home;
 
+#[path = "no_verb_mints_an_ordinal.rs"]
+mod no_verb_mints_an_ordinal;
 #[path = "one_home_for_the_ext_base.rs"]
 mod one_home_for_the_ext_base;
 #[path = "organize_default_declaration.rs"]
@@ -356,6 +358,8 @@ mod the_web_face_answers_on_the_published_port;
 mod twin_spellings_agree;
 #[path = "two_branches_that_change_one_thread_merge_clean.rs"]
 mod two_branches_that_change_one_thread_merge_clean;
+#[path = "two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair.rs"]
+mod two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair;
 #[path = "two_clones_that_mint_one_id_are_repaired_by_remint.rs"]
 mod two_clones_that_mint_one_id_are_repaired_by_remint;
 #[path = "uninstall_names_what_it_removed.rs"]
