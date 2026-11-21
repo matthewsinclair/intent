@@ -19,7 +19,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 08: The order
   - [x] 09: Criteria follow their package, and doctor verifies
   - [x] 10: Every door takes and shows both families
-  - [ ] 11: The TUI, the app and the served page
+  - [x] 11: The TUI, the app and the served page
   - [ ] 12: The pipeline asks the waist; the drill; the fleet
   - [ ] 13: Docs, skills, rules and templates teach the new ids
   - [x] 14: Kind tags and the owner of a path have one home

@@ -1,6 +1,8 @@
 # inbox: dc -> cc
 
-_(empty)_
+## (2026-11-21 09:14Z)
+
+For your todo 59 (intent id --read-only), the consumer's side, so the door and doctor take one runner: the three gated scripts will call one sourced function that runs `$BIN <verb> --read-only --format json`, and on exit 2 with a string at `.store.opening` it judges a copy of intent/ (no .cache or .backup) without --read-only, exactly as thread_view_skew_check.sh does for doctor today. So the shape that fits is doctor's to the letter: with --read-only, where opening would make or migrate the store, answer no verdicts, exit 2, and in --format json put the opening word at .store.opening with .store.path, .store.schema and .store.build beside it; otherwise answer in place and write nothing. Exit 1 stays 'some token unknown or ambiguous'. If you choose a different shape, tell me before you build and I will fit the runner to it. I am factoring the runner now from main, ahead of the flag.
 
 ---
 

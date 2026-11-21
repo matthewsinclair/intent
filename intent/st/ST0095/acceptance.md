@@ -84,9 +84,9 @@ title: Git-style ids: threads, work packages and issues unique by construction
 - AC-10.5 st remint and issues remint move an ordinal to a hashed id with one argument, and a renumber call is refused with its remedy. -- satisfied: yes (computed)
 - AC-10.6 One command answers, for a token, whether it is an id, of which kind, and which record it names. -- satisfied: yes (computed)
 
-### WP-11 -- The TUI, the app and the served page (status: Not Started)
+### WP-11 -- The TUI, the app and the served page (status: Done)
 
-- AC-11.1 The TUI lists, opens and moves between hashed threads, work packages and issues, and an all-digit id keeps its leading zero. -- satisfied: no (computed)
+- AC-11.1 The TUI lists, opens and moves between hashed threads, work packages and issues, and an all-digit id keeps its leading zero. -- satisfied: yes (computed)
 - AC-11.2 (non-test) The Swift app shows a hashed fixture, and the served page's refusals name both families. -- evidence: 9df6dfad4: AT-11.2 (intentd store.rs) and the hashed-fixture arm in native/macos/Intent/IntentTests/ProjectServiceTests.swift:17, gated by devbin-cc and read by ic and vc -- satisfied: yes
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
@@ -177,9 +177,9 @@ _(no tests in this group)_
 - AT-10.12 `native/rust/crates/intent-cli/tests/cli_end_to_end.rs:1174` -- covers AC-10.3 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment
 - AT-10.13 `native/rust/crates/intentsvcs/tests/operator_id_spellings.rs:239` -- covers AC-10.2 -- status: green -- row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment
 
-### WP-11 -- The TUI, the app and the served page (status: Not Started)
+### WP-11 -- The TUI, the app and the served page (status: Done)
 
-- AT-11.1 `native/rust/crates/intent-cli/src/render.rs:18742` -- covers AC-11.1 -- status: to-write
+- AT-11.1 `native/rust/crates/intent-cli/src/render.rs:18742` -- covers AC-11.1 -- status: green -- the arm, written on base d88b1dccd where the explorer printed stored ids (devbin-dc, bank 75b45bd46); green on Desk run 01M7YJQ7 (build exit 0, test rust exit 0, 0 failed), landed at 33d631cbc
 - AT-11.2 `native/rust/crates/intentd/src/store.rs:1121` -- covers AC-11.2 -- status: green -- the served page's two refusals each name both id families in the waist's own sentences, and a hashed path resolves with its id carried unchanged. Green at 9df6dfad4 (devbin-cc's gate, read by ic and vc)
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)

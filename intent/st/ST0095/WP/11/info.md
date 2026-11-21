@@ -2,7 +2,7 @@
 wp_id: WP-11
 title: The TUI, the app and the served page
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-11: The TUI, the app and the served page

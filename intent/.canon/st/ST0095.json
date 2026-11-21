@@ -104,7 +104,7 @@
       "seq": 11,
       "title": "The TUI, the app and the served page",
       "scope": "M",
-      "status": "not-started",
+      "status": "done",
       "objective": "The TUI lists, opens and moves between hashed threads, work packages and issues, and the app and the served page show them.",
       "body": "Seat: ic. Size: M.\n\n## Scope\n\n- The TUI's source formats ids from `number` and `seq` (`render.rs:7350`, `:7630`, `:7791-7808`; `tui/views.rs:298`; `outstanding.rs:134`, `:166`). The navigator re-spells a work package through a number, so `0712` becomes `712` (`nav.rs:584`). The loaders parse numbers (`facade.rs:5502`, `:5548`, `:5577`). Two forms declare number widgets (`forms.json:173`, `:232`).\n- The omnibox ranks a complete id or a unique prefix first.\n- The Swift app holds ids as opaque strings: it needs one hashed fixture.\n- The served page: its refusal examples name both families (`intentd/src/store.rs:864`, `:870`), and its `shortId`, which keeps a tail, is not used for ids.\n\n## Order\n\nAfter WP-10.\n\n## Proof\n\nThe cut's own gate, and the explorer screenshots regenerated in the cut's own step.\n",
       "preamble": ""
@@ -871,7 +871,8 @@
       "covers": [
         "AC-11.1"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "the arm, written on base d88b1dccd where the explorer printed stored ids (devbin-dc, bank 75b45bd46); green on Desk run 01M7YJQ7 (build exit 0, test rust exit 0, 0 failed), landed at 33d631cbc"
     },
     {
       "id": "AT-11.2",
