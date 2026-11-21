@@ -20,16 +20,15 @@ my-project/
 ├── .intent_critic.yml         # Critic config (severity threshold, disabled rules)
 ├── intent/
 │   ├── .config/               # Per-project config + metadata (config.json, version)
-│   ├── .intentfiles           # Which threads are realised on disk
 │   ├── .cache/intent.db       # The project store (never commit it; `intent upgrade` gitignores it, `intent init` does not)
 │   ├── .canon/                # Committed extract of the store
 │   ├── st/                    # Steel threads
-│   │   └── ST0001/
+│   │   └── <thread id>/
 │   │       ├── info.md        # Required (title, status, dates, description)
 │   │       ├── design.md
 │   │       ├── impl.md
 │   │       ├── tasks.md
-│   │       └── WP/01/info.md  # Work packages
+│   │       └── WP/<pkg>/info.md  # Work packages
 │   ├── llm/                   # RULES.md + ARCHITECTURE.md (seeded by init); MODULES.md and DECISION_TREE.md only where a project keeps them
 │   ├── docs/                  # Technical docs (including working-with-llms.md)
 │   ├── todo.md                # Generated DOING/TODO/DONE view
@@ -46,19 +45,19 @@ Steel thread status values: `Triage`, `Not Started`, `WIP`, `On Hold`, `Complete
 ```bash
 intent st new "Title"
 intent st list
-intent st show ST0001
-intent st start ST0001
-intent st done ST0001
-intent st cancel ST0001 --reason "..."
+intent st show <thread>
+intent st start <thread>
+intent st done <thread>
+intent st cancel <thread> --reason "..."
 
-intent wp new ST0001 "Title"
-intent wp list ST0001
-intent wp show ST0001/01
-intent wp start ST0001/01
-intent wp done ST0001/01
+intent wp new <thread> "Title"
+intent wp list <thread>
+intent wp show <thread>/<pkg>
+intent wp start <thread>/<pkg>
+intent wp done <thread>/<pkg>
 ```
 
-Specifiers accept bare numbers (`5` = `ST0005`; `5/01` = `ST0005/01`).
+Intent mints every id and prints it on the `created:` line; read it there, never work out the next one. A thread made since the project took git-style ids is `ST` and hex, shown as seven (`ST3f9a2c1`), and any unique prefix of at least four hex, or five if they are all digits, names it. One made before keeps its ordinal, `ST` and four digits (`ST0005`), which a bare `5` or `s5` also names. A work package is its thread's id, a slash and its own: `ST3f9a2c1/c2e4`, `ST0005/01` or `5/01`. `intent id <token>` says which record a token names.
 
 ### Todo view
 
@@ -66,9 +65,9 @@ Specifiers accept bare numbers (`5` = `ST0005`; `5/01` = `ST0005/01`).
 intent todo                 # print the DOING/TODO/DONE view (intent/todo.md)
 intent todo update          # regenerate intent/todo.md from real ST/WP status
 intent todo --json          # emit the view as keyed-by-bucket JSON (stdout)
-intent todo done ST0001     # mark done via intent st/wp done (inherits the close-gate)
-intent todo notdone ST0001  # reopen to WIP
-intent todo toggle ST0001   # flip done/not-done
+intent todo done <id>       # mark done via intent st/wp done (inherits the close-gate)
+intent todo notdone <id>    # reopen to WIP
+intent todo toggle <id>     # flip done/not-done
 intent todo done --flush    # clear the DONE view (advance the ## DONE:<T> watermark)
 intent todo done --prune    # emit the DONE items (for archiving), then flush
 ```
@@ -78,17 +77,17 @@ intent todo done --prune    # emit the DONE items (for archiving), then flush
 ### Acceptance (AC/AT)
 
 ```bash
-intent ac list ST0001                                # ACs with covering AT + computed satisfied state
-intent ac status ST0001[/NN]                         # counts + gate verdict (a reporter)
-intent ac gate ST0001[/NN]                           # THE close-gate authority (the exit code is the verdict)
-intent ac satisfy ST0001 AC-01.2 --evidence "..."    # non-test ACs only; test-backed ones are computed
-intent ac descope ST0001 AC-01.3 --to ST0007         # it moved to another thread
-intent ac withdraw ST0001 AC-01.4 --reason "..."     # it was dropped outright
-intent ac rescope ST0001 AC-01.3                     # undo a descope
-intent ac reinstate ST0001 AC-01.4                   # undo a withdrawal
-intent at list ST0001                                # AT rows: id, cited file, covers, status
-intent at lint ST0001                                # grammar + citation checks; fix what it names with `at edit`
-intent at red|green|na ST0001 AT-01.1                # transitions (done / notdone alias green / red)
+intent ac list <thread>                                 # ACs with covering AT + computed satisfied state
+intent ac status <thread>[/<pkg>]                       # counts + gate verdict (a reporter)
+intent ac gate <thread>[/<pkg>]                         # THE close-gate authority (the exit code is the verdict)
+intent ac satisfy <thread> AC-<pkg>.2 --evidence "..."  # non-test ACs only; test-backed ones are computed
+intent ac descope <thread> AC-<pkg>.3 --to <other>      # it moved to another thread
+intent ac withdraw <thread> AC-<pkg>.4 --reason "..."   # it was dropped outright
+intent ac rescope <thread> AC-<pkg>.3                   # undo a descope
+intent ac reinstate <thread> AC-<pkg>.4                 # undo a withdrawal
+intent at list <thread>                                 # AT rows: id, cited file, covers, status
+intent at lint <thread>                                 # grammar + citation checks; fix what it names with `at edit`
+intent at red|green|na <thread> AT-<pkg>.1              # transitions (done / notdone alias green / red)
 ```
 
 A thread's ACs and ATs are canon in the store (author them with `intent ac` / `intent at`); `acceptance.md` is a generated view of them, and `info.md` and each per-WP `info.md` point at it and never restate them. An AT row must match the grammar — cite the test **file**, backticked and repo-relative, containing a `/` and no `:`, then put the AT's own id inside the test it names. `n/a` is the `(non-test)` arm's status only, and a non-test AT never satisfies anything. An AC you are not going to do is descoped or withdrawn, never satisfied. The close-gate is fail-by-default: an empty or missing contract is refused, and the only escape is `"acceptance": "exempt"` on the thread's canon record (`intent/.canon/st/<ID>.json`); `intent st new` never sets it.
@@ -275,7 +274,7 @@ This file. Elixir-ecosystem-aligned (`mix usage_rules.sync` discoverable). Terse
 
 1. `intent st start <STID>` — flips status to WIP.
 2. Work through WPs in `tasks.md` dependency order.
-3. `intent wp start <STID/NN>` and `intent wp done <STID/NN>` per WP.
+3. `intent wp start <thread>/<pkg>` and `intent wp done <thread>/<pkg>` per WP.
 4. On completion: `intent st done <STID>`.
 
 ### Frontmatter
@@ -294,7 +293,7 @@ completed:
 ---
 ```
 
-`WP/<NN>/info.md`:
+`WP/<pkg>/info.md`:
 
 ```yaml
 ---
@@ -304,6 +303,8 @@ scope: S
 status: Not Started
 ---
 ```
+
+A thread made since the project took git-style ids carries its shown id, eg `st_id: ST3f9a2c1`, and its package `wp_id: WP-c2e4`.
 
 `acceptance.md` carries `st_id` and `title` alone.
 

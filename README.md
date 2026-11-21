@@ -31,18 +31,20 @@ Around that sits the machinery that makes it survive contact with a real project
 ```
   $ intent init
   $ intent st new "Add user authentication"
-  created: ST0001
+  created: STc5b1a6f14f17acb6
 ```
+
+Intent made that id from the act that created the thread, so two people creating threads at once never get the same one. Copy it from the `created:` line. The short form the tables print, `STc5b1a6f`, names it too, as does any unique prefix of at least four hex, or five if they are all digits. A thread from before a project took these ids keeps its ordinal, such as `ST0001`.
 
 Then record why it exists and what would make it done:
 
 ```
-  $ intent set ST0001 objective "Users stay signed in across a server restart"
-  $ intent ac new ST0001 AC-01.1 --text "Sessions survive a server restart"
-  $ intent st show ST0001
+  $ intent set STc5b1a6f14f17acb6 objective "Users stay signed in across a server restart"
+  $ intent ac new STc5b1a6f14f17acb6 AC-00.1 --text "Sessions survive a server restart"
+  $ intent st show STc5b1a6f14f17acb6
 ```
 
-The reasoning is now a tracked object rather than a paragraph in a chat log, and `intent ac gate ST0001` will tell you whether the thread is satisfied instead of asking you to remember.
+The reasoning is now a tracked object rather than a paragraph in a chat log, and `intent ac gate STc5b1a6f14f17acb6` will tell you whether the thread is satisfied instead of asking you to remember.
 
 [Getting started](./docs/getting-started.md) follows this through to a satisfied thread on a real project.
 

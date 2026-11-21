@@ -24,6 +24,8 @@ intent st show ST0000
 intent st edit ST0000
 ```
 
+**AN ID IS MINTED, NEVER CHOSEN OR PREDICTED.** `intent st new`, `intent wp new` and `intent issues add` print the id they made on their `created:` line, and that line is where you read it. A record made now gets a git-style id, taken from the act that created it: a thread shows as `ST` and seven hex, eg `ST3f9a2c1`, an issue as `I` and seven hex, eg `I3f9a2c1`, and a work package as its thread's id, a slash and four hex, eg `ST3f9a2c1/c2e4`. A record made before its project took git-style ids keeps its ordinal for good: `ST0000`, issue `0000`, work package `ST0000/01`. Every command takes both families, and any unique prefix of at least four hex of a git-style id, or five if they are all digits. Never work out the next id from the ones you can see. `intent id <token>` says whether a token is an id, of which kind, and which record it names.
+
 Beyond `new`, `start` and `done`, a thread moves with `intent st triage`, `hold`, `resume`, `reopen`, `reinstate` and `cancel`. `hold`, `reopen`, `reinstate` and `cancel` refuse without `--reason "<why>"`, which is recorded as the reason for the new state. The help for `intent st` lists them all.
 
 ### 2. Use `intent agents sync` to update AGENTS.md
@@ -60,12 +62,12 @@ Each steel thread's record lives in the store; `intent/st/<ID>/` is its realised
 
 - `info.md` -- the cover, a generated view. Write its `## Objective` and `## Context` with `intent set <ID> objective|context --from <file>`, the direct route. A hand edit to those two sections is kept too: after editing, run `intent sync --to-store <ID>` to carry it into the store, and until then an Intent command that would render the file over it refuses and names that step. `intent st edit <ID>` opens the file; it is not a writer, and a hand edit anywhere else in the cover is overwritten by the next render.
 - `acceptance.md` -- changed with `intent ac` / `intent at`.
-- `WP/<NN>/info.md` -- changed with `intent set intent:///threads/<ID>/wp/<NN> objective|body --from <file>` and the `intent wp` verbs.
+- `WP/<pkg>/info.md` -- changed with `intent set <ID>/<pkg> objective|body --from <file>`, the package's address as `wp new` prints it, and the `intent wp` verbs.
 - `design.md`, `impl.md`, `tasks.md` -- optional ATTACHMENTS: a thread carries one once `intent st attach <ID> <name>.md --from <file>` records it, or once `intent sync --to-store` or a running intentd takes in a file you put in the thread's directory, and from then on the file on disk is its authoring surface.
 
-Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<NN>/info.md` carries `wp_id`, `title`, `scope`, `status`. A thread view never carries `verblock:`; `verblock` is the house style only for HAND-AUTHORED persistent documents such as `intent/wip.md`.
+Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<pkg>/info.md` carries `wp_id`, `title`, `scope`, `status`. A thread view never carries `verblock:`; `verblock` is the house style only for HAND-AUTHORED persistent documents such as `intent/wip.md`.
 
-**AND THE FILES ABOVE ARE REALISED LAZILY.** `intent st new` writes the store, not the tree, so `intent/st/<ID>/` does not exist until something realises it -- `intent edit <kind> <ID> --path` realises one, as does `intent st hydrate <ID>`, and `intent organize --apply` reconciles the tree against `.intentfiles`, which does not list a thread `st new` has just made. An agent that runs `st new` and then lists the directory will find nothing, and nothing is wrong.
+**AND THE FILES ABOVE ARE REALISED LAZILY.** `intent st new` writes the store, not the tree, so `intent/st/<ID>/` does not exist until something realises it -- `intent edit <kind> <ID> --path` realises one, as does `intent st hydrate <ID>`, and `intent organize --apply` reconciles the tree against each record's realised field, and a thread `st new` has just made is not realised. An agent that runs `st new` and then lists the directory will find nothing, and nothing is wrong.
 
 ### 5. Session wrap-up workflow
 
@@ -73,7 +75,7 @@ Before ending a session, run `/in-finish`. It owns what the wrap-up updates and 
 
 ### 6. Use `intent wp` commands for work package management
 
-NEVER manually create directories under `intent/st/STXXXX/WP/`. Use the CLI.
+NEVER manually create directories under `intent/st/<ID>/WP/`. Use the CLI.
 
 ```bash
 # BAD -- manual creation
@@ -103,7 +105,7 @@ Proposing a fiat close to the human, with the reason you would give, is the corr
 
 ### 9. Commit exactly what the verbs printed
 
-Every verb that writes a tracked file names it after its `ok:` line, one line per file: `wrote:` for a file it wrote that is yours to commit, `removed:` for a file it took off disk, which is the deletion half of the same commit, and `re-rendered:` for a file it re-rendered that belongs to someone else, with whose it is in brackets. Commit the `wrote:` and `removed:` paths by name, and leave a `re-rendered:` file to its owner. Never commit what `git status` happens to show: a shared checkout carries other sessions' work.
+Every verb that writes a tracked file names it after its `ok:` line, one line per file: `wrote:` for a file it wrote that is yours to commit, `removed:` for a file it took off disk, which is the deletion half of the same commit, and `re-rendered:` for a file it re-rendered that belongs to someone else, with whose it is in brackets. Commit the `wrote:` and `removed:` paths by name, and leave a `re-rendered:` file to its owner. `intent upgrade` also prints `untracked:` for each aggregate view it took out of git's index and left on disk, its deletion staged: commit it with a plain `git commit`, because `git commit --only` takes a path it names from the working tree and would track it again. Never commit what `git status` happens to show: a shared checkout carries other sessions' work.
 
 ### 10. Read the estate before a heavy run
 

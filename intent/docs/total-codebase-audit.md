@@ -66,30 +66,29 @@ Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2
 
 ### Invariant 2: Work packages are flat
 
-Every component audit is a top-level `WP/NN` directly under the TCA steel thread, created with `intent wp new`. **Never** nest WPs inside WPs. Intent's WP model does not support nested specifiers (`ST/WP/NN/WP/MM`) and the `intent wp` CLI rejects them. A directory nested inside a WP is not a work package: `intent wp` cannot address it, so it can never be started or closed.
+Every component audit is a top-level `WP/<pkg>` directly under the TCA steel thread, created with `intent wp new`. **Never** nest WPs inside WPs. Intent's WP model does not support nested specifiers (`<thread>/WP/<pkg>/WP/<pkg>`) and the `intent wp` CLI rejects them. A directory nested inside a WP is not a work package: `intent wp` cannot address it, so it can never be started or closed.
 
 Correct layout for a fresh TCA:
 
 ```
-intent/st/STXXXX/               <- the TCA as its own dedicated steel thread
+intent/st/<thread id>/          <- the TCA as its own dedicated steel thread
 ├── info.md                     <- TCA objective and context (generated view)
 ├── acceptance.md               <- TCA acceptance criteria (generated view)
 ├── design.md                   <- rule set + FP Guidance + component map
 ├── tasks.md                    <- phase checklist
 ├── feedback-report.md          <- final artifact, top-level
 └── WP/
-    ├── 01/                     <- Component 01 audit (top-level WP)
-    ├── 02/                     <- Component 02 audit
-    ├── 03/                     <- Component 03 audit
-    ├── 04/                     <- Synthesis
-    └── 05/                     <- Remediation log
+    ├── <pkg>/                  <- a component audit (top-level WP)
+    ├── <pkg>/                  <- another component audit
+    ├── <pkg>/                  <- the synthesis, made after every component
+    └── <pkg>/                  <- the remediation log
 ```
 
 The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered markdown files directly inside WP/24/) is a legacy patch for the "TCA-inside-another-ST" antipattern. It is NOT the recommended layout for a fresh TCA — a fresh TCA should always use top-level WPs under its own dedicated steel thread.
 
 ### Invariant 3: The last work package is the synthesis WP
 
-Create the synthesis WP with `intent wp new` after every component WP, so it takes the highest number. No guard checks it afterwards, and `intent wp new` always numbers after the highest existing WP, so a WP added later lands after the synthesis WP.
+Create the synthesis WP with `intent wp new` after every component WP, so it is made last: `intent wp list` lists a thread's packages in the order they were made, after any it holds from before the project took git-style ids. No guard checks it afterwards, so a WP added later lists after the synthesis WP.
 
 ### Invariant 4: Rank components by later-pain impact, not raw violation count
 
@@ -205,47 +204,41 @@ Not all files are equal audit weight. Use the effective file count to size WPs:
 
 ### Component Mapping Strategies
 
+One work package per component, created with `intent wp new`, which prints each one's id.
+
 **By domain** (recommended for most projects):
 
-```
-WP-01: User/Account domain
-WP-02: Content/Data domain
-WP-03: API layer
-WP-04: Background jobs
-WP-05: Web UI layer
-```
+- User/Account domain
+- Content/Data domain
+- API layer
+- Background jobs
+- Web UI layer
 
 **By architectural layer** (good for layered architectures):
 
-```
-WP-01: Data models / schemas
-WP-02: Business logic / services
-WP-03: Controllers / handlers
-WP-04: Views / templates / components
-WP-05: Workers / jobs
-WP-06: Configuration / infrastructure
-```
+- Data models / schemas
+- Business logic / services
+- Controllers / handlers
+- Views / templates / components
+- Workers / jobs
+- Configuration / infrastructure
 
 **For umbrella/monorepo projects**:
 
-```
-WP-01: app_core/lib/models/
-WP-02: app_core/lib/services/
-WP-03: app_web/lib/controllers/
-WP-04: app_web/lib/live/
-WP-05: app_worker/lib/
-WP-06: shared/lib/
-```
+- app_core/lib/models/
+- app_core/lib/services/
+- app_web/lib/controllers/
+- app_web/lib/live/
+- app_worker/lib/
+- shared/lib/
 
 **For polyglot projects**:
 
-```
-WP-01: backend/src/ (Rust)
-WP-02: frontend/src/ (TypeScript)
-WP-03: ios/Sources/ (Swift)
-WP-04: shared/protos/ (Protobuf)
-WP-05: infra/ (Terraform/YAML)
-```
+- backend/src/ (Rust)
+- frontend/src/ (TypeScript)
+- ios/Sources/ (Swift)
+- shared/protos/ (Protobuf)
+- infra/ (Terraform/YAML)
 
 Only a language that `intent critic --languages` lists has a critic to dispatch; a WP in any other language (TypeScript, Protobuf and Terraform here) has none, so audit it by hand or leave it out.
 
@@ -382,7 +375,7 @@ Example from an umbrella audit WP-08:
 
 ### Batch Ordering for Parallelization
 
-WPs should be organized into named dependency batches, not just "parallel if no shared files":
+WPs should be organized into named dependency batches, not just "parallel if no shared files". The Lamplight audit, which ran before Intent took git-style ids, batched its packages like this:
 
 ```
 Batch 1A: WP-01, WP-11, WP-15   — Foundational, no dependencies
@@ -507,13 +500,13 @@ The critic dispatch runs autonomously. It will:
 
 Context exhaustion is the primary risk. Mitigations:
 
-| Risk             | Mitigation                                                                                                                                                           |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Context overflow | `/compact` before each WP                                                                                                                                            |
-| Lost work        | Commit after every WP (never batch)                                                                                                                                  |
-| Critic not found | Restart session before audit if critics installed mid-session                                                                                                        |
-| Session crash    | Keep a running log outside the session                                                                                                                               |
-| WP too large     | Split a WP with >60 files into flat WPs at provisioning (never sub-WPs: `intent wp` refuses a nested specifier, and a WP added later numbers after the synthesis WP) |
+| Risk             | Mitigation                                                                                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Context overflow | `/compact` before each WP                                                                                                                                              |
+| Lost work        | Commit after every WP (never batch)                                                                                                                                    |
+| Critic not found | Restart session before audit if critics installed mid-session                                                                                                          |
+| Session crash    | Keep a running log outside the session                                                                                                                                 |
+| WP too large     | Split a WP with >60 files into flat WPs at provisioning (never sub-WPs: `intent wp` refuses a nested specifier, and a WP added later is listed after the synthesis WP) |
 
 ### Parallelization
 

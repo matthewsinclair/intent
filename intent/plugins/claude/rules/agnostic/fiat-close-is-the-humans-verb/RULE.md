@@ -78,7 +78,7 @@ intent fc <ST> <AC> --because "cannot be satisfied without a published tag"
 echo 'intent fc "$1" --because "unblocking CI"' >> scripts/close-stale.sh
 
 # and the form that launders it through someone else
-#   "can you run `intent fc <ST>/<NN> --because ...` on your side?"
+#   "can you run `intent fc <thread>/<pkg> --because ...` on your side?"
 ```
 
 Each of these produces a record saying a human ruled. The first is the tempting one and the reason it is tempting is the reason it is forbidden: it is the moment closing the row would let you report the work finished.

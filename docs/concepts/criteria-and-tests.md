@@ -7,12 +7,14 @@
 "Implement the cache" is a work package. "Evicts oldest entries under memory pressure rather than failing writes" is a criterion — it names a condition that is either true or not, and someone can check.
 
 ```
-  $ intent ac new ST0001 AC-01.1 --kind test --text "Evicts oldest entries under memory pressure rather than failing writes"
+  $ intent wp new ST04750e14f8ff7e39 "Cache layer"
+  created: ST04750e14f8ff7e39/27844e96
+  $ intent ac new ST04750e14f8ff7e39 AC-27844e96.1 --kind test --text "Evicts oldest entries under memory pressure rather than failing writes"
 ```
 
 **`--kind` defaults to `non-test`**, so a criterion meant to be decided by a test says `--kind test`, as this one does.
 
-Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` ties a criterion to the work package that satisfies it, and `wp done` is gated on exactly the criteria in its own group. `AC-00.*` are thread-level. `st done` is gated on all of them.
+Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` ties a criterion to the work package that satisfies it, and `wp done` is gated on exactly the criteria in its own group. `<wp>` is the package's id as `wp new` printed it: its hex for a package made since the project took git-style ids, as `27844e96` above, and two digits for one made before, as in `AC-01.1`. A git-style group may be typed with the package's four shown hex, so `AC-2784.2` is created as `AC-27844e96.2`. `AC-00.*` are thread-level. `st done` is gated on all of them.
 
 ## Two kinds, and the kind decides everything downstream
 
@@ -26,8 +28,8 @@ Ids are caller-assigned, and **the id's shape is load-bearing**: `AC-<wp>.<n>` t
 **A non-test criterion enters at `unsatisfied` and is satisfied by evidence**, because there is no test to compute from:
 
 ```
-  $ intent ac new ST0001 AC-02.9 --text "Refuses over-quota requests rather than queueing them"
-  $ intent ac satisfy ST0001 AC-02.9 --evidence "Reviewed against the upstream rate-limit contract, 2026-08-29"
+  $ intent ac new ST04750e14f8ff7e39 AC-00.9 --text "Refuses over-quota requests rather than queueing them"
+  $ intent ac satisfy ST04750e14f8ff7e39 AC-00.9 --evidence "Reviewed against the upstream rate-limit contract, 2026-11-21"
 ```
 
 `ac satisfy` refuses a test-backed criterion. That refusal is the model holding: a criterion whose truth is computable must not be assertable.
@@ -68,7 +70,7 @@ Six states, and every one but `computed` carries a payload. The payload is the p
 A criterion with nothing behind it is a promise. An acceptance test is what makes it a computed fact.
 
 ```
-  $ intent at new ST0001 AT-01.1 --covers AC-01.1 --file tests/cache_eviction.rs
+  $ intent at new ST04750e14f8ff7e39 AT-27844e96.1 --covers AC-27844e96.1 --file tests/cache_eviction.rs
 ```
 
 | Status     | Meaning                                                          |
@@ -88,31 +90,33 @@ So the way out of a row that has stopped being true is not a status change. **It
 **A citation is checked when the row claims a verdict, not when it is written.** While a test is `to-write` it may cite a file that does not carry its id, and the linter accepts it — the row is naming an intention, and there is nothing to check yet:
 
 ```
-  $ intent at lint ST0001
-  lint: ST0001 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 awaiting a verdict)
+  $ intent at lint ST04750e14f8ff7e39
+  lint: ST04750e14f8ff7e39 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 awaiting a verdict)
 ```
 
-Move a row to `green` or `red` and the citation becomes a claim. A cited file that does not exist is refused by `at red` and `at green` themselves; a file that exists without the row's id is refused by the linter and the gate. Here `AT-03.1` cites `tests/unrelated.rs`, which exists but was written for something else:
+Move a row to `green` or `red` and the citation becomes a claim. A cited file that does not exist is refused by `at red` and `at green` themselves; a file that exists without the row's id is refused by the linter and the gate. Here the row is re-cited to `tests/unrelated.rs`, which exists but was written for something else, and taken to `red`:
 
 ```
-  $ intent at lint ST0001
-  tests/unrelated.rs does not carry the literal id AT-03.1
-  lint: ST0001 FAILED -- 1 finding(s) over 1 of 1 AT row(s) examined
+  $ intent at edit ST04750e14f8ff7e39 AT-27844e96.1 --file tests/unrelated.rs
+  $ intent at red ST04750e14f8ff7e39 AT-27844e96.1
+  $ intent at lint ST04750e14f8ff7e39
+  tests/unrelated.rs does not carry the literal id AT-27844e96.1
+  lint: ST04750e14f8ff7e39 FAILED -- 1 finding(s) over 1 of 1 AT row(s) examined
 
-  $ intent ac gate ST0001
-  gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): tests/unrelated.rs does not carry the literal id AT-03.1
+  $ intent ac gate ST04750e14f8ff7e39
+  gate: ST04750e14f8ff7e39 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): tests/unrelated.rs does not carry the literal id AT-27844e96.1
 ```
 
 **Read the gate's shape, not just the word `BLOCKED`.** A criterion nothing has satisfied yet reads `BLOCKED -- 0/1 satisfied`; a row whose citation does not hold up reads as a contract finding against the row. They block for different reasons and the message says which.
 
-**Re-citing a row to a different file is `intent at edit ST0001 AT-03.1 --file <path>`**, which changes only the fields you name and keeps the row's note. `at new` on an id that already exists refuses and writes nothing.
+**Re-citing a row to a different file is `intent at edit ST04750e14f8ff7e39 AT-27844e96.1 --file <path>`**, which changes only the fields you name and keeps the row's note. `at new` on an id that already exists refuses and writes nothing.
 
 **One thing the tool cannot tell you, and it decides which file you write.** A `red` row's cited artefact sits in whatever the project's default test run collects. Citing a file inside that run does not merely record your own red — it turns the whole run red for everyone working on the project, including people with no stake in this criterion. A row that will sit `red` for a while should cite an instrument that runs on demand.
 
 A `non-test` acceptance test cites what was read rather than a file:
 
 ```
-  $ intent at new ST0001 AT-02.9 --covers AC-02.9 --kind non-test --prose "Reviewed the rate-limit design against the upstream contract"
+  $ intent at new ST04750e14f8ff7e39 AT-00.9 --covers AC-00.9 --kind non-test --prose "Reviewed the rate-limit design against the upstream contract"
 ```
 
 `--covers` takes one or more criterion ids. **One test can cover several criteria and one criterion can be covered by several tests**; the relation is many-to-many. A test-backed criterion is satisfied when every test covering it is green; a non-test criterion is satisfied by its evidence, whatever covers it.
@@ -120,7 +124,7 @@ A `non-test` acceptance test cites what was read rather than a file:
 ## The gate
 
 ```
-  $ intent ac gate ST0001
+  $ intent ac gate ST04750e14f8ff7e39
 ```
 
 `ac gate` reports `PASS` or `BLOCKED` and exits non-zero when blocked. It is built for a pre-commit hook or CI, not for reading.

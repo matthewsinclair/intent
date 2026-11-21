@@ -74,7 +74,7 @@ A cancelled thread reinstates to `not-started`, not to whatever it was before. C
              cancelled <-- (from any of not-started, wip, done)
 ```
 
-**`wp done` is guarded by `ac gate` in the same way `st done` is, over the work package's own criteria:** `wp done ST0001/01` is gated on the `AC-01.*` criteria. A work package closes when what it owed is satisfied, not when someone decides it feels finished. One with no criteria of its own closes without a contract check, as long as the thread has some; a thread with no criteria at all refuses `wp done` and `st done` alike as an empty contract. One whose criteria were all descoped or withdrawn refuses until it is cancelled instead, because an exemption is never inferred from an emptied contract.
+**`wp done` is guarded by `ac gate` in the same way `st done` is, over the work package's own criteria:** `wp done <thread>/<pkg>` is gated on the criteria grouped under that package: `AC-c2e41a0b.*` for a package made since the project took git-style ids, such as `ST3f9a2c1d4e5f6a7b/c2e41a0b`, and `AC-01.*` for an ordinal one, `ST0001/01`. A work package closes when what it owed is satisfied, not when someone decides it feels finished. One with no criteria of its own closes without a contract check, as long as the thread has some; a thread with no criteria at all refuses `wp done` and `st done` alike as an empty contract. One whose criteria were all descoped or withdrawn refuses until it is cancelled instead, because an exemption is never inferred from an emptied contract.
 
 **`st done` refuses while a work package is `not-started` or `wip`.** Finish each with `intent wp done` or drop it with `intent wp cancel`, then close the thread. `intent fc` is the human's override and does not read the packages.
 
@@ -93,8 +93,8 @@ The interim workaround was to mark the package done and write a note, which put 
 ```
   $ intent st list                 # in-progress threads
   $ intent st list --status wip
-  $ intent st show ST0001
-  $ intent wp list ST0001
+  $ intent st show <thread>
+  $ intent wp list <thread>
   $ intent todo                    # DOING / TODO / DONE across everything, packages under their threads
 ```
 

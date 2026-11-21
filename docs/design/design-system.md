@@ -182,7 +182,7 @@ Rust sits 14 degrees of hue from the `error:` red at ΔE 13.8 — the bottom of 
 
 ### Mono earns its place; it is not the leftover
 
-Monospace carries anything the tool would print, and everything that is a machine fact rather than an argument: commands, output, file paths, flags, identifiers (`ST0056`, `AC-08.6`), version numbers, navigation, table headers, figure labels, the footer, and the wordmark.
+Monospace carries anything the tool would print, and everything that is a machine fact rather than an argument: commands, output, file paths, flags, identifiers (`ST0056`, `ST3f9a2c1`, `AC-08.6`), version numbers, navigation, table headers, figure labels, the footer, and the wordmark.
 
 **Body prose is never monospace.** All-mono body text reads as costume and measurably slows long-form reading, which is what the docs are.
 
@@ -235,7 +235,7 @@ Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs`, `github` and t
 
 ```
   $ intent st new "Port the acceptance gate"
-  created: ST0069
+  created: STde4ddf588aed9241
 ```
 
 Each rule below closes a real failure:

@@ -15,7 +15,7 @@ ALWAYS create or update steel thread and work package docs BEFORE coding:
 
 - If no ST exists for this work, create one: `intent st new "Title"`
 - If no WP exists, create one: `intent wp new <STID> "Title"`
-- Write the plan into the record: the thread's objective with `intent set <STID> objective --from <file>`, a WP's with `intent set intent:///threads/<STID>/wp/<NN> objective --from <file>`, or a design document attached with `intent st attach <STID> design.md --from <file>`. `WP/<NN>/info.md` is a generated view; never write into it
+- Write the plan into the record: the thread's objective with `intent set <STID> objective --from <file>`, a WP's with `intent set <STID>/<pkg> objective --from <file>`, the package's address as `wp new` prints it, or a design document attached with `intent st attach <STID> design.md --from <file>`. `WP/<pkg>/info.md` is a generated view; never write into it
 - If the thread has an `acceptance.md`, ratify its Acceptance Criteria first -- the open-gate. The verifier owns the boundary; settle it before writing code. `/in-verify` carries the AC/AT steps.
 
 ### 2. Show detailed workplan

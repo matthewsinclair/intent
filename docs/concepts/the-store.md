@@ -8,11 +8,11 @@ Intent v2 kept everything in Markdown files and derived what it needed by parsin
 
 v3 inverts it. Objects live in a store with a real schema, and the Markdown you read is generated from them.
 
-| Layer              | What it is                                        | Who writes it                                                                          |
-| ------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| **The store**      | `intent/.cache/intent.db` — the source of truth   | The tool, via its verbs                                                                |
-| **Canon extracts** | `intent/.canon/st/ST####.json` — tracked in git   | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
-| **Views**          | `intent/st/<ID>/*.md` — generated, human-readable | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
+| Layer              | What it is                                       | Who writes it                                                                          |
+| ------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **The store**      | `intent/.cache/intent.db`: the source of truth   | The tool, via its verbs                                                                |
+| **Canon extracts** | `intent/.canon/st/<ID>.json`: tracked in git     | Every verb, as it writes the store; `intent sync --to-disk` rewrites them from it      |
+| **Views**          | `intent/st/<ID>/*.md`: generated, human-readable | Verbs keep realised views current; `intent st edit` and `intent organize` realise them |
 
 **The store is not in git; the canon extracts are.** That is the split that makes the design workable in a team: the database is truth on the machine that holds it, and what reaches your colleagues is the JSON extract, which has a schema and diffs sensibly; a fresh clone builds its store from the extracts on the first verb. **`intent init` writes the ignore lines** for the store and the backups (`intent/.cache/`, `intent/.backup/`). [Working in a team](working-in-a-team.md) is the whole two-clone story.
 
@@ -25,9 +25,9 @@ The views under `intent/st/<ID>/`, the thread cover `info.md` and `acceptance.md
 If you want to change a thread, use a verb: `intent set <address> <field> <value>` writes a thread's title or prose. If you want to change something no verb reaches, edit the canon extract and sync it back, having first settled any hand edit to that thread's `info.md` with `intent set`, because the scoped `--to-store` also reads the cover back:
 
 ```
-  $ $EDITOR intent/.canon/st/ST0001.json
-  $ intent sync --to-store ST0001
-  $ intent sync --to-disk  ST0001
+  $ $EDITOR intent/.canon/st/ST04750e14f8ff7e39.json
+  $ intent sync --to-store ST04750e14f8ff7e39
+  $ intent sync --to-disk  ST04750e14f8ff7e39
 ```
 
 **Always scope a direction to a thread id.** An unscoped `--to-store` or `--to-disk` is a whole-project operation, and it is almost never what you meant.
