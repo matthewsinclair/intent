@@ -152,8 +152,8 @@ _(no tests in this group)_
 
 ### WP-08 -- The order (status: Done)
 
-- AT-08.1 `native/rust/crates/intentsvcs/src/id.rs:2925` -- covers AC-08.1 -- status: green -- Written after the land. Red on the base: it has no id::record_order. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
-- AT-08.2 `native/rust/crates/intentsvcs/src/id.rs:2971` -- covers AC-08.2 -- status: green -- Written after the land. A regression arm, with no red on the base by construction: ordinals alone order by number before and after WP-08. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-08.1 `native/rust/crates/intentsvcs/src/id.rs:3000` -- covers AC-08.1 -- status: green -- Written after the land. Red on the base: it has no id::record_order. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
+- AT-08.2 `native/rust/crates/intentsvcs/src/id.rs:3046` -- covers AC-08.2 -- status: green -- Written after the land. A regression arm, with no red on the base by construction: ordinals alone order by number before and after WP-08. Green at dc's gate of the landed tree, 41c6c6373 (Desk 01M7X0ZZSGJADV9BB70QPMMEZJ, 17:50:14Z to 17:55:06Z), landed at cbae96463.
 
 ### WP-09 -- Criteria follow their package, and doctor verifies (status: Done)
 
@@ -179,6 +179,7 @@ _(no tests in this group)_
 
 ### WP-11 -- The TUI, the app and the served page (status: Not Started)
 
+- AT-11.1 `native/rust/crates/intent-cli/src/render.rs:18742` -- covers AC-11.1 -- status: to-write
 - AT-11.2 `native/rust/crates/intentd/src/store.rs:1121` -- covers AC-11.2 -- status: green -- the served page's two refusals each name both id families in the waist's own sentences, and a hashed path resolves with its id carried unchanged. Green at 9df6dfad4 (devbin-cc's gate, read by ic and vc)
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
@@ -191,7 +192,7 @@ _(no tests in this group)_
 
 ### WP-14 -- Kind tags and the owner of a path have one home (status: Done)
 
-- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2719` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
+- AT-14.1 `native/rust/crates/intentsvcs/src/id.rs:2794` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.2 `native/rust/crates/intent-cli/tests/search_surface.rs:184` -- covers AC-14.1 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.3 `native/rust/crates/intentsvcs/tests/one_answer_to_who_owns_a_path.rs:23` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u
 - AT-14.4 `native/rust/crates/intentsvcs/tests/retired_st_prefix.rs:134` -- covers AC-14.2 -- status: green -- Written with the unit, ST0095 WP-14. Landed in 7ed879ab3; green in bin/devbin gate rust at 13f40d241, 2026-11-20 15:17Z to 15:22Z by date -u

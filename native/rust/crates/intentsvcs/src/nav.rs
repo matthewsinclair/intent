@@ -199,20 +199,59 @@ pub enum View {
   Estate,
 }
 
+/// A record's id as a person reads it on a face (ST0095 WP-11, AC-11.1): its
+/// shown form through the waist ([`crate::id::shown_of`]), or, falling back,
+/// the text as it is when it is no stored id, which is how a face prints a
+/// view's segment that names no record. The fallback is the point of the name:
+/// unlike `wire::ThreadSummary::shown_id`, this refuses nothing.
+pub fn shown_or_as_is(id: &str) -> String {
+  crate::id::shown_of(id).unwrap_or_else(|| id.to_string())
+}
+
+/// An item under a record's `field`, as a person reads it: under `wps`, a
+/// work package by its shown form (the 8 hex a package stores show as 4);
+/// under any other field, a criterion or an attachment, as it is, whatever it
+/// looks like. Read only where the record's id stands before it, so a bare
+/// all-digit package never reads alone.
+pub fn shown_item(field: &str, item: &str) -> String {
+  match field {
+    "wps" => crate::id::WpId::parse(item).map_or_else(|_| item.to_string(), |wp| wp.shown()),
+    _ => item.to_string(),
+  }
+}
+
 impl View {
   /// The path for this view, in the browser and in the trail.
   pub fn path(&self) -> String {
+    self.path_with(&|id| id.to_string(), &|_, item| item.to_string())
+  }
+
+  /// [`View::path`] with each record's id and item as a person reads them
+  /// ([`shown_or_as_is`], [`shown_item`]): the trail's form (ST0095 WP-11).
+  /// The view still carries the stored id; only what is printed is shorter,
+  /// and each shown form is a unique prefix the omnibox lands on.
+  pub fn shown_path(&self) -> String {
+    self.path_with(&shown_or_as_is, &shown_item)
+  }
+
+  /// The path grammar, once, with how an id and an item (under its field) are
+  /// written.
+  fn path_with(
+    &self,
+    id_of: &dyn Fn(&str) -> String,
+    item_of: &dyn Fn(&str, &str) -> String,
+  ) -> String {
     match self {
       View::Entities => "/".to_string(),
       View::Collection { kind } => format!("/{kind}"),
-      View::Item { kind, id } => format!("/{kind}/{id}"),
-      View::Children { kind, id, field } => format!("/{kind}/{id}/{field}"),
+      View::Item { kind, id } => format!("/{kind}/{}", id_of(id)),
+      View::Children { kind, id, field } => format!("/{kind}/{}/{field}", id_of(id)),
       View::Child {
         kind,
         id,
         field,
         item,
-      } => format!("/{kind}/{id}/{field}/{item}"),
+      } => format!("/{kind}/{}/{field}/{}", id_of(id), item_of(field, item)),
       View::Settings => format!("/{SETTINGS_SEGMENT}"),
       View::Search { query } if query.is_empty() => format!("/{SEARCH_SEGMENT}"),
       View::Search { query } => format!("/{SEARCH_SEGMENT}/{query}"),
@@ -577,6 +616,12 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     // or `wp/02`, and both read through the waist to `02`, the name the rows
     // carry; a spelling that is not a package id passes through, and the view
     // says it names nothing.
+    //
+    // **IT TAKES A STORED PACKAGE ID, OR AN ORDINAL AS TYPED** (ST0095 WP-11).
+    // A SHOWN all-digit hashed package, `0123`, reads here as ordinal 123 and
+    // names nothing; every caller passes the stored id (`outstanding_door`,
+    // and `resolve::complete` rewrites a typed prefix to it), and a face that
+    // starts from a shown form resolves it first, as `land` does.
     Entity::Wp { thread, wp } => Some(View::Child {
       kind: "thread".to_string(),
       id: thread.to_string(),

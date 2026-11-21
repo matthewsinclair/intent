@@ -97,7 +97,9 @@ impl Stack {
     self
       .views
       .iter()
-      .map(|v| v.path())
+      // Each id by its shown form (ST0095 WP-11), which is a unique prefix the
+      // omnibox lands on, so a segment a person copies still finds its view.
+      .map(|v| v.shown_path())
       .collect::<Vec<_>>()
       .join("  <  ")
   }

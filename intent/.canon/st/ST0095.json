@@ -687,7 +687,7 @@
     {
       "id": "AT-08.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2925",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:3000",
       "covers": [
         "AC-08.1"
       ],
@@ -697,7 +697,7 @@
     {
       "id": "AT-08.2",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2971",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:3046",
       "covers": [
         "AC-08.2"
       ],
@@ -865,6 +865,15 @@
       "note": "row written after the land: red is the machine's route to green here, not a measured red. green in ic's gate at 2ebba3aa0 on 26c4b0ca0 (gyges, 18:53Z to 18:58Z by date -u), whose tree landed at 42de84456; the marker line over each arm is a comment"
     },
     {
+      "id": "AT-11.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/render.rs:18742",
+      "covers": [
+        "AC-11.1"
+      ],
+      "status": "to-write"
+    },
+    {
       "id": "AT-11.2",
       "kind": "test",
       "file": "native/rust/crates/intentd/src/store.rs:1121",
@@ -877,7 +886,7 @@
     {
       "id": "AT-14.1",
       "kind": "test",
-      "file": "native/rust/crates/intentsvcs/src/id.rs:2719",
+      "file": "native/rust/crates/intentsvcs/src/id.rs:2794",
       "covers": [
         "AC-14.1"
       ],

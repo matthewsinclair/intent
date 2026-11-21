@@ -1466,16 +1466,8 @@ pub fn realised_issue(root: &Path, id: &str) -> bool {
 /// read through the waist, and spells neither form by hand. A thread, an issue,
 /// or a work package's `<thread>/<package>` address.
 pub fn shown(stored: &str) -> String {
-  use intentsvcs::id::{IssueId, ThreadId, WpId, split_wp_address, wp_address_shown};
-  if let Some((thread, package)) = split_wp_address(stored) {
-    let thread = ThreadId::parse(thread).expect("a work package's thread");
-    let package = WpId::parse(package).expect("a work package's id");
-    return wp_address_shown(&thread, package);
-  }
-  ThreadId::parse(stored)
-    .map(|id| id.shown())
-    .or_else(|_| IssueId::parse(stored).map(|id| id.shown()))
-    .expect("a stored thread or issue id")
+  intentsvcs::id::shown_of(stored)
+    .unwrap_or_else(|| panic!("`{stored}` is no stored thread, issue or work package id"))
 }
 
 /// A minted work package's own id, read by the id waist from the part of its

@@ -282,9 +282,9 @@ pub fn outstanding_rows(rows: &[([String; 4], Option<View>)], counts: &str) -> V
 ///
 /// **A WORK PACKAGE IS OPENED BY ITS FIELDS, NEVER BY ITS RENDERED ID.** The
 /// row carries the package's thread and sequence
-/// ([`intentsvcs::outstanding::WpRef`]), and the sequence goes in as the number
-/// the `wps` descent names its rows by (`1`, never `01`), or the door would
-/// open onto a package the child view cannot find.
+/// ([`intentsvcs::outstanding::WpRef`]), and the sequence goes in as its stored
+/// id, the name the `wps` descent gives its rows (`01`, or a hashed package's
+/// 8 hex), or the door would open onto a package the child view cannot find.
 pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
   use intentsvcs::address::Entity;
   use intentsvcs::id::IdKind;
@@ -396,17 +396,24 @@ pub fn estate_rows(
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
+  use intentsvcs::nav::{shown_item, shown_or_as_is};
   match view {
     View::Entities => "intent".to_string(),
     View::Collection { kind } => kind.clone(),
-    View::Item { kind, id } => format!("{kind}  {id}"),
-    View::Children { kind, id, field } => format!("{kind}  {id}  {field}"),
+    // Each id as a person reads it, its shown form (ST0095 WP-11, AC-11.1);
+    // the view keeps the stored id it opens by.
+    View::Item { kind, id } => format!("{kind}  {}", shown_or_as_is(id)),
+    View::Children { kind, id, field } => format!("{kind}  {}  {field}", shown_or_as_is(id)),
     View::Child {
       kind,
       id,
       field,
       item,
-    } => format!("{kind}  {id}  {field}  {item}"),
+    } => format!(
+      "{kind}  {}  {field}  {}",
+      shown_or_as_is(id),
+      shown_item(field, item)
+    ),
     View::Settings => format!("settings  {}", intentsvcs::settings::SECTION),
     View::Help { of: None } => "help".to_string(),
     View::Help { of: Some(name) } => format!("help  intent {name}"),

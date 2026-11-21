@@ -842,7 +842,7 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
 /// Each refusal carries the whole of it, since each is read alone.
 fn item_paths() -> String {
   format!(
-    "`/thread/<id>` or `/issue/<id>`, where {} and {}",
+    "`/thread/<id>` or `/issue/<id>`, where {}; and {}",
     intentsvcs::id::THREAD_ID_FORM,
     intentsvcs::id::ISSUE_ID_FORM
   )
@@ -1143,6 +1143,11 @@ mod tests {
           "`{refused}`'s remedy does not carry `{form}`: {remedy}"
         );
       }
+      // The two sentences are each whole, so a semicolon parts them (ic's nit).
+      assert!(
+        remedy.contains(&format!("{THREAD_ID_FORM}; and {ISSUE_ID_FORM}")),
+        "`{refused}`'s remedy does not part the two forms with a semicolon: {remedy}"
+      );
     }
 
     let thread = ThreadId::parse(&format!("{THREAD_PREFIX}{EXAMPLE_HEX}"))

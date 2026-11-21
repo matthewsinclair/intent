@@ -6865,9 +6865,11 @@ fn explore_here(address: Option<&str>) -> Result<tui::run::Exit, Failure> {
     });
   // **A VIEW WORD OPENS THE EXPLORER THERE, AS TYPING `/<view>` WOULD** (hv,
   // 2026-09-25): `intent explore issues`, `intent explore outs`. It is checked
-  // before the address resolver because no id is spelt like one -- ids carry a
-  // digit, a view name never does -- and a word naming two views is refused on
-  // the info row by the same resolver, never guessed.
+  // before the address resolver because no id is spelt like one: an ordinal
+  // carries digits, a hashed id begins `ST` or `I`, and no view word is spelt
+  // in hex alone, so a bare prefix of four or more hex reads as no view (ST0095
+  // WP-11). A word naming two views is refused on the info row by the same
+  // resolver, never guessed.
   let names_a_view = |word: &str| {
     !matches!(
       tui::commands::start_view(&tui::commands::vocabulary(&crate::spine::surface()), word),
@@ -7402,8 +7404,10 @@ impl tui::run::Source for Live {
         door: View::Collection { kind },
       })
       .collect();
+    // An entry reads by its shown form, as every list does (ST0095 WP-11);
+    // its door carries the stored id it opens by.
     out.extend(self.facade.st_list().into_iter().map(|t| Entry {
-      id: t.id.stored(),
+      id: t.id.shown(),
       title: t.title.clone(),
       status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
       door: View::Item {
@@ -7414,7 +7418,7 @@ impl tui::run::Source for Live {
     out.extend(self.facade.issue_list().into_iter().map(|i| {
       let id = i.number.stored();
       Entry {
-        id: id.clone(),
+        id: i.number.shown(),
         title: i.title.clone(),
         status: intentsvcs::form::field(&serde_json::json!({ "status": i.status }), "status"),
         door: View::Item {
@@ -18720,6 +18724,282 @@ mod tests {
     )
   }
 
+  /// The first of `bound` origins, each `<prefix> <n>`, whose id `wanted`
+  /// accepts: a hashed fixture made through the waist and found, never spelled
+  /// (ST0095 WP-11). The bound is the control: a form never found fails here,
+  /// by name, rather than leaving the arm to pass on whatever came first.
+  fn origin_where(prefix: &str, bound: usize, wanted: impl Fn(&str) -> bool) -> String {
+    (0..bound)
+      .map(|n| format!("{prefix} {n}"))
+      .find(|origin| wanted(origin))
+      .unwrap_or_else(|| panic!("none of {bound} origins `{prefix} <n>` gives the form wanted"))
+  }
+
+  fn all_digits(text: &str) -> bool {
+    !text.is_empty() && text.chars().all(|c| c.is_ascii_digit())
+  }
+
+  // ST0095 AT-11.1: the arm below.
+  /// ST0095 WP-11 (AC-11.1): the explorer lists, opens and moves between
+  /// hashed records, and an id whose short form is all digits keeps every one
+  /// of them, its leading zero included. Each view is opened by its stored id,
+  /// each face prints the short form, and the short form a person copies off
+  /// the trail lands back on the view it names.
+  #[test]
+  fn the_explorer_lists_opens_and_leaves_hashed_records_and_an_all_digit_id_keeps_its_zero() {
+    use crate::tui::run::{Source, arrive};
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    use intentsvcs::canon_format::{CanonFormat, encode_issue, encode_thread_files};
+    use intentsvcs::id::{ISSUE_MARKER, IssueId, THREAD_PREFIX, ThreadId, WpId};
+    use intentsvcs::nav::{Landing, View};
+    let key = |code| KeyEvent::new(code, KeyModifiers::NONE);
+
+    // Each all-digit form is sought with a LEADING ZERO, the digit a careless
+    // reader drops: a 7-hex short form is that about one time in 270, a 4-hex
+    // one about one in 26. The search is deterministic, so whether the bound
+    // holds one is decided once, and the bound fails by name if it does not.
+    const BOUND: usize = 4096;
+    let after = |shown: &str, marker: &str| {
+      shown
+        .strip_prefix(marker)
+        .expect("a hashed short form carries its marker")
+        .to_string()
+    };
+    let zero_led = |digits: &str| all_digits(digits) && digits.starts_with('0');
+    let thread_origin = origin_where("an all-digit thread", BOUND, |o| {
+      zero_led(&after(&ThreadId::from_origin(o).shown(), THREAD_PREFIX))
+    });
+    let lettered_origin = origin_where("a lettered thread", BOUND, |o| {
+      !all_digits(&after(&ThreadId::from_origin(o).shown(), THREAD_PREFIX))
+    });
+    let package_origin = origin_where("an all-digit package", BOUND, |o| {
+      zero_led(&WpId::from_origin(o).shown())
+    });
+    let issue_origin = origin_where("an all-digit issue", BOUND, |o| {
+      zero_led(&after(&IssueId::from_origin(o).shown(), ISSUE_MARKER))
+    });
+    let thread = ThreadId::from_origin(&thread_origin);
+    let lettered = ThreadId::from_origin(&lettered_origin);
+    let package = WpId::from_origin(&package_origin);
+    let issue = IssueId::from_origin(&issue_origin);
+
+    // Minted as a person mints them, then given the found ids, each record
+    // carrying the origin its id derives from, in the release's canon format.
+    // The store is dropped so the explorer builds it from that canon, as a
+    // fresh clone does.
+    let dir = fresh_project();
+    let root = dir.path();
+    {
+      let mut f = facade_at(root);
+      let first = f
+        .st_new("A thread whose short form is all digits")
+        .expect("mint");
+      f.wp_new(
+        &first,
+        "A package whose short form is all digits",
+        intentsvcs::model::TShirt::S,
+      )
+      .expect("mint");
+      f.st_new("A thread whose short form has a letter")
+        .expect("mint");
+      f.issue_add("An issue whose short form is all digits", None, None, "")
+        .expect("mint");
+    }
+    let project = intentsvcs::project::Project::open(root).expect("the project opens");
+    let mut canon = intentsvcs::ingest::read(&project).expect("the canon reads");
+    let remove = |path: &std::path::Path| match std::fs::remove_file(path) {
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+      done => done.expect("remove a minted record's file"),
+    };
+    for t in &mut canon.threads {
+      for path in project.thread_files(&t.id.stored()) {
+        remove(&path);
+      }
+      let (id, origin) = if t.wps.is_empty() {
+        (lettered.clone(), &lettered_origin)
+      } else {
+        (thread.clone(), &thread_origin)
+      };
+      t.id = id;
+      t.origin = Some(origin.clone());
+      for w in &mut t.wps {
+        w.seq = package;
+        w.origin = Some(package_origin.clone());
+      }
+      for (rel, text) in encode_thread_files(t, CanonFormat::CURRENT).expect("the thread encodes") {
+        let path = project.intent_dir().join(rel);
+        std::fs::create_dir_all(path.parent().expect("a canon directory")).expect("mkdir");
+        std::fs::write(&path, text).expect("write the thread's canon");
+      }
+    }
+    for i in &mut canon.issues {
+      remove(&project.issue_json(i.number));
+      i.number = issue;
+      i.origin = Some(issue_origin.clone());
+      let path = project.issue_json(i.number);
+      std::fs::write(
+        &path,
+        encode_issue(i, CanonFormat::CURRENT).expect("the issue encodes"),
+      )
+      .expect("write the issue's canon");
+    }
+    let db = project.db_path();
+    for path in [
+      db.clone(),
+      db.with_extension("db-wal"),
+      db.with_extension("db-shm"),
+    ] {
+      remove(&path);
+    }
+
+    let mut live = live_at(root);
+    let mut app = crate::tui::app::App::explore();
+    // Down to the row named `name` in `rows`, and Enter: the view it opens.
+    let open = |app: &mut crate::tui::app::App, rows: &[crate::tui::layout::Row], name: &str| {
+      let at = rows
+        .iter()
+        .position(|row| row.name == name)
+        .unwrap_or_else(|| panic!("no row named `{name}`: {rows:?}"));
+      arrive(app, rows, None, None);
+      for _ in 0..at {
+        app.on_key(key(KeyCode::Down), rows);
+      }
+      app.on_key(key(KeyCode::Enter), rows);
+    };
+
+    // LIST: the thread list names each thread by its short form, and the
+    // all-digit one keeps every digit, its leading ones included.
+    let threads = View::Collection {
+      kind: "thread".into(),
+    };
+    app.stack.push(threads.clone());
+    let rows = live.rows(&threads);
+    for t in [&thread, &lettered] {
+      assert!(
+        rows.iter().any(|row| row.name == t.shown()),
+        "the thread list does not name {}: {rows:?}",
+        t.shown()
+      );
+    }
+    assert!(
+      !rows.iter().any(|row| row.name == thread.stored()),
+      "a list row is named by the short form, never the stored id: {rows:?}"
+    );
+
+    // OPEN: Enter opens the thread by its stored id, and the APP row and the
+    // trail print its short form.
+    let item = View::Item {
+      kind: "thread".into(),
+      id: thread.stored(),
+    };
+    open(&mut app, &rows, &thread.shown());
+    assert_eq!(app.stack.current(), &item, "Enter did not open the thread");
+    let line = crate::tui::views::app_line(app.stack.current());
+    assert!(
+      line.contains(&thread.shown()) && !line.contains(&thread.stored()),
+      "the APP row prints the short form: {line}"
+    );
+    assert!(
+      app
+        .stack
+        .trail()
+        .ends_with(&format!("/thread/{}", thread.shown())),
+      "the trail prints the short form: {}",
+      app.stack.trail()
+    );
+
+    // MOVE: into the thread's packages, and into the package, which opens by
+    // its stored 8 hex and reads by its 4.
+    let rows = live.rows(&item);
+    let wps = View::Children {
+      kind: "thread".into(),
+      id: thread.stored(),
+      field: "wps".into(),
+    };
+    let to_wps = rows
+      .iter()
+      .find(|row| row.door.as_ref() == Some(&wps))
+      .unwrap_or_else(|| panic!("the thread view has no way into its packages: {rows:?}"))
+      .name
+      .clone();
+    open(&mut app, &rows, &to_wps);
+    assert_eq!(app.stack.current(), &wps, "Enter did not open the packages");
+    let rows = live.rows(&wps);
+    let child = View::Child {
+      kind: "thread".into(),
+      id: thread.stored(),
+      field: "wps".into(),
+      item: package.stored(),
+    };
+    open(&mut app, &rows, &package.stored());
+    assert_eq!(
+      app.stack.current(),
+      &child,
+      "Enter did not open the package"
+    );
+    let shown_path = format!("/thread/{}/wps/{}", thread.shown(), package.shown());
+    assert!(
+      app.stack.trail().ends_with(&shown_path),
+      "the trail prints the package under its thread, each by its short form: {}",
+      app.stack.trail()
+    );
+    assert!(
+      crate::tui::views::app_line(app.stack.current())
+        .ends_with(&format!("wps  {}", package.shown())),
+      "the APP row prints the package's short form: {}",
+      crate::tui::views::app_line(app.stack.current())
+    );
+
+    // THE SHORT FORM PASTES: what the trail prints for each view, typed back
+    // in as the omnibox's spelling route reads it, lands on that same view.
+    for (spelling, view) in [
+      (thread.shown(), &item),
+      (format!("{}/{}", thread.shown(), package.shown()), &child),
+    ] {
+      match intentsvcs::nav::land(&spelling, |_| true, &live.facade) {
+        Landing::At(landed) => assert_eq!(&landed, view, "`{spelling}` landed elsewhere"),
+        Landing::Root(why) => panic!("`{spelling}` did not land: {why:?}"),
+      }
+    }
+
+    // BACK: each step returns to the view before it.
+    for back_to in [&wps, &item, &threads] {
+      app.on_key(key(KeyCode::Backspace), &[]);
+      assert_eq!(app.stack.current(), back_to, "Backspace did not return");
+    }
+
+    // THE OMNIBOX: typing a record's short form finds the entry that opens it
+    // by its stored id, and that entry reads by the short form. Found by its
+    // door rather than by rank, so another entry's fuzzy score cannot stand in.
+    let index = live.index();
+    let issue_item = View::Item {
+      kind: "issue".into(),
+      id: issue.stored(),
+    };
+    for (typed, door) in [(thread.shown(), &item), (issue.shown(), &issue_item)] {
+      let hit = crate::tui::omnibox::matches(&index, &typed, index.len())
+        .iter()
+        .map(|m| &index[m.entry])
+        .find(|entry| &entry.door == door)
+        .cloned()
+        .unwrap_or_else(|| panic!("typing `{typed}` does not find the entry that opens {door:?}"));
+      assert_eq!(hit.id, typed, "the entry reads by its short form");
+    }
+
+    // AN ISSUE: listed by its all-digit short form, opened by its stored id.
+    let issues = View::Collection {
+      kind: "issue".into(),
+    };
+    app.stack.push(issues.clone());
+    let rows = live.rows(&issues);
+    open(&mut app, &rows, &issue.shown());
+    assert_eq!(
+      app.stack.current(),
+      &issue_item,
+      "Enter did not open the issue"
+    );
+  }
+
   /// **ISSUE 0543: WHAT A `/` COMMAND MADE CAN BE FOUND IN THE OMNIBOX.** The
   /// command's dispatch writes through its own connection, and the loop re-reads
   /// the view straight after it, before any idle tick. That read caught the
@@ -18742,6 +19022,8 @@ mod tests {
     let id = facade_at(dir.path())
       .st_new("Zebra crossing")
       .expect("the command's own connection makes a thread");
+    // An entry reads by the short form (ST0095 WP-11), as every list does.
+    let shown = intentsvcs::id::shown_of(&id).expect("a minted thread id");
     rows = live.rows(app.stack.current());
     assert!(
       follow_the_store(&mut app, &mut live, &mut rows),
@@ -18749,7 +19031,7 @@ mod tests {
     );
     let found = crate::tui::omnibox::matches(&app.index, "Zebra", 9);
     assert!(
-      found.iter().any(|m| app.index[m.entry].id == id),
+      found.iter().any(|m| app.index[m.entry].id == shown),
       "the omnibox must find {id}, which the command just made: {:?}",
       app.index.iter().map(|e| &e.id).collect::<Vec<_>>()
     );
@@ -18771,6 +19053,8 @@ mod tests {
     let id = facade_at(dir.path())
       .st_new("Another node's thread")
       .expect("another connection makes a thread");
+    // An entry reads by the short form (ST0095 WP-11), as every list does.
+    let shown = intentsvcs::id::shown_of(&id).expect("a minted thread id");
     live.rows(&intentsvcs::nav::View::Collection {
       kind: "thread".to_string(),
     });
@@ -18779,7 +19063,7 @@ mod tests {
       "the change the navigation read caught is still news to the idle tick"
     );
     assert!(
-      app.index.iter().any(|e| e.id == id),
+      app.index.iter().any(|e| e.id == shown),
       "the omnibox must hold {id}: {:?}",
       app.index.iter().map(|e| &e.id).collect::<Vec<_>>()
     );

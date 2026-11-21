@@ -912,6 +912,32 @@ pub fn wp_address_shown(thread: &ThreadId, wp: WpId) -> String {
   format!("{}{WP_SEPARATOR}{}", thread.shown(), wp.shown())
 }
 
+/// The form a table, a view or a message prints of a STORED id, read whole:
+/// a thread's (`ST` and 16 hex shows `ST` and 7; an ordinal as stored), an
+/// issue's, or a work package's address `<thread>/<package>` (each part by
+/// its own family, the package's 8 hex shown as 4). `None` when the text is
+/// no stored id of any family, so a caller decides what a non-id is and no
+/// damaged id is printed as if it were one. Never a prefix read: an
+/// all-digit short form such as `ST0123456` is a shown form, not a stored
+/// one, and is `None` here (ST0095 WP-11, AC-11.1).
+///
+/// The parses cannot take one another's text (cc's read): a thread id begins
+/// `ST`, an issue id is four digits or `I` and hex, and only an address holds
+/// the separator, so the first typed parse that takes the text is the only
+/// one that could.
+pub fn shown_of(stored: &str) -> Option<String> {
+  if let Ok(thread) = ThreadId::parse(stored) {
+    return Some(thread.shown());
+  }
+  if let Ok(issue) = IssueId::parse(stored) {
+    return Some(issue.shown());
+  }
+  let (thread, package) = split_wp_address(stored)?;
+  let thread = ThreadId::parse(thread).ok()?;
+  let package = WpId::parse(package).ok()?;
+  Some(wp_address_shown(&thread, package))
+}
+
 /// A work package's address split into its thread's part and its package's,
 /// both as written: the inverse of [`wp_address`], and the one reader of the
 /// separator. Neither part is read here, because each caller reads them with
@@ -2351,6 +2377,55 @@ impl async_graphql::OutputType for ThreadId {
 
 #[cfg(test)]
 mod tests {
+
+  /// `shown_of`'s three claims (ST0095 WP-11, cc's ask), each held by an arm:
+  /// a stored id of each family reads as its own typed shown form, text that is
+  /// no stored id is `None`, and an all-digit SHOWN form is not read as stored.
+  #[test]
+  fn shown_of_reads_a_stored_id_of_each_family_whole_and_nothing_else() {
+    let thread = ThreadId::from_origin(EXAMPLE_HEX);
+    let issue = IssueId::from_origin(EXAMPLE_HEX);
+    let package = WpId::from_origin(EXAMPLE_WP_HEX);
+    let ordinal = ThreadId::from_ordinal(56).expect("an ordinal thread");
+    let address = wp_address(&thread.stored(), package);
+    assert_eq!(shown_of(&thread.stored()), Some(thread.shown()));
+    assert_eq!(shown_of(&ordinal.stored()), Some(ordinal.shown()));
+    assert_eq!(shown_of(&issue.stored()), Some(issue.shown()));
+    assert_eq!(shown_of(&address), Some(wp_address_shown(&thread, package)));
+    for not_an_id in ["outstanding", "wps", "", "AC-01.1"] {
+      assert_eq!(shown_of(not_an_id), None, "{not_an_id:?}");
+    }
+    // An all-digit short form with a leading zero, found through the waist
+    // rather than spelled: the first origin in a bounded list whose thread
+    // shows only digits and starts with a zero (about one in 270; the search
+    // is deterministic, so whether the bound holds one is decided once).
+    let digits = (0..4096)
+      .map(|n| ThreadId::from_origin(&format!("all-digit origin {n}")))
+      .find(|t| {
+        let shown = t.shown();
+        let tail = &shown[THREAD_PREFIX.len()..];
+        t.is_hashed() && tail.starts_with('0') && tail.chars().all(|c| c.is_ascii_digit())
+      })
+      .expect("an all-digit short form with a leading zero within the bound");
+    assert_eq!(
+      shown_of(&digits.shown()),
+      None,
+      "a short form is not a stored id, however many digits it has"
+    );
+    assert_eq!(shown_of(&issue.shown()), None, "nor an issue's short form");
+    assert_eq!(
+      shown_of(&wp_address_shown(&thread, package)),
+      None,
+      "nor a package's address as a table prints it"
+    );
+    assert_eq!(shown_of(&digits.stored()), Some(digits.shown()));
+    assert!(
+      digits.stored().starts_with(&digits.shown()),
+      "the short form is the stored id's own leading digits, a leading zero included: {} of {}",
+      digits.shown(),
+      digits.stored()
+    );
+  }
   use super::*;
 
   /// [`is_example`] holds the zero family and the worked hashed example, every

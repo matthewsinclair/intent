@@ -46,9 +46,9 @@ pub struct Row {
   /// issue, and then absent from the JSON.
   ///
   /// **CARRIED SO NO FACE READS THEM BACK OUT OF `id`** (ST0079 WP-01, vc
-  /// 2026-09-22). `id` is the package RENDERED, `STxxxx/NN`, and the explorer
-  /// opens a package by its thread and its sequence as the number the `wps`
-  /// descent names it by. Re-parsing the rendering would be a second home for
+  /// 2026-09-22). `id` is the package's whole address, and the explorer opens
+  /// a package by its thread and its sequence's stored id, the name the `wps`
+  /// descent gives its rows (`01`, or a hashed package's 8 hex; ST0095 WP-11). Re-parsing the rendering would be a second home for
   /// its spelling, which breaks in silence when the rendering changes.
   #[serde(skip_serializing_if = "Option::is_none")]
   pub wp: Option<WpRef>,
