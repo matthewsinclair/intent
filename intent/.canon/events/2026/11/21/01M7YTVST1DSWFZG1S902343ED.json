@@ -1,0 +1,14 @@
+{
+  "id": "01M7YTVST1DSWFZG1S902343ED",
+  "ts": "2026-11-21T10:36:35.013Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.edit",
+  "subject": {
+    "type": "ac",
+    "id": "ST0095/AC-12.1"
+  },
+  "payload": {
+    "text": "No script the commit gate or CI runs, no hook and no template carries a pattern for an id, and the commit gate refuses a new one. (Scoped to the gated half by vc under hv's pen, on hv decision 79, 2026-11-21; the by-hand half is AC-12.4, descoped.)"
+  }
+}

@@ -91,9 +91,10 @@ title: Git-style ids: threads, work packages and issues unique by construction
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
 
-- AC-12.1 No script, hook, template or workflow carries a pattern for an id, and the commit gate refuses a new one. -- satisfied: no (computed)
+- AC-12.1 No script the commit gate or CI runs, no hook and no template carries a pattern for an id, and the commit gate refuses a new one. (Scoped to the gated half by vc under hv's pen, on hv decision 79, 2026-11-21; the by-hand half is AC-12.4, descoped.) -- satisfied: yes (computed)
 - AC-12.2 (non-test) The drill: a clone of this repository upgraded with the new build carries a hashed thread, work package and issue through the whole commit gate, doctor and the pull-request check, before the rehearsal. -- satisfied: no
 - AC-12.3 (non-test) The fleet's upgrade note says what each estate does, and every machine upgrades before any hashed record is committed there. -- satisfied: no
+- AC-12.4 The by-hand parity scripts the id census still lists (the manual conservation_check, v2_estate_issue_carry, sync_issue_loss, upgrade_issue_loss, canon_clone_completeness, sparse_tree_equals_manifest, canon_concurrent_diff, v2_prose_survival, estate_census and docs_defect_disposition_check, and realise_plan.sh, 22 census rows) ask the id door or are retired. -- DESCOPED to ST0097 by vc, under hv's pen (decision 4), on hv decision 79, 2026-11-21
 
 ### WP-13 -- Docs, skills, rules and templates teach the new ids (status: Not Started)
 
@@ -184,7 +185,7 @@ _(no tests in this group)_
 
 ### WP-12 -- The pipeline asks the waist; the drill; the fleet (status: Not Started)
 
-_(no tests in this group)_
+- AT-12.1 `tests/unit/gated_id_door.bats` -- covers AC-12.1 -- status: green -- the three gated parity scripts ask the id door, read-only, in place of their patterns (refs/bank/dc/st0095/ac12-route/v1, landed a3e3e6461); the refusal of a new pattern is id_pattern_check.sh, gated, whose census only shrinks. Red: the arms, written on base 4b24577e7, where each gated script matched a four-digit ordinal and a hashed record dangled or went unjudged. Green on F 4b24577e7: Desk 01M7YR2W (build all, check clippy, gate rust, each rc 0) and 01M7YS30 (test shell, all 914, 0 failed); landed a3e3e6461
 
 ### WP-13 -- Docs, skills, rules and templates teach the new ids (status: Not Started)
 

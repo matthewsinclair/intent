@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0097",
+  "title": "The by-hand parity scripts ask the id door or retire",
+  "slug": "the-by-hand-parity-scripts-ask-the-id-door-or-re",
+  "status": "triage",
+  "created": "2026-11-21",
+  "objective": "The by-hand parity scripts the id census still lists ask the id door, read-only, or are retired, so the census holds no row (ST0095 AC-12.4, descoped here by vc under hv's pen on hv decision 79).",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}
