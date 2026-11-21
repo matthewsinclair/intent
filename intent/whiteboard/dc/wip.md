@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-21 12:56Z
+heartbeat_at: 2026-11-21 13:58Z
 status: active
-focus: "2026-11-21 12:56Z by date -u: ELIDE fix committed 2614b16bd and sent to vc and cc. Waiting on cc's 0746 run (the final T's gate); then rehearsal step 3's re-run, the leg-config compare and the kovacs record copy to main, then the cut. Keep tmp/wt-rehearsal-10141745e."
+focus: "2026-11-21 13:59Z by date -u: the 3.5.0 rehearsal is GREEN end to end (step 3 at 039f30998, 24/24, after the release-format guard fix b2add8171); main's pair built at the final tip; known-defects.md re-driven and banked for vc; the release text is current (0746 filled its gap at 6f8ded24f). Next: AC-12.3's fleet note. AC-03.3 waits on hv (vc's ruling c)."
 claims: [ST0095/03]
 ---
 
@@ -13,14 +13,12 @@ claims: [ST0095/03]
 
 ## DOING
 
-- ST0095 WP-03 (M). AC-03.4 and AC-03.5 satisfied. OPEN for AC-03.3 (byte-identical shots from seeded ids, hv decision 82): the code LANDED (dc's tool half a3945b02c, devbin-cc's seeded-ids seam a2c4fa1e2); the ELIDE fix is COMMITTED at 2614b16bd on a2c4fa1e2 (bank refs/bank/dc/st0095/elide/v1), sent to vc and cc at 12:55Z; cc stacks 0746 on it, and cc's one Desk run (shots twice with diff -rq included) is the final T's gate. Then satisfy AC-03.3 and close WP-03. (edited)
-- Intent 3.5.0 rehearsal (hv decision 78), dc leads. Step 1 kovacs GREEN at 10141745e (from tmp/wt-rehearsal-10141745e, KEEP until the cut tags). Leg config COMPARED: bin/.devbin/config.yaml and lib are byte-identical at 10141745e, main and cc's tip 5ebb09841, so the record stands for the final T; its three files are COPIED into main's tmp/release/legs/kovacs (adds only, no collision), and step 5's run 2 pre-flight with that record named no kovacs refusal. Step 2 build GREEN. Step 4 shots: green in cc's run (diff -rq 0 of 11 at 982563ea9). Step 3 (clones) re-runs at the final T vc names once it lands cc's stack (a25624fa6, 982563ea9, 5ebb09841, on dc's 2614b16bd). Step 5 DONE: hv's terminal needs intent daemon stop, gh auth and the Developer ID and APPLE_* set. Then the report to vc and the Desk, ST0096 AC-03.1, ST0095 AC-03.3 and AC-12.2. (edited)
+- ST0095 WP-03 (M), OPEN past the cut on vc's ruling (c), 2026-11-21: AC-03.4 and AC-03.5 satisfied; AC-03.3 (test-kind: two runs of the explorer screenshots write byte-identical images from seeded ids) UNSATISFIED, no committed test proves it. Its evidence: intent-cc's Desk run 01M7Z3TRBWG9DQPH0WCS96838J (ended 13:15:39Z), gen_explorer_shots.sh twice, diff -rq 0 of 11, on code landed as 44f4a043f (ELIDE), ad2a7c655 (live shot) and 29c3ed0e4 (images). vc put re-kinding it to non-test and satisfying it on that run, option (a), to hv as its recommendation; decisions 82 and 83 are hv's, so it waits for hv. (edited)
 
 ## TODO
 
-- ST0095 WP-12 (M). AC-12.1 satisfied at e555b136f: the hook (ce6b28119), pr-checks (b1ca2be4b) and the three gated parity scripts (a3e3e6461, ro_copy fix a51da38a0) ask the id door; AT-12.1 cites tests/unit/gated_id_door.bats. The by-hand half is AC-12.4, descoped to ST0097. OPEN: AC-12.2, the drill (rehearsal step 3's re-run at the final T), and AC-12.3, the fleet note (todo 69). (edited)
+- ST0095 WP-12 (M). AC-12.1 satisfied (e555b136f); AC-12.2 satisfied at c8a8789b0 on the rehearsal's step 3 (Desk 01M7Z5MP, 24 of 24); AC-12.4 descoped to ST0097. OPEN: AC-12.3, the fleet note (todo 69), now unblocked: the rehearsal is green. (edited)
 - ST0095 WP-12 AC-12.3, the fleet note: what each estate does to upgrade (decision 77b's opt route until the tap moves, then intent use brew), that every machine upgrades before any hashed record is committed there, and that issue 0712 (closed at 96542a105) now counts a one-digit criterion group (eg AC-1.1), so wp done can block where it did not (Report A: 182 such rows in Devbin, Lamplight and Prolix). Write it once the rehearsal is green. (edited)
-- The release text is PLACED at 526c54bc7: CHANGELOG.md's ## [3.5.0] and docs/releases/3.5.0/RELEASE_NOTES.md, checked against main. One marked GAP in each, issue 0707's remedy, which intent-cc's 0746 unit fills before the cut. Keep both current as the final units land (AC-03.3's shots, 0746). (edited)
 - After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so).
 - After the 3.5.0 cut (cc's question, 2026-11-21): the gated id scripts refuse when the tree's pair is behind the door (no --read-only), which blocked every commit on main until step 2's build. Should a stale pair on a board-only commit refuse, or say what it could not check and pass? Today it refuses: safe, and it blocks every seat.
 

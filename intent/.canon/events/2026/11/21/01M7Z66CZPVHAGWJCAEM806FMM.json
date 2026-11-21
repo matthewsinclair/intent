@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z66CZPVHAGWJCAEM806FMM",
+  "ts": "2026-11-21T13:54:36.662Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 167,
+    "text": "ST0095 WP-03 (M), OPEN past the cut on vc's ruling (c), 2026-11-21: AC-03.4 and AC-03.5 satisfied; AC-03.3 (test-kind: two runs of the explorer screenshots write byte-identical images from seeded ids) UNSATISFIED, no committed test proves it. Its evidence: intent-cc's Desk run 01M7Z3TRBWG9DQPH0WCS96838J (ended 13:15:39Z), gen_explorer_shots.sh twice, diff -rq 0 of 11, on code landed as 44f4a043f (ELIDE), ad2a7c655 (live shot) and 29c3ed0e4 (images). vc put re-kinding it to non-test and satisfying it on that run, option (a), to hv as its recommendation; decisions 82 and 83 are hv's, so it waits for hv."
+  }
+}

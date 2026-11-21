@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z6D6EMPE0KYKHV847194VH",
+  "ts": "2026-11-21T13:58:19.348Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 85,
+    "text": "The release text is PLACED at 526c54bc7 (CHANGELOG.md's ## [3.5.0] and docs/releases/3.5.0/RELEASE_NOTES.md), one GAP in each for issue 0707's remedy, which intent-cc's 0746 landed. Before the cut: fill the gap from 0746 as landed (6f8ded24f) and add what landed since 526c54bc7: the ELIDE and live-shot fixes, and the release-format guard fix (b2add8171). known-defects.md re-driven for 3.5.0 and banked at refs/bank/dc/kd350/page for vc."
+  }
+}

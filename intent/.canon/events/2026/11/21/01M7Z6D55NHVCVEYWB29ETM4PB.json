@@ -1,0 +1,16 @@
+{
+  "id": "01M7Z6D55NHVCVEYWB29ETM4PB",
+  "ts": "2026-11-21T13:58:18.037Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "ST0095 WP-12 (M). AC-12.1 satisfied (e555b136f); AC-12.2 satisfied at c8a8789b0 on the rehearsal's step 3 (Desk 01M7Z5MP, 24 of 24); AC-12.4 descoped to ST0097. OPEN: AC-12.3, the fleet note (todo 69), now unblocked: the rehearsal is green."
+  }
+}
