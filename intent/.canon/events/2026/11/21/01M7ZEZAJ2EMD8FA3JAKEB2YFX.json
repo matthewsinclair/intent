@@ -1,0 +1,16 @@
+{
+  "id": "01M7ZEZAJ2EMD8FA3JAKEB2YFX",
+  "ts": "2026-11-21T16:28:01.986Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 62,
+    "text": "ST0095, git-style ids: SHIPPED in v3.5.0 (940c9535a, 2026-11-21). Package records still open: WP-05 shows WIP and WP-13 Not Started though 4a4930e4e landed its docs; their owners close them. The thread's close waits on todo 99 (AC-00.1, AC-00.2), hv's word."
+  }
+}

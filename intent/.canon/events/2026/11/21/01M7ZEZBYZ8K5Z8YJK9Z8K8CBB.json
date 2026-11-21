@@ -1,0 +1,16 @@
+{
+  "id": "01M7ZEZBYZ8K5Z8YJK9Z8K8CBB",
+  "ts": "2026-11-21T16:28:03.423Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 63,
+    "text": "ST0096, issue 0705: WP-01, WP-02, WP-05 done; WP-03 and WP-04 WIP. Its WP-03 frozen-pair drive (the bare fresh clone through the commit gate with Desk run 1's control, 01M7WW8B) is to run on brew 3.5.0 when hv sets post-3.5.0 scope. 0733 and 0707 closed."
+  }
+}
