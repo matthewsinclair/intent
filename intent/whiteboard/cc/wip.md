@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-22 07:51Z
+heartbeat_at: 2026-11-22 08:11Z
 status: active
-focus: "2026-11-22 07:51Z by date -u: d86 landed at bfe387912 and its six issues closed; building d86b (I9ed9ed4: main's six self-hosting test reds and docs/reference at v3.5.0) in tmp/wt-d86b-cc on vc's go, size M."
-claims: [ISSUE:I9ed9ed41b949246e]
+focus: "2026-11-22 08:11Z by date -u: d86 (bfe387912) and d86b (529b50e69) landed, their seven issues closed; standing by for 3.5.1's rehearsal and cut. Todo 56 waits on hv's post-3.5.0 scope."
+claims: []
 ---
 
 # Control Claude (cc)
