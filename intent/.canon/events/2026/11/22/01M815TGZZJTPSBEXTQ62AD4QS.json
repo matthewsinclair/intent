@@ -1,0 +1,16 @@
+{
+  "id": "01M815TGZZJTPSBEXTQ62AD4QS",
+  "ts": "2026-11-22T08:26:36.415Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 64,
+    "text": "3.5.1 under hv decision 86, 2026-11-22 08:26Z by date -u. LANDED: cc d86 bfe387912, dc d86 ee25c55d4, cc d86b 529b50e69 (main green); ST0095 done aa3533cb1 (AC-00.1 descoped to ST1c2db93, AC-00.2 by evidence). ST0096: AC-00.1 descoped to ST1c2db93; AC-00.2's catch-up critics (refs/bank/vc/st0096/close-*) found shipped defects, now in flight: cc d86c (upgrade attachment check, dropped after-write note, orphan walk, a test that cannot go red, the older-render door) and dc d86d (merge refusal on an unparsable stage, gitstate swallowing git errors, wp.renumber advisory, canon_commit_check's lost read errors, docs). Then ST0096 closes with 0704 and 0705, the release text lands, kovacs rehearsal, cut on hv's direct go."
+  }
+}

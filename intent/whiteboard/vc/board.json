@@ -3126,10 +3126,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 64,
-      "text": "ST0095's close, swept 2026-11-22 06:53Z by date -u at 813037fcd: AC-00.1 NOT MET. Of the start sweep's 62 clusters, 17 resolved, 3 answered, 42 residual (23 the close sweep itself missed); one new high (the CLI's issue door skips the address check). Behavioural highs: thread_ids_in reads ST+4 digits only; todo.md and acceptance.md order hashed ids as text; is_ac_id refuses hashed-package labels; remint leaves Descoped.to and inherited_from on the old id; ac new and at new take any label; three manual parity tools assume ST0001. AC-00.2: 30 of 42 units recorded; the 5 diffs with no or partial critic now reviewed (clean but WP-07's H3 and 42de's W1); 7 lands lack vc's read on record. Reports: refs/bank/vc/st0095/highlander-close-* and close-*. Waiting on hv: fix all before the close, or fix the behavioural highs and descope the duplication residue to a follow-up thread.",
+      "text": "3.5.1 under hv decision 86, 2026-11-22 08:26Z by date -u. LANDED: cc d86 bfe387912, dc d86 ee25c55d4, cc d86b 529b50e69 (main green); ST0095 done aa3533cb1 (AC-00.1 descoped to ST1c2db93, AC-00.2 by evidence). ST0096: AC-00.1 descoped to ST1c2db93; AC-00.2's catch-up critics (refs/bank/vc/st0096/close-*) found shipped defects, now in flight: cc d86c (upgrade attachment check, dropped after-write note, orphan walk, a test that cannot go red, the older-render door) and dc d86d (merge refusal on an unparsable stage, gitstate swallowing git errors, wp.renumber advisory, canon_commit_check's lost read errors, docs). Then ST0096 closes with 0704 and 0705, the release text lands, kovacs rehearsal, cut on hv's direct go.",
       "state": "live",
       "recorded_at": "2026-11-22T06:31:20.633Z",
-      "edited_at": "2026-11-22T06:53:05.905Z"
+      "edited_at": "2026-11-22T08:26:36.415Z"
     }
   ],
   "sent": [
