@@ -64,6 +64,7 @@ fn a_file_whose_only_change_is_its_mtime_is_not_uncommitted() {
     TreeState::Clean => {}
     TreeState::Dirty(paths) => panic!("a stat-only change was reported as uncommitted: {paths:?}"),
     TreeState::NoWorkTree => panic!("the fixture read as having no work tree"),
+    TreeState::GitRefused(cause) => panic!("git refused the fixture: {cause}"),
   }
 }
 

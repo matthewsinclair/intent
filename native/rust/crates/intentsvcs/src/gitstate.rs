@@ -97,16 +97,6 @@ impl Unmerged {
   }
 }
 
-/// Is `root` inside a git work tree? No git on PATH reads as no.
-///
-/// **THE `bool` READING OF [`work_tree`], FOR THE CALLERS THAT WANT A GIT THAT
-/// CANNOT BE ASKED READ AS NO WORK TREE**: a hook or a plan run outside a
-/// repository's reach, where the honest answer is to look at nothing. A caller
-/// that acts on the answer, as the upgrade's untrack does, asks [`work_tree`].
-pub fn is_work_tree(root: &Path) -> bool {
-  work_tree(root).unwrap_or(false)
-}
-
 /// Is `root` inside a git work tree, asked so that a git which could not be
 /// asked is an error rather than a no (ST0096 WP-02's critic).
 ///

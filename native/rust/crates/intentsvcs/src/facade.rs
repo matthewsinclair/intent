@@ -6163,6 +6163,7 @@ impl Facade {
         }
         match crate::sync::tree_state(project.root()) {
           crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
+          crate::sync::TreeState::GitRefused(cause) => return Err(FacadeError::Git(cause)),
           crate::sync::TreeState::Dirty(paths) => {
             return Err(FacadeError::MigrationOverDirtyTree { paths });
           }
@@ -6187,6 +6188,9 @@ impl Facade {
           // documented rollback, and the format move does not inherit it. The
           // run claims nothing about a tree it does not have.
           (true, crate::sync::TreeState::NoWorkTree) => false,
+          // A repository git refused to read is not "no work tree": the guard
+          // has a tree to keep and could not look at it (issue Ib7a70c3).
+          (true, crate::sync::TreeState::GitRefused(cause)) => return Err(FacadeError::Git(cause)),
           // A convergent re-run that moves no format runs on whatever the tree
           // holds, as it always has, and claims nothing about it.
           (false, _) => false,
@@ -10729,8 +10733,19 @@ impl Facade {
   /// is committed and nothing is owed.
   fn name_boards_reshaped_since_head(&mut self) {
     let root = self.project.root().to_path_buf();
-    if !crate::gitstate::is_work_tree(&root) || !crate::gitstate::has_head(&root) {
-      return;
+    // A git that refuses is a note, as a failed read below is, never "nothing
+    // is owed" (issue Ib7a70c3).
+    match crate::gitstate::work_tree(&root) {
+      Ok(true) if crate::gitstate::has_head(&root) => {}
+      Ok(_) => return,
+      Err(cause) => {
+        self.after_write.push(Note::after_write(
+          "asking git whether this is a work tree, to read HEAD's boards",
+          &FacadeError::Git(cause),
+          RESHAPED_UNKNOWN_REMEDY,
+        ));
+        return;
+      }
     }
     let unnamed: Vec<std::path::PathBuf> = self
       .canon
@@ -11644,7 +11659,7 @@ impl Facade {
               // checkout of an older commit, which 3.2.1 keeps and names with
               // both ways out -- taken, it would roll every node's board back
               // on a branch switch in a shared tree.
-              crate::gitstate::is_work_tree(self.project.root())
+              crate::gitstate::work_tree(self.project.root()).map_err(FacadeError::Git)?
                 && crate::gitstate::moved_forward(self.project.root(), &rel, sha)
                   .map_err(FacadeError::Git)?
             }
@@ -13084,8 +13099,11 @@ impl Facade {
   /// unmeasured, never empty.
   fn scan_next_commit(&mut self, old: &str) -> Option<NextCommit> {
     // Outside a repository neither search can run, and the answer says so
-    // rather than reading their empty lists as a clean one (issue 0545).
-    if !crate::gitstate::is_work_tree(self.project.root()) {
+    // rather than reading their empty lists as a clean one (issue 0545). A git
+    // that refuses is not "outside a repository": it goes on to the search,
+    // whose own read of the work tree refuses, and the arm below notes it
+    // (issue Ib7a70c3).
+    if matches!(crate::gitstate::work_tree(self.project.root()), Ok(false)) {
       self.after_write.push(Note::EditUnsearched);
       return None;
     }
@@ -13835,7 +13853,7 @@ impl Facade {
     use crate::plan::Step;
     let root = self.project.root();
     let mut steps = Vec::new();
-    let conflicts = if crate::gitstate::is_work_tree(root) {
+    let conflicts = if crate::gitstate::work_tree(root).map_err(FacadeError::Git)? {
       // **NOT WHILE A MERGE IS IN PROGRESS**: mid-pull the upstream's commits
       // are the ones being merged, and telling a person to pull them in the
       // middle of their pull is the one wrong thing to say.

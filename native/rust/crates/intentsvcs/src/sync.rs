@@ -1427,22 +1427,6 @@ impl std::fmt::Display for Uncommitted {
 /// same: no repository, or a git that could not run, means the question was not
 /// answered, and reporting an unanswered question as "nothing is wrong" is how
 /// a check comes to mean nothing.
-/// Whether `root` sits inside a git work tree, asked WITHOUT resolving `HEAD`.
-///
-/// `rev-parse --is-inside-work-tree` answers from the repository's existence
-/// alone, so it is true on a repo with no commits where every `HEAD`-resolving
-/// command fails. That is the only question [`tree_state`] needs when
-/// `diff-index` refuses, and asking it separately is what keeps "no git" and
-/// "no commits yet" from collapsing into one answer.
-fn is_work_tree(root: &Path) -> bool {
-  std::process::Command::new("git")
-    .args(["rev-parse", "--is-inside-work-tree"])
-    .current_dir(root)
-    .output()
-    .map(|out| out.status.success() && out.stdout.starts_with(b"true"))
-    .unwrap_or(false)
-}
-
 fn git_paths(root: &Path, args: &[&str]) -> Option<Vec<String>> {
   let out = std::process::Command::new("git")
     .args(args)
@@ -1550,6 +1534,10 @@ fn head_holds(root: &Path, path: &str) -> bool {
 pub enum TreeState {
   /// git reported no work tree here -- no repository, or no runnable git.
   NoWorkTree,
+  /// A repository is here and git refused to say whether it is a work tree
+  /// (issue Ib7a70c3): not "no work tree", which a format move reads as no
+  /// guard to keep.
+  GitRefused(crate::gitstate::GitStateError),
   Clean,
   /// Every path that would ride the next commit, sorted, never truncated.
   Dirty(Vec<Uncommitted>),
@@ -1615,8 +1603,16 @@ pub fn tree_state(root: &Path) -> TreeState {
     ],
   ) {
     Some(changed) => changed,
-    None if is_work_tree(root) => Vec::new(),
-    None => return TreeState::NoWorkTree,
+    // `diff-index` refused, so ask whether this is a work tree WITHOUT
+    // resolving `HEAD`: gitstate's one reader (issue Ib7a70c3, which retired
+    // this file's own copy), true on a repository with no commits yet, so "no
+    // git" and "no commits yet" stay apart, and a git that refuses is
+    // `GitRefused`, never "no work tree".
+    None => match crate::gitstate::work_tree(root) {
+      Ok(true) => Vec::new(),
+      Ok(false) => return TreeState::NoWorkTree,
+      Err(cause) => return TreeState::GitRefused(cause),
+    },
   };
   let Some(untracked) = git_paths(root, &["ls-files", "--others", "--exclude-standard", "-z"])
   else {
