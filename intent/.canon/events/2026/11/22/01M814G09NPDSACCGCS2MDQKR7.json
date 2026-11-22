@@ -1,0 +1,15 @@
+{
+  "id": "01M814G09NPDSACCGCS2MDQKR7",
+  "ts": "2026-11-22T08:03:23.072Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Iae1e02ae41c59d30"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "read_claim_probe's invocation map drifts from the dispatch table both ways, and labels a mutate row a mislabelled read"
+  }
+}
