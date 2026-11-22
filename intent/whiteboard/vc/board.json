@@ -3151,9 +3151,18 @@
       "kind": "todo",
       "seq": 100,
       "text": "The next Intent cut, whenever hv calls one, carries issues I0005a5f, If81de5f (medium), I4debbb5 and I4d8c964, the estate-desk defects. hv ruled no new release round for them now (relayed by devbin-vc, 2026-11-22). Start from cc's design reading at refs/bank/cc/d352/notes and dc's unbuilt I4d8c964 fix at refs/bank/dc/i4d8/v1.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-22T14:24:05.072Z",
       "recorded_at": "2026-11-22T12:47:32.025Z",
       "edited_at": "2026-11-22T12:50:02.580Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 66,
+      "text": "Fix the four estate-desk issues on main now, no release (hv in devbin-vc's window, relayed 2026-11-22 14:24Z): cc builds If81de5f first, then I4debbb5 and I0005a5f, from its reading at refs/bank/cc/d352/notes; dc builds I4d8c964 from refs/bank/dc/i4d8/v1. Desk slots per build; they ship with the next cut hv calls.",
+      "state": "live",
+      "recorded_at": "2026-11-22T14:24:06.046Z"
     }
   ],
   "sent": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M81T93WXN413EXJ2RZ971QPT",
+  "ts": "2026-11-22T14:24:06.046Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "Fix the four estate-desk issues on main now, no release (hv in devbin-vc's window, relayed 2026-11-22 14:24Z): cc builds If81de5f first, then I4debbb5 and I0005a5f, from its reading at refs/bank/cc/d352/notes; dc builds I4d8c964 from refs/bank/dc/i4d8/v1. Desk slots per build; they ship with the next cut hv calls."
+  }
+}
