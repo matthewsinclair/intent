@@ -1,15 +1,20 @@
 ---
 issue: I4debbb5
 title: a same-name control take drops hv's recorded words from controller.json
-status: OPEN
+status: CLOSED
 severity: low
 created: 2026-11-22
+closed: 2026-11-22
 reporter: Matthew Sinclair
 ---
 
 `control_take` writes `hv: hv.map(str::to_string)` (native/rust/crates/intentsvcs/src/estate/slots.rs:1167) from that take's own `--hv`, and the predecessor block carries no hv. `--hv`'s help says it is for a take under a name other than the recorded controller's, so the usual same-name re-take after a restart passes none, and hv's recorded words leave controller.json: devbin-vc's same-name take on 2026-11-19 04:58Z left it reading `"hv": null`.
 
 Reported by agentic-engineering-vc on hv's word in its window (AE hv decision 106 (5)), relayed by devbin-vc (~/Devel/scratch/devbin-vc/20261119/intent-desk-defects.md, checked there on 3.4.0). Re-read by intent-vc on 2026-11-22 against main at 5f2da89ca (3.5.1): still live.
+
+
+
+**Fixed in 86d27091a** (cc's bank refs/bank/cc/d352/v1, landed by intent-vc on 2026-11-22; no release, it ships with the next cut). A same-name `control take` with no --hv carries the recorded controller's hv words forward; a take under another name still needs its own. Arm: a_same_name_retake_keeps_hvs_recorded_words, red on base e23ac90ef.
 
 ---
 
