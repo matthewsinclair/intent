@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- The next Intent cut, whenever hv calls one, carries issues I0005a5f, If81de5f (medium), I4debbb5 and I4d8c964, the estate-desk defects. hv ruled no new release round for them now (relayed by devbin-vc, 2026-11-22).
+- The next Intent cut, whenever hv calls one, carries issues I0005a5f, If81de5f (medium), I4debbb5 and I4d8c964, the estate-desk defects. hv ruled no new release round for them now (relayed by devbin-vc, 2026-11-22). Start from cc's design reading at refs/bank/cc/d352/notes and dc's unbuilt I4d8c964 fix at refs/bank/dc/i4d8/v1. (edited)
 
 ## Holds
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M81MWWPM62EKWWDCA1FZH3PC",
+  "ts": "2026-11-22T12:50:02.580Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 100,
+    "text": "The next Intent cut, whenever hv calls one, carries issues I0005a5f, If81de5f (medium), I4debbb5 and I4d8c964, the estate-desk defects. hv ruled no new release round for them now (relayed by devbin-vc, 2026-11-22). Start from cc's design reading at refs/bank/cc/d352/notes and dc's unbuilt I4d8c964 fix at refs/bank/dc/i4d8/v1."
+  }
+}
