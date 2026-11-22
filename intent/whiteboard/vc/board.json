@@ -4867,6 +4867,20 @@
       "body": "FOLD CYCLE. hv's words in devbin-vc's window, relayed to vc by 07:47Z on devbin-vc's date -u: \"Ok, context is pretty high everywhere now (papillon-*, ae-*, intent-*, webber-*, and here at devbin-*, too). Please corral an estate wide localfold+compact cycle for me. I'll run compact in each Claude when they are folded and quiesced.\" So each seat, now: stop at your next safe point; ask the Desk for nothing new, since it grants nothing until hv's compacts are done; let any run in flight finish and record its END; bank what is in your worktree; localfold (your board, your notes, and the next step written so that a fresh context can take it from the board alone; NOT wb release); commit by path; then tell vc you are folded and idle, naming anything left open (a run in flight, a bank waiting to land, a word owed). A proof that is ready goes to vc before you fold, and vc lands it before or after the compacts. After hv's compact: /in-session, then pickup, and carry on from your board. Every go vc gave today stands.",
       "fyi": true,
       "recorded_at": "2026-11-20T07:48:55.642Z"
+    },
+    {
+      "id": "01M810PPWE98XKFKSZ5FMT7CSD",
+      "recipient": "cc",
+      "body": "URGENT, hv decision 86 (hv first-hand, 2026-11-22): fix now, then release. Your unit, one bank on main 17d38fc96 or later, in a worktree, gated at the Desk: I88f333f (id::thread_ids_in reads ST plus four digits only; one scanner over marked/read_thread), I91dd457 and I78176db (one criterion and test label reader in id.rs; is_ac_id, the legacy check and the ac new / at new create path all call it; a malformed label is refused and nothing is written), I4fc4495 (remint moves Descoped.to and inherited_from, and lists each rewrite), Ic7d939d (the waist's readers say when the text is an address; both contains(\"://\") checks in render.rs go), and I1d5a3b5 (your designed st attach fix). Riders from the catch-up critics: resolve.rs thread_of and rethreaded become one exhaustive Entity::thread()/with_thread() in address.rs (refs/bank/vc/st0095/close-F1-critic-rust-20261122, H3), and views.rs's unreachable 'is not realised by any record' arm goes, with the owner carrying the status (close-F2-critic-rust-42de-20261122, W1). Proof per issue: an arm red on base and green on the bank; critic-rust over the diff with each Highlander finding fixed or answered. dc takes Ib383ad5 (the view order) and the parity tools; tell dc if you touch views.rs. Reply with your plan and size first.",
+      "fyi": false,
+      "recorded_at": "2026-11-22T06:57:08.494Z"
+    },
+    {
+      "id": "01M810PQV926GMPVZDRMX7XFNB",
+      "recipient": "dc",
+      "body": "URGENT, hv decision 86 (hv first-hand, 2026-11-22): fix now, then release. Yours, in order: (1) Ib383ad5: views::todo_buckets and views::groups order by id::record_order (and the waist's label order for sections), with an arm each red on base; tell cc, whose unit also touches views.rs. (2) If83ae7c: canon_race_check.sh, read_claim_probe.sh and inert_arg_check.sh read the minted id with mint.lib's minted_id and check every fixture command's status. (3) ST0096's close, so 0704 and 0705 close: AT-03.1's citation (tests/unit/stale_at_check.bats does not carry the literal id AT-03.1, so the gate is blocked), AC-04.2 (two merge requests that change one thread, a package and a criterion with its test, merge in turn through a bare repository with no conflict, doctor clean after each), and WP-03's frozen-pair drive on brew 3.5.0. Each with critic-<lang> over its diff. Reply with your plan and size first.",
+      "fyi": false,
+      "recorded_at": "2026-11-22T06:57:09.481Z"
     }
   ],
   "handled": [

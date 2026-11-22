@@ -1,0 +1,17 @@
+{
+  "id": "01M810PQV926GMPVZDRMX7XFNA",
+  "ts": "2026-11-22T06:57:09.481Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "URGENT, hv decision 86 (hv first-hand, 2026-11-22): fix now, then release. Yours, in order: (1) Ib383ad5: views::todo_buckets and views::groups order by id::record_order (and the waist's label order for sections), with an arm each red on base; tell cc, whose unit also touches views.rs. (2) If83ae7c: canon_race_check.sh, read_claim_probe.sh and inert_arg_check.sh read the minted id with mint.lib's minted_id and check every fixture command's status. (3) ST0096's close, so 0704 and 0705 close: AT-03.1's citation (tests/unit/stale_at_check.bats does not carry the literal id AT-03.1, so the gate is blocked), AC-04.2 (two merge requests that change one thread, a package and a criterion with its test, merge in turn through a bare repository with no conflict, doctor clean after each), and WP-03's frozen-pair drive on brew 3.5.0. Each with critic-<lang> over its diff. Reply with your plan and size first.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
