@@ -1,9 +1,9 @@
 # devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
 # Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
-# devbin_version: 0.1.27
+# devbin_version: 0.1.28
 # source: install
-# source_commit: 9cd0fbbd03ba033bd006592f487da281920048da
+# source_commit: bb745bb9156d9273a19538c754ce9509a0369395
 c5873914fc8fec38af30660d3ea4fddf45c7f6c80a53a001c3cfb101254e4a7b  bin/devbin
 4208a2a0c11e1d35b9d400c456af750883aef846db5d9fc04dbc9d299aebfde2  bin/.devbin/lib/LICENSE.md
 998e326e026fa1e31a9b337c291b87b8bd70bf13ff543a1776fc7be8b59330cb  bin/.devbin/lib/bats-lanes
@@ -29,7 +29,7 @@ a4c7fb7b0aae140344fe620c48e81faccc1885d26d51212517664079abfbb1d0  bin/.devbin/li
 4d48ec02c922ea8069a2af4483ab67f250600ed2f92eef90f1da6ab7389d2bb7  bin/.devbin/lib/cmd/install
 5f69dbff3d8496c4736f174eb05e5c6a807914a13bd0e8d07cd88898c6a5d7b5  bin/.devbin/lib/cmd/macos
 0c3d957746697ee12086b55af36191fdd51b3f0f71c5e505700742353f047034  bin/.devbin/lib/cmd/new
-daafc5f55ec067c7019c6ab0bf840c9bb0f018af71517c7eda20f52a23a71096  bin/.devbin/lib/cmd/release
+cb334cb240199e2a860797204c0d0f5afe1d5357e646170509c9d57de9eeadca  bin/.devbin/lib/cmd/release
 9ef4b585f1e16eeb1c919458021480f2d7ee1f2a4ab0aa78af9cd60b6fe147e5  bin/.devbin/lib/cmd/repl
 5e887c5a4b9278cce4215fa676f99690595bceadd84c169a423974a2c18c97d0  bin/.devbin/lib/cmd/server
 c3ca2ad3896a41747e56e60e235fc35ceb561dde2d002853c6db3bf81b1ce0f9  bin/.devbin/lib/cmd/shell-init

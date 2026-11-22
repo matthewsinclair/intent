@@ -2872,7 +2872,23 @@ cut_run() {
     if [ -n "$lock" ] && [ "$head_is_release" = no ] && ! command -v cargo >/dev/null 2>&1; then
       refusals+=("project.version_from is ${DEVBIN_VERSION_FILE:-VERSION}, with $lock beside it, so the stamp step brings the lock in step through cargo metadata, and cargo is not on PATH -- put cargo on PATH")
     fi
-    if ! out="$(notes_check "$PROJECT_ROOT" "$v" "$today" 2>&1)"; then
+    # A CUT RESUMED ONTO ITS OWN RELEASE COMMIT IS CHECKED AGAINST THAT
+    # COMMIT'S DATE, never today's (issue 0372): HEAD already carries the stamp
+    # and the tag is absent here and on every remote (a remote's tag this
+    # checkout lacks is refused above), so the note was dated by the run that
+    # stopped, nothing has released it, and this cut re-dates nothing, since
+    # the stamp step does not run. Checked against today, a resume after local
+    # midnight refused its own release commit, and only a reset of it got
+    # past. A note a tag released is never checked here: that cut resumes past
+    # the tag. A note that cannot be read is left to notes_check, which reads
+    # it again and names why.
+    local note_day="$today" head_note
+    if [ "$head_is_release" = yes ] && head_note="$(notes_state "$PROJECT_ROOT" "$v" 2>/dev/null)"; then
+      case "$head_note" in
+        "dated "*) note_day="${head_note#dated }" ;;
+      esac
+    fi
+    if ! out="$(notes_check "$PROJECT_ROOT" "$v" "$note_day" 2>&1)"; then
       refusals+=("$(one_line "$out")")
     fi
     # THE VERSION FILE MUST READ BEFORE A CUT STAMPS IT (issue 0259). The stamp
