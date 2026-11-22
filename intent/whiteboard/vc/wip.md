@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-21 17:12Z
+heartbeat_at: 2026-11-22 12:29Z
 status: active
-focus: "2026-11-21 16:28Z by date -u: localfolded for hv's global fold, not released. 3.5.0 shipped (940c9535a); gyges is on 3.5.0. Next on hv's return: hv's post-3.5.0 scope (dc todos 87, 88; cc standby) and ST0095's close (todo 99)."
+focus: "2026-11-22 12:29Z by date -u: localfolded and globalfolded after 3.5.1 (main 4328c0f04 on local and upstream). Fleet on 3.5.1 except Gtools, Apprvr, Lamplight, Laksa and zeop-cordee-papillon, which wait on hv."
 claims: []
 ---
 
