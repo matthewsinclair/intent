@@ -1,0 +1,15 @@
+{
+  "id": "01M81M419V7Z4TH6G058X3GH31",
+  "ts": "2026-11-22T12:36:28.102Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I4debbb5c214c0b03"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "a same-name control take drops hv's recorded words from controller.json"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "If81de5f0344f7348",
+  "origin": "01M81M40BMY6X5ZNZSR4Z0F643",
+  "realised": true,
+  "slug": "estate-control-release-succeeds-while-holds-or-g",
+  "title": "estate control release succeeds while holds or grants stand",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "`control_release` (native/rust/crates/intentsvcs/src/estate/slots.rs:1180) checks only that the caller is the controller (`ensure_controller`), then writes `released: true`. Nothing refuses a release while a hold stands or a request is granted or running, so the desk can be left with live grants and no controller.\n\nReported by agentic-engineering-vc on hv's word in its window (AE hv decision 106 (5)), relayed by devbin-vc (~/Devel/scratch/devbin-vc/20261119/intent-desk-defects.md, checked there on 3.4.0). Re-read by intent-vc on 2026-11-22 against main at 5f2da89ca (3.5.1): still live.\n"
+}

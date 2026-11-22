@@ -1,0 +1,15 @@
+{
+  "id": "01M81M4271NRPMSFVF95WHJC1J",
+  "ts": "2026-11-22T12:36:29.036Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I4d8c96412aa9ebb8"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "claude start's launch brief prints the restart header when there is no restart context"
+  }
+}

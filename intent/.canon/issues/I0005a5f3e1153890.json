@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I0005a5f3e1153890",
+  "origin": "01M81M3ZAH46WBP8K06Q1CSDZT",
+  "realised": true,
+  "slug": "estate-slots-grant-cannot-pin-a-grant-to-a-commi",
+  "title": "estate slots grant cannot pin a grant to a commit, and its arguments carry no help",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent estate slots grant` takes `[SUBJECT] [TEXT]` and `--lane` only. A controller that has confirmed a commit itself cannot pin the grant to it; the pin is held only at `slots start`, against the ask's own set. Grant's `[SUBJECT]` and `[TEXT]` arguments carry no help text.\n\nReported by agentic-engineering-vc on hv's word in its window (AE hv decision 106 (5)), relayed by devbin-vc (~/Devel/scratch/devbin-vc/20261119/intent-desk-defects.md, checked there on 3.4.0). Re-read by intent-vc on 2026-11-22 against main at 5f2da89ca (3.5.1): still live.\n"
+}
