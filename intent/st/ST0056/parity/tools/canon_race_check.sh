@@ -96,35 +96,88 @@ BIN="$(cd "$(dirname "$BIN")" && pwd)/$(basename "$BIN")"
 # contended and uncontended arms drift apart, and the whole value of the
 # sequential arm is that it differs from the racing arms in EXACTLY one respect
 # -- whether the two writes overlap. A second copy makes that claim unprovable.
+#
+# Issue If83ae7c: every fixture command's status is checked, and a failure
+# stops the run naming the command and its output. The fixture's two threads
+# are the ids the mint printed, read by mint.lib, never spelled: after ST0095
+# the first `st new` is not ST0001, and a fixture built on a spelled id was
+# silently empty, so the race arms measured refusals, not a race. The ids are
+# written to "$P/.ids" for the arms. The criteria are thread-level (group 00),
+# the one group every thread has.
+# shellcheck source=bin/.devbin/cmd/shared/mint.lib
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)/bin/.devbin/cmd/shared/mint.lib" \
+  || { echo "canon_race_check: could not source mint.lib" >&2; exit 2; }
 build_fixture() {
-  local P
-  P=$(mktemp -d) || return 1
-  ( cd "$P" || exit
-    "$BIN" init RaceProbe >/dev/null 2>&1
-    "$BIN" st new Alpha >/dev/null 2>&1; "$BIN" st start ST0001 >/dev/null 2>&1
-    "$BIN" st new Beta  >/dev/null 2>&1; "$BIN" st start ST0002 >/dev/null 2>&1
-    "$BIN" ac new ST0001 AC-01.1 --text t1 --kind non-test >/dev/null 2>&1
-    "$BIN" ac new ST0001 AC-01.2 --text t2 --kind non-test >/dev/null 2>&1
-    "$BIN" ac new ST0002 AC-01.1 --text t3 --kind non-test >/dev/null 2>&1 )
+  local P out A B
+  P=$(mktemp -d) || { echo "canon_race_check: mktemp failed" >&2; return 1; }
+  # fx <verb...> -- one fixture step in $P, its output in `out`; a failure names
+  # the step and its output and removes the fixture.
+  fx() {
+    out="$(cd "$P" && "$BIN" "$@" 2>&1)" && return 0
+    printf 'canon_race_check: fixture step failed: intent %s\n%s\n' "$*" "$out" >&2
+    rm -rf "$P"
+    return 1
+  }
+  # mint <var> <verb...> -- fx, then the id the mint printed into <var>.
+  mint() {
+    local var="$1" id
+    shift
+    fx "$@" || return 1
+    id="$(minted_id "$out")" || {
+      printf 'canon_race_check: intent %s printed no id it minted\n%s\n' "$*" "$out" >&2
+      rm -rf "$P"
+      return 1
+    }
+    printf -v "$var" '%s' "$id"
+  }
+  fx init RaceProbe || return 1
+  mint A st new Alpha || return 1
+  fx st start "$A" || return 1
+  mint B st new Beta || return 1
+  fx st start "$B" || return 1
+  fx ac new "$A" AC-00.1 --text t1 --kind non-test || return 1
+  fx ac new "$A" AC-00.2 --text t2 --kind non-test || return 1
+  fx ac new "$B" AC-00.1 --text t3 --kind non-test || return 1
+  printf '%s %s\n' "$A" "$B" >"$P/.ids" || { echo "canon_race_check: could not write $P/.ids" >&2; rm -rf "$P"; return 1; }
   printf '%s' "$P"
 }
 
+# fixture_ids <P> -- the fixture's two thread ids into A and B, or stop.
+fixture_ids() {
+  read -r A B <"$1/.ids" && [ -n "$A" ] && [ -n "$B" ] \
+    || { echo "canon_race_check: could not read the fixture's ids from $1/.ids" >&2; exit 2; }
+}
+
+# satisfied <P> <thread> -- how many of the thread's criteria are satisfied, or
+# status 1 naming the read: a failed `ac list` must not count as a lost write,
+# so each caller stops on it. awk counts, since grep -c exits 1 on zero.
+satisfied() {
+  local listed
+  listed="$(cd "$1" && "$BIN" ac list "$2" 2>&1)" \
+    || { printf 'canon_race_check: intent ac list %s failed\n%s\n' "$2" "$listed" >&2; return 1; }
+  printf '%s\n' "$listed" | awk '/satisfied: yes/ { n++ } END { print n + 0 }'
+}
+
 arm() {
-  local mode="$1" trials=0 nontrials=0 lost=0 silent=0 reported=0 i P gate as ae bs be rca rcb tgt ac2 got
+  local A B other mode="$1" trials=0 nontrials=0 lost=0 silent=0 reported=0 i P gate as ae bs be rca rcb tgt ac2 got
   for i in $(seq 1 "$ITERS"); do
-    P=$(build_fixture) || continue
-    if [ "$mode" = same ]; then tgt=ST0001; ac2=AC-01.2; else tgt=ST0002; ac2=AC-01.1; fi
+    P=$(build_fixture) || exit 2
+    fixture_ids "$P"
+    if [ "$mode" = same ]; then tgt="$A"; ac2=AC-00.2; else tgt="$B"; ac2=AC-00.1; fi
     gate="$P/.gate"
     ( cd "$P" || exit; while [ ! -f "$gate" ]; do :; done
-      as=$EPOCHREALTIME; "$BIN" ac satisfy ST0001 AC-01.1 --evidence A > "$P/.oa" 2>&1; rca=$?; ae=$EPOCHREALTIME
+      as=$EPOCHREALTIME; "$BIN" ac satisfy "$A" AC-00.1 --evidence A > "$P/.oa" 2>&1; rca=$?; ae=$EPOCHREALTIME
       printf '%s %s %s\n' "$as" "$ae" "$rca" > "$P/.a" ) &
     ( cd "$P" || exit; while [ ! -f "$gate" ]; do :; done
       bs=$EPOCHREALTIME; "$BIN" ac satisfy "$tgt" "$ac2" --evidence B > "$P/.ob" 2>&1; rcb=$?; be=$EPOCHREALTIME
       printf '%s %s %s\n' "$bs" "$be" "$rcb" > "$P/.b" ) &
     : > "$gate"; wait
     read -r as ae rca < "$P/.a"; read -r bs be rcb < "$P/.b"
-    got=$(cd "$P" && "$BIN" ac list ST0001 2>/dev/null | grep -c 'satisfied: yes')
-    [ "$mode" = cross ] && got=$(( got + $(cd "$P" && "$BIN" ac list ST0002 2>/dev/null | grep -c 'satisfied: yes') ))
+    got=$(satisfied "$P" "$A") || exit 2
+    if [ "$mode" = cross ]; then
+      other=$(satisfied "$P" "$B") || exit 2
+      got=$((got + other))
+    fi
     if [ "$(awk -v a="$ae" -v b="$bs" -v c="$as" -v d="$be" 'BEGIN{print (b<a && c<d)?1:0}')" -eq 1 ]; then
       trials=$((trials+1))
       if [ "$got" -lt 2 ]; then
@@ -157,14 +210,15 @@ arm() {
 # the `same` arm, and differ only here. A fix must turn `same` from LOST into
 # REFUSED while leaving this GREEN; either half alone is not evidence.
 arm_sequential() {
-  local i P rca rcb got green=0 red=0
+  local A B i P rca rcb got green=0 red=0
   for i in $(seq 1 "$ITERS"); do
-    P=$(build_fixture) || continue
+    P=$(build_fixture) || exit 2
+    fixture_ids "$P"
     # No gate and no `&`: B starts only after A has exited, so the two writes
     # cannot overlap by construction rather than by scheduling luck.
-    ( cd "$P" && "$BIN" ac satisfy ST0001 AC-01.1 --evidence A ) >"$P/.oa" 2>&1; rca=$?
-    ( cd "$P" && "$BIN" ac satisfy ST0001 AC-01.2 --evidence B ) >"$P/.ob" 2>&1; rcb=$?
-    got=$(cd "$P" && "$BIN" ac list ST0001 2>/dev/null | grep -c 'satisfied: yes')
+    ( cd "$P" && "$BIN" ac satisfy "$A" AC-00.1 --evidence A ) >"$P/.oa" 2>&1; rca=$?
+    ( cd "$P" && "$BIN" ac satisfy "$A" AC-00.2 --evidence B ) >"$P/.ob" 2>&1; rcb=$?
+    got=$(satisfied "$P" "$A") || exit 2
     if [ "$rca" -eq 0 ] && [ "$rcb" -eq 0 ] && [ "$got" -eq 2 ]; then
       green=$((green+1))
     else

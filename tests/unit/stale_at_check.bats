@@ -109,6 +109,10 @@ bait() {
   printf '%s,%s' "$(at AT-99.1 "$TO_WRITE" tests/present.bats)" "$(at AT-99.2 "$GREEN" tests/absent.bats)"
 }
 
+# AT-03.1 (ST0096 AC-03.1): the rows are read from the thread canon, never a
+# rendered acceptance.md, so the gate judges the same whether the aggregate
+# views are tracked, untracked or absent. This arm and the next three are its
+# proof.
 @test "with no acceptance.md on disk the rows are read from canon, and a thread with no tests key holds none" {
   thread ST0001 "$WIP" "[$(at AT-01.1 "$TO_WRITE" tests/absent.bats),$(at AT-01.2 "$GREEN" tests/present.bats),$(at AT-01.3 "$TO_WRITE" '')]"
   printf '{"status":"%s"}\n' "$WIP" >"$PROJ/intent/.canon/st/ST0002.json"

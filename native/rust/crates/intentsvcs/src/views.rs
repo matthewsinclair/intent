@@ -1352,15 +1352,28 @@ fn section_of(label: &str) -> String {
   }
 }
 
-/// Every AC/AT section present, in id order -- `00` (ST-level) first.
+/// Every AC/AT section present: `00` (ST-level) first, then each package's in
+/// the package list's order, so a git-style package's section sits by when the
+/// package was made, not by its hex (issue Ib383ad5). `thread.wps` is already
+/// in `id::record_order`, which every loader establishes, and every view reads
+/// it as it stands. A section whose group names no package of the thread goes
+/// last, by `id::label_order`.
 fn groups(thread: &Thread) -> Vec<String> {
+  let order: Vec<String> = std::iter::once(crate::id::THREAD_GROUP.to_string())
+    .chain(thread.wps.iter().map(|wp| wp.seq.stored()))
+    .collect();
+  let rank = |group: &str| order.iter().position(|o| o == group).unwrap_or(order.len());
   let mut seen: Vec<String> = thread
     .criteria
     .iter()
     .map(|c| section_of(&c.id))
     .chain(thread.tests.iter().map(|t| section_of(&t.id)))
     .collect();
-  seen.sort();
+  seen.sort_by(|a, b| {
+    rank(a)
+      .cmp(&rank(b))
+      .then_with(|| crate::id::label_order(a, b))
+  });
   seen.dedup();
   seen
 }
@@ -1771,7 +1784,9 @@ pub struct TodoBuckets {
 /// content of this view. Two copies would agree until someone changed one.
 pub fn todo_buckets(threads: &[Thread], ctx: &RenderContext<'_>) -> TodoBuckets {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
-  ordered.sort_by(|a, b| a.id.cmp(&b.id));
+  // The one record order (issue Ib383ad5), as `steel_threads.md` and `st list`
+  // read it, never `ThreadId`'s own, which puts a git-style id by its hex.
+  ordered.sort_by(|a, b| crate::id::record_order(*a, *b));
 
   let mut doing = Vec::new();
   let mut todo_items = Vec::new();
@@ -4145,6 +4160,79 @@ mod tests {
     assert!(
       rendered.contains("status_reason: reopened: the gate was wrong"),
       "the wp view must show it:\n{rendered}"
+    );
+  }
+
+  /// Issue Ib383ad5: `todo.md` listed git-style threads by their hex, where
+  /// `steel_threads.md` and `st list` list them by when they were made.
+  #[test]
+  fn todo_lists_git_style_threads_by_creation_not_by_hex() {
+    use crate::id::ThreadId;
+    let (early, late) = testkit::against_creation(ThreadId::from_origin);
+    let hashed = |origin: &str| {
+      let mut t = thread("ST0001", "not-started");
+      t.id = ThreadId::from_origin(origin);
+      t.origin = Some(origin.to_string());
+      t
+    };
+    let ordinal = thread("ST0001", "not-started");
+    let threads = [hashed(late), ordinal.clone(), hashed(early)];
+    let listed: Vec<String> = todo_buckets(&threads, &ctx())
+      .todo
+      .iter()
+      .map(|i| i.id.clone())
+      .collect();
+    let want: Vec<String> = [
+      ordinal.id,
+      ThreadId::from_origin(early),
+      ThreadId::from_origin(late),
+    ]
+    .iter()
+    .map(|id| id.stored())
+    .collect();
+    assert_eq!(
+      listed, want,
+      "the ordinal, then each hashed thread by creation"
+    );
+  }
+
+  /// Issue Ib383ad5: `acceptance.md` placed a git-style package's section by
+  /// its hex, where the package list places the package by when it was made.
+  /// The thread's packages are in record order, as every loader gives them;
+  /// a group naming no package of the thread goes last.
+  #[test]
+  fn acceptance_sections_follow_the_package_list_not_the_hex() {
+    use crate::id::WpId;
+    use crate::model::{AcKind, AcState};
+    let (early, late) = testkit::against_creation(WpId::from_origin);
+    let mut t = with_wp("ST0001", "wip", "wip");
+    let first = t.wps[0].clone();
+    for origin in [early, late] {
+      let mut wp = first.clone();
+      wp.seq = WpId::from_origin(origin);
+      wp.origin = Some(origin.to_string());
+      t.wps.push(wp);
+    }
+    let unknown = "banana";
+    let want: Vec<String> = std::iter::once(crate::id::THREAD_GROUP.to_string())
+      .chain(t.wps.iter().map(|wp| wp.seq.stored()))
+      .chain(std::iter::once(unknown.to_string()))
+      .collect();
+    // One criterion per section, written against the wanted order.
+    t.criteria = want
+      .iter()
+      .rev()
+      .map(|group| Criterion {
+        id: format!("AC-{group}.1"),
+        text: format!("{group}'s criterion"),
+        kind: AcKind::Test,
+        state: AcState::Computed {},
+      })
+      .collect();
+    assert_eq!(
+      groups(&t),
+      want,
+      "ST-level, then the packages as the package list orders them, then a group naming none"
     );
   }
 }

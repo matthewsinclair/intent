@@ -3120,19 +3120,8 @@ mod tests {
   /// fails here. A descending listing reverses this at its own site.
   #[test]
   fn records_order_ordinals_by_number_then_hashed_records_by_creation() {
-    const ORIGINS: [&str; 4] = [
-      "01M7SQ544Q2FK5BNMYAMXV3Z4Z",
-      "01M7SQ544Q2FK5BNMYAMXV3Z50",
-      "01M7SQ544Q2FK5BNMYAMXV3Z51",
-      "01M7SQ544Q2FK5BNMYAMXV3Z52",
-    ];
-    let (early, late) = ORIGINS
-      .iter()
-      .zip(ORIGINS.iter().skip(1))
-      .map(|(e, l)| (*e, *l))
-      .find(|(e, l)| ThreadId::from_origin(e) > ThreadId::from_origin(l))
-      .expect("two origins whose hashes run against their creation");
-    let unborn = ORIGINS
+    let (early, late) = testkit::against_creation(ThreadId::from_origin);
+    let unborn = testkit::CREATION_ORIGINS
       .iter()
       .copied()
       .find(|o| *o != early && *o != late)

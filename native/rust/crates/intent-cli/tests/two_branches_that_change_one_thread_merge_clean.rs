@@ -11,8 +11,8 @@
 //! a work package, the other a criterion and a test, each from one base and
 //! each committing exactly what its verbs printed. The forge merges both in its
 //! bare repository, and a working copy that pulls the result finds both
-//! changes and a clean `intent doctor`. dc's AC-04.2 proves the same through
-//! the forge stand-in at scale; this is WP-05's own two-branch test.
+//! changes and a clean `intent doctor` after each merge, which is AC-04.2 as
+//! well as WP-05's own two-branch test (one home for the two-request shape).
 
 use crate::common::{Forge, created};
 use std::collections::BTreeSet;
@@ -96,16 +96,17 @@ fn two_branches_that_change_one_thread_merge_clean() {
     "the two branches changed one file: {shared:?}"
   );
 
-  forge.merge(package_branch);
-  forge.merge(criterion_branch);
+  // AC-04.2: the two merge in turn, and doctor is clean after each is pulled.
   forge.switch(&alice, &["main"]);
-  forge.pull(&alice);
-
-  let (out, err, code) = forge.intent(&alice, &["doctor"]);
-  assert!(
-    code == 0 && out.contains("doctor: 0 finding(s)"),
-    "doctor is not clean on the merge:\n{out}{err}"
-  );
+  for branch in [package_branch, criterion_branch] {
+    forge.merge(branch);
+    forge.pull(&alice);
+    let (out, err, code) = forge.intent(&alice, &["doctor"]);
+    assert!(
+      code == 0 && out.contains("doctor: 0 finding(s)"),
+      "doctor is not clean after merging `{branch}`:\n{out}{err}"
+    );
+  }
   let packages = forge.intent_ok(&alice, &["wp", "list", thread.as_str()]);
   assert!(
     packages.contains("A package on one branch"),

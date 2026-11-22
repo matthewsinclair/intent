@@ -1,0 +1,14 @@
+{
+  "id": "01M811WHTDVV1GYQ1AC8CR4QJ7",
+  "ts": "2026-11-22T07:17:48.499Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/inert_arg_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

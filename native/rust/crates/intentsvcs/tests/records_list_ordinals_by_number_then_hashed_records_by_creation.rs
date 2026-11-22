@@ -10,23 +10,7 @@
 use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::id::{IssueId, ThreadId, WpId, record_order};
 use intentsvcs::model::{Issue, WorkPackage};
-
-const ORIGINS: [&str; 4] = [
-  "01M7SQ544Q2FK5BNMYAMXV3Z4Z",
-  "01M7SQ544Q2FK5BNMYAMXV3Z50",
-  "01M7SQ544Q2FK5BNMYAMXV3Z51",
-  "01M7SQ544Q2FK5BNMYAMXV3Z52",
-];
-
-/// Two origins, earlier first, whose ids of one kind run the other way.
-fn against_creation<I: Ord>(id: impl Fn(&str) -> I) -> (&'static str, &'static str) {
-  ORIGINS
-    .iter()
-    .zip(ORIGINS.iter().skip(1))
-    .map(|(e, l)| (*e, *l))
-    .find(|(e, l)| id(e) > id(l))
-    .expect("two origins whose ids run against their creation")
-}
+use testkit::against_creation;
 
 fn issue(number: IssueId, origin: Option<&str>) -> Issue {
   let mut issue = sample_issue(1);

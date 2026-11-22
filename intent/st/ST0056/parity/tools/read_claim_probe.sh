@@ -73,8 +73,20 @@ probe_dir_is_inside_a_project "$PROJ" \
   && die "the scratch directory $PROJ resolves inside an Intent project -- refusing to run mutation-capable probes in a live tree"
 
 (cd "$PROJ" && "$BIN" init "ProbeProj" >/dev/null 2>&1) || die "could not init a scratch project with $BIN"
-(cd "$PROJ" && "$BIN" st new "Probe Thread" >/dev/null 2>&1) || die "could not create a scratch steel thread"
-(cd "$PROJ" && "$BIN" wp new ST0001 "Probe WP" >/dev/null 2>&1) || die "could not create a scratch work package"
+# Issue If83ae7c: each id is the one the mint printed, read by mint.lib, never
+# spelled. After ST0095 the first `st new` is not ST0001, and a probe of an id
+# that was never made measures a refusal, not a read.
+# shellcheck source=bin/.devbin/cmd/shared/mint.lib
+. "$REPO_ROOT/bin/.devbin/cmd/shared/mint.lib" || die "could not source mint.lib"
+out="$(cd "$PROJ" && "$BIN" st new "Probe Thread" 2>&1)" || die "could not create a scratch steel thread: $out"
+ST="$(minted_id "$out")" || die "st new printed no id it minted: $out"
+out="$(cd "$PROJ" && "$BIN" wp new "$ST" "Probe WP" 2>&1)" || die "could not create a scratch work package: $out"
+WP="$(minted_id "$out")" || die "wp new printed no id it minted: $out"
+out="$(cd "$PROJ" && "$BIN" issues add "Probe issue" 2>&1)" || die "could not create a scratch issue: $out"
+ISSUE="$(minted_id "$out")" || die "issues add printed no id it minted: $out"
+# A build before ST0095 WP-02 prints the issue's canon path on that line, and a
+# probe of a path measures a refusal, not a read.
+case "$ISSUE" in */* | *.json) die "issues add printed a path, not an id (a build before ST0095 WP-02?): $ISSUE" ;; esac
 
 # --- the harness --------------------------------------------------------------
 snap() { (cd "$PROJ" && find . -type f -print0 | sort -z | xargs -0 shasum 2>/dev/null); }
@@ -104,16 +116,16 @@ run_one() {
 # row added later surfaces as a gap instead of shrinking the corpus.
 printf 'read-claim: probing rows declared `exposed_on_mcp: true` + `read_or_mutate: read`\n'
 run_one "st list"          st list
-run_one "st show"          st show ST0001
-run_one "st edit"          st edit ST0001
-run_one "wp list"          wp list ST0001
-run_one "wp show"          wp show ST0001/01
-run_one "ac list"          ac list ST0001
-run_one "ac status"        ac status ST0001
-run_one "ac gate"          ac gate ST0001
-run_one "at list"          at list ST0001
+run_one "st show"          st show "$ST"
+run_one "st edit"          st edit "$ST"
+run_one "wp list"          wp list "$ST"
+run_one "wp show"          wp show "$WP"
+run_one "ac list"          ac list "$ST"
+run_one "ac status"        ac status "$ST"
+run_one "ac gate"          ac gate "$ST"
+run_one "at list"          at list "$ST"
 run_one "issues list"      issues list
-run_one "issues show"      issues show 0001
+run_one "issues show"      issues show "$ISSUE"
 run_one "info"             info
 run_one "config get"       config get intent_version
 run_one "agents validate"  agents validate

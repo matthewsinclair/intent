@@ -96,8 +96,18 @@ export EDITOR=true
 mkdir -p "$FIX/proj"
 cleanup() { rm -rf "$FIX"; }
 trap cleanup EXIT
-( cd "$FIX/proj" && "$BIN" init fixture >/dev/null 2>&1 && "$BIN" st new "probe subject" >/dev/null 2>&1 ) \
-  || die "could not build a fixture project -- refusing rather than falling back to the live one, which is the defect this replaced"
+out="$(cd "$FIX/proj" && "$BIN" init fixture 2>&1)" \
+  || die "could not build a fixture project -- refusing rather than falling back to the live one, which is the defect this replaced: $out"
+# Issue If83ae7c: the subject is the thread and package the mint printed, read
+# by mint.lib, never spelled. After ST0095 the first `st new` is not ST0001,
+# and a verdict over an id that was never made is an unknown-id refusal, not a
+# flag found inert.
+# shellcheck source=bin/.devbin/cmd/shared/mint.lib
+. "$ROOT/bin/.devbin/cmd/shared/mint.lib" || die "could not source mint.lib"
+out="$(cd "$FIX/proj" && "$BIN" st new "probe subject" 2>&1)" || die "could not create the fixture's thread: $out"
+ST="$(minted_id "$out")" || die "st new printed no id it minted: $out"
+out="$(cd "$FIX/proj" && "$BIN" wp new "$ST" "probe package" 2>&1)" || die "could not create the fixture's work package: $out"
+WP="$(minted_id "$out")" || die "wp new printed no id it minted: $out"
 [ -d "$FIX/proj/intent" ] || die "the fixture has no intent/ directory; nothing here would measure the right thing"
 
 TABLE="$ROOT/surface/dispatch-table.json"
@@ -130,12 +140,12 @@ undrivable_reason() {
 # declared beside the row rather than guessed from the arity.
 invoke_with() { # $1 = path, $2 = value
   case "$1" in
-    "st show")          printf 'st\nshow\nST0001\n%s\n' "$2" ;;
+    "st show")          printf 'st\nshow\n%s\n%s\n' "$ST" "$2" ;;
     "agents template")  printf 'agents\ntemplate\n%s\n' "$2" ;;
     "claude rules")     printf 'claude\nrules\n%s\n' "$2" ;;
     "critic")           printf 'critic\n%s\n' "$2" ;;
-    "st edit")          printf 'st\nedit\nST0001\n%s\n' "$2" ;;
-    "wp rescope")       printf 'wp\nrescope\nST0001/01\n%s\n' "$2" ;;
+    "st edit")          printf 'st\nedit\n%s\n%s\n' "$ST" "$2" ;;
+    "wp rescope")       printf 'wp\nrescope\n%s\n%s\n' "$WP" "$2" ;;
     "claude subagents") printf 'claude\nsubagents\n%s\n' "$2" ;;
     "claude skills")    printf 'claude\nskills\n%s\n' "$2" ;;
     "claude ws")        printf 'claude\nws\n%s\n' "$2" ;;

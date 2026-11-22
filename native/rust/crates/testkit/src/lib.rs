@@ -581,3 +581,28 @@ pub fn lifeline() -> std::process::Stdio {
   let (read, _write) = PIPE.get_or_init(|| std::io::pipe().expect("a lifeline pipe"));
   std::process::Stdio::from(read.try_clone().expect("clone the lifeline"))
 }
+
+/// Four creation-event ULIDs, in creation order, one millisecond apart: the
+/// one table every test that orders records by creation draws from.
+pub const CREATION_ORIGINS: [&str; 4] = [
+  "01M7SQ544Q2FK5BNMYAMXV3Z4Z",
+  "01M7SQ544Q2FK5BNMYAMXV3Z50",
+  "01M7SQ544Q2FK5BNMYAMXV3Z51",
+  "01M7SQ544Q2FK5BNMYAMXV3Z52",
+];
+
+/// **THE PAIR THAT TELLS CREATION ORDER FROM ID ORDER** (issue Ib383ad5 made
+/// it a third copy, so it lives here once): two of [`CREATION_ORIGINS`],
+/// earlier first, whose ids of one kind, as `id` mints them, run the other
+/// way. A listing that orders by id fails an assertion built on the pair; one
+/// that orders by creation passes. Panics when no adjacent pair is inverted,
+/// which, adjacent pairs being enough to find any inversion, means the table
+/// no longer holds one for that kind.
+pub fn against_creation<I: Ord>(id: impl Fn(&str) -> I) -> (&'static str, &'static str) {
+  CREATION_ORIGINS
+    .iter()
+    .zip(CREATION_ORIGINS.iter().skip(1))
+    .map(|(e, l)| (*e, *l))
+    .find(|(e, l)| id(e) > id(l))
+    .expect("two origins whose ids run against their creation")
+}

@@ -28,8 +28,8 @@
 //! and its store would carry the first into the second. After each merge one
 //! working copy pulls `main` and runs `intent doctor`.
 //!
-//! Out of scope: two merge requests that change one thread (AC-04.2, after
-//! WP-05).
+//! Out of scope: two merge requests that change one thread (AC-04.2), which
+//! `two_branches_that_change_one_thread_merge_clean.rs` proves.
 
 use crate::common::{Forge, created, shown};
 
