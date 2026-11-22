@@ -1,0 +1,16 @@
+{
+  "id": "01M81MR3XNXDECAQ1Y38PRZ7JF",
+  "ts": "2026-11-22T12:47:26.133Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 65,
+    "text": "QUEUED, not built (hv, relayed by devbin-vc, reversing the 3.5.2 ruling: no new release round now). Issues I0005a5f, If81de5f, I4debbb5 and I4d8c964 ship with Intent's next cut, whenever hv calls one. Only devbin-vc uses these commands, and it works around all four."
+  }
+}

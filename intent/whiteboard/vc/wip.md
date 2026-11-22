@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- 3.5.2 (hv's ruling relayed by devbin-vc at 2026-11-22 12:46Z by date -u: 'Fix now, cut 3.5.2'): one unit fixes I0005a5f, If81de5f, I4debbb5 and I4d8c964, If81de5f first. cc builds the three slots.rs fixes; dc builds I4d8c964 and the step-2 prep. vc lands the banks. The cut's go is hv's own word in vc's window.
+_(none)_
 
 ## TODO
 
-_(none)_
+- The next Intent cut, whenever hv calls one, carries issues I0005a5f, If81de5f (medium), I4debbb5 and I4d8c964, the estate-desk defects. hv ruled no new release round for them now (relayed by devbin-vc, 2026-11-22).
 
 ## Holds
 
