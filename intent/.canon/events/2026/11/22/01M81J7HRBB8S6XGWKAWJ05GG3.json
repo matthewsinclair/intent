@@ -1,0 +1,15 @@
+{
+  "id": "01M81J7HRBB8S6XGWKAWJ05GG3",
+  "ts": "2026-11-22T12:03:26.104Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "If074a59563f9ea18"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "gen_explorer_shots.sh is byte-identical within a session, not across days: releasing.md step 2's clean-status check reads anti-aliasing drift as a moved shot"
+  }
+}
