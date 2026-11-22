@@ -541,13 +541,44 @@ fn an_unprofiled_launch_reads_exactly_as_it_did() {
      2. Read your inbox(es) under intent/whiteboard/cc/ and act on any opening assignment.\n  \
      3. Claim your steel threads if your assignment names any.\n  \
      4. ULTRATHINK, then show me a detailed plan for today's work for this workstream (cc).\n  \
-     5. Then STOP and wait for my instructions.\n\
-     \n\
-     Project restart context follows.\n\
-     --------------------------------------------------------------------------------"
+     5. Then STOP and wait for my instructions."
   );
   assert!(
     context.starts_with(&before),
     "an unprofiled launch changed:\n--- before this thread\n{before}\n--- now\n{context}"
+  );
+}
+
+/// Issue I4d8c964: the launcher announces the restart context only when the
+/// project keeps one, and the announcement is followed by the file. A project
+/// with no `.claude/restart.md` got a launch that ended on an empty section.
+#[test]
+fn the_restart_header_is_printed_only_with_the_restart_file() {
+  const HEADER: &str = "Project restart context follows.\n\
+    --------------------------------------------------------------------------------\n";
+  let install = fixture_install();
+  let exe = install.exe();
+  let claude = Claude::new();
+  let project = project(exe, &claude);
+  let restart = project.path().join(".claude/restart.md");
+  assert!(
+    !restart.exists(),
+    "the fixture project must start with no restart context"
+  );
+
+  let without = launched_context(exe, "cc", project.path(), &claude);
+  assert!(
+    !without.contains(HEADER.lines().next().expect("a header line")),
+    "a launch with no restart file announced one:\n{without}"
+  );
+
+  let body = "the restart context this project keeps";
+  std::fs::create_dir_all(restart.parent().expect("restart.md has a directory"))
+    .expect("create .claude");
+  std::fs::write(&restart, body).expect("write restart.md");
+  let with = launched_context(exe, "cc", project.path(), &claude);
+  assert!(
+    with.starts_with(&without) && with.ends_with(&format!("\n\n{HEADER}{body}")),
+    "a launch with a restart file does not end on the header and the file:\n--- without\n{without}\n--- with\n{with}"
   );
 }

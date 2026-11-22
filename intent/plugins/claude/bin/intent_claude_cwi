@@ -91,12 +91,17 @@ EOF
 
 # --- compose context + start -------------------------------------------------
 compose_ctx() { # $1 the launch context the door passed
-  printf '%s\n\n' "$1"
-  cat <<EOF
+  printf '%s\n' "$1"
+  # The header announces the file, so it is printed only when the file is
+  # there: a project with no restart context gets no empty section.
+  if [ -f "$RESTART" ]; then
+    printf '\n'
+    cat <<EOF
 Project restart context follows.
 --------------------------------------------------------------------------------
 EOF
-  [ -f "$RESTART" ] && cat "$RESTART"
+    cat "$RESTART"
+  fi
 }
 
 cmd_start() {
