@@ -1,9 +1,10 @@
 ---
 issue: If83ae7c
 title: Three manual parity tools assume the first st new makes ST0001
-status: OPEN
+status: CLOSED
 severity: medium
 created: 2026-11-22
+closed: 2026-11-22
 reporter: Matthew Sinclair
 ---
 

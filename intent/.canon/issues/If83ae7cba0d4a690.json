@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "If83ae7cba0d4a690",
   "origin": "01M810M5K4NPSTTM95NHSB7XEP",
-  "realised": true,
   "slug": "three-manual-parity-tools-assume-the-first-st-ne",
   "title": "Three manual parity tools assume the first st new makes ST0001",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0095's close-time Highlander sweep (vc, 2026-11-22, close C findings 1 to 3; start cluster H). Fixed under hv decision 86 rather than left with ST0097.\n\nThree manual parity tools assume the first `st new` in a fresh fixture is `ST0001` instead of reading the id the verb printed:\n- intent/st/ST0056/parity/tools/canon_race_check.sh: fixture commands go to /dev/null unchecked, so on a git-style build the fixture is silently empty and the race arms measure refusals, not a race.\n- intent/st/ST0056/parity/tools/read_claim_probe.sh: `wp new ST0001` fails, so the tool cannot run on a current build.\n- intent/st/ST0056/parity/tools/inert_arg_check.sh: its \"flag is inert\" verdicts would come from unknown-id refusals; `ST0001/01` was never created.\n\nExpected: each reads the minted id with `minted_id` from bin/.devbin/cmd/shared/mint.lib and passes it on, and checks every fixture command's status.\n"
 }
