@@ -162,7 +162,7 @@ pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, cr
     entity,
     format,
   };
-  let Some(typed) = thread_of(&address.entity) else {
+  let Some(typed) = address.entity.thread() else {
     return Ok(match &address.entity {
       Entity::Issue { id } => {
         let found = crate::id::resolve_issue(id, scope)
@@ -182,11 +182,11 @@ pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, cr
     found => {
       return Ok(answer(
         &address,
-        found.map(|thread| with(rethreaded(&address.entity, &thread))),
+        found.map(|thread| with(address.entity.with_thread(&thread))),
       ));
     }
   };
-  let entity = rethreaded(&address.entity, &thread);
+  let entity = address.entity.with_thread(&thread);
   let Entity::Wp { wp, .. } = &entity else {
     return Ok(Resolution::Resolved(with(entity)));
   };
@@ -204,38 +204,6 @@ pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, cr
     ),
     Err(_) => Resolution::Resolved(with(entity)),
   })
-}
-
-/// The thread segment an entity carries, if it is one under a thread.
-fn thread_of(entity: &Entity) -> Option<&str> {
-  match entity {
-    Entity::WpCollection { thread }
-    | Entity::AcCollection { thread }
-    | Entity::Wp { thread, .. }
-    | Entity::Ac { thread, .. }
-    | Entity::At { thread, .. }
-    | Entity::Attachment { thread, .. } => Some(thread),
-    Entity::Thread { id } => Some(id),
-    _ => None,
-  }
-}
-
-/// `entity` with its thread segment replaced by `thread`'s stored id.
-fn rethreaded(entity: &Entity, thread: &crate::id::ThreadId) -> Entity {
-  let stored = thread.stored();
-  match entity.clone() {
-    Entity::Thread { .. } => Entity::Thread { id: stored },
-    Entity::WpCollection { .. } => Entity::WpCollection { thread: stored },
-    Entity::AcCollection { .. } => Entity::AcCollection { thread: stored },
-    Entity::Wp { wp, .. } => Entity::Wp { thread: stored, wp },
-    Entity::Ac { ac, .. } => Entity::Ac { thread: stored, ac },
-    Entity::At { at, .. } => Entity::At { thread: stored, at },
-    Entity::Attachment { path, .. } => Entity::Attachment {
-      thread: stored,
-      path,
-    },
-    other => other,
-  }
 }
 
 /// A completion as a [`Resolution`]: the one address, every candidate, or the

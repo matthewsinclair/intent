@@ -1901,7 +1901,13 @@ fn criterion_read(row: &str, non_test_by_thread: bool) -> Result<Criterion, RowR
       "AC row names nothing after its id".to_string(),
     )
   })?;
-  if !id.starts_with("AC-") {
+  // **THE HEAD ALONE, AND NOT `id::label_kind`: THE ONE STATED EXCEPTION**
+  // (issue I91dd457, vc's ruling 2026-11-22). v2 trees carry dotless labels
+  // (`AC-01`, `AT-01`; Ccusage, Cldr and Utilz migrated 14 of them), which the
+  // waist's label reader refuses. This reads a foreign format, and the patch
+  // that made one label reader did not change what migration accepts; the AT
+  // row below holds the same exception.
+  if !id.starts_with(&format!("{}-", crate::id::LabelKind::Criterion.head())) {
     return Err((FindingClass::UnparseableRow, "AC row".to_string()));
   }
   // Leading marker only; an embedded one is picked up from the prose below,
@@ -2258,7 +2264,8 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
     )
   })?;
   let id = &row[..space];
-  if !id.starts_with("AT-") {
+  // The head alone, as the AC row's: v2's foreign format (issue I91dd457).
+  if !id.starts_with(&format!("{}-", crate::id::LabelKind::Test.head())) {
     return Err((FindingClass::UnparseableRow, "AT row".to_string()));
   }
   // An AT that names no subject keeps the space the `covers` marker needs.
@@ -3398,7 +3405,12 @@ fn related_links(sections: &[(String, String)]) -> Vec<Related> {
     };
     let (lead, rest) = split_lead(bullet);
     let note = rest.trim().trim_end_matches(')').trim();
-    for id in crate::id::thread_ids_in(lead) {
+    // v2 prose names threads by ordinal only, so every thread it names is
+    // whole; a hashed front cannot appear in a v2 tree.
+    for named in crate::id::thread_ids_in(lead) {
+      let crate::id::Spelled::Whole(id) = named else {
+        continue;
+      };
       out.push(Related {
         id,
         note: (!note.is_empty()).then(|| note.to_string()),

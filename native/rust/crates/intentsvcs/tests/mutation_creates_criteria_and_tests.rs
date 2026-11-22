@@ -756,3 +756,46 @@ fn ids_order_naturally() {
     vec!["AC-1.1", "AC-2.1", "AC-10.1", "AT-01.2", "AT-01.10"]
   );
 }
+
+/// Issue I78176db: `ac new` and `at new` ask the waist's one label reader before
+/// they write, so a malformed label is refused by its kind's form and the
+/// thread's criteria and tests are as they were.
+#[test]
+fn a_create_refuses_a_malformed_label_and_writes_nothing() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+  let before = facade.canon().threads[0].clone();
+
+  let err = facade
+    .ac_new("ST0001", "AC-banana", "a sentence", AcKind::NonTest)
+    .expect_err("a criterion label with no readable group is refused");
+  assert!(
+    err
+      .to_string()
+      .contains("`AC-banana` is not a criterion label"),
+    "the refusal names the label and its kind: {err}"
+  );
+  let err = facade
+    .at_new(
+      "ST0001",
+      "AT-03",
+      AtKind::NonTest,
+      None,
+      Some("p".to_string()),
+      vec![],
+      None,
+    )
+    .expect_err("a test label with no sequence is refused");
+  assert!(
+    err.to_string().contains("`AT-03` is not a test label"),
+    "the refusal names the label and its kind: {err}"
+  );
+
+  let after = &facade.canon().threads[0];
+  assert_eq!(
+    after.criteria, before.criteria,
+    "a refused create wrote a criterion"
+  );
+  assert_eq!(after.tests, before.tests, "a refused create wrote a test");
+}

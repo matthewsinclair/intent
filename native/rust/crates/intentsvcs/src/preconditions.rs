@@ -421,39 +421,11 @@ pub fn declared_in(text: &str) -> Result<Vec<String>, Unreadable> {
   Ok(ids)
 }
 
-/// `AC-<gg>.<n>` -- the machine-shaped token hv's ruling turns on.
-///
-/// Hand-written rather than a regex so the shape is readable at the site that
-/// depends on it, and so the module carries no dependency for eight lines.
+/// `AC-<group>.<n>` -- the machine-shaped token hv's ruling turns on, read by
+/// the waist's one label reader (issue I91dd457), so a label the tool stores is
+/// never refused here: `AC-1.1` (hv, 2026-09-08: the group's width is not the
+/// rule's to fix) and the `AC-<hex>.n` a git-style package's criterion carries.
+/// The flat form `AC01` and the empty group `AC-.1` are still refused.
 fn is_ac_id(token: &str) -> bool {
-  let Some(rest) = token.strip_prefix("AC-") else {
-    return false;
-  };
-  let Some((group, seq)) = rest.split_once('.') else {
-    return false;
-  };
-  // **ANY GROUP WIDTH, NOT EXACTLY TWO -- hv ruled it 2026-09-08 and the
-  // measurement is what decided it.** This read `group.len() == 2`, which made
-  // it the STRICTEST reader of an AC id in the tool and the only one that
-  // refused `AC-1.1`: `contract::group_of` splits on `-` then `.` with no
-  // length constraint and yields group `1` correctly, and
-  // `bin/intent_acceptance:295` greps `AC-[0-9]+\.[0-9]+`, where `[0-9]+`
-  // matches one digit. A census of every AC/AT id in 13 estates found 182 rows
-  // in the one-digit shape -- Devbin 38, Lamplight 126, Prolix 18 -- all of
-  // them parsing and rendering correctly everywhere except here.
-  //
-  // **SO THE RULE WAS THE OUTLIER, NOT THE DATA.** The alternative was
-  // rewriting 182 ids across three estates, which also invalidates every
-  // citation of them in source comments, design docs and commit messages --
-  // cost with no reader on the other side of it. 182 rows conform with zero
-  // files touched.
-  //
-  // **`!is_empty()` IS LOAD-BEARING AND IS NOT A TIDIER SPELLING OF THE LENGTH
-  // CHECK IT REPLACED.** Without it `AC-.1` parses: `split_once('.')` yields an
-  // EMPTY group, and `all()` over no bytes is vacuously true. The flat form
-  // `AC01` is still refused, by the `AC-` prefix and the `.` split above.
-  !group.is_empty()
-    && group.bytes().all(|b| b.is_ascii_digit())
-    && !seq.is_empty()
-    && seq.bytes().all(|b| b.is_ascii_digit())
+  crate::id::label_kind(token) == Some(crate::id::LabelKind::Criterion)
 }

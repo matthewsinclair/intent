@@ -1938,6 +1938,15 @@ pub enum FacadeError {
   /// and filed, not discovered later.**
   #[error("{st} already has criterion {ac}, and a create must not replace it")]
   CriterionExists { st: String, ac: String },
+  /// A create was given a label that is not its kind's form (issue I78176db):
+  /// `ac new` and `at new` ask the waist's one label reader,
+  /// [`crate::id::label_kind`], before anything is written, so a label the
+  /// readers would disagree about is never stored.
+  #[error("`{label}` is not a {} label; a label is {}", .kind.noun(), .kind.form())]
+  LabelMalformed {
+    label: String,
+    kind: crate::id::LabelKind,
+  },
   /// The AT-side sibling of [`Self::CriterionExists`], carrying the same
   /// mechanism and the same window. Separate because the remedy names a
   /// different verb, and because what a replace destroyed here was measured:
@@ -2509,7 +2518,8 @@ pub enum FacadeError {
     source: std::io::Error,
   },
   /// The store refused an attach after its realised file was written, and the
-  /// file's old bytes could not be put back (issue 0715). `refused` is the
+  /// file could not be put back as it was (issue 0715): a replaced file's old
+  /// bytes, or a created file's absence (issue I1d5a3b5). `refused` is the
   /// store's own refusal, kept whole.
   #[error(
     "the store refused the attachment ({refused}), and `{path}` could not be put back as it was"
@@ -3944,6 +3954,12 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchTest { st, .. } => {
         format!("run `intent at list {st}` to see the tests in its contract")
       }
+      Self::LabelMalformed { kind, .. } => format!(
+        "nothing was written. Give the label as {}: the group is the thread's \
+         `00` or one of its packages, eg `{}-01.1`, and the sequence is digits",
+        kind.form(),
+        kind.head()
+      ),
       Self::CriterionExists { st, ac } => format!(
         "nothing was written and {ac} still holds the text, kind and state it held. To reword \
          it, `intent ac edit {st} {ac} --text \"...\"` -- which changes the sentence and leaves \
@@ -8650,7 +8666,30 @@ impl Facade {
   /// completed among `thread`'s packages, so the group is stored whole (design,
   /// "Criteria and tests": a door takes a prefix for the group and stores it
   /// whole). Any other label as typed.
-  fn whole_label(&self, thread: &str, label: &str) -> Result<String, FacadeError> {
+  ///
+  /// **AND THE LABEL IS READ BY THE WAIST'S ONE LABEL READER** (issue
+  /// I78176db): a label that is not `kind`'s form is refused here, before any
+  /// create writes, so `ac new` and `at new` store only labels every reader
+  /// agrees on.
+  fn whole_label(
+    &self,
+    thread: &str,
+    label: &str,
+    kind: crate::id::LabelKind,
+  ) -> Result<String, FacadeError> {
+    let whole = self.regrouped_label(thread, label)?;
+    match crate::id::label_kind(&whole) {
+      Some(read) if read == kind => Ok(whole),
+      _ => Err(FacadeError::LabelMalformed {
+        label: label.to_string(),
+        kind,
+      }),
+    }
+  }
+
+  /// `label` with a package prefix in its group completed, as
+  /// [`Facade::whole_label`] stores it; any other label as typed.
+  fn regrouped_label(&self, thread: &str, label: &str) -> Result<String, FacadeError> {
     let group = crate::id::group_text(label);
     if group == label || !matches!(crate::id::read_wp(group), Ok(crate::id::Spelled::Prefix(_))) {
       return Ok(label.to_string());
@@ -15818,10 +15857,8 @@ impl Facade {
       if let Some(undeclared) = views::undeclared_owner(&self.project, &view.path, canon, &realised)
       {
         let changed_here = match &undeclared {
-          views::Undeclared::Record(crate::id::Named::Thread(id)) => changed.contains(id.as_str()),
-          views::Undeclared::Record(crate::id::Named::Issue(number)) => {
-            changed_issues.contains(number)
-          }
+          views::Undeclared::Thread(id) => changed.contains(id.as_str()),
+          views::Undeclared::Issue { number, .. } => changed_issues.contains(number),
           // A board has no manifest entry to change, so nothing is ahead of it.
           views::Undeclared::Board(_) => false,
         };
@@ -18866,7 +18903,7 @@ impl Facade {
     text: &str,
     kind: AcKind,
   ) -> Result<Outcome, FacadeError> {
-    let whole = self.whole_label(st, ac)?;
+    let whole = self.whole_label(st, ac, crate::id::LabelKind::Criterion)?;
     let ac = whole.as_str();
     if self.st_show(st)?.criteria.iter().any(|c| c.id == ac) {
       return Err(FacadeError::CriterionExists {
@@ -18938,11 +18975,11 @@ impl Facade {
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     // A package prefix in a label's group is stored whole (ST0095 WP-07).
-    let whole = self.whole_label(st, at)?;
+    let whole = self.whole_label(st, at, crate::id::LabelKind::Test)?;
     let at = whole.as_str();
     let covers = covers
       .into_iter()
-      .map(|ac| self.whole_label(st, &ac))
+      .map(|ac| self.whole_label(st, &ac, crate::id::LabelKind::Criterion))
       .collect::<Result<Vec<_>, _>>()?;
     // **THE REFUSAL, AND IT RETIRES A MITIGATION RATHER THAN JOINING IT.** This
     // verb used to READ the stored row and carry its `note` and `legacy`
@@ -20944,6 +20981,9 @@ impl Facade {
     self.refuse_a_store_not_this_checkouts()?;
     let mut next = self.canon.clone();
     let holder = find_thread_mut(&mut next, thread)?;
+    // **REALISED IS THE RECORD'S ANSWER, NOT THE DISK'S** (issue I1d5a3b5): a
+    // directory left by a hand `mkdir` is no reason to write into it.
+    let realised_thread = holder.realised;
     // **ONE FILE, ONE ATTACHMENT** (issue 0718): a second attachment that one
     // disk stores as a held one's file is refused by the held one's name, so
     // the pair never reaches canon, and so never a disk.
@@ -20982,7 +21022,13 @@ impl Facade {
     // 0715). Canon alone moving left the old bytes in the realised file, where
     // a watching intentd carried them straight back over the new row.
     let realised = self.project.thread_dir(thread).join(path);
-    let restore = self.replace_realised(thread, &realised, stored.as_deref(), new.as_deref())?;
+    let restore = self.replace_realised(
+      thread,
+      &realised,
+      realised_thread,
+      stored.as_deref(),
+      new.as_deref(),
+    )?;
     let applied = self.apply(
       "attachment.put",
       Subject {
@@ -20993,9 +21039,20 @@ impl Facade {
       next,
     );
     match (applied, restore) {
-      (Ok(foreign), _) => Ok(outcome.with_overwrites(foreign)),
+      (Ok(foreign), restore) => {
+        // The realised file is the verb's write, so the drain names it.
+        if let Some(written) = restore {
+          self
+            .landed
+            .extend(written.written().map(std::path::PathBuf::from));
+          written.keep();
+        }
+        Ok(outcome.with_overwrites(foreign))
+      }
       (Err(failed), None) => Err(failed),
-      (Err(failed), Some(old)) => match crate::write_set::write_atomically(&realised, &old) {
+      // The write set's rollback puts a replaced file's bytes back and removes
+      // a created file with the directories it made (issue I1d5a3b5).
+      (Err(failed), Some(written)) => match written.rollback() {
         Ok(()) => Err(failed),
         Err(source) => Err(FacadeError::RealisedAttachmentNotRestored {
           thread: thread.to_string(),
@@ -21008,10 +21065,15 @@ impl Facade {
   }
 
   /// Write an attachment's realised file ahead of its store write (issue
-  /// 0715), and hand back the bytes it held, which the caller puts back if the
-  /// store write then fails. `None` when nothing was written: the thread has no
-  /// realised file at `realised`, it already holds the new bytes, or the row has
-  /// none to write.
+  /// 0715), and hand back the write, which the caller rolls back if the store
+  /// write then fails: a replaced file's old bytes go back, and a created file
+  /// goes with the directories it made. `None` when nothing was written: the
+  /// thread is not realised and has no file at `realised`, the file already
+  /// holds the new bytes, or the row has none to write.
+  ///
+  /// **A REALISED THREAD GETS ITS NEW ATTACHMENT'S FILE** (issue I1d5a3b5),
+  /// with the file's parent directories and nothing else: the thread's views
+  /// and the rest of its tree stay `st hydrate`'s and `organize --apply`'s.
   ///
   /// **A FILE HOLDING BYTES THE STORE DOES NOT CARRY IS REFUSED BEFORE ANY
   /// WRITE**: it is an edit no sync has taken in, and replacing it would lose
@@ -21024,15 +21086,23 @@ impl Facade {
     &self,
     thread: &str,
     realised: &std::path::Path,
+    realised_thread: bool,
     stored: Option<&[u8]>,
     new: Option<&[u8]>,
-  ) -> Result<Option<Vec<u8>>, FacadeError> {
+  ) -> Result<Option<crate::write_set::Applied>, FacadeError> {
     let Some(new) = new else {
       return Ok(None);
     };
+    let write = || {
+      let mut set = WriteSet::new();
+      set.add_bytes(realised.to_path_buf(), new.to_vec());
+      set.commit().map(Some).map_err(FacadeError::from)
+    };
     let on_disk = match std::fs::read(realised) {
       Ok(bytes) => bytes,
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
+        return if realised_thread { write() } else { Ok(None) };
+      }
       Err(source) => {
         return Err(FacadeError::RealisedAttachmentUnreadable {
           path: self.project.relative(realised),
@@ -21049,8 +21119,7 @@ impl Facade {
         path: self.project.relative(realised),
       });
     }
-    crate::write_set::write_atomically(realised, new)?;
-    Ok(Some(on_disk))
+    write()
   }
 
   /// Write an attachment's content, carrying **the form the bytes decide**.
@@ -22754,29 +22823,8 @@ impl Facade {
     // reached, so a thread or package closed on authority rendered with no time
     // at all -- the two kinds a cascade STARTS from.
     for thread in &mut next.threads {
-      if let Some(record) = thread.fiat.as_mut()
-        && record.at.is_empty()
-      {
-        record.at = dates.event_ts.clone();
-      }
-      for wp in &mut thread.wps {
-        if let Some(record) = wp.fiat.as_mut()
-          && record.at.is_empty()
-        {
-          record.at = dates.event_ts.clone();
-        }
-      }
-      for criterion in &mut thread.criteria {
-        if let AcState::Fiat(record) = &mut criterion.state
-          && record.at.is_empty()
-        {
-          record.at = dates.event_ts.clone();
-        }
-      }
-      for test in &mut thread.tests {
-        if let Some(record) = test.fiat.as_mut()
-          && record.at.is_empty()
-        {
+      for (_, record) in thread.fiat_records_mut() {
+        if record.at.is_empty() {
           record.at = dates.event_ts.clone();
         }
       }

@@ -10,6 +10,7 @@
 //! worded, through `ProjectRefs`, which every production reader builds.
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::{Carries, ProjectRefs, References, citation, literal_id_finding};
+use intentsvcs::id::ThreadId;
 use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, Thread, ThreadStatus};
 
 const FILE: &str = "tests/unit/releasestatus.bats";
@@ -101,6 +102,31 @@ fn a_line_naming_the_rows_own_thread_counts_whatever_its_rivals() {
   );
   let refs = ProjectRefs::new(fx.root(), &threads);
   assert_eq!(refs.carries_id(FILE, "AT-3.5", "ST0011"), Carries::Yes);
+}
+
+/// Issue I88f333f: a cited line names a git-style thread by its shown front,
+/// and the one scanner reads it as that thread. A front that opens with four
+/// digits is the hashed thread's, never the ordinal those digits spell.
+#[test]
+fn a_line_naming_a_git_style_thread_by_its_shown_front_names_that_thread_and_no_ordinal() {
+  let fx = Fixture::new();
+  let hashed = ThreadId::parse("ST1234abcdef012345").expect("a stored hashed thread id");
+  let ordinal = ThreadId::parse("ST1234").expect("a stored ordinal thread id");
+  fx.write_file(FILE, &format!("# {} AT-3.5\n", hashed.shown()));
+  let threads = vec![thread_with(
+    hashed.as_str(),
+    ThreadStatus::Wip,
+    vec![row("AT-3.5", FILE, AtStatus::Green)],
+  )];
+  let refs = ProjectRefs::new(fx.root(), &threads);
+  assert_eq!(
+    refs.carries_id(FILE, "AT-3.5", hashed.as_str()),
+    Carries::Yes
+  );
+  assert_eq!(
+    refs.carries_id(FILE, "AT-3.5", ordinal.as_str()),
+    Carries::OnlyUnder(vec![hashed.shown()])
+  );
 }
 
 #[test]

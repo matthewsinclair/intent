@@ -1095,6 +1095,47 @@ pub struct FiatRecord {
   pub inherited_event: Option<String>,
 }
 
+/// Where in a thread a fiat record sits: the thread itself, one of its work
+/// packages, a criterion or a test.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FiatRow {
+  Thread,
+  Package(WpId),
+  Criterion(String),
+  Test(String),
+}
+
+impl Thread {
+  /// **EVERY FIAT RECORD THIS THREAD HOLDS, AND THE ONE WALK OF THEM** (the
+  /// ST0095 close critic's Highlander finding on issue I4fc4495): the thread's
+  /// own, each work package's, each criterion's `AcState::Fiat` and each
+  /// test's. The write's stamp and a remint's `inherited_from` move both walk
+  /// this, so a fifth row that carries one is added here once and reached by
+  /// both.
+  pub fn fiat_records_mut(&mut self) -> Vec<(FiatRow, &mut FiatRecord)> {
+    let mut out = Vec::new();
+    if let Some(record) = self.fiat.as_mut() {
+      out.push((FiatRow::Thread, record));
+    }
+    for wp in &mut self.wps {
+      if let Some(record) = wp.fiat.as_mut() {
+        out.push((FiatRow::Package(wp.seq), record));
+      }
+    }
+    for ac in &mut self.criteria {
+      if let AcState::Fiat(record) = &mut ac.state {
+        out.push((FiatRow::Criterion(ac.id.clone()), record));
+      }
+    }
+    for at in &mut self.tests {
+      if let Some(record) = at.fiat.as_mut() {
+        out.push((FiatRow::Test(at.id.clone()), record));
+      }
+    }
+    out
+  }
+}
+
 /// **THE ONE RENDERING OF A FIAT CLOSE -- ASPIRED TO, AND NOT YET TRUE.**
 ///
 /// This doc used to state flatly that every surface showing a fiat-closed row

@@ -173,6 +173,55 @@ pub enum Entity {
 }
 
 impl Entity {
+  /// The thread segment this entity carries, if it is one under a thread.
+  ///
+  /// **EXHAUSTIVE, NO WILDCARD** (the ST0095 close critic's H3): a variant
+  /// added under a thread does not compile until it says so here, where a
+  /// `_ => None` read it as threadless and the resolver left its thread
+  /// segment a prefix.
+  pub fn thread(&self) -> Option<&str> {
+    match self {
+      Entity::WpCollection { thread }
+      | Entity::AcCollection { thread }
+      | Entity::Wp { thread, .. }
+      | Entity::Ac { thread, .. }
+      | Entity::At { thread, .. }
+      | Entity::Attachment { thread, .. } => Some(thread),
+      Entity::Thread { id } => Some(id),
+      Entity::Threads
+      | Entity::Issues
+      | Entity::Issue { .. }
+      | Entity::Node { .. }
+      | Entity::NodeInbox { .. }
+      | Entity::Event { .. } => None,
+    }
+  }
+
+  /// This entity with its thread segment replaced by `thread`'s stored id, and
+  /// itself unchanged when it carries none. Exhaustive for the reason
+  /// [`Self::thread`] is, and the two answer for the same variants.
+  pub fn with_thread(&self, thread: &crate::id::ThreadId) -> Entity {
+    let stored = thread.stored();
+    match self.clone() {
+      Entity::Thread { .. } => Entity::Thread { id: stored },
+      Entity::WpCollection { .. } => Entity::WpCollection { thread: stored },
+      Entity::AcCollection { .. } => Entity::AcCollection { thread: stored },
+      Entity::Wp { wp, .. } => Entity::Wp { thread: stored, wp },
+      Entity::Ac { ac, .. } => Entity::Ac { thread: stored, ac },
+      Entity::At { at, .. } => Entity::At { thread: stored, at },
+      Entity::Attachment { path, .. } => Entity::Attachment {
+        thread: stored,
+        path,
+      },
+      unthreaded @ (Entity::Threads
+      | Entity::Issues
+      | Entity::Issue { .. }
+      | Entity::Node { .. }
+      | Entity::NodeInbox { .. }
+      | Entity::Event { .. }) => unthreaded,
+    }
+  }
+
   /// This entity's address in THIS project, `intent:///...`, rendered by
   /// [`Address::to_url`]: the one way a caller holding an entity spells its URL.
   pub fn local_url(self) -> String {

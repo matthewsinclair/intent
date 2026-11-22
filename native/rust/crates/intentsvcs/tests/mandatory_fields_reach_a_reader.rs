@@ -145,6 +145,8 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // supply -- the remedy is `ac edit` / `at edit`, not a fuller create.
     | FacadeError::CriterionExists { .. }
     | FacadeError::TestExists { .. }
+    // A malformed label is a value refused by its form, not a field left out.
+    | FacadeError::LabelMalformed { .. }
     // **NAMES SEVERAL FIELDS AND DEMANDS NO PARTICULAR ONE, WHICH IS WHY IT IS
     // HERE RATHER THAN ABOVE.** `ReasonRequired` and its two siblings each name
     // ONE field a call left out, and this file exists to prove that field

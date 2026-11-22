@@ -721,7 +721,7 @@ fn assemble(
     .filter(|v| {
       !matches!(
         views::undeclared_owner(project, &v.path, &canon, &realised),
-        Some(views::Undeclared::Record(crate::id::Named::Issue(_)))
+        Some(views::Undeclared::Issue { .. })
       )
     })
     .collect();

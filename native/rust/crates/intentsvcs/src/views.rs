@@ -2042,8 +2042,15 @@ pub fn owner(project: &Project, path: &std::path::Path, canon: &Canon) -> Option
 /// realised.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Undeclared {
-  /// A thread or an issue, as [`owner`] names it.
-  Record(Named),
+  /// A thread, as [`owner`] names it.
+  Thread(crate::id::ThreadId),
+  /// An issue, as [`owner`] names it, with its record's status: the owner was
+  /// found in canon, so the status is the record's own and a reader never
+  /// looks it up a second time (the ST0095 close critic's W1).
+  Issue {
+    number: crate::id::IssueId,
+    status: crate::model::IssueStatus,
+  },
   /// A board or inbox view whose node has no migrated `wb_node` row.
   Board(String),
 }
@@ -2078,13 +2085,25 @@ pub fn undeclared_owner(
   realised: &crate::intentfiles::Realised,
 ) -> Option<Undeclared> {
   if let Some(record) = owner(project, path, canon) {
-    let declared = match &record {
-      Named::Thread(id) => realised.declares(id),
+    return match record {
+      Named::Thread(id) => (!realised.declares(&id)).then_some(Undeclared::Thread(id)),
+      Named::Issue(number)
+        if realised.declares_artefact(crate::intentfiles::Sigil::Issue, &number.stored()) =>
+      {
+        None
+      }
+      // `owner` found the issue in canon, so this finds it too.
       Named::Issue(number) => {
-        realised.declares_artefact(crate::intentfiles::Sigil::Issue, &number.stored())
+        canon
+          .issues
+          .iter()
+          .find(|i| i.number == number)
+          .map(|i| Undeclared::Issue {
+            number,
+            status: i.status,
+          })
       }
     };
-    return (!declared).then_some(Undeclared::Record(record));
   }
   // **A WHITEBOARD VIEW EXISTS FOR EXACTLY THE NODES THE STORE HOLDS** (vc,
   // 2026-09-13), and the manifest has no word for a board: there is no
@@ -2771,7 +2790,7 @@ pub fn skew_against(
       // makes it. No id in the detail, so `doctor` lists a directory's worth
       // on one line.
       Ok(on_disk) if on_disk == view.content => {
-        if let Some(Undeclared::Record(_)) = &owner {
+        if let Some(Undeclared::Thread(_) | Undeclared::Issue { .. }) = &owner {
           findings.push(Finding::new(
             &rel,
             FindingClass::UnrealisedView,
@@ -2817,7 +2836,7 @@ pub fn skew_against(
         // the verb that clears it (WP-10's sentence, kept whole by issue 0740):
         // the reason is what tells the operator the removal loses nothing.
         let clears = match &owner {
-          Some(Undeclared::Record(_)) => format!(
+          Some(Undeclared::Thread(_) | Undeclared::Issue { .. }) => format!(
             "{realised_by} does not realise it, so no sync re-renders it: `intent sync --apply` removes it, and the store keeps the record"
           ),
           Some(Undeclared::Board(_)) | None => "`intent sync --to-disk` re-renders it".to_string(),
@@ -2943,8 +2962,8 @@ pub fn skew_against(
         // verb; an undeclared ISSUE's stale view gets the generic remedy, since
         // there is no thread to pin.
         let unlisted = match &owner {
-          Some(Undeclared::Record(Named::Thread(id))) => Some(id.stored()),
-          Some(Undeclared::Record(Named::Issue(_))) | Some(Undeclared::Board(_)) | None => None,
+          Some(Undeclared::Thread(id)) => Some(id.stored()),
+          Some(Undeclared::Issue { .. }) | Some(Undeclared::Board(_)) | None => None,
         };
         // **WHAT IS TRUE GOES IN THE DETAIL, WHAT TO DO IN THE REMEDY** (issue
         // 0740, on 0738's `Finding::with_remedy`): each arm below says a fact
@@ -2977,7 +2996,7 @@ pub fn skew_against(
           // cannot tell a stale render from a hand edit -- so the remedy this
           // arm used to name exited 0 and left the finding standing. The two
           // routes that DO clear it are removing the file or declaring it.
-          (None, Some(Undeclared::Record(Named::Issue(number)))) => match format {
+          (None, Some(Undeclared::Issue { number, status })) => match format {
             crate::canon_format::CanonFormat::V3 => (
               format!(
                 "; issue {} is not declared in {manifest} (its key is `{}`), so no sync rewrites this file and `intent organize --apply` will not remove it",
@@ -3000,23 +3019,12 @@ pub fn skew_against(
             // is a status change, and `organize --default --force` resets
             // every record's choice, so neither is named for one file.
             //
-            // The status is the record's own, read where the owner was found;
-            // an issue the canon does not hold has no status to name, and the
-            // sentence says only what is true of every unrealised issue.
+            // The status is the record's own, carried by the owner from where
+            // it was found (the ST0095 close critic's W1).
             crate::canon_format::CanonFormat::V4 => {
-              let why = match canon
-                .issues
-                .iter()
-                .find(|i| i.number == *number)
-                .map(|i| i.status)
-              {
-                Some(crate::model::IssueStatus::Closed) => {
-                  "is closed, so its record does not realise it"
-                }
-                Some(crate::model::IssueStatus::Open) => {
-                  "is open, but its record does not realise it"
-                }
-                None => "is not realised by any record",
+              let why = match status {
+                crate::model::IssueStatus::Closed => "is closed, so its record does not realise it",
+                crate::model::IssueStatus::Open => "is open, but its record does not realise it",
               };
               (
                 format!(

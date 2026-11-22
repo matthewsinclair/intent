@@ -799,6 +799,10 @@ fn the_precondition_block_takes_any_group_width_and_still_refuses_the_flat_form(
       "wide groups follow from removing the width rule, not from a new one",
     ),
     ("AC-0.1", "zero is a group; Lamplight carries these"),
+    (
+      "AC-c2e4a1b0.1",
+      "a git-style package's group, as `id::regrouped` stores it (issue I91dd457)",
+    ),
   ];
   let reject = [
     (

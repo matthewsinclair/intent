@@ -16530,10 +16530,11 @@ pub(crate) fn thread_spec_with<E>(
   // **AN ADDRESS IS REFUSED WHOLE, BEFORE THE SPLIT** (vc, 2026-09-15). The
   // split below takes everything before the first `/` as the thread, so an
   // address reached the id check as its scheme's head, and the refusal named
-  // `intent:`: a fragment nobody had typed as an id. `://` is in every URL and
-  // in no id spelling, and the scheme itself stays `address`'s to spell.
-  if raw.contains("://") {
-    return Err(refuse(address_refusal(raw, intentsvcs::id::IdKind::Thread)));
+  // `intent:`: a fragment nobody had typed as an id. Whether the text is an
+  // address is the waist's reader's answer (issue Ic7d939d), asked of the
+  // whole text here and worded as every door words it.
+  if let Err(e @ intentsvcs::id::IdError::Address) = intentsvcs::id::read_thread(raw) {
+    return Err(refuse(id_refusal(raw, &e, intentsvcs::id::IdKind::Thread)));
   }
   let head = intentsvcs::id::split_wp_address(raw).map_or(raw, |(thread, _)| thread);
   let id = thread_id_with(head, || complete(head), &refuse)?;
@@ -16792,9 +16793,8 @@ fn thread_id_with<E>(
   refuse: &impl Fn(Failure) -> E,
 ) -> Result<intentsvcs::id::ThreadId, E> {
   use intentsvcs::id::Spelled;
-  if raw.contains("://") {
-    return Err(refuse(address_refusal(raw, intentsvcs::id::IdKind::Thread)));
-  }
+  // An address is the reader's `IdError::Address`, worded by `id_refusal` as
+  // the issue door words it (issue Ic7d939d).
   match intentsvcs::id::read_thread(raw)
     .map_err(|e| refuse(id_refusal(raw, &e, intentsvcs::id::IdKind::Thread)))?
   {
@@ -16845,13 +16845,6 @@ fn id_refusal(raw: &str, e: &intentsvcs::id::IdError, wanted: intentsvcs::id::Id
 /// A refusal from the waist, as this face renders an error.
 pub(crate) fn refused(r: &intentsvcs::id::Refusal) -> Failure {
   Failure::Error(format!("error: {}\n  remedy: {}", r.message, r.remedy))
-}
-
-/// **AN ADDRESS WHERE THE VERB TAKES AN ID, NAMED WHOLE**, in the waist's
-/// wording (`intentsvcs::id::address_where_id_wanted`), whose remedy quotes the
-/// id's form and never an id read out of the address (issue 0338).
-fn address_refusal(raw: &str, wanted: intentsvcs::id::IdKind) -> Failure {
-  refused(&intentsvcs::id::address_where_id_wanted(raw, wanted))
 }
 
 /// **THE ONE PLACE A COMMAND'S OUTPUT SHAPE IS DECIDED.**

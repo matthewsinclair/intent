@@ -359,3 +359,81 @@ fn a_re_mint_before_the_upgrade_refuses() {
     "{refused}"
   );
 }
+
+/// Issue I4fc4495: a remint moves every structured reference to the old id, a
+/// criterion's descope target and a cascaded fiat record's `inherited_from`
+/// among them, and lists each rewrite as it lists a `related` edge.
+#[test]
+fn a_re_mint_moves_a_descope_target_and_a_cascade_ancestor() {
+  use intentsvcs::model::{AcState, FiatRecord, Invoker};
+  let fx = Fixture::new();
+  let mut closed = sample_thread("ST0001");
+  let ancestor = closed.id.stored();
+  closed.wps[0].fiat = Some(FiatRecord {
+    because: "closed with its thread".to_string(),
+    by: "hv".to_string(),
+    at: "2026-11-22T07:00:00Z".to_string(),
+    invoker: Invoker {
+      tty: true,
+      env: "test".to_string(),
+    },
+    inherited_from: Some(ancestor.clone()),
+    inherited_event: Some(FIXTURE_ORIGIN.to_string()),
+  });
+  // A criterion closed by its package's close, and a test by the thread's, so
+  // the move reaches a package ancestor and every kind of row that holds one.
+  let package = intentsvcs::id::wp_address(&ancestor, closed.wps[0].seq);
+  let cascaded = |from: &str| FiatRecord {
+    inherited_from: Some(from.to_string()),
+    ..closed.wps[0].fiat.clone().expect("the package's record")
+  };
+  closed.criteria[0].state = AcState::Fiat(cascaded(&package));
+  closed.tests[0].fiat = Some(cascaded(&ancestor));
+  closed.tests[0].status = intentsvcs::model::AtStatus::Fiat;
+  fx.write_thread(&closed);
+  let mut descoping = sample_thread("ST0002");
+  descoping.criteria[0].state = AcState::Descoped {
+    to: closed.id.clone(),
+    by: Some("hv".to_string()),
+    reason: Some("it moved".to_string()),
+  };
+  fx.write_thread(&descoping);
+  let mut f = fx.facade();
+
+  let moved = f.st_remint(&closed.id).expect("the ordinal re-mints");
+  let new = ThreadId::parse(&moved.to).expect("the thread's new id");
+
+  let descoped = &f.st_show("ST0002").expect("there").criteria[0].state;
+  assert!(
+    matches!(descoped, AcState::Descoped { to, .. } if *to == new),
+    "the descope still names the old id: {descoped:?}"
+  );
+  let moved_thread = f.st_show(new.as_str()).expect("at its new id");
+  let inherited = |record: Option<&FiatRecord>| record.and_then(|r| r.inherited_from.clone());
+  assert_eq!(
+    inherited(moved_thread.wps[0].fiat.as_ref()),
+    Some(new.stored()),
+    "a package's cascade still names the old thread"
+  );
+  assert_eq!(
+    inherited(moved_thread.tests[0].fiat.as_ref()),
+    Some(new.stored()),
+    "a test's cascade still names the old thread"
+  );
+  let from_package = intentsvcs::id::wp_address(new.as_str(), moved_thread.wps[0].seq);
+  assert!(
+    matches!(
+      &moved_thread.criteria[0].state,
+      AcState::Fiat(record) if record.inherited_from.as_deref() == Some(from_package.as_str())
+    ),
+    "a criterion's cascade from its package still names the old thread: {:?}",
+    moved_thread.criteria[0].state
+  );
+  for kind in ["descoped to", "inherited from"] {
+    assert!(
+      moved.rewritten.iter().any(|r| r.contains(kind)),
+      "the {kind} rewrite is listed: {:?}",
+      moved.rewritten
+    );
+  }
+}

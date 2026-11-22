@@ -132,3 +132,40 @@ fn the_mcp_thread_tools_refuse_an_address_whole() {
   }
   let _ = std::fs::remove_dir_all(&root);
 }
+
+/// Issue Ic7d939d: the issue door words an address as the thread doors do,
+/// because the waist's reader says the text is an address and every door words
+/// that answer; none of them decides it on its own.
+#[test]
+fn issues_show_refuses_an_address_whole() {
+  let (root, _) = estate();
+  let home = short_dir("issue-id-door-home");
+  std::fs::create_dir_all(&home).expect("an isolated home");
+  for url in [
+    "intent:///issues/I3f9a2c1",
+    "intent://elsewhere/issues/I3f9a2c1",
+  ] {
+    let args = ["issues", "show", url];
+    let out = crate::common::intent()
+      .args(args)
+      .current_dir(&root)
+      .env("HOME", &home)
+      .stdin(testkit::lifeline_for(&args))
+      .output()
+      .expect("the intent binary runs");
+    let said = String::from_utf8_lossy(&out.stderr);
+    assert!(
+      said.contains(&format!("`{url}`"))
+        && said.contains("this verb takes an issue id")
+        && said.contains(intentsvcs::id::ISSUE_ID_FORM),
+      "`intent issues show {url}` did not refuse the address whole: {said}"
+    );
+    assert_eq!(
+      out.status.code(),
+      Some(1),
+      "`intent issues show {url}` did not exit 1: {said}"
+    );
+  }
+  let _ = std::fs::remove_dir_all(&root);
+  let _ = std::fs::remove_dir_all(&home);
+}

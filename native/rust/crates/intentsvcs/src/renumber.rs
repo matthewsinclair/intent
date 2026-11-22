@@ -10,15 +10,16 @@
 //! sidecars, the `.intentfiles` row, the write through the one mutation path,
 //! the board writes, and the index read for the prose left alone.
 //!
-//! **STRUCTURED REFERENCES MOVE; PROSE DOES NOT.** A `related` entry and a
-//! board claim are fields whose whole value is the id, so leaving one behind
+//! **STRUCTURED REFERENCES MOVE; PROSE DOES NOT.** A `related` entry, a board
+//! claim, a criterion's descope target and a fiat record's `inherited_from` are
+//! fields whose whole value is the id, so leaving one behind
 //! is a dangling reference. A sentence naming the id is authored, and a
 //! rewrite could change what somebody wrote about a different thread that
 //! happened to share the number. The facade reports each one instead.
 
 use crate::id::{IssueId, ThreadId, WpId};
 use crate::ingest::Canon;
-use crate::model::Board;
+use crate::model::{AcState, Board, FiatRow};
 
 /// A model with one id moved.
 #[derive(Debug, Clone)]
@@ -58,6 +59,40 @@ pub fn thread(canon: &Canon, old: &ThreadId, new: &ThreadId) -> Option<Renumbere
           old.shown(),
           new.shown()
         ));
+      }
+    }
+  }
+  // **A DESCOPE'S TARGET AND A CASCADE'S ANCESTOR MOVE TOO** (issue I4fc4495):
+  // each is a field whose whole value is the id, as `related` is, so leaving it
+  // behind is a dangling reference doctor then reports.
+  let (old_id, new_id) = (old.stored(), new.stored());
+  for thread in &mut next.threads {
+    let owner = thread.id.shown();
+    for ac in &mut thread.criteria {
+      if let AcState::Descoped { to, .. } = &mut ac.state
+        && *to == *old
+      {
+        *to = new.clone();
+        rewritten.push(format!(
+          "{owner} {} descoped to: {} -> {}",
+          ac.id,
+          old.shown(),
+          new.shown()
+        ));
+      }
+    }
+    for (row, record) in thread.fiat_records_mut() {
+      let Some(from) = record.inherited_from.as_deref() else {
+        continue;
+      };
+      if let Some(to) = moved_claim(from, &old_id, &new_id) {
+        let row = match row {
+          FiatRow::Thread => owner.clone(),
+          FiatRow::Package(wp) => crate::id::wp_address(&owner, wp),
+          FiatRow::Criterion(id) | FiatRow::Test(id) => format!("{owner} {id}"),
+        };
+        rewritten.push(format!("{row} inherited from: {from} -> {to}"));
+        record.inherited_from = Some(to);
       }
     }
   }

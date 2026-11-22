@@ -322,12 +322,16 @@ pub enum IdError {
   /// Hex that is no ordinal and fewer digits than a prefix of a hashed id
   /// carries: `floor` is the fewest it needs ([`prefix_floor`]).
   TooShort { floor: usize },
+  /// An address where an id was wanted (issue Ic7d939d): the readers say so,
+  /// so every door words it as an address and none decides it on its own.
+  Address,
 }
 
 impl fmt::Display for IdError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       IdError::NotAnId => f.write_str("not an id"),
+      IdError::Address => f.write_str("an address, not an id"),
       IdError::OutOfRange => f.write_str("more digits than an id of its kind carries"),
       IdError::TooShort { floor } => write!(
         f,
@@ -1262,10 +1266,25 @@ fn spelled_hex<T>(hex: String, hash_width: usize, whole: impl Fn(Form) -> T) -> 
   }
 }
 
+/// What every URL carries and no id spelling does, so an address given where an
+/// id is wanted is told from a malformed id by the readers below, before any
+/// part of it is read as a fragment of an id (vc, 2026-09-15; issue Ic7d939d).
+/// The scheme itself stays [`crate::address`]'s to spell.
+const ADDRESS_MARK: &str = "://";
+
+/// [`IdError::Address`] when `raw` is an address: the readers' first question.
+fn refuse_an_address(raw: &str) -> Result<(), IdError> {
+  if raw.contains(ADDRESS_MARK) {
+    return Err(IdError::Address);
+  }
+  Ok(())
+}
+
 /// An operator's spelling of a THREAD, read with no store: everything
 /// [`normalise_thread_id`] takes, and a hashed thread's hex or a prefix of it,
 /// its `ST` marker optional. An issue's marker on hex is the other collection.
 pub fn read_thread(raw: &str) -> Result<Spelled<ThreadId>, IdError> {
+  refuse_an_address(raw)?;
   let t = raw.trim();
   if let Some(Ok(_)) =
     strip_ci(t, ISSUE_MARKER).and_then(|rest| typed_hex(rest, ISSUE_DIGITS, HASH_HEX))
@@ -1285,6 +1304,7 @@ pub fn read_thread(raw: &str) -> Result<Spelled<ThreadId>, IdError> {
 /// reads a thread's: its [`ISSUE_MARKER`] optional, and a thread's marker on
 /// hex the other collection.
 pub fn read_issue(raw: &str) -> Result<Spelled<IssueId>, IdError> {
+  refuse_an_address(raw)?;
   let t = raw.trim();
   if let Some(Ok(_)) =
     strip_ci(t, THREAD_PREFIX).and_then(|rest| typed_hex(rest, THREAD_DIGITS, HASH_HEX))
@@ -1305,6 +1325,7 @@ pub fn read_issue(raw: &str) -> Result<Spelled<IssueId>, IdError> {
 /// a prefix of it, `WP-` optional. `1234` is longer than a package ordinal, so
 /// it is a prefix.
 pub fn read_wp(raw: &str) -> Result<Spelled<WpId>, IdError> {
+  refuse_an_address(raw)?;
   let t = raw.trim();
   let rest = strip_ci(t, WP_HEADING_PREFIX).unwrap_or(t);
   match typed_hex(rest, WP_DIGITS, WP_HASH_HEX) {
@@ -1601,6 +1622,18 @@ impl Spelled<ThreadId> {
       Spelled::Prefix(hex) => format!("{THREAD_PREFIX}{hex}"),
     }
   }
+
+  /// Whether this spelling names the thread stored as `stored`: that id
+  /// whole, or the front of its hex. A cited line names a hashed thread by
+  /// its shown front, so the gate asks this and never compares strings.
+  pub fn names(&self, stored: &str) -> bool {
+    match self {
+      Spelled::Whole(id) => id == stored,
+      Spelled::Prefix(hex) => {
+        ThreadId::parse(stored).is_ok_and(|id| id.form.hex_begins(HASH_HEX, hex))
+      }
+    }
+  }
 }
 
 impl Spelled<IssueId> {
@@ -1691,6 +1724,7 @@ pub fn refusal(raw: &str, e: &IdError, wanted: IdKind) -> Refusal {
       ),
     ),
     IdError::Ambiguous { thread, issue } => return ambiguity(raw, thread, issue),
+    IdError::Address => return address_where_id_wanted(raw, wanted),
   };
   Refusal { message, remedy }
 }
@@ -1978,21 +2012,21 @@ fn named_reading(raw: &str) -> NamedReading {
 /// Every steel thread `text` names, in the order they first appear, each once.
 ///
 /// **ONE SCANNER WHERE THERE WERE TWO** (`legacy.rs` read v2 prose with one,
-/// `contract.rs` read cited lines with another; the same window rule, written
-/// twice). An id here is `ST` and four digits wherever they sit, with no
-/// boundary required either side, which is what both did.
-pub fn thread_ids_in(text: &str) -> Vec<ThreadId> {
-  let bytes = text.as_bytes();
-  let width = THREAD_PREFIX.len() + THREAD_DIGITS;
-  let mut out: Vec<ThreadId> = Vec::new();
-  for start in 0..bytes.len().saturating_sub(width - 1) {
-    let Some(window) = text.get(start..start + width) else {
+/// `contract.rs` read cited lines with another; issue I88f333f made it read
+/// through the waist). A word is a run of ASCII letters and digits, and a word
+/// names a thread when [`marked`] reads it as one: an ordinal, a hashed id's
+/// stored form, or its shown front. So `ST3f9a2c1` is that thread's front, and
+/// `ST1234abc` is a hashed thread's front, never the ordinal `ST1234`.
+pub fn thread_ids_in(text: &str) -> Vec<Spelled<ThreadId>> {
+  let mut out: Vec<Spelled<ThreadId>> = Vec::new();
+  for word in text.split(|c: char| !c.is_ascii_alphanumeric()) {
+    if marked(word) != Some(IdKind::Thread) {
       continue;
-    };
-    if let Ok(id) = ThreadId::parse(window)
-      && !out.contains(&id)
+    }
+    if let Ok(named) = read_thread(word)
+      && !out.contains(&named)
     {
-      out.push(id);
+      out.push(named);
     }
   }
   out
@@ -2066,6 +2100,63 @@ pub fn group_of(label: &str) -> Group {
     Ok(wp) => Group::Package(wp),
     Err(_) => Group::Unreadable,
   }
+}
+
+/// What a criterion or test label names: the head before its dash.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LabelKind {
+  /// `AC-<group>.<n>`: an acceptance criterion.
+  Criterion,
+  /// `AT-<group>.<n>`: an acceptance test.
+  Test,
+}
+
+impl LabelKind {
+  /// The head a label of this kind opens with, before its dash.
+  pub fn head(self) -> &'static str {
+    match self {
+      LabelKind::Criterion => "AC",
+      LabelKind::Test => "AT",
+    }
+  }
+
+  /// What a label of this kind labels, for a refusal to name.
+  pub fn noun(self) -> &'static str {
+    match self {
+      LabelKind::Criterion => "criterion",
+      LabelKind::Test => "test",
+    }
+  }
+
+  /// The form a label of this kind takes, for a refusal to name.
+  pub fn form(self) -> String {
+    format!("{}-<group>.<n>", self.head())
+  }
+}
+
+/// **THE ONE READER OF A WHOLE LABEL'S SHAPE** (issues I91dd457 and I78176db).
+/// There were three: the gate block's own digits-only check, which refused the
+/// `AC-<hex>.n` label [`regrouped`] stores for a git-style package; legacy's
+/// head-only check, kept as the one stated exception for v2's foreign format;
+/// and none at all on the create path, which stored any string.
+///
+/// **TWO QUESTIONS, TWO READERS, AND THEY DO NOT DISAGREE.** This one answers
+/// whether `label` IS a label: its kind's head, a dash, a group, a dot and a
+/// sequence of digits, where the group is digits of any width (hv, 2026-09-08:
+/// the width is not the rule's to fix) or a git-style package's whole stored
+/// id, as [`regrouped`] writes it. [`group_of`] answers which package a label
+/// NAMES, so a wide group such as `AC-123.4` is a label that names no package,
+/// and the gate's package check says so, as it does for a two-digit group
+/// naming a package the thread does not hold. `None` for anything that is not
+/// a label.
+pub fn label_kind(label: &str) -> Option<LabelKind> {
+  let (head, group, seq) = label_parts(label)?;
+  let kind = [LabelKind::Criterion, LabelKind::Test]
+    .into_iter()
+    .find(|kind| kind.head() == head)?;
+  let digits = |text: &str| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit());
+  let grouped = digits(group) || WpId::parse(group).is_ok();
+  (grouped && digits(seq)).then_some(kind)
 }
 
 /// The one order for a thread's criterion and test ids (issue 0643): natural,

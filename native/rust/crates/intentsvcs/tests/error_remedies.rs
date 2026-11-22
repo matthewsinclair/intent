@@ -534,6 +534,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a create must not replace"),
   ));
   out.push((
+    "a criterion label that is not a label",
+    facade
+      .ac_new("ST0056", "AC-banana", "a sentence", AcKind::NonTest)
+      .expect_err("a create refuses a malformed label"),
+  ));
+  out.push((
     "acceptance test id already taken",
     facade
       .at_new(
@@ -1281,6 +1287,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::SyncDiskStep { .. } => "SyncDiskStep",
     FacadeError::Git(_) => "Git",
     FacadeError::CriterionExists { .. } => "CriterionExists",
+    FacadeError::LabelMalformed { .. } => "LabelMalformed",
     FacadeError::TestExists { .. } => "TestExists",
     FacadeError::NothingToChange { .. } => "NothingToChange",
     FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
@@ -1471,6 +1478,7 @@ const ALL_VARIANTS: &[&str] = &[
   "SyncDiskStep",
   "Git",
   "CriterionExists",
+  "LabelMalformed",
   "TestExists",
   "NothingToChange",
   "NoSuchWorkPackage",

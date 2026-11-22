@@ -255,7 +255,7 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
 /// mention is the ordinary form and stays green.
 fn names_another_thread(line: &str, thread: &str) -> bool {
   let named = crate::id::thread_ids_in(line);
-  !named.is_empty() && !named.iter().any(|t| *t == thread)
+  !named.is_empty() && !named.iter().any(|t| t.names(thread))
 }
 
 /// What v2's L3 found in a cited file.
@@ -352,8 +352,8 @@ fn judge_text(
     let mut others: Vec<String> = lines
       .iter()
       .flat_map(|line| crate::id::thread_ids_in(line))
-      .filter(|named| *named != thread)
-      .map(|named| named.stored())
+      .filter(|named| !named.names(thread))
+      .map(|named| named.segment())
       .collect();
     others.sort();
     others.dedup();
@@ -387,10 +387,11 @@ fn judge_text(
   if carrying.is_empty() {
     return Carries::Absent;
   }
-  if carrying
-    .iter()
-    .any(|line| crate::id::thread_ids_in(line).iter().any(|t| *t == thread))
-  {
+  if carrying.iter().any(|line| {
+    crate::id::thread_ids_in(line)
+      .iter()
+      .any(|t| t.names(thread))
+  }) {
     return Carries::Yes;
   }
   if carrying

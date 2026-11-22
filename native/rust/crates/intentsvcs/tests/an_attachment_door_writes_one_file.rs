@@ -139,3 +139,54 @@ fn a_new_attachment_over_a_file_the_store_does_not_carry_is_refused_before_any_w
     "the author's file is kept"
   );
 }
+
+/// Issue I1d5a3b5: a new attachment on a realised thread gets its realised
+/// file in the one verb, and the drain names it as written, so a commit of what
+/// the verb printed carries the file with no `organize --apply` between.
+#[test]
+fn a_new_attachment_on_a_realised_thread_writes_its_file_and_names_it() {
+  const NEW: &str = "notes/new.md";
+  const NEW_TEXT: &str = "# New\n\nWritten by the attach.\n";
+  let fx = realised();
+  let mut facade = fx.facade();
+  facade.take_landed();
+  facade
+    .put_attachment(&address(NEW), NEW_TEXT.as_bytes())
+    .expect("a new attachment is taken");
+  let file = format!("intent/st/ST0001/{NEW}");
+  assert_eq!(
+    std::fs::read_to_string(fx.path(&file)).expect("the realised file"),
+    NEW_TEXT,
+    "the realised thread holds the attached bytes"
+  );
+  let landed = facade.take_landed();
+  assert!(
+    landed.wrote.contains(&file),
+    "the verb names the file it wrote: {:?}",
+    landed.wrote
+  );
+}
+
+/// Issue I1d5a3b5's other half: realised is the record's answer, not the
+/// disk's. A thread whose record is not realised gets no file, though a
+/// directory stands where its tree would be.
+#[test]
+fn a_new_attachment_on_an_unrealised_thread_writes_no_file() {
+  const NEW: &str = "new.md";
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  thread.realised = false;
+  fx.write_thread(&thread);
+  fx.write_file(
+    "intent/st/ST0001/left-by-hand.md",
+    "# a hand mkdir's file\n",
+  );
+  let mut facade = fx.facade();
+  facade
+    .put_attachment(&address(NEW), b"# New\n")
+    .expect("a new attachment is taken");
+  assert!(
+    !fx.path(&format!("intent/st/ST0001/{NEW}")).exists(),
+    "an unrealised thread's directory was written into"
+  );
+}
