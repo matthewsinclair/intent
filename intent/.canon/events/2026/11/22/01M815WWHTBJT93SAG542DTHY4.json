@@ -1,0 +1,15 @@
+{
+  "id": "01M815WWHTBJT93SAG542DTHY4",
+  "ts": "2026-11-22T08:27:53.796Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "If57165ac97c43ddb"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "plan::classify takes any file name under a thread's wp records as a package id"
+  }
+}

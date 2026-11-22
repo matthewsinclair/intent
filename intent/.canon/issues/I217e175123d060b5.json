@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I217e175123d060b5",
+  "origin": "01M815WZQN291EZ0R6R42J2P2Q",
+  "realised": true,
+  "slug": "canon-commit-check-sh-rebuilds-an-attachment-dir",
+  "title": "canon_commit_check.sh rebuilds an attachment directory without att_dir_of's check",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "`canon_commit_check.sh` (about :544) rebuilds an attachment's directory from a record path with a sed, without `att_dir_of`'s check that the strip is sound.\n\nExpected: the path goes through `att_dir_of`.\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H4-critic-shell-guards-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
+}

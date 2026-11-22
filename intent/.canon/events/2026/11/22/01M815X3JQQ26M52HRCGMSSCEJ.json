@@ -1,0 +1,15 @@
+{
+  "id": "01M815X3JQQ26M52HRCGMSSCEJ",
+  "ts": "2026-11-22T08:28:01.601Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I7e5f67cf443745ef"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Prose defects in shipped docs: em-dashes in working-with-llms.md, install.md's incomplete staged deletions, and 3.5.0 notes' imperative lead"
+  }
+}

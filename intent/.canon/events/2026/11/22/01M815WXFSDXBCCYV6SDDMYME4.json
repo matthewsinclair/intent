@@ -1,0 +1,15 @@
+{
+  "id": "01M815WXFSDXBCCYV6SDDMYME4",
+  "ts": "2026-11-22T08:27:55.370Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I06a214633d1a7d56"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "canon_commit_check.sh loses atts_at's and its git reads' failures, so an unreadable commit reads as no attachments"
+  }
+}

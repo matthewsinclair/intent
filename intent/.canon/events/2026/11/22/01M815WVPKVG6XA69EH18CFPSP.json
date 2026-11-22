@@ -1,0 +1,15 @@
+{
+  "id": "01M815WVPKVG6XA69EH18CFPSP",
+  "ts": "2026-11-22T08:27:52.925Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I33fa93f9427754ff"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Nothing drives the facade's PackageAddedTwice refusal end to end, and error_remedies.rs names the wrong file"
+  }
+}

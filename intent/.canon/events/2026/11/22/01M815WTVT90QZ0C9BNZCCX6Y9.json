@@ -1,0 +1,15 @@
+{
+  "id": "01M815WTVT90QZ0C9BNZCCX6Y9",
+  "ts": "2026-11-22T08:27:52.068Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I998bb84c95559e88"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "doctor reports 3.4.0's wp.renumber events as an undeclared op after 3.5.0 retired the op"
+  }
+}

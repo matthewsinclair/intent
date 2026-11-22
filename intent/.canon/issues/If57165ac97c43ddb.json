@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "If57165ac97c43ddb",
+  "origin": "01M815WWHTBJT93SAG542DTHY4",
+  "realised": true,
+  "slug": "plan-classify-takes-any-file-name-under-a-thread",
+  "title": "plan::classify takes any file name under a thread's wp records as a package id",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "`plan::classify` (plan.rs, about :630-650) takes any file name under a thread's `wp/` records directory as a package id in an add/add, unchecked.\n\nExpected: the name is parsed with `WpId::parse`; one that is not a package id is not a PackageAddedTwice and goes to take_sides like any other path, where ingest names it UnknownFileShape after the merge (vc's ruling).\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H2-critic-rust-wp02-0709-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
+}

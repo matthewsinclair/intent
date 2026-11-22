@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I7e5f67cf443745ef",
+  "origin": "01M815X3JQQ26M52HRCGMSSCEJ",
+  "realised": true,
+  "slug": "prose-defects-in-shipped-docs-em-dashes-in-worki",
+  "title": "Prose defects in shipped docs: em-dashes in working-with-llms.md, install.md's incomplete staged deletions, and 3.5.0 notes' imperative lead",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Three prose defects in shipped docs: em-dashes at intent/docs/working-with-llms.md:19 and :22; docs/install.md:143 says the upgrade's staged deletions are the two generated lists, which is now incomplete (every acceptance.md, .intentfiles, and closed records' views it removes are staged too); docs/releases/3.5.0/RELEASE_NOTES.md:27 leads with an imperative where the notes' house style is the indicative.\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H5-critic-prose-docs-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
+}

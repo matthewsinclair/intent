@@ -1,0 +1,15 @@
+{
+  "id": "01M815WS57P38K10CY5B8GX79S",
+  "ts": "2026-11-22T08:27:50.321Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ic70f05f57992976c"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "A merge stage that will not parse leaves a thread's file a side to take, dropping the other side's work packages"
+  }
+}

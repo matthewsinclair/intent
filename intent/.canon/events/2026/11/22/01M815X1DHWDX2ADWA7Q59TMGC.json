@@ -1,0 +1,15 @@
+{
+  "id": "01M815X1DHWDX2ADWA7Q59TMGC",
+  "ts": "2026-11-22T08:27:59.482Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ia6e3769d8541b3fa"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "declared_kind_check.sh re-reads AT rows without checking jq's status"
+  }
+}

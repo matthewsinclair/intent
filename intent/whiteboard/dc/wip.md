@@ -6,7 +6,7 @@ session_id: b43bbd8a-78f9-46a0-a162-157b91263503
 heartbeat_at: 2026-11-21 17:11Z
 status: active
 focus: "Folded at e8f5113e5 for hv's global fold. Next: hv's post-3.5.0 scope, todos 87 and 88."
-claims: []
+claims: [ISSUE:Ic70f05f57992976c, ISSUE:Ib7a70c30fe7fb65f, ISSUE:I998bb84c95559e88, ISSUE:I33fa93f9427754ff, ISSUE:If57165ac97c43ddb, ISSUE:I06a214633d1a7d56, ISSUE:I217e175123d060b5, ISSUE:Ia6e3769d8541b3fa, ISSUE:I7e5f67cf443745ef]
 ---
 
 # DevX Claude (dc)

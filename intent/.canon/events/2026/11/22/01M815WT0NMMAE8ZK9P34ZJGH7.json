@@ -1,0 +1,15 @@
+{
+  "id": "01M815WT0NMMAE8ZK9P34ZJGH7",
+  "ts": "2026-11-22T08:27:51.200Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ib7a70c30fe7fb65f"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "gitstate::staged and export_ignore_decided read a git that refuses as nothing staged and nothing decided"
+  }
+}

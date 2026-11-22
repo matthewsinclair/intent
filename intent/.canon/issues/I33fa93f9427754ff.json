@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I33fa93f9427754ff",
+  "origin": "01M815WVPKVG6XA69EH18CFPSP",
+  "realised": true,
+  "slug": "nothing-drives-the-facade-s-packageaddedtwice-re",
+  "title": "Nothing drives the facade's PackageAddedTwice refusal end to end, and error_remedies.rs names the wrong file",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Nothing drives the facade's `PackageAddedTwice` refusal end to end, and error_remedies.rs's comment (about :1758) names the wrong file as the one that does.\n\nExpected: an end-to-end arm that reaches the refusal, and the comment naming it.\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H2-critic-rust-wp02-0709-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
+}
