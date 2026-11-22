@@ -1,0 +1,15 @@
+{
+  "id": "01M815WM1VR4S0RJ0741GZ056J",
+  "ts": "2026-11-22T08:27:45.093Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ica9eb41d989002b5"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "criteria_read_from_their_files_take_the_label_order reads no file"
+  }
+}

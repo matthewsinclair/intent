@@ -1,0 +1,15 @@
+{
+  "id": "01M815WK6DQ2TVT8EXKM02B8F9",
+  "ts": "2026-11-22T08:27:44.215Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Id5256a4fbd818c9d"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The orphan pass and ingest define a thread's record files two ways"
+  }
+}
