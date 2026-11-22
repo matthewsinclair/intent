@@ -59,6 +59,8 @@ mod a_facade_catches_up_with_a_peers_commit;
 mod a_finding_gives_its_own_remedy_once;
 #[path = "a_fresh_clone_takes_its_boards.rs"]
 mod a_fresh_clone_takes_its_boards;
+#[path = "a_git_that_refuses_is_an_error_not_nothing.rs"]
+mod a_git_that_refuses_is_an_error_not_nothing;
 #[path = "a_hashed_package_is_judged_by_its_own_criteria.rs"]
 mod a_hashed_package_is_judged_by_its_own_criteria;
 #[path = "a_message_id_from_the_old_shape_is_the_same_everywhere.rs"]

@@ -1280,6 +1280,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NothingToRemint { .. } => "NothingToRemint",
     FacadeError::PackagesAddedInOneFile { .. } => "PackagesAddedInOneFile",
     FacadeError::PackageAddedTwice { .. } => "PackageAddedTwice",
+    FacadeError::MergeStageUnreadable { .. } => "MergeStageUnreadable",
     FacadeError::RenumberTargetTaken { .. } => "RenumberTargetTaken",
     FacadeError::RenumberDiskStep { .. } => "RenumberDiskStep",
     FacadeError::SyncPlanMoved { .. } => "SyncPlanMoved",
@@ -1471,6 +1472,7 @@ const ALL_VARIANTS: &[&str] = &[
   "NothingToRemint",
   "PackagesAddedInOneFile",
   "PackageAddedTwice",
+  "MergeStageUnreadable",
   "RenumberTargetTaken",
   "RenumberDiskStep",
   "SyncPlanMoved",
@@ -1756,10 +1758,12 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "RenumberNotMerging",
   "SyncDiskStep",
   // ST0096 WP-05: a merge where taking a side would drop a work package needs
-  // two clones and a merge stopped on it, so both refusals are driven in
-  // intent-cli's `a_pull_is_reflected_by_the_next_verb.rs`.
+  // two clones and a merge stopped on it, so the three refusals are driven in
+  // intent-cli's `a_pull_is_repaired_by_one_command.rs` (issues I33fa93f and
+  // Ic70f05f).
   "PackagesAddedInOneFile",
   "PackageAddedTwice",
+  "MergeStageUnreadable",
   // ST0095 WP-06: a record the ordinal canon cannot carry. No verb reaches it,
   // since a project in that format refuses its first mint (hv decision 70).
   "CanonFormat",

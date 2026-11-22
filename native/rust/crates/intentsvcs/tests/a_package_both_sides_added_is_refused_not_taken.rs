@@ -109,3 +109,36 @@ fn a_thread_both_sides_added_a_package_to_answers_yes_and_one_side_alone_does_no
     "only the pulled side added one, so the merge drops nothing"
   );
 }
+
+/// Issue If57165a: **A FILE UNDER A THREAD'S PACKAGES WHOSE NAME IS NOT A
+/// PACKAGE ID IS NO PACKAGE.** `classify` took any name there as a package, so
+/// an add/add on such a file was refused as a package both sides added, naming
+/// a package that does not exist. Its name is now read as a package id, and a
+/// name that is not one is a side to take, as any other path is (vc's ruling),
+/// and ingest reports it after the merge, by its parse finding or as
+/// `SchemaInvalid`, since its name and its record disagree.
+#[test]
+fn a_file_under_a_threads_packages_whose_name_is_not_a_package_id_is_a_side_to_take() {
+  let fixture = Fixture::new();
+  let project = fixture.project();
+  let thread = intentsvcs::id::ThreadId::from_ordinal(7)
+    .expect("an ordinal thread")
+    .stored();
+  let not_a_package = "not-a-package-id";
+  assert!(
+    intentsvcs::id::WpId::parse(not_a_package).is_err(),
+    "the fixture needs a name that is not a package id"
+  );
+  let path = project.relative(
+    &project
+      .intent_dir()
+      .join(canon_wp_rel(&thread, not_a_package)),
+  );
+  let conflicts = classify(&project, &[both_sides(&path, false)]);
+  assert!(
+    conflicts.packages_added_twice.is_empty(),
+    "a name that is not a package id is no package: {:?}",
+    conflicts.packages_added_twice
+  );
+  assert_eq!(conflicts.take_sides, vec![path], "it is a side to take");
+}

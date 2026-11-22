@@ -166,10 +166,17 @@ atts_load() {
   [ -n "$key" ] || return 0
   d="$ATT_DIR/$key"
   [ -d "$d" ] && return 0
+  # A failing read is refused, never read as no records (issue I06a2146).
   if [ "$key" = index ]; then
-    list="$(git ls-files --cached -- "$CANON_RECORDS" 2>/dev/null)"
+    list="$(git ls-files --cached -- "$CANON_RECORDS")" || {
+      echo "error: CANNOT MEASURE -- git could not list the index's records under $CANON_RECORDS." >&2
+      return 2
+    }
   else
-    list="$(git ls-tree -r --name-only "$rev" -- "$CANON_RECORDS" 2>/dev/null)"
+    list="$(git ls-tree -r --name-only "$rev" -- "$CANON_RECORDS")" || {
+      echo "error: CANNOT MEASURE -- git could not list $rev's records under $CANON_RECORDS." >&2
+      return 2
+    }
   fi
   list="$(printf '%s\n' "$list" | grep -E "$CANON_ATT_RECORD" || true)"
   rm -rf "${d:?}.part" && mkdir -p "$d.part" || {
@@ -199,9 +206,21 @@ atts_load() {
 
 # atts_at <rev> <thread canon file> -- that thread's attachments, one compact
 # JSON object per line: its `.attachments[]`, then its release-format records.
+#
+# STATUS 2 WHEN IT CANNOT READ, and every caller captures it into a variable
+# and checks that, never reads it through a pipe: this file runs without
+# pipefail, so a pipe's status is its last command's and a 2 here was lost,
+# reading an unreadable commit as one with no attachments (issue I06a2146).
 atts_at() {
-  local rev="$1" tj="$2" base key
-  git show "$rev:$tj" 2>/dev/null | jq -c '(.attachments // [])[]' 2>/dev/null
+  local rev="$1" tj="$2" base key shown
+  shown="$(git show "$rev:$tj")" || {
+    echo "error: CANNOT MEASURE -- git could not read ${rev:-the index}:$tj." >&2
+    return 2
+  }
+  printf '%s\n' "$shown" | jq -c '(.attachments // [])[]' || {
+    echo "error: CANNOT MEASURE -- ${rev:-the index}:$tj is not readable thread canon (jq's message above says why)." >&2
+    return 2
+  }
   case "$tj" in
     intent/.canon/st/*.json) ;;
     *) return 0 ;;
@@ -264,18 +283,19 @@ att_dir_of() {
 # Emits the blob path of every RECORDED attachment at $1, one per line. This is
 # the population "examined" can be drawn from, and nothing else is.
 att_blobs_at() {
-  local rev="$1" tj adir files
+  local rev="$1" tj adir files atts
   files="$(canon_files_at "$rev")" || return 2
   while read -r tj; do
     [ -n "$tj" ] || continue
     adir="$(att_dir_of "$tj")" || return 2
-    atts_at "$rev" "$tj" | jq -r --arg d "$adir" '"\($d)/\(.path)"' 2>/dev/null
+    atts="$(atts_at "$rev" "$tj")" || return 2
+    [ -z "$atts" ] || printf '%s\n' "$atts" | jq -r --arg d "$adir" '"\($d)/\(.path)"' || return 2
   done <<< "$files"
 }
 
 # Emits "<thread> <count>" per thread carrying canon at $1.
 threads_at() {
-  local rev="$1" tj st n files
+  local rev="$1" tj st n files atts
   # The index is not a commit, so the existence guard is SKIPPED rather than
   # failed -- `--staged` reaching `return 0` here would report an empty
   # population as a clean run, which is the vacuous pass this tool was rewritten
@@ -291,7 +311,8 @@ threads_at() {
       echo "    Canon without an id is a defect in the canon, not in this tool. Refusing rather than" >&2
       echo "    dropping the thread: a population silently reduced by one still closes arithmetically." >&2
       return 2; }
-    n="$(atts_at "$rev" "$tj" | grep -c .)"
+    atts="$(atts_at "$rev" "$tj")" || return 2
+    n="$(printf '%s' "$atts" | grep -c . || true)"
     echo "$st ${n:-0}"
   done <<< "$files"
 }
@@ -343,7 +364,9 @@ realised_at() {
 # An attachment with no `text` hashes the empty string, which cannot match a
 # recorded sha, so it reports rather than passing silently.
 canon_text_sha() {
-  atts_at "$1" "$2" |
+  local atts
+  atts="$(atts_at "$1" "$2")" || return 2
+  printf '%s\n' "$atts" |
     jq -j --arg p "$3" 'select(.path==$p) | .text // empty' 2>/dev/null |
     shasum -a 256
 }
@@ -359,8 +382,9 @@ diverged_at() {
     st="$(id_at "$rev" "$tj")"
     [ -n "$st" ] || { echo "error: CANNOT MEASURE -- canon at $rev:$tj carries no .id" >&2; return 2; }
     adir="$(att_dir_of "$tj")" || return 2
-    atts="$(atts_at "$rev" "$tj" | jq -r '"\(.sha256) \(.path)"' 2>/dev/null)"
+    atts="$(atts_at "$rev" "$tj")" || return 2
     [ -n "$atts" ] || continue
+    atts="$(printf '%s\n' "$atts" | jq -r '"\(.sha256) \(.path)"')" || return 2
     while read -r sha path; do
       [ -n "$path" ] || continue
       # KEYED ON THE BLOB PATH, NOT ON THE ID. The narrowing file is built from
@@ -396,7 +420,7 @@ diverged_at() {
         if [ "$rrc" -eq 0 ]; then
           echo "$st/$path ABSENT"; continue
         fi
-        have="$(canon_text_sha "$rev" "$tj" "$path")"
+        have="$(canon_text_sha "$rev" "$tj" "$path")" || return 2
         [ "${have%% *}" = "$sha" ] || echo "$st/$path ABSENT"
         continue
       fi
@@ -469,6 +493,9 @@ if [ "$HIST" -gt 0 ]; then
   prev="" measured=0 anydis=0 adds=0 vac=0 rthreads=""
   for r in $revs; do
     rtot=0
+    # Loaded here, outside any substitution, so a commit whose records cannot be
+    # read stops the walk rather than reading as unmeasurable (issue I06a2146).
+    atts_load "$r" || exit 2
     rthreads="$(threads_at "$r")" || exit 2
     while read -r st n; do [ -n "$st" ] && rtot=$((rtot + n)); done <<< "$rthreads"
     if [ "$rtot" -eq 0 ]; then vac=$((vac + 1)); prev=""; continue; fi
@@ -533,15 +560,29 @@ if [ "$EXHAUSTIVE" -eq 0 ] &&
     changed="$(git diff-tree --no-commit-id --name-only -r "$REV" 2>/dev/null)"
   fi
   ONLY="$(mktemp)"
-  # a thread whose canon moved: every one of its attachments is back in scope
-  printf '%s\n' "$changed" | grep -E "$CANON_NESTED|$CANON_FLAT" | while read -r tj; do
+  # a thread whose canon moved: every one of its attachments is back in scope.
+  # The loop reads a here-string, not a pipe, so it runs in this shell and an
+  # `exit 2` inside it ends the run (issue I06a2146).
+  # A canon file this commit deleted is in `changed` too, and has no
+  # attachments at $REV to diverge, so it is skipped by asking git whether
+  # $REV holds it, never by reading a failed read as empty.
+  while IFS= read -r tj; do
+    [ -n "$tj" ] || continue
+    git cat-file -e "$REV:$tj" 2>/dev/null || continue
     adir="$(att_dir_of "$tj")" || exit 2
-    atts_at "$REV" "$tj" | jq -r --arg d "$adir" '"\($d)/\(.path)"' 2>/dev/null
-  done >> "$ONLY"
+    atts="$(atts_at "$REV" "$tj")" || exit 2
+    [ -z "$atts" ] || printf '%s\n' "$atts" | jq -r --arg d "$adir" '"\($d)/\(.path)"' || exit 2
+  done <<< "$(printf '%s\n' "$changed" | grep -E "$CANON_NESTED|$CANON_FLAT")" >> "$ONLY"
   # an attachment record of the release format that moved: the attachment it
-  # records is back in scope, at the blob path its thread's directory gives it
-  printf '%s\n' "$changed" | grep -E "$CANON_ATT_RECORD" |
-    sed -E 's#^intent/\.canon/records/([^/]+)/attachments/(.*)\.json$#intent/st/\1/\2#' >> "$ONLY"
+  # records is back in scope, at the blob path its thread's directory gives it,
+  # which `att_dir_of` derives with its check (issue I217e175)
+  while IFS= read -r rec; do
+    [ -n "$rec" ] || continue
+    rest="${rec#intent/.canon/records/}"
+    adir="$(att_dir_of "intent/.canon/st/${rest%%/*}.json")" || exit 2
+    path="${rest#*/attachments/}"
+    printf '%s/%s\n' "$adir" "${path%.json}"
+  done <<< "$(printf '%s\n' "$changed" | grep -E "$CANON_ATT_RECORD")" >> "$ONLY"
   # an attachment whose own bytes moved -- the blob path IS the key, so no strip
   # and no id are involved. Over-inclusive by design: a non-attachment under
   # either root adds a key nothing matches, which widens scope and never narrows it.
@@ -591,6 +632,10 @@ fi
 # and returns 0 for, reporting NO inherited divergence over a population it
 # never read. A silent empty comparison, in the arm whose whole job is to
 # separate what this commit adds from what it inherited.
+# The parent's records are loaded here, outside the substitution, so one that
+# cannot be read stops the run rather than reading as no attachments (issue
+# I06a2146).
+atts_load "$PARENT" || exit 2
 parent="$(diverged_at "$PARENT" ${ONLY:+"$ONLY"})" || exit 2
 parent="$(printf '%s\n' "$parent" | awk '{print $1}' | grep -v '^$' | sort)"
 new="$(comm -23 <(printf '%s\n' "$curp") <(printf '%s\n' "$parent") 2>/dev/null)"

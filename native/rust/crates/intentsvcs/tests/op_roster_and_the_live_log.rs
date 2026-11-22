@@ -156,6 +156,37 @@ fn an_op_the_roster_does_not_declare_is_reported_with_its_count() {
   );
 }
 
+/// Issue I998bb84: **A RETIRED OP'S HISTORY READS CLEAN.** 3.4.0's `wp
+/// renumber` wrote `wp.renumber`, and 3.5.0 retired the verb and dropped the op
+/// from the roster, so every store carrying that history got this advisory for
+/// an op Intent itself wrote. A retired op stays known (vc's ruling). Planted
+/// beside an invented op, so the silence is about the retired one alone.
+#[test]
+fn a_retired_ops_history_is_not_an_undeclared_op() {
+  let fx = Fixture::new();
+  // Named, not read from `event::RETIRED_OPS`: the op 3.4.0 wrote is the
+  // subject, and the arm must compile and go red on a build without the list.
+  plant(&fx, "wp.renumber");
+  let invented = ["st.invented"];
+  for op in invented {
+    plant(&fx, op);
+  }
+  let named: Vec<&str> = undeclared(&fx)
+    .iter()
+    .map(|detail| {
+      invented
+        .iter()
+        .copied()
+        .find(|op| detail.contains(&format!("`{op}`")))
+        .unwrap_or("an op that was not invented here")
+    })
+    .collect();
+  assert_eq!(
+    named, invented,
+    "the advisories name exactly the invented ops, never the retired one"
+  );
+}
+
 /// **AND A LOG OF DECLARED OPS ONLY MUST BE SILENT.**
 ///
 /// Driven through real verbs rather than planted, so the ops are the ones the
@@ -417,4 +448,30 @@ fn machine_scoped_ops_are_rostered_and_stay_on_the_machine() {
     .collect();
   assert_eq!(travelling, Vec::<&str>::new());
   assert!(travels("st.new"), "a project act must travel");
+}
+
+/// Issue I998bb84: **A RETIRED OP IS WRITTEN NOWHERE AND IS NOT ALSO LIVE.**
+/// `RETIRED_OPS` is the history an earlier Intent left; if a writer of one came
+/// back, or one were also in `KNOWN_OPS`, the retired list would hide it.
+#[test]
+fn retired_ops_are_disjoint_from_the_roster_and_spelled_at_no_call_site() {
+  let both: Vec<&str> = intentsvcs::event::RETIRED_OPS
+    .iter()
+    .copied()
+    .filter(|op| KNOWN_OPS.contains(op))
+    .collect();
+  assert!(
+    both.is_empty(),
+    "{both:?} are both retired and in `event::KNOWN_OPS`"
+  );
+  let source = call_site_source();
+  let written: Vec<&str> = intentsvcs::event::RETIRED_OPS
+    .iter()
+    .copied()
+    .filter(|op| source.contains(&format!("\"{op}\"")) || source.contains(&format!("'{op}'")))
+    .collect();
+  assert!(
+    written.is_empty(),
+    "{written:?} are in `event::RETIRED_OPS` and spelled at a call site, so something writes them again"
+  );
 }

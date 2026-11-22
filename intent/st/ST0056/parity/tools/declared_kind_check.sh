@@ -145,7 +145,12 @@ else
       | select((.file // "") != "")
       | [$t, .id, .status, (.file | sub($line_re; ""))] | @tsv
     ' "${AT_CANON_INPUTS[@]}"
-  )"
+  )" || {
+    # Issue Ia6e3769: a row jq could not read was no row, so the check judged
+    # fewer rows than the canon holds and could pass over the one it skipped.
+    echo "declared-kind: the thread canon could not be read (jq's message above says which file) -- refusing rather than judging the rows it could read" >&2
+    exit 2
+  }
 fi
 
 [ -n "$CITE_TSV" ] || { echo "declared-kind: no citations found -- refusing rather than reporting a clean estate over an empty set" >&2; exit 2; }

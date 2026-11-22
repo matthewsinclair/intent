@@ -165,3 +165,45 @@ commit_fixture() {
   assert_output_contains "ADDS $n of $n attachment(s) examined"
   assert_output_contains "/design.md"
 }
+
+# Issue I06a2146: --history over a commit whose attachment records cannot be
+# read refuses, not skips. HEAD reads, so the run reaches the walk; the commit
+# before it holds an attachment record cut off mid-value. Without pipefail,
+# atts_at's status 2 for that commit was lost in its pipe, so its thread counted
+# no attachments and the walk skipped it as unmeasurable, exit 0.
+@test "canon-commit: --history over a commit whose attachment records cannot be read refuses, not skips" {
+  printf 'the design\n' >"$TEST_TEMP_DIR/design.md"
+  verb st attach "$THREAD" design.md --from "$TEST_TEMP_DIR/design.md"
+  release_format attachments >/dev/null
+  local record held
+  record="$(find "$PROJ/intent/.canon/records" -path '*/attachments/*.json' | head -1)"
+  [ -n "$record" ] || fail "no attachment record to cut off"
+  held="$(cat "$record")"
+  printf '{ "path": ' >"$record"
+  commit_fixture
+  printf '%s\n' "$held" >"$record"
+  git -C "$PROJ" add -A
+  git -C "$PROJ" -c user.name=fixture -c user.email=fixture@example.invalid commit -q -m repaired ||
+    fail "the repair could not be committed"
+  tool canon_commit_check HEAD --history 2
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
+  assert_output_contains "CANNOT MEASURE"
+  refute_output_contains "skipped as unmeasurable"
+}
+
+# Issue Ia6e3769: a row file jq cannot read refuses the check. jq printed the
+# rows before it and stopped, and the check judged those alone and passed.
+@test "declared-kind: a row file it cannot read refuses rather than judging the rows before it" {
+  mkdir -p "$PROJ/intent/st/$THREAD/parity/tools"
+  cp "$TOOLS/rulings_check.sh" "$PROJ/intent/st/$THREAD/parity/tools/"
+  row AT-01.1 "intent/st/$THREAD/parity/tools/rulings_check.sh"
+  row AT-01.2 "intent/st/$THREAD/parity/tools/rulings_check.sh"
+  release_format at >/dev/null
+  local cut
+  cut="$(find "$PROJ/intent/.canon/records" -path '*/at/AT-01.2.json')"
+  [ -n "$cut" ] || fail "no AT-01.2 record to cut off"
+  printf '{ "id": "AT-01.2",' >"$cut"
+  tool declared_kind_check
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
+  assert_output_contains "could not be read"
+}

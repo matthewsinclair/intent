@@ -84,9 +84,10 @@ use serde::{Deserialize, Serialize};
 /// the corpus figure for the code would have understated the roster by three
 /// families that simply have not been exercised.
 ///
-/// Every op in the wild was spelled, so **the compat case is EMPTY TODAY** and
-/// the trigger to watch is the first RENAME or RETIREMENT rather than the first
-/// event. Six `disk.*` ops have no state machine behind them, which is why the
+/// Every op in the wild was spelled, so the compat case was empty until **the
+/// first RETIREMENT, `wp.renumber` in 3.5.0** (issue I998bb84): a retired op
+/// moves to [`RETIRED_OPS`], never out of the vocabulary, and the next rename
+/// or retirement goes there the same way. Six `disk.*` ops have no state machine behind them, which is why the
 /// transitions table cannot derive this list and why the roster exists at all.
 ///
 /// # `init` HAS NO DOT, AND THAT IS A FACT ABOUT THE VOCABULARY, NOT A TYPO
@@ -205,6 +206,25 @@ pub const KNOWN_OPS: &[&str] = &[
   "wb.touch",
   "wb.unclaim",
 ];
+
+/// **OPS THIS BUILD NO LONGER WRITES, WHICH AN EARLIER ONE DID** (issue
+/// I998bb84, vc's ruling). A retired op stays known, so a store whose log
+/// holds the history it left reads clean: the log is append-only, and a row an
+/// earlier Intent wrote is a true record, not an undeclared op. Kept apart
+/// from [`KNOWN_OPS`], which is what this build can write and which the roster
+/// tests hold to the call sites.
+///
+/// `wp.renumber` was written by 3.4.0's `wp renumber`; 3.5.0 retired renumber
+/// for remint. `st.renumber` and `issues.renumber` are not here, because a
+/// remint still writes them.
+pub const RETIRED_OPS: &[&str] = &["wp.renumber"];
+
+/// Is `op` one Intent has ever written: this build's ([`KNOWN_OPS`]) or a
+/// retired one ([`RETIRED_OPS`])? The one question doctor's undeclared-op
+/// check asks.
+pub fn is_known_op(op: &str) -> bool {
+  KNOWN_OPS.contains(&op) || RETIRED_OPS.contains(&op)
+}
 
 /// The principal written when nothing names an author: no `author` in the
 /// project's config and no git identity.

@@ -2589,7 +2589,8 @@ fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
 ///
 /// # What a clean result does and does not mean
 ///
-/// It means every op in THIS store is one this binary can write. It does NOT
+/// It means every op in THIS store is one Intent has written, this build's or a
+/// retired one ([`crate::event::is_known_op`], issue I998bb84). It does NOT
 /// mean the roster is complete -- see [`crate::event::KNOWN_OPS`] for the gap
 /// it cannot see and for the two source-side tests that cover the directions
 /// this cannot.
@@ -2604,7 +2605,7 @@ fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
   };
   census
     .into_iter()
-    .filter(|(op, _)| !crate::event::KNOWN_OPS.contains(&op.as_str()))
+    .filter(|(op, _)| !crate::event::is_known_op(op))
     .map(|(op, count)| {
       Finding::new(
         "intent/.cache/intent.db",
@@ -2612,8 +2613,8 @@ fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
         format!(
           "the event log holds {count} row(s) under the op `{op}`, which this build does not declare. \
            Two things produce that and they are told apart by looking, not by this line: an op that was \
-           RENAMED OR RETIRED and left history behind it, or one this build writes and has not been added \
-           to `event::KNOWN_OPS`. Nothing is broken either way -- the log is append-only and the row is a \
+           RENAMED OR RETIRED and left history behind it, which belongs in `event::RETIRED_OPS`, or one \
+           this build writes and has not been added to `event::KNOWN_OPS`. Nothing is broken either way -- the log is append-only and the row is a \
            true record of what happened. It is reported because the first case is the one open question \
            about the op vocabulary that could not be answered from source."
         ),

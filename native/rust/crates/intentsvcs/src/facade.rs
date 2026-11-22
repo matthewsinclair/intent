@@ -1907,6 +1907,22 @@ pub enum FacadeError {
     package: String,
     path: String,
   },
+  /// **A CONFLICTED THREAD FILE ONE OF WHOSE MERGE VERSIONS WILL NOT READ AS A
+  /// THREAD** (issue Ic70f05f). Whether both sides added work packages is read
+  /// from the three versions, so with one unreadable it cannot be read, and a
+  /// side taken could drop packages (issue 0555). Refused while planning,
+  /// before anything is written. `stage` is git's (`:1` the common base, `:2`
+  /// this side, `:3` the side merged in).
+  #[error(
+    "`sync` refused, and nothing was written: the {stage} version of {path} in this merge is not \
+     a readable thread file ({cause}), so whether either side added work packages cannot be \
+     read, and taking a side could drop them"
+  )]
+  MergeStageUnreadable {
+    path: String,
+    stage: String,
+    cause: String,
+  },
   /// A re-mint asked of a git-style id (ST0095 WP-06): such an id never
   /// collides, so nothing ever moves one.
   #[error("{id} is already a git-style id, which never collides, so there is nothing to re-mint")]
@@ -3946,6 +3962,11 @@ impl crate::remedy::Remedy for FacadeError {
          {thread}/<the id wp new printed> body --from <file>`. Cancel the old one with `intent wp \
          cancel {thread}/{package} --reason \"re-created as <the id wp new printed> to merge\"`; \
          commit, and merge again. The old package's id and history stay with the cancelled one"
+      ),
+      Self::MergeStageUnreadable { path, stage, .. } => format!(
+        "read that version with `git show {stage}:./{path}`, then resolve {path} by hand, keeping \
+         every side's work packages, `git add` it and run `intent sync --apply --yes`. Do not \
+         take a side here: either side could drop a package"
       ),
       Self::NoSuchWorkPackage { st, .. } => contract::see_the_work_packages(st),
       Self::NoSuchCriterion { st, .. } => {
@@ -13143,7 +13164,7 @@ impl Facade {
   /// Outside a work tree nothing is committed, so an event there is a draft.
   fn event_committed(&self, event: &Envelope) -> Result<bool, FacadeError> {
     let root = self.project.root();
-    if !crate::gitstate::is_work_tree(root) {
+    if !crate::gitstate::work_tree(root).map_err(FacadeError::Git)? {
       return Ok(false);
     }
     let (path, _) = event_file_write(&self.project, event)?;
@@ -13161,7 +13182,10 @@ impl Facade {
   /// the first commit, HEAD holds nothing.
   fn text_at_head(&self, old: &str) -> Result<Vec<String>, FacadeError> {
     let root = self.project.root();
-    if old.is_empty() || !crate::gitstate::is_work_tree(root) || !crate::gitstate::has_head(root) {
+    if old.is_empty()
+      || !crate::gitstate::work_tree(root).map_err(FacadeError::Git)?
+      || !crate::gitstate::has_head(root)
+    {
       return Ok(Vec::new());
     }
     let spellings = text_spellings(old)?;
@@ -13197,7 +13221,7 @@ impl Facade {
   /// is committed.
   fn text_in_next_commit(&self, old: &str) -> Result<NextCommit, FacadeError> {
     let root = self.project.root();
-    if old.is_empty() || !crate::gitstate::is_work_tree(root) {
+    if old.is_empty() || !crate::gitstate::work_tree(root).map_err(FacadeError::Git)? {
       return Ok(NextCommit::default());
     }
     let spellings = text_spellings(old)?;
@@ -13848,7 +13872,9 @@ impl Facade {
     // person who picks a side cannot see that the other side held new work.
     // Refused while planning, so nothing is written. In the release's format a
     // package is a file of its own and the thread's file lists none, so this
-    // never refuses there.
+    // never refuses there for packages; in either format a version of the file
+    // that will not read as a thread is refused (`MergeStageUnreadable`, issue
+    // Ic70f05f).
     // A package file both sides added under one id, in the release's format, is
     // refused the same way and for the same reason (`plan::classify`).
     for path in &conflicts.take_sides {
@@ -14440,7 +14466,9 @@ impl Facade {
   /// work packages to it ([`crate::plan::both_sides_added_packages`]), read
   /// from the merge's three versions: `:1` the base, `:2` this clone's and `:3`
   /// the pulled one, each by its own schema. `None` for any other path, or when
-  /// a version is missing or is not a thread, which leaves it a side to take.
+  /// a version is missing, which leaves it a side to take. A version that is
+  /// there and does not read as a thread is
+  /// [`FacadeError::MergeStageUnreadable`] (issue Ic70f05f).
   fn thread_both_sides_added_packages_to(&self, path: &str) -> Result<Option<String>, FacadeError> {
     let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
     let Some(id) = path
@@ -14451,17 +14479,35 @@ impl Facade {
       return Ok(None);
     };
     let root = self.project.root();
-    let mut versions = Vec::new();
+    // A missing version (an add/add has no base, a delete has no side) is a
+    // side to take, whichever version it is, so all three are fetched before
+    // any is read. A version that is there and will not read as a thread is
+    // refused (issue Ic70f05f): read as None it was a side to take, which drops
+    // the packages the unread version held.
+    let mut fetched = Vec::new();
     for stage in [":1", ":2", ":3"] {
       let Some(bytes) = crate::gitstate::blob(root, stage, path)? else {
         return Ok(None);
       };
-      let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
-        return Ok(None);
+      fetched.push((stage, bytes));
+    }
+    let mut versions = Vec::new();
+    for (stage, bytes) in fetched {
+      let unreadable = |cause: String| FacadeError::MergeStageUnreadable {
+        path: path.to_string(),
+        stage: stage.to_string(),
+        cause,
       };
-      let Ok(thread) = crate::ingest::decode_thread(path, value) else {
-        return Ok(None);
-      };
+      let value = serde_json::from_slice::<serde_json::Value>(&bytes)
+        .map_err(|e| unreadable(format!("not JSON: {e}")))?;
+      let thread = crate::ingest::decode_thread(path, value).map_err(|findings| {
+        let details: Vec<&str> = findings.iter().map(|f| f.detail.as_str()).collect();
+        unreadable(if details.is_empty() {
+          "it does not decode as a thread".to_string()
+        } else {
+          details.join("; ")
+        })
+      })?;
       versions.push(thread);
     }
     Ok(

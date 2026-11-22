@@ -124,6 +124,7 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // about what the two branches hold, never a field left out of the call.
     | FacadeError::PackagesAddedInOneFile { .. }
     | FacadeError::PackageAddedTwice { .. }
+    | FacadeError::MergeStageUnreadable { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
     // Both halves of issue 0131's refusal. They report that a KEY is taken, so

@@ -642,7 +642,12 @@ pub fn classify(
             .strip_prefix(&packages)
             .and_then(|file| file.strip_suffix(".json"))
           {
-            Some(package) if entry.is_add_add() => {
+            // The file's name is read as a package id (issue If57165a): one
+            // that is not is no package, and is a side to take like any other
+            // path, and ingest reports it after the merge: a file it cannot
+            // parse by its parse finding, one it can as `SchemaInvalid`, since
+            // its name and its record disagree.
+            Some(package) if entry.is_add_add() && crate::id::WpId::parse(package).is_ok() => {
               out.packages_added_twice.push(PackageAddedTwice {
                 thread: id.stored(),
                 package: package.to_string(),

@@ -1,0 +1,14 @@
+{
+  "id": "01M816C6AQD5R8YSNMSCVFSF3V",
+  "ts": "2026-11-22T08:36:15.324Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/canon_commit_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}
