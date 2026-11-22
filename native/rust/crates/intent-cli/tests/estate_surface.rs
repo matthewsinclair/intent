@@ -1138,6 +1138,100 @@ fn desk_with_asks(host: &Host, whats: &[&str]) -> Vec<String> {
     .collect()
 }
 
+/// Issue I0005a5f through the binary: `grant --pin` holds the run to what the
+/// controller confirmed, `start` refuses a set that does not name it, a pin
+/// the ask's own set contradicts is refused at the grant, and grant's
+/// positionals carry help.
+#[test]
+fn a_grant_pins_the_run_and_its_arguments_say_what_they_are() {
+  let host = Host::new();
+  let ids = desk_with_asks(&host, &["pinned"]);
+  let id = &ids[0];
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &[
+      "slots",
+      "grant",
+      id,
+      "--lane",
+      "heavy",
+      "--pin",
+      "tip=7a3552f1e",
+    ],
+  ));
+  let unpinned = slot(&host, "s-ctl", &["slots", "start", id]);
+  assert!(
+    !unpinned.status.success(),
+    "a start naming no pin is refused"
+  );
+  let stderr = String::from_utf8_lossy(&unpinned.stderr);
+  assert!(
+    stderr.contains(&format!(
+      "request `{id}` was granted pinned to tip=7a3552f1e"
+    )),
+    "{stderr}"
+  );
+  ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "start", id, "--named", "tip=7a3552f1e"],
+  ));
+  assert_eq!(host.status_json()["queue"][0]["state"], "running");
+
+  let asked = ok_out(&slot(
+    &host,
+    "s-ctl",
+    &["slots", "ask", "heavy", "named", "--named", "tip=7a3552f1e"],
+  ));
+  let other = asked
+    .lines()
+    .find_map(|l| l.strip_prefix("asked: "))
+    .expect("ask prints the id");
+  let conflict = slot(
+    &host,
+    "s-ctl",
+    &[
+      "slots",
+      "grant",
+      other,
+      "--lane",
+      "none",
+      "--pin",
+      "tip=deadbeef",
+    ],
+  );
+  assert!(
+    !conflict.status.success(),
+    "a pin the ask contradicts is refused"
+  );
+  let stderr = String::from_utf8_lossy(&conflict.stderr);
+  assert!(
+    stderr.contains("so a pin to tip=deadbeef could never start"),
+    "{stderr}"
+  );
+  let v = host.status_json();
+  let still = v["queue"]
+    .as_array()
+    .expect("a queue")
+    .iter()
+    .find(|r| r["id"] == other)
+    .expect("the refused ask is still queued");
+  assert_eq!(still["state"], "asked");
+
+  let help = ok_out(&slot(&host, "s-ctl", &["slots", "grant", "--help"]));
+  for slot_name in ["[SUBJECT]", "[TEXT]"] {
+    let line = help
+      .lines()
+      .find(|l| l.trim_start().starts_with(slot_name))
+      .unwrap_or_else(|| panic!("grant --help lists {slot_name}:\n{help}"));
+    assert!(
+      !line.trim_start()[slot_name.len()..].trim().is_empty(),
+      "{slot_name} carries help: {line}"
+    );
+  }
+}
+
 /// ST0086 AT-04.4
 ///
 /// AC-04.4, `slots wait` through the binary: an ask still standing at the

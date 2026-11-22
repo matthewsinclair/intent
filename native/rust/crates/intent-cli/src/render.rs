@@ -11971,12 +11971,17 @@ fn comma_list(raw: Option<String>) -> Vec<String> {
 }
 
 /// `--named k=v,k=v`.
-fn named_set(raw: Option<String>) -> Result<std::collections::BTreeMap<String, String>, Failure> {
+/// A `--named` or `--pin` value: key=value pairs, comma-separated, each key
+/// once. `flag` is the flag it came from, named in the refusal.
+fn named_set(
+  flag: &str,
+  raw: Option<String>,
+) -> Result<std::collections::BTreeMap<String, String>, Failure> {
   let mut out = std::collections::BTreeMap::new();
   for item in comma_list(raw) {
     let Some((k, v)) = item.split_once('=') else {
       return Err(Failure::Error(format!(
-        "error: `--named` item `{item}` is not key=value\n  remedy: name what the booking runs as `--named tip=<sha>,patch_id=<id>`"
+        "error: `{flag}` item `{item}` is not key=value\n  remedy: give key=value pairs, comma-separated, eg `{flag} tip=<sha>,patch_id=<id>`"
       )));
     };
     if out
@@ -11984,7 +11989,7 @@ fn named_set(raw: Option<String>) -> Result<std::collections::BTreeMap<String, S
       .is_some()
     {
       return Err(Failure::Error(format!(
-        "error: `--named` names `{}` twice\n  remedy: name each key once",
+        "error: `{flag}` names `{}` twice\n  remedy: name each key once",
         k.trim()
       )));
     }
@@ -12178,7 +12183,7 @@ fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
       }
       let args = slots::AskArgs {
         lane: lanes.into_iter().next(),
-        named: named_set(opt(a, "named")?)?,
+        named: named_set("--named", opt(a, "named")?)?,
         tags: comma_list(opt(a, "tag")?),
         not_before: comma_list(opt(a, "not-before")?),
         holds: opt(a, "hold")?.into_iter().collect(),
@@ -12191,11 +12196,12 @@ fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
     }
     "grant" => {
       let lanes = comma_list(opt(a, "lane")?);
-      let path = slots::grant(
+      let path = slots::grant_pinned(
         &dirs,
         &caller,
         &subject,
         &lanes,
+        named_set("--pin", opt(a, "pin")?)?,
         &intentsvcs::estate::host_load1,
       )
       .map_err(slot_fail)?;
@@ -12218,7 +12224,7 @@ fn estate_slots(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     "start" => {
-      let named = named_set(opt(a, "named")?)?;
+      let named = named_set("--named", opt(a, "named")?)?;
       let path =
         slots::start(&dirs, &caller, &subject, named, given(a, "relayed")).map_err(slot_fail)?;
       wrote(path);
@@ -12275,10 +12281,26 @@ fn slot_line(
     Step::Asked => ask_tail(a),
     Step::Granted => {
       let lanes = r.lanes();
-      if lanes.is_empty() {
-        " (into no lane)".to_string()
+      let into = if lanes.is_empty() {
+        "into no lane".to_string()
       } else {
-        format!(" (into {})", lanes.join("+"))
+        format!("into {}", lanes.join("+"))
+      };
+      match r
+        .grant
+        .as_ref()
+        .map(|g| &g.record.pin)
+        .filter(|p| !p.is_empty())
+      {
+        Some(pin) => format!(
+          " ({into}; pinned {})",
+          pin
+            .iter()
+            .map(|(k, v)| format!("{k}={v}"))
+            .collect::<Vec<_>>()
+            .join(",")
+        ),
+        None => format!(" ({into})"),
       }
     }
     Step::Denied => r

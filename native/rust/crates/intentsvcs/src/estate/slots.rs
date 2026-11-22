@@ -78,6 +78,11 @@ pub enum SlotError {
     "this session sits as `{node}`, and the desk is worn by its board's mediator, `{mediator}`"
   )]
   NotMediator { node: String, mediator: String },
+  /// Control is released only from a desk with nothing standing on it (issue
+  /// If81de5f): a release over a hold or a live grant left the desk with work
+  /// in flight and no controller to answer for it.
+  #[error("control cannot be released while these stand on the desk: {}", blockers.iter().map(Blocker::to_string).collect::<Vec<_>>().join("; "))]
+  ReleaseBlocked { blockers: Vec<Blocker> },
   #[error("no request `{id}`")]
   NoRequest { id: String },
   #[error("request `{id}` is {state}, so it cannot be {verb}")]
@@ -112,6 +117,18 @@ pub enum SlotError {
   },
   #[error("request `{id}` is gated not before `{gate}`, which has not ended")]
   GateUnmet { id: String, gate: String },
+  #[error("request `{id}` was granted pinned to {pinned}, and this names {given}")]
+  PinUnmet {
+    id: String,
+    pinned: String,
+    given: String,
+  },
+  #[error("request `{id}` was asked naming {asked}, so a pin to {pinned} could never start")]
+  PinConflict {
+    id: String,
+    asked: String,
+    pinned: String,
+  },
   #[error("request `{id}` was asked naming {asked}, and this names {given}")]
   NamedMismatch {
     id: String,
@@ -163,6 +180,10 @@ impl crate::remedy::Remedy for SlotError {
       Self::ControllerLive { .. } => "ask the controller to `intent estate control release`; a take succeeds over a gone controller only. Nothing was written.".to_string(),
       Self::NeedsHv { .. } => "take it under the recorded name, or pass `--hv \"<hv's words>\"` quoting hv's yes, which is recorded on the take. Nothing was written.".to_string(),
       Self::NotMediator { mediator, .. } => format!("take it from `{mediator}`'s session, or pass `--hv \"<hv's words>\"` quoting hv's yes, which is recorded on the take. Nothing was written."),
+      Self::ReleaseBlocked { blockers } => format!(
+        "clear each first: {}. Nothing was written.",
+        blockers.iter().map(Blocker::clears).collect::<Vec<_>>().join("; ")
+      ),
       Self::NoRequest { .. } => "check the id with `intent estate status`. Nothing was written.".to_string(),
       Self::WrongState { .. } => "check the request's state with `intent estate status`; a finished request takes no further step, and a new booking is a new `intent estate slots ask`. Nothing was written.".to_string(),
       Self::NotAsker { .. } => "run it from the session that asked; the controller ends someone else's request with `revoke`. Nothing was written.".to_string(),
@@ -172,7 +193,9 @@ impl crate::remedy::Remedy for SlotError {
       Self::LoadUnknown { .. } => "the load comes from `sysctl` on macOS and `/proc/loadavg` on Linux; check it can be read. Nothing was written.".to_string(),
       Self::Held { .. } => "release the hold with `intent estate control unhold <id>` or `intent estate lane unhold <lane> <id>` once its condition is met. Nothing was written.".to_string(),
       Self::GateUnmet { .. } => "grant it after the gating request has ended, or revoke the gated one if the gate no longer applies. Nothing was written.".to_string(),
-      Self::NamedMismatch { .. } => "start it naming the same set the ask named; different bytes are a new booking, `intent estate slots ask`. Nothing was written.".to_string(),
+      Self::PinUnmet { .. } => "start it naming what the grant pinned, beside the set the ask named; a run on other bytes is a new booking, `intent estate slots ask`. Nothing was written.".to_string(),
+      Self::PinConflict { .. } => "pin a key the ask does not name, or the value it names; a grant on other bytes than the ask's is a new booking, `intent estate slots ask`. Nothing was written.".to_string(),
+      Self::NamedMismatch { .. } => "start it naming the same set the ask named, with what the grant pinned beside it; different bytes are a new booking, `intent estate slots ask`. Nothing was written.".to_string(),
       Self::LaneBusy { .. } => "wait for those requests to end, or revoke them, before closing the lane. Nothing was written.".to_string(),
       Self::BadName { .. } => "use letters, digits, `-` and `_`: the name is a file name. Nothing was written.".to_string(),
       Self::BadPlaceOf { .. } => "a hand-back keeps its place only from a request that was granted and then released or revoked before it started, naming the same set; otherwise ask afresh. Nothing was written.".to_string(),
@@ -184,6 +207,52 @@ impl crate::remedy::Remedy for SlotError {
       Self::Unremovable { .. } => "check the file's permissions. Nothing else was changed.".to_string(),
       Self::NoLiveness { .. } => "a take must read which processes are running (`/bin/ps` on macOS, `/proc` on Linux) to tell a gone controller from a live one. Nothing was written.".to_string(),
       Self::Mint(cause) => crate::remedy::Remedy::remedy(cause),
+    }
+  }
+}
+
+/// One thing standing on the desk that a `control release` refuses over.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Blocker {
+  /// A standing hold: on the whole desk when `lane` is `None`.
+  Hold {
+    id: String,
+    lane: Option<String>,
+    condition: String,
+  },
+  /// A request granted or running.
+  Request { id: String, state: ReqState },
+}
+
+impl Blocker {
+  /// The verb that clears it.
+  pub fn clears(&self) -> String {
+    match self {
+      Self::Hold { id, lane: None, .. } => format!("`intent estate control unhold {id}`"),
+      Self::Hold {
+        id, lane: Some(l), ..
+      } => format!("`intent estate lane unhold {l} {id}`"),
+      Self::Request { id, .. } => format!(
+        "`intent estate slots revoke {id} \"<why>\"`, or its asker's `intent estate slots release {id}`"
+      ),
+    }
+  }
+}
+
+impl std::fmt::Display for Blocker {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      Self::Hold {
+        id,
+        lane: None,
+        condition,
+      } => write!(f, "hold `{id}` (desk): {condition}"),
+      Self::Hold {
+        id,
+        lane: Some(l),
+        condition,
+      } => write!(f, "hold `{id}` (lane `{l}`): {condition}"),
+      Self::Request { id, state } => write!(f, "request `{id}` is {}", state.as_str()),
     }
   }
 }
@@ -375,6 +444,11 @@ pub struct GrantRecord {
   /// Every lane the grant names; empty for a grant into no lane.
   pub lanes: Vec<String>,
   pub node: Option<String>,
+  /// What the controller pinned the run to, as key=value pairs (issue
+  /// I0005a5f): `start` must name them beside the ask's own set. Empty for an
+  /// unpinned grant, and then not written, so an earlier grant reads the same.
+  #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+  pub pin: BTreeMap<String, String>,
 }
 
 /// `deny.json` and `revoke.json`.
@@ -1123,6 +1197,14 @@ pub fn control_take(
   }
   let path = controller_path(dirs);
   let slots = read_strict(dirs);
+  // **A SAME-NAME RE-TAKE KEEPS hv'S RECORDED WORDS** (issue I4debbb5): `--hv`
+  // is for a take under another name, so the usual re-take after a restart
+  // passes none, and writing that absence dropped hv's yes from the record.
+  let carried = slots
+    .controller
+    .as_ref()
+    .filter(|c| c.record.name == caller.name)
+    .and_then(|c| c.record.hv.clone());
   let predecessor = match &slots.controller {
     None => None,
     Some(current) => {
@@ -1164,7 +1246,7 @@ pub fn control_take(
       pid: caller.pid,
       node: caller.node.clone(),
       predecessor: predecessor.clone(),
-      hv: hv.map(str::to_string),
+      hv: hv.map(str::to_string).or(carried),
       released: false,
     },
   )?;
@@ -1177,9 +1259,17 @@ pub fn control_take(
 
 /// `control release`: hands over cleanly. The record stays, marked released,
 /// so the reader shows NO CONTROLLER from a record and not from an absence.
+///
+/// **ONLY FROM A DESK WITH NOTHING STANDING ON IT** (issue If81de5f): a
+/// standing hold, or a request granted or running, refuses it, each named
+/// with the verb that clears it.
 pub fn control_release(dirs: &Dirs, caller: &Caller) -> Result<PathBuf, SlotError> {
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "control release")?;
+  let blockers = standing(&slots);
+  if !blockers.is_empty() {
+    return Err(SlotError::ReleaseBlocked { blockers });
+  }
   let path = controller_path(dirs);
   let Some(current) = slots.controller else {
     return Err(SlotError::NotController {
@@ -1196,6 +1286,25 @@ pub fn control_release(dirs: &Dirs, caller: &Caller) -> Result<PathBuf, SlotErro
     },
   )?;
   Ok(path)
+}
+
+/// What stands on the desk: every standing hold, then every request granted
+/// or running.
+fn standing(slots: &Slots) -> Vec<Blocker> {
+  let holds = slots.holds.iter().map(|h| Blocker::Hold {
+    id: h.record.id.clone(),
+    lane: h.record.lane.clone(),
+    condition: h.record.condition.clone(),
+  });
+  let requests = slots
+    .requests
+    .iter()
+    .filter(|r| r.holding())
+    .map(|r| Blocker::Request {
+      id: r.id().to_string(),
+      state: r.state(),
+    });
+  holds.chain(requests).collect()
 }
 
 /// `control hold` (no lane) or `lane hold` (a lane): returns the hold's id
@@ -1448,6 +1557,21 @@ pub fn grant(
   lanes: &[String],
   load1: &dyn Fn() -> Result<f64, Unreadable>,
 ) -> Result<PathBuf, SlotError> {
+  grant_pinned(dirs, caller, id, lanes, BTreeMap::new(), load1)
+}
+
+/// `slots grant --pin k=v,...`: a grant the controller pins to what it has
+/// confirmed itself (issue I0005a5f), which `start` then holds the run to. A
+/// pin the ask's own set contradicts is refused, since no start could meet
+/// both.
+pub fn grant_pinned(
+  dirs: &Dirs,
+  caller: &Caller,
+  id: &str,
+  lanes: &[String],
+  pin: BTreeMap<String, String>,
+  load1: &dyn Fn() -> Result<f64, Unreadable>,
+) -> Result<PathBuf, SlotError> {
   let slots = read_strict(dirs);
   ensure_controller(&slots, caller, "slots grant")?;
   let r = &request_of(dirs, &slots, id)?;
@@ -1457,6 +1581,17 @@ pub fn grant(
   if lanes.is_empty() {
     return Err(SlotError::BadArg {
       why: format!("a grant names at least one lane, or `--lane {NO_LANE}`"),
+    });
+  }
+  let asked = &r.ask.record.named;
+  if pin
+    .iter()
+    .any(|(k, v)| asked.get(k).is_some_and(|a| a != v))
+  {
+    return Err(SlotError::PinConflict {
+      id: id.to_string(),
+      asked: show_named(asked),
+      pinned: show_named(&pin),
     });
   }
   let none = lanes.iter().any(|l| l == NO_LANE);
@@ -1544,6 +1679,7 @@ pub fn grant(
       schema: SLOT_SCHEMA.to_string(),
       lanes: named,
       node: caller.node.clone(),
+      pin,
     },
   )?;
   Ok(path)
@@ -1642,10 +1778,33 @@ pub fn start(
   if r.state() != ReqState::Granted {
     return Err(wrong_state(r, "started"));
   }
-  if r.ask.record.named != named {
+  let pin = r.grant.as_ref().map(|g| &g.record.pin);
+  if let Some(pin) = pin.filter(|p| p.iter().any(|(k, v)| named.get(k) != Some(v))) {
+    return Err(SlotError::PinUnmet {
+      id: id.to_string(),
+      pinned: show_named(pin),
+      given: show_named(&named),
+    });
+  }
+  let mut expected = r.ask.record.named.clone();
+  expected.extend(
+    pin
+      .into_iter()
+      .flatten()
+      .map(|(k, v)| (k.clone(), v.clone())),
+  );
+  if expected != named {
+    let asked = match pin.filter(|p| !p.is_empty()) {
+      Some(p) => format!(
+        "{} with the grant's pin {}",
+        show_named(&r.ask.record.named),
+        show_named(p)
+      ),
+      None => show_named(&r.ask.record.named),
+    };
     return Err(SlotError::NamedMismatch {
       id: id.to_string(),
-      asked: show_named(&r.ask.record.named),
+      asked,
       given: show_named(&named),
     });
   }
@@ -2506,6 +2665,87 @@ mod tests {
     assert_eq!(ctl["name"], "intent-dc");
     assert_eq!(ctl["hv"], "hv: dc takes the desk");
     assert_eq!(ctl["predecessor"]["name"], "molt-vc");
+  }
+
+  /// Issue I4debbb5: a same-name re-take with no `--hv` keeps the words hv
+  /// gave the recorded controller, and a take under another name still needs
+  /// its own.
+  #[test]
+  fn a_same_name_retake_keeps_hvs_recorded_words() {
+    let h = host();
+    let words = "hv: dc takes the desk";
+    let gone = dead_pid();
+    let old = who("old", "intent-dc", gone);
+    session_file(&h, gone, "old", "intent-dc");
+    control_take(&h.dirs, &h.claude, &old, Some(words)).expect("a take with hv's words");
+
+    let fresh = who("fresh", "intent-dc", std::process::id());
+    session_file(&h, fresh.pid, "fresh", "intent-dc");
+    control_take(&h.dirs, &h.claude, &fresh, None).expect("same name over a gone controller");
+    let ctl = controller_value(&read_strict(&h.dirs));
+    assert_eq!(ctl["predecessor"]["session_id"], "old");
+    assert_eq!(ctl["hv"], words);
+
+    control_release(&h.dirs, &fresh).expect("release");
+    let peer = who("peer", "molt-vc", 3);
+    assert!(matches!(
+      control_take(&h.dirs, &h.claude, &peer, None),
+      Err(SlotError::NeedsHv { .. })
+    ));
+  }
+
+  /// Issue If81de5f: a release is refused while a hold stands or a request is
+  /// granted or running, naming each with the verb that clears it, and goes
+  /// through once they are cleared.
+  #[test]
+  fn control_is_released_only_from_a_desk_with_nothing_standing_on_it() {
+    let h = host();
+    let ctl = desk(&h);
+    let me = who("me", "intent-cc", 1);
+    let (running, _) = ask(&h.dirs, &me, "heavy", "running", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &running, &lanes(&["cargo"]), &quiet).expect("grant");
+    start(&h.dirs, &me, &running, BTreeMap::new(), false).expect("start");
+    let (granted, _) = ask(&h.dirs, &me, "heavy", "granted", AskArgs::default()).expect("ask");
+    grant(&h.dirs, &ctl, &granted, &lanes(&["bats"]), &quiet).expect("grant");
+    let (desk_hold, _) = hold(&h.dirs, &ctl, None, "until hv says go").expect("hold");
+    let (lane_hold, _) = hold(&h.dirs, &ctl, Some("heavy"), "heavy is broken").expect("hold");
+
+    let refused = control_release(&h.dirs, &ctl).expect_err("a release over a standing desk");
+    let text = refused.to_string();
+    for blocker in [
+      format!("hold `{desk_hold}` (desk): until hv says go"),
+      format!("hold `{lane_hold}` (lane `heavy`): heavy is broken"),
+      format!("request `{running}` is running"),
+      format!("request `{granted}` is granted"),
+    ] {
+      assert!(
+        text.contains(&blocker),
+        "the refusal names `{blocker}`: {text}"
+      );
+    }
+    let remedy = crate::remedy::Remedy::remedy(&refused);
+    for verb in [
+      format!("intent estate control unhold {desk_hold}"),
+      format!("intent estate lane unhold heavy {lane_hold}"),
+      format!("intent estate slots revoke {running}"),
+      format!("intent estate slots release {granted}"),
+    ] {
+      assert!(
+        remedy.contains(&verb),
+        "the remedy names `{verb}`: {remedy}"
+      );
+    }
+    assert!(
+      read_strict(&h.dirs).live_controller().is_some(),
+      "a refused release writes nothing"
+    );
+
+    unhold(&h.dirs, &ctl, None, &desk_hold).expect("unhold the desk");
+    unhold(&h.dirs, &ctl, Some("heavy"), &lane_hold).expect("unhold the lane");
+    release(&h.dirs, &me, &running, None, false).expect("end the run");
+    revoke(&h.dirs, &ctl, &granted, "the desk is closing").expect("revoke the grant");
+    control_release(&h.dirs, &ctl).expect("an idle desk releases");
+    assert_eq!(controller_value(&read_strict(&h.dirs)), Value::Null);
   }
 
   /// A hand-back keeps its place: `--place-of` re-asks from a request granted
