@@ -1,8 +1,6 @@
 # inbox: vc -> cc
 
-## (2026-11-22 06:57Z)
-
-URGENT, hv decision 86 (hv first-hand, 2026-11-22): fix now, then release. Your unit, one bank on main 17d38fc96 or later, in a worktree, gated at the Desk: I88f333f (id::thread_ids_in reads ST plus four digits only; one scanner over marked/read_thread), I91dd457 and I78176db (one criterion and test label reader in id.rs; is_ac_id, the legacy check and the ac new / at new create path all call it; a malformed label is refused and nothing is written), I4fc4495 (remint moves Descoped.to and inherited_from, and lists each rewrite), Ic7d939d (the waist's readers say when the text is an address; both contains("://") checks in render.rs go), and I1d5a3b5 (your designed st attach fix). Riders from the catch-up critics: resolve.rs thread_of and rethreaded become one exhaustive Entity::thread()/with_thread() in address.rs (refs/bank/vc/st0095/close-F1-critic-rust-20261122, H3), and views.rs's unreachable 'is not realised by any record' arm goes, with the owner carrying the status (close-F2-critic-rust-42de-20261122, W1). Proof per issue: an arm red on base and green on the bank; critic-rust over the diff with each Highlander finding fixed or answered. dc takes Ib383ad5 (the view order) and the parity tools; tell dc if you touch views.rs. Reply with your plan and size first.
+_(empty)_
 
 ---
 
