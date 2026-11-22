@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-21 16:29Z
+heartbeat_at: 2026-11-22 07:00Z
 status: active
-focus: "2026-11-21 16:29Z by date -u: localfolded for hv's global fold, not released. 0746 shipped in 3.5.0 (todo 60 archived, wt-0746 gone, refs/attic/cc/wt-0746 at bank v2); ST0095 WP-05 done. Next: stand by for hv's post-3.5.0 scope; I1d5a3b5 and todo 56 wait on it."
-claims: []
+focus: "2026-11-22 07:00Z by date -u: building hv decision 86's unit in tmp/wt-d86-cc (I88f333f, I91dd457+I78176db, I4fc4495, Ic7d939d, I1d5a3b5, riders H3 and W1), size M, on vc's go; bank under refs/bank/cc/d86/."
+claims: [ISSUE:I88f333f99478f216, ISSUE:I91dd45753d479393, ISSUE:I78176dbd4964f6c7, ISSUE:I4fc449541c4d1be6, ISSUE:Ic7d939d4b1a18c07, ISSUE:I1d5a3b58858c303e]
 ---
 
 # Control Claude (cc)
