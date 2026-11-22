@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I4d8c96412aa9ebb8",
   "origin": "01M81M4271NRPMSFVF95WHJC1J",
-  "realised": true,
   "slug": "claude-start-s-launch-brief-prints-the-restart-h",
   "title": "claude start's launch brief prints the restart header when there is no restart context",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "`compose_ctx` in intent/plugins/claude/bin/intent_claude_cwi (line 96) prints \"Project restart context follows.\" and a rule line unconditionally, then cats $RESTART only if it exists. A project with no restart file gets a launch brief that ends on an empty section (seen 2026-11-19 by agentic-engineering-vc and -dc). The header belongs inside the same test as the file.\n\nReported by agentic-engineering-vc on hv's word in its window (AE hv decision 106 (5)), relayed by devbin-vc (~/Devel/scratch/devbin-vc/20261119/intent-desk-defects.md, checked there on 3.4.0). Re-read by intent-vc on 2026-11-22 against main at 5f2da89ca (3.5.1): still live.\n"
 }
