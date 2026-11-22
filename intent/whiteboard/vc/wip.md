@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-22 12:29Z
-status: active
-focus: "2026-11-22 12:29Z by date -u: localfolded and globalfolded after 3.5.1 (main 4328c0f04 on local and upstream). Fleet on 3.5.1 except Gtools, Apprvr, Lamplight, Laksa and zeop-cordee-papillon, which wait on hv."
+heartbeat_at: 2026-11-22 15:18Z
+status: paused
+focus: "2026-11-22 15:18Z by date -u: closed for the day on hv's word. The four desk fixes are on main and pushed (dce4de39c, local and upstream), with no release; they ship with the next cut. Waiting on hv: ic's fold, Gtools' guard, zeop-cordee-papillon at 3.5.0, the fleet push, hv's board."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- Fix the four estate-desk issues on main now, no release (hv in devbin-vc's window, relayed 2026-11-22 14:24Z): cc builds If81de5f first, then I4debbb5 and I0005a5f, from its reading at refs/bank/cc/d352/notes; dc builds I4d8c964 from refs/bank/dc/i4d8/v1. Desk slots per build; they ship with the next cut hv calls.
+_(none)_
 
 ## TODO
 

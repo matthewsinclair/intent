@@ -1,5 +1,5 @@
 ---
-verblock: "22 Nov 2026:v4.08: vc - globalfold after 3.5.1 shipped; leaned to live work only"
+verblock: "22 Nov 2026:v4.09: vc - EOD: the four desk issues landed and pushed; fleet upgrade waits on hv"
 intent_version: 3.5.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.1
 
 ## DOING
 
-- **The fleet's upgrade to 3.5.1 (hv, 2026-11-22).** Every Intent project on rhadamanth takes 3.5.1 from brew, then `intent claude upgrade --apply` in each, committing what it prints. devvm's upgrade is AE's, arranged by devbin-vc; a defect it finds routes to vc.
+- **The fleet's 3.5.1 upgrade, its last steps (hv, 2026-11-22).** Every project under `~/Devel/prj` reads 3.5.1, and none is pushed. Waiting on hv: Gtools' upgrade is staged and not committed, because its client-name guard refused ST0005 WP 01, 07, 08 and 09; zeop-cordee-papillon stays at 3.5.0 while cordee is frozen; whether the upgraded projects' `main` goes to their remotes. ic's localfold waits on hv's go in ic's own session.
 
 ## TODO
 
