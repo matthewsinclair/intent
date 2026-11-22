@@ -1,0 +1,15 @@
+{
+  "id": "01M810M2VCZSMW1C1TPYR31C4D",
+  "ts": "2026-11-22T06:55:42.454Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I4fc449541c4d1be6"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "st remint and issues remint leave a descope's target and a fiat's inherited_from on the old id"
+  }
+}

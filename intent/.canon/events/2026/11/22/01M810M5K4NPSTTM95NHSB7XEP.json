@@ -1,0 +1,15 @@
+{
+  "id": "01M810M5K4NPSTTM95NHSB7XEP",
+  "ts": "2026-11-22T06:55:45.263Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "If83ae7cba0d4a690"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Three manual parity tools assume the first st new makes ST0001"
+  }
+}

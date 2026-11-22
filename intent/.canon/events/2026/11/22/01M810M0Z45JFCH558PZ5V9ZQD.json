@@ -1,0 +1,15 @@
+{
+  "id": "01M810M0Z45JFCH558PZ5V9ZQD",
+  "ts": "2026-11-22T06:55:40.528Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ib383ad55c49c4bc1"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "todo.md and acceptance.md order git-style ids by their hex, not by record order (0743's class, two views it missed)"
+  }
+}

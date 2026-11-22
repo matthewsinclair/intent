@@ -1,0 +1,15 @@
+{
+  "id": "01M810M1WSGKRFJYBH8JB3NM20",
+  "ts": "2026-11-22T06:55:41.477Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I91dd45753d479393"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "is_ac_id refuses the criterion label stored for a git-style package; criterion labels have three validators"
+  }
+}

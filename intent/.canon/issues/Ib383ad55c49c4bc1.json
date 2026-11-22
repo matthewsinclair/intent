@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "Ib383ad55c49c4bc1",
+  "origin": "01M810M0Z45JFCH558PZ5V9ZQD",
+  "realised": true,
+  "slug": "todo-md-and-acceptance-md-order-git-style-ids-by",
+  "title": "todo.md and acceptance.md order git-style ids by their hex, not by record order (0743's class, two views it missed)",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ST0095's close-time Highlander sweep (vc, 2026-11-22, close A findings 2 and 3; start cluster C7). The same class as issue 0743, which fixed `st list` and the thread index and missed these two views. Fixed under hv decision 86.\n\n- `views::todo_buckets` (views.rs) sorts threads with `ThreadId`'s own `cmp`, not `id::record_order`, so `intent/todo.md` lists git-style threads by their hex while `steel_threads.md` and every other listing list them by when they were made.\n- `views::groups` (views.rs) sorts a thread's acceptance sections with `seen.sort()` over stored package ids, so in `acceptance.md` git-style packages fall among the ordinals by their hex, while the package list uses `record_order`.\n\nExpected: both use `id::record_order` (or the waist's label order for sections), so every view lists records in one order.\n"
+}

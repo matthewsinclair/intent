@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I4fc449541c4d1be6",
+  "origin": "01M810M2VCZSMW1C1TPYR31C4D",
+  "realised": true,
+  "slug": "st-remint-and-issues-remint-leave-a-descope-s-ta",
+  "title": "st remint and issues remint leave a descope's target and a fiat's inherited_from on the old id",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ST0095's close-time comparison of the start and close Highlander sweeps (vc, 2026-11-22, refs/bank/vc/st0095/close-E-start-vs-close-20261122, start cluster C12, missed by the close sweep itself; read in renumber.rs by vc). Fixed under hv decision 86.\n\n`renumber::thread` moves `Thread.id`, every `related` edge and every board claim, and `renumber::issue` moves claims. Neither moves the other structured references to a record's id: a criterion's `AcState::Descoped.to` (a thread or `<thread>/<package>`) and a fiat record's `inherited_from`. So after `intent st remint <id>` moves an ordinal to its git-style id, a criterion descoped to that thread points at an id that no longer exists, and doctor reports the descope as dangling.\n\nExpected: a remint moves every structured reference to the old id, and the answer lists each rewrite as it does for `related`.\n"
+}

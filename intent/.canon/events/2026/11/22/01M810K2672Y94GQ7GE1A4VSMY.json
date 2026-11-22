@@ -1,0 +1,15 @@
+{
+  "id": "01M810K2672Y94GQ7GE1A4VSMY",
+  "ts": "2026-11-22T06:55:08.999Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-22, first-hand in vc's session, read at 06:55Z by vc's date -u; hv's words: \"Yes, agreed. I want all of these fixed as a matter of urgency and then released.\") ST0095's close-time Highlander sweep (refs/bank/vc/st0095/highlander-close-*, close-E-start-vs-close): the eight behavioural defects it found are fixed now and released, ahead of other work. They are the acceptance-gate scanner reading ST plus four digits only; todo.md and acceptance.md ordering hashed ids as text; is_ac_id refusing hashed-package labels; remint leaving Descoped.to and inherited_from on the old id; ac new and at new taking any label; the CLI's issue door skipping the address check; and three manual parity tools assuming ST0001. The rest of the duplication residue is descoped to a follow-up thread. The release follows the fixes; the cut stays hv's to confirm."
+  }
+}

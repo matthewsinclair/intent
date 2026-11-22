@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I91dd45753d479393",
+  "origin": "01M810M1WSGKRFJYBH8JB3NM20",
+  "realised": true,
+  "slug": "is-ac-id-refuses-the-criterion-label-stored-for",
+  "title": "is_ac_id refuses the criterion label stored for a git-style package; criterion labels have three validators",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-22",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by ST0095's close-time Highlander sweep (vc, 2026-11-22, close A finding 4; start clusters C1, C9). Fixed under hv decision 86.\n\n`preconditions.rs` `is_ac_id` is a second criterion-label validator that accepts only digit groups. It refuses `AC-<hex>.n`, the label `id::regrouped` stores for a git-style package and `contract::group_of` accepts. legacy.rs carries a third, v2-only shape check. Its reach today is ST0057's gate block.\n\nExpected: one label reader in the waist (id.rs, over `label_parts` / `group_of`) that every validator calls, so a label the tool stores is never refused by another part of the tool.\n"
+}
