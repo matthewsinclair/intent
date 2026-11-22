@@ -1,9 +1,9 @@
 ---
 st_id: ST0096
 title: A forge merges every open merge request: no file that every record shares
-status: WIP
+status: Completed
 created: 2026-11-19
-completed:
+completed: 2026-11-22
 ---
 
 # ST0096: A forge merges every open merge request: no file that every record shares

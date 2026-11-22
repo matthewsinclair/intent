@@ -1,11 +1,11 @@
 {
   "schema": "intent/thread@4.0",
   "id": "ST0096",
-  "realised": true,
   "title": "A forge merges every open merge request: no file that every record shares",
   "slug": "a-forge-merges-every-open-merge-request-no-file",
-  "status": "wip",
+  "status": "completed",
   "created": "2026-11-19",
+  "completed": "2026-11-22",
   "objective": "Creating or changing one thread, work package or issue writes no file that another record's change also writes, so a forge merges any number of open merge requests with no hand step (issue 0705, hv decision 66).",
   "context": "Issue 0705, measured on brew 3.4.0 on 2026-11-19: once one merge request lands, a forge can merge none of the others, because creating a record or changing its status rewrites `intent/.intentfiles`, `intent/st/steel_threads.md` and `intent/todo.md` at the same place on every branch. ST0095 makes ids unique by construction, and leaves these three files as the one hand step left in a review-gated flow.\n\nhv decision 66 rules the fix: the two generated lists leave git, and whether a record is realised is carried by the record or derived from its status, so no shared manifest is written. hv decision 67 asks for a very thorough Highlander check, which runs as vc decision 133 says. The design, with the measurements, is `design.md`. The same work rides the same release as ST0095, and its first package shares ST0095's schema bump.",
   "body": "",

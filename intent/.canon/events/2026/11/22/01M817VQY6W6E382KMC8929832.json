@@ -1,0 +1,14 @@
+{
+  "id": "01M817VQY6W6E382KMC8929832",
+  "ts": "2026-11-22T09:02:13.450Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0096/AC-00.2"
+  },
+  "payload": {
+    "evidence": "refs/bank/vc/st0096/close-critic-records-20261122 (vc's read, 2026-11-22): of 16 units, 9 carry a critic-per-diff record read by vc before land. The 7 with none or a partial one (7e34615f2, 923a2a121, b2add8171+039f30998, c7e1cee74, 9a87b035c, b72925a04, 6f8ded24f) were reviewed after land on hv decision 86 over the exact unreviewed ranges (refs/bank/vc/st0096/close-H1..H5-*-20261122). What those reviews found that behaves wrongly was fixed in 3.5.1 by cc's d86c (b74617481) and dc's d86d (81804f610, 9a425df5b); the remaining duplication went to ST1c2db93 with ST0096's AC-00.1. Lands without vc's read on the record are answered from each commit's proof line, as hv agreed for ST0095."
+  }
+}
