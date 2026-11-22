@@ -2,7 +2,7 @@
 wp_id: WP-13
 title: Docs, skills, rules and templates teach the new ids
 scope: L
-status: Not Started
+status: Done
 ---
 
 # WP-13: Docs, skills, rules and templates teach the new ids
