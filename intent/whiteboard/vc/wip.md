@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-21 16:28Z
+heartbeat_at: 2026-11-21 17:12Z
 status: active
 focus: "2026-11-21 16:28Z by date -u: localfolded for hv's global fold, not released. 3.5.0 shipped (940c9535a); gyges is on 3.5.0. Next on hv's return: hv's post-3.5.0 scope (dc todos 87, 88; cc standby) and ST0095's close (todo 99)."
 claims: []
@@ -15,10 +15,11 @@ claims: []
 
 - ST0095, git-style ids: SHIPPED in v3.5.0 (940c9535a, 2026-11-21). Package records still open: WP-05 shows WIP and WP-13 Not Started though 4a4930e4e landed its docs; their owners close them. The thread's close waits on todo 99 (AC-00.1, AC-00.2), hv's word. (edited)
 - ST0096, issue 0705: WP-01, WP-02, WP-05 done; WP-03 and WP-04 WIP. Its WP-03 frozen-pair drive (the bare fresh clone through the commit gate with Desk run 1's control, 01M7WW8B) is to run on brew 3.5.0 when hv sets post-3.5.0 scope. 0733 and 0707 closed. (edited)
+- ST0095's close, on hv's go of 2026-11-22 06:31Z by date -u: AC-00.1's whole-tree Highlander sweep at 813037fcd, three independent read-only reviewers (intentsvcs; the other Rust and every test; everything not Rust), then vc compares with the start-of-thread reports and reads AC-00.2's critic records. Reports bank under refs/bank/vc/st0095/highlander-close-*.
 
 ## TODO
 
-- ST0095's close is waiting on hv's word: AC-00.1, an independent whole-tree Highlander sweep of every id concern in every language, with the start-of-thread findings (refs/bank/vc/st0095/highlander-*) resolved or answered; and AC-00.2, each unit's critic-per-diff record read by vc. Every AT row conforms, and these two block the thread gate.
+_(none)_
 
 ## Holds
 

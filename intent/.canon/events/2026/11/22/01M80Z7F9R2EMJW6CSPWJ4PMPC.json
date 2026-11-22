@@ -1,0 +1,15 @@
+{
+  "id": "01M80Z7F9R2EMJW6CSPWJ4PMPC",
+  "ts": "2026-11-22T06:31:20.633Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0095's close, on hv's go of 2026-11-22 06:31Z by date -u: AC-00.1's whole-tree Highlander sweep at 813037fcd, three independent read-only reviewers (intentsvcs; the other Rust and every test; everything not Rust), then vc compares with the start-of-thread reports and reads AC-00.2's critic records. Reports bank under refs/bank/vc/st0095/highlander-close-*."
+  }
+}
