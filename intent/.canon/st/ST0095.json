@@ -1,11 +1,11 @@
 {
   "schema": "intent/thread@4.0",
   "id": "ST0095",
-  "realised": true,
   "title": "Git-style ids: threads, work packages and issues unique by construction",
   "slug": "git-style-ids-threads-work-packages-and-issues-u",
-  "status": "wip",
+  "status": "completed",
   "created": "2026-11-19",
+  "completed": "2026-11-22",
   "objective": "Give every new steel thread, work package and issue an id that is unique by construction: derived from its creation event, minted on any branch, worktree or clone with no counter and no network, and never changed afterwards. Order every list by creation time. Keep every existing ordinal valid exactly as it is. Bring every door, view, document, skill, test and guard to the two forms, so that people and agents who share one repository through branches and merge requests never meet an id that means two things.",
   "context": "hv decision 61 (2026-11-19) rules the direction, at P0. An ordinal is minted highest-plus-one over the checked-out branch's canon, so it needs a single allocator, and a branch-and-merge flow has none: on an attendee's practice repository, one person with five merge requests open met a collision on every mint. ST0078 (2026-09-18) had rejected a change to the minting scheme and made renumber the repair. This thread reverses that line. vc reproduced the incident on brew 3.4.0 on 2026-11-19. The measurements, the design and the points still for hv are in `design.md`. No code lands before hv has reviewed this thread.",
   "body": "",

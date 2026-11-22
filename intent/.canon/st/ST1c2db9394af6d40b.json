@@ -1,0 +1,13 @@
+{
+  "schema": "intent/thread@4.0",
+  "id": "ST1c2db9394af6d40b",
+  "origin": "01M814YEWT2Y5SFMS8X4HZAPKQ",
+  "title": "Highlander residue after ST0095 and ST0096: one home for every id and realisation concern",
+  "slug": "highlander-residue-after-st0095-and-st0096-one-h",
+  "status": "triage",
+  "created": "2026-11-22",
+  "objective": "Every id concern and every realisation concern in Intent has exactly one home, in every language, so that ST0095's AC-00.1 and ST0096's AC-00.1, descoped here on hv decision 86, are met.\n\nST0095's and ST0096's close-time Highlander sweep (2026-11-22, at 813037fcd) found the behavioural defects that are now fixed in 3.5.1 (hv decision 86: I88f333f, Ib383ad5, I91dd457, I4fc4495, I78176db, Ic7d939d, If83ae7c, and I9ed9ed4 for main's self-hosting tests). What remains is duplication that behaves the same today: second copies of formatting, paths, label handling, kind spellings, test fixtures and shipped prose. The full list, each row with file and line, is in the banked reports:\n\n- refs/bank/vc/st0095/highlander-close-A-intentsvcs-20261122, -B-rust-rest-20261122, -C-non-rust-20261122 (the close sweep)\n- refs/bank/vc/st0095/close-E-start-vs-close-20261122 (every start cluster against today's code: 42 residual, 23 of them missed by the close sweep)\n- refs/bank/vc/st0095/close-F1-critic-rust-20261122, close-F2-critic-rust-42de-20261122, close-F3-critic-shell-20261122 (the catch-up critics' findings)\n\nRulings carried in: a criterion label's group stays any digit width (hv 2026-09-08); legacy.rs's v2 import keeps its head-only label check as the one stated exception until this thread decides whether v2 import reads labels through id::label_kind; read_named and scoped do not yet say \"this is an address\", which this thread decides.\n\nThe thread is planned against those reports and sized when it is triaged. It closes when an independent sweep of the whole tree finds one home for every concern, or answers each remaining one on the record.",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

@@ -3,6 +3,7 @@
   "text": "Highlander on every change, as hv decision 67 asks: every unit of this thread lands with a critic-<lang> review of its diff for each language the diff touches, each Highlander finding fixed or answered, read by vc against the diff before land.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "refs/bank/vc/st0095/close-critic-records-20261122 (vc's read, 2026-11-22): of 42 units, 30 carry a critic-per-diff record read by vc before land. The 5 diffs with none or a partial one were reviewed after land on hv decision 86: 4b24577e7 and 44f4a043f clean, 62045266e whole (H3 fixed at bfe387912; the rest answered or fixed by 0732), 42de84456 all 45 files (W1 fixed at bfe387912), 4a4930e4e's bats lines clean (refs/bank/vc/st0095/close-F1-critic-rust-20261122, close-F2-critic-rust-42de-20261122, close-F3-critic-shell-20261122). The 7 lands whose vc read is not on the record (33d631cbc, cd832c3d0, a3e3e6461, a51da38a0, a3945b02c, a2c4fa1e2, ad2a7c655) are answered from each commit's own proof line, as hv agreed on 2026-11-22; each carries its critic in its commit or bank."
   }
 }

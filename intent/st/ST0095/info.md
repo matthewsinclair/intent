@@ -1,9 +1,9 @@
 ---
 st_id: ST0095
 title: Git-style ids: threads, work packages and issues unique by construction
-status: WIP
+status: Completed
 created: 2026-11-19
-completed:
+completed: 2026-11-22
 ---
 
 # ST0095: Git-style ids: threads, work packages and issues unique by construction
