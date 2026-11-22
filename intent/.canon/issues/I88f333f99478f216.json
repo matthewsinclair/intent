@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I88f333f99478f216",
   "origin": "01M810M009AHFWGFHY0WYW9HW4",
-  "realised": true,
   "slug": "the-acceptance-gate-scanner-reads-a-thread-id-on",
   "title": "The acceptance-gate scanner reads a thread id only as ST and four digits, so a git-style thread in a cited line is missed or misread as an ordinal",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0095's close-time Highlander sweep (vc, 2026-11-22, refs/bank/vc/st0095/highlander-close-A-intentsvcs-20261122, finding 1; start cluster C8). Fixed under hv decision 86.\n\n`id::thread_ids_in` (native/rust/crates/intentsvcs/src/id.rs, \"The one scanner\") recognises a thread id only as `ST` and four digits, in a sliding window with no word boundary. `contract.rs` uses it to read which threads a cited line names. A git-style thread id such as `ST3f9a2c1` is not seen at all, and one whose hex opens with four digits, such as `ST1234abc`, is read as the ordinal `ST1234`, a thread that does not exist. `id::marked` already reads every family, so the crate has two scanners covering different ids.\n\nExpected: one scanner. `thread_ids_in` reads words through the waist's own reader (`marked` / `read_thread`) and compares typed ids, so a cited line naming a git-style thread is read as that thread, and an ordinal-looking prefix of a hex id is not an ordinal.\n"
 }

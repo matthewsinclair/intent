@@ -5,16 +5,11 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "dbaff1e1-9b17-4902-94e9-603a011ae24c",
-    "heartbeat_at": "2026-11-22T07:00:21.626Z",
+    "heartbeat_at": "2026-11-22T07:51:35.959Z",
     "status": "active",
-    "focus": "2026-11-22 07:00Z by date -u: building hv decision 86's unit in tmp/wt-d86-cc (I88f333f, I91dd457+I78176db, I4fc4495, Ic7d939d, I1d5a3b5, riders H3 and W1), size M, on vc's go; bank under refs/bank/cc/d86/.",
+    "focus": "2026-11-22 07:51Z by date -u: d86 landed at bfe387912 and its six issues closed; building d86b (I9ed9ed4: main's six self-hosting test reds and docs/reference at v3.5.0) in tmp/wt-d86b-cc on vc's go, size M.",
     "claims": [
-      "ISSUE:I88f333f99478f216",
-      "ISSUE:I91dd45753d479393",
-      "ISSUE:I78176dbd4964f6c7",
-      "ISSUE:I4fc449541c4d1be6",
-      "ISSUE:Ic7d939d4b1a18c07",
-      "ISSUE:I1d5a3b58858c303e"
+      "ISSUE:I9ed9ed41b949246e"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -2613,7 +2608,8 @@
       "kind": "todo",
       "seq": 62,
       "text": "Issue I1d5a3b5 (st attach writes no file for a new attachment on a realised thread; owner cc, target 3.5.x): the fix and its one proof are in the issue body. Open no worktree until vc schedules it in hv's post-3.5.0 scope.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-22T07:51:34.231Z",
       "recorded_at": "2026-11-21T16:29:48.080Z"
     }
   ],
@@ -3757,6 +3753,11 @@
       "id": "01M7YP4RKG9RABW4SKE51P9QQX",
       "sender": "dc",
       "handled_at": "2026-11-21T12:50:51.472Z"
+    },
+    {
+      "id": "01M810PPWE98XKFKSZ5FMT7CSD",
+      "sender": "vc",
+      "handled_at": "2026-11-22T07:51:35.134Z"
     }
   ]
 }

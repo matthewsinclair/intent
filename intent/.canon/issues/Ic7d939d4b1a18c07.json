@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Ic7d939d4b1a18c07",
   "origin": "01M810M4N2V64SRJZGMVEEP8KN",
-  "realised": true,
   "slug": "the-cli-s-issue-door-does-not-recognise-an-addre",
   "title": "The CLI's issue door does not recognise an address, where the two thread doors do",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0095's close-time Highlander sweep (vc, 2026-11-22, close B finding 2; new at the close, not in the start sweep; came in with c437d1d83). Fixed under hv decision 86.\n\nThe CLI decides \"is this an address?\" itself with `raw.contains(\"://\")` at the two thread doors (`thread_spec_with`, `thread_id_with` in intent-cli/src/render.rs) and not at the issue door (`issue_id_with`). An `intent:///` address given where an issue id is wanted gets the not-an-id wording, while the thread doors give the address wording.\n\nExpected: the waist's readers (`id::read_*`) say when what was typed is an address, and every door words it from that answer; the two `contains(\"://\")` checks go.\n"
 }

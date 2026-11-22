@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I78176dbd4964f6c7",
   "origin": "01M810M3PZ7AAXJDZJSAZK733H",
-  "realised": true,
   "slug": "ac-new-and-at-new-store-any-string-as-a-criterio",
   "title": "ac new and at new store any string as a criterion or test label",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0095's close-time comparison of the start and close Highlander sweeps (vc, 2026-11-22, start cluster C9, missed by the close sweep). Fixed under hv decision 86.\n\n`intent ac new` and `intent at new` (Facade::ac_new, at_new, and the put path) accept any string as a criterion or test label. Nothing on the create path asks the waist whether it is a label, so a malformed label is stored, and the readers that do check (group_of, the gate) then disagree about it.\n\nExpected: the create path reads the label through the waist's one label reader and refuses a malformed one with a remedy naming the label form, writing nothing.\n"
 }

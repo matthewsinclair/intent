@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-22 07:00Z
+heartbeat_at: 2026-11-22 07:51Z
 status: active
-focus: "2026-11-22 07:00Z by date -u: building hv decision 86's unit in tmp/wt-d86-cc (I88f333f, I91dd457+I78176db, I4fc4495, Ic7d939d, I1d5a3b5, riders H3 and W1), size M, on vc's go; bank under refs/bank/cc/d86/."
-claims: [ISSUE:I88f333f99478f216, ISSUE:I91dd45753d479393, ISSUE:I78176dbd4964f6c7, ISSUE:I4fc449541c4d1be6, ISSUE:Ic7d939d4b1a18c07, ISSUE:I1d5a3b58858c303e]
+focus: "2026-11-22 07:51Z by date -u: d86 landed at bfe387912 and its six issues closed; building d86b (I9ed9ed4: main's six self-hosting test reds and docs/reference at v3.5.0) in tmp/wt-d86b-cc on vc's go, size M."
+claims: [ISSUE:I9ed9ed41b949246e]
 ---
 
 # Control Claude (cc)
@@ -18,7 +18,6 @@ _(none)_
 ## TODO
 
 - WP-04 critic answers owed by later packages, so none is lost. WP-07: C1, the address segments read once by the resolver; W2, the facade's messages take shown() via a typed ThreadId; W4, the composite reader and scope_of's fallback ('no steel thread ST0001/100'); AcState::Descoped.to typed as ThreadId, with v2 migration's refusal; R7, the architecture call on Deref and typed ids. WP-08: W12, section and listing order by origin. WP-09: W9, the sixteen thread/label subjects; R1, the label kind. ic's WP-10 holds W1, W3 and R2. (WP-06's C2, W11 and W15 are answered: one mint at 3b3c53742, AC-06.5, and the malformed-id remint arm at d88b1dccd.) (edited)
-- Issue I1d5a3b5 (st attach writes no file for a new attachment on a realised thread; owner cc, target 3.5.x): the fix and its one proof are in the issue body. Open no worktree until vc schedules it in hv's post-3.5.0 scope.
 
 ## Holds
 
