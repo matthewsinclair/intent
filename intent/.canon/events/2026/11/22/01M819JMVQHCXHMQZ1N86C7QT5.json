@@ -1,0 +1,16 @@
+{
+  "id": "01M819JMVQHCXHMQZ1N86C7QT5",
+  "ts": "2026-11-22T09:32:12.535Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 64,
+    "text": "3.5.1 READY TO CUT at T 0e4246cd8 (pushed to local and upstream), waiting on hv's direct go in vc's session. Rehearsal green at T (dc, refs/bank/dc/r351/*): kovacs gate all, build all, test shell 928 ok; local build all and brew smoke --keg; the 3.5.1 verbs 12 of 12. Scope, hv decision 86: six units landed (bfe387912, ee25c55d4, 529b50e69, b74617481, 81804f610 and 9a425df5b); ST0095 and ST0096 done; 0704 and 0705 closed; residue in ST1c2db93; release text a3612234f. After the cut: devvm upgrades to 3.5.1."
+  }
+}

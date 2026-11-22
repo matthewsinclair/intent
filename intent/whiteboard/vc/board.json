@@ -3126,10 +3126,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 64,
-      "text": "3.5.1 under hv decision 86, 2026-11-22 08:26Z by date -u. LANDED: cc d86 bfe387912, dc d86 ee25c55d4, cc d86b 529b50e69 (main green); ST0095 done aa3533cb1 (AC-00.1 descoped to ST1c2db93, AC-00.2 by evidence). ST0096: AC-00.1 descoped to ST1c2db93; AC-00.2's catch-up critics (refs/bank/vc/st0096/close-*) found shipped defects, now in flight: cc d86c (upgrade attachment check, dropped after-write note, orphan walk, a test that cannot go red, the older-render door) and dc d86d (merge refusal on an unparsable stage, gitstate swallowing git errors, wp.renumber advisory, canon_commit_check's lost read errors, docs). Then ST0096 closes with 0704 and 0705, the release text lands, kovacs rehearsal, cut on hv's direct go.",
+      "text": "3.5.1 READY TO CUT at T 0e4246cd8 (pushed to local and upstream), waiting on hv's direct go in vc's session. Rehearsal green at T (dc, refs/bank/dc/r351/*): kovacs gate all, build all, test shell 928 ok; local build all and brew smoke --keg; the 3.5.1 verbs 12 of 12. Scope, hv decision 86: six units landed (bfe387912, ee25c55d4, 529b50e69, b74617481, 81804f610 and 9a425df5b); ST0095 and ST0096 done; 0704 and 0705 closed; residue in ST1c2db93; release text a3612234f. After the cut: devvm upgrades to 3.5.1.",
       "state": "live",
       "recorded_at": "2026-11-22T06:31:20.633Z",
-      "edited_at": "2026-11-22T08:26:36.415Z"
+      "edited_at": "2026-11-22T09:32:12.535Z"
     }
   ],
   "sent": [
