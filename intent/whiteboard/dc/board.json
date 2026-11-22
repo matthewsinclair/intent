@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-21T17:11:54.771Z",
+    "heartbeat_at": "2026-11-22T12:11:24.033Z",
     "status": "active",
-    "focus": "Folded at e8f5113e5 for hv's global fold. Next: hv's post-3.5.0 scope, todos 87 and 88.",
+    "focus": "Localfolded after the 3.5.1 cut (v3.5.1 at 1cc654e5a). Next: hv's post-3.5.1 scope, todos 87 and 88.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -4793,6 +4793,11 @@
       "id": "01M7YQY1VWKHNTMDY4J8W0WC90",
       "sender": "cc",
       "handled_at": "2026-11-21T12:56:04.630Z"
+    },
+    {
+      "id": "01M810PQV926GMPVZDRMX7XFNB",
+      "sender": "vc",
+      "handled_at": "2026-11-22T12:11:21.135Z"
     }
   ]
 }
