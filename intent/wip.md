@@ -1,22 +1,21 @@
 ---
-verblock: "2026-11-20:v4.07: vc - WP-14, WP-12 guard, ST0096 WP-02 and remint landed; folded again"
-intent_version: 3.4.0
+verblock: "22 Nov 2026:v4.08: vc - globalfold after 3.5.1 shipped; leaned to live work only"
+intent_version: 3.5.1
 ---
 
 # Work In Progress
 
 ## DOING
 
-- **ST0095, git-style ids for threads, work packages and issues (P0, "or P(-1)", hv decisions 61 to 74).** Under way since 2026-11-19. Each package's seat and order are in `intent/st/ST0095/design.md`, `intent wp list ST0095` says where each stands, and vc's board (`intent wb show vc`) carries the routing. WP-05, WP-06 and WP-14 are done or landed, with WP-12's guard half and the remint doors; cc builds ST0096 WP-01 then WP-05; devbin-cc, lent by the Desk, builds WP-07 on cc's brief; ic builds WP-10 Part 2, WP-11 and WP-13; dc builds 0722, WP-08, WP-09 and WP-12's routing half, and finishes WP-03's screenshots. devbin-dc, lent by the Desk (hv decision 72), takes self-contained shell items on dc's briefs, WP-12's guard half among them. Until the release is installed from brew, no dev build runs against the main checkout's store (vc decision 132), and threads, work packages and issues are minted only in the main checkout, on main (hv decision 73).
-- **ST0096, a forge merges every open merge request with no hand step (issue 0705, hv decisions 66, 70, 71 and 74).** Under way since 2026-11-19. `intent/st/ST0096/design.md` carries cc's canon split, one canon file per record, and hv decision 74: a thread's `acceptance.md` and the cover's package table leave git with the two lists. WP-02 landed (c7e1cee74); cc builds WP-01, devbin-dc WP-03 on dc's brief.
-- **Every fix found in this work rides this release (hv decision 69).** `intent issues list` gives which are still open, and each issue names its owner.
+- **The fleet's upgrade to 3.5.1 (hv, 2026-11-22).** Every Intent project on rhadamanth takes 3.5.1 from brew, then `intent claude upgrade --apply` in each, committing what it prints. devvm's upgrade is AE's, arranged by devbin-vc; a defect it finds routes to vc.
 
 ## TODO
 
-- The release that carries ST0095 and ST0096: its number is hv's at the cut, and the tap's formula holds it until hv's word (hv decision 68). When a build of it exists, vc tells agentic-engineering-vc how its seats install it without the tap.
-- hv: whether a brew intentd should run on kovacs at all. One has run there since 2026-11-16, and issue 0703 made the shell suite independent of it.
-- ST0089 stays parked (hv decision 59): its policy needs hv's call first, since "fold at a task boundary, not at a token count" conflicts with hv's compact-at-200-250k rule.
-- The rest of the estate visit (hv decision 41): Intent's is done; the other estates follow, with the fleet's root files upgraded after this cut. Trellis moves anything bespoke out of its AGENTS.md first.
-- ST0094, the estate's last two boards.
-- Open with hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own. devbin-cc holds 0326 now.
-- Parked for hv since 2026-11-10: threads ST0060, ST0077, ST0082, ST0084 and ST0085; Laksa's and Conflab's releases; the deferred list; the banks kept off main. Their text is `git show f16dce4a7:intent/wip.md`.
+- **ST1c2db93**, the Highlander residue after ST0095 and ST0096: triage and size. Its objective and context carry the banked close reports, cc's d86c reading and the owed critic answers.
+- **dc's todos 87 and 88** wait on hv's post-3.5.1 scope: `test shell` migrating its tree's store, and the gated id scripts refusing on a stale pair.
+- **Open low issues:** `intent issues list` names them (Iae1e02a, If074a59 at this fold).
+- **Triage threads:** ST0094 (the estate's last two boards) and ST0097 (the by-hand parity scripts ask the id).
+- hv: whether a brew intentd should run on kovacs at all. One has run there since 2026-11-16; issue 0703 made the shell suite independent of it.
+- hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.
+- ST0089 stays parked (hv decision 59) until hv rules on its policy.
+- Parked for hv since 2026-11-10: threads ST0060, ST0077, ST0082, ST0084 and ST0085; Laksa's and Conflab's releases; the deferred list. Their text is `git show f16dce4a7:intent/wip.md`.
