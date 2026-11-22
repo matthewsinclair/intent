@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I06a214633d1a7d56",
   "origin": "01M815WXFSDXBCCYV6SDDMYME4",
-  "realised": true,
   "slug": "canon-commit-check-sh-loses-atts-at-s-and-its-gi",
   "title": "canon_commit_check.sh loses atts_at's and its git reads' failures, so an unreadable commit reads as no attachments",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "`canon_commit_check.sh` runs on every commit with `set -u` and no pipefail, so `atts_at`'s status 2 is lost in the pipelines at :272, :294, :346, :362 and :539: `--history` reports an unreadable commit as unmeasurable, and a parent's attachments read as none. `atts_load`'s `git ls-tree` and `git ls-files` (:170, :172) discard their status, so a failing read is no records, and `atts_at`'s `git show` (:204) likewise.\n\nExpected: an explicit `atts_load <rev> || exit 2` for the parent and in the history loop, each pipeline's status checked, and the three git reads' statuses checked.\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H4-critic-shell-guards-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
 }

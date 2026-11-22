@@ -1,9 +1,10 @@
 ---
 issue: Ib7a70c3
 title: gitstate::staged and export_ignore_decided read a git that refuses as nothing staged and nothing decided
-status: OPEN
+status: CLOSED
 severity: high
 created: 2026-11-22
+closed: 2026-11-22
 reporter: Matthew Sinclair
 ---
 

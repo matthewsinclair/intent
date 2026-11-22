@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Ic70f05f57992976c",
   "origin": "01M815WS57P38K10CY5B8GX79S",
-  "realised": true,
   "slug": "a-merge-stage-that-will-not-parse-leaves-a-threa",
   "title": "A merge stage that will not parse leaves a thread's file a side to take, dropping the other side's work packages",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "`Facade::thread_both_sides_added_packages_to` (facade.rs, about :14455) returns `Ok(None)` when a conflicted thread file's stage will not parse as JSON or decode as a thread, so the path becomes a take-a-side step. Taking a side there drops the other side's work packages, which is issue 0555's outcome. A missing stage is rightly None.\n\nExpected: a stage that will not parse or decode is refused with a typed error naming the path and the stage, and nothing is written.\n\nFound by ST0096's close-time catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H2-critic-rust-wp02-0709-20261122). Fixed under hv decision 86 for 3.5.1, dc's unit d86d.\n"
 }
