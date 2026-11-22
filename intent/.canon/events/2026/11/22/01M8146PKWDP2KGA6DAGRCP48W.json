@@ -1,0 +1,14 @@
+{
+  "id": "01M8146PKWDP2KGA6DAGRCP48W",
+  "ts": "2026-11-22T07:58:18.240Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0096/AC-04.2"
+  },
+  "payload": {
+    "evidence": "native/rust/crates/intent-cli/tests/two_branches_that_change_one_thread_merge_clean.rs: two merge requests from one main change one thread (a work package; a criterion and its test), merge in turn by the bare repository's merge-tree with no conflict, and intent doctor is clean after each is pulled. ok in bin/devbin gate rust at 0e8d8ae4f, Desk 01M8124WXD03GT0BJKCADMA3BE (2026-11-22 07:52Z to 07:57Z), whose only failures are I9ed9ed4's six base reds."
+  }
+}

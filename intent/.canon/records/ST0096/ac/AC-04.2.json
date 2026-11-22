@@ -3,6 +3,7 @@
   "text": "Two merge requests opened from one main that change one thread, one adding a work package and the other a criterion and a test, merge in turn by a bare repository's merge as a forge merges, with no conflict, and intent doctor is clean after each is pulled.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "native/rust/crates/intent-cli/tests/two_branches_that_change_one_thread_merge_clean.rs: two merge requests from one main change one thread (a work package; a criterion and its test), merge in turn by the bare repository's merge-tree with no conflict, and intent doctor is clean after each is pulled. ok in bin/devbin gate rust at 0e8d8ae4f, Desk 01M8124WXD03GT0BJKCADMA3BE (2026-11-22 07:52Z to 07:57Z), whose only failures are I9ed9ed4's six base reds."
   }
 }
