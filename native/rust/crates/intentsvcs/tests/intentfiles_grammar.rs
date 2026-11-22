@@ -27,7 +27,6 @@
 
 use intentsvcs::intentfiles::{IntentfilesError, Sigil, parse};
 use intentsvcs::remedy::Remedy;
-use testkit::repo_root;
 
 /// A valid manifest whose every line is a different SHAPE, so an injection
 /// lands in varied company rather than always between two identical rows.
@@ -231,40 +230,11 @@ fn every_error_variant_is_exercised() {
   );
 }
 
-/// **The manifest THIS REPOSITORY SHIPS must satisfy the grammar.**
-///
-/// The corpus above proves the parser refuses what it should. It says nothing
-/// about the one file anybody actually edits. A committed, hand-edited file
-/// governed by a refusing grammar needs a test that reads THAT FILE, or the
-/// first person to mistype a pin discovers it when `organize` aborts rather
-/// than when they commit.
-#[test]
-fn the_shipped_manifest_parses() {
-  let path = repo_root().join("intent").join(".intentfiles");
-  let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-    panic!(
-      "the committed manifest at {} must be readable: {e}",
-      path.display()
-    )
-  });
-
-  match parse(&text) {
-    Ok(m) => {
-      // No assertion on the CONTENT -- it changes as threads open and close,
-      // and a count here would be a second declaration of the estate.
-      let _ = m.entries.len();
-    }
-    // `{e}` ALREADY carries the line number -- the Display body opens with it.
-    // Prefixing another renders it twice, which is the doubled-residue shape
-    // `IngestError::Refused` documents: measured there as 12 findings printed
-    // as 24. One rendering, and the error owns it.
-    Err(e) => panic!(
-      "{} does not satisfy its own grammar -- {e}\n  remedy: {}",
-      path.display(),
-      e.remedy()
-    ),
-  }
-}
+// **RETIRED: `the_shipped_manifest_parses`** (issue I9ed9ed4). It read the
+// `intent/.intentfiles` this repository committed, and 0ab6485e4, which moved
+// the repository to the 3.5.0 canon format, folded the manifest into the
+// records and removed it, so its subject is gone. The grammar's own arms above
+// keep the parser covered for any project still on 3.4.0's format.
 
 /// **A COMMENT IS TEXT A HUMAN READS, AND NOTHING ELSE EVER READS IT.**
 ///

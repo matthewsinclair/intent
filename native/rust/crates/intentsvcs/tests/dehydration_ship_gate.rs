@@ -727,17 +727,7 @@ fn the_shipped_criterion_carries_a_readable_declaration() {
   // perfectly and cannot parse the one declaration that exists is a gate that
   // refuses for the wrong reason -- and it would refuse, so nothing else here
   // would notice.
-  let canon_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-    .join("../../../../intent/.canon/st/ST0057.json");
-  let Ok(raw) = std::fs::read_to_string(&canon_path) else {
-    // Not a skip-in-disguise: this test asserts a property of THIS repo, and a
-    // checkout without it is not a failing estate.
-    eprintln!("no ST0057 canon at {canon_path:?}; nothing to check");
-    return;
-  };
-  let value: serde_json::Value = serde_json::from_str(&raw).expect("ST0057 canon is JSON");
-  let thread: Thread =
-    intentsvcs::ingest::decode_thread("ST0057", value).expect("ST0057 canon parses");
+  let thread: Thread = crate::common::real_thread("ST0057");
   let criterion: &Criterion = thread
     .criteria
     .iter()
@@ -746,9 +736,28 @@ fn the_shipped_criterion_carries_a_readable_declaration() {
 
   let declared = preconditions::declared_in(&criterion.text)
     .expect("the shipped declaration must be readable by the gate that depends on it");
+  // **A PARSE LANDING IN THE WRONG PLACE SWEEPS IN THE IDS OUTSIDE THE BLOCK**
+  // (`declared_in`'s own failure). The criterion's text names more criteria
+  // than the block declares, so the block's ids must be a strict part of every
+  // criterion id the text names, read by the waist's one label reader, and
+  // each must be a criterion this thread's records hold. The expectation comes
+  // from the text and the records, not from a count written down (issue
+  // I9ed9ed4 retired a `>= 2` floor here).
+  let named: Vec<String> = criterion
+    .text
+    .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-' || c == '.'))
+    .map(|word| word.trim_end_matches('.'))
+    .filter(|word| intentsvcs::id::label_kind(word) == Some(intentsvcs::id::LabelKind::Criterion))
+    .map(str::to_string)
+    .collect();
   assert!(
-    declared.len() >= 2,
-    "a declaration this short is likelier to be a parse landing in the wrong place: {declared:?}"
+    declared.iter().all(|id| named.contains(id)) && named.iter().any(|id| !declared.contains(id)),
+    "the block's ids are a strict part of those the text names: declared {declared:?}, named {named:?}"
+  );
+  let held: Vec<&str> = thread.criteria.iter().map(|c| c.id.as_str()).collect();
+  assert!(
+    declared.iter().all(|id| held.contains(&id.as_str())),
+    "every declared precondition names a criterion ST0057 holds: declared {declared:?}, held {held:?}"
   );
   assert!(
     !declared.iter().any(|id| id == "AC-00.1"),

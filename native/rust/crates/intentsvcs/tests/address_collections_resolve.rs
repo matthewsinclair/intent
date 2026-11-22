@@ -63,24 +63,9 @@ const STID: &str = "ST0056";
 /// silently short list -- a denominator that can shrink without saying so is
 /// the defect this row was minted for.
 fn d57_8_collection_fence() -> Vec<String> {
-  let canon_path = repo_root().join("intent/.canon/st/ST0057.json");
-  let raw = std::fs::read_to_string(&canon_path).unwrap_or_else(|e| {
-    panic!(
-      "AT-07.7's denominator is canon and canon is unreadable at {}: {e}\n  \
-       This row asserts a population read from the record of intent. It does not\n  \
-       fall back to the implementation, because a denominator taken from the thing\n  \
-       under test agrees with it by construction.",
-      canon_path.display()
-    )
-  });
-
-  // Typed rather than `Value`, so a schema change is a loud deserialisation
-  // failure here instead of a silent `None` two lines down.
-  // Read by the one decoder, so either canon format reads (ST0095 WP-06).
-  let value: serde_json::Value =
-    serde_json::from_str(&raw).unwrap_or_else(|e| panic!("ST0057 canon is not JSON: {e}"));
-  let thread: Thread = intentsvcs::ingest::decode_thread("ST0057", value)
-    .unwrap_or_else(|e| panic!("ST0057 canon did not read as a Thread: {e:?}"));
+  // Read by the one reader of a project's canon, so either canon format
+  // reads (ST0095 WP-06; issue I9ed9ed4).
+  let thread: Thread = crate::common::real_thread("ST0057");
 
   let design = thread
     .attachments

@@ -756,32 +756,37 @@ fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
 /// register demands, in exactly the files it demands them in, and moves on its
 /// own when a citation moves.
 fn register_ids_for(rel: &str) -> BTreeSet<String> {
-  // EVERY thread's canon, not this one's. The first cut read `ST0056.json`
+  // EVERY thread's tests, not one thread's. The first cut read `ST0056.json`
   // alone and immediately lost `AT-01.5`, which is ST0057's citation of a
   // shipped guard -- so the narrow version exempted nothing in that file and
   // the sweep stripped a load-bearing marker. A citation can come from any
   // thread; the file being cited has no idea which.
-  let dir = repo_root().join("intent/.canon/st");
-  let mut text = String::new();
-  for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
-    let path = entry.expect("a readable dir entry").path();
-    if path.extension().and_then(|e| e.to_str()) == Some("json") {
-      text.push_str(&std::fs::read_to_string(&path).expect("a readable canon file"));
-    }
-  }
-  let mut out = BTreeSet::new();
-  // The extract is JSON; the citation and the id sit on the same test record,
-  // so a line-oriented scan over the rendered rows is enough and needs no
-  // parser dependency.
-  for chunk in text.split("\"id\":") {
-    if let Some(id_end) = chunk.find(',') {
-      let id: String = chunk[..id_end].trim().trim_matches('"').to_string();
-      if id.starts_with("AT-") && chunk.contains(rel) {
-        out.insert(id);
-      }
-    }
-  }
-  out
+  //
+  // **READ BY THE ONE READER OF A PROJECT'S CANON** (issue I9ed9ed4): this
+  // scanned `.canon/st/*.json` for test rows, and the 3.5.0 format (0ab6485e4)
+  // gives each row a file of its own, so the scan found none and the two
+  // load-bearing citations read as leaks.
+  register_citations()
+    .iter()
+    .filter(|(file, _)| file.contains(rel))
+    .map(|(_, id)| id.clone())
+    .collect()
+}
+
+/// Every test row's cited file and its id, from every thread, read once per
+/// run: the payload walk asks [`register_ids_for`] once per file.
+fn register_citations() -> &'static [(String, String)] {
+  static CITATIONS: std::sync::OnceLock<Vec<(String, String)>> = std::sync::OnceLock::new();
+  CITATIONS.get_or_init(|| {
+    let project = intentsvcs::project::Project::open(&repo_root()).expect("this repository opens");
+    intentsvcs::ingest::read(&project)
+      .expect("this repository's canon reads")
+      .threads
+      .iter()
+      .flat_map(|thread| &thread.tests)
+      .filter_map(|at| at.file.clone().map(|file| (file, at.id.clone())))
+      .collect()
+  })
 }
 
 /// The citations in one payload file: identifiers that point into Intent's own

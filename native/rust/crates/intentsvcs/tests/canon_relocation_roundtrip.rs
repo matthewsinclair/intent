@@ -134,6 +134,22 @@ fn compare(before: &ingest::Canon, after: &ingest::Canon) -> (usize, Vec<String>
   (examined, out)
 }
 
+/// The real estate's model as a bundle in the canon format the project
+/// declares (issue I9ed9ed4). A bundle with no project state is written in
+/// 3.4.0's format, which cannot carry a git-style id, so once the estate held
+/// one (`I1d5a3b5`) the round trip refused before it compared anything.
+fn in_the_projects_format(project: &Project, before: &ingest::Canon) -> Bundle {
+  let mut bundle = Bundle::new(
+    "roundtrip",
+    before.threads.clone(),
+    before.issues.clone(),
+    Vec::new(),
+  );
+  bundle.project = ingest::read_project_state(project)
+    .unwrap_or_else(|found| panic!("the real project's state reads: {found:?}"));
+  bundle
+}
+
 #[test]
 fn every_field_of_every_artefact_survives_the_relocation() {
   let root = repo_root();
@@ -151,12 +167,7 @@ fn every_field_of_every_artefact_survives_the_relocation() {
   // Write the whole model out through the resolver, into a project that has
   // never held canon at any other location.
   let fx = Fixture::new();
-  let bundle = Bundle::new(
-    "roundtrip",
-    before.threads.clone(),
-    before.issues.clone(),
-    Vec::new(),
-  );
+  let bundle = in_the_projects_format(&project, &before);
   let parts = export::canon_parts(&bundle).expect("canon serialises");
   for (rel, body) in &parts {
     fx.write_file(&format!("intent/{rel}"), body);
@@ -234,14 +245,13 @@ fn a_field_dropped_in_transit_is_reported_by_name() {
     .clone();
 
   let fx = Fixture::new();
-  let bundle = Bundle::new(
-    "roundtrip",
-    before.threads.clone(),
-    before.issues.clone(),
-    Vec::new(),
-  );
+  let bundle = in_the_projects_format(&project, &before);
+  let mut mutated: Vec<String> = Vec::new();
   for (rel, body) in export::canon_parts(&bundle).expect("canon serialises") {
-    let body = if rel.contains(victim.id.as_str()) {
+    // The thread's own file: in the 3.5.0 format its children are files of
+    // their own whose paths carry its id too, and none of them holds a slug.
+    let body = if rel == intentsvcs::project::canon_thread_rel(victim.id.as_str()) {
+      mutated.push(rel.clone());
       let mut value: Value = serde_json::from_str(&body).expect("a canon part is JSON");
       let removed = value
         .as_object_mut()
@@ -259,6 +269,11 @@ fn a_field_dropped_in_transit_is_reported_by_name() {
     fx.write_file(&format!("intent/{rel}"), &body);
   }
 
+  assert_eq!(
+    mutated,
+    vec![intentsvcs::project::canon_thread_rel(victim.id.as_str())],
+    "the mutation reached the victim's own file, and only it"
+  );
   let after = ingest::read(&fx.project()).expect("the mutated estate still reads");
   let (examined, differences) = compare(&before, &after);
 

@@ -1089,3 +1089,23 @@ pub const SHARED_B: &str = "01M7WC0P8VR6FFPF2WGDKR2YCZ";
 /// A creation event's id whose hash begins apart from both of [`SHARED_A`]'s
 /// pair.
 pub const APART: &str = "01M7WRV7ZXZZ47FFMJ6E15EWYN";
+
+/// THIS repository's canon, read through `ingest::read`, the one reader of a
+/// project's canon, so a test that asserts a property of the real estate
+/// follows the canon format the project holds (issue I9ed9ed4: tests that read
+/// `.canon/st/<id>.json` alone went red when the 3.5.0 format gave a thread's
+/// children files of their own).
+pub fn real_canon() -> intentsvcs::ingest::Canon {
+  let project =
+    intentsvcs::project::Project::open(&testkit::repo_root()).expect("this repository opens");
+  intentsvcs::ingest::read(&project).expect("this repository's canon reads")
+}
+
+/// A thread of THIS repository, from [`real_canon`].
+pub fn real_thread(id: &str) -> intentsvcs::model::Thread {
+  real_canon()
+    .threads
+    .into_iter()
+    .find(|t| t.id == id)
+    .unwrap_or_else(|| panic!("this repository's canon carries {id}"))
+}
