@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Ica9eb41d989002b5",
   "origin": "01M815WM1VR4S0RJ0741GZ056J",
-  "realised": true,
   "slug": "criteria-read-from-their-files-take-the-label-or",
   "title": "criteria_read_from_their_files_take_the_label_order reads no file",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0096's catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H1-* and close-H3-*). Fixed under hv decision 86 in cc's d86c for 3.5.1.\n\ntests/a_thread_is_its_records_files.rs: the arm sorts a literal list with id::label_order and never reads a criterion's file, so removing ingest's sort of the criteria it reads leaves it green. Expected: the arm writes a thread's criteria as files and reads them through ingest, so removing the sort turns it red."
 }

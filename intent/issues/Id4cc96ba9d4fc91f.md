@@ -1,9 +1,10 @@
 ---
 issue: Id4cc96b
 title: A write whose index record and orphan removal both fail reports only the first after-write note
-status: OPEN
+status: CLOSED
 severity: medium
 created: 2026-11-22
+closed: 2026-11-22
 reporter: Matthew Sinclair
 ---
 

@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Id4cc96ba9d4fc91f",
   "origin": "01M815WJAPQ34R95W76FSD9ZYN",
-  "realised": true,
   "slug": "a-write-whose-index-record-and-orphan-removal-bo",
   "title": "A write whose index record and orphan removal both fail reports only the first after-write note",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0096's catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H1-* and close-H3-*). Fixed under hv decision 86 in cc's d86c for 3.5.1.\n\nfacade.rs (about 22958) folds the two after-write notes with unindexed.or(unremoved), so when both steps fail the orphan removal's note is dropped and the operator never hears that a record's files were left behind. Expected: both notes surface."
 }

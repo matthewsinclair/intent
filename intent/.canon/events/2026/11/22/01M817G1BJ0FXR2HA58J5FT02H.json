@@ -1,0 +1,16 @@
+{
+  "id": "01M817G1BJ0FXR2HA58J5FT02H",
+  "ts": "2026-11-22T08:55:49.878Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.edit",
+  "subject": {
+    "type": "issue",
+    "id": "Idf2dd7c0ead158b1"
+  },
+  "payload": {
+    "bytes": 1442,
+    "severity": "medium",
+    "title": "intent upgrade's unsynced-attachment check is a second copy of organize's gate, and on a case-folding disk it names the row's spelling, not the file's"
+  }
+}

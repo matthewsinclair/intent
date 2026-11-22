@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-22 08:28Z
+heartbeat_at: 2026-11-22 08:56Z
 status: active
-focus: "2026-11-22 08:27Z by date -u: building d86c (Idf2dd7c, Id4cc96b, Id5256a4, Ica9eb41; hv decision 86, for 3.5.1) in tmp/wt-d86c-cc on vc's go, size M; (5) judged out to ST1c2db93."
-claims: [ISSUE:Idf2dd7c0ead158b1, ISSUE:Id4cc96ba9d4fc91f, ISSUE:Id5256a4fbd818c9d, ISSUE:Ica9eb41d989002b5]
+focus: "2026-11-22 08:56Z by date -u: d86c landed at b74617481 and its four issues closed; standing by for 3.5.1's rehearsal and cut. Todo 56 waits on hv's post-3.5.0 scope."
+claims: []
 ---
 
 # Control Claude (cc)

@@ -1,15 +1,27 @@
 ---
 issue: Idf2dd7c
-title: intent upgrade's unsynced-attachment check is a second copy of organize's gate and passes an edited attachment spelled in another case
-status: OPEN
-severity: high
+title: intent upgrade's unsynced-attachment check is a second copy of organize's gate, and on a case-folding disk it names the row's spelling, not the file's
+status: CLOSED
+severity: medium
 created: 2026-11-22
+closed: 2026-11-22
 reporter: Matthew Sinclair
 ---
 
-Found by ST0096's catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H1-* and close-H3-*). Fixed under hv decision 86 in cc's d86c for 3.5.1.
+Found by ST0096's catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H1-* and close-H3-*). Fixed under hv decision 86 in cc's d86c (bank refs/bank/cc/d86c/v1, landed at b74617481), for 3.5.1.
 
-migrate.rs (about 675-706) compares an unrealised thread's attachment with the store's sha by itself: a missing file is clean, and it reads only the row's own spelling, so on a disk that does not fold case an edited attachment under another spelling (issue 0722) is never read and passes as clean, and its edit is lost when the upgrade removes the thread's views. Expected: the check asks organize's gate, the one judge of whether a file may go, at the file as the disk keys find it.
+## The defect as found
+
+migrate.rs (about 675-706) judged an unrealised thread's attachment by itself: it compared the file's sha with the store's at the row's own spelling, a second copy of organize's gate, which is the one judge of whether a file may go. Two consequences:
+
+- On a disk that folds case, an edited attachment spelled in another case (issue 0722) was refused, rightly, but the refusal named the row's spelling, a file nobody had written, rather than the file that held the edit.
+- The check could disagree with the removal it guards, which resolves a row's file and decides its fate through organize.
+
+On a disk that does not fold case, a file spelled in another case is a case pair, which organize reports and never removes, so the upgrade lost no edit there. The issue as first filed said it did; the critics' reading was corrected by cc's d86c (vc, 2026-11-22).
+
+## The fix
+
+The check asks organize on organize's tree: organize::observe's walk, organize::row_file (the one answer to which file on a tree is an attachment row's, which plan's attachment arm also calls) and organize::gate. Opaque attachments' sidecar bytes are loaded first where the row does not already carry them, and a tree that cannot be read refuses.
 
 ---
 

@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Id5256a4fbd818c9d",
   "origin": "01M815WK6DQ2TVT8EXKM02B8F9",
-  "realised": true,
   "slug": "the-orphan-pass-and-ingest-define-a-thread-s-rec",
   "title": "The orphan pass and ingest define a thread's record files two ways",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-22",
+  "closed": "2026-11-22",
   "reporter": "Matthew Sinclair",
   "body": "Found by ST0096's catch-up critics (vc, 2026-11-22, refs/bank/vc/st0096/close-H1-* and close-H3-*). Fixed under hv decision 86 in cc's d86c for 3.5.1.\n\nFacade::orphaned_records (facade.rs about 15904) walks a thread's records directory with Project::files_in, which honours .gitignore and drops walk errors, while ingest's collect_record_paths (ingest.rs about 977) reads every record file and surfaces an unreadable directory. A record file under an ignored name is read by ingest and never removed by the orphan pass, and a walk error is silent. Expected: one walker, errors surfaced."
 }
