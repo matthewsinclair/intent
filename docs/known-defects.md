@@ -1,6 +1,6 @@
-# Known defects in v3.5.0
+# Known defects in v3.5.1
 
-**Every defect on this page has been run against the build v3.5.0 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.4.0 (dev, 039f3099866e) dev`, each in a fresh scratch project under an isolated `HOME`. A project this build makes mints git-style ids, so the threads and work packages in the transcripts below carry ids such as `ST73aa287b16c054f6`, and a run of your own will mint different ones. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.5.1 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.5.0 (dev, 0e4246cd8058) dev`, each in a fresh scratch project under an isolated `HOME`. A project this build makes mints git-style ids, so the threads and work packages in the transcripts below carry ids such as `STc4a3b1ba8d3762a6`, and a run of your own will mint different ones. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-22T11:31:58.279Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-22T11:31:58.279Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-22T11:31:58.279Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-22T11:31:58.279Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-21T13:56:00.852Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-22T11:31:58.279Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -39,7 +39,7 @@ The same search with the daemon stopped reconciles first and finds the file. How
 
 ```
   $ intent st list
-  error: this project has not been migrated to Intent v3 -- it declares Intent 3.4.0, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.5.0, and 1 steel thread carries v2 canon this binary cannot read (ST0099)
     remedy: run `intent upgrade` to migrate this project to Intent v3
 ```
 
@@ -52,11 +52,11 @@ at exit 1. `intent issues list` and `intent todo`, which have nothing to do with
 **`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). After writing a body with `intent set intent:///threads/<thread>/wp/<package> body <text>` and hydrating the thread, `intent/st/<thread>/WP/<package>/info.md` is on disk carrying that body, and:
 
 ```
-  $ intent wp show ST73aa287b16c054f6/a4576708
-  ST73aa287/WP-a457: first package
+  $ intent wp show STc4a3b1ba8d3762a6/882ae810
+  STc4a3b1b/WP-882a: first package
   status: Not Started
   scope: S
-  criteria: none scoped to ST73aa287/a457
+  criteria: none scoped to STc4a3b1b/882a
 ```
 
 None of the body is shown. `intent wp --help` describes the verb as `Show work package info.md`, so the description and the behaviour disagree. Read the file directly if you want its body.
@@ -66,10 +66,10 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 **The close gate passes a test row that cites no file** (`intent#0213`, and `intent#0229`, a second row for the same code site filed from an independent report). Create an AT with the default `--kind test` and no `--file`, take it red and then green, and both of these exit 0:
 
 ```
-  $ intent at lint STb54622e7fd14fe7a
-  lint: STb54622e7fd14fe7a ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
-  $ intent ac gate STb54622e7fd14fe7a
-  gate: STb54622e7fd14fe7a PASS -- 1/1 satisfied
+  $ intent at lint ST5141719ba7014bcf
+  lint: ST5141719ba7014bcf ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
+  $ intent ac gate ST5141719ba7014bcf
+  gate: ST5141719ba7014bcf PASS -- 1/1 satisfied
 ```
 
 `at lint` names the row it did not examine and still answers `ok`; `ac gate` passes over it and says nothing.
