@@ -227,6 +227,66 @@ fn an_unsynced_edit_to_an_unrealised_threads_attachment_is_refused_before_any_wr
   );
 }
 
+/// Issue Idf2dd7c: the check is organize's gate, at the file
+/// `project::disk_match` answers is the row's (issue 0722). On a disk that
+/// folds case a file spelled in another case is the row's working copy: its
+/// edit is refused, by that file's own name. On one that does not it is a
+/// case pair, which nothing removes. Either way the edit survives the upgrade,
+/// and a refusal names the file that holds it. A second copy of the gate read
+/// only the row's spelling, and on a folding disk named a file nobody wrote.
+#[test]
+fn an_unsynced_edit_under_another_spelling_survives_and_is_named_by_its_file() {
+  const EDIT: &str = "an edit the store never took\n";
+  let mut thread = sample_thread("ST0001");
+  thread.status = ThreadStatus::Completed;
+  thread.completed = Some(thread.created.clone());
+  thread.realised = false;
+  let fx = ordinal_estate(std::slice::from_ref(&thread));
+  let attachment = &thread.attachments[0];
+  let dir = fx.project().thread_dir(&thread.id);
+  let respelled = dir.join(attachment.path.to_uppercase());
+  assert_ne!(
+    respelled,
+    dir.join(&attachment.path),
+    "the fixture's attachment has a spelling another case can differ from"
+  );
+  std::fs::create_dir_all(respelled.parent().expect("a parent")).expect("mkdir");
+  std::fs::write(&respelled, EDIT).expect("edit under another spelling");
+  fx.git_commit_all();
+
+  let folds = fx
+    .project()
+    .disk_folds_case()
+    .expect("whether this disk folds case");
+  let before = estate(fx.root());
+
+  let upgraded = Facade::upgrade(&fx.project(), &facade_ctx());
+  assert_eq!(
+    std::fs::read_to_string(&respelled).expect("the edited file is still there"),
+    EDIT,
+    "the upgrade lost the edit"
+  );
+  match (folds, upgraded) {
+    // The row's working copy holds an edit: refused before any write, by the
+    // file that holds it.
+    (true, Err(FacadeError::MigrationBlocked(Blocked::DirtyAttachment { path }))) => {
+      assert_eq!(
+        path,
+        fx.project().relative(&respelled),
+        "the refusal names another file"
+      );
+      assert_eq!(
+        crate::common::changed(&before, &estate(fx.root())),
+        Vec::<String>::new(),
+        "the refused upgrade wrote"
+      );
+    }
+    // A case pair, which nothing removes: the upgrade proceeds.
+    (false, Ok(_)) => {}
+    (folds, other) => panic!("on a disk that folds case: {folds}, the upgrade answered {other:?}"),
+  }
+}
+
 #[test]
 fn two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write() {
   let mut thread = sample_thread("ST0001");

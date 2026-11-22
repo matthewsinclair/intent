@@ -196,6 +196,32 @@ pub struct Step {
   pub content: Option<Vec<u8>>,
 }
 
+/// **THE ONE ANSWER TO "WHICH FILE ON THIS TREE IS ATTACHMENT ROW `row`'s"**
+/// (issue 0722; issue Idf2dd7c made it one): `row` itself, present or absent,
+/// unless only a file spelled in another case is there. On a disk that folds
+/// case that file IS the row's working copy, verified or dehydrated under its
+/// own spelling. On one that does not it is a second file, a case pair
+/// [`plan`] reports, and `None`: the row has no file of its own here, and
+/// canon's spelling is not written beside the pair, which would make the pair
+/// on this disk too. [`plan`]'s attachment arm and the upgrade's unsynced-edit
+/// check (`migrate`) both ask it, over [`observe`]'s tree.
+pub(crate) fn row_file(
+  row: PathBuf,
+  present: &BTreeSet<PathBuf>,
+  keyed: &crate::project::DiskKeys<'_, PathBuf>,
+  folds: bool,
+) -> Option<PathBuf> {
+  if present.contains(&row) {
+    return Some(row);
+  }
+  let twin = keyed.twins(&row).next().cloned();
+  match twin {
+    Some(twin) if folds => Some(twin),
+    Some(_) => None,
+    None => Some(row),
+  }
+}
+
 /// What [`plan`] needs to know about the tree.
 ///
 /// Passed in rather than walked inside `plan`, so every row can be driven against
@@ -854,25 +880,13 @@ pub fn plan(
   for thread in &canon.threads {
     let declared_thread = realised.declares(&thread.id);
     for att in &thread.attachments {
-      let mut path = project.thread_dir(thread.id.as_str()).join(&att.path);
-      // **THE ROW'S FILE MAY BE SPELLED IN ANOTHER CASE** (issue 0722). On a disk
-      // that folds case that file IS the row's working copy, verified or
-      // dehydrated under its own spelling. On one that does not it is a second
-      // file, reported below as the pair it makes, and canon's spelling is not
-      // written beside it, which would make the pair on this disk too.
+      let row = project.thread_dir(thread.id.as_str()).join(&att.path);
       if !tree.folds {
-        pairs.extend(keyed.twins(&path).cloned());
+        pairs.extend(keyed.twins(&row).cloned());
       }
-      let twin = match present.contains(&path) {
-        true => None,
-        false => keyed.twins(&path).next().cloned(),
+      let Some(path) = row_file(row, present, &keyed, tree.folds) else {
+        continue;
       };
-      if let Some(twin) = twin {
-        if !tree.folds {
-          continue;
-        }
-        path = twin;
-      }
       attachment_paths.insert(path.clone());
       if !declared_thread {
         // Undeclared and present: row four, through the same gate. The store

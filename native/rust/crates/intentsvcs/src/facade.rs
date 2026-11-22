@@ -4814,7 +4814,9 @@ pub struct ClaudeUpgraded {
 #[derive(Debug, Default)]
 pub struct Applied {
   foreign: Vec<String>,
-  after_write: Option<Note>,
+  /// Every after-write step that failed, each its own note: they run whatever
+  /// the others answer, so each failure is reported (issue Id4cc96b).
+  after_write: Vec<Note>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15709,7 +15711,7 @@ impl Facade {
         canon_files.push((path.clone(), thread.id.shown()));
         set.add(path, bytes);
       }
-      orphans.extend(self.orphaned_records(&thread.id.stored(), &written));
+      orphans.extend(self.orphaned_records(&thread.id.stored(), &written)?);
     }
     for issue in issues {
       let path = self.project.issue_json(issue.number);
@@ -15901,26 +15903,39 @@ impl Facade {
   /// **ONLY `.json` FILES**: those are the records. Anything else there is not
   /// this write's to remove, and ingest names it (`UnknownFileShape`). A
   /// thread in 3.4.0's format writes no records, so it has none to orphan.
+  ///
+  /// **READ BY INGEST'S OWN WALK** (issue Id5256a4), so a file ingest reads as a
+  /// record is one this pass can find, a gitignored name included, and a
+  /// directory it cannot read refuses the write rather than passing as empty.
+  /// The walk's findings (a file that is not a record's `.json`) are ingest's
+  /// to report, as it does on every read; this pass removes records only.
   fn orphaned_records(
     &self,
     thread: &str,
     written: &std::collections::BTreeSet<String>,
-  ) -> Vec<std::path::PathBuf> {
+  ) -> Result<Vec<std::path::PathBuf>, FacadeError> {
     let root = self
       .project
       .intent_dir()
       .join(crate::project::canon_records_rel(thread));
-    Project::files_in(&root)
-      .into_iter()
-      .map(|rel| root.join(rel))
-      .filter(|path| path.extension().is_some_and(|x| x == "json"))
-      .filter(|path| {
-        path
-          .strip_prefix(self.project.intent_dir())
-          .map(|rel| !written.contains(&rel.to_string_lossy().into_owned()))
-          .unwrap_or(false)
-      })
-      .collect()
+    let mut records = Vec::new();
+    // Files there that are not a record's `.json`: ingest names them on every
+    // read, so this pass, which removes records only, drops them here.
+    let mut not_records = Vec::new();
+    crate::ingest::collect_record_paths(&self.project, &root, &mut records, &mut not_records)
+      .map_err(FacadeError::Ingest)?;
+    records.sort();
+    Ok(
+      records
+        .into_iter()
+        .filter(|path| {
+          path
+            .strip_prefix(self.project.intent_dir())
+            .map(|rel| !written.contains(&rel.to_string_lossy().into_owned()))
+            .unwrap_or(false)
+        })
+        .collect(),
+    )
   }
 
   /// Remove each record file [`Facade::orphaned_records`] found, once the
@@ -22862,11 +22877,11 @@ impl Facade {
         self.canon = next;
         return Ok(Applied {
           foreign: Vec::new(),
-          after_write: Some(Note::after_write(
+          after_write: vec![Note::after_write(
             "rendering the views",
             &cause,
             RERENDER_REMEDY,
-          )),
+          )],
         });
       }
     };
@@ -22875,11 +22890,11 @@ impl Facade {
       self.canon = next;
       return Ok(Applied {
         foreign: Vec::new(),
-        after_write: Some(Note::after_write(
+        after_write: vec![Note::after_write(
           "rendering the event files",
           &cause,
           RERENDER_REMEDY,
-        )),
+        )],
       });
     }
 
@@ -22902,11 +22917,11 @@ impl Facade {
         self.canon = next;
         return Ok(Applied {
           foreign: Vec::new(),
-          after_write: Some(Note::after_write(
+          after_write: vec![Note::after_write(
             "rendering the views",
             &cause,
             RERENDER_REMEDY,
-          )),
+          )],
         });
       }
     };
@@ -22923,11 +22938,11 @@ impl Facade {
       Err(cause) => {
         return Ok(Applied {
           foreign,
-          after_write: Some(Note::after_write(
+          after_write: vec![Note::after_write(
             "writing the views",
             &FacadeError::ViewsNotWritten { cause },
             RERENDER_REMEDY,
-          )),
+          )],
         });
       }
     };
@@ -22937,7 +22952,7 @@ impl Facade {
     self.note_landed(&applied);
     let landed: Vec<std::path::PathBuf> = applied.written().map(std::path::PathBuf::from).collect();
     applied.keep();
-    // Both run whatever the other answers; the first to fail is the note.
+    // Both run whatever the other answers, and each failure is its own note.
     let unindexed = self
       .record_landed(&canon_files, &landed)
       .err()
@@ -22955,7 +22970,7 @@ impl Facade {
         RERENDER_REMEDY,
       )
     });
-    let after_write = unindexed.or(unremoved);
+    let after_write: Vec<Note> = unindexed.into_iter().chain(unremoved).collect();
     Ok(Applied {
       foreign,
       after_write,

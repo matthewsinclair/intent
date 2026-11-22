@@ -227,6 +227,14 @@ pub enum Blocked {
     #[source]
     source: std::io::Error,
   },
+  /// Organize's view of the tree, which the unsynced-attachment check asks
+  /// (issue Idf2dd7c), could not be read: the walk, or whether the disk folds
+  /// case. Unanswered is refused, as organize refuses it.
+  #[error("the tree could not be read to check the unrealised threads' attachments: {source}")]
+  TreeUnread {
+    #[source]
+    source: crate::organize::OrganizeError,
+  },
 }
 
 impl crate::remedy::Remedy for Blocked {
@@ -256,6 +264,10 @@ impl crate::remedy::Remedy for Blocked {
       ),
       Self::AttachmentUnreadable { path, .. } => format!(
         "nothing was written. Make {path} readable (the cause line names why it is not), then run `intent upgrade` again"
+      ),
+      Self::TreeUnread { source } => format!(
+        "nothing was written. {}, then run `intent upgrade` again",
+        crate::remedy::Remedy::remedy(source)
       ),
       Self::Conservation { expected, actual } => format!(
         "{} artefact(s) produced no canon; nothing in the project caused this and a re-run will reproduce it -- report it",
@@ -683,24 +695,53 @@ fn assemble(
     .iter()
     .filter(|t| !realised.declares(&t.id))
     .collect();
-  for thread in &unrealised_threads {
-    let dir = project.thread_dir(&thread.id);
-    for attachment in &thread.attachments {
-      let path = dir.join(&attachment.path);
-      let differs = match std::fs::read(&path) {
-        Ok(bytes) => crate::model::sha256_hex(&bytes) != attachment.sha256,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
-        Err(source) => {
-          return Err(Blocked::AttachmentUnreadable {
-            path: project.relative(&path),
+  //
+  // **ASKED OF ORGANIZE, ON ORGANIZE'S TREE** (issue Idf2dd7c). This was a
+  // second copy of organize's gate, comparing shas by itself and reading only
+  // the row's spelling. Which file is the row's is `organize::row_file`'s
+  // answer over `organize::observe`'s tree, the tree and the resolver the
+  // removal that follows the landing uses (issue 0722: on a disk that folds
+  // case a file spelled in another case is the row's working copy, gated and
+  // named by its own spelling; on one that does not it is a case pair nothing
+  // removes). Whether it may go is `organize::gate`'s. A file that is not there
+  // has nothing to lose. An opaque attachment's bytes are its sidecar's where
+  // the row does not already carry them, as a v2 thread's do.
+  if unrealised_threads.iter().any(|t| !t.attachments.is_empty()) {
+    let (tree, _) =
+      crate::organize::observe(project, &[]).map_err(|source| Blocked::TreeUnread { source })?;
+    let keyed = crate::project::DiskKeys::new(&tree.present, project.root());
+    for thread in &unrealised_threads {
+      let mut attachments = (*thread).clone();
+      let unloaded = crate::ingest::load_blobs(project, &mut attachments);
+      if !unloaded.is_empty() {
+        return Err(Blocked::ProjectState(Refusal::new(unloaded)));
+      }
+      let dir = project.thread_dir(&thread.id);
+      for attachment in &attachments.attachments {
+        let Some(path) = crate::organize::row_file(
+          dir.join(&attachment.path),
+          &tree.present,
+          &keyed,
+          tree.folds,
+        )
+        .filter(|path| tree.present.contains(path)) else {
+          continue;
+        };
+        let step = crate::organize::Step {
+          path,
+          action: crate::organize::Action::Dehydrate,
+          content: attachment.as_bytes().map(<[u8]>::to_vec),
+        };
+        crate::organize::gate(&step).map_err(|refused| match refused {
+          crate::organize::OrganizeError::HandEdited { .. } => Blocked::DirtyAttachment {
+            path: project.relative(&step.path),
+          },
+          crate::organize::OrganizeError::Io { source, .. } => Blocked::AttachmentUnreadable {
+            path: project.relative(&step.path),
             source,
-          });
-        }
-      };
-      if differs {
-        return Err(Blocked::DirtyAttachment {
-          path: project.relative(&path),
-        });
+          },
+          other => Blocked::TreeUnread { source: other },
+        })?;
       }
     }
   }

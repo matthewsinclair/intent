@@ -258,12 +258,75 @@ fn a_thread_file_in_the_release_format_that_lists_its_children_is_refused() {
   );
 }
 
+/// Issue Id5256a4: the orphan pass reads a thread's record files by ingest's
+/// own walk, so a record file under a name git ignores, which ingest reads, is
+/// one the pass finds and removes once the store no longer holds it.
+#[test]
+fn a_detached_attachments_record_file_leaves_the_disk_under_an_ignored_name() {
+  let fx = Fixture::new();
+  fx.git_init();
+  fx.write_thread(&sample_thread("ST0001"));
+  let mut facade = fx.facade();
+  let path = facade
+    .st_show("ST0001")
+    .expect("the fixture thread")
+    .attachments[0]
+    .path
+    .clone();
+  let intent = fx.project().intent_dir();
+  let record = intent.join(canon_attachment_rel("ST0001", &path));
+  assert!(record.is_file(), "the attachment's record file was written");
+  fx.write_file(
+    ".gitignore",
+    &format!("{}\n", fx.project().relative(&record)),
+  );
+  let ignored = std::process::Command::new("git")
+    .args(["check-ignore", "-q"])
+    .arg(&record)
+    .current_dir(fx.root())
+    .status()
+    .expect("git runs");
+  assert!(
+    ignored.success(),
+    "the control: git ignores the record's name"
+  );
+  let address = intentsvcs::address::parse(&format!("intent:///threads/ST0001/attachments/{path}"))
+    .expect("an attachment address");
+  facade.detach_attachment(&address).expect("the detach");
+  assert!(
+    !record.exists(),
+    "a record the store no longer holds, under an ignored name, leaves its file behind"
+  );
+}
+
+/// Issue Ica9eb41: the order is the reader's, so the arm reads. A thread's
+/// criteria are laid out as files, whose names sort `AC-03.10` before
+/// `AC-03.2`, and read back through ingest in the label order.
 #[test]
 fn criteria_read_from_their_files_take_the_label_order() {
-  use intentsvcs::id::label_order;
-  let mut labels = vec!["AC-01.10", "AC-02.1", "AC-01.2", "AC-01.1"];
-  labels.sort_by(|a, b| label_order(a, b));
-  assert_eq!(labels, ["AC-01.1", "AC-01.2", "AC-01.10", "AC-02.1"]);
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  let template = thread.criteria[0].clone();
+  let labels = ["AC-00.1", "AC-03.1", "AC-03.2", "AC-03.10"];
+  thread.criteria = labels
+    .iter()
+    .map(|label| intentsvcs::model::Criterion {
+      id: (*label).to_string(),
+      ..template.clone()
+    })
+    .collect();
+  thread.tests.clear();
+  lay_out(&fx, &thread);
+  let read = intentsvcs::ingest::read(&fx.project()).expect("the laid-out thread reads");
+  let order: Vec<&str> = read.threads[0]
+    .criteria
+    .iter()
+    .map(|c| c.id.as_str())
+    .collect();
+  assert_eq!(
+    order, labels,
+    "the criteria were read in the files' order, not the labels'"
+  );
 }
 
 #[test]

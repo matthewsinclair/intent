@@ -342,11 +342,13 @@ pub fn read_issue(
 /// operator needs to open in order to fix it, or silently drop the attachment
 /// that failed. Reading answers "are the bytes here"; judging whether they are
 /// the right bytes is a different question with a different verb.
-fn load_blobs(project: &Project, thread: &mut Thread) -> Vec<Finding> {
+pub(crate) fn load_blobs(project: &Project, thread: &mut Thread) -> Vec<Finding> {
   let mut findings = Vec::new();
   let intent_dir = project.intent_dir();
   for att in &mut thread.attachments {
-    if !att.is_opaque() {
+    // A row that already carries its bytes, as a v2 thread's does before its
+    // sidecar is first written, has nothing to load (issue Idf2dd7c).
+    if !att.is_opaque() || att.blob.is_some() {
       continue;
     }
     let rel = crate::project::canon_blob_rel(&thread.id, &att.path);
@@ -965,6 +967,12 @@ fn records_without_a_thread(project: &Project) -> Result<Vec<Finding>, IngestErr
   Ok(findings)
 }
 
+/// **THE ONE WALK OF A THREAD'S RECORD FILES** (issue Id5256a4): ingest reads
+/// each kind's directory through it, and the write's orphan pass
+/// (`Facade::orphaned_records`) reads the whole records directory through it,
+/// so the two cannot disagree about which files are a thread's records, and a
+/// directory neither can read is an error to both.
+///
 /// The record files under one of a thread's record directories, recursively
 /// (ST0096 WP-05), with a finding for each file that cannot be a record.
 ///
@@ -974,7 +982,7 @@ fn records_without_a_thread(project: &Project) -> Result<Vec<Finding>, IngestErr
 /// dotfiles would lose that attachment on the way back in, without a word.
 /// Only a write in flight is passed over; anything else that is not a `.json`
 /// file is named.
-fn collect_record_paths(
+pub(crate) fn collect_record_paths(
   project: &Project,
   dir: &std::path::Path,
   out: &mut Vec<PathBuf>,
