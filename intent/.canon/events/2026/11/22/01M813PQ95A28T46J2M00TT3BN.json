@@ -1,0 +1,15 @@
+{
+  "id": "01M813PQ95A28T46J2M00TT3BN",
+  "ts": "2026-11-22T07:49:34.668Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I9ed9ed41b949246e"
+  },
+  "payload": {
+    "severity": "high",
+    "title": "Main is red: six self-hosting tests read Intent's own .intentfiles and committed views, which 3.5.0's upgrade of this repository removed"
+  }
+}
