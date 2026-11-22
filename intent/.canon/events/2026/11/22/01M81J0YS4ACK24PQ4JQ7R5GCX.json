@@ -1,0 +1,16 @@
+{
+  "id": "01M81J0YS4ACK24PQ4JQ7R5GCX",
+  "ts": "2026-11-22T11:59:50.052Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 64,
+    "text": "3.5.1 RELEASED 2026-11-22 11:58Z: tag v3.5.1 at 1cc654e5a, main on local and upstream at 1cc654e5a. Every leg green: candidate run 45018364402, local, macOS and kovacs. brew smoke --at-tag is green on keg 3.5.1. rhadamanth is on brew 3.5.1, doctor is clean, intentd is 3.5.1, and Intent.app is 3.5.1 at 1cc654e5a. Open: (a) devvm's upgrade to 3.5.1 is with AE's vc, arranged by devbin-vc. (b) dc's post-tag explorer-shots check and its rehearsal-worktree removal. (c) step 5's site version (intent.laksa.io still reads 3.3.2) waits on hv's word."
+  }
+}

@@ -15,7 +15,7 @@ claims: []
 
 - ST0095, git-style ids: SHIPPED in v3.5.0 (940c9535a, 2026-11-21). Package records still open: WP-05 shows WIP and WP-13 Not Started though 4a4930e4e landed its docs; their owners close them. The thread's close waits on todo 99 (AC-00.1, AC-00.2), hv's word. (edited)
 - ST0096, issue 0705: WP-01, WP-02, WP-05 done; WP-03 and WP-04 WIP. Its WP-03 frozen-pair drive (the bare fresh clone through the commit gate with Desk run 1's control, 01M7WW8B) is to run on brew 3.5.0 when hv sets post-3.5.0 scope. 0733 and 0707 closed. (edited)
-- 3.5.1 READY TO CUT at T 0e4246cd8 (pushed to local and upstream), waiting on hv's direct go in vc's session. Rehearsal green at T (dc, refs/bank/dc/r351/*): kovacs gate all, build all, test shell 928 ok; local build all and brew smoke --keg; the 3.5.1 verbs 12 of 12. Scope, hv decision 86: six units landed (bfe387912, ee25c55d4, 529b50e69, b74617481, 81804f610 and 9a425df5b); ST0095 and ST0096 done; 0704 and 0705 closed; residue in ST1c2db93; release text a3612234f. After the cut: devvm upgrades to 3.5.1. (edited)
+- 3.5.1 RELEASED 2026-11-22 11:58Z: tag v3.5.1 at 1cc654e5a, main on local and upstream at 1cc654e5a. Every leg green: candidate run 45018364402, local, macOS and kovacs. brew smoke --at-tag is green on keg 3.5.1. rhadamanth is on brew 3.5.1, doctor is clean, intentd is 3.5.1, and Intent.app is 3.5.1 at 1cc654e5a. Open: (a) devvm's upgrade to 3.5.1 is with AE's vc, arranged by devbin-vc. (b) dc's post-tag explorer-shots check and its rehearsal-worktree removal. (c) step 5's site version (intent.laksa.io still reads 3.3.2) waits on hv's word. (edited)
 
 ## TODO
 
