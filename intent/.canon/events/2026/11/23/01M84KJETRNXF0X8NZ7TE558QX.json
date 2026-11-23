@@ -1,0 +1,16 @@
+{
+  "id": "01M84KJETRNXF0X8NZ7TE558QX",
+  "ts": "2026-11-23T16:24:35.416Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 88,
+    "text": "88, 3.5.2: GREEN and banked with ST0097 A and B at refs/bank/dc/s97/v1 (34ff4ab66, the fix as a 4th commit on c092c950e), run 5 on the Desk 16:19Z-16:24Z by date -u: committed through the gate, test shell 932 ok 0 not ok, all four 88 arms ok. Given to vc to land."
+  }
+}

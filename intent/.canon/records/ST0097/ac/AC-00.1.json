@@ -1,0 +1,9 @@
+{
+  "id": "AC-00.1",
+  "text": "The by-hand parity scripts the id census listed ask the id door, read-only, or are retired, so the census (ST0056's parity/data/id_patterns.tsv) holds no row: ST0095 AC-12.4, descoped here.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "8e041900d"
+  }
+}

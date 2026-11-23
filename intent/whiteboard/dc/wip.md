@@ -3,22 +3,21 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-23 12:58Z
+heartbeat_at: 2026-11-23 16:17Z
 status: active
 focus: "Localfold 2026-11-23 for hv's compact. 3.5.2: Ie7fb84c, I84286b7, Ic884775 and Ie99dbb6 landed and closed. Open: 88 red on a diagnosed fix (unrun), 87 probed, ST0097 A and B committed on 88 in tmp/wt-t88-dc."
-claims: [ST0097]
+claims: []
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST0097, 3.5.2: unit A (ST0057's canon_clone_completeness.sh and canon_concurrent_diff.sh read the GraphQL door) committed as 3838b7503 and unit B (12 scripts retired, roster and census rows, the census at no row, AT-10.5, 04.6, 02.4 and 07.5 to n-a, AC-04.6, 02.4 and 07.5 withdrawn on hv decision 88) as c092c950e, both through the full gate in run 4 (2026-11-23 12:52Z by date -u), stacked on 88's 6e69bebd6 in tmp/wt-t88-dc, banked at refs/bank/dc/s97/run4. canon_clone_completeness 856 of 856; canon_concurrent_diff exit 2 (no two WIP threads, by design). Not yet given to vc for landing, because 88 under it is red.
+_(none)_
 
 ## TODO
 
 - 87, 3.5.2: bin/devbin test shell writes its own tree's store. Run 4's probe (2026-11-23 12:54Z by date -u, refs/bank/dc/s97/evidence.tar, out4/t87-calls.tsv): the whole suite moved the tree's store (sha changed, schema 37 both sides, so no migration this time; a schema bump would migrate it). 24 calls ran the tree's pair inside the tree: critic shell (11, critic_arming_census.bats), critic shell (8, critic_report_format.bats), agents sync (2, docs_completeness.bats), claude rules (1, rule_validator.bats), critic rust (1). Next: find which of those opens the store for write (agents sync most likely), and point those tests at a scratch project. (edited)
-- 88, 3.5.2 (vc's ruling under hv's pen, broad): the gated id scripts pass a commit that changes none of the paths they read when the pair cannot answer (no pair, a rebuild in progress, a pair older than the door), saying NOT CHECKED. Committed in tmp/wt-t88-dc as 6e69bebd6 (refs/bank/dc/s97/run4), RED in run 4 (2026-11-23 12:54Z by date -u): both pass-unchecked arms refused, because git diff takes no --pathspec-from-file. The fix (pathspecs as arguments) is UNCOMMITTED in tmp/wt-t88-dc, banked as refs/bank/dc/s97/t88-fix2.patch, and unrun. Next: a Desk run of gated_id_door.bats with the fix, routed through st attach ST0056 parity/tools/lib_read_only.sh, as a 4th commit on c092c950e; then bank all four for vc. (edited)
 
 ## Holds
 

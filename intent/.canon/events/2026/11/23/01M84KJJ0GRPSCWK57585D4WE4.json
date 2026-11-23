@@ -1,0 +1,16 @@
+{
+  "id": "01M84KJJ0GRPSCWK57585D4WE4",
+  "ts": "2026-11-23T16:24:38.672Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 174,
+    "text": "ST0097, 3.5.2: units A (3838b7503) and B (c092c950e) banked with 88 at refs/bank/dc/s97/v1, green in run 5 (932 ok), given to vc to land 16:24Z by date -u. Close and unclaim after vc lands."
+  }
+}
