@@ -18,23 +18,22 @@
 # holds, the run is harmless; if it does not, the harm lands in a throwaway
 # project and IS the finding.
 #
-# WHAT IT CANNOT WITNESS, named rather than folded into the green. Rows with no
-# v2 incumbent (`search`, `schema` on the new surface) have nothing to run and
-# are SKIPPED BY NAME. A probe that quietly omitted them would report a
-# population it never covered -- the failure `surface_check.sh`'s INV skip-list
-# already had once.
+# EVERY DECLARED ROW IS RUN, and only those: the population is read from the
+# table, and the invocation map below is checked against it both ways before
+# anything runs (issue Iae1e02a). A probe that quietly omitted a row would
+# report a population it never covered -- the failure `surface_check.sh`'s INV
+# skip-list already had once.
 #
-# IT PROBES THE V2 INCUMBENT, deliberately: v2's behaviour is the parity basis
-# these rows were measured from, and most v3 commands are unwired mid-ladder.
-# Point `BIN` at the v3 binary once WP-09 lands and the same corpus re-runs
-# unchanged -- that is the whole reason the binary is a parameter.
+# It probes the v3 binary (issue 0330); `BIN` is a parameter so another build
+# can be measured against the same corpus.
 #
 # MUTATION-TESTED, both arms, because a check returning zero findings on its
 # first run is the shape this ST has been bitten by seven times:
 #   A -- a genuine mutator (`st new`) run through the read harness is caught,
 #        with the created files in the diff.
-#   B -- a row removed from the invocation map is reported UNCOVERED and the
-#        probed count drops, so the corpus cannot silently shrink.
+#   B -- a row removed from the invocation map is reported UNCOVERED, so the
+#        corpus cannot silently shrink; a line naming a row the table does not
+#        declare exposed+read is reported STALE, so it cannot silently grow.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -87,9 +86,26 @@ ISSUE="$(minted_id "$out")" || die "issues add printed no id it minted: $out"
 # A build before ST0095 WP-02 prints the issue's canon path on that line, and a
 # probe of a path measures a refusal, not a read.
 case "$ISSUE" in */* | *.json) die "issues add printed a path, not an id (a build before ST0095 WP-02?): $ISSUE" ;; esac
+# A criterion's label is the caller's, not minted: the thread's own group.
+AC="AC-00.1"
+out="$(cd "$PROJ" && "$BIN" ac new "$ST" "$AC" --text "Probe criterion" 2>&1)" || die "could not create a scratch criterion: $out"
 
 # --- the harness --------------------------------------------------------------
-snap() { (cd "$PROJ" && find . -type f -print0 | sort -z | xargs -0 shasum 2>/dev/null); }
+# What a read must leave alone is the project's state: every file, and what
+# the store owns. NOT its runtime files, which any open of the store makes:
+# SQLite's -wal and -shm sidecars, a lock, and the rolling snapshot under
+# intent/.backup/; and NOT the derived search index, which a read may refresh
+# (issue Iae1e02a, where those were the only changes graphql, id and wb brief
+# made). What the store owns is read through `intent export --format json`,
+# the store's own projection of its records and events, so this script keeps
+# no list of tables of its own, and a write still in the WAL is seen.
+snap() {
+  (cd "$PROJ" && find . -type f ! -path './intent/.backup/*' ! -name '*.db' ! -name '*.db-wal' \
+    ! -name '*.db-shm' ! -name '*.lock' -print0 | sort -z | xargs -0 shasum 2>/dev/null)
+  local owned
+  owned="$(cd "$PROJ" && "$BIN" export --format json 2>&1 </dev/null)" || owned="UNREADABLE: $owned"
+  printf '%s  (what the store owns)\n' "$(shasum <<<"$owned" | cut -d' ' -f1)"
+}
 
 MUTATORS=""
 PROBED=0
@@ -97,7 +113,7 @@ run_one() {
   local label="$1"; shift
   local before after rc
   before="$(snap)"
-  (cd "$PROJ" && "$BIN" "$@" >/dev/null 2>&1); rc=$?
+  (cd "$PROJ" && "$BIN" "$@" >/dev/null 2>&1 </dev/null); rc=$?
   after="$(snap)"
   PROBED=$((PROBED + 1))
   if [ "$before" = "$after" ]; then
@@ -109,90 +125,87 @@ run_one() {
   fi
 }
 
-# The invocation map. Arguments cannot be derived from the table -- it records
-# what a command IS, not a runnable example -- so they are hand-supplied. The
-# POPULATION is not: it is read from the table below, and a declared-read row
-# missing from this map is reported UNCOVERED rather than silently skipped, so a
-# row added later surfaces as a gap instead of shrinking the corpus.
-printf 'read-claim: probing rows declared `exposed_on_mcp: true` + `read_or_mutate: read`\n'
-run_one "st list"          st list
-run_one "st show"          st show "$ST"
-run_one "st edit"          st edit "$ST"
-run_one "wp list"          wp list "$ST"
-run_one "wp show"          wp show "$WP"
-run_one "ac list"          ac list "$ST"
-run_one "ac status"        ac status "$ST"
-run_one "ac gate"          ac gate "$ST"
-run_one "at list"          at list "$ST"
-run_one "issues list"      issues list
-run_one "issues show"      issues show "$ISSUE"
-run_one "info"             info
-run_one "config get"       config get intent_version
-run_one "agents validate"  agents validate
-run_one "agents template"  agents template
-run_one "lang list"        lang list
-run_one "lang show"        lang show shell
-run_one "modules check"    modules check
-run_one "modules find"     modules find intent_helpers
-run_one "plugin list"      plugin list
-run_one "plugin show"      plugin show claude
-run_one "ext list"         ext list
-run_one "ext show"         ext show nonesuch
-run_one "ext validate"     ext validate
-run_one "version"          version
-run_one "critic"           critic shell
-# **ENTERED THE POPULATION ON 2026-08-16, AND THIS SCRIPT REFUSED UNTIL IT WAS
-# PROBED.** `doctor` was declared `mutate` on reasoning that was correct about a
-# v2 command carrying `--fix`, which v3 retires; vc ruled it `read`. The moment
-# the row changed, it became a `read` claim nobody had witnessed, and the
-# UNCOVERED refusal fired on the author of the change. That is the refusal doing
-# exactly what it was hardened for -- a reclassification is the cheapest way to
-# acquire an unwitnessed claim, because it adds no row and no code.
-run_one "doctor"           doctor
-
-COVERED="st list|st show|st edit|wp list|wp show|ac list|ac status|ac gate|at list|issues list|issues show|info|config get|agents validate|agents template|lang list|lang show|modules check|modules find|plugin list|plugin show|ext list|ext show|ext validate|version|critic|doctor"
-# No v2 incumbent, so there is nothing to run -- named, never folded into a green.
-# `llm guide` earned its place here by being CAUGHT: it was declared minutes
-# after this probe landed and reported UNCOVERED on the next run, which is the
-# whole point of deriving the population from the table rather than from this
-# list. A row added later surfaces as a gap instead of shrinking the corpus.
-# `export` earned its place the same way on 2026-08-16, and is the better story
-# because nothing was ADDED: the row was reclassified `mutate` -> `read`, which
-# moved it into this probe's population without touching a single line here.
-NO_V2="search|schema|llm guide|export"
+# THE INVOCATION MAP, AND THE ONE LIST THE PROBE READS (issue Iae1e02a). Each
+# line is a declared path, a tab, and the arguments that run it, with {ST},
+# {WP}, {AC} and {ISSUE} standing for the ids minted above. Arguments cannot
+# be derived from the table -- it records what a command IS, not a runnable
+# example -- so they are hand-supplied, and no argument holds a space.
+#
+# The map and the table are checked against each other BOTH WAYS before
+# anything runs. A declared row the map lacks is UNCOVERED; a map line whose
+# path the table does not declare `exposed_on_mcp: true` + `read_or_mutate:
+# read` is STALE. Both refuse. The probe used to check only the first: a
+# second list named what it covered, and the rows it ran were spelled in the
+# calls, so `st edit` and `doctor`, declared `mutate`, were run anyway and
+# reported as mislabelled reads when the table was right.
+MAP="$(cat <<'MAP'
+ac gate	ac gate {ST}
+ac list	ac list {ST}
+ac show	ac show {ST} {AC}
+ac status	ac status {ST}
+agents validate	agents validate
+at lint	at lint {ST}
+at list	at list {ST}
+estate status	estate status
+events	events
+graphql	graphql {__typename}
+id	id {ST}
+index status	index status
+issues list	issues list
+issues show	issues show {ISSUE}
+outstanding	outstanding
+schema	schema
+search	search probe
+st list	st list
+st show	st show {ST}
+todo	todo
+todo list	todo list
+wb brief	wb brief cc
+wb profile	wb profile list
+wb show	wb show cc
+wb status	wb status
+wp list	wp list {ST}
+wp show	wp show {WP}
+MAP
+)"
 
 DECLARED="$(jq -r '[.families[].entries[], .new_surface[]][]
   | select(.exposed_on_mcp == true and .read_or_mutate == "read") | .path' "$TABLE" | sort -u)"
 [ -n "$DECLARED" ] || die "the table declares no exposed+read rows -- with a populated table that is a bad query, and probing nothing while reporting a pass is the failure this whole toolchain exists for"
+MAPPED="$(cut -f1 <<<"$MAP" | sort -u)"
+[ "$(cut -f1 <<<"$MAP" | sort | uniq -d)" = "" ] || die "the map names a path twice: $(cut -f1 <<<"$MAP" | sort | uniq -d | tr '\n' ' ')"
 
-UNCOVERED=""; SKIPPED=""
-# Paths contain spaces, so the list is walked with a record separator rather
-# than by word-splitting -- `st list` is ONE row, not two.
-for p in $(printf '%s\n' "$DECLARED" | tr ' ' '\036'); do
-  path="$(printf '%s' "$p" | tr '\036' ' ')"
-  grep -qxF "$path" <<<"$(tr '|' '\n' <<<"$COVERED")" && continue
-  grep -qxF "$path" <<<"$(tr '|' '\n' <<<"$NO_V2")" && { SKIPPED="$SKIPPED $path"; continue; }
-  UNCOVERED="$UNCOVERED $path"
-done
-
-printf '\nread-claim: %d row(s) declare exposed+read; %d probed; no v2 incumbent, not probed:%s\n' \
-  "$(printf '%s\n' "$DECLARED" | grep -c .)" "$PROBED" "${SKIPPED:- none}"
+# Paths hold spaces, so each list is compared line by line, never word-split.
+UNCOVERED="$(comm -23 <(printf '%s\n' "$DECLARED") <(printf '%s\n' "$MAPPED"))"
+STALE="$(comm -13 <(printf '%s\n' "$DECLARED") <(printf '%s\n' "$MAPPED"))"
+if [ -n "$STALE" ]; then
+  printf 'read-claim: FINDING -- the map runs rows the table does not declare exposed+read:\n'
+  while IFS= read -r path; do
+    printf '  %-18s %s\n' "$path" "$(jq -r --arg p "$path" '[.families[].entries[], .new_surface[]][]
+      | select(.path == $p) | "declared read_or_mutate: \(.read_or_mutate), exposed_on_mcp: \(.exposed_on_mcp)"' "$TABLE" | head -1)"
+  done <<<"$STALE"
+  printf '  -- the table is the population: remove each line from the map, or correct its declaration in surface/dispatch-table.json. Nothing was run.\n'
+  exit 1
+fi
 if [ -n "$UNCOVERED" ]; then
-  # REFUSES rather than reports, since 2026-08-16. It printed and exited 0 until
-  # `export` moved into the population by reclassification -- which showed that
-  # the two lists above are only a discipline if being in NEITHER is an error.
   # An unprobed `read` claim is a promise to an agent with nothing behind it,
-  # and this file's own siblings all refuse rather than default.
-  #
-  # The remedy is a decision, not a chore, which is why it is worth blocking on:
-  # a row belongs in `COVERED` with an invocation (it has a v2 incumbent and the
-  # claim can be witnessed) or in `NO_V2` (it cannot be, and that gets recorded).
-  # Silence chose neither and looked identical to both.
-  printf 'read-claim: FINDING -- declared `read` but never run:%s\n' "$UNCOVERED"
-  printf '  -- add an invocation above and list it in COVERED, or name it in NO_V2 if it has no v2 incumbent.\n'
+  # and a reclassification is the cheapest way to acquire one: it adds no row
+  # and no code (doctor, 2026-08-16; export, the same day).
+  printf 'read-claim: FINDING -- declared `read` but never run: %s\n' "$(tr '\n' ' ' <<<"$UNCOVERED")"
+  printf '  -- add a line for each to the map with the arguments that run it. Nothing was run.\n'
   exit 1
 fi
 
+printf 'read-claim: probing rows declared `exposed_on_mcp: true` + `read_or_mutate: read`\n'
+while IFS=$'\t' read -r path args; do
+  args="${args//\{ST\}/$ST}"; args="${args//\{WP\}/$WP}"
+  args="${args//\{AC\}/$AC}"; args="${args//\{ISSUE\}/$ISSUE}"
+  read -r -a argv <<<"$args"
+  run_one "$path" "${argv[@]}"
+done <<<"$MAP"
+
+printf '\nread-claim: %d row(s) declare exposed+read; %d probed\n' \
+  "$(printf '%s\n' "$DECLARED" | grep -c .)" "$PROBED"
 if [ -n "$MUTATORS" ]; then
   printf 'read-claim: FINDING -- rows declared `read` that CHANGED THE TREE:%s\n' "$MUTATORS"
   printf '  -- an agent is told these are safe to call. Fix the declaration or the command.\n'
