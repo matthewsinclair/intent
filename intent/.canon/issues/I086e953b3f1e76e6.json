@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I086e953b3f1e76e6",
   "origin": "01M84K6PHJX5PGZJEMAQEVVPHG",
-  "realised": true,
   "slug": "three-manifest-reads-in-facade-rs-swallow-an-unr",
   "title": "Three manifest reads in facade.rs swallow an unreadable file with .ok()",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-23",
+  "closed": "2026-11-23",
   "reporter": "Matthew Sinclair",
   "body": "Three facade reads of the manifest (`intent/.intentfiles`) turn an unreadable file into \"no manifest\" with `.ok()`, so an I/O or permission error is swallowed instead of refused with a remedy (IN-AG-NO-SILENT-001). A fourth treats an unreadable file as \"differs\" and rewrites it rather than reporting it.\n\nFound by critic-rust on ST1c2db93 U2 (cc, 2026-11-23), whose `read_manifest` is the read that raises `ManifestUnreadable`; these sites are not yet routed through it. Line numbers are as of U2's tree:\n\n- `native/rust/crates/intentsvcs/src/facade.rs` ~18404, `set_thread_status_fiat`: the rollback snapshot reads `std::fs::read_to_string(&manifest).ok()`.\n- facade.rs ~21971, `issue_add`: `std::fs::read_to_string(self.project.intentfiles_path()).ok()`.\n- facade.rs ~22235, `set_issue_status`: the same read.\n- facade.rs ~23391, `restore_manifest`: `read_to_string(&manifest).ok().as_deref() != Some(..)` rewrites the file instead of reporting that it could not be read.\n\n`repin` (~14939) also reads inline but raises `ManifestUnreadable`, so it is not a swallow.\n\nFix: route each through `read_manifest` (or its error), and keep a snapshot's \"there was no file\" distinct from \"the file could not be read\".\n"
 }
