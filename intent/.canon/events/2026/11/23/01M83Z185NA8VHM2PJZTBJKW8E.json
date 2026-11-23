@@ -1,0 +1,15 @@
+{
+  "id": "01M83Z185NA8VHM2PJZTBJKW8E",
+  "ts": "2026-11-23T10:25:40.032Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ie7fb84c39039d091"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "upgrade: a view left from another branch, untracked after git switch, stops intent upgrade"
+  }
+}

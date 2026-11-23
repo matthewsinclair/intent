@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I81ecc7f24fead39b",
+  "origin": "01M83Z1A0QJCS3WEVRN03VFVN4",
+  "realised": true,
+  "slug": "ac-new-accepts-ac-01-1-on-a-thread-whose-package",
+  "title": "ac new accepts AC-01.1 on a thread whose package has a hash id, which doctor then rejects",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported from an attendee's first `intent upgrade` to 3.5.1 in a practice repo with open branches (hv's AE decision 165, 2026-11-23, relayed by agentic-engineering-vc and devbin-vc). These are the attendee's steps and AE has not reproduced them.\n\nOn a thread whose work package has a hash id, `intent ac new ... AC-01.1` is accepted, and the verb's own error text gives `AC-01.1` as its example. `intent doctor` then reports \"AC-01.1 belongs to WP-01, which the thread does not have\". The right label is `AC-<wp hash>.1`, or `AC-00.1` for the thread. No verb renames an AC, so the attendee withdrew it and made a new one.\n\nA verb accepts what doctor rejects, so the two disagree about one rule. hv decision 86 counted \"ac new and at new taking any label\" among the defects 3.5.1 fixes, so either that fix does not cover a hash-id package's numbered label, or it regressed.\n\nThe fix:\n- `ac new` and `at new` refuse a label naming a package the thread does not have, with the same words doctor uses.\n- Their example text names a label valid on that thread.\n- Whether a rename verb is wanted is a separate question for hv.\n"
+}

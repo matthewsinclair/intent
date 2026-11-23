@@ -1,0 +1,15 @@
+{
+  "id": "01M83Z193CQF0PV6G7EVBA690E",
+  "ts": "2026-11-23T10:25:40.984Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I84286b72f2600c27"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "upgrade: main and a branch upgraded apart conflict on work-package records at merge"
+  }
+}

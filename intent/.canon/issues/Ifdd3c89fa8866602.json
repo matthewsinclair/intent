@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "Ifdd3c89fa8866602",
+  "origin": "01M83Z1AZ48TJV9N9H17CYMN3V",
+  "realised": true,
+  "slug": "ac-status-suggests-re-citing-an-at-at-another-th",
+  "title": "ac status suggests re-citing an AT at another thread's test line (match not anchored to the thread)",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Reported from an attendee's first `intent upgrade` to 3.5.1 in a practice repo with open branches (hv's AE decision 165, 2026-11-23, relayed by agentic-engineering-vc and devbin-vc). These are the attendee's steps and AE has not reproduced them.\n\nAfter the AC rename in the issue on `ac new` labels, filed beside this one, the old `AT-01.1` and `AT-01.2` cited lines that now carry `AT-<hash>.*`. `intent ac status` suggested re-citing them at two lines that are another thread's tests, because \"AT-01.1\" also matches \"ST0006 AT-01.1\".\n\nQuestion for the fix: should the re-citation match be anchored to the thread, so that a line naming another thread's AT is never offered?\n"
+}
