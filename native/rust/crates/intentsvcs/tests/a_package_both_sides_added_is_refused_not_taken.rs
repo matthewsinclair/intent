@@ -142,3 +142,89 @@ fn a_file_under_a_threads_packages_whose_name_is_not_a_package_id_is_a_side_to_t
   );
   assert_eq!(conflicts.take_sides, vec![path], "it is a side to take");
 }
+
+/// Issue Ic884775: **ONE PACKAGE TWO BRANCHES UPGRADED APART BOTH WROTE IS A
+/// SIDE TO TAKE, NOT TWO PACKAGES.** Each branch's move to the release's format
+/// writes every package it holds as a file, so a package the branches share
+/// is an add/add with no base whenever its state differs between them. `sync`
+/// read that as two packages both sides added and told the person to
+/// re-create one and cancel the other. The merge base held the package, so it
+/// is one record both sides changed, and the plan offers it as a side to take.
+#[test]
+fn one_package_branches_upgraded_apart_both_wrote_is_a_side_to_take_not_two_packages() {
+  use intentsvcs::facade::Facade;
+  use intentsvcs::model::WpStatus;
+  use intentsvcs::plan::Action;
+  let fx = Fixture::ordinal();
+  let thread = sample_thread("ST0001");
+  fx.write_thread(&thread);
+  // As 3.4.0's `intent init` leaves a project: the store is ignored, and the
+  // config already carries its project id, which an upgrade would otherwise
+  // mint on each branch apart.
+  fx.write_file(".gitignore", "intent/.cache/\n");
+  fx.write_file(
+    "intent/.config/config.json",
+    "{\n  \"intent_version\": \"3.4.0\",\n  \"project_id\": \"00000000-0000-4000-8000-000000000001\",\n  \"created\": \"2026-11-01T00:00:00.000Z\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
+  );
+  fx.git_init();
+  fx.git_commit_all();
+  let upgraded = |fx: &Fixture| {
+    Facade::upgrade(&fx.project(), &crate::common::facade_ctx()).expect("the upgrade");
+    fx.git_commit_all();
+  };
+
+  fx.git(&["switch", "-q", "-c", "side"]);
+  let mut moved = thread.clone();
+  let first = moved
+    .wps
+    .first_mut()
+    .expect("the sample thread has packages");
+  first.status = if first.status == WpStatus::Wip {
+    WpStatus::NotStarted
+  } else {
+    WpStatus::Wip
+  };
+  let package = first.seq.stored();
+  fx.write_thread(&moved);
+  fx.git_commit_all();
+  upgraded(&fx);
+  fx.git(&["switch", "-q", "-"]);
+  // The switch leaves the upgraded branch's aggregate views, which this branch
+  // does not ignore yet; the upgrade names them and says to remove them
+  // (issue Ie7fb84c), and they are views, so removing them loses nothing.
+  fx.git(&["clean", "-q", "-f", "-d", "--", "intent"]);
+  upgraded(&fx);
+
+  let merged = std::process::Command::new("git")
+    .args(["merge", "--no-edit", "side"])
+    .current_dir(fx.root())
+    .output()
+    .expect("run git merge");
+  let project = fx.project();
+  let record = project.relative(
+    &project
+      .intent_dir()
+      .join(canon_wp_rel(&thread.id.stored(), &package)),
+  );
+  assert!(
+    !merged.status.success()
+      && intentsvcs::gitstate::unmerged(fx.root())
+        .expect("the unmerged paths")
+        .iter()
+        .any(|u| u.path == record && !u.base),
+    "the fixture must stop the merge on the package's file as an add/add: {}",
+    String::from_utf8_lossy(&merged.stdout)
+  );
+
+  let plan = fx
+    .facade_on_disk()
+    .sync_plan(&intentsvcs::sync::Scope::All)
+    .expect("one package in two states must be planned, not refused");
+  assert!(
+    plan
+      .steps
+      .iter()
+      .any(|s| matches!(&s.action, Action::TakeSide { path } if *path == record)),
+    "the package's file must be a side to take"
+  );
+}

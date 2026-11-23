@@ -193,6 +193,36 @@ pub fn unmerged(root: &Path) -> Result<Vec<Unmerged>, GitStateError> {
   Ok(found)
 }
 
+/// The commit a merge in progress started from, `git merge-base HEAD
+/// MERGE_HEAD`, or `None` when no merge is in progress or the two sides share
+/// no history (issue Ic884775).
+pub fn merge_base(root: &Path) -> Result<Option<String>, GitStateError> {
+  if !merging(root) {
+    return Ok(None);
+  }
+  let out = Command::new("git")
+    .args(["merge-base", "HEAD", "MERGE_HEAD"])
+    .current_dir(root)
+    .output()
+    .map_err(|source| GitStateError::Spawn {
+      args: "merge-base HEAD MERGE_HEAD".to_string(),
+      source,
+    })?;
+  // Exit 1 with nothing printed is git's answer for two histories with no
+  // common commit; anything else that fails is git refusing.
+  match out.status.code() {
+    Some(0) => Ok(Some(
+      String::from_utf8_lossy(&out.stdout).trim().to_string(),
+    )),
+    Some(1) if out.stdout.is_empty() && out.stderr.is_empty() => Ok(None),
+    code => Err(GitStateError::Refused {
+      args: "merge-base HEAD MERGE_HEAD".to_string(),
+      code: code.unwrap_or(-1),
+      stderr: String::from_utf8_lossy(&out.stderr).trim().to_string(),
+    }),
+  }
+}
+
 /// Is a merge in progress, so that `MERGE_HEAD` names the side coming in?
 pub fn merging(root: &Path) -> bool {
   Command::new("git")

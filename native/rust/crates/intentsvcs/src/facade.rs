@@ -14051,14 +14051,25 @@ impl Facade {
         });
       }
     }
-    if let Some(added) = conflicts.packages_added_twice.first() {
+    // **ONE PACKAGE BOTH SIDES WROTE IS NOT TWO PACKAGES** (issue Ic884775).
+    // Two branches that each moved to the release's format write every package
+    // they hold, so one the merge base already held is an add/add with no
+    // base, the same package in two states: one record both sides changed, a
+    // side to take as any record is. Only a package the base did not hold is
+    // two packages under one id, which taking a side would drop.
+    let mut one_package_twice = Vec::new();
+    for added in &conflicts.packages_added_twice {
+      if self.merge_base_held_package(added)? {
+        one_package_twice.push(added.path.clone());
+        continue;
+      }
       return Err(FacadeError::PackageAddedTwice {
         thread: added.thread.clone(),
         package: added.package.clone(),
         path: added.path.clone(),
       });
     }
-    for path in &conflicts.take_sides {
+    for path in conflicts.take_sides.iter().chain(&one_package_twice) {
       steps.push(Step::take_side(path.clone()));
     }
 
@@ -14635,6 +14646,41 @@ impl Facade {
   /// a version is missing, which leaves it a side to take. A version that is
   /// there and does not read as a thread is
   /// [`FacadeError::MergeStageUnreadable`] (issue Ic70f05f).
+  /// Did the merge base already hold the package both sides of a merge added
+  /// as a file (issue Ic884775)? Asked of the base's package file, in the
+  /// release's format, and of its thread file, in 3.4.0's, which lists the
+  /// packages inside it.
+  ///
+  /// **AN ANSWER IT CANNOT READ IS NO**, and so the refusal stands: a base
+  /// version of the thread file that does not decode cannot say the package
+  /// was there, and taking a side on a guess could drop one.
+  fn merge_base_held_package(
+    &self,
+    added: &crate::plan::PackageAddedTwice,
+  ) -> Result<bool, FacadeError> {
+    let root = self.project.root();
+    let Some(base) = crate::gitstate::merge_base(root)? else {
+      return Ok(false);
+    };
+    if crate::gitstate::blob(root, &base, &added.path)?.is_some() {
+      return Ok(true);
+    }
+    let thread_file = self
+      .project
+      .relative(&self.project.thread_json(&added.thread));
+    let Some(bytes) = crate::gitstate::blob(root, &base, &thread_file)? else {
+      return Ok(false);
+    };
+    let Ok(package) = crate::id::WpId::parse(&added.package) else {
+      return Ok(false);
+    };
+    let held = serde_json::from_slice::<serde_json::Value>(&bytes)
+      .ok()
+      .and_then(|value| crate::ingest::decode_thread(&thread_file, value).ok())
+      .is_some_and(|thread| thread.wps.iter().any(|wp| wp.seq == package));
+    Ok(held)
+  }
+
   fn thread_both_sides_added_packages_to(&self, path: &str) -> Result<Option<String>, FacadeError> {
     let canon_st = format!("{}/", self.project.relative(&self.project.canon_st_dir()));
     let Some(id) = path
