@@ -10766,6 +10766,15 @@
           "help": "List retained snapshots and when each was taken",
           "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed.",
           "disposition": "keep"
+        },
+        {
+          "spellings": [
+            "--prune-missing"
+          ],
+          "type": "bool",
+          "help": "Drop the row of every snapshot whose file is gone from disk, and print each row dropped; removes no file",
+          "note": "Issue I4da7c22 (ic, 2026-11-23, on vc's brief for 3.5.2): a snapshot removed by hand left its row, and the row still read as restorable, so Devbin's registry held 11 rows over 4 files and doctor called it healthy. `--list` marks such a row MISSING, doctor reports them as an advisory that never moves the verdict, and this flag drops them. It refuses beside `--list`, and it takes no snapshot.",
+          "disposition": "keep"
         }
       ],
       "v2": "new-surface",

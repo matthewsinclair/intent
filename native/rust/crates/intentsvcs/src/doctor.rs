@@ -3865,5 +3865,28 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
     ));
   }
 
+  // **A ROW WHOSE FILE IS GONE, AS AN ADVISORY** (issue I4da7c22). A snapshot
+  // removed by hand leaves its row, and the row still reads as restorable,
+  // so a registry of mostly dead rows looked healthy. Advisory and never
+  // counted, so no project's verdict moves on it; a registry whose every row
+  // has its file says nothing at all.
+  if let Ok(gone) = crate::backup::missing(project, store)
+    && let Some(newest) = gone.first()
+  {
+    let rows = if gone.len() == 1 {
+      "1 recorded snapshot is".to_string()
+    } else {
+      format!("{} recorded snapshots are", gone.len())
+    };
+    findings.push(Finding::new(
+      project.relative(&crate::backup::snapshot_dir(project)),
+      FindingClass::Advisory,
+      format!(
+        "{rows} missing from disk, the newest taken {} -- `intent backup --list` marks each, and `intent backup --prune-missing` drops their rows",
+        newest.taken_at
+      ),
+    ));
+  }
+
   findings
 }

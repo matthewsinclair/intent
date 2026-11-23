@@ -23,7 +23,7 @@
 use std::path::PathBuf;
 
 use crate::project::Project;
-use crate::store::{SnapshotOutcome, Store, StoreError};
+use crate::store::{SnapshotOutcome, SnapshotRecord, Store, StoreError};
 
 /// **The snapshot namespace, and it is NOT configurable** (ic, endorsed).
 ///
@@ -383,6 +383,54 @@ fn remove(
     removed.push(path);
   }
   Ok(removed)
+}
+
+/// Whether a recorded snapshot's file is gone from disk (issue I4da7c22).
+///
+/// **ONLY A GOOD ROW CAN BE MISSING.** A failed attempt never had a file, and
+/// it is the record `doctor` reads for failures, so it is never counted here.
+/// A file whose presence cannot be read (a permission error, say) is not
+/// called missing: this answers what is known to be gone, and a row pruned on
+/// a guess would drop the record of a snapshot that may still be there.
+pub fn is_missing(project: &Project, snapshot: &SnapshotRecord) -> bool {
+  snapshot.outcome == "ok"
+    && snapshot
+      .path
+      .as_deref()
+      .is_some_and(|rel| matches!(project.root().join(rel).try_exists(), Ok(false)))
+}
+
+/// Every good snapshot row whose file is gone, newest first.
+///
+/// **A FILE REMOVED BY HAND LEAVES ITS ROW BEHIND**, and the row still counts
+/// as a restorable snapshot everywhere the store is asked: `--list` shows it
+/// and `doctor`'s staleness reads its stamp. Devbin's registry held 11 rows
+/// over 4 files when this was found.
+pub fn missing(project: &Project, store: &Store) -> Result<Vec<SnapshotRecord>, BackupError> {
+  let snapshots = store.snapshots().map_err(BackupError::Record)?;
+  Ok(
+    snapshots
+      .into_iter()
+      .filter(|snapshot| is_missing(project, snapshot))
+      .collect(),
+  )
+}
+
+/// Drop the row of every good snapshot whose file is gone, returning the rows
+/// dropped, newest first.
+///
+/// **IT REMOVES NO FILE**, which is what makes it safe to run at any time:
+/// every row it acts on names a file already absent, and a row is dropped
+/// only after its file is read as gone. The failure rows stay, as they do
+/// under [`prune`].
+pub fn prune_missing(project: &Project, store: &Store) -> Result<Vec<SnapshotRecord>, BackupError> {
+  let gone = missing(project, store)?;
+  for snapshot in &gone {
+    store
+      .forget_snapshot(snapshot.id)
+      .map_err(BackupError::Record)?;
+  }
+  Ok(gone)
 }
 
 /// What one backup cycle did.

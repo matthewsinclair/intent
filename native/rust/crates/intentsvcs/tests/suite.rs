@@ -147,6 +147,8 @@ mod attachment_put_refuses_what_it_cannot_carry;
 mod authored_row_round_trip;
 #[path = "authored_sections_have_one_form.rs"]
 mod authored_sections_have_one_form;
+#[path = "backup_missing.rs"]
+mod backup_missing;
 #[path = "backup_retention.rs"]
 mod backup_retention;
 #[path = "backup_snapshot.rs"]

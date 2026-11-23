@@ -17051,6 +17051,30 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
   let facade = open()?;
   let project = facade.project().clone();
 
+  if given(m, "list") && given(m, "prune-missing") {
+    return Err(Failure::Error(
+      "error: `--list` and `--prune-missing` are two questions, asked one at a time\n  remedy: run `intent backup --list` to see which rows are missing, then `intent backup --prune-missing` to drop them".to_string(),
+    ));
+  }
+
+  // **DROPS ROWS, NEVER FILES** (issue I4da7c22): every row it acts on names
+  // a file already gone, so nothing restorable can be lost by it.
+  if given(m, "prune-missing") {
+    let dropped =
+      intentsvcs::backup::prune_missing(&project, facade.store()).map_err(|e| e.render())?;
+    if dropped.is_empty() {
+      println!("no recorded snapshot is missing from disk; nothing was dropped");
+    }
+    for snapshot in &dropped {
+      println!(
+        "dropped: {}  {}",
+        snapshot.taken_at,
+        snapshot.path.as_deref().unwrap_or("no path recorded")
+      );
+    }
+    return Ok(());
+  }
+
   if given(m, "list") {
     let snapshots = facade.store().snapshots().map_err(|e| e.render())?;
     if snapshots.is_empty() {
@@ -17059,10 +17083,19 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
       println!("no snapshots have been taken of this store");
       return Ok(());
     }
+    let mut missing = 0;
     for snapshot in &snapshots {
+      // **A ROW WHOSE FILE IS GONE IS MARKED, NOT HIDDEN** (issue I4da7c22):
+      // hiding it would make the list disagree with the store doctor reads.
+      let gone = if intentsvcs::backup::is_missing(&project, snapshot) {
+        missing += 1;
+        "  MISSING: the file is not on disk"
+      } else {
+        ""
+      };
       match (&snapshot.path, snapshot.bytes) {
         (Some(path), Some(bytes)) => {
-          println!("{}  {path}  {bytes} bytes", snapshot.taken_at)
+          println!("{}  {path}  {bytes} bytes{gone}", snapshot.taken_at)
         }
         // An attempt with no file is the record of a failure, and it prints
         // rather than being filtered out -- filtering it is how a list of
@@ -17074,6 +17107,12 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
           snapshot.detail.as_deref().unwrap_or("no detail recorded")
         ),
       }
+    }
+    if missing > 0 {
+      println!(
+        "{missing} of {} recorded snapshot(s) are missing from disk -- `intent backup --prune-missing` drops their rows",
+        snapshots.len()
+      );
     }
     return Ok(());
   }
