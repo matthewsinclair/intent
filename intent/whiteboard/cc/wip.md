@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-23 12:52Z
+heartbeat_at: 2026-11-23 17:27Z
 status: active
-focus: "2026-11-23 12:52Z by date -u: localfold on the Desk's close for hv's compact. ST1c2db93 U3+U1 committed in tmp/wt-u3-cc awaiting a gate rerun; U2 written in tmp/wt-u2-cc; U4 (v2 removal) sized and ruled. State in ~/Devel/scratch/intent-cc/st1c2/PLAN.md."
+focus: "2026-11-23 17:27Z by date -u: localfold on hv's estate-wide call (via vc), Desk held, not released. U3, U1 and U2 landed. U4a (v2 removal core) WIP st1c2-wip/u4a, its rerun queued; U4b partial; metadata strip last. Notes at refs/bank/cc/st1c2-wip/notes."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-- ST1c2db93 U2 written in tmp/wt-u2-cc (local snapshot 6d479498a, patch at ~/Devel/scratch/intent-cc/u2/unit.diff, applies on 4b3498eaa); critic-rust running; then a Desk run on top of U1. After it: U4, the v2 removal, per vc's rulings in ~/Devel/scratch/intent-cc/st1c2/PLAN.md, with the metadata strip as the last bank.
+- ST1c2db93 U4, the v2 removal, last 3.5.2 unit. U4a (survey P1-P5) is WIP refs/bank/cc/st1c2-wip/u4a in tmp/wt-u4-cc on main e1e84abb8: run 1 compiled clean, its commit refused by two records gates, both fixed; critic-rust's points partly applied, the rest listed in refs/bank/cc/st1c2-wip/notes. Desk ask 01M84PZ64QP69YN0S6G767PM0M is queued; on grant, run-u4.zsh. Then U4b (partial WIP st1c2-wip/u4b, tmp/wt-u4b-cc), then the metadata strip, last.
 
 ## Holds
 
-- ST1c2db93 U3 (961f0cad6) and U1 (4b3498eaa), committed in tmp/wt-u3-cc on 03a1921b1, are unbanked until a Desk rerun of gate all and test shell there is green. Run 1 failed only at check doc (one private intra-doc link, fixed and amended). Released when the Desk reopens and the rerun is green; then bank refs/bank/cc/st1c2-u3/v1 and st1c2-u1/v1.
+_(none)_
 
 ## Watch-outs
 
