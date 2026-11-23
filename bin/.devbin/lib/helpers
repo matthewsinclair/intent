@@ -1638,6 +1638,16 @@ sha256_run() {
   fi
 }
 
+# SHA256_SH -- sha256_run's choice of tool, as one POSIX sh statement that sets
+# h to the command, for a program that runs where lib/helpers is not: the
+# formula's post-install step, which /bin/sh runs in Homebrew's keg
+# (lib/cmd/formula's REHASH_SH, issue I514ea74). Held here beside sha256_run, so
+# the spelling keeps its one home. One line, short of Homebrew's line length
+# once rendered: with no shasum, sha256sum is run, and where it is missing too
+# the step fails at the hash, saying a file could not be hashed.
+# shellcheck disable=SC2034,SC2016 # read by lib/cmd/formula; each $ is the step's sh's
+SHA256_SH='if command -v shasum >/dev/null 2>&1; then h="shasum -a 256"; else h=sha256sum; fi;'
+
 sha256_files() {
   [ $# -gt 0 ] || return 0
   sha256_run "$@"

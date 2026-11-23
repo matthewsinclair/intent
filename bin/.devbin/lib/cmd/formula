@@ -35,6 +35,11 @@
 # link set (install.links). The template keeps what is its own, and lines after
 # @@INSTALL@@ in its install. @@FINISH@@, the second form, is retired.
 #
+# AND AFTER THE INSTALL, THE POST-INSTALL STEP (post_install_ruby; issue
+# I514ea74): T3's manifest re-hashed once Homebrew has relocated and re-signed
+# the keg's native files, in both modes, so the template holds no post-install
+# of its own.
+#
 # A placeholder left after filling is refused by name, so a misspelt one
 # cannot ship. In both modes the file written opens with a header of its own,
 # in place of the template's, and only the template's body is validated and
@@ -314,6 +319,11 @@ formula_settings() {
   done <<<"$links"
   F_BASH=""
   ! is_true_word "$(cfg_formula_get bash)" || F_BASH=yes
+  # The tool's own manifest, the one install writes too (issue 0326), which the
+  # assets' install body writes and the post-install step re-hashes in both
+  # modes (issue I514ea74).
+  F_MANIFEST="$(cfg_tool_manifest)" || exit 1
+  is_ruby_word "$F_MANIFEST" || die "install.manifest '$F_MANIFEST' holds a character a keg path never does"
   case "$F_MODE" in
     source)
       for k in repo cask; do
@@ -326,9 +336,6 @@ formula_settings() {
     assets)
       F_SUMS="$(cfg_formula_get sums)" || exit 1
       F_CASK="$(cfg_formula_get cask)" || exit 1
-      # The tool's own manifest, the one install writes too (issue 0326).
-      F_MANIFEST="$(cfg_tool_manifest)" || exit 1
-      is_ruby_word "$F_MANIFEST" || die "install.manifest '$F_MANIFEST' holds a character a keg path never does"
       mapfile -t F_ASSETS < <(cfg_formula_list assets)
       [ "${#F_ASSETS[@]}" -gt 0 ] || die "formula.mode is assets, and formula.assets names no asset"
       # As the release core names an asset (release_name_problem), {version}
@@ -375,6 +382,9 @@ render_source() {
   filled="${filled%.}"
   filled="$(fill_block "$filled" @@INSTALL@@ "$(install_ruby source)" && printf .)" ||
     die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
+  filled="${filled%.}"
+  filled="$(post_install_fill "$filled" "$(post_install_ruby)" && printf .)" ||
+    die "$F_TEMPLATE: its install, def install, has no end at its own indent, after which the post-install step goes"
   filled="${filled%.}"
   left="$(leftover_placeholder "$filled")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder source mode fills, and it would ship as written"
@@ -506,7 +516,9 @@ assets_ruby() {
   printf '%s\n' '  "# managed_by: brew",'
   printf '  "# line: %s",\n' "$(tool_line "$F_NAME" "$1" brew "$2")"
   printf '%s\n' ']'
-  printf 'lines += files.sort.map { |f| "#{(libexec/f).sha256}  #{f}" }\n'
+  # Each sum is taken before the string is built: Homebrew's style refuses a
+  # call inside an interpolation (its Homebrew/SimpleInterpolation).
+  printf '%s\n' 'lines += files.sort.map do |f|' '  sum = (libexec/f).sha256' '  "#{sum}  #{f}"' 'end'
   printf '(libexec/"%s").write("#{lines.join("\\n")}\\n")\n' "$F_MANIFEST"
 }
 
@@ -535,6 +547,125 @@ links_ruby() {
   done
 }
 
+# REHASH_SH -- the post-install step's program, one statement an element, which
+# /bin/sh runs in the keg with libexec as $1 and the manifest's path in it as
+# $2 (post_install_ruby). It keeps the manifest's `#` lines as they are and
+# hashes each file its other lines name again, as the keg holds it now, in the
+# manifest's own order, with the sha256 tool lib/helpers' SHA256_SH chooses,
+# sha256_run's choice spelled for sh.
+# A manifest whose `#` line follows a file's line, whose other line is not a
+# file's, or that lists no file, is refused, and so is one naming a file the
+# keg lacks: each leaves the manifest as it was, since the new one is written
+# beside it and moved over it only once every file it lists has its row.
+#
+# POSIX sh, never bash: macOS's /bin/sh is a bash 3.2 and Linux's is often
+# dash, and the step runs before any bash a formula depends on is certain to be
+# on PATH. Each element is a Ruby single-quoted string in the render, so none
+# holds a single quote; a double-quoted one would read `#{` and `\` itself.
+# shellcheck disable=SC2016 # each $ is the step's program's, which /bin/sh expands in the keg
+REHASH_SH=(
+  'set -eu;'
+  'cd "$1";'
+  'm=$2;'
+  't=$m.rehash;'
+  'trap "rm -f -- $t" EXIT;'
+  "$SHA256_SH"
+  'awk "b && /^#/ { exit 1 } !/^#/ { b = 1 }" "$m" ||'
+  '{ echo "$m: a # line follows a file line, so it is left as it was" >&2; exit 1; };'
+  'bad=$(grep -v "^#" "$m" | grep -v -E "^[0-9a-f]{64}  ." || :);'
+  '[ -z "$bad" ] || { echo "$m: not a file line: $bad, so it is left as it was" >&2; exit 1; };'
+  'n=$(grep -c -v "^#" "$m") || { echo "$m lists no file, so it is left as it was" >&2; exit 1; };'
+  'grep "^#" "$m" >"$t" || :;'
+  'grep -v "^#" "$m" | cut -c67- | tr "\n" "\000" | xargs -0 $h -- >>"$t" ||'
+  '{ echo "$m: a file it lists could not be hashed, so it is left as it was" >&2; exit 1; };'
+  '[ "$(grep -c -v "^#" "$t")" = "$n" ] ||'
+  '{ echo "$m: a file it lists has no new row, so it is left as it was" >&2; exit 1; };'
+  'mv -f -- "$t" "$m"'
+)
+
+# ruby_literal <text> -- <text> as a Ruby string literal holding exactly its
+# bytes: single-quoted where it holds a `"`, a `\` or a `#` Ruby would read as
+# the start of an interpolation, since a single-quoted string reads none of
+# them (a `\\` aside, which REHASH_SH never holds), and double-quoted
+# otherwise, as Homebrew's style asks. Pure. <text>
+# never holds a single quote (REHASH_SH).
+ruby_literal() {
+  case "$1" in
+    *'"'* | *"\\"* | *'#{'* | *'#$'* | *'#@'*) printf "'%s'" "$1" ;;
+    *) printf '"%s"' "$1" ;;
+  esac
+}
+
+# post_install_ruby -- the formula's post-install step (issue I514ea74), one
+# line per line and unindented, which render writes after the template's
+# install (post_install_fill): T3's manifest, at install.manifest in libexec,
+# re-hashed by /bin/sh running REHASH_SH. Pure.
+#
+# HOMEBREW CHANGES THE KEG AFTER THE INSTALL HAS HASHED IT. On macOS it
+# rewrites each Mach-O file's install names and ad-hoc re-signs it, and on
+# Linux it patches each ELF file's paths, at a source install's end and at a
+# bottle's pour alike, so a keg's native objects are no longer the bytes the
+# install body hashed, and doctor fails a keg nobody touched. Homebrew runs a
+# formula's post-install steps after all of that, so the manifest re-hashed
+# there names the keg as Homebrew leaves it, for every reader of it. The steps
+# are declarative: brew runs them from the bottle with no formula source, and
+# deprecates a Ruby post_install, so the keg's one writable path is libexec
+# and the step's program is the argument it is given.
+post_install_ruby() {
+  local i last=$((${#REHASH_SH[@]} - 1))
+  printf '%s\n' "# GENERATED by devbin's formula built-in: T3's manifest re-hashed once" \
+    "# Homebrew has relocated and re-signed the keg's native files." \
+    'post_install_steps do' \
+    '  run "/bin/sh",' \
+    '      args:           [' \
+    '        "-c",'
+  for i in "${!REHASH_SH[@]}"; do
+    if [ "$i" -lt "$last" ]; then
+      printf '        %s \\\n' "$(ruby_literal "${REHASH_SH[$i]} ")"
+    else
+      printf '        %s,\n' "$(ruby_literal "${REHASH_SH[$i]}")"
+    fi
+  done
+  printf '%s\n' '        "sh",' '        "{{libexec}}",'
+  printf '        "%s",\n' "$F_MANIFEST"
+  printf '%s\n' '      ],' '      writable_paths: ["{{libexec}}"]' 'end'
+}
+
+# post_install_fill <text> <block> -- the formula body <text> with <block>
+# written after the `end` of its install, `def install`, at that line's
+# indent, a blank line before it, each line ended as that `end` is, so a CRLF
+# template gets CRLF lines (fill_block). Brew's style places post_install_steps
+# right after the install. Pure. Fails, printing nothing, where <text> has no
+# `def install` with an `end` at its indent.
+post_install_fill() {
+  local rest="$1" block="$2" out="" line nl indent="" state=0 eol l add
+  while [ -n "$rest" ]; do
+    if [[ "$rest" == *$'\n'* ]]; then
+      line="${rest%%$'\n'*}" nl=$'\n'
+      rest="${rest#*$'\n'}"
+    else
+      line="$rest" nl="" rest=""
+    fi
+    out+="$line$nl"
+    if [ "$state" = 0 ] && [[ "$line" =~ ^([[:blank:]]*)def\ install[[:blank:]]*(#.*)?$'\r'?$ ]]; then
+      indent="${BASH_REMATCH[1]}" state=1
+    elif [ "$state" = 1 ] && [[ "$line" =~ ^([[:blank:]]*)end[[:blank:]]*$'\r'?$ ]] && [ "${BASH_REMATCH[1]}" = "$indent" ]; then
+      eol=$'\n'
+      [[ "$line" != *$'\r' ]] || eol=$'\r\n'
+      add="$eol"
+      while IFS= read -r l; do
+        if [ -n "$l" ]; then add+="$indent$l$eol"; else add+="$eol"; fi
+      done <<<"$block"
+      [ -n "$nl" ] || out+="$eol"
+      out+="$add"
+      [ -n "$nl" ] || out="${out%"$eol"}"
+      state=2
+    fi
+  done
+  [ "$state" = 2 ] || return 1
+  printf '%s' "$out"
+}
+
 # install_before <text> -- the first line of the formula template body <text>'s
 # install, `def install`, that is neither blank nor a comment and comes before
 # the line holding @@INSTALL@@, trimmed; nothing where none does, or where the
@@ -552,8 +683,11 @@ install_before() {
 # exactly one @@INSTALL@@, the body devbin generates, and no @@FINISH@@, the
 # form it retired; nothing but blank and comment lines before @@INSTALL@@ in
 # the template's install (install_before, issue 0329), since no template lays
-# its assets out by hand (docs/dev-opt-brew.md T8); and where formula.bash is
-# true, a template that depends on bash, whose bin the env scripts name. Pure.
+# its assets out by hand (docs/dev-opt-brew.md T8); no post_install and no
+# post_install_steps of its own, since render writes the post-install step
+# (post_install_ruby, issue I514ea74) and Homebrew's style refuses a formula
+# holding both; and where formula.bash is true, a template that depends on
+# bash, whose bin the env scripts name. Pure.
 install_refusal() {
   local n before
   if [ "$(placeholder_count "$1" @@FINISH@@)" != 0 ]; then
@@ -563,6 +697,10 @@ install_refusal() {
   n="$(placeholder_count "$1" @@INSTALL@@)"
   if [ "$n" != 1 ]; then
     printf '%s holds %s @@INSTALL@@, and a formula holds exactly one, the install body devbin generates\n' "$2" "$n"
+    return 0
+  fi
+  if [[ $'\n'$1 =~ $'\n'[[:blank:]]*(def\ post_install|post_install_steps)([[:blank:]]|$'\r'|$'\n'|$) ]]; then
+    printf "%s holds %s, and the post-install step is devbin's, which render writes after the install: T3's manifest re-hashed once Homebrew has changed the keg (issue I514ea74)\n" "$2" "${BASH_REMATCH[1]}"
     return 0
   fi
   before="$(install_before "$1")"
@@ -734,6 +872,9 @@ render_assets() {
   done
   out="$(assets_fill "$text" "$version" "$commit" "$sums" formula && printf .)" ||
     die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
+  out="${out%.}"
+  out="$(post_install_fill "$out" "$(post_install_ruby)" && printf .)" ||
+    die "$F_TEMPLATE: its install, def install, has no end at its own indent, after which the post-install step goes"
   out="${out%.}"
   left="$(leftover_placeholder "$out")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder assets mode fills, and it would ship as written"

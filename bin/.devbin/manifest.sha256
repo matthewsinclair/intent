@@ -1,9 +1,9 @@
 # devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
 # Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
-# devbin_version: 0.1.28
+# devbin_version: 0.1.29
 # source: install
-# source_commit: bb745bb9156d9273a19538c754ce9509a0369395
+# source_commit: 164ccc4697bc49918fd75e03857630d8d7e8c954
 c5873914fc8fec38af30660d3ea4fddf45c7f6c80a53a001c3cfb101254e4a7b  bin/devbin
 4208a2a0c11e1d35b9d400c456af750883aef846db5d9fc04dbc9d299aebfde2  bin/.devbin/lib/LICENSE.md
 998e326e026fa1e31a9b337c291b87b8bd70bf13ff543a1776fc7be8b59330cb  bin/.devbin/lib/bats-lanes
@@ -19,7 +19,7 @@ fb962cea18158e13d8881cbb30b82eb60ec7a6bb683310ec3f7cf6b164e5265c  bin/.devbin/li
 f023dc73f0be149a7ba6951b23af1faf7900f3191e968abcf312a9f74baffb7e  bin/.devbin/lib/cmd/doctor
 218736a88388891cda723d178c7376e7b50a15c17eb664f4ff300f7392677647  bin/.devbin/lib/cmd/dormancy
 10028b1dc84193ae0bdc7302522d53e9bd00a041da6107451ed891e3d62e27b0  bin/.devbin/lib/cmd/fmt
-3737d766b038467f485c9be67892ac6874657f1b400934c4ff990bc91a514d60  bin/.devbin/lib/cmd/formula
+6cf0676437ade3815f9b4a8c064642d4a5bceb8a8a0f78206723bebbbdc0f43c  bin/.devbin/lib/cmd/formula
 6e95103561f51b90d595e9189c2dc7a3f4843a67062278114784b3175fbc7019  bin/.devbin/lib/cmd/fullcycle
 c699f985bd8ae6d7f1121f8c3e0a5ad6a11372554b6b747f0f21a1f1db51a5ec  bin/.devbin/lib/cmd/infra
 af18e96d453651a5ef36acdea8d13dfc73ff779b3023619dd2721b8a6a2b47d6  bin/.devbin/lib/cmd/infra.d/init
@@ -43,7 +43,7 @@ c440cde89164b6827493341c97b775ee02592b19305de09fc503f5352703a24f  bin/.devbin/li
 9d74ed94e63039d987c4d873c48f5d26f63cfcf152ffb7fa457986216c584418  bin/.devbin/lib/config.reference.yaml
 2713a224fbc8907a5af9d360abbb5eb6b1629b1b9901c6ce30f425bf564c5984  bin/.devbin/lib/gatecmd
 a34c3f26b83480316e15504055e364752c2b7e33494b4ec0eae0f4bc223cce8e  bin/.devbin/lib/help
-3f9e3da0659f7955b4470f3d66a8abab93e50425e669e4ddc30aa54944c6c76a  bin/.devbin/lib/helpers
+c5732b792b23b6959c79c5547257b7b1004625d4eeefc797d2dc1f157912ae67  bin/.devbin/lib/helpers
 3e93548b6b5f70e4dc809a3dc6ef7a60c85a8a7176ecec4cf32d39459b348e21  bin/.devbin/lib/infra
 3f4730a46fcc8ae3f4a5f7ef798e3c2e2322b1e3d8f0ba5bc617e9b3d6d0d2f0  bin/.devbin/lib/infra.check
 aa49a26ef87148a871e4b49ebe84c5ce8f5b92e27cc847e8bda95d47c69802ba  bin/.devbin/lib/infra.dns
