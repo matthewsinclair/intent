@@ -1,0 +1,15 @@
+{
+  "id": "01M84K6PHJX5PGZJEMAQEVVPHG",
+  "ts": "2026-11-23T16:18:10.110Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I086e953b3f1e76e6"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Three manifest reads in facade.rs swallow an unreadable file with .ok()"
+  }
+}
