@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I84286b72f2600c27",
   "origin": "01M83Z193CQF0PV6G7EVBA690E",
-  "realised": true,
   "slug": "upgrade-main-and-a-branch-upgraded-apart-conflic",
   "title": "upgrade: main and a branch upgraded apart conflict on work-package records at merge",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-23",
+  "closed": "2026-11-23",
   "reporter": "Matthew Sinclair",
   "body": "Reported from an attendee's first `intent upgrade` to 3.5.1 in a practice repo with open branches (hv's AE decision 165, 2026-11-23, relayed by agentic-engineering-vc and devbin-vc). These are the attendee's steps and AE has not reproduced them.\n\n`main` and a branch were each upgraded on their own. The merge then gave add/add conflicts on four work-package records: one was WIP on `main` and done on the branch. A branch that merged `main` before its own upgrade merged cleanly.\n\nQuestions for the fix:\n- Can the records an upgrade writes merge cleanly when two branches upgrade apart, eg as the same bytes for the same state?\n- If not, should the upgrade notes, and upgrade's own output on a repo with other branches, say to merge `main` into each branch before upgrading it?\n"
 }

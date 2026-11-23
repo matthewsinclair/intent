@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Ie7fb84c39039d091",
   "origin": "01M83Z185NA8VHM2PJZTBJKW8E",
-  "realised": true,
   "slug": "upgrade-a-view-left-from-another-branch-untracke",
   "title": "upgrade: a view left from another branch, untracked after git switch, stops intent upgrade",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-11-23",
+  "closed": "2026-11-23",
   "reporter": "Matthew Sinclair",
   "body": "Reported from an attendee's first `intent upgrade` to 3.5.1 in a practice repo with open branches (hv's AE decision 165, 2026-11-23, relayed by agentic-engineering-vc and devbin-vc). These are the attendee's steps and AE has not reproduced them.\n\nAfter `git switch`, a view the previous branch ignores stayed on disk (eg `intent/st/ST0004/acceptance.md`), and the new branch shows it as untracked. Each time, `intent upgrade` did not upgrade. Once the file was removed, it ran. The first run's output was not kept.\n\nUpgrade's uncommitted-change refusal names untracked files (seen on rhadamanth 2026-11-23, where two untracked PDFs refused an upgrade with both paths named), so this may be that refusal. If so, the attendee did not read it as naming the file.\n\nQuestions for the fix:\n- Does upgrade refuse on an untracked file under `intent/st/`? If it does, does it say so and name the file every time?\n- Should a generated view that the other branch ignores count at all? It is regenerable, and no work is lost by taking it.\n"
 }
