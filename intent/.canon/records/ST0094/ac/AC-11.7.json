@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.7",
+  "text": "The census re-run after the sweep reads: every board declares a profile, no seat's role is its moniker, no seat's name is a session name, every board has hv and a mediator, and no hv inbox view exists outside a mediator's pair; a board hv exempts is named with hv's words.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "ic's census, 2026-11-23 11:57Z by date -u, over the 25 live boards on rhadamanth (every intent/whiteboard under ~/Devel, scratch worktrees excluded): 25 ok, 0 FAIL. Each declares a profile, has hv and its declared mediator registered, no seat's role is its moniker, no seat's name has a session name's shape, and no hv inbox view exists outside the mediator's pair. The role and name checks were driven red on a planted row first. No board needed an hv exemption."
+  }
+}

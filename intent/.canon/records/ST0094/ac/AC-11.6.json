@@ -1,0 +1,9 @@
+{
+  "id": "AC-11.6",
+  "text": "Molt's guide and its roster README cite Intent's terms for the project suffixes and record them nowhere, by molt-vc's hand.",
+  "kind": "non-test",
+  "state": {
+    "is": "satisfied",
+    "evidence": "Molt 0eea31a (molt-dc) merged by molt's vc at 0cc5bff, on Molt main and upstream: intent/whiteboard/README.md:28 and :52 and docs/guides/sleeve-agents.md:30 cite intent wb profile terms, and no suffix table remains; the user block's roster table stays as hv's content."
+  }
+}

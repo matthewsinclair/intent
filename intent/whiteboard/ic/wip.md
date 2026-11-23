@@ -6,7 +6,7 @@ session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
 heartbeat_at: 2026-11-23 05:45Z
 status: active
 focus: "Localfold 2026-11-23: board clear (todos 73, 78, 80 and watchout 87 landed and archived, ST0095/10 unclaimed, tmp/wt-t78 removed with refs/attic/ic/wt-t78). Waiting on hv's post-3.5.1 scope."
-claims: [ST0094]
+claims: []
 ---
 
 # Interface Claude (ic)
@@ -21,7 +21,7 @@ _(none)_
 
 ## Holds
 
-- ST0094 AC-11.7 (the census re-run) waits until vc says Arca's roster README re-render (AC-11.4, vc's session) and Molt's README and guide (AC-11.6, hv) have both landed. Then: census over every board on this machine, record the result against the three criteria, commit once vc says the 3.5.2 push is out.
+_(none)_
 
 ## Watch-outs
 

@@ -1,0 +1,14 @@
+{
+  "id": "01M844F3XTXE0V71882MBPBJWT",
+  "ts": "2026-11-23T12:00:37.311Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST0094/AC-11.7"
+  },
+  "payload": {
+    "evidence": "ic's census, 2026-11-23 11:57Z by date -u, over the 25 live boards on rhadamanth (every intent/whiteboard under ~/Devel, scratch worktrees excluded): 25 ok, 0 FAIL. Each declares a profile, has hv and its declared mediator registered, no seat's role is its moniker, no seat's name has a session name's shape, and no hv inbox view exists outside the mediator's pair. The role and name checks were driven red on a planted row first. No board needed an hv exemption."
+  }
+}
