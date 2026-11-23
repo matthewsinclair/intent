@@ -1,0 +1,15 @@
+{
+  "id": "01M842V1QFBYS1203SAA9Z6EKV",
+  "ts": "2026-11-23T11:32:11.119Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST0094 AC-11.7 (the census re-run) waits until vc says Arca's roster README re-render (AC-11.4, vc's session) and Molt's README and guide (AC-11.6, hv) have both landed. Then: census over every board on this machine, record the result against the three criteria, commit once vc says the 3.5.2 push is out."
+  }
+}

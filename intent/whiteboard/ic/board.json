@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-11-23T05:45:55.375Z",
     "status": "active",
     "focus": "Localfold 2026-11-23: board clear (todos 73, 78, 80 and watchout 87 landed and archived, ST0095/10 unclaimed, tmp/wt-t78 removed with refs/attic/ic/wt-t78). Waiting on hv's post-3.5.1 scope.",
-    "claims": [],
+    "claims": [
+      "ST0094"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3197,6 +3199,14 @@
       "state": "archived",
       "archived_at": "2026-11-23T05:45:50.108Z",
       "recorded_at": "2026-11-20T18:25:32.117Z"
+    },
+    {
+      "node": "ic",
+      "kind": "hold",
+      "seq": 26,
+      "text": "ST0094 AC-11.7 (the census re-run) waits until vc says Arca's roster README re-render (AC-11.4, vc's session) and Molt's README and guide (AC-11.6, hv) have both landed. Then: census over every board on this machine, record the result against the three criteria, commit once vc says the 3.5.2 push is out.",
+      "state": "live",
+      "recorded_at": "2026-11-23T11:32:11.119Z"
     }
   ],
   "sent": [
