@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "If074a59563f9ea18",
   "origin": "01M81J7HRBB8S6XGWKAWJ05GG3",
-  "realised": true,
   "slug": "gen-explorer-shots-sh-is-byte-identical-within-a",
   "title": "gen_explorer_shots.sh is byte-identical within a session, not across days: releasing.md step 2's clean-status check reads anti-aliasing drift as a moved shot",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-22",
+  "closed": "2026-11-23",
   "reporter": "Matthew Sinclair",
   "body": "`intent/docs/releasing.md` step 2 says two runs of `gen_explorer_shots.sh` over an unchanged explorer \"write byte-identical files on any day, because the seed's dates are drawn as one fixed date (issue 0623), so a clean status means the page still shows what ships\". Measured after the 3.5.1 cut (2026-11-22, Desk 01M81J0A0Q6W9ZWWTMP80TN2CZ, T 0e4246cd8, which differs from v3.5.1 only by the version bump): that holds within a session and not across days.\n\n- 10 of the 11 PNGs differ in bytes from those committed at 29c3ed0e4 (2026-11-21); thread.png is identical.\n- What they show did not move: the largest per-pixel difference is 26/255, on anti-aliased edge pixels, 0 pixels differ at 10% fuzz in every image, and PSNR is about 68 to 70 dB.\n- A second run in the same slot was byte-identical to the first, so it is not noise within a run.\n\nSo a clean `git status -- docs/images/explorer` cannot be the step's test: a run on another day always reads as moved, and 3.5.1 committed none (vc's ruling, nothing a reader can see moved).\n\nOpen cause: rsvg-convert 2.63.4 (cairo 1.18.6, pango 1.58.2, harfbuzz 15.2.0, fontconfig 2.18.4) and ImageMagick 7.1.2-36 are unchanged since 2026-11-15 and 2026-11-17, before the 29c3ed0e4 run, so the drift's source is not found.\n\nRemedy, for whoever takes it: either step 2's check reads \"no visible change\" by a fuzz compare against the committed PNGs instead of a clean git status, or the drift's source is found and removed so the byte-identical claim holds. No fix now.\n\nEvidence: refs/bank/dc/kd351/shots.tar (the run's PNGs), refs/bank/dc/kd351/shots.log and refs/bank/dc/kd351/shots2.log (the two runs)."
 }
