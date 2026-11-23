@@ -8,7 +8,10 @@
     "heartbeat_at": "2026-11-22T12:11:24.033Z",
     "status": "active",
     "focus": "Localfolded after the 3.5.1 cut (v3.5.1 at 1cc654e5a). Next: hv's post-3.5.1 scope, todos 87 and 88.",
-    "claims": [],
+    "claims": [
+      "ISSUE:Ie7fb84c39039d091",
+      "ISSUE:I84286b72f2600c27"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
