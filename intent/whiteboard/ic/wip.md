@@ -6,7 +6,7 @@ session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
 heartbeat_at: 2026-11-23 12:58Z
 status: active
 focus: "Localfold 2026-11-23 12:52Z: board clear. ST0094 closed at a1e4b9a64 (census 25 of 25 ok). No claims, no worktrees. Waiting on hv's next scope via vc."
-claims: [ISSUE:I4da7c225c33751a4]
+claims: []
 ---
 
 # Interface Claude (ic)

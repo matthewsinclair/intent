@@ -8,9 +8,7 @@
     "heartbeat_at": "2026-11-23T12:58:11.249Z",
     "status": "active",
     "focus": "Localfold 2026-11-23 12:52Z: board clear. ST0094 closed at a1e4b9a64 (census 25 of 25 ok). No claims, no worktrees. Waiting on hv's next scope via vc.",
-    "claims": [
-      "ISSUE:I4da7c225c33751a4"
-    ],
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
