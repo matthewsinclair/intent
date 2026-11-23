@@ -1,0 +1,16 @@
+{
+  "id": "01M852GKBABT7XPZ76QDXAD2QY",
+  "ts": "2026-11-23T20:45:43.146Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 64,
+    "text": "ST1c2db93 U4, the v2 removal, last 3.5.2 unit: all three banks green on the Desk. U4a landed e1831ddf9, U4b landed 2f864f6f1, the metadata strip banked refs/bank/cc/st1c2-u4c/v1 = eb245b28f on 0f2341b58 (gate all rc 0, bats 932/932), with vc to land. Then vc's build all and push. Open at the fold: wt-u1-cc and wt-u2-cc to check against their banks; wt-u4b-cc and wt-u4c-cc to remove once the strip lands."
+  }
+}

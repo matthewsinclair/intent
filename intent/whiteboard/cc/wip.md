@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-23 17:27Z
+heartbeat_at: 2026-11-23 20:50Z
 status: active
-focus: "2026-11-23 17:27Z by date -u: localfold on hv's estate-wide call (via vc), Desk held, not released. U3, U1 and U2 landed. U4a (v2 removal core) WIP st1c2-wip/u4a, its rerun queued; U4b partial; metadata strip last. Notes at refs/bank/cc/st1c2-wip/notes."
+focus: "2026-11-23 20:49Z by date -u: U4 done, all three banks landed (U4a e1831ddf9, U4b 2f864f6f1, metadata strip 75d209050) and pushed by vc after build all rc 0. Holding on vc's word: nothing else of 3.5.2 is cc's unless the gate or kovacs finds something. No worktrees, nothing running."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- ST1c2db93 U4, the v2 removal, last 3.5.2 unit. U4a (survey P1-P5) is WIP refs/bank/cc/st1c2-wip/u4a in tmp/wt-u4-cc on main e1e84abb8: run 1 compiled clean, its commit refused by two records gates, both fixed; critic-rust's points partly applied, the rest listed in refs/bank/cc/st1c2-wip/notes. Desk ask 01M84PZ64QP69YN0S6G767PM0M is queued; on grant, run-u4.zsh. Then U4b (partial WIP st1c2-wip/u4b, tmp/wt-u4b-cc), then the metadata strip, last.
+_(none)_
 
 ## Holds
 

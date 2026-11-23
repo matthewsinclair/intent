@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "dbaff1e1-9b17-4902-94e9-603a011ae24c",
-    "heartbeat_at": "2026-11-23T17:27:38.350Z",
+    "heartbeat_at": "2026-11-23T20:50:05.573Z",
     "status": "active",
-    "focus": "2026-11-23 17:27Z by date -u: localfold on hv's estate-wide call (via vc), Desk held, not released. U3, U1 and U2 landed. U4a (v2 removal core) WIP st1c2-wip/u4a, its rerun queued; U4b partial; metadata strip last. Notes at refs/bank/cc/st1c2-wip/notes.",
+    "focus": "2026-11-23 20:49Z by date -u: U4 done, all three banks landed (U4a e1831ddf9, U4b 2f864f6f1, metadata strip 75d209050) and pushed by vc after build all rc 0. Holding on vc's word: nothing else of 3.5.2 is cc's unless the gate or kovacs finds something. No worktrees, nothing running.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
@@ -2635,9 +2635,11 @@
       "node": "cc",
       "kind": "todo",
       "seq": 64,
-      "text": "ST1c2db93 U4, the v2 removal, last 3.5.2 unit. U4a (survey P1-P5) is WIP refs/bank/cc/st1c2-wip/u4a in tmp/wt-u4-cc on main e1e84abb8: run 1 compiled clean, its commit refused by two records gates, both fixed; critic-rust's points partly applied, the rest listed in refs/bank/cc/st1c2-wip/notes. Desk ask 01M84PZ64QP69YN0S6G767PM0M is queued; on grant, run-u4.zsh. Then U4b (partial WIP st1c2-wip/u4b, tmp/wt-u4b-cc), then the metadata strip, last.",
-      "state": "live",
-      "recorded_at": "2026-11-23T17:27:29.498Z"
+      "text": "ST1c2db93 U4, the v2 removal, last 3.5.2 unit: all three banks green on the Desk. U4a landed e1831ddf9, U4b landed 2f864f6f1, the metadata strip banked refs/bank/cc/st1c2-u4c/v1 = eb245b28f on 0f2341b58 (gate all rc 0, bats 932/932), with vc to land. Then vc's build all and push. Open at the fold: wt-u1-cc and wt-u2-cc to check against their banks; wt-u4b-cc and wt-u4c-cc to remove once the strip lands.",
+      "state": "archived",
+      "archived_at": "2026-11-23T20:50:04.652Z",
+      "recorded_at": "2026-11-23T17:27:29.498Z",
+      "edited_at": "2026-11-23T20:45:43.146Z"
     }
   ],
   "sent": [
