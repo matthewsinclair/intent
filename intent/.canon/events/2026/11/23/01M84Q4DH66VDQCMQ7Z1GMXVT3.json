@@ -1,0 +1,15 @@
+{
+  "id": "01M84Q4DH66VDQCMQ7Z1GMXVT3",
+  "ts": "2026-11-23T17:26:51.401Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.5.2, releasing.md step 2(b), vc's ask: once vc says cc's U4 (the last bank) is on main and build all at HEAD has run, regenerate docs/reference against --baseline v3.5.1, re-drive docs/known-defects.md whole against that pair in fresh scratch projects under an isolated HOME and retitle it for 3.5.2 (bank the drive under refs/bank/dc/kd/), and run gen_explorer_shots.sh, judging each PNG by magick compare -metric AE -fuzz 10% against its committed copy. Bank the three together for vc. Each run on its own Desk slot."
+  }
+}
