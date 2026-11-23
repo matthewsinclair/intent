@@ -1,0 +1,15 @@
+{
+  "id": "01M847QY1PEV8T1FWAKJ78RGZC",
+  "ts": "2026-11-23T12:57:51.926Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST0097, 3.5.2: unit A (ST0057's canon_clone_completeness.sh and canon_concurrent_diff.sh read the GraphQL door) committed as 3838b7503 and unit B (12 scripts retired, roster and census rows, the census at no row, AT-10.5, 04.6, 02.4 and 07.5 to n-a, AC-04.6, 02.4 and 07.5 withdrawn on hv decision 88) as c092c950e, both through the full gate in run 4 (2026-11-23 12:52Z by date -u), stacked on 88's 6e69bebd6 in tmp/wt-t88-dc, banked at refs/bank/dc/s97/run4. canon_clone_completeness 856 of 856; canon_concurrent_diff exit 2 (no two WIP threads, by design). Not yet given to vc for landing, because 88 under it is red."
+  }
+}

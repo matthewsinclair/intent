@@ -1,0 +1,16 @@
+{
+  "id": "01M847QWY243HNBT2E75HA1CXC",
+  "ts": "2026-11-23T12:57:50.786Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 87,
+    "text": "87, 3.5.2: bin/devbin test shell writes its own tree's store. Run 4's probe (2026-11-23 12:54Z by date -u, refs/bank/dc/s97/evidence.tar, out4/t87-calls.tsv): the whole suite moved the tree's store (sha changed, schema 37 both sides, so no migration this time; a schema bump would migrate it). 24 calls ran the tree's pair inside the tree: critic shell (11, critic_arming_census.bats), critic shell (8, critic_report_format.bats), agents sync (2, docs_completeness.bats), claude rules (1, rule_validator.bats), critic rust (1). Next: find which of those opens the store for write (agents sync most likely), and point those tests at a scratch project."
+  }
+}

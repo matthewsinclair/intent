@@ -1,0 +1,16 @@
+{
+  "id": "01M847QVNF18Q6KCZM4NA9G59H",
+  "ts": "2026-11-23T12:57:49.487Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 88,
+    "text": "88, 3.5.2 (vc's ruling under hv's pen, broad): the gated id scripts pass a commit that changes none of the paths they read when the pair cannot answer (no pair, a rebuild in progress, a pair older than the door), saying NOT CHECKED. Committed in tmp/wt-t88-dc as 6e69bebd6 (refs/bank/dc/s97/run4), RED in run 4 (2026-11-23 12:54Z by date -u): both pass-unchecked arms refused, because git diff takes no --pathspec-from-file. The fix (pathspecs as arguments) is UNCOMMITTED in tmp/wt-t88-dc, banked as refs/bank/dc/s97/t88-fix2.patch, and unrun. Next: a Desk run of gated_id_door.bats with the fix, routed through st attach ST0056 parity/tools/lib_read_only.sh, as a 4th commit on c092c950e; then bank all four for vc."
+  }
+}

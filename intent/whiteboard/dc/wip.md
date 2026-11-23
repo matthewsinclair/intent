@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-22 12:11Z
+heartbeat_at: 2026-11-23 12:58Z
 status: active
-focus: "Localfolded after the 3.5.1 cut (v3.5.1 at 1cc654e5a). Next: hv's post-3.5.1 scope, todos 87 and 88."
+focus: "Localfold 2026-11-23 for hv's compact. 3.5.2: Ie7fb84c, I84286b7, Ic884775 and Ie99dbb6 landed and closed. Open: 88 red on a diagnosed fix (unrun), 87 probed, ST0097 A and B committed on 88 in tmp/wt-t88-dc."
 claims: [ST0097]
 ---
 
@@ -13,12 +13,12 @@ claims: [ST0097]
 
 ## DOING
 
-_(none)_
+- ST0097, 3.5.2: unit A (ST0057's canon_clone_completeness.sh and canon_concurrent_diff.sh read the GraphQL door) committed as 3838b7503 and unit B (12 scripts retired, roster and census rows, the census at no row, AT-10.5, 04.6, 02.4 and 07.5 to n-a, AC-04.6, 02.4 and 07.5 withdrawn on hv decision 88) as c092c950e, both through the full gate in run 4 (2026-11-23 12:52Z by date -u), stacked on 88's 6e69bebd6 in tmp/wt-t88-dc, banked at refs/bank/dc/s97/run4. canon_clone_completeness 856 of 856; canon_concurrent_diff exit 2 (no two WIP threads, by design). Not yet given to vc for landing, because 88 under it is red.
 
 ## TODO
 
-- After the 3.5.0 cut (vc, 2026-11-21): bin/devbin test shell opens its own tree's store with that tree's dev pair and migrates it (seen in tmp/wt-route-4b245 at 10:02:12Z by date -u, the run's last second). Harmless in a Desk worktree; in main it would migrate the shared store brew 3.4.0 then cannot read (decision 132). Find the test that opens INTENT_PROJECT_ROOT's store and point it at a scratch project. Until then no step runs test shell from main's checkout (the rehearsal plan says so).
-- After the 3.5.0 cut (cc's question, 2026-11-21): the gated id scripts refuse when the tree's pair is behind the door (no --read-only), which blocked every commit on main until step 2's build. Should a stale pair on a board-only commit refuse, or say what it could not check and pass? Today it refuses: safe, and it blocks every seat.
+- 87, 3.5.2: bin/devbin test shell writes its own tree's store. Run 4's probe (2026-11-23 12:54Z by date -u, refs/bank/dc/s97/evidence.tar, out4/t87-calls.tsv): the whole suite moved the tree's store (sha changed, schema 37 both sides, so no migration this time; a schema bump would migrate it). 24 calls ran the tree's pair inside the tree: critic shell (11, critic_arming_census.bats), critic shell (8, critic_report_format.bats), agents sync (2, docs_completeness.bats), claude rules (1, rule_validator.bats), critic rust (1). Next: find which of those opens the store for write (agents sync most likely), and point those tests at a scratch project. (edited)
+- 88, 3.5.2 (vc's ruling under hv's pen, broad): the gated id scripts pass a commit that changes none of the paths they read when the pair cannot answer (no pair, a rebuild in progress, a pair older than the door), saying NOT CHECKED. Committed in tmp/wt-t88-dc as 6e69bebd6 (refs/bank/dc/s97/run4), RED in run 4 (2026-11-23 12:54Z by date -u): both pass-unchecked arms refused, because git diff takes no --pathspec-from-file. The fix (pathspecs as arguments) is UNCOMMITTED in tmp/wt-t88-dc, banked as refs/bank/dc/s97/t88-fix2.patch, and unrun. Next: a Desk run of gated_id_door.bats with the fix, routed through st attach ST0056 parity/tools/lib_read_only.sh, as a 4th commit on c092c950e; then bank all four for vc. (edited)
 
 ## Holds
 
