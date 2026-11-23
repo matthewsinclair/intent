@@ -202,6 +202,52 @@ pub fn merging(root: &Path) -> bool {
     .is_ok_and(|out| out.status.success())
 }
 
+/// Every other local branch with a commit `HEAD` lacks that touches `path`, in
+/// git's order (issue I84286b7): the branches whose changes there a merge with
+/// `HEAD` has yet to take.
+pub fn branches_ahead_under(root: &Path, path: &str) -> Result<Vec<String>, GitStateError> {
+  let mut ahead = Vec::new();
+  for branch in other_branches(root)? {
+    let range = format!("HEAD..refs/heads/{branch}");
+    let out = run(root, &["rev-list", "--count", &range, "--", path])?;
+    let count = String::from_utf8_lossy(&out).trim().to_string();
+    if count != "0" {
+      ahead.push(branch);
+    }
+  }
+  Ok(ahead)
+}
+
+/// Every local branch but the one checked out, in git's order. Outside a work
+/// tree there are none; a detached HEAD checks none out, so every branch is
+/// another.
+pub fn other_branches(root: &Path) -> Result<Vec<String>, GitStateError> {
+  if !work_tree(root)? {
+    return Ok(Vec::new());
+  }
+  let current = Command::new("git")
+    .args(["symbolic-ref", "--quiet", "--short", "HEAD"])
+    .current_dir(root)
+    .output()
+    .map_err(|source| GitStateError::Spawn {
+      args: "symbolic-ref --quiet --short HEAD".to_string(),
+      source,
+    })?;
+  // A detached HEAD is symbolic-ref refusing, which is an answer, not a fault.
+  let current = String::from_utf8_lossy(&current.stdout).trim().to_string();
+  let out = run(
+    root,
+    &["for-each-ref", "--format=%(refname:short)", "refs/heads/"],
+  )?;
+  Ok(
+    String::from_utf8_lossy(&out)
+      .lines()
+      .filter(|b| !b.is_empty() && *b != current)
+      .map(str::to_string)
+      .collect(),
+  )
+}
+
 /// The paths a commit holds under `prefix`, relative to the project root.
 ///
 /// `rev` is `HEAD` for this clone's side of a merge and `MERGE_HEAD` for the

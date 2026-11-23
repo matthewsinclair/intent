@@ -547,6 +547,12 @@ release:
     - check
     - attach
     - gates
+    - target
+  # Paths no gate reads (issue 0355): a seat's `intent wb pickup` writes its board
+  # and an event while the gates run, and that is not the release's change.
+  unread:
+    - intent/whiteboard
+    - intent/.canon/events
   remotes:
     - local
     - upstream

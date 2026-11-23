@@ -327,7 +327,7 @@ fn a_dirty_tree_refuses_the_format_move_naming_every_path_and_writing_nothing() 
   let before = estate(fx.root());
 
   match Facade::upgrade(&fx.project(), &facade_ctx()) {
-    Err(FacadeError::MigrationOverDirtyTree { paths }) => {
+    Err(FacadeError::MigrationOverDirtyTree { paths, .. }) => {
       let named: Vec<&str> = paths.iter().map(|p| p.path.as_str()).collect();
       for path in ["NOTES.md", "untracked.txt"] {
         assert!(
@@ -368,5 +368,91 @@ fn a_re_run_on_an_upgraded_project_runs_on_a_dirty_tree_and_claims_nothing_about
   assert!(
     !again.on_a_clean_tree,
     "a run that passed no guard claims nothing about the tree"
+  );
+}
+
+/// **A VIEW LEFT BY `git switch` IS NAMED AS ONE, AND ITS REMEDY IS REMOVAL**
+/// (issue Ie7fb84c). A branch already upgraded ignores its acceptance views,
+/// so the switch leaves them on disk, untracked here, often in the directory
+/// of a thread this branch does not have. "Commit or stash" was the wrong
+/// remedy for a view no one wrote: the refusal names it apart from real dirt,
+/// says to remove it, and writes nothing.
+#[test]
+fn a_view_left_by_another_branch_is_named_apart_with_removal_its_remedy() {
+  use intentsvcs::remedy::Remedy;
+  let fx = ordinal_estate(&[sample_thread("ST0001")]);
+  let project = fx.project();
+  let left = project.relative(&project.acceptance_view("ST0002"));
+  fx.write_file(&left, "# Acceptance: a thread only the other branch has\n");
+  let before = estate(fx.root());
+
+  match Facade::upgrade(&project, &facade_ctx()) {
+    Err(refused @ FacadeError::MigrationOverDirtyTree { .. }) => {
+      let FacadeError::MigrationOverDirtyTree {
+        paths,
+        left_views,
+        emptied,
+      } = &refused
+      else {
+        unreachable!()
+      };
+      assert_eq!(
+        left_views,
+        &vec![left.clone()],
+        "the left view is not named as one"
+      );
+      assert!(
+        paths.is_empty(),
+        "the left view was also named as work: {paths:?}"
+      );
+      // Its thread is not on this branch, so removing it empties the thread's
+      // directory, which the conversion refuses as residue unless it goes too.
+      let dir = project.relative(&project.thread_dir("ST0002"));
+      assert_eq!(
+        emptied,
+        &vec![dir.clone()],
+        "the emptied directory is not named"
+      );
+      let remedy = refused.remedy();
+      assert!(
+        remedy.contains(&format!("rm {left} && rmdir {dir}"))
+          && !remedy.contains("commit or stash"),
+        "the remedy must be removal and only removal: {remedy}"
+      );
+    }
+    other => panic!("a left view must be refused and named, got {other:?}"),
+  }
+  assert_eq!(
+    crate::common::changed(&before, &estate(fx.root())),
+    Vec::<String>::new(),
+    "the refused upgrade wrote"
+  );
+}
+
+/// **THE FORMAT MOVE NAMES EACH BRANCH THAT CHANGED A THREAD SINCE IT SPLIT**
+/// (issue I84286b7). Such a branch and this upgrade conflict add/add at merge
+/// on every record whose state differs, however the branch takes the move. A
+/// branch that changed no thread converts to the same bytes and merges clean,
+/// so it is not named.
+#[test]
+fn the_format_move_names_each_branch_that_changed_a_thread_since_it_split() {
+  let thread = sample_thread("ST0001");
+  let fx = ordinal_estate(std::slice::from_ref(&thread));
+  fx.git(&["switch", "-q", "-c", "changed-a-thread"]);
+  let mut moved = thread.clone();
+  moved.title = format!("{} on the branch", thread.title);
+  fx.write_thread(&moved);
+  fx.git_commit_all();
+  fx.git(&["switch", "-q", "-"]);
+  fx.git(&["switch", "-q", "-c", "changed-no-thread"]);
+  fx.write_file("NOTES.md", "notes\n");
+  fx.git_commit_all();
+  fx.git(&["switch", "-q", "-"]);
+
+  let done = Facade::upgrade(&fx.project(), &facade_ctx()).expect("the format move");
+  assert_eq!(
+    done.other_branches,
+    vec!["changed-a-thread".to_string()],
+    "the move must name the branch that changed a thread, and only it"
   );
 }

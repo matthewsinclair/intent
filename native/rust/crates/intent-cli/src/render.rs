@@ -6243,6 +6243,20 @@ fn upgrade() -> Result<(), Failure> {
     }
     UpgradePaths::NoWorkTree => {}
   }
+  // Issue I84286b7: a branch that changed a thread since it split from this one
+  // conflicts with this upgrade at merge, whether it upgrades on its own or
+  // merges this commit in. Merged here first, it shares the records.
+  if !done.other_branches.is_empty() {
+    eprintln!(
+      "branches: {} changed a thread since it split from this branch, and will conflict with \
+       this upgrade when the two merge, on every package or criterion whose state differs, \
+       whether it is upgraded on its own or merges this commit in. To merge it here, do not \
+       commit this run: the tree was clean when it began, so `git reset --hard && git clean -fd` \
+       takes back only this run; merge the branch in, then run `intent upgrade` again. A \
+       branch that changed no thread merges this upgrade cleanly",
+      done.other_branches.join(", ")
+    );
+  }
   // **THE CLOSING LINE, IN intent-cc'S WORDS; WHICH ONE IS THE FACADE'S CALL**
   // (`Upgraded::closing`). A pathspec commit is `--only`, so it refuses a new
   // file and leaves a staged deletion out: `git add` from the file and a plain

@@ -286,6 +286,11 @@ pub struct Upgraded {
   /// work, which a plain commit would sweep in, so its closing line says to
   /// read the index first.
   pub on_a_clean_tree: bool,
+  /// The other local branches that changed a thread since they split from this
+  /// one, read only on a one-shot conversion (issue I84286b7): this upgrade and
+  /// each of them conflict add/add at merge on every record whose state
+  /// differs. Empty on a convergent re-run.
+  pub other_branches: Vec<String>,
   /// Every path this run wrote whose bytes changed, relative to the project
   /// root, that git can stage (issue 0745). Each step names only a change it
   /// made, so a convergent re-run names nothing.
@@ -734,6 +739,60 @@ fn remove_folded_manifest(project: &Project) -> Result<bool, std::io::Error> {
     Ok(()) => Ok(true),
     Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok(false),
     Err(source) => Err(source),
+  }
+}
+
+/// A one-shot migration's refusal of a dirty tree, with each untracked
+/// aggregate view named apart from the rest (issue Ie7fb84c).
+///
+/// **SUCH A VIEW IS WHAT `git switch` LEAVES FROM A BRANCH ALREADY UPGRADED.**
+/// That branch ignores its aggregate views, so git leaves them on disk at the
+/// switch, untracked on a branch not yet upgraded. Its thread is often not on
+/// this branch at all, so the directory holding it is one the conversion would
+/// refuse as residue. It is a view Intent renders from a branch's store, not
+/// anyone's work, so the remedy is to remove it, never to commit or stash it.
+///
+/// **UNTRACKED ONLY.** A tracked aggregate view that differs from HEAD is a
+/// change to committed bytes, and is named with the rest.
+///
+/// **AND THE DIRECTORY ITS REMOVAL EMPTIES IS NAMED TOO**, measured: with the
+/// view gone, an empty thread directory is residue the conversion refuses
+/// ("a steel-thread directory with no info.md"), so a remedy of `rm` alone
+/// trades one refusal for another. A directory holding anything else is not
+/// named.
+fn over_a_dirty_tree(project: &Project, paths: Vec<crate::sync::Uncommitted>) -> FacadeError {
+  let aggregate = project.aggregate_view_matcher();
+  let (left, paths): (Vec<_>, Vec<_>) = paths
+    .into_iter()
+    .partition(|u| u.state == crate::sync::NotInIndex::Untracked && aggregate(&u.path));
+  let left_views: Vec<String> = left.into_iter().map(|u| u.path).collect();
+  let mut emptied: Vec<String> = Vec::new();
+  for view in &left_views {
+    let Some((dir, _)) = view.rsplit_once('/') else {
+      continue;
+    };
+    if emptied.iter().any(|d| d == dir) {
+      continue;
+    }
+    // Read as it stands; a directory that cannot be read is left out, so the
+    // remedy never names one it has not seen to be emptied.
+    let Ok(mut entries) = std::fs::read_dir(project.root().join(dir)) else {
+      continue;
+    };
+    let only_left_views = entries.all(|entry| {
+      entry.is_ok_and(|e| {
+        e.file_type().is_ok_and(|t| t.is_file())
+          && left_views.contains(&format!("{dir}/{}", e.file_name().to_string_lossy()))
+      })
+    });
+    if only_left_views {
+      emptied.push(dir.to_string());
+    }
+  }
+  FacadeError::MigrationOverDirtyTree {
+    paths,
+    left_views,
+    emptied,
   }
 }
 
@@ -2264,13 +2323,22 @@ pub enum FacadeError {
   /// stable; dirt is the normal state of an active repo.
   #[error(
     "this project has {} uncommitted change(s), and a migration commit assembled over them could not be reverted without taking them too",
-    .paths.len()
+    .paths.len() + .left_views.len()
   )]
   MigrationOverDirtyTree {
-    /// Every offending path, sorted and NEVER truncated -- `migration.md`'s
-    /// no-silent-caps rule, which exists because a capped list reads as
-    /// complete when it is not.
+    /// Every offending path but a left view, sorted and NEVER truncated --
+    /// `migration.md`'s no-silent-caps rule, which exists because a capped
+    /// list reads as complete when it is not.
     paths: Vec<crate::sync::Uncommitted>,
+    /// Every untracked aggregate view, sorted, never truncated (issue
+    /// Ie7fb84c): what `git switch` from an upgraded branch, which ignores
+    /// them, leaves behind. A view Intent renders from a branch's store is no
+    /// one's work, so its remedy is removal, never "commit or stash", which
+    /// would put a view git ignores after the upgrade into history.
+    left_views: Vec<String>,
+    /// Each directory that removing the left views empties, which the
+    /// conversion would otherwise refuse as residue: the remedy's `rmdir`.
+    emptied: Vec<String>,
   },
   #[error("could not write the project files")]
   Write(#[from] WriteError),
@@ -4200,12 +4268,31 @@ impl crate::remedy::Remedy for FacadeError {
       Self::MigrationWithoutGit => {
         "put the project under git before migrating -- `git init && git add -A && git commit` -- or install git if it is missing. The documented rollback is `git revert <the migration commit>`, and there is nothing to revert without a repository".to_string()
       }
-      Self::MigrationOverDirtyTree { paths } => {
-        let each: Vec<String> = paths.iter().map(ToString::to_string).collect();
-        format!(
-          "commit or stash these first, then re-run -- the migration is one visible commit and a revert of it must not take your work with it:\n  {}",
-          each.join("\n  ")
-        )
+      Self::MigrationOverDirtyTree {
+        paths,
+        left_views,
+        emptied,
+      } => {
+        let mut said = Vec::new();
+        if !paths.is_empty() {
+          let each: Vec<String> = paths.iter().map(ToString::to_string).collect();
+          said.push(format!(
+            "commit or stash these first, then re-run -- the migration is one visible commit and a revert of it must not take your work with it:\n  {}",
+            each.join("\n  ")
+          ));
+        }
+        if !left_views.is_empty() {
+          said.push(format!(
+            "remove these views, then re-run -- each is a view Intent renders from a branch's store and no one's work, left untracked here by `git switch` from a branch already upgraded, so removing it loses nothing: `rm {}{}`",
+            left_views.join(" "),
+            if emptied.is_empty() {
+              String::new()
+            } else {
+              format!(" && rmdir {}", emptied.join(" "))
+            }
+          ));
+        }
+        said.join("\n  then ")
       }
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
@@ -6175,7 +6262,9 @@ impl Facade {
     //
     // `on_a_clean_tree` is true only when a guard passed, so only then may the
     // closing line say that every change in the tree is the upgrade's.
-    let on_a_clean_tree = match project.migration() {
+    // `moves_format` is true only on the move to the release's canon format,
+    // the conversion whose records issue I84286b7 found conflicting across branches.
+    let (on_a_clean_tree, moves_format) = match project.migration() {
       crate::project::Migration::Pending(pending) => {
         if pending.below_floor {
           return Err(FacadeError::BelowMigrationFloor(pending));
@@ -6184,9 +6273,9 @@ impl Facade {
           crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
           crate::sync::TreeState::GitRefused(cause) => return Err(FacadeError::Git(cause)),
           crate::sync::TreeState::Dirty(paths) => {
-            return Err(FacadeError::MigrationOverDirtyTree { paths });
+            return Err(over_a_dirty_tree(project, paths));
           }
-          crate::sync::TreeState::Clean => true,
+          crate::sync::TreeState::Clean => (true, false),
         }
       }
       crate::project::Migration::Done => {
@@ -6197,24 +6286,39 @@ impl Facade {
         let moves_format = format != crate::canon_format::CanonFormat::CURRENT;
         match (moves_format, crate::sync::tree_state(project.root())) {
           (true, crate::sync::TreeState::Dirty(paths)) => {
-            return Err(FacadeError::MigrationOverDirtyTree { paths });
+            return Err(over_a_dirty_tree(project, paths));
           }
-          (true, crate::sync::TreeState::Clean) => true,
+          (true, crate::sync::TreeState::Clean) => (true, true),
           // **NO WORK TREE, NO GUARD** (intent-cc's ruling). The guard keeps one
           // commit that `git revert` can undo, and nobody else's work swept into
           // it; with no work tree neither exists, so there is nothing to keep.
           // The v2 conversion's MigrationWithoutGit is a rule about its
           // documented rollback, and the format move does not inherit it. The
           // run claims nothing about a tree it does not have.
-          (true, crate::sync::TreeState::NoWorkTree) => false,
+          (true, crate::sync::TreeState::NoWorkTree) => (false, true),
           // A repository git refused to read is not "no work tree": the guard
           // has a tree to keep and could not look at it (issue Ib7a70c3).
           (true, crate::sync::TreeState::GitRefused(cause)) => return Err(FacadeError::Git(cause)),
           // A convergent re-run that moves no format runs on whatever the tree
           // holds, as it always has, and claims nothing about it.
-          (false, _) => false,
+          (false, _) => (false, false),
         }
       }
+    };
+    // **A ONE-SHOT CONVERSION ON ONE BRANCH OF SEVERAL** (issue I84286b7): two
+    // branches converted apart each add every record, so a record whose state
+    // differs between them is an add/add conflict at merge, with no base for git
+    // to merge from. A branch that changed no thread since it split converts to
+    // the same bytes and merges clean (measured), so only one that did is named.
+    // Read only on the format move, which writes every record.
+    let other_branches = if moves_format {
+      crate::gitstate::branches_ahead_under(
+        project.root(),
+        &project.relative(&project.canon_st_dir()),
+      )
+      .map_err(FacadeError::Git)?
+    } else {
+      Vec::new()
     };
 
     let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
@@ -6458,6 +6562,7 @@ impl Facade {
           removed,
           paths_file,
           on_a_clean_tree,
+          other_branches,
           store_tracking,
           aggregate_untrack,
           dehydrated,

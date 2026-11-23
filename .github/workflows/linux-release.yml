@@ -71,7 +71,7 @@ jobs:
           rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
           cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
       - run: bin/int linux doctor
-      - name: build, as the release a candidate names
+      - name: the release a candidate names, for the build after it
         # A CANDIDATE'S PAIR IS THE RELEASE'S BYTES, AND IT IS BUILT BEFORE THE
         # TAG EXISTS. source_commit.rs (emit_source_kind) says `release` only
         # where a tag names the commit or DEVBIN_RELEASE_TARGET_TAG is the tag the
@@ -79,17 +79,18 @@ jobs:
         # run is started by the push of `candidate/<tag>`, which hands it nothing.
         # So 3.3.1's Linux packages said `[intent-source-kind:dev]` while its
         # macOS assets said `release`, and a Linux install's `intent --version`
-        # read `dev`. On a candidate ref the tag is the branch's last segment, set
-        # here for this step alone; any other ref, a run by hand included, builds
-        # `dev` as before. The build's own version lines below end in the kind.
+        # read `dev`. devbin's `release target` reads the ref: on this release's
+        # candidate it prints the tag, and on any other ref, a run by hand
+        # included, it prints nothing and the build is `dev` as before. It
+        # writes `$GITHUB_ENV`, which reaches only the steps after its own, so it
+        # is its own step. The tag goes to the step summary too, so the run page
+        # shows it; pipefail, so a refusing `release target` fails the step
+        # rather than reading as tee's success. The build's own version lines
+        # below end in the kind.
         run: |
-          case "$GITHUB_REF" in
-            refs/heads/candidate/*)
-              export DEVBIN_RELEASE_TARGET_TAG="${GITHUB_REF#refs/heads/candidate/}"
-              printf 'DEVBIN_RELEASE_TARGET_TAG=%s\n' "$DEVBIN_RELEASE_TARGET_TAG" | tee -a "$GITHUB_STEP_SUMMARY"
-              ;;
-          esac
-          bin/int linux build
+          set -o pipefail
+          bin/devbin release target --ref "$GITHUB_REF" | tee -a "$GITHUB_STEP_SUMMARY" >> "$GITHUB_ENV"
+      - run: bin/int linux build
       - run: bin/int linux package
       - name: smoke, on the runner
         run: bin/int linux smoke

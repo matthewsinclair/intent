@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.5.2] - in progress
 
+### Fixed
+
+- **`intent upgrade` names a view left behind by `git switch` as one, and says to remove it** (issue Ie7fb84c). An upgraded branch ignores its `acceptance.md` views, so switching to a branch not yet upgraded leaves them on disk, untracked there, often in the directory of a thread that branch does not have. The upgrade refused them with the remedy for real work, "commit or stash these first", which would put a view into history that git ignores once the branch upgrades. It now names each such view apart from any other uncommitted change and gives its own remedy: remove it, with `rmdir` for a thread directory that leaves empty, which the upgrade would otherwise refuse as residue, since it is a view Intent renders from a branch's store and no one's work. Every other uncommitted change still refuses with the old remedy.
+- **`intent upgrade` names each branch that will conflict with it at merge** (issue I84286b7). Two branches each upgraded to 3.5's format write every work package and criterion as its own file, and git cannot merge one whose state differs between them: it is an add/add conflict, with no common version to merge from, whichever branch upgrades first and however the other takes the upgrade. A branch that changed no thread since the split upgrades to the same bytes and merges cleanly. The upgrade now names each other branch that changed a thread since it split, before you commit.
+
+### Upgrading a repository with branches
+
+Upgrade one branch, once. Before you do, merge into it every branch that changed a thread, work package or criterion since it split, so the upgrade carries their state. Commit the upgrade, then merge it into each remaining branch and do not run `intent upgrade` there. If `intent upgrade` names a branch you still want to merge, do not commit its run: it began on a clean tree, so `git reset --hard && git clean -fd` takes back only that run. Merge the branch in, then run `intent upgrade` again.
+
 ## [3.5.1] - 2026-11-22
 
 ### Fixed
