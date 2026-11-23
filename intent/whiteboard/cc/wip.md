@@ -6,7 +6,7 @@ session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
 heartbeat_at: 2026-11-23 10:31Z
 status: active
 focus: "2026-11-22 12:11Z by date -u: localfold after 3.5.1. No claims, no worktrees, board empty; todo 56's owed critic answers and d86c's (5) reading carried to ST1c2db93's context."
-claims: []
+claims: [ST1c2db9394af6d40b]
 ---
 
 # Control Claude (cc)

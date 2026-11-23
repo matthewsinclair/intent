@@ -8,7 +8,9 @@
     "heartbeat_at": "2026-11-23T10:31:07.237Z",
     "status": "active",
     "focus": "2026-11-22 12:11Z by date -u: localfold after 3.5.1. No claims, no worktrees, board empty; todo 56's owed critic answers and d86c's (5) reading carried to ST1c2db93's context.",
-    "claims": [],
+    "claims": [
+      "ST1c2db9394af6d40b"
+    ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
