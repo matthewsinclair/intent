@@ -2,7 +2,7 @@
 
 > GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `9ec1656` on 2026-08-14 by ic.
 
-**Status:** Every v2 family is authored, beside the new-surface rows and the new-surface families. **`families` holds members that are not v2 families, and v2-ness is DERIVED from `v2_source`, never from membership**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ (vc's ruling 2026-08-30). Keeping v2-ness separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.
+**Status:** `families` is the SPINE's unit: `spine::build` iterates it and a family's leaves are its child rows; `new_surface` holds the rows no family carries. `daemon` needed to be a family because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ (vc's ruling 2026-08-30). Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND IS NEVER ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) and names the tree the rows were first measured against. It records where the register began, not how current the file is: pointing it at HEAD would claim a measurement nobody made.
 
 - THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `intent/st/ST0056/parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
@@ -44,7 +44,6 @@ Rules that hold across the whole command surface. They are stated once here rath
 | INV-02 | Usage errors exit 1, except in `intent critic`, which exits 2                                                    | corrected   |
 | INV-03 | The project-context gate                                                                                         | corrected   |
 | INV-04 | Exit codes are 0, 1, 2, 3 and 4                                                                                  | corrected   |
-| INV-05 | `error ...; usage` -- the second call is unreachable, everywhere                                                 | pending-hv  |
 | INV-06 | About a fifth of v2 failure paths write to the wrong stream                                                      | corrected   |
 | INV-07 | `--help` reports failure                                                                                         | corrected   |
 | INV-08 | Some commands accept an unknown flag silently at exit 0                                                          | corrected   |
@@ -57,7 +56,6 @@ Rules that hold across the whole command surface. They are stated once here rath
 
 Every failure writes `error: <message>` to STDERR. Every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.
 
-- **v2:** bin/intent_helpers:7-11 (`error()` -- the single authority; v2.19.0 moved its callers to the lowercase voice)
 - **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own voice and exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: Every failure writes `error: <message>` to STDERR, and every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.
 - **rulings:**
   - `0.state`: ratified
@@ -69,7 +67,6 @@ Every failure writes `error: <message>` to STDERR. Every success line that annou
 
 A missing required argument, an unknown option, or an unknown subcommand exits 1.
 
-- **v2:** bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`
 - **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `native/rust/crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
   - Pinned by: WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)
 - **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: A missing required argument, an unknown option, or an unknown subcommand exits 1. The one exception is `intent critic`, whose own usage errors exit 2 so the gate fails open on its own breakage (INV-04).
@@ -84,7 +81,6 @@ A missing required argument, an unknown option, or an unknown subcommand exits 1
 
 Commands that need a project refuse outside one with exactly `error: not in an Intent project directory`, exit 1.
 
-- **v2:** bin/intent:206; measured uniform across the commands
 - **Target:** `corrected` -- ratified: vc-ruled 2026-08-15 on ic's finding, and RATIFIED BY hv 2026-08-31, put by vc with three options (ratify / decline-and-mint-a-third-state / leave it red) and this one chosen. The outstanding half is discharged: this field no longer carries a state its own prose denies. RECORDED RATHER THAN RE-ANCHORED -- AC-00.13's corollary is that the remedy for a DANGLING value is the wrong remedy for an INEXPRESSIBLE one, so the fix was never to edit the enum to agree with the prose; it was for the ratification to happen. It has. The basis is RATIFIED rather than new scope: the `error:` + `remedy:` voice that INV-01 and AC-06.11 both push toward is what v3's message already speaks and v2's does not. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-15, ruling applied at commit 8d6604c4 -- behaviour: v2 emits `error: not in an Intent project directory` then `  '<cmd>' requires an Intent project`. v3 emits `error: no Intent project found at or above <dir> (looked for intent/.config/config.json)` then a `remedy:` line naming `intent init` or changing directory. MEASURED on both binaries, not read.
 - **found by:** ic, 2026-08-15, and HOW is the useful part: it surfaced while BUILDING the probe for this very invariant -- one of the two `surface_check.sh` declares unchecked. **The skip was hiding a finding.** Its reason (`needs a probe run outside a project`) was true and was never a claim that nothing was wrong, but it reads like one, and it is the sentence anyone re-reading the file relies on. Revisit skips; do not trust their reasons.
 - **why not revert:** The v3 message is BETTER by this estate's own standards -- it names the directory searched, says what it was looking for, and carries a remedy. **Reverting to v2's wording to satisfy a parity row would make the surface worse in order to make a table right.** vc verified the grep rather than taking it on report: nothing in `parity.md`, `acceptance.md` or `design.md` names either string or ratifies the change, so unlike INV-06/07/08 -- which moved to `corrected` with a chain -- this one had simply diverged.
@@ -102,7 +98,6 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 
 0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error. 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. 4 the estate could not be judged -- `intent doctor`, `intent guards` or `intent lang declared`, the readers the commit gate runs, could not read the project it was asked about, so nothing it printed is a verdict; the gate fails open on it, saying so. `intent claude hook` propagates the hook's own code by design.
 
-- **v2:** bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.
 - **Target:** `corrected` -- ratified: D17, read as the ratification of v3's own exit contract rather than a carry-over from v2 (vc, 2026-09-14): an as-observed row claims nothing about v3, and this is a row that must. Enforced by exit_codes.rs. -- behaviour: 0 success; 1 the command ran and the answer is no; 2 this build could not answer and carries no verdict about the work; 3 refused, an armed rule could not be enforced here; 4 a reader the gate runs could not read the project. The rule above states each in full.
 - **rulings:**
   - `0.state`: ratified
@@ -110,20 +105,10 @@ Commands that need a project refuse outside one with exactly `error: not in an I
   - `0.date`: 2026-09-14
   - `0.record`: design.md:225
 
-### INV-05 -- `error ...; usage` -- the second call is unreachable, everywhere
-
-v2 sources read as though a missing-argument error prints the usage block. It never does.
-
-- **v2:** `error()` ends in `exit 1`, so every `error "..."; usage` pair has a dead `usage`. Sites in bin/intent_st alone (311, 450, 540, 603, 1048, 1105, 1620).
-- **Evidence:** `intent st` bare measured at exit 1, output on both streams -- no usage block reached stdout.
-- **Target:** `pending-hv`
-- **Open question for hv:** v3 renders help from this table, so printing usage on a usage error is nearly free. Do we (a) reproduce v2 -- terse `error:` line only, or (b) `corrected` -- error line plus the command's usage? (b) is what the dead code shows v2 INTENDED. Either way the exit code stays 1 per INV-02.
-
 ### INV-06 -- About a fifth of v2 failure paths write to the wrong stream
 
 v2 routed failing invocations inconsistently: some to stderr only, some to stdout only, some to both.
 
-- **v2:** measured; larger than the three known `Error:`-on-stdout sites in the plugin bins already queued for hv
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class, which names this census as a member of the ratified class; parity/README.md:39 carries the same entry. FOUND by ic and VERIFIED by vc against both files rather than taken on report; applied by ic 2026-08-15. Not a new ruling -- hv answered the question WHOLE, and it was already written down. -- behaviour: Errors go to stderr, ALWAYS -- the whole census is corrected rather than enumerated site by site. An error on stdout interleaves with captured command output, which is how a voice becomes data.
 - **ratified elsewhere:** VERBATIM MATCH IN parity.md, NOT YET APPLIED HERE (ic, 2026-08-15). parity.md:13 lists the hv-ratified `Corrected` deviation class members and one of them is the stderr/stdout misroute census. That is this invariant's rule and its v2 note. So the question above -- ratify the whole census or enumerate site by site -- was answered WHOLE by hv at the bounce on 2026-08-14. Recorded rather than applied: this is the SECOND instance of the same drift found in one afternoon (INV-07 was the first), and having found that I over-applied a rule twice earlier today, the pattern I trust is to state the match and let vc apply it. The state stays `pending-hv` until they do.
 - **rulings:**
@@ -136,7 +121,6 @@ v2 routed failing invocations inconsistently: some to stderr only, some to stdou
 
 Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`, `fileindex`), and an error to STDERR (`ac`, `at`, `help`, `claude`). `intent at --help` is parsed as an unknown verb; `intent help --help` fails outright.
 
-- **v2:** measured
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: `--help` always succeeds: exit 0, usage to stdout. v2 exits 1 on st, wp, ac, at, todo and fileindex (measured). v3 as built already does this -- `spine.rs:193` maps clap's DisplayHelp and DisplayVersion to EXIT_OK. The two v2 BATS assertions on `init --help` (tests/unit/intent_init_lang_flag.bats:23, tests/unit/global_commands.bats:74) are CORRECT as they stand and must NOT be flipped: they assert the incumbent, the estate runs against v2 by default and against v3 only under an INTENT_BIN override, and the conformance harness is built to expect red for ratified reasons. Flipping them would turn v2's own suite red and destroy the evidence of a deviation the contract already classifies.
 - **build measured:** MEASURED AT HEAD (ic, 2026-08-15), and it settles the cost side of this question. v2: `--help` exits 1 on st, wp, ac, at, todo and fileindex -- run, not read. v3 AS BUILT: exits 0 on all six plus the bare `intent --help`, because `spine.rs:193` maps clap's `DisplayHelp | DisplayVersion` to `EXIT_OK`, with `spine.rs:27` noting the divergence in as many words. So the candidate `corrected` in the question above is not a proposal any more, it is a description of the binary, and the only open act is recording it. THE COST THIS QUESTION FLAGS IS REAL AND IT IS THESE ASSERTIONS: `tests/unit/intent_init_lang_flag.bats:23` and `tests/unit/global_commands.bats:74`, both `assert_failure`, both on `init --help`, both carrying a comment calling exit-1 the usage convention. Nothing else in the BATS estate pairs `--help` with a status. And the argument from inside this file is stronger than the count: INV-04 declares 0 success and 1 every failure, so a `--help` that succeeds and exits 1 contradicts an invariant this same surface asserts -- reproducing it faithfully means shipping a v3 that breaks its own stated contract wherever v2 did.
 - **rulings:**
@@ -149,7 +133,6 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 
 `intent info --zzz`, `intent config --zzz` (zero output) and `intent version --zzz` all succeed.
 
-- **v2:** measured
 - **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- Same split as INV-02: the three v2 commands were probed; clap's rejection of unrecognised arguments is its documented default, not something measured in this workspace.
   - Pinned by: The same WP-05 unknown-flag test that pins INV-02 pins this.
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 bounce -- the `corrected` class; this member is forced rather than chosen -- behaviour: Unknown arguments are refused, exit 1 per INV-02.
@@ -164,7 +147,6 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 
 **THE GENERAL FORM OF `ST0058 AC-00.6`, WHICH STATES IT NARROWLY.** That criterion reads _a flag and its subcommand twin agree about whether the capability exists_, and was driven off `intent3 --version` returning rc=0 while `intent3 version` returned the unwired marker. **Separate ROWS can be spellings of one capability (`browse` and `edit --browser`). ARGUMENT SHAPES OF ONE ROW ARE ALSO SPELLINGS**, and that second reading is what the narrow wording misses. **The witness is `fc`, and it is worse than a disagreement -- it is a FALSE STATEMENT**: `intent fc <thread> AC-nn.n` reaches the arm and refuses on the unknown thread at rc=1, while `intent fc <thread> AT-nn.n` answers `fc is a known command that is not implemented yet` with the remedy `nothing in this build provides it`, **for a verb this build provides**. Every other member of the twelve-file marker set is a duplicated TRUE sentence; this is the true sentence emitted where it is false. **A row whose probe answer varies by argument shape declares `varies` and names the axis, and refuses to answer as a boolean** -- a boolean that is genuinely both is not under-specified, it is being asked of the wrong unit, and a `partially_wired` value would encode the confusion rather than resolve it (cc, 2026-08-29).
 
-- **v2:** not-applicable -- v2 had no twin spellings and no unwired marker
 - **Target:** `new-surface` -- ratified: vc, 2026-08-29, generalising ST0058 AC-00.6 on ic's `fc` witness and cc's unit argument
 - **held by:** `twin_of` names the partner row; a probe result of `varies` names the axis it varies on
 
@@ -172,7 +154,6 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 
 **TTY -> TUI, PIPE -> PATH, with three explicit overrides that are mutually exclusive with each other and with the default**: `--editor[=program]`, `--browser`, `--path`. `--editor --path` is already refused and `--browser` joins that set. **`--path` MUST SURVIVE AND IT IS A DOCUMENTED OUTPUT CONTRACT, NOT A CONVENIENCE**: `docs/getting-started.md` carries `$EDITOR "$(intent st edit ST0001 design)"` under test, and command substitution makes stdout a pipe, so that invocation keeps receiving a path. **The bare TTY form alone was rejected by hv (2026-08-29) because it makes behaviour depend on an invisible property of the environment** -- a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. **The register is where the exclusion lives because no single flag can state it**, which is what makes it an invariant rather than a field.
 
-- **v2:** not-applicable -- `st edit` had one output and no modes
 - **Target:** `new-surface` -- ratified: hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options
 - **held by:** the four modes are refused pairwise; `--path` is a documented output contract under test in docs/getting-started.md
 
@@ -180,7 +161,6 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 
 A `subcommand` slot is how the table spells a third level, and it is never a published parameter. When a row with a valued slot (`values` non-empty) is `exposed_on_mcp`, the MCP tier publishes ONE TOOL PER VALUE, named as the path `<row path> <value>` would be, described from `value_help`, served through that value's `value_facades` entry, and taking that value's `value_args` and `value_flags` alone. A value with no facade on an exposed row is refused at tool derivation, as a row with no `facade` is. `value_facades` and `value_args` are held to the same load checks as `value_flags`: only on a valued slot, every key a value, every named arg or flag on the row. The reason is the agent's: one tool with a `verb` enum cannot say which args a verb takes, so the agent would learn it from a refusal.
 
-- **v2:** not-applicable -- v2 had no MCP surface
 - **Target:** `new-surface` -- ratified: ic as the dispatch table's owner, 2026-11-10, on cc's shape question for ST0092 WP-02's `wb profile`; vc let it stand the same day and asked that the table say it once
 - **held by:** dispatch::table()'s load checks on `value_facades` and `value_args`, and mcp.rs's expansion test with its positive control, beside a_subcommand_slot_is_not_published
 
@@ -188,7 +168,6 @@ A `subcommand` slot is how the table spells a third level, and it is never a pub
 
 A write that takes `--node <human seat>` on a board that declares a team is refused unless the call comes from the Claude Code session bound to the mediator, or from a shell with no Claude Code session, which is the human's own terminal. The check sits in the facade, so the CLI, every MCP tool that takes a node and the daemon meet the one check and no dispatch arm repeats it. An MCP call always carries its server's session, and with none it is unattributed, never the terminal; a call through the daemon is unattributed, so it is refused. The refusal is exit 1 with `error:`, and its remedy names the mediator. A board that declares no team is unaffected.
 
-- **v2:** not-applicable -- v2 had no declared teams
 - **Target:** `new-surface` -- ratified: vc under the pen, 2026-11-10, on ic's second row read of ST0092 WP-05, and the caller's shape on 2026-11-11 on cc's design question
 - **held by:** Facade::require_writer_as, which every node-taking board verb calls first, with intentsvcs's wb_hv.rs, intent-cli's hv_seat_door.rs and intentd's own store test
 
@@ -196,8 +175,6 @@ A write that takes `--node <human seat>` on a board that declares a team is refu
 
 Manage steel threads for the project
 
-- **v2 source:** `bin/intent_st`
-- **v2 help file:** none
 - **Owning work package:** WP-04
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -233,7 +210,6 @@ Manage steel threads for the project
 
 Manage steel threads for the project
 
-- **v2:** bin/intent_st:1614-1616, 1618-1621
 - **Arguments:**
   - `command` (subcommand, arity `1`)
 - **Flags:**
@@ -241,15 +217,6 @@ Manage steel threads for the project
     - `help` is a bare word arm, not a flag; grouped here because the spellings share one arm (bin/intent_st:1614)
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `1` -- bare -- `error: Steel thread command is required`
-  - `1` -- --help / -h / help -- usage block printed, exit 1
-  - `1` -- unknown verb -- `error: Unknown command: <verb>`
-- **stdout:** usage block on the --help path only
-- **stderr:** `error: ...` on the bare and unknown-verb paths
-- **Defects observed in v2:**
-  - INV-05 at bare invocation (bin/intent_st:1620)
-  - INV-07 at `st --help` / `-h` / `help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **rulings:**
@@ -264,25 +231,12 @@ Manage steel threads for the project
 
 Create a new steel thread
 
-- **v2:** bin/intent_st:296-445
 - **Arguments:**
   - `title` (string, arity `1`)
     - Exactly one title; quote it if it has spaces. A second positional is refused as a usage error, exit 1.
 - **Flags:**
   - `-s`, `--start` (bool) -- Mark the new thread in progress immediately
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- created
-  - `1` -- no title -- `error: Steel thread title is required`
-  - `1` -- unknown option -- `error: Unknown option: <opt>`
-  - `1` -- templates missing -- names INTENT_HOME and states that nothing was created (bin/intent_st:375)
-- **stdout:** the created id and path
-- **stderr:** `error: ...`
-- **Side effects:**
-  - Writes `intent/st/<ID>/` from `lib/templates/prj/st/ST####`
-  - Triggers the index resync (`intent st sync --write`, bin/intent_st:287)
-- **Defects observed in v2:**
-  - surplus positional args discarded silently (bin/intent_st:305, 314)
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- Machine 1 (ThreadStatus) enters at `Triage`, not `NotStarted`. cc landed it at `2aec5f6`. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. hv, 2026-08-15, ruling applied at commit 2aec5f62
 - **entry state changed:** THE ENTRY STATE MOVED AND THAT IS USER-VISIBLE, so this row stops being `as-observed`. v2 `st new` creates a thread at `Not Started`; v3 creates it at `Triage`, and `st triage` is the verb that advances it. A user who runs `st new` then `st start` now meets a refusal that names `not-started` -- correct, and correct FOREVER, but it is a behaviour change and recording it as ported would have hidden one.
 - **not a rename:** `Triage` REUSES THE LETTERS OF v2's `TBC` AND NOT ITS MEANING, which is why a parity row matching on the string would be comparing two different things. v2's `TBC` means To Be Commenced -- `bin/intent_helpers:544` maps `tbc` and `to be commenced` to the same stored value `Not Started`, and the tool's own usage at `bin/intent_st:46` says so in words. So every v2 `TBC` migrates to `NotStarted` and `Triage` begins with ZERO legacy members. The display string is `Triage`; `TBC` must not be reused as its abbreviation (see `st list`'s `tbc_trap`).
@@ -301,16 +255,8 @@ Create a new steel thread
 
 Mark a steel thread as in progress
 
-- **v2:** bin/intent_st:599-716
 - **Arguments:**
   - `id` (st-id, arity `1`)
-- **Exit codes:**
-  - `0` -- started
-  - `0` -- ALREADY in progress -- prints `skipped: <ID> already in progress` and exits 0 (bin/intent_st:634-637, 678-681)
-  - `1` -- no id / thread not found
-- **stdout:** `skipped: ...` on the idempotent path
-- **stderr:** `error: ...`
-- **Observed notes:** `skipped:` is a THIRD voice prefix alongside `ok:` and `error:`; INV-01 does not currently name it. Carried into v3 or folded into `ok:` is a decision, flagged.
 - **Target:** `corrected` -- ratified: vc 2026-08-17, after hv ratified Machine 1; this row needed no separate hv call and the reasoning is vc's: Machine 1 already declares `NotStarted -> Wip` and hv ratified the machine, so `st start` is `corrected` by APPLICATION of an existing ratification rather than a new one. It was `pending-hv`, which was honest and is now answered. THE DEVIATION IS THE FROM-STATE. Machine 1 admits `st.start` from `not-started` ONLY, so v3 REFUSES starting a `hold`, `completed`, `cancelled` or already-`wip` thread -- `st resume` and `st reopen` are the edges for the first two -- where v2 had no lifecycle state guard anywhere (vc's 18-cell matrix at `2033530b`, filed as issue 0046 before the tracker was cleared). **AND IT REFUSES FROM `triage`, WHICH IS THE ENTRY STATE, so a freshly created thread CANNOT BE STARTED DIRECTLY: `st new` lands on `triage` and `st triage` is the edge to `not-started`.** Verified independently at HEAD by both vc and ic -- `initial: &["triage"]` and `Edge::direct("st.start", &["not-started"], "wip")`, both committed. **This is the sharpest user-visible consequence of the four and the one most likely to be reported as a bug on somebody's first v3 command**, which is why it is on the row rather than left to the machine. It is a deliberate consequence of the ratified machine, not an oversight. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND IT DOES NOT RESOLVE THE `triage` PROBLEM ABOVE -- the two are easy to confuse and this row is where they meet.** `st start` on an already-`wip` thread now returns exit 0 as a NO-OP, no envelope and no write, via the `from == status` test placed FIRST in `set_thread_status` (`facade.rs:1155-1157`) -- ahead of `check_transition`, ahead of `check_gate`, ahead of `check_reason`. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state.** So `wip` leaves the refused set. **`triage` DOES NOT, for exactly that reason: `st.start` targets `wip`, so asking it of a `triage` thread is a real transition and an undeclared one.** A freshly created thread still cannot be started directly, that remains the sharpest user-visible consequence on this row, and the self-loop landing is the most likely thing to be mistaken for having fixed it. `hold`, `completed` and `cancelled` also stay refused. Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when it was written and is why it was written that way. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-17, and the ruling needed no separate hv call: Machine 1 already declares `NotStarted -> Wip` and hv ratified the machine, so this row is `corrected` by APPLICATION of an existing ratification rather than by a new one. The move `pending-hv` -> `corrected`, with that reasoning, is at commit `bc5f5960`. The v2 fact every one of these four rests on -- no v2 lifecycle verb has a state guard of any kind, all 18 cells returning 0 and landing on the verb's target state -- is vc's measurement, and its diff is at commit `2033530b`. Read `bc5f5960` beside `8963e5dd`, which RETRACTS its lesson while leaving these rows standing -- the retraction is of a false lesson attached to a real correction, and a reader landing on the first without the second gets the wrong account of why the row reads as it does. **THE EARLIER VALUE CITED `issue 0046` AND THAT CITATION NO LONGER RESOLVES.** hv ruled the tracker out -- an issue is an EXTERNAL user's report against a RELEASED version -- and vc removed the open rows at `9a9c7799`. Nothing in this register was edited, so the citation did not break loudly: `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) went on certifying it. Re-anchored on the commits whose DIFFS carry the text, per vc's rule that a reader running `git show` must land on the ruling and not on a reference to it.
 - **Open question for hv:** Does `skipped:` survive as a first-class prefix, or become `ok: <ID> already in progress`? Scripts matching on it exist in the BATS estate.
 - **no op:** `ok: <ID> already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -327,7 +273,6 @@ Mark a steel thread as in progress
 
 Mark a steel thread as complete
 
-- **v2:** bin/intent_st:446-535
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
@@ -337,15 +282,6 @@ Mark a steel thread as complete
   - `--date` `<YYYY-MM-DD>` (string) -- Record this completion date instead of today
     - **disposition:** keep
     - **disposition basis:** hv, 2026-08-28, on issue 0118's fifth limb. The closing verbs stamped TODAY and took no override, so the only open CLI path recorded threads finished in February as finished on the day the estate migrated -- nearly all of Conflab's remaining doctor findings. A COMPLETION DATE IS A CALENDAR FACT IN THE AUTHOR'S LOCAL DAY, NOT A UTC INSTANT (conflab-vc): recovering 64 dates from git scored 64/64 read as local and 63/64 forced to UTC, the miss committed 23:57 +0100. So the flag takes the date the caller states and converts nothing. It is on BOTH closing verbs on the same ground as `--keep` (hv, 2026-08-20): two identical acts with the override on one of them is a surface to be memorised rather than understood.
-- **Exit codes:**
-  - `0` -- closed
-  - `1` -- no id / thread not found
-  - `1` -- acceptance contract BLOCKED -- `error: cannot close <ID>: acceptance contract is BLOCKED (run 'intent ac status <ID>')` (bin/intent_st:470-471)
-- **stdout:** closure confirmation
-- **stderr:** `error: ...`
-- **Side effects:**
-  - Consults the close-gate by shelling to `bin/intent_acceptance ac gate <ID>` (ST0044/ST0048 fail-by-default)
-  - Relocates the thread directory and resyncs the index
 - **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; precedent `st cancel`, same mechanism and same author. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 1 admits `st.done` from `wip` ONLY, so v3 REFUSES closing a `triage`, `not-started`, `hold`, `completed` or `cancelled` thread, where v2 had NO lifecycle state guard anywhere and moved it (vc's 18-cell matrix at `2033530b`, filed as issue 0046 before the tracker was cleared; twelve undeclared movements). AC-04.6 REQUIRES that deviation, so the previous `as-observed` was asserting parity across one that is mandated. **The `GatePass` guard is PARITY, not part of the correction**: v2 already exited 1 on a BLOCKED acceptance contract (`bin/intent_st:470-471`, in this row's own measured exits), so v3 reproduces the gate and restricts the from-state, and only the second is a deviation. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND THIS ROW NOW DESCRIBES IT.** `st done` on an already-`completed` thread returns exit 0 as a NO-OP -- no envelope, no write -- via the `from == status` test placed FIRST in `set_thread_status` (`facade.rs:1155-1157`), ahead of `check_transition`, `check_gate` and `check_reason`. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state**, so `completed` leaves the refused set while `triage`, `not-started`, `hold` and `cancelled` stay in it. Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when written. **AND THE PARITY CLAIM TRAVELLING WITH THE RULING IS FALSE OF THIS ROW, WHICH IS ONLY VISIBLE FROM HERE.** `facade.rs:383` and `render.rs:1132` both say the ruling brings v3 back to v2's measured `already CLOSED`. **v2 has exactly one `already` arm and it is `intent issues close` (`bin/intent_issues:282`, `ok: issue $id already $status`)** -- `data-model.md:373` attributes it correctly and the two code comments dropped the subject in transit. **v2's `st done` on a completed thread has no state check at all** (`bin/intent_st:446-535`, read): it resolves the thread wherever it sits, RE-RUNS THE GATE, re-`sed`s the status, re-stamps `completed:` from a fresh `date -u`, finds `CURRENT_DIR == NEW_DIR` so moves nothing, and exits 0. **So v2 matches v3's exit code by accident and differs on the two things that matter: v2 re-runs the gate, so it exits 1 once the contract has gone BLOCKED since the close, and v2 silently advances the completion date on every re-close.** v3 does neither. That is a sharper correction than the ruling's own prose claims, and the right one. **WHAT THIS ROW STILL CANNOT STATE IS WHAT THE NO-OP PRINTS.** At HEAD `st done` discards the facade `Outcome` and prints `ok: <ID> done` either way, while `todo done` -- which delegates to this very call -- prints `ok: <spec> was already done`. Nineteen render arms against two. Filed as issue 0050; the table has no notation for a per-row no-op message, so that half of the gap is mine and not the renderer's. Measured by cc against the v3 facade and by vc against v2 at 18 cells, fresh project per cell; edges re-read at HEAD by ic. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-17, one ruling covering `st start`, `st done`, `wp start` and `wp done`, all deviating in the same single respect. The ruling as applied is at commit `9361c68a`, whose diff writes this ratification and moves the row `as-observed` -> `corrected`. The v2 fact every one of these four rests on -- no v2 lifecycle verb has a state guard of any kind, all 18 cells returning 0 and landing on the verb's target state -- is vc's measurement, and its diff is at commit `2033530b`. Two records rather than one because they answer different questions: `9361c68a` is where the decision reads as it now stands, and `2033530b` is the independent evidence under it, measured by vc against v2 rather than taken from this row. **THE EARLIER VALUE CITED `issue 0046` AND THAT CITATION NO LONGER RESOLVES.** hv ruled the tracker out -- an issue is an EXTERNAL user's report against a RELEASED version -- and vc removed the open rows at `9a9c7799`. Nothing in this register was edited, so the citation did not break loudly: `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) went on certifying it. Re-anchored on the commits whose DIFFS carry the text, per vc's rule that a reader running `git show` must land on the ruling and not on a reference to it.
 - **Note:** The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not.
 - **no op:** `ok: <ID> already Completed`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -363,7 +299,6 @@ Mark a steel thread as complete
 
 Mark a steel thread as cancelled, with a reason
 
-- **v2:** bin/intent_st:536-598
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
@@ -375,12 +310,6 @@ Mark a steel thread as cancelled, with a reason
   - `--date` `<YYYY-MM-DD>` (string) -- Record this completion date instead of today
     - **disposition:** keep
     - **disposition basis:** hv, 2026-08-28, on issue 0118's fifth limb. The closing verbs stamped TODAY and took no override, so the only open CLI path recorded threads finished in February as finished on the day the estate migrated -- nearly all of Conflab's remaining doctor findings. A COMPLETION DATE IS A CALENDAR FACT IN THE AUTHOR'S LOCAL DAY, NOT A UTC INSTANT (conflab-vc): recovering 64 dates from git scored 64/64 read as local and 63/64 forced to UTC, the miss committed 23:57 +0100. So the flag takes the date the caller states and converts nothing. It is on BOTH closing verbs on the same ground as `--keep` (hv, 2026-08-20): two identical acts with the override on one of them is a surface to be memorised rather than understood.
-- **Exit codes:**
-  - `0` -- cancelled
-  - `1` -- no id / thread not found
-- **stdout:** cancellation confirmation
-- **stderr:** `error: ...`
-- **Observed notes:** No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one).
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. hv, 2026-08-15, ruling applied at commit 2aec5f62
 - **conflict resolved:** RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.
 - **why not as observed:** This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve.
@@ -399,10 +328,8 @@ Mark a steel thread as cancelled, with a reason
 
 Move a triaged thread out of Triage into NotStarted
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.
 - **Note:** `Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with.
 - **no op:** `ok: <ID> already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **`st.triage` is declared only FROM `triage`, so this row's self-loop is the only way to reach the verb at all** -- no other state has an edge into it, which the refusal from `wip` says in as many words. Sharing the `Not Started` display with `st reinstate` is a display fact, not a state fact: the two are distinct machine states that render alike.
@@ -414,13 +341,11 @@ Move a triaged thread out of Triage into NotStarted
 
 Put a thread on hold, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being held. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.
 - **Note:** `Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce.
 - **no op:** `ok: <ID> already On Hold`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **It self-loops at 0 WITHOUT the `--reason` the verb otherwise requires**, which is the ruled ordering visible from the outside: the self-loop test runs ahead of `check_reason`, so asking for a state the thread already holds is not a decision and needs no justification. `st cancel` measures the same way.
@@ -432,10 +357,8 @@ Put a thread on hold, with a reason
 
 Take a thread off hold and back into Wip
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.
 - **Note:** Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first.
 - **no op:** `ok: <ID> already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -447,13 +370,11 @@ Take a thread off hold and back into Wip
 
 Reopen a completed thread back into Wip, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reopened. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.
 - **Note:** `st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status.
 - **no op:** `ok: <ID> already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -465,13 +386,11 @@ Reopen a completed thread back into Wip, with a reason
 
 Reinstate a cancelled thread into NotStarted, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reinstated. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.
 - **Note:** Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines.
 - **no op:** `ok: <ID> already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). Shares the `Not Started` display with `st triage` and is a different machine state underneath.
@@ -483,14 +402,12 @@ Reinstate a cancelled thread into NotStarted, with a reason
 
 Add a steel thread to .intentfiles and write its files
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--overwrite` (bool) -- Write over a view whose bytes on disk are not what the store renders, DISCARDING the version on disk
     - **disposition:** keep
     - **disposition basis:** **hv, 2026-09-12, on silent deletion: _THEY NEED IDENTIFYING, TRIAGING, AND FIXING, AS A MATTER OF URGENCY._** Every `Verify` step went into the write set unconditionally, so a hand edit to a realised view -- or any work an unregistered writer had put there -- was replaced by the render, reported afterwards as `wrote`, at exit 0. **`dehydrate` has refused exactly this signature since it was written**: `organize::gate` will not REMOVE a file whose bytes differ from the render, because the difference may be a hand edit and nothing on disk says which. Overwriting it is the same loss by a different verb, so the two verbs now answer alike: refuse, name every path, and make the destructive route an explicit flag. The flag is not a default and there is no environment variable for it.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **no op:** **MEASURED** by driving the verb twice through the dev binary at daf2417d2 (ic, 2026-11-20, todo 78, on gyges in scratch projects with their own HOME, never the main checkout's store), once in each format. The second call prints `ok: <address> hydrated -- listed in intent/.intentfiles, <n> file(s) on disk, 0 written by this run` in 3.4.0's format (a project brew's 3.4.0 made) and `ok: <address> hydrated -- realised on its canon record, <n> file(s) on disk, 0 written by this run` once the project is upgraded, exit 0 in both. The words for each format are `intentfiles::RealisationWords`.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -504,10 +421,8 @@ Add a steel thread to .intentfiles and write its files
 
 Remove a steel thread from .intentfiles and delete its files
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **no op:** **MEASURED** by driving the verb twice through the dev binary at daf2417d2 (ic, 2026-11-20, todo 78, on gyges in scratch projects with their own HOME, never the main checkout's store), once in each format. The second call prints `ok: <address> was already dehydrated -- not listed in intent/.intentfiles, nothing realised to remove` in 3.4.0's format (a project brew's 3.4.0 made) and `ok: <address> was already dehydrated -- not realised on its canon record, nothing realised to remove` once the project is upgraded, exit 0 in both. The first call says `delisted: intent/.intentfiles` and `unrealised: its canon record` respectively. The words for each format are `intentfiles::RealisationWords`.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -521,7 +436,6 @@ Remove a steel thread from .intentfiles and delete its files
 
 List steel threads (default: in progress only)
 
-- **v2:** bin/intent_st:717-1043
 - **Flags:**
   - `--status` `<status>` (string) -- `all`, or a comma-separated list rendered in the order given
     - Accepts: wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)
@@ -542,14 +456,6 @@ List steel threads (default: in progress only)
     - **disposition:** keep
     - **disposition basis:** NEW SURFACE (there is no `new` flag disposition; `keep` is the declared value for a flag that ships and is read by the renderer, as `--format` on this same verb also does). NEW SURFACE, ruled by hv 2026-08-27 first-hand in cc's session: "the title is the SSOT ... the slug is just a way to show the title in an escaped URI friendly way", and "'st list' we get the title, by default. If needed 'st list --slug' prints the slug instead of the title". THE SLUG IS DERIVED AT RENDER TIME FROM THE TITLE and is never read from the stored `slug` column -- storing it would be the second piece of data hv's ruling exists to remove, and it is absent on many threads. THE ST ID REMAINS THE UNIQUE IDENTIFIER; the slug NEVER resolves. It exists so a listing is legible where a bare id is opaque, which is why nothing enforces slug uniqueness and why the 48-character cap is a display choice rather than an address hazard. It would become one the moment a slug resolved, and that is the tripwire for anyone widening this later. Supersedes an earlier and larger spec (backfill all 64, enforce uniqueness, add a setter, resolve by unique prefix) which hv withdrew as overcooked.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- listed (including an empty list)
-  - `1` -- unknown option -- `error: Unknown option: <opt>`
-  - `1` -- `error: Steel threads directory not found`
-- **stdout:** the table
-- **stderr:** `error: ...`
-- **Defects observed in v2:**
-  - `--status` and `--width` consume the next positional blindly (shift; VALUE="$1"). A trailing `--status` with no value silently yields an empty filter rather than a usage error.
 - **Target:** `corrected`
 - **Note:** clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it.
 - **rulings:**
@@ -571,17 +477,9 @@ List steel threads (default: in progress only)
 
 Show details of a specific steel thread
 
-- **v2:** bin/intent_st:1044-1100
 - **Arguments:**
   - `id` (st-id, arity `1`)
   - `file` (enum, arity `0..1`), default `info` -- one of: `info`, `design`, `impl`, `tasks`, `acceptance`, `all`
-- **Exit codes:**
-  - `0` -- printed
-  - `1` -- no id / thread not found
-  - `1` -- `error: Unknown file type: <t>`
-  - `1` -- `error: File not found: <t>.md for steel thread <ID>`
-- **stdout:** file contents; `all` concatenates with `-- <file>` separators
-- **stderr:** `error: ...`
 - **Target:** `as-observed`
 - **Note:** `st show` prints the file its `file` positional names, read from the STORE and never from a view on disk (issue 0398, 2026-09-15). `info`, the default, is the cover the MCP resource read also serves; `acceptance` is the contract exactly as `acceptance.md` is hydrated, selected from the one renderer rather than rendered a second time; every other name is the thread's attachment of that name with `.md` appended, so a thread whose files are gone from disk still answers; `all` is the cover and then each file the thread carries under a `-- <file>` separator, in declared order, leaving out the ones it does not carry. A named file the thread does not carry refuses at exit 1 and names `intent st attach`, and a value outside the declared set refuses at exit 1 and names the set, so the row's declared refusals for `file` are reachable, in v3's own words. One refusal is not among the observed codes: an attachment carried as an opaque file whose content this read did not load refuses at exit 2, this build unable to answer rather than a no, because printing nothing at exit 0 would report an empty file. Every BATS test asserting v2's exact `info.md` bytes stays retired under the ratified file-layout class, because `info` is the cover and not the view. **CORRECTED BY THE LANDING THAT MADE IT TRUE.** From 2026-08-17 this note recorded that `st show` never read `file` at all -- `intent st show ST0001 design` and `intent st show ST0001 nonsense` printed the same summary at exit 0, a `keep` row reporting success for a request it discarded (issue 0055, found by cc) -- and before that it claimed `show` read the generated view. v2 cats the file; v3 reads the record the file is rendered from.
 - **MCP:** exposed as an agent tool -- read-only
@@ -592,7 +490,6 @@ Show details of a specific steel thread
 
 Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one; the files a realise writes are named on stderr as `wrote:` lines
 
-- **v2:** bin/intent_st:1101-1144
 - **Arguments:**
   - `id` (st-id, arity `1`)
   - `file` (enum, arity `0..1`), default `info` -- one of: `info`, `design`, `impl`, `tasks`, `acceptance`
@@ -606,12 +503,6 @@ Open a steel thread file, realising the thread if it is not on disk: in $VISUAL 
     - **disposition:** keep
     - **disposition basis:** hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- path printed
-  - `1` -- no id / thread dir not found / unknown file type
-- **stdout:** the absolute path, one line, nothing else
-- **stderr:** `error: ...`
-- **Observed notes:** Pure emit-path: it never launches an editor and never creates the file. The name is a historical misnomer the docs already work around (`$EDITOR "$(intent st edit ST0001 acceptance)"`). The thread DIRECTORY must exist; the file need not.
 - **Target:** `deviate` -- ratified: hv, 2026-08-29, live in vc's session, hv's own selection from three options -- SUPERSEDING two earlier rulings on this question. **The first two were a coordination defect rather than hv changing their mind**: hv chose the TTY form in cc's session, vc then put four options to hv of which NONE was that form, and the result was reported as a ruling. The cause was a false premise -- that a default launch necessarily breaks the documented output contract, which is true of launch-by-default and false of the TTY form. vc returned it to hv with the omission named rather than quietly adding a fifth option. -- behaviour: **TTY-AWARE, WITH AN EXPLICIT SPELLING FOR EACH BRANCH.** v3 opens the file in $VISUAL or $EDITOR when stdout is a terminal, and prints the path when stdout is a pipe or a file. `--editor` forces the open and `--path` forces the print, whatever stdout is; the two together are refused. **THE v2 CONTRACT IS PRESERVED WHERE IT IS ACTUALLY USED**: `$EDITOR "$(intent st edit ST0001 info)"` was the documented form until 46f254484, and command substitution makes stdout a PIPE, so that invocation still receives the path and is covered by a test. The name stops being a misnomer on a terminal and keeps its documented behaviour everywhere a script can see.
 - **Note:** **CORRECTED 2026-08-22 (vc, under hv's pen; reported by ic).** Declared `read` while `Facade::edit` calls `hydrate` -- so it realised the thread's views and appended `STEELTHREAD:<id>` to the TRACKED `.intentfiles`. The help said `Print the absolute path to a steel thread file`, which no operator reads as `and realise the thread`. **A true declaration with false help is half a fix**: the declaration is what the MCP surface and the readers trust, the help is what the human trusts. Both changed, with the ordering fix that stops the FILENAME-only refusal writing before it refuses.
 - **why deviate and not corrected:** `corrected` is a v2 behaviour that is simply WRONG and is fixed; `deviate` is a design consequence of v3. v2's pure emit-path was not a defect -- it was a deliberate, documented, working contract, and the register's own note calls the NAME a historical misnomer the docs work around, not the behaviour a bug. So this is a design change with hv's ratification on the row, which is what `deviate` requires, and it is NOT ratified by class membership.
@@ -625,7 +516,6 @@ Open a steel thread file, realising the thread if it is not on disk: in $VISUAL 
 
 Write an attachment's content from a local file
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (value, arity `1`)
   - `path` (value, arity `1`)
@@ -633,11 +523,6 @@ Write an attachment's content from a local file
   - `--from` `<file>` (value) -- The local file whose contents become the attachment
     - **disposition:** keep
     - **disposition basis:** **PROVISIONAL SPELLING, AUTHORISED BY vc AS A CAPABILITY AND ROUTED TO hv AS A NAME (2026-08-25).** AC-08.5 asks whether a field is settable through the mutation surface and has no opinion on what the verb is called, so the row greens on capability and the name is a separate, cheap decision while nothing has shipped. **vc explicitly declined to pick the name under the pen**, because a name chosen inside a fix becomes the ruling by default -- the failure this criterion produced twice today, on `Node` and on `status_reason`. hv has ruled smaller naming questions than this one and this is new user-facing surface on the MUTATION side.
-- **Exit codes:**
-  - `0` -- the attachment is written
-  - `1` -- the thread does not exist, the file does not exist, or the file is not UTF-8 text
-- **stdout:** `ok: <path> written to <STID>`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
@@ -646,15 +531,9 @@ Write an attachment's content from a local file
 
 Remove an attachment from a thread, leaving its file on disk for you to delete
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (value, arity `1`)
   - `path` (value, arity `1`)
-- **Exit codes:**
-  - `0` -- the attachment's record is removed from the store and canon
-  - `1` -- the thread does not exist, or it carries no attachment at that path
-- **stdout:** `ok: <path> detached from <STID> -- ...`, then a `note:` naming the file when it is still on disk
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **basis:** Issue 0394, allocated by vc 2026-09-14: `st attach` had no inverse, so an attachment could leave a thread only by a hand edit of canon and a `sync --to-store`. The record leaves the store and canon; the file on disk is the operator's to delete, and the output names it and says a running intentd or the next `sync --to-store` carries an authored file left under a thread back in.
@@ -664,15 +543,9 @@ Remove an attachment from a thread, leaving its file on disk for you to delete
 
 Move a steel thread to a free id, with everything that names it structurally
 
-- **v2:** new-surface
 - **Arguments:**
   - `old` (st-id, arity `1`)
   - `new` (st-id, arity `1`)
-- **Exit codes:**
-  - `0` -- renumbered: the store, canon, the realised files, the manifest row, related references and claims name `<new>`
-  - `1` -- `<old>` does not exist, `<new>` is taken by the store or the tree, or the filesystem refused a move -- in each case nothing is renumbered
-- **stdout:** `ok: <old> renumbered to <new>`, then `moved: ...` per path or manifest row, `rewritten: ...` per structured reference, and `prose: <path>[:<line>]` per mention the index found and left alone, with a closing `note:` saying so
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `retire`
 - **spelling:** intent st remint <id>
 - **retired by:** ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent st remint <id>`, which moves an ordinal thread to the id the one mint derives for it. It carried target state `new-surface`.
@@ -687,14 +560,8 @@ Move a steel thread to a free id, with everything that names it structurally
 
 Move an ordinal steel thread to its git-style id, with everything that names it structurally
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
-- **Exit codes:**
-  - `0` -- reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id
-  - `1` -- the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves
-- **stdout:** `ok: <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **basis:** ST0095 WP-10 (AC-10.5), the door to cc's `st_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The thread moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; a thread the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `st renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.
@@ -707,18 +574,12 @@ Move an ordinal steel thread to its git-style id, with everything that names it 
 
 Link a thread to another, or replace the note on a link it already carries
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
   - `target` (st-id, arity `1`)
 - **Flags:**
   - `--note` `<text>` (string) -- Why the two threads are related; relating a linked target without it clears the note
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- `<id>` links `<target>` with the note given, written to the store, canon and the realised `info.md` under one `st.relate` event -- or it already did, and nothing was written
-  - `1` -- `<id>` does not exist, `<target>` is not a thread in this project, or `<target>` is `<id>` -- in each case nothing is written
-- **stdout:** `ok: <id> related to <target>`, or `ok: <id> already related to <target>` when the link and its note were already there
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **basis:** Issue 0460, filed from Lamplight on 2026-09-18, ruled by hv on 2026-09-21 through vc. **`related` was readable as a descent and writable by nothing**: `intent set` hands every field a string and the list wants a sequence, so the refusal named a door that does not exist, and the only repair for a dangling or misdirected link was a hand edit of the thread's canon file. A link is a value, the target and its note together. Relating a target the thread already links replaces the note, a missing `--note` included, and the same note again changes nothing and records nothing. The target must be a thread the project carries, because a link to nothing is the defect the verb repairs. Repointing a link is `st unrelate` of the old target and `st relate` of the new one.
@@ -729,15 +590,9 @@ Link a thread to another, or replace the note on a link it already carries
 
 Drop a thread's link to another, including a link to a thread that no longer exists
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (st-id, arity `1`)
   - `target` (st-id, arity `1`)
-- **Exit codes:**
-  - `0` -- the link is gone from the store, canon and the realised `info.md`, under one `st.unrelate` event
-  - `1` -- `<id>` does not exist, or carries no link to `<target>` -- nothing is written
-- **stdout:** `ok: <id> no longer related to <target>`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **basis:** Issue 0460, filed from Lamplight on 2026-09-18, ruled by hv on 2026-09-21 through vc. **`related` was readable as a descent and writable by nothing**: `intent set` hands every field a string and the list wants a sequence, so the refusal named a door that does not exist, and the only repair for a dangling or misdirected link was a hand edit of the thread's canon file. A link is a value, the target and its note together. The target need not exist: a link naming a thread that was adopted under a new id is the case the verb is for, and it is dropped like any other.
@@ -748,7 +603,6 @@ Drop a thread's link to another, including a link to a thread that no longer exi
 
 Print the steel thread index; with `--write`, write it and each thread's projection to disk
 
-- **v2:** bin/intent_st:1145-1211
 - **Flags:**
   - `--write` (bool) -- Write the index and each thread's projection to disk; without it, print the index and write nothing
     - **disposition:** keep
@@ -760,12 +614,6 @@ Print the steel thread index; with `--write`, write it and each thread's project
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- synced or dry-run reported
-  - `1` -- unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`
-- **stdout:** the diff or the confirmation
-- **stderr:** `error: ...`
-- **Observed notes:** Called internally by every mutating verb via `"${BASH_SOURCE[0]}" sync --write > /dev/null` (bin/intent_st:287). stdout is suppressed there but stderr FLOWS deliberately -- `2>&1 >/dev/null` once hid every sync failure (issue 0019).
 - **Target:** `as-observed`
 - **Note:** In v3 `steel_threads.md` is a generated view and the resync is part of the transactional write path (AC-04.1), not a subprocess. The COMMAND survives for explicit regeneration; the implicit call has no v3 analogue because it cannot fall out of date.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -776,8 +624,6 @@ Print the steel thread index; with `--write`, write it and each thread's project
 
 Manage work packages within steel threads
 
-- **v2 source:** `bin/intent_wp`
-- **v2 help file:** none
 - **Owning work package:** WP-04
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -803,7 +649,6 @@ Manage work packages within steel threads
 
 Manage work packages within steel threads
 
-- **v2:** bin/intent_wp:287 (`*)` arm) + the arity check above it
 - **Arguments:**
   - `command` (subcommand, arity `1`)
 - **Flags:**
@@ -811,16 +656,6 @@ Manage work packages within steel threads
     - bare-word arm plus the flag spellings
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `1` -- bare -- `error: Work package command is required`
-  - `1` -- `--help` prints usage to STDOUT and exits 1
-  - `1` -- unknown verb
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** usage block on the --help path
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - INV-05 at bare invocation
-  - INV-07 at `wp --help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **rulings:**
@@ -834,19 +669,9 @@ Manage work packages within steel threads
 
 Create a new work package
 
-- **v2:** bin/intent_wp:83
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `title` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- created
-  - `1` -- missing STID or title
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the created WP id and path
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Writes `intent/st/<ID>/WP/<NN>/info.md` from template
-  - Sets the work package's scope to `S` -- hardcoded, not enterable. v2's template seeds `scope: Small`, so the VALUE is parity; see `target.scope_ruling` for why it is a starting value rather than a verdict.
 - **Target:** `as-observed`
 - **scope ruling:** **hv RULED 2026-08-17: NO FLAG. `wp rescope` IS THE ENTRANCE AS WELL AS THE EXIT** -- issue 0052, closed at commit `8e5ef648`. Permanently, not provisionally. **The hardcoded `S` was never the defect and must not be 'fixed' to `absent`.** v2's template seeds `scope: Small`, so any other default is a parity break hiding in a value rather than in an output. What was indefensible was that nobody could override it: **a default nobody can override is a VERDICT; a default with an exit is a STARTING VALUE.** Same `S`, different meaning, no change to the code -- the exit is what changed its status (vc's framing, adopted). **And the self-loop distinction now has the user it was missing.** `wp_rescope` treating a same-size rescope as a movement only where a `scope_legacy` carry is present (`facade.rs:1443-1456`) is, with `rescope` as the sole entrance, the mechanism by which a migrated carry gets ADJUDICATED BY A HUMAN rather than having a size coerced onto it. That capability is what the unwired verb was denying. **Recorded here because it was ABSENT, not stale.** vc verified while closing 0052 that neither this row nor `wp rescope` carried an `open_question`, which is true and is a different question from the one that matters: a scan for a claim that has GONE WRONG is structurally blind to a claim that was never made. `wp rescope`'s openness was in prose inside its `note` and this row said nothing at all -- so the field-scoped scan found nothing on both, for two opposite reasons. That is the INV-06/INV-07 direction again (the decision was made and the register never moved), and it is why `corrected_check.sh` runs both directions. **No `ratified_in` on this row, deliberately: it is `as-observed` and ratifies no deviation.** `ratified_in` names where a row's DEVIATION was ratified, and putting a workflow ruling in it would dilute the one field two sibling checks read for a single meaning. The provenance (authority, date, commit) is inline above, which is where a reader of this ruling looks.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -857,15 +682,8 @@ Create a new work package
 
 Mark a work package as WIP
 
-- **v2:** bin/intent_wp:190
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
-- **Exit codes:**
-  - `0` -- started
-  - `1` -- missing or unresolvable specifier
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st start`, `st done`, `wp start` and `wp done`, all deviating in the SAME single respect -- the from-state. Machine 2 admits `wp.start` from `not-started` ONLY, a DIRECT edge with no guard, so v3 REFUSES restarting a `wip` package and refuses restarting a `done` one; v2 accepted both, having no lifecycle state guard anywhere (vc's 18-cell matrix at `2033530b`, filed as issue 0046 before the tracker was cleared). This is the cleanest of the four because there is no guard on the edge to confuse with the restriction. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc), AND IT MAKES THIS ROW PARITY ON THE SELF-LOOP AND A CORRECTION ONLY ON `done`.** `wp start` on an already-`wip` package returns exit 0 as a NO-OP via the `from == status` test placed FIRST in `set_wp_status` (`facade.rs:1512-1514`), ahead of the transition check. **What decides a self-loop is whether the current state equals the verb's TARGET, not whether the verb is declared from that state**, so `wip` leaves the refused set. v2 reaches the same exit code by a different route, with no guard on either side: its `wp start` has no state check either (`bin/intent_wp:190-215`, read), so it re-`sed`s `status: WIP` over `WIP` and prints `started:` at 0. **The deviation that survives is a `done` package, which v3 refuses and v2 SILENTLY REOPENS by `sed` -- `2033530b`, and `wp reopen` is the edge that does it with a recorded reason.** Read at HEAD by ic after cc announced the commit; the paragraph this replaces said the ruling was unshipped, which was true when written. AC-04.6 REQUIRES the deviation. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-17, one ruling covering `st start`, `st done`, `wp start` and `wp done`, all deviating in the same single respect. The ruling as applied is at commit `9361c68a`, whose diff writes this ratification and moves the row `as-observed` -> `corrected`. The v2 fact every one of these four rests on -- no v2 lifecycle verb has a state guard of any kind, all 18 cells returning 0 and landing on the verb's target state -- is vc's measurement, and its diff is at commit `2033530b`. Two records rather than one because they answer different questions: `9361c68a` is where the decision reads as it now stands, and `2033530b` is the independent evidence under it, measured by vc against v2 rather than taken from this row. **THE EARLIER VALUE CITED `issue 0046` AND THAT CITATION NO LONGER RESOLVES.** hv ruled the tracker out -- an issue is an EXTERNAL user's report against a RELEASED version -- and vc removed the open rows at `9a9c7799`. Nothing in this register was edited, so the citation did not break loudly: `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) went on certifying it. Re-anchored on the commits whose DIFFS carry the text, per vc's rule that a reader running `git show` must land on the ruling and not on a reference to it.
 - **no op:** `ok: <ID>/NN already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **rulings:**
@@ -881,18 +699,8 @@ Mark a work package as WIP
 
 Mark a work package as Done
 
-- **v2:** bin/intent_wp:135
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
-- **Exit codes:**
-  - `0` -- closed
-  - `1` -- missing or unresolvable specifier
-  - `1` -- acceptance contract BLOCKED for the WP group (close-gate, ST0044/ST0048)
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Consults the close-gate; warns on an unedited `## Objective` placeholder (`warn_unedited_objective`, issue 0010)
 - **Target:** `corrected` -- ratified: vc 2026-08-17 09:39Z under the standing grant; one ruling covering `st start`, `st done`, `wp start` and `wp done`. THE DEVIATION IS THE FROM-STATE AND ONLY THE FROM-STATE. Machine 2 admits `wp.done` from `wip` ONLY, so v3 REFUSES closing a `not-started` or already-`done` package where v2 had no lifecycle state guard and moved it. **The `GatePass` guard is PARITY and this row said so before ic touched it** -- the machine note below records that Machine 2's BLOCKED-gate refusal was ALREADY the measured v2 behaviour, and the measured exits carry `1 <- acceptance contract BLOCKED for the WP group`. That note caught ic over-claiming the gate as part of the correction, so it has earned its keep twice. **THE SELF-LOOP IS SHIPPED (`61069b16`, cc) AND THE CONSEQUENCE THIS ROW PREDICTED IS NOW THE MEASURED BEHAVIOUR: `wp done` on an already-`done` package returns 0 EVEN WHERE THE GATE WOULD BLOCK**, because the short-circuit (`facade.rs:1512-1514`) precedes the gate. That is the POINT of the ruling and not a side effect -- a criterion added after a close must not block a unit that is legitimately finished, which happened in this very thread with AC-04.6. **AND IT HOLDS BY CONSTRUCTION RATHER THAN BY ORDERING, WHICH IS THE HALF THAT WAS NOT IN THE RULING.** `check_gate` now enforces `GatePass` from the `transitions.rs` declaration (`facade.rs:1213-1232`) instead of by hand in `st_done` and `wp_done`, so the gate sits after the `from == status` test structurally rather than because someone remembered the order. **The hand-written enforcement was a live Highlander defect in the file that implements AC-04.6**: deleting `GatePass` from the table changed nothing, which is exactly the declaration-versus-implementation split AC-04.6 exists to find. cc found it by getting this ordering right. **v2 IS THE OPPOSITE, AND THAT IS THE DEVIATION.** v2's `wp done` has no state check (`bin/intent_wp:135-185`, read), so a re-close RE-RUNS the gate and exits 1 when the contract has since gone BLOCKED, then re-`sed`s `status: Done` and reprints the full `done:` block. **Do not read the ruling's `already CLOSED` citation as v2 parity here** -- that string is `intent issues close`'s alone (`bin/intent_issues:282`); the `st done` row unpicks the claim once, and it is not repeated here. What the no-op PRINTS is issue 0050: this arm discards the `Outcome` and says `ok: <spec> done` regardless. Read beside `wp reopen`, which is `new-surface`: v2 shipped nothing that undid `wp done`. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-17, one ruling covering `st start`, `st done`, `wp start` and `wp done`, all deviating in the same single respect. The ruling as applied is at commit `9361c68a`, whose diff writes this ratification and moves the row `as-observed` -> `corrected`. The v2 fact every one of these four rests on -- no v2 lifecycle verb has a state guard of any kind, all 18 cells returning 0 and landing on the verb's target state -- is vc's measurement, and its diff is at commit `2033530b`. Two records rather than one because they answer different questions: `9361c68a` is where the decision reads as it now stands, and `2033530b` is the independent evidence under it, measured by vc against v2 rather than taken from this row. **THE EARLIER VALUE CITED `issue 0046` AND THAT CITATION NO LONGER RESOLVES.** hv ruled the tracker out -- an issue is an EXTERNAL user's report against a RELEASED version -- and vc removed the open rows at `9a9c7799`. Nothing in this register was edited, so the citation did not break loudly: `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23) went on certifying it. Re-anchored on the commits whose DIFFS carry the text, per vc's rule that a reader running `git show` must land on the ruling and not on a reference to it.
 - **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
 - **machine note:** hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked.
@@ -911,13 +719,11 @@ Mark a work package as Done
 
 Reopen a done work package back into Wip, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reopened. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.
 - **Note:** THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.
 - **no op:** `ok: <ID>/NN already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -929,13 +735,11 @@ Reopen a done work package back into Wip, with a reason
 
 Mark a work package as cancelled, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being cancelled. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-21 -- Machine 2 (WpStatus) gains `Cancelled`, reachable from every live state, guard `reason recorded`.
 - **Note:** THE STATE THE MODEL COULD NOT EXPRESS, AND THE GAP WAS RULED RATHER THAN OVERLOOKED. Machine 2 proposed no Cancelled at WP level -- a WP that stops mattering is a scope change on the thread, not a state on the package -- and flagged it Open for hv if that is wrong. Nothing tracked the question, so the default shipped by silence. A live consumer proved it wrong: scope removed, every AC withdrawn, and wp done refused forever because the gate correctly declines to infer an exemption from an emptied contract (ST0048). The only announced exemption was THREAD-scoped, so closing one unit meant discarding the standing of every one of its ACs. DELIBERATELY NOT GATED: every other close consults the contract; this verb is the announcement that there is no contract to consult, so gating it rebuilds the deadlock it exists to break.
 - **no op:** `ok: <ID>/NN already cancelled`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
@@ -947,13 +751,11 @@ Mark a work package as cancelled, with a reason
 
 Reinstate a cancelled work package into NotStarted, with a reason
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reinstated. Required: without it the command is refused, and it is recorded as the reason for the new state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-21 -- Machine 2: the Cancelled -> NotStarted edge, guard reason recorded.
 - **Note:** Mirrors st reinstate and lands on NotStarted rather than restoring the pre-cancellation status: that value is recorded nowhere, so restoring it would be a guess wearing the authority of a verb.
 - **no op:** `ok: <ID>/NN already Not Started`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
@@ -965,10 +767,8 @@ Reinstate a cancelled work package into NotStarted, with a reason
 
 Return a started work package to NotStarted
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.
 - **Note:** No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified.
 - **no op:** `ok: <ID>/NN already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -980,11 +780,9 @@ Return a started work package to NotStarted
 
 Change a work package's T-shirt size
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
   - `size` (enum, arity `1`) -- one of: `XS`, `S`, `M`, `L`, `XL`, `XXL`
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2's second field (`WorkPackage.scope`): six `wp.rescope` edges, each with an EMPTY from-set, so the verb leaves any state including `absent`. Ratified as a machine before any surface existed for it.
 - **Note:** **THE VERB WAS BUILT AND NEVER WIRED, AND THE FIELD IS UNREACHABLE IN BOTH DIRECTIONS -- issue 0052.** `Facade::wp_rescope` (`facade.rs:1428`) is `pub` and implemented; its only callers in the workspace are tests. `intent wp --help` listed seven subcommands and `rescope` was not among them, and `intent wp new --help` lists NO options, so the scope could not be supplied at creation either. Every work package v3 creates sits at `absent` permanently, and a migrated `scope_legacy` -- carried deliberately so a human can adjudicate it later rather than having a size coerced onto it -- can never be adjudicated. **This row exists so the verb can be wired: the spine builds the clap surface FROM this table, so there is nothing for `m.subcommand()` to match until the row is here** (cc, 2026-08-17). Shape is cc's; the `no_op` is ic's. **hv RULED 2026-08-17: NO FLAG. `wp rescope` IS THE ENTRANCE AS WELL AS THE EXIT** -- issue 0052, closed at commit `8e5ef648`. Permanently, not provisionally. **The hardcoded `S` was never the defect and must not be 'fixed' to `absent`.** v2's template seeds `scope: Small`, so any other default is a parity break hiding in a value rather than in an output. What was indefensible was that nobody could override it: **a default nobody can override is a VERDICT; a default with an exit is a STARTING VALUE.** Same `S`, different meaning, no change to the code -- the exit is what changed its status (vc's framing, adopted). **And the self-loop distinction now has the user it was missing.** `wp_rescope` treating a same-size rescope as a movement only where a `scope_legacy` carry is present (`facade.rs:1443-1456`) is, with `rescope` as the sole entrance, the mechanism by which a migrated carry gets ADJUDICATED BY A HUMAN rather than having a size coerced onto it. That capability is what the unwired verb was denying.
 - **no op:** **WIRED at `4a0c905c`, and MEASURED -- the declaration this row made before the arm existed is confirmed exactly.** It is the only no-op in the population not decidable from the two states alone, and the discrimination holds in the binary. On a settled package, `intent wp rescope ST0001/01 M` against a package already at `M` prints `ok: ST0001/01 already M` at exit 0 -- the self-loop. On a package carrying `scope_legacy: {raw: "Smallish"}`, `intent wp rescope ST0001/02 S` prints `ok: ST0001/02 rescoped to S` at exit 0 -- **a MOVEMENT, with the same to** -- and only the NEXT call prints `ok: ST0001/02 already S`. **Same specifier, same size, two different answers, and both are right -- but NOT for the reason first written here (cc, 2026-08-17, measured).** The original rationale said a carry sits beside a recorded size and the same from and same to is therefore a movement. **In a valid model that state cannot exist**: settled is `(size, no carry)`, carried is `(none, carry)`, absent is neither, and in the carried case `from` renders as `"<raw> (legacy)"` or the empty string -- **never equal to a size, so the same-state case never arises.** The two inputs are jointly reachable only in a fourth combination that `doctor` reports as residue. **The clause is right as the REPAIR path, which is a better reason than the one it had**: `wp rescope L` on a package that records `L` AND carries `Medium-Large` clears the carry and reports a movement, and **without it no verb in the tool could clear that residue.** cc built the contradictory state by hand and drove it, rather than reasoning about it (`facade.rs:1443-1456`). A row recording only `ok: <ST/NN> already <size>` would have been wrong about half the cases and would have looked complete. **And the size argument refuses with the six named** -- `error: `Huge` is not a T-shirt size`, remedy `one of: XS, S, M, L, XL, XXL`, exit 1 -- which is what `arg_values_note` asked for, since `values` on a non-subcommand slot constrains nothing at the spine and the enum has to be parsed in the arm.
@@ -996,7 +794,6 @@ Change a work package's T-shirt size
 
 List work packages for a steel thread
 
-- **v2:** bin/intent_wp:218
 - **Arguments:**
   - `stid` (st-id, arity `1`)
 - **Flags:**
@@ -1009,16 +806,6 @@ List work packages for a steel thread
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- listed, including the empty case -- prints `no work packages for <ID>` and exits 0
-  - `1` -- no STID -- `error: Usage: intent wp list <STID>`
-  - `1` -- steel thread not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** table via the shared `render_table`, the same renderer `st list` uses
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Renders through `render_table` in bin/intent_helpers deliberately, so `wp list` and `st list` column layout cannot drift apart.
-- **Defects observed in v2:**
-  - The arity message is `error: Usage: intent wp list <STID>` -- `error()` used to print a usage line, so the `error:` prefix and the `Usage:` voice collide in one string. Voice nit, not a wrong answer. NOTE: an earlier report that this path answers `error: Unknown command 'wp list'` was a zsh harness artefact (unquoted parameters are not word-split, so the dispatcher received one argument literally named `wp list`); it does NOT reproduce with separated arguments and is not a v2 defect.
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** wp_list
@@ -1027,15 +814,8 @@ List work packages for a steel thread
 
 Show work package info.md
 
-- **v2:** bin/intent_wp:263
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
-- **Exit codes:**
-  - `0` -- printed
-  - `1` -- missing or unresolvable specifier
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the info.md contents
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind. **THAT SENTENCE WAS TRUE OF THE NOTE AND FALSE OF THE BINARY, and it is the reason to keep the correction visible here rather than to quietly amend it.** v2 implements `wp show` by catting `info.md` (`bin/intent_wp:263`), and `views.rs` writes that file's status line with `display()`, so v2 printed `status: WIP`. v3 printed `status: wip` -- `enum_str`, not `display()` -- until cc corrected it at `d0f345b5`. **A test was pinning the divergence as expected output**: `cli_end_to_end.rs` asserted `contains("status: wip")` while measuring something else entirely (that a reopen had moved the package), and captured the wrong spelling on the way. **So the estate simultaneously held a CORRECT statement of the requirement, in this note, and an INCORRECT assertion of it, in a test -- about one command, at one time -- and the assertion is the one with teeth, because it runs on every commit while a note is read once at authoring.** Nothing anywhere compares a row's prose to the test that covers it (vc, 2026-08-17). Found because cc's witness reads state back from the tool rather than from a literal, so `st show` said `WIP` and `wp show` said `wip` in the same run. The row was right and the code was not; the row is now right and so is the code.
 - **MCP:** exposed as an agent tool -- read-only
@@ -1045,10 +825,8 @@ Show work package info.md
 
 Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria are unsatisfied
 
-- **v2:** new-surface
 - **Arguments:**
   - `specifier` (st-id/NN, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** **CLOSED BECAUSE THE TOOL TIER ALREADY HAS THIS VERDICT.** `ac gate` is exposed and takes `<ST>/<NN>`, so an agent reaches a work package's gate there by the same computation. A second tool for one answer would be two names an agent has to choose between.
@@ -1059,8 +837,6 @@ Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria 
 
 Acceptance criteria: the ratified completeness boundary of a unit
 
-- **v2 source:** `bin/intent_acceptance`
-- **v2 help file:** none
 - **Owning work package:** WP-04
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -1088,19 +864,8 @@ Acceptance criteria: the ratified completeness boundary of a unit
 
 Acceptance criteria commands
 
-- **v2:** bin/intent_acceptance:1345-1352 + :22 (shared usage)
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Exit codes:**
-  - `1` -- bare -- prints the shared usage block to STDOUT and exits 1
-  - `1` -- `--help` parsed as an unknown verb
-  - `1` -- unknown verb -- names the valid set
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the shared ac/at usage block, on STDOUT
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - INV-06 at usage to STDOUT on a failing invocation
-  - INV-07 at `ac --help` parsed as an unknown verb
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **rulings:**
@@ -1114,16 +879,9 @@ Acceptance criteria commands
 
 List ACs + covering AT + satisfied state
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id[/NN], arity `1`)
     - The thread whose criteria to list, eg `ST0000`. A work-package suffix such as `ST0000/02` is not read as a filter: it is taken as a thread id and refused.
-- **Exit codes:**
-  - `0` -- listed
-  - `1` -- thread not found / contract missing
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** one row per AC
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** ac_list
@@ -1132,11 +890,9 @@ List ACs + covering AT + satisfied state
 
 Show one criterion: its kind, state, covering ATs and full text
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: vc, 2026-09-11, under hv's pen, option (a) on issue 0168, sequenced to cc.
 - **Note:** **THE ONE VERB THAT PRINTS WHAT A CRITERION SAYS (issue 0168).** `ac list` prints id, covering ATs and satisfied state and never the text, so a node planning from it planned from ids -- vc glossed AC-04.6 and AC-05.7 from the list and neither gloss was close. Printing the text in `ac list` was measured and refused: across the estate's criteria the text runs from a line to many pages, and ST0056's list alone would be enormous. Truncating would read as complete with no verb to read the rest, which is the defect's own shape. So the list stays a list and this verb shows one row whole.
 - **consequence:** Read-only and flagless, mirroring `wp show`: a `<STID>/<ACID>` header, `kind`, the state in `ac list`'s own vocabulary (one composer, `ac_row`, serves both), the state's payload when it has one (`evidence`, `note`, `by`, `reason`), `covered-by`, then the full text after a blank line. An id the thread does not have refuses with `NoSuchCriterion`, the same refusal every other AC verb gives. `at show` is deliberately absent: `at list` has the same gap for a test's note, and vc ruled it out of this change.
@@ -1147,16 +903,8 @@ Show one criterion: its kind, state, covering ATs and full text
 
 Report N/M satisfied + verdict (PASS/BLOCKED)
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
-- **Exit codes:**
-  - `0` -- reported
-  - `1` -- thread not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the count and verdict
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Issue 0004 item 4 queried this verb's exit code; the premise did not reproduce, and it is parked awaiting a close ruling rather than work.
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** gate
@@ -1165,7 +913,6 @@ Report N/M satisfied + verdict (PASS/BLOCKED)
 
 Satisfy a non-test AC by named evidence
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
@@ -1173,13 +920,6 @@ Satisfy a non-test AC by named evidence
   - `--evidence` `<ref>` (string) -- The named evidence reference
     - **required:** true
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- satisfied
-  - `1` -- missing --evidence
-  - `1` -- AC not found, or is test-backed -- satisfaction there is computed, never written
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> satisfied by evidence`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** `ok: <AC> already satisfied`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **voice ruling:** **BUG, not a deviation: restore ` by evidence`.** v2 prints `ok: <AC> satisfied by evidence` and v3 prints `ok: <AC> satisfied`. The phrase names WHY the criterion is satisfied, and under v3's model that distinction became STRUCTURAL rather than decorative -- `AcState::Satisfied` carries evidence that must not be empty, and a test-backed criterion is `Computed` with nothing stored. **So the words are more load-bearing in v3 than they were in v2**, and dropping them is the one change that cannot be argued as tidying.
@@ -1191,11 +931,9 @@ Satisfy a non-test AC by named evidence
 
 Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (positional, arity `1`)
   - `acid` (positional, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-15, service half at `acf8491` -- the inverse D32 requires. `ac satisfy` was a one-way door: a verifier whose evidence later proved incomplete had to HAND-EDIT acceptance.md, the one file the CLI exists to own. Recorded here BEFORE the surface is wired, per AC-06.3, because the spine builds from this table and the command cannot exist until the row does.
 - **Note:** Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.
 - **consequence:** Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).
@@ -1209,16 +947,8 @@ Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
 
 Close-gate: exit non-zero + BLOCKED if unsatisfied
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id[/NN], arity `1`)
-- **Exit codes:**
-  - `0` -- PASS -- every in-scope AC satisfied, or the unit declares `acceptance: exempt`
-  - `1` -- BLOCKED -- at least one in-scope AC unsatisfied
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the verdict plus the unsatisfied set
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Consulted by `st done` and `wp done`. Fail-by-default since ST0048: an empty or missing contract is REFUSED, and the sole escape is a declared `acceptance: exempt`, never inferred from emptiness. Scope-honouring since issue 0024: a `/NN` scope is actually applied -- it used to be silently dropped.
 - **Target:** `corrected` -- ratified: **RATIFIED 2026-09-15 BY vc UNDER D47** (hv's rulings of 2026-09-15, item 16, `intent/history/20260915-hv-rulings.md`): satisfy-on-first-green stands, and the declared `rulings` entry moved from `provisional` to `ratified` in issue 0334's commit. The record that follows was provisional and is now answered. vc ruling 2026-08-16, provisional pending hv, recorded at commit `d15057e6`, whose diff carries the ruling text, rather than only in an inbox -- filed as issue 0032, which stopped resolving when hv cleared the tracker at `9a9c7799`. **THE WORD `provisional` IS LOAD-BEARING AND STAYS UNTIL hv RULES**: `rulings_check.sh` buckets on it AHEAD of conformance, so this sha does not make the row read as ratified. vc, 2026-08-17, re-anchoring this field while HOLDING `ratified_in`, because a sha there would assert a ratification that has not happened. NOT cited by parity.md -- this row is ratified ELSEWHERE and corrected_check.sh should report it in that bucket. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc ruling 2026-08-16 (provisional pending hv), recorded on issue 0032
 - **Note:** AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family.
 - **why corrected and not as observed:** The `Corrected` class is defined as `a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced`, and `as-observed` is for behaviour v3 CHOOSES to reproduce. the wording at `e23a8453` is that the combining rule `was chosen by an early-return rather than by a decision` -- **you cannot faithfully reproduce a decision nobody made**, and reproducing it is what parity.md forbids in its own sentence: laundering a v2 defect into a v3 requirement. **THE ATTRIBUTION TO hv IS STRUCK, AND vc STRUCK IT AGAINST THEMSELVES.** This field said `hv's own wording`. Traced: the sentence is in 0032's FILING text, the issue carries `reporter: matts`, vc's ruling quoted it as hv's, and this field repeated it. **The only thing under the attribution was that metadata field**, and hv's own clearing ruling says what it is worth -- every row carried `reporter: matts` and every one was found by us. Git author settles nothing either: every node commits as `Matthew Sinclair <hello@matthewsinclair.com>` by standing policy. The diff that introduces the sentence is `e23a8453`, a node's own verification commit. **WHY IT MATTERS MORE HERE THAN ANYWHERE ELSE: this row is awaiting an hv ruling, so the field would have manufactured the adjudicator's agreement on the question they have not yet been asked** -- hv arriving to rule and reading that hv already worded the core of the argument. The reasoning is untouched by the strike: the class definition fits verbatim and you cannot faithfully reproduce a decision nobody made. It never needed the name and was weakened by borrowing it. **THE RULE, vc 2026-08-17: an attribution names a person only where an ACT of that person is on the record -- a ruling, a message, a commit body. A metadata field recording who a row was filed UNDER is not evidence of who WROTE it, and in this project it is specifically known not to be.** Sibling of the `AUTHORITY_HV` bug in `ratified_in_check.sh` (renamed `rulings_check.sh` 2026-08-23; that regex is retired): that one matched a name in the wrong POSITION, this one took a name from the wrong FIELD.
@@ -1239,7 +969,6 @@ Close-gate: exit non-zero + BLOCKED if unsatisfied
 
 Record that an AC moved to another thread (non-blocking)
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
@@ -1251,13 +980,6 @@ Record that an AC moved to another thread (non-blocking)
     - **disposition:** keep
   - `--reason` `<text>` (string) -- Why
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- descoped
-  - `1` -- missing --to
-  - `1` -- AC not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> descoped to <ID>`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** `ok: <AC> already descoped`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **A deliberate deviation from v2, which refuses at 1, and it DROPS the target the movement line carries**: the movement prints where the criterion went, the no-op prints only that it is descoped. That follows the ruled form `ok: <subject> already <state>` -- `descoped-to ST0002` is not a state -- but it means the no-op answers a strictly smaller question than the movement it stands in for. **One of the arms 0050's line-oriented enumeration could not see**, because the facade call breaks across lines here.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -1268,19 +990,22 @@ Record that an AC moved to another thread (non-blocking)
 
 Undo a descope: back in scope, unsatisfied
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
-- **Exit codes:**
-  - `0` -- rescoped
-  - `1` -- AC not found or not descoped
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> back in scope (unsatisfied)`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: ic, 2026-08-17, ruling the five voices cc was blocked on -- RATIFY onto `corrected`: `ok: <AC> back in scope (<landing state>)`, with the state COMPUTED FROM KIND. **v2 prints `back in scope (unsatisfied)` for BOTH kinds and BOTH verbs** -- measured, four invocations, one string modulo the id -- and v3 prints the bare `back in scope`. Restoring v2's literal would be wrong for half the cases: **a test-backed criterion lands at `computed`, not `unsatisfied`** (`AcState::entry(kind)`). **Keep the suffix, compute it.** The resulting state is the whole question an undo raises, and `back in scope` alone does not say whether satisfaction survived the round trip. **CORRECTED 2026-08-17, and the first version of this ruling EXCUSED v2.** It said v2 "had no `computed` state to name, so it could only ever say one thing". That is false. v2 has the concept: `bin/intent_acceptance:16` states that a test-backed AC "is satisfied (computed) iff a covering AT is green", and `:1084` refuses to hand-satisfy one on exactly that ground. What v2 lacks is the BRANCH AT THIS CALL SITE -- `:1259` prints the literal `(unsatisfied)` unconditionally, under a comment at `:1252-1254` that reasons only about the non-test case. **So v2 announces `unsatisfied` about a criterion whose satisfaction it computes elsewhere: the message's subject and the row's subject differ**, which is the day's class rather than a limit of v2's model. The deviation is forced by v2 being WRONG here, not by v3 being unable to reproduce it -- same destination, load-bearing difference in the grounds. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, five-voice ruling recorded at commit `49db5aec` -- NOT parity.md, whose `Corrected` class does not cite these two and should not be extended to reach them (vc ruled: those rows are ratified elsewhere or predate these, so the coherent options are all in or all out). **Carries authority, date and an EXTERNAL record**, which is the grammar vc's `ratified_in` sweep arrived at: the first draft of this field said "on this row's own voice ruling" and a ratification pointing at the row it ratifies is not independent, by the same argument that a check is not independent unless its source is the corpus.
 - **no op:** **REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.
 - **stdout exact:**
+  - `setup.0.0`: ac
+  - `setup.0.1`: descope
+  - `setup.0.2`: ST0001
+  - `setup.0.3`: AC-01.2
+  - `setup.0.4`: --to
+  - `setup.0.5`: ST0002
+  - `argv.0`: ac
+  - `argv.1`: rescope
+  - `argv.2`: ST0001
+  - `argv.3`: AC-01.2
   - `template`: ok: AC-01.2 back in scope (computed)
   - `basis`: the row's own `ratification`: the landing state computed from kind, and `AcState::entry(kind)` is `Computed` for a test-backed criterion. **NOT measured from v3.** These are the bytes v3 is REQUIRED to print; writing them from the binary would make the assertion say v3 == v3, which is the laundering this field exists to prevent. Expect this to be RED until cc implements the ruled voice -- a red here is an unimplemented ratification, NOT a parity break, and the two have different remedies.
 - **rulings:**
@@ -1296,7 +1021,6 @@ Undo a descope: back in scope, unsatisfied
 
 Withdraw an AC outright, with its reason on the record (non-blocking)
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
@@ -1306,14 +1030,6 @@ Withdraw an AC outright, with its reason on the record (non-blocking)
     - **disposition:** keep
   - `--by` `<who>` (string) -- Who decided
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- withdrawn
-  - `1` -- missing --reason -- the reason is mandatory, by design
-  - `1` -- AC not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> withdrawn`
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `--reason` being mandatory is the whole point of the verb: the alternative to withdrawing is deleting the line and losing the audit trail.
 - **Target:** `as-observed`
 - **no op:** `ok: <AC> already withdrawn`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice, a deliberate deviation from v2's refusal. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **The other arm 0050's enumeration could not see**, for the same reason as `ac descope`: the facade call breaks across lines.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -1324,19 +1040,22 @@ Withdraw an AC outright, with its reason on the record (non-blocking)
 
 Undo a withdrawal: back in scope, unsatisfied
 
-- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
-- **Exit codes:**
-  - `0` -- reinstated
-  - `1` -- AC not found or not withdrawn
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AC> back in scope (unsatisfied)`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: ic, 2026-08-17, ruling the five voices cc was blocked on -- RATIFY onto `corrected`, IDENTICAL in form to `ac rescope`. v3 currently prints `ok: <AC> reinstated`, which names the verb and drops the state entirely. **The verbs differ in which off-scope state they UNDO, not in where they LAND** -- both reach `AcState::entry(kind)` -- so they must print the same thing, and v2 agreed: both said `back in scope (unsatisfied)`, measured. A message naming the verb tells the caller what they just typed; a message naming the state tells them something they did not already know. **Keep the suffix, compute it.** The resulting state is the whole question an undo raises, and `back in scope` alone does not say whether satisfaction survived the round trip. **CORRECTED 2026-08-17, and the first version of this ruling EXCUSED v2.** It said v2 "had no `computed` state to name, so it could only ever say one thing". That is false. v2 has the concept: `bin/intent_acceptance:16` states that a test-backed AC "is satisfied (computed) iff a covering AT is green", and `:1084` refuses to hand-satisfy one on exactly that ground. What v2 lacks is the BRANCH AT THIS CALL SITE -- `:1259` prints the literal `(unsatisfied)` unconditionally, under a comment at `:1252-1254` that reasons only about the non-test case. **So v2 announces `unsatisfied` about a criterion whose satisfaction it computes elsewhere: the message's subject and the row's subject differ**, which is the day's class rather than a limit of v2's model. The deviation is forced by v2 being WRONG here, not by v3 being unable to reproduce it -- same destination, load-bearing difference in the grounds. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, five-voice ruling recorded at commit `49db5aec` -- NOT parity.md, whose `Corrected` class does not cite these two and should not be extended to reach them (vc ruled: those rows are ratified elsewhere or predate these, so the coherent options are all in or all out). **Carries authority, date and an EXTERNAL record**, which is the grammar vc's `ratified_in` sweep arrived at: the first draft of this field said "on this row's own voice ruling" and a ratification pointing at the row it ratifies is not independent, by the same argument that a check is not independent unless its source is the corpus.
 - **no op:** **REFUSES A LEGAL SELF-LOOP AT EXIT 1 -- issue 0053, and this is the one place the announced value and the binary disagree.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). On a criterion already holding the verb's target -- `AcState::entry(kind)`, `unsatisfied` for a non-test and `computed` for a test-backed one -- it prints `error: <AC> is in scope, so there is nothing to reinstate` at exit 1, for BOTH verbs and BOTH kinds. 0051's mechanism: a hand-written from-state `match` whose `_` arm raises `NotOffScope` ahead of `set_ac_state`, which is where the shared self-loop test lives (`facade.rs:1764-1795`). **The value cc handed over -- `ok: <AC> already unsatisfied | already computed` -- was reasoned correctly from `AcState::entry(kind)`, which is what the SUCCESS arm passes the setter; the self-loop never reaches that arm.** Written from the binary rather than the handoff, which is the only reason the row is not wrong. **And the refusal names a verb the user did not type**: `NotOffScope` carries no verb, so one hardcoded message serves both entry points and `ac rescope` is answered about `reinstate` twice -- a REGRESSION, since v2 names the right verb in both.
 - **stdout exact:**
+  - `setup.0.0`: ac
+  - `setup.0.1`: withdraw
+  - `setup.0.2`: ST0001
+  - `setup.0.3`: AC-01.2
+  - `setup.0.4`: --reason
+  - `setup.0.5`: gone
+  - `argv.0`: ac
+  - `argv.1`: reinstate
+  - `argv.2`: ST0001
+  - `argv.3`: AC-01.2
   - `template`: ok: AC-01.2 back in scope (computed)
   - `basis`: the row's own `ratification`: the landing state computed from kind, and `AcState::entry(kind)` is `Computed` for a test-backed criterion. **NOT measured from v3.** These are the bytes v3 is REQUIRED to print; writing them from the binary would make the assertion say v3 == v3, which is the laundering this field exists to prevent. Expect this to be RED until cc implements the ruled voice -- a red here is an unimplemented ratification, NOT a parity break, and the two have different remedies.
 - **rulings:**
@@ -1352,7 +1071,6 @@ Undo a withdrawal: back in scope, unsatisfied
 
 Create a criterion (caller-assigned id; refuses an id that is taken)
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
@@ -1364,7 +1082,6 @@ Create a criterion (caller-assigned id; refuses an id that is taken)
     - Accepts: test | non-test
     - **default:** non-test
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: ic, 2026-08-26, on hv's ruling over issue 0088 -- hv minted AC-08.6 over cheaper remedies, so the thread stops being closed until the verb exists. WP-08's own enumerated-gap table named `Criterion create` as MISSING and no criterion covered it: AC-08.5 covers every writable FIELD, and CREATION IS NOT A FIELD, so the thread's gate PASSed at 51/51 over a stated deliverable. Driven 2026-08-25: `ac --help` listed nine subcommands and `at --help` five, and NOT ONE OF THE FOURTEEN CREATED ANYTHING -- every arm is a transition on a row that already exists. The route until now was a hand-edit of `.canon/st/<ID>.json` plus `sync --to-store`, WHICH IS HOW AC-08.6 ITSELF REACHED CANON. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent PUT to the entity address rather than a POST to the collection. Spelled `new` to match `st new` and `wp new` rather than adding a fifth house word for create; `issues add` is the existing odd one out and is already filed. Builder ic; COVER TAKEN BY vc, who drives the falsifiers independently at HEAD -- ic must not be both builder and verifier on a row blocking ST0057's gate, which is hv's own AC-08.5 precedent on this same WP.
 - **spelling:** _(declared empty)_
 - **supersession:** **SUPERSEDED IN PART, 2026-08-29, AND THE SUPERSESSION IS RECORDED HERE RATHER THAN LEFT AS A DIVERGENCE BETWEEN THIS ROW AND THE BINARY.** hv ruled 2026-08-28 that a verb named `add`/`new` must FAIL on an existing key rather than replace it (issue 0131). A later first-hand ruling from hv on the same subject supersedes a ratification, so `ac new` is no longer idempotent: a second call on the same id refuses, writes nothing, and names `ac edit`. **The CALLER-ASSIGNED half of ic's ratification below is untouched and still correct** -- what moved is what a second call does, not where the id comes from, so the `POST`-to-a-collection reasoning still holds. The row is amended rather than left declaring `idempotent` over a binary that refuses, which is the `fileindex` shape hv already ruled on: when the table and the binary disagree, the table was the wrong half. **The refusal is at THIS door only** -- `Facade::put` at the entity address is still a PUT, because replace-at-an-address is the contract of the HTTP and GraphQL faces and `ac.put` is its declared op. Amended by cc; ic offered the pen on their own line first. **`recoverability` READ `idempotent` ON BOTH CREATE ROWS AND NOW READS `reversible`, WHICH IS WHAT ITS THREE SIBLINGS ALREADY SAID.** `st new`, `wp new` and `issues add` are all `reversible`; `ac new` and `at new` were the two that claimed idempotence, and hv's refusal ruling makes that claim false rather than merely unfashionable. A first attempt at this amendment minted a fourth value, `refuses-on-collision`, for a closed domain of three -- caught by `recoverability_values` and its enforcement arm in `dispatch.rs`, which is the instrument working. **Refusing on a taken key is not a recoverability class**: it is what the verb does on collision, which the supersession note above is the right home for. The field answers one question -- can this be undone -- and creating a criterion is undone the way creating a thread is. **AND THE SUPERSESSION IS DECLARED IN `target.rulings`, NOT ONLY IN THIS PROSE.** vc required the row to carry authority, date and a resolving record. It was carrying them in a prose `authority` field that `rulings_check.sh` does not read -- a claim about provenance sitting beside the machine-checked field rather than in it, which is the class this table keeps meeting. **These are the FIRST new-surface rows to declare `target.rulings`: none before them did, so the others remain prose-only and that is a population question for vc, not something this commit settles.** The two rulings are declared separately because both were made: ic ratified the shape and hv later ruled its create semantics.
@@ -1387,7 +1104,6 @@ Create a criterion (caller-assigned id; refuses an id that is taken)
 
 Reword a criterion, or write an unsatisfied one's note; a field you do not name is a field it does not change
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `acid` (ac-id, arity `1`)
@@ -1397,7 +1113,6 @@ Reword a criterion, or write an unsatisfied one's note; a field you do not name 
   - `--note` `<text>` (string) -- Replace an unsatisfied criterion's note outright -- refused on a row whose state keeps its own record
     - **disposition:** keep
     - **disposition basis:** NEW SURFACE, ruled by vc under the pen 2026-09-11 on issue 0140, option (A) of four. An unsatisfied criterion's `state.note` is published on both faces and was written only by the v2 ingest (legacy.rs), so no v3 verb could author or edit one and a v3-native estate could not reach a state a migrated one arrives in. Shaped exactly like `at edit --note`: it replaces the note outright, a field not named is not changed, and `--note ""` stores an empty string rather than inventing a clear, so the two doors agree. `--text` stops being required with it, and the facade refuses a call naming neither, as `at_edit` does. Refused by name (`FieldNotWritable`) on a satisfied, descoped, withdrawn, fiat or computed row, whose state keeps its own record. Ruled out: `--note` on the verbs that enter unsatisfied (a surface for each, and none can edit), and a virtual `state.note` field in `intent set` (special-casing the generic setter, whose refusal of `state` is the machine's).
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place.
 - **Note:** **SHIPS IN THE SAME CHANGE AS THE REFUSAL ON `ac new`, AND THAT IS THE WHOLE DESIGN.** Refusing a create on an existing id without this verb would leave an AC sentence unwritable by any door in the tool: `ac` had nine subcommands and every one of them is a transition on state, not an edit of text. ic measured that gap after the refusal was first ruled; hv took the re-raise and ruled the two halves as one change. Either half alone strands an estate.
 - **consequence:** Refuses an id the thread does not have (`NoSuchCriterion`) -- an edit that CREATED on a missing id would be the create door wearing the other name. Reports `already: unchanged` at exit 0 when the text is byte-identical, which is a real no-op rather than a silent one. **`--kind` IS DELIBERATELY ABSENT**: changing a criterion between test-backed and non-test moves where its satisfaction comes from -- computed over covering green ATs, or stored with evidence -- so it edits the contract graph rather than a sentence, and `Criterion.kind` is still declared `Unbuilt` in the transition table. A KIND CHANGE REMAINS STUCK AFTER THIS LANDS; that is a narrower wall than the one ic measured and it is still a wall.
@@ -1409,8 +1124,6 @@ Reword a criterion, or write an unsatisfied one's note; a field you do not name 
 
 Acceptance tests: the small red-to-green tests that prove ACs
 
-- **v2 source:** `bin/intent_acceptance`
-- **v2 help file:** none
 - **Owning work package:** WP-04
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -1433,19 +1146,8 @@ Acceptance tests: the small red-to-green tests that prove ACs
 
 Acceptance test commands
 
-- **v2:** bin/intent_acceptance:1345-1352 + :22 (shared usage)
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Exit codes:**
-  - `1` -- bare -- shared usage block to STDOUT, exit 1
-  - `1` -- `--help` parsed as an unknown verb
-  - `1` -- unknown verb -- names the valid set
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the shared ac/at usage block, on STDOUT
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - INV-06 at usage to STDOUT on a failing invocation
-  - INV-07 at `at --help` parsed as an unknown verb
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **rulings:**
@@ -1459,15 +1161,8 @@ Acceptance test commands
 
 List ATs (id, reference, status)
 
-- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id[/NN], arity `1`)
-- **Exit codes:**
-  - `0` -- listed
-  - `1` -- thread not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** one row per AT
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** at_list
@@ -1476,20 +1171,12 @@ List ATs (id, reference, status)
 
 Check AT rows against the grammar
 
-- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id[/NN], arity `1`)
 - **Flags:**
   - `--fix` (bool) -- Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss
     - **disposition:** retire
     - **disposition basis:** RETIRED 2026-09-11 (vc, within the pen, on issue 0139). v2 really implements --fix (bin/intent_acceptance:1266), so this is a genuine v2 behaviour v3 is deliberately not carrying -- the `doctor --fix` shape. It shipped as `keep` with an arm that refused it as not implemented in v3, so `at lint --help` advertised a mechanical migration at exactly the moment a consumer needed one and the call refused. Retired rather than built because the mechanical migration of a legacy row already has ONE home, the WP-10 migrator with its refuse-lossy discipline, and an `at lint --fix` would be a second writer of the same rewrite. The remedy for a row `at lint` names is to fix it by hand through `intent at edit`. Superseded text, kept inline: the flag carried `exposed_on_mcp: false` with the note `narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist`; a retired flag reaches neither clap nor MCP, so both went with it.
-- **Exit codes:**
-  - `0` -- all rows parse
-  - `1` -- L1-L5 findings present
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** findings, one per offending row, each naming its line
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Scope-honouring since issue 0024: a `/NN` scope is applied, and a scoped `--fix` no longer rewrites rows OUTSIDE the scope.
 - **Target:** `as-observed`
 - **Note:** **The refuse-lossy discipline is the load-bearing part and must survive into WP-10's migrator.** `--fix` once half-migrated rows and destroyed the only link a row had; the SUGGESTION was lossy before the fixer was, so every human following it lost the same data. A tool that cannot finish a job must not start it.
 - **MCP:** exposed as an agent tool -- read-only
@@ -1501,21 +1188,12 @@ Check AT rows against the grammar
 
 Set an AT green
 
-- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
   - `--note` `<text>` (string) -- Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- set
-  - `1` -- AT not found
-  - `1` -- cited test file does not exist -- a green AT must resolve against the tree
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AT> -> green`
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** The file-existence check fires on the transition to green specifically (bin/intent_acceptance:1337): a green row whose test does not exist is the exact shape of a vacuous pass.
 - **Target:** `corrected` -- ratified: ic, 2026-08-15, ruling cc's parity question -- KEEP THE GUARD. v2 refuses green unless the AT is currently red (bin/intent_acceptance:1325). v3's at_set takes any status from any status. This is v3 more OPEN and less faithful, not more closed. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-15, ruling recorded at commit `20e8c4b3` (`st(0056): ac unsatisfy recorded, at green RULED, ...`). **The previous value was `ic, with the `at green` row's own basis` -- the self-citation case, and the precedent I copied when writing my own rows before vc's sweep fixed the grammar's requirement.** A ratification pointing at the row it ratifies is not independent, by exactly the argument that a check is not independent when the same head wrote the needle and the checker: the source has to be something other than the thing under test.
 - **Note:** THE GUARD IS NOT AN ARBITRARY RESTRICTION, WHICH IS WHY THIS IS NOT A DIVERGENCE WORTH BUYING. Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- it is the MECHANISED form of this thread's own central doctrine, that a check which has only ever passed is not verified. Drop it and the discipline survives only as prose, which is rule 12 exactly.
 - **consequence:** Repeated instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.
@@ -1535,19 +1213,12 @@ Set an AT green
 
 Set an AT red
 
-- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
   - `--note` `<text>` (string) -- Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- set
-  - `1` -- AT not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AT> -> red`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** `ok: <AT> already red`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **voice ruling:** **RULED DRIFT, AND FIXED at `d14cd0b5`.** v2 prints `ok: <AT> -> red`; v3 printed `ok: <AT> red`. It was drift rather than a voice ruling, and v3's own output proved it: `issues close` and `issues open` KEEP the arrow (`ok: issue 0001 -> CLOSED`) and both reproduce v2 exactly, so the arrow is v3's own convention for a state transition and the AT family was the only place it had gone missing. HEAD prints `ok: AT-01.1 -> red` and `ok: AT-01.1 already red`, measured at `67814555`. Restoring it cost nothing and fixed those rows; dropping it everywhere for consistency would have broken two that already passed. **This row was not reported by anyone** -- it was found by measuring the siblings of the row that was, on the rule this row's own family keeps re-teaching: a correction reaches the field that was reported and stops there unless somebody sweeps the rest.
@@ -1560,20 +1231,12 @@ Set an AT red
 
 Set a non-test AT to n/a (the doc / eyeball / gate status)
 
-- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
   - `--note` `<text>` (string) -- Why the row is in this state, kept as its note. A row that already has a note keeps it: the new text must extend it or the command refuses (`at edit --note` replaces a note). Absent, the note is unchanged
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- set
-  - `1` -- AT not found
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: <AT> -> n/a`
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `n/a` is v2's token for a `(non-test)` row and the only one its row grammar admits; such a row never satisfies anything, because satisfaction lives on the AC's own line. **v3 spells the same state `n-a` -- that is issue 0056 and NOT v2 vocabulary.** This sentence carried the v3 token until 2026-08-17: the `stdout` above was corrected first and the gloss beside it was not, so the row stated the right value and the wrong vocabulary for one commit (found by vc). **A correction has to reach every field that repeats the value, not the field that was reported.**
 - **Target:** `as-observed`
 - **no op:** `ok: <AT> already n/a`, exit 0, stderr empty -- **RE-MEASURED at `67814555`** by driving the verb twice through a binary built from a clean `git archive` extract of HEAD, because files under `native/` were dirty under cc at the time and the worktree binary would have attributed unlanded work to HEAD (ic, 2026-08-17). The previous value read `already n-a` and cited `d0f345b5`. That citation was honest provenance and it still went stale: `d14cd0b5` gave `AtStatus` a `display()` and the self-loop now takes its word from the enum. **A field that cites the commit it was measured at cannot say whether that commit is still HEAD** -- issue 0061, and the `instant` variant of `parity.md`'s class at rest. Re-measured rather than retyped: editing the token by hand would have produced a correct-looking value nothing measured, which is exactly how `n-a` reached the column that records v2.
 - **voice ruling:** **RULED A BUG, AND BOTH HALVES FIXED at `d14cd0b5`.** v2 prints `ok: <AT> -> n/a`; v3 printed `ok: <AT> na` on a movement and `ok: <AT> already n-a` on a self-loop -- different spellings from one verb, because the movement arm passed `state`, the word the USER TYPED, while the self-loop read the enum. Neither half was ratifiable: the token was a migration hazard rather than a style choice, since `views.rs` writes it into the generated `acceptance.md` and v2's linter rejects `n-a` at L1 (issue 0056, closed). HEAD prints `ok: AT-01.2 -> n/a` and `ok: AT-01.2 already n/a`, measured at `67814555`. **THE `help` STRING ABOVE OUTLIVED THIS FIX BY A DAY, AND THAT IS THE PART WORTH KEEPING.** Nothing renders help from the enum -- it is an authored literal -- so the single site where the wire spelling still reached a human was the one site no code fix could pass through. Filed as 0061 and corrected here.
@@ -1586,7 +1249,6 @@ Set a non-test AT to n/a (the doc / eyeball / gate status)
 
 Create an acceptance test (caller-assigned id; refuses an id that is taken)
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
@@ -1609,7 +1271,6 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
     - **disposition basis:** RETIRED 2026-09-15 (vc, issue 0339). A create that can name a status can name green, and green is reachable only from red (issue 0337), so `at new --status green` minted a passing row nobody had seen fail. Left off, the flag already gave the kind's entry, to-write for a test row and n-a for a non-test one, which is now the only status a new row can have; a verdict is recorded afterwards with `at red`, `at green` or `at na`.
   - `--note` `<text>` (string) -- A note for the new row: why it starts in this state
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc.
 - **spelling:** _(declared empty)_
 - **supersession:** **SUPERSEDED IN PART, 2026-08-29, ON THE SAME hv RULING AND FOR THE SAME REASON AS `ac new`'s.** hv ruled 2026-08-28 that a verb named `add`/`new` must FAIL on an existing key rather than replace it (issue 0131), so this verb is no longer idempotent: a second call on the same id refuses, writes nothing, and names `at edit`. **The whole L2-L5 ratification below is untouched and now runs through one shared check** that `at edit` is held to as well, so a re-cite meets the same grammar a create does. **AND ONE MITIGATION IS RETIRED BY THIS, NOT WEAKENED:** the verb used to READ the stored row and carry its `note` and `legacy` forward, because a create on an existing id destroyed every field it did not set -- six ST0061 notes, measured. With the refusal there is no stored row to carry from, so the carry is unreachable and gone rather than left as dead code reading as live protection; the preservation is now `at edit`'s whole purpose. **AND THE SUPERSESSION IS DECLARED IN `target.rulings`, NOT ONLY IN THIS PROSE.** vc required the row to carry authority, date and a resolving record. It was carrying them in a prose `authority` field that `rulings_check.sh` does not read -- a claim about provenance sitting beside the machine-checked field rather than in it, which is the class this table keeps meeting. **These are the FIRST new-surface rows to declare `target.rulings`: none before them did, so the others remain prose-only and that is a population question for vc, not something this commit settles.** The two rulings are declared separately because both were made: ic ratified the shape and hv later ruled its create semantics.
@@ -1632,7 +1293,6 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
 
 Re-cite an acceptance test; a field you do not name is a field it does not change
 
-- **v2:** new-surface
 - **Arguments:**
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
@@ -1648,7 +1308,6 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
     - **disposition:** keep
   - `--note` `<text>` (string) -- Replace the row's note outright; `at green`, `at red` and `at na` can only extend a note with their `--note`
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place.
 - **Note:** **THE RE-CITE DOOR, AND THE MEASURED LOSS THAT ARGUES FOR IT.** `at new` on an existing id was a full replacement, so moving a test to its new file ate the row's `note` in the same call -- six ST0061 notes destroyed by a single re-cite on this repository and recovered from a git blob. The safe route was a hand-edit of canon plus `sync --to-store`, ie the undocumented one; the verb built for the job was the one that lost the work. Here absence is silence: a field nobody names is a field nobody changes, so `note` and `legacy` survive by construction rather than by a carry that had to be remembered. **`--note` ARRIVED 2026-09-02 (issue 0207, vc ruled (c) under hv's pen) AND IS NOT A CONVENIENCE.** `at green` / `at red` / `at na` took a `--note` that REPLACED the field wholesale and silently, on the verbs you reach for at close -- `AT-00.12` lost most of its text and the author did not notice. Those verbs now refuse a note that does not contain the one it replaces, which leaves this as the only deliberate spelling for replacing one. **It carries no such refusal, and that asymmetry is the mechanism: a door that refuses is not a door.** The reasoning in this very entry -- a field nobody names is a field nobody changes -- was applied to the re-cite and stopped one field short of the field it was protecting.
 - **no op:** `ok: <AT> already unchanged`, exit 0 -- driven 2026-09-14 through the delivered 3.0.3 pair (ic, issues 0324 and 0337): a row's note set to the note it already carried, then its kind set to the kind it already had, each printed that line at rc 0. `at edit` joins `populations.self_loop` because `AcceptanceTest.kind` became a machine whose single edge is this door (vc).
@@ -1661,8 +1320,6 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
 
 Track issues without the ceremony of a steel thread
 
-- **v2 source:** `bin/intent_issues`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -1687,7 +1344,6 @@ Track issues without the ceremony of a steel thread
 
 Track issues without the ceremony of a steel thread
 
-- **v2:** bin/intent_issues:308-316
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
 - **Flags:**
@@ -1701,14 +1357,6 @@ Track issues without the ceremony of a steel thread
     - **default:** terminal
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25), on the FAMILY row because `intent issues` bare runs `list` -- this row's own `command` arg declares `default: list`. The flags landed on `issues list` first and the bare route could not take them, so the DOCUMENTED SHORT FORM WAS THE ONE THAT REFUSED: `intent issues --width 80` answered `unexpected argument`. A default verb that cannot accept the flags of the verb it defaults to is the same inconsistency this change exists to remove, one level up -- and it is the form an operator reaches for first, so it is the one most likely to be met. `render.rs:2792` already falls back to the family matches when there is no subcommand, so this is a declaration and not a code path. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.
-- **Exit codes:**
-  - `0` -- bare -- defaults to `list`, prints `no open issues` and exits 0
-  - `0` -- `--help` -- usage to STDOUT, exit 0
-  - `1` -- unknown verb -- `error: Unknown issues command '<v>'. Run 'intent issues help' for usage.`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the issue list, or the usage block
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** One of the commands whose `--help` correctly exits 0 -- it is NOT an INV-07 member.
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -1716,7 +1364,6 @@ Track issues without the ceremony of a steel thread
 
 List issues (default: open)
 
-- **v2:** bin/intent_issues:310, buckets at :207-209
 - **Flags:**
   - `--kind` `open|closed|all` (enum) -- Which bucket to list
     - **default:** open
@@ -1730,12 +1377,6 @@ List issues (default: open)
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- listed
-  - `1` -- unknown --kind value
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** one row per issue
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** issue_list
@@ -1744,7 +1385,6 @@ List issues (default: open)
 
 Add a new issue, print its ID:TITLE
 
-- **v2:** bin/intent_issues:311
 - **Arguments:**
   - `title` (string, arity `1`)
 - **Flags:**
@@ -1759,13 +1399,6 @@ Add a new issue, print its ID:TITLE
     - **disposition:** keep
     - **disposition basis:** Same ruling as `--body` above, which carries the full basis. Separate spelling because prose long enough to want a file is the common case for an issue, and shell-quoting a multi-line body inline is where authors give up and edit the file instead -- the route this door replaces. An unreadable file REFUSES and never silently becomes an empty body.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- created -- prints `created: <path to the issue's md file>` then `<ID>:<TITLE>` (bin/intent_issues:187-188)
-  - `1` -- no title -- `error: Issue title is required`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `created: <path to the issue's file>` then `<ID>:<TITLE>`. **v2, measured 2026-08-17:** `created: intent/issues/OPEN/0001/0001-probe-two.md` / `0001:Probe two`. **v3 at `34c6a3ae`, measured:** `created: /Users/.../intent/issues/0002.json` / `0002:Probe two`. **THE LINES HAVE DIFFERENT ANSWERS AND THE ROW HAS ONE `target.state` -- see `notes`.**
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** **LINE 2 IS `as-observed` AND LINE 1 IS NOT, AND THE SCHEMA CANNOT SAY SO (0060).** Line 1 differs from v2 in TWO independent ways with OPPOSITE legitimacy. **The layout is ratified**: v3's issue canon is flat, `intent/issues/<NNNN>.json` (`data-model.md:258`, `store.rs:179`), against v2's status-bucketed `OPEN/<NNNN>/<NNNN>-<slug>.md`. v3 cannot print v2's path because v3 does not create it. **The ABSOLUTENESS is a defect** -- v2 prints repo-relative, v3 prints the fully-qualified path including `$HOME` -- and it is forced by nothing. Filed as 0060. **No `stdout_exact` is declared and cannot be while 0060 stands**: a literal template cannot contain a machine's working directory, so this row is excluded from the only instrument that has found parity breaks on this thread, BY the defect that instrument exists to catch. Every other row's coverage question is whether anyone wrote the declaration; this row's is whether one can be written at all. `new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.
 - **Target:** `corrected` -- ratified: ic, 2026-11-19, ST0095 WP-02 -- LINE 1 IS THE MINT'S MACHINE FORM, `created: <id>`: the line `st new` and `wp new` print, and the value MCP answers as `created`, so a script or a test reads a minted id from one line on all three verbs. The canon path line 1 named is on the `wrote:` line, so neither deviation the text below describes is on line 1 any more, and 0060 (closed) has nothing left to say about it. Line 2, `<ID>:<TITLE>`, is v2's. The rest is the row's history. ic, 2026-08-17 -- CONSEQUENCE OF AN EXISTING RULING, NOT A NEW ONE. The flat issue canon is already ratified in `data-model.md:258` and built in `store.rs:179`, so line 1's path CANNOT reproduce v2's and the deviation is forced by the model rather than chosen -- the same footing as `ac rescope`. Recording the row as `as-observed` asserted a parity that the data model had already made impossible. **This ratifies the LAYOUT half only.** The absoluteness (0060) is a defect and stays one; when it is fixed, line 1 becomes `created: intent/issues/<NNNN>.json`, the row collapses from two deviations to one, and it becomes expressible in the schema that exists today. Fixing 0060 first is therefore the cheaper order. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, on the flat-canon decision recorded at `data-model.md:258` and built at `store.rs:179` -- NOT parity.md, which does not cite this row. Authority, date and an external record, per vc's `ratified_in` grammar.
 - **rulings:**
   - `0.state`: ratified
@@ -1784,7 +1417,6 @@ Add a new issue, print its ID:TITLE
 
 Correct an issue's record: its prose, its title, its severity
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Flags:**
@@ -1806,7 +1438,6 @@ Correct an issue's record: its prose, its title, its severity
     - **disposition:** keep
     - **disposition basis:** `0154` predicted this half-fix in advance: it asked for an edit door covering title AND body, and warned that a one-field fix _leaves the case that prompted the filing exactly where it is_. `0151` owns the title row. The body door shipped alone at `dbd0e5ab` and left title and severity writable exactly once, at creation, forever -- the same write-once shape the verb was built to end.
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-28/29, verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116`; re-sequenced to cc after `0183` and recorded at `b1bf4cea`. **THE EVIDENCE FOR THE RE-SEQUENCING WAS TWO MEASURED INSTANCES IN ONE SESSION OF THIS VERB'S ABSENCE PREVENTING A CORRECTION, BOTH IN THE RECORD OF A FINDING ABOUT THE MISSING VERB** -- vc's `0179` re-discovering hv's own ruling as a fresh defect four days after it was made, and cc's `0183` unable to correct a body whose remedy measurement had just proved wrong. hv's design, not the builder's: `0122`'s scope correction is this verb's FIRST DRIVE and `0118`'s re-premise its second, so the live cases are the acceptance cases. -- behaviour: Replaces `Issue.body` whole. **An empty body is REFUSED rather than written**, which is deliberately NOT symmetric with `issues add`: `add` leaves a body empty because an unwritten body is a state and nothing is lost, while editing one to empty ERASES authored prose whose only other copy is the event log. And **`--body`/`--from` absent is refused separately from empty prose**, because they are different mistakes and `AC-04.4` forbids one message for two causes. Re-writing identical bytes reports `already` and writes nothing, so the event log cannot show a correction that did not happen.
 - **rulings:**
   - `0.state`: ratified
@@ -1822,7 +1453,6 @@ Correct an issue's record: its prose, its title, its severity
 
 Show one issue (optionally as JSON)
 
-- **v2:** bin/intent_issues:312
 - **Arguments:**
   - `id` (issue-id, arity `1`)
 - **Flags:**
@@ -1834,12 +1464,6 @@ Show one issue (optionally as JSON)
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- printed
-  - `1` -- issue not found -- `error: Issue not found: <ID>` (bin/intent_issues:255). **No bucket named here**, unlike `issues close` / `issues open`; see this row's `target.question`.
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the issue body, or JSON
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Open question for hv:** The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.
 - **MCP:** exposed as an agent tool -- read-only
@@ -1849,18 +1473,8 @@ Show one issue (optionally as JSON)
 
 Mark an issue done: OPEN -> CLOSED
 
-- **v2:** bin/intent_issues:313
 - **Arguments:**
   - `id` (issue-id, arity `1`)
-- **Exit codes:**
-  - `0` -- closed -- `ok: issue <ID> -> CLOSED` (bin/intent_issues:291)
-  - `0` -- ALREADY in the target bucket -- `ok: issue <ID> already CLOSED`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring.
-  - `1` -- in NEITHER bucket -- `error: Issue not found in OPEN: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id.
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: issue <ID> -> CLOSED` on a move, `ok: issue <ID> already CLOSED` on the self-loop
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation
 - **Target:** `as-observed`
 - **Open question for hv:** **v2 SPELLS ONE CONDITION SEVERAL WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of every row at once.** v2's source sites produce different rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home.
 - **no op:** `ok: issue <NNNN> already CLOSED`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -1872,18 +1486,8 @@ Mark an issue done: OPEN -> CLOSED
 
 Reopen an issue: CLOSED -> OPEN
 
-- **v2:** bin/intent_issues:314
 - **Arguments:**
   - `id` (issue-id, arity `1`)
-- **Exit codes:**
-  - `0` -- reopened -- `ok: issue <ID> -> OPEN` (bin/intent_issues:291)
-  - `0` -- ALREADY in the target bucket -- `ok: issue <ID> already OPEN`, exit 0 (bin/intent_issues:280-283). **This is v2's ONLY `already` arm and the one hv's self-loop ruling cites**; `move_issue` checks the SOURCE bucket, and on a miss checks the TARGET before erroring.
-  - `1` -- in NEITHER bucket -- `error: Issue not found in CLOSED: <ID>` (bin/intent_issues:285). The message names the BUCKET, not just the id.
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: issue <ID> -> OPEN` on a move, `ok: issue <ID> already OPEN` on the self-loop
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Moves the issue directory back
 - **Target:** `as-observed`
 - **Open question for hv:** The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.
 - **no op:** `ok: issue <NNNN> already OPEN`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -1895,15 +1499,9 @@ Reopen an issue: CLOSED -> OPEN
 
 Move an issue to a free number, with its canon file and view
 
-- **v2:** new-surface
 - **Arguments:**
   - `old` (issue-id, arity `1`)
   - `new` (issue-id, arity `1`)
-- **Exit codes:**
-  - `0` -- renumbered: the store, canon, the view and the manifest row name `<new>`
-  - `1` -- `<old>` does not exist, or `<new>` is taken by the store or the tree -- nothing is renumbered
-- **stdout:** `ok: issue <old> renumbered to <new>`, then `moved:` and `prose:` lines as for `st renumber`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `retire`
 - **spelling:** intent issues remint <id>
 - **retired by:** ST0095 WP-10 (AC-10.5), on ST0095 AC-06.3: no verb mints an ordinal. Its second argument named the id to move to, so it could mint one, and the git-style ids this release mints never collide, so the collision it repaired is the merge's to repair. RETIRED RATHER THAN DELETED so the two-argument spelling still refuses at rc=2 with `was retired` and names `intent issues remint <id>`, which moves an ordinal issue to the id the one mint derives for it. It carried target state `new-surface`.
@@ -1918,14 +1516,8 @@ Move an issue to a free number, with its canon file and view
 
 Move an ordinal issue to its git-style id, with everything that names it structurally
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (issue-id, arity `1`)
-- **Exit codes:**
-  - `0` -- reminted: the store, canon, the realised files, the manifest row and every structured reference name the new id
-  - `1` -- the id is git-style, malformed or not held here, or the project is not upgraded -- in each case nothing moves
-- **stdout:** `ok: issue <old> reminted to <new>`, each id in its stored form, the one every door takes, then `moved:`, `rewritten:` and `prose:` lines, with a closing `note:` when prose still names the old id
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **basis:** ST0095 WP-10 (AC-10.5), the door to cc's `issue_remint` (WP-06): one argument, so no verb names the id it mints (AC-06.3). The issue moves to the git-style id the one mint derives from its own creation event, or from one drawn for the move, which the move's event then carries. It refuses a git-style id, which nothing moves; an issue the project does not hold; a malformed id, in the waist's one refusal; and a project `intent upgrade` has not moved. It moves what `issues renumber` moved and prints what it moved, what it rewrote and the prose it left, because prose is authored.
@@ -1938,10 +1530,8 @@ Move an ordinal issue to its git-style id, with everything that names it structu
 
 Add an issue to .intentfiles and write its files
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (issue-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` having touched no file -- a success message over nothing, plus a durable claim that a file exists which cannot.
 - **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Arms of one match addressed different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
 - **spelling:** _(declared empty)_
@@ -1955,10 +1545,8 @@ Add an issue to .intentfiles and write its files
 
 Remove an issue from .intentfiles and delete its files
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (issue-id, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `retire` -- ratified: hv, 2026-08-20 -- issues are CANON-AND-STORE ONLY. An issue has no realised form in the estate, so `ISSUE:` leaves the `.intentfiles` grammar and there is nothing for these verbs to hydrate INTO or dehydrate FROM. Escalated by ic after driving `issues hydrate 0001` wrote `ISSUE:0001` into the live manifest and reported `ok` having touched no file -- a success message over nothing, plus a durable claim that a file exists which cannot.
 - **Note:** THE CAUSE WAS A LAYER CONFUSION IN THE PRIMITIVE, NOT A GAP AT THE DISPATCH ARM. `Facade::hydrate` resolved a thread's realisation home to `thread_dir(id)` -- `intent/st/<ID>/`, the ESTATE -- and an issue's to `issues_dir()`, which is `intent/.canon/issues/`, CANON. Arms of one match addressed different layers, and it resolved that way because canon is the only issue path that exists: `project.rs` has `canon_issue_rel`, `issues_dir` and `issue_json`, all canon-side, and NO estate accessor; `views.rs` renders no issue view. **It was inert only because `organize::plan` happens to emit no step under `intent/.canon/`, and a bound that is never reached is not a bound the code states.** Retiring the rows removes the hole rather than fencing it.
 - **spelling:** _(declared empty)_
@@ -1972,8 +1560,6 @@ Remove an issue from .intentfiles and delete its files
 
 A flat DOING / TODO / DONE view of steel threads and work packages
 
-- **v2 source:** `bin/intent_todo`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -1994,7 +1580,6 @@ A flat DOING / TODO / DONE view of steel threads and work packages
 
 Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.md holds it; writes nothing, and `intent todo update` writes the file
 
-- **v2:** bin/intent_todo:384 (dispatch arms sit at zero indent here, which is what defeated one static enumerator)
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
 - **Flags:**
@@ -2006,15 +1591,6 @@ Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.m
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- bare -- prints the view, generating the file if absent
-  - `1` -- `--help` prints usage to STDOUT and exits 1
-  - `1` -- unknown verb -- `error: Unknown todo command: <v>. Run 'intent todo help' for usage.`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the DOING / TODO / DONE view
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - INV-07 at `todo --help`
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect -- `--help` reporting failure -- as a known member. APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **rulings:**
@@ -2032,7 +1608,6 @@ Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.m
 
 Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.md holds it; writes nothing, and `intent todo update` writes the file
 
-- **v2:** bin/intent_todo:384 -- the `list)` arm; `COMMAND="${1:-list}"` at :380 makes it the default
 - **Flags:**
   - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
     - **disposition:** keep
@@ -2042,12 +1617,6 @@ Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.m
     - **disposition:** keep
     - **disposition basis:** Unified output surface (hv, 2026-08-25). The shape of output was spelled several ways across the flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- printed, generating the file first if absent
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the DOING / TODO / DONE view, or its JSON form under --json
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** The EXPLICIT spelling of the family default. `intent todo` and `intent todo list` are the same code path, verified by invocation (exit 0).
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **Wants review -- the classification disagrees with the verb name:** `list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.
@@ -2059,14 +1628,6 @@ Show the DOING / TODO / DONE view of threads and work packages, as intent/todo.m
 
 Regenerate intent/todo.md from current status
 
-- **v2:** bin/intent_todo (update arm)
-- **Exit codes:**
-  - `0` -- regenerated
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Rewrites intent/todo.md
 - **Target:** `as-observed`
 - **Note:** In v3 this is a view regeneration on the WP-03 renderer, and the skew check (AC-03.4) makes a stale todo.md detectable rather than merely refreshable.
 - **MCP:** exposed as an agent tool -- **mutates**
@@ -2077,7 +1638,6 @@ Regenerate intent/todo.md from current status
 
 Mark a thread/WP done (via intent st/wp done), then regenerate
 
-- **v2:** bin/intent_todo (done arm)
 - **Arguments:**
   - `specifier` (st-id[/NN], arity `0..1`)
     - omitted when --flush or --prune is given
@@ -2088,14 +1648,6 @@ Mark a thread/WP done (via intent st/wp done), then regenerate
   - `--prune` (bool) -- Emit the DONE items for archiving, then flush
     - **disposition:** keep
     - **disposition basis:** **REINSTATED by hv, 2026-08-26, on seeing what D44 produced: a `todo.md` at Lamplight that was mostly completed items.** hv verbatim: _`The whole point of a todo file is that it shows DOING and TODO work. That is it.`_ and _`I WANT PARITY`_. **The D44 reasoning below was not wrong about the mechanism, only about what to do with it -- and its own quoted sentence argues the other way once read forward: the database holding the complete record is exactly why the FILE does not need to.** What went with the flags was the only BOUND on the DONE bucket, and the display window that replaced it was ruled terminal-only, so the committed view was left carrying every completion ever. The watermark returns as an EVENT rather than a line inside the generated file, which keeps the one defect v2 really had: v2 grepped the instant back out of `todo.md`, so deleting a disposable file resurrected everything ever flushed. Superseded reasoning follows verbatim. RETIRED by D44 (hv, 2026-08-16). Not a deprecation: the operation has no referent in v3. Both flags MUTATED the artefact because in v2 the artefact WAS the record; under D01 the db is the SSOT and `todo.md` is a generated view, so there is nothing to prune and nothing to flush -- only a question of how much of the record to SHOW, which is a display window and is a different flag. hv verbatim: `All of the data is in the db so we can (re)generate whatever we need when we need it.` Reclassified from `keep`, which was correct as a v2 observation and wrong as a v3 target the moment D01 landed.
-- **Exit codes:**
-  - `0` -- marked and regenerated
-  - `1` -- specifier not resolvable
-  - `1` -- close-gate BLOCKED, propagated from st/wp done
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation, or the pruned DONE items under --prune
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Delegates to `intent st done` / `intent wp done`, so the acceptance close-gate applies transitively.
 - **Target:** `as-observed`
 - **exposure:** EXPOSURE -- NOT a D42 one, and the first two versions of this note got that wrong (ic, audit 2026-08-15, corrected twice the same day). hv has narrowed D42 twice since I filed it: RETURNING a time is fine, and READING a clock to make a decision or to stamp when a command ran into a GENERATED artefact is fine too -- there is no need to be pathological about it. `--flush` is exactly that permitted case on both counts: v2 `flush_watermark` reads `date -u` and writes the instant into `todo.md`, which is a generated view, and the value is then used to decide DONE-bucket membership. So the clock read is legitimate and I withdraw the D42 complaint. WHAT SURVIVES IS A DIFFERENT AND BETTER DEFECT, found only by reading the v2 source to check the first claim: `generate()` reads the watermark BACK OUT of `todo.md` (`read_done_watermark`, bin/intent_todo:228), so the generated view is the watermark's ONLY store. Under the v3 truth model -- DB rebuildable, `rm` of a derived artefact always safe, md = generated views plus authored prose -- a watermark is neither, and deleting `todo.md` to regenerate it silently resets the flush to zero and resurrects every flushed item. The v3 watermark must live in the store. WP-03 owns the renderer and this is its constraint, not WP-06's.
 - **no op:** `ok: <ID> already Completed`, exit 0 -- **SHIPPED at `d0f345b5`**, and **BYTE-IDENTICAL to `st done`'s, which is 0050's actual subject**: the wrapper and the call it delegates to now answer the same question the same way. Before that commit this row was the only arm in the renderer that reported a no-op at all, in the spelling `ok: <spec> was already done` -- honest about the no-op, wrong about the voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
@@ -2107,15 +1659,8 @@ Mark a thread/WP done (via intent st/wp done), then regenerate
 
 Refused in this build: a reopen must record its reason -- use `intent st reopen <id> --reason <text>` or `intent wp reopen <spec> --reason <text>`
 
-- **v2:** bin/intent_todo (notdone arm)
 - **Arguments:**
   - `specifier` (st-id[/NN], arity `1`)
-- **Exit codes:**
-  - `0` -- reopened
-  - `1` -- specifier not resolvable
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed.
 - **MCP:** not exposed -- **mutates**
@@ -2126,15 +1671,8 @@ Refused in this build: a reopen must record its reason -- use `intent st reopen 
 
 Refused in this build: close with `intent todo done <spec>`, and reopen with `intent st reopen` or `intent wp reopen` and a `--reason`
 
-- **v2:** bin/intent_todo (toggle arm)
 - **Arguments:**
   - `specifier` (st-id[/NN], arity `1`)
-- **Exit codes:**
-  - `0` -- flipped
-  - `1` -- specifier not resolvable
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed.
 - **MCP:** not exposed -- **mutates**
@@ -2145,8 +1683,6 @@ Refused in this build: close with `intent todo done <spec>`, and reopen with `in
 
 Show the Intent process overview and project status
 
-- **v2 source:** `bin/intent_info`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2160,16 +1696,6 @@ Show the Intent process overview and project status
 
 Show the Intent process overview and project status
 
-- **v2:** bin/intent_info
-- **Exit codes:**
-  - `0` -- bare -- to stdout
-  - `0` -- `--help` -- IDENTICAL output; the flag is not parsed, merely ignored
-  - `0` -- unknown flag -- also exit 0
-  - `0` -- outside a project -- exit 0; this command does NOT gate
-- **stdout:** the overview (different in a project and outside one)
-- **stderr:** --
-- **Defects observed in v2:**
-  - INV-08 at `intent info --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown FLAGS and unknown POSITIONALS both refused, exit 1 per INV-02 -- clap rejects unrecognised arguments by default, which is what the ratification calls forced rather than chosen. HISTORY, kept because the mechanism recurs and this row is the only place it is written down: the row shipped the flag half ONLY, because its own `args[0]` declared a catch-all `ignored` slot (`type: any`, `arity: 0..n`) which instructed clap to accept every positional -- and clap then rendered that slot into the USER-FACING HELP as `Usage: intent info [IGNORED]...` with an empty description, so the slot was not merely inert, it was documented. The correction was defeated by a declaration on the same row. That slot had been carried forward from the v2 measurement in `observed` (where it is correct, and where it stays) into a v3 declaration (where it was the unfixed half), and nobody re-examined it -- the supersession-not-propagated class, same shape as `doctor`'s `read_or_mutate` outliving `--fix`. Measured 2026-08-17 BEFORE the change: `info --zzz` exit 1, `info NOSUCHTHING` byte-identical to bare at exit 0, `info --help` rendering the `[IGNORED]...` slot. AFTER: `info NOSUCHTHING` exit 1 with `unexpected argument`, bare output byte-identical to before, help shorter with the slot gone. THE BOUND: vc's corrected differential sweep -- the sweep at commit `e7dbfd3e`, its denominator corrected at `6dd041c1` -- probed every command several ways, **and its population was one too wide**: the exclusion list was short and `claude upgrade` was probed three times, inert (exit 2, writes nothing, verified under a sandboxed HOME), so the finding is untouched and only the denominator was wrong. It and found the unknown-positional arm swallowed by exactly ONE -- this row -- with the unknown-flag arm refused by all 104. So this is the last member of INV-08's positional half and the fix completes the class rather than chipping at it. **DO NOT CITE `flag refused: 103, pos refused: 103` FOR THIS.** That pair is 0044's RETRACTED first run, whose hash included `intent info`'s own `Location: <cwd>` line so no two runs could ever compare equal; the issue prints it as an example of what a dead instrument looks like, and ic cited it here as the bound for several hours before checking it at source. It also collides numerically with the corrected `populations.probeable` of 103, which is a different quantity again. Slot dropped 2026-08-17 by ic under vc's 03:48Z ruling.
 - **rulings:**
   - `0.state`: ratified
@@ -2184,8 +1710,6 @@ Show the Intent process overview and project status
 
 Display the resolved project configuration -- not implemented in this build (exits 2)
 
-- **v2 source:** `bin/intent_config`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **HOLE -- nothing in the estate invokes it**
 
@@ -2202,20 +1726,9 @@ Display the resolved project configuration -- not implemented in this build (exi
 
 Display the resolved project configuration -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_config
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
     - Optional: `get` or `set`; bare `intent config` is its own action, not a default verb. Not implemented in this build: bare `intent config` and `config get` exit 2 with `a known command that is not implemented yet`, and `config set` is built for `commands.build` and `commands.test` alone.
-- **Exit codes:**
-  - `0` -- bare -- ZERO bytes on both streams
-  - `0` -- `--help` -- also zero bytes
-  - `0` -- unknown flag -- also zero bytes, exit 0
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** nothing
-- **stderr:** nothing, except the project gate outside a project
-- **Defects observed in v2:**
-  - INV-08 at `intent config --zzz` succeeds silently at exit 0
-  - Produces no output whatsoever in a project. A user cannot distinguish 'ran and printed the empty config' from 'did nothing'.
 - **Target:** `undefined` -- ratified: vc ruling, 2026-08-14 -- the fifth parity class, opened on this entry; `config` is its first member -- behaviour: v3 prints the resolved project configuration. This is DESIGNED, not ported and not corrected.
 - **Note:** v2 exhibits no behaviour here at all (no output on either stream, exit 0), so there is nothing to be faithful to and nothing to correct. Recording it as `corrected` would have hidden a design decision inside a bug-fix class, and design decisions need a different reviewer.
 - **keys backup:**
@@ -2266,11 +1779,9 @@ Display the resolved project configuration -- not implemented in this build (exi
 
 Print one configuration value -- not implemented in this build (exits 2)
 
-- **v2:** new-surface
 - **Arguments:**
   - `key` (config-key, arity `1`)
     - A dotted path to a nested value, eg `backup.retain.daily`. Not implemented in this build: `intent config get` exits 2 with `a known command that is not implemented yet`.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15, answering D35's `configurable from intent config`: `config get` / `config set` are new surface and should exist.
 - **unknown key refuses:** AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the cases separable, and the only place that can be decided is here.
 - **scope caution:** hv, 2026-08-15: this is USER-FACING project configuration. Intent dogfoods itself so this repo's own `config.json` is also a dev artefact, but that is a coincidence of the project and not a property of the command.
@@ -2280,16 +1791,9 @@ Print one configuration value -- not implemented in this build (exits 2)
 
 Set one configuration value; this build sets `commands.build` and `commands.test` alone, and any other key exits 2
 
-- **v2:** new-surface
 - **Arguments:**
   - `key` (config-key, arity `1`) -- `commands.build` or `commands.test`
   - `value` (string, arity `1`) -- The command, one line; an empty value removes the key
-- **Exit codes:**
-  - `0` -- set, removed, or already so
-  - `1` -- a value of more than one line; outside a project (INV-03)
-  - `2` -- a key this build does not set, the refusal naming the keys it does
-- **stdout:** `ok: <key> set`, `ok: <key> removed` or `ok: <key> unchanged`; after a write, the config on a `wrote:` line, a `note:` where the tree has `bin/devbin`, and the `next:` step
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- see `config get`.
 - **unknown key refuses:** *** THE LOAD-BEARING DECISION ON THIS ROW: AN UNKNOWN KEY IS REFUSED, NEVER CREATED. *** `intent config set backup.retian.daily 7` -- note `retian`, a TRANSPOSITION OF THE REAL KEY `backup.retain.daily` -- must fail and name the unknown key. **The near-miss is the whole point and a garbage key would not make it**: one transposed character produces a dead key that nothing reads, a config file that LOOKS configured, and a user who believes they set a retention policy they did not. The failure surfaces, if ever, as backups quietly pruned on defaults, long after the typo is forgotten. **The example spells out the misspelling because it failed on its first reader** -- an example whose point depends on the reader spotting a one-character difference is itself a silent failure. This is the whole class this toolchain keeps closing, sitting in the one command whose entire job is to be believed about what is configured.
 - **known keys are derived:** THE VALID-KEY SET IS DERIVED FROM THE DECLARED CONFIG SCHEMA, NEVER A HAND-MAINTAINED LIST IN THE SETTER. A hand list is a designed figure: correct the day it is typed, silently wrong at the next key added, because the act that invalidates it (declaring a new setting) is not the act that updates it. Derived, a new key becomes settable the day it is declared and an unknown one stays refused for free. Same rule the drift check applies to new surface, pointed at configuration.
@@ -2308,8 +1812,6 @@ Set one configuration value; this build sets `commands.build` and `commands.test
 
 Initialize a new Intent project in the current directory
 
-- **v2 source:** `bin/intent_init`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2323,7 +1825,6 @@ Initialize a new Intent project in the current directory
 
 Initialize a new Intent project in the current directory
 
-- **v2:** bin/intent_init
 - **Arguments:**
   - `project_name` (string, arity `0..1`), default `the current directory name`
 - **Flags:**
@@ -2337,17 +1838,6 @@ Initialize a new Intent project in the current directory
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- created
-  - `1` -- already an Intent project -- `error: This directory is already an Intent project`
-  - `1` -- `--help` prints usage to STDOUT and exits 1
-  - `1` -- unknown flag
-- **stdout:** progress lines and the created layout
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Writes intent/.config/config.json, the intent/ tree, and root canon (AGENTS.md, CLAUDE.md, usage-rules.md)
-- **Defects observed in v2:**
-  - INV-07 at `init --help`
 - **Target:** `as-observed`
 - **Note:** v3 additionally stamps `project_id` (the D15 cloud seam) at init and at migration.
 - **MCP:** not exposed -- **mutates**
@@ -2360,8 +1850,6 @@ Initialize a new Intent project in the current directory
 
 First-time setup: create global Intent configuration
 
-- **v2 source:** `bin/intent_bootstrap`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2376,7 +1864,6 @@ First-time setup: create global Intent configuration
 
 First-time setup: create global Intent configuration
 
-- **v2:** bin/intent_bootstrap
 - **Flags:**
   - `--force`, `-f` (bool) -- Force recreation of config even if it exists
     - **disposition:** keep
@@ -2389,15 +1876,6 @@ First-time setup: create global Intent configuration
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- bare -- different output in a project and outside one
-  - `0` -- `--help` -- usage, exit 0
-  - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
-- **stdout:** setup progress and instructions
-- **stderr:** the unknown-option message
-- **Defects observed in v2:**
-  - INV-01 at the unknown-option message is `Unknown option: ...` with NO `error:` prefix
-  - Usage block says `intent_bootstrap` and `Intent v2.0.0` -- names the script rather than the command, and the version is stale by nine minors.
 - **Target:** `pending-hv`
 - **Open question for hv:** The missing `error:` prefix is an INV-01 violation and a candidate `corrected` member. Same shape as `doctor` and `fileindex`.
 - **MCP:** not exposed -- **mutates**
@@ -2407,8 +1885,6 @@ First-time setup: create global Intent configuration
 
 Diagnose common Intent configuration issues
 
-- **v2 source:** `bin/intent_doctor`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2423,7 +1899,6 @@ Diagnose common Intent configuration issues
 
 Diagnose common Intent configuration issues
 
-- **v2:** bin/intent_doctor
 - **Flags:**
   - `--fix`, `-f` (bool) -- Attempt to fix issues automatically
     - **disposition:** retire
@@ -2453,15 +1928,6 @@ Diagnose common Intent configuration issues
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- bare -- exit 0 whether or not findings exist
-  - `0` -- `--help` -- exit 0
-  - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
-- **stdout:** check results (checks 1..4e)
-- **stderr:** the unknown-option message
-- **Defects observed in v2:**
-  - INV-01 at the unknown-option message has NO `error:` prefix
-  - Exits 0 even with findings, so it cannot be used as a CI gate as it stands. Usage block also names `intent_doctor` rather than `intent doctor`.
 - **Target:** `corrected` -- behaviour: `doctor` exits 1 when it reports a counted finding, so a commit gate or a CI job can refuse on it; findings shown and never counted leave it at 0. This is INV-04's exit contract applied to doctor, which answered the question below.
 - **Open question for hv:** Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.
 - **rulings:**
@@ -2485,8 +1951,6 @@ Diagnose common Intent configuration issues
 
 Upgrade an Intent project to the current version
 
-- **v2 source:** `bin/intent_upgrade`
-- **v2 help file:** none
 - **Owning work package:** WP-10
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2501,19 +1965,10 @@ Upgrade an Intent project to the current version
 
 Upgrade an Intent project to the current version
 
-- **v2:** bin/intent_upgrade
 - **Flags:**
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- bare -- `Current version: 2.19.0`
-  - `0` -- `--help` -- exit 0
-  - `1` -- unknown flag -- `error: Unknown option: ...`
-  - `1` -- outside a project -- supplies its OWN message, not the standard gate (INV-03 exception)
-- **stdout:** the convergent ledger walk
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Convergent since ST0043: it probes on-disk state, runs only the steps still needed, applies canon via `intent claude upgrade --apply`, and stamps the version once at the end. Safe to re-run after an interruption.
 - **Target:** `deviate` -- ratified: vc ruling 2026-08-16: `disposition: keep` (migration.md:3 -- the migrator IS the v3 binary's `intent upgrade`) + `target.state: deviate` citing D09. No new D-number: D09 already covers it.
 - **why the old ratification was wrong:** It cited D09, and D09 is one line -- `Migration floor v2.19.0, two-hop` -- which says nothing about the command. What is retired is v2's LEDGER (`the v2 ledger is never reimplemented in Rust`, migration.md:7), the version-walk mechanism, not the verb. `migration.md:3` is explicit in the opposite direction: **`The migrator is the v3 binary's intent upgrade detecting a v2 project`**. So `upgrade` is v3's migration DOOR and keeps its spelling. My own `behaviour` field on the old row named `intent ingest --from-md` as the engine, and I read the ENGINE's succession as the DOOR's retirement: the ingest engine replaces the ledger, the command survives.
 - **corroborated by the binary:** v3's unmigrated-project refusal already emits `run intent upgrade to migrate this project to Intent v3`, and AT-06.11 is held red `until WP-10 lands upgrade`. Both were right and this table was the odd one out -- which is why the defect first presented as an AC-06.11 violation, a remedy naming a command the binary cannot do. The remedy was correct and the SURFACE was wrong.
@@ -2526,8 +1981,6 @@ Upgrade an Intent project to the current version
 
 Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 
-- **v2 source:** `intent/plugins/agents/ (plugin command)`
-- **v2 help file:** none
 - **Owning work package:** WP-07
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2547,18 +2000,8 @@ Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 
 Manage AGENTS.md for Intent projects
 
-- **v2:** intent/plugins/agents/ dispatch
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
-- **Exit codes:**
-  - `0` -- bare -- prints usage, exit 0
-  - `0` -- `--help` -- the same, exit 0
-  - `1` -- unknown verb -- output on STDOUT, `Unknown command: ...`, exit 1
-- **stdout:** the usage block
-- **stderr:** --
-- **Defects observed in v2:**
-  - INV-06 at the unknown-verb error goes to STDOUT, not stderr
-  - INV-01 at `Unknown command: ...` carries no `error:` prefix
 - **Target:** `pending-hv`
 - **Open question for hv:** Both defects are INV-01/INV-06 members awaiting the same scope ruling.
 - **MCP:** not exposed -- read-only
@@ -2567,16 +2010,10 @@ Manage AGENTS.md for Intent projects
 
 Initialize AGENTS.md at project root
 
-- **v2:** plugin dispatch
 - **Flags:**
   - `--template` `<name>` (string) -- Initial content from a named template
     - **disposition:** retire
     - **disposition basis:** Withdrawn 2026-08-31 (vc, within the pen; AC-06.8's remedy sanctions wire-or-withdraw and this is the direction that deletes a false claim rather than adding a capability -- wiring it would be new behaviour and hv's). Found by ic via AT-06.8's fix at 5bd42c95: flag_reachability now probes every ENTRY rather than each family's bare root, so leaves under a root that refuses bare -- `agents`, which is a deliberate unwired dispatcher over wired subverbs -- were graded for the first time. `"template"` is spelled nowhere in intent-cli/src. MEASURED BY VARIATION rather than by reading the source (dc, 2026-08-31): `agents init` run in three FRESH projects with --template elixir, with --template definitely-not-a-template, and with no flag at all produced BYTE-IDENTICAL AGENTS.md, one md5, all at rc=0. **The flag was a false claim in two directions**: it advertised templating that does not happen, and it accepted a template name that does not exist -- where v2 refused an unknown one by name and listed the alternatives (intent_agents:181-183). v2's behaviour, recorded so a later wiring has a target rather than a help string: `--template <name>` copied intent/plugins/agents/templates/<name> into the project, AGENTS.md at the root beside its sibling templates. That capability has no v3 home and this withdrawal does not create one; it stops the surface claiming it has.
-- **Exit codes:**
-  - `0` -- created
-  - `1` -- already exists
-- **stdout:** confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:223 -- `intent_agents_generate_content > "$PROJECT_ROOT/AGENTS.md"`, the UNCONDITIONAL write on the else branch, taken when no flag is given. **RE-GROUNDED 2026-08-31 (dc), AND THE GENERATOR CAUGHT IT RATHER THAN A REVIEWER.** This field named :196-216 -- the `cp` of AGENTS.md / RULES.md / ARCHITECTURE.md, which is the `--template` BRANCH -- so when that flag was withdrawn, `gen_dispatch_table.sh` refused to render: _the classification is grounded in something withdrawn_. The row's `mutate` was never in doubt and the refusal did not say it was; what was wrong is that the only WRITE this row had ever recorded was the one behind an inert flag. Measured in v3 rather than inferred: `agents init` with no flag at all writes AGENTS.md and exits 0, and a second run exits 1 `already exists`, which is exactly the two-code shape `observed` records. The classification is unchanged; its evidence now names a branch that still exists.
@@ -2586,12 +2023,6 @@ Initialize AGENTS.md at project root
 
 Emit generated AGENTS.md content to stdout
 
-- **v2:** plugin dispatch
-- **Exit codes:**
-  - `0` -- emitted
-- **stdout:** the generated AGENTS.md content
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Pure emit-path -- writes nothing. The composable half of `sync`.
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
@@ -2601,15 +2032,6 @@ Emit generated AGENTS.md content to stdout
 
 Regenerate AGENTS.md from current project state
 
-- **v2:** plugin dispatch
-- **Exit codes:**
-  - `0` -- regenerated
-- **stdout:** **Measured 2026-08-17 against v2.19.0 with the streams split (nothing on stderr):** `Syncing AGENTS.md with latest project state...` / `ok: AGENTS.md updated at project root.` / `    previous version saved to AGENTS.md.bak` (four-space indented continuation). The row previously said `confirmation`, which is true and says nothing a builder could reproduce.
-- **stderr:** EMPTY on the success arm, measured. No failure arm was reached.
-- **Side effects:**
-  - Rewrites AGENTS.md at project root
-  - Writes AGENTS.md.bak beside it -- the previous version. UNDECLARED until 2026-08-17 and announced by line 3 of stdout. Covered by `*.bak` at `.gitignore:51`, so it does not reach git.
-- **Observed notes:** **THIS VOICE IS RECORDED AND MUST NOT BE TIDIED, and the row is where a v3 implementer will read it.** Lines of it are against the house style that 0023 spent a release enforcing: line 1 is a BARE CAPITALISED progress line with no `ok:` prefix and a trailing ellipsis, and line 2 carries a TRAILING FULL STOP. Both are v2's observed behaviour on an `as-observed` row, so **reproducing them IS the contract** -- a v3 that cleans them up has broken parity, however much better it reads. A deviation here wants RATIFYING, not fixing. **A third line existed that nobody had recorded**, which is why the warning is written from the measurement rather than from memory of it. **No `stdout_exact` yet, deliberately: the `agents` family is UNBUILT in v3** (exit 2, `error: agents is a known command that is not implemented yet`). A declaration now would red for not-built rather than for a parity break, and the whole point of splitting the as-observed and corrected legs was that a red must name one remedy. The bytes above are measured and ready; declare them when the family ships. AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it
@@ -2620,12 +2042,6 @@ Regenerate AGENTS.md from current project state
 
 Validate AGENTS.md shape and required sections
 
-- **v2:** plugin dispatch
-- **Exit codes:**
-  - `0` -- valid
-  - `1` -- findings
-- **stdout:** findings
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** agents_validate
@@ -2634,15 +2050,9 @@ Validate AGENTS.md shape and required sections
 
 Move the two agent contracts to the root or into .claude/, and set the project's contracts key
 
-- **v2:** new-surface
 - **Arguments:**
   - `layout` (string, arity `1`) -- one of: `root`, `dotclaude`
     - `root` keeps AGENTS.md and CLAUDE.md at the project root, where the agents.md spec's readers open them; `dotclaude` keeps both in .claude/, for a tree whose root people read rather than tools.
-- **Exit codes:**
-  - `0` -- the contracts are where the layout named puts them and the key says so -- moved through git when tracked, or already there and nothing moved
-  - `1` -- a destination already holds a different file, refused before anything moves; or a contract could not be moved or the key written, named with what already moved
-- **stdout:** `moved: <from> -> <to>` per contract, `removed: usage-rules.md (...)` or `left: usage-rules.md (...)` when one applies, then `ok: contracts is <layout> -- <n> moved`
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **basis:** hv, 2026-10-15 (ST0083 WP-03, AC-03.2): a project moves between the two layouts its contracts key names. The door moves both contracts through git when they are tracked, refuses a destination holding a different file before anything moves, removes a usage-rules.md byte-identical to its seed on the way to dotclaude and names an authored one, and writes the key last.
@@ -2654,8 +2064,6 @@ Move the two agent contracts to the root or into .claude/, and set the project's
 
 Claude Code integration: subagents, skills, rules, hooks, workstreams
 
-- **v2 source:** `bin/intent (claude arms) + intent/plugins/claude/`
-- **v2 help file:** lib/help/rules.help.md (documents `claude rules`, misfiled as a top-level command)
 - **Owning work package:** WP-07
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2678,16 +2086,8 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 
 Claude Code integration
 
-- **v2:** bin/intent (explicit `claude` arm)
 - **Arguments:**
   - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `start`
-- **Exit codes:**
-  - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical `error: Unknown claude subcommand. Try: ...`
-- **stdout:** --
-- **stderr:** the subcommand list (INV-01 voice, correct stream)
-- **Defects observed in v2:**
-  - INV-07 at `claude --help` answered as an unknown subcommand
-  - Four distinct conditions collapse to one message, so the error cannot tell the user which mistake they made. This is the same-text-for-different-causes collapse AC-04.4 forbids in v3.
 - **Target:** `as-observed` -- ratified: AC-04.4 -- every facade error is typed and renders a remedy with its full cause chain, with no same-text-for-different-causes collapses
 - **Note:** **Governed, not unexamined.** The four-conditions-one-message collapse is already forbidden by AC-04.4, so this row needs no separate hv ruling: v3 cannot reproduce it and stay inside its own contract. Cited here so the next reader sees it was decided rather than missed. (vc, 2026-08-14.)
 - **MCP:** not exposed -- read-only
@@ -2696,7 +2096,6 @@ Claude Code integration
 
 Manage Claude Code subagents
 
-- **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
     - flags by verb: `list`: `-v`; `install`: `--force`, `--all`; `sync`: `--force`, `--dry-run`; `uninstall`: `--force`, `--all`; `show`: none
@@ -2713,13 +2112,6 @@ Manage Claude Code subagents
   - `--dry-run` (bool) -- Show what would change, no writes
     - **disposition:** keep
     - **measured late and the reason is the finding:** **ADDED BY dc 2026-09-12 UNDER hv's BATCH 4 (silent deletion).** `claude skills` has carried this row since 2026-09-04 and `claude subagents` did not, while BOTH families reach one preview in `payload.rs` through one renderer function whose only difference is `w.verb`. **So the preview was built, and unreachable: `spine.rs:624` declares table flags onto clap, so a family with no row refuses the flag at the parser with `unexpected argument` at rc=1** -- which tells an operator they mistyped a flag the engine implements. **IT MATTERS MORE SINCE BATCH 2:** `sync` and `uninstall` now HOLD a unit edited since it was installed and `--force` discards it, so the preview is how an operator decides whether to type `--force`. That decision was available for skills and blind for subagents -- same risk, same engine, one of them with the lights off. **The help string is taken verbatim from the skills row**, which took it verbatim from `st bootstrap`: a sixth `--dry-run` saying a fifth thing is the drift Highlander is about. **Declared at the family level for the same reason as skills** -- there is no `claude subagents sync` entry to hang a per-verb flag on -- so the renderer REFUSES it on `install` and `uninstall` rather than ignoring it, which it already did for both families before this row existed.
-- **Exit codes:**
-  - `0` -- listed / installed / synced
-  - `1` -- unknown verb
-  - `1` -- named subagent not found
-- **stdout:** the subagent table or detail
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks nothing since global-agents.json was deleted (issue 0331), and .gitignore does not name its sibling installed-agents.json, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
 - **Target:** `corrected` -- ratified: **vc, 2026-09-04, ONE RULE OVER THREE OPEN QUESTIONS: canon names it -> it stays declared and refuses at rc=2; canon does not name it -> it comes OFF the table.** `status` left canon under dc's B1 the same day, so it comes off here. `init` was never in canon at all -- it survives only in `lib/help/claude.help.md` and an example README, and `lib/help/` is a v2 artefact the v3 binary does not read (verified: the only reference in the Rust tree is a prose comment in `guide.rs`). **Both rows removed rather than left to fall through to `unwired`** -- there is nothing to explain once the row is gone, which is why the deliberate-oversight comment dc had planned is NOT written. After A1 both families are exactly `list / install / sync / uninstall / show`. **NOT A DE-SCOPING OF `rules validate`, which canon DOES name (`usage-rules.md:140`) and which therefore stays declared and refuses honestly.**
 - **rulings:**
   - `0.state`: ratified
@@ -2734,7 +2126,6 @@ Manage Claude Code subagents
 
 Manage Claude Code skills
 
-- **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
     - flags by verb: `list`: `-v`; `install`: `--force`, `--all`; `sync`: `--force`, `--dry-run`; `uninstall`: `--force`, `--all`; `show`: none
@@ -2752,13 +2143,6 @@ Manage Claude Code skills
   - `--all` (bool) -- Every unit this install carries (install) or has installed (uninstall)
     - **disposition:** keep
     - **measured late and the reason is the finding:** **RESTORED 2026-09-04 BY dc AS A v2-TO-v3 REGRESSION, NOT ADDED AS A v3 FEATURE (issue 0236, severity high).** v2 shipped it working -- `claude_plugin_helpers.sh` parsed `--all` across `plugin_install`/`plugin_sync`/`plugin_uninstall` -- and `usage-rules.md` names `install --all` FOUR times at :113, :126, :310 and :311. v3 declared it on NO row and clap refused it at **rc=1 `unexpected argument`**, which tells an operator they mistyped when they typed exactly what root canon instructed. **THAT IS THE DISHONEST HALF OF hv's SHIPPING RULE: rc=2 `known command, not implemented yet` is a coherent state and is what `config`/`ext`/`learn` ship as; rc=1 is not.** **AND NO INSTRUMENT COULD SEE IT, WHICH IS THE REAL FINDING.** `implemented_check.sh` draws its population from THIS TABLE, so a flag absent here is not a subject it can probe; `canon_mandated_verbs_check.sh` draws its population from canon and its predicate is `rc==2 AND the marker`, so a clap parse error at rc=1 carries no marker and cannot be classified. **The defect consisted precisely of the DISAGREEMENT between those two populations, so it was invisible to both, and no predicate change reaches it** -- which is why 0236's remedy is a STATIC canon-vs-table arm whose subject is the boundary itself. **`uninstall --all` is the sharper half: canon never names it, so it lives in the suite-versus-table gap and even the static arm would not have caught it** -- found only because the parity BATS suite uses it (cc, 16 invocations, 9 install / 7 uninstall, 14 in `keep`-class files).
-- **Exit codes:**
-  - `0` -- listed / installed / synced
-  - `1` -- unknown verb
-  - `1` -- named skill not found
-- **stdout:** the skill table or detail
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `sync` checksums SKILL.md ONLY, so a change confined to a skill's scripts/ does not propagate -- it needs `install --force` (or touching SKILL.md). **THE v3 RECOMMENDATION THAT USED TO END THIS NOTE HAS MOVED TO `target` (ic, 2026-08-22, on vc's ruling).** It read _Known trap, worth not reproducing in v3_ -- a v3 intent sitting in a field whose contract is what v2 DOES, while `target.state` just below said `as-observed`, the opposite. **cc could not settle the fork from code because the normative field and the note disagreed, and cc was right not to let a note beat a field.**
 - **Target:** `corrected` -- ratified: **hv, 2026-08-22: AC-07.3 SCOPE CONFIRMED.** The SKILL.md-only checksum scope is a DEFECT that v3 fixes, not a behaviour v3 reproduces. **Route: vc ruled it provisionally the same day on a fork cc escalated, and hv confirmed it DIRECTLY TO ic in session -- not relayed.** **THE WORD `provisional` IS DELETED RATHER THAN NEGATED**, per this field's own standing note: `no longer provisional` reads as provisional. **IT WAS HELD FOR ONE COMMIT AND THE HOLD IS WORTH RECORDING.** vc reported the ratification and asked for the marking to come off; ic held the edit, because `ratified_in` ASSERTS an adjudicator's act and `hv/wip.md` carried no entry for the day. **The precedent was on hv's own board in vc's own hand** -- a prior vc session's relay marked _PROVENANCE UNVERIFIED ... treat as advisory until hv confirms_. **A trustworthy report of an act does not discharge a field that certifies the act**, because the row is read by people who cannot see the message. One question to hv settled it, which is what the hold cost. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. hv, 2026-08-22, confirmed in session to ic; recorded in this row's `ratification` field, whose text carries the ruling and its route -- behaviour: v3's `sync` detects a change anywhere in a skill's installed content rather than in SKILL.md alone. **THE MECHANISM IS cc's BUILD DECISION AND IS DELIBERATELY NOT SPECIFIED HERE** -- this row records that the defect is corrected, not how. A parity row that dictates an implementation is asserting a second design authority.
 - **time is a BRACKET AND NOT A POINT:** **vc's own correction, unprompted, and it is why this row carries no clock time.** vc timed three sends by arithmetic from one `date -u` read at 10:05Z, producing 10:07Z / 10:12Z / 10:14Z; the next real read was 10:09Z, so **two of the three stamps were in the FUTURE when written.** The measured bracket is **[10:05Z, 10:09Z], both ends off a clock**; the points inside it are not measurements and their order relative to each other is unrecoverable. **A fabricated stamp is not repaired by a better-looking one**, so the ruling is dated to the DAY, which is measured, and not to a minute, which is not. **The general form vc adopted and I am adopting: a time you cannot read from a command in the same act is written as an INTERVAL, and an interval cannot be produced by arithmetic -- both ends have to come from somewhere.**
 - **manifest path is a SEPARATE RULING FROM THE SAME ACT:** **vc, 2026-08-22, recorded here because it is target behaviour of THIS command and would otherwise live only in a message: v3 owns a separate manifest path and never touches v2's.** Reason it is not optional: v2 writes `$HOME/.intent/skills/installed-skills.json` (`intent_claude_skills:28`), cc's proposed v3 manifest was the same path, same `version: "1.0.0"`, same fields -- so once `checksum` denotes a different function, **v2 is shipped and cannot be taught to read a scope field.** It reads v3's value, finds `source != old` unconditionally, falls to the unguarded `elif` at `claude_plugin_helpers.sh:426`, prints `update available` and overwrites; v3 overwrites back. **A mutual clobber in which BOTH binaries print success and neither has anything to report.** Attributed to vc rather than derived by ic: I have not re-driven it.
@@ -2776,7 +2160,6 @@ Manage Claude Code skills
 
 List and show rule-library rules and the critic contract
 
-- **v2:** bin/intent claude arm
 - **Arguments:**
   - `verb` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`, `validate`, `contract`
     - flags by verb: `list`: `--lang`; `show`: none; `validate`: none; `contract`: none
@@ -2784,12 +2167,6 @@ List and show rule-library rules and the critic contract
 - **Flags:**
   - `--lang` `<lang>` (string) -- Filter to one language
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- listed / shown
-  - `1` -- unknown rule id
-- **stdout:** the rule table, or one rule's full text
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Bare `intent claude rules` LISTS rather than printing usage -- measured.
 - **Target:** `as-observed`
 - **Note:** hv, 2026-09-15 (rulings item 3, issue 0331): `index` retires with the rules-index trio (index-generator.md, index.json and index.json.template), so the verbs are `list`, `show` and `validate`. Issue 0700 (hv decision 59, 2026-11-17) adds `contract`, which prints the critic contract from the install, so a critic installed in another project can read it; and the slot's `value_args` now give the rule id to `show` and `validate` alone, so `list` and `contract` refuse one rather than ignore it.
 - **MCP:** not exposed -- read-only
@@ -2799,15 +2176,8 @@ List and show rule-library rules and the critic contract
 
 Run a named Intent hook
 
-- **v2:** bin/intent claude arm
 - **Arguments:**
   - `name` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- hook succeeded
-  - `1` -- hook failed
-  - `2` -- the hook's OWN exit code, propagated verbatim -- by design (INV-04)
-- **stdout:** the hook's stdout, verbatim
-- **stderr:** the hook's stderr, verbatim
 - **Target:** `as-observed`
 - **Note:** **Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family.
 - **MCP:** not exposed -- **mutates**
@@ -2821,7 +2191,6 @@ Run a named Intent hook
 
 Apply Claude canon to the project
 
-- **v2:** bin/intent claude arm
 - **Flags:**
   - `--apply` (bool) -- Write the canon; without it the command reports only
     - **disposition:** keep
@@ -2831,12 +2200,6 @@ Apply Claude canon to the project
   - `--skip-settings` (bool) -- Leave the Claude Code harness wiring alone -- .claude/settings.json and .mcp.json -- so no session hooks are wired and no MCP server is declared
     - **disposition:** keep
     - **disposition basis:** Restored 2026-09-11 for issue 0143 (v3.0.1 list #53). v2 shipped it (intent_claude_upgrade:74, :118, :856-860) as the single escape hatch for a project that does not want Claude Code lifecycle hooks, and nothing recorded dropping it at port time as a decision. In v2 it gated .claude/settings.json and the three per-project hook scripts; v3 writes no per-project hook scripts (their bodies are served from the install), so here it declines the settings file only, and reports it as skipped rather than leaving it unmentioned. WIDENED 2026-09-12 (AC-24.1, vc's ruling): it declines .mcp.json too. ONE FLAG FOR THE HARNESS-WIRING CLASS, because both files exist only to wire Claude Code, and a project that declines the lifecycle hooks and then finds an MCP server declared in its editor anyway has been told no by a flag that only half meant it. Seeded-when-absent is not a way to decline either: deleting the file only means the next --apply seeds it again, so without this flag there is no way to say no at all. Both paths are named on the run's skipped line.
-- **Exit codes:**
-  - `0` -- applied or reported
-  - `1` -- canon source missing
-- **stdout:** the canon convergence report
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Called by `intent upgrade` as its single canon step (ST0043).
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
@@ -2845,14 +2208,8 @@ Apply Claude canon to the project
 
 Launch a Claude session bound to a workstream
 
-- **v2:** bin/intent claude arm (ST0047)
 - **Arguments:**
   - `ws` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- launched
-  - `1` -- unknown workstream
-- **stdout:** session launch output
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Not a data operation at all -- it launches an interactive Claude Code session bound to a node. An agent that can call it can spawn agents.
@@ -2862,8 +2219,6 @@ Launch a Claude session bound to a workstream
 
 Run Intent rule-library critics against source files without invoking an LLM
 
-- **v2 source:** `bin/intent_critic`
-- **v2 help file:** none
 - **Owning work package:** WP-07
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2879,7 +2234,6 @@ Run Intent rule-library critics against source files without invoking an LLM
 
 Run Intent rule-library critics against source files
 
-- **v2:** bin/intent_critic
 - **Arguments:**
   - `lang` (enum, arity `1`) -- one of: `elixir`, `rust`, `swift`, `lua`, `shell`, `author`, `content`
 - **Flags:**
@@ -2904,17 +2258,6 @@ Run Intent rule-library critics against source files
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- clean scan, or `--languages` / `--help`
-  - `1` -- findings present at or above --severity-min -- THE MEANINGFUL ONE (INV-04). `bin/intent_critic:348`, immediately after the findings are printed.
-  - `2` -- USAGE ERROR, and the three observed spellings are one thing: bare invocation (usage printed to STDOUT, `:95`), unknown flag (grep's own error on stderr), and a bad positional after a valid lang. All reach `error_out` at `:89` or the no-args help at `:95`.
-  - `3` -- REFUSED -- a rule could not be armed. `bin/intent_critic:334` and `:347`. Refusal OUTRANKS findings: both codes block, so precedence changes no gate decision, it changes what the caller is TOLD.
-- **stdout:** the findings report, grouped by severity
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - **WITHDRAWN 2026-08-20: THE DEFECT DOES NOT EXIST, AND THE READING THAT PRODUCED IT WOULD HAVE CAUSED A REAL ONE.** This row read _Exit 2 means FOUR different things -- findings-present (the meaningful one), a bare invocation, an unknown flag, and a bad positional_, and closed _a caller genuinely cannot distinguish 'findings' from 'you typed it wrong'_. **Findings-present is `exit 1` at `bin/intent_critic:348`. It was never in the set.** The other three are all spellings of ONE thing -- a usage error, via `error_out` (`:89`) or the no-args help (`:95`) -- so exit 2 is unambiguous and a caller CAN distinguish the cases perfectly. **The apparent ambiguity was usage variants plus an item belonging to a different exit code.** Found by dc reading the branches before building the v3 critic; ic verified at zero hops. **THE MEASUREMENT WAS SOUND AND THE LABEL WAS NOT: vc's independent count of exit-2 OCCURRENCES was right, and one occurrence was named for the wrong cause** -- which is exactly why nodes agreeing on the count added no safety. A count of occurrences can never establish what they MEAN; only the branch producing them can.
-  - The unknown-flag path leaks `grep: unrecognized option` as the command's own voice -- a raw tool error surfacing as Intent's.
-  - INV-06 at the bare-invocation usage block goes to STDOUT on a failing (exit 2) invocation
 - **Target:** `pending-hv`
 - **Open question for hv:** **WITHDRAWN 2026-08-20, AND THIS ROW IS THE SHARPEST ARTEFACT OF THE INVERSION: IT PROPOSED TO RATIFY THE BUG.** It read _Exit 2 must keep meaning findings-present (INV-04), which requires the other conditions to move to exit 1 per INV-02_. **Had hv granted it, usage errors would have moved to exit 1 and findings would have been pinned to exit 2 -- and `lib/templates/hooks/pre-commit.sh:350-369` fails OPEN on 2 and BLOCKS on 1.** Every finding would have sailed through the gate and every typo would have blocked the commit: the gate inverted, in this repo and in every consumer through one symlink, with a ratification behind it. **The row correctly identified that it had a LIVE CONSUMER and correctly called it the highest priority of the 19 -- and both of those were reasons its wrongness would have propagated fastest.** Nothing is owed here now: v2's behaviour is already coherent (0 clean, 1 findings, 2 usage, 3 refused) and v3 reproduces it, so the `corrected` change this row asked for is not merely unnecessary but harmful. See INV-04's `corrected_2026_08_20`.
 - **Note:** Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle.
@@ -2926,8 +2269,6 @@ Run Intent rule-library critics against source files
 
 Declared languages: which languages a project has declared
 
-- **v2 source:** `bin/intent_lang`
-- **v2 help file:** none
 - **Owning work package:** WP-07
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -2949,16 +2290,8 @@ Declared languages: which languages a project has declared
 
 Declared-language management
 
-- **v2:** bin/intent_lang
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
-- **Exit codes:**
-  - `0` -- bare -- usage, exit 0
-  - `0` -- `--help` -- same, exit 0
-  - `1` -- unknown verb -- `error: unknown lang subcommand '<v>'`
-  - `0` -- outside a project -- usage, exit 0
-- **stdout:** the usage block
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -2966,11 +2299,6 @@ Declared-language management
 
 List the languages a project may declare
 
-- **v2:** bin/intent_lang list arm
-- **Exit codes:**
-  - `0` -- listed
-- **stdout:** one row per language
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -2978,13 +2306,6 @@ List the languages a project may declare
 
 Print the languages this project declares, one per line
 
-- **v2:** new-surface
-- **Exit codes:**
-  - `0` -- the declared languages printed, or nothing when the project declares none
-  - `1` -- a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses -- named with its remedy; the commit gate refuses the commit on it
-  - `4` -- no project at or above the working directory, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on
-- **stdout:** one declared language per line, in config order, and nothing else
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **basis:** Issue 0618, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). Five readers took a project's declared languages out of `intent/.config/config.json` with jq -- the commit gate, three skills and a subagent -- because no verb printed them, and each worked only from the project root. This reads `Config.languages` through project discovery and prints it in config order and nothing else, so a script reads the field the binary parses from any directory inside the project. `languages: []` prints nothing at 0, because an empty declaration is a legitimate state (decision 62(1)); a name outside the catalogue is printed rather than refused, because `lang init` refuses it at the door and the gate and `critic` already name it. It answers in a project nobody has migrated, because its consumer is the commit gate.
@@ -2993,14 +2314,8 @@ Print the languages this project declares, one per line
 
 Show what declaring a language does
 
-- **v2:** bin/intent_lang show arm
 - **Arguments:**
   - `lang` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- shown
-  - `1` -- unknown language
-- **stdout:** the file list
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across the estates: every one byte-identical to its template, none referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
 - **behaviour changed:** v2 prints "Files installed by 'intent lang init <lang>'" over a pair of paths. v3's `init` installs neither, so a faithful port would print a durable claim that files will appear when they will not. **THIS IS `plugin show`'s DEFECT ARRIVING THROUGH FIDELITY RATHER THAN NEGLECT** -- the same shape as porting a remedy that points at a retired verb, which is why `as-observed` was the wrong answer for a row whose whole output describes a mechanism that has been retired.
 - **rulings:**
@@ -3014,14 +2329,8 @@ Show what declaring a language does
 
 Print the language Intent assigns a path, or nothing
 
-- **v2:** new-surface
 - **Arguments:**
   - `path` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- the path's language printed, or nothing when its extension maps to none
-  - `1` -- no path given -- clap's usage error
-- **stdout:** the language on one line, or nothing
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **basis:** Issue 0617, ruled by vc on 2026-10-23 on ic's surface note (refs/bank/ic/0616-0618/surface-note.md, blob 13571783fc26). The advisory hook chose an edited file's critic from its own `case` on the extension, beside `index::corpus::lang_of`, the map the index and search read. A language added to the map was skipped by the hook in silence, because its `*) exit 0` arm cannot tell an extension nobody handles from one it was never told about. This prints `lang_of`'s answer for one path. It is a function of the name, so it needs no project and checks no file, and nothing printed at 0 is the answer `no language`. `intent critic` is not made to derive a language from a path: its positional picks the pack, each rule matches by its own `applies_to` globs, and its exit codes are the gate's.
@@ -3030,18 +2339,8 @@ Print the language Intent assigns a path, or nothing
 
 Declare one or more languages (idempotent; multi-lang)
 
-- **v2:** bin/intent_lang init arm
 - **Arguments:**
   - `lang` (string, arity `1..n`)
-- **Exit codes:**
-  - `0` -- installed
-  - `1` -- unknown language
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation per language
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Side effects:**
-  - Writes intent/llm/RULES-<lang>.md + ARCHITECTURE-<lang>.md
-  - Adds the language to config.json's `languages` array
 - **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across the estates: every one byte-identical to its template, none referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
 - **behaviour changed:** v2 copies two markdown files per language into `intent/llm/` AND adds the language to `config.json`. v3 does only the second. The declaration is the whole of the verb, and the language's rules are served live rather than vendored.
 - **carve out:** THE CARVE-OUT, WHICH IS THE PART MOST LIKELY TO BE GOT WRONG: this does NOT touch the agnostic pair `intent/llm/RULES.md` + `intent/llm/ARCHITECTURE.md`. Same directory, adjacent names, OPPOSITE evidence -- every estate AUTHORED its own. A sweep treating `intent/llm/*` as one family deletes the only files in it with real authors.
@@ -3058,14 +2357,8 @@ Declare one or more languages (idempotent; multi-lang)
 
 Undeclare one or more languages (idempotent; multi-lang)
 
-- **v2:** bin/intent_lang remove arm
 - **Arguments:**
   - `lang` (string, arity `1..n`)
-- **Exit codes:**
-  - `0` -- removed
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation per language
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: vc, 2026-08-25, on issue 0068 (HIGH) -- `intent lang init` does NOT reinstate the `RULES-<lang>.md` / `ARCHITECTURE-<lang>.md` fan-out. Measured across the estates: every one byte-identical to its template, none referencing files anywhere in Intent's own tree -- the least favourable case for the conclusion, and it confirmed it. The issue states this close condition in as many words: "If the right answer turns out to be that `lang init` has nothing to install, that is an acceptable close -- the rules it would point at are already served live by `intent claude rules list --lang <lang>`."
 - **behaviour changed:** The exact inverse of `init`, and it changes for the same reason: with nothing installed there is nothing to delete, so `remove` undeclares in `config.json` and touches no file under `intent/llm/`. Its `recoverability` drops from `one-way` to idempotent as a CONSEQUENCE -- the `mcp_review` uncertainty on this row was entirely about deleting authored canon, and v3's remove deletes nothing.
 - **rulings:**
@@ -3082,8 +2375,6 @@ Undeclare one or more languages (idempotent; multi-lang)
 
 LLM-related commands for working with AI assistants
 
-- **v2 source:** `bin/intent_llm`
-- **v2 help file:** none
 - **Owning work package:** WP-06 + WP-09
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3099,16 +2390,8 @@ LLM-related commands for working with AI assistants
 
 LLM-related commands
 
-- **v2:** bin/intent_llm
 - **Arguments:**
   - `subcommand` (subcommand, arity `0..1`)
-- **Exit codes:**
-  - `0` -- bare -- usage, exit 0
-  - `0` -- `--help` -- same
-  - `1` -- unknown subcommand -- `error: Unknown subcommand: <v>`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the usage block
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -3116,18 +2399,11 @@ LLM-related commands
 
 Display the Intent usage rules for LLMs
 
-- **v2:** bin/intent_llm usage_rules arm
 - **Flags:**
   - `--symlink` `[dir]` (string) -- Create a symlink to usage-rules.md in the current or specified directory
     - SUPERSEDED 2026-09-02 AND KEPT INLINE. It read: `the directory argument is OPTIONAL, defaulting to the current directory -- an optional-value flag, which clap models differently from v2's positional peek`. DRIVEN: clap REQUIRES the value -- `intent llm usage_rules --symlink` answers `error: a value is required for '--symlink <dir>' but none was supplied` at rc=1, so the bare form never reaches `llm_usage_rules()` at all. The note described a modelling decision that was not implemented.
     - **disposition:** retire
     - **disposition basis:** WITHDRAWN 2026-09-02 (vc, within the pen granted by hv 2026-08-22; hv reverses with one word). AC-06.8's remedy sanctions wire-or-withdraw, and a WITHDRAW is inside the pen where a WIRE would not be -- declining to build is adjudication, building new behaviour is not. Recorded here in `disposition_basis`, and the first version of this sentence got its reason AND its figure wrong -- both corrected 2026-09-02 20:00Z, superseded text inline. It read: `rather than in a new `ratified_in` key: 78 rows carry the basis in this field and none carries that one`. **`ratified_in` IS NOT A NEW KEY, IT IS A RETIRED ONE.** ic migrated it on 2026-08-22 -- the machine-read half became the declared `rulings` array and the human half became `ratification`, and `ratified_in_check.sh` was renamed `rulings_check.sh` on 2026-08-23. **Sixteen rows still carry the migration sentence, so a BARE-TOKEN pattern counts a retired field's OBITUARY as its use** -- which is how it gets measured as a live one. **THE FIGURE THAT STOOD HERE WAS `returns 30` AND IT WAS STALE BEFORE THE INK DRIED, BY MY OWN HAND: writing this very sentence added four more mentions of the token, 30 -> 34.** A count of a token in the file that documents that token is self-perturbing, so the mechanism is stated here and the number is not. **AND `grep -c` COUNTS LINES, NOT OCCURRENCES** -- several occurrences can share a line, which is why two correct measurements of one pattern disagree. Counted structurally -- over the objects with `jq`, not over lines with `grep -c` -- `disposition_basis`, `ratification` and `rulings` are all in use, and **no object carries `ratified_in`.** **A LINE COUNT WAS ONCE REPORTED HERE AS A ROW COUNT**: `grep -c` and the object count disagreed, because one occurrence sits inside prose rather than being a key. The placement is unchanged and its real ground is the flag-retire precedent -- `agents init --template` records an identical withdrawal in `disposition_basis`, while `ratification` and `rulings` sit at entry and target level. THE DECIDING GROUND IS THAT THE SUBJECT HAS MOVED. v2's flag linked the INSTALL's `$INTENT_HOME/usage-rules.md`; v3's verb is about the PROJECT's root file (`render.rs:6807`), which already sits where every reader looks for it. Retiring a flag whose subject no longer exists in the model is declining to port a pointer to a thing that is not there, not dropping a feature. AND `wire it to what v2 did` IS UNIMPLEMENTABLE AS STATED, which is what closes the alternative. MEASURED BY DRIVING v2 rather than reading it (dc, 2026-09-02), three arms: `--symlink <ABSOLUTE dir>` works at rc=0; `--symlink` BARE does not use the current directory, because `bin/intent:284` cds to PROJECT_ROOT before exec'ing the arm and exports INTENT_ORIG_CWD for exactly that purpose while `bin/intent_llm` never reads it -- a fresh empty directory stays empty under a `created: ./usage-rules.md` line at rc=0; and `--symlink <RELATIVE dir>` refuses a directory that exists (`error: Target directory does not exist: sub`, rc=1) because the validation also runs against the project root. Most of those arms are defects nobody would port deliberately, porting the working arm alone is not parity, and resolving `.` against the real cwd is NEW behaviour -- hv's, by the same rule that made `agents init --template` hv's. A SOURCE READ OF `bin/intent_llm` COULD NOT HAVE SEEN ANY OF IT, BECAUSE THE `cd` IS IN A DIFFERENT FILE, and this entry's own `evidence_class` is `read` -- taken from the v2 source without executing the arm. The population could not contain the defect, which is why it was driven. Same shape as the `agents init --template` ruling, where variation was required over a source read. v2's behaviour, recorded so a later wiring has a target rather than a help string: `--symlink [dir]` created `<dir>/usage-rules.md` as a symlink to the INSTALL's `usage-rules.md`, defaulting `[dir]` to the project root rather than the cwd its help claimed. That capability has no v3 home and this withdrawal does not create one; it stops the surface claiming it has. Issue 0181. Sibling finding, filed separately as 0215: `llm usage_rules` is labelled `v2 parity` and answers about a different file than v2 does.
-- **Exit codes:**
-  - `0` -- displayed or symlinked
-  - `1` -- symlink target unwritable
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the usage-rules content, or the symlink confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug.
 - **MCP:** not exposed -- read-only
@@ -3139,8 +2415,6 @@ Display the Intent usage rules for LLMs
 
 Print the agent guide: every command this build ships, with what it does and whether it writes, then Intent's workflows and conventions
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: DECLARED BY ic 2026-08-15, ratification OUTSTANDING. AC-09.4 says `intent llm` renders the agent guide and the `llm` family's own notes say it is regenerated from this table at WP-09 -- and no entry declared the command. The family knew; the surface did not. Declared now rather than at WP-09 because `guide_refs_check.sh` and the eventual `llm_guide_gen.rs` both need a command to test against, and an AC whose subject has no row cannot be tested at all.
 - **Note:** A SECOND PROJECTION OF ONE FILE, which is exactly what vc's 2026-08-15 no-split ruling calls for: `intent llm` projects differently rather than reading a different file. `llm usage_rules` stays the human-facing DO/NEVER projection and keeps its name, which `--symlink` and the Elixir `usage_rules.sync` habit both depend on; this is the agent projection, and it carries what a human projection has no reason to -- the generated command reference, the `exposed_on_mcp` and `read_or_mutate` constraints ahead of each description, and the exit-code contract once for the surface rather than per row.
 - **MCP:** not exposed -- read-only
@@ -3150,8 +2424,6 @@ Print the agent guide: every command this build ships, with what it does and whe
 
 Capture project-specific learnings for future LLM sessions
 
-- **v2 source:** `bin/intent_learn`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3166,7 +2438,6 @@ Capture project-specific learnings for future LLM sessions
 
 Capture project-specific learnings for future LLM sessions -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_learn
 - **Arguments:**
   - `description` (string, arity `0..1`)
     - required unless --list is given
@@ -3177,13 +2448,6 @@ Capture project-specific learnings for future LLM sessions -- not implemented in
     - **disposition:** keep
   - `--list` (bool) -- Show all learnings
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- captured, or listed
-  - `0` -- bare -- usage, exit 0
-  - `1` -- unknown flag -- `error: Unknown option: <f>. Run 'intent learn help' for usage.`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** confirmation, or the learnings list
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** bin/intent_learn:82 (append_learning), called at :201
@@ -3194,8 +2458,6 @@ Capture project-specific learnings for future LLM sessions -- not implemented in
 
 Module registry guardrails and enforcement
 
-- **v2 source:** `bin/intent_modules`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3212,16 +2474,8 @@ Module registry guardrails and enforcement
 
 Module registry guardrails
 
-- **v2:** bin/intent_modules
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
-- **Exit codes:**
-  - `0` -- bare -- usage, exit 0
-  - `0` -- `--help` -- same
-  - `1` -- unknown verb -- `error: Unknown modules command: <v>. Run 'intent modules help' for usage.`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the usage block
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -3229,17 +2483,10 @@ Module registry guardrails
 
 Compare MODULES.md registry against filesystem
 
-- **v2:** bin/intent_modules check arm
 - **Flags:**
   - `--register` (bool) -- Interactively register unregistered modules
     - **RETIRED, AND THE GROUND IS THAT IT DOES NOTHING -- not that it is interactive.** Driven against the frozen v2.19.0 install on a fixture holding one unregistered file, with stdin CLOSED: `intent modules check --register` RETURNED (it does not block), left `intent/llm/MODULES.md` BYTE-IDENTICAL, and added exactly one line of output -- `hint: add these to intent/llm/MODULES.md in the appropriate section`. `cmd_check`'s register arm is an `echo` and there is no write primitive in the file. **So its own help string -- `Interactively register unregistered modules` -- is false in both words, and THIS NOTE INHERITED THE FALSEHOOD**: it read `INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use`, which was reasoned from the help text rather than measured, and made the surface's only claimed interactive path a thing that never was one. **The retirement was queued on issue 0071's ground (v2 `upgrade` blocking on an interactive read with no TTY, and a headless fleet), and that ground was wrong about THIS flag** -- 0071 is about `upgrade`, which really does block. The conclusion survived its reason, which is the direction that leaves no corpse. v3 ships no flag; `check`'s own output already names every unregistered file, which is the whole of what `--register` added.
     - **disposition:** retire
-- **Exit codes:**
-  - `0` -- registry clean
-  - `1` -- issues found -- unregistered or stale entries
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the findings
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `corrected` -- ratified: hv answered `Yes` to building `modules` on 2026-08-25 and vc released it to cc on 2026-08-25 once `lang` had landed. The population derivation is the deviation those approvals cover; it was carried on cc's board as settled before the build began. **The `--register` ground was CORRECTED BY MEASUREMENT during the build** and the flag note carries the correction: the queued reason was issue 0071's headless-fleet argument, and the measured reason is that the flag is a no-op.
 - **Note:** Two corrections, one surface change. **(1) THE POPULATION IS DERIVED FROM THE PROJECT'S DECLARED `languages`.** v2 scans `bin/intent_*`, `lib/**/*.{ex,sh}` and `intent/plugins/**/bin/*` for every project it is pointed at -- Intent's own layout, with this product's name used as a file prefix. Shipped to a project written in anything else, v2 scans for shell scripts prefixed `intent_`, finds none, and reports a clean registry: **the check could not fire, and a check that cannot fire reads exactly like a check that passed.** **(2) `check` STATES WHAT IT SCANNED BEFORE IT STATES A VERDICT**, and says so loudly when no declared language contributes a population, for the same reason. **(3) `--register` does not ship** -- see the flag note. Ported unchanged: the report format, both exit codes, the directory-row subtree rule and the `file::function` rule (v2.11.12).
 - **rulings:**
@@ -3254,16 +2501,8 @@ Compare MODULES.md registry against filesystem
 
 Search MODULES.md for a term
 
-- **v2:** bin/intent_modules find arm
 - **Arguments:**
   - `term` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- one or more registry rows match the term
-  - `1` -- **no match -- `no matches for '<term>'` on STDOUT, and rc=1.** Previously recorded here as `0`, and issue 0067 records rc=0 as measured. Both are wrong: `cmd_find` returns 1 on the empty branch. Driven 2026-08-25 against the frozen v2.19.0 install on a purpose-built fixture, reading the rc directly rather than through a pipe.
-  - `1` -- no term given -- `error: Missing search term. Usage: intent modules find <term>`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** matching rows
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** as-observed and now actually so. v3 reproduces grep's convention because v2 already had it: match rc=0, no match prints on stdout at rc=1 with stderr silent. **The two documents that said 0 agreed with each other and neither agreed with the program**, which is why this row's evidence class moved rather than its target state.
 - **MCP:** not exposed -- read-only
@@ -3273,8 +2512,6 @@ Search MODULES.md for a term
 
 Discover installed Intent plugins and their commands
 
-- **v2 source:** `bin/intent_plugin`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3290,16 +2527,8 @@ Discover installed Intent plugins and their commands
 
 Discover installed Intent plugins and their commands
 
-- **v2:** bin/intent_plugin
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
-- **Exit codes:**
-  - `0` -- bare -- defaults to `list`
-  - `0` -- `--help` -- exit 0
-  - `1` -- unknown verb -- `error: Unknown plugin subcommand '<v>'. Run 'intent plugin help' for usage.`
-  - `0` -- outside a project -- lists, exit 0
-- **stdout:** the plugin list
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -3307,11 +2536,6 @@ Discover installed Intent plugins and their commands
 
 List all plugins and their commands
 
-- **v2:** bin/intent_plugin list arm
-- **Exit codes:**
-  - `0` -- listed
-- **stdout:** one block per plugin
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
@@ -3320,14 +2544,8 @@ List all plugins and their commands
 
 Show detailed information for a plugin
 
-- **v2:** bin/intent_plugin show arm
 - **Arguments:**
   - `name` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- shown
-  - `1` -- plugin not found
-- **stdout:** the plugin detail
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
@@ -3336,8 +2554,6 @@ Show detailed information for a plugin
 
 Manage Intent user extensions -- not implemented in this build; nothing reads ~/.local/share/intent/ext/
 
-- **v2 source:** `bin/intent_ext`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3357,17 +2573,8 @@ Manage Intent user extensions -- not implemented in this build; nothing reads ~/
 
 Manage Intent user extensions -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_ext
 - **Arguments:**
   - `command` (subcommand, arity `0..1`), default `list`
-- **Exit codes:**
-  - `0` -- bare -- defaults to `list`; `ok: no extensions installed (<path> does not exist)`
-  - `0` -- `--help` -- exit 0
-  - `1` -- unknown verb -- `error: unknown ext subcommand '<v>'`
-  - `0` -- outside a project -- lists, exit 0
-- **stdout:** the extension list
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Honours INTENT_EXT_DIR (override the default root, used by tests) and INTENT_EXT_DISABLE=1 (suppress ext discovery entirely).
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 
@@ -3375,11 +2582,6 @@ Manage Intent user extensions -- not implemented in this build (exits 2)
 
 List installed extensions -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_ext list arm
-- **Exit codes:**
-  - `0` -- listed
-- **stdout:** one row per extension
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- every write primitive in the file is inside ext_new (:743-759)
@@ -3388,14 +2590,8 @@ List installed extensions -- not implemented in this build (exits 2)
 
 Show manifest + contributions for one extension -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_ext show arm
 - **Arguments:**
   - `name` (string, arity `1`)
-- **Exit codes:**
-  - `0` -- shown
-  - `1` -- extension not found
-- **stdout:** the manifest and contributions
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
@@ -3404,17 +2600,9 @@ Show manifest + contributions for one extension -- not implemented in this build
 
 Validate extension manifests -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_ext validate arm
 - **Arguments:**
   - `name` (string, arity `0..1`)
     - omitted validates all
-- **Exit codes:**
-  - `0` -- valid
-  - `1` -- findings
-- **stdout:** findings
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - Help text marks this `[Session 3]` -- an internal development-scheduling tag in user-facing help.
 - **Target:** `as-observed`
 - **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
@@ -3423,7 +2611,6 @@ Validate extension manifests -- not implemented in this build (exits 2)
 
 Scaffold a new extension -- not implemented in this build (exits 2)
 
-- **v2:** bin/intent_ext new arm
 - **Arguments:**
   - `name` (string, arity `1`)
 - **Flags:**
@@ -3433,14 +2620,6 @@ Scaffold a new extension -- not implemented in this build (exits 2)
     - **disposition:** keep
   - `--rule-pack` (bool) -- Scaffold a rule-pack extension
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- scaffolded
-  - `1` -- missing --type
-  - `1` -- name already exists
-- **stdout:** the created layout
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - Help says `new <name> --type` but the parsed flags are `--skill` / `--subagent` / `--rule-pack`; there is no `--type` flag. The documented invocation cannot work.
 - **Target:** `corrected` -- ratified: vc, 2026-08-15 -- and deliberately NOT an hv ruling, because none was required. NOTED ON THE ROW SO NOBODY RE-OPENS IT LOOKING FOR THE RULING THAT NEVER EXISTED: v3 generates help from this table, so a help/implementation mismatch CANNOT arise by construction. That is not a decision anyone has to make; it is a defect the SSOT retires wholesale, and this row was the last place still treating it as open. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-15, ruling applied at commit 803ff46d -- behaviour: Help text and implementation agree because both derive from this row. The v2 mismatch is not reproduced and needs no per-site correction.
 - **rulings:**
   - `0.state`: ratified
@@ -3454,8 +2633,6 @@ Scaffold a new extension -- not implemented in this build (exits 2)
 
 Print the Intent version
 
-- **v2 source:** `bin/intent (global command)`
-- **v2 help file:** none
 - **Owning work package:** WP-06
 - **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
@@ -3470,14 +2647,6 @@ Print the Intent version
 
 Print the Intent version
 
-- **v2:** bin/intent (GLOBAL_COMMANDS); resolution via `get_intent_version` in bin/intent_helpers
-- **Exit codes:**
-  - `0` -- printed
-  - `0` -- unknown flag -- ACCEPTED SILENTLY, exit 0
-- **stdout:** the version string
-- **stderr:** --
-- **Defects observed in v2:**
-  - INV-08 at `intent version --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH, and ends in the build's kind: `release` for a clean build of a commit tagged `v<version>`, `dev` for every other build (issue 0534).
 - **rulings:**
   - `0.state`: ratified
@@ -3494,8 +2663,6 @@ Print the Intent version
 
 Manage the machine-level intentd
 
-- **v2 source:** `new-surface`
-- **v2 help file:** none
 - **Owning work package:** WP-08
 
 - **NEW SURFACE, AND A FAMILY RATHER THAN ONE ROW BECAUSE ONE ROW COULD NOT STATE A TRUE FACT ABOUT ITS VERBS** (vc's ruling, 2026-08-30, on ic's measurement; wanted by cc, who owns WP-08). It shipped as a single `new_surface` entry with a `subcommand` slot listing `start|stop|status|run`, which carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs with different answers.
@@ -3516,10 +2683,8 @@ Manage the machine-level intentd
 
 Manage the machine-level intentd
 
-- **v2:** new-surface
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** The family head dispatches and does nothing itself.
@@ -3529,11 +2694,9 @@ Manage the machine-level intentd
 
 Start intentd for this machine
 
-- **v2:** new-surface
 - **Flags:**
   - `--at-login` (bool) -- Also enrol the daemon to start at login (start) / unenrol it (stop)
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control -- the canonical example behind the whole exposure field, and the row that makes `lean closed` the right default rather than a nicety.
@@ -3545,11 +2708,9 @@ Start intentd for this machine
 
 Stop the running intentd
 
-- **v2:** new-surface
 - **Flags:**
   - `--at-login` (bool) -- Also enrol the daemon to start at login (start) / unenrol it (stop)
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control. See `daemon start`.
@@ -3561,8 +2722,6 @@ Stop the running intentd
 
 Restart intentd: stop it, then start it
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control. See `daemon start`.
@@ -3574,13 +2733,11 @@ Restart intentd: stop it, then start it
 
 Report whether intentd is running, and the address it answers on
 
-- **v2:** new-surface
 - **Flags:**
   - `--format` `terminal|json` (enum) -- Output format
     - **default:** terminal
     - **disposition:** keep
     - **disposition basis:** **`--format`, NOT `--json`, ON hv's 2026-08-21 SPELLING RULING**: `--format` where the verb has formats other than json, and `--json` kept ONLY as a v2 parity alias. `daemon` is new surface with no v2 ancestor, so there is no obligation to inherit and `--json` would be a second spelling minted rather than kept. **The machine-readable form is why this row exists**: ST0064's menubar app must ask the CLI where the daemon is, so that no port literal and no setting can exist in the app. Geodica reached the same design independently -- _the address comes from the one resolver, never from config or a setting_ -- which is a second measurement of one design under different constraints rather than a citation. **NARROWED TO `terminal` 2026-08-31 (cc, RULED BY vc), AND WIDEN IT AGAIN WHEN A PROJECTION IS BUILT** -- the same correction and the same precedent as `07ad9876`, which narrowed verbs off `json` for want of one. `daemon status` DECLARED `terminal|json`, PROJECTED NEITHER, AND REFUSED NOTHING: `--format json`, `--format terminal` and `--format zzz` were byte-identical at rc=0, because `render.rs`'s `daemon_status()` took no format argument and nothing downstream ever read the flag. **THE PARAGRAPH ABOVE IS WHY THE ROW EXISTS AND IT IS NOT A REASON TO KEEP THE VALUE**: ST0064's menubar app is the named consumer and it is UNBUILT -- no Swift source for it exists, so the contract has no reader, and minting an output contract before a tag owes it forever. **AND THE COUNTER-ARGUMENT IS REAL, RECORDED RATHER THAN BURIED** (vc): unlike the five, this verb returns a small OBJECT -- answering, and where -- not a list of lists, so it is in the shape class that CAN project, and building it is small. Narrowing cannot be wrong, because it makes the declaration true of the binary; widening is a decision anyone can take the day the app needs it. **WIDENED BACK TO `terminal|json` 2026-08-31, ON THIS ROW'S OWN STATED CONDITION.** The narrowing above ended _widen it again when a projection is built_, and its reason for waiting was that the named consumer was UNBUILT with no Swift source. ic is porting it now and `AC-01.2` requires the app reach the answer THROUGH this verb, so a prose-only face forces a parser that is the second predicate that row forbids. **The shape was NAMED BY ic rather than minted here** -- `{"state":"live|stale|absent"}` with `endpoint` iff live and `pid` iff stale, matching the `Health` variant names. **A FOURTH KEY, `url`, LANDED 2026-09-08 (ic, hv's ask), AND IT IS A SECOND KIND OF ADDRESS RATHER THAN A SECOND SPELLING OF `endpoint`.** This row's help promises _the address it answers on_ and a daemon answers on TWO: the unix socket every client routes through, which is what `Health::Live` carries because `route()` prefers it whenever both are up, and the loopback port `D6` has the kernel assign and the daemon publish. Reporting the socket alone left the promise half-kept and left the menubar app with an address no browser can open -- it would have rendered `/Users/.../intentd.sock` as a URL. **`url` IS PRESENT IFF A LOOPBACK ADDRESS IS ANSWERING**, on the same iff-contract as `endpoint` and `pid`, because ic's decoder is per-state optionals and a `null` would decode as present-and-meaningless. **IT IS A ROUND TRIP, NEVER A READ OF `intentd.addr`**: that file outlives a `SIGKILL`ed daemon exactly as the socket file does, so trusting it would publish a page nothing serves. **AND IT IS RENDERED WHOLE, SCHEME AND ALL, BECAUSE THE APP MUST DERIVE NOTHING** (`AC-01.1`) -- the menu item's title IS this string and its action opens this string, so any tidying happens here or it happens twice.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** **CLOSED CONSERVATIVELY AND THE QUESTION IS RECORDED RATHER THAN SETTLED.** This family is closed because `start|stop|run` is machine-level process control -- and that justification, in its own words, does NOT name `status`. This row is a READ and is the one member the stated reason does not reach, so it is a candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings. Closed until then, because a wrongly-open row is the expensive direction.
@@ -3590,14 +2747,12 @@ Report whether intentd is running, and the address it answers on
 
 Print intentd's recent log lines, and keep printing them with --follow
 
-- **v2:** new-surface
 - **Flags:**
   - `--lines` `<n>` (string) -- How many of the most recent lines to print, from both logs merged in time order
     - **default:** 40
     - **disposition:** keep
   - `--follow` (bool) -- Keep printing lines as intentd writes them, until interrupted
     - **disposition:** keep
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** **CLOSED, AND FOR A REASON OF ITS OWN RATHER THAN THE FAMILY'S.** This is a READ, so the family's stated ground, machine-level process control, does not reach it, exactly as it does not reach `daemon status`. It is closed because `--follow` never returns: a tool-tier call that asked for it would block its caller for as long as the daemon lives. The bounded form could be exposed on a ruling; until then the expensive direction is the one kept shut.
@@ -3607,8 +2762,6 @@ Print intentd's recent log lines, and keep printing them with --follow
 
 Run intentd in the foreground, without daemonising
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control. See `daemon start`.
@@ -3620,8 +2773,6 @@ Run intentd in the foreground, without daemonising
 
 Manage the Intent menubar app on this machine
 
-- **v2 source:** `new-surface`
-- **v2 help file:** none
 - **Owning work package:** WP-08
 
 - **NEW SURFACE, AND A FAMILY FOR `daemon`'s REASON RATHER THAN A `new_surface` ROW** (the precedent is recorded in that family's notes): a bare `values` list carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ. A child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`.
@@ -3641,10 +2792,8 @@ Manage the Intent menubar app on this machine
 
 Manage the Intent menubar app on this machine
 
-- **v2:** new-surface
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** The family head dispatches and does nothing itself.
@@ -3654,8 +2803,6 @@ Manage the Intent menubar app on this machine
 
 Start the Intent menubar app
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
@@ -3667,8 +2814,6 @@ Start the Intent menubar app
 
 Stop the Intent menubar app
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
@@ -3680,8 +2825,6 @@ Stop the Intent menubar app
 
 Restart the Intent menubar app
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
@@ -3693,8 +2836,6 @@ Restart the Intent menubar app
 
 Report whether the Intent menubar app is running, and where it is installed
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** **CLOSED CONSERVATIVELY, THE QUESTION RECORDED RATHER THAN SETTLED**, exactly as `daemon status` is: the family's withhold reason is process control and does not name this row, which is a READ. A candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings.
@@ -3704,8 +2845,6 @@ Report whether the Intent menubar app is running, and where it is installed
 
 The whiteboard: read the node boards, and send between them
 
-- **v2 source:** `new-surface`
-- **v2 help file:** none
 - **Owning work package:** WP-14
 
 - NEW SURFACE with no v2 antecedent: the whiteboard has always been markdown on disk, read and written by hand. ST0069 WP-14 puts the coordination entities in the store, and this family is how a person reaches them.
@@ -3741,10 +2880,8 @@ The whiteboard: read the node boards, and send between them
 
 The whiteboard: read the node boards, and send between them
 
-- **v2:** new-surface
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. ST0069's own design.md says of itself that it is the SEARCH leg and that the coordination model keeps its inherited design in ST0056's cancelled work package, so that is the document cited here. The coordination model in the store; there is no v2 antecedent, the whiteboard has always been markdown on disk.
@@ -3755,7 +2892,6 @@ The whiteboard: read the node boards, and send between them
 
 List the registered nodes: role, status, heartbeat, and what each is working on
 
-- **v2:** new-surface
 - **Flags:**
   - `--all` (bool) -- Include retired seats
     - **ONE MEANING FOR `--all` IN THE FAMILY: INCLUDE WHAT THE DEFAULT HIDES** (ST0092 WP-04). Here that is retired seats, which the roster omits by default; on `wb show` it is handled messages.
@@ -3765,7 +2901,6 @@ List the registered nodes: role, status, heartbeat, and what each is working on
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to see who is on this project's board and where each node stands -- one line per node, with the focus line untruncated because that is the field a person is reading for. A retired seat is listed only with `--all`. DO NOT USE IT to read one node's items or inbox: it reports the roster and counts, and `intent wb show <node>` is the whole board. It reads rows and never walks the whiteboard directory, so it describes the model rather than the disk. Each row carries `hats`, read live from the host's desk, and a node whose session wears the desk says so on its line and carries `desk` in `hats`: `hats` null means the desk could not be read, and `intent wb status` names why on stderr. Each row also carries `live_items` and `live_messages`, which count only what is live, `last_pickup`, the stamp of the node's last pickup on this machine or null, and `never_started`, true for a seat no session has run in, which prints `never started` in place of a heartbeat; the human's seat is never so marked.
@@ -3779,7 +2914,6 @@ List the registered nodes: role, status, heartbeat, and what each is working on
 
 Read one node's board: its header, its items, the messages still live, and a count of the handled ones
 
-- **v2:** new-surface
 - **Arguments:**
   - `node` (node, arity `1`)
 - **Flags:**
@@ -3791,7 +2925,6 @@ Read one node's board: its header, its items, the messages still live, and a cou
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to read any node's board, including one that is not yours -- every board is readable from every workstream, because the single-writer invariant is about WRITES and never made a board private. BY DEFAULT IT ANSWERS WITH THE LIVE SET: the messages still waiting to be handled are listed, and the handled ones are one line, `handled: N message(s) -- --all lists them`. REACH FOR `--all` only when the archive itself is the question, eg rereading a ruling whose message was already cleared; a status read never needs it. DO NOT USE IT to write: every field it prints is changed by another verb in this family. An unregistered moniker is REFUSED by name with the roster listed, never answered with an empty board. A retired node's board still reads, with a `retired` line giving when and why.
@@ -3805,7 +2938,6 @@ Read one node's board: its header, its items, the messages still live, and a cou
 
 Print a seat's brief: its team, its name, role and remit, the mediator and its route to hv, and every other seat
 
-- **v2:** new-surface
 - **Arguments:**
   - `moniker` (node, arity `1`) -- The seat whose brief this prints
 - **Flags:**
@@ -3816,12 +2948,6 @@ Print a seat's brief: its team, its name, role and remit, the mediator and its r
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- the brief, or with `--launch` the launch context; on a board that declares no profile, the seat's name and role and the launch it had before
-  - `1` -- an unregistered moniker, the roster named; `--launch` for the human's seat
-  - `2` -- on a declared board, the installed profiles cannot be read
-- **stdout:** the brief, or with `--launch` the launch context; nothing is written
-- **stderr:** `error: ...` with a remedy on a refusal (INV-01)
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to read what a seat is told at pickup without picking up as it: it moves no heartbeat, records no session and writes nothing, so it is safe to ask of any seat, yours or a peer's. `--launch` prints the context `intent claude start` hands a session in that seat, the profile's launch steps included. On a board that declares no Team Profile it answers with the seat's name and role, and its launch is the one `claude start` composed before profiles existed. DO NOT USE IT to start a session: `--launch` launches nothing, and `intent claude start <moniker>` is the verb that does. An unregistered moniker is refused with the roster listed, and `--launch` for the human's seat is refused, since no session is launched in it. A retired seat is refused too, naming its retirement with `wb register` as the remedy, and it is left out of the seats every other brief lists, as `wb status` leaves it out without `--all`.
@@ -3835,7 +2961,6 @@ Print a seat's brief: its team, its name, role and remit, the mediator and its r
 
 Send one message from the acting node into another node's board
 
-- **v2:** new-surface
 - **Arguments:**
   - `recipient` (node, arity `1`)
   - `body` (string, arity `1`)
@@ -3850,7 +2975,6 @@ Send one message from the acting node into another node's board
   - `--fyi` (bool) -- No reply is expected
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT to say something to one node and have it survive the session -- the message lands on the RECIPIENT's board, which is the shape the markdown inboxes already had, so one board is a whole readable conversation. DO NOT USE IT for something every node needs: `wb announce` reaches them all and refuses as a whole rather than half-landing. The sender is the node named by `--node`, so who a message is FROM is a convention this layer trusts rather than a guarantee it makes. On a board that declares a profile, the human seat and a node that is not the mediator share no inbox: an ask between them either way is refused, exit 1, and the remedy gives the same message to the mediator as a command that runs as written. An ask as the human seat is taken only from the mediator's session or a shell with no session. An ask to a retired node is refused, exit 1, naming the retirement: nobody reads its inbox until `wb register` brings it back.
@@ -3865,14 +2989,12 @@ Send one message from the acting node into another node's board
 
 Send one message to every registered node but the sender
 
-- **v2:** new-surface
 - **Arguments:**
   - `body` (string, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT when every node needs the same line -- before touching a shared layer, or to broadcast a ruling. It is marked FYI on every board it reaches, because a broadcast that expected a reply would expect one from everybody. DO NOT USE IT to reach one node: `wb ask` is the door and it threads. It reports how many boards it REACHED rather than the roster's size, so a one-node board is honestly reported as reaching nobody. On a board that declares a profile it sends no copy to the human seat, and none on a pair the profile closes. A retired node gets no copy.
@@ -3887,7 +3009,6 @@ Send one message to every registered node but the sender
 
 Add an item to the acting node's own board
 
-- **v2:** new-surface
 - **Arguments:**
   - `kind` (enum, arity `1`) -- one of: `doing`, `todo`, `watchout`, `hold`, `directive`
   - `text` (string, arity `1`)
@@ -3895,7 +3016,6 @@ Add an item to the acting node's own board
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT to record what this node is doing, has queued, is holding, or has learned -- one of `doing`, `todo`, `hold` or `watchout` -- or, on `hv`'s board alone, a standing `directive`, an instruction every node honours, which this refuses by name from any other node. A HOLD carries the CONDITION that releases it, not just the item: a hold with no condition is indistinguishable from work that was quietly dropped. DO NOT USE IT for a decision: `wb decide` writes those, and this refuses `decision` by name rather than accepting it, so there is one door per kind. The `seq` it prints is assigned by the service.
@@ -3910,7 +3030,6 @@ Add an item to the acting node's own board
 
 Move one of the acting node's live items to archived, or a message it sent that its recipient has handled
 
-- **v2:** new-surface
 - **Arguments:**
   - `kind` (enum, arity `1`) -- The item's kind, the section of the board it sits in, or `message` for a message you sent -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`, `message`
   - `id` (string, arity `0..1`) -- The item's number within its kind, as `intent wb show <node>` prints it; for `message`, the message's address, the first stamp in its inbox heading with `#<n>` (from 1, in send order) to pick one of several in a minute, and none with `--handled`
@@ -3924,7 +3043,6 @@ Move one of the acting node's live items to archived, or a message it sent that 
   - `--handled` (bool) -- With `message`: archive every message you sent that its recipient has handled, instead of one
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT to state that an item is finished with: for a `doing` or `todo` item that is what DONE means, and for a `decision` or `watchout` it is retirement, and for a `hold` it means the condition was met and the work moved on. For a `directive`, which only `hv`'s board carries, it is `hv` retiring one that is spent. The item leaves the live count in that write, which is how a board that refuses a write starts accepting again. DO NOT USE IT expecting a deletion: the row keeps its number and its text and stays readable, it just stops counting. It reports what MOVED, so archiving something already archived says so. A MESSAGE is `wb archive message <id> --to <recipient>`, `<id>` being the message's address as `wb edit message` takes it: one message you sent, once its recipient has handled it. It leaves the recipient's inbox view, the file a human reads, while `wb show --all` and the JSON still carry it. A message its recipient still holds live is refused, because only the recipient can say it is handled, and each copy of an announce is archived on its own. `wb archive message --handled` archives every message you sent that its recipient has handled, to `--to` alone where it is given, and names what stays live; it is what a fold runs. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. A message to a node that retired without handling it is taken by the one-message form, unhandled, since nobody will ever clear it; `--handled` leaves it, and the sender's pickup names it.
@@ -3939,7 +3057,6 @@ Move one of the acting node's live items to archived, or a message it sent that 
 
 Change the text of one of the acting node's items, live or archived, or of a message it sent
 
-- **v2:** new-surface
 - **Arguments:**
   - `kind` (enum, arity `1`) -- The item's kind, the section of the board it sits in, or `message` for a message you sent -- one of: `doing`, `todo`, `decision`, `watchout`, `hold`, `directive`, `message`
   - `id` (string, arity `1`) -- The item's number within its kind, as `intent wb show <node>` prints it; for `message`, the first stamp in its inbox heading, with `#<n>` (from 1, in send order) to pick one of several in a minute
@@ -3951,7 +3068,6 @@ Change the text of one of the acting node's items, live or archived, or of a mes
   - `--to` (string) -- The recipient of the message being edited, with `message` and nothing else
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT to correct what one of your own items or sent messages says, or to take out text that must not be committed -- a client identifier, a secret, a name. Where no commit holds the event carrying the old text, that event is rewritten in place; where a commit holds it, a new event records the change and git history keeps the old text, which is the repository's to publish or rewrite and never this verb's. The answer names, each list on a line of its own, every file under `intent/` that HEAD already carries the old text in -- a board committed without its event file, or a peer's committed item quoting the text, included -- and every file the next commit would carry it in (staged) or could carry it in (unstaged or untracked), whoever wrote the text there, all read rather than assumed. It says no file under `intent/` holds the old text, at HEAD or in the next commit, only when both searches ran and found nothing, and when the new text contains the old text it says so, because every file holding the new text then holds the old text as well. It also names any file that was staged before the edit, because a plain `git commit` carries what the index holds rather than what is on disk. A MESSAGE is `wb edit message <anchor> <text> --to <recipient>`: the anchor is the first stamp in its heading in the recipient's inbox view, the value `wb ask --re` takes, and `<anchor>#<n>` picks one of several in a minute. An announce is one message to everyone, so editing any copy edits every copy, and the answer names each recipient. DO NOT USE IT on another node's item or on a message you did not send: each is its writer's to edit. The same text again changes nothing.
@@ -3964,7 +3080,6 @@ Change the text of one of the acting node's items, live or archived, or of a mes
 
 Start a session: mark this node active, then its board and its peers' state
 
-- **v2:** new-surface
 - **Flags:**
   - `--node` (string) -- The moniker of the node picking up
     - **disposition:** keep
@@ -3983,7 +3098,6 @@ Start a session: mark this node active, then its board and its peers' state
     - terminal-channel, as `index status --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT at the start of a session -- it marks the acting node active, stamps its heartbeat, records the session and focus you name, then prints its board -- the messages still live listed, the handled ones counted in one line that names `--all` -- then `hv`'s live directives, watch-outs and decisions in full (absent when you are `hv` or there is no `hv` board), then every peer's header state with a count, by kind, of the live items it does not show. `--all` lists every message, handled included; it is for reaching the archive, not for starting a session. DO NOT USE IT to read somebody else's board: a peer comes back as its header and those counts, and `wb show <node>` reads one whole board. An unnamed session or focus keeps what the board already holds; `wb touch` is the verb that only stamps the heartbeat. On a board that declares a Team Profile it prints the seat's brief first, ahead of the board: the team, this seat's name, role and remit, the mediator and the route to hv, and every other seat with its remit, a seat no session has run in marked never started; `wb brief` prints the same brief without picking up. It also says how long ago this node last picked up on this machine, read before it records this one, or on a `note:` that none is recorded, as on a fresh clone; and each peer's line counts the messages that peer has not handled, labelled live. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session. It names, on a `stranded:` line, each message the node sent to a node that retired without handling it, with the `wb archive message` that takes it. A session that wears the desk is also told so, with the controller's duties and the asks waiting.
@@ -3998,12 +3112,10 @@ Start a session: mark this node active, then its board and its peers' state
 
 Stamp the acting node's heartbeat
 
-- **v2:** new-surface
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT to say this node is still alive without reading anything -- a long turn with no board activity otherwise looks like a node that stopped. DO NOT USE IT at session start: `wb pickup` touches and gives you the board and your peers in one go. No caller supplies the time and there is no flag for one; the service reads the clock at the write. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
@@ -4018,12 +3130,10 @@ Stamp the acting node's heartbeat
 
 Pause the acting node, stamping when it stopped
 
-- **v2:** new-surface
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT at the end of a session, so a peer reading the board can tell a node that finished from one that died mid-turn. It sets status to paused AND touches: a pause that left the heartbeat where it was would make those two indistinguishable, which is the question a heartbeat exists to answer. Picking up again is what makes a node active; registering never does, because a new node registers paused and a registered one is not touched. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
@@ -4038,14 +3148,12 @@ Pause the acting node, stamping when it stopped
 
 Record a decision on the acting node's own board
 
-- **v2:** new-surface
 - **Arguments:**
   - `text` (string, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT for a cross-node decision that has to outlive the session that made it -- it lands as an item on your own board, which peers read at pickup, and that is how the markdown protocol already broadcasts one. DO NOT USE IT to tell one node something: `wb ask` is addressed and expects handling, and turning one durable statement into four copies is how they diverge. The `seq` it prints is assigned by the service and refers to that item for the life of the board.
@@ -4060,14 +3168,12 @@ Record a decision on the acting node's own board
 
 Add a steel thread, work package or issue to the acting node's claims
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (claim-address, arity `1`) -- What to claim: a thread as `ST0000` or `ST3f9a2c1d4e5f6a7b`, a work package as `ST0000/01` or `ST3f9a2c1d4e5f6a7b/c2e41a0b`, or an issue as `ISSUE:0000` or `ISSUE:I3f9a2c1d4e5f6a7b`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000`, or a git-style id whole, eg `ST3f9a2c1d4e5f6a7b`, `ST3f9a2c1d4e5f6a7b/c2e41a0b` or `ISSUE:I3f9a2c1d4e5f6a7b`, and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
@@ -4082,14 +3188,12 @@ Add a steel thread, work package or issue to the acting node's claims
 
 Drop a steel thread, work package or issue from the acting node's claims
 
-- **v2:** new-surface
 - **Arguments:**
   - `id` (claim-address, arity `1`) -- What to drop: a thread as `ST0000` or `ST3f9a2c1d4e5f6a7b`, a work package as `ST0000/01` or `ST3f9a2c1d4e5f6a7b/c2e41a0b`, or an issue as `ISSUE:0000` or `ISSUE:I3f9a2c1d4e5f6a7b`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT when this node no longer has the pen on that work, so the board stops asserting a lane nobody is in. Dropping something that was not claimed is NOT a refusal -- the end state you asked for is the end state you get -- so a cleanup that drops everything need not check the board first. It reports what MOVED, so a no-op says so. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
@@ -4104,14 +3208,12 @@ Drop a steel thread, work package or issue from the acting node's claims
 
 Mark every live message one sender sent the acting node handled
 
-- **v2:** new-surface
 - **Arguments:**
   - `sender` (node, arity `1`)
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
     - **exposed on mcp:** true
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **when to use:** USE IT when you have acted on what a node sent you, to take those messages out of the live count -- that count is what the per-inbox bound measures, so clearing is how an inbox that refuses a write starts accepting again. The recipient is the node named by `--node`, so ownership here stands exactly as far as authorship does on `wb ask` and no further. It reports what MOVED, so clearing an already-clear inbox reports nothing rather than its size. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
@@ -4126,17 +3228,10 @@ Mark every live message one sender sent the acting node handled
 
 List, show and validate the Team Profiles this install ships, and print the terms they share
 
-- **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `list`, `show`, `validate`, `terms`
     - flags by verb: `list`: none; `show`: none; `validate`: none; `terms`: none
   - `name` (string, arity `1`) -- The profile to show, as `wb profile list` names it
-- **Exit codes:**
-  - `0` -- listed, shown or printed; validate found every profile valid
-  - `1` -- validate found a finding, or show named a profile the install does not ship (INV-04)
-  - `2` -- this build cannot answer: the install, its profiles directory or a shipped profile could not be read
-- **stdout:** the profile table, one profile with its brief, the terms document, or validate's summary
-- **stderr:** `error: ...` on stderr (INV-01); validate's findings, one per line naming the file and the field
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to see which Team Profiles Intent ships, what seats and mediator each declares, and the brief a session in a seat is given. It answers from the installed Intent and needs no project, so it works in a directory that is no Intent project. DO NOT USE IT to see who is registered on this project's board: `wb status` reads the roster, and a profile is the resource a roster is declared from, not the roster itself.
@@ -4149,7 +3244,6 @@ List, show and validate the Team Profiles this install ships, and print the term
 
 Bring the board to what its Team Profiles declare, and record the declaration
 
-- **v2:** new-surface
 - **Arguments:**
   - `profile` (string, arity `0..n`) -- The profiles to declare, a base and any layers, as `wb profile list` names them; none re-applies the recorded declaration
 - **Flags:**
@@ -4159,12 +3253,6 @@ Bring the board to what its Team Profiles declare, and record the declaration
   - `--change` (bool) -- Move the board to a different base: register the new base's seats and retire the old base's seats the new one does not declare
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- a dry run the apply would carry out, or an apply that wrote or found nothing to write
-  - `1` -- a refusal, met by a dry run as by an apply: an unknown profile, more than one base, a layer with no base, another base without `--change`, no profile on a board with no declaration, a node not yet migrated, a roster README edited outside its block, which names the lines, a README whose markers are not one start followed by one end, a README that cannot be read, a README write that fails, or a live message on a pair the profiles close
-  - `2` -- the installed profiles or the roster README's template cannot be read
-- **stdout:** the plan, one line per seat, the declaration and `README:` lines, then `ok:`; a dry run lists every file it would write on `would write:` lines and every view it would remove on `would remove:` lines; after an apply, every file on a `wrote:` line, every view it removed on a `removed:` line, and the roster-commit `note:`, and on a first render that drops a frontmatter block, a `note:` naming it
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT to set a project's board up from a shipped Team Profile, or to bring a live board back to its declared profiles: it registers every declared seat that is absent, corrects a name or role that differs, and leaves a matching one alone. Without `--apply` it writes no tracked file and no board row, and prints what it would do; a store this build has not opened is upgraded at that first open, as by any verb. With no profile named, `--apply` re-applies the board's recorded declaration. A retired node is reconciled without: it is neither planned for nor counted, a re-apply leaves it retired and lists it as `retired <moniker> (<reason>)`, and only `wb register` brings it back. With `--change` to another base, it registers the new base's seats and retires the old base's seats that the new one does not declare, under `wb retire`'s rules (a claim or the human seat refuses, before anything is written), and its dry run lists both; nothing else in `wb init` retires. It also renders the roster README, `intent/whiteboard/README.md`, from the profiles and the store, and carries everything inside its `<!-- user:start -->` block as it is; a first render puts a hand-written README inside the block. It refuses, before writing anything, a README edited outside its block, naming the lines, and one whose markers are not one start followed by one end. DO NOT USE IT to add one node by hand: `wb register` does that, and on a declared board it registers a declared moniker only with the profile's name and role. It touches no item, message, mark, claim, archive, heartbeat, status, focus or remit. The human seat keeps one inbox pair, with the mediator, so an apply removes every other pair's view of it and names each on a `removed:` line; while such a pair still holds a live message, the dry run and the apply refuse and name each with its sender and the clear that handles it, and every message stays readable with `--all`.
@@ -4179,7 +3267,6 @@ Bring the board to what its Team Profiles declare, and record the declaration
 
 Set the remit this project gives a seat, or remove it so the seat shows its profile's default
 
-- **v2:** new-surface
 - **Arguments:**
   - `moniker` (node, arity `1`) -- The seat whose remit this sets
   - `text` (string, arity `0..1`) -- The remit, one line; give it or `--default`, not both
@@ -4187,11 +3274,6 @@ Set the remit this project gives a seat, or remove it so the seat shows its prof
   - `--default` (bool) -- Remove the project's own remit, so the seat shows its profile's default
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- set, removed or already so
-  - `1` -- both a remit and `--default`, or neither; an unregistered or unmigrated seat
-- **stdout:** `ok:`, then every file on a `wrote:` line
-- **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT when this project's seat does something narrower or other than its profile's default remit. DO NOT USE IT to restate the default: a seat with no remit of its own shows its profile's, read from the installed Intent, so a later release's rewording reaches it. `--default` removes the project's own.
@@ -4205,7 +3287,6 @@ Set the remit this project gives a seat, or remove it so the seat shows its prof
 
 Register a node from its arguments, or the roster from each node's own board header
 
-- **v2:** new-surface
 - **Arguments:**
   - `moniker` (node, arity `0..1`) -- The node's handle, eg `qa`: its routing key and the name of its board's directory. With no moniker and no flags, the roster is read from each node's own board header
 - **Flags:**
@@ -4219,12 +3300,6 @@ Register a node from its arguments, or the roster from each node's own board hea
     - **A FLAG ON THE ONE IDENTITY DOOR, NOT A NEW VERB** (vc decision 21 (1), issue 0417; hv may respell it before release). It refuses a moniker that is not registered and names plain `register`, so it never creates a node; it writes name and role and nothing else; the values already held answer `unchanged` at rc 0 and record nothing. Its recoverability is the verb's: correcting back is the undo. Until it, a node registered wrong could be repaired only by a hand `DELETE` on `wb_node`.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- the nodes were registered or corrected, or the same values again wrote nothing
-  - `1` -- a refusal: a node named without both `--name` and `--role`; `--correct` without a moniker, `--name` and `--role`, or on a moniker not registered; other values for a moniker already registered; a declared moniker given other than its profile's name and role; arguments that disagree with the node's hand-authored board header; a node whose migrated board this store has not taken in; with no arguments, a board header that lacks a name or a role, or that cannot be read; or `--name` and `--role` with no moniker
-  - `2` -- on a board that declares a team, the installed profiles cannot be read
-- **stdout:** `ok: <n> node(s) registered`, or with `--correct` `ok: <moniker> corrected to <name> (<role>)` or `ok: <moniker> unchanged, already <name> (<role>)`; then every file on a `wrote:` line and the roster-commit `note:`
-- **stderr:** `error: ...` with a remedy on any refusal (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT once per project, to put the participants into the model so a board has somewhere to live. DO NOT USE IT to migrate a board: it registers WHO the nodes are and carries no items and no messages, and the markdown beside it stays hand-authored and authoritative. The header form is idempotent by moniker: a second run adds nothing and changes nothing, an edited header included. Name one node from its arguments -- `wb register <moniker> --name "<display name>" --role <role>` -- where no hand-written header exists, which is every node that joins once boards are generated views: the same values again write nothing, and different values for a moniker already registered are refused. On a board that declares a team, a moniker its profiles name is taken only with the profile's name and role, `--correct` included: other values are refused, and the refusal prints the profile's. `wb init --apply` brings a seat back to its profile; a seat leaves its profile only when the profile changes. DO NOT USE IT to rename one node as another: `--correct` fixes the name and role of a node that IS this moniker, never creates one, and keeps its board, items and messages. A retired node is brought back by registering its moniker: the same node returns with its board, items and messages, and on a declared board with the profile's name and role.
@@ -4240,7 +3315,6 @@ Register a node from its arguments, or the roster from each node's own board hea
 
 Retire a node from the roster: its board and messages stay, and it is no longer a recipient
 
-- **v2:** new-surface
 - **Arguments:**
   - `moniker` (node, arity `1`) -- The node to retire
 - **Flags:**
@@ -4248,11 +3322,6 @@ Retire a node from the roster: its board and messages stay, and it is no longer 
     - **required:** true
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Exit codes:**
-  - `0` -- the node was retired, or was already retired
-  - `1` -- a refusal: no `--reason`, a moniker the roster does not carry (the roster named), the board's human seat, its mediator, or a node holding a claim (each claim named)
-- **stdout:** `ok: <moniker> retired`, or `ok: <moniker> was already retired`; then each message addressed to it that it never handled on an `awaiting:` line naming its sender, every file on a `wrote:` or `removed:` line, and the roster-commit `note:`
-- **stderr:** `error: ...` with a remedy on any refusal (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT when a seat leaves the roster for good, eg a hub's `vc` that `sc` replaced, or a seat a reshaped team no longer declares. Retired is a state, never a deletion: the node keeps its board, its items and every message it sent or received, `wb show <moniker>` still reads it and says retired, and `wb status` lists it only with `--all`. A message the leaver sent stays in its recipient's inbox until handled; one addressed to it that it never handled is named in the report, for its sender to send on or archive. It refuses without `--reason`, a node holding a claim (each named, since a node cannot take its claims with it), the board's human seat, and its mediator, which goes only in `wb init <base> --change`. A node already retired is a no-op that says so. DO NOT USE IT to rename a seat: retire the old and register its successor. `wb register` of the same moniker reinstates the same node with its board.
@@ -4267,7 +3336,6 @@ Retire a node from the roster: its board and messages stay, and it is no longer 
 
 Carry one node's hand-authored board into the model
 
-- **v2:** new-surface
 - **Arguments:**
   - `node` (node, arity `1`)
 - **Flags:**
@@ -4275,7 +3343,6 @@ Carry one node's hand-authored board into the model
     - **THE DROP IS ASKED FOR, NEVER ASSUMED** (vc decision 20). Without it any unit the model cannot carry -- a `###` sub-heading, a table, a heading's text after its kind word, a board lead -- refuses the whole carry before the first write, each named on an `uncarried:` line, so the exit status tells a script a lossy carry from a complete one. With it the carry proceeds, names every dropped unit the same way, and says so in its closing line. Either way the board's `wip.md` is kept byte for byte at `.history/pre-migration/wip.md` and carried as a snapshot, and so is each inbox holding a dropped line, at `.history/pre-migration/inbox.<sender>.md`, so a dropped line leaves the model and not the store.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT once per node at the cutover, to carry a markdown board into the store: its header block, its item sections, every entry in every inbox it owns, and every `.history/` snapshot as a document. It prints every line it carried, each with its `<file>:<line>`, and marks `coerced:` any section prose it carried as an item; anything the model cannot carry (a sub-heading, a table, a heading qualifier, a board lead) REFUSES the carry before the first write, named line by line on `uncarried:`, unless `--drop-uncarried` is passed -- a total that reconciles arithmetically tells nobody which line stayed behind. The board's `wip.md` is kept verbatim as the snapshot `.history/pre-migration/wip.md`, and so is each inbox holding a dropped line, under its own name beside it; a file that is a view Intent rendered and offers no unit is reported `rendered:` and not kept, and non-markdown `.history/` files are reported `left in place:`. DO NOT USE IT on a board that already holds rows -- it refuses rather than guessing whether those are an earlier carry or work written since -- and do not reach for it to create a node: `wb register` does that, and this needs the row to exist.
@@ -4290,8 +3357,6 @@ Carry one node's hand-authored board into the model
 
 The search index: what it holds, rebuilding it, and resolving its references
 
-- **v2 source:** `new-surface`
-- **v2 help file:** none
 - **Owning work package:** WP-19
 
 - NEW SURFACE with no v2 antecedent: v2 had no index. Declared as a FAMILY rather than as two root rows, because two root paths sharing a prefix make the prefix itself ambiguous -- `intent index` refused with `index is ambiguous under intent, it matches index rebuild, index status` before this moved (ic, driven, 2026-09-12).
@@ -4308,10 +3373,8 @@ The search index: what it holds, rebuilding it, and resolving its references
 
 The search index: what it holds, rebuilding it, and resolving its references
 
-- **v2:** new-surface
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **basis:** ST0069 design.md: `intent index status [--json]` and `intent index rebuild`.
@@ -4322,13 +3385,11 @@ The search index: what it holds, rebuilding it, and resolving its references
 
 Report what the search index holds by corpus, and every path it will not hold with the reason
 
-- **v2:** new-surface
 - **Flags:**
   - `--json` (bool) -- Emit as JSON instead of prose
     - terminal-channel, as `search --json` is: the MCP tool always answers the structured form.
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to find out whether a search result can be believed: what the index holds per corpus, and every path it will not hold with the reason, named rather than counted. It is the question to ask when a search came back empty and you need to know whether the phrase is absent or the corpus is. DO NOT USE IT to search: it reports on the index and answers nothing about content. It reads the rows and never walks the tree, so it describes the index rather than the world.
@@ -4342,12 +3403,10 @@ Report what the search index holds by corpus, and every path it will not hold wi
 
 Walk the index scope and rewrite what the index holds, then report it
 
-- **v2:** new-surface
 - **Flags:**
   - `--json` (bool) -- Emit as JSON instead of prose
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD AND THE QUESTION RECORDED, as `daemon status` records its own. It is idempotent and it is not read-only: it rewrites every row of the index, which is work an agent should not start unasked in a session where another surface is reading it. A candidate for exposure on a ruling rather than on the observation that it is safe to repeat.
@@ -4362,7 +3421,6 @@ Walk the index scope and rewrite what the index holds, then report it
 
 Resolve references to the definitions they name with each language's own toolchain, and report each language's run
 
-- **v2:** new-surface
 - **Flags:**
   - `--json` (bool) -- Emit as JSON instead of prose
     - **disposition:** keep
@@ -4371,11 +3429,6 @@ Resolve references to the definitions they name with each language's own toolcha
     - **disposition:** keep
   - `--full` (bool) -- Rebuild everything the toolchain keeps incremental state for, instead of what changed
     - **disposition:** keep
-- **Exit codes:**
-  - `0` -- every language the run covered resolved and was stored
-  - `1` -- a language's tool is missing or its run failed, or this build carries no resolver for the language asked for or for any language the project declares
-- **stdout:** `resolution: <lang>  <state>  <tool>` per language, then its failure, its stored run's counts, its drops by reason and its stale paths, and `resolution: <lang>  not applicable  <why>` for a declared language with nothing to resolve; with `--json`, `{"resolution": {<lang>: ...}, "not_applicable": {<lang>: <why>}}`
-- **stderr:** `error: level 3 did not resolve <langs>` with a remedy when a language did not resolve, and `error: ...` on any refusal (INV-01)
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD ON vc decision 25 (1), AND THE GROUND IS THAT IT RUNS PROJECT CODE, NOT THAT IT CANNOT BE UNDONE. `index status`, the read half, is exposed and reports each language's resolution. A candidate for exposure on a ruling about running a project's build scripts and macros from a tool call, never on the observation that it is safe to repeat.
@@ -4390,8 +3443,6 @@ Resolve references to the definitions they name with each language's own toolcha
 
 Every Claude session on this host: who it is, where it stands, and what it is doing
 
-- **v2 source:** `new-surface`
-- **v2 help file:** none
 - **Owning work package:** WP-01
 
 - NEW SURFACE with no v2 antecedent, from ST0086 (the estate view). The estate is the HOST, not a project: these verbs answer the same wherever they are run, and none of them opens a project store.
@@ -4415,10 +3466,8 @@ Every Claude session on this host: who it is, where it stands, and what it is do
 
 Every Claude session on this host: who it is, where it stands, and what it is doing
 
-- **v2:** new-surface
 - **Arguments:**
   - `command` (subcommand, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only
 - **MCP note:** The family head dispatches and does nothing itself.
@@ -4429,7 +3478,6 @@ Every Claude session on this host: who it is, where it stands, and what it is do
 
 List every Claude session on this host with its project, node, state, claims and WIP or focus line
 
-- **v2:** new-surface
 - **Flags:**
   - `--format` `terminal|json` (enum) -- Output format
     - **default:** terminal
@@ -4444,7 +3492,6 @@ List every Claude session on this host with its project, node, state, claims and
     - **disposition:** keep
     - **exposed on mcp:** false
     - **disposition basis:** hv's ruling of 2026-10-26: the URL `--browser` opens, printed on stdout with one newline and nothing else, so it can be copied from the terminal into a second browser or piped. The page strips the token from the address bar on load, which stays, so the bar cannot be copied; Intent.app's Copy URL item runs this rather than composing the URL, so the URL has one builder. The URL carries the daemon's token in its fragment, because the page needs it to ask for anything: printing it is the operator's explicit request, it lands wherever the terminal's scrollback or a clipboard history keeps it, and `intentd` mints a new token at every start, which ends a printed URL's reach. It refuses as `--browser` does when no daemon is answering, opens no browser, and refuses beside `--browser` or `--format`. It is not offered over MCP: the token is the operator's to hand out, and an agent reads the answer itself.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- read-only
 - **when to use:** USE IT to see who else is working on this machine and what each session is doing before you start something that contends with them -- a heavy build, a commit on a shared checkout, a claim. It reads Claude Code's own session files and each project's board, so a session that is busy, idle, paused or gone says so whether or not it is a whiteboard node. DO NOT USE IT for one project's board in detail: `intent wb status` and `intent wb show` are that. A session file this build cannot read is listed under `unreadable` with the reason, never dropped.
@@ -4457,7 +3504,6 @@ List every Claude session on this host with its project, node, state, claims and
 
 Set or clear this session's WIP line, for a session that is not a whiteboard node
 
-- **v2:** new-surface
 - **Arguments:**
   - `line` (string, arity `0..1`)
 - **Flags:**
@@ -4468,7 +3514,6 @@ Set or clear this session's WIP line, for a session that is not a whiteboard nod
     - **disposition:** keep
     - **exposed on mcp:** false
     - **disposition basis:** The session defaults to `CLAUDE_CODE_SESSION_ID`, read through the one confined reader `render::pickup_session`, as `wb pickup --session` does. The MCP tool takes the same default from its own process, which Claude Code starts with that variable set, so the tool carries no session parameter an agent could misname.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **MCP note:** REVERSIBLE AND EXPOSED, ON vc's RULING OF 2026-10-24: a new line replaces the old one and any value can be written back or cleared, which is `set`'s class, but what it replaces is the calling agent's own presence line rather than prose a human wrote, so `set`'s authorship reason for withholding does not apply.
@@ -4482,8 +3527,6 @@ Set or clear this session's WIP line, for a session that is not a whiteboard nod
 
 Remove Intent's own WIP records for sessions that are gone; Claude Code's files are never touched
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-24): it deletes records nothing can restore. A repeat is a no-op, but the first run is the act that counts, and an agent should not start it unasked.
@@ -4496,11 +3539,9 @@ Remove Intent's own WIP records for sessions that are gone; Claude Code's files 
 
 Declare a census class, or change its pattern: the daemon counts the processes whose command line matches it
 
-- **v2:** new-surface
 - **Arguments:**
   - `class` (string, arity `1`)
   - `pattern` (string, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT as the host's controller, to add a process class to the estate's census, or to change the pattern of one already declared; the next census tick counts it, by project. The class is a name (letters, digits, `-`, `_`) and the pattern a regular expression matched against each process's command line. It prints the watch file it wrote. DO NOT USE IT to stop counting a class: that is `intent estate unwatch`.
@@ -4513,10 +3554,8 @@ Declare a census class, or change its pattern: the daemon counts the processes w
 
 Remove a census class: the daemon stops counting it and the page stops listing it
 
-- **v2:** new-surface
 - **Arguments:**
   - `class` (string, arity `1`)
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc, 2026-10-25, decision 75): it removes a declaration whose pattern nothing else keeps. A repeat is a no-op, but the first run is the act that counts.
@@ -4529,8 +3568,6 @@ Remove a census class: the daemon stops counting it and the page stops listing i
 
 Keep the plan usage a statusline input carries, read from stdin, as this host's usage fallback
 
-- **v2:** new-surface
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT as one step of a Claude Code statusline command: pipe the JSON Claude Code hands that command into it, with stdout untouched and the exit code ignored, `printf '%s' "$input" | intent estate statusline || :`, so a missing or broken intent never blanks the status bar, and the latest `rate_limits` it carries become the estate's usage fallback for that session. It prints its `wrote:` line on stderr, so the script's own stdout stays the status line. An input with no `rate_limits` (before the session's first API response, or on a plan that reports none) writes and prints nothing. DO NOT USE IT by hand: it refuses when stdin is a terminal, because the input is what Claude Code sends the statusline command and nothing else has it.
@@ -4543,7 +3580,6 @@ Keep the plan usage a statusline input carries, read from stdin, as this host's 
 
 Take, release or hold control of this host's slots: the controller alone grants, and holds stop every grant
 
-- **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `take`, `release`, `hold`, `unhold`
     - flags by verb: `take`: `--hv`, `--node`; `release`: `--node`; `hold`: `--node`; `unhold`: `--node`
@@ -4556,7 +3592,6 @@ Take, release or hold control of this host's slots: the controller alone grants,
   - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the slot verbs accumulate records nothing removes, and control is the authority over every other session's runs on the host, so an agent takes or holds it only because hv assigned it.
@@ -4569,7 +3604,6 @@ Take, release or hold control of this host's slots: the controller alone grants,
 
 Open, close or hold a lane: a scarce resource with a running capacity that grants are checked against
 
-- **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `open`, `close`, `hold`, `unhold`
     - flags by verb: `open`: `--type`, `--capacity`, `--load-under`, `--node`; `close`: `--node`; `hold`: `--node`; `unhold`: `--node`
@@ -4589,7 +3623,6 @@ Open, close or hold a lane: a scarce resource with a running capacity that grant
   - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (vc decision 88): the controller's lane declarations decide what every session on the host may run, and the slot verbs stay CLI.
@@ -4602,7 +3635,6 @@ Open, close or hold a lane: a scarce resource with a running capacity that grant
 
 Ask for a slot, wait for the answer and run in it, or, as the controller, grant, deny or revoke one and watch them all
 
-- **v2:** new-surface
 - **Arguments:**
   - `verb` (subcommand, arity `1`) -- one of: `ask`, `grant`, `deny`, `revoke`, `start`, `release`, `wait`, `watch`, `pending`
     - flags by verb: `ask`: `--lane`, `--named`, `--tag`, `--not-before`, `--hold`, `--place-of`, `--node`; `grant`: `--lane`, `--pin`, `--node`; `deny`: `--node`; `revoke`: `--node`; `start`: `--named`, `--relayed`, `--node`; `release`: `--result`, `--relayed`, `--node`; `wait`: `--timeout`; `watch`: none; `pending`: none
@@ -4642,7 +3674,6 @@ Ask for a slot, wait for the answer and run in it, or, as the controller, grant,
   - `--node` `<node>` (string) -- The whiteboard node this session is, recorded on the write
     - **disposition:** keep
     - **exposed on mcp:** false
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** WITHHELD BECAUSE IT IS ONE-WAY (ST0086 design.md: the slot verbs accumulate and stay CLI): every step is a file written once, and nothing removes a request.
@@ -4655,11 +3686,9 @@ Ask for a slot, wait for the answer and run in it, or, as the controller, grant,
 
 Render a dedicated coordinator's working directory: the coordinator's contract and the hooks a project gets
 
-- **v2:** new-surface
 - **Arguments:**
   - `dir` (string, arity `0..1`)
     - The directory to render, made if absent; the current directory when none is named.
-- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- **mutates**
 - **when to use:** USE IT once, when hv assigns a dedicated session to control the host's slots. `intent estate init [<dir>]` renders `AGENTS.md` and `CLAUDE.md`, the coordinator's contract (take control at session start, arm `intent estate slots watch` under a Monitor, judge asks against the lanes and the estate view, release control at session end), from Intent's own templates, and `.claude/settings.json` from the template every project gets, so a Claude Code session started there is the coordinator with only Intent installed. The directory is the current one unless named, and is made if absent. It refuses inside an Intent project, and refuses, writing nothing, when any of the three is there and differs from what it renders; a re-run over files that match writes nothing and says so. DO NOT USE IT to make a project's own session the controller: that session takes control with `intent estate control take`, and the prompt hook names its asks.
@@ -4812,7 +3841,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 - **serving op:** Search
 - **when to use:** USE IT FIRST for a code lookup by name, instead of a grep, a glob and several reads: where a function, type or module is defined (`kind` def with the name as `query`), a file's symbols and their line spans (`outline`), or a definition and the places its name is called (`context`). Narrow any of them with `subkind`, the language's own word for what a symbol is (struct, method, defp, call, use), and `in`, the module, impl, trait or type it sits in. With no `query`, `subkind` and `in` are the question on their own: `subkind` method with `in` a type lists that type's methods. Every symbol hit carries its `subkind`, `container`, `qualifier` and `level`. Level 1 is read from the file's syntax and matched by name, never resolved to the definition it names, and level 2 is read from the file's syntax with the qualifier it was written with, a Rust path as written or an Elixir module with the file's own aliases and `__MODULE__` expanded, still never resolved to the definition it names; in Rust, scoped calls, uses of a type and names inside a macro are references, and in Elixir, remote calls with their module, captures, pipes, and use, import, require and alias are. What is not: in Rust, inside a macro invocation a name the tokens do not show as a call or a path is an occurrence of the name rather than a use, and its qualifier is only the one segment before it; a name in a nested use list such as use a::{b::C} has no use row; and a name passed as a value outside a macro, such as map(f), is not a reference; in Elixir, nothing import or use brings in is applied, so a call to an imported function, Kernel's included, is a level-1 reference with no module; and a call through a module held in a variable, such as mod.fun(..), has no qualifier; Swift files give definitions only. Level 3 is resolved to the definition it names by the language's own toolchain, once a person has run `intent index resolve`, which runs the project's build: a reference whose key joins exactly one resolved row carries `level` 3 with `target`, `target_path` and `target_line`, and one joining several keeps its syntax level and lists them as `candidates`. `target` asks for the references resolved to one definition, spelled exactly as a hit's `target` prints it (a callable Rust target ends in `()`, an Elixir one in its `/arity`); it narrows every other question, with no `query` it lists them, and it never lists a call only the toolchain sees, which `intent index status` counts as unmatched. A target no resolved row names is refused with the resolved targets that end the same way, and otherwise its empty answer says a target nothing references and a misspelt one read the same. Every answer's `index.resolution` names each language whose level 3 is not current, by `state`: `missing` (its toolchain is not where Intent can run it, so only what an earlier run stored answers at level 3), `failed` (its last resolution run failed, so only what an earlier run stored answers at level 3), `stale` (the files it lists changed since they were resolved, so their references answer at their syntax level until the next run) or `unresolved` (no resolution run has stored its references here, so they answer at their syntax level), which is named only where the index holds the file the language's reader finds a project by, such as a `Cargo.toml`. USE IT ALSO when the question is WHERE IS THIS WRITTEN across the whole project -- steel threads, work packages, issues, the docs tree and the source, ranked. DO NOT USE IT when you already know the path: read the file. DO NOT USE IT for a regex or for every literal occurrence: grep is exact, always fresh and needs no index. AND WHEN THE ANSWER SAYS `complete: false`, TRUST GREP OVER IT FOR WHAT IT NAMES: a binary file or a symlink is listed under `skipped` and leaves the answer complete, so `complete: false` means text the index has not read, or, for a `def`, `outline`, `context` or filter question, a language whose symbols the index does not hold, listed under `index.unindexed`. The index parses a file by its extension, so a script without one has no symbols.
-- **v2:** new-surface
 - **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that no AC covered search)
 - **disposition:** new-surface
 - **facade:** search
@@ -4868,7 +3896,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 - **direction selector:** REQUESTED BY cc (2026-08-15): the bare verb refuses and names both directions, and needed a selector row. FLAGS NAME THE DESTINATION, NOT THE SOURCE, because the destination is the side that gets overwritten and therefore the side a user needs to be sure about. `--to-disk` / `--to-store` are symmetric and each says which way the bytes move without the reader having to hold D34's endpoint vocabulary in their head. **The bare verb continuing to REFUSE is right and should stay** -- the two directions have opposite blast radii, so there is no safe default, and picking one would make the dangerous case reachable by typing the short form. This is INV-01 territory rather than convenience. **SUPERSEDED FOR THE BARE VERB BY hv, 2026-09-18 (ST0078): bare `intent sync` no longer refuses; it prints the plan for this clone and writes nothing, and `--apply` applies it.** The reasoning above still holds for the two directions, which keep their meanings, and no plan step is the restore, so the dangerous case is still not reachable by typing the short form.
 - **boundary ruled:** RULED by ic, 2026-08-15, after cc asked for it. **THE BOUNDARY IS THE INPUT DOMAIN, NOT THE DIRECTION.** `sync` moves bytes between this machine's store and THE EXTRACT THIS TOOL PRODUCED -- a self-produced artefact, round-trip-guaranteed and lossless by AC-02.6. `ingest` takes FOREIGN markdown -- v2 trees, hand-authored files, anything `sync --to-disk` did not write. **They have different ERROR CONTRACTS, which is what makes them separate commands rather than one**: a `sync --to-store` that drops a field is a bug, because the extract is supposed to round-trip; an `ingest` that cannot parse a v2 file is EXPECTED and must report per-file. cc's proposal was `sync` owns both directions and `ingest` retires, on the ground that both write the store through the same gate. **That reads the MECHANISM as the identity** -- by the same argument `st new` is also `ingest`. The gate is what they share, not what they are. Measured before ruling, they differ on five axes: input domain, error contract, owning WP (WP-06 vs WP-03, the latter shared with WP-10's migrator), MCP exposure (`sync` true, `ingest` false), and implementation state (`sync --to-store` is built; `intent ingest` is declared, reachable and refuses with `is a known command that is not implemented yet`).
 - **boundary open to vc:** OPEN TO vc, NARROWED. The ruling above is a command-surface call and is mine (AC-05.1); what is NOT mine is that AC-02.3's ratified prose names _the disk-to-db ingest direction_, so retiring `ingest` would touch a ratified criterion. **I did not need to reach that question** -- I have a positive case for keeping both, so nothing blocks and cc is unblocked either way. If vc reads AC-02.3 as naming the COMMAND rather than the direction, the rows change and NOTHING IN THE BINARY DOES, because `ingest` is unimplemented today. That is the cheapest possible moment to disagree with me.
-- **v2:** new-surface
 - **note:** NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so they are separate commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the spellings produce identical bytes, and passed.
 - **truth model correction:** 2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.
 - **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
@@ -4897,7 +3924,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `schema`
 
-- **v2:** new-surface
 - **disposition:** new-surface
 - **facade:** schema
 - **Flags:**
@@ -4911,7 +3937,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `export`
 
-- **v2:** new-surface
 - **not backup:** SEE `backup`, which carries the full distinction. In short: this is the INTERCHANGE -- lossless text, usable without Intent, the artefact that travels between machines under D34 and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot for fast local restore, carrying the derived index. Both help strings carry their own distinguishing clause deliberately, because a user choosing between them is not reading them side by side.
 - **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
 - **disposition:** new-surface
@@ -4927,7 +3952,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `backup`
 
-- **v2:** new-surface
 - **config:** Reads `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}` / `backup.keep` -- named on the `config` entry in this table. `backup.enabled` gates the scheduled backups taken by intentd and `intent explore`, and deliberately does NOT gate this command.
 - **not export:** *** `backup` AND `export` ARE NOT SYNONYMS, AND CONFLATING THEM COSTS A USER THE THING THEY WERE TRYING TO SAVE. *** `export` is AC-02.6 OPENNESS: lossless, text, usable WITHOUT Intent, and under D34 it is THE INTERCHANGE -- the artefact that travels between machines and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot: NOT usable without SQLite, NOT the interchange, and it carries the DERIVED INDEX so a restore is immediate with no re-ingest and no re-index. Different jobs, and neither is redundant. The failure mode is directional and asymmetric: a user who reaches for `backup` when they wanted portability gets a file no other tool can read, and a user who reaches for `export` when they wanted a fast restore gets a correct artefact that costs a full re-index -- so BOTH help strings must carry their own distinguishing clause rather than relying on a reader comparing them side by side, which is exactly what nobody does at the moment they need one.
 - **disposition:** new-surface
@@ -4949,7 +3973,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `mcp`
 
-- **v2:** new-surface
 - **disposition:** new-surface
 - **recoverability:** one-way
 - **MCP:** not exposed -- **mutates**
@@ -4957,7 +3980,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `organize`
 
-- **v2:** new-surface
 - **acceptance:** ST0057 AC-04.1 through AC-04.6
 - **disposition:** new-surface
 - **recoverability:** idempotent
@@ -4998,7 +4020,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `edit`
 
-- **v2:** new-surface
 - **side effect ruled:** hv, 2026-08-19. A generated view is REFUSED and the refusal NAMES THE AUTHORING SURFACE -- `acceptance.md` -> `intent ac` / `intent at`; `info.md` and WP covers -> `intent st` / `intent wp`. **Detection is not prevention**: AC-03.4 catches a hand-edited view AFTER it is written and the work is already gone. An ATTACHMENT is handed over without hesitation, because the file on disk IS the authoring surface. Derived from `Project::edit_disposition`, itself derived from `classify()`, so there is no second answer to what a file is.
 - **disposition:** new-surface
 - **recoverability:** idempotent
@@ -5019,7 +4040,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `events`
 
-- **v2:** new-surface
 - **not export:** SEE `export`, which is the INTERCHANGE: a whole lossless bundle for another machine or another tool. This is a READ -- filtered, ordered, for a person answering `what happened here`. The two overlap on content and not on purpose, and a person choosing between them is not reading them side by side.
 - **disposition:** new-surface
 - **facade:** events
@@ -5039,7 +4059,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `fc`
 
-- **v2:** new-surface
 - **acceptance:** ST0066 AC-00.1 (the verb and its refusal), AC-00.3 (the cascade), AC-00.4 (renders distinguishably wherever counted)
 - **disposition:** new-surface
 - **recoverability:** reversible
@@ -5071,7 +4090,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `surface`
 
-- **v2:** new-surface
 - **acceptance:** ST0058 AC-00.5
 - **disposition:** new-surface
 - **mcp narrowed:** NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the same two-homes argument as `llm guide`, in the past tense and worse -- the only subcommand is `retired`, and an agent's correct experience of a retired verb is that the tool is NOT OFFERED. A tool enumerating retired verbs invites an agent to reason about surface it cannot call: actively misleading to the consumer the tier exists for.
@@ -5096,7 +4114,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `browse`
 
-- **v2:** new-surface
 - **twin of:** edit --browser
 - **disposition:** new-surface
 - **recoverability:** idempotent
@@ -5105,7 +4122,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `explore`
 
-- **v2:** new-surface
 - **acceptance:** ST0056 AC-17.12 (minted by vc 2026-08-30)
 - **disposition:** new-surface
 - **recoverability:** reversible
@@ -5116,7 +4132,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `discover`
 
-- **v2:** new-surface
 - **disposition:** new-surface
 - **recoverability:** idempotent
 - **recoverability anomaly:** **WITHHELD FROM MCP WHILE BEING IDEMPOTENT, AND THE GROUND IS WHERE IT WRITES RATHER THAN WHETHER IT CAN BE UNDONE.** A second run adds nothing, so the label is honest. What it writes is the operator's per-user project registry, outside every project, and what it reads is any directory the caller names: an agent attached to one project has no business walking the operator's disk and enrolling what it finds. The operator runs it.
@@ -5130,14 +4145,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `deinit`
 
-- **observed:**
-  - `exit.0.code`: 0
-  - `exit.0.when`: the dry run listed what it would do and wrote nothing, or --apply did every act it planned; a file kept because Intent cannot prove it wrote it is a result, not a refusal
-  - `exit.1.code`: 1
-  - `exit.1.when`: --all while a daemon watches this tree, refused before anything is planned; or a file changed after it was planned, or could not be removed, named with what was already done
-  - `stdout`: `would remove: <path> (<why>)`, `would edit: <path> (<why>)` and `kept: <path> (<why>)` per file in the dry run, or `removed:` and `edited:` under --apply, then a `done:` line counting each
-  - `stderr`: `error: ...` on stderr (INV-01)
-- **v2:** new-surface
 - **disposition:** new-surface
 - **recoverability:** one-way
 - **acceptance:** ST0083 AC-06.1
@@ -5150,14 +4157,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `install`
 
-- **observed:**
-  - `exit.0.code`: 0
-  - `exit.0.when`: the runtime set and the pair were published to the prefix with its manifest, or --print-runtime-set printed the support paths
-  - `exit.1.code`: 1
-  - `exit.1.when`: refused before anything is written: not a dev tree, a dirty runtime set, a pair built behind HEAD by a commit that changed one of the build's inputs, or at a commit HEAD does not descend from, a pair built from two commits, no prefix, a prefix overlapping the dev tree, or a prefix holding anything but an opt tree Intent published (and that only with --force); or a step of the publish failed, with the prefix left as it was
-  - `stdout`: `created:` or `replaced:` for the prefix, `wrote:` for its manifest, a `note:` naming HEAD and the build's inputs when HEAD is past the commit the pair was built from by commits that change none of them, then `ok:` and the published tree's version line; or one support path per line under --print-runtime-set
-  - `stderr`: `error: ...` with its remedy (INV-01)
-- **v2:** new-surface
 - **disposition:** new-surface
 - **recoverability:** one-way
 - **acceptance:** ST0087 WP-01, WP-02
@@ -5175,14 +4174,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `use`
 
-- **observed:**
-  - `exit.0.code`: 0
-  - `exit.0.when`: bare: the set serves one tree, or none (brew), and the shadow check passes; or the set was pointed at the tree named, or removed for brew, and the new first hit's `intent daemon restart` ran
-  - `exit.1.code`: 1
-  - `exit.1.when`: bare: the shadow check fails, a link not first on PATH or the set split across trees; or refused before any link was written: no dev checkout or no pair built in it, no opt prefix, a prefix with no manifest, a tree Homebrew manages, a link in the set that is not Intent's, or for `brew` no Homebrew intent left to answer; or the links were pointed and the daemon restart through them failed
-  - `stdout`: one `use:` line per link naming the tree it serves, then `ok:` for the tree the set serves and, for dev or opt, a `note:` that brew is the resting state; after a switch, `linked:` or `unlinked:` per link, the restart's own output, and `ok:` with the new binary's version line
-  - `stderr`: `error: ...` with its remedy (INV-01)
-- **v2:** new-surface
 - **disposition:** new-surface
 - **recoverability:** reversible
 - **recoverability anomaly:** Reversible by another `intent use`, and withheld because it repoints the `intent` every login shell, hook and MCP server on the machine runs and restarts the one per-user daemon, which makes it a switch an agent runs because it was asked and never unasked (ST0087 WP-03).
@@ -5194,7 +4185,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `help`
 
-- **v2:** new-surface
 - **acceptance:** ST0058 AC-00.6 (driven by vc 2026-08-30). The row's falsifier is _any capability reachable by a flag and refused by its subcommand twin, or the reverse_, and `intent --help` rc=0 against `intent help` rc=2 was its last live instance -- issue 0086.
 - **disposition:** new-surface
 - **one home:** **THIS SHIPS NO HELP TEXT OF ITS OWN, AND THAT IS THE POINT.** The arm rebuilds the clap `Command` from the same compiled-in table `--help` uses and asks IT to render, so the twin AC-00.6 is about cannot drift apart later -- there is one renderer with more than one spelling. The estate already carries several homes for _what is Intent_ (`--help`'s command list, `intent llm`'s generated agent guide, `intent info`'s install-and-project status); **a fourth authored page would have been the Highlander violation this row exists to avoid**, and writing one is what `bin/intent_help` did.
@@ -5204,7 +4194,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `graphql`
 
-- **v2:** new-surface
 - **acceptance:** AC-00.4, AC-09.2 (bounded reading ruled 2026-08-31; `graphql_escape_hatch.rs` is the drive, both faces)
 - **disposition:** new-surface
 - **facade:** graphql
@@ -5217,7 +4206,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `set`
 
-- **v2:** new-surface
 - **acceptance:**
 
 - **disposition:** new-surface
@@ -5238,7 +4226,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 - **aliases:**
   - outs
-- **v2:** new-surface
 - **disposition:** new-surface
 - **facade:** outstanding
 - **Flags:**
@@ -5258,23 +4245,12 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 ### `guards`
 
-- **v2:** new-surface
-- **observed:**
-  - `exit.0.code`: 0
-  - `exit.0.when`: one line per declared guard, or nothing when the project declares none
-  - `exit.1.code`: 1
-  - `exit.1.when`: a config the binary reads, JSON naming its `intent_version`, whose declaration serde refuses (an unknown key in a guard among them), or a guard a line cannot carry -- each named with its remedy; the commit gate refuses the commit on it
-  - `exit.2.code`: 4
-  - `exit.2.when`: no project, or a config the binary cannot read at all -- no file, text that is not JSON, or no `intent_version` -- each with discovery's remedy, answered as could-not-judge, which the commit gate fails open on
-  - `stdout`: one line per declared guard, its fields separated by US (0x1f)
-  - `stderr`: `error: ...` on stderr (INV-01)
 - **disposition:** new-surface
 - **MCP:** not exposed -- read-only
 
 ### `id`
 
 - **when to use:** USE IT when a script or an agent needs to know what a spelling names before acting on it: whether the token is an id at all, which kind of record it names, the record's stored and shown ids, the canon file that holds it and where it is realised. A bare number is asked of this project, so it can name a thread and an issue at once, and the answer then lists both rather than picking one. DO NOT USE IT to read a record: `intent st show`, `intent wp show` and `intent issues show` are that.
-- **v2:** new-surface
 - **acceptance:** ST0095 AC-10.6
 - **disposition:** new-surface
 - **facade:** id_of

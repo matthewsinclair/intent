@@ -1,9 +1,8 @@
 //! The dispatch table -- the command surface's single source of truth
 //! (AC-05.1).
 //!
-//! ic authored `surface/dispatch-table.json` from the v2 surface: 27 families,
-//! 92 entries, each carrying its help text, arguments, flags, observed exit
-//! codes, the v2 antecedent as `file:line`, and a target state.
+//! `surface/dispatch-table.json` declares every family and entry, each carrying
+//! its help text, arguments, flags, disposition and target state.
 //! `surface/dispatch-table.md` is GENERATED from it; this module reads the JSON.
 //!
 //! **`surface/` is the authored mirror of `schema/`** (vc ruling, 2026-08-14).
@@ -107,14 +106,8 @@ pub struct Table {
   /// would look like a server with nothing to say.
   pub mcp_instructions: String,
   pub families: Vec<Family>,
-  /// Commands v3 ADDS, with no v2 antecedent to port or deviate from.
-  ///
-  /// A separate array rather than more `families` rows, because the two are
-  /// different kinds of claim: a `families` entry asserts something measurable
-  /// about v2 at `measured_at`, and one of these asserts a design intention.
-  /// Merging them would make the table's own provenance unreadable -- there
-  /// would be no way to ask "what did v2 offer?" without first filtering out
-  /// rows that describe no v2 at all.
+  /// Top-level commands declared as single rows rather than as a family with
+  /// child entries; every row here is dispositioned `new-surface`.
   ///
   /// They reach the surface through the same [`shipped_entries`] as everything
   /// else, because from the operator's side there is no difference: `intent
@@ -151,22 +144,6 @@ pub struct Table {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Family {
   pub name: String,
-  /// The v2 file this family was ported from, or `None` for new surface.
-  ///
-  /// **READ, NOT PROSE, AND THAT IS THE POINT.** `families` is the SPINE's unit
-  /// -- `build` iterates it and a family's leaves are its child rows -- and it
-  /// was only ever coincidentally also the v2 inventory. `daemon` moved into it
-  /// on 2026-08-30 because a `new_surface` row carries subcommands as a bare
-  /// `values` list, with no per-verb help, no per-verb flags, and one
-  /// `recoverability` for four verbs whose answers differ.
-  ///
-  /// So "how many v2 families are there" stopped being `families.len()`. Making
-  /// this field readable is what lets the question be DERIVED rather than
-  /// answered by a hand-typed number that would have to say 28 to pass -- the
-  /// bent label the register's own generator refuses two hundred lines from
-  /// where it checks this one.
-  #[serde(default)]
-  pub v2_source: Option<String>,
   pub entries: Vec<Entry>,
 }
 
@@ -196,9 +173,6 @@ pub struct Entry {
   pub args: Vec<Arg>,
   #[serde(default)]
   pub flags: Vec<Flag>,
-  /// The v2 antecedent, as `file:line`, or `new-surface` where there is none.
-  #[serde(default)]
-  pub v2: String,
   #[serde(default)]
   pub target: Target,
   /// One of [`Table::entry_dispositions`], which is where the values live and
@@ -1341,9 +1315,9 @@ fn prefix(path: &str) -> &str {
 /// Every entry in the table, wherever it is declared.
 ///
 /// **A ROW IN `new_surface` IS A ROW, AND THE TWO-LIST SPLIT IS PROVENANCE
-/// RATHER THAN KIND.** `families` holds what v2 shipped and `new_surface` holds
-/// what v3 added, which is a fact about where a verb came FROM and not about
-/// what it IS. Any reader asking a question OF THE SURFACE has to ask it of
+/// RATHER THAN KIND.** `families` holds the rows a family carries and
+/// `new_surface` the rows none does, which is a fact about where a row is
+/// declared and not about what it IS. Any reader asking a question OF THE SURFACE has to ask it of
 /// both, and the enumeration was written out by hand at each site until the
 /// daemon roster asked it of one list only -- so `search`, a `new_surface` row,
 /// would have declared a serving op that nothing read and no load-time check
@@ -1680,36 +1654,10 @@ mod tests {
   }
 
   #[test]
-  fn the_compiled_table_parses_and_is_the_expected_shape() {
+  fn the_compiled_table_parses_and_names_its_schema() {
     let t = table();
     assert!(t.schema.starts_with("intent/dispatch-table@"));
-    // **`families` IS THE SPINE'S UNIT AND STOPPED BEING THE v2 INVENTORY.**
-    // `daemon` moved into it on 2026-08-30 (vc's ruling) because a `new_surface`
-    // row carries subcommands as a bare `values` list -- no per-verb help, no
-    // per-verb flags, and one `recoverability` for four verbs whose answers
-    // differ. Counting the section against a claim about v2 would force this to
-    // claim the wrong section, which is the bent label the register's own
-    // generator refuses elsewhere. v2-ness is DERIVED from `v2_source`.
-    //
-    // **A RELATION OVER THE ROWS, NOT A COUNT** (vc, 2026-10-25): a written
-    // figure is deleted, never corrected. What the figures protected is that
-    // `v2_source` cannot absorb new surface, held here in both directions.
     assert!(!t.families.is_empty(), "the table carries families");
-    for f in &t.families {
-      let all_new = f.entries.iter().all(|e| e.disposition == "new-surface");
-      match f.v2_source {
-        None => assert!(
-          all_new,
-          "`{}` has no v2 source, so every entry is new surface",
-          f.name
-        ),
-        Some(_) => assert!(
-          !all_new,
-          "`{}` names a v2 source, so some entry is not new surface",
-          f.name
-        ),
-      }
-    }
   }
 
   #[test]
@@ -1732,7 +1680,6 @@ mod tests {
       help: String::new(),
       args: vec![],
       flags: vec![],
-      v2: String::new(),
       target: Target::default(),
       disposition: "keep".to_string(),
       owner_wp: String::new(),
@@ -1788,7 +1735,6 @@ mod tests {
       help: String::new(),
       args: vec![arg],
       flags: vec![],
-      v2: String::new(),
       target: Target::default(),
       disposition: "keep".to_string(),
       owner_wp: String::new(),

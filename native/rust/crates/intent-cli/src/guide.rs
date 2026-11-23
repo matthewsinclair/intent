@@ -123,9 +123,9 @@ missing -- and a command declared but not built in this release says so in its \
 /// **Selected by ID, with the text read from the table.** The selection is
 /// authored -- it has to be, because `invariants` conflates two kinds of claim
 /// and nothing in the schema separates them: INV-01..04 are v3's contract,
-/// INV-05..08 are measurements of v2 defects being CORRECTED (`error ...;
-/// usage` unreachable, a fifth of failures on the wrong stream). Rendering all
-/// eight would tell an agent that v3 writes failures to stdout.
+/// INV-06..08 record defects v3 CORRECTS (a fifth of failures on the wrong
+/// stream among them). Rendering them all would tell an agent that v3 writes
+/// failures to stdout.
 ///
 /// So the four IDs are named here and their titles are not. A retitled
 /// invariant reaches this section; a deleted or renamed one refuses the render

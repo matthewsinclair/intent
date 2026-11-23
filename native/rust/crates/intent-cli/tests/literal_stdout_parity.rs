@@ -1,43 +1,22 @@
 //! **A `corrected` row is held to the v3 bytes its ratification declares.**
 //!
-//! `observed.stdout_exact` records what v2 was measured printing, and it claims
-//! nothing about v3: an `as-observed` row says v2 was measured doing this, as the
-//! register's own gloss for the state now says. A row whose v3 behaviour is ruled
-//! is `corrected`, carries `target.stdout_exact`, and is held to those bytes
-//! here. That is the one v3 claim this file asserts.
-//!
-//! It used to hold `as-observed` rows to v2's bytes too, reading the state as a
-//! claim that v3 reproduces v2. Sampled against 3.0.1, most of those claims were
-//! false, so the reading went (vc's ruling) rather than the rows being edited
-//! one by one to match the binary.
+//! A row whose v3 behaviour is ruled is `corrected` and carries
+//! `target.stdout_exact`: the invocation (`setup`, then `argv`), the bytes v3 is
+//! REQUIRED to print (`template`), and the ruling they come from (`basis`). It is
+//! held to those bytes here. That is the one claim this file asserts.
 //!
 //! # Why a `corrected` row is asserted at all
 //!
-//! **It was not, and the gap was opened by this file's own guard.** `corrected`
-//! means v2's bytes are what v3 deliberately does NOT print, so asserting them
-//! would assert the ratification away while reading as the strictest check here
-//! -- `at green` was in the first draft on exactly that footing and the guard
-//! refused it. Correct, and it left the ratified rows **unasserted**, so **the
-//! cheapest way to make a red row stop failing was to ratify it.** That
-//! incentive sat inside the instrument built to make deviation expensive.
-//!
-//! A corrected row now carries BOTH templates. `observed.stdout_exact` is the
-//! RECORD of what v2 did; `target.stdout_exact` is the REQUIREMENT v3 is held
-//! to. The target deliberately carries no `setup`/`argv` and **inherits the
-//! observed invocation**, so both templates describe one command and their
-//! difference is the ratified deviation written out in bytes instead of prose.
-//!
-//! **And requiring them to DIFFER is what forces the right fixture.** `ac
-//! rescope` on a NON-TEST criterion is ruled to print `back in scope
-//! (unsatisfied)` -- byte-identical to v2. Declared there, the row would assert
-//! as-observed behaviour under a corrected label and look strict doing it. The
-//! difference-check drives the declaration onto the test-backed criterion, which
-//! is the only invocation where the correction is observable at all.
+//! **Ratifying a row must not be a way to stop checking it.** When a ratified
+//! row was left unasserted, **the cheapest way to make a red row stop failing
+//! was to ratify it.** That incentive sat inside the instrument built to make
+//! deviation expensive, so a corrected row states its ruled bytes and is driven
+//! against them.
 //!
 //! # What this file does NOT cover
 //!
-//! A `new-surface` row has no v2 invocation to inherit and is deliberately NOT
-//! handled here. Stated rather than half-generalised.
+//! An `as-observed` or `new-surface` row carries no ruled template and is
+//! deliberately NOT handled here. Stated rather than half-generalised.
 
 use std::path::Path;
 
@@ -47,30 +26,20 @@ use intent_cli::dispatch;
 ///
 /// **This is a ratchet against the one escape the schema guards cannot see.**
 /// Every guard below reasons about a row that HAS a template. Deleting
-/// `observed.stdout_exact` outright removes the row from every population at
+/// `target.stdout_exact` outright removes the row from every population at
 /// once and reds nothing -- and deletion is exactly what happened when these two
 /// `ac` rows were first ratified. Naming them here converts a silent deletion
 /// into an edit to this list, which somebody has to argue for in a diff.
 ///
 /// Adding a row is free. Removing one should not be.
-const ROWS_THAT_MUST_STAY_DECLARED: &[&str] = &[
-  "ac satisfy",
-  "ac descope",
-  "ac rescope",
-  "ac withdraw",
-  "ac reinstate",
-  "at red",
-  "at na",
-  "issues close",
-  "issues open",
-];
+const ROWS_THAT_MUST_STAY_DECLARED: &[&str] = &["ac rescope", "ac reinstate"];
 
 /// The fixture every declaration is written against: one thread with one
 /// authored criterion, one test-backed criterion, a test AT and a non-test AT,
 /// a sink thread to descope into, and one open issue.
 ///
-/// **Entity IDs match the ones the v2 templates were measured with**, which is
-/// the only reason a template can be a literal rather than a pattern.
+/// **Entity IDs match the ones the templates name**, which is the only reason a
+/// template can be a literal rather than a pattern.
 ///
 /// **AT-01.2 is seeded `to-write`, not `n-a`, and the first draft had it wrong.**
 /// Seeded at its target the `at na` declaration measures a SELF-LOOP -- v3
@@ -78,10 +47,6 @@ const ROWS_THAT_MUST_STAY_DECLARED: &[&str] = &[
 /// real cause was the fixture. A template describes a MOVEMENT, so the fixture
 /// must leave the verb somewhere to go. Same trap as cc's witness reading state
 /// before the verb ran, one field over.
-///
-/// **The v2 side of every template was measured against a fixture v2's own
-/// `intent at lint` had validated first**, so a malformed fixture could not
-/// accuse a correct binary -- the expensive direction.
 fn seed(root: &Path) {
   let cfg = root.join("intent/.config");
   std::fs::create_dir_all(&cfg).expect("mkdir config");
@@ -169,14 +134,6 @@ fn run(root: &Path, argv: &[String]) -> (String, String, bool) {
   )
 }
 
-/// Which column a row is held to. Chosen by `target.state`, never by which
-/// fields happen to be present.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Held {
-  /// v3's ruled bytes. A difference is an unimplemented ratification.
-  V3Ruling,
-}
-
 struct Decl {
   path: String,
   setup: Vec<Vec<String>>,
@@ -214,37 +171,32 @@ fn entries(raw: &serde_json::Value) -> Vec<(&serde_json::Value, String)> {
   out
 }
 
-/// Collect the rows held to one column.
+/// Collect the `corrected` rows, each with its ruled invocation and bytes.
 ///
-/// **A `corrected` row inherits `setup`/`argv` from `observed.stdout_exact`**,
-/// which is what makes the two templates comparable: they describe one
-/// invocation, so their difference is the deviation and nothing else.
-fn declarations(raw: &serde_json::Value, held: Held) -> Vec<Decl> {
+/// Chosen by `target.state`, never by which fields happen to be present: a
+/// template on any other row is refused by the guard below rather than driven.
+fn declarations(raw: &serde_json::Value) -> Vec<Decl> {
   let mut out = Vec::new();
   for (e, state) in entries(raw) {
-    let obs = e.get("observed").and_then(|o| o.get("stdout_exact"));
-    let tgt = e.get("target").and_then(|t| t.get("stdout_exact"));
-
-    let template = match (held, state.as_str()) {
-      (Held::V3Ruling, "corrected") => match tgt {
-        Some(x) => x["template"].as_str().expect("template is a string"),
-        None => continue,
-      },
-      _ => continue,
+    if state != "corrected" {
+      continue;
+    }
+    let Some(tgt) = e.get("target").and_then(|t| t.get("stdout_exact")) else {
+      continue;
     };
-
-    // The invocation always comes from the observed block, for both columns.
-    let Some(inv) = obs else { continue };
     out.push(Decl {
       path: e["path"].as_str().expect("path").to_string(),
-      setup: inv["setup"]
+      setup: tgt["setup"]
         .as_array()
         .expect("setup is an array")
         .iter()
         .map(strings)
         .collect(),
-      argv: strings(&inv["argv"]),
-      template: template.to_string(),
+      argv: strings(&tgt["argv"]),
+      template: tgt["template"]
+        .as_str()
+        .expect("template is a string")
+        .to_string(),
     });
   }
   out
@@ -311,7 +263,7 @@ fn mismatches(decls: &[Decl]) -> Vec<String> {
 #[test]
 fn every_corrected_row_matches_the_v3_bytes_its_ratification_declares() {
   let raw = table();
-  let decls = declarations(&raw, Held::V3Ruling);
+  let decls = declarations(&raw);
   assert!(
     !decls.is_empty(),
     "no `corrected` row carries `target.stdout_exact`, so this test would pass by \
@@ -323,8 +275,7 @@ fn every_corrected_row_matches_the_v3_bytes_its_ratification_declares() {
   assert!(
     wrong.is_empty(),
     "{} of {} `corrected` row(s) do NOT print the bytes their ratification requires:\n\n  {}\n\n\
-     This is an UNIMPLEMENTED RATIFICATION, not a parity break -- v2 is not the \
-     subject here and restoring v2's bytes would be the wrong fix. The remedy is to \
+     This is an UNIMPLEMENTED RATIFICATION. The remedy is to \
      build the ruled voice, which the row's `target.ratification` states in full. \
      **Do not edit the template to match v3**: these bytes come from the ruling, and \
      rewriting them from the binary makes the assertion say v3 == v3.",
@@ -342,11 +293,11 @@ fn a_template_sits_only_where_its_column_is_the_rows_target() {
 
   for (e, state) in entries(&raw) {
     let path = e["path"].as_str().unwrap_or("?");
-    let obs = e.get("observed").and_then(|o| o.get("stdout_exact"));
-    let tgt = e.get("target").and_then(|t| t.get("stdout_exact"));
-    let Some(tgt) = tgt else { continue };
+    let Some(tgt) = e.get("target").and_then(|t| t.get("stdout_exact")) else {
+      continue;
+    };
 
-    // A ruled template is meaningless on a row with nothing to deviate FROM.
+    // A ruled template is meaningless on a row with no ruling to hold it to.
     if state != "corrected" {
       bad.push(format!(
         "`{path}` is `{state}` and carries `target.stdout_exact` -- a ruled template \
@@ -355,25 +306,11 @@ fn a_template_sits_only_where_its_column_is_the_rows_target() {
       continue;
     }
 
-    // The target inherits the observed invocation, so it cannot stand alone.
-    let Some(obs) = obs else {
+    // The template names the bytes of ONE invocation, so it must say which.
+    if !tgt["setup"].is_array() || !tgt["argv"].is_array() {
       bad.push(format!(
-        "`{path}` carries `target.stdout_exact` with no `observed.stdout_exact` to \
-         inherit an invocation from, so the two templates would describe different \
-         commands and their difference would mean nothing"
-      ));
-      continue;
-    };
-
-    // If they match, the row is not corrected in its OUTPUT and the label earns
-    // nothing -- and, worse, the declaration was written at an invocation where
-    // the correction is invisible.
-    if obs["template"] == tgt["template"] {
-      bad.push(format!(
-        "`{path}` declares identical v2 and v3 templates ({}) -- either the row is \
-         not corrected in its output, or the declaration was written at an \
-         invocation where the correction is not observable",
-        tgt["template"]
+        "`{path}`'s `target.stdout_exact` does not declare its invocation as `setup` \
+         and `argv` arrays, so its bytes describe no command"
       ));
     }
 
@@ -409,57 +346,33 @@ fn a_template_sits_only_where_its_column_is_the_rows_target() {
 
 /// **Ratifying a row must not be a way to stop being checked.**
 ///
-/// Two escapes, and both were live. Moving a row to `corrected` used to drop its
-/// assertion, so the cheapest way to make a red row green was to ratify it.
-/// Deleting `observed.stdout_exact` still removes a row from every population at
-/// once, silently -- so the floor is checked by name.
+/// Deleting `target.stdout_exact` removes a row from every population at once,
+/// silently -- so the floor is checked by name.
 #[test]
 fn ratifying_a_row_cannot_remove_its_assertion() {
   let raw = table();
   let mut bad = Vec::new();
 
-  for (e, state) in entries(&raw) {
-    let path = e["path"].as_str().unwrap_or("?");
-    let has_obs = e
-      .get("observed")
-      .and_then(|o| o.get("stdout_exact"))
-      .is_some();
-    let has_tgt = e
-      .get("target")
-      .and_then(|t| t.get("stdout_exact"))
-      .is_some();
-
-    if state == "corrected" && has_obs && !has_tgt {
-      bad.push(format!(
-        "`{path}` was moved to `corrected` while carrying v2's measured bytes and \
-         did NOT gain a `target.stdout_exact` -- so the row is now asserted by \
-         nothing. Ratifying changes WHICH template a row is held to; it does not \
-         release it from being held to one."
-      ));
-    }
-  }
-
   for want in ROWS_THAT_MUST_STAY_DECLARED {
-    let found = entries(&raw)
-      .iter()
-      .any(|(e, _)| e["path"].as_str() == Some(*want));
-    let declared = entries(&raw).iter().any(|(e, _)| {
-      e["path"].as_str() == Some(*want)
-        && e
-          .get("observed")
-          .and_then(|o| o.get("stdout_exact"))
-          .is_some()
-    });
-    if !found {
-      bad.push(format!(
+    let rows = entries(&raw);
+    let row = rows.iter().find(|(e, _)| e["path"].as_str() == Some(*want));
+    match row {
+      None => bad.push(format!(
         "`{want}` is named in the floor but is not a row at all"
-      ));
-    } else if !declared {
-      bad.push(format!(
-        "`{want}` is named in the floor and has lost its `observed.stdout_exact` -- \
-         deleting a declaration removes the row from every population at once and \
-         reds nothing else, which is why the floor is checked by name"
-      ));
+      )),
+      Some((e, _))
+        if e
+          .get("target")
+          .and_then(|t| t.get("stdout_exact"))
+          .is_none() =>
+      {
+        bad.push(format!(
+          "`{want}` is named in the floor and has lost its `target.stdout_exact` -- \
+           deleting a declaration removes the row from every population at once and \
+           reds nothing else, which is why the floor is checked by name"
+        ))
+      }
+      Some(_) => {}
     }
   }
 

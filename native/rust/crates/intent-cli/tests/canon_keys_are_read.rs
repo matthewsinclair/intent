@@ -20,8 +20,8 @@
 //! documented a decision in it. **But that exemption is also exactly how the
 //! fields were lost**, because it makes an unread CONTRACT key indistinguishable
 //! from an unread NOTE, and nothing mechanical separates them: not count
-//! (`read_or_mutate` gates agent safety, `observed` is a measurement, and they
-//! sit on comparable numbers of rows), not type (both are strings).
+//! (`read_or_mutate` gates agent safety, a prose note informs a reader, and
+//! they sit on comparable numbers of rows), not type (both are strings).
 //!
 //! So the split is AUTHORED, by the person who knows which is which. ic
 //! declared it in `key_classes` (`fd961437`), scoped to `Entry`, `Flag` and
@@ -44,7 +44,7 @@
 //! **EXEMPTING A TYPE FROM TOTALITY TIGHTENS WHAT IT MAY READ, and that reads
 //! backwards, which is why it is stated here rather than only in the canon.**
 //! The note list is what makes "read but deliberately unclassified" expressible
-//! -- `Entry.v2` is prose by classification, deserialized, and costs nothing.
+//! -- a key classified a note may still be deserialized, at no cost.
 //! Remove the note list and the only surviving distinction is declared-or-not,
 //! so a key the type reads MUST be declared. `Target` therefore gets the
 //! STRICTER half of arm 2, not the looser one. The word "exempt" invites the
@@ -256,9 +256,8 @@ fn every_declared_key_is_read_by_the_type_that_owns_it() {
 /// answered by a person rather than by a default.
 ///
 /// A key classified as a NOTE and still deserialized is allowed and not a
-/// defect: `Entry.v2` is the v2 antecedent, prose by classification, and
-/// carrying it costs nothing. What is refused is reading a key that was never
-/// classified either way.
+/// defect: prose by classification costs nothing to carry. What is refused is
+/// reading a key that was never classified either way.
 #[test]
 fn nothing_is_read_that_the_canon_has_not_classified() {
   let classes: serde_json::Value =

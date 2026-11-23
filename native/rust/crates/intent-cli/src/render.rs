@@ -13479,14 +13479,12 @@ fn info_project(cwd: Option<&std::path::Path>) {
     Ok(facade) => {
       let threads = facade.st_list();
       let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
-      // **v2's five buckets, including the one the model can now tell
-      // apart and this view still cannot.** v2 bucketed by DIRECTORY, so
-      // everything left at `intent/st/` read as In Progress -- `Triage`
-      // and `Hold` included. The dispatch table pins this entry
-      // `as-observed` with `corrected` ratified for the argument handling
-      // ONLY, so the buckets stay v2's and the rollup is recorded here
-      // rather than quietly widened. Raised with vc as a view question,
-      // not decided in a render function.
+      // **Five buckets, and In Progress folds three statuses together.**
+      // `Triage` and `Hold` count as In Progress beside `Wip`: the rollup
+      // answers "how many threads are open and not finished", and this
+      // view does not split it further. Whether it should is a view
+      // question raised with vc, not one decided in a render function, so
+      // the folding is recorded here rather than quietly widened.
       let in_progress =
         count(ThreadStatus::Wip) + count(ThreadStatus::Hold) + count(ThreadStatus::Triage);
       println!("  Total:           {}", threads.len());

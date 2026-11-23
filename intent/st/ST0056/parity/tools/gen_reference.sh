@@ -20,18 +20,10 @@
 # THE PART TO READ BEFORE CHANGING WHAT THIS EMITS
 # ==========================================================================
 #
-# **NO PAGE PUBLISHES AN EXIT TABLE, BECAUSE THE REGISTER'S ARE v2's.** A row
-# carries `observed.exit` -- a measured list of v2's exit codes -- and a
-# `target.state` saying what v3 does about it. This generator used to publish
-# `observed.exit` as v3's contract on every `as-observed` row, on the reading
-# that the state means "v3 reproduces v2". Sampled against the 3.0.1 binary on
-# 2026-09-11 (ic, doc audit), five of six such claims were false: `--help` that
-# v2 answered with an error exits 0 in v3, a bare verb v2 answered with usage
-# is unimplemented, and every byte size differed. vc ruled that the tables come
-# off the pages: each verb points at INV-04, stated once on the index from the
-# register's own text, and at `intent <verb> --help`. The register keeps
-# `observed.exit` as its record of v2. Whether its `as-observed` rows are true
-# of v3 is a register question, filed rather than answered here.
+# **NO PAGE PUBLISHES AN EXIT TABLE.** The register carries no per-verb exit
+# contract: each verb points at INV-04, stated once on the index from the
+# register's own text, and at `intent <verb> --help` (vc's ruling, after the
+# 2026-09-11 doc audit found per-verb exit tables that did not describe v3).
 #
 # **REFUSALS HAVE NO DECLARED HOME IN THE REGISTER (issue 0142's structural
 # half).** A row declares path, args, flags, target, disposition,
@@ -270,8 +262,8 @@ def flag_rows:
                  | cell)
       + " |" ];
 
-# **THE HONEST-EXIT RULE.** See the header. `observed` is v2 and on 28 rows it is
-# v2's defect, so it is published only where `target.state` warrants it.
+# **THE HONEST-EXIT RULE.** See the header: a verb points at the surface-wide
+# contract rather than stating exit codes of its own.
 def exit_block:
   ["**Exit codes** follow the surface-wide contract on the [index](index.md#exit-codes) (INV-04). `intent " + .path + " --help`, and your own binary, are the authority on this verb."];
 
@@ -328,7 +320,7 @@ read -r -d '' JQ_PAGE <<'JQEOF' || true
        "",
        "**The register is a declaration, not a behaviour claim.** The command surface is built from `surface/dispatch-table.json`, so the register at a revision states what that revision exposes. It does not state that any of it works. Where this page and your binary disagree, **your binary is right**.",
        "" ]
-     + [ "**No exit codes are listed per command.** The register's per-command exit tables are measurements of _v2_, and v3 does not reproduce them everywhere, so they are not published here as v3's contract. Every command follows the one surface-wide contract on the [index](index.md#exit-codes).", "" ]
+     + [ "**No exit codes are listed per command.** Every command follows the one surface-wide contract on the [index](index.md#exit-codes).", "" ]
      + (if $preconditions > 0 then
           [ "**Descriptions on this page that assert a precondition are flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it.", "" ]
         else [] end)

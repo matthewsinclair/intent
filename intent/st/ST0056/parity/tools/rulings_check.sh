@@ -147,7 +147,7 @@ AUTHORITIES="ic cc vc dc hv"
 # sentinel is a value a table could legitimately contain.
 ROWS="$(jq -r '
   [ (.invariants[]                             | select(.target.rulings != null) | {id: (.id // .rule // "INV"), r: .target.rulings}),
-    ([.families[].entries[], .new_surface[]][] | select(.target.rulings != null) | {id: (.path // .v2 // "?"),  r: .target.rulings}) ]
+    ([.families[].entries[], .new_surface[]][] | select(.target.rulings != null) | {id: (.path // "?"), r: .target.rulings}) ]
   | .[] as $u | $u.r[] as $g
   | [$u.id, ($g.state // "<none>"), ($g.authority // "<none>"), ($g.date // "<none>"), ($g.record // "")] | @tsv
 ' "$TABLE")" || die "the table did not parse"

@@ -253,7 +253,7 @@ JQ_LIB='
   # falls through to `extras` and is checked. Found by mutation-testing the
   # check, not by reading it -- reading it is what produced the bad list.
   def entryextra: extras([
-    "path","help","args","flags","v2","aliases","observed","target",
+    "path","help","args","flags","aliases","target",
     "disposition","cross_ref",
     "exposed_on_mcp","read_or_mutate","mcp_review"
   ]);
@@ -318,8 +318,9 @@ MEASURED_ON="$(jq -r '.measured_on // empty' "$IN")"
 MEASURED_BY="$(jq -r '.measured_by // empty' "$IN")"
 STATUS="$(jq -r '.status // empty' "$IN")"
 
-# THE COUNTS IN `status` ARE DERIVED, NOT TRANSCRIBED, and an authored count
-# that disagrees with the file it describes is a REFUSAL rather than a warning.
+# `status` CARRIES NO COUNT OF THE ROWS: a count is derived from the rows, so
+# a number typed into the sentence is a second copy of data the file already
+# has, and the generator refuses one rather than compare it.
 #
 # Found 2026-08-15: the canon carried "All 27 v2 families authored + 6
 # new-surface entries" while holding SEVEN. A hand-typed number sitting inside
@@ -331,30 +332,9 @@ STATUS="$(jq -r '.status // empty' "$IN")"
 # This is the same defect this whole directory exists to prevent, in the file
 # that is supposed to be THE source of truth for the command surface. A view
 # whose own header miscounts its rows undermines every number below it.
-# **THE SENTENCE SAYS "v2 FAMILIES" AND `families` STOPPED BEING THAT LIST.**
-# `daemon` moved into it on 2026-08-30 (vc's ruling) because `spine::build`
-# iterates this section and a family's leaves are its child rows -- so the
-# section is the SPINE's unit and was only ever COINCIDENTALLY also the v2
-# inventory. Counting its length against a claim about v2 would have forced the
-# sentence to say 28 v2 families when there are 27, which is the same bent label
-# the recoverability check refuses two hundred lines down: adjusting a figure so
-# a mechanism produces the right answer.
-#
-# v2-ness is DERIVED from `v2_source` rather than declared beside it. Exact
-# today -- 27 families carry one and only `daemon` does not -- and it keeps the
-# staleness this check was written for: a family added without a `v2_source` no
-# longer moves the v2 figure, and one added WITH one still does.
-N_FAM="$(jq -r '[.families[] | select(.v2_source != null)] | length' "$IN")"
-N_NEW_FAM="$(jq -r '[.families[] | select(.v2_source == null)] | length' "$IN")"
-N_NEW="$(jq -r '.new_surface | length' "$IN")"
-if [ -n "$STATUS" ]; then
-  claimed_fam="$(printf '%s' "$STATUS" | sed -nE 's/.*All ([0-9]+) v2 families.*/\1/p')"
-  claimed_new="$(printf '%s' "$STATUS" | sed -nE 's/.*\+ ([0-9]+) new-surface.*/\1/p')"
-  [ -z "$claimed_fam" ] || [ "$claimed_fam" = "$N_FAM" ] || \
-    die "canon status claims $claimed_fam v2 families; the file holds $N_FAM. Fix the sentence or the rows -- a view that miscounts its own contents discredits every figure in it."
-  [ -z "$claimed_new" ] || [ "$claimed_new" = "$N_NEW" ] || \
-    die "canon status claims $claimed_new new-surface entries; the file holds $N_NEW. Fix the sentence or the rows -- a view that miscounts its own contents discredits every figure in it."
-fi
+counted="$(printf '%s' "$STATUS" | grep -oiE '(^|[^[:alnum:]])[0-9]+ (v2 )?(new-surface|famil(y|ies)|entr(y|ies)|commands?|rows?)' || true)"
+[ -z "$counted" ] || \
+  die "canon status carries a hand count of rows ($counted); the rows are counted where they are, so take the number out of the sentence."
 
 # The stamp is not decoration. A record that does not name the commit it covers
 # cannot be spotted as stale, and "full suite GREEN at HEAD" was false by three
@@ -410,27 +390,6 @@ else
   [ -z "$RUST_MISSING" ] || die "canon names Rust path(s) that do not exist on disk -- the tree moved and the table did not follow:
 $RUST_MISSING  Fix the JSON canon and re-run. Never hand-edit the rendered view to match."
 fi
-
-# AN ENTRY WITH A v2 ANTECEDENT MUST CARRY ITS MEASUREMENT.
-#
-# The renderer above tolerates a missing `observed` block, because an addition
-# has no v2 command and there was never anything to run -- fabricating an
-# `observed` block for a command that does not exist would be inventing
-# measurement, which is the one thing this toolchain refuses everywhere else.
-#
-# That tolerance is a HOLE unless this refusal exists beside it. Without it, a
-# real measured command that lost its `observed` block renders as "nothing to
-# observe -- no v2 antecedent", which is not a gap in the record, it is a FALSE
-# STATEMENT about v2 generated automatically and indistinguishable from the
-# truthful case. The tolerance and the refusal are one change; neither is safe
-# alone.
-MISSING_OBS="$(jq -r '
-  .families[].entries[]
-  | select((.v2 // "new-surface") != "new-surface")
-  | select(has("observed") | not)
-  | .path' "$IN")"
-[ -z "$MISSING_OBS" ] || die "entries name a v2 antecedent but carry no observed block -- a measured command must ship its measurement, or the view will state there was nothing to measure:
-$(printf '%s' "$MISSING_OBS" | sed 's/^/  /')"
 
 # --- KEY INTEGRITY: `path` IS THE TABLE'S KEY AND TWO ARRAYS CAN BOTH CLAIM IT
 #
@@ -858,7 +817,7 @@ $(printf '%s' "$NO_VERB_SLOT" | sed 's/^/  /')"
 # Every key on `Entry`, `Flag` and `Arg` is classified `declaration` or `note`,
 # in `key_classes`. The list is AUTHORED because dc measured that no mechanical
 # discriminator exists: not count (`read_or_mutate` is 112 rows and decides agent
-# safety, `observed` is 93 and is a measurement), not type (`read_or_mutate` and
+# safety, and prose notes sit on comparable numbers of rows), not type (`read_or_mutate` and
 # `disposition_basis` are both strings). Semantics have to be declared by whoever
 # wrote the register.
 #
@@ -1133,22 +1092,12 @@ $(printf '%s' "$POPULATIONS_SKEW" | sed 's/^/  /')"
 # different answers to the same question. A notation nothing enforces would
 # have left that exactly as checkable as it was before, which is not at all.
 #
-# FIVE THINGS, AND THE LAST TWO ARE THE ONES WORTH HAVING.
+# THREE THINGS, AND THE LAST IS THE ONE WORTH HAVING.
 #
-# Membership, presence, and non-emptiness are the obvious three: a population
-# member must be a shipped row, must carry `target.no_op`, and must carry
-# `observed.no_op` if it has an `observed` block at all.
+# Membership and presence are the obvious two: a population member must be a
+# shipped row and must carry a non-empty `target.no_op`.
 #
-# **THE FOURTH CHECKS THE PREMISE OF THE NOTATION RATHER THAN ITS CONTENTS.**
-# `no_op_note` argues that a missing `observed.no_op` is unambiguous, because
-# `observed` is present exactly when `target.state` is not `new-surface`. That
-# is true across all 26 rows today and it is an OBSERVATION, not a rule anyone
-# wrote down -- so the argument holds only while it stays true. If a
-# `new-surface` row ever gains an `observed` block, or a parity row loses one,
-# absence starts meaning two things again and the third shape silently stops
-# working. Checking the premise is cheaper than discovering it lapsed.
-#
-# **THE FIFTH IS THE GUARD AGAINST THE POPULATION GOING SHORT**, which is the
+# **THE THIRD IS THE GUARD AGAINST THE POPULATION GOING SHORT**, which is the
 # specific way every list in this table has failed so far -- `not_probed` lost
 # `claude upgrade` to its name, `lib_surface.sh` lost eight rows to
 # `.families[].entries[]`. `self_loop` is AUTHORED: nothing in a row says its
@@ -1165,13 +1114,13 @@ $(printf '%s' "$POPULATIONS_SKEW" | sed 's/^/  /')"
 # binds `is_shipped()` to `populations.shipped`. Named as owed rather than
 # implied to be covered.
 #
-# Mutation-proved 2026-08-17, six arms through the real generator:
+# Mutation-proved 2026-08-17 through the real generator, on the six-arm form
+# that also read `observed`; the four arms below are that proof's, inherited
+# and not re-run since the `observed` arms went:
 #   A  steady                                             -> silent
 #   B  `target.no_op` deleted from one row                -> REFUSES, names the row
-#   C  `observed.no_op` deleted from one parity row       -> REFUSES, names the row
-#   D  a row dropped from `self_loop` but keeping `no_op` -> REFUSES as orphaned
-#   E  an `observed` block added to a `new-surface` row   -> REFUSES on the premise
-#   F  `target.no_op` set to ""                           -> REFUSES as empty
+#   C  a row dropped from `self_loop` but keeping `no_op` -> REFUSES as orphaned
+#   D  `target.no_op` set to ""                           -> REFUSES as empty
 NO_OP_SKEW="$(jq -r '
   def rows: [.families[].entries[], .new_surface[]?];
   def ships: select((.disposition != "retire") and (.target.state != "retire"));
@@ -1181,20 +1130,11 @@ NO_OP_SKEW="$(jq -r '
   | ( [ $pop[] | select(. as $p | ($live | map(.path) | index($p)) | not)
         | "`populations.self_loop` names `" + . + "`, which is not a shipped row" ] )
   + ( [ $live[] | select(.path as $p | $pop | index($p))
-        | . as $e
-        | ( if (($e.target.no_op // "") | length) == 0
-            then ["`" + $e.path + "` is in `self_loop` and has no `target.no_op` -- what v3 prints on the no-op is exactly what this population exists to state"]
-            else [] end )
-        + ( if ($e | has("observed")) and ((($e.observed.no_op) // "") | length) == 0
-            then ["`" + $e.path + "` is in `self_loop`, has an `observed` block, and no `observed.no_op` -- the v2 baseline is missing, so the row cannot say whether v3 deviates"]
-            else [] end )
-        | .[] ] )
+        | select(((.target.no_op // "") | length) == 0)
+        | "`" + .path + "` is in `self_loop` and has no `target.no_op` -- what v3 prints on the no-op is exactly what this population exists to state" ] )
   + ( [ $live[] | select(.path as $p | ($pop | index($p)) | not)
-        | select((.target | has("no_op")) or ((.observed // {}) | has("no_op")))
+        | select(.target | has("no_op"))
         | "`" + .path + "` carries a `no_op` but is NOT in `populations.self_loop`. Somebody knew this verb self-loops and the list did not -- add it, because an authored list going short is how every other list in this table has failed" ] )
-  + ( [ $live[] | select(.path as $p | $pop | index($p))
-        | select( ((. | has("observed")) == (.target.state == "new-surface")) )
-        | "`" + .path + "`: `observed` present is " + ((. | has("observed")) | tostring) + " and `target.state == new-surface` is " + ((.target.state == "new-surface") | tostring) + ". `no_op_note` argues a missing `observed.no_op` is unambiguous BECAUSE those two are always opposite; this row breaks the premise, so the third shape stops working" ] )
   | join("\n")' "$IN")"
 [ -z "$NO_OP_SKEW" ] || die "the \`no_op\` declarations disagree with \`populations.self_loop\`. This is the notation issue 0050 asked for -- what a verb prints when nothing moved -- and it is only worth having if every row that can self-loop carries it and no row outside the population carries one unseen:
 $(printf '%s' "$NO_OP_SKEW" | sed 's/^/  /')"
@@ -1334,7 +1274,6 @@ jq -r "$JQ_LIB"'
   .invariants[]? |
   "### \(.id) -- \(.title)\n",
   "\(.rule)\n",
-  "- **v2:** \(.v2 | cell)",
   (if .evidence then "- **Evidence:** \(.evidence | cell)" else empty end),
   (if .evidence_class then ("- **Evidence class:** `\(.evidence_class.class)` -- \(.evidence_class.why)" +
      (if .evidence_class.pinned_by then "\n  - Pinned by: \(.evidence_class.pinned_by)" else "" end)) else empty end),
@@ -1356,7 +1295,6 @@ FAMILY_COUNT="$(jq -r '.families | length' "$IN")"
 for i in $(seq 0 $((FAMILY_COUNT - 1))); do
   F="$(jq -c ".families[$i]" "$IN")"
   NAME="$(printf '%s' "$F" | jq -r '.name')"
-  V2SRC="$(printf '%s' "$F" | jq -r '.v2_source // "new-surface"')"
   WP="$(printf '%s' "$F" | jq -r '.owner_wp // "--"')"
   FHELP="$(printf '%s' "$F" | jq -r '.help // ""')"
 
@@ -1364,17 +1302,6 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
   emit ""
   emit "$FHELP"
   emit ""
-  emit "- **v2 source:** \`$V2SRC\`"
-  # Wrap in backticks ONLY when the value does not already contain one.
-  # Wrapping a value that carries its own backticks produces a nested span the
-  # markdown formatter then "normalises" by collapsing the spaces inside it --
-  # turning `a` against `b` into `a`against`b`, which inverts nothing here but
-  # silently could. Caught by the skew check on this very file, which is the
-  # first time that check has paid for itself.
-  emit "- **v2 help file:** $(printf '%s' "$F" | jq -r '
-    if .v2_help_file == null then "none"
-    elif (.v2_help_file | test("`")) then .v2_help_file
-    else "`" + .v2_help_file + "`" end')"
   emit "- **Owning work package:** $WP"
   if printf '%s' "$F" | jq -e '.bats_coverage' >/dev/null 2>&1; then
     # THE VERDICT ONLY, NEVER THE TALLY (hv's count ban, 2026-09-11): the
@@ -1400,7 +1327,6 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     .entries[]? |
     "### `\(.path)`\n",
     "\(.help)\n",
-    "- **v2:** \(.v2 | cell)",
     (if (.args | length) > 0 then ("- **Arguments:**\n" + (.args | map(
        "  - `\(.name)` (\(.type), arity `\(.arity)`)" +
        (if .help then " -- \(.help)" else "" end) +
@@ -1410,23 +1336,6 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
        (if .note then "\n    - " + .note else "" end)
      ) | join("\n"))) else empty end),
     (flagblock // empty),
-    (if .observed then
-      "- **Exit codes:**\n" + (.observed.exit | map("  - `\(.code)` -- \(.when)") | join("\n"))
-     else "- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run" end),
-    (if .observed then "- **stdout:** \(.observed.stdout | cell)" else empty end),
-    (if .observed then "- **stderr:** \(.observed.stderr | cell)" else empty end),
-    (if .observed.side_effects then ("- **Side effects:**\n" + (.observed.side_effects | map("  - " + .) | join("\n"))) else empty end),
-    (if .observed.notes then "- **Observed notes:** \(.observed.notes)" else empty end),
-    (if .observed.defects then ("- **Defects observed in v2:**\n" + (.observed.defects | map(
-       # `id: local` means an entry-specific defect that no invariant covers,
-       # so there is no ID to point at and the detail stands alone. Any other
-       # id names an invariant: print the ID plus this entry`s locus and STOP.
-       # Restating the rule here is the divergent copy ruling 3 exists to stop.
-       if type == "object" then
-         (if .id == "local" then "  - " + .detail
-          else "  - " + .id + (if .where then " at " + .where else "" end) end)
-       else "  - " + . end
-     ) | join("\n"))) else empty end),
     "- **Target:** `\(.target.state)`" +
       (if .target.ratification then " -- ratified: \(.target.ratification)" else "" end) +
       (if .target.behaviour then " -- behaviour: \(.target.behaviour)" else "" end),
@@ -1648,36 +1557,6 @@ INV_UNCITED="$(jq -r '
 [ -z "$INV_DANGLING" ] || die "citation(s) to undeclared invariant(s):$INV_DANGLING -- the rule text lives in exactly one place, so a citation pointing nowhere is a divergent copy in the direction nobody checks"
 [ -z "$INV_UNCITED" ] || die "declared but never cited:$INV_UNCITED -- an invariant no row references is an orphan that still reads as governing. Cite it or retire it; leaving it is the stale-canon shape."
 
-# INV-04 asserts the shipped surface exits 0, 1, 2, 3 or 4. That is a claim about
-# MEASURED data sitting in the same file as the measurements, so it can be
-# checked against them rather than trusted. REPORTS THE DISAGREEMENT AND REFUSES
-# rather than picking a side: a code outside the set means either a genuinely new
-# exit path was measured (INV-04 needs updating) or a row is wrong, and those
-# have opposite remedies. Same posture as drift_check.sh, for the same reason.
-#
-# **THE SET IS DUPLICATED HERE AND IN INV-04, AND THAT COPY HAS ALREADY DRIFTED
-# ONCE -- SO CHANGING ONE MEANS CHANGING BOTH.** INV-04 was corrected on
-# 2026-08-20 to admit `3` (REFUSED): its title, its `rule`, and its `v2` field
-# all name `bin/intent_critic:334` and `:347`. **This check was not corrected
-# with it, and neither was the comment above, which read "0, 1 or 2 ONLY" for
-# six days after the canon it describes stopped saying that.**
-#
-# **NOTHING CAUGHT IT BECAUSE NO ROW CARRIED A 3.** The check agreed with the
-# stale set precisely as long as the data never exercised the difference, so a
-# green here meant "no row has tested this" and read as "the canon conforms".
-# It surfaced 2026-08-26 only when ic added `critic`'s true `code 3` row -- ie
-# the instrument was blind for exactly as long as it was unneeded, and went red
-# on the first correct data it ever saw. **The same shape as the defect that
-# edit fixed: the 2026-08-20 correction landed in one home and not the other,
-# one file apart, and the home nobody re-reads kept the old value.**
-#
-# **AND IT DRIFTED A SECOND TIME, THE SAME WAY.** INV-04 admitted `4` with
-# issue 0308, `doctor`'s could-not-judge, and this set did not, because no row
-# carried a 4 until `guards` and `lang declared` did (vc's ruling, 2026-10-23).
-EXIT_ODD="$(jq -r '[.families[].entries[] | (.observed.exit // [])[] | .code]
-  | unique | map(select(. != 0 and . != 1 and . != 2 and . != 3 and . != 4)) | join(" ")' "$IN")"
-[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2/3/4:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
-
 # --- FORMATTER FIXED POINT: the view must survive the repo formatter --------
 #
 # lib_mdfmt.sh names two causes of generator/formatter skew and fixes only the
@@ -1774,7 +1653,7 @@ done
 # `extras` renders is harmless; skipping one that nothing renders is the hole.
 for key in $(jq -r '
     [ .families[].entries[] | keys[] ]
-    - ["path","help","args","flags","v2","aliases","observed","target",
+    - ["path","help","args","flags","aliases","target",
        "disposition","cross_ref",
        "exposed_on_mcp","read_or_mutate","mcp_review"]
     | unique | .[]' "$IN"); do
