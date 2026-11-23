@@ -101,49 +101,29 @@ DELETED_PATHS=(
 # Group 3: agents_sync_idempotent
 # ====================================================================
 
-# SERIAL, BECAUSE IT WRITES INTO THE CHECKOUT. It runs `intent agents sync` in
-# the project root, which rewrites the root's AGENTS.md, and then puts that file
-# back with a plain cp, which truncates it before it writes it. The first two
-# tests of prior_art_route.bats grep the same AGENTS.md for lines it must carry,
-# and a read inside that cp sees a short file. devbin's lanes runner keeps a
-# test tagged `serial` out of its parallel lane (ST0093 WP-06).
-# bats test_tags=serial
+# IN A SCRATCH PROJECT, NEVER THE CHECKOUT (dc's todo 87). `agents sync` is a
+# writer: it rewrites AGENTS.md and records the file it wrote in its project's
+# store. Run in the checkout, it moved the store of the tree under test on every
+# suite run, and raced prior_art_route.bats, which reads the root's AGENTS.md.
+# Idempotence is the renderer's property, so a project `intent init` makes
+# answers it as well as this one does.
 @test "agents_sync_idempotent: two sync runs produce identical AGENTS.md" {
-  # Run sync twice in the real Intent project root; second run must produce
-  # byte-identical output. Backups created by the sync command are removed
-  # at the end of the test to leave the tree clean.
-  #
-  # The test snapshots and restores the working-tree AGENTS.md so the run
-  # has no observable side effect on the repo. Without this, a developer
-  # running the suite locally ends up with `git status` showing AGENTS.md
-  # modified (just a timestamp move), which then blocks `bin/release`'s
-  # clean-tree pre-flight. v2.11.5 surfaced this when chasing a "phantom"
-  # dirty-tree state.
-  local agents_md="${INTENT_PROJECT_ROOT}/AGENTS.md"
-  local snapshot first second
-  snapshot="$(mktemp /tmp/agents-sync-snap-XXXXXX)"
-  first="$(mktemp /tmp/agents-sync-1-XXXXXX)"
-  second="$(mktemp /tmp/agents-sync-2-XXXXXX)"
-
-  cp "$agents_md" "$snapshot"
-
-  cd "${INTENT_PROJECT_ROOT}" || fail "could not cd to project root"
+  export HOME="$TEST_TEMP_DIR/home"
+  mkdir -p "$HOME" "$TEST_TEMP_DIR/proj"
+  unset_user_dirs
+  cd "$TEST_TEMP_DIR/proj" || fail "could not cd to the scratch project"
+  "$INTENT_BIN" init "Agents sync" >/dev/null 2>&1 \
+    || fail "intent init did not make the scratch project"
 
   "$INTENT_BIN" agents sync >/dev/null 2>&1 \
     || fail "first intent agents sync failed"
-  cp "$agents_md" "$first"
+  cp AGENTS.md "$TEST_TEMP_DIR/first"
 
   "$INTENT_BIN" agents sync >/dev/null 2>&1 \
     || fail "second intent agents sync failed"
-  cp "$agents_md" "$second"
 
-  diff "$first" "$second" >/dev/null \
+  diff "$TEST_TEMP_DIR/first" AGENTS.md >/dev/null \
     || fail "agents sync is not idempotent: outputs differ between runs"
-
-  # Restore the working-tree AGENTS.md and clean up sync's .bak sidecar.
-  cp "$snapshot" "$agents_md"
-  rm -f "${agents_md}.bak"
-  rm -f "$snapshot" "$first" "$second"
 }
 
 # ====================================================================
