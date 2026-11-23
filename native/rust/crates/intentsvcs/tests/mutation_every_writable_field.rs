@@ -1694,12 +1694,14 @@ fn entity_json(facade: &intentsvcs::facade::Facade, url: &str) -> Value {
       serde_json::to_value(thread).expect("a thread serialises")
     }
     intentsvcs::address::Entity::Wp { wp, .. } => {
-      let seq = intentsvcs::id::normalise_wp_id(wp).expect("the fixture addresses a numeric wp");
+      let intentsvcs::id::Spelled::Whole(seq) = wp else {
+        panic!("the fixture addresses a whole wp: {wp:?}");
+      };
       let row = thread
         .wps
         .iter()
-        .find(|w| w.seq == seq)
-        .unwrap_or_else(|| panic!("wp {wp} is in the fixture"));
+        .find(|w| w.seq == *seq)
+        .unwrap_or_else(|| panic!("wp {} is in the fixture", wp.segment()));
       serde_json::to_value(row).expect("a work package serialises")
     }
     other => panic!(

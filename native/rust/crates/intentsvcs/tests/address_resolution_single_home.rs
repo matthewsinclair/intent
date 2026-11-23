@@ -42,7 +42,7 @@ fn d57_8_forms() -> Vec<(&'static str, Entity)> {
       "intent:///threads/ST0056/wp/02",
       Entity::Wp {
         thread: "ST0056".into(),
-        wp: "02".into(),
+        wp: intentsvcs::id::address_segment("02").expect("a package segment"),
       },
     ),
     (
@@ -200,6 +200,23 @@ fn a_path_is_not_an_address() {
       "`{not_a_url}` is not an address and must not resolve as one"
     );
   }
+}
+
+/// ST1c2db93 P9: the package segment is read at the parse, as the thread
+/// segment is, so a view's `WP-` heading is refused there as no package id.
+#[test]
+fn a_package_heading_in_the_wp_segment_is_refused_at_parse() {
+  let err = parse("intent:///threads/ST0056/wp/WP-2").expect_err("a heading is no package id");
+  assert!(
+    matches!(
+      &err,
+      AddressError::MalformedId {
+        kind: intentsvcs::id::IdKind::WorkPackage,
+        id,
+      } if id == "WP-2"
+    ),
+    "refused as a malformed package id: {err:?}"
+  );
 }
 
 /// An unknown collection is refused rather than guessed at, and the refusal

@@ -3094,7 +3094,7 @@ impl Project {
 
   /// Every thread id with committed canon, sorted. Absent `st/` is an empty
   /// project, not an error -- `intent init` creates the directory lazily.
-  pub fn thread_ids(&self) -> Result<Vec<String>, ProjectError> {
+  pub fn thread_ids(&self) -> Result<Vec<crate::id::ThreadId>, ProjectError> {
     let Ok(entries) = std::fs::read_dir(self.canon_st_dir()) else {
       return Ok(Vec::new());
     };
@@ -3104,11 +3104,13 @@ impl Project {
       .map(|e| e.path())
       .filter(|p| p.extension().is_some_and(|x| x == "json"))
     {
-      ids.push(self.canon_name(&path, "steel thread", |stem| {
-        crate::id::ThreadId::parse(stem).map(|id| id.stored())
-      })?);
+      ids.push(self.canon_name(&path, "steel thread", crate::id::ThreadId::parse)?);
     }
-    ids.sort();
+    // Typed, as [`Self::issue_numbers`] is (ST1c2db93 P8), and ordered by the
+    // stored text it always was: a thread's typed order puts every ordinal
+    // before every hash, which would reorder what a reader of this list
+    // reports on an estate holding both.
+    ids.sort_unstable_by(|a, b| a.as_str().cmp(b.as_str()));
     Ok(ids)
   }
 
@@ -3552,6 +3554,35 @@ mod tests {
     )
     .expect("write config");
     dir
+  }
+
+  #[test]
+  fn thread_ids_keep_the_stored_texts_order() {
+    // ST1c2db93 P8: an ordinal beside a hashed thread whose text sorts first.
+    // The typed order puts every ordinal first; this list keeps the text's.
+    use crate::id::{HASH_HEX, THREAD_PREFIX, ThreadId};
+    let dir = fixture();
+    let project = Project::open(dir.path()).expect("open");
+    let ordinal = ThreadId::from_ordinal(59).expect("an ordinal that fits");
+    let hashed = ThreadId::parse(&format!(
+      "{THREAD_PREFIX}{:a<width$}",
+      "0012",
+      width = HASH_HEX
+    ))
+    .expect("a whole hashed thread id");
+    assert!(
+      ordinal < hashed && hashed.as_str() < ordinal.as_str(),
+      "precondition: the typed order and the text order disagree on this pair"
+    );
+    std::fs::create_dir_all(project.canon_st_dir()).expect("mkdir");
+    for id in [&ordinal, &hashed] {
+      std::fs::write(project.thread_json(id), "{}").expect("write a canon file");
+    }
+    assert_eq!(
+      project.thread_ids().expect("the canon names its threads"),
+      [hashed, ordinal],
+      "stored-text order, as the list always gave"
+    );
   }
 
   #[test]

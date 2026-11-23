@@ -1357,7 +1357,7 @@ fn section_of(label: &str) -> String {
 /// package was made, not by its hex (issue Ib383ad5). `thread.wps` is already
 /// in `id::record_order`, which every loader establishes, and every view reads
 /// it as it stands. A section whose group names no package of the thread goes
-/// last, by `id::label_order`.
+/// last, by `id::id_order`.
 fn groups(thread: &Thread) -> Vec<String> {
   let order: Vec<String> = std::iter::once(crate::id::THREAD_GROUP.to_string())
     .chain(thread.wps.iter().map(|wp| wp.seq.stored()))
@@ -1372,7 +1372,7 @@ fn groups(thread: &Thread) -> Vec<String> {
   seen.sort_by(|a, b| {
     rank(a)
       .cmp(&rank(b))
-      .then_with(|| crate::id::label_order(a, b))
+      .then_with(|| crate::id::id_order(a, b))
   });
   seen.dedup();
   seen

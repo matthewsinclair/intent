@@ -695,7 +695,7 @@ pub fn file_rel(e: &Envelope) -> Result<std::path::PathBuf, EventFileError> {
   if !is_stamp(&e.ts) {
     return Err(misstamped());
   }
-  let day = e.ts.get(..10).ok_or_else(misstamped)?;
+  let day = LoggedStamp::of_envelope(e).day();
   Ok(
     std::path::PathBuf::from(&day[..4])
       .join(&day[5..7])
@@ -708,6 +708,39 @@ pub fn file_rel(e: &Envelope) -> Result<std::path::PathBuf, EventFileError> {
 /// the form every other canon file takes.
 pub fn to_file(e: &Envelope) -> Result<String, serde_json::Error> {
   crate::model::to_canonical_json(e)
+}
+
+/// How many leading characters of an event's stamp are its day: `YYYY-MM-DD`.
+const DAY_OF_STAMP: usize = "YYYY-MM-DD".len();
+
+/// **A STAMP THE LOG HOLDS** (ST1c2db93 P15, D42): an event's `ts`, as the
+/// write that made the event set it. Its field is private and its only
+/// constructors are named for where a stamp comes from, an envelope or a row
+/// of the store's event log, so no signature takes a time, and it is the one
+/// reader of a stamp's day. The day is read as the log holds it: a write
+/// refuses a stamp outside [`STAMP_PATTERN`] ([`file_rel`]), so a stamp the
+/// log holds has that shape.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoggedStamp<'a>(std::borrow::Cow<'a, str>);
+
+impl<'a> LoggedStamp<'a> {
+  /// An envelope's stamp, borrowed.
+  pub(crate) fn of_envelope(e: &'a Envelope) -> Self {
+    Self(std::borrow::Cow::Borrowed(&e.ts))
+  }
+
+  /// The stamp in column `idx` of an `event_log` row.
+  pub(crate) fn of_log_row(row: &rusqlite::Row<'_>, idx: usize) -> rusqlite::Result<Self> {
+    row
+      .get::<_, String>(idx)
+      .map(|ts| Self(std::borrow::Cow::Owned(ts)))
+  }
+
+  /// The stamp's leading `YYYY-MM-DD`: the day [`file_rel`] files the event
+  /// under and a face shows as a record's created day.
+  pub fn day(&self) -> String {
+    self.0.chars().take(DAY_OF_STAMP).collect()
+  }
 }
 
 /// The shape of a written event's [`Envelope::ts`]: RFC 3339 UTC to the

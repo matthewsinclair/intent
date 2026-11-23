@@ -200,6 +200,38 @@ fn bare_hex_at_the_door_that_does_not_know_the_collection_is_asked_of_both() {
   );
 }
 
+/// ST1c2db93 P5: the door that does not know the collection words a refusal
+/// for the kind the spelling asks for. An issue's tag before a number too wide
+/// for an issue is refused as an issue id, never as a steel thread's.
+#[test]
+fn the_named_door_refuses_for_the_kind_the_spelling_asks_for() {
+  use intentsvcs::id::{HASH_HEX, ISSUE_DIGITS, IdKind};
+  let e = estate();
+  let tag = IdKind::Issue.tag().expect("an issue has a tag");
+  // Zeros past a hash's width, so no hex reading takes it, then one digit more
+  // than an issue ordinal carries.
+  let typed = format!(
+    "{tag}{}{}",
+    "0".repeat(HASH_HEX),
+    "1".repeat(ISSUE_DIGITS + 1)
+  );
+  match e.f.resolve_named(&typed) {
+    Err(FacadeError::NotAnId { refusal, .. }) => {
+      assert!(
+        refusal.message.contains(IdKind::Issue.with_article()),
+        "refused as an issue id: {}",
+        refusal.message
+      );
+      assert!(
+        !refusal.message.contains(IdKind::Thread.with_article()),
+        "not as a steel thread's: {}",
+        refusal.message
+      );
+    }
+    other => panic!("`{typed}` is refused: {other:?}"),
+  }
+}
+
 // ST0095 AT-10.6: the arm below.
 // ST0095 AT-07.4: the arm below.
 #[test]

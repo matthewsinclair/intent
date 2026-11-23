@@ -295,7 +295,7 @@ pub fn outstanding_door(row: &intentsvcs::outstanding::Row) -> Option<View> {
       let wp = row.wp.as_ref()?;
       Entity::Wp {
         thread: wp.thread.stored(),
-        wp: wp.seq.stored(),
+        wp: intentsvcs::id::Spelled::Whole(wp.seq),
       }
     }
   };

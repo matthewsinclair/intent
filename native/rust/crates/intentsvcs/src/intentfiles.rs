@@ -100,6 +100,21 @@ pub enum Sigil {
 }
 
 impl Sigil {
+  /// Every sigil, so [`Sigil::parse`] reads each one's spelling from
+  /// [`Sigil::as_str`] and never spells it a second time. The const block
+  /// after this impl holds it to `Sigil::next`'s exhaustive walk.
+  pub const ALL: [Sigil; 2] = [Sigil::SteelThread, Sigil::Issue];
+
+  /// The sigil after this one, in declaration order. Exhaustive, so a new
+  /// sigil does not compile until it is placed in the walk that [`Sigil::ALL`]
+  /// must equal.
+  const fn next(self) -> Option<Sigil> {
+    match self {
+      Sigil::SteelThread => Some(Sigil::Issue),
+      Sigil::Issue => None,
+    }
+  }
+
   /// The wire form, which is also the only accepted spelling.
   pub fn as_str(&self) -> &'static str {
     match self {
@@ -116,11 +131,7 @@ impl Sigil {
   /// and that is the right answer: the line does not name something this tool
   /// can realise, so there is nothing to migrate it TO.
   pub fn parse(s: &str) -> Option<Self> {
-    match s {
-      "STEELTHREAD" => Some(Sigil::SteelThread),
-      "ISSUE" => Some(Sigil::Issue),
-      _ => None,
-    }
+    Self::ALL.into_iter().find(|sigil| sigil.as_str() == s)
   }
 
   /// Whether `id` is well-formed FOR THIS SIGIL.
@@ -138,6 +149,19 @@ impl Sigil {
     }
   }
 }
+
+// `Sigil::ALL` is `Sigil::next`'s walk from the first sigil, whole and in
+// order, so a sigil left out of the list fails to compile.
+const _: () = {
+  let mut at = Some(Sigil::SteelThread);
+  let mut i = 0;
+  while let Some(sigil) = at {
+    assert!(i < Sigil::ALL.len() && Sigil::ALL[i] as u8 == sigil as u8);
+    at = sigil.next();
+    i += 1;
+  }
+  assert!(i == Sigil::ALL.len());
+};
 
 /// One artefact the manifest names.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -630,7 +654,7 @@ fn declared_set(manifest: &Manifest) -> std::collections::BTreeSet<String> {
 /// thread it had just declared. A `format!` at each site would have been the
 /// same defect waiting for the next kind.
 pub fn declared_key(sigil: Sigil, id: &str) -> String {
-  format!("{}:{}", sigil.as_str(), id)
+  format!("{}{}{id}", sigil.as_str(), crate::id::SIGIL_SEPARATOR)
 }
 
 /// What an ACTING verb sees in the manifest's text: the same three-state model
@@ -693,23 +717,27 @@ impl IntentfilesError {
 impl Remedy for IntentfilesError {
   fn remedy(&self) -> String {
     match self {
+      // Both id families, from the id module's worked example (ST1c2db93 P4).
       IntentfilesError::UnknownSigil { .. } => {
-        "write STEELTHREAD:<ID> or ISSUE:<NNNN>; the manifest names artefacts, never files".into()
+        use crate::id::{EXAMPLE_HEX, ISSUE_MARKER, THREAD_PREFIX};
+        format!(
+          "write `{}` or `{}`, or `{}` or `{}`; the manifest names artefacts, never files",
+          declared_key(Sigil::SteelThread, &format!("{THREAD_PREFIX}0000")),
+          declared_key(Sigil::SteelThread, &format!("{THREAD_PREFIX}{EXAMPLE_HEX}")),
+          declared_key(Sigil::Issue, "0000"),
+          declared_key(Sigil::Issue, &format!("{ISSUE_MARKER}{EXAMPLE_HEX}")),
+        )
       }
       IntentfilesError::NotAnEntry { .. } => {
         "each line is blank, a comment, or `<SIGIL>:<ID>` with an optional trailing `# comment`; `# BEGIN INTENT` and `# END INTENT` are no longer part of the grammar, so delete a marker line and keep the entries around it".into()
       }
-      IntentfilesError::MalformedId { sigil, .. } => match *sigil {
-        "STEELTHREAD" => crate::id::THREAD_ID_FORM.into(),
-        "ISSUE" => crate::id::ISSUE_ID_FORM.into(),
-        // **STILL NOT A GUESS, AND THE CATCH-ALL EARNS ITS PLACE AGAIN THE DAY
-        // A THIRD SIGIL ARRIVES.** This arm briefly covered every sigil but
-        // STEELTHREAD, because ISSUE had been retired and the grammar had one
-        // member; ISSUE is back above with the shape it actually has. What the
-        // arm must never do is name a shape for a sigil nobody has written a
-        // remedy for, so it says which sigil it cannot help with.
-        other => format!(
-          "`{other}` is a sigil this remedy has no id shape for -- add one beside STEELTHREAD's"
+      IntentfilesError::MalformedId { sigil, .. } => match Sigil::parse(sigil) {
+        Some(Sigil::SteelThread) => crate::id::THREAD_ID_FORM.into(),
+        Some(Sigil::Issue) => crate::id::ISSUE_ID_FORM.into(),
+        // A third sigil fails to compile above until it names its shape; this
+        // arm answers only a spelling no sigil has, and names it.
+        None => format!(
+          "`{sigil}` is a sigil this remedy has no id shape for -- add one beside STEELTHREAD's"
         ),
       },
     }
@@ -753,7 +781,7 @@ pub fn parse(text: &str) -> Result<Manifest, IntentfilesError> {
       None => (trimmed, None),
     };
 
-    let Some((sigil_text, id)) = body.split_once(':') else {
+    let Some((sigil_text, id)) = body.split_once(crate::id::SIGIL_SEPARATOR) else {
       return Err(IntentfilesError::NotAnEntry {
         line,
         line_text: trimmed.to_string(),
@@ -969,9 +997,10 @@ pub fn pin(
     return Ok(original.to_string());
   }
 
+  let key = declared_key(sigil, id);
   let line = match reason {
-    Some(r) if !r.trim().is_empty() => format!("{}:{}  # {}", sigil.as_str(), id, r.trim()),
-    _ => format!("{}:{}", sigil.as_str(), id),
+    Some(r) if !r.trim().is_empty() => format!("{key}  # {}", r.trim()),
+    _ => key,
   };
 
   let mut text = original.to_string();

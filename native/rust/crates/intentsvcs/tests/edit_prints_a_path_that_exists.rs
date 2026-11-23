@@ -349,7 +349,7 @@ fn failure_a_work_package_is_not_answered_with_its_thread_file() {
     .edit(
       &at(Entity::Wp {
         thread: "ST0001".to_string(),
-        wp: "02".to_string(),
+        wp: intentsvcs::id::address_segment("02").expect("a package segment"),
       }),
       "info",
     )
@@ -444,7 +444,7 @@ fn every_address_form_is_edited_or_refused_by_name() {
     },
     Entity::Wp {
       thread: "ST0001".to_string(),
-      wp: "02".to_string(),
+      wp: intentsvcs::id::address_segment("02").expect("a package segment"),
     },
     Entity::Ac {
       thread: "ST0001".to_string(),

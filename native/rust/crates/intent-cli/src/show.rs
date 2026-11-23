@@ -44,7 +44,11 @@ pub fn thread_heading(t: &Thread) -> String {
 /// A work package's first line, under its thread as resolved and shown, as
 /// [`thread_heading`] is a thread's.
 pub fn work_package_heading(thread: &ThreadId, wp: &WorkPackage) -> String {
-  format!("{}/{}: {}", thread.shown(), wp.seq.heading(), wp.title)
+  format!(
+    "{}: {}",
+    intentsvcs::id::scoped_address(&thread.shown(), &wp.seq.heading()),
+    wp.title
+  )
 }
 
 /// An issue's first line, as [`thread_heading`] is a thread's.

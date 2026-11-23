@@ -131,7 +131,7 @@ fn in_process_wp(root: &Path, thread: &str, seq: &str) -> Vec<intentsvcs::form::
   let entity = facade
     .entity_json(&intentsvcs::address::Entity::Wp {
       thread: thread.to_string(),
-      wp: seq.to_string(),
+      wp: intentsvcs::id::address_segment(seq).expect("a package segment"),
     })
     .expect("the work package resolves");
   intentsvcs::form::triples(form, &entity)

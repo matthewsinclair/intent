@@ -870,7 +870,9 @@ fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
       ),
     )
   })?;
-  let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
+  let entity = intentsvcs::nav::entity_for_item(&view)
+    .map_err(|r| Response::error(r.message, r.remedy))?
+    .ok_or_else(|| {
     Response::error(
       format!("`{path}` does not name a single entity with a form"),
       format!(
@@ -977,12 +979,12 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
             // instead of lying.
             let instance = match &address.entity {
               Entity::Thread { id } => id.clone(),
-              // Read through the waist, so `.../wp/2` is named `ST0056/02`, as
-              // every door names it, and not echoed back as typed.
-              Entity::Wp { thread, wp } => intentsvcs::id::normalise_wp_id(wp).map_or_else(
-                |_| address.entity.form().to_string(),
-                |seq| intentsvcs::id::wp_address(thread, seq),
-              ),
+              // The parse read the segment, so `.../wp/2` is named `ST0056/02`,
+              // as every door names it, and not echoed back as typed.
+              Entity::Wp { thread, wp } => match wp {
+                intentsvcs::id::Spelled::Whole(seq) => intentsvcs::id::wp_address(thread, *seq),
+                intentsvcs::id::Spelled::Prefix(_) => address.entity.form().to_string(),
+              },
               Entity::Issue { id } => id.clone(),
               other => other.form().to_string(),
             };

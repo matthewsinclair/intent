@@ -535,7 +535,7 @@ fn probe_entity(entity: &str) -> Option<AddrEntity> {
     }),
     crate::id::IdKind::WorkPackage => Some(AddrEntity::Wp {
       thread,
-      wp: crate::id::WpId::from_ordinal(1).ok()?.stored(),
+      wp: crate::id::Spelled::Whole(crate::id::WpId::from_ordinal(1).ok()?),
     }),
   }
 }

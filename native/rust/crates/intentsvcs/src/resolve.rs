@@ -107,7 +107,7 @@ pub fn resolve(
   let (thread, issue) = match crate::address::promote(input) {
     Ok(address) => return complete(address, scope).map_err(AddressError::IdRefused),
     Err(AddressError::AmbiguousId { thread, issue, .. }) => (thread, issue),
-    Err(AddressError::PrefixOfEither { hex, .. }) => return Ok(either(input, &hex, scope)),
+    Err(AddressError::PrefixOfEither { hex, .. }) => return Ok(either(&hex, scope)),
     Err(refusal) => return Err(refusal),
   };
 
@@ -152,8 +152,8 @@ fn rungs(thread: &crate::id::ThreadId, issue: crate::id::IssueId) -> Vec<Address
 /// only ever completed among its own thread's packages.
 ///
 /// **A SEGMENT THAT IS ALREADY WHOLE IS NOT LOOKED UP.** A thread or issue
-/// segment the waist cannot read is refused in its words; a package segment it
-/// cannot read is left for the lookup, which answers it as no package.
+/// segment the waist cannot read is refused in its words; a package segment
+/// was read at the address's parse, so it arrives whole or a prefix.
 pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, crate::id::Refusal> {
   use crate::id::IdKind;
   let (authority, format) = (address.authority.clone(), address.format);
@@ -187,23 +187,25 @@ pub fn complete(address: Address, scope: &impl IdScope) -> Result<Resolution, cr
     }
   };
   let entity = address.entity.with_thread(&thread);
-  let Entity::Wp { wp, .. } = &entity else {
+  // The parse read the package segment (ST1c2db93 P9): a whole one is not
+  // looked up, and a prefix is completed among this thread's packages.
+  let Entity::Wp {
+    wp: crate::id::Spelled::Prefix(hex),
+    ..
+  } = &entity
+  else {
     return Ok(Resolution::Resolved(with(entity)));
   };
-  // A package segment the waist cannot read is left for the lookup, whose
-  // ruling is that such a segment names no package (`Facade::wp_of`).
-  Ok(match crate::id::resolve_wp(&thread, wp, scope) {
-    Ok(found) => answer(
-      &address,
-      found.map(|seq| {
-        with(Entity::Wp {
-          thread: thread.stored(),
-          wp: seq.stored(),
-        })
-      }),
-    ),
-    Err(_) => Resolution::Resolved(with(entity)),
-  })
+  let found = crate::id::complete_wp(&thread, hex, scope);
+  Ok(answer(
+    &address,
+    found.map(|seq| {
+      with(Entity::Wp {
+        thread: thread.stored(),
+        wp: crate::id::Spelled::Whole(seq),
+      })
+    }),
+  ))
 }
 
 /// A completion as a [`Resolution`]: the one address, every candidate, or the
@@ -221,7 +223,11 @@ fn answer(typed: &Address, found: Found<Address>) -> Resolution {
 /// Bare hex no ordinal could be, completed against threads and issues alike
 /// (cc's rule 5): one record is resolved, several of either kind are one
 /// ambiguity, and none names both places it was looked for.
-fn either(input: &str, hex: &str, scope: &impl IdScope) -> Resolution {
+///
+/// **THE HEX IS COMPLETED AS `promote` READ IT, AND NOT READ AGAIN**
+/// (ST1c2db93 P5): a second read could only refuse, and a refusal folded into
+/// a not-found is the silent error this once had.
+fn either(hex: &str, scope: &impl IdScope) -> Resolution {
   let address = |entity: Entity| Address {
     authority: None,
     entity,
@@ -231,10 +237,10 @@ fn either(input: &str, hex: &str, scope: &impl IdScope) -> Resolution {
     Named::Thread(id) => address(Entity::Thread { id: id.stored() }),
     Named::Issue(id) => address(Entity::Issue { id: id.stored() }),
   };
-  match crate::id::resolve_named(input, scope) {
-    Ok(Found::One(named)) => Resolution::Resolved(of(named)),
-    Ok(Found::Many(named)) => Resolution::Ambiguous(named.into_iter().map(of).collect()),
-    Ok(Found::Nothing) | Err(_) => Resolution::Unresolvable {
+  match crate::id::complete_either(hex, scope) {
+    Found::One(named) => Resolution::Resolved(of(named)),
+    Found::Many(named) => Resolution::Ambiguous(named.into_iter().map(of).collect()),
+    Found::Nothing => Resolution::Unresolvable {
       searched: vec![
         address(Entity::Thread {
           id: crate::id::Spelled::<crate::id::ThreadId>::Prefix(hex.to_string()).segment(),
@@ -377,19 +383,6 @@ mod tests {
         "{entity:?} is not an id, and completing it is refused rather than passed on"
       );
     }
-  }
-
-  #[test]
-  fn a_package_segment_the_waist_cannot_read_is_left_for_the_lookup() {
-    let typed = Entity::Wp {
-      thread: "ST0059".into(),
-      wp: "5x".into(),
-    };
-    let Ok(Resolution::Resolved(address)) = complete(bare(typed.clone()), &crate::id::NoRecords)
-    else {
-      panic!("an unreadable package segment is the lookup's to answer as no package");
-    };
-    assert_eq!(address.entity, typed);
   }
 
   #[test]

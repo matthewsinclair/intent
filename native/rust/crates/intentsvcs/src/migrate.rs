@@ -375,7 +375,7 @@ fn dehydrated(
   let mut added = Vec::new();
   let mut residue = Vec::new();
   for id in ids {
-    if seen.contains(&id) {
+    if seen.contains(id.as_str()) {
       continue;
     }
     let path = project.thread_json(&id);
@@ -392,8 +392,9 @@ fn dehydrated(
         &rel,
         FindingClass::BrokenReference,
         format!(
-          "canon names {id} and the file is not readable: {source} -- the migration would rebuild \
-           the store and the views without it"
+          "canon names {} and the file is not readable: {source} -- the migration would rebuild \
+           the store and the views without it",
+          id.as_str()
         ),
       )),
     }

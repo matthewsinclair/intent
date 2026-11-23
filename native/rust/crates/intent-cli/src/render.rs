@@ -7628,11 +7628,13 @@ fn handed_address(
     kind: kind.to_string(),
     id: id.to_string(),
   };
-  let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
-    tui::edit::Refused::new(format!(
-      "error: `{kind}` is not a kind with an item to open -- the explorer opens threads and issues"
-    ))
-  })?;
+  let entity = intentsvcs::nav::entity_for_item(&view)
+    .map_err(|r| tui::edit::Refused::new(format!("error: {}\n  remedy: {}", r.message, r.remedy)))?
+    .ok_or_else(|| {
+      tui::edit::Refused::new(format!(
+        "error: `{kind}` is not a kind with an item to open -- the explorer opens threads and issues"
+      ))
+    })?;
   Ok(intentsvcs::address::Address {
     authority: None,
     entity,
@@ -7674,7 +7676,9 @@ fn entity_json(facade: &Facade, kind: &str, id: &str) -> Result<Option<serde_jso
     kind: kind.to_string(),
     id: id.to_string(),
   };
-  let Some(entity) = intentsvcs::nav::entity_for_item(&view) else {
+  let Some(entity) = intentsvcs::nav::entity_for_item(&view)
+    .map_err(|r| format!("{} -- {}", r.message, r.remedy))?
+  else {
     return Ok(None);
   };
   facade
@@ -9700,9 +9704,13 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
       "error: `todo done <specifier>` marks one item done and `--flush` clears the whole DONE view; naming both asks for two different operations at once\n  remedy: run them separately -- mark the item done first, then `intent todo done --flush`"
         .into(),
     ),
+    // The target forms are the waist's sentence (ST1c2db93 P4).
     (None, false) => Err(
-      "error: `todo done` needs something to do\n  remedy: name a thread or work package (`intent todo done ST0000`, `ST0000/02`), or pass `--flush` to advance the DONE watermark"
-        .into(),
+      format!(
+        "error: `todo done` needs something to do\n  remedy: name {}, eg `intent todo done ST0000`, or pass `--flush` to advance the DONE watermark",
+        intentsvcs::id::TARGET_FORMS
+      )
+      .into(),
     ),
   }
 }
@@ -10365,8 +10373,10 @@ pub(crate) fn target_with<E>(
       Ok(Target::Package(thread, wp))
     }
     Some(Scoped::Package(..)) => complete().map(|(thread, wp)| Target::Package(thread, wp)),
-    Some(Scoped::Under(_, tail)) => Err(refuse(refused(&intentsvcs::id::not_a_package_part(
-      target, &tail,
+    Some(Scoped::Under(_, tail)) => Err(refuse(refused(&intentsvcs::id::package_part_refused(
+      target,
+      &tail,
+      &intentsvcs::id::IdError::NotAnId,
     )))),
   }
 }
@@ -14549,15 +14559,16 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
   let by = intentsvcs::bootstrap::recorded_author();
   let by = by.as_deref().unwrap_or("unknown");
 
+  // Which kind a child is, the waist's one label reader says (ST1c2db93 P12).
   match child {
-    Some(id) if id.starts_with("AC-") => {
+    Some(id) if intentsvcs::id::label_kind(&id) == Some(intentsvcs::id::LabelKind::Criterion) => {
       let st = thread_arg(m, "target")?;
       let mut f = open()?;
       let outcome = f.ac_fc(&st, &id, &because, by).map_err(fail)?;
       reported(&mut f, &outcome, &id, "fiat-closed");
       Ok(())
     }
-    Some(id) if id.starts_with("AT-") => {
+    Some(id) if intentsvcs::id::label_kind(&id) == Some(intentsvcs::id::LabelKind::Test) => {
       let st = thread_arg(m, "target")?;
       let mut f = open()?;
       let outcome = f.at_fc(&st, &id, &because, by).map_err(fail)?;
@@ -16763,9 +16774,13 @@ pub(crate) fn address_of(
           "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `<thread>/03`"
         ))
       })?;
+      // The package part is read by the operator's package door, so the
+      // entity carries it typed (ST1c2db93 P9).
+      let wp = intentsvcs::id::read_wp(wp)
+        .map_err(|e| refused(&intentsvcs::id::package_part_refused(raw, wp, &e)))?;
       Entity::Wp {
         thread: thread.to_string(),
-        wp: wp.to_string(),
+        wp,
       }
     }
     _ => Entity::Issue {
@@ -19065,7 +19080,7 @@ mod tests {
     // in as the omnibox's spelling route reads it, lands on that same view.
     for (spelling, view) in [
       (thread.shown(), &item),
-      (format!("{}/{}", thread.shown(), package.shown()), &child),
+      (intentsvcs::id::wp_address_shown(&thread, package), &child),
     ] {
       match intentsvcs::nav::land(&spelling, |_| true, &live.facade) {
         Landing::At(landed) => assert_eq!(&landed, view, "`{spelling}` landed elsewhere"),

@@ -50,7 +50,7 @@ fn addressed(form_entity: &str) -> Option<Entity> {
     }),
     "wp" => Some(Entity::Wp {
       thread: THREAD.to_string(),
-      wp: WP_SEQ.to_string(),
+      wp: intentsvcs::id::address_segment(WP_SEQ).expect("the fixture's package segment"),
     }),
     "issue" => Some(Entity::Issue {
       id: crate::common::issue(ISSUE).stored(),
@@ -157,7 +157,7 @@ fn a_work_package_resolves_to_its_own_fields_and_not_to_its_threads() {
   let wp = facade
     .entity_json(&Entity::Wp {
       thread: THREAD.to_string(),
-      wp: WP_SEQ.to_string(),
+      wp: intentsvcs::id::address_segment(WP_SEQ).expect("the fixture's package segment"),
     })
     .expect("a declared `wp` form needs a resolvable work package");
   let thread = facade

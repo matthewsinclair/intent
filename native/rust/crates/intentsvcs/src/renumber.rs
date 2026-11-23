@@ -229,11 +229,13 @@ fn moved_claim(claim: &str, old: &str, new: &str) -> Option<String> {
     return Some(new.to_string());
   }
   // A package claim under a moved thread moves with it, split by the waist's
-  // reader of the separator and rebuilt by its writer.
-  crate::id::split_wp_address(claim)
-    .filter(|(thread, _)| *thread == old)
-    .and_then(|(_, package)| crate::id::WpId::parse(package).ok())
-    .map(|wp| crate::id::wp_address(new, wp))
+  // one reader of the claim grammar and rebuilt by its writer.
+  match crate::id::read_claim(claim) {
+    crate::id::Claim::Package(thread, package) if thread == old => crate::id::WpId::parse(package)
+      .ok()
+      .map(|wp| crate::id::wp_address(new, wp)),
+    _ => None,
+  }
 }
 
 #[cfg(test)]

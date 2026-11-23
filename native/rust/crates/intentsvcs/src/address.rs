@@ -140,9 +140,11 @@ pub enum Entity {
   AcCollection {
     thread: String,
   },
+  /// The package segment is read once, at the parse ([`crate::id::address_segment`]),
+  /// so every reader after takes the typed value (ST1c2db93 P9).
   Wp {
     thread: String,
-    wp: String,
+    wp: crate::id::Spelled<crate::id::WpId>,
   },
   Ac {
     thread: String,
@@ -692,6 +694,15 @@ fn thread(id: &str) -> Result<String, AddressError> {
   })
 }
 
+/// A package segment, read by the waist's one reader of it: its stored id, an
+/// ordinal as typed, or a prefix for [`crate::resolve`] to complete.
+fn package(wp: &str) -> Result<crate::id::Spelled<crate::id::WpId>, AddressError> {
+  crate::id::address_segment(wp).map_err(|_| AddressError::MalformedId {
+    kind: crate::id::IdKind::WorkPackage,
+    id: wp.to_string(),
+  })
+}
+
 fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> {
   let trailing = || AddressError::TrailingSegments {
     input: input.to_string(),
@@ -717,7 +728,7 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
     }),
     ["threads", id, "wp", wp] => Ok(Entity::Wp {
       thread: thread(id)?,
-      wp: wp.to_string(),
+      wp: package(wp)?,
     }),
     ["threads", id, "ac", ac] => Ok(Entity::Ac {
       thread: thread(id)?,
@@ -808,7 +819,7 @@ impl Address {
       Entity::WpCollection { thread } => format!("threads/{thread}/wp"),
       Entity::Thread { id } => format!("threads/{id}"),
       Entity::AcCollection { thread } => format!("threads/{thread}/ac"),
-      Entity::Wp { thread, wp } => format!("threads/{thread}/wp/{wp}"),
+      Entity::Wp { thread, wp } => format!("threads/{thread}/wp/{}", wp.segment()),
       Entity::Ac { thread, ac } => format!("threads/{thread}/ac/{ac}"),
       Entity::At { thread, at } => format!("threads/{thread}/at/{at}"),
       Entity::Attachment { thread, path } => format!("threads/{thread}/attachments/{path}"),
@@ -875,9 +886,10 @@ fn view_path_of(project: &Project, entity: &Entity) -> Option<std::path::PathBuf
     Entity::Threads => Some(project.steel_threads_view()),
     Entity::Thread { id } => Some(project.info_view(id)),
     Entity::AcCollection { thread } => Some(project.acceptance_view(thread)),
-    Entity::Wp { thread, wp } => crate::id::normalise_wp_id(wp)
-      .ok()
-      .map(|seq| project.wp_info_view(thread, seq)),
+    Entity::Wp { thread, wp } => match wp {
+      crate::id::Spelled::Whole(seq) => Some(project.wp_info_view(thread, *seq)),
+      crate::id::Spelled::Prefix(_) => None,
+    },
     // **`id` IS READ RATHER THAN INTERPOLATED**, for the reason
     // `canon_issue_rel` records: two ends that each format the same number
     // independently once shipped `issues/46.json` against readers opening

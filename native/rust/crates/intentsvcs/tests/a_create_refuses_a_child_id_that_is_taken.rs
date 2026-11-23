@@ -356,6 +356,12 @@ fn at_edit_refuses_a_call_that_names_nothing_to_change() {
     matches!(&err, FacadeError::NothingToChange { .. }),
     "silence must not be reported as success: {err}"
   );
+  // The test is named by its slash form, as an event subject names it
+  // (ST1c2db93 P2), never `<thread> <label>`.
+  assert!(
+    err.to_string().contains("ST0001/AT-03.1"),
+    "the refusal names the test by its slash form: {err}"
+  );
   let remedy = err.remedy();
   for flag in ["--file", "--prose", "--covers"] {
     assert!(
@@ -675,7 +681,7 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
   assert_eq!(
     reset.notes(),
     &[intentsvcs::facade::Note::StatusResetByRekind {
-      row: "ST0001 AT-03.2".to_string(),
+      row: "ST0001/AT-03.2".to_string(),
       kind: "test".to_string(),
       from: "n/a".to_string(),
       to: "to-write".to_string(),

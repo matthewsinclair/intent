@@ -466,7 +466,9 @@ fn an_item_view_round_trips_to_the_entity_it_came_from() {
   ] {
     let view = intentsvcs::nav::view_for(&entity).expect("both forms have item views");
     assert_eq!(
-      intentsvcs::nav::entity_for_item(&view).as_ref(),
+      intentsvcs::nav::entity_for_item(&view)
+        .expect("an item view reads")
+        .as_ref(),
       Some(&entity),
       "the inverse must return the entity the view was built from"
     );
@@ -478,7 +480,7 @@ fn an_item_view_round_trips_to_the_entity_it_came_from() {
     intentsvcs::nav::entity_for_item(&View::Collection {
       kind: "thread".to_string()
     }),
-    None
+    Ok(None)
   );
 }
 
@@ -496,11 +498,11 @@ fn a_zero_padded_wp_address_lands_on_the_row_its_descent_names() {
   });
   let padded = intentsvcs::nav::view_for(&Entity::Wp {
     thread: "ST0001".to_string(),
-    wp: "02".to_string(),
+    wp: intentsvcs::id::address_segment("02").expect("a package segment"),
   });
   let bare = intentsvcs::nav::view_for(&Entity::Wp {
     thread: "ST0001".to_string(),
-    wp: "2".to_string(),
+    wp: intentsvcs::id::address_segment("2").expect("a package segment"),
   });
   assert_eq!(
     padded, row,

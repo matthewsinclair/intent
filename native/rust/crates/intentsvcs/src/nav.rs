@@ -613,20 +613,18 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     //
     // **THE ITEM IS THE PACKAGE'S STORED ID, WHICH THE `wps` ROWS ARE NAMED BY**
     // (issue 0553, and the Highlander sweep's C3). An address may carry `wp/2`
-    // or `wp/02`, and both read through the waist to `02`, the name the rows
-    // carry; a spelling that is not a package id passes through, and the view
-    // says it names nothing.
+    // or `wp/02`, and the parse reads both to `02`, the name the rows carry
+    // (ST1c2db93 P9: the segment is read once, there).
     //
-    // **IT TAKES A STORED PACKAGE ID, OR AN ORDINAL AS TYPED** (ST0095 WP-11).
-    // A SHOWN all-digit hashed package, `0123`, reads here as ordinal 123 and
-    // names nothing; every caller passes the stored id (`outstanding_door`,
-    // and `resolve::complete` rewrites a typed prefix to it), and a face that
-    // starts from a shown form resolves it first, as `land` does.
+    // **A PREFIX PASSES THROUGH AS TYPED AND NAMES NOTHING** (ST0095 WP-11):
+    // every caller passes a whole id (`outstanding_door`, and
+    // `resolve::complete` completes a typed prefix), and a face that starts
+    // from a shown form resolves it first, as `land` does.
     Entity::Wp { thread, wp } => Some(View::Child {
       kind: "thread".to_string(),
       id: thread.to_string(),
       field: "wps".to_string(),
-      item: crate::id::normalise_wp_id(wp).map_or_else(|_| wp.to_string(), |seq| seq.stored()),
+      item: wp.segment(),
     }),
     // A criterion, a test and an attachment are ROWS INSIDE a collection this
     // surface renders, not items with views of their own.
@@ -661,16 +659,17 @@ pub fn view_for(entity: &Entity) -> Option<View> {
 /// underscoring in one of the two signatures, is now read.
 ///
 /// `None` for a view that is not an item, and for any kind outside the two that
-/// have item views at all. [`view_for`] is the roster --
+/// have item views at all. A `wps` item that is no package id is refused, never
+/// folded into that `None` (ST1c2db93). [`view_for`] is the roster --
 /// `an_item_view_round_trips_to_the_entity_it_came_from` drives the pair
 /// together so neither can grow an arm the other lacks.
-pub fn entity_for_item(view: &View) -> Option<Entity> {
-  match view {
-    View::Item { kind, id } => match crate::id::IdKind::of_wire(kind)? {
-      crate::id::IdKind::Thread => Some(Entity::Thread { id: id.clone() }),
-      crate::id::IdKind::Issue => Some(Entity::Issue { id: id.clone() }),
+pub fn entity_for_item(view: &View) -> Result<Option<Entity>, crate::id::Refusal> {
+  Ok(match view {
+    View::Item { kind, id } => match crate::id::IdKind::of_wire(kind) {
+      Some(crate::id::IdKind::Thread) => Some(Entity::Thread { id: id.clone() }),
+      Some(crate::id::IdKind::Issue) => Some(Entity::Issue { id: id.clone() }),
       // A package's item is the child rung below, never a top-level item.
-      crate::id::IdKind::WorkPackage => None,
+      Some(crate::id::IdKind::WorkPackage) | None => None,
     },
     // **THE CHILD RUNG IS AN ITEM VIEW, WHICH IS WHY IT BELONGS IN THIS
     // FUNCTION AND NOT BESIDE IT.** A face standing on `/thread/ST0056/wps/17`
@@ -690,10 +689,11 @@ pub fn entity_for_item(view: &View) -> Option<Entity> {
       item,
     } if kind == "thread" && field == "wps" => Some(Entity::Wp {
       thread: id.clone(),
-      wp: item.clone(),
+      wp: crate::id::address_segment(item)
+        .map_err(|e| crate::id::refusal(item, &e, crate::id::IdKind::WorkPackage))?,
     }),
     _ => None,
-  }
+  })
 }
 
 /// Resolve an operator's spelling to a [`Landing`].

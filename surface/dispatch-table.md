@@ -4557,7 +4557,7 @@ Add a steel thread, work package or issue to the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (claim-address, arity `1`) -- What to claim: a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`
+  - `id` (claim-address, arity `1`) -- What to claim: a thread as `ST0000` or `ST3f9a2c1d4e5f6a7b`, a work package as `ST0000/01` or `ST3f9a2c1d4e5f6a7b/c2e41a0b`, or an issue as `ISSUE:0000` or `ISSUE:I3f9a2c1d4e5f6a7b`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep
@@ -4565,7 +4565,7 @@ Add a steel thread, work package or issue to the acting node's claims
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** exposed as an agent tool -- **mutates**
-- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000` and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
+- **when to use:** USE IT to say which work this node has the pen on, so a peer reading the board at pickup can see the lane before starting something that collides. DO NOT USE IT for free text: a claim names something the board can point at, so it takes `ST0000`, `ST0000/01` or `ISSUE:0000`, or a git-style id whole, eg `ST3f9a2c1d4e5f6a7b`, `ST3f9a2c1d4e5f6a7b/c2e41a0b` or `ISSUE:I3f9a2c1d4e5f6a7b`, and refuses anything else. The issue form is the one `organize --default` writes into `intent/.intentfiles`, so issue work can be claimed like a thread. It is idempotent and reports what MOVED, so re-asserting your own lane at pickup is the normal case rather than an error. On a board that declares a team, writing as the human seat is taken only from the mediator's session or from a shell with no session.
 - **basis:** ST0056/WP/14 info.md -- the inherited design ST0069 WP-14 builds. The `intent wb` family covers the `/in-whiteboard` verbs, `claim` among them; there is no v2 antecedent.
 - **owner wp:** WP-14
 - **acceptance:** AC-14.7
@@ -4579,7 +4579,7 @@ Drop a steel thread, work package or issue from the acting node's claims
 
 - **v2:** new-surface
 - **Arguments:**
-  - `id` (claim-address, arity `1`) -- What to drop: a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`
+  - `id` (claim-address, arity `1`) -- What to drop: a thread as `ST0000` or `ST3f9a2c1d4e5f6a7b`, a work package as `ST0000/01` or `ST3f9a2c1d4e5f6a7b/c2e41a0b`, or an issue as `ISSUE:0000` or `ISSUE:I3f9a2c1d4e5f6a7b`
 - **Flags:**
   - `--node` (string) -- The moniker of the node writing
     - **disposition:** keep

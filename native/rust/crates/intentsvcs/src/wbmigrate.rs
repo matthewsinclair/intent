@@ -240,15 +240,15 @@ pub fn read_board(moniker: &str, wip_md: &str, file: &str) -> SourceBoard {
     }
     // The package is read through the waist, so `ST0112/WP-07` and `ST0112/7`
     // are both offered back as the one form a claim takes, `ST0112/07`.
-    let spelled = crate::id::split_wp_address(&claim)
-      .and_then(|(thread, wp)| {
-        crate::id::normalise_wp_id(wp)
-          .ok()
-          .map(|wp| crate::id::wp_address(thread, wp))
-      })
-      .filter(|address| crate::id::is_claim_address(address))
-      .map(|address| format!(" -- `{address}` here"))
-      .unwrap_or_default();
+    let spelled = match crate::id::read_claim(&claim) {
+      crate::id::Claim::Package(thread, wp) => crate::id::normalise_wp_id(wp)
+        .ok()
+        .map(|wp| crate::id::wp_address(thread, wp)),
+      _ => None,
+    }
+    .filter(|address| crate::id::is_claim_address(address))
+    .map(|address| format!(" -- `{address}` here"))
+    .unwrap_or_default();
     out.source_items += 1;
     out.uncarried.push(Uncarried {
       at: format!("{file}:{claims_line}"),

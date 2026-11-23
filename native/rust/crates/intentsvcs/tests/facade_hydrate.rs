@@ -222,7 +222,7 @@ fn every_sub_thread_form_realises_its_thread() {
     },
     Entity::Wp {
       thread: "ST0001".to_string(),
-      wp: "02".to_string(),
+      wp: intentsvcs::id::address_segment("02").expect("a package segment"),
     },
     Entity::Ac {
       thread: "ST0001".to_string(),
@@ -324,7 +324,7 @@ fn every_address_form_is_hydratable_or_refused_by_name() {
     },
     Entity::Wp {
       thread: "ST0001".to_string(),
-      wp: "02".to_string(),
+      wp: intentsvcs::id::address_segment("02").expect("a package segment"),
     },
     Entity::Ac {
       thread: "ST0001".to_string(),

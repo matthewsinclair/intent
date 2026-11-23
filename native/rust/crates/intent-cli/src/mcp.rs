@@ -315,14 +315,20 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
         prop.insert("type".into(), json!("string"));
         prop.insert(
           "description".into(),
-          json!("an acceptance criterion id, eg AC-0.0"),
+          json!(format!(
+            "an acceptance criterion id, eg AC-0.0 or AC-{}.1",
+            intentsvcs::id::EXAMPLE_WP_HEX
+          )),
         );
       }
       "at-id" => {
         prop.insert("type".into(), json!("string"));
         prop.insert(
           "description".into(),
-          json!("an acceptance test id, eg AT-0.0"),
+          json!(format!(
+            "an acceptance test id, eg AT-0.0 or AT-{}.1",
+            intentsvcs::id::EXAMPLE_WP_HEX
+          )),
         );
       }
       "issue-id" => {
@@ -2104,7 +2110,7 @@ pub fn resource_list(f: &Facade) -> Vec<Resource> {
       out.push(Resource {
         uri: Entity::Wp {
           thread: t.id.stored(),
-          wp: wp.seq.stored(),
+          wp: intentsvcs::id::Spelled::Whole(wp.seq),
         }
         .local_url(),
         name: crate::show::work_package_heading(&t.id, wp),
@@ -2145,11 +2151,14 @@ pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
   match f.whole_address(&address)?.entity {
     Entity::Thread { id } => Ok(crate::show::thread(f.st_show(&id)?)),
     Entity::Wp { thread, wp } => {
-      // `whole_address` left this segment as typed only if the waist could not
-      // read it, so this refusal says why in its words.
-      let seq = intentsvcs::id::WpId::parse(&wp).map_err(|e| {
-        bad(intentsvcs::id::refusal(&wp, &e, intentsvcs::id::IdKind::WorkPackage).message)
-      })?;
+      // `whole_address` completed any prefix, so the segment is whole; the
+      // parse read it once (ST1c2db93 P9).
+      let seq = match wp {
+        intentsvcs::id::Spelled::Whole(seq) => seq,
+        intentsvcs::id::Spelled::Prefix(hex) => {
+          return Err(bad(intentsvcs::id::prefix_not_whole(&hex).message));
+        }
+      };
       let thread = intentsvcs::id::ThreadId::parse(&thread)
         .map_err(|_| bad("a work-package address begins with its thread's id".to_string()))?;
       let criteria = f.wp_criteria(&thread, seq)?;

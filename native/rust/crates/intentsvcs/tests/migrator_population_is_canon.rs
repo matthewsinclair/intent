@@ -112,7 +112,12 @@ fn dehydrated_estate(fx: &Fixture) -> Vec<String> {
     );
   }
 
-  fx.project().thread_ids().expect("canon ids")
+  fx.project()
+    .thread_ids()
+    .expect("canon ids")
+    .into_iter()
+    .map(|id| id.stored())
+    .collect()
 }
 
 /// The thread ids the committed index NAMES, read back out of the rendered
@@ -197,6 +202,7 @@ fn upgrade_realises_only_what_the_manifest_declares() {
     .expect("canon ids")
     .into_iter()
     .filter(|id| project.info_view(id).exists())
+    .map(|id| id.stored())
     .collect();
   assert!(
     realised.is_empty(),

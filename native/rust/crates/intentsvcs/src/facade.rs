@@ -4415,7 +4415,7 @@ impl crate::remedy::Remedy for FacadeError {
       // The remedy this replaced said an issue had NO realised form, and that
       // was true until ST0069 AC-01 gave it one; it was written when the
       // offered target was a thread alone.
-      Self::NotHydratable { form, .. } if *form == crate::id::IdKind::Issue.wire() => "an issue's prose is changed through the record its view is rendered from: read it with `intent issues show <NNNN>`, and replace its body with `intent set intent:///issues/<NNNN> body --from <file>`".to_string(),
+      Self::NotHydratable { form, .. } if *form == crate::id::IdKind::Issue.wire() => format!("an issue's prose is changed through the record its view is rendered from: read it with `intent issues show <id>`, and replace its body with `intent set intent:///issues/<id> body --from <file>`, where {}", crate::id::ISSUE_ID_FORM),
       Self::NotHydratable { form, .. } => format!(
         "address an ARTEFACT instead -- a steel thread or an issue, the two things `.intentfiles` names. The form `{form}` names neither, so there is nothing for realisation to create."
       ),
@@ -5659,9 +5659,6 @@ pub struct EventFilter {
   pub limit: Option<usize>,
 }
 
-/// How many leading characters of an event's RFC 3339 stamp are its day.
-const DAY_OF_STAMP: usize = "YYYY-MM-DD".len();
-
 /// **THE STORE'S IDS, AS THE RESOLVER'S SCOPE** (ST0095 WP-07): a prefix is
 /// completed against the records this facade's canon holds.
 impl crate::id::IdScope for Facade {
@@ -6775,22 +6772,22 @@ impl Facade {
 
   /// **ONE HOME FOR *WHICH WORK PACKAGE DOES THIS ENTITY NAME*.**
   ///
-  /// A `Wp` entity carries its sequence as TEXT, because an address is text;
-  /// every caller that wants the work package has to parse it and decide what
-  /// an unparseable one means. That decision was about to exist twice --
-  /// [`Self::entity_json`] had it and [`Self::edit`] needed the same answer --
-  /// so it lives here and both call it.
-  ///
-  /// **A SEGMENT THAT IS NOT A PACKAGE ID IS *NO SUCH ENTITY*, NOT A THIRD
-  /// ERROR**, and the sentence names what was asked for: `.../wp/banana` names
-  /// no work package for the same reason `.../wp/99` names none. It said
-  /// `WP-00` for a word until the waist read the segment.
-  fn wp_of(&self, thread: &str, wp: &str) -> Result<&WorkPackage, FacadeError> {
-    let seq = crate::id::normalise_wp_id(wp).map_err(|_| FacadeError::NoSuchWorkPackage {
-      st: thread.to_string(),
-      wp: format!("work package `{wp}`"),
-    })?;
-    self.wp_show(thread, seq)
+  /// A `Wp` entity carries its package as the address's parse read it
+  /// (ST1c2db93 P9), so `.../wp/banana` is refused there. A prefix nothing
+  /// completed is *no such entity*, as `.../wp/99` is, and the sentence names
+  /// what was asked for.
+  fn wp_of(
+    &self,
+    thread: &str,
+    wp: &crate::id::Spelled<crate::id::WpId>,
+  ) -> Result<&WorkPackage, FacadeError> {
+    let crate::id::Spelled::Whole(seq) = wp else {
+      return Err(FacadeError::NoSuchWorkPackage {
+        st: thread.to_string(),
+        wp: format!("work package `{}`", wp.segment()),
+      });
+    };
+    self.wp_show(thread, *seq)
   }
 
   /// The entity behind one address, as the JSON a form is resolved against.
@@ -8598,12 +8595,7 @@ impl Facade {
     let Some(origin) = package.origin.as_deref() else {
       return Ok(None);
     };
-    Ok(
-      self
-        .store
-        .event_stamp(origin)?
-        .map(|stamp| stamp.chars().take(DAY_OF_STAMP).collect()),
-    )
+    Ok(self.store.event_stamp(origin)?.map(|stamp| stamp.day()))
   }
 
   /// The created day of every work package in this project that has one, by
@@ -8626,7 +8618,7 @@ impl Facade {
       Candidate::Thread(id) => AddrEntity::Thread { id: id.stored() },
       Candidate::Wp(thread, wp) => AddrEntity::Wp {
         thread: thread.stored(),
-        wp: wp.stored(),
+        wp: crate::id::Spelled::Whole(*wp),
       },
       Candidate::Issue(id) => AddrEntity::Issue { id: id.stored() },
     }
@@ -8716,7 +8708,12 @@ impl Facade {
   ) -> Result<(crate::id::ThreadId, crate::id::WpId), FacadeError> {
     match crate::id::resolve_scoped(typed, self).map_err(|why| self.unresolved(typed, why))? {
       Some(crate::id::ScopedFound::Package(thread, wp)) => Ok((thread, wp)),
-      Some(crate::id::ScopedFound::Under(..)) | None => Err(FacadeError::NotAnId {
+      // The package-part refusal the CLI's target door gives, one wording.
+      Some(crate::id::ScopedFound::Under(_, tail)) => Err(FacadeError::NotAnId {
+        typed: typed.to_string(),
+        refusal: crate::id::package_part_refused(typed, &tail, &crate::id::IdError::NotAnId),
+      }),
+      None => Err(FacadeError::NotAnId {
         typed: typed.to_string(),
         refusal: crate::id::not_a_package(typed),
       }),
@@ -8728,8 +8725,9 @@ impl Facade {
   /// threads and issues together.
   pub fn resolve_named(&self, typed: &str) -> Result<crate::id::Named, FacadeError> {
     use crate::id::{Candidate, IdKind};
+    // Worded for the kind the spelling asks for, not always a thread.
     crate::id::resolve_named(typed, self)
-      .map_err(|e| self.refused(typed, &e, IdKind::Thread))?
+      .map_err(|e| self.refused(typed, &e, crate::id::named_wanted(typed)))?
       .one(&[IdKind::Thread, IdKind::Issue], Candidate::of)
       .map_err(|why| self.unresolved(typed, why))
   }
@@ -8737,8 +8735,8 @@ impl Facade {
   /// `address` with each id segment whole, a prefix completed against this
   /// project (ST0095 WP-07; the WP-04 critic's C1). A segment that reads as a
   /// whole id is respelled as stored with no lookup (`46` as `ST0046`), so a
-  /// reader of the answer reads stored ids; a package segment the waist cannot
-  /// read is left as typed, for the lookup to answer as no package.
+  /// reader of the answer reads stored ids; a package segment was read at the
+  /// address's parse, so it is whole or a prefix completed here.
   ///
   /// **IT DOES NOT ASK WHOSE PROJECT THE ADDRESS NAMES.** A caller asks
   /// [`require_local`] first, or another project's address is completed
@@ -8788,32 +8786,34 @@ impl Facade {
   /// package or issue is a prefix, completed (AC-07.2). Anything else is
   /// [`FacadeError::WbClaimMalformed`], as before.
   fn whole_claim(&self, claim: &str) -> Result<String, FacadeError> {
-    use crate::id::{Scoped, Spelled};
-    if crate::id::is_claim_address(claim) {
+    use crate::id::{Claim, Spelled};
+    let parts = crate::id::read_claim(claim);
+    if parts.is_whole() {
       return Ok(claim.to_string());
     }
     let malformed = || FacadeError::WbClaimMalformed {
       claim: claim.to_string(),
     };
-    if let Some(issue) = claim.strip_prefix(crate::id::CLAIM_ISSUE_PREFIX) {
-      return match crate::id::read_issue(issue) {
+    match parts {
+      Claim::Issue(issue) => match crate::id::read_issue(issue) {
         Ok(Spelled::Prefix(_)) => self.resolve_issue(issue).map(|id| id.claim()),
         _ => Err(malformed()),
-      };
-    }
-    match crate::id::scoped(claim) {
-      Ok(Some(Scoped::Package(thread, wp)))
-        if matches!(thread, Spelled::Prefix(_)) || matches!(wp, Spelled::Prefix(_)) =>
-      {
-        let (thread, wp) = self.resolve_wp(claim)?;
-        return Ok(crate::id::wp_address(thread.as_str(), wp));
+      },
+      Claim::Package(thread, wp) => {
+        match (crate::id::read_thread(thread), crate::id::read_wp(wp)) {
+          (Ok(thread), Ok(wp))
+            if matches!(thread, Spelled::Prefix(_)) || matches!(wp, Spelled::Prefix(_)) =>
+          {
+            let (thread, wp) = self.resolve_wp(claim)?;
+            Ok(crate::id::wp_address(thread.as_str(), wp))
+          }
+          _ => Err(malformed()),
+        }
       }
-      Ok(Some(_)) | Err(_) => return Err(malformed()),
-      Ok(None) => {}
-    }
-    match crate::id::read_thread(claim) {
-      Ok(Spelled::Prefix(_)) => self.resolve_thread(claim).map(|id| id.stored()),
-      _ => Err(malformed()),
+      Claim::Thread(thread) => match crate::id::read_thread(thread) {
+        Ok(Spelled::Prefix(_)) => self.resolve_thread(thread).map(|id| id.stored()),
+        _ => Err(malformed()),
+      },
     }
   }
 
@@ -19087,7 +19087,7 @@ impl Facade {
             notes: vec![Note::UnwrittenObjective(
               AddrEntity::Wp {
                 thread: st.to_string(),
-                wp: seq.stored(),
+                wp: crate::id::Spelled::Whole(seq),
               }
               .local_url(),
             )],
@@ -19468,7 +19468,7 @@ impl Facade {
     // caller passing two `None`s makes the same mistake.
     if text.is_none() && note.is_none() {
       return Err(FacadeError::NothingToChange {
-        subject: format!("{st} {ac}"),
+        subject: crate::id::scoped_address(st, ac),
         offered: vec!["--text".to_string(), "--note".to_string()],
       });
     }
@@ -19532,7 +19532,7 @@ impl Facade {
         "ac.edit",
         Subject {
           kind: "ac".to_string(),
-          id: format!("{st}/{ac}"),
+          id: crate::id::scoped_address(st, ac),
         },
         Value::Object(payload),
         next,
@@ -19627,7 +19627,7 @@ impl Facade {
     // operators who came through the CLI.
     if file.is_none() && prose.is_none() && covers.is_none() && note.is_none() && kind.is_none() {
       return Err(FacadeError::NothingToChange {
-        subject: format!("{st} {at}"),
+        subject: crate::id::scoped_address(st, at),
         offered: vec![
           "--file".to_string(),
           "--prose".to_string(),
@@ -19715,7 +19715,7 @@ impl Facade {
       let from = row.status;
       row.status = AtStatus::entry(row.kind);
       reset = Some(Note::StatusResetByRekind {
-        row: format!("{st} {at}"),
+        row: crate::id::scoped_address(st, at),
         kind: crate::model::enum_str(&row.kind),
         from: from.display().to_string(),
         to: row.status.display().to_string(),
@@ -19737,7 +19737,7 @@ impl Facade {
         "at.edit",
         Subject {
           kind: "at".to_string(),
-          id: format!("{st}/{at}"),
+          id: crate::id::scoped_address(st, at),
         },
         json!({ "via": "edit" }),
         next,
@@ -20154,7 +20154,7 @@ impl Facade {
         op,
         Subject {
           kind: "ac".to_string(),
-          id: format!("{st}/{ac}"),
+          id: crate::id::scoped_address(st, ac),
         },
         payload,
         next,
@@ -20303,7 +20303,7 @@ impl Facade {
       if !transitions::permits_to("AcceptanceTest", "status", "at.set", &from_s, &to_s) {
         return Err(FacadeError::IllegalTransition {
           verb: "at.set",
-          subject: format!("{st} {at}"),
+          subject: crate::id::scoped_address(st, at),
           from: from_s,
           legal: transitions::accepted_from_to("AcceptanceTest", "status", "at.set", &to_s)
             .join(", "),
@@ -20369,7 +20369,7 @@ impl Facade {
         {
           let opening: String = existing.chars().take(120).collect();
           return Err(FacadeError::NoteWouldBeLost {
-            url: format!("{st}/{at}"),
+            url: crate::id::scoped_address(st, at),
             existing_bytes: existing.len(),
             incoming_bytes: text.len(),
             opening,
@@ -20383,7 +20383,7 @@ impl Facade {
         "at.set",
         Subject {
           kind: "at".to_string(),
-          id: format!("{st}/{at}"),
+          id: crate::id::scoped_address(st, at),
         },
         // **`note` IS IN THE PAYLOAD SO A SELF-LOOP ENVELOPE IS NOT A LIE.** The
         // guard above exists because `at set green` on a green row once recorded
@@ -20498,7 +20498,7 @@ impl Facade {
         "at.fc",
         Subject {
           kind: "at".to_string(),
-          id: format!("{st}/{at}"),
+          id: crate::id::scoped_address(st, at),
         },
         json!({"because": because, "by": by}),
         next,
@@ -20614,7 +20614,7 @@ impl Facade {
           authority: None,
           entity: AddrEntity::Wp {
             thread: thread.clone(),
-            wp: seq.stored(),
+            wp: crate::id::Spelled::Whole(seq),
           },
           format: address.format,
         })
@@ -20787,7 +20787,7 @@ impl Facade {
             "at.put",
             Subject {
               kind: "at".to_string(),
-              id: format!("{thread}/{at}"),
+              id: crate::id::scoped_address(thread, at),
             },
             json!({ "via": "address" }),
             next,
@@ -20856,7 +20856,7 @@ impl Facade {
             "ac.put",
             Subject {
               kind: "ac".to_string(),
-              id: format!("{thread}/{ac}"),
+              id: crate::id::scoped_address(thread, ac),
             },
             json!({ "via": "address" }),
             next,
@@ -21310,7 +21310,7 @@ impl Facade {
       "attachment.put",
       Subject {
         kind: "attachment".to_string(),
-        id: format!("{thread}/{path}"),
+        id: crate::id::scoped_address(thread, path),
       },
       json!({ "via": "address" }),
       next,
@@ -21565,7 +21565,7 @@ impl Facade {
         "attachment.detach",
         Subject {
           kind: "attachment".to_string(),
-          id: format!("{thread}/{path}"),
+          id: crate::id::scoped_address(&thread, &path),
         },
         json!({ "via": "address" }),
         next,
@@ -21808,7 +21808,7 @@ impl Facade {
           "ac.set",
           Subject {
             kind: "ac".to_string(),
-            id: format!("{thread}/{ac}"),
+            id: crate::id::scoped_address(thread, ac),
           },
         )
       }
@@ -21825,7 +21825,7 @@ impl Facade {
           "at.set",
           Subject {
             kind: "at".to_string(),
-            id: format!("{thread}/{at}"),
+            id: crate::id::scoped_address(thread, at),
           },
         )
       }
@@ -21870,15 +21870,21 @@ impl Facade {
 
   /// The seq a `wp` address segment names.
   ///
-  /// **Refused by name rather than defaulted.** `address.rs` mints the segment
-  /// as `{seq:02}` but the grammar accepts what a caller types, so a
-  /// non-numeric segment reaches here -- and silently choosing a work package
-  /// for somebody is worse than telling them the address is wrong.
-  fn wp_seq(address: &Address, wp: &str) -> Result<crate::id::WpId, FacadeError> {
-    crate::id::normalise_wp_id(wp).map_err(|e| FacadeError::WriteNotAddressable {
-      url: address.to_url(),
-      why: format!("`{wp}` is not a work-package id: {e}"),
-    })
+  /// **Refused by name rather than defaulted.** The address's parse reads the
+  /// segment (ST1c2db93 P9), so only a prefix the completion left reaches here
+  /// unread, and silently choosing a work package for somebody is worse than
+  /// telling them the address is wrong.
+  fn wp_seq(
+    address: &Address,
+    wp: &crate::id::Spelled<crate::id::WpId>,
+  ) -> Result<crate::id::WpId, FacadeError> {
+    match wp {
+      crate::id::Spelled::Whole(seq) => Ok(*seq),
+      crate::id::Spelled::Prefix(hex) => Err(FacadeError::WriteNotAddressable {
+        url: address.to_url(),
+        why: crate::id::prefix_not_whole(hex).message,
+      }),
+    }
   }
 
   /// Replace ONE key of a serialised entity and return the row that results, or
@@ -22606,7 +22612,7 @@ impl Facade {
           "ac.fc",
           Subject {
             kind: "ac".to_string(),
-            id: format!("{}/{}", thread_id.as_str(), ac.id),
+            id: crate::id::scoped_address(thread_id.as_str(), &ac.id),
           },
         )?;
       }
@@ -22632,7 +22638,7 @@ impl Facade {
           "at.fc",
           Subject {
             kind: "at".to_string(),
-            id: format!("{}/{}", thread_id.as_str(), at.id),
+            id: crate::id::scoped_address(thread_id.as_str(), &at.id),
           },
         )?;
       }
@@ -22677,7 +22683,7 @@ impl Facade {
       .map_err(|e| FacadeError::Ingest(e.into()))?;
     let carried: std::collections::BTreeSet<String> = ingest::canon_paths_of(
       &self.project,
-      thread_ids.iter().map(String::as_str),
+      thread_ids.iter().map(crate::id::ThreadId::as_str),
       issue_numbers,
     )
     .into_iter()

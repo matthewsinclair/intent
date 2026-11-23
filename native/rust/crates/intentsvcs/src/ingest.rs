@@ -868,16 +868,16 @@ fn read_children(project: &Project, thread: &mut Thread) -> Result<Vec<Finding>,
     |a: &Attachment| canon_attachment_rel(&id, &a.path),
   )?);
   // Packages are in the one order wherever a thread is read (ST0095 WP-08).
-  // Criteria and tests take the label order (`id::label_order`), since a file
+  // Criteria and tests take the label order (`id::id_order`), since a file
   // name's text order would put AC-01.10 before AC-01.2. Attachments are in
   // path order, as the walk read them.
   thread.wps.sort_by(crate::id::record_order);
   thread
     .criteria
-    .sort_by(|a, b| crate::id::label_order(&a.id, &b.id));
+    .sort_by(|a, b| crate::id::id_order(&a.id, &b.id));
   thread
     .tests
-    .sort_by(|a, b| crate::id::label_order(&a.id, &b.id));
+    .sort_by(|a, b| crate::id::id_order(&a.id, &b.id));
   Ok(findings)
 }
 

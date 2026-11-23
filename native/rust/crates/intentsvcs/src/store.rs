@@ -6524,13 +6524,16 @@ impl Store {
   /// The stamp the log holds for the event `id`, or `None` where it holds no
   /// such event: one keyed read, so a record's created day costs one row and
   /// never the whole log (ST0095 WP-10, issue 0732).
-  pub fn event_stamp(&self, id: &str) -> Result<Option<String>, StoreError> {
+  pub fn event_stamp(
+    &self,
+    id: &str,
+  ) -> Result<Option<crate::event::LoggedStamp<'static>>, StoreError> {
     use rusqlite::OptionalExtension;
     Ok(
       self
         .conn
         .query_row("SELECT ts FROM event_log WHERE id = ?1", [id], |row| {
-          row.get::<_, String>(0)
+          crate::event::LoggedStamp::of_log_row(row, 0)
         })
         .optional()?,
     )

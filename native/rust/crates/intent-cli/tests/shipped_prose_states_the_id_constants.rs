@@ -9,9 +9,8 @@
 //! alone fails here.
 
 use intentsvcs::id::{
-  CLAIM_ISSUE_PREFIX, EXAMPLE_HEX, EXAMPLE_WP_HEX, HASH_HEX, ISSUE_DIGITS, ISSUE_MARKER,
-  MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, WP_DIGITS, WP_HASH_HEX, WP_SHOWN_HEX,
-  prefix_floor,
+  CLAIM_ADDRESS_FORMS, EXAMPLE_HEX, EXAMPLE_WP_HEX, ISSUE_DIGITS, ISSUE_MARKER, MIN_PREFIX_HEX,
+  SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, WP_DIGITS, WP_SHOWN_HEX, prefix_floor,
 };
 use testkit::repo_root;
 
@@ -129,26 +128,10 @@ fn the_essentials_skill_states_the_id_constants() {
   }
 }
 
-/// The whiteboard skill teaches a claim's address with each id whole, as the
-/// `created:` line prints it: the stored hex, at its stored width.
+/// The whiteboard skill teaches a claim's address in both families, each id
+/// whole as a board stores it, by quoting `id::CLAIM_ADDRESS_FORMS`, the one
+/// sentence every claim refusal and MCP's label descriptions quote too.
 #[test]
 fn the_whiteboard_skill_states_the_id_constants() {
-  let text = read(IN_WHITEBOARD);
-  let thread = format!("{THREAD_PREFIX}{}", &EXAMPLE_HEX[..HASH_HEX]);
-  let package = format!("{thread}/{}", &EXAMPLE_WP_HEX[..WP_HASH_HEX]);
-  let issue = format!(
-    "{CLAIM_ISSUE_PREFIX}{ISSUE_MARKER}{}",
-    &EXAMPLE_HEX[..HASH_HEX]
-  );
-  for phrase in [
-    format!(
-      "a thread as `{}`, a work package as `{}`, or an issue as `{CLAIM_ISSUE_PREFIX}{}`",
-      ordinal_thread(),
-      ordinal_package(),
-      ordinal_issue()
-    ),
-    format!("`{thread}`, `{package}`, `{issue}`"),
-  ] {
-    assert_states(IN_WHITEBOARD, &text, &phrase);
-  }
+  assert_states(IN_WHITEBOARD, &read(IN_WHITEBOARD), CLAIM_ADDRESS_FORMS);
 }

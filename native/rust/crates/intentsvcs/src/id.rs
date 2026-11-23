@@ -102,16 +102,9 @@ const _: () = assert!(SHOWN_HEX >= MIN_PREFIX_HEX && WP_SHOWN_HEX >= MIN_PREFIX_
 /// holds the two identical.
 pub const CLAIM_ISSUE_PREFIX: &str = "ISSUE:";
 
-/// The forms [`is_claim_address`] admits, as the sentence a refusal tells the
-/// user to type.
-///
-/// **ONE HOME FOR WHAT EVERY DOOR SAYS, BESIDE THE ONE HOME FOR WHAT IT
-/// ADMITS** (0519). `every_form_the_refusal_names_is_one_the_validator_admits`
-/// holds each example here to the validator. The reverse is not mechanical: a
-/// widening that teaches the validator another kind fails nothing until this
-/// sentence and that test's list change with it.
-pub const CLAIM_ADDRESS_FORMS: &str =
-  "a thread as `ST0000`, a work package as `ST0000/01`, or an issue as `ISSUE:0000`";
+/// What separates a sigil from its id, in a claim and in a manifest line:
+/// the `:` of `ISSUE:0703` and `STEELTHREAD:ST0092`.
+pub const SIGIL_SEPARATOR: char = ':';
 
 /// The worked example's hex, as a thread or an issue shows it: the front of
 /// [`EXAMPLE_HEX`]. A macro, so each form sentence below is built from it.
@@ -129,15 +122,68 @@ macro_rules! example_wp_shown {
   };
 }
 
+/// The worked example's whole stored hex, as a macro so a form sentence can
+/// name it whole: [`EXAMPLE_HEX`].
+macro_rules! example_hex {
+  () => {
+    concat!(example_shown!(), "d4e5f6a7b")
+  };
+}
+
+/// The worked example's whole stored package hex: [`EXAMPLE_WP_HEX`].
+macro_rules! example_wp_hex {
+  () => {
+    concat!(example_wp_shown!(), "1a0b")
+  };
+}
+
 /// **THE ONE WORKED EXAMPLE OF A HASHED ID** that a form sentence, a doc or a
 /// schema comment spells: a thread's or an issue's whole stored hex. It names
 /// no record, so a scanner for ids in shipped text exempts it through
 /// [`is_example`] (issue 0736).
-pub const EXAMPLE_HEX: &str = concat!(example_shown!(), "d4e5f6a7b");
+pub const EXAMPLE_HEX: &str = example_hex!();
 
 /// The worked example of a hashed package's whole stored hex, as
 /// [`EXAMPLE_HEX`] is a thread's or an issue's.
-pub const EXAMPLE_WP_HEX: &str = concat!(example_wp_shown!(), "1a0b");
+pub const EXAMPLE_WP_HEX: &str = example_wp_hex!();
+
+/// The forms [`is_claim_address`] admits, as the sentence a refusal tells the
+/// user to type.
+///
+/// **ONE HOME FOR WHAT EVERY DOOR SAYS, BESIDE THE ONE HOME FOR WHAT IT
+/// ADMITS** (0519). `every_form_the_refusal_names_is_one_the_validator_admits`
+/// holds each example here to the validator. The reverse is not mechanical: a
+/// widening that teaches the validator another kind fails nothing until this
+/// sentence and that test's list change with it.
+///
+/// **IT NAMES BOTH FAMILIES** (ST1c2db93 P4): each kind's ordinal and its
+/// git-style id whole, as a board stores a claim, built from the worked
+/// example.
+pub const CLAIM_ADDRESS_FORMS: &str = concat!(
+  "a thread as `ST0000` or `ST",
+  example_hex!(),
+  "`, a work package as `ST0000/01` or `ST",
+  example_hex!(),
+  "/",
+  example_wp_hex!(),
+  "`, or an issue as `ISSUE:0000` or `ISSUE:I",
+  example_hex!(),
+  "`"
+);
+
+/// The forms a door that takes a thread or one of its packages admits (`todo
+/// done`, `fc`, `ac gate`), as the sentence its refusal quotes: each kind in
+/// both families, the git-style one as a table shows it, which the door
+/// completes (ST1c2db93 P4).
+pub const TARGET_FORMS: &str = concat!(
+  "a thread as `ST0000` or `ST",
+  example_shown!(),
+  "`, or a work package as `ST0000/02` or `ST",
+  example_shown!(),
+  "/",
+  example_wp_shown!(),
+  "`"
+);
 
 /// **THE ONE SENTENCE OF A THREAD ID'S FORM** that every refusal quotes (the
 /// Highlander sweep's C13: three refusals each said it in their own words).
@@ -931,15 +977,23 @@ const WP_SEPARATOR: char = '/';
 /// before one: `WP-03`.
 const WP_HEADING_PREFIX: &str = "WP-";
 
+/// **THE ONE WRITER OF A THREAD-SCOPED SUBJECT**: `thread`, the separator and
+/// `tail`, eg `ST0092/AC-01.1` or an attachment's `ST0092/design.md`. Event
+/// subjects and refusals name a thing under a thread this way, and
+/// [`split_wp_address`] is its inverse.
+pub fn scoped_address(thread: &str, tail: &str) -> String {
+  format!("{thread}{WP_SEPARATOR}{tail}")
+}
+
 /// A work package's whole stored address: `ST0092/09`. Claims, event subjects,
 /// `--json` and the `created:` line carry it.
 pub fn wp_address(thread: &str, wp: WpId) -> String {
-  format!("{thread}{WP_SEPARATOR}{}", wp.stored())
+  scoped_address(thread, &wp.stored())
 }
 
 /// A work package's address as a table or a message prints it.
 pub fn wp_address_shown(thread: &ThreadId, wp: WpId) -> String {
-  format!("{}{WP_SEPARATOR}{}", thread.shown(), wp.shown())
+  scoped_address(&thread.shown(), &wp.shown())
 }
 
 /// The form a table, a view or a message prints of a STORED id, read whole:
@@ -985,12 +1039,44 @@ pub fn split_wp_address(text: &str) -> Option<(&str, &str)> {
 /// decision 29); the bare `0512` is refused, because two spellings of one
 /// address is the drift Highlander names.
 pub fn is_claim_address(claim: &str) -> bool {
+  read_claim(claim).is_whole()
+}
+
+/// A claim's parts by the kind each names, as written and not yet read: what
+/// [`read_claim`] splits a claim into.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Claim<'a> {
+  /// No separator and no issue prefix: a thread's part.
+  Thread(&'a str),
+  /// `<thread>/<package>`: a work package's two parts.
+  Package(&'a str, &'a str),
+  /// What follows [`CLAIM_ISSUE_PREFIX`]: an issue's part.
+  Issue(&'a str),
+}
+
+impl Claim<'_> {
+  /// Whether every part is its kind's whole stored id, which is what a board
+  /// stores: [`is_claim_address`].
+  pub fn is_whole(&self) -> bool {
+    match self {
+      Claim::Thread(thread) => ThreadId::parse(thread).is_ok(),
+      Claim::Package(thread, wp) => ThreadId::parse(thread).is_ok() && WpId::parse(wp).is_ok(),
+      Claim::Issue(issue) => IssueId::parse(issue).is_ok(),
+    }
+  }
+}
+
+/// **THE ONE READER OF THE CLAIM GRAMMAR**: `ST0000`, `ST0000/01`,
+/// `ISSUE:0000` and their git-style forms, split by kind. Each part is left as
+/// written, so [`is_claim_address`] asks for it whole and a door that
+/// completes a prefix reads it with its kind's reader.
+pub fn read_claim(claim: &str) -> Claim<'_> {
   if let Some(issue) = claim.strip_prefix(CLAIM_ISSUE_PREFIX) {
-    return IssueId::parse(issue).is_ok();
+    return Claim::Issue(issue);
   }
   match split_wp_address(claim) {
-    None => ThreadId::parse(claim).is_ok(),
-    Some((thread, wp)) => ThreadId::parse(thread).is_ok() && WpId::parse(wp).is_ok(),
+    None => Claim::Thread(claim),
+    Some((thread, wp)) => Claim::Package(thread, wp),
   }
 }
 
@@ -1280,15 +1366,23 @@ fn refuse_an_address(raw: &str) -> Result<(), IdError> {
   Ok(())
 }
 
+/// **THE ONE MARKED-HEX PREDICATE**: whether `t` is `marker` and then hex a
+/// door of that kind takes, whole or a prefix long enough. A word that only
+/// begins with the letter (`ic`, `stab`) is not.
+fn marked_hex(t: &str, marker: &str, ordinal_width: usize) -> bool {
+  matches!(
+    strip_ci(t, marker).and_then(|rest| typed_hex(rest, ordinal_width, HASH_HEX)),
+    Some(Ok(_))
+  )
+}
+
 /// An operator's spelling of a THREAD, read with no store: everything
 /// [`normalise_thread_id`] takes, and a hashed thread's hex or a prefix of it,
 /// its `ST` marker optional. An issue's marker on hex is the other collection.
 pub fn read_thread(raw: &str) -> Result<Spelled<ThreadId>, IdError> {
   refuse_an_address(raw)?;
   let t = raw.trim();
-  if let Some(Ok(_)) =
-    strip_ci(t, ISSUE_MARKER).and_then(|rest| typed_hex(rest, ISSUE_DIGITS, HASH_HEX))
-  {
+  if marked_hex(t, ISSUE_MARKER, ISSUE_DIGITS) {
     return Err(IdError::WrongCollection {
       named: IdKind::Issue,
     });
@@ -1306,9 +1400,7 @@ pub fn read_thread(raw: &str) -> Result<Spelled<ThreadId>, IdError> {
 pub fn read_issue(raw: &str) -> Result<Spelled<IssueId>, IdError> {
   refuse_an_address(raw)?;
   let t = raw.trim();
-  if let Some(Ok(_)) =
-    strip_ci(t, THREAD_PREFIX).and_then(|rest| typed_hex(rest, THREAD_DIGITS, HASH_HEX))
-  {
+  if marked_hex(t, THREAD_PREFIX, THREAD_DIGITS) {
     return Err(IdError::WrongCollection {
       named: IdKind::Thread,
     });
@@ -1332,6 +1424,17 @@ pub fn read_wp(raw: &str) -> Result<Spelled<WpId>, IdError> {
     Some(hex) => Ok(spelled_hex(hex?, WP_HASH_HEX, WpId)),
     None => normalise_wp_id(raw).map(Spelled::Whole),
   }
+}
+
+/// **THE ONE READER OF AN ADDRESS'S PACKAGE SEGMENT** (ST1c2db93 P9): what
+/// [`read_wp`] takes, whole or a prefix, but never a view's `WP-` heading,
+/// which no address carries. The address's parse asks it once, and every
+/// reader after takes the typed value.
+pub fn address_segment(raw: &str) -> Result<Spelled<WpId>, IdError> {
+  if strip_ci(raw.trim(), WP_HEADING_PREFIX).is_some() {
+    return Err(IdError::NotAnId);
+  }
+  read_wp(raw)
 }
 
 /// Whether `raw` is a spelling a door of `kind` takes, whole or a prefix, with
@@ -1479,6 +1582,17 @@ pub enum Found<T> {
 }
 
 impl<T> Found<T> {
+  /// **THE ONE FOLD OF HITS INTO AN ANSWER**: none, one, or several, none
+  /// picked.
+  fn from_hits(mut hits: Vec<T>) -> Found<T> {
+    match hits.len() {
+      0 => Found::Nothing,
+      // `pop` on a one-element vector is its one element.
+      1 => hits.pop().map_or(Found::Nothing, Found::One),
+      _ => Found::Many(hits),
+    }
+  }
+
   /// The same answer about another value.
   pub fn map<U>(self, f: impl Fn(T) -> U) -> Found<U> {
     match self {
@@ -1494,12 +1608,7 @@ fn completed<T: Ord>(scope: Vec<T>, begins: impl Fn(&T) -> bool) -> Found<T> {
   let mut hits: Vec<T> = scope.into_iter().filter(|id| begins(id)).collect();
   hits.sort();
   hits.dedup();
-  match hits.len() {
-    0 => Found::Nothing,
-    // `pop` on a one-element vector is its one element.
-    1 => hits.pop().map_or(Found::Nothing, Found::One),
-    _ => Found::Many(hits),
-  }
+  Found::from_hits(hits)
 }
 
 fn threads_begun(scope: &impl IdScope, prefix: &str) -> Found<ThreadId> {
@@ -1538,8 +1647,15 @@ pub fn resolve_wp(
 ) -> Result<Found<WpId>, IdError> {
   Ok(match read_wp(raw)? {
     Spelled::Whole(id) => Found::One(id),
-    Spelled::Prefix(hex) => completed(scope.wps(thread), |id| id.0.hex_begins(WP_HASH_HEX, &hex)),
+    Spelled::Prefix(hex) => complete_wp(thread, &hex, scope),
   })
+}
+
+/// A package's prefix, already read, completed only among `thread`'s
+/// packages: what [`resolve_wp`] does after its read, for a caller that holds
+/// the typed segment (an address's).
+pub fn complete_wp(thread: &ThreadId, hex: &str, scope: &impl IdScope) -> Found<WpId> {
+  completed(scope.wps(thread), |id| id.0.hex_begins(WP_HASH_HEX, hex))
 }
 
 /// The one resolver at the door that does not know the collection (`intent
@@ -1556,24 +1672,26 @@ pub fn resolve_named(raw: &str, scope: &impl IdScope) -> Result<Found<Named>, Id
     }
     NamedSpelling::Issue(Spelled::Whole(id)) => Ok(Found::One(Named::Issue(id))),
     NamedSpelling::Issue(Spelled::Prefix(hex)) => Ok(issues_begun(scope, &hex).map(Named::Issue)),
-    NamedSpelling::Either(hex) => {
-      let threads = threads_begun(scope, &hex).map(Named::Thread);
-      let issues = issues_begun(scope, &hex).map(Named::Issue);
-      let mut hits: Vec<Named> = [threads, issues]
-        .into_iter()
-        .flat_map(|found| match found {
-          Found::One(named) => vec![named],
-          Found::Nothing => Vec::new(),
-          Found::Many(named) => named,
-        })
-        .collect();
-      Ok(match hits.len() {
-        0 => Found::Nothing,
-        1 => hits.pop().map_or(Found::Nothing, Found::One),
-        _ => Found::Many(hits),
-      })
-    }
+    NamedSpelling::Either(hex) => Ok(complete_either(&hex, scope)),
   }
+}
+
+/// Bare hex, already read as [`NamedSpelling::Either`], completed against
+/// threads and issues together: a prefix both begin is one ambiguity across
+/// both kinds, threads first. For a caller that holds the reading, so nothing
+/// is read twice.
+pub fn complete_either(hex: &str, scope: &impl IdScope) -> Found<Named> {
+  let threads = threads_begun(scope, hex).map(Named::Thread);
+  let issues = issues_begun(scope, hex).map(Named::Issue);
+  let hits: Vec<Named> = [threads, issues]
+    .into_iter()
+    .flat_map(|found| match found {
+      Found::One(named) => vec![named],
+      Found::Nothing => Vec::new(),
+      Found::Many(named) => named,
+    })
+    .collect();
+  Found::from_hits(hits)
 }
 
 /// What a spelling at the door that does not know the collection is, read
@@ -1599,6 +1717,7 @@ pub enum NamedSpelling {
 /// that knows its kind ([`read_thread`], [`read_issue`]) refuses the short one
 /// naming the minimum.
 pub fn read_named(raw: &str) -> Result<NamedSpelling, IdError> {
+  refuse_an_address(raw)?;
   match named_reading(raw) {
     NamedReading::Thread => return read_thread(raw).map(NamedSpelling::Thread),
     NamedReading::Issue => return read_issue(raw).map(NamedSpelling::Issue),
@@ -1767,6 +1886,9 @@ pub enum Scoped {
 /// criterion's, a test's and an attachment's subjects in this shape. Pure: no
 /// store is asked.
 pub fn scoped(raw: &str) -> Result<Option<Scoped>, Refusal> {
+  if let Err(e) = refuse_an_address(raw) {
+    return Err(refusal(raw, &e, IdKind::Thread));
+  }
   let Some((head, tail)) = split_wp_address(raw) else {
     return Ok(None);
   };
@@ -1811,30 +1933,35 @@ pub fn resolve_scoped(raw: &str, scope: &impl IdScope) -> Result<Option<ScopedFo
     Err(tail) => ScopedFound::Under(thread, tail),
     Ok(Spelled::Whole(wp)) => ScopedFound::Package(thread, wp),
     Ok(Spelled::Prefix(hex)) => {
-      let wp = completed(scope.wps(&thread), |id| id.0.hex_begins(WP_HASH_HEX, &hex))
-        .one(&[IdKind::WorkPackage], |wp| {
-          Candidate::Wp(thread.clone(), wp)
-        })?;
+      let wp = complete_wp(&thread, &hex, scope).one(&[IdKind::WorkPackage], |wp| {
+        Candidate::Wp(thread.clone(), wp)
+      })?;
       ScopedFound::Package(thread, wp)
     }
   }))
 }
 
-/// The refusal of `<thread>/<tail>` at a door that takes a work package, whose
-/// tail is no package id at all: refused as a package, naming that part, never
-/// re-read whole as a thread (the WP-04 critic's W4).
-pub fn not_a_package_part(raw: &str, tail: &str) -> Refusal {
+/// **THE ONE REFUSAL OF A PACKAGE PART**: `<thread>/<tail>` at a door that
+/// takes a work package, refused as a package for the reason `e` gives,
+/// naming the part that failed and never re-read whole as a thread (the WP-04
+/// critic's W4). A tail that is no package id at all is [`IdError::NotAnId`].
+pub fn package_part_refused(raw: &str, tail: &str, e: &IdError) -> Refusal {
+  // A tail that is no id at all is named as the package part's fault.
+  let why = match e {
+    IdError::NotAnId => "no package id".to_string(),
+    other => other.to_string(),
+  };
   Refusal {
-    message: format!("`{raw}` is not a work package: its package part `{tail}` is no package id"),
+    message: format!("`{raw}` is not a work package: its package part `{tail}` is {why}"),
     remedy: WP_ADDRESS_FORM.to_string(),
   }
 }
 
-/// The refusal of `<thread>/<tail>` whose tail spells a package id and is no
-/// package, naming the part that failed (the WP-04 critic's W4).
-fn package_part_refused(raw: &str, tail: &str, e: &IdError) -> Refusal {
+/// The refusal of a package's prefix where its whole id was wanted: one a
+/// completion did not finish, reaching a door that reads only whole ids.
+pub fn prefix_not_whole(hex: &str) -> Refusal {
   Refusal {
-    message: format!("`{raw}` is not a work package: its package part `{tail}` is {e}"),
+    message: format!("`{hex}` is a prefix of a work-package id, not a whole one"),
     remedy: WP_ADDRESS_FORM.to_string(),
   }
 }
@@ -1888,7 +2015,7 @@ pub fn subject_ids(raw: &str, scope: &impl IdScope) -> Result<Vec<String>, Unres
   match resolve_scoped(raw, scope)? {
     Some(ScopedFound::Package(thread, wp)) => return Ok(vec![wp_address(thread.as_str(), wp)]),
     Some(ScopedFound::Under(thread, tail)) => {
-      return Ok(vec![format!("{}/{tail}", thread.stored())]);
+      return Ok(vec![scoped_address(thread.as_str(), &tail)]);
     }
     None => {}
   }
@@ -1902,16 +2029,7 @@ pub fn subject_ids(raw: &str, scope: &impl IdScope) -> Result<Vec<String>, Unres
     Err(IdError::Ambiguous { thread, issue }) => Ok(vec![thread.stored(), issue.stored()]),
     Err(IdError::NotAnId) => Ok(vec![raw.to_string()]),
     Err(IdError::TooShort { .. }) if reading == NamedReading::Both => Ok(vec![raw.to_string()]),
-    Err(e) => {
-      let wanted = match reading {
-        NamedReading::Issue => IdKind::Issue,
-        _ => spelling(raw)
-          .ok()
-          .and_then(|s| s.tag)
-          .unwrap_or(IdKind::Thread),
-      };
-      Err(Unresolved::Refused(refusal(raw, &e, wanted)))
-    }
+    Err(e) => Err(Unresolved::Refused(refusal(raw, &e, reading.wanted(raw)))),
   }
 }
 
@@ -1975,6 +2093,19 @@ enum NamedReading {
 }
 
 impl NamedReading {
+  /// The kind a refusal of `raw` at this door names as wanted: the marked
+  /// kind, else the kind a tag names, else a thread.
+  fn wanted(&self, raw: &str) -> IdKind {
+    match self {
+      NamedReading::Thread => IdKind::Thread,
+      NamedReading::Issue => IdKind::Issue,
+      NamedReading::Both => spelling(raw)
+        .ok()
+        .and_then(|s| s.tag)
+        .unwrap_or(IdKind::Thread),
+    }
+  }
+
   fn kinds(&self) -> Vec<IdKind> {
     match self {
       NamedReading::Thread => vec![IdKind::Thread],
@@ -1984,21 +2115,21 @@ impl NamedReading {
   }
 }
 
+/// The kind a refusal at the door that does not know the collection names as
+/// wanted (ST1c2db93 P5): what `raw`'s marker or tag names, else a thread.
+pub fn named_wanted(raw: &str) -> IdKind {
+  named_reading(raw).wanted(raw)
+}
+
 /// How [`resolve_named`] reads `raw`: hex after a thread's or an issue's marker
 /// names that kind, and anything else is asked of both.
 fn named_reading(raw: &str) -> NamedReading {
   let t = raw.trim();
   // A marker counts only before hex a door takes, so a word that begins
   // with the letter (`ic`, a node) is not read as a short prefix.
-  if matches!(
-    strip_ci(t, THREAD_PREFIX).and_then(|rest| typed_hex(rest, THREAD_DIGITS, HASH_HEX)),
-    Some(Ok(_))
-  ) {
+  if marked_hex(t, THREAD_PREFIX, THREAD_DIGITS) {
     NamedReading::Thread
-  } else if matches!(
-    strip_ci(t, ISSUE_MARKER).and_then(|rest| typed_hex(rest, ISSUE_DIGITS, HASH_HEX)),
-    Some(Ok(_))
-  ) {
+  } else if marked_hex(t, ISSUE_MARKER, ISSUE_DIGITS) {
     NamedReading::Issue
   } else {
     NamedReading::Both
@@ -2164,6 +2295,11 @@ pub fn label_kind(label: &str) -> Option<LabelKind> {
 /// other run as text, so `AT-01.2` precedes `AT-01.10` and `AC-1.1` precedes
 /// `AC-10.1`. Ids that differ only in leading zeros (`AT-1.2`, `AT-01.2`) fall
 /// back to their bytes, so the order is total.
+///
+/// **IT IS ALSO THE ORDER A THREAD'S RECORD FILES GIVE THEIR CRITERIA AND
+/// TESTS** (ST0096 WP-05; `label_order` folded in, ST1c2db93 P14): a reader's
+/// order, not a stored one, since each record is a file of its own and no
+/// canon byte depends on it.
 pub fn id_order(a: &str, b: &str) -> Ordering {
   fn runs(s: &str) -> impl Iterator<Item = &str> {
     let mut rest = s;
@@ -2239,46 +2375,6 @@ pub fn record_order<R: Ordered>(a: &R, b: &R) -> Ordering {
       (None, None) => x.cmp(y),
     },
   }
-}
-
-/// **THE ORDER OF A THREAD'S CRITERIA AND TESTS AS ITS RECORD FILES GIVE
-/// THEM** (ST0096 WP-05): by label, each run of digits compared as a number
-/// and every other run as text, so `AC-01.2` comes before `AC-01.10`, which
-/// a file name's text order would put first.
-///
-/// **A READER'S ORDER, NOT A STORED ONE.** No file holds an order, so a thread
-/// read from its records takes this one, and a store loaded from them keeps
-/// it. A store that minted the labels keeps the order it minted them in until
-/// it next loads from the disk. No canon byte depends on either, because each
-/// record is a file of its own.
-pub fn label_order(a: &str, b: &str) -> Ordering {
-  fn runs(label: &str) -> Vec<(bool, &str)> {
-    let mut out: Vec<(bool, &str)> = Vec::new();
-    let mut start = 0;
-    let bytes = label.as_bytes();
-    for i in 1..=bytes.len() {
-      if i == bytes.len() || bytes[i].is_ascii_digit() != bytes[start].is_ascii_digit() {
-        out.push((bytes[start].is_ascii_digit(), &label[start..i]));
-        start = i;
-      }
-    }
-    out
-  }
-  let (x, y) = (runs(a), runs(b));
-  for ((xd, xs), (yd, ys)) in x.iter().zip(&y) {
-    let step = match (xd, yd) {
-      (true, true) => xs
-        .trim_start_matches('0')
-        .len()
-        .cmp(&ys.trim_start_matches('0').len())
-        .then_with(|| xs.trim_start_matches('0').cmp(ys.trim_start_matches('0'))),
-      _ => xs.cmp(ys),
-    };
-    if step != Ordering::Equal {
-      return step;
-    }
-  }
-  x.len().cmp(&y.len()).then_with(|| a.cmp(b))
 }
 
 // ---------------------------------------------------------------------------
@@ -2648,7 +2744,7 @@ mod tests {
     // and then two doors disagree about how an issue is named.
     assert_eq!(
       CLAIM_ISSUE_PREFIX,
-      format!("{}:", crate::intentfiles::Sigil::Issue.as_str()),
+      crate::intentfiles::declared_key(crate::intentfiles::Sigil::Issue, ""),
       "the claim prefix and the manifest sigil are one fact"
     );
   }
@@ -2660,10 +2756,18 @@ mod tests {
     let forms: Vec<&str> = CLAIM_ADDRESS_FORMS.split('`').skip(1).step_by(2).collect();
     // A new kind lands in `is_claim_address`, in `CLAIM_ADDRESS_FORMS` and in
     // this list TOGETHER; nothing here notices a validator widened alone.
+    let git_thread = format!("{THREAD_PREFIX}{EXAMPLE_HEX}");
+    let expected = [
+      "ST0000".to_string(),
+      git_thread.clone(),
+      "ST0000/01".to_string(),
+      scoped_address(&git_thread, EXAMPLE_WP_HEX),
+      "ISSUE:0000".to_string(),
+      format!("{CLAIM_ISSUE_PREFIX}{ISSUE_MARKER}{EXAMPLE_HEX}"),
+    ];
     assert_eq!(
-      forms,
-      ["ST0000", "ST0000/01", "ISSUE:0000"],
-      "one example per kind the validator admits: thread, work package, issue"
+      forms, expected,
+      "one example per kind and family the validator admits: thread, work package, issue"
     );
     for form in forms {
       assert!(
@@ -2671,6 +2775,19 @@ mod tests {
         "the refusal tells the user to type `{form}` and the validator refuses it"
       );
     }
+  }
+
+  #[test]
+  fn the_claim_forms_name_a_git_style_example() {
+    // ST1c2db93 P4: a git-style id is what `st new` mints now, so the sentence
+    // a refusal quotes names one, and the validator takes it.
+    let git_issue = IssueId::parse(&format!("{ISSUE_MARKER}{EXAMPLE_HEX}"))
+      .expect("the worked example is a whole hashed issue id");
+    assert!(
+      CLAIM_ADDRESS_FORMS.contains(&format!("`{}`", git_issue.claim())),
+      "the claim forms name a git-style issue: {CLAIM_ADDRESS_FORMS}"
+    );
+    assert!(is_claim_address(&git_issue.claim()));
   }
 
   #[test]
@@ -2708,6 +2825,19 @@ mod tests {
     assert!(is_claim_address("ST0079/01"));
     assert!(!is_claim_address("ST0079/1"));
     assert!(!is_claim_address("ST0079/WP-01"));
+  }
+
+  #[test]
+  fn the_named_and_scoped_readers_refuse_an_address_as_an_address() {
+    // ST1c2db93 P10: as read_thread, read_issue and read_wp already do, so
+    // an address is never read as a malformed id or matched as typed.
+    let url = "intent:///threads/ST0001/wp/01";
+    assert_eq!(read_named(url), Err(IdError::Address));
+    assert_eq!(resolve_named(url, &NoRecords), Err(IdError::Address));
+    assert_eq!(
+      scoped(url),
+      Err(refusal(url, &IdError::Address, IdKind::Thread))
+    );
   }
 
   #[test]
