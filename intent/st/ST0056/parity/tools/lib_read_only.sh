@@ -61,6 +61,42 @@ ro_die() {
   exit 2
 }
 
+# ro_unanswerable <reason> -- the pair cannot answer for this commit: no pair, a
+# rebuild in progress, or one older than the door. Refuses with <reason>, as
+# ro_die does, EXCEPT where the caller has named in RO_GOVERNS the paths its
+# verdict reads (one pathspec a line) and this commit changes none of them
+# (todo 88, vc's ruling under hv's pen, 2026-11-23). Then nothing the check
+# judges has moved since HEAD, which passed it, so it says what it did not
+# check and passes, and a board-only commit is not held behind a rebuild. A
+# caller that names nothing refuses, as before.
+#
+# `git diff --cached` reads the index the commit proposes, the temporary one
+# git hands a hook under `commit --only` included.
+ro_unanswerable() {
+  local touched line specs
+  if [ -n "${RO_GOVERNS:-}" ]; then
+    # Each line is one pathspec, handed to git as an argument: `git diff`
+    # takes no --pathspec-from-file, and refused it with its usage (run 4).
+    specs=()
+    while IFS= read -r line; do
+      [ -n "$line" ] && specs+=("$line")
+    done <<EOF
+$RO_GOVERNS
+EOF
+    touched="$(cd "$RO_ROOT" && git diff --cached --name-only -- "${specs[@]}" 2>/dev/null)" ||
+      ro_die "$* (and git could not say which paths this commit changes, so it is unchecked rather than clean)"
+    if [ -z "$touched" ]; then
+      # The reason's first line, without the refusal's own word: what follows
+      # it in a refusal says why a refusal is right, and this is not one.
+      local why="${*%%$'\n'*}"
+      echo "${RO_TAG:-lib_read_only}: NOT CHECKED -- ${why#REFUSING -- }" >&2
+      echo "  This commit changes none of the paths this check reads, so nothing it judges has moved since HEAD, and it passes unchecked. \`bin/devbin build all\` makes the pair current for a full check." >&2
+      exit 0
+    fi
+  fi
+  ro_die "$*"
+}
+
 # ro_need <name>... -- refuse unless each named input is set and not empty.
 ro_need() {
   local name value
@@ -111,16 +147,15 @@ ro_require_bin() {
   if [ -d "$RO_ROOT/native/rust/target/release" ]; then
     # TRANSIENT. cargo clears the artefact before writing the new one; that
     # window was measured at about 66 seconds on this estate.
-    echo "$RO_TAG: REFUSING -- no v3 binary at $RO_BIN, but $RO_ROOT/native/rust/target/release exists, so a build has run here and this is almost certainly A REBUILD IN PROGRESS." >&2
-    echo "  THIS IS TRANSIENT AND NOTHING IS BROKEN. The window is about 60 seconds. Wait, then retry the commit." >&2
-    echo "  If it persists past a couple of minutes the pair is genuinely gone -- remedy: \`bin/devbin build all\`." >&2
-  else
-    echo "$RO_TAG: REFUSING -- no v3 binary at $RO_BIN, no release directory and no private build, so this tree has never been built." >&2
-    echo "  THIS IS NOT TRANSIENT. Waiting will not help." >&2
-    echo "  Remedy: \`bin/devbin build all\`." >&2
+    ro_unanswerable "REFUSING -- no v3 binary at $RO_BIN, but $RO_ROOT/native/rust/target/release exists, so a build has run here and this is almost certainly A REBUILD IN PROGRESS.
+  THIS IS TRANSIENT AND NOTHING IS BROKEN. The window is about 60 seconds. Wait, then retry the commit.
+  If it persists past a couple of minutes the pair is genuinely gone -- remedy: \`bin/devbin build all\`.
+  Why this refuses rather than skipping: without the binary this check examines nothing, and exiting 0 would report that as a pass."
   fi
-  echo "  Why this refuses rather than skipping: without the binary this check examines nothing, and exiting 0 would report that as a pass." >&2
-  exit 2
+  ro_unanswerable "REFUSING -- no v3 binary at $RO_BIN, no release directory and no private build, so this tree has never been built.
+  THIS IS NOT TRANSIENT. Waiting will not help.
+  Remedy: \`bin/devbin build all\`.
+  Why this refuses rather than skipping: without the binary this check examines nothing, and exiting 0 would report that as a pass."
 }
 
 # ro_copy -- make the copy of intent/ once per run, at $RO_WORK/copy.
@@ -207,14 +242,14 @@ ro_ids() {
   # usage error misread as an old pair.
   ro_json id -- "$@"
   [ "$RO_RC" -le 1 ] ||
-    ro_die "\`intent id\`, run $RO_RUN, exited $RO_RC and gave no verdict, so the ids this commit cites are unread rather than clean. A pair without \`intent id --read-only\` is older than this tool: remedy \`bin/devbin build all\`. Its report follows:
+    ro_unanswerable "\`intent id\`, run $RO_RUN, exited $RO_RC and gave no verdict, so the ids this commit cites are unread rather than clean. A pair without \`intent id --read-only\` is older than this tool: remedy \`bin/devbin build all\`. Its report follows:
 $RO_OUT"
   # Exit 1 is also a usage error, which this binary prints as one line on
   # stderr and no report: a pair older than `id --read-only` lands here, so a
   # report that is not one JSON object refuses by that name. jq reads empty
   # input as nothing, without error, so the read below cannot catch it.
   printf '%s' "$RO_OUT" | jq -e 'type == "object"' >/dev/null 2>&1 ||
-    ro_die "\`intent id\`, run $RO_RUN, exited $RO_RC with no report, so the ids this commit cites are unread rather than clean. A pair without \`intent id --read-only\` is older than this tool, and refuses it this way: remedy \`bin/devbin build all\`."
+    ro_unanswerable "\`intent id\`, run $RO_RUN, exited $RO_RC with no report, so the ids this commit cites are unread rather than clean. A pair without \`intent id --read-only\` is older than this tool, and refuses it this way: remedy \`bin/devbin build all\`."
   RO_IDS="$(printf '%s' "$RO_OUT" | jq -r --argjson n "$#" '
     if (.answers | type) != "array" then error("the report carries no answers list")
     elif (.answers | length) != $n then error("the report answers \(.answers | length) of \($n) token(s)")

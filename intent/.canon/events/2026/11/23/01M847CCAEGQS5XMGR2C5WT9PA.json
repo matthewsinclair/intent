@@ -1,0 +1,14 @@
+{
+  "id": "01M847CCAEGQS5XMGR2C5WT9PA",
+  "ts": "2026-11-23T12:51:33.331Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/upgrade_issue_loss.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

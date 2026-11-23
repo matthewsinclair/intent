@@ -1,0 +1,14 @@
+{
+  "id": "01M8448G84W10MMDZAZ48TYMJH",
+  "ts": "2026-11-23T11:57:00.553Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-04.6"
+  },
+  "payload": {
+    "reason": "AC-04.6 it was MET while its instrument lived, and its instrument read intent/.intentfiles, which the 3.5.0 canon format folded into each record's realised flag (0ab6485e4); intent organize, the upgrade's dehydrate and doctor's view checks keep the property now. Retired under ST0097 on hv decision 88, 2026-11-23, relayed by vc."
+  }
+}

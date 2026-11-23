@@ -1,0 +1,14 @@
+{
+  "id": "01M847CE3MM7J4JDEVKZ12B7AH",
+  "ts": "2026-11-23T12:51:35.160Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0057/parity/tools/intentfiles_reviewable.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

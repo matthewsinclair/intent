@@ -3,6 +3,7 @@
   "text": "**`.intentfiles` is tracked, and a realisation change lands in the working tree together with the manifest line that caused it** -- the reviewability property the committed-manifest ruling rests on. Checked by observing the changed-path set after an `organize` that changes realisation.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "AC-02.4 it was MET while its instrument lived, and its instrument read intent/.intentfiles, which the 3.5.0 canon format folded into each record's realised flag (0ab6485e4); intent organize, the upgrade's dehydrate and doctor's view checks keep the property now. Retired under ST0097 on hv decision 88, 2026-11-23, relayed by vc."
   }
 }

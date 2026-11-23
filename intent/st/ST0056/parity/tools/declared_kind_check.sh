@@ -191,6 +191,13 @@ tool_paths=()
 while IFS=$'\t' read -r _ _ _ file; do
   tool_shape "${file:-}" >/dev/null && tool_paths+=("$file")
 done <<<"$CITE_TSV"
+# What this verdict reads, for a pair that cannot answer (todo 88): the canon
+# its rows come from, every file a row cites, and these tools. A commit that
+# changes none of them passes unchecked, said as such; any other refuses.
+RO_GOVERNS="intent/.canon/st
+intent/.canon/records
+intent/st/ST0056/parity/tools
+$(printf '%s\n' "$CITE_TSV" | cut -f4 | awk 'NF && !seen[$0]++')"
 [ "${#tool_paths[@]}" -eq 0 ] || ro_ids_for "${tool_paths[@]}"
 
 # parity_tool <path> -- true when <path> is a script in a thread's parity tools.

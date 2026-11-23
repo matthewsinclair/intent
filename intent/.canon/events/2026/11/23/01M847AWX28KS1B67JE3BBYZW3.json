@@ -1,0 +1,14 @@
+{
+  "id": "01M847AWX28KS1B67JE3BBYZW3",
+  "ts": "2026-11-23T12:50:44.774Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0057/parity/tools/canon_clone_completeness.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

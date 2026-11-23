@@ -3,6 +3,7 @@
   "text": "**NO DAEMON IS REQUIRED TO READ YOUR OWN PROJECT.** With intentd stopped, uninstalled and never started, every address in a FULLY DEHYDRATED estate resolves through the CLI. If reading a dehydrated thread came to need a running daemon, the disk model would have made the estate less accessible than a pile of markdown -- which inverts D57-5's whole reason for existing.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "AC-07.5 was MET while its instrument lived, and its instrument, no_daemon_required.sh, drove a dehydrated estate through the CLI by way of intent/.intentfiles, which the 3.5.0 canon format folded into each record's realised flag (0ab6485e4). No Rust test proves the dehydrated-estate claim itself (routing_is_opt_in.rs's with_no_daemon_the_answers_are_the_same proves the servable verbs answer with no daemon, which is narrower). Retired under ST0097 on hv decision 88, 2026-11-23, relayed by vc."
   }
 }

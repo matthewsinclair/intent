@@ -45,6 +45,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
 die() { echo "canon-clone: $*" >&2; exit 2; }
+command -v jq >/dev/null 2>&1 || die "jq is required: it reads the GraphQL door's answer"
 
 BIN="$ROOT/native/rust/target/release/intent"
 [ -x "$BIN" ] || die "no v3 binary at $BIN -- the artefact population is read from the store and cannot be derived without it. NOT a pass: the question was not asked."
@@ -53,8 +54,10 @@ git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 || die "$ROOT is not a git re
 # ---------------------------------------------------------------------------
 # 1. The population, from the MODEL.
 # ---------------------------------------------------------------------------
-THREADS="$("$BIN" st list --status all 2>/dev/null | sed -n 's/^\(ST[0-9][0-9]*\) .*/\1/p' | sort -u)"
-ISSUES="$("$BIN" issues list --kind all 2>/dev/null | sed -n 's/^\([0-9][0-9][0-9][0-9]\) .*/\1/p' | sort -u)"
+# The ids are the model's own, read from the read-only GraphQL door, so no id
+# shape is spelled here and a git-style id reads as an ordinal does (ST0097).
+THREADS="$("$BIN" graphql '{ threads { id } }' 2>/dev/null | jq -r '.data.threads[].id' | sort -u)"
+ISSUES="$("$BIN" graphql '{ issues { id } }' 2>/dev/null | jq -r '.data.issues[].id' | sort -u)"
 
 n_threads="$(printf '%s' "$THREADS" | grep -c . )"; n_threads="${n_threads:-0}"
 n_issues="$(printf '%s' "$ISSUES" | grep -c . )";   n_issues="${n_issues:-0}"

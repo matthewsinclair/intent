@@ -130,6 +130,7 @@ command -v jq >/dev/null 2>&1 || die "jq is required"
 # by exiting, and it runs in a command substitution, so that exit ends the
 # SUBSHELL. This file does not set `-e`, so without the `|| exit 2` a refusal
 # becomes a read of `""` and a confident green over nothing.
+TABLE_ORIGINAL="$TABLE"
 TABLE="$(staged_copy "$TABLE_GIVEN" "$TABLE")" || exit 2
 
 # THE AUTHORED VOCABULARIES.  Both are closed sets, and a value outside either is
@@ -178,6 +179,17 @@ DOOR_TOKENS="$(printf '%s\n' "$ROWS" | cut -f5 | while IFS= read -r rec; do
     (*) ro_st_tokens "${rec%%:*}" | cut -f1 ;;
   esac
 done | awk 'NF && !seen[$0]++')"
+# What this verdict reads, for a pair that cannot answer (todo 88): the table,
+# the records its rulings cite, and these tools. A commit that changes none of
+# them passes unchecked, said as such; any other refuses. A table given from
+# outside the checkout is not a path of this commit, so git refuses the
+# pathspec and the run refuses with it.
+if [ -n "$TABLE_GIVEN" ]; then governed_table="$TABLE_ORIGINAL"; else governed_table="surface/dispatch-table.json"; fi
+RO_GOVERNS="$governed_table
+intent/.canon/st
+intent/.canon/records
+intent/.canon/issues
+intent/st/ST0056/parity/tools"
 if [ -n "$DOOR_TOKENS" ]; then
   ro_require_bin
   tokens=()

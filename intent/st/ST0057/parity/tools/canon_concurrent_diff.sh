@@ -51,6 +51,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../../../.." && pwd)"
 
 die() { echo "canon-concurrent: $*" >&2; exit 2; }
+command -v jq >/dev/null 2>&1 || die "jq is required: it reads the GraphQL door's answer"
 
 EDITS=2
 [ "${1:-}" = "--one-edit" ] && EDITS=1   # drives the assertion; see the note above
@@ -72,8 +73,9 @@ cp "$ROOT/intent/.cache/intent.db" "$RIG/intent/.cache/intent.db" 2>/dev/null \
   || die "no store at intent/.cache/intent.db to stage into the rig -- the edits need one"
 
 # Two threads that are actually editable by the verb used below.
-CANDIDATES="$("$RIG/native/rust/target/release/intent" st list --status all 2>/dev/null \
-  | sed -n 's/^\(ST[0-9][0-9]*\) .*| WIP .*/\1/p' | sort -u)"
+# Read from the read-only GraphQL door, so no id shape is spelled here (ST0097).
+CANDIDATES="$("$RIG/native/rust/target/release/intent" graphql '{ threads { id status } }' 2>/dev/null \
+  | jq -r '.data.threads[] | select(.status == "WIP") | .id' | sort -u)"
 n_cand="$(printf '%s' "$CANDIDATES" | grep -c . )"; n_cand="${n_cand:-0}"
 [ "$n_cand" -ge 2 ] || die "found $n_cand thread(s) in a state this check can edit; it needs 2. An estate that cannot supply two editable threads cannot answer this question, which is not the same as the answer being yes."
 

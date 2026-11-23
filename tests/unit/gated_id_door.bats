@@ -191,6 +191,53 @@ store_sum() {
   [ ! -e "$PROJ/intent/.cache/intent.db" ] || fail "the check made the project's store"
 }
 
+# committed_fixture -- put the fixture project under git with everything
+# committed, so a staged change is what a commit would carry.
+committed_fixture() {
+  git -C "$PROJ" init -q
+  git -C "$PROJ" add -A
+  git -C "$PROJ" -c user.name=t -c user.email=t@t.invalid -c commit.gpgsign=false commit -q -m fixture
+}
+
+# board_only_change -- stage a change to a path no gated script reads, as a
+# seat's board commit is.
+board_only_change() {
+  mkdir -p "$PROJ/intent/whiteboard/xx"
+  printf 'a board\n' >"$PROJ/intent/whiteboard/xx/wip.md"
+  git -C "$PROJ" add intent/whiteboard/xx/wip.md
+}
+
+# rulings_in_tree <record> -- rulings_check.sh over a one-ruling table kept at
+# the checkout's own table path, so a commit can change it.
+rulings_in_tree() {
+  mkdir -p "$TEST_TEMP_DIR/st" "$PROJ/surface"
+  printf '{"invariants":[{"id":"INV-T","target":{"rulings":[{"state":"ratified","authority":"vc","date":"2026-09-14","record":"%s"}]}}],"families":[],"new_surface":[]}\n' "$1" >"$PROJ/surface/dispatch-table.json"
+}
+
+@test "rulings: a pair without id --read-only passes a commit that changes nothing it reads, saying what it did not check (todo 88)" {
+  rulings_in_tree "issue $ISSUE"
+  committed_fixture
+  board_only_change
+  old_pair
+  run env REPO_ROOT="$PROJ" ST_DIR="$TEST_TEMP_DIR/st" "$(sh_for_gate)" "$TOOLS/rulings_check.sh"
+  assert_success
+  assert_output_contains "NOT CHECKED"
+  assert_output_contains "passes unchecked"
+  refute_output_contains "conform"
+}
+
+@test "rulings: a pair without id --read-only still refuses a commit that changes the table it reads (todo 88)" {
+  rulings_in_tree "issue $ISSUE"
+  committed_fixture
+  printf '\n' >>"$PROJ/surface/dispatch-table.json"
+  git -C "$PROJ" add surface/dispatch-table.json
+  old_pair
+  run env REPO_ROOT="$PROJ" ST_DIR="$TEST_TEMP_DIR/st" "$(sh_for_gate)" "$TOOLS/rulings_check.sh"
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
+  assert_output_contains "bin/devbin build all"
+  refute_output_contains "NOT CHECKED"
+}
+
 # --- declared_kind_check.sh ------------------------------------------------
 
 @test "declared-kind: a rostered script in a hashed thread's parity tools is judged as an instrument" {
@@ -216,6 +263,35 @@ store_sum() {
   declared_kind "intent/st/$THREAD/parity/tools/rulings_check.sh"
   [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
   assert_output_contains "bin/devbin build all"
+}
+
+@test "declared-kind: a pair without id --read-only passes a commit that changes nothing it reads, saying what it did not check (todo 88)" {
+  mkdir -p "$PROJ/intent/st/$THREAD/parity/tools"
+  cp "$TOOLS/rulings_check.sh" "$PROJ/intent/st/$THREAD/parity/tools/"
+  mkdir -p "$PROJ/intent/st/ST0056/parity/tools"
+  cp "$TOOLS/runner_roster_check.sh" "$PROJ/intent/st/ST0056/parity/tools/"
+  committed_fixture
+  board_only_change
+  old_pair
+  declared_kind "intent/st/$THREAD/parity/tools/rulings_check.sh"
+  assert_success
+  assert_output_contains "NOT CHECKED"
+  refute_output_contains "agreeing"
+}
+
+@test "declared-kind: a pair without id --read-only still refuses a commit that changes a file a row cites (todo 88)" {
+  mkdir -p "$PROJ/intent/st/$THREAD/parity/tools"
+  cp "$TOOLS/rulings_check.sh" "$PROJ/intent/st/$THREAD/parity/tools/"
+  mkdir -p "$PROJ/intent/st/ST0056/parity/tools"
+  cp "$TOOLS/runner_roster_check.sh" "$PROJ/intent/st/ST0056/parity/tools/"
+  committed_fixture
+  printf '# a change\n' >>"$PROJ/intent/st/$THREAD/parity/tools/rulings_check.sh"
+  git -C "$PROJ" add "intent/st/$THREAD/parity/tools/rulings_check.sh"
+  old_pair
+  declared_kind "intent/st/$THREAD/parity/tools/rulings_check.sh"
+  [ "$status" -eq 2 ] || fail "expected exit 2, got $status: $output"
+  assert_output_contains "bin/devbin build all"
+  refute_output_contains "NOT CHECKED"
 }
 
 @test "declared-kind: the door leaves the project's store byte-identical" {

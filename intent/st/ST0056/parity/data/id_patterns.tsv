@@ -13,25 +13,3 @@
 # (WP-10: is this token an id, of which kind, and which record does it name).
 # Until the build the gate runs carries that door, a step that asks it says so,
 # and never reads the door's absence as an answer.
-intent/st/ST0056/parity/tools/conservation_check.sh	(ST[0-9]+)/WP/([0-9]+)	a thread and package from a disposition's path	the door's record answer for the path
-intent/st/ST0056/parity/tools/conservation_check.sh	(ST[0-9]+)/info	a thread from a disposition's path	the door's record answer for the path
-intent/st/ST0056/parity/tools/conservation_check.sh	-path '*/WP/*'	the realised package covers	the door's record answer for each info.md found
-intent/st/ST0056/parity/tools/conservation_check.sh	grep -oE 'ST[0-9]{4}'	thread ids in a liveness report	the door's kind answer for each token
-intent/st/ST0056/parity/tools/conservation_check.sh	grep -c 'ST[0-9]'	a count of thread ids in that report	the door's kind answer, counted
-intent/st/ST0056/parity/tools/docs_defect_disposition_check.sh	intent#[0-9]{4}	issue citations in the docs	the door's kind answer for each cited token
-intent/st/ST0056/parity/tools/estate_census.sh	/^ST[0-9][0-9][0-9][0-9]$/	a thread directory's name	the door's kind answer for the name
-intent/st/ST0056/parity/tools/realise_plan.sh	issues/[0-9][0-9][0-9][0-9].json	the issue files on disk	retirement proposed with the by-hand instruments (WP-12 scope)
-intent/st/ST0056/parity/tools/realise_plan.sh	STEELTHREAD:ST[0-9][0-9][0-9][0-9]|ISSUE:[0-9][0-9][0-9][0-9]	a manifest line's id	retirement proposed with the by-hand instruments (WP-12 scope)
-intent/st/ST0056/parity/tools/sync_issue_loss.sh	grep -oE 'ST[0-9]{4}'	the first thread in a list	the minted id the verb says (WP-12 scope, cluster H)
-intent/st/ST0056/parity/tools/sync_issue_loss.sh	grep -cE '^[0-9]{4} '	issue rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/sync_issue_loss.sh	grep -cE '^ST[0-9]{4}'	thread rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/upgrade_issue_loss.sh	grep -cE '^[0-9]{4} '	issue rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/upgrade_issue_loss.sh	grep -cE '^ST[0-9]{4}'	thread rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/v2_estate_issue_carry.sh	-name 'ST[0-9]*'	thread directories of a v2 estate	none: a v2 estate holds only ordinals (WP-12 scope)
-intent/st/ST0056/parity/tools/v2_estate_issue_carry.sh	grep -cE '^[0-9]{4} '	issue rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/v2_estate_issue_carry.sh	grep -cE '^ST[0-9]{4}'	thread rows in a list	the list verb's machine form, counted
-intent/st/ST0056/parity/tools/v2_prose_survival.sh	AT-[0-9.]+	a v2 test row's label	none: a v2 estate holds only ordinals (WP-12 scope)
-intent/st/ST0057/parity/tools/canon_clone_completeness.sh	s/^\(ST[0-9][0-9]*\) .*/	thread ids from a list	the list verb's machine form, its id column
-intent/st/ST0057/parity/tools/canon_clone_completeness.sh	s/^\([0-9][0-9][0-9][0-9]\) .*/	issue ids from a list	the list verb's machine form, its id column
-intent/st/ST0057/parity/tools/canon_concurrent_diff.sh	\(ST[0-9][0-9]*\)	thread ids from a list	the list verb's machine form, its id column
-intent/st/ST0057/parity/tools/sparse_tree_equals_manifest.sh	ST[0-9][0-9][0-9][0-9])	a manifest entry's id	retirement proposed with realise_plan.sh (WP-12 scope)

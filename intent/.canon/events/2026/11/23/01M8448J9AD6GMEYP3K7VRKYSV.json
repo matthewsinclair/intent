@@ -1,0 +1,14 @@
+{
+  "id": "01M8448J9AD6GMEYP3K7VRKYSV",
+  "ts": "2026-11-23T11:57:02.639Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0057/AC-07.5"
+  },
+  "payload": {
+    "reason": "AC-07.5 was MET while its instrument lived, and its instrument, no_daemon_required.sh, drove a dehydrated estate through the CLI by way of intent/.intentfiles, which the 3.5.0 canon format folded into each record's realised flag (0ab6485e4). No Rust test proves the dehydrated-estate claim itself (routing_is_opt_in.rs's with_no_daemon_the_answers_are_the_same proves the servable verbs answer with no daemon, which is narrower). Retired under ST0097 on hv decision 88, 2026-11-23, relayed by vc."
+  }
+}
