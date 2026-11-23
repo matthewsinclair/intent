@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I4da7c225c33751a4",
+  "origin": "01M847FTD1JK2V5C4C9Z53BZA2",
+  "realised": true,
+  "slug": "backup-the-snapshot-registry-keeps-rows-whose-sn",
+  "title": "backup: the snapshot registry keeps rows whose snapshots are gone, and nothing flags or prunes them",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-23",
+  "reporter": "Matthew Sinclair",
+  "body": "Found read-only by devbin-dc in Devbin on 2026-11-23, routed by devbin-vc. Nothing was changed there.\n\n`intent backup --list` shows 11 snapshots in Devbin, and only 4 exist on disk. A plain `rm` in a prune script removed eight, and the 08-26 snapshot is missing too, but every one is still a row in Intent's snapshot registry. No verb drops a dead row, and nothing reports one. Doctor's backup-stale advisory cleared once a snapshot was taken at 2026-11-23T03:48:02Z, so a registry of mostly dead rows reads as healthy.\n\nThe fix:\n- `backup --list` marks a row whose snapshot is gone.\n- Doctor reports it, as an advisory, so no attendee repo's verdict changes.\n- A verb prunes rows whose snapshots are gone, and prints what it dropped.\n"
+}

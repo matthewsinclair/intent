@@ -1,0 +1,16 @@
+{
+  "id": "01M847F5ZRM1D59NREAZAV822V",
+  "ts": "2026-11-23T12:53:05.144Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 67,
+    "text": "3.5.2, hv decisions 87 and 88 (hv's widening 2026-11-23: fix everything, no reason to wait). LANDED on main: the four desk fixes (86d27091a, 201a48e14), I81ecc7f and Ifdd3c89 (769a7bba1), Ie7fb84c and I84286b7 plus devbin 206 and 207 (87ec85c0d), Iae1e02a (71b3f1f72), Ic884775 (5b0aca77f), Ie99dbb6 (e8f487024); ST0094 done (a1e4b9a64). PUSHED to a1e4b9a64; main beyond it waits on a build all at its HEAD. OPEN: dc's todos 87 and 88 and ST0097 units A and B (run 4 at the 12:52Z close); cc's ST1c2db93 U1, U2, U3 and U4 (U4 removes v2, its metadata strip last; P22 and P30 to the next release). Then releasing.md step 2, the kovacs rehearsal through the Desk, the whole local gate with clippy at the tip, and READY to hv, who fires the cut."
+  }
+}

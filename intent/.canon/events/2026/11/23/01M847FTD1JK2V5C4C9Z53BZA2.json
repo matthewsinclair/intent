@@ -1,0 +1,15 @@
+{
+  "id": "01M847FTD1JK2V5C4C9Z53BZA2",
+  "ts": "2026-11-23T12:53:27.894Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I4da7c225c33751a4"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "backup: the snapshot registry keeps rows whose snapshots are gone, and nothing flags or prunes them"
+  }
+}
