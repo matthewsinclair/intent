@@ -1,0 +1,15 @@
+{
+  "id": "01M840KKV5D1CRZ7GB7GMW78N3",
+  "ts": "2026-11-23T10:53:10.384Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ic884775a088a55a5"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "sync calls one package in two states, from branches upgraded apart, two packages both sides added, and its remedy re-creates and cancels it"
+  }
+}
