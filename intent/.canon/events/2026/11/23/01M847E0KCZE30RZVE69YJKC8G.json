@@ -1,0 +1,15 @@
+{
+  "id": "01M847E0KCZE30RZVE69YJKC8G",
+  "ts": "2026-11-23T12:52:26.860Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "ST1c2db93 U2 written in tmp/wt-u2-cc (local snapshot 6d479498a, patch at ~/Devel/scratch/intent-cc/u2/unit.diff, applies on 4b3498eaa); critic-rust running; then a Desk run on top of U1. After it: U4, the v2 removal, per vc's rulings in ~/Devel/scratch/intent-cc/st1c2/PLAN.md, with the metadata strip as the last bank."
+  }
+}

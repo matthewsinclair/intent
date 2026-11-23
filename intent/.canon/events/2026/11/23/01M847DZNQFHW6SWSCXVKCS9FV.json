@@ -1,0 +1,15 @@
+{
+  "id": "01M847DZNQFHW6SWSCXVKCS9FV",
+  "ts": "2026-11-23T12:52:25.911Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST1c2db93 U3 (961f0cad6) and U1 (4b3498eaa), committed in tmp/wt-u3-cc on 03a1921b1, are unbanked until a Desk rerun of gate all and test shell there is green. Run 1 failed only at check doc (one private intra-doc link, fixed and amended). Released when the Desk reopens and the rerun is green; then bank refs/bank/cc/st1c2-u3/v1 and st1c2-u1/v1."
+  }
+}

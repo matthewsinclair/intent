@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-23 10:31Z
+heartbeat_at: 2026-11-23 12:52Z
 status: active
-focus: "2026-11-22 12:11Z by date -u: localfold after 3.5.1. No claims, no worktrees, board empty; todo 56's owed critic answers and d86c's (5) reading carried to ST1c2db93's context."
+focus: "2026-11-23 12:52Z by date -u: localfold on the Desk's close for hv's compact. ST1c2db93 U3+U1 committed in tmp/wt-u3-cc awaiting a gate rerun; U2 written in tmp/wt-u2-cc; U4 (v2 removal) sized and ruled. State in ~/Devel/scratch/intent-cc/st1c2/PLAN.md."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -17,11 +17,11 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- ST1c2db93 U2 written in tmp/wt-u2-cc (local snapshot 6d479498a, patch at ~/Devel/scratch/intent-cc/u2/unit.diff, applies on 4b3498eaa); critic-rust running; then a Desk run on top of U1. After it: U4, the v2 removal, per vc's rulings in ~/Devel/scratch/intent-cc/st1c2/PLAN.md, with the metadata strip as the last bank.
 
 ## Holds
 
-_(none)_
+- ST1c2db93 U3 (961f0cad6) and U1 (4b3498eaa), committed in tmp/wt-u3-cc on 03a1921b1, are unbanked until a Desk rerun of gate all and test shell there is green. Run 1 failed only at check doc (one private intra-doc link, fixed and amended). Released when the Desk reopens and the rerun is green; then bank refs/bank/cc/st1c2-u3/v1 and st1c2-u1/v1.
 
 ## Watch-outs
 
