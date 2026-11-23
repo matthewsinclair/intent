@@ -1,9 +1,10 @@
 ---
 issue: Ie99dbb6
 title: upgrade mints a different project_id on each branch of a project that has none, so branches upgraded apart conflict on config.json
-status: OPEN
+status: CLOSED
 severity: low
 created: 2026-11-23
+closed: 2026-11-23
 reporter: Matthew Sinclair
 ---
 
