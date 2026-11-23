@@ -92,8 +92,7 @@ cat > "$FIX/intent/.config/config.json" <<'JSON'
   "intent_dir": "intent",
   "intent_version": "3.0.0-dev",
   "languages": ["elixir"],
-  "project_name": "critic_global_rig_fixture",
-  "st_prefix": "ST"
+  "project_name": "critic_global_rig_fixture"
 }
 JSON
 

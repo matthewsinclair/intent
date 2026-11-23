@@ -277,6 +277,8 @@ It shows one thread resolving into work packages and criteria:
     +-- WP02  Rate limiter     AC-02.1  refuses over quota   [ ]
 ```
 
+`ST0042` is an ordinal id, which a thread made before its project took git-style ids keeps; a thread made now has a git-style id, eg `ST3f9a2c1`, and its work packages ids such as `ST3f9a2c1/c2e4`. The figure reads the same with either.
+
 **Draw it as a diagram, not as this ASCII** — the ASCII states the content and the relationships. It carries a text alternative describing the same structure, and it must not be the only place any of that information appears.
 
 ### 6.7 Tables

@@ -198,6 +198,24 @@ impl Fixture {
     self.root().join(rel)
   }
 
+  /// This fixture's `.intentfiles` manifest, where the project names it
+  /// (`Project::intentfiles_path`), so no test spells its place (ST1c2db93
+  /// P26).
+  pub fn manifest(&self) -> PathBuf {
+    self.project().intentfiles_path()
+  }
+
+  /// Write `text` as this fixture's `.intentfiles` manifest, where
+  /// [`Fixture::manifest`] names it.
+  pub fn write_manifest(&self, text: &str) {
+    std::fs::write(self.manifest(), text).expect("write the manifest");
+  }
+
+  /// This fixture's `.intentfiles` manifest, as text.
+  pub fn read_manifest(&self) -> String {
+    std::fs::read_to_string(self.manifest()).expect("read the manifest")
+  }
+
   /// Write a thread's canonical JSON, and stub every test file its contract
   /// cites.
   ///
@@ -654,6 +672,36 @@ pub fn sample_issue(number: u32) -> Issue {
     // inside a fence, which a heading-hunting reader would split on, and the
     // `# <nnnn>: <title>` line, which is carried rather than reconstructed.
     body: "# 0021: prune the dead mechanism\n\n## Summary\n\nIt compiled for five months and ran zero times.\n\n```sh\n# not a heading\nintent doctor\n```\n"
+      .to_string(),
+  }
+}
+
+/// **THE ONE HOSTILE ISSUE** (ST1c2db93 P25): an open ordinal issue whose
+/// values carry what breaks a naive carrier, the pipe, the quote and the tick,
+/// shared by the store's and the canon's round trips. A test that needs a
+/// field set otherwise overrides it with struct update syntax, so the hostile
+/// values have one home.
+pub fn hostile_issue(number: u32) -> Issue {
+  Issue {
+    schema: ISSUE_SCHEMA.to_string(),
+    number: issue(number),
+    origin: None,
+    realised: false,
+    slug: "a-pipe-|-and-a-quote".to_string(),
+    title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
+    status: IssueStatus::Open,
+    severity: Some("high".to_string()),
+    created: "2026-08-14".to_string(),
+    closed: None,
+    // An apostrophe in a value bound as a SQL parameter -- the one that would
+    // matter if any of these statements were ever built by interpolation, and
+    // the field most likely to carry one in real data.
+    reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
+    // The same hostility, at the one field big enough to contain all of it: an
+    // issue body is prose, so it holds the quote that ends a SQL string, the
+    // semicolon that starts a second statement, and the newlines that make the
+    // whole thing multi-line -- which is where a hand-built statement fails.
+    body: "# 0007: it broke\n\n## Detail\n\nIt printed 'ok'; then it wasn't. A \"quote\", a | pipe.\n\n```sql\nDROP TABLE issues; -- not a heading, not a statement\n```\n"
       .to_string(),
   }
 }

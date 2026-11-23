@@ -65,7 +65,11 @@ fn every_status() -> Vec<(String, ThreadStatus)> {
   all
     .iter()
     .enumerate()
-    .map(|(i, s)| (format!("ST{:04}", i + 1), *s))
+    .map(|(i, s)| {
+      let ordinal = u32::try_from(i + 1).expect("a thread ordinal that fits a u32");
+      let id = intentsvcs::id::ThreadId::from_ordinal(ordinal).expect("an ordinal thread");
+      (id.stored(), *s)
+    })
     .collect()
 }
 

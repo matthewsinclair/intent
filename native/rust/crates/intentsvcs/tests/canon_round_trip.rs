@@ -30,8 +30,8 @@ use std::collections::BTreeSet;
 use crate::common::{Fixture, PROJECT_ID, sample_thread};
 use intentsvcs::canon_format::{CanonFormat, encode_thread_files};
 use intentsvcs::model::{
-  AcceptanceMode, AcceptanceTest, AtKind, AtStatus, FiatRecord, ISSUE_SCHEMA, Invoker, Issue,
-  IssueStatus, Thread, to_canonical_json,
+  AcceptanceMode, AcceptanceTest, AtKind, AtStatus, FiatRecord, Invoker, Issue, IssueStatus,
+  Thread, to_canonical_json,
 };
 use intentsvcs::project::{
   canon_ac_rel, canon_at_rel, canon_attachment_rel, canon_blob_rel, canon_wp_rel,
@@ -97,28 +97,21 @@ fn maximal_thread(id: &str) -> Thread {
   t
 }
 
+/// The shared hostile issue (`common::hostile_issue`), closed, realised and
+/// carrying an origin, with a body of JSON's own escapes.
 fn issue(number: u32) -> Issue {
   Issue {
-    schema: ISSUE_SCHEMA.to_string(),
-    number: crate::common::issue(number),
     origin: Some(crate::common::FIXTURE_ORIGIN.to_string()),
     // Set, so the round trip below proves the store carries it (ST0096 WP-01).
     realised: true,
-    slug: "a-pipe-|-and-a-quote".to_string(),
-    title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
     status: IssueStatus::Closed,
-    severity: Some("high".to_string()),
-    created: "2026-08-14".to_string(),
     closed: Some("2026-08-15".to_string()),
-    // Hostile for the same reason the title is: this fixture exists to prove
-    // the canonical JSON survives the characters that break naive quoting, and
-    // a name is the field most likely to carry an apostrophe in real data.
-    reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
     // The body is where JSON's own escapes have to survive a round trip -- a
     // literal backslash, an embedded quote and the newlines that make a one-
     // line encoder look correct until it meets prose.
     body: "# 0007: an issue with a \"quote\"\n\n## Detail\n\nA backslash \\\\ and a tab\tin the middle.\n"
       .to_string(),
+    ..crate::common::hostile_issue(number)
   }
 }
 

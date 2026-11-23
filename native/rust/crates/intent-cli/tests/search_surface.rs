@@ -127,10 +127,13 @@ fn a_word_in_an_issue_body_is_found() {
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
 
-  let issues = root.join("intent/.canon/issues");
+  let issues = crate::common::issues_canon_dir(root);
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   std::fs::write(
-    issues.join("0001.json"),
+    crate::common::issue_canon_file(
+      root,
+      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
+    ),
     "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"# 0001: Pelican drift\\n\\nThe pelican index drifts after a rebuild.\\n\"\n}\n",
   )
   .expect("write issue canon");
@@ -506,7 +509,7 @@ fn a_phrase_in_a_thread_objective_is_found() {
 
   // Authored canon: the objective is a modelled field, so writing it here is
   // writing the same bytes the tool writes, not a v2-style hand edit.
-  let canon = root.join(format!("intent/.canon/st/{st}.json"));
+  let canon = crate::common::thread_canon_file(root, &st);
   let text = std::fs::read_to_string(&canon).expect("read canon");
   let edited = text.replace(
     "\"objective\": \"\"",
@@ -543,10 +546,13 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     "# Notes\n\nA first paragraph.\n\n## Detail\n\nThe kestrel combinator returns its first argument.\n",
   )
   .expect("author prose");
-  let issues = root.join("intent/.canon/issues");
+  let issues = crate::common::issues_canon_dir(root);
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   std::fs::write(
-    issues.join("0001.json"),
+    crate::common::issue_canon_file(
+      root,
+      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
+    ),
     "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"The pelican index drifts after a rebuild.\\n\"\n}\n",
   )
   .expect("write issue canon");

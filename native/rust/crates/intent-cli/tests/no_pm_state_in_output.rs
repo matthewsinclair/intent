@@ -166,17 +166,10 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
   {
     return Some(end);
   }
-  // `AC-02.8`, `AT-00.11` -- group of two, then a dot, then a sequence.
-  for prefix in [b"AC-", b"AT-"] {
-    if b[i..].starts_with(prefix) && digits(i + 3, 2) && i + 5 < b.len() && b[i + 5] == b'.' {
-      let mut end = i + 6;
-      while end < b.len() && b[end].is_ascii_digit() {
-        end += 1;
-      }
-      if end > i + 6 && ends(end) {
-        return Some(end);
-      }
-    }
+  // `AC-02.8`, `AT-00.11`, `AC-3f9a.1` -- a criterion or test label, read by
+  // the tests' one label reader, so a git-style package's group is read too.
+  if let Some(end) = crate::common::label_at(b, i) {
+    return Some(end);
   }
   // `D42` -- a design-decision number, counted only where a `D`-shaped id
   // cannot be one of the reader's own STZero deliverables. See [`Decisions`].
@@ -542,6 +535,17 @@ fn the_rule_keys_on_referent_and_not_on_shape() {
   assert_eq!(pm_identifiers("see ST0056", anywhere), vec!["ST0056"]);
   assert_eq!(pm_identifiers("covers AC-02.8", anywhere), vec!["AC-02.8"]);
   assert_eq!(pm_identifiers("covers AT-00.8", anywhere), vec!["AT-00.8"]);
+  // A label whose group is a git-style package's, as the library stores it
+  // (ST1c2db93 P13), and the zero family, which is a format example.
+  let label = intentsvcs::id::regrouped(
+    "AC-01.1",
+    intentsvcs::id::WpId::from_origin("a planted package"),
+  );
+  assert_eq!(
+    pm_identifiers(&format!("covers {label}"), anywhere),
+    vec![label]
+  );
+  assert!(pm_identifiers("eg AC-0.0 or AT-0.0", anywhere).is_empty());
   // A hashed id of each kind, which a grammar of digits never saw (issue 0736).
   let thread = intentsvcs::id::ThreadId::from_origin("a planted thread").shown();
   let issue = intentsvcs::id::IssueId::from_origin("a planted issue").shown();

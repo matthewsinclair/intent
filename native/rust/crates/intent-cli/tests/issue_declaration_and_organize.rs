@@ -54,7 +54,7 @@ fn said(out: &Output) -> String {
 }
 
 fn manifest(root: &std::path::Path) -> String {
-  std::fs::read_to_string(root.join("intent/.intentfiles")).expect("manifest")
+  std::fs::read_to_string(crate::common::manifest_file(root)).expect("manifest")
 }
 
 /// Only the declaring lines, in file order.
@@ -143,7 +143,7 @@ fn the_manifest_accepts_the_issue_sigil() {
   // a manifest this test wrote through a verb would only prove the verb agrees
   // with itself.
   std::fs::write(
-    root.join("intent/.intentfiles"),
+    crate::common::manifest_file(root),
     format!("# hand-written\nISSUE:{issue}\n"),
   )
   .expect("write a manifest by hand");
@@ -210,7 +210,7 @@ fn a_realised_file_whose_issue_is_undeclared_is_dehydrated() {
   // Undeclare it by hand rather than by closing: this arm is about what the
   // MANIFEST says, and closing would also change the record, so a green here
   // would not say which of the two drove the removal.
-  std::fs::write(root.join("intent/.intentfiles"), "# nothing declared\n")
+  std::fs::write(crate::common::manifest_file(root), "# nothing declared\n")
     .expect("undeclare by hand");
 
   let preview = preview_line(&intent(root, &["organize"]));
@@ -232,7 +232,7 @@ fn default_declares_exactly_the_wip_threads_and_the_open_issues() {
   let root = dir.path();
   let at_triage = seed_thread(root, 1, "A thread at triage");
   // At `triage`, where `st new` leaves a thread.
-  let canon = root.join(format!("intent/.canon/st/{at_triage}.json"));
+  let canon = crate::common::thread_canon_file(root, &at_triage);
   let text = std::fs::read_to_string(&canon).expect("the seeded canon");
   let triage = text.replace("\"status\": \"not-started\"", "\"status\": \"triage\"");
   assert_ne!(text, triage, "the seeded thread must move to triage");
@@ -255,7 +255,7 @@ fn default_declares_exactly_the_wip_threads_and_the_open_issues() {
   );
 
   assert!(
-    !root.join("intent/.intentfiles").exists(),
+    !crate::common::manifest_file(root).exists(),
     "start from absent"
   );
   let out = intent(root, &["organize", "--default"]);
@@ -340,7 +340,7 @@ fn an_undeclared_issue_gets_no_view_when_something_writes() {
   // Undeclared and with no view: the estate's shape, reached deliberately
   // rather than by closing, so the record still says OPEN and only the
   // MANIFEST says undeclared.
-  std::fs::write(root.join("intent/.intentfiles"), "# nothing declared\n")
+  std::fs::write(crate::common::manifest_file(root), "# nothing declared\n")
     .expect("undeclare by hand");
   assert!(!view(root, &issue).is_file(), "start from absent");
 

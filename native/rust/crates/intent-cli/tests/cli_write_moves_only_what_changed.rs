@@ -260,7 +260,7 @@ fn pristine() -> (tempfile::TempDir, Threads) {
 /// Declare `acceptance: exempt` on one thread through canon + the store, which
 /// is the estate's own mechanism for a deliberately contract-free unit.
 fn exempt(root: &Path, id: &str) {
-  let canon = root.join("intent/.canon/st").join(format!("{id}.json"));
+  let canon = crate::common::thread_canon_file(root, id);
   let text = std::fs::read_to_string(&canon).expect("read canon");
   let patched = text.replacen(
     "\"status\":",

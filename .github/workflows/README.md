@@ -46,7 +46,7 @@ No concurrency group: every run completes.
 
 **Jobs**:
 
-- `validate-steel-thread`: builds the v3 `intent` binary, takes the first `ST####` in the PR description and runs `intent st show` on it. A referenced thread that does not exist fails the job; a description with no reference passes with a suggestion to add one. The description reaches the step as an environment variable and is read only as text, so nothing written in it runs.
+- `validate-steel-thread`: builds the v3 `intent` binary and runs `.github/scripts/pr-thread-ref.sh`, which asks the binary's id door, `intent id`, for the first word of the PR description that names a thread, an ordinal id (`ST0001`) or a git-style one (`ST3f9a2c1`); the door's answer is the existence check. A referenced thread that does not exist fails the job; a description with no reference passes with a suggestion to add one. The description reaches the step as an environment variable and is read only as text, so nothing written in it runs.
 - `check-documentation`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path ending `.md` or containing `usr/` or `doc/`. The job fetches the full history so that `origin/main` is there, and it fails only when that diff cannot be taken.
 - `test-coverage`: warns when the diff against `origin/main` touches a path under `bin/` or `native/` and no path containing `tests/`. Like `check-documentation`, it fetches the full history and fails only when that diff cannot be taken.
 - `commit-message-check`: warns for each commit subject in `origin/main..HEAD` shorter than 10 or longer than 72 characters. Never fails.

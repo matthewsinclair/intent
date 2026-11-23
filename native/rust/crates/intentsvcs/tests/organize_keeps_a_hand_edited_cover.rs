@@ -46,10 +46,7 @@ fn thread() -> Address {
 fn put_back(fx: &Fixture, move_store: bool, edit: bool) -> (Facade, String) {
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&gate_open());
-  fx.write_file(
-    "intent/.intentfiles",
-    "STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n",
-  );
+  fx.write_manifest("STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n");
   let mut f = fx.facade();
   f.hydrate(&thread()).expect("a declared thread realises");
   let kept = fx.read(COVER);
@@ -81,11 +78,8 @@ fn put_back(fx: &Fixture, move_store: bool, edit: bool) -> (Facade, String) {
     "the hand edit did not land in the copy, so this arm proves nothing"
   );
   fx.write_file(COVER, &copy);
-  let manifest = fx.read("intent/.intentfiles");
-  fx.write_file(
-    "intent/.intentfiles",
-    &format!("{manifest}STEELTHREAD:ST0001\n"),
-  );
+  let manifest = fx.read_manifest();
+  fx.write_manifest(&format!("{manifest}STEELTHREAD:ST0001\n"));
   (f, copy)
 }
 

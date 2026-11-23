@@ -45,7 +45,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use intentsvcs::daemon;
 
-use crate::common::{RealDaemon, seed_findable_text, servable_argv, short_dir};
+use crate::common::{RealDaemon, servable_argv, short_dir};
 
 /// A listener that answers the liveness probe, stopped when dropped.
 ///
@@ -137,24 +137,15 @@ impl Drop for AnsweringDaemon {
 const MINTED: &str = "a thread only the local store knows about";
 
 /// An Intent project at a fresh short path, built by the shipped initialiser,
-/// carrying one thread.
+/// carrying one thread, started and findable.
+///
+/// **STARTED, BECAUSE A FRESH THREAD IS NOT WHAT `st list` SHOWS BY DEFAULT.**
+/// The first build of this fixture minted a thread and asserted it appeared;
+/// `st list` filters to WIP, so the listing was empty and the arm reported the
+/// in-process answer as not having reached the store. **The fixture, not the
+/// subject**, and `common::started_thread` carries that for every caller.
 fn project() -> PathBuf {
-  let (root, mut facade) = crate::common::initialised("optin-proj", "OptIn");
-  let id = facade.st_new(MINTED).expect("mint one thread");
-  // **STARTED, BECAUSE A FRESH THREAD IS NOT WHAT `st list` SHOWS BY DEFAULT.**
-  // The first build of this fixture minted a thread and asserted it appeared;
-  // `st list` filters to WIP, so the listing was empty and the arm reported the
-  // in-process answer as not having reached the store. **The fixture, not the
-  // subject** -- and it is worth the two lines because the alternative was
-  // per-verb argv knowledge in a loop that is supposed to be derived.
-  facade.st_triage(&id).expect("triage the fixture thread");
-  facade
-    .st_start(&id)
-    .expect("start it, so a default listing names it");
-  // And the same text where the file index can reach it, so the servable verbs
-  // that answer from the index can name it too.
-  seed_findable_text(&root, MINTED);
-  root
+  crate::common::started_thread("optin-proj", "OptIn", MINTED)
 }
 
 /// Run the shipped `intent` binary in a project, with a chosen `HOME`.

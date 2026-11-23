@@ -38,8 +38,7 @@ impl Drop for Fixture {
 
 /// An Intent project at a fresh short path, carrying one findable thread.
 fn project() -> (Fixture, String) {
-  let (root, mut facade) = crate::common::initialised("restart-proj", "Restart");
-  let id = facade.st_new(MINTED).expect("mint one thread");
+  let (root, id) = crate::common::one_thread("restart-proj", "Restart", MINTED);
   (Fixture(root), id)
 }
 

@@ -142,7 +142,7 @@ fn write_settled(fx: &Fixture, thread: &intentsvcs::model::Thread) {
 fn fixture() -> Fixture {
   let fx = Fixture::ordinal();
   write_settled(&fx, &sample_thread("ST0056"));
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx
 }
 
@@ -153,11 +153,11 @@ fn fixture() -> Fixture {
 /// can pass while the answer to that question is wrong -- a line inside a
 /// comment being the obvious way.
 fn declared(fx: &Fixture) -> intentsvcs::intentfiles::Realised {
-  realised_from(&fx.read("intent/.intentfiles"))
+  realised_from(&fx.read_manifest())
 }
 
 fn manifest_text(fx: &Fixture) -> String {
-  fx.read("intent/.intentfiles")
+  fx.read_manifest()
 }
 
 /// An upgraded project holding `ST0056`, realised on its record, for the arms
@@ -485,7 +485,7 @@ fn triage_removes_and_start_adds_it_back() {
   let mut thread = sample_thread("ST0056");
   thread.status = ThreadStatus::Triage;
   fx.write_thread(&thread);
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
 
   let mut facade = fx.facade();
   facade.st_triage("ST0056").expect("triage");
@@ -611,8 +611,6 @@ fn reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wro
 /// convenient.
 #[test]
 fn no_verb_creates_a_manifest_that_was_not_there() {
-  let path_rel = "intent/.intentfiles";
-
   // `st new` -- the one most likely to be implemented as "create and list". A
   // mint refuses in 3.4.0's format, so this arm is upgraded (ST0096 WP-01).
   {
@@ -623,7 +621,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
       .st_new("a thread in a project that never listed anything")
       .expect("new");
     assert!(
-      !fx.path(path_rel).exists(),
+      !fx.manifest().exists(),
       "`st new` created a manifest -- every other thread in that estate is now \
        unrealised and `organize` will remove their files"
     );
@@ -636,7 +634,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
     write_settled(&fx, &sample_thread("ST0056"));
     let mut facade = fx.facade();
     facade.st_done("ST0056").expect("done");
-    assert!(!fx.path(path_rel).exists(), "`st done` created a manifest");
+    assert!(!fx.manifest().exists(), "`st done` created a manifest");
   }
 
   // `st reopen`, which ADDS -- the verb with the strongest excuse to create one.
@@ -649,7 +647,7 @@ fn no_verb_creates_a_manifest_that_was_not_there() {
       .st_reopen("ST0056", "the contract grew")
       .expect("reopen");
     assert!(
-      !fx.path(path_rel).exists(),
+      !fx.manifest().exists(),
       "`st reopen` created a manifest to hold the id it wanted to add"
     );
   }
@@ -680,10 +678,9 @@ fn closing_an_already_closed_thread_does_not_undo_a_hand_edit() {
 
   // The human puts it back by hand -- the supported way to work in a closed
   // thread's files without reopening it.
-  fx.write_file(
-    "intent/.intentfiles",
-    &format!("{MANIFEST}STEELTHREAD:ST0056  # I want these files back\n"),
-  );
+  fx.write_manifest(&format!(
+    "{MANIFEST}STEELTHREAD:ST0056  # I want these files back\n"
+  ));
   assert!(
     declared(&fx).declares("ST0056"),
     "precondition: hand-listed"
@@ -779,7 +776,7 @@ fn a_verb_that_removes_nothing_carries_no_note() {
   let mut thread = sample_thread("ST0056");
   thread.status = ThreadStatus::Triage;
   fx.write_thread(&thread);
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   let outcome = fx.facade().st_start("ST0056").expect("start");
   assert!(outcome.notes().is_empty(), "got {outcome:?}");
 
@@ -836,7 +833,7 @@ fn a_thread_with_no_attachments_is_not_reported_as_unknown() {
   let mut thread = sample_thread("ST0056");
   thread.attachments.clear();
   write_settled(&fx, &thread);
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
 
   let mut facade = fx.facade();
   let outcome = facade.st_done("ST0056").expect("done");
@@ -865,7 +862,7 @@ fn committed_fixture() -> Fixture {
   let fx = Fixture::ordinal();
   fx.git_init();
   write_settled(&fx, &sample_thread("ST0056"));
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx.write_prose("ST0056", "reference.md", "bytes that are in a commit\n");
   fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
   fx.git(&["add", "-A"]);
@@ -968,7 +965,7 @@ fn an_untracked_attachment_is_named_and_says_so_in_its_own_words() {
   let fx = Fixture::ordinal();
   fx.git_init();
   write_settled(&fx, &sample_thread("ST0056"));
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx.write_prose("ST0056", "parity/cmd-st.md", "bytes that are in a commit\n");
   fx.git(&["add", "-A"]);
   fx.git(&[
@@ -1054,7 +1051,7 @@ fn st_reopen_realises_the_attachments_with_the_views() {
     "# Design\n",
   ));
   write_settled(&fx, &thread);
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   let mut facade = fx.facade();
   facade.st_done("ST0056").expect("done");
   facade

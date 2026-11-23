@@ -259,7 +259,7 @@ fn a_manifest_that_does_not_parse_realises_everything() {
   assert!(fx.project().info_view("ST0001").exists(), "precondition");
 
   // One unknown sigil. The grammar refuses at the first unreadable line.
-  fx.write_file("intent/.intentfiles", "THREAD:ST0001\n");
+  fx.write_manifest("THREAD:ST0001\n");
 
   let mut f = fx.facade_on_disk();
   f.ac_withdraw(

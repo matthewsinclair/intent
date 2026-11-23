@@ -186,7 +186,7 @@ fn project_with_a_removal() -> tempfile::TempDir {
   // A project `init` makes keeps the declaration on each record (ST0096
   // WP-01), so the fixture's one thread is undeclared by a verb that
   // unrealises its record and leaves its files: `st cancel`.
-  let threads: Vec<String> = std::fs::read_dir(root.join("intent/.canon/st"))
+  let threads: Vec<String> = std::fs::read_dir(crate::common::threads_canon_dir(root))
     .expect("the thread canon")
     .map(|entry| entry.expect("an entry").path())
     .filter(|path| path.extension().is_some_and(|ext| ext == "json"))

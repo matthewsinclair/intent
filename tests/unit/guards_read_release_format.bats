@@ -27,7 +27,7 @@ setup() {
   unset_user_dirs
   cd "$PROJ" || exit 1
   "$INTENT_BIN" init "Release format" >/dev/null 2>&1 || fail "intent init did not make the fixture project"
-  THREAD="$(mint st new "Release checklist")"
+  THREAD="$(mint st new "Release checklist")" || fail "st new minted no thread"
   # The tools sit in the project, as they do in Intent's own tree, and read the
   # model's vocabulary from its schema there.
   mkdir -p "$PROJ/$TOOLS_REL" "$PROJ/schema" "$PROJ/tests" "$PROJ/native/rust/target/release"
@@ -43,15 +43,6 @@ setup() {
 teardown() {
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   [ -n "${TEST_TEMP_DIR:-}" ] && rm -rf "$TEST_TEMP_DIR"
-}
-
-# mint <verb>... -- run a minting verb and print the id its created: line names.
-mint() {
-  local out id
-  out="$("$INTENT_BIN" "$@" 2>&1)" || fail "intent $* refused: $out"
-  id="$(printf '%s\n' "$out" | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$id" ] || fail "intent $* printed no created: line: $out"
-  printf '%s' "$id"
 }
 
 # verb <verb>... -- run a verb that must succeed.

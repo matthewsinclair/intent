@@ -38,7 +38,7 @@ fn seeded(fx: Fixture) -> Fixture {
   let fx = records(fx);
   // 3.4.0's format reads realisation from the manifest; an upgraded project
   // reads it from each record, so only an ordinal fixture needs it.
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx
 }
 
@@ -65,7 +65,7 @@ fn at(entity: Entity) -> Address {
 }
 
 fn manifest_of(fx: &Fixture) -> String {
-  std::fs::read_to_string(fx.path("intent/.intentfiles")).expect("manifest")
+  fx.read_manifest()
 }
 
 fn is_pinned(fx: &Fixture, id: &str) -> bool {
@@ -164,7 +164,7 @@ fn hydrating_something_already_on_disk_still_pins_it() {
 
   // Un-pin, leaving the FILES exactly where they are. This is the state the
   // generated region produces for a live thread.
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   assert!(!is_pinned(&fx, "ST0001"), "precondition: not pinned");
   assert!(
     fx.path("intent/st/ST0001/info.md").exists(),

@@ -39,7 +39,7 @@ fn fixture() -> Fixture {
   let fx = Fixture::ordinal();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&gate_open());
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx
 }
 
@@ -52,7 +52,7 @@ fn at(id: &str) -> Address {
 }
 
 fn manifest_of(fx: &Fixture) -> String {
-  std::fs::read_to_string(fx.path("intent/.intentfiles")).expect("manifest")
+  fx.read_manifest()
 }
 
 // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ fn a_refused_run_leaves_the_manifest_byte_identical() {
 fn an_absent_manifest_refuses_and_one_that_omits_the_id_does_not() {
   let fx = fixture();
   let mut f = fx.facade();
-  std::fs::remove_file(fx.path("intent/.intentfiles")).expect("take it away");
+  std::fs::remove_file(fx.manifest()).expect("take it away");
 
   let err = f.dehydrate(&at("ST0001")).expect_err("absent refuses");
   assert!(
@@ -234,7 +234,7 @@ fn an_absent_manifest_refuses_and_one_that_omits_the_id_does_not() {
   // manifest that EXISTS and simply does not name this thread is an ordinary
   // exit 0, not a refusal -- so the arm above is about absence and not about
   // the id being missing from a list.
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0057\n");
+  fx.write_manifest("STEELTHREAD:ST0057\n");
   let done = f
     .dehydrate(&at("ST0001"))
     .expect("a manifest that does not list the id is not an error");
@@ -277,7 +277,7 @@ fn an_estate_with_no_declaration_is_guarded_by_the_per_file_rail_at_this_door() 
   // thread leaves; a hand-edited one is refused with nothing removed.
   let fx = Fixture::ordinal();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
+  fx.write_manifest("STEELTHREAD:ST0001\n");
   let mut f = fx.facade();
   let realised = f.hydrate(&at("ST0001")).expect("realises");
 
@@ -413,7 +413,7 @@ fn a_declared_but_unmet_precondition_refuses_and_names_it() {
       AcState::Unsatisfied { note: None },
     ),
   ]));
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   let mut f = fx.facade();
   let realised = f.hydrate(&at("ST0001")).expect("realises");
 

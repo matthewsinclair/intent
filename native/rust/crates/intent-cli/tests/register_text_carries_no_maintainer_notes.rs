@@ -123,10 +123,15 @@ fn is_date(w: &str) -> bool {
 
 fn is_dev_id(w: &str) -> bool {
   let w = w.trim_matches(|c: char| !c.is_ascii_alphanumeric());
-  ["AC-", "AT-", "INV-", "WP-"].iter().any(|p| {
-    w.strip_prefix(p)
-      .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
-  }) || (w.len() == 5 && w.starts_with("TN") && w[2..].chars().all(|c| c.is_ascii_digit()))
+  // A criterion or test label, of either family's group, by the tests' one
+  // label reader (ST1c2db93 P13), and beside it a bare `AC-09` or `AT-3` with
+  // no sequence, which is no label but is still a development id.
+  crate::common::label_at(w.as_bytes(), 0).is_some()
+    || ["AC-", "AT-", "INV-", "WP-"].iter().any(|p| {
+      w.strip_prefix(p)
+        .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
+    })
+    || (w.len() == 5 && w.starts_with("TN") && w[2..].chars().all(|c| c.is_ascii_digit()))
     || w.split(['/', ':', '.']).any(names_a_record)
 }
 
@@ -218,11 +223,21 @@ fn each_detector_fires_on_its_shape_and_a_clean_text_passes() {
     "Owed by {}",
     intentsvcs::id::WpId::from_origin("a planted package").heading()
   );
+  // A criterion label whose group is a git-style package's, as the library
+  // stores it, which the digits-only label grammar never read (ST1c2db93 P13).
+  let planted_label = format!(
+    "Exposed implies servable ({})",
+    intentsvcs::id::regrouped(
+      "AC-01.1",
+      intentsvcs::id::WpId::from_origin("a planted package")
+    )
+  );
   for (text, kind) in [
     ("Refuses here (render.rs:1215 says why)", "Rust source path"),
     ("Ruled on 2026-09-24 by the release", "date"),
     ("Exposed implies servable (AC-09.6)", "development id"),
     ("See INV-04 for the exit contract", "development id"),
+    (planted_label.as_str(), "development id"),
     (planted_thread.as_str(), "development id"),
     (planted_issue.as_str(), "development id"),
     (planted_package.as_str(), "development id"),

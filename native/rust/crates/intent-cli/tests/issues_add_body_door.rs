@@ -25,7 +25,7 @@ fn project() -> tempfile::TempDir {
     "{\"intent_version\":\"3.0.0\",\"project_name\":\"I\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
   )
   .expect("write config");
-  std::fs::create_dir_all(dir.path().join("intent/.canon/issues")).expect("mkdir issues");
+  std::fs::create_dir_all(crate::common::issues_canon_dir(dir.path())).expect("mkdir issues");
   crate::common::born_upgraded(dir.path());
   dir
 }
@@ -49,7 +49,7 @@ fn body_of(root: &Path, number: &str) -> String {
 /// Every file in the issue canon, which `project` creates empty: a refusal
 /// that wrote an issue under any id shows here.
 fn issue_canon(root: &Path) -> Vec<std::path::PathBuf> {
-  std::fs::read_dir(root.join("intent/.canon/issues"))
+  std::fs::read_dir(crate::common::issues_canon_dir(root))
     .expect("read the issue canon")
     .map(|entry| entry.expect("an issue canon entry").path())
     .collect()
@@ -152,11 +152,10 @@ fn neither_flag_leaves_the_body_empty_and_still_creates_the_issue() {
   let issue = crate::common::created(&String::from_utf8_lossy(&made.stdout));
   assert_eq!(
     issue_canon(dir.path()),
-    vec![
-      dir
-        .path()
-        .join(format!("intent/.canon/issues/{issue}.json"))
-    ],
+    vec![crate::common::issue_canon_file(
+      dir.path(),
+      intentsvcs::id::IssueId::parse(&issue).expect("a minted issue id"),
+    )],
     "the helper the refusal arms read sees the one file a real add writes"
   );
   assert_eq!(body_of(dir.path(), &issue), "");

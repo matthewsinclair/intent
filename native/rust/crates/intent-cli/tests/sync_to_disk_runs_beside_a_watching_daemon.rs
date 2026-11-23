@@ -131,11 +131,8 @@ fn write_sentinel(root: &Path, id: &str) {
     ),
   )
   .expect("stage the sentinel thread");
-  std::fs::rename(
-    &staged,
-    root.join("intent/.canon/st").join(format!("{id}.json")),
-  )
-  .expect("move the sentinel thread into the canon whole");
+  std::fs::rename(&staged, crate::common::thread_canon_file(root, id))
+    .expect("move the sentinel thread into the canon whole");
 }
 
 /// Write a sentinel, and read the ingest count once the daemon's store holds it.

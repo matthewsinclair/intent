@@ -27,6 +27,47 @@ pub fn canon_file(root: &std::path::Path, rel: &str) -> std::path::PathBuf {
     .join(rel)
 }
 
+/// A thread's canon file under `root`, by its id as stored, where the project
+/// names it (`Project::thread_json`), so no test spells `.canon/st/` (ST1c2db93
+/// P26).
+pub fn thread_canon_file(root: &std::path::Path, id: &str) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .thread_json(id)
+}
+
+/// An issue's canon file under `root`, where the project names it
+/// (`Project::issue_json`).
+pub fn issue_canon_file(root: &std::path::Path, id: intentsvcs::id::IssueId) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .issue_json(id)
+}
+
+/// The thread canon directory under `root`, where the project names it
+/// (`Project::canon_st_dir`).
+pub fn threads_canon_dir(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .canon_st_dir()
+}
+
+/// The `.intentfiles` manifest under `root`, where the project names it
+/// (`Project::intentfiles_path`).
+pub fn manifest_file(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .intentfiles_path()
+}
+
+/// The issue canon directory under `root`, where the project names it
+/// (`Project::issues_dir`).
+pub fn issues_canon_dir(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .issues_dir()
+}
+
 /// One of `root`'s canon files, by its path relative to the intent directory,
 /// parsed as plain JSON.
 pub fn canon_json(root: &std::path::Path, rel: &str) -> serde_json::Value {
@@ -392,7 +433,14 @@ pub fn facade_on(root: &Path) -> intentsvcs::facade::Facade {
   let opened = intentsvcs::project::Project::open(root).expect("the project opens");
   let ctx = intentsvcs::facade::FacadeContext::for_tests(
     "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
+    // **AN EXPECT, NEVER A DEFAULT** (ST1c2db93 P25): a facade on a project
+    // with no identity reports `""` as every event's project, and an
+    // assertion comparing two of those passes on nothing.
+    opened
+      .config()
+      .identity()
+      .expect("the project carries a project_id, or every identity this facade reports is empty")
+      .to_string(),
     env!("CARGO_PKG_VERSION").to_string(),
   );
   intentsvcs::facade::Facade::open(opened, ctx).expect("a facade on the project")
@@ -407,6 +455,33 @@ pub fn initialised(tag: &str, name: &str) -> (PathBuf, intentsvcs::facade::Facad
     .expect("the shipped initialiser creates a project");
   let facade = facade_on(&root);
   (root, facade)
+}
+
+/// **THE ONE PROJECT CARRYING ONE MINTED THREAD** (ST1c2db93 P25): an
+/// [`initialised`] project for `tag` named `name`, with one thread minted under
+/// `title`, and that thread's id as the mint returned it.
+pub fn one_thread(tag: &str, name: &str, title: &str) -> (PathBuf, String) {
+  let (root, mut facade) = initialised(tag, name);
+  let id = facade.st_new(title).expect("mint one thread");
+  (root, id)
+}
+
+/// [`one_thread`], with the thread triaged and started and its title where
+/// the file index can reach it, so every servable verb can name it.
+///
+/// **STARTED, BECAUSE `st list` SHOWS WIP BY DEFAULT.** An unstarted thread
+/// leaves a default listing empty, and two paths that agree on an empty
+/// listing agree vacuously, which is the control this fixture exists to make
+/// real.
+pub fn started_thread(tag: &str, name: &str, title: &str) -> PathBuf {
+  let (root, id) = one_thread(tag, name, title);
+  let mut facade = facade_on(&root);
+  facade.st_triage(&id).expect("triage the fixture thread");
+  facade
+    .st_start(&id)
+    .expect("start it, so a default listing names it");
+  seed_findable_text(&root, title);
+  root
 }
 
 /// Write a v2 steel thread the way v2.19 writes one: the one copy the
@@ -1319,6 +1394,38 @@ pub fn created(out: &str) -> String {
     "a minted id is one word, and this `created:` line carries `{id}`:\n{out}"
   );
   id.to_string()
+}
+
+/// **THE TESTS' ONE READER OF A CRITERION OR TEST LABEL IN TEXT** (ST1c2db93
+/// P13): the end of the label that starts at byte `i` of `text`, if one does.
+/// The shape is the library's (`intentsvcs::id::label_kind`), so a git-style
+/// package's group (`AC-3f9a.1`) is read as an ordinal one (`AC-02.8`) is, and
+/// no test writes a second label grammar. The label runs to the end of its
+/// sequence's digits, and only a letter or digit there refuses it: `AC-02.8's`
+/// is the label and an apostrophe. The zero family (`AC-0.0`, `AT-00.0`) is a
+/// format example, as `intentsvcs::id::is_example` holds for a record's id,
+/// and is not counted. The caller owns the left boundary.
+pub fn label_at(text: &[u8], i: usize) -> Option<usize> {
+  let run = |from: usize, keep: fn(&u8) -> bool| {
+    (from..text.len())
+      .find(|&at| !keep(&text[at]))
+      .unwrap_or(text.len())
+  };
+  let head = run(i, u8::is_ascii_alphanumeric);
+  if text.get(head) != Some(&b'-') {
+    return None;
+  }
+  let group = run(head + 1, u8::is_ascii_alphanumeric);
+  if text.get(group) != Some(&b'.') {
+    return None;
+  }
+  let end = run(group + 1, u8::is_ascii_digit);
+  if text.get(end).is_some_and(u8::is_ascii_alphanumeric) {
+    return None;
+  }
+  let label = std::str::from_utf8(&text[i..end]).ok()?;
+  let example = text[head + 1..end].iter().all(|&c| c == b'0' || c == b'.');
+  (intentsvcs::id::label_kind(label).is_some() && !example).then_some(end)
 }
 
 /// **THE ONE HAND-WRITTEN THREAD CANON** (ST0095 WP-10, T1): a 3.4.0-format

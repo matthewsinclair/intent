@@ -116,7 +116,7 @@ fn add_through(e: &Estate, wanted: &str) -> (String, String, i32) {
 }
 
 fn issue_count(root: &Path) -> usize {
-  std::fs::read_dir(root.join("intent/.canon/issues")).map_or(0, |dir| dir.count())
+  std::fs::read_dir(crate::common::issues_canon_dir(root)).map_or(0, |dir| dir.count())
 }
 
 fn holds_the_issue(root: &Path) -> bool {

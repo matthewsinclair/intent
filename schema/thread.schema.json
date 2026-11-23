@@ -83,7 +83,7 @@
               ]
             },
             "to": {
-              "description": "The thread the requirement moved to, eg `ST0000`.",
+              "description": "The thread the requirement moved to, ordinal or git-style, eg `ST0000` or\n`ST3f9a2c1d4e5f6a7b`.",
               "type": "string"
             }
           },
@@ -472,7 +472,7 @@
       "description": "A cross-reference to another steel thread, with the note explaining WHY it\nis related. v2 carried these as free bullets under `## Related Steel\nThreads`; the id and the reason are separable facts, so they separate.",
       "properties": {
         "id": {
-          "description": "The related thread's natural id, eg `ST0000`.",
+          "description": "The related thread's natural id, ordinal or git-style, eg `ST0000` or\n`ST3f9a2c1d4e5f6a7b`.",
           "type": "string"
         },
         "note": {
@@ -675,7 +675,7 @@
       "description": "The fiat close, present exactly when this thread was closed on human\nauthority against the evidence rather than on a passing gate.\n\n**BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status\nstays `completed`, so Machine 1 is untouched and every consumer that\nreads it keeps working; what changes is the EDGE that reached it. `st.fc`\nis guarded by `ReasonRecorded` where `st.done` is guarded by `GatePass` --\n**a fiat close is by definition the case where the gate does not pass**, so\nrelaxing the existing edge to accept either guard would have made\n`st.done` silently fiat-capable.\n\n**NOTHING STRUCTURAL HOLDS THIS FIELD AND [`Thread::status`] IN AGREEMENT**,\nwhich is the same exposure [`AcceptanceTest::fiat`] carries and for a\ndifferent reason: there, a payload was impossible; here, hv ruled the status\nvalue must not move at all. So the invariant is every verb's to keep --\n`st.fc` writes the pair together, every other transition out of\n`completed` clears it, and `Facade::put` refuses to write it."
     },
     "id": {
-      "description": "Natural id, eg `ST0000`. Global identity is `(project_id, id)`.",
+      "description": "Natural id, ordinal or git-style, eg `ST0000` or `ST3f9a2c1d4e5f6a7b`. Global\nidentity is `(project_id, id)`.",
       "type": "string"
     },
     "objective": {

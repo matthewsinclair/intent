@@ -69,9 +69,12 @@ fn seed(root: &Path) {
       ]
     }),
   );
-  std::fs::create_dir_all(root.join("intent/.canon/issues")).expect("mkdir issues");
+  std::fs::create_dir_all(crate::common::issues_canon_dir(root)).expect("mkdir issues");
   std::fs::write(
-    root.join("intent/.canon/issues/0001.json"),
+    crate::common::issue_canon_file(
+      root,
+      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
+    ),
     "{\"schema\":\"intent/issue@3.0\",\"number\":1,\"slug\":\"a-thing\",\"title\":\"A thing\",\"status\":\"open\",\"created\":\"2026-08-01\"}\n",
   )
   .expect("write issue");
@@ -436,7 +439,7 @@ fn at_na_prints_one_spelling_on_the_movement_and_the_no_op_alike() {
   // that is the only shape `at na` can move: a verdict must fit its kind
   // (issue 0337), so a test row refuses `n/a`, and a legal non-test row is
   // already there. This is the estate shape the verb exists to repair.
-  let canon = dir.path().join("intent/.canon/st/ST0001.json");
+  let canon = crate::common::thread_canon_file(dir.path(), "ST0001");
   let text = std::fs::read_to_string(&canon).expect("read canon");
   let text = text.replacen(
     "\"tests\": [\n",

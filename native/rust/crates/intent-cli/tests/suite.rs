@@ -292,6 +292,8 @@ mod self_loop_population;
 mod self_loop_voice;
 #[path = "session_hook_lockout.rs"]
 mod session_hook_lockout;
+#[path = "shipped_prose_states_the_id_constants.rs"]
+mod shipped_prose_states_the_id_constants;
 #[path = "skill_cross_references_resolve.rs"]
 mod skill_cross_references_resolve;
 #[path = "skills_list_names_what_the_roster_does_not.rs"]

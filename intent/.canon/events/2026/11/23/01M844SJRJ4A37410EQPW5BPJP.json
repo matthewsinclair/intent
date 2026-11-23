@@ -1,0 +1,14 @@
+{
+  "id": "01M844SJRJ4A37410EQPW5BPJP",
+  "ts": "2026-11-23T12:06:20.189Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/critic_global_rig.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

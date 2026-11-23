@@ -347,7 +347,7 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
 
   let st = crate::common::created(&ok(root, &["st", "new", "Add a Rust-based CLI"]));
   assert!(
-    root.join(format!("intent/.canon/st/{st}.json")).is_file(),
+    crate::common::thread_canon_file(root, &st).is_file(),
     "canon"
   );
   // An upgraded project realises a thread on its record (ST0096 WP-01), and
@@ -890,7 +890,7 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   // restore from it. The restore must name the overwrite before taking it --
   // a summary afterwards is a receipt for a loss the operator needed one
   // moment earlier.
-  let canon = root.join(format!("intent/.canon/st/{st}.json"));
+  let canon = crate::common::thread_canon_file(root, &st);
   let text = std::fs::read_to_string(&canon).expect("canon");
   std::fs::write(
     &canon,
@@ -1355,7 +1355,8 @@ fn a_status_reason_reaches_a_human_face_on_both_entities() {
     &["st", "hold", "ST0001", "--reason", "CANARY-THREAD-XYZZY"],
   );
 
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  let canon =
+    std::fs::read_to_string(crate::common::thread_canon_file(root, "ST0001")).expect("canon");
   assert!(
     canon.contains("CANARY-THREAD-XYZZY"),
     "CONTROL: the verb must have recorded the reason before the face is worth asking:\n{canon}"
@@ -1672,7 +1673,8 @@ fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
 
   let said = ok(root, &["st", "relate", "1", "s2", "--note", "builds on it"]);
   assert!(said.contains("ok: ST0001 related to ST0002"), "{said}");
-  let canon = std::fs::read_to_string(root.join("intent/.canon/st/ST0001.json")).expect("canon");
+  let canon =
+    std::fs::read_to_string(crate::common::thread_canon_file(root, "ST0001")).expect("canon");
   assert!(
     canon.contains("builds on it"),
     "the link reached canon: {canon}"

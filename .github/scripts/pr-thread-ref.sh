@@ -17,7 +17,8 @@
 #   job: this script never falls back to a pattern.
 #
 # Run from the project root, with INTENT_BIN naming the binary the job built
-# (pr-checks.yml sets it). bash 3.2 compatible.
+# (pr-checks.yml sets it), and jq on PATH to read the door's JSON. bash 3.2
+# compatible.
 
 set -euo pipefail
 
@@ -58,36 +59,48 @@ set -f
 set -- $WORDS
 set +f
 IFS="$OLDIFS"
+# The door's answer is read by its fields, through jq: without it this check
+# reads nothing, and that is not the binary's fault.
+command -v jq >/dev/null 2>&1 || { echo "❌ Error: jq is not on PATH, and this check reads the door's answer through it" >&2; exit 2; }
 RC=0
-ANSWERS="$("$INTENT_BIN" id "$@" 2>&1)" || RC=$?
+ERRS="$(mktemp)"
+trap 'rm -f "$ERRS"' EXIT
+ANSWERS="$("$INTENT_BIN" id --format json "$@" 2>"$ERRS")" || RC=$?
 
-# THE DOOR ANSWERED ONLY IF IT GAVE ONE OF ITS FOUR VERDICTS FOR EVERY WORD.
-# Anything else is a door that did not answer: clap's refusal of an unknown
-# subcommand from a binary without `intent id`, which exits 1 like a word that
-# is not an id, or a binary that printed nothing at all.
+# THE DOOR ANSWERED ONLY IF IT GAVE ONE OF ITS FOUR VERDICTS FOR EVERY WORD, AS
+# ITS JSON DOCUMENT: read by its fields, never by a pattern of ours (ST1c2db93
+# P29). Anything else is a door that did not answer: clap's refusal of an
+# unknown subcommand from a binary without `intent id`, which exits 1 like a
+# word that is not an id, or a binary that printed nothing at all.
 [ "$RC" -le 1 ] || unanswered "it exited $RC"
-STRAY="$(printf '%s\n' "$ANSWERS" | awk 'NF && $1 != "id" && $1 != "unknown" && $1 != "ambiguous" && $1 != "not-an-id"' | head -3)"
-[ -z "$STRAY" ] || unanswered "it said: $STRAY"
-VERDICTS="$(printf '%s\n' "$ANSWERS" | awk 'NF' | wc -l | tr -d ' ')"
+SAID="$(awk 'NF' "$ERRS" | head -3)"
+if [ -n "$ANSWERS" ]; then
+  VERDICTS="$(printf '%s\n' "$ANSWERS" | jq -e '
+    if all(.answers[]; .answer == "id" or .answer == "unknown" or .answer == "ambiguous" or .answer == "not-an-id")
+    then .answers | length
+    else error("an answer outside its four verdicts") end' 2>/dev/null)" ||
+    unanswered "it said: $({ printf '%s\n' "$SAID"; printf '%s\n' "$ANSWERS" | jq -c . 2>/dev/null || printf '%s\n' "$ANSWERS"; } | awk 'NF' | head -3)"
+elif [ -n "$SAID" ]; then
+  unanswered "it said: $SAID"
+else
+  VERDICTS=0
+fi
 [ "$VERDICTS" -eq "$#" ] || unanswered "it gave $VERDICTS verdict(s) for the $# word(s) it was asked"
 
 # The first word that names a thread decides: found, unknown or ambiguous. A
-# bare number is asked as a thread or an issue (kind=thread,issue) and is not a
-# thread reference on its own.
-VERDICT="$(printf '%s\n' "$ANSWERS" | awk '
-  {
-    kind = ""; id = ""; token = ""
-    for (i = 2; i <= NF; i++) {
-      if ($i ~ /^kind=/) kind = substr($i, 6)
-      else if ($i ~ /^id=/) id = substr($i, 4)
-      else if ($i ~ /^token=/) token = substr($i, 7)
-    }
-  }
-  kind != "thread" && kind != "wp" { next }
-  $1 == "id" { sub("/.*", "", id); print "found " id; exit }
-  $1 == "unknown" { print "unknown " token; exit }
-  $1 == "ambiguous" { print "ambiguous " token; exit }
-')"
+# bare number is asked as a thread or an issue (kinds thread and issue) and is
+# not a thread reference on its own.
+VERDICT="$(printf '%s\n' "$ANSWERS" | jq -r '
+  first(.answers[]
+    | (if .answer == "id" then .kind
+       elif .answer == "ambiguous" then ([.candidates[].kind] | unique | join(","))
+       elif .answer == "unknown" then (.kinds | join(","))
+       else "" end) as $kind
+    | select($kind == "thread" or $kind == "wp")
+    | if .answer == "id" then "found " + (.id | sub("/.*"; ""))
+      elif .answer == "unknown" then "unknown " + .token
+      else "ambiguous " + .token end) // empty')" ||
+  unanswered "its answers lack the fields this check reads"
 
 case "$VERDICT" in
   "") no_reference ;;

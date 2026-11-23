@@ -9,8 +9,8 @@
 use crate::common::{APART, Fixture, SHARED_A, SHARED_B, sample_issue, sample_thread};
 use intentsvcs::facade::{EventFilter, Facade, FacadeError, IdRecord};
 use intentsvcs::id::{
-  ISSUE_MARKER, IssueId, MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, ThreadId,
-  WP_SHOWN_HEX, WpId, prefix_floor,
+  EXAMPLE_HEX, ISSUE_MARKER, IssueId, MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX,
+  ThreadId, WP_SHOWN_HEX, WpId, prefix_floor,
 };
 use intentsvcs::model::{AcKind, WorkPackage};
 
@@ -221,13 +221,30 @@ fn an_ordinal_shaped_spelling_is_the_ordinal_and_never_a_hash() {
 #[test]
 fn a_spelling_too_short_for_a_prefix_is_refused_naming_the_minimum() {
   let e = estate();
-  let typed = &hex(&e.c)[..MIN_PREFIX_HEX - 1];
-  match e.f.resolve_thread(typed) {
+  // A spelling with a letter in it, so it cannot be read as an ordinal: digits
+  // alone that short ARE one, which names its thread, and an `Ok` for them
+  // would let this red control pass without refusing anything. The estate's
+  // own threads are tried first; their hex is minted, so when none has a
+  // letter that early the id module's worked example stands in, since the
+  // shortness refusal reads the spelling and not the records.
+  let has_letter = |front: &str| !front.bytes().all(|b| b.is_ascii_digit());
+  let typed = [&e.a, &e.b, &e.c]
+    .into_iter()
+    .map(|id| hex(id)[..MIN_PREFIX_HEX - 1].to_string())
+    .find(|front| has_letter(front))
+    .unwrap_or_else(|| EXAMPLE_HEX[..MIN_PREFIX_HEX - 1].to_string());
+  assert!(
+    has_letter(&typed),
+    "`{typed}` has no letter, so it reads as an ordinal"
+  );
+  match e.f.resolve_thread(&typed) {
     Err(FacadeError::NotAnId { refusal, .. }) => {
       assert!(refusal.message.contains("too short"), "{}", refusal.message)
     }
-    // Digits alone that short are an ordinal, which names its thread.
-    Ok(id) => assert!(!id.is_hashed(), "`{typed}` reached a hash"),
+    Ok(id) => panic!(
+      "`{typed}` is too short for a prefix and reached {}",
+      id.stored()
+    ),
     Err(other) => panic!("`{typed}`: {other:?}"),
   }
 }

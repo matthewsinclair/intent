@@ -457,6 +457,35 @@ skip_other_system() {
   skip "OTHER SYSTEM: $1"
 }
 
+# shellcheck source=../../bin/.devbin/cmd/shared/mint.lib
+. "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/mint.lib"
+
+# mint <verb>... -- run a minting verb of the build under test and print the id
+# its one `created:` line names, read by mint.lib's `minted_id`, the one
+# reader a script learns a minted id through (ST1c2db93 P29). It runs inside a
+# command substitution, where `fail` cannot stop the case, so a refusal, or
+# output minted_id cannot be sure of, returns 1 with what the verb said on
+# stderr, and the caller's `|| fail` stops the case.
+mint() {
+  local out id
+  out="$("$INTENT_BIN" "$@" 2>&1)" || { printf 'intent %s refused: %s\n' "$*" "$out" >&2; return 1; }
+  id="$(minted_id "$out")" || { printf 'intent %s printed no one created: line: %s\n' "$*" "$out" >&2; return 1; }
+  printf '%s' "$id"
+}
+
+# A case about macOS's /bin/bash 3.2 skips, naming why, wherever /bin/bash is
+# absent or is not bash 3 (CI's Linux): a pass there would report a
+# measurement nobody took. The one home of the check (ST1c2db93 P27), which
+# templates_bash32.bats and stale_at_check.bats each carried.
+require_bin_bash_3() {
+  [ -x /bin/bash ] || skip_other_system "no /bin/bash here"
+  local major
+  major="$(/bin/bash -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)"
+  if [ "$major" != "3" ]; then
+    skip_other_system "/bin/bash is ${major:-unreadable}.x, not 3, so a case about bash 3.2 cannot be driven here"
+  fi
+}
+
 # The one program IN-PR-STYLE-004 names for the trope catalogue's patterns
 # (issue 0677), read from the rule so a test runs what the rule says.
 trope_recipe_program() {

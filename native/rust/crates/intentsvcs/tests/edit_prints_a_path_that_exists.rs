@@ -59,7 +59,7 @@ fn fixture() -> Fixture {
     "# WP-02 design\n\nThe work package's own file.\n",
   ));
   fx.write_thread(&thread);
-  fx.write_file("intent/.intentfiles", MANIFEST);
+  fx.write_manifest(MANIFEST);
   fx
 }
 
@@ -119,7 +119,7 @@ fn editing_pins_the_artefact_so_the_next_organize_keeps_it() {
   let mut facade = fx.facade();
   facade.edit(&thread(), "design").expect("opens");
 
-  let manifest = fx.read("intent/.intentfiles");
+  let manifest = fx.read_manifest();
   assert!(
     intentsvcs::intentfiles::realised_from(&manifest).declares("ST0001"),
     "`edit` realised the thread and did not list it, so the next `organize` \
@@ -220,7 +220,7 @@ fn the_filename_refusal_writes_nothing_at_all() {
   // A clean starting point: no realised views, an empty-but-present manifest.
   let dir = fx.path("intent/st/ST0001");
   std::fs::remove_dir_all(&dir).ok();
-  std::fs::write(fx.path("intent/.intentfiles"), MANIFEST).unwrap();
+  fx.write_manifest(MANIFEST);
 
   // **THE SUBJECT MOVED WITH hv's RULING AND THE DEFECT DID NOT.** This arm
   // drove `info` because `info` was the register's default AND a name this
@@ -245,7 +245,7 @@ fn the_filename_refusal_writes_nothing_at_all() {
       .map(|d| d.flatten().map(|e| e.file_name()).collect::<Vec<_>>())
       .unwrap_or_default()
   );
-  let manifest = fx.read("intent/.intentfiles");
+  let manifest = fx.read_manifest();
   assert!(
     !intentsvcs::intentfiles::realised_from(&manifest).declares("ST0001"),
     "the refusal pinned the artefact in a TRACKED file while reporting rc=1:\n{manifest}"
@@ -266,7 +266,7 @@ fn a_file_the_thread_does_not_carry_is_refused_before_anything_is_written() {
   let mut facade = fx.facade();
   let dir = fx.path("intent/st/ST0001");
   std::fs::remove_dir_all(&dir).ok();
-  std::fs::write(fx.path("intent/.intentfiles"), MANIFEST).unwrap();
+  fx.write_manifest(MANIFEST);
 
   let err = facade
     .edit(&thread(), "impl")
@@ -287,7 +287,7 @@ fn a_file_the_thread_does_not_carry_is_refused_before_anything_is_written() {
       .map(|d| d.flatten().map(|e| e.file_name()).collect::<Vec<_>>())
       .unwrap_or_default()
   );
-  let manifest = fx.read("intent/.intentfiles");
+  let manifest = fx.read_manifest();
   assert!(
     !intentsvcs::intentfiles::realised_from(&manifest).declares("ST0001"),
     "the refusal pinned the artefact in a TRACKED file while reporting rc=1:\n{manifest}"
@@ -329,7 +329,7 @@ fn an_unknown_id_is_reported_as_unknown_whichever_file_is_asked_for() {
     // **THE TRACKED FILE IS THE POINT, NOT THE MESSAGE.** The authored three
     // realised first and refused afterwards, leaving `STEELTHREAD:ST9997`
     // behind in version control for a peer to commit under their own name.
-    let manifest = fx.read("intent/.intentfiles");
+    let manifest = fx.read_manifest();
     assert!(
       !intentsvcs::intentfiles::realised_from(&manifest).declares("ST9997"),
       "`{file}` pinned a thread that does not exist into a TRACKED file:\n{manifest}"

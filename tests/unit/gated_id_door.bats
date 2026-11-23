@@ -24,10 +24,8 @@ setup() {
   unset_user_dirs
   cd "$PROJ" || exit 1
   "$INTENT_BIN" init "Gated id door" >/dev/null 2>&1 || fail "intent init did not make the fixture project"
-  THREAD="$("$INTENT_BIN" st new "Release checklist" 2>&1 | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$THREAD" ] || fail "st new printed no created: line"
-  ISSUE="$("$INTENT_BIN" issues add "A loose end" 2>&1 | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$ISSUE" ] || fail "issues add printed no created: line"
+  THREAD="$(mint st new "Release checklist")" || fail "st new minted no thread"
+  ISSUE="$(mint issues add "A loose end")" || fail "issues add minted no issue"
   # The arms below claim hashed records, and the door, not a pattern, says so: a
   # hashed id is shown by a short form that is not its stored id.
   "$INTENT_BIN" id --format json "$THREAD" "$ISSUE" |
@@ -92,8 +90,7 @@ view_skew() {
 # the door's answer too, whichever form of the package's id the directory carries.
 package_view() {
   local wp view
-  wp="$("$INTENT_BIN" wp new "$THREAD" "First cut" 2>&1 | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$wp" ] || fail "wp new printed no created: line"
+  wp="$(mint wp new "$THREAD" "First cut")" || fail "wp new minted no package"
   view="$("$INTENT_BIN" id --format json "$wp" | jq -r '.answers[0].path')"
   case "$view" in *.md) ;; *) view="$view/info.md" ;; esac
   [ "${view#intent/st/"$THREAD"/}" != "$view" ] || fail "the door realises $wp at $view, not under its thread"

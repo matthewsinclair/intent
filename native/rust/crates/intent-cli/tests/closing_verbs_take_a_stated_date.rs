@@ -70,8 +70,8 @@ fn project() -> tempfile::TempDir {
 }
 
 fn completed(dir: &Path, id: &str) -> String {
-  let raw = std::fs::read_to_string(dir.join(format!("intent/.canon/st/{id}.json")))
-    .expect("the thread's canon");
+  let raw =
+    std::fs::read_to_string(crate::common::thread_canon_file(dir, id)).expect("the thread's canon");
   let v: serde_json::Value = serde_json::from_str(&raw).expect("canon parses");
   v["completed"].as_str().unwrap_or_default().to_string()
 }

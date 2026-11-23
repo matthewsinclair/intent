@@ -18,8 +18,7 @@ setup() {
   unset_user_dirs
   cd "$TEST_TEMP_DIR/proj" || exit 1
   "$INTENT_BIN" init "PR ref" >/dev/null 2>&1 || fail "intent init did not make the fixture project"
-  THREAD="$("$INTENT_BIN" st new "Release checklist" 2>&1 | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$THREAD" ] || fail "st new printed no created: line"
+  THREAD="$(mint st new "Release checklist")" || fail "st new minted no thread"
 }
 
 teardown() {

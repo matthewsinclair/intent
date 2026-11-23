@@ -59,7 +59,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
-use crate::common::{RealDaemon, seed_findable_text, servable_argv};
+use crate::common::{RealDaemon, servable_argv};
 
 /// The title minted into the fixture project.
 ///
@@ -101,18 +101,15 @@ impl Drop for Fixture {
   }
 }
 
-/// An Intent project at a fresh short path, carrying one findable thread.
+/// An Intent project at a fresh short path, carrying one findable thread,
+/// started, so the two paths cannot agree on an EMPTY listing, which is the
+/// vacuous agreement this file exists to refuse.
 fn project() -> Fixture {
-  let (root, mut facade) = crate::common::initialised("dualpath-proj", "DualPath");
-  let id = facade.st_new(MINTED).expect("mint one thread");
-  // Started, because `st list` filters to WIP by default and a fresh thread is
-  // not WIP -- so an unstarted fixture makes both paths agree on an EMPTY
-  // listing, which is the vacuous agreement this file exists to refuse.
-  facade.st_triage(&id).expect("triage it");
-  facade.st_start(&id).expect("start it");
-
-  seed_findable_text(&root, MINTED);
-  Fixture(root)
+  Fixture(crate::common::started_thread(
+    "dualpath-proj",
+    "DualPath",
+    MINTED,
+  ))
 }
 
 fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {

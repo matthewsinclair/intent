@@ -315,7 +315,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
     let mut thread = sample_thread("ST0001");
     thread.status = ThreadStatus::Completed;
     fx.write_thread(&thread);
-    fx.write_file("intent/.intentfiles", NOTHING_DECLARED);
+    fx.write_manifest(NOTHING_DECLARED);
     let mut facade = fx.facade();
     facade
       .hydrate(&Address {
@@ -326,7 +326,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
         format: None,
       })
       .expect("realise the thread");
-    fx.write_file("intent/.intentfiles", NOTHING_DECLARED);
+    fx.write_manifest(NOTHING_DECLARED);
     let view = fx.path("intent/st/ST0001/acceptance.md");
     if hand_edit {
       let mut text = std::fs::read_to_string(&view).expect("the realised view");
@@ -343,7 +343,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
       )
       .expect("add a criterion to the closed thread");
     let after = std::fs::read_to_string(&view).expect("the view after");
-    let manifest = std::fs::read_to_string(fx.path("intent/.intentfiles")).expect("manifest");
+    let manifest = fx.read_manifest();
     (before, after, manifest)
   };
 

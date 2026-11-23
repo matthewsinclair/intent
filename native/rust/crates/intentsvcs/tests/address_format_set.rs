@@ -34,7 +34,15 @@ fn exactly_json_and_md_are_accepted() {
 #[test]
 fn the_format_enum_and_its_parser_agree_exactly() {
   let all = [Format::Json, Format::Md];
-  assert_eq!(all.len(), 2, "the set is held at two for 3.0.0");
+  // **NO COUNT, AND A MATCH IN ITS PLACE** (ST1c2db93 P27): the match is
+  // exhaustive, so a third variant stops this file compiling until this arm
+  // names it, which brings whoever adds it to the `all` beside it. The match
+  // does not itself put the variant in `all`; that is the edit it prompts.
+  for f in &all {
+    match f {
+      Format::Json | Format::Md => {}
+    }
+  }
   for f in all {
     assert_eq!(
       Format::parse(f.as_str()),

@@ -213,6 +213,23 @@ fn is_collection(entity: &Entity) -> bool {
   }
 }
 
+/// One entity of each collection SHAPE, the variants [`is_collection`] answers
+/// true for (ST1c2db93 P27). The fence's expected size is this list's, so no
+/// count is written by hand, and each shape is held to `is_collection` below,
+/// so the list cannot name a shape the predicate does not.
+fn collection_shapes() -> Vec<Entity> {
+  vec![
+    Entity::Threads,
+    Entity::Issues,
+    Entity::WpCollection {
+      thread: String::new(),
+    },
+    Entity::AcCollection {
+      thread: String::new(),
+    },
+  ]
+}
+
 /// Every collection form in D57-8's second fence parses and resolves.
 ///
 /// **The population is asserted, not assumed.** The fence's own length is the
@@ -222,9 +239,14 @@ fn is_collection(entity: &Entity) -> bool {
 #[test]
 fn every_d57_8_collection_form_resolves() {
   let fence = d57_8_collection_fence();
+  let shapes = collection_shapes();
+  assert!(
+    shapes.iter().all(is_collection),
+    "every collection shape listed is one `is_collection` answers true for"
+  );
   assert_eq!(
     fence.len(),
-    4,
+    shapes.len(),
     "D57-8's second fence declares the collection addresses and this row's\n  \
      population is exactly that fence. Found {}: {fence:?}\n  \
      If the design gained or lost a collection form, this row must move with it.",
@@ -274,7 +296,15 @@ fn every_d57_8_collection_form_resolves() {
     resolved.push(address.entity);
   }
 
-  assert_eq!(resolved.len(), 4, "four forms must reach four entities");
+  for shape in &shapes {
+    assert!(
+      resolved
+        .iter()
+        .any(|e| std::mem::discriminant(e) == std::mem::discriminant(shape)),
+      "no form in the fence reached the collection shape {}",
+      shape.form()
+    );
+  }
 }
 
 /// **The dependency this row rests on, made visible.**

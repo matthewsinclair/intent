@@ -23,21 +23,13 @@
 //! model diff that passes for two different edits would pass for everything,
 //! and this file's whole verdict would mean nothing.
 
-use crate::common::{RunningDaemon, project};
+use crate::common::{RunningDaemon, one_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::model::Thread;
 use intentsvcs::wire::{Request, Response};
 
 const MINTED: &str = "Minted for two realisers";
 const EDITED: &str = "Edited through a realiser";
-
-/// A project carrying one thread, and that thread's id.
-fn project_with_a_thread(tag: &str) -> (std::path::PathBuf, String) {
-  let root = project(tag);
-  let mut facade = open(&root);
-  let id = facade.st_new(MINTED).expect("mint one thread");
-  (root, id)
-}
 
 /// A facade on this root.
 ///
@@ -107,8 +99,8 @@ fn through_the_wire_door(daemon: &RunningDaemon, root: &std::path::Path, id: &st
 #[test]
 fn no_realiser_is_a_second_opinion_about_what_was_written() {
   let daemon = RunningDaemon::start();
-  let (in_process_root, in_process_id) = project_with_a_thread("RealiserA");
-  let (wire_root, wire_id) = project_with_a_thread("RealiserB");
+  let (in_process_root, in_process_id) = one_thread("RealiserA", MINTED);
+  let (wire_root, wire_id) = one_thread("RealiserB", MINTED);
 
   through_the_in_process_door(&in_process_root, &in_process_id, EDITED);
   through_the_wire_door(&daemon, &wire_root, &wire_id, EDITED);
@@ -130,8 +122,8 @@ fn no_realiser_is_a_second_opinion_about_what_was_written() {
 #[test]
 fn the_diff_can_actually_fail() {
   let daemon = RunningDaemon::start();
-  let (in_process_root, in_process_id) = project_with_a_thread("ControlA");
-  let (wire_root, wire_id) = project_with_a_thread("ControlB");
+  let (in_process_root, in_process_id) = one_thread("ControlA", MINTED);
+  let (wire_root, wire_id) = one_thread("ControlB", MINTED);
 
   // The SAME machinery, driven to two DIFFERENT values. If the comparison
   // above can pass for this, it can pass for anything.

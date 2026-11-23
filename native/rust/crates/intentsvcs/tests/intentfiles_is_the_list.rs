@@ -70,7 +70,7 @@ fn estate(fx: &Fixture) -> String {
 STEELTHREAD:ST0001
 STEELTHREAD:ST0057
 ";
-  fx.write_file("intent/.intentfiles", list);
+  fx.write_manifest(list);
 
   // And take ST0001's cover away, so the same run has something to HYDRATE.
   std::fs::remove_file(fx.project().info_view("ST0001")).expect("dehydrate by hand");
@@ -124,10 +124,7 @@ fn the_list_wins_over_status_in_both_directions() {
   fx.facade_on_disk()
     .sync_to_disk(&Scope::All)
     .expect("realise everything");
-  fx.write_file(
-    "intent/.intentfiles",
-    "STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n",
-  );
+  fx.write_manifest("STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n");
 
   fx.facade_on_disk()
     .organize(Mode::Apply)
@@ -165,7 +162,7 @@ fn organize_does_not_recompute_the_list() {
     .expect("organize reconciles");
 
   assert_eq!(
-    std::fs::read_to_string(fx.path("intent/.intentfiles")).expect("the list"),
+    fx.read_manifest(),
     authored,
     "the list survived byte for byte across a run that moved files in BOTH\n       \
      directions -- `organize` realises the list and never recomputes it, which\n       \
@@ -266,8 +263,7 @@ fn the_realised_set_equals_the_listed_set() {
   // **The coverage returns the day a second sigil lands** -- which is queued,
   // not hypothetical: cc's 59 project-content files want one. Whoever adds it
   // must put it in this fixture, and this comment is the reason why.
-  fx.write_file(
-    "intent/.intentfiles",
+  fx.write_manifest(
     "\
 # hand-authored
 STEELTHREAD:ST0002
@@ -280,7 +276,7 @@ STEELTHREAD:ST0057
 
   // --- derivation one: what the LIST says, parsed here, not by the tool ------
   let listed: BTreeSet<String> = fx
-    .read("intent/.intentfiles")
+    .read_manifest()
     .lines()
     .map(str::trim)
     .filter(|l| !l.is_empty() && !l.starts_with('#'))

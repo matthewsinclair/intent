@@ -31,18 +31,24 @@ fn project() -> tempfile::TempDir {
 
   // Issue canon moved with thread canon: `intent/.canon/issues/`, flat and
   // zero-padded. The whole directory moved -- it held nothing but canon.
-  let issues = dir.path().join("intent/.canon/issues");
+  let issues = crate::common::issues_canon_dir(dir.path());
   std::fs::create_dir_all(&issues).expect("mkdir issues");
   // **An OPEN one with a severity and a CLOSED one WITHOUT**, because the two
   // differences are what every case below discriminates on, and a fixture whose
   // rows differ in only one way cannot show a filter working.
   std::fs::write(
-    issues.join("0021.json"),
+    crate::common::issue_canon_file(
+      dir.path(),
+      intentsvcs::id::IssueId::from_ordinal(21).expect("an issue ordinal"),
+    ),
     "{\"schema\":\"intent/issue@3.0\",\"number\":21,\"slug\":\"a-thing\",\"title\":\"A thing went wrong\",\"status\":\"open\",\"severity\":\"high\",\"created\":\"2026-08-01\"}\n",
   )
   .expect("write issue");
   std::fs::write(
-    issues.join("0007.json"),
+    crate::common::issue_canon_file(
+      dir.path(),
+      intentsvcs::id::IssueId::from_ordinal(7).expect("an issue ordinal"),
+    ),
     "{\"schema\":\"intent/issue@3.0\",\"number\":7,\"slug\":\"older\",\"title\":\"An older thing\",\"status\":\"closed\",\"created\":\"2026-07-01\",\"closed\":\"2026-07-09\"}\n",
   )
   .expect("write issue");
@@ -449,7 +455,7 @@ fn a_given_severity_is_recorded() {
 #[test]
 fn an_out_of_roster_severity_is_refused_and_writes_nothing() {
   let p = project();
-  let before = std::fs::read_dir(p.path().join("intent/.canon/issues"))
+  let before = std::fs::read_dir(crate::common::issues_canon_dir(p.path()))
     .expect("read issues")
     .count();
 
@@ -472,7 +478,7 @@ fn an_out_of_roster_severity_is_refused_and_writes_nothing() {
   // **AND NOTHING WAS WRITTEN**, which is the half that matters on a write
   // path: a refusal that still creates the file would leave the defect intact
   // and merely add a message.
-  let after = std::fs::read_dir(p.path().join("intent/.canon/issues"))
+  let after = std::fs::read_dir(crate::common::issues_canon_dir(p.path()))
     .expect("read issues")
     .count();
   assert_eq!(before, after, "a refused add must create no issue");

@@ -157,7 +157,8 @@ pub struct Thread {
   // The example is `ST0000` -- the STZero retrofit id, present in every Intent
   // project -- because this line is PUBLISHED into thread.schema.json and the
   // SDL, and a reader cannot look up a thread in our repository (D37).
-  /// Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
+  /// Natural id, ordinal or git-style, eg `ST0000` or `ST3f9a2c1d4e5f6a7b`. Global
+  /// identity is `(project_id, id)`.
   pub id: ThreadId,
   // ST0095 WP-06: the record's provenance, from which a hashed id derives.
   /// The id of the creation event a hashed id was minted from: the id is its
@@ -580,7 +581,8 @@ pub enum AcceptanceMode {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Related {
-  /// The related thread's natural id, eg `ST0000`.
+  /// The related thread's natural id, ordinal or git-style, eg `ST0000` or
+  /// `ST3f9a2c1d4e5f6a7b`.
   pub id: ThreadId,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub note: Option<String>,
@@ -1385,7 +1387,8 @@ pub enum AcState {
     evidence: String,
   },
   Descoped {
-    /// The thread the requirement moved to, eg `ST0000`.
+    /// The thread the requirement moved to, ordinal or git-style, eg `ST0000` or
+    /// `ST3f9a2c1d4e5f6a7b`.
     // A typed thread id, whose canon face is its stored string (ST0095 WP-07),
     // so a reader never meets text no door can resolve. `//` on purpose: a
     // `///` here is shipped into the JSON Schema face.

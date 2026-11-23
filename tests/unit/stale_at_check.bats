@@ -354,10 +354,7 @@ bait() {
 # the bash on PATH, so this one runs /bin/bash itself, and skips where that is
 # bash 4 or later (CI's Linux).
 @test "both tools read, skip, report and refuse the same under /bin/bash 3" {
-  [ -x /bin/bash ] || skip_other_system "no /bin/bash here"
-  local major
-  major="$(/bin/bash -c 'echo "${BASH_VERSINFO[0]}"')"
-  [ "$major" -lt 4 ] || skip_other_system "/bin/bash here is bash $major, not 3"
+  require_bin_bash_3
   thread ST0001 "$WIP" "[$(bait)]"
   thread ST0002 "$CANCELLED" "[$(at AT-02.1 "$TO_WRITE" tests/present.bats)]"
   run /bin/bash "$PROJ/$TOOLS_REL/stale_at_check.sh"

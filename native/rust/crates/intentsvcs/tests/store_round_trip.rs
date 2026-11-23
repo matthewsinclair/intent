@@ -22,41 +22,15 @@
 //! bug: the interesting values are the ones carrying pipes, newlines, quotes
 //! and JSON-in-TEXT columns.
 
-use crate::common::{Fixture, sample_thread};
-use intentsvcs::model::{
-  AcState, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Legacy,
-};
+use crate::common::{Fixture, hostile_issue, sample_thread};
+use intentsvcs::model::{AcState, AcceptanceTest, AtKind, AtStatus, Legacy};
 use intentsvcs::store::Store;
-
-fn issue(number: u32) -> Issue {
-  Issue {
-    schema: ISSUE_SCHEMA.to_string(),
-    number: crate::common::issue(number),
-    origin: None,
-    realised: false,
-    slug: "a-pipe-|-and-a-quote".to_string(),
-    title: "An issue with a | pipe, a \"quote\" and a 'tick'".to_string(),
-    status: IssueStatus::Open,
-    severity: Some("high".to_string()),
-    created: "2026-08-14".to_string(),
-    closed: None,
-    // An apostrophe in a value bound as a SQL parameter -- the one that would
-    // matter if any of these statements were ever built by interpolation.
-    reporter: Some("Ma'tt \"the\" S|nclair".to_string()),
-    // The same hostility, at the one field big enough to contain all of it: an
-    // issue body is prose, so it holds the quote that ends a SQL string, the
-    // semicolon that starts a second statement, and the newlines that make the
-    // whole thing multi-line -- which is where a hand-built statement fails.
-    body: "# 0007: it broke\n\n## Detail\n\nIt printed 'ok'; then it wasn't. A \"quote\", a | pipe.\n\n```sql\nDROP TABLE issues; -- not a heading, not a statement\n```\n"
-      .to_string(),
-  }
-}
 
 /// The whole model, out and back, unchanged.
 #[test]
 fn rebuild_then_load_returns_exactly_what_went_in() {
   let threads = vec![sample_thread("ST0056"), sample_thread("ST0057")];
-  let issues = vec![issue(1), issue(21)];
+  let issues = vec![hostile_issue(1), hostile_issue(21)];
 
   let mut store = Store::open_in_memory().expect("store");
   store.rebuild(&threads, &issues).expect("rebuild");

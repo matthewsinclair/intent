@@ -72,13 +72,7 @@ template_shell_files() {
 # **So the guard SKIPS rather than letting either outcome stand.** A skip names
 # the environment it could not be driven in; a pass would report a measurement
 # nobody took, which is the shape this whole file exists to refuse.
-require_bin_bash_3() {
-  local major
-  major="$(/bin/bash -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)"
-  if [ "$major" != "3" ]; then
-    skip_other_system "/bin/bash is ${major:-unreadable}.x -- these controls describe 3.2 behaviour and cannot be driven here"
-  fi
-}
+# `require_bin_bash_3`, in lib/test_helper.bash, is that guard.
 
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-bash32-XXXXXX)"

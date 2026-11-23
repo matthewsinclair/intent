@@ -105,23 +105,11 @@ pub fn project(name: &str) -> PathBuf {
   // ever regresses, this panics here rather than turning the suite green and
   // meaningless.
   //
-  // It reads through `Config::identity`, which is the accessor that treats an
-  // EMPTY string as absent -- the same rule, in one home, rather than a second
-  // opinion about what counts as having one.
-  let project = intentsvcs::project::Project::open(&root).expect("the project just created");
-  let project_id = project
-    .config()
-    .identity()
-    .unwrap_or_else(|| {
-      panic!(
-        "the initialiser wrote no usable project_id, so every event-identity assertion downstream would compare empty strings and pass"
-      )
-    })
-    .to_string();
-  let ctx =
-    intentsvcs::facade::FacadeContext::for_tests("test", project_id, env!("CARGO_PKG_VERSION"));
-  let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("open the new project");
-  facade
+  // [`facade_on`] reads it through `Config::identity`, which is the accessor
+  // that treats an EMPTY string as absent -- the same rule, in one home, rather
+  // than a second opinion about what counts as having one -- and panics here
+  // when it is absent.
+  facade_on(&root)
     .st_new(&format!("{name} thread"))
     .expect("mint one thread so this project is distinguishable from another");
   root
@@ -342,10 +330,28 @@ pub fn facade_on(root: &Path) -> intentsvcs::facade::Facade {
   let opened = intentsvcs::project::Project::open(root).expect("the project opens");
   let ctx = intentsvcs::facade::FacadeContext::for_tests(
     "test".to_string(),
-    opened.config().project_id.clone().unwrap_or_default(),
+    // **AN EXPECT, NEVER A DEFAULT** (ST1c2db93 P25): a facade on a project
+    // with no identity reports `""` as every event's project, and an
+    // assertion comparing two of those passes on nothing.
+    opened
+      .config()
+      .identity()
+      .expect("the project carries a project_id, or every identity this facade reports is empty")
+      .to_string(),
     env!("CARGO_PKG_VERSION").to_string(),
   );
   intentsvcs::facade::Facade::open(opened, ctx).expect("a facade on the project")
+}
+
+/// **THE ONE PROJECT CARRYING A THREAD THE TEST MINTED** (ST1c2db93 P25): a
+/// [`project`] for `tag` with one more thread minted under `title`, and that
+/// thread's id as the mint returned it. intent-cli's `tests/common::one_thread`
+/// is its twin, because a crate's `tests/common` cannot cross into another and
+/// `testkit` cannot hold a facade.
+pub fn one_thread(tag: &str, title: &str) -> (PathBuf, String) {
+  let root = project(tag);
+  let id = facade_on(&root).st_new(title).expect("mint one thread");
+  (root, id)
 }
 
 /// This crate's root, where `src` and `tests` sit.

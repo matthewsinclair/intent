@@ -92,7 +92,7 @@ fn project() -> (tempfile::TempDir, String, String) {
       .stored();
     crate::common::seed_ordinal_thread(root, &id, title, &[]);
     // At `triage`, where `st new` leaves a thread.
-    let canon = root.join(format!("intent/.canon/st/{id}.json"));
+    let canon = crate::common::thread_canon_file(root, &id);
     let text = std::fs::read_to_string(&canon).expect("the seeded canon");
     let triage = text.replace("\"status\": \"not-started\"", "\"status\": \"triage\"");
     assert_ne!(text, triage, "the seeded thread must move to triage");
@@ -104,7 +104,7 @@ fn project() -> (tempfile::TempDir, String, String) {
 }
 
 fn manifest(root: &std::path::Path) -> String {
-  std::fs::read_to_string(root.join("intent/.intentfiles")).expect("manifest")
+  std::fs::read_to_string(crate::common::manifest_file(root)).expect("manifest")
 }
 
 fn declared(text: &str) -> Vec<String> {
@@ -165,7 +165,7 @@ fn tree(root: &std::path::Path) -> std::collections::BTreeMap<String, Vec<u8>> {
 fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
   let (dir, first, second) = project();
   let root = dir.path();
-  std::fs::remove_file(root.join("intent/.intentfiles")).expect("start from absent");
+  std::fs::remove_file(crate::common::manifest_file(root)).expect("start from absent");
 
   // **THREE POPULATIONS, NOT TWO, BECAUSE THE PREDICATE CHANGED UNDER THIS
   // TEST.** `--default` declares WIP and nothing else (hv, 2026-08-26), so the
@@ -349,7 +349,7 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   // anything downstream of the write, which is why vc's mutation
   // (`declare_default` calling `organize(Mode::Apply)`) could not redden it.
   // **A survival assertion needs a run that could have killed something.**
-  std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
+  std::fs::remove_file(crate::common::manifest_file(root)).expect("make --default act");
   assert!(
     intent(root, &["st", "start", first.as_str()])
       .status
@@ -471,7 +471,7 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   // declared-and-absent state this test needs is made by removing it.
   std::fs::remove_dir_all(root.join(format!("intent/st/{first}")))
     .expect("unrealise the started thread");
-  std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
+  std::fs::remove_file(crate::common::manifest_file(root)).expect("make --default act");
 
   let before = tree(root);
   assert!(
@@ -521,8 +521,8 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
 fn organise_and_organize_are_one_code_path() {
   let (dir_z, ..) = project();
   let (dir_s, ..) = project();
-  std::fs::remove_file(dir_z.path().join("intent/.intentfiles")).expect("absent");
-  std::fs::remove_file(dir_s.path().join("intent/.intentfiles")).expect("absent");
+  std::fs::remove_file(crate::common::manifest_file(dir_z.path())).expect("absent");
+  std::fs::remove_file(crate::common::manifest_file(dir_s.path())).expect("absent");
 
   let z = intent(dir_z.path(), &["organize", "--default"]);
   let s = intent(dir_s.path(), &["organise", "--default"]);

@@ -8,18 +8,10 @@
 
 use std::path::Path;
 
-use crate::common::{RunningDaemon, project};
+use crate::common::{RunningDaemon, one_thread};
 use intentsvcs::wire::{Op, Request, Response};
 
 const MINTED: &str = "Minted for the hatch";
-
-/// A project with one thread the daemon can be asked about.
-fn project_with_a_thread() -> (std::path::PathBuf, String) {
-  let root = project("Hatch");
-  let mut facade = crate::common::facade_on(&root);
-  let id = facade.st_new(MINTED).expect("mint one thread");
-  (root, id)
-}
 
 fn dispatched(daemon: &RunningDaemon, root: &Path) -> u64 {
   let canonical = root.canonicalize().expect("the root exists");
@@ -50,7 +42,7 @@ fn graphql(query: &str) -> Op {
 #[test]
 fn a_document_is_answered_from_the_project_and_counted_as_one_dispatch() {
   let daemon = RunningDaemon::start();
-  let (root, id) = project_with_a_thread();
+  let (root, id) = one_thread("Hatch", MINTED);
 
   // First contact registers the project; read the baseline AFTER it so the
   // delta below is the document's alone.
@@ -95,7 +87,7 @@ fn a_mutation_is_refused_inside_the_answer_and_never_as_a_wire_error() {
   // client already looks. `Response::Error` is for a daemon that could not
   // serve, and this daemon served.
   let daemon = RunningDaemon::start();
-  let (root, _) = project_with_a_thread();
+  let (root, _) = one_thread("Hatch", MINTED);
 
   let answer = daemon.ask(Request {
     root: root.clone(),

@@ -111,7 +111,7 @@ fn the_slug_flag_renders_the_title_uri_safely() {
 #[test]
 fn the_slug_is_derived_from_the_title_not_read_from_the_store() {
   let (dir, st) = seeded();
-  let canon = dir.path().join(format!("intent/.canon/st/{st}.json"));
+  let canon = crate::common::thread_canon_file(dir.path(), &st);
   let text = std::fs::read_to_string(&canon)
     .unwrap_or_else(|e| panic!("no canon at {}: {e}", canon.display()));
   let mut doc: serde_json::Value = serde_json::from_str(&text).expect("canon is json");
