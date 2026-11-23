@@ -1292,7 +1292,7 @@ fn model_checks(thread: &Thread, canon: &Canon, files: &ThreadFiles, out: &mut V
   // schema constrains each element and not the collection.
   for (kind, ids) in [
     (
-      "work package",
+      crate::id::IdKind::WorkPackage.as_str(),
       // The WHOLE id, never `heading()`'s short form (ST0095 WP-09): two
       // packages that share a short form are two packages, named as an
       // advisory below, not one declared twice.
@@ -1332,11 +1332,19 @@ fn model_checks(thread: &Thread, canon: &Canon, files: &ThreadFiles, out: &mut V
   // through `id::verify`, the design's one check: the thread's own id and each
   // of its packages'. And two of its packages whose short forms are equal are
   // named, advisory (AC-09.3); a package pair is compared only within its thread.
-  if let Some(detail) = unverified("steel thread", &thread.id, thread.origin.as_deref()) {
+  if let Some(detail) = unverified(
+    crate::id::IdKind::Thread.as_str(),
+    &thread.id,
+    thread.origin.as_deref(),
+  ) {
     add(files.own.clone(), detail, FindingClass::IdNotFromOrigin);
   }
   for wp in &thread.wps {
-    if let Some(detail) = unverified("work package", &wp.seq, wp.origin.as_deref()) {
+    if let Some(detail) = unverified(
+      crate::id::IdKind::WorkPackage.as_str(),
+      &wp.seq,
+      wp.origin.as_deref(),
+    ) {
       add(
         files.wp(&wp.seq.stored()),
         format!("{} in {}", detail, thread.id.shown()),
@@ -2506,7 +2514,11 @@ fn shared_short_forms<'a, I: crate::id::Mintable + 'a>(
 /// id and its packages are `model_checks`', under the run's scope.
 fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
   for issue in &canon.issues {
-    if let Some(detail) = unverified("issue", &issue.number, issue.origin.as_deref()) {
+    if let Some(detail) = unverified(
+      crate::id::IdKind::Issue.as_str(),
+      &issue.number,
+      issue.origin.as_deref(),
+    ) {
       report.findings.push(Finding::new(
         project.relative(&project.issue_json(issue.number)),
         FindingClass::IdNotFromOrigin,

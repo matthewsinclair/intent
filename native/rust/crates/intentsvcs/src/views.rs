@@ -2463,10 +2463,10 @@ impl ThreadView {
   /// The file's path within the thread's own directory.
   pub fn file(self) -> String {
     match self {
-      ThreadView::Info => "info.md".to_string(),
-      ThreadView::Acceptance => "acceptance.md".to_string(),
+      ThreadView::Info => crate::project::INFO_VIEW.to_string(),
+      ThreadView::Acceptance => crate::project::ACCEPTANCE_VIEW.to_string(),
       ThreadView::WpInfo(seq) => Project::wp_rel(seq)
-        .join("info.md")
+        .join(crate::project::INFO_VIEW)
         .to_string_lossy()
         .into_owned(),
     }
@@ -2707,17 +2707,6 @@ pub fn write_all(
   Ok(views)
 }
 
-/// What realises a record in `project`, as a finding's sentence names it:
-/// the manifest's path, quoted, in 3.4.0's format, and the record itself in
-/// an upgraded project (ST0096 WP-01, through [`crate::intentfiles::named`]).
-fn realiser(project: &Project, format: crate::canon_format::CanonFormat) -> String {
-  let named = crate::intentfiles::named(project, format, true);
-  match format {
-    crate::canon_format::CanonFormat::V3 => format!("`{named}`"),
-    crate::canon_format::CanonFormat::V4 => named,
-  }
-}
-
 /// The skew check (AC-03.4): regenerate every view and name any that differs
 /// from what is on disk.
 ///
@@ -2760,7 +2749,8 @@ pub fn skew_against(
   own_render: &dyn Fn(&str) -> bool,
 ) -> Vec<Finding> {
   let format = crate::intentfiles::reported_format(project);
-  let realised_by = realiser(project, format);
+  let words = crate::intentfiles::words(project, format);
+  let realised_by = words.realiser();
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
@@ -2996,14 +2986,10 @@ pub fn skew_against(
           // it performs rather than implying a regeneration that loses nothing.
           (Some(id), _) => (
             String::new(),
-            match format {
-              crate::canon_format::CanonFormat::V3 => format!(
-                "`intent st hydrate {id} --overwrite` regenerates it from the store and pins {id} in {realised_by}"
-              ),
-              crate::canon_format::CanonFormat::V4 => format!(
-                "`intent st hydrate {id} --overwrite` regenerates it from the store and sets {id} realised on {realised_by}"
-              ),
-            },
+            format!(
+              "`intent st hydrate {id} --overwrite` regenerates it from the store and {}",
+              words.hydrate_sets(id)
+            ),
           ),
           // **AN UNDECLARED ISSUE'S VIEW HAS NO VERB THAT REWRITES IT** (issue
           // 0412). `sync --to-disk` skips it because nothing realises it (the

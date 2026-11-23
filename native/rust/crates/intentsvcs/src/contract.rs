@@ -35,6 +35,18 @@ impl Scope {
   }
 }
 
+impl crate::id::Target {
+  /// The close gate's two arguments: the thread as the door spelt it, and the
+  /// [`Scope`] the target names. Here, beside the gate it feeds, rather than
+  /// with the classifier that reads the target.
+  pub fn gate(&self) -> (String, Scope) {
+    match self {
+      crate::id::Target::Thread(st) => (st.clone(), Scope::Thread),
+      crate::id::Target::Package(thread, wp) => (thread.stored(), Scope::WorkPackage(*wp)),
+    }
+  }
+}
+
 /// An AC's state as the gate SEES it. Four, not two (issue 0013): a
 /// requirement can leave scope while remaining real.
 ///

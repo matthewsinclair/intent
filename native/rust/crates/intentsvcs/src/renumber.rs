@@ -1,8 +1,10 @@
 //! Renumbering a steel thread or an issue: the model half (ST0078 WP-02).
 //!
-//! Ids are minted highest-plus-one over the local canon, so two clones can
-//! mint the same one. Git refuses the merge with an add/add conflict, and the
-//! repair is to move one side to a free id before merging again. This module
+//! An ordinal id was minted highest-plus-one over the local canon, so two
+//! clones could mint the same one; an id minted now is the hash of its creation
+//! event (ST0095), and an ordinal stays as it was. Where two clones did take
+//! one id, git refuses the merge with an add/add conflict, and the repair is to
+//! move one side to a free id before merging again. This module
 //! moves the id through the model and says what else it moved.
 //!
 //! **PURE, AND THE SPLIT IS PFIC's.** It reads a model and returns one. The

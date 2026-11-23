@@ -1732,13 +1732,25 @@ pub fn read_named(raw: &str) -> Result<NamedSpelling, IdError> {
   }
 }
 
+/// The address segment a prefix of `kind`'s hex carries: the prefix behind
+/// its family's marker, so the segment reads as that family's, and a
+/// package's bare (ST1c2db93 P21). It borrows the hex, so a caller holding
+/// one builds no [`Spelled`] to spell it; each `segment` spells its prefix here.
+pub fn prefix_segment(kind: IdKind, hex: &str) -> String {
+  match kind {
+    IdKind::Thread => format!("{THREAD_PREFIX}{hex}"),
+    IdKind::Issue => format!("{ISSUE_MARKER}{hex}"),
+    IdKind::WorkPackage => hex.to_string(),
+  }
+}
+
 impl Spelled<ThreadId> {
   /// The spelling an address segment carries: the stored id, or the prefix
   /// behind the thread's marker, so the segment reads as a thread's.
   pub fn segment(&self) -> String {
     match self {
       Spelled::Whole(id) => id.stored(),
-      Spelled::Prefix(hex) => format!("{THREAD_PREFIX}{hex}"),
+      Spelled::Prefix(hex) => prefix_segment(IdKind::Thread, hex),
     }
   }
 
@@ -1760,7 +1772,7 @@ impl Spelled<IssueId> {
   pub fn segment(&self) -> String {
     match self {
       Spelled::Whole(id) => id.stored(),
-      Spelled::Prefix(hex) => format!("{ISSUE_MARKER}{hex}"),
+      Spelled::Prefix(hex) => prefix_segment(IdKind::Issue, hex),
     }
   }
 }
@@ -1770,7 +1782,7 @@ impl Spelled<WpId> {
   pub fn segment(&self) -> String {
     match self {
       Spelled::Whole(id) => id.stored(),
-      Spelled::Prefix(hex) => hex.clone(),
+      Spelled::Prefix(hex) => prefix_segment(IdKind::WorkPackage, hex),
     }
   }
 }
@@ -1901,6 +1913,39 @@ pub fn scoped(raw: &str) -> Result<Option<Scoped>, Refusal> {
     Ok(wp) => Ok(Some(Scoped::Package(thread, wp))),
     Err(IdError::NotAnId) => Ok(Some(Scoped::Under(thread, tail.to_string()))),
     Err(e) => Err(package_part_refused(raw, tail, &e)),
+  }
+}
+
+/// What a thread-or-package target names: a thread as the thread door spelt
+/// it, or a work package with both its ids whole and typed, so no caller
+/// parses the thread's id again (the WP-10 critic's ThreadId re-parses).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Target {
+  Thread(String),
+  Package(ThreadId, WpId),
+}
+
+/// **THE ONE CLASSIFIER OF A THREAD-OR-PACKAGE TARGET** (ST1c2db93 P21), read
+/// by [`scoped`], the one reader of `<thread>/<tail>` (the WP-04 critic's W4):
+/// a package part that is no package is refused naming that part, and never
+/// re-read whole as a thread. A package with a part typed as a prefix is
+/// completed by `complete`, which a face gives as the facade's
+/// [`crate::facade::Facade::resolve_wp`] so the project is opened only when a
+/// prefix needs it; `refuse` is the face's rendering of a refusal.
+pub fn target<E>(
+  raw: &str,
+  complete: impl FnOnce() -> Result<(ThreadId, WpId), E>,
+  refuse: impl Fn(Refusal) -> E,
+) -> Result<Target, E> {
+  match scoped(raw).map_err(&refuse)? {
+    None => Ok(Target::Thread(raw.to_string())),
+    Some(Scoped::Package(Spelled::Whole(thread), Spelled::Whole(wp))) => {
+      Ok(Target::Package(thread, wp))
+    }
+    Some(Scoped::Package(..)) => complete().map(|(thread, wp)| Target::Package(thread, wp)),
+    Some(Scoped::Under(_, tail)) => {
+      Err(refuse(package_part_refused(raw, &tail, &IdError::NotAnId)))
+    }
   }
 }
 

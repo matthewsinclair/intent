@@ -316,6 +316,29 @@ impl RealisationWords {
     self.format == crate::canon_format::CanonFormat::V3
   }
 
+  /// What realises a record, as a finding's sentence names it: the
+  /// manifest's path, quoted, in 3.4.0's format, and the record itself in an
+  /// upgraded project (ST1c2db93 P16; `doctor`'s skew check).
+  pub fn realiser(&self) -> String {
+    if self.manifest() {
+      format!("`{}`", self.named)
+    } else {
+      self.named.clone()
+    }
+  }
+
+  /// What `st hydrate {id}` sets, as a remedy that names the verb ends its
+  /// sentence: it pins `id` in the manifest, or sets `id` realised on its
+  /// record (ST1c2db93 P16).
+  pub fn hydrate_sets(&self, id: &str) -> String {
+    let realiser = self.realiser();
+    if self.manifest() {
+      format!("pins {id} in {realiser}")
+    } else {
+      format!("sets {id} realised on {realiser}")
+    }
+  }
+
   /// `st hydrate`'s report: `url` realised, `on_disk` files present and
   /// `written` of them written by this run.
   pub fn hydrated(&self, url: &str, on_disk: usize, written: usize) -> String {

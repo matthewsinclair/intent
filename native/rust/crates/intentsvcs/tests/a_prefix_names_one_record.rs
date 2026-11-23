@@ -7,12 +7,14 @@
 //! not a constructed one. Every length is read from the waist's constants.
 
 use crate::common::{APART, Fixture, SHARED_A, SHARED_B, sample_issue, sample_thread};
+use intentsvcs::address::{Address, Entity};
 use intentsvcs::facade::{EventFilter, Facade, FacadeError, IdRecord};
 use intentsvcs::id::{
-  EXAMPLE_HEX, ISSUE_MARKER, IssueId, MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX,
-  ThreadId, WP_SHOWN_HEX, WpId, prefix_floor,
+  EXAMPLE_HEX, ISSUE_MARKER, IdKind, IssueId, MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS,
+  THREAD_PREFIX, ThreadId, WP_SHOWN_HEX, WpId, prefix_floor,
 };
 use intentsvcs::model::{AcKind, WorkPackage};
+use intentsvcs::remedy::Remedy;
 
 /// A hashed thread's hex, behind its marker.
 fn hex(id: &ThreadId) -> String {
@@ -281,10 +283,9 @@ fn a_spelling_too_short_for_a_prefix_is_refused_naming_the_minimum() {
   }
 }
 
-#[test]
-fn a_prefix_that_names_nothing_is_unknown_and_says_what_was_looked_for() {
-  let e = estate();
-  let nothing = (0..=u32::from(u16::MAX))
+/// The shortest prefix a door takes that begins no thread in `e`.
+fn a_front_no_thread_begins(e: &Estate) -> String {
+  (0..=u32::from(u16::MAX))
     .map(|n| format!("{n:0width$x}", width = MIN_PREFIX_HEX))
     .find(|front| {
       prefix_floor(front, THREAD_DIGITS) == MIN_PREFIX_HEX
@@ -292,11 +293,46 @@ fn a_prefix_that_names_nothing_is_unknown_and_says_what_was_looked_for() {
           .iter()
           .any(|t| hex(t).starts_with(front.as_str()))
     })
-    .expect("some four hex digits begin no thread here");
+    .expect("some four hex digits begin no thread here")
+}
+
+#[test]
+fn a_prefix_that_names_nothing_is_unknown_and_says_what_was_looked_for() {
+  let e = estate();
+  let nothing = a_front_no_thread_begins(&e);
   match e.f.resolve_thread(&nothing) {
-    Err(FacadeError::UnknownId { kinds, .. }) => assert_eq!(kinds, ["thread"]),
+    Err(FacadeError::UnknownId { kinds, .. }) => assert_eq!(kinds, [IdKind::Thread]),
     other => panic!("`{nothing}`: {other:?}"),
   }
+}
+
+/// ST1c2db93 P6: a form with no id of its own, under a thread prefix that
+/// begins no thread, is unknown as the thread that was looked for, and its
+/// remedy lists threads.
+#[test]
+fn a_form_under_a_thread_prefix_that_names_nothing_is_unknown_as_a_thread() {
+  let e = estate();
+  let address = Address::local(Entity::AcCollection {
+    thread: a_front_no_thread_begins(&e),
+  });
+  let refused = e
+    .f
+    .whole_address(&address)
+    .expect_err("a prefix that begins no thread completes to nothing");
+  match &refused {
+    FacadeError::UnknownId { kinds, .. } => assert_eq!(kinds, &[IdKind::Thread]),
+    other => panic!("{}: {other:?}", address.to_url()),
+  }
+  let said = refused.to_string();
+  assert!(
+    said.contains(&format!("names no {} ", IdKind::Thread.wire())),
+    "{said}"
+  );
+  assert!(
+    refused.remedy().contains("intent st list"),
+    "{}",
+    refused.remedy()
+  );
 }
 
 #[test]
@@ -309,7 +345,7 @@ fn a_package_prefix_resolves_within_its_own_thread_and_not_another() {
     (e.a.clone(), e.wp)
   );
   match e.f.resolve_wp(&format!("{}/{package}", e.c.stored())) {
-    Err(FacadeError::UnknownId { kinds, .. }) => assert_eq!(kinds, ["wp"]),
+    Err(FacadeError::UnknownId { kinds, .. }) => assert_eq!(kinds, [IdKind::WorkPackage]),
     other => panic!("another thread's package was reached: {other:?}"),
   }
 }
@@ -407,4 +443,49 @@ fn every_store_path_given_a_prefix_keeps_the_whole_id() {
       .realised,
     "hydrate by prefix did not realise the thread it names"
   );
+}
+
+/// ST1c2db93 P20: a whole hashed id that names no thread here is refused by
+/// its shown form, as a table names it, never by all of its hex.
+#[test]
+fn a_hashed_thread_that_is_not_here_is_named_by_its_shown_form() {
+  let e = estate();
+  let absent = ThreadId::from_origin("an origin no thread in this estate was minted from");
+  assert!(
+    ![&e.a, &e.b, &e.c].contains(&&absent),
+    "the absent thread must not be one the estate holds"
+  );
+  let refused = e
+    .f
+    .st_show(&absent.stored())
+    .expect_err("no thread here has that id");
+  assert!(
+    matches!(&refused, FacadeError::NoSuchThread { id } if *id == absent),
+    "{refused:?}"
+  );
+  let said = refused.to_string();
+  assert!(said.contains(&absent.shown()), "{said}");
+  assert!(!said.contains(&absent.stored()), "{said}");
+}
+
+/// ST1c2db93 P20: a spelling that is no thread id at all is refused as no id,
+/// in the waist's own words, and never reported as a missing thread.
+#[test]
+fn a_spelling_that_is_no_thread_id_is_refused_as_no_id() {
+  let e = estate();
+  let typed = "no-thread-id";
+  let why = ThreadId::parse(typed).expect_err("the spelling is no thread id");
+  match e.f.st_show(typed) {
+    Err(FacadeError::NotAnId {
+      typed: said,
+      refusal,
+    }) => {
+      assert_eq!(said, typed);
+      assert_eq!(
+        refusal,
+        intentsvcs::id::refusal(typed, &why, IdKind::Thread)
+      );
+    }
+    other => panic!("`{typed}` is refused as no id: {other:?}"),
+  }
 }

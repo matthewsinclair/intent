@@ -1668,7 +1668,9 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "NoSuchTarget",
   // **UNREACHABLE THROUGH EVERY DOOR THAT EXISTS TODAY, AND KEPT FOR THE SAME
   // REASON THE OTHERS HERE ARE KEPT: THE ALTERNATIVE WAS A LIE.** ST0069
-  // WP-01's `issue_home` turns a manifest id into an issue's view path.
+  // WP-01 raised it where `issue_home` turned a manifest id into an issue's
+  // view path; that is now `facade.rs`'s `artefact_dir`, and every such parse
+  // is `manifest_issue`, the one that raises this.
   // `Sigil::accepts` gates a manifest line on `IssueId::parse` and
   // `Entity::Issue` is minted behind the same predicate, so nothing but four
   // digits reaches the parse -- there is no facade call that provokes this and

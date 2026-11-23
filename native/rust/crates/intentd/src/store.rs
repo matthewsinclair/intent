@@ -881,11 +881,7 @@ fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
       ),
     )
   })?;
-  Ok(intentsvcs::address::Address {
-    authority: None,
-    entity,
-    format: None,
-  })
+  Ok(intentsvcs::address::Address::local(entity))
 }
 
 /// Serve one project-scoped operation.

@@ -13,7 +13,6 @@ use crate::dispatch;
 use crate::spine::Failure;
 use crate::tui;
 use intentsvcs::address;
-use intentsvcs::contract::Scope;
 use intentsvcs::daemon;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, NextCommit, Note, Origin,
@@ -2942,14 +2941,10 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // `address_resolution_single_home` refused it by name: *resolution has ONE
       // home and these spell the scheme themselves.* Building the `Entity` says
       // the same thing in the type system and cannot drift.
-      let address = intentsvcs::address::Address {
-        authority: None,
-        entity: intentsvcs::address::Entity::Attachment {
-          thread: id.clone(),
-          path: path.clone(),
-        },
-        format: None,
-      };
+      let address = intentsvcs::address::Address::local(intentsvcs::address::Entity::Attachment {
+        thread: id.clone(),
+        path: path.clone(),
+      });
       let mut facade = open()?;
       // **THE NOTES ARE READ, NOT DISCARDED.** `put_attachment` returns an
       // `Outcome` and this arm used to drop it, so an attach that overwrote a
@@ -2967,14 +2962,10 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     Some(("detach", a)) => {
       let id = thread_arg(a, "id")?;
       let path = arg(a, "path")?;
-      let address = intentsvcs::address::Address {
-        authority: None,
-        entity: intentsvcs::address::Entity::Attachment {
-          thread: id.clone(),
-          path: path.clone(),
-        },
-        format: None,
-      };
+      let address = intentsvcs::address::Address::local(intentsvcs::address::Entity::Attachment {
+        thread: id.clone(),
+        path: path.clone(),
+      });
       let mut facade = open()?;
       let outcome = facade.detach_attachment(&address).map_err(fail)?;
       report_notes(&outcome, &id);
@@ -7635,11 +7626,7 @@ fn handed_address(
         "error: `{kind}` is not a kind with an item to open -- the explorer opens threads and issues"
       ))
     })?;
-  Ok(intentsvcs::address::Address {
-    authority: None,
-    entity,
-    format: None,
-  })
+  Ok(intentsvcs::address::Address::local(entity))
 }
 
 /// One entity as JSON, by kind and id.
@@ -10337,57 +10324,17 @@ fn gate_verdict(target: &str) -> Result<(), Failure> {
   }
 }
 
-/// What a thread-or-package target names: a thread as the thread door spelt
-/// it, or a work package with both its ids whole and typed, so no caller
-/// parses the thread's id again (the WP-10 critic's ThreadId re-parses).
-pub(crate) enum Target {
-  Thread(String),
-  Package(intentsvcs::id::ThreadId, intentsvcs::id::WpId),
-}
+// What a thread-or-package target names, classified by the library
+// (`intentsvcs::id::target`, ST1c2db93 P21).
+use intentsvcs::id::Target;
 
-impl Target {
-  /// The close gate's two arguments.
-  pub(crate) fn gate(&self) -> (String, Scope) {
-    match self {
-      Target::Thread(st) => (st.clone(), Scope::Thread),
-      Target::Package(thread, wp) => (thread.stored(), Scope::WorkPackage(*wp)),
-    }
-  }
-}
-
-/// A thread or `<thread>/<package>` target, read by the waist's one reader of
-/// `<thread>/<tail>` (the WP-04 critic's W4): a package part that is no
-/// package is refused naming that part, and never re-read whole as a thread.
-/// A part typed as a prefix is completed by `complete`, the facade's
-/// [`intentsvcs::facade::Facade::resolve_wp`], which each face asks with the
-/// facade it holds.
-pub(crate) fn target_with<E>(
-  target: &str,
-  complete: impl FnOnce() -> Result<(intentsvcs::id::ThreadId, intentsvcs::id::WpId), E>,
-  refuse: impl Fn(Failure) -> E,
-) -> Result<Target, E> {
-  use intentsvcs::id::{Scoped, Spelled};
-  match intentsvcs::id::scoped(target).map_err(|r| refuse(refused(&r)))? {
-    None => Ok(Target::Thread(target.to_string())),
-    Some(Scoped::Package(Spelled::Whole(thread), Spelled::Whole(wp))) => {
-      Ok(Target::Package(thread, wp))
-    }
-    Some(Scoped::Package(..)) => complete().map(|(thread, wp)| Target::Package(thread, wp)),
-    Some(Scoped::Under(_, tail)) => Err(refuse(refused(&intentsvcs::id::package_part_refused(
-      target,
-      &tail,
-      &intentsvcs::id::IdError::NotAnId,
-    )))),
-  }
-}
-
-/// [`target_with`] at a CLI door, opening the project only when a prefix needs
-/// completing.
+/// [`intentsvcs::id::target`] at a CLI door, opening the project only when a
+/// prefix needs completing.
 pub(crate) fn target_of(target: &str) -> Result<Target, Failure> {
-  target_with(
+  intentsvcs::id::target(
     target,
     || open()?.resolve_wp(target).map_err(fail),
-    |refused| refused,
+    |r| refused(&r),
   )
 }
 
@@ -16618,14 +16565,10 @@ pub(crate) fn descope_target(raw: &str) -> Result<String, Failure> {
 /// That is not hypothetical -- it is the ten-against-one measurement that put
 /// this whole seam on the board.
 fn worked_address() -> String {
-  intentsvcs::address::Address {
-    authority: None,
-    entity: intentsvcs::address::Entity::Thread {
-      id: "<thread>".to_string(),
-    },
-    format: None,
+  intentsvcs::address::Entity::Thread {
+    id: "<thread>".to_string(),
   }
-  .to_url()
+  .local_url()
 }
 
 /// A bare number, asked of THIS PROJECT -- hv's resolution ladder, at the one
@@ -16787,11 +16730,7 @@ pub(crate) fn address_of(
       id: issue_id(raw)?.stored(),
     },
   };
-  Ok(intentsvcs::address::Address {
-    authority: None,
-    entity,
-    format: None,
-  })
+  Ok(intentsvcs::address::Address::local(entity))
 }
 
 /// An enum-typed ARGUMENT, enforced from the table exactly as the enum-typed

@@ -227,12 +227,31 @@ impl Entity {
   /// This entity's address in THIS project, `intent:///...`, rendered by
   /// [`Address::to_url`]: the one way a caller holding an entity spells its URL.
   pub fn local_url(self) -> String {
-    Address {
-      authority: None,
-      entity: self,
-      format: None,
+    Address::local(self).to_url()
+  }
+
+  /// The id family a completion of this entity looked for when it found
+  /// nothing (ST1c2db93 P6): its own family for a thread, a work package or an
+  /// issue, and the thread for any other form under one, whose thread segment
+  /// is the id that was completed. `None` for a form that carries no id.
+  /// Exhaustive for the reason [`Self::thread`] is.
+  pub fn searched_kind(&self) -> Option<crate::id::IdKind> {
+    use crate::id::IdKind;
+    match self {
+      Self::Wp { .. } => Some(IdKind::WorkPackage),
+      Self::Issue { .. } => Some(IdKind::Issue),
+      Self::Thread { .. }
+      | Self::WpCollection { .. }
+      | Self::AcCollection { .. }
+      | Self::Ac { .. }
+      | Self::At { .. }
+      | Self::Attachment { .. } => Some(IdKind::Thread),
+      Self::Threads
+      | Self::Issues
+      | Self::Node { .. }
+      | Self::NodeInbox { .. }
+      | Self::Event { .. } => None,
     }
-    .to_url()
   }
 
   /// The form's name, for a caller that has to REPORT over the form set.
@@ -497,8 +516,8 @@ impl Remedy for AddressError {
       AddressError::IdRefused(refused) => refused.remedy.clone(),
       AddressError::PrefixOfEither { hex, .. } => format!(
         "name its kind: `{}` for a steel thread, `{}` for an issue",
-        crate::id::Spelled::<crate::id::ThreadId>::Prefix(hex.clone()).segment(),
-        crate::id::Spelled::<crate::id::IssueId>::Prefix(hex.clone()).segment()
+        crate::id::prefix_segment(crate::id::IdKind::Thread, hex),
+        crate::id::prefix_segment(crate::id::IdKind::Issue, hex)
       ),
     }
   }
@@ -540,10 +559,10 @@ impl Remedy for AddressError {
 /// view type only once such a file EXISTS in the estate, which is a real limit
 /// and still strictly better than the nothing that guarded this before.
 const VIEW_NAMES: &[&str] = &[
-  "info.md",
-  "acceptance.md",
-  "todo.md",
-  "steel_threads.md",
+  crate::project::INFO_VIEW,
+  crate::project::ACCEPTANCE_VIEW,
+  crate::project::TODO_VIEW,
+  crate::project::STEEL_THREADS_VIEW_NAME,
   "info",
   "acceptance",
 ];
@@ -810,6 +829,17 @@ fn parse_entity(segments: &[&str], input: &str) -> Result<Entity, AddressError> 
 }
 
 impl Address {
+  /// `entity`'s address in THIS project, the empty authority, asking for no
+  /// format: **THE ONE CONSTRUCTOR OF A LOCAL ADDRESS** (ST1c2db93 P11), so no
+  /// caller holding an entity spells the empty authority by hand.
+  pub fn local(entity: Entity) -> Address {
+    Address {
+      authority: None,
+      entity,
+      format: None,
+    }
+  }
+
   /// Render back to a string. Round-trips with [`parse`].
   pub fn to_url(&self) -> String {
     let authority = self.authority.as_deref().unwrap_or("");

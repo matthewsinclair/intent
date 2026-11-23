@@ -44,11 +44,7 @@ fn fixture() -> Fixture {
 }
 
 fn at(id: &str) -> Address {
-  Address {
-    authority: None,
-    entity: Entity::Thread { id: id.to_string() },
-    format: None,
-  }
+  Address::local(Entity::Thread { id: id.to_string() })
 }
 
 fn manifest_of(fx: &Fixture) -> String {

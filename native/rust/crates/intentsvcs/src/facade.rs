@@ -716,19 +716,33 @@ impl Facade {
         self.st_show(id)?;
       }
       Sigil::Issue => {
-        let number = crate::id::IssueId::parse(id)
-          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
-        self.issue_show(number)?;
+        self.issue_show(manifest_issue(id)?)?;
       }
     }
     Ok(())
   }
 }
 
-fn issue_home(project: &Project, id: &str) -> Result<std::path::PathBuf, FacadeError> {
-  crate::id::IssueId::parse(id)
-    .map(|number| project.issue_view(number))
-    .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })
+/// Where the artefact `sigil` and `id` name is realised (ST1c2db93 P18): a
+/// thread's directory, or an issue's view, which is a file. A path starts
+/// with itself, so `starts_with` against either selects exactly that
+/// artefact's paths: hydrate and dehydrate narrow their plan by it.
+fn artefact_dir(
+  project: &Project,
+  sigil: Sigil,
+  id: &str,
+) -> Result<std::path::PathBuf, FacadeError> {
+  match sigil {
+    Sigil::SteelThread => Ok(project.thread_dir(id)),
+    Sigil::Issue => manifest_issue(id).map(|number| project.issue_view(number)),
+  }
+}
+
+/// **THE ONE PARSE OF AN ISSUE ID A MANIFEST, AN ADDRESS OR A PLAN NAMES**:
+/// the typed number, or [`FacadeError::MalformedIssueId`] naming the spelling
+/// that is no issue number, so no caller folds it into issue 0000.
+fn manifest_issue(id: &str) -> Result<crate::id::IssueId, FacadeError> {
+  crate::id::IssueId::parse(id).map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })
 }
 
 /// Remove `.intentfiles` once `intent upgrade` has folded it into the records
@@ -1927,8 +1941,10 @@ pub enum FacadeError {
     incoming_bytes: usize,
     opening: String,
   },
-  #[error("no steel thread {id} in this project")]
-  NoSuchThread { id: String },
+  /// The id is typed, so the message prints its shown form (ST1c2db93 P20):
+  /// a hashed thread is named as a table names it, never by sixteen hex.
+  #[error("no steel thread {} in this project", .id.shown())]
+  NoSuchThread { id: crate::id::ThreadId },
   #[error("steel thread {id} already exists")]
   ThreadExists { id: String },
   /// The one mint made no id (ST0095 WP-06).
@@ -2202,10 +2218,10 @@ pub enum FacadeError {
   /// (ST0095 WP-07): `kinds` are the forms it was looked for as. A whole id
   /// that names nothing stays [`Self::NoSuchThread`], [`Self::NoSuchIssue`] or
   /// [`Self::NoSuchWorkPackage`].
-  #[error("`{typed}` names no {} in this project", .kinds.join(" or "))]
+  #[error("`{typed}` names no {} in this project", kind_list(.kinds))]
   UnknownId {
     typed: String,
-    kinds: Vec<&'static str>,
+    kinds: Vec<crate::id::IdKind>,
   },
   /// A prefix of a hashed id that several records here begin (ST0095 WP-07):
   /// every one, none picked, each as `intent id` reports a record.
@@ -3918,7 +3934,8 @@ impl crate::remedy::Remedy for FacadeError {
         "copy the version on disk somewhere else first -- then `intent st hydrate {id} --overwrite` discards it and writes what the store renders. If the version on disk is the one you want, it belongs in canon: make the change through the CLI so the store carries it"
       ),
       Self::NoSuchAttachment { thread, .. } => format!(
-        "the paths {thread} carries are its canon's `attachments`, in `intent/.canon/st/{thread}.json` -- name one of those, relative to the thread's own directory"
+        "the paths {thread} carries are its canon's `attachments`, in `intent/{}` -- name one of those, relative to the thread's own directory",
+        crate::project::canon_thread_rel(thread)
       ),
       Self::NoSuchRelatedTarget { thread, .. } => format!(
         "run `intent st list` to see the threads this project has, and relate {thread} to one of those -- a link to a thread that does not exist is the dangling reference `intent doctor` reports"
@@ -3927,7 +3944,8 @@ impl crate::remedy::Remedy for FacadeError {
         "name a different thread as the target -- {thread}'s links name the threads beside it"
       ),
       Self::NoSuchRelated { thread, .. } => format!(
-        "the links {thread} carries are its canon's `related`, in `intent/.canon/st/{thread}.json`, and its `info.md` lists them under `## Related Steel Threads` -- name one of those"
+        "the links {thread} carries are its canon's `related`, in `intent/{}`, and its `info.md` lists them under `## Related Steel Threads` -- name one of those",
+        crate::project::canon_thread_rel(thread)
       ),
       Self::NotCarried { thread, path } => format!(
         "a thread carries a document once it is attached -- `intent st attach {thread} {path} --from <file>` writes one into the store"
@@ -4225,7 +4243,8 @@ impl crate::remedy::Remedy for FacadeError {
         "list what is there with {}",
         kinds
           .iter()
-          .map(|kind| list_verb(kind))
+          .copied()
+          .map(list_verb)
           .collect::<Vec<_>>()
           .join(" or ")
       ),
@@ -5722,10 +5741,7 @@ pub fn one_found<T>(
   candidates: impl FnOnce(&[T]) -> Result<Vec<IdRecord>, FacadeError>,
 ) -> Result<Option<T>, FacadeError> {
   use crate::id::Found;
-  let found = found.map_err(|e| FacadeError::NotAnId {
-    typed: typed.to_string(),
-    refusal: crate::id::refusal(typed, &e, kind),
-  })?;
+  let found = found.map_err(|e| not_an_id(typed, &e, kind))?;
   match found {
     Found::One(id) => Ok(Some(id)),
     Found::Nothing => Ok(None),
@@ -5812,15 +5828,22 @@ fn candidate_list(candidates: &[IdRecord]) -> String {
     .join("; ")
 }
 
-/// The verb that lists a record form's collection, for a not-found's remedy.
-fn list_verb(kind: &str) -> &'static str {
+/// The families a not-found names, in their wire spelling.
+fn kind_list(kinds: &[crate::id::IdKind]) -> String {
+  kinds
+    .iter()
+    .map(crate::id::IdKind::wire)
+    .collect::<Vec<_>>()
+    .join(" or ")
+}
+
+/// The verb that lists a record family's collection, for a not-found's remedy.
+fn list_verb(kind: crate::id::IdKind) -> &'static str {
   use crate::id::IdKind;
-  if kind == IdKind::Issue.wire() {
-    "`intent issues list --kind all`"
-  } else if kind == IdKind::WorkPackage.wire() {
-    "`intent wp list <thread>`"
-  } else {
-    "`intent st list --status all`"
+  match kind {
+    IdKind::Issue => "`intent issues list --kind all`",
+    IdKind::WorkPackage => "`intent wp list <thread>`",
+    IdKind::Thread => "`intent st list --status all`",
   }
 }
 
@@ -6681,7 +6704,7 @@ impl Facade {
       .threads
       .iter()
       .find(|t| t.id == id)
-      .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
+      .ok_or_else(|| no_such_thread(id))
   }
 
   /// One attachment a thread carries, by its path relative to the thread's own
@@ -6751,7 +6774,7 @@ impl Facade {
       .into_iter()
       .find(|view| view.path == want)
       .map(|view| view.content)
-      .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
+      .ok_or_else(|| no_such_thread(id))
   }
 
   pub fn wp_list(&self, st: &str) -> Result<&[WorkPackage], FacadeError> {
@@ -6826,11 +6849,7 @@ impl Facade {
     let value = match entity {
       Entity::Thread { id } => serde_json::to_value(self.st_show(id)?),
       Entity::Wp { thread, wp } => serde_json::to_value(self.wp_of(thread, wp)?),
-      Entity::Issue { id } => {
-        let number = crate::id::IssueId::parse(id)
-          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
-        serde_json::to_value(self.issue_show(number)?)
-      }
+      Entity::Issue { id } => serde_json::to_value(self.issue_show(manifest_issue(id)?)?),
       other => {
         return Err(FacadeError::NoFormForEntity {
           form: other.form().to_string(),
@@ -7941,7 +7960,7 @@ impl Facade {
     };
     for id in named {
       if !threads.iter().any(|t| &t.id == id) {
-        return Err(FacadeError::NoSuchThread { id: id.clone() });
+        return Err(no_such_thread(id));
       }
     }
     Ok(())
@@ -8516,6 +8535,13 @@ impl Facade {
           token: token_,
           candidates: self.records_of(addresses.iter().map(|a| &a.entity))?,
         },
+        // **THE FORM, NOT THE SEARCHED KIND, AND ON PURPOSE.** This verdict
+        // names each searched address's form (`entity.form()`), where
+        // [`Self::whole_address`]'s not-found names the id family it looked
+        // for (`Entity::searched_kind`), so the two disagree for a form under
+        // a thread (an attachment answers `attachment` here, `thread` there).
+        // `intent id`'s Unknown is porcelain, its `kinds` printed and served as
+        // they stand, so it keeps the form until a ruling moves both together.
         Ok(Resolution::Unresolvable { searched }) => IdAnswer::Unknown {
           token: token_,
           kinds: searched.iter().map(|a| a.entity.form()).collect(),
@@ -8646,10 +8672,7 @@ impl Facade {
     let typed = typed.to_string();
     match why {
       Unresolved::Refused(refusal) => FacadeError::NotAnId { typed, refusal },
-      Unresolved::Nothing(kinds) => FacadeError::UnknownId {
-        typed,
-        kinds: kinds.iter().map(crate::id::IdKind::wire).collect(),
-      },
+      Unresolved::Nothing(kinds) => FacadeError::UnknownId { typed, kinds },
       Unresolved::Many(candidates) => {
         let entities: Vec<AddrEntity> = candidates.iter().map(Self::candidate_entity).collect();
         match self.records_of(&entities) {
@@ -8677,7 +8700,7 @@ impl Facade {
     })?
     .ok_or_else(|| FacadeError::UnknownId {
       typed: typed.to_string(),
-      kinds: vec![IdKind::Thread.wire()],
+      kinds: vec![IdKind::Thread],
     })
   }
 
@@ -8695,7 +8718,7 @@ impl Facade {
     })?
     .ok_or_else(|| FacadeError::UnknownId {
       typed: typed.to_string(),
-      kinds: vec![IdKind::Issue.wire()],
+      kinds: vec![IdKind::Issue],
     })
   }
 
@@ -8727,7 +8750,7 @@ impl Facade {
     use crate::id::{Candidate, IdKind};
     // Worded for the kind the spelling asks for, not always a thread.
     crate::id::resolve_named(typed, self)
-      .map_err(|e| self.refused(typed, &e, crate::id::named_wanted(typed)))?
+      .map_err(|e| not_an_id(typed, &e, crate::id::named_wanted(typed)))?
       .one(&[IdKind::Thread, IdKind::Issue], Candidate::of)
       .map_err(|why| self.unresolved(typed, why))
   }
@@ -8754,10 +8777,23 @@ impl Facade {
         typed: address.to_url(),
         candidates: self.records_of(candidates.iter().map(|a| &a.entity))?,
       }),
-      Resolution::Unresolvable { searched } => Err(FacadeError::UnknownId {
-        typed: address.to_url(),
-        kinds: searched.iter().map(|a| a.entity.form()).collect(),
-      }),
+      Resolution::Unresolvable { searched } => {
+        let mut kinds: Vec<_> = searched
+          .iter()
+          .filter_map(|a| a.entity.searched_kind())
+          .collect();
+        // **AN EMPTY LIST FALLS BACK TO THE ADDRESS'S OWN FAMILY**, so the
+        // message never names no family: the typed entity's searched kind.
+        // `complete` answers unresolvable only for an entity carrying an id,
+        // so that is always one family.
+        if kinds.is_empty() {
+          kinds.extend(address.entity.searched_kind());
+        }
+        Err(FacadeError::UnknownId {
+          typed: address.to_url(),
+          kinds,
+        })
+      }
     }
   }
 
@@ -8876,7 +8912,7 @@ impl Facade {
     use crate::id::{Candidate, IdKind};
     let owner = self.resolve_thread(thread)?;
     let wp = crate::id::resolve_wp(&owner, group, self)
-      .map_err(|e| self.refused(group, &e, IdKind::WorkPackage))?
+      .map_err(|e| not_an_id(group, &e, IdKind::WorkPackage))?
       .one(&[IdKind::WorkPackage], |wp| {
         Candidate::Wp(owner.clone(), wp)
       })
@@ -8884,41 +8920,62 @@ impl Facade {
     Ok(crate::id::regrouped(label, wp))
   }
 
-  /// A spelling's refusal at a door that takes `wanted`, in the waist's words.
-  fn refused(&self, typed: &str, e: &crate::id::IdError, wanted: crate::id::IdKind) -> FacadeError {
-    FacadeError::NotAnId {
-      typed: typed.to_string(),
-      refusal: crate::id::refusal(typed, e, wanted),
+  /// `.intentfiles` in 3.4.0's format, read for a verb that acts on it: its
+  /// path, and its text, or `None` when there is no manifest (ST1c2db93 P17).
+  /// The read hydrate's pin, dehydrate's unlisting, the declared default, the
+  /// realisation question, a renumber's move and `edit_list` share: what
+  /// absence means is each caller's (left absent, refused, or nothing said),
+  /// and a file that is there and cannot be read is
+  /// [`FacadeError::ManifestUnreadable`], never `None`.
+  ///
+  /// The rollback snapshot `set_thread_status_fiat`, `issue_add` and
+  /// `set_issue_status` hand `restore_manifest` is `edit_list`'s own read,
+  /// returned, so an unreadable manifest is refused before any write rather
+  /// than snapshotted as absent (issue I086e953). `repin` reads inline because
+  /// for it absence is the same refusal, `ManifestUnreadable`.
+  fn read_manifest(&self) -> Result<(std::path::PathBuf, Option<String>), FacadeError> {
+    let path = self.project.intentfiles_path();
+    match std::fs::read_to_string(&path) {
+      Ok(text) => Ok((path, Some(text))),
+      Err(source) if source.kind() == std::io::ErrorKind::NotFound => Ok((path, None)),
+      Err(source) => Err(FacadeError::ManifestUnreadable {
+        path: path.display().to_string(),
+        source,
+      }),
     }
+  }
+
+  /// Write `text` as `.intentfiles` at `path`, through the one mutation path,
+  /// and note it landed (ST1c2db93 P17): the one write of the manifest's
+  /// read-modify-write. Whether the text differs from what was read is the
+  /// caller's question.
+  fn commit_manifest(&mut self, path: std::path::PathBuf, text: String) -> Result<(), FacadeError> {
+    let mut set = WriteSet::new();
+    set.add(path, text);
+    let committed = set.commit()?;
+    self.note_landed(&committed);
+    committed.keep();
+    Ok(())
   }
 
   /// Hydrate's pin in 3.4.0's format: `.intentfiles` declares `id`, and an
   /// absent manifest is left absent. Whether the manifest moved.
   fn pin_in_manifest(&mut self, sigil: Sigil, id: &str) -> Result<bool, FacadeError> {
-    let path = self.project.intentfiles_path();
-    let pinned = match std::fs::read_to_string(&path) {
-      Ok(before) => Some(before),
-      // **AN ABSENT MANIFEST IS LEFT ABSENT, AND THE ALTERNATIVE IS
-      // DESTRUCTIVE RATHER THAN MERELY DIFFERENT.** Creating one here to hold
-      // this single entry would declare that this id is THE WHOLE of what is
-      // realised, and the next `organize` would remove every other thread's
-      // files on the strength of one `intent edit`. Nobody has said, so
-      // everything is already realised and there is nothing for a pin to add
-      // -- the no-op is the rule applying, not a case being skipped. hv ruled
-      // this for the lifecycle verbs; `edit_list` is the same arm,
-      // written by ic, and AC-04.7 states expressly that it does not decide
-      // this one beyond requiring that absence not be REPORTED as unreadable.
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
-      // Any other IO fault is raised. A file that exists and cannot be read is
-      // not a file that does not exist, and letting a permissions error answer
-      // as "nobody has said" is the silent swallow this estate forbids.
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: path.display().to_string(),
-          source,
-        });
-      }
-    };
+    // **AN ABSENT MANIFEST IS LEFT ABSENT, AND THE ALTERNATIVE IS
+    // DESTRUCTIVE RATHER THAN MERELY DIFFERENT.** Creating one here to hold
+    // this single entry would declare that this id is THE WHOLE of what is
+    // realised, and the next `organize` would remove every other thread's
+    // files on the strength of one `intent edit`. Nobody has said, so
+    // everything is already realised and there is nothing for a pin to add
+    // -- the no-op is the rule applying, not a case being skipped. hv ruled
+    // this for the lifecycle verbs; `edit_list` is the same arm,
+    // written by ic, and AC-04.7 states expressly that it does not decide
+    // this one beyond requiring that absence not be REPORTED as unreadable.
+    // Any other IO fault is raised by the read: a file that exists and cannot
+    // be read is not a file that does not exist, and letting a permissions
+    // error answer as "nobody has said" is the silent swallow this estate
+    // forbids.
+    let (path, pinned) = self.read_manifest()?;
     // **`false` FOR THE ABSENT CASE IS A FACT ABOUT THE RUN, NOT A DEFAULT.**
     // This value is what `disk.hydrate` records as `pinned`, and nothing was
     // pinned: no manifest was read, none was written, and none was created.
@@ -8929,11 +8986,7 @@ impl Facade {
       Some(before) => {
         let after = intentfiles::pin(&before, sigil, id, None).map_err(FacadeError::Intentfiles)?;
         if after != before {
-          let mut set = WriteSet::new();
-          set.add(path, after);
-          let applied = set.commit()?;
-          self.note_landed(&applied);
-          applied.keep();
+          self.commit_manifest(path, after)?;
           true
         } else {
           false
@@ -8954,32 +9007,16 @@ impl Facade {
     via: &str,
   ) -> Result<bool, FacadeError> {
     let mut next = self.canon.clone();
+    if set_realised(&mut next, sigil, id, realised)? == realised {
+      return Ok(false);
+    }
     let (op, kind) = match sigil {
-      Sigil::SteelThread => {
-        let thread = find_thread_mut(&mut next, id)?;
-        if thread.realised == realised {
-          return Ok(false);
-        }
-        thread.realised = realised;
-        ("thread.set", "thread")
-      }
-      Sigil::Issue => {
-        let number = crate::id::IssueId::parse(id)
-          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
-        let issue = find_issue_mut(&mut next, number)?;
-        if issue.realised == realised {
-          return Ok(false);
-        }
-        issue.realised = realised;
-        ("issue.set", "issue")
-      }
+      Sigil::SteelThread => ("thread.set", crate::id::IdKind::Thread),
+      Sigil::Issue => ("issue.set", crate::id::IdKind::Issue),
     };
     let applied = self.apply(
       op,
-      Subject {
-        kind: kind.to_string(),
-        id: id.to_string(),
-      },
+      Subject::of(kind, id),
       json!({ "via": via, "field": "realised" }),
       next,
     )?;
@@ -9038,21 +9075,14 @@ impl Facade {
         &canon.issues,
       ));
     }
-    let path = self.project.intentfiles_path();
-    match std::fs::read_to_string(&path) {
-      Ok(raw) => {
+    match self.read_manifest()? {
+      (path, Some(raw)) => {
         intentfiles::realised_for_action(&raw).map_err(|cause| FacadeError::ManifestMalformed {
           path: path.display().to_string(),
           cause,
         })
       }
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
-        Ok(intentfiles::Realised::NothingSaid)
-      }
-      Err(source) => Err(FacadeError::ManifestUnreadable {
-        path: path.display().to_string(),
-        source,
-      }),
+      (_, None) => Ok(intentfiles::Realised::NothingSaid),
     }
   }
 
@@ -9473,10 +9503,7 @@ impl Facade {
     // issue a realised form, so the arm returns `issue_view`, which is a FILE
     // rather than a directory. `starts_with` is still the right filter: a path
     // starts with itself, so the narrowing selects exactly that one view.
-    let home = match sigil {
-      intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
-      intentfiles::Sigil::Issue => issue_home(&self.project, &id)?,
-    };
+    let home = artefact_dir(&self.project, sigil, &id)?;
     // **A HELD THREAD IS REFUSED HERE, NOT REPORTED** (issue 0209). `run`
     // reports a hold as one refusal among a run's findings, which suits the
     // whole-estate verb; this verb names one artefact, so nothing it could
@@ -9731,21 +9758,10 @@ impl Facade {
     if self.realisation_on_records()? {
       return self.declare_default_on_records(force);
     }
-    let path = self.project.intentfiles_path();
-
-    let existing = match std::fs::read_to_string(&path) {
-      Ok(text) => Some(text),
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
-      // A file that is there and cannot be READ is not a file that is absent,
-      // and letting a permissions error answer as "nobody has said" would write
-      // an estate-wide declaration over something unreadable.
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: path.display().to_string(),
-          source,
-        });
-      }
-    };
+    // A file that is there and cannot be READ is not a file that is absent,
+    // and letting a permissions error answer as "nobody has said" would write
+    // an estate-wide declaration over something unreadable: the read refuses.
+    let (path, existing) = self.read_manifest()?;
 
     if let Some(before) = &existing {
       // **A MALFORMED MANIFEST REFUSES RATHER THAN COUNTING ZERO.** The count
@@ -9784,11 +9800,7 @@ impl Facade {
       .entries
       .len();
 
-    let mut set = WriteSet::new();
-    set.add(path.clone(), text);
-    let applied = set.commit()?;
-    self.note_landed(&applied);
-    applied.keep();
+    self.commit_manifest(path.clone(), text)?;
 
     self.record_disk_act(
       "disk.declare_default",
@@ -9897,39 +9909,22 @@ impl Facade {
     // `.intentfiles` as before.
     let (was_listed, realised_after, unpinned) = if self.realisation_on_records()? {
       let mut after = self.canon.clone();
-      let was = match sigil {
-        Sigil::SteelThread => std::mem::take(&mut find_thread_mut(&mut after, &id)?.realised),
-        Sigil::Issue => {
-          let number = crate::id::IssueId::parse(&id)
-            .map_err(|_| FacadeError::MalformedIssueId { id: id.clone() })?;
-          std::mem::take(&mut find_issue_mut(&mut after, number)?.realised)
-        }
-      };
+      let was = set_realised(&mut after, sigil, &id, false)?;
       (
         was,
         intentfiles::declared_by_records(&after.threads, &after.issues),
         None,
       )
     } else {
-      let path = self.project.intentfiles_path();
-
       // **AN ABSENT MANIFEST REFUSES (AC-00.4).** See
       // [`FacadeError::NoManifestToUnlistFrom`] for why creating one here is the
       // destructive answer rather than the convenient one.
-      let before = match std::fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(source) if source.kind() == std::io::ErrorKind::NotFound => {
-          return Err(FacadeError::NoManifestToUnlistFrom {
-            id,
-            path: self.project.relative(&path),
-          });
-        }
-        Err(source) => {
-          return Err(FacadeError::ManifestUnreadable {
-            path: path.display().to_string(),
-            source,
-          });
-        }
+      let (path, before) = self.read_manifest()?;
+      let Some(before) = before else {
+        return Err(FacadeError::NoManifestToUnlistFrom {
+          id,
+          path: self.project.relative(&path),
+        });
       };
 
       // THE HYPOTHETICAL. Text, not a write. `unpin` refuses a malformed id and
@@ -9961,10 +9956,7 @@ impl Facade {
     // Whole-estate plan, narrow act -- the same split `hydrate` documents:
     // classification needs the estate as its denominator, and this verb was
     // handed one id.
-    let home = match sigil {
-      intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
-      intentfiles::Sigil::Issue => issue_home(&self.project, &id)?,
-    };
+    let home = artefact_dir(&self.project, sigil, &id)?;
     let mine: Vec<_> = whole
       .steps
       .iter()
@@ -10076,13 +10068,7 @@ impl Facade {
     // them back from the store. The other order has no such recovery.
     if was_listed {
       match unpinned {
-        Some((path, after)) => {
-          let mut set = WriteSet::new();
-          set.add(path, after);
-          let committed = set.commit()?;
-          self.note_landed(&committed);
-          committed.keep();
-        }
+        Some((path, after)) => self.commit_manifest(path, after)?,
         None => {
           self.realise_record(sigil, &id, false, "dehydrate")?;
         }
@@ -14783,9 +14769,7 @@ impl Facade {
           .ok()
           .zip(crate::id::ThreadId::parse(to).ok())
           .and_then(|(old, new)| crate::renumber::thread(&self.canon, &old, &new))
-          .ok_or_else(|| FacadeError::NoSuchThread {
-            id: from.to_string(),
-          })?;
+          .ok_or_else(|| no_such_thread(from))?;
         (
           vec![
             (
@@ -14793,8 +14777,8 @@ impl Facade {
               rel(self.project.thread_json(to)),
             ),
             (
-              rel(self.project.canon_st_dir().join(from)),
-              rel(self.project.canon_st_dir().join(to)),
+              rel(self.project.canon_thread_dir(from)),
+              rel(self.project.canon_thread_dir(to)),
             ),
             (
               rel(self.project.thread_dir(from)),
@@ -14809,12 +14793,7 @@ impl Facade {
         // Both are issue ids by construction: the plan read them from canon
         // paths and minted `to` itself. A spelling that is not one is refused
         // by name, where it used to become issue 0000 in silence.
-        let issue = |raw: &str| {
-          crate::id::IssueId::parse(raw).map_err(|_| FacadeError::MalformedIssueId {
-            id: raw.to_string(),
-          })
-        };
-        let (old, new) = (issue(from)?, issue(to)?);
+        let (old, new) = (manifest_issue(from)?, manifest_issue(to)?);
         let model = crate::renumber::issue(&self.canon, old, new)
           .ok_or(FacadeError::NoSuchIssue { number: old })?;
         (
@@ -15011,11 +14990,7 @@ impl Facade {
       })?;
     let pinned = intentfiles::pin(&text, sigil, id, None)?;
     if pinned != text {
-      let mut set = WriteSet::new();
-      set.add(manifest, pinned);
-      let committed = set.commit()?;
-      self.note_landed(&committed);
-      committed.keep();
+      self.commit_manifest(manifest, pinned)?;
     }
     Ok(())
   }
@@ -15874,15 +15849,7 @@ impl Facade {
     let Some((sigil, action)) = declared_list_edit(op) else {
       return Ok(());
     };
-    let realised = action == ListAction::Add;
-    match sigil {
-      Sigil::SteelThread => find_thread_mut(next, id)?.realised = realised,
-      Sigil::Issue => {
-        let number = crate::id::IssueId::parse(id)
-          .map_err(|_| FacadeError::MalformedIssueId { id: id.to_string() })?;
-        find_issue_mut(next, number)?.realised = realised;
-      }
-    }
+    set_realised(next, sigil, id, action == ListAction::Add)?;
     Ok(())
   }
 
@@ -16433,18 +16400,6 @@ impl Facade {
     })
   }
 
-  /// The canon extract's own directory.
-  ///
-  /// One expression, because two spellings of it would put the extract in the
-  /// index's corpus on whichever side went stale -- and the extract is the
-  /// store's prose seen twice.
-  fn canon_dir(&self) -> std::path::PathBuf {
-    self.project.canon_st_dir().parent().map_or_else(
-      || self.project.root().join("intent").join(".canon"),
-      std::path::Path::to_path_buf,
-    )
-  }
-
   /// Every path the store already carries prose for, sorted.
   ///
   /// The index excludes the store's own prose by ASKING THE TWO AUTHORITIES
@@ -16513,7 +16468,7 @@ impl Facade {
     let rows = crate::index::reconcile::survey(
       self.project.root(),
       &carried,
-      &self.canon_dir(),
+      &self.project.canon_dir(),
       // **THE PROJECT'S CAP, NOT THE CONSTANT.** The default is a measurement
       // of one estate's own tree; a project whose documents are larger is not
       // wrong, and a cap it could not move would drop them with a row saying
@@ -16739,7 +16694,7 @@ impl Facade {
       under,
       &previous,
       carried,
-      &self.canon_dir(),
+      &self.project.canon_dir(),
       self.project.config().index.max_file_bytes,
     )
     .map_err(|e| {
@@ -17744,18 +17699,14 @@ impl Facade {
       &[
         self.project.thread_json(new),
         self.project.thread_dir(new),
-        self.project.canon_st_dir().join(new),
+        self.project.canon_thread_dir(new),
       ],
     )?;
     let old_id = self.st_show(old)?.id.clone();
-    let new_id = crate::id::ThreadId::parse(new).map_err(|_| FacadeError::NoSuchThread {
-      id: new.to_string(),
-    })?;
-    let mut model = crate::renumber::thread(&self.canon, &old_id, &new_id).ok_or_else(|| {
-      FacadeError::NoSuchThread {
-        id: old.to_string(),
-      }
-    })?;
+    let new_id =
+      crate::id::ThreadId::parse(new).map_err(|e| not_an_id(new, &e, crate::id::IdKind::Thread))?;
+    let mut model = crate::renumber::thread(&self.canon, &old_id, &new_id)
+      .ok_or_else(move || FacadeError::NoSuchThread { id: old_id })?;
     if let Some(origin) = origin
       && let Some(moved) = model
         .canon
@@ -17783,8 +17734,8 @@ impl Facade {
       moves: vec![
         (self.project.thread_dir(old), self.project.thread_dir(new)),
         (
-          self.project.canon_st_dir().join(old),
-          self.project.canon_st_dir().join(new),
+          self.project.canon_thread_dir(old),
+          self.project.canon_thread_dir(new),
         ),
         (
           self
@@ -17926,29 +17877,18 @@ impl Facade {
       foreign,
     } = plan;
     let mut moved = Vec::new();
-    let manifest = self.project.intentfiles_path();
     // An upgraded project's realisation moves with its record (ST0096 WP-01),
     // so only 3.4.0's format has a manifest line to move.
-    let before = match std::fs::read_to_string(&manifest) {
-      _ if self.realisation_on_records()? => None,
-      Ok(text) => Some(text),
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => None,
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: manifest.display().to_string(),
-          source,
-        });
-      }
+    let (manifest, before) = if self.realisation_on_records()? {
+      (self.project.intentfiles_path(), None)
+    } else {
+      self.read_manifest()?
     };
     if let Some(text) = &before {
       let unpinned = intentfiles::unpin(text, sigil, &from)?;
       if &unpinned != text {
         let after = intentfiles::pin(&unpinned, sigil, &to, None)?;
-        let mut set = WriteSet::new();
-        set.add(manifest.clone(), after);
-        let committed = set.commit()?;
-        self.note_landed(&committed);
-        committed.keep();
+        self.commit_manifest(manifest.clone(), after)?;
         moved.push(format!(
           "{}: {} -> {}",
           self.project.relative(&manifest),
@@ -18262,11 +18202,7 @@ impl Facade {
   /// the list edit have landed, and `intent organize --apply` writes what this
   /// could not.
   fn realise_relisted(&mut self, id: &str) -> Option<Note> {
-    let address = Address {
-      authority: None,
-      entity: AddrEntity::Thread { id: id.to_string() },
-      format: None,
-    };
+    let address = Address::local(AddrEntity::Thread { id: id.to_string() });
     self.hydration(&address).err().map(|cause| {
       Note::after_write(
         "realising the thread's attachments",
@@ -18508,13 +18444,13 @@ impl Facade {
     self.realise_on_record(op, id, list, &mut next)?;
     let adds =
       list == ListEdit::AsDeclared && matches!(declared_list_edit(op), Some((_, ListAction::Add)));
-    let manifest = self.project.intentfiles_path();
-    let before = adds
-      .then(|| std::fs::read_to_string(&manifest).ok())
-      .flatten();
-    if adds {
-      self.edit_list(op, id, list)?;
-    }
+    // The text the edit replaced is the rollback's snapshot: one read, the
+    // edit's own (issue I086e953).
+    let before = if adds {
+      self.edit_list(op, id, list)?
+    } else {
+      None
+    };
     let foreign =
       match self.apply_envelopes(&envelopes, next, crate::store::ProjectStateEdit::Unchanged) {
         Ok(foreign) => foreign,
@@ -19203,14 +19139,10 @@ impl Facade {
       why: format!("the criterion could not be serialised: {e}"),
     })?;
     self.put(
-      &Address {
-        authority: None,
-        entity: AddrEntity::Ac {
-          thread: st.to_string(),
-          ac: ac.to_string(),
-        },
-        format: None,
-      },
+      &Address::local(AddrEntity::Ac {
+        thread: st.to_string(),
+        ac: ac.to_string(),
+      }),
       &body,
     )
   }
@@ -19322,14 +19254,10 @@ impl Facade {
       why: format!("the acceptance test could not be serialised: {e}"),
     })?;
     self.put(
-      &Address {
-        authority: None,
-        entity: AddrEntity::At {
-          thread: st.to_string(),
-          at: at.to_string(),
-        },
-        format: None,
-      },
+      &Address::local(AddrEntity::At {
+        thread: st.to_string(),
+        at: at.to_string(),
+      }),
       &body,
     )
   }
@@ -22085,8 +22013,7 @@ impl Facade {
     // projection asked the manifest whether this issue was declared BEFORE the
     // line declaring it existed, decided no, and skipped the view. Nothing
     // failed; the file simply never appeared.
-    let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
-    self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
+    let before = self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     let mut next = self.canon.clone();
     next.issues.push(issue);
     // In the one order, as threads are above (ST0095 WP-08).
@@ -22349,8 +22276,7 @@ impl Facade {
     // Before the first write, the manifest included (issue 0739).
     self.refuse_a_store_not_this_checkouts()?;
     self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
-    let before = std::fs::read_to_string(self.project.intentfiles_path()).ok();
-    self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
+    let before = self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of the manifest.
     let applied = match self.apply(
       op,
@@ -23455,18 +23381,27 @@ impl Facade {
   /// AND THE TWO ARE NOT IN TENSION.** Hydrate's ordering answers a different
   /// question -- that the pin must not be skipped when the files already exist
   /// -- and it has no second write to be interrupted between.
-  fn edit_list(&mut self, op: &str, id: &str, list: ListEdit) -> Result<(), FacadeError> {
+  ///
+  /// Answers the manifest's text from before the edit when it changed the
+  /// file, and `None` when it wrote nothing: the snapshot a caller that edits
+  /// ahead of its store write hands [`Facade::restore_manifest`] on a refusal,
+  /// so the snapshot is this read and never a second one (issue I086e953).
+  fn edit_list(
+    &mut self,
+    op: &str,
+    id: &str,
+    list: ListEdit,
+  ) -> Result<Option<String>, FacadeError> {
     // An upgraded project's op writes this on its record, in the same write as
     // its status, through [`Facade::realise_on_record`] (ST0096 WP-01).
     if list == ListEdit::Suppressed || self.realisation_on_records()? {
-      return Ok(());
+      return Ok(None);
     }
     let Some((sigil, action)) = declared_list_edit(op) else {
-      return Ok(());
+      return Ok(None);
     };
-    let path = self.project.intentfiles_path();
-    let before = match std::fs::read_to_string(&path) {
-      Ok(text) => text,
+    let (path, before) = self.read_manifest()?;
+    let Some(before) = before else {
       // **ABSENT IS NOT EMPTY, SO AN ABSENT MANIFEST IS LEFT ABSENT** -- and
       // this is the arm where that rule earns its keep. A missing file means
       // nobody has said, and everything is realised. Creating one here to hold
@@ -23474,18 +23409,14 @@ impl Facade {
       // realised**, and the next `organize` would remove every other thread's
       // files on the strength of one `st new`. The no-op is the rule applying,
       // not a case being skipped.
-      Err(source) if source.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-      // **AND ANY OTHER IO ERROR IS RAISED RATHER THAN FOLDED INTO THE ABOVE.**
-      // A manifest that exists and cannot be read is not a manifest that does
-      // not exist: treating them alike would let a permissions fault silently
-      // stop `st done` maintaining the list, which is the No Silent Errors case
-      // exactly -- an unreadable file answering as "nobody has said".
-      Err(source) => {
-        return Err(FacadeError::ManifestUnreadable {
-          path: path.display().to_string(),
-          source,
-        });
-      }
+      //
+      // **AND ANY OTHER IO ERROR IS RAISED RATHER THAN FOLDED INTO THE ABOVE**,
+      // by the read. A manifest that exists and cannot be read is not a
+      // manifest that does not exist: treating them alike would let a
+      // permissions fault silently stop `st done` maintaining the list, which
+      // is the No Silent Errors case exactly -- an unreadable file answering as
+      // "nobody has said".
+      return Ok(None);
     };
     let after = match action {
       ListAction::Add => intentfiles::pin(&before, sigil, id, None),
@@ -23494,14 +23425,11 @@ impl Facade {
     .map_err(FacadeError::Intentfiles)?;
     // Both primitives are idempotent, so an unchanged file is the ordinary
     // outcome of closing an already-unlisted thread rather than a miss.
-    if after != before {
-      let mut set = WriteSet::new();
-      set.add(path, after);
-      let committed = set.commit()?;
-      self.note_landed(&committed);
-      committed.keep();
+    if after == before {
+      return Ok(None);
     }
-    Ok(())
+    self.commit_manifest(path, after)?;
+    Ok(Some(before))
   }
 
   /// Put `.intentfiles` back as it was, when a write that edited it first did
@@ -23512,10 +23440,20 @@ impl Facade {
   /// that write reads it, is the one piece of such a write already on disk when
   /// the store refuses. `None` is a manifest that was not there to edit.
   fn restore_manifest(&self, before: Option<String>) -> Result<(), FacadeError> {
+    let Some(text) = before else {
+      return Ok(());
+    };
+    // `text` is what the edit read and replaced, so it is the manifest's last
+    // good bytes. A manifest that cannot be read now is written back over with
+    // them rather than refused: a refusal here would replace the store's
+    // refusal this rollback is undoing, and leave the edit on disk (issue
+    // I086e953). The comparison only spares a write that changes nothing.
     let manifest = self.project.intentfiles_path();
-    if let Some(text) = before
-      && std::fs::read_to_string(&manifest).ok().as_deref() != Some(text.as_str())
-    {
+    let differs = match self.read_manifest() {
+      Ok((_, now)) => now.as_deref() != Some(text.as_str()),
+      Err(_unreadable) => true,
+    };
+    if differs {
       let mut set = WriteSet::new();
       set.add(manifest, text);
       set.commit()?.keep();
@@ -24171,12 +24109,51 @@ fn prose_mentions(answer: &crate::search::SearchAnswer) -> Vec<ProseMention> {
   out
 }
 
+/// A thread `id` names that this project does not hold (ST1c2db93 P20): the
+/// typed not-found when `id` is a stored thread id, so its message prints the
+/// shown form, and the waist's refusal of a spelling that is no thread id at
+/// all, which is not a missing thread ([`not_an_id`]).
+fn no_such_thread(id: &str) -> FacadeError {
+  match crate::id::ThreadId::parse(id) {
+    Ok(id) => FacadeError::NoSuchThread { id },
+    Err(e) => not_an_id(id, &e, crate::id::IdKind::Thread),
+  }
+}
+
+/// **THE ONE REFUSAL OF A SPELLING THAT IS NO ID** of `wanted` at a door, in
+/// the waist's words: [`FacadeError::NotAnId`] carrying
+/// [`crate::id::refusal`], for every door and for [`no_such_thread`] alike.
+fn not_an_id(typed: &str, e: &crate::id::IdError, wanted: crate::id::IdKind) -> FacadeError {
+  FacadeError::NotAnId {
+    typed: typed.to_string(),
+    refusal: crate::id::refusal(typed, e, wanted),
+  }
+}
+
+/// **THE ONE REALISATION SETTER ON A RECORD** (ST1c2db93 P6): set the
+/// realisation of the artefact `sigil` and `id` name in `next` to `realised`,
+/// and answer what it was. Hydrate, dehydrate, the lifecycle ops and the
+/// hypothetical an unlisting asks about all set it here, so an issue's id is
+/// parsed in one place.
+fn set_realised(
+  next: &mut Canon,
+  sigil: Sigil,
+  id: &str,
+  realised: bool,
+) -> Result<bool, FacadeError> {
+  let flag = match sigil {
+    Sigil::SteelThread => &mut find_thread_mut(next, id)?.realised,
+    Sigil::Issue => &mut find_issue_mut(next, manifest_issue(id)?)?.realised,
+  };
+  Ok(std::mem::replace(flag, realised))
+}
+
 fn find_thread_mut<'a>(canon: &'a mut Canon, id: &str) -> Result<&'a mut Thread, FacadeError> {
   canon
     .threads
     .iter_mut()
     .find(|t| t.id == id)
-    .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
+    .ok_or_else(|| no_such_thread(id))
 }
 
 /// One criterion's `ac list` row. The ONE home for its computed state, shared
@@ -24373,7 +24350,7 @@ mod tests {
   fn no_two_error_variants_share_a_remedy() {
     let errors = [
       FacadeError::NoSuchThread {
-        id: "ST0099".to_string(),
+        id: crate::id::ThreadId::from_ordinal(99).expect("an ordinal thread"),
       },
       FacadeError::ThreadExists {
         id: "ST0056".to_string(),

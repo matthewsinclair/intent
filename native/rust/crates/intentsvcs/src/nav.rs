@@ -575,24 +575,25 @@ pub enum Unlanded {
 /// `every_child_view_this_maps_to_is_a_descent_the_declaration_carries` holds
 /// its output against the declaration so the two cannot drift in silence.
 pub fn view_for(entity: &Entity) -> Option<View> {
+  use crate::id::IdKind;
   let item = |kind: &str, id: &str| View::Item {
     kind: kind.to_string(),
     id: id.to_string(),
   };
   let children = |thread: &str, field: &str| View::Children {
-    kind: "thread".to_string(),
+    kind: IdKind::Thread.wire().to_string(),
     id: thread.to_string(),
     field: field.to_string(),
   };
   match entity {
     Entity::Threads => Some(View::Collection {
-      kind: "thread".to_string(),
+      kind: IdKind::Thread.wire().to_string(),
     }),
     Entity::Issues => Some(View::Collection {
-      kind: "issue".to_string(),
+      kind: IdKind::Issue.wire().to_string(),
     }),
-    Entity::Thread { id } => Some(item("thread", id)),
-    Entity::Issue { id } => Some(item("issue", id)),
+    Entity::Thread { id } => Some(item(IdKind::Thread.wire(), id)),
+    Entity::Issue { id } => Some(item(IdKind::Issue.wire(), id)),
     Entity::WpCollection { thread } => Some(children(thread, "wps")),
     Entity::AcCollection { thread } => Some(children(thread, "criteria")),
     // **A WORK PACKAGE REACHES ITS OWN VIEW THROUGH THE DESCENT, NOT THROUGH
@@ -621,7 +622,7 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     // `resolve::complete` completes a typed prefix), and a face that starts
     // from a shown form resolves it first, as `land` does.
     Entity::Wp { thread, wp } => Some(View::Child {
-      kind: "thread".to_string(),
+      kind: IdKind::Thread.wire().to_string(),
       id: thread.to_string(),
       field: "wps".to_string(),
       item: wp.segment(),
@@ -687,7 +688,7 @@ pub fn entity_for_item(view: &View) -> Result<Option<Entity>, crate::id::Refusal
       id,
       field,
       item,
-    } if kind == "thread" && field == "wps" => Some(Entity::Wp {
+    } if kind == crate::id::IdKind::Thread.wire() && field == "wps" => Some(Entity::Wp {
       thread: id.clone(),
       wp: crate::id::address_segment(item)
         .map_err(|e| crate::id::refusal(item, &e, crate::id::IdKind::WorkPackage))?,
@@ -809,10 +810,13 @@ impl crate::remedy::Remedy for Unlanded {
         "the explorer opens threads and issues; a {form} is addressable but has no view yet, so \
          reach it with `intent edit` or `intent edit --browser`"
       ),
-      Unlanded::Absent { kind, .. } => match kind.as_str() {
-        "issue" => "list what is there with `intent issue list`".into(),
-        _ => "list what is there with `intent st list`".into(),
-      },
+      Unlanded::Absent { kind, .. } => {
+        if kind == crate::id::IdKind::Issue.wire() {
+          "list what is there with `intent issue list`".into()
+        } else {
+          "list what is there with `intent st list`".into()
+        }
+      }
       // **THE REMEDY IS THE ADDRESSES THEMSELVES, NOT ADVICE ABOUT THEM.** The
       // operator's next move is to name one, so naming both is the shortest
       // path to it -- and each is rendered by `to_url` rather than spelled

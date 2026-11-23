@@ -1298,7 +1298,7 @@ fn is_carried_attachment(project: &Project, rel: &str) -> bool {
   let path = project.root().join(rel);
   [
     project.thread_dir(id.as_str()),
-    project.canon_st_dir().join(id.as_str()),
+    project.canon_thread_dir(id.as_str()),
   ]
   .iter()
   .find_map(|dir| path.strip_prefix(dir).ok())

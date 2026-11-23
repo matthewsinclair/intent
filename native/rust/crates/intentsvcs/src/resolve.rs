@@ -139,11 +139,7 @@ fn rungs(thread: &crate::id::ThreadId, issue: crate::id::IssueId) -> Vec<Address
     Entity::Issue { id: issue.stored() },
   ]
   .into_iter()
-  .map(|entity| Address {
-    authority: None,
-    entity,
-    format: None,
-  })
+  .map(Address::local)
   .collect()
 }
 
@@ -228,11 +224,7 @@ fn answer(typed: &Address, found: Found<Address>) -> Resolution {
 /// (ST1c2db93 P5): a second read could only refuse, and a refusal folded into
 /// a not-found is the silent error this once had.
 fn either(hex: &str, scope: &impl IdScope) -> Resolution {
-  let address = |entity: Entity| Address {
-    authority: None,
-    entity,
-    format: None,
-  };
+  let address = Address::local;
   let of = |named: Named| match named {
     Named::Thread(id) => address(Entity::Thread { id: id.stored() }),
     Named::Issue(id) => address(Entity::Issue { id: id.stored() }),
@@ -243,10 +235,10 @@ fn either(hex: &str, scope: &impl IdScope) -> Resolution {
     Found::Nothing => Resolution::Unresolvable {
       searched: vec![
         address(Entity::Thread {
-          id: crate::id::Spelled::<crate::id::ThreadId>::Prefix(hex.to_string()).segment(),
+          id: crate::id::prefix_segment(crate::id::IdKind::Thread, hex),
         }),
         address(Entity::Issue {
-          id: crate::id::Spelled::<crate::id::IssueId>::Prefix(hex.to_string()).segment(),
+          id: crate::id::prefix_segment(crate::id::IdKind::Issue, hex),
         }),
       ],
     },
@@ -364,11 +356,7 @@ mod tests {
   }
 
   fn bare(entity: Entity) -> Address {
-    Address {
-      authority: None,
-      entity,
-      format: None,
-    }
+    Address::local(entity)
   }
 
   #[test]

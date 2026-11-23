@@ -57,11 +57,7 @@ fn records(fx: Fixture) -> Fixture {
 }
 
 fn at(entity: Entity) -> Address {
-  Address {
-    authority: None,
-    entity,
-    format: None,
-  }
+  Address::local(entity)
 }
 
 fn manifest_of(fx: &Fixture) -> String {

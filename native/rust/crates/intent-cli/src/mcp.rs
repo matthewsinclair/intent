@@ -1934,25 +1934,26 @@ fn wp_scope(
 ) -> Result<(String, intentsvcs::id::WpId), ServeError> {
   let target = spec(path, f, need_s(path, map, "specifier")?)?;
   match target_in(path, f, &target)? {
-    crate::render::Target::Package(thread, seq) => Ok((thread.stored(), seq)),
-    crate::render::Target::Thread(_) => Err(failure_args(
+    intentsvcs::id::Target::Package(thread, seq) => Ok((thread.stored(), seq)),
+    intentsvcs::id::Target::Thread(_) => Err(failure_args(
       path,
       &crate::render::refused(&intentsvcs::id::not_a_package(&target)),
     )),
   }
 }
 
-/// A thread-or-package target at an MCP door: the CLI's one reader of
-/// `<thread>/<tail>`, with a prefix completed by this facade (ST0095 WP-07).
+/// A thread-or-package target at an MCP door: the library's one classifier
+/// ([`intentsvcs::id::target`], ST1c2db93 P21), with a prefix completed by
+/// this facade (ST0095 WP-07).
 fn target_in(
   path: &str,
   f: &intentsvcs::facade::Facade,
   target: &str,
-) -> Result<crate::render::Target, ServeError> {
-  crate::render::target_with(
+) -> Result<intentsvcs::id::Target, ServeError> {
+  intentsvcs::id::target(
     target,
     || f.resolve_wp(target).map_err(ServeError::from),
-    |e| failure_args(path, &e),
+    |r| failure_args(path, &crate::render::refused(&r)),
   )
 }
 

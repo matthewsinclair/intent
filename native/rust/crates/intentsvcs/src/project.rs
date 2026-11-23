@@ -1525,6 +1525,26 @@ impl crate::remedy::Remedy for ProjectError {
 /// reimplements the v2 ledger.
 pub const MIGRATION_FLOOR: (u64, u64, u64) = (2, 19, 0);
 
+/// The canon directory's name under the intent directory, spelt once for
+/// [`CANON_DIR`] and the canon directories inside it (ST1c2db93 P7). A macro
+/// rather than a `const` because `concat!` takes only literals.
+macro_rules! canon_dir_name {
+  () => {
+    ".canon"
+  };
+}
+
+/// `.canon`, every artefact's committed canon, relative to the intent
+/// directory: the one spelling [`Project::canon_dir`] and each canon path take.
+pub const CANON_DIR: &str = canon_dir_name!();
+
+/// `.canon/st`, thread canon, relative to the intent directory: a thread's
+/// file and its attachment directory sit in it.
+pub const CANON_ST_DIR: &str = concat!(canon_dir_name!(), "/st");
+
+/// `.canon/issues`, issue canon, relative to the intent directory.
+pub const CANON_ISSUES_DIR: &str = concat!(canon_dir_name!(), "/issues");
+
 /// One thread's canon path, relative to the intent directory (D57-1).
 ///
 /// **ONE SPELLING, TWO CONSUMERS, AND THE SECOND ONE IS WHY THIS IS A
@@ -1536,7 +1556,7 @@ pub const MIGRATION_FLOOR: (u64, u64, u64) = (2, 19, 0);
 /// written where every reader opened `issues/0046.json`. Two ends agreeing by
 /// convention is how that happens; agreeing by construction is this.
 pub fn canon_thread_rel(id: &str) -> String {
-  format!(".canon/st/{id}.json")
+  format!("{CANON_ST_DIR}/{id}.json")
 }
 
 /// One OPAQUE attachment's canon path, relative to the intent directory
@@ -1563,7 +1583,7 @@ pub fn canon_blob_rel(id: &str, path: &str) -> String {
 /// [`attachment_name`]'s containment test build from. It holds the opaque
 /// attachments' bytes and nothing else, whatever the canon format.
 pub fn canon_thread_dir_rel(id: &str) -> String {
-  format!(".canon/st/{id}")
+  format!("{CANON_ST_DIR}/{id}")
 }
 
 /// Where a thread's records live in the release's format, relative to the
@@ -1577,7 +1597,7 @@ pub fn canon_thread_dir_rel(id: &str) -> String {
 /// disk that folds case). Reserving the record directories' names instead
 /// would refuse an image under `WP/`, Intent's own convention. Two roots make
 /// the collision impossible rather than refused.
-pub const CANON_RECORDS_DIR: &str = ".canon/records";
+pub const CANON_RECORDS_DIR: &str = concat!(canon_dir_name!(), "/records");
 
 /// The directories of a thread's records in the release's format, under
 /// [`CANON_RECORDS_DIR`] (ST0096 WP-05): one for each kind of child, named here once so
@@ -2004,11 +2024,11 @@ pub fn attachment_name(thread: &str, path: &str) -> Result<(), BadName> {
 /// site: the openness declaration on the `project` table names this path, and
 /// `tests/openness.rs` resolves every declared path against the tree.
 pub fn canon_project_rel() -> String {
-  ".canon/project.json".to_string()
+  format!("{CANON_DIR}/project.json")
 }
 
 pub fn canon_issue_rel(id: crate::id::IssueId) -> String {
-  format!(".canon/issues/{}.json", id.stored())
+  format!("{CANON_ISSUES_DIR}/{}.json", id.stored())
 }
 
 /// Whether this project's canon is in a form THIS binary can read.
@@ -2228,12 +2248,34 @@ macro_rules! st_dir_name {
   };
 }
 
+/// The thread index view's file name, spelt once for [`STEEL_THREADS_VIEW_NAME`]
+/// and the view's path. A macro for the reason `st_dir_name!` is one.
+macro_rules! steel_threads_view_name {
+  () => {
+    "steel_threads.md"
+  };
+}
+
+/// The thread index view's file name (ST1c2db93 P7).
+pub const STEEL_THREADS_VIEW_NAME: &str = steel_threads_view_name!();
+
 /// The thread index view, relative to the intent directory: beside the threads
 /// it indexes, at v2's path (vc ruling, 2026-08-14).
-const STEEL_THREADS_VIEW: &str = concat!(st_dir_name!(), "/steel_threads.md");
+const STEEL_THREADS_VIEW: &str = concat!(st_dir_name!(), "/", steel_threads_view_name!());
 
 /// The flat DOING / TODO / DONE view, relative to the intent directory.
-const TODO_VIEW: &str = "todo.md";
+pub const TODO_VIEW: &str = "todo.md";
+
+/// The generated cover's file name, a thread's and a work package's alike
+/// (ST1c2db93 P7): the one spelling every path to a cover is built from.
+pub const INFO_VIEW: &str = "info.md";
+
+/// A thread's generated acceptance contract's file name (ST1c2db93 P7).
+pub const ACCEPTANCE_VIEW: &str = "acceptance.md";
+
+/// `WP`, a work package's directory under its thread's (ST1c2db93 P7): the
+/// one spelling [`Project::wp_rel`] and every package path pattern take.
+pub const WP_DIR: &str = "WP";
 
 /// The INDEX views, relative to the intent directory: each is rendered from
 /// every record at once, so neither names a single artefact. `organize` keeps
@@ -2464,7 +2506,7 @@ impl Project {
   /// CLONING rather than by reading the ignore file: the question is what git
   /// DOES, not what a rule appears to say.
   pub fn canon_dir(&self) -> PathBuf {
-    self.intent_dir().join(".canon")
+    self.intent_dir().join(CANON_DIR)
   }
 
   /// `intent/whiteboard/` -- the coordination estate, one directory per node.
@@ -2572,7 +2614,14 @@ impl Project {
 
   /// `.canon/st/` -- thread canon, flat, one file per thread.
   pub fn canon_st_dir(&self) -> PathBuf {
-    self.canon_dir().join("st")
+    self.intent_dir().join(CANON_ST_DIR)
+  }
+
+  /// `.canon/st/<ID>/` -- a thread's attachment directory in canon,
+  /// [`canon_thread_dir_rel`] under the intent directory, whether or not it
+  /// exists.
+  pub fn canon_thread_dir(&self, id: &str) -> PathBuf {
+    self.intent_dir().join(canon_thread_dir_rel(id))
   }
 
   /// The committed project state, `.canon/project.json`.
@@ -2592,7 +2641,7 @@ impl Project {
   /// than by canon. The two are different directories doing different jobs and
   /// the names no longer tell them apart on sight, which is why this says so.
   pub fn issues_dir(&self) -> PathBuf {
-    self.canon_dir().join("issues")
+    self.intent_dir().join(CANON_ISSUES_DIR)
   }
 
   /// `intent/issues/` -- where an issue's generated view is realised.
@@ -2626,11 +2675,15 @@ impl Project {
       // the work package's. A file called `info.md` three levels down under a
       // parity directory is neither, and matching on the bare name would take
       // an author's file and call it ours.
-      ["info.md"] => Some((PathBuf::from("info.md"), ThreadFile::GeneratedView)),
-      ["acceptance.md"] => Some((PathBuf::from("acceptance.md"), ThreadFile::GeneratedView)),
-      ["wp", _, "info.md"] => plain.components().nth(1).map(|seq| {
+      //
+      // The package arm's key is `"wp"`, not [`WP_DIR`]: the key is the
+      // one-file key, lowercased, so `WP/`, `wp/` and `Wp/` all arrive as
+      // `wp`. The path it answers is built from `WP_DIR`, the one spelling.
+      [INFO_VIEW] => Some((PathBuf::from(INFO_VIEW), ThreadFile::GeneratedView)),
+      [ACCEPTANCE_VIEW] => Some((PathBuf::from(ACCEPTANCE_VIEW), ThreadFile::GeneratedView)),
+      ["wp", _, INFO_VIEW] => plain.components().nth(1).map(|seq| {
         (
-          Path::new("WP").join(seq).join("info.md"),
+          Path::new(WP_DIR).join(seq).join(INFO_VIEW),
           ThreadFile::GeneratedView,
         )
       }),
@@ -2762,13 +2815,13 @@ impl Project {
 
   /// A thread's generated cover.
   pub fn info_view(&self, id: &str) -> PathBuf {
-    self.thread_dir(id).join("info.md")
+    self.thread_dir(id).join(INFO_VIEW)
   }
 
   /// A work package's directory relative to its thread's, `WP/<NN>`: the one
   /// spelling every package path is built from.
   pub fn wp_rel(seq: crate::id::WpId) -> PathBuf {
-    PathBuf::from("WP").join(seq.stored())
+    PathBuf::from(WP_DIR).join(seq.stored())
   }
 
   /// `intent/st/<ID>/WP/<NN>/` -- a work package's directory, whether or not it
@@ -2779,12 +2832,12 @@ impl Project {
 
   /// A work package's generated cover, `st/<ID>/WP/<NN>/info.md`.
   pub fn wp_info_view(&self, id: &str, seq: crate::id::WpId) -> PathBuf {
-    self.wp_dir(id, seq).join("info.md")
+    self.wp_dir(id, seq).join(INFO_VIEW)
   }
 
   /// A thread's generated acceptance contract + coverage map.
   pub fn acceptance_view(&self, id: &str) -> PathBuf {
-    self.thread_dir(id).join("acceptance.md")
+    self.thread_dir(id).join(ACCEPTANCE_VIEW)
   }
 
   /// One issue's generated view, `issues/<nnnn>.md` (AC-01.1).
@@ -2884,7 +2937,7 @@ impl Project {
     let mut patterns = self.aggregate_view_patterns();
     patterns.insert(INDEX_VIEWS.len(), rel(self.info_view("*")));
     patterns.extend([
-      rel(self.thread_dir("*").join("WP").join("*").join("info.md")),
+      rel(self.thread_dir("*").join(WP_DIR).join("*").join(INFO_VIEW)),
       // **Assembled by hand for the reason the work-package one is**:
       // `issue_view` takes a typed `IssueId` and no wildcard survives that.
       // Same caveat, same place, so the two sit together.
@@ -3296,7 +3349,7 @@ pub fn relative(root: &Path, path: &Path) -> String {
 /// about the thread cover; extending it downward is a separate decision
 /// carrying its own allow-list, not a free consequence of this one.
 fn is_thread_info(rel: &Path) -> bool {
-  rel.components().count() == 1 && rel.file_name().and_then(|n| n.to_str()) == Some("info.md")
+  rel.components().count() == 1 && rel.file_name().and_then(|n| n.to_str()) == Some(INFO_VIEW)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -3348,7 +3401,7 @@ impl Project {
             // wanted to add a criterion and one who wanted to retitle a thread
             // need different verbs, and "this is generated" sends both to the
             // same dead end.
-            "acceptance.md" => "`intent ac` for criteria and `intent at` for test rows",
+            ACCEPTANCE_VIEW => "`intent ac` for criteria and `intent at` for test rows",
             // **THE ONE OTHER VIEW THIS ARM REACHES IS A WORK PACKAGE'S COVER**
             // (`classify` names three, and the thread cover opens above). Its
             // remedy named `intent wp`, which has no writer for a package's prose

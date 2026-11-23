@@ -64,11 +64,7 @@ fn fixture() -> Fixture {
 }
 
 fn at(entity: Entity) -> Address {
-  Address {
-    authority: None,
-    entity,
-    format: None,
-  }
+  Address::local(entity)
 }
 
 fn thread() -> Address {
