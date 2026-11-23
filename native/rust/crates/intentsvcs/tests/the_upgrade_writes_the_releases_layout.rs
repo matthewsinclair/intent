@@ -456,3 +456,36 @@ fn the_format_move_names_each_branch_that_changed_a_thread_since_it_split() {
     "the move must name the branch that changed a thread, and only it"
   );
 }
+
+/// **A PROJECT WITH NO IDENTITY GETS ONE DERIVED FROM ITS HISTORY, NOT A FRESH
+/// ONE PER RUN** (issue Ie99dbb6). Two branches of such a project, each
+/// upgraded on its own, minted two ids and conflicted on config.json at merge.
+/// Run twice from the same commit, with the first run thrown away whole, as a
+/// second branch would run it, the upgrade stamps the same id.
+#[test]
+fn an_unstamped_projects_id_is_the_same_on_every_branch_that_upgrades_it() {
+  let fx = ordinal_estate(&[sample_thread("ST0001")]);
+  let id = |fx: &Fixture| -> String {
+    let config: serde_json::Value =
+      serde_json::from_str(&fx.read("intent/.config/config.json")).expect("config.json reads");
+    config["project_id"]
+      .as_str()
+      .expect("the upgrade stamps a project_id")
+      .to_string()
+  };
+  assert!(
+    !fx.read("intent/.config/config.json").contains("project_id"),
+    "the fixture must start with no project_id, or nothing is minted"
+  );
+  Facade::upgrade(&fx.project(), &facade_ctx()).expect("the first upgrade");
+  let first = id(&fx);
+  fx.git(&["reset", "-q", "--hard"]);
+  fx.git(&["clean", "-q", "-f", "-d", "-x"]);
+  Facade::upgrade(&fx.project(), &facade_ctx())
+    .expect("the second upgrade, as another branch runs it");
+  assert_eq!(
+    id(&fx),
+    first,
+    "two upgrades of one history stamped two identities"
+  );
+}

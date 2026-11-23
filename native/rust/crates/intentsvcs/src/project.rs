@@ -808,6 +808,23 @@ pub fn mint_project_id() -> String {
   uuid::Uuid::new_v4().to_string()
 }
 
+/// The identity an upgrade gives a project in git that has none (issue
+/// Ie99dbb6), derived from the repository's root commit, which every branch
+/// shares: two branches upgraded apart give the project ONE identity, where
+/// two mints gave it two and the merge conflicted on config.json. A SHA-256 of
+/// the commit, shaped as a UUID, so the value reads as every other project id
+/// does. Pure: the caller asks git, and mints with [`mint_project_id`] where
+/// there is no commit to derive from.
+pub fn derived_project_id(root_commit: &str) -> String {
+  use sha2::{Digest, Sha256};
+  let digest = Sha256::digest(format!("intent project id\0{root_commit}").as_bytes());
+  let mut bytes = [0u8; 16];
+  bytes.copy_from_slice(&digest[..16]);
+  uuid::Builder::from_random_bytes(bytes)
+    .into_uuid()
+    .to_string()
+}
+
 impl Config {
   /// The project's identity, or `None` when it has never been minted.
   ///

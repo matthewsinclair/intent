@@ -1482,11 +1482,15 @@ fn stamp_version(project: &Project) -> Result<Option<std::path::PathBuf>, std::i
     .get("project_id")
     .and_then(serde_json::Value::as_str)
     .is_some_and(|id| !id.is_empty());
+  // **DERIVED IN GIT, MINTED ONLY WITHOUT IT** (issue Ie99dbb6): two branches
+  // of one project, each upgraded apart, read one root commit and so stamp
+  // one identity, where two mints conflicted on config.json at merge.
   if unstamped {
-    map.insert(
-      "project_id".to_string(),
-      serde_json::Value::String(crate::project::mint_project_id()),
-    );
+    let id = match crate::gitstate::root_commit(project.root()).map_err(std::io::Error::other)? {
+      Some(commit) => crate::project::derived_project_id(&commit),
+      None => crate::project::mint_project_id(),
+    };
+    map.insert("project_id".to_string(), serde_json::Value::String(id));
   }
   // **THE SCHEDULE IS BACK-FILLED SO THAT IT IS SOMETHING TO READ AND EDIT**
   // (hv, 2026-08-26: "back-fill the config"). A default that lives only in the

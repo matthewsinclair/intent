@@ -193,6 +193,23 @@ pub fn unmerged(root: &Path) -> Result<Vec<Unmerged>, GitStateError> {
   Ok(found)
 }
 
+/// The repository's root commit, the first of its parentless commits in hash
+/// order where it has several, or `None` outside a work tree or before the
+/// first commit (issue Ie99dbb6). Every branch cut from one history shares it.
+pub fn root_commit(root: &Path) -> Result<Option<String>, GitStateError> {
+  if !work_tree(root)? || !has_head(root) {
+    return Ok(None);
+  }
+  let out = run(root, &["rev-list", "--max-parents=0", "HEAD"])?;
+  let mut roots: Vec<String> = String::from_utf8_lossy(&out)
+    .lines()
+    .filter(|l| !l.is_empty())
+    .map(str::to_string)
+    .collect();
+  roots.sort();
+  Ok(roots.into_iter().next())
+}
+
 /// The commit a merge in progress started from, `git merge-base HEAD
 /// MERGE_HEAD`, or `None` when no merge is in progress or the two sides share
 /// no history (issue Ic884775).
