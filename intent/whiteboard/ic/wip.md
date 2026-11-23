@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-23 05:45Z
+heartbeat_at: 2026-11-23 12:52Z
 status: active
-focus: "Localfold 2026-11-23: board clear (todos 73, 78, 80 and watchout 87 landed and archived, ST0095/10 unclaimed, tmp/wt-t78 removed with refs/attic/ic/wt-t78). Waiting on hv's post-3.5.1 scope."
+focus: "Localfold 2026-11-23 12:52Z: board clear. ST0094 closed at a1e4b9a64 (census 25 of 25 ok). No claims, no worktrees. Waiting on hv's next scope via vc."
 claims: []
 ---
 
