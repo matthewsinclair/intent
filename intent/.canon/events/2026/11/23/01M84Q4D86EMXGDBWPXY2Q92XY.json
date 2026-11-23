@@ -1,0 +1,16 @@
+{
+  "id": "01M84Q4D86EMXGDBWPXY2Q92XY",
+  "ts": "2026-11-23T17:26:50.440Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 67,
+    "text": "3.5.2, hv decisions 87 and 88. Landed since the first fold: dc's 88 plus ST0097 A and B (8e041900d), 87 (527ef407c) and CHANGELOG (9c073f0ee); cc's ST1c2db93 U3 (00ddbb494), U1 (8ddb863d1) and U2 with I086e953 (d1928ba2a); ic's I4da7c22 (8c4423dd4, e1e84abb8). Earlier: the desk fixes, I81ecc7f, Ifdd3c89, Ie7fb84c, I84286b7, Iae1e02a, Ic884775, Ie99dbb6. PUSHED at e1e84abb8 after build all rc 0. OPEN: cc's U4 as U4a (Desk rerun queued), U4b and then the metadata strip; then build all and push, dc's step 2(b), the kovacs rehearsal, the whole local gate, and READY. READY also waits on devbin 0.1.29 (I514ea74, the formula's brew style offense): hv cuts devbin and runs brew upgrade, then devbin-vc sweeps it into Intent."
+  }
+}

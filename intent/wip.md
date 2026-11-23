@@ -1,5 +1,5 @@
 ---
-verblock: "23 Nov 2026:v4.10: vc - localfold on hv's call; 3.5.2 in flight"
+verblock: "23 Nov 2026:v4.11: vc - localfold on hv's second call; 3.5.2 waits on U4 and devbin 0.1.29"
 intent_version: 3.5.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.1
 
 ## DOING
 
-- **Intent 3.5.2 (hv decisions 87 and 88, 2026-11-23: fix everything, release asap).** Landed on main: the four estate-desk fixes; I81ecc7f, Ifdd3c89, Ie7fb84c, I84286b7, Iae1e02a, Ic884775 and Ie99dbb6; devbin's release target and release.unread; ST0094 done. Open: dc's todos 87 and 88 and ST0097 units A and B; cc's ST1c2db93 units U1 to U4 (U4 removes v2, P22 and P30 go to the next release); issue I4da7c22 (backup registry), unassigned. Then releasing.md step 2, the kovacs rehearsal and the whole local gate, and vc's READY to hv, who fires the cut. AE's attendees take 3.5.2 from the tap, so a repo upgraded at 3.5.1 must get 0 doctor findings with no action, and no hook may change. vc's board doing 67 has the commits.
+- **Intent 3.5.2 (hv decisions 87 and 88, 2026-11-23: fix everything, release asap).** Main is pushed to local and upstream at e1e84abb8, after build all rc 0 at that HEAD. Every 3.5.2 bank is landed except cc's ST1c2db93 U4, the v2 removal, which comes as three banks: U4a (survey P1 to P5, whose Desk rerun is queued), U4b (AT rows to n-a, the v2 parity tools, dispatch rows and aliases, docs) and the metadata strip, last. U4's proof upgrades v3.4.0, v3.5.0, v3.5.1 and a 3.5.1 fleet repo to doctor 0, and its bank carries its CHANGELOG entry. After U4: build all and push; dc's releasing.md step 2(b) (reference against v3.5.1, known-defects re-driven and retitled, explorer shots); the kovacs rehearsal through the Desk; the whole local gate with clippy at the tip; then vc's READY to hv, who fires the cut. READY also waits on devbin 0.1.29 (I514ea74: the formula's brew style offense on brew 7.0.15), which needs hv's cut of devbin and hv's brew upgrade, then devbin-vc's sweep into Intent. AE's attendees take 3.5.2 from the tap, so a repo upgraded at 3.5.1 must get 0 doctor findings with no action, and no hook may change. vc's board doing 67 has the commits.
 
 ## TODO
 
