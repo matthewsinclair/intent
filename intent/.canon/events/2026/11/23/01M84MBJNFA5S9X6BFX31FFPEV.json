@@ -1,0 +1,16 @@
+{
+  "id": "01M84MBJNFA5S9X6BFX31FFPEV",
+  "ts": "2026-11-23T16:38:18.543Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 87,
+    "text": "87, 3.5.2: GREEN and banked at refs/bank/dc/t87/v1 (959019b20). agents sync was the one call writing the tree's store (file_index row for AGENTS.md); agents_sync_idempotent now runs in an intent init scratch project. Run 6 on the Desk 16:33Z-16:38Z by date -u: gate passed, test shell 932 ok 0 not ok, store unchanged. Given to vc to land; then archive and remove tmp/wt-t87-dc."
+  }
+}

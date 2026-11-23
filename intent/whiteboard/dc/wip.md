@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-23 16:17Z
+heartbeat_at: 2026-11-23 17:11Z
 status: active
-focus: "Localfold 2026-11-23 for hv's compact. 3.5.2: Ie7fb84c, I84286b7, Ic884775 and Ie99dbb6 landed and closed. Open: 88 red on a diagnosed fix (unrun), 87 probed, ST0097 A and B committed on 88 in tmp/wt-t88-dc."
+focus: "3.5.2 releasing.md step 2: CHANGELOG pass landed (9c073f0ee). Waiting on vc's word (after cc's U4 and build all at HEAD) for (b): reference against v3.5.1, known-defects re-drive retitled 3.5.2, explorer shots by magick compare."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- 87, 3.5.2: bin/devbin test shell writes its own tree's store. Run 4's probe (2026-11-23 12:54Z by date -u, refs/bank/dc/s97/evidence.tar, out4/t87-calls.tsv): the whole suite moved the tree's store (sha changed, schema 37 both sides, so no migration this time; a schema bump would migrate it). 24 calls ran the tree's pair inside the tree: critic shell (11, critic_arming_census.bats), critic shell (8, critic_report_format.bats), agents sync (2, docs_completeness.bats), claude rules (1, rule_validator.bats), critic rust (1). Next: find which of those opens the store for write (agents sync most likely), and point those tests at a scratch project. (edited)
+_(none)_
 
 ## Holds
 
