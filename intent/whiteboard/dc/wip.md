@@ -6,7 +6,7 @@ session_id: b43bbd8a-78f9-46a0-a162-157b91263503
 heartbeat_at: 2026-11-22 12:11Z
 status: active
 focus: "Localfolded after the 3.5.1 cut (v3.5.1 at 1cc654e5a). Next: hv's post-3.5.1 scope, todos 87 and 88."
-claims: [ISSUE:Ic884775a088a55a5]
+claims: [ISSUE:Ic884775a088a55a5, ST0097]
 ---
 
 # DevX Claude (dc)
