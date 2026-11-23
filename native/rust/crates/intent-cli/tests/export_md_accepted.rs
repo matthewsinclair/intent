@@ -134,10 +134,12 @@ fn the_realisation_is_written_under_backup_text() {
 /// LAPSE** (AC-06.2, asserted here because AC-06.3's acceptance is what would
 /// tempt someone to add one).
 ///
-/// The realisation is a human fallback. If `ingest` or `sync` ever learned to
-/// read it, markdown would become an interchange format by accident and
-/// `RoundTrips`'s rule -- which is NOT relaxed for interchange formats -- would
-/// have been evaded rather than met.
+/// The realisation is a human fallback. If a verb ever learned to read it,
+/// markdown would become an interchange format by accident and `RoundTrips`'s
+/// rule -- which is NOT relaxed for interchange formats -- would have been
+/// evaded rather than met. `sync` reads only the JSON extract, and `ingest`,
+/// the one verb that ever read markdown, is removed; this arm names it so a
+/// verb that comes back under that name to read a realisation turns it red.
 #[test]
 fn accepting_md_did_not_create_a_route_back() {
   let dir = project();
@@ -165,7 +167,7 @@ fn accepting_md_did_not_create_a_route_back() {
   );
   assert_ne!(
     code, 0,
-    "`ingest` accepted a realised markdown file, so the realisation has become authoritative: {err}"
+    "`intent ingest` accepted a realised markdown file, so the realisation has become authoritative: {err}"
   );
 }
 

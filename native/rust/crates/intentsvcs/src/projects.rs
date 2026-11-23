@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 use thiserror::Error;
 
-use crate::project::{Migration, Project, ProjectError};
+use crate::project::{Project, ProjectError};
 
 /// The schema this build writes, and the newest it will rewrite.
 pub const SCHEMA: u64 = 1;
@@ -310,10 +310,9 @@ fn rewrite(
 /// Why a directory holding an Intent config was not registered.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Refusal {
-  /// The config is missing, unreadable or not a config.
+  /// The config is missing, unreadable, not a config, or declares a version
+  /// before 3 ([`crate::project::ProjectError::PreV3`]).
   ConfigDoesNotParse(String),
-  /// v3 would refuse it until it is migrated (`AC-10.7`); carries what it declares.
-  NeedsMigration(String),
   /// It sits in a bare git repository (issue 0609), whatever its config holds.
   /// Named apart from `ConfigDoesNotParse`, whose label would send the operator
   /// to a config that parses. It carries no path: the line that reports it
@@ -325,28 +324,17 @@ impl std::fmt::Display for Refusal {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       Self::ConfigDoesNotParse(why) => write!(f, "config does not parse: {why}"),
-      Self::NeedsMigration(declared) => {
-        write!(
-          f,
-          "needs migration (declares {declared}); `intent upgrade` there migrates it"
-        )
-      }
       Self::BareRepository => write!(f, "in {}", crate::project::BARE_REPOSITORY),
     }
   }
 }
 
-/// Whether this build can serve the project at `root`: its config opens, and
-/// it is not a project v3 refuses until it is migrated.
+/// Whether this build can serve the project at `root`: its config opens.
 pub fn assess(root: &Path) -> Result<(), Refusal> {
-  let project = Project::open(root).map_err(|e| match e {
+  Project::open(root).map(|_| ()).map_err(|e| match e {
     ProjectError::BareRepository(_) => Refusal::BareRepository,
     other => Refusal::ConfigDoesNotParse(other.to_string()),
-  })?;
-  match project.migration() {
-    Migration::Done => Ok(()),
-    Migration::Pending(pending) => Err(Refusal::NeedsMigration(pending.declared)),
-  }
+  })
 }
 
 /// Directory names a walk for projects never enters.
@@ -624,16 +612,18 @@ mod tests {
     assert_eq!(std::fs::read_to_string(&path).expect("reread"), newer);
   }
 
-  /// `AT-03.3`: discover registers the project v3 serves, names the unmigrated
-  /// and the unparseable ones with the reason, finds nothing inside a project
-  /// or under a skipped directory, and on a second run registers nothing new.
+  /// `AT-03.3`: discover registers the project v3 serves, names the one
+  /// declaring a version before 3 and the unparseable one with the reason,
+  /// finds nothing inside a project or under a skipped directory, and on a
+  /// second run registers nothing new.
   #[test]
   fn discover_registers_the_compatible_and_names_the_rest() {
     let dir = tempfile::tempdir().expect("tempdir");
     let from = dir.path().canonicalize().expect("canonical");
+    let old_version = format!("{}.9.0", crate::project::OLDEST_READ_MAJOR - 1);
     project(&from.join("current"), "3.0.2");
     project(&from.join("current/fixtures/inner"), "3.0.2");
-    project(&from.join("old"), "2.9.0");
+    project(&from.join("old"), &old_version);
     project(&from.join("node_modules/vendored"), "3.0.2");
     std::fs::create_dir_all(from.join("broken/intent/.config")).expect("broken dir");
     std::fs::write(Project::config_path(&from.join("broken")), "not json").expect("broken config");
@@ -645,11 +635,11 @@ mod tests {
     match first.refused.as_slice() {
       [
         (broken, Refusal::ConfigDoesNotParse(_)),
-        (old, Refusal::NeedsMigration(declared)),
+        (old, Refusal::ConfigDoesNotParse(why)),
       ] => {
         assert_eq!(*broken, from.join("broken"));
         assert_eq!(*old, from.join("old"));
-        assert_eq!(declared, "2.9.0");
+        assert!(why.contains(&old_version), "{why}");
       }
       other => panic!("expected broken and old refused with their reasons, got {other:?}"),
     }

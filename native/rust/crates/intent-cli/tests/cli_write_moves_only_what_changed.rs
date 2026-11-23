@@ -60,8 +60,6 @@
 //!   must record why it happened"* and the verbs have no way to carry a reason,
 //!   so they route to `st reopen` and never write. Unreachable by design,
 //!   including in the one state they nominally serve.
-//! - `ingest` -- `rc=0`, reads, and creates no store even from a storeless
-//!   start.
 //!
 //! **That is a population defect in the dispatch table, not a debt in this
 //! file, and it is reported rather than quietly re-bucketed**: every shipped
@@ -438,14 +436,6 @@ fn cases() -> Vec<Case> {
       expect: Expect::WritesNothing(1),
       must_say: None,
       why: "`--fix` is retired (0139), so clap refuses it and the estate stays byte-identical -- it was the only thing that ever earned `at lint` a `mutate` classification, and the row is now `read`",
-    },
-    Case {
-      verb: "ingest",
-      args: &["ingest"],
-      prep: without_store,
-      expect: Expect::WritesNothing(0),
-      must_say: None,
-      why: "Phase A reads and writes nothing INCLUDING no store; driven from a storeless start so the claim is measured rather than inherited",
     },
     Case {
       verb: "st bootstrap",

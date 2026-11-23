@@ -760,28 +760,10 @@ pub fn gate_open() -> Thread {
   )])
 }
 
-/// Turn this fixture into a **v2.19.0 estate**: the config v2 wrote, over the
-/// directory layout v2 left behind.
-///
-/// **`Fixture::new` declares 3.0.0 because almost every test wants a v3
-/// project. The migrator is the transition itself**, so its fixtures must
-/// declare a v2 version or the most important assertion in a migration test
-/// passes without the code doing anything.
-///
-/// **Lifted here rather than copied a tenth time.** A sweep on 2026-08-20 found
-/// this estate hand-writing the same v2 `config.json` literal in at least six
-/// places and standing up a v2 thread in at least nine, across both crates:
-/// `close_gate_parity`, `legacy_document_conservation`, `legacy_scope_carry`,
-/// `retired_st_prefix`, `unmigrated_project`, `issue_estate` here, and
-/// `upgrade_command`, `ingest_command`, `unmigrated_surface`, `info_exit_code`,
-/// `retired_commands` in `intent-cli`. **Consolidating those is not this
-/// commit's job and they are left alone**; what this closes is the next copy.
 /// Make `root` a git repository, configured so a commit succeeds unattended.
 ///
 /// **ONE HOME, TAKING A PATH RATHER THAN A `Fixture`.** Not every estate in
-/// these tests is a `Fixture` -- `unmigrated_project` builds bare `TempDir`s
-/// from `git archive` output -- and `0271` makes every migrating estate need a
-/// repository, so the two shapes would otherwise grow one of these each.
+/// these tests is a `Fixture`, so a bare `TempDir` takes this too.
 /// [`Fixture::git_init`] delegates here.
 pub fn git_init_at(root: &Path) {
   git_at(root, &["init", "-q"]);
@@ -899,48 +881,6 @@ pub fn git_at(root: &Path, args: &[&str]) {
   assert!(ok, "git {args:?} failed at {}", root.display());
 }
 
-pub fn v2_estate() -> Fixture {
-  // No project state, as a real v2 estate has none: an upgraded one would
-  // fold realisation from records v2 never wrote (ST0096 WP-01).
-  let fx = Fixture::ordinal();
-  fx.write_file(
-    "intent/.config/config.json",
-    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
-  );
-  fx
-}
-
-/// A v2 estate that is also a git repository -- the fixture for anything that
-/// actually RUNS the migration.
-///
-/// **SEPARATE FROM [`v2_estate`] ON PURPOSE, AND THE SEPARATION IS THE POINT**
-/// (hv, 2026-09-08, ruling `0271`). `Facade::upgrade` now refuses an estate
-/// that is not a git repository, so every test that converts one needs a repo.
-/// The cheap fix is to put `git_init()` inside `Fixture::new()`, or inside
-/// `v2_estate` -- and either would change a precondition for a whole population
-/// in order to fix a handful, **and would mask the next test that SHOULD fail
-/// without git, which is the exact class `0271` exists to close.**
-///
-/// So `v2_estate` stays git-free and this names the stronger precondition at
-/// the call site. A test asserting the REFUSAL keeps using `v2_estate` and
-/// keeps meaning it.
-pub fn v2_estate_in_git() -> Fixture {
-  let fx = v2_estate();
-  fx.git_init();
-  fx
-}
-
-/// A v2 steel thread, written the way v2.19 writes one: `info.md` with
-/// frontmatter and no `thread.json`.
-pub fn v2_thread(fx: &Fixture, id: &str, status: &str) {
-  fx.write_file(
-    &format!("intent/st/{id}/info.md"),
-    &format!(
-      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
-    ),
-  );
-}
-
 /// Every file under `root`, keyed by its path relative to `root`, with its
 /// bytes.
 ///
@@ -1009,13 +949,10 @@ pub fn changed(
 // ---------------------------------------------------------------------------
 // THE AUTHORISING DOCUMENT
 //
-// **TWO TESTS PIN DECLARATIONS TO `data-model.md` AND THEY MUST READ IT THE
-// SAME WAY.** `egest_estate.rs` pins what the EXTRACT cannot carry;
-// `the_migrator_says_what_it_did_not_carry.rs` pins what the MIGRATOR does not.
-// Both are checking the same section of the same file, so two copies of the
-// reader is the divergent-copy shape in the instruments whose whole job is to
-// stop a declaration drifting from its source -- and the second copy was
-// written by me an hour after the first.
+// **A TEST PINNING A DECLARATION TO `data-model.md` READS IT THROUGH HERE.**
+// `egest_estate.rs` pins what the EXTRACT cannot carry. A second copy of the
+// reader in another test would be the divergent-copy shape in the instruments
+// whose whole job is to stop a declaration drifting from its source.
 // ---------------------------------------------------------------------------
 
 /// The document that authorises every out-of-model declaration.

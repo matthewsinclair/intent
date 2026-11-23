@@ -3,6 +3,8 @@
   "text": "A clean estate converts in one commit: structured canon emitted, views regenerated, config stamped 3.0.0 + project_id, DB built, gitignore converged",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it.",
+    "by": "vc"
   }
 }

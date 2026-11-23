@@ -70,14 +70,50 @@ fn intent_home() -> PathBuf {
 /// up from the RESOLVED path and a link would land back in the target dir -- and
 /// `<install>/lib` pointing at the shipped tree, so the guards this drives are
 /// the shipped guards rather than fixtures of them.
+///
+/// **AND A MANIFEST, SO DOCTOR CAN PLACE THE TREE.** A copy outside any git
+/// tree with no `.intent-install` is a tree doctor cannot name, and it counts
+/// that, so the hook's doctor arm would refuse the seed on the rig rather than
+/// on a guard. The rig writes the manifest an opt tree carries, through the
+/// installer's own writer, over the files it holds.
 fn fake_install(base: &Path, repo: &Path) -> PathBuf {
   let install = base.join("install");
   fs::create_dir_all(install.join("bin")).expect("install bin");
-  fs::copy(crate::common::intent_path(), install.join("bin/intent"))
-    .expect("copy the binary under test");
+  let binary = install.join("bin/intent");
+  fs::copy(crate::common::intent_path(), &binary).expect("copy the binary under test");
   std::os::unix::fs::symlink(repo.join("lib"), install.join("lib"))
     .expect("point at the shipped lib");
+  let mut files = vec!["bin/intent".to_string()];
+  files_under(
+    &install,
+    &install.join(intentsvcs::install::MARKER),
+    &mut files,
+  );
+  files.sort();
+  let commit = intentsvcs::install::embedded_marker(&binary, "commit")
+    .expect("the binary under test names the commit it was built from");
+  let manifest = intentsvcs::install::render_manifest(
+    &install,
+    env!("CARGO_PKG_VERSION"),
+    &commit,
+    intentsvcs::install::ManagedBy::Intent,
+    &files,
+  )
+  .expect("render the opt tree's manifest");
+  fs::write(install.join(intentsvcs::install::MANIFEST), manifest).expect("write the manifest");
   install
+}
+
+/// Every file at or under `at`, relative to `root`, through the `lib` link.
+fn files_under(root: &Path, at: &Path, out: &mut Vec<String>) {
+  if at.is_file() {
+    let rel = at.strip_prefix(root).expect("under the install");
+    out.push(rel.to_string_lossy().into_owned());
+    return;
+  }
+  for entry in fs::read_dir(at).expect("read an install directory") {
+    files_under(root, &entry.expect("a directory entry").path(), out);
+  }
 }
 
 // `output_retrying_busy` moved to `testkit` on 2026-08-24. It was correct
@@ -165,8 +201,8 @@ fn project(home: &Path, with_config: bool) -> tempfile::TempDir {
   // judge, so every arm here ran with the gate's doctor failing open by
   // accident. The gate now asks the binary for both, and a config it cannot
   // read is could-not-judge there too, so the project's guards would never
-  // run. So the config names its version, and `config` says why that version
-  // is a v2 one.
+  // run. So the config names its version, and `config` says what else it
+  // declares.
   if with_config {
     fs::create_dir_all(root.join("intent/.config")).expect("config dir");
     fs::write(root.join("intent/.config/config.json"), config(None)).expect("config");
@@ -393,13 +429,17 @@ fn config(guards: Option<&str>) -> String {
   let guards = guards
     .map(|g| format!(",\n  \"guards\": {g}"))
     .unwrap_or_default();
-  // A v2 version on purpose (vc's ruling, 2026-10-23): doctor declines a v2
-  // project, so these arms judge the guards alone. On a v3 one doctor judges
-  // the fixture as well, counts the hook copied into `.git/hooks/` as a gate
-  // that is not running, and the seed is refused on that rather than on a
-  // guard. `guards` and `lang declared` read a v2 config as they read a v3 one,
-  // and `sync --to-disk` refuses it, so the fixture renders no views.
-  format!("{{\n  \"intent_version\": \"2.11.0\",\n  \"languages\": []{guards}\n}}\n")
+  // These arms judge the guards alone. Doctor judges the fixture as well and
+  // counts the hook copied into `.git/hooks/` as a gate that is not running,
+  // which would refuse the seed on that rather than on a guard, so the fixture
+  // acknowledges that one class, with its reason. A config declaring a version
+  // before 3 no longer serves: every reader refuses it, `guards` included, and
+  // doctor's exit 4 on it was what kept doctor out of these arms before; the
+  // rig's manifest (`fake_install`) is what keeps its install out of them now.
+  format!(
+    "{{\n  \"intent_version\": \"{}.0.0\",\n  \"languages\": []{guards},\n  \"doctor\": {{\n    \"acknowledged\": {{\n      \"gate-not-running\": \"the fixture copies the shipped hook into .git/hooks/ to drive it\"\n    }}\n  }}\n}}\n",
+    intentsvcs::project::OLDEST_READ_MAJOR
+  )
 }
 
 /// A tracked, executable guard body that prints its name and exits `rc`.

@@ -522,7 +522,7 @@ Change state through the verbs -- `st`, `wp`, `ac`, `at`, `issues` -- and let th
 
 **Bare `--to-store`, with no thread named, replaces the WHOLE store**, including durable history that cannot be rebuilt from the files. **Naming threads scopes it**: only those are taken from the extract and every other thread keeps the store's value. Repairing one object with the bare form is how **a remedy whose blast radius exceeds the fault it repairs** gets reached for.
 
-**Authored markdown has NO path into the store in this build**, and that is worth knowing BEFORE planning a repair around one. `intent sync` reads the JSON extract and opens no markdown at all. `intent ingest` does read markdown, including a v2 estate's, and reports what it found -- it tells you an estate PARSES, and it writes nothing.
+**Authored markdown has NO path into the store in this build**, and that is worth knowing BEFORE planning a repair around one. `intent sync` reads the JSON extract and opens no markdown at all, and no other verb reads authored markdown.
 
 ### Gate semantics: an exit code is a verdict about a particular thing
 

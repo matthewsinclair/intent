@@ -18,7 +18,8 @@
 //!
 //! **The split under test, which is the whole subtlety: "never gate on PROJECT
 //! state" is issue 0042's requirement and it is not "always exit 0".** An
-//! unmigrated project is not a failure of `info`; an unresolvable install is.
+//! project it cannot read is not a failure of `info`; an unresolvable install
+//! is.
 //! Both directions are asserted here, because a fix in either direction alone
 //! is a regression -- gating on project state re-opens 0042, and exiting 0 on a
 //! broken install is what this file exists for.
@@ -63,23 +64,25 @@ fn staged_outside_any_install() -> (tempfile::TempDir, PathBuf) {
   (dir, dest)
 }
 
-/// A v2 project: enough for `Project::discover` to find it and for the
-/// migration to read as pending. Modelled on the estate this migration targets
-/// rather than on a hypothetical.
-fn unmigrated_project(at: &Path) -> PathBuf {
+/// A project whose config declares an `intent_version` before 3, which every
+/// door refuses as a config this binary cannot read.
+fn pre_v3_project(at: &Path) -> PathBuf {
   let config = at.join("intent").join(".config");
   std::fs::create_dir_all(&config).expect("mkdir .config");
   std::fs::write(
     config.join("config.json"),
-    "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Legacy\",\n  \"author\": \"matts\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"shell\"]\n}\n",
+    format!(
+      "{{\n  \"intent_version\": \"{}.0.0\",\n  \"project_name\": \"Legacy\",\n  \"author\": \"matts\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"shell\"]\n}}\n",
+      intentsvcs::project::OLDEST_READ_MAJOR - 1
+    ),
   )
   .expect("write config");
   at.to_path_buf()
 }
 
-/// A MIGRATED project whose store cannot be opened: the config reads as v3, so
-/// the migration is `Done` and `info` goes on to open the store, and
-/// `intent/.cache` is a regular file where a directory is required.
+/// A project whose store cannot be opened: the config reads, so `info` goes on
+/// to open the store, and `intent/.cache` is a regular file where a directory
+/// is required.
 fn migrated_project(at: &Path) -> PathBuf {
   let intent = at.join("intent");
   std::fs::create_dir_all(intent.join(".config")).expect("mkdir .config");
@@ -166,7 +169,7 @@ fn an_unresolvable_install_fails_outside_a_project() {
 #[test]
 fn an_unresolvable_install_fails_from_inside_a_project_too() {
   let (dir, exe) = staged_outside_any_install();
-  let project = unmigrated_project(&dir.path().join("proj"));
+  let project = migrated_project(&dir.path().join("proj"));
   let (code, stdout, stderr) = info(&exe, &project);
 
   assert!(
@@ -207,15 +210,15 @@ fn the_failure_is_not_reported_in_the_code_consumers_read_as_fail_open() {
 /// "return an error more often".**
 ///
 /// Issue 0042: the whiteboard guards are resolved by parsing this command's
-/// stdout, in projects that are unmigrated, half-migrated, or not projects at
-/// all. **Project state must never reach the exit code.** All three project
+/// stdout, in projects whose config will not read, whose store will not open,
+/// or that are not projects at all. **Project state must never reach the exit code.** All three project
 /// conditions are driven with a RESOLVABLE install, so the only difference from
 /// the failing cases above is the one thing that is allowed to gate.
 ///
 /// **The third condition was added after the first two, and the gap it closed is
 /// the reason to state the count.** `info_project` has three arms that report a
-/// project-state failure -- no project, migration pending, and the store failing
-/// to open -- and this test measured the first two while its NAME claimed all
+/// project-state failure -- no project, a config it cannot read, and the store
+/// failing to open -- and this test measured the first two while its NAME claimed all
 /// project state. The unmeasured arm is the one most exposed: an unopenable store
 /// surfaces a real error with a remedy, which reads exactly like something that
 /// ought to be non-zero, and I started to make it non-zero before reading the
@@ -229,7 +232,7 @@ fn the_failure_is_not_reported_in_the_code_consumers_read_as_fail_open() {
 /// should ask the command it actually wants, which gates on `Facade::open` and
 /// answers 1. Recorded here because the tempting fix is local, defensible in
 /// isolation, and would break the whiteboard guards in every project the day
-/// `info` inherits the migration refusal.
+/// `info` inherits a project refusal.
 #[test]
 fn project_state_never_reaches_the_exit_code() {
   let exe = crate::common::intent_path();
@@ -246,17 +249,13 @@ fn project_state_never_reaches_the_exit_code() {
     "and it must still say so:\n{stdout}"
   );
 
-  let project = unmigrated_project(&dir.path().join("legacy"));
+  let project = pre_v3_project(&dir.path().join("legacy"));
   let (code, stdout, stderr) = info(exe, &project);
   assert_eq!(
     code,
     Some(0),
-    "an unmigrated project is the state the gate most needs `info` to work in -- it is what every consumer looks like the moment before it upgrades. \
+    "a project whose config this binary cannot read is project state, and the gate parses this output there too. \
      stdout:\n{stdout}\nstderr:\n{stderr}"
-  );
-  assert!(
-    stdout.contains("Steel Threads:"),
-    "and the migration is reported as content rather than as an exit code:\n{stdout}"
   );
 
   // **A MIGRATED project whose store cannot be opened.** Driven by putting a

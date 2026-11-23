@@ -1,69 +1,36 @@
-//! **WP-10 Phase B -- the join** (migration.md).
+//! **The upgrade's plan** -- the complete set of files an upgraded project
+//! holds, structured canon and regenerated views, read from the project's own
+//! committed canon, and **written by nobody here**.
 //!
-//! Phase A ([`crate::legacy`]) reads a v2 estate and writes nothing. This turns
-//! what it read into the complete set of files a migrated project holds --
-//! structured canon and regenerated views -- and **writes nothing either**.
+//! **The uncommitted return is the atomicity, not a step towards it.** A
+//! blocked upgrade must leave the project untouched, and a function that
+//! CANNOT write cannot half-write: the guarantee is a property of the signature
+//! rather than of anyone getting an early return in the right order. The
+//! caller commits the batch, and [`crate::write_set::Applied`] can still undo
+//! it if a later step fails.
 //!
-//! **The uncommitted return is the atomicity, not a step towards it.** AC-10.2
-//! requires that a blocked migration leave the estate untouched, and a function
-//! that CANNOT write cannot half-write: the guarantee is a property of the
-//! signature rather than of anyone getting an early return in the right order.
-//! The caller commits the batch, and [`crate::write_set::Applied`] can still
-//! undo it if a later step fails.
+//! **The order beyond this point is the facade's and it is load-bearing**:
+//! plan -> commit the writes -> rebuild the DB -> converge gitignore -> move
+//! the canon format -> **stamp the version LAST**, so an upgrade stopped part
+//! way still declares the version it had and a re-run plans it again.
 //!
-//! **The order beyond this point is the facade's and it is load-bearing** (cc,
-//! carried from v2's ST0043): plan -> commit the writes -> rebuild the DB ->
-//! converge gitignore -> **stamp the version LAST**. A stamp written before the
-//! canon exists makes [`crate::project::Project::migration`] stop reporting the
-//! project as unmigrated, so a half-finished migration would look finished --
-//! the failure would have destroyed the one piece of state that says what went
-//! wrong.
-//!
-//! **STAMP LAST STOPPED BEING DISCIPLINE AND ACQUIRED A MECHANISM ON
-//! 2026-08-17** (cc, from hv's fix to dc's two-ended-migration finding). v2 now
-//! REFUSES to operate on a project declaring a newer Intent than itself, and v3
-//! refuses one declaring older. The two requirements are contradictory on one
-//! estate and both are correct -- but it means that **between the moment
-//! `config.json` says 3.0.0 and the moment the canon is complete, NEITHER tool
-//! will touch the project.** A premature stamp does not merely hide the
-//! migration state; it locks the estate out of both toolchains at once. The
-//! ordering above was an argument until today and is now enforced by a real
-//! refusal.
-//!
-//! # What this deliberately does NOT do, and why each is recorded rather than
-//! # quietly omitted
-//!
-//! **It writes no events.** data-model.md says a migrated thread "restores an
-//! `st.new` carrying the authored date", and doing that means inventing a
-//! time-of-day for a `created:` that is a DATE -- [`crate::event::Envelope`]'s
-//! `ts` is millisecond-precision by contract, because two machines merge logs
-//! and order them by it. Manufacturing a precise value from an imprecise one is
-//! D42's subject exactly, so the synthesis is a ruling rather than a coding
-//! decision. **Nothing is lost by waiting**: `created` and `completed` are
-//! carried in `thread.json` itself, so what is absent is the HISTORY, not the
-//! dates. **It writes no event file either** (issue 0457): it emitted an empty
-//! `events.jsonl` until ST0078 moved the log to one committed file per event,
-//! and from then on that file was a stray in the tree rather than a statement
-//! about history.
-//!
-//! **It does not relocate a thread out of v2's `COMPLETED/` / `CANCELLED/` /
-//! `NOT-STARTED/` buckets** -- see [`plan`]'s own note. That one is a hole, it
-//! is measured, and it is not silently absent.
+//! **It writes no events** (issue 0457): `created` and `completed` are carried
+//! in each record itself, and the event log is one committed file per event,
+//! which the facade backfills from the store.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use crate::export::{self, Bundle};
 use crate::facade::FacadeContext;
 use crate::finding::{Finding, FindingClass, Refusal};
 use crate::ingest::Canon;
-use crate::legacy::Scan;
 use crate::model::{Issue, Thread};
 use crate::project::Project;
 use crate::views::{self, RenderContext};
 use crate::write_set::WriteSet;
 
-/// Everything the migration would do, with nothing done yet.
+/// Everything the upgrade would do, with nothing done yet.
 #[derive(Debug)]
 pub struct Plan {
   /// Canon and views, **uncommitted**. The caller commits it.
@@ -71,61 +38,17 @@ pub struct Plan {
   /// The model, for the store rebuild the facade runs after the writes land.
   pub threads: Vec<Thread>,
   pub issues: Vec<Issue>,
-  /// Phase A's carried findings, passed through untouched.
-  ///
-  /// **They travel with the plan rather than being printed here**, because a
-  /// plan that reported to a stream could not be assembled by a caller that
-  /// wanted to inspect it first -- and the report belongs to the door, which
-  /// knows whether anyone is watching.
-  pub carried: Vec<Finding>,
-  /// Threads Phase A took from `thread.json` rather than from their markdown,
-  /// because they were already migrated.
-  ///
-  /// **For the REPORT and deliberately not for control flow.** They are in
-  /// [`Plan::threads`] like any other, so the plan re-emits byte-identical
-  /// canon and byte-identical views for them and the two global views render
-  /// from the whole estate. Skipping them here would be the truncation this
-  /// design exists to avoid, one layer down: `steel_threads.md` and `todo.md`
-  /// are rendered from the full thread list, so a plan that dropped 54 of 56
-  /// would rewrite the index with two rows while reporting `2 converted, 54
-  /// already` -- every word true.
-  ///
-  /// **What it buys is a re-run that says what it did.** `already_migrated +
-  /// converted` reconciles against the estate, so doing less stops being
-  /// indistinguishable from there being less (cc, `legacy.rs`'s own rule that
-  /// a silent skip is how an artefact disappears from a migration whose whole
-  /// promise is that nothing does).
-  pub already_migrated: Vec<String>,
-  /// Issue numbers read back from committed canon rather than converted from a
-  /// v2 estate -- [`already_migrated`](Plan::already_migrated)'s counterpart
-  /// over the population intent#0070 dropped.
-  ///
-  /// **For the REPORT, and there is no control-flow twin to resist here**: the
-  /// thread field carries that warning because a reader might be tempted to
-  /// skip re-emitting; nobody can skip these, because re-emitting them IS the
-  /// fix.
-  pub already_migrated_issues: Vec<crate::id::IssueId>,
-  /// Sections Phase A dropped as template scaffolding, passed through
-  /// untouched. **The third summary bucket beside modelled and carried**: a
-  /// drop with no record cannot be told from a section that was never there.
-  pub dispositions: Vec<crate::legacy::Disposition>,
-  /// Bucket files Phase A ingested into an already-migrated thread (0319),
-  /// passed through untouched. **For the report, and for one decision the door
-  /// makes**: a run that ingested does not also prune.
-  pub bucket_ingested: Vec<std::path::PathBuf>,
-  /// Bucket files Phase A did not ingest, each with its reason, passed through
-  /// untouched.
-  pub bucket_not_ingested: Vec<crate::legacy::Withheld>,
 }
 
 /// Why no plan exists.
 #[derive(Debug, thiserror::Error)]
 pub enum Blocked {
-  /// Live-thread residue: the estate must be repaired under v2 tooling first.
+  /// A record in the committed canon that cannot be read, so the upgrade would
+  /// rebuild the store and the views without it.
   ///
   /// **Carried as a [`Refusal`] rather than a bare `Vec<Finding>`** so the
-  /// per-line classed report AC-10.2 asks for arrives with the error instead of
-  /// being re-implemented at whichever door renders it. Not `#[source]`, for
+  /// per-line classed report arrives with the error instead of being
+  /// re-implemented at whichever door renders it. Not `#[source]`, for
   /// the reason [`crate::ingest::IngestError::Refused`] records: a source here
   /// renders the whole list twice and every residue count reads double.
   #[error("{0}")]
@@ -250,10 +173,10 @@ impl crate::remedy::Remedy for Blocked {
       // (a rename the operator makes).
       Self::Canon { source } => crate::remedy::Remedy::remedy(source),
       Self::Collision { path } => format!(
-        "two artefacts in the v2 estate resolve to {path}; rename or remove one of them under v2 tooling, then re-run the migration"
+        "two artefacts in this project's canon resolve to {path}; nothing was written. Rename or remove one of them, then run `intent upgrade` again"
       ),
       Self::CaseCollision { path, other } => format!(
-        "{path} and {other} differ only in case, so a case-insensitive disk (macOS's default) stores them as one file and one would overwrite the other; give the authored file among them another name under v2 tooling (either one, when both are authored), then re-run the migration"
+        "{path} and {other} differ only in case, so a case-insensitive disk (macOS's default) stores them as one file and one would overwrite the other; nothing was written. Give the authored file among them another name (either one, when both are authored), then run `intent upgrade` again"
       ),
       Self::Manifest { cause, .. } => crate::remedy::Remedy::remedy(cause),
       Self::ManifestUnreadable { path, .. } => format!(
@@ -277,122 +200,36 @@ impl crate::remedy::Remedy for Blocked {
   }
 }
 
-/// Turn a Phase A scan into the batch a migration would write.
+/// **Every thread in the committed canon**, read through the one canon reader.
 ///
-/// Residue blocks. Everything else assembles: canon from
-/// [`export::canon_parts`], views from [`views::render_all`], both returned
-/// UNCOMMITTED.
-///
-/// # The bucket hole, named here because it is the join's and it is measured
-///
-/// v2 relocates a thread's directory on a status transition, so a completed
-/// thread lives at `st/COMPLETED/<ID>/` while v3's canonical path is
-/// `st/<ID>/thread.json` (data-model.md) and
-/// [`Project::thread_ids`](crate::project::Project::thread_ids) reads only the
-/// flat level. Phase A finds a bucketed thread and **discards where it was** --
-/// [`Thread`] has no directory -- so this cannot move it even in principle.
-///
-/// Measured on the canary: **55 of 56 threads are bucketed, 386 tracked
-/// files**, and a migration writes fresh canon plus regenerated views at the
-/// flat path while every one of those files stays put. They split in two.
-/// **194 are regenerated at the flat path** (55 thread `info.md`, 126 WP
-/// `info.md`, 13 `acceptance.md`). **192 are authored prose the model does not
-/// hold and nothing regenerates** -- 54 `design.md`, 54 `impl.md`, 54
-/// `tasks.md` and 30 one-offs -- left at a path the model does not know about.
-/// Verified independently by vc's path classifier, which shares no code with
-/// this one and reads the estate for a different reason: 387/194/193 at their
-/// pinned `42fb5269`, the one-file delta being the estate moving between that
-/// revision and HEAD.
-///
-/// **The regenerated half is not "merely doubled" -- the migration MANUFACTURES
-/// the 0011 class** (vc, 2026-08-17, and it is the sharper reading). Two
-/// `info.md` per thread, one rendered from the model and one v2 artefact that
-/// nothing regenerates and everything still reads: two artefacts claiming one
-/// natural role at two paths, which is precisely what [`crate::legacy`] refuses
-/// when it finds it in an estate. **The migration would create what the parser
-/// exists to reject, on 55 of 56 threads.** A reachability check reports the
-/// flat path reachable and stops, so this is a third question and not a
-/// consequence of the second.
-///
-/// **Nothing is deleted, which is what makes it hard to see: every count
-/// reconciles and every file is still present.** The loss is of reachability,
-/// not of bytes, so a conservation check comparing two file listings agrees
-/// with itself. AC-10.5's prose conservation has to be an equality between the
-/// prose the estate CONTAINED and the prose reachable from the migrated MODEL.
-///
-/// The two numbers beside each other are the whole finding. Run against the
-/// canary at `14c3fb01` this plans **311 files** -- 56 `thread.json`, one
-/// event log, 254 views -- and reports no block. **386 files stay in the
-/// buckets.** Both figures are correct and the migration is complete by every
-/// measure it takes of itself.
-///
-/// **hv retired `intent organize` on the argument that "a strictly structured
-/// model cannot hold data in the wrong spot, so the disorder this repairs
-/// cannot arise"** (2026-08-14). The migration is what would make that true,
-/// and it does not: the disorder is carried in wholesale and the tool that
-/// repaired it is gone. Recorded rather than worked around, because flattening
-/// means MOVING authored prose and [`WriteSet`] has no remove -- so the
-/// mechanism is a decision, not an oversight to patch here.
-/// **Every thread with committed canon that the disk walk never reached.**
-///
-/// `legacy::scan` derives its population from `thread_dirs` -- the directories
-/// under `intent/st/`. Under ST0057 the disk is a SPARSE PROJECTION: a
-/// dehydrated thread has canon and no directory, so it never enters that loop.
-/// Measured 2026-08-20 on a fresh clone: 57 threads in canon, 3 realised, and
-/// `upgrade` rebuilt the store and the project-level views from the 3 --
-/// **deleting 239 lines from two committed views and cutting the durable SSOT
-/// from 57 rows to 3, at rc=0, under an `ok:`.**
-///
-/// # Why here and not in `legacy::scan` (vc ruled, 2026-08-20)
-///
-/// **Highlander forbids two answers to ONE question; it does not require one
-/// answer to TWO.** `legacy::scan` answers *what must be converted from v2*;
-/// `Project::thread_ids` answers *what threads exist*. Both are correct. The
-/// defect was that `upgrade` asked the first when it needed the second, so the
-/// union belongs at the join and not inside either.
-///
-/// **And the scan's other caller is the proof.** `Facade::ingest_from_md` reads
-/// a markdown estate, and **a canon-only thread has no markdown to read** --
-/// widening the scan would make a correct function wrong at its other call
-/// site, and every residue class in `Scan`, all of which describe something a
-/// v2 AUTHOR left behind, would acquire a population it must specially ignore.
+/// Under ST0057 the disk is a SPARSE PROJECTION: a dehydrated thread has canon
+/// and no directory, so the population is the canon's, never the disk's
+/// (measured 2026-08-20: an upgrade that read only the realised threads cut a
+/// 57-thread store to 3, at rc=0, under an `ok:`).
 ///
 /// # An unreadable canon REFUSES rather than being skipped
 ///
-/// A skipped file is the defect again one level down: the union would be
-/// silently incomplete and the rebuild would run off it. A v2 estate has no
-/// canon at all, so `thread_ids` answers empty and this adds nothing -- the
-/// refusal is reachable only where canon exists and cannot be read, which is
-/// exactly when rebuilding the SSOT from it must not proceed.
-fn dehydrated(
-  project: &Project,
-  seen: &BTreeSet<String>,
-) -> Result<(Vec<Thread>, Vec<String>), Blocked> {
+/// A skipped file would leave the population silently incomplete, and the
+/// rebuild would run off it.
+fn canon_threads(project: &Project) -> Result<Vec<Thread>, Blocked> {
   let Ok(ids) = project.thread_ids() else {
-    return Ok((Vec::new(), Vec::new()));
+    return Ok(Vec::new());
   };
   let mut threads = Vec::new();
-  let mut added = Vec::new();
   let mut residue = Vec::new();
   for id in ids {
-    if seen.contains(id.as_str()) {
-      continue;
-    }
     let path = project.thread_json(&id);
     let rel = project.relative(&path);
     match std::fs::read_to_string(&path) {
       Ok(text) => match crate::ingest::read_thread(project, &id, &text) {
-        Ok(thread) => {
-          added.push(thread.id.stored());
-          threads.push(thread);
-        }
+        Ok(thread) => threads.push(thread),
         Err(mut found) => residue.append(&mut found),
       },
       Err(source) => residue.push(Finding::new(
         &rel,
         FindingClass::BrokenReference,
         format!(
-          "canon names {} and the file is not readable: {source} -- the migration would rebuild \
+          "canon names {} and the file is not readable: {source} -- the upgrade would rebuild \
            the store and the views without it",
           id.as_str()
         ),
@@ -402,64 +239,34 @@ fn dehydrated(
   if !residue.is_empty() {
     return Err(Blocked::Residue(Refusal::new(residue)));
   }
-  Ok((threads, added))
+  Ok(threads)
 }
 
-/// **Every issue with committed canon that the v2 scan never reached.**
+/// **Every issue in the committed canon**, [`canon_threads`]'s counterpart.
 ///
-/// The exact counterpart of [`dehydrated`], and its absence WAS intent#0070.
-/// `legacy::scan` derives issues from the v2 estate, so on an already-migrated
-/// project it finds none; `plan` passed that empty vector straight through, and
-/// `store.rebuild` -- which runs off this model -- replaced a populated issue
-/// table with nothing. **Threads survived the identical re-run because they had
-/// the union above and issues did not: one population topped up from canon, the
-/// other not, in adjacent lines.**
-///
-/// **Measured: a probe holding 5 issues reported `0 issue(s)` and left 0, at
-/// rc=0, under an `ok:`** -- and on the live repo it took 47.
-///
-/// **The report was HONEST, which is what made it invisible.** `0 issue(s)`
-/// meant it carried none, and it had carried none. Nothing in the output was
-/// false, so there was nothing for an operator to notice -- the reason this
-/// could not have been fixed by rewording the line.
-///
-/// Same three rulings as [`dehydrated`], and they transfer without amendment.
-/// The union belongs at the JOIN and not inside `legacy::scan`, whose other
-/// caller reads a markdown estate that a canon-only issue has no entry in.
-/// `issue_numbers` answers empty for a missing directory, so a genuine v2
-/// estate -- no `.canon/` at all -- adds nothing here and the first-run path is
-/// untouched. And an unreadable or invalid canon REFUSES rather than being
-/// skipped, because a silently incomplete union is this same defect one level
-/// down, and the rebuild would run off it.
-fn orphaned_issues(
-  project: &Project,
-  seen: &BTreeSet<crate::id::IssueId>,
-) -> Result<(Vec<Issue>, Vec<crate::id::IssueId>), Blocked> {
+/// Its absence was intent#0070: an upgrade that topped up threads from canon
+/// and not issues replaced a populated issue table with nothing, at rc=0,
+/// under an `ok:`. An unreadable or invalid canon REFUSES rather than being
+/// skipped, for [`canon_threads`]'s reason.
+fn canon_issues(project: &Project) -> Result<Vec<Issue>, Blocked> {
   let Ok(numbers) = project.issue_numbers() else {
-    return Ok((Vec::new(), Vec::new()));
+    return Ok(Vec::new());
   };
   let mut issues = Vec::new();
-  let mut added = Vec::new();
   let mut residue = Vec::new();
   for number in numbers {
-    if seen.contains(&number) {
-      continue;
-    }
     let path = project.issue_json(number);
     let rel = project.relative(&path);
     match std::fs::read_to_string(&path) {
       Ok(text) => match crate::ingest::read_issue(project, number, &text) {
-        Ok(issue) => {
-          added.push(issue.number);
-          issues.push(issue);
-        }
+        Ok(issue) => issues.push(issue),
         Err(mut found) => residue.append(&mut found),
       },
       Err(source) => residue.push(Finding::new(
         &rel,
         FindingClass::BrokenReference,
         format!(
-          "canon names issue {} and the file is not readable: {source} -- the migration \
+          "canon names issue {} and the file is not readable: {source} -- the upgrade \
            would rebuild the store and the views without it",
           number.shown()
         ),
@@ -469,104 +276,40 @@ fn orphaned_issues(
   if !residue.is_empty() {
     return Err(Blocked::Residue(Refusal::new(residue)));
   }
-  Ok((issues, added))
+  Ok(issues)
 }
 
-pub fn plan(project: &Project, ctx: &FacadeContext, scan: Scan) -> Result<Plan, Blocked> {
-  // **Exhaustive on purpose: a field added to `Scan` must not compile.** `..`
-  // here would make a new Phase A output something the join silently drops,
-  // which is the exact class this whole operation exists to prevent -- and it
-  // would drop it in the one place with no reader to notice.
-  //
-  // **It fired on the first field to arrive after it was written**
-  // (`already_migrated`, cc, 2026-08-17), which is the whole of its case: the
-  // compiler stopped the workspace rather than the join quietly ignoring a
-  // Phase A output, and the decision about what to do with it was made here
-  // instead of defaulting to nothing.
-  let Scan {
-    threads,
-    issues,
-    residue,
-    carried,
-    already_migrated,
-    dispositions,
-    bucket_ingested,
-    bucket_not_ingested,
-  } = scan;
-
-  if !residue.is_empty() {
-    return Err(Blocked::Residue(Refusal::new(residue)));
-  }
-
-  // **THE UNION, AND IT IS WHY THIS VERB STOPPED SHRINKING THE ESTATE.**
-  // Everything past this point -- `store.rebuild`, `views::render_all`, the
-  // canon export -- runs off `threads`, so a thread absent HERE is absent from
-  // the SSOT and from the index the migration leaves behind.
-  let seen: BTreeSet<String> = threads.iter().map(|t| t.id.stored()).collect();
-  let (extra, extra_ids) = dehydrated(project, &seen)?;
-  let mut threads = threads;
-  threads.extend(extra);
-
-  // **THE SAME UNION, FOR THE SAME REASON, OVER THE OTHER POPULATION.**
-  // `store.rebuild(&threads, &issues)` takes both, so an issue absent here is
-  // absent from the SSOT exactly as a thread would be -- and for four days it
-  // was, because only one of the two lines existed (intent#0070).
-  let seen_issues: BTreeSet<crate::id::IssueId> = issues.iter().map(|i| i.number).collect();
-  let (extra_issues, extra_numbers) = orphaned_issues(project, &seen_issues)?;
-  let mut issues = issues;
-  issues.extend(extra_issues);
-  // The unions append; a re-run on a v3 project may carry hashed records, so
-  // both are held in the one order (ST0095 WP-08).
+/// The batch an upgrade would write, read from the project's committed canon.
+///
+/// Everything assembles: canon from the release's encoder, views from
+/// [`views::render_all`], both returned UNCOMMITTED. A record that does not
+/// read blocks.
+pub fn plan(project: &Project, ctx: &FacadeContext) -> Result<Plan, Blocked> {
+  let mut threads = canon_threads(project)?;
+  let mut issues = canon_issues(project)?;
+  // The canon may carry hashed records beside ordinals, so both populations
+  // are held in the one order (ST0095 WP-08).
   threads.sort_by(crate::id::record_order);
   issues.sort_by(crate::id::record_order);
-
-  let mut plan = assemble(project, ctx, threads, issues, carried)?;
-  // **They ARE already migrated, so the report says so rather than counting
-  // them as conversions.** A dehydrated thread reached this plan from its own
-  // committed canon, which is the same warrant the disk-walk arm uses for the
-  // threads it re-emits.
-  let mut already_migrated = already_migrated;
-  already_migrated.extend(extra_ids);
-  already_migrated.sort();
-  already_migrated.dedup();
-  plan.already_migrated = already_migrated;
-  // **The union above would otherwise make `migrated: N issue(s)` over-claim on
-  // a re-run**, reporting as converted a population that was read back from its
-  // own committed canon -- the disclosure threads already get one line down.
-  // Fixing the loss and leaving the report asymmetric would rebuild 0070's
-  // shape in the layer 0070 called the worst part.
-  plan.already_migrated_issues = extra_numbers;
-  plan.dispositions = dispositions;
-  plan.bucket_ingested = bucket_ingested;
-  plan.bucket_not_ingested = bucket_not_ingested;
-  Ok(plan)
+  assemble(project, ctx, threads, issues)
 }
 
-/// The whole of Phase B's work, over a model rather than over a scan.
+/// The whole of the plan's work, over a model.
 ///
-/// **PRIVATE, and it was public for an afternoon on a justification that did
-/// not survive.** The argument was that AC-10.5's conservation work would want
-/// to drive Phase B from a model rather than from a v2 estate. vc built that
-/// check in shell against the file estate, so the seam has no second caller --
-/// and the case against it is one I had already made to cc that morning, when I
-/// asked them to land `Scan.issues` bare precisely so I would not have to add a
-/// public function for a reason that expires. Then I added it anyway.
-///
-/// It stays as a separate function because residue-gating and assembly are
-/// different jobs, and `Scan` derives `Default` with public fields, so every
-/// test reaches it through [`plan`] without fabricating an estate.
+/// Apart from [`plan`] because reading the canon and assembling from a model
+/// are different jobs, and the tests here reach the assembly with a model of
+/// their own rather than by writing canon first.
 fn assemble(
   project: &Project,
   ctx: &FacadeContext,
   threads: Vec<Thread>,
   issues: Vec<Issue>,
-  carried: Vec<Finding>,
 ) -> Result<Plan, Blocked> {
   // **THE WATERMARK COMES FROM CANON'S PROJECT STATE, THE AUTHORITY
   // `Facade::doctor` READS** (issue 0485). This was `None`, on the reasoning
-  // that a conversion has never been flushed -- true of a v2 estate's first
-  // hop, where no `project.json` exists and this still reads `None`, and false
-  // of `intent upgrade` re-run on a v3 project that HAS flushed. There it wrote
+  // that a conversion has never been flushed -- false of `intent upgrade`
+  // re-run on a project that HAS flushed, and a project with no
+  // `project.json` still reads `None` here. With `None` it wrote
   // every finished thread back into DONE and doctor refused the upgrade's own
   // `todo.md`: measured on a clone of Lamplight at 884f2e3ae, 122958 bytes
   // written against 24247 rendered.
@@ -586,8 +329,7 @@ fn assemble(
   };
 
   // `render_all` reads only `threads`, and `sections` is authored prose that
-  // stays on disk as files (export.rs: "authored prose is OUT"). Exhaustive
-  // for the same reason the `Scan` destructure is.
+  // stays on disk as files (export.rs: "authored prose is OUT").
   let canon = Canon {
     threads,
     issues,
@@ -633,8 +375,9 @@ fn assemble(
   //
   // # What this leaves behind, measured rather than assumed
   //
-  // `WriteSet` has no remove, so a v2 estate's non-WIP thread directories stay
-  // on disk carrying their v2 content: undeclared, and no longer refreshed.
+  // `WriteSet` has no remove, so an undeclared thread's directory stays on
+  // disk carrying the views an earlier run wrote: undeclared, and no longer
+  // refreshed until the facade dehydrates them through organize's own gate.
   // **That state is AC-11.4's, not a hole** -- `organize` (preview) reports it
   // as to-remove-and-blocked with every pre-existing file intact, driven on a
   // fixture 2026-08-27: `0 to remove (2 blocked)`. And a STALE undeclared view
@@ -706,7 +449,7 @@ fn assemble(
   // named by its own spelling; on one that does not it is a case pair nothing
   // removes). Whether it may go is `organize::gate`'s. A file that is not there
   // has nothing to lose. An opaque attachment's bytes are its sidecar's where
-  // the row does not already carry them, as a v2 thread's do.
+  // the row does not already carry them.
   if unrealised_threads.iter().any(|t| !t.attachments.is_empty()) {
     let (tree, _) =
       crate::organize::observe(project, &[]).map_err(|source| Blocked::TreeUnread { source })?;
@@ -908,19 +651,6 @@ fn assemble(
     writes,
     threads: bundle.threads,
     issues: bundle.issues,
-    carried,
-    // `assemble` works over a model and has no idea where any of it came
-    // from; `plan` fills this in from the scan. Empty here rather than a
-    // parameter, because a fifth argument carrying a value this function
-    // never reads would be a seam pretending to be a dependency.
-    already_migrated: Vec::new(),
-    already_migrated_issues: Vec::new(),
-    // Same reason as above: `assemble` never sees a scan, so it cannot know
-    // what Phase A dropped.
-    dispositions: Vec::new(),
-    // Nor what it ingested from a bucket.
-    bucket_ingested: Vec::new(),
-    bucket_not_ingested: Vec::new(),
   })
 }
 
@@ -955,7 +685,6 @@ fn one_file_each<'a>(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::finding::FindingClass;
   use crate::model::THREAD_SCHEMA;
 
   const VERSION: &str = "3.0.0-test";
@@ -965,7 +694,7 @@ mod tests {
     std::fs::create_dir_all(&config).expect("mkdir");
     std::fs::write(
       config.join("config.json"),
-      r#"{"intent_version":"2.19.0","intent_dir":"intent"}
+      r#"{"intent_version":"3.0.0","intent_dir":"intent"}
 "#,
     )
     .expect("config");
@@ -974,6 +703,17 @@ mod tests {
 
   fn ctx() -> FacadeContext {
     FacadeContext::for_tests("ic".to_string(), String::new(), VERSION.to_string())
+  }
+
+  /// A model to assemble, so a test names only the records it cares about.
+  #[derive(Default)]
+  struct Model {
+    threads: Vec<Thread>,
+    issues: Vec<Issue>,
+  }
+
+  fn assemble_model(project: &Project, ctx: &FacadeContext, model: Model) -> Result<Plan, Blocked> {
+    assemble(project, ctx, model.threads, model.issues)
   }
 
   fn thread(id: &str) -> Thread {
@@ -1012,61 +752,35 @@ mod tests {
     .expect("issue fixture")
   }
 
+  /// A record in the committed canon that does not read blocks the plan, and
+  /// the refusal names its file.
   #[test]
-  fn residue_blocks_and_the_report_names_every_finding() {
+  fn an_unreadable_canon_record_blocks_and_the_report_names_it() {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
-    let scan = Scan {
-      threads: vec![thread("ST0001")],
-      residue: vec![
-        Finding::new("intent/st/ST0001/info.md", FindingClass::UnknownStatus, "a"),
-        Finding::new(
-          "intent/st/ST0002/info.md",
-          FindingClass::UnparseableRow,
-          "b",
-        ),
-      ],
-      ..Default::default()
-    };
+    let canon = project.thread_json("ST0001");
+    std::fs::create_dir_all(canon.parent().expect("a parent")).expect("mkdir");
+    std::fs::write(&canon, "not canon").expect("write");
 
-    let Err(Blocked::Residue(refusal)) = plan(&project, &ctx(), scan) else {
-      panic!("live residue must block");
+    let Err(Blocked::Residue(refusal)) = plan(&project, &ctx()) else {
+      panic!("a record that does not read must block");
     };
-    assert_eq!(refusal.findings.len(), 2);
     let report = refusal.to_string();
     assert!(report.contains("ST0001"), "report: {report}");
-    assert!(report.contains("ST0002"), "report: {report}");
   }
 
   #[test]
-  fn a_blocked_plan_writes_nothing_because_it_cannot() {
+  fn a_clean_model_plans_canon_and_views_and_still_writes_nothing() {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
     let before = tree(dir.path());
 
-    let scan = Scan {
-      threads: vec![thread("ST0001")],
-      residue: vec![Finding::new("x", FindingClass::UnknownStatus, "a")],
-      ..Default::default()
-    };
-    assert!(plan(&project, &ctx(), scan).is_err());
-
-    assert_eq!(before, tree(dir.path()), "a blocked plan touched the tree");
-  }
-
-  #[test]
-  fn a_clean_scan_plans_canon_and_views_and_still_writes_nothing() {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let project = project(dir.path());
-    let before = tree(dir.path());
-
-    let planned = plan(
+    let planned = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         threads: vec![thread("ST0001"), thread("ST0002")],
         issues: vec![issue(46)],
-        ..Default::default()
       },
     )
     .expect("a clean estate plans");
@@ -1093,38 +807,14 @@ mod tests {
   }
 
   #[test]
-  fn carried_findings_pass_through_untouched() {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let project = project(dir.path());
-    let carried = vec![Finding::new(
-      "intent/st/COMPLETED/ST0001/info.md",
-      FindingClass::FieldNotRecorded,
-      "no completed date",
-    )];
-
-    let planned = plan(
-      &project,
-      &ctx(),
-      Scan {
-        threads: vec![thread("ST0001")],
-        carried: carried.clone(),
-        ..Default::default()
-      },
-    )
-    .expect("carried findings do not block");
-
-    assert_eq!(planned.carried, carried);
-  }
-
-  #[test]
   fn two_artefacts_claiming_one_path_are_refused_rather_than_overwritten() {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(Blocked::Collision { path }) = plan(
+    let Err(Blocked::Collision { path }) = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         threads: vec![thread("ST0001"), thread("ST0001")],
         ..Default::default()
       },
@@ -1142,10 +832,10 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(Blocked::Collision { path }) = plan(
+    let Err(Blocked::Collision { path }) = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         issues: vec![issue(46), issue(46)],
         ..Default::default()
       },
@@ -1156,17 +846,17 @@ mod tests {
   }
 
   /// ST0001 carrying `attachments`, with the spelling their author gave them.
-  fn carrying(attachments: Vec<crate::model::Attachment>) -> Scan {
+  fn carrying(attachments: Vec<crate::model::Attachment>) -> Model {
     let mut carrier = thread("ST0001");
     carrier.attachments = attachments;
-    Scan {
+    Model {
       threads: vec![carrier],
       ..Default::default()
     }
   }
 
   /// Two opaque attachments, which reach the guard as sidecar files.
-  fn opaque_pair(first: &str, second: &str) -> Scan {
+  fn opaque_pair(first: &str, second: &str) -> Model {
     carrying(vec![
       crate::model::Attachment::opaque(first, b"first".to_vec()),
       crate::model::Attachment::opaque(second, b"second".to_vec()),
@@ -1183,7 +873,8 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(refusal) = plan(&project, &ctx(), opaque_pair("design.png", "Design.png")) else {
+    let Err(refusal) = assemble_model(&project, &ctx(), opaque_pair("design.png", "Design.png"))
+    else {
       panic!(
         "design.png and Design.png are one file on a case-insensitive disk, so they must not both be written"
       );
@@ -1210,7 +901,7 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let Err(refusal) = plan(&project, &ctx(), opaque_pair("a/./b.png", "a/b.png")) else {
+    let Err(refusal) = assemble_model(&project, &ctx(), opaque_pair("a/./b.png", "a/b.png")) else {
       panic!("a/./b.png and a/b.png are one file on every disk, so they must not both be written");
     };
     let Blocked::Collision { path } = &refusal else {
@@ -1239,7 +930,7 @@ mod tests {
       crate::model::Attachment::new("notes.md", "second"),
     ]);
 
-    let Err(refusal) = plan(&project, &ctx(), scan) else {
+    let Err(refusal) = assemble_model(&project, &ctx(), scan) else {
       panic!("Notes.md and notes.md are one file once realised on a case-insensitive disk");
     };
     let Blocked::CaseCollision { path, other } = &refusal else {
@@ -1258,13 +949,12 @@ mod tests {
     let dir = tempfile::tempdir().expect("tempdir");
     let project = project(dir.path());
 
-    let planned = plan(
+    let planned = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         threads: vec![thread("ST0001")],
         issues: vec![issue(1)],
-        ..Default::default()
       },
     )
     .expect("plan");
@@ -1323,10 +1013,10 @@ mod tests {
     thread.wps = vec![wp(1), wp(12)];
     let packages = thread.wps.len();
 
-    let planned = plan(
+    let planned = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         threads: vec![thread],
         ..Default::default()
       },
@@ -1371,10 +1061,10 @@ mod tests {
     let project = project(dir.path());
 
     for (threads, issues) in [(0, 0), (1, 0), (0, 1), (3, 2)] {
-      let planned = plan(
+      let planned = assemble_model(
         &project,
         &ctx(),
-        Scan {
+        Model {
           threads: (1..=threads)
             .map(|n| {
               thread(
@@ -1385,7 +1075,6 @@ mod tests {
             })
             .collect(),
           issues: (1..=issues).map(issue).collect(),
-          ..Default::default()
         },
       )
       .expect("plan");
@@ -1418,10 +1107,10 @@ mod tests {
     let mut carrier = thread("ST0001");
     carrier.wps = vec![wp(1), wp(2)];
 
-    let planned = plan(
+    let planned = assemble_model(
       &project,
       &ctx(),
-      Scan {
+      Model {
         threads: vec![carrier.clone()],
         ..Default::default()
       },

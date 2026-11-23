@@ -179,13 +179,8 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::NoSuchFace { .. }
     | FacadeError::IllegalTransition { .. }
     | FacadeError::DescopeTargetMissing { .. }
-    | FacadeError::Unmigrated(_)
-    | FacadeError::BelowMigrationFloor(_)
-    // The two `migration.md` documented and did not implement (0271). Neither
-    // demands a field: one reports the absence of a repository and the other
-    // reports work the operator has not committed, so in both cases the cure
-    // is an action on the world, never a fuller call.
-    | FacadeError::MigrationWithoutGit
+    // Reports work the operator has not committed, so the cure is an action on
+    // the world, never a fuller call.
     | FacadeError::MigrationOverDirtyTree { .. }
     | FacadeError::Write(_)
     | FacadeError::ViewsNotWritten { .. }

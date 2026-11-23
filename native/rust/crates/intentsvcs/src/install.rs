@@ -1613,7 +1613,10 @@ fn git_files(root: &Path) -> Result<Vec<String>, GitRead> {
 /// T3's manifest for the files staged under `tree`: the header, then one
 /// `shasum -a 256 -c` line per file, in `files`' order (sorted by the caller,
 /// bytewise, as `LC_ALL=C sort` sorts the paths).
-fn render_manifest(
+///
+/// Public for the one test rig that lays out an opt tree by hand
+/// (`migrated_guards_still_refuse.rs`), so the format has this one writer.
+pub fn render_manifest(
   tree: &Path,
   version: &str,
   sha: &str,

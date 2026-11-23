@@ -21,7 +21,7 @@
 //! is provoked and refused by name, and a write whose acting node is unregistered
 //! or unnamed is refused rather than guessed.
 
-use crate::common::{Fixture, facade_ctx, issue, sample_thread, v2_estate, v2_thread, wp};
+use crate::common::{Fixture, facade_ctx, issue, sample_thread, wp};
 use intentsvcs::facade::{Facade, FacadeError, ListEdit};
 use intentsvcs::model::{AcKind, AcceptanceTest, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
@@ -1163,44 +1163,22 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     absent_verdict,
   ));
 
-  // **`0271`'s TWO REFUSALS, PROVOKED RATHER THAN DECLARED, BECAUSE THE WHOLE
-  // ISSUE IS THAT THEY DID NOT HAPPEN.** `migration.md` states three
-  // preconditions "refused by name, not worked around" and only the floor
-  // existed: a no-git estate converted 349 threads at exit 0 with the word
-  // `git` absent from the entire run, and a dirty tree converted over two
-  // uncommitted paths without mentioning dirt. A variant listed in
-  // `ALL_VARIANTS` and reached by nothing would restate that defect one level
-  // up -- the roster would claim coverage the suite does not have.
-  //
-  // **EACH GETS ITS OWN ESTATE, AND THE ORDER IS THE DISCRIMINATOR.** The
-  // no-git arm must not be a git repository at all; the dirty arm must BE one
-  // and be dirty, which is `git_init` with nothing committed. Sharing a fixture
-  // would make the second arm depend on what the first left behind, and
-  // `v2_estate` is deliberately git-free so both remain writable.
-  let no_git = v2_estate();
-  v2_thread(&no_git, "ST0001", "WIP");
-  let without_git = Facade::upgrade(&no_git.project(), &facade_ctx())
-    .expect_err("a v2 estate with no git repository is refused");
-  assert_eq!(
-    variant(&without_git),
-    "MigrationWithoutGit",
-    "this arm must reach the git precondition rather than an earlier refusal: {without_git}"
-  );
-  out.push(("a migration with no git repository", without_git));
-
-  let dirty = v2_estate();
+  // **THE CLEAN-TREE GUARD, PROVOKED RATHER THAN DECLARED** (`0271`, and
+  // ST0096 for the format move). The move to the release's canon format is one
+  // commit whose revert is the rollback, so a 3.4.0 project in a repository
+  // with nothing committed is refused before any write. `git_init` with
+  // nothing committed is the dirt: the canon the fixture wrote is untracked.
+  let dirty = Fixture::ordinal();
+  dirty.write_thread(&sample_thread("ST0001"));
   dirty.git_init();
-  v2_thread(&dirty, "ST0001", "WIP");
   let over_dirt = Facade::upgrade(&dirty.project(), &facade_ctx())
-    .expect_err("a v2 estate with a dirty tree is refused");
+    .expect_err("a format move over a dirty tree is refused");
   assert_eq!(
     variant(&over_dirt),
     "MigrationOverDirtyTree",
-    "this arm must reach the clean-tree precondition, and reaching \
-     MigrationWithoutGit here would mean an initialised repo with no commits is \
-     being read as no repository at all: {over_dirt}"
+    "this arm must reach the clean-tree precondition rather than an earlier refusal: {over_dirt}"
   );
-  out.push(("a migration over a dirty tree", over_dirt));
+  out.push(("a format move over a dirty tree", over_dirt));
 
   // `sync --apply --plan <digest>` naming a plan the tree does not have.
   let plan_fx = Fixture::new();
@@ -1327,9 +1305,6 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::EvidenceRequired { .. } => "EvidenceRequired",
     FacadeError::DescopeTargetMissing { .. } => "DescopeTargetMissing",
     FacadeError::DescopeTargetRequired { .. } => "DescopeTargetRequired",
-    FacadeError::Unmigrated(_) => "Unmigrated",
-    FacadeError::BelowMigrationFloor(_) => "BelowMigrationFloor",
-    FacadeError::MigrationWithoutGit => "MigrationWithoutGit",
     FacadeError::MigrationOverDirtyTree { .. } => "MigrationOverDirtyTree",
     FacadeError::Write(_) => "Write",
     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
@@ -1511,9 +1486,6 @@ const ALL_VARIANTS: &[&str] = &[
   "EvidenceRequired",
   "DescopeTargetMissing",
   "DescopeTargetRequired",
-  "Unmigrated",
-  "BelowMigrationFloor",
-  "MigrationWithoutGit",
   "MigrationOverDirtyTree",
   "Write",
   "ViewsNotWritten",
@@ -1748,7 +1720,6 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "ViewsNotWritten", // the same, after the DB has committed
   "Store",           // a damaged SQLite file
   "Ingest",          // schema-invalid canon -- `ingest_refusal.rs`
-  "Unmigrated",      // an older store -- `unmigrated_project.rs`
   // **BOTH HALVES OF ISSUE 0131's REFUSAL.** The collision is detected by the
   // UNIQUE constraint inside the write, and since ST0095 WP-06 no verb can
   // bring it a held key: a mint draws each record's own creation event, so two
@@ -1819,8 +1790,9 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `a_sync_writes_no_render_the_store_has_moved_past.rs`, where a second
   // facade's edit lands between the snapshot and the file commit.
   "IngestOutpacedByWrites",
-  // Both need a v2 estate rather than a bad call, and both are the migration
-  // door rather than a verb: `MigrationBlocked` needs live-thread residue and
+  // Both need a project in a particular state rather than a bad call, and
+  // both are the upgrade's door rather than a verb: `MigrationBlocked` needs
+  // a canon record that does not read and
   // `MigrationHalted` needs the filesystem to fail PART WAY THROUGH an
   // `upgrade`, after the writes have committed. Neither is reachable from a
   // facade a test can open, because `Facade::upgrade` exists precisely because
@@ -1833,13 +1805,6 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // `the_aggregate_views_stay_out_of_git.rs` drives `intent upgrade` with no
   // `git` on PATH and asserts the halt, its remedy and an unstamped project.
   "AggregateViewsNotUntracked",
-  // Needs a project DECLARING a sub-floor version, which is a property of the
-  // world rather than of the call, and reachable only through the migration
-  // door for the same reason as the two above. Driven end to end in
-  // `intent-cli/tests/upgrade_command.rs`, with the same estate AT the floor as
-  // the control -- a refusal arm alone passes against a migrator that refuses
-  // everything, which is the mirror of the defect this variant closes.
-  "BelowMigrationFloor",
   // **BOTH ARE `intent edit`'s, AND BOTH ARE ASSERTED IN
   // `edit_prints_a_path_that_exists.rs` RATHER THAN MERELY REACHED THERE.**
   // `NotEditable` is matched for its `author_with`, and the two generated views

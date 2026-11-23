@@ -207,19 +207,20 @@ fn the_interactive_flag_is_retired_in_both_places() {
   );
 }
 
-/// Both verbs read a PROJECT file, so neither takes the migration exemption
-/// `plugin` and `lang list` take. The fallback is written down: `CLAUDE.md`
+/// Both verbs read a PROJECT file, so neither answers from a project whose
+/// config declares a version before 3, as `plugin` and `lang list` do. The fallback is written down: `CLAUDE.md`
 /// tells an agent to drive `intent modules find` and to fall back to a grep if
 /// it does not answer.
 #[test]
 fn a_modules_verb_refuses_an_unmigrated_project() {
+  let declared = format!("{}.0.0", intentsvcs::project::OLDEST_READ_MAJOR - 1);
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   std::fs::create_dir_all(root.join("intent/.config")).expect("mkdir");
   std::fs::create_dir_all(root.join("intent/llm")).expect("mkdir");
   std::fs::write(
     root.join("intent/.config/config.json"),
-    r#"{"intent_version":"2.19.0","project_name":"Legacy"}"#,
+    format!(r#"{{"intent_version":"{declared}","project_name":"Legacy"}}"#),
   )
   .expect("write config");
   std::fs::write(root.join("intent/llm/MODULES.md"), EMPTY_REGISTRY).expect("write registry");
@@ -231,12 +232,12 @@ fn a_modules_verb_refuses_an_unmigrated_project() {
     let out = run_in(root, &args);
     assert!(
       !out.status.success(),
-      "{args:?} answered from an unmigrated project"
+      "{args:?} answered from a project whose config declares {declared}"
     );
     let err = String::from_utf8_lossy(&out.stderr);
     assert!(
-      err.contains("upgrade"),
-      "{args:?} refused without naming the remedy: {err}"
+      err.contains(&declared),
+      "{args:?} refused without naming the version the config declares: {err}"
     );
   }
 }

@@ -37,11 +37,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum FindingClass {
-  /// The project's canon is not in a form this binary can read -- v2 canon
-  /// not yet migrated, or a config declaring a pre-v3 version. FIRST, because
-  /// every other finding on such a project is downstream of this one and
-  /// would send the operator after the wrong thing.
-  Unmigrated,
   /// Not parseable as JSON at all.
   MalformedJson,
   /// Parses as JSON; violates the schema. Includes the D05 unknown-field
@@ -79,43 +74,11 @@ pub enum FindingClass {
   /// `Project::disk_folds_case`), so a file spelled as a held row in another
   /// case was carried as neither: nothing is guessed either way.
   CaseFoldUnread,
-  /// An AC/AT/claims/index row the frozen legacy grammar cannot read
-  /// (migration.md).
-  UnparseableRow,
-  /// A status value outside the v2 vocabulary -- which is what
-  /// `canonical_status` ACCEPTS, not the set of values v2 prints.
-  UnknownStatus,
-  /// A T-shirt scope outside the enum. v2 reads `scope:` as free text, so this
-  /// is the absence of a vocabulary rather than a violation of one.
-  UnknownScope,
   /// An AT file reference or coverage link that does not resolve.
   BrokenReference,
-  /// A field the v2 line DOES carry and this grammar never reads.
-  ///
-  /// **The mirror of [`FindingClass::FieldNotRecorded`], and the pair only
-  /// makes sense together**: that one is a field the estate never wrote, this
-  /// one is a field the estate wrote and the reader walked past. Both leave the
-  /// model without a value; only this one leaves it without a value that was
-  /// sitting on the line.
-  ///
-  /// **IT IS A CLASS RATHER THAN A LIST BECAUSE A LIST CANNOT KNOW WHAT COMES
-  /// NEXT.** Lamplight writes `-- withdrawn:` and `-- descoped-to:` with their
-  /// own `by:` and `on:`; the migrator reads exactly `evidence:` and
-  /// `satisfied:` on an AC row, so 19 disposed rows arrived with their
-  /// disposition as prose and nothing said so. Teaching the reader those two
-  /// keys closes those 19 and leaves the next convention exactly as silent --
-  /// which is the argument `thread_dirs` already lost once, where an allowlist
-  /// of three bucket names closed the instance and left the class open.
-  ///
-  /// **The migrator says it does not know. It never decides.** Naming an
-  /// unread key is not a guess about what the key meant, and that restraint is
-  /// the whole reason this can be reported for keys nobody has invented yet.
-  UnreadField,
   /// A field the v2 estate never recorded, because the artefact predates the
   /// convention that introduced it. **Not a defect and not the reader's to
-  /// fix** -- reported so the counts reconcile, and kept apart from
-  /// `UnknownStatus` / `UnknownScope`, which describe a value that IS there and
-  /// is wrong.
+  /// fix** -- reported so the counts reconcile.
   ///
   /// **IT IS NO LONGER THE MIGRATION SCAN'S ALONE, AND THE DOC SAID IT WAS
   /// UNTIL 2026-09-07.** `doctor` emits it for a CLOSED thread carrying no
@@ -492,25 +455,11 @@ pub enum FindingClass {
   /// machine and would not survive a clone, reported to the person who still
   /// has it.
   EventLogAbsent,
-  /// The project sets a config knob v3 has retired, to a value v3 will not
-  /// honour.
-  ///
-  /// **`st_prefix` is the instance and the reason the class exists** (issue
-  /// 0040, hv). Retiring a knob nobody uses is free; retiring it under someone
-  /// who DOES use it, silently, is the change this thread exists to prevent --
-  /// and here the consequence is total rather than cosmetic. v3 recognises a
-  /// steel thread by `crate::id::ThreadId::parse`, so a project whose threads
-  /// are named on any other prefix has NONE of them recognised: the migration
-  /// would report a clean conversion of an empty estate. **That is the
-  /// answers-confidently-from-partial-evidence bug with the evidence set to
-  /// zero**, which is why it blocks rather than carries.
-  RetiredSetting,
   /// A setting whose value is well-formed and which the DATA cannot honour --
   /// `todo.window_hours` finer than the resolution of `completed`, and a
   /// `backup.retain` block beside a `backup.keep` that decides alone.
   ///
-  /// **Distinct from [`RetiredSetting`](Self::RetiredSetting), which is a key
-  /// v3 no longer reads at all.** This key is read, and the value is refused:
+  /// The key is read, and the value is refused:
   /// the schema cannot catch it because the value is a perfectly good `u32`,
   /// and only its relationship to the precision of another field is wrong --
   /// the same reason `ModelInconsistent` exists one level up.
@@ -562,56 +511,12 @@ pub enum FindingClass {
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
   /// `model-inconsistent` remedy, which made "pristine doctor" unreachable on
   /// any live estate whose AT rows still cite tests in the v2 grammar.
-  /// **THE MODEL CLAIMS THIS ARTEFACT AND NO BUILD CARRIES IT YET.**
-  ///
-  /// **A CLASS RATHER THAN RESIDUE OR AN ADVISORY BECAUSE BOTH OF THOSE SAY
-  /// SOMETHING FALSE ABOUT IT**, which is the only ground this file has ever
-  /// split on. Residue is *something a v2 AUTHOR left behind* (`migrate.rs`),
-  /// whose remedy names the fixing environment -- nothing here is anyone's
-  /// mistake and no v2 command touches it. [`FindingClass::Advisory`] is the
-  /// class of what is worth doing *when that artefact is next touched*, and
-  /// touching one of these changes nothing: what is unmet is a claim the MODEL
-  /// makes, discharged by a build rather than by an operator.
-  ///
-  /// **AND IT MUST NOT ENTER `Scan`, WHICH IS WHY IT IS NOT ROUTED THROUGH
-  /// `record`.** Both of that type's buckets are wrong in a way that is worse
-  /// than untidy: `residue` BLOCKS (`migrate.rs`), so every estate carrying one
-  /// of these directories would be refused a migration permanently, and
-  /// `carried` prints under *converts as-is, no action* -- which is the one
-  /// thing these files demonstrably do not do.
-  ///
-  /// **PER ARTEFACT, BECAUSE THE ESTATE ALREADY HOLDS THAT STANDARD AND WAS
-  /// APPLYING IT TO THE SMALLER CLASS.** `legacy.rs` names each oversized
-  /// attachment individually, by path, with its own reason; the whole
-  /// whiteboard reached the same report as a single directory noun. Measured
-  /// 2026-09-05: 8 files named one by one, against 1,386 collapsed into a noun
-  /// on Lamplight and 624 on this repository. The collapse is applied in exactly
-  /// the direction that makes it least defensible.
-  ///
-  /// **THE DETAIL SAYS THE FILE IS STILL ON DISK, AND THAT HALF IS
-  /// LOAD-BEARING** -- the same requirement `migration_not_yet_built`'s own
-  /// test pins on the summary line. Without it a per-artefact enumeration reads
-  /// as a loss manifest, which is the opposite of what it records.
-  ///
-  /// **IT DOES NOT LICENCE A DROP.** A declared exclusion silences
-  /// `conservation_check.sh` for the paths it names, so a class that named
-  /// everything would be the denominator attack `NOT_CARRIED` warns about. What
-  /// keeps it honest is that the claim is verifiable in the direction that
-  /// matters: `Verdict::Dropped` is corroborated by canon being EMPTY, and this
-  /// by the file being PRESENT and unchanged -- so naming a file that had
-  /// actually gone would be refutable rather than merely unattractive.
-  ModelledNotBuilt,
   Advisory,
 }
 
 // The clauses a class remedy shares with a finding's own remedy (issue 0738),
 // each spelled once: a macro, because `concat!` builds the class table's
 // literal from it and a `const` cannot be concatenated.
-macro_rules! downstream_of_migration {
-  () => {
-    "every other finding on it is downstream of this one"
-  };
-}
 macro_rules! cannot_honour {
   () => {
     "the value is well-formed and the data cannot honour it"
@@ -627,10 +532,6 @@ macro_rules! older_intent_cannot_read {
     "Intent 3.4.x cannot read an upgraded project: it reports each canon file as schema-invalid and changes nothing, so upgrade Intent on every machine first"
   };
 }
-
-/// What stays true of an unmigrated project's every finding, for a finding
-/// whose own remedy replaces `Unmigrated`'s class remedy (issue 0738).
-pub const DOWNSTREAM_OF_MIGRATION: &str = downstream_of_migration!();
 
 /// What stays true of every unhonourable setting, for a finding whose own
 /// remedy replaces `UnhonourableSetting`'s class remedy (issue 0738).
@@ -671,60 +572,10 @@ impl FindingClass {
   /// a cache.
   fn meta(self) -> (u8, &'static str, &'static str) {
     match self {
-      // doctor's finding carries its own remedy, `Migration::remedy()` (the
-      // version and the command) with this class's clause that stays true of
-      // it: nothing else is worth reading until it is done (issue 0738).
-      Self::Unmigrated => (
-        0,
-        "unmigrated",
-        concat!("migrate the project first -- ", downstream_of_migration!()),
-      ),
-      // **The four migration classes. Their remedy names the FIXING
-      // ENVIRONMENT, which is the last v2 release rather than this binary**
-      // (migration.md's two-hop): v3 refuses what it cannot convert without
-      // loss, and the tool that can repair a v2 artefact is v2. A remedy
-      // sending someone to fix v2 markdown with a v3 command would be a
-      // remedy that cannot be acted on.
-      Self::UnparseableRow => (
-        1,
-        "unparseable-row",
-        "repair the row under v2 tooling (`intent at lint --fix` where it applies, by hand where it does not), then re-run the migration",
-      ),
-      Self::UnknownStatus => (
-        1,
-        "unknown-status",
-        "set the status to one v2 accepts, using the v2 CLI, then re-run the migration",
-      ),
-      // It says the model cannot hold it YET, because that is the true
-      // reason and it is not the reader's problem to solve.
-      // **"wait for a build whose model carries the value verbatim" is GONE,
-      // because this is that build.** A remedy that outlives the state it
-      // describes reads as current and sends the reader to do nothing; this one
-      // was telling them to wait for a capability they already had, on the one
-      // row in the corpus that needed it.
-      Self::UnknownScope => (
-        1,
-        "unknown-scope",
-        "nothing to do for a closed thread -- the value is carried verbatim and stays visible as legacy. On a LIVE thread, set the scope to a T-shirt size under v2 tooling; nothing here guesses which size was meant",
-      ),
       Self::BrokenReference => (
         1,
         "broken-reference",
         "point the reference at something that exists, or remove it, under v2 tooling -- then re-run the migration",
-      ),
-      // **It says there is nothing to do, because there is nothing to do.** The
-      // artefact predates the field; v2 was content with it and v3 carries it
-      // as it is. A remedy that suggested authoring the value would be asking
-      // someone to invent data about finished work.
-      // **No "wait for a build that reads it", deliberately.** Some of these
-      // keys become known in a later build and some never will, and a remedy
-      // that promised a build would be wrong for the second kind while reading
-      // as current for both. What is true of every one of them is that the v2
-      // line still has the value.
-      Self::UnreadField => (
-        1,
-        "unread-field",
-        "nothing is lost from the v2 line -- the row is carried and the key is named here. If the value matters in v3, set it with the verb that owns it; nothing here guesses what the key meant",
       ),
       Self::FieldNotRecorded => (
         1,
@@ -996,14 +847,6 @@ impl FindingClass {
         "event-log-absent",
         "run `intent sync --to-disk` and commit the result -- nothing recomputes history, so until the extract is in the repository it exists only here",
       ),
-      // Rank 1, beside `unmigrated`: every other finding on such a project is
-      // downstream of it, and on a non-default `st_prefix` there will BE no
-      // other findings, because no thread is recognised in the first place.
-      Self::RetiredSetting => (
-        1,
-        "retired-setting",
-        "v3 fixes this setting and does not read it -- rename the artefacts to the fixed form before migrating, or the migration will not see them at all. The declaration is left in config.json rather than removed for you",
-      ),
       // Last, because nothing is at risk: the estate is intact, one display
       // command refuses, and the fix is one number in config.json. A finding
       // that knows the arithmetic -- the two honourable values either side of
@@ -1082,18 +925,6 @@ impl FindingClass {
       // the class grew members. Same rule the `UnhonourableSetting` comment
       // states a few lines up: what is per-instance goes in the detail, and
       // this string carries only what is true of the class.
-      // Outside every verdict, like `Advisory` and for a DIFFERENT reason: an
-      // advisory is a state of the artefact, this is a state of the BUILD.
-      // Ranked with it because both sort past everything anyone must act on,
-      // and the rank is the only one of these three fields a per-artefact
-      // record consumes indirectly -- this class reaches no `Report` and no
-      // `Scan`, so nothing totals it today. Kept correct anyway: a rank that is
-      // wrong only while nothing reads it is wrong on the day something does.
-      Self::ModelledNotBuilt => (
-        11,
-        "modelled-not-built",
-        "nothing is owed and nothing was lost -- the file is untouched on disk, and what is unmet is a claim the MODEL makes about it. No command repairs this and none should be offered: it is discharged when the build carrying this part of the model lands, at which point these lines stop being emitted on their own",
-      ),
       Self::Advisory => (
         11,
         "advisory",
@@ -1143,11 +974,6 @@ impl FindingClass {
   ///   and the migration carries it as it is*. Nothing was lost and nothing can
   ///   be authored: asking someone to fill it in is asking them to invent data
   ///   about finished work.
-  /// - [`FindingClass::ModelledNotBuilt`] -- *nothing is owed and nothing was
-  ///   lost*. **It reaches no `Report` today** -- emitted only from
-  ///   `sync.rs`, verified rather than assumed -- so its membership changes no
-  ///   count now. Classified anyway on its own note's reasoning: a rank that is
-  ///   wrong only while nothing reads it is wrong on the day something does.
   ///
   /// **NOT A JUDGEMENT ABOUT SEVERITY.** A class can be serious and still owe
   /// nothing; what is being asked is whether an operator has something to DO.
@@ -1167,17 +993,6 @@ impl FindingClass {
   /// admitted for a reason that is about OTHER PEOPLE'S writes rather than
   /// about this operator's estate (issue `0313`).
   ///
-  /// **`Unmigrated` IS DELIBERATELY NOT HERE, AND IT WOULD HAVE TAKEN THE FLEET
-  /// OUT IF IT HAD BEEN SOLVED AT THIS LAYER** (vc, 2026-09-12). It is a real
-  /// finding about a real state and calling it advisory would change what
-  /// `doctor` SAYS about a v2 project for every consumer in order to fix what
-  /// one consumer DOES about it -- and it would fix only that state, while an
-  /// unreadable config is the same shape and is not a class at all. The answer
-  /// is one rung up, at [`super::doctor::Report::exit_code`]: an estate the tool
-  /// could not judge answers a different code from an estate it judged and
-  /// found red, and a consumer that cannot tell those apart refuses the wrong
-  /// thing.
-  ///
   /// `InstallLinkShadowed` and `InstallLinkSplit` (vc, 2026-10-25, ST0087
   /// WP-03): the shadow check reads the PATH of the process running it, so a
   /// commit made from a launchd or hook PATH would be refused for a reason that
@@ -1193,7 +1008,6 @@ impl FindingClass {
       Self::Advisory
         | Self::ShortFormShared
         | Self::FieldNotRecorded
-        | Self::ModelledNotBuilt
         | Self::StaleRender
         | Self::StatusGateDisagreement
         | Self::StatusGateDisagreementOverFiat
@@ -1287,7 +1101,8 @@ impl FindingClass {
   /// contradict itself in one breath.
   ///
   /// **DRIVEN, NOT IMAGINED (hv, 2026-09-07, on Conflab):** the previous form
-  /// enumerated CLASSES -- `Advisory`, `ModelledNotBuilt`, `_` -- while the
+  /// enumerated CLASSES -- `Advisory`, a since-removed build-gap class, `_` --
+  /// while the
   /// verdict asked [`FindingClass::is_actionable`]. `FieldNotRecorded` is not
   /// actionable and was not in that list, so `intent doctor -v` printed FIFTY
   /// lines leading `residue:` above a summary reading `0 finding(s)`, each
@@ -1302,13 +1117,8 @@ impl FindingClass {
   /// **ONE HOME, TWO READERS**: `Display` for an ungrouped line, and the
   /// grouped report's header, which asks it once per group instead of once per
   /// member.
-  ///
-  /// `ModelledNotBuilt` keeps its own word ahead of the predicate: it is also
-  /// uncounted, and "not-yet-carried" says the more specific true thing about a
-  /// shape nothing is wrong with.
   pub fn lead(&self) -> &'static str {
     match self {
-      Self::ModelledNotBuilt => "not-yet-carried",
       class if !class.is_actionable() => "advisory",
       _ => "residue",
     }
@@ -1496,39 +1306,6 @@ impl Finding {
     let line = self.line.map(|l| format!(":{l}")).unwrap_or_default();
     format!("{}{line} -- {}", self.file, self.detail)
   }
-
-  /// **A CARRIED finding: not residue, and it owes no remedy.**
-  ///
-  /// Both halves of `Display` are wrong for a carried row and the second half is
-  /// the harmful one. `residue:` is the word the report reserves for the
-  /// BLOCKING bucket, so a carried line led by it contradicts the count printed
-  /// beside it -- and the `remedy:` that followed told the operator to go and fix
-  /// a row hv's ruling says CONVERTS AS IT IS. **A remedy for a non-problem is
-  /// worse than a missing one**: it is work the tool asked for and did not need,
-  /// on the operator's first contact with the migrator.
-  ///
-  /// Measured on the canary by ic: nine carried findings, all in COMPLETED
-  /// threads, each printed under its own copy of the section header and each led
-  /// `residue:` against a summary line reading `0 blocking, 9 carried`.
-  pub fn carried_line(&self) -> String {
-    format!("carried: {}", self.body())
-  }
-
-  /// **A MODELLED-NOT-BUILT record: one line, no remedy, and never `residue:`.**
-  ///
-  /// `carried_line`'s argument, arriving at a third class and settled the same
-  /// way: the facts are factored into `Finding::body` so the renderings
-  /// cannot drift, and what differs is the lead and whether anything is owed.
-  ///
-  /// **NO REMEDY, AND HERE THAT IS ABOUT VOLUME AS WELL AS TRUTH.** The class
-  /// remedy is a real sentence and belongs in the report exactly once; appended
-  /// per line it would repeat itself 624 times on this repository and 1,386 on
-  /// Lamplight, which is how a report that names everything becomes one nobody
-  /// reads -- and an unread enumeration is the directory noun again, spelled
-  /// out at length.
-  pub fn not_built_line(&self) -> String {
-    format!("not-yet-carried: {}", self.body())
-  }
 }
 
 impl fmt::Display for Finding {
@@ -1545,7 +1322,8 @@ impl fmt::Display for Finding {
       // count it makes the report contradict itself in the same breath.
       //
       // **DRIVEN, NOT IMAGINED (hv, 2026-09-07, on Conflab):** the previous
-      // form enumerated CLASSES -- `Advisory`, `ModelledNotBuilt`, `_` -- while
+      // form enumerated CLASSES -- `Advisory`, a since-removed build-gap
+      // class, `_` -- while
       // the verdict asked `is_actionable()`. `FieldNotRecorded` is not
       // actionable and was not in the list, so `intent doctor -v` printed FIFTY
       // lines leading `residue:` above a summary reading `0 finding(s)`. Every
@@ -1558,10 +1336,6 @@ impl fmt::Display for Finding {
       // class through in silence. Asking the predicate cannot go stale that
       // way: a class added to `is_actionable`'s exempt list changes its lead in
       // the same edit.
-      //
-      // `ModelledNotBuilt` keeps its own word ahead of the predicate: it is
-      // also uncounted, and "not-yet-carried" says the more specific true
-      // thing about a shape nothing is wrong with.
       self.class.lead(),
       self.body(),
       self.remedy()

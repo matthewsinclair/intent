@@ -484,21 +484,6 @@ pub fn started_thread(tag: &str, name: &str, title: &str) -> PathBuf {
   root
 }
 
-/// Write a v2 steel thread the way v2.19 writes one: the one copy the
-/// upgrade and ingest tests share (ST0095 WP-10, T3). intentsvcs writes v2
-/// views inline in its own tests; folding them into `testkit` is a later step.
-pub fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
-  let st = dir.join("intent/st").join(id);
-  std::fs::create_dir_all(&st).expect("mkdir st");
-  std::fs::write(
-    st.join("info.md"),
-    format!(
-      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
-    ),
-  )
-  .expect("write info.md");
-}
-
 pub fn short_dir(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the

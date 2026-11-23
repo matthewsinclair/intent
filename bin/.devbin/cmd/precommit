@@ -100,7 +100,6 @@ G_ROSTER="roster: every parity instrument declares whether this gate runs it"
 G_CORRECTED="corrected class: the ratified units and the claimed units are one set"
 G_VOCAB="class vocabulary: a claimed parity class is one parity.md names"
 G_RATIFIED="ratification provenance: a ratified row names authority, date and record"
-G_RESIDUE="residue classes: migration.md matches what Phase A can actually emit"
 G_STALEAT="stale AT rows: a to-write row whose cited test already exists"
 G_SELFPROV="self-provenance: a vendored tree agrees with its COMMITTED record (gates), and each binary names its own source commit (REPORTS -- enforcement is at \`bin/devbin macos publish\`)"
 G_CANONCOMMIT="canon currency: a commit carrying canon does not name bytes absent from that commit (ST0057 AC-03.6)"
@@ -139,7 +138,6 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_CORRECTED" "intent/st/ST0056/parity/tools/corrected_check.sh"
   printf '%s\t%s\n' "$G_VOCAB" "intent/st/ST0056/parity/tools/class_vocab_check.sh"
   printf '%s\t%s\n' "$G_RATIFIED" "intent/st/ST0056/parity/tools/rulings_check.sh"
-  printf '%s\t%s\n' "$G_RESIDUE" "intent/st/ST0056/parity/tools/residue_class_check.sh"
   printf '%s\t%s\n' "$G_STALEAT" "intent/st/ST0056/parity/tools/stale_at_check.sh"
   printf '%s\t%s\n' "$G_SELFPROV" "intent/st/ST0056/parity/tools/self_provenance_check.sh"
   printf '%s\t%s\n' "$G_CANONCOMMIT" "intent/st/ST0056/parity/tools/canon_commit_check.sh"
@@ -445,9 +443,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # THE REGISTER CHECKS. corrected_check.sh, class_vocab_check.sh and
   # stale_at_check.sh are REPORT-ONLY BY CONSTRUCTION: each exits 0 whether it
   # is clean or has findings, and non-zero ONLY when it cannot measure at all.
-  # rulings_check.sh and residue_class_check.sh are NOT: each exits 1 on a
-  # finding (a malformed or dangling ruling; declared and emitted residue
-  # classes that disagree), and that blocks, as their summary lines below say.
+  # rulings_check.sh is NOT: it exits 1 on a finding (a malformed or dangling
+  # ruling), and that blocks, as its summary line below says.
   #
   # So a refusal from a report-only check is never "the register is wrong" --
   # it is "this instrument could not answer", which is a broken instrument.
@@ -507,9 +504,6 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
 
   step "$G_RATIFIED"
   run_guard "$TOOLS/rulings_check.sh" gating "a declared ruling is malformed or its record leads nowhere. Re-anchor a dangling record on an artefact whose content carries the ruling -- grep the target first; an anchor that resolves to the record's own rendering is circular and worse than the dangle."
-
-  step "$G_RESIDUE"
-  run_guard "$TOOLS/residue_class_check.sh" gating "migration.md's residue table and the classes the scanner emits disagree; the finding above names each class"
 
   step "$G_STALEAT"
   run_guard "$TOOLS/stale_at_check.sh" report-only

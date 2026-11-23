@@ -61,8 +61,6 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
         action: Action::Dehydrate,
         content: Some(body.as_bytes().to_vec()),
       }],
-      // This fixture is about the moment-of-act digest and carries no v2 tree.
-      leftovers: intentsvcs::legacy::Leftovers::default(),
       digest: PLANNED.to_string(),
       preconditions: preconditions::check(&gate_is_open()),
       // **THE FIXTURE'S OWN TREE, NOT THE REAL ESTATE.** `estate_root` bounds
@@ -72,7 +70,6 @@ fn removal_plan(fx: &Fixture, rel: &str) -> (PathBuf, Plan) {
       // to be safe rather than merely unused today.
       estate_root: fx.path(""),
       project: fx.project(),
-      held: Vec::new(),
       earlier_renders: std::collections::BTreeMap::new(),
     },
   )

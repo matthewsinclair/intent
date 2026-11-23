@@ -3,6 +3,8 @@
   "text": "Migration and `organize` report every authored file that names a bucket path as a worklist and rewrite none of them.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it.",
+    "by": "vc"
   }
 }

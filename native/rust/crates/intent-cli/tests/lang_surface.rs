@@ -238,15 +238,15 @@ fn only_the_verbs_that_write_require_a_project() {
   }
 }
 
-/// **A v3 BINARY MUST NOT HALF-MIGRATE A v2 PROJECT FROM A COMMAND ABOUT
-/// LANGUAGES -- and this test exists because the first wiring did exactly that.**
+/// **A LANGUAGE COMMAND MUST NOT REWRITE A CONFIG THIS BINARY REFUSES -- and
+/// this test exists because the first wiring did exactly that.**
 ///
-/// `lang init` / `lang remove` do not need a facade, so the first version reached
-/// for `context()`, which discovers a project and stops. The migration gate lives
-/// in `Facade::open`, so skipping the facade skipped the gate: on an unmigrated
-/// v2 project `intent lang init rust` exited 0 and rewrote `config.json` into v3
-/// shape -- `author`, `intent_dir` and the `todo` block added, while
-/// `intent_version` still read `2.19.0`.
+/// `lang init` / `lang remove` do not need a facade, so the first version
+/// reached for `context()`, which then discovered a project and stopped: on a
+/// project declaring a version before 3, `intent lang init rust` exited 0 and
+/// rewrote `config.json`, adding `author`, `intent_dir` and the `todo` block
+/// while `intent_version` still read the old version. Discovery now refuses
+/// such a config, so every door does.
 ///
 /// **THE FILE IS COMPARED, NOT JUST THE EXIT CODE.** A refusal that still wrote
 /// would pass an exit-code assertion, and the write was the whole of the harm.
@@ -256,8 +256,10 @@ fn a_language_command_does_not_migrate_a_v2_project_behind_the_operator() {
   let cfg_dir = dir.join("intent").join(".config");
   std::fs::create_dir_all(&cfg_dir).expect("fixture dirs");
   let cfg = cfg_dir.join("config.json");
-  let before = "{\n  \"intent_version\": \"2.19.0\",\n  \"languages\": [\"elixir\"]\n}\n";
-  std::fs::write(&cfg, before).expect("write the v2 config");
+  let declared = format!("{}.0.0", intentsvcs::project::OLDEST_READ_MAJOR - 1);
+  let before =
+    format!("{{\n  \"intent_version\": \"{declared}\",\n  \"languages\": [\"elixir\"]\n}}\n");
+  std::fs::write(&cfg, &before).expect("write the config");
 
   for args in [
     vec!["lang", "init", "rust"],
@@ -267,15 +269,15 @@ fn a_language_command_does_not_migrate_a_v2_project_behind_the_operator() {
       .args(&args)
       .current_dir(&dir)
       .output()
-      .expect("run the v3 binary in an unmigrated project");
+      .expect("run the binary in the refused project");
     assert!(
       !out.status.success(),
-      "`{}` answered over an unmigrated project",
+      "`{}` answered over a config declaring a version before 3",
       args.join(" ")
     );
     assert!(
-      stderr(&out).contains("has not been migrated"),
-      "the refusal must be the migration gate's, not an incidental error: {}",
+      stderr(&out).contains(&declared),
+      "the refusal must name the declared version, not be an incidental error: {}",
       stderr(&out)
     );
     let after = std::fs::read_to_string(&cfg).expect("read the config back");

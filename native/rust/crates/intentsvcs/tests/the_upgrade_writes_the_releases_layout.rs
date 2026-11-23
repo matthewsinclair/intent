@@ -312,8 +312,8 @@ fn two_attachments_one_file_on_a_case_folding_disk_are_refused_before_any_write(
   );
 }
 
-/// **THE MOVE TO THE RELEASE'S FORMAT REFUSES A DIRTY TREE, AS THE V2
-/// CONVERSION DOES** (intent-cc's ruling, on devbin-cc's drive of a 3.4.x
+/// **THE MOVE TO THE RELEASE'S FORMAT REFUSES A DIRTY TREE** (intent-cc's
+/// ruling, on devbin-cc's drive of a 3.4.x
 /// project that upgraded at exit 0 over a tracked edit and an untracked file).
 /// The move is one commit whose revert is the rollback, so it refuses before
 /// any write and names every path, the untracked one too.

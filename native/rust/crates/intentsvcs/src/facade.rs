@@ -57,7 +57,7 @@ use crate::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Attachment, Board, Criterion, Issue,
   IssueStatus, TShirt, Thread, ThreadStatus, WbItemKind, WorkPackage, WpStatus, to_canonical_json,
 };
-use crate::project::{EditDisposition, Migration, Pending, Project, ThreadFile};
+use crate::project::{EditDisposition, Project, ThreadFile};
 use crate::realise;
 use crate::store::{Store, StoreError};
 use crate::sync::Scope as SyncScope;
@@ -187,67 +187,16 @@ pub(crate) fn author_at(root: &std::path::Path, configured: &str) -> String {
   )
 }
 
-/// What a completed migration did, for the door to report.
-///
-/// **`already_migrated` is a count of threads whose SOURCE changed, not of work
-/// skipped.** Those threads are in the plan like any other and re-emit
-/// byte-identical canon and views, so they stay inside every conservation
-/// denominator; what the number says is how much canon a previous run had
-/// already produced. On a first run it is zero, and on a re-run after an
-/// interruption it is exactly how far the interrupted run got.
+/// What a completed upgrade did, for the door to report.
 #[derive(Debug)]
 pub struct Upgraded {
   pub threads: usize,
   pub issues: usize,
   /// Files written -- canon plus generated views.
   pub files: usize,
-  /// Phase A's carried findings: reported so the counts reconcile, never so
-  /// that anyone acts on them.
-  pub carried: Vec<crate::finding::Finding>,
-  /// Thread ids read from committed canon rather than converted from markdown.
-  pub already_migrated: Vec<String>,
-  /// Issue numbers read from committed canon rather than converted from a v2
-  /// estate. **Zero on a first run, and on a re-run it is every issue in the
-  /// project** -- because a re-run's v2 estate is empty and the whole issue
-  /// population comes back through the union (intent#0070).
-  pub already_migrated_issues: Vec<crate::id::IssueId>,
-  /// Sections dropped as template scaffolding, one record each, so a declared
-  /// drop can be reconciled against the estate's census rather than inferred
-  /// from a total that happens to be short.
-  pub dispositions: Vec<crate::legacy::Disposition>,
-  /// The v2 leftovers this conversion removed (WP-02, AC-02.2), named rather
-  /// than counted.
-  ///
-  /// **A DESTRUCTIVE ACT THAT REPORTS ONLY A TOTAL IS ONE NOBODY CAN REVIEW.**
-  /// Empty when the prune refused, and then [`Upgraded::prune_withheld`] says
-  /// which file stopped it -- and empty when it was deferred, and then
-  /// [`Upgraded::prune_deferred`] names what stays.
-  pub pruned: Vec<std::path::PathBuf>,
-  /// v2 bucket files this run ingested into an already-migrated thread's canon
-  /// (issue 0319), named rather than counted.
-  pub ingested: Vec<std::path::PathBuf>,
-  /// Bucket files this run did not ingest, each with its reason. A report and
-  /// never a refusal: none of them stops the run.
-  pub not_ingested: Vec<crate::legacy::Withheld>,
-  /// v2 leftovers the store now holds and this run did NOT remove, because it
-  /// ingested some of them.
-  ///
-  /// **AN INGEST AND A REMOVAL ARE NOT ONE RUN** (vc, 2026-09-13, on hv's
-  /// no-silent-deletion ruling of 2026-09-12). Pruning straight after the
-  /// ingest would delete files whose only reviewable record is the line saying
-  /// they were just carried, and the operator would read both after the fact.
-  /// Removal stays with `intent organize`, which names every path before it
-  /// goes. A conversion, and a re-run that ingested nothing, prune as before.
-  pub prune_deferred: Vec<std::path::PathBuf>,
   /// `.intentfiles`, when this run folded it into the records and removed it
   /// (ST0096 WP-01). Named so the operator commits the removal.
   pub manifest_folded: Option<std::path::PathBuf>,
-  /// Why the prune removed nothing: one entry per file the store does not hold.
-  /// Empty on a conversion that pruned.
-  pub prune_withheld: Vec<crate::legacy::Withheld>,
-  /// Authored files naming a v2 bucket path -- a worklist, never a refusal, and
-  /// never rewritten (AC-02.4).
-  pub pointers: Vec<crate::legacy::Pointer>,
   /// Views of threads the manifest leaves undeclared that this run removed
   /// through organize's own gate (issue 0316), named rather than counted.
   pub dehydrated: Vec<std::path::PathBuf>,
@@ -275,8 +224,8 @@ pub struct Upgraded {
   /// a project it marks upgraded with them still tracked keeps the merge
   /// conflict ST0096 removes.
   pub aggregate_untrack: AggregateUntrack,
-  /// Whether this run passed a clean-tree guard before its first write: the
-  /// v2 conversion's, or the move to the release's canon format (ST0096).
+  /// Whether this run passed the clean-tree guard before its first write, which
+  /// only the move to the release's canon format asks (ST0096).
   ///
   /// **IT SAYS WHETHER THE INDEX WAS READ, AND SO WHETHER A PLAIN COMMIT IS
   /// EXACT** (intent-cc's ruling on issue 0745). A run that passed the guard
@@ -1444,7 +1393,7 @@ fn move_the_canon_format(
 }
 
 /// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
-/// MIGRATION** -- see [`Facade::upgrade`] for the three reasons.
+/// UPGRADE** -- see [`Facade::upgrade`] for why the stamp goes last.
 ///
 /// The file is rewritten from its parsed form with only this key replaced, so
 /// an unknown key a project carries survives: `config.json` is the operator's
@@ -2282,52 +2231,9 @@ pub enum FacadeError {
   DescopeTargetMissing { ac: String, to: String },
   #[error("descoping {ac} moves it to another steel thread, and no thread was named")]
   DescopeTargetRequired { ac: String },
-  // NOT `#[source]`-bearing and NOT constructed from anything: the whole value
-  // of this variant is that it carries the EVIDENCE, so that a refusal can be
-  // told apart from an empty project by reading it.
-  #[error("{0}")]
-  Unmigrated(Pending),
-  /// The estate is below the migration floor, so the migrator refuses it.
-  ///
-  /// **A DISTINCT VARIANT FROM `Unmigrated` although both carry a `Pending`,
-  /// because the two are told to operators in opposite situations.**
-  /// `Unmigrated` answers someone who asked a question about an estate v3
-  /// cannot read, and *this project has not been migrated* is news to them.
-  /// Here the operator RAN the migrator, so that sentence restates their own
-  /// intent back at them and says nothing about why it stopped. What they need
-  /// is the version they have and the floor they are under.
-  ///
-  /// **The remedy is delegated, not copied**: the two-hop text already lives on
-  /// [`Pending`], and a second spelling of it is a second thing to keep true.
-  #[error(
-    "this project declares Intent {} and is below the migration floor, so it cannot be converted directly",
-    .0.declared
-  )]
-  BelowMigrationFloor(Pending),
-  /// The conversion path met a project git reports no work tree for.
-  ///
-  /// **`migration.md` states this refusal and states its own reason for it:**
-  /// *rollback is git; migrating without an undo is a lossy operation by
-  /// construction.* The Rollback section then rests its entire cost argument on
-  /// the same property -- *cheap because the migration is ONE named commit over
-  /// a v2 estate git holds whole.* **The refusal was documented and absent**
-  /// (issue 0271, measured on the genuine conversion path): a project with no
-  /// `.git` converted, exit 0, and the word `git` did not appear once in the
-  /// output. The operator got a converted estate, a success line, and no undo,
-  /// with nothing naming the missing property.
-  ///
-  /// **Scoped to `Migration::Pending`, so it cannot reach the convergent
-  /// re-run**, and additive by measurement rather than by hope: all 18 fleet
-  /// members carry a `.git`, so this refuses none of them today.
-  ///
-  /// **It says what was OBSERVED, never which of the two causes it was.** No
-  /// repository and no runnable git are indistinguishable from here, and a
-  /// message picking one would be wrong half the time; the remedy names both.
-  #[error("git reports no work tree at this project, so a migration here would have no undo")]
-  MigrationWithoutGit,
   /// A one-shot conversion met a working tree carrying work that is not
-  /// committed: the v2 conversion, or the move to the release's canon format
-  /// (ST0096, intent-cc's ruling).
+  /// committed: the move to the release's canon format (ST0096, intent-cc's
+  /// ruling).
   ///
   /// **The dirt that matters is measured against HEAD, not the index** -- see
   /// [`crate::sync::tree_state`]. `git commit` records the index as it stands,
@@ -2372,11 +2278,12 @@ pub enum FacadeError {
     #[source]
     cause: WriteError,
   },
-  /// Phase A found live-thread residue, so no migration was planned.
+  /// The upgrade refused before planning any write: a record does not read, or
+  /// two artefacts would land in one file.
   ///
-  /// **Nothing has been written when this is returned** (AC-10.2), and that is
+  /// **Nothing has been written when this is returned**, and that is
   /// structural rather than careful: `migrate::plan` builds a `WriteSet` and
-  /// does not commit it, so a refusal cannot have touched the estate.
+  /// does not commit it, so a refusal cannot have touched the project.
   ///
   /// **`transparent` rather than `{0}`, and the rule it restores was already
   /// written down one level below.** `Blocked::Residue` deliberately does NOT
@@ -4275,22 +4182,6 @@ impl crate::remedy::Remedy for FacadeError {
             .join(", "))
           .unwrap_or_else(|_| "no entity, because the form declaration itself will not load".to_string())
       ),
-      // Delegated for the same reason the message is: the arithmetic that
-      // names the two honourable values either side belongs with the rule.
-      // Delegated, because the remedy DIFFERS by state: below the v2.19.0
-      // floor it is the two-hop, and naming the v3 migrator there would send
-      // half the operators who read it to a command that refuses them.
-      Self::Unmigrated(pending) => pending.remedy(),
-      // Same delegation and the same reason: `Pending` owns the two-hop, and
-      // this variant differs from `Unmigrated` in its MESSAGE, not its cure.
-      Self::BelowMigrationFloor(pending) => pending.remedy(),
-      // NOT delegated and NOT shared with the dirty arm: the two states have
-      // different cures, and one of them names a command that would not help
-      // the other. Both causes are named because this variant deliberately
-      // does not claim to know which one it met.
-      Self::MigrationWithoutGit => {
-        "put the project under git before migrating -- `git init && git add -A && git commit` -- or install git if it is missing. The documented rollback is `git revert <the migration commit>`, and there is nothing to revert without a repository".to_string()
-      }
       Self::MigrationOverDirtyTree {
         paths,
         left_views,
@@ -4535,20 +4426,16 @@ impl crate::remedy::Remedy for FacadeError {
       // as `Intentfiles` does -- the path this variant adds is context for the
       // message, not a substitute for the remedy.
       Self::ManifestMalformed { cause, .. } => cause.remedy(),
-      // Delegated, for the same reason `Store` is: `Blocked` knows whether the
-      // estate needs repairing under v2 or whether the migrator itself failed,
-      // and those are different actions for different people.
+      // Delegated, for the same reason `Store` is: `Blocked` knows whether a
+      // record needs repairing or whether the upgrade itself failed, and those
+      // are different actions for different people.
       Self::MigrationBlocked(cause) => cause.remedy(),
       // **THE REMEDY IS TO RUN IT AGAIN, AND SAYING SO IS ONLY HONEST BECAUSE
-      // RE-RUNNING IS NOW IDEMPOTENT.** It was not until canon-wins landed: a
-      // re-run absorbed the renderer's own output and the estate grew every
-      // time, so this sentence would have sent an operator to corrupt their
-      // project by following it. It is safe because the version stamp is
-      // written LAST -- an interrupted migration still declares v2, so v3 sees
-      // an estate to migrate and every already-converted thread is read from
-      // its canon rather than re-parsed.
+      // RE-RUNNING IS IDEMPOTENT.** The version stamp is written LAST, so an
+      // interrupted upgrade still declares the version it had, and a re-run
+      // plans the same upgrade from the same canon.
       Self::MigrationHalted { .. } => {
-        "run `intent upgrade` again -- the migration is re-runnable, and threads already converted are read from their canon rather than converted twice".to_string()
+        "run `intent upgrade` again -- the upgrade is re-runnable, and the project is stamped only once every step has landed".to_string()
       }
       Self::AggregateViewsNotUntracked(git) => format!(
         "{} -- the project is not stamped yet, so `intent upgrade` is the command to run again once git answers",
@@ -4737,20 +4624,6 @@ pub enum Note {
   /// an empty answer printed "no file under intent/ holds the old text" over
   /// two searches that never ran.
   EditUnsearched,
-  /// The thread this verb just declared is NOT realised: a v2 status bucket
-  /// still holds its files, so every write skips its views and `organize` /
-  /// `hydrate` refuse it (issue 0209). The strings are project-relative paths.
-  ///
-  /// **SAID BY THE VERB THAT CREATED THE STATE**, because that is the one
-  /// write whose success implies the thread is on its way to disk. A later
-  /// write about another thread claims nothing about this one, so its skip
-  /// hides nothing (vc, 2026-09-11).
-  HeldByV2Bucket {
-    thread: String,
-    dir: String,
-    home: String,
-    files: usize,
-  },
   /// The projection overwrote bytes that were NOT the store's own render of
   /// those paths before this mutation: a hand edit, or some other writer's
   /// work, going under. Project-relative, ready to print.
@@ -5200,14 +5073,6 @@ pub fn notes_json(notes: &[Note]) -> serde_json::Value {
       }),
       Note::UnwrittenObjective(unit) => serde_json::json!({
         "kind": "unwritten-objective", "unit": unit,
-      }),
-      Note::HeldByV2Bucket {
-        thread,
-        dir,
-        home,
-        files,
-      } => serde_json::json!({
-        "kind": "held-by-v2-bucket", "thread": thread, "dir": dir, "home": home, "files": files,
       }),
       Note::StepFailedAfterWrite {
         step,
@@ -5951,48 +5816,6 @@ pub struct EventPage {
 }
 
 impl Facade {
-  /// Refuse a project whose canon this binary cannot read (AC-10.7).
-  ///
-  /// **Here, and not in [`ingest`], because this is the boundary where a
-  /// question gets answered.** `ingest::read` is also what `doctor` and the
-  /// WP-10 migrator call, and both of those must be able to look at an
-  /// unmigrated project -- a gate that stopped them would take away the two
-  /// tools whose entire job is this state.
-  ///
-  /// It also runs BEFORE the store is opened, so the refusal never depends on
-  /// a DB that an unmigrated project has no reason to have.
-  ///
-  /// # `critic` MUST NOT BE BUILT ON THIS, and the ground is a new one
-  ///
-  /// **Issue 0045 (vc), and it does not reproduce today** -- which is exactly
-  /// why it is written at the point of temptation rather than in a backlog.
-  ///
-  /// The two exemptions above share a ground: their job IS the unmigrated
-  /// state. `critic`'s ground is different and this comment did not contemplate
-  /// it -- **its consumer fails CLOSED on the refusal code.** The shipped
-  /// pre-commit gate reads `1` from `intent critic` as FINDINGS and blocks the
-  /// commit; every refusal here becomes `Unmigrated -> Failure::Error -> 1`. So
-  /// a `critic` opened through this function blocks every commit in every
-  /// unmigrated project, printing a remedy about findings that do not exist
-  /// while the true remedy -- run `intent upgrade` -- sits on screen above it,
-  /// overridden by one that cannot be followed.
-  ///
-  /// **Moving the refusal to 2 is NOT the fix and was considered.** It clears
-  /// git and breaks Claude Code, whose `UserPromptSubmit` reads 2 as BLOCK.
-  /// That is issue 0043 rebuilt one consumer over. `critic` needs to reach the
-  /// canon without asking this question at all -- the same route `doctor`
-  /// takes -- rather than a different number.
-  ///
-  /// Held mechanically by `an_unmigrated_project_can_still_commit`, which drives
-  /// the SHIPPED hook in an unmigrated fixture and reds the day this is wired
-  /// the obvious way.
-  fn readable(project: &Project) -> Result<(), FacadeError> {
-    match project.migration() {
-      Migration::Done => Ok(()),
-      Migration::Pending(pending) => Err(FacadeError::Unmigrated(pending)),
-    }
-  }
-
   /// Open a project, loading and validating its whole canon.
   pub fn open(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
     Self::open_as(project, ctx, Opening::Ordinary)
@@ -6006,7 +5829,6 @@ impl Facade {
     ctx: FacadeContext,
     opening: Opening,
   ) -> Result<Self, FacadeError> {
-    Self::readable(&project)?;
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
     if opening == Opening::RepairingIndex {
       store.recreate_index_tables().map_err(FacadeError::Store)?;
@@ -6084,7 +5906,6 @@ impl Facade {
   /// Open against an in-memory store, for callers that do not want the DB on
   /// disk (tests, and the daemonless read paths).
   pub fn open_in_memory(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
-    Self::readable(&project)?;
     let mut store = Store::open_in_memory().map_err(FacadeError::Store)?;
     let seen = store.data_version().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
@@ -6117,7 +5938,6 @@ impl Facade {
   /// [`StoreUnopened`]: crate::doctor::StoreUnopened
   pub fn open_read_only(project: Project, ctx: FacadeContext) -> Result<ReadOnly, FacadeError> {
     use crate::store::Opening as StoreOpening;
-    Self::readable(&project)?;
     let path = project.db_path();
     match Store::opening_at(&path).map_err(FacadeError::Store)? {
       StoreOpening::Create => Self::open_in_memory(project, ctx)
@@ -6208,127 +6028,60 @@ impl Facade {
     self
   }
 
-  /// **The migration door, and the one entry point that deliberately does NOT
+  /// **The upgrade door, and the one entry point that deliberately does NOT
   /// go through [`Facade::open`].**
   ///
-  /// `open` calls `readable`, which refuses an unmigrated project -- and the
-  /// migrator runs on an unmigrated project by definition, so routing it
-  /// through the usual door would make the operation refuse the only estate it
-  /// exists for. It is an associated function rather than a method for the same
-  /// reason: there is no `Facade` to be had until this has run.
+  /// It rewrites the canon, the views and the store that `open` loads, and it
+  /// moves the canon format `open` reads, so it reads the project's canon
+  /// itself rather than through an opened facade. It is an associated function
+  /// rather than a method for the same reason.
   ///
   /// **THE ORDER IS THE CONTRACT AND THE STAMP GOES LAST.** Plan (writes
   /// nothing) -> commit the files -> rebuild the store -> converge gitignore ->
-  /// stamp the version. Three separate arguments land on that last step and
-  /// they are worth keeping apart:
+  /// move the canon format -> stamp the version. Stopped before the stamp, the
+  /// project still declares the version it had, so a re-run plans the same
+  /// upgrade again from the same canon.
   ///
-  /// 1. A stamp written before the canon leaves a project claiming to be v3
-  ///    with no canon, and `readable`'s gate stops firing -- so the state that
-  ///    tells an operator what is wrong is the state the premature stamp
-  ///    destroyed. (v2 learned this in ST0043.)
-  /// 2. **v2 now REFUSES a project declaring a newer version than itself**, so
-  ///    between a premature stamp and complete canon the estate is locked out of
-  ///    BOTH toolchains at once -- v2 because the project is from the future, v3
-  ///    because the canon is not there. There is no tool left to fix it with.
-  /// 3. **It is what makes the re-run possible at all**, which is what hv's
-  ///    fix-forward ruling depends on: while the config still says v2, an
-  ///    interrupted estate is one v3 will migrate again. Stamp early and a
-  ///    half-migrated project is one v3 believes is finished, so fix-forward has
-  ///    nothing to fix forward with.
-  ///
-  /// **Nothing is written when this refuses** (AC-10.2). Before the commit that
-  /// is structural -- `plan` builds a `WriteSet` and does not apply it. After
-  /// it, a failure rolls the files back, so a halted migration leaves the estate
-  /// as it found it rather than half-converted.
+  /// **Nothing is written when this refuses.** Before the commit that is
+  /// structural -- `plan` builds a `WriteSet` and does not apply it. After it,
+  /// a failure rolls the files back, so a halted upgrade leaves the project as
+  /// it found it.
   pub fn upgrade(project: &Project, ctx: &FacadeContext) -> Result<Upgraded, FacadeError> {
-    // **THE FLOOR IS ENFORCED HERE, AND ITS ABSENCE WAS A REAL DEFECT.**
+    // **THE MOVE TO THE RELEASE'S CANON FORMAT IS A ONE-SHOT CONVERSION**
+    // (ST0096, intent-cc's ruling, driven by devbin-cc: a 3.4.x project with a
+    // tracked edit and an untracked file upgraded at exit 0, its own changes
+    // beside the person's). It is one commit whose revert is the rollback, so
+    // it refuses a dirty tree before any write. A convergent re-run that moves
+    // no format still runs on whatever the tree holds.
     //
-    // `readable()` does TWO things -- it refuses an unmigrated project AND it
-    // enforces the migration floor -- and this door bypasses it on purpose,
-    // because the migrator runs on an unmigrated project by definition. That
-    // reasoning covers the first job and is silent on the second, so bypassing
-    // the function bypassed both. **The floor was checked on the door that
-    // READS and not on the door that WRITES, and the writing one is the one the
-    // floor exists to stop.** Measured by vc across the fleet: Utilz declares
-    // 2.18.0 and was converted clean -- 61 files, 9 threads, stamped -- with no
-    // refusal and nothing looking wrong.
-    //
-    // It matters because 2.19.0 is where the acceptance-test row grammar
-    // landed. A sub-floor estate converted directly skips that migration, so
-    // its rows arrive in v3 in a grammar v3 was never told about, silently,
-    // because nothing on this path is looking.
-    //
-    // **One arm, and deliberately not `readable()` wholesale.**
-    // `Migration::Done` MUST proceed -- that is the re-run after an interrupted
-    // migration, and idempotence rests on it -- and `Pending` at or above the
-    // floor is the ordinary estate this door exists for.
-    // **THE OTHER TWO PRECONDITIONS `migration.md` DOCUMENTS, WHICH DID NOT
-    // EXIST** (issue 0271). The section opens *refused by name, not worked
-    // around* and states three refusals; until this commit the floor above was
-    // the only one implemented, and both of the others were driven on the
-    // GENUINE conversion path -- a dirty tree converted 349 threads at exit 0,
-    // and a tree with no `.git` at all converted at exit 0 with the word `git`
-    // absent from the whole run.
-    //
-    // **THEY LIVE INSIDE THE `Pending` ARM, WHICH IS THE SCOPING RATHER THAN A
-    // COMMENT ABOUT IT.** `Migration::Done` is the convergent re-run, and
-    // neither reaches it: measured across 18 fleet members, the dirt check
-    // refuses 11 of them on the verb and 1 of 1 on the conversion. The one
-    // exception is the dirt check on a run that moves the canon format, below.
-    //
-    // **AND THE MOVE TO THE RELEASE'S CANON FORMAT IS A ONE-SHOT CONVERSION
-    // TOO** (ST0096, intent-cc's ruling, driven by devbin-cc: a 3.4.x project
-    // with a tracked edit and an untracked file upgraded at exit 0, its own
-    // changes beside the person's). It is one commit whose revert is the
-    // rollback, as the v2 conversion is, so it refuses a dirty tree before any
-    // write, for the same reason and in the same words. A convergent re-run
-    // that moves no format still runs on whatever the tree holds.
-    //
-    // `on_a_clean_tree` is true only when a guard passed, so only then may the
-    // closing line say that every change in the tree is the upgrade's.
+    // `on_a_clean_tree` is true only when the guard passed, so only then may
+    // the closing line say that every change in the tree is the upgrade's.
     // `moves_format` is true only on the move to the release's canon format,
-    // the conversion whose records issue I84286b7 found conflicting across branches.
-    let (on_a_clean_tree, moves_format) = match project.migration() {
-      crate::project::Migration::Pending(pending) => {
-        if pending.below_floor {
-          return Err(FacadeError::BelowMigrationFloor(pending));
+    // the conversion whose records issue I84286b7 found conflicting across
+    // branches.
+    // A format that does not read is its own error, said as such, and never
+    // taken for a move: its remedy is not "commit first".
+    let format = crate::ingest::canon_format(project)
+      .map_err(|found| FacadeError::Ingest(crate::finding::Refusal::new(found).into()))?;
+    let moves_format = format != crate::canon_format::CanonFormat::CURRENT;
+    let (on_a_clean_tree, moves_format) =
+      match (moves_format, crate::sync::tree_state(project.root())) {
+        (true, crate::sync::TreeState::Dirty(paths)) => {
+          return Err(over_a_dirty_tree(project, paths));
         }
-        match crate::sync::tree_state(project.root()) {
-          crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
-          crate::sync::TreeState::GitRefused(cause) => return Err(FacadeError::Git(cause)),
-          crate::sync::TreeState::Dirty(paths) => {
-            return Err(over_a_dirty_tree(project, paths));
-          }
-          crate::sync::TreeState::Clean => (true, false),
-        }
-      }
-      crate::project::Migration::Done => {
-        // A format that does not read is its own error, said as such, and never
-        // taken for a move: its remedy is not "commit first".
-        let format = crate::ingest::canon_format(project)
-          .map_err(|found| FacadeError::Ingest(crate::finding::Refusal::new(found).into()))?;
-        let moves_format = format != crate::canon_format::CanonFormat::CURRENT;
-        match (moves_format, crate::sync::tree_state(project.root())) {
-          (true, crate::sync::TreeState::Dirty(paths)) => {
-            return Err(over_a_dirty_tree(project, paths));
-          }
-          (true, crate::sync::TreeState::Clean) => (true, true),
-          // **NO WORK TREE, NO GUARD** (intent-cc's ruling). The guard keeps one
-          // commit that `git revert` can undo, and nobody else's work swept into
-          // it; with no work tree neither exists, so there is nothing to keep.
-          // The v2 conversion's MigrationWithoutGit is a rule about its
-          // documented rollback, and the format move does not inherit it. The
-          // run claims nothing about a tree it does not have.
-          (true, crate::sync::TreeState::NoWorkTree) => (false, true),
-          // A repository git refused to read is not "no work tree": the guard
-          // has a tree to keep and could not look at it (issue Ib7a70c3).
-          (true, crate::sync::TreeState::GitRefused(cause)) => return Err(FacadeError::Git(cause)),
-          // A convergent re-run that moves no format runs on whatever the tree
-          // holds, as it always has, and claims nothing about it.
-          (false, _) => (false, false),
-        }
-      }
-    };
+        (true, crate::sync::TreeState::Clean) => (true, true),
+        // **NO WORK TREE, NO GUARD** (intent-cc's ruling). The guard keeps one
+        // commit that `git revert` can undo, and nobody else's work swept into
+        // it; with no work tree neither exists, so there is nothing to keep.
+        // The run claims nothing about a tree it does not have.
+        (true, crate::sync::TreeState::NoWorkTree) => (false, true),
+        // A repository git refused to read is not "no work tree": the guard
+        // has a tree to keep and could not look at it (issue Ib7a70c3).
+        (true, crate::sync::TreeState::GitRefused(cause)) => return Err(FacadeError::Git(cause)),
+        // A convergent re-run that moves no format runs on whatever the tree
+        // holds, as it always has, and claims nothing about it.
+        (false, _) => (false, false),
+      };
     // **A ONE-SHOT CONVERSION ON ONE BRANCH OF SEVERAL** (issue I84286b7): two
     // branches converted apart each add every record, so a record whose state
     // differs between them is an add/add conflict at merge, with no base for git
@@ -6345,21 +6098,11 @@ impl Facade {
       Vec::new()
     };
 
-    let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
-      step: "reading the v2 estate",
-      cause,
-    })?;
-    let plan = crate::migrate::plan(project, ctx, scan)?;
+    let plan = crate::migrate::plan(project, ctx)?;
     let crate::migrate::Plan {
       writes,
       threads,
       issues,
-      carried,
-      already_migrated,
-      already_migrated_issues,
-      dispositions,
-      bucket_ingested,
-      bucket_not_ingested,
     } = plan;
 
     let files = writes.len();
@@ -6370,22 +6113,12 @@ impl Facade {
       applied.written().map(std::path::PathBuf::from).collect();
 
     // Everything past here has files on disk, so a failure unwinds them rather
-    // than leaving a half-converted estate. `keep()` is reached only once the
+    // than leaving a half-done upgrade. `keep()` is reached only once the
     // stamp has landed.
-    // Returns what the prune did, because the caller reports it and a closure
-    // that swallowed it would make the removal unreviewable.
-    // What the prune removed, what it deferred, the leftovers it judged, the
-    // events backfilled, the old single-file log's fate (issue 0459), and the
-    // ledger of every path the steps changed (issue 0745).
-    type Finished = (
-      Vec<std::path::PathBuf>,
-      Vec<std::path::PathBuf>,
-      crate::legacy::Leftovers,
-      usize,
-      Option<EventLogLeftover>,
-      AggregateUntrack,
-      Ledger,
-    );
+    // The events backfilled, the old single-file log's fate (issue 0459), what
+    // left git's index, and the ledger of every path the steps changed (issue
+    // 0745).
+    type Finished = (usize, Option<EventLogLeftover>, AggregateUntrack, Ledger);
     // Whether the fold has a manifest to remove, read before the run removes it.
     let manifest_folded = project
       .intentfiles_path()
@@ -6415,42 +6148,6 @@ impl Facade {
         &mut store,
         &ingest::canon_paths(project, &threads, &issues),
       )?;
-      // **THE v2 PRUNE, AT THE SECOND DOOR** (WP-02, AC-02.2). It runs AFTER
-      // the store rebuild above, deliberately: "does the store hold this file"
-      // is only answerable once the store holds anything, and asking it of the
-      // canon we are about to write would be asking the plan rather than the
-      // estate.
-      //
-      // **ONE DERIVATION, AND `organize --apply` IS THE OTHER DOOR.** A second
-      // implementation of "may this go?" is how one door removes what the other
-      // would have kept, in the direction that cannot be taken back.
-      let converted = Canon {
-        threads: threads.clone(),
-        issues: issues.clone(),
-        sections: Vec::new(),
-        boards: Vec::new(),
-        declaration: None,
-      };
-      let leftovers = crate::legacy::leftovers(project, &converted);
-      let mut pruned = Vec::new();
-      let mut deferred = Vec::new();
-      // **A RUN THAT INGESTED BUCKET FILES DEFERS THE PRUNE** (issue 0319; see
-      // `Upgraded::prune_deferred`). The refusal still comes first: an estate
-      // with an unheld file removes nothing whatever this run carried.
-      match (leftovers.refuses(), bucket_ingested.is_empty()) {
-        (true, _) => {}
-        (false, false) => deferred.clone_from(&leftovers.removable),
-        (false, true) => {
-          for path in &leftovers.removable {
-            std::fs::remove_file(path).map_err(|cause| FacadeError::MigrationHalted {
-              step: "removing the v2 tree the store now holds",
-              cause,
-            })?;
-            ledger.removed(project, path);
-            pruned.push(path.clone());
-          }
-        }
-      }
       let gitignore =
         converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
           step: "adding the per-machine artefacts and the aggregate views to .gitignore",
@@ -6511,9 +6208,6 @@ impl Facade {
         ledger.removed(project, &project.intentfiles_path());
       }
       Ok((
-        pruned,
-        deferred,
-        leftovers,
         backfilled.len(),
         event_log_leftover,
         aggregate_untrack,
@@ -6521,15 +6215,7 @@ impl Facade {
       ))
     };
     match finish() {
-      Ok((
-        pruned,
-        prune_deferred,
-        leftovers,
-        events_backfilled,
-        event_log_leftover,
-        aggregate_untrack,
-        mut ledger,
-      )) => {
+      Ok((events_backfilled, event_log_leftover, aggregate_untrack, mut ledger)) => {
         applied.keep();
         // **THE VIEWS OF EVERY UNDECLARED RECORD GO, THROUGH ORGANIZE'S OWN
         // PLAN AND GATE** (issue 0316, vc's ruling 2026-09-14). The manifest
@@ -6543,10 +6229,8 @@ impl Facade {
         //
         // **THE PROJECT IS READ AGAIN FROM ITS ROOT, BECAUSE THE STAMP HAS JUST
         // CHANGED IT** (issue 0596). `project` was discovered before the
-        // conversion, so its config still declares the v2 version while
-        // config.json on disk declares this binary's; a facade opened on it was
-        // refused as unmigrated, and every first conversion printed "not
-        // examined" before its `ok:` and skipped this step.
+        // conversion, so its config still declares the version it had while
+        // config.json on disk declares this binary's.
         let examined = match Project::open(project.root()) {
           Ok(stamped) => Facade::open(stamped, ctx.clone())
             .and_then(|mut f| f.dehydrate_undeclared_record_views())
@@ -6558,7 +6242,7 @@ impl Facade {
             for path in report.hydrated.iter().chain(&report.rewritten) {
               ledger.wrote(project, path);
             }
-            for path in report.dehydrated.iter().chain(&report.pruned_legacy) {
+            for path in report.dehydrated.iter() {
               ledger.removed(project, path);
             }
             (
@@ -6591,19 +6275,9 @@ impl Facade {
           aggregate_untrack,
           dehydrated,
           dehydrate_refused,
-          pruned,
-          ingested: bucket_ingested,
-          not_ingested: bucket_not_ingested,
-          prune_deferred,
-          prune_withheld: leftovers.withheld,
-          pointers: leftovers.pointers,
           threads: threads.len(),
           issues: issues.len(),
           files,
-          carried,
-          already_migrated,
-          already_migrated_issues,
-          dispositions,
           events_backfilled,
           event_log_leftover,
           manifest_folded,
@@ -9276,12 +8950,11 @@ impl Facade {
     if mode.performs() {
       // **AN ORGANIZE RUN WRITES THROUGH ITS PLAN, NOT A WRITE SET OF THIS
       // FILE'S**, so the verb's drain is fed from the run's own answer, as a
-      // realise's is (issue 0632). A v2 leftover is the caller's to commit as a
-      // removal as surely as a dehydrated view.
+      // realise's is (issue 0632).
       self
         .landed
         .extend(report.hydrated.iter().chain(&report.rewritten).cloned());
-      self.note_removed(report.dehydrated.iter().chain(&report.pruned_legacy))?;
+      self.note_removed(report.dehydrated.iter())?;
       let rel = |ps: &[std::path::PathBuf]| -> Vec<String> {
         let mut v: Vec<String> = ps.iter().map(|p| self.project.relative(p)).collect();
         v.sort();
@@ -9504,21 +9177,6 @@ impl Facade {
     // rather than a directory. `starts_with` is still the right filter: a path
     // starts with itself, so the narrowing selects exactly that one view.
     let home = artefact_dir(&self.project, sigil, &id)?;
-    // **A HELD THREAD IS REFUSED HERE, NOT REPORTED** (issue 0209). `run`
-    // reports a hold as one refusal among a run's findings, which suits the
-    // whole-estate verb; this verb names one artefact, so nothing it could
-    // write means the call failed. The pin above stands, and the next
-    // `organize` names the same refusal until the bucket copy is moved.
-    if let Some(h) = whole.held.iter().find(|h| h.thread == id) {
-      return Err(FacadeError::Organize(
-        organize::OrganizeError::LegacyCopyPresent {
-          thread: h.thread.clone(),
-          dir: h.dir.clone(),
-          home: h.home.clone(),
-          files: h.files,
-        },
-      ));
-    }
     let mine: Vec<_> = whole
       .steps
       .iter()
@@ -9526,17 +9184,11 @@ impl Facade {
       .cloned()
       .collect();
     let mut scoped = organize::Plan {
-      // **A SCOPED PLAN PRUNES NO v2 LEFTOVER.** This narrows an estate-wide
-      // plan to one artefact's paths; the v2 prune is an estate-wide act with
-      // an estate-wide refusal, so it belongs to the whole-tree run and never
-      // rides along with a single thread's realisation.
-      leftovers: crate::legacy::Leftovers::default(),
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root,
       project: whole.project,
-      held: Vec::new(),
       // Only the upgrade's run renders in an earlier format (issue 0746).
       earlier_renders: BTreeMap::new(),
     };
@@ -10009,17 +9661,11 @@ impl Facade {
     }
 
     let scoped = organize::Plan {
-      // **A SCOPED PLAN PRUNES NO v2 LEFTOVER.** This narrows an estate-wide
-      // plan to one artefact's paths; the v2 prune is an estate-wide act with
-      // an estate-wide refusal, so it belongs to the whole-tree run and never
-      // rides along with a single thread's realisation.
-      leftovers: crate::legacy::Leftovers::default(),
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root,
       project: whole.project,
-      held: Vec::new(),
       // Only the upgrade's run renders in an earlier format (issue 0746).
       earlier_renders: BTreeMap::new(),
     };
@@ -14243,12 +13889,7 @@ impl Facade {
     };
     Ok(crate::plan::ViewWork {
       writes: [writes(&report.hydrated), writes(&report.rewritten)].concat(),
-      removes: [
-        rel(&report.dehydrated),
-        rel(&report.pruned_legacy),
-        rel(&report.pruned),
-      ]
-      .concat(),
+      removes: [rel(&report.dehydrated), rel(&report.pruned)].concat(),
     })
   }
 
@@ -14505,7 +14146,7 @@ impl Facade {
           format!(
             "views: wrote {} and removed {}",
             report.hydrated.len() + report.rewritten.len(),
-            report.dehydrated.len() + report.pruned_legacy.len() + report.pruned.len()
+            report.dehydrated.len() + report.pruned.len()
           )
         }
         (Action::Events { .. }, _) => {
@@ -16019,20 +15660,6 @@ impl Facade {
     // every project that has not opted in. Absence means nobody has said, not
     // that the answer is none.
     let realised = self.realised_in(canon)?;
-    // **A HELD THREAD'S VIEWS ARE SKIPPED, NOT REFUSED** (issue 0209). The
-    // write after `st start` realised the thread here, beside the v2 bucket
-    // copy it would leave behind, and that write can be any verb about any
-    // thread -- so refusing would make every write hostage to one bucket. The
-    // named refusal belongs to the realising verbs, `organize` and `hydrate`.
-    let held: std::collections::BTreeSet<String> = organize::held(
-      &self.project,
-      canon,
-      &realised,
-      &organize::presence(&self.project, canon, &realised),
-    )
-    .into_iter()
-    .map(|h| h.thread)
-    .collect();
     // **AN UNDECLARED THREAD'S VIEW IS REFRESHED ONLY WHEN THE STORE IS AHEAD
     // OF IT (0283).** A closed thread drops out of `.intentfiles` while its
     // files stay on disk, so a mutation on it left them stale -- and doctor then
@@ -16103,11 +15730,6 @@ impl Facade {
         if !store_ahead {
           continue;
         }
-      }
-      if let Some(owner) = self.owning_thread(&view.path, canon)
-        && held.contains(&owner)
-      {
-        continue;
       }
       if let Some(scope) = views_of
         && let Some(owner) = self.owning_thread(&view.path, canon)
@@ -16349,55 +15971,6 @@ impl Facade {
         subjects: moved.join(", "),
       }),
     }
-  }
-
-  /// Add the event log's file form to a write set (D34, AC-02.6).
-  ///
-  /// Run every health check (AC-06.2). A read: it reports, and repairs
-  /// nothing.
-  ///
-  /// **An associated function, not a method, and that is the design.** A
-  /// method would require an opened facade, which is precisely the
-  /// precondition doctor must not have: the first version went through
-  /// [`Facade::open`], so a duplicate criterion id tripped a UNIQUE constraint
-  /// during the DB load and the command died before it could report the thing
-  /// it exists to report -- while the tool advised running `intent doctor`.
-  /// The skin still calls only the facade (D06); the facade knows that this
-  /// one verb has to work on a project nothing else can open.
-  ///
-  /// Reporting-only is likewise deliberate. A doctor that fixed what it found
-  /// would change the thing it was measuring, and the operator would be
-  /// reading a report about a state that no longer existed -- which is how
-  /// `at lint --fix` came to half-migrate rows.
-  /// Read an estate by parsing its MARKDOWN -- the v2 migrator's door, and the
-  /// seam WP-10 plugs its frozen legacy parser into.
-  ///
-  /// **Associated rather than a method, and the reason is the whole point of
-  /// the operation.** A method would need an opened facade, which needs canon
-  /// this crate can read -- and an estate that has to be ingested from markdown
-  /// is precisely one that has no such canon. Requiring a facade to migrate a
-  /// project would mean requiring the project to already be migrated. Same
-  /// shape as [`Facade::doctor`] above, for the same kind of reason: both run
-  /// where the ordinary preconditions do not hold.
-  ///
-  /// **It is the DOOR rather than the implementation** -- one line today,
-  /// because `ingest::from_md` refuses until WP-10 lands the parser. It
-  /// exists now so the CLI has one entry point that does not move when the body
-  /// arrives, and so the layer the parser plugs into is settled before there is
-  /// a parser arguing for a different one.
-  /// **`Unavailable` is mapped rather than wrapped, and that is not a
-  /// nicety.** `FacadeError::Ingest` reads "could not read the committed
-  /// canon", with the remedy "fix the artefacts named above, then retry" --
-  /// true of every other ingest failure and false of this one, where nothing
-  /// was read and nothing is wrong. An unbuilt feature reported as a damaged
-  /// estate sends a user to repair files that are fine.
-  pub fn ingest_from_md(project: &Project) -> Result<crate::legacy::Scan, FacadeError> {
-    crate::legacy::scan(project).map_err(|source| {
-      FacadeError::Ingest(IngestError::Io {
-        path: project.relative(project.root()),
-        source,
-      })
-    })
   }
 
   /// Every path the store already carries prose for, sorted.
@@ -18466,23 +18039,6 @@ impl Facade {
     // Issue 0367: a re-listed thread's views were realised and its attachments left to organize, so the canon gate refused the next commit.
     if adds {
       notes.extend(self.realise_relisted(id));
-    }
-    // **ASKED AFTER THE PIN, BECAUSE THE PIN IS WHAT MAKES IT HELD** (issue
-    // 0209). A thread this verb has just declared, with a v2 bucket copy and
-    // nothing at its home, will be skipped by every write -- and this verb is
-    // the one whose success reads as "on its way to disk".
-    let realised = self.realised_in(&self.canon)?;
-    let present = organize::presence(&self.project, &self.canon, &realised);
-    if let Some(h) = organize::held(&self.project, &self.canon, &realised, &present)
-      .into_iter()
-      .find(|h| h.thread == id)
-    {
-      notes.push(Note::HeldByV2Bucket {
-        thread: h.thread,
-        dir: self.project.relative(&h.dir),
-        home: self.project.relative(&h.home),
-        files: h.files,
-      });
     }
     Ok(
       if notes.is_empty() {

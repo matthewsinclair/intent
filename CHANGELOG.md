@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Help, refusals and the schema describe git-style ids beside ordinal ones** (ST1c2db93). The id grammar now has one home, so every surface that names an id's form names both: `wb claim` and `wb unclaim` take `ST3f9a2c1d4e5f6a7b`, `ST3f9a2c1d4e5f6a7b/c2e41a0b` and `ISSUE:I3f9a2c1d4e5f6a7b` and say so; the criterion and test label hints, `todo done`'s remedy, the explorer's guide and the GraphQL and JSON schema descriptions of a thread's id give both forms.
+- **A config that declares an `intent_version` before 3 is refused as unreadable, with exit 4** (ST1c2db93). Intent 3 does not read a v2 project, and a verb no longer tries to: every verb refuses the config as it does one that does not parse, naming the version it declares, and `doctor`, `guards` and `lang declared` exit 4 on it, which the pre-commit gate fails open on.
+
+### Removed
+
+- **What was left of Intent v2 is gone** (ST1c2db93). No project on v2 remains to convert, so the v2 importer and everything that served it are removed: `intent ingest`; the v2 parser behind `intent upgrade` (`legacy.rs`), which `upgrade` ran on every 3.x project to read threads it now reads from canon; the migration gate and its errors (unmigrated, below the migration floor, without git); `organize`'s handling of v2 status and issue buckets, with the `held-by-v2-bucket` note a write could print; and the v2-only finding classes in `doctor --json`'s vocabulary (`modelled-not-built`, `unparseable-row`, `unknown-status`, `unknown-scope`, `unread-field`, `retired-setting`, `unmigrated`). `intent upgrade` no longer prints its v2 sections ("migrated", "already migrated", "not carried into the model", the bucket ingest and prune lines). Stored data is unchanged: an acceptance test's `legacy` row, a package's `scope_legacy` and the views that show them are kept, as are doctor's checks of the hook scripts v2 installed.
 
 ### Upgrading a repository with branches
 

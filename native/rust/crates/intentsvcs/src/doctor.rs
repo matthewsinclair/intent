@@ -413,8 +413,8 @@ impl Report {
   /// AND IT IS RED* ARE DIFFERENT ANSWERS** (vc, 2026-09-12, on issues `0308`
   /// and `0309`). 0 is clean, or advisory findings only. 1 is blocking findings
   /// in a project this run actually read. **4 is an estate this run could not
-  /// judge** -- today that is an unmigrated project, and the CLI answers the
-  /// same 4 for a project it cannot locate or whose config will not parse.
+  /// judge**, and the CLI answers it, never this report: a project it cannot
+  /// locate, or whose config it cannot read. So this answers 0 or 1.
   ///
   /// **4 RATHER THAN THE OBVIOUS 2**, because 2 is the CLI's *this build cannot
   /// answer* and this estate's ST0058 `AC-00.5` records it as already carrying
@@ -422,22 +422,13 @@ impl Report {
   /// not-implemented-yet population by the predicate *refuses at 2*, and a
   /// fifth meaning would have made `doctor` read as COMING SOON to it.
   ///
-  /// It was v2's two-code contract until `doctor` joined the pre-commit gate,
-  /// and two codes stopped being enough the moment a consumer had to ACT on the
-  /// difference: a gate refusing on 1 refuses every commit in every estate the
-  /// tool cannot read, which is every v2 project on the fleet on the day it
-  /// installs the gate. The gate now fails OPEN on 2 through the arm it has had
+  /// Two codes stopped being enough when `doctor` joined the pre-commit gate,
+  /// the moment a consumer had to ACT on the difference: a gate refusing on 1
+  /// refuses every commit in every estate the tool cannot read. The gate now fails OPEN on 2 through the arm it has had
   /// since issue 0043, and says the estate went unenforced rather than pretending
   /// it passed. The release preflight aborts on any non-zero, which stays right
   /// from the other direction: a project the tool cannot judge does not cut.
   pub fn exit_code(&self) -> i32 {
-    if self
-      .findings
-      .iter()
-      .any(|f| f.class == crate::finding::FindingClass::Unmigrated)
-    {
-      return 4;
-    }
     i32::from(!self.is_healthy())
   }
 
@@ -666,44 +657,10 @@ fn examine(
     ..Report::default()
   };
 
-  // FIRST, and it returns rather than continuing. Every check below this line
-  // compares the model against the files, and on an unmigrated project the
-  // model is EMPTY -- so every one of them fires, and every one of them
-  // describes a consequence rather than the cause.
-  //
-  // Measured before this landed, on a two-thread v2 fixture: doctor reported
-  // "2 findings across 0 threads", both of them view-skew saying the
-  // generated views were missing. That is a confident RED at first contact
-  // whose honest remedy -- regenerate the views -- would have rendered an
-  // empty estate over the top of real work.
-  if let crate::project::Migration::Pending(pending) = project.migration() {
-    // The finding's remedy is the migration's own, with the part of the
-    // class's that stays true of it (issue 0738): one remedy, nothing lost.
-    report.findings.push(
-      Finding::new(
-        project.relative(&Project::config_path(project.root())),
-        FindingClass::Unmigrated,
-        pending.to_string(),
-      )
-      .with_remedy(format!(
-        "{} -- {}",
-        pending.remedy(),
-        crate::finding::DOWNSTREAM_OF_MIGRATION
-      )),
-    );
-    return report;
-  }
-
-  // **AFTER the unmigrated return, deliberately.** A window an unmigrated
-  // project cannot honour is true and useless: `intent todo` refuses on that
-  // project for a much larger reason, so reporting it at first contact would
-  // put a second cause beside the one that matters -- which is the noise the
-  // early return above exists to prevent.
-  //
-  // The REMEDY carries the instance arithmetic, as the unmigrated finding's
-  // carries `Migration::remedy()`: the two honourable values either side of a
-  // rejected window are true of this project only, and the class's sentence
-  // that stays true of it is folded in, so one remedy prints (issue 0738).
+  // The REMEDY carries the instance arithmetic: the two honourable values
+  // either side of a rejected window are true of this project only, and the
+  // class's sentence that stays true of it is folded in, so one remedy prints
+  // (issue 0738).
   if let Err(e) = project.config().todo.window() {
     report.findings.push(
       Finding::new(
@@ -3009,28 +2966,6 @@ fn upgrade_door(root: &std::path::Path, path: &std::path::Path) -> &'static str 
 /// something REFERENCES the carrier**: a chain that calls `pre-commit.intent`
 /// while no such file exists is broken; two absent files are a project that
 /// opted out.
-///
-/// # WHERE THIS CHECK RUNS IS ANTI-CORRELATED WITH WHERE THE DEFECT LIVES
-///
-/// **A reader meeting `0 findings` fleet-wide will not infer this, so it is
-/// said here rather than only in the test.** [`diagnose`] returns at the
-/// migration arm before this runs, so an UNPORTED estate is never examined at
-/// all -- and an unported estate is exactly the one least likely to have a
-/// working gate. That is not a coverage gap, which would be neutral about
-/// which cases it missed; it is a systematic bias toward missing the ones that
-/// matter.
-///
-/// Measured on Conflab, 2026-08-27: `intent doctor` reports `1 finding across
-/// 0 thread(s), 0 issue(s), 0 view(s), **0 file(s)**`. Zero files scanned. A
-/// newer binary does not change it and neither does this check; only the port
-/// does.
-///
-/// **The limit is DRIVEN, not merely written here** --
-/// `gate_not_running_is_reported::an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass`
-/// reds if the migration arm is ever moved below this call, so whoever moves it
-/// learns that a check they had not considered now runs on estates it was never
-/// measured against. A limit recorded only in prose is one that stops being
-/// true without anyone noticing.
 ///
 /// # Each state names what happens to a commit and the verb that repairs it
 ///

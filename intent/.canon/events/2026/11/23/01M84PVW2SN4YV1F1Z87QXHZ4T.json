@@ -1,0 +1,14 @@
+{
+  "id": "01M84PVW2SN4YV1F1Z87QXHZ4T",
+  "ts": "2026-11-23T17:22:09.639Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.withdraw",
+  "subject": {
+    "type": "ac",
+    "id": "ST0069/AC-02.3"
+  },
+  "payload": {
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it."
+  }
+}

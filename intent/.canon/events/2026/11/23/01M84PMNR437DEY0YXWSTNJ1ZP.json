@@ -1,0 +1,14 @@
+{
+  "id": "01M84PMNR437DEY0YXWSTNJ1ZP",
+  "ts": "2026-11-23T17:18:13.782Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/runner_roster_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

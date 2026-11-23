@@ -3,6 +3,8 @@
   "text": "A file beside the threads that is not under a thread directory, such as a tool tree like `ST0056/parity/tools/`, is neither an attachment candidate nor pruned; the Intent estate own unclaimed tooling is the discriminating case.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it.",
+    "by": "vc"
   }
 }

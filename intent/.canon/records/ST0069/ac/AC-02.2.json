@@ -3,6 +3,8 @@
   "text": "The prune removes the v2 buckets, the v2 `issues/OPEN|CLOSED/` directories and `.treeindex`, at migration for a new conversion and under `organize --apply` for an already-migrated estate, and REFUSES by name while any bucket file content is not held by the store, so a prune that ingested nothing removes nothing.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it.",
+    "by": "vc"
   }
 }

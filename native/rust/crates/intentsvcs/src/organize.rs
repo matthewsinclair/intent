@@ -257,13 +257,6 @@ pub struct TreeState {
 #[derive(Debug, Clone)]
 pub struct Plan {
   pub steps: Vec<Step>,
-  /// What the v2 tree left behind, and whether the store holds it (WP-02).
-  ///
-  /// **CARRIED ON THE PLAN, NOT RECOMPUTED INSIDE THE APPLY**, for
-  /// [`Plan::preconditions`]'s reason: a removal an operator cannot see before
-  /// it happens is the one line of this verb nobody can review. It is computed
-  /// once, printed by the preview, and acted on by the same body.
-  pub leftovers: crate::legacy::Leftovers,
   /// The tree digest as measured while planning. Re-computed immediately before
   /// the irreversible step; any difference refuses the run.
   pub digest: String,
@@ -289,10 +282,6 @@ pub struct Plan {
   /// [`Project::owner_of`] which thread a step's path belongs to rather than
   /// reading a name off the path.
   pub project: Project,
-  /// Declared threads this plan will not realise, because a v2 status bucket
-  /// still holds their files (issue 0209). Their steps are absent from `steps`,
-  /// and [`Plan::run`] reports each one as a refusal.
-  pub held: Vec<Held>,
   /// Each removal's render in an earlier canon format, which [`Plan::run`]
   /// also gates it against (issue 0746). Empty on every plan but the one
   /// [`Plan::with_earlier_renders`] fills, which only the upgrade's
@@ -307,26 +296,6 @@ pub struct Plan {
   /// carrying any byte a person wrote, committed or not, is still kept (issue
   /// 0316 holds whole).
   pub earlier_renders: BTreeMap<PathBuf, Vec<u8>>,
-}
-
-/// A declared thread whose realisation is held back (issue 0209).
-///
-/// **THE PREDICATE IS "THE DISK CARRIES FILES FOR THIS THREAD THAT THE
-/// REALISATION WOULD LEAVE BEHIND", NOT A SIZE COMPARISON.** A realisation can
-/// be byte-larger and still drop `tasks.md`, so size tracks nothing (laksa-dc's
-/// correction, recorded on the issue). Measured on Laksa's ST0106: realising
-/// from a store that never carried `design.md`/`impl.md`/`tasks.md` wrote 9493
-/// bytes at `intent/st/ST0106/` while the 14789-byte original stayed tracked
-/// under `NOT-STARTED/` -- two directories, and the incomplete one looked
-/// authoritative.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Held {
-  pub thread: String,
-  /// The bucket directory holding the files, eg `intent/st/NOT-STARTED/ST0106`.
-  pub dir: PathBuf,
-  /// Where the thread would have been realised.
-  pub home: PathBuf,
-  pub files: usize,
 }
 
 impl Plan {
@@ -355,14 +324,12 @@ impl Plan {
 
   /// Steps carrying a given action, in path order.
   /// This plan narrowed to the removals of the paths `keep` names, and nothing
-  /// else: no hydration, no v2 prune, no held-thread refusal (issue 0316).
+  /// else: no hydration (issue 0316).
   ///
   /// **THE NARROWING IS OF THE STEPS, NOT OF THE GATES.** The steps kept run
   /// through [`Plan::run`] exactly as organize's own do -- the preconditions,
   /// the re-observation guard and the per-file [`gate`] -- so a caller that
-  /// wants only these removals gets organize's refusals with them. Dropping the
-  /// leftovers is what keeps the v2 prune out: an ingest and a removal are not
-  /// one run (0319), and a caller of this is not running the prune.
+  /// wants only these removals gets organize's refusals with them.
   pub fn only_dehydrating(self, keep: impl Fn(&Path) -> bool) -> Plan {
     Plan {
       steps: self
@@ -370,8 +337,6 @@ impl Plan {
         .into_iter()
         .filter(|s| s.action == Action::Dehydrate && keep(&s.path))
         .collect(),
-      leftovers: crate::legacy::Leftovers::default(),
-      held: Vec::new(),
       ..self
     }
   }
@@ -392,18 +357,7 @@ impl Plan {
   /// Whether this plan would remove anything. A plan that removes nothing needs
   /// no digest re-check, because there is no irreversible step to guard.
   pub fn is_destructive(&self) -> bool {
-    // **THE v2 PRUNE COUNTS, AND LEAVING IT OUT MADE THE DOOR UNREACHABLE.**
-    // This predicate decides whether the removal branch runs at all, so a plan
-    // whose only removals were v2 leftovers took no removal path, reported an
-    // empty prune and left the tree exactly as it found it -- a door that
-    // compiles, reports nothing and does nothing. Found by the arm rather than
-    // by review, which is what the arm is for.
-    //
-    // **A REFUSAL IS DESTRUCTIVE-SHAPED TOO**: withheld paths must reach
-    // `refused`, and that also happens inside this branch.
     self.steps.iter().any(|s| s.action.is_destructive())
-      || !self.leftovers.removable.is_empty()
-      || self.leftovers.refuses()
   }
 }
 
@@ -447,18 +401,6 @@ pub enum OrganizeError {
     thread: String,
     withheld: Vec<PathBuf>,
   },
-
-  /// A v2 leftover whose content the store does not hold (WP-02, AC-02.2).
-  ///
-  /// **ONE OF THESE REFUSES THE WHOLE PRUNE**, because the usual cause is the
-  /// INGEST rather than the file: an ingest that failed for one thread is
-  /// evidence about the run, and removing the fifty-three it did carry while
-  /// one is unheld is the half-migrated estate the per-file content probe
-  /// exists to catch.
-  #[error(
-    "refusing to prune {path}: {reason}. The v2 tree is removed only once the store holds every one of its files, so this run removes none of them -- re-run `intent upgrade` to ingest what is missing, or move this file out of the v2 tree by hand if it is not the record of any work."
-  )]
-  LegacyUnheld { path: PathBuf, reason: String },
 
   /// The moment-of-act digest (AC-04.5). Something wrote to the tree between
   /// planning and applying.
@@ -516,16 +458,6 @@ pub enum OrganizeError {
   /// [`OrganizeError::Io`]: a failed walk means the plan was computed against a
   /// population that is not the estate, and every other refusal here is about a
   /// named file the walk succeeded on.
-  #[error(
-    "refusing to realise {thread}: the v2 status bucket {dir} still holds {files} file(s) for it, and realising from the store would write a second, smaller copy at {home} while that one stays -- two directories, and the incomplete one would look authoritative."
-  )]
-  LegacyCopyPresent {
-    thread: String,
-    dir: PathBuf,
-    home: PathBuf,
-    files: usize,
-  },
-
   #[error("could not read the tree to reconcile it: {source}")]
   Scan {
     #[source]
@@ -565,18 +497,6 @@ pub enum OrganizeError {
   },
 }
 
-/// The one remedy for a v2 file the store does not hold (issue 0318).
-///
-/// **ONE HOME, TWO FACES**: the terminal prints it once under the class line,
-/// and every per-file `LegacyUnheld` a face lists carries the same sentence.
-///
-/// **IT NAMES BOTH EXITS, BECAUSE `intent upgrade` ALONE IS NOT ONE FOR EVERY
-/// FILE** (vc, 2026-09-13). Since 0319 an upgrade ingests every bucket file it
-/// can and reports each one it cannot -- a name the naming gate refuses, a file
-/// over the size cap -- with the reason. Re-running it for one of those changes
-/// nothing, so a remedy naming only the upgrade sends the operator round a loop.
-const LEGACY_UNHELD_REMEDY: &str = "run `intent upgrade`: it ingests every v2 file it can, and names each one it cannot with the reason. A file it reports as not ingested stays unheld until it is renamed or moved out of the v2 tree by hand, which is also the way out for a file that is not the record of any work. Nothing is removed until every one of them is held.";
-
 impl crate::remedy::Remedy for OrganizeError {
   /// **ONE ACTION PER REFUSAL, AND THEY ARE GENUINELY DIFFERENT ACTIONS.**
   /// Four of these are the verb doing its job, so a shared sentence here would
@@ -590,10 +510,6 @@ impl crate::remedy::Remedy for OrganizeError {
       // does not take a hand edit to a generated view into the model -- only
       // canon and the info covers are read back -- so that remedy did nothing
       // for most of the files this refusal is about (issue `0283`).
-      // **THE REFUSAL IS ABOUT THE RUN, SO THE REMEDY NAMES THE RUN** -- and
-      // since 0318 it is the class's one remedy, shared with the line the
-      // terminal prints once. See `LEGACY_UNHELD_REMEDY`.
-      Self::LegacyUnheld { .. } => LEGACY_UNHELD_REMEDY.to_string(),
       Self::HandEdited { path, .. } => format!(
         "decide which copy is right. `intent doctor` names the difference and the command that regenerates it. If nobody edited the file at {}, the store is right: delete it and re-run. If it holds an edit you want, make the change through the CLI so it lands in the model, then re-run.",
         path.display()
@@ -620,15 +536,6 @@ impl crate::remedy::Remedy for OrganizeError {
       // an override would hand out exactly the bypass the gate exists to
       // refuse.
       Self::PreconditionsUnmet { .. } => "dehydration stays gated until this project's declared preconditions are met, and the refusal above names every one that is not. `intent ac list` shows the state of each. Nothing here needs undoing: hydration and verification in the same run were unaffected, and no file was removed.".to_string(),
-      // **NOT `intent st hydrate`**: it realises from the same store, so it
-      // would write the same smaller copy. Moving the directory keeps what the
-      // store does not model beside the views, where `organize` reports it as
-      // unclaimed and never removes it.
-      Self::LegacyCopyPresent { dir, home, .. } => format!(
-        "bring the bucket copy home first: `git mv {} {}`, then re-run. If the bucket copy is obsolete, delete it instead. Nothing was written for this thread.",
-        dir.display(),
-        home.display()
-      ),
       Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
       Self::NothingToWrite { path } => format!(
         "run `intent sync --to-store`, which loads canon again and reads an opaque attachment's bytes from its sidecar under `intent/.canon/st/`; if that sidecar is missing, restore it from git first. Nothing was written to {}.",
@@ -1052,84 +959,15 @@ pub fn plan(
     }
   }
 
-  let held = held(project, canon, realised, present);
-  steps.retain(|s| !held.iter().any(|h| s.path.starts_with(&h.home)));
-
   steps.sort_by(|a, b| a.path.cmp(&b.path));
   Plan {
     steps,
-    leftovers: crate::legacy::leftovers(project, canon),
     digest,
     preconditions: preconditions::check(canon),
     estate_root: project.st_dir(),
     project: project.clone(),
-    held,
     earlier_renders: BTreeMap::new(),
   }
-}
-
-/// The declared threads that must not be realised yet (issue 0209).
-///
-/// **A DECLARED THREAD WITH NOTHING AT ITS OWN DIRECTORY AND FILES IN A v2
-/// BUCKET IS HELD.** Only a FIRST realisation is held: a thread already present
-/// at its home has no smaller copy left to write, and holding it would freeze a
-/// working thread over a stray bucket.
-///
-/// **ONE PREDICATE, TWO DOORS.** [`plan`] asks it of the tree it observed;
-/// `Facade::projection` asks it of [`presence`] on every write, because the
-/// write after `st start` realised the thread silently -- driven, and the
-/// likelier way Laksa's copy appeared than `organize` itself.
-pub fn held(
-  project: &Project,
-  canon: &Canon,
-  realised: &Realised,
-  present: &BTreeSet<PathBuf>,
-) -> Vec<Held> {
-  canon
-    .threads
-    .iter()
-    .filter(|t| realised.declares(&t.id))
-    .filter(|t| {
-      let home = project.thread_dir(&t.id);
-      !present.iter().any(|p| p.starts_with(&home))
-    })
-    .filter_map(|t| v2_bucket_copy(project, present, &t.id))
-    .collect()
-}
-
-/// The files [`held`] reads, for a caller with no observed tree: each declared
-/// thread's home and its v2 bucket directories, and nothing else.
-///
-/// **NOT `sync::scan`**, which hashes the whole estate: `Facade::projection`
-/// runs on every write, and the question needs a few directory listings.
-pub fn presence(project: &Project, canon: &Canon, realised: &Realised) -> BTreeSet<PathBuf> {
-  canon
-    .threads
-    .iter()
-    .filter(|t| realised.declares(&t.id))
-    .flat_map(|t| {
-      std::iter::once(project.thread_dir(&t.id)).chain(
-        crate::legacy::V2_STATUS_BUCKETS
-          .iter()
-          .map(|bucket| project.st_dir().join(bucket).join(t.id.as_str())),
-      )
-    })
-    .flat_map(|dir| crate::realise::walk(&dir))
-    .collect()
-}
-
-/// The first v2 status bucket holding files for `id`, if any.
-fn v2_bucket_copy(project: &Project, present: &BTreeSet<PathBuf>, id: &str) -> Option<Held> {
-  crate::legacy::V2_STATUS_BUCKETS.iter().find_map(|bucket| {
-    let dir = project.st_dir().join(bucket).join(id);
-    let files = present.iter().filter(|p| p.starts_with(&dir)).count();
-    (files > 0).then(|| Held {
-      thread: id.to_string(),
-      dir,
-      home: project.thread_dir(id),
-      files,
-    })
-  })
 }
 
 /// Remove the directories THIS RUN EMPTIED, and only those.
@@ -1279,19 +1117,6 @@ pub struct Report {
   /// over one hand-edited file would make every other thread's realisation
   /// hostage to an edit nobody has read yet.
   pub refused: Vec<OrganizeError>,
-  /// v2 leftovers this run removed -- the status buckets, the v2 issue estate
-  /// and the retired `.treeindex` cache, once the store was proved to hold
-  /// every one of their files (WP-02, AC-02.2).
-  ///
-  /// **A SEPARATE FIELD FROM `dehydrated`, because the two are removed on
-  /// different PROOFS.** A view is removed because the renderer reproduced it
-  /// byte for byte; a leftover is removed because canon carries its content at
-  /// its sha. Folding them together would let one proof be reported as the
-  /// other.
-  pub pruned_legacy: Vec<PathBuf>,
-  /// Authored files naming a v2 bucket path (AC-02.4). **Reported, never
-  /// rewritten**, and never a reason to refuse anything.
-  pub legacy_pointers: Vec<crate::legacy::Pointer>,
   /// Directories this run emptied and then removed.
   ///
   /// **REPORTED BECAUSE IT IS DESTRUCTIVE.** Removing a directory is a smaller
@@ -1363,8 +1188,8 @@ impl Report {
   /// MEASURED RATHER THAN STYLISTIC.** Absolute is CORRECT for the fields:
   /// `Report` is the record of acts performed on a real filesystem, and this
   /// crate consumes it as one. `prune_emptied` is handed `&report.dehydrated`
-  /// and `&report.pruned_legacy` directly and filters candidates by
-  /// `d.starts_with(root)` before `remove_dir`, so relative paths there would
+  /// directly and filters candidates by `d.starts_with(root)` before
+  /// `remove_dir`, so relative paths there would
   /// drop every candidate and the directory prune would remove nothing AT EXIT
   /// 0; and the `hydration` door membership-tests `report.hydrated` against an
   /// absolute `carried()` set, which would silently empty. Both breakages are
@@ -1412,76 +1237,6 @@ impl Report {
       })
       .sum()
   }
-
-  /// The v2 prune refusal as ONE class for the whole run, or `None` when the
-  /// prune withheld nothing (issue 0318).
-  ///
-  /// **THE FOLD BELONGS TO THE REPORT, FOR `blocked`'s REASON.** `refused` keeps
-  /// one `LegacyUnheld` per file, so the summary count and every face that lists
-  /// refusals per path are unchanged; what a terminal prints once is a question
-  /// about the run, and a fold living inline in one renderer is the one the next
-  /// renderer gets subtly different.
-  pub fn legacy_unheld(&self) -> Option<LegacyUnheldClass<'_>> {
-    let files: Vec<(&std::path::Path, &str)> = self
-      .refused
-      .iter()
-      .filter_map(|refusal| match refusal {
-        OrganizeError::LegacyUnheld { path, reason } => Some((path.as_path(), reason.as_str())),
-        _ => None,
-      })
-      .collect();
-    (!files.is_empty()).then_some(LegacyUnheldClass { files })
-  }
-
-  /// Every refusal that is not folded into [`Report::legacy_unheld`]'s class,
-  /// in report order, for a face that prints the class once and the rest one
-  /// by one.
-  pub fn refused_outside_classes(&self) -> impl Iterator<Item = &OrganizeError> {
-    self
-      .refused
-      .iter()
-      .filter(|refusal| !matches!(refusal, OrganizeError::LegacyUnheld { .. }))
-  }
-}
-
-/// Every v2 file one run's prune withheld, as one refusal (issue 0318).
-///
-/// **hv met the per-file form on Laksa**: a PREVIEW printed an `error:` line per
-/// unheld file, each carrying the same remedy, so a run that changed nothing
-/// read as a run that failed, over and over, until the lines that mattered had
-/// scrolled away. The cause is one fact about the estate -- the prune is all or
-/// nothing (AC-02.2) -- so it is said once, with its count and one remedy.
-#[derive(Debug)]
-pub struct LegacyUnheldClass<'a> {
-  /// `(path, reason)` for each withheld file, in report order. **Named, never
-  /// dropped**: a face that does not list them says that it narrowed.
-  pub files: Vec<(&'a std::path::Path, &'a str)>,
-}
-
-impl LegacyUnheldClass<'_> {
-  /// The class line, in the tense of the run.
-  ///
-  /// **A PREVIEW IS NOT AN `error:`.** It refused nothing; it is saying what the
-  /// apply would refuse, and an error from a run that did what it was asked is
-  /// the always-on alarm this verb's exit code already declines to raise. The
-  /// apply did refuse, so it says so in the past tense, as an error.
-  pub fn line(&self, performed: bool) -> String {
-    let files = self.files.len();
-    match performed {
-      true => format!(
-        "{}refused to prune the v2 tree: the store does not hold {files} file(s) under it, so this run removed none of the v2 tree",
-        crate::remedy::ERROR_PREFIX
-      ),
-      false => format!(
-        "would refuse to prune the v2 tree: the store does not hold {files} file(s) under it, so `intent organize --apply` would remove none of the v2 tree"
-      ),
-    }
-  }
-
-  /// The class's one remedy line.
-  pub fn remedy_line(&self) -> String {
-    format!("{}{LEGACY_UNHELD_REMEDY}", crate::remedy::REMEDY_PREFIX)
-  }
 }
 
 impl Plan {
@@ -1512,19 +1267,6 @@ impl Plan {
       digest: self.digest.clone(),
       ..Report::default()
     };
-
-    // **REPORTED IN BOTH MODES, AND THE RUN CONTINUES** (issue 0209), for the
-    // reason `refused` gives: one held thread must not make every other
-    // thread's realisation hostage to it. On `--apply` a refusal moves the exit
-    // code, so a script does not carry on believing the thread is realised.
-    for h in &self.held {
-      report.refused.push(OrganizeError::LegacyCopyPresent {
-        thread: h.thread.clone(),
-        dir: h.dir.clone(),
-        home: h.home.clone(),
-        files: h.files,
-      });
-    }
 
     // **GUARDED ONLY WHEN THERE IS SOMETHING IRREVERSIBLE TO GUARD.** A plan that
     // removes nothing has no step worth refusing over, and refusing a pure
@@ -1623,42 +1365,7 @@ impl Plan {
         &mut report.pruned,
         mode,
       );
-
-      // **THE v2 PRUNE, AND ITS PROOF IS THE INGEST RATHER THAN A RE-RENDER.**
-      // `gate` above asks the renderer to reproduce a view; nothing renders a
-      // v2 bucket file, so the question `leftovers` already answered -- does
-      // canon carry this file's content, at its sha -- IS the gate here.
-      //
-      // **ALL OR NOTHING** (AC-02.2): a prune that ingested nothing removes
-      // nothing, so one unheld path refuses every removal and names every one
-      // of them.
-      if self.leftovers.refuses() {
-        for withheld in &self.leftovers.withheld {
-          report.refused.push(OrganizeError::LegacyUnheld {
-            path: withheld.path.clone(),
-            reason: withheld.reason.clone(),
-          });
-        }
-      } else {
-        for path in &self.leftovers.removable {
-          if mode.performs() {
-            std::fs::remove_file(path).map_err(|e| io_err(path, e))?;
-          }
-          report.pruned_legacy.push(path.clone());
-        }
-        prune_emptied(
-          &self.estate_root,
-          &report.pruned_legacy,
-          &mut report.pruned,
-          mode,
-        );
-      }
     }
-    // **REPORTED WHATEVER THE PRUNE DID, INCLUDING WHEN IT REFUSED** (AC-02.4).
-    // A worklist of authored files naming a bucket path is for a human to read
-    // and act on in their own words; it is not a precondition of anything and
-    // nothing here rewrites one.
-    report.legacy_pointers.clone_from(&self.leftovers.pointers);
 
     // Every write goes through ONE `WriteSet`, which is where the
     // skip-when-unchanged already lives. Deciding here which files "need"

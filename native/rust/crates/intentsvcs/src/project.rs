@@ -760,8 +760,7 @@ pub struct Config {
   /// a leak** (issue 0040, hv). The field is gone from the type -- the prefix
   /// is fixed at `crate::id::THREAD_PREFIX` -- so a v2 project that
   /// declared it keeps the declaration in the file, byte for byte, instead of
-  /// having it silently dropped on the first rewrite. v3 does not honour it,
-  /// and [`crate::legacy`] says so out loud when the value is not the default.
+  /// having it silently dropped on the first rewrite. v3 does not honour it.
   /// Retiring a knob nobody uses is fine; retiring it under someone who does,
   /// without telling them, is the silent data change this thread exists to
   /// prevent.
@@ -1420,13 +1419,6 @@ impl TodoConfig {
   }
 }
 
-/// The retired `st_prefix` key, by the name it has in `config.json`.
-///
-/// Named once so the migrator's check and any later reader agree about what
-/// they are looking for. There is deliberately no `default_st_prefix()` beside
-/// it: a default would be a second place the prefix is decided.
-pub const RETIRED_ST_PREFIX_KEY: &str = "st_prefix";
-
 pub(crate) fn default_intent_dir() -> String {
   "intent".to_string()
 }
@@ -1435,12 +1427,13 @@ pub(crate) fn default_intent_dir() -> String {
 pub enum ProjectError {
   #[error("no Intent project found at or above {0} (looked for intent/.config/config.json)")]
   NotFound(String),
-  /// Issue 0333: a project from before v2.10, named as that rather than as no
-  /// project at all.
+  /// A config declaring an `intent_version` before [`OLDEST_READ_MAJOR`]: a
+  /// config this binary cannot read, answered as one ([`Self::config_unread`]).
   #[error(
-    "{0} is an Intent project from before v2.10 (its config is .intent/config.json), which this build cannot open"
+    "{path} declares Intent {declared}, a version before {major}, which this build cannot read",
+    major = OLDEST_READ_MAJOR
   )]
-  PreV210(String),
+  PreV3 { path: String, declared: String },
   /// Issue 0609: the root is a bare git repository, or sits inside one with no
   /// `.git` entry between them. Carries the repository's path.
   #[error("{0} is {bare}", bare = BARE_REPOSITORY)]
@@ -1466,9 +1459,10 @@ pub enum ProjectError {
 
 impl ProjectError {
   /// Whether this refusal is a config the binary cannot read at all: no config
-  /// file, a file it could not read, text that is not JSON, or JSON naming no
-  /// `intent_version`. Any other refusal of a config is one it read and whose
-  /// declaration it refused, such as an unknown key in a guard.
+  /// file, a file it could not read, text that is not JSON, JSON naming no
+  /// `intent_version`, or one declaring a version before
+  /// [`OLDEST_READ_MAJOR`]. Any other refusal of a config is one it read and
+  /// whose declaration it refused, such as an unknown key in a guard.
   ///
   /// **THE COMMIT GATE'S READERS ANSWER THE TWO DIFFERENTLY** (vc's ruling,
   /// 2026-10-23): could not judge for the first, which the gate fails open on,
@@ -1480,7 +1474,7 @@ impl ProjectError {
         .ok()
         .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
         .is_none_or(|config| config.get("intent_version").is_none()),
-      Self::NotFound(_) | Self::PreV210(_) | Self::BareRepository(_) | Self::Io { .. } => true,
+      Self::NotFound(_) | Self::PreV3 { .. } | Self::BareRepository(_) | Self::Io { .. } => true,
       Self::CanonNameNotAnId { .. } => false,
     }
   }
@@ -1492,10 +1486,9 @@ impl crate::remedy::Remedy for ProjectError {
       Self::NotFound(_) => {
         "run `intent init` here, or change to a directory inside an Intent project".to_string()
       }
-      // v2.19.0's own `intent upgrade` refuses a project below v2.9.0, and a
-      // pre-v2.10 project can be anything from v2.0 up, so the remedy names the
-      // extra hop rather than sending that part of its population to a refusal.
-      Self::PreV210(_) => "bring it to v2.19.0 with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then run `intent upgrade` with v3. v2.19.0's `intent upgrade` refuses a project below v2.9.0: take one of those to v2.11.14 with that release's `intent upgrade` (the v2.11.14 tag) before v2.19.0".to_string(),
+      Self::PreV3 { path, declared } => format!(
+        "this project's config declares Intent {declared}, a version before {OLDEST_READ_MAJOR}, and this build does not convert one: run `intent upgrade` with Intent 3.5.1, the last release that converts a project from before {OLDEST_READ_MAJOR}, then use this build. If the config was edited by accident and the project's canon is already Intent {OLDEST_READ_MAJOR}'s, `git checkout -- {path}` restores the committed config"
+      ),
       // A clone of the repository may already hold a project, so `intent init`
       // is named for a clone that has none rather than as the next command. The
       // files an earlier `init` left are named from `init`'s own list, so an
@@ -1520,10 +1513,10 @@ impl crate::remedy::Remedy for ProjectError {
   }
 }
 
-/// The v2 release a project must already be at before v3 can migrate it (D09,
-/// migration.md). Below it, v2's own `intent upgrade` runs first -- v3 never
-/// reimplements the v2 ledger.
-pub const MIGRATION_FLOOR: (u64, u64, u64) = (2, 19, 0);
+/// The oldest `intent_version` major this binary reads. A config declaring an
+/// earlier one is refused at [`Project::open`] as a config it cannot read
+/// ([`ProjectError::PreV3`]).
+pub const OLDEST_READ_MAJOR: u64 = 3;
 
 /// The canon directory's name under the intent directory, spelt once for
 /// [`CANON_DIR`] and the canon directories inside it (ST1c2db93 P7). A macro
@@ -2031,128 +2024,11 @@ pub fn canon_issue_rel(id: crate::id::IssueId) -> String {
   format!("{CANON_ISSUES_DIR}/{}.json", id.stored())
 }
 
-/// Whether this project's canon is in a form THIS binary can read.
-///
-/// The question exists because "no threads found" and "threads this binary
-/// cannot see" are the same empty vector, and answering the second as though
-/// it were the first is a confident lie about someone's work (AC-10.7).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Migration {
-  /// v3 canon, or a genuinely empty project.
-  Done,
-  Pending(Pending),
-}
-
-/// A project v3 must not answer questions about yet, and everything the
-/// operator needs to tell this state from an empty estate.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Pending {
-  /// What `config.json` declares, verbatim -- reported as it stands rather
-  /// than normalised, because the operator has to find it in the file.
-  pub declared: String,
-  /// Below [`MIGRATION_FLOOR`], so the remedy is the two-hop rather than a v3
-  /// migration that would refuse.
-  pub below_floor: bool,
-  /// Thread ids carrying v2 canon this binary cannot read, sorted.
-  pub legacy_threads: Vec<String>,
-}
-
-impl Pending {
-  /// What the operator should DO -- and the two states must not share a text,
-  /// because one of them names a command that will refuse them.
-  pub fn remedy(&self) -> String {
-    if self.below_floor {
-      let (major, minor, patch) = MIGRATION_FLOOR;
-      format!(
-        // Issue 0333: no tap carries `intent@2`; the v2 line's last release does.
-        "this project is below the v{major}.{minor}.{patch} migration floor -- bring it to that version with Intent v2.19.0 first (the v2.19.0 release: https://github.com/matthewsinclair/intent/releases/tag/v2.19.0, then its `intent upgrade`), then migrate it with v3"
-      )
-    } else {
-      "run `intent upgrade` to migrate this project to Intent v3".to_string()
-    }
-  }
-}
-
-impl std::fmt::Display for Pending {
-  /// One line, inside the existing refusal grammar. A second report shape
-  /// would be a second thing to learn for the same job.
-  ///
-  /// It deliberately does NOT name `config.json`. The remedy is a command, so
-  /// the path buys the operator nothing -- and it invites the one repair that
-  /// makes things worse: hand-editing `intent_version` to 3.0.0 produces a
-  /// config claiming v3 over canon that is not, which is the half-migrated
-  /// estate this whole check exists to catch. `doctor` still points at the
-  /// file, because pointing at artefacts is what `doctor` is for and its
-  /// finding carries the path in its own field.
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(
-      f,
-      "this project has not been migrated to Intent v3 -- it declares Intent {}",
-      self.declared
-    )?;
-    match self.legacy_threads.len() {
-      0 => Ok(()),
-      // Named, not just counted: a count alone is indistinguishable from a
-      // count of nothing, and the ids are how the operator recognises their
-      // own work. Capped, because this repository has 56 of them at f7434f1
-      // and an error message is not a listing.
-      n => write!(
-        f,
-        ", and {n} steel thread{} carr{} v2 canon this binary cannot read ({})",
-        if n == 1 { "" } else { "s" },
-        if n == 1 { "ies" } else { "y" },
-        summarise(&self.legacy_threads)
-      ),
-    }
-  }
-}
-
-fn summarise(ids: &[String]) -> String {
-  const SHOWN: usize = 3;
-  if ids.len() <= SHOWN {
-    return ids.join(", ");
-  }
-  format!(
-    "{}, and {} more",
-    ids[..SHOWN].join(", "),
-    ids.len() - SHOWN
-  )
-}
-
-/// Walk `dir` for v2 thread directories, descending exactly one level into
-/// anything that is not itself a thread -- which is what v2's `st/<STATUS>/`
-/// archive directories are.
-///
-/// One level, not arbitrary depth: v2 has exactly this shape, and a full walk
-/// would start reporting thread-shaped directories from unrelated trees
-/// (a vendored checkout, a fixture directory) as this project's own canon.
-fn collect_legacy(dir: &std::path::Path, descend: bool, out: &mut Vec<String>) {
-  let Ok(entries) = std::fs::read_dir(dir) else {
-    return;
-  };
-  for path in entries.filter_map(Result::ok).map(|e| e.path()) {
-    if !path.is_dir() || path.join("thread.json").is_file() {
-      continue;
-    }
-    match path.join("info.md").is_file() {
-      true => out.extend(
-        path
-          .file_name()
-          .and_then(|s| s.to_str())
-          .map(str::to_string),
-      ),
-      false if descend => collect_legacy(&path, false, out),
-      false => {}
-    }
-  }
-}
-
 /// `major.minor.patch`, ignoring any pre-release suffix.
 ///
-/// Returns `None` rather than guessing. An unparseable version means the
-/// declaration ABSTAINS -- the evidence check still applies -- because a typo
-/// in one config field must not brick the tool, and a version we cannot read
-/// is not evidence of anything in either direction.
+/// Returns `None` rather than guessing: a version that does not parse is not
+/// evidence of a version before [`OLDEST_READ_MAJOR`], so [`Project::open`]
+/// does not refuse on it.
 fn parse_version(text: &str) -> Option<(u64, u64, u64)> {
   let core = text.split(['-', '+']).next()?;
   let mut parts = core.split('.').map(str::parse::<u64>);
@@ -2305,6 +2181,10 @@ impl Project {
   /// the CLI's gate by way of [`Project::discover`], the daemon and the
   /// registry -- so a project an `intent init` once wrote into a bare
   /// repository is inert at all of them.
+  ///
+  /// A config declaring an `intent_version` before [`OLDEST_READ_MAJOR`] is
+  /// refused here too, as a config this binary cannot read
+  /// ([`ProjectError::PreV3`]), so every door refuses it the same way.
   pub fn open(root: &Path) -> Result<Self, ProjectError> {
     if let Some(repository) = bare_repository(root) {
       return Err(ProjectError::BareRepository(
@@ -2316,10 +2196,17 @@ impl Project {
       path: path.display().to_string(),
       source,
     })?;
-    let config = serde_json::from_str(&text).map_err(|source| ProjectError::Config {
+    let config: Config = serde_json::from_str(&text).map_err(|source| ProjectError::Config {
       path: path.display().to_string(),
       source,
     })?;
+    if parse_version(&config.intent_version).is_some_and(|(major, _, _)| major < OLDEST_READ_MAJOR)
+    {
+      return Err(ProjectError::PreV3 {
+        path: path.display().to_string(),
+        declared: config.intent_version,
+      });
+    }
     Ok(Self {
       root: root.to_path_buf(),
       config,
@@ -2333,27 +2220,12 @@ impl Project {
   /// meaning "am I in a project?", and those agree often enough to look correct
   /// and differ exactly when it matters (issue 0025).
   pub fn discover(start: &Path) -> Result<Self, ProjectError> {
-    // Issue 0333: a pre-v2.10 project keeps `.intent/config.json` beside
-    // `intent/st` or `stp/`. HOME's own `~/.intent` is user state, never a
-    // project, so it is passed over.
-    let home = crate::userstate::home().ok();
-    let mut pre_v210: Option<&Path> = None;
     for dir in start.ancestors() {
       if Self::config_path(dir).is_file() {
         return Self::open(dir);
       }
-      if pre_v210.is_none()
-        && home.as_deref() != Some(dir)
-        && dir.join(".intent/config.json").is_file()
-        && (dir.join("intent/st").is_dir() || dir.join("stp").is_dir())
-      {
-        pre_v210 = Some(dir);
-      }
     }
-    match pre_v210 {
-      Some(dir) => Err(ProjectError::PreV210(dir.display().to_string())),
-      None => Err(ProjectError::NotFound(start.display().to_string())),
-    }
+    Err(ProjectError::NotFound(start.display().to_string()))
   }
 
   pub fn root(&self) -> &Path {
@@ -2985,38 +2857,10 @@ impl Project {
   /// back named, which is the posture `sync` already takes on undecodable
   /// content.
   pub fn collect_attachments(&self, id: &str) -> (Vec<Attachment>, Vec<(String, String)>) {
-    self.collect_attachments_in(id, &self.thread_dir(id))
-  }
-
-  /// The same carry, against a thread directory the CALLER names.
-  ///
-  /// **This exists because a v2 thread is not at `intent/st/<ID>/`.** `intent
-  /// st done` MOVES a thread into `COMPLETED/`, so the migrator's walk covers
-  /// the top level and all three status buckets and hands back the directory it
-  /// actually found. Every other reader in that loop already takes it -- the
-  /// info parse, the acceptance parse, the work-package walk. The attachment
-  /// carry was the one site that reached back to [`Project::thread_dir`] and
-  /// re-derived the FLAT path, which for a bucketed thread does not exist.
-  ///
-  /// **AND IT FAILED AT rc 0, REPORTING NOTHING.** The walk of an absent
-  /// directory yields no files, refusals are produced per file so there were
-  /// none, and an attachment is not an AC/AT row so the row accounting
-  /// reconciled perfectly against zero. Measured on Devbin: 34 of 54 bucket
-  /// files carry content the store does not hold, and the estate's own restart
-  /// brief routes two of its five opening questions to bucket-only paths.
-  ///
-  /// `id` is still required and is NOT derivable from `dir`: it is what the
-  /// naming gate below builds a canon path and a URL from, and for a bucketed
-  /// thread the directory's parent is `COMPLETED/`, which is exactly what the
-  /// migration is removing.
-  pub fn collect_attachments_in(
-    &self,
-    id: &str,
-    dir: &Path,
-  ) -> (Vec<Attachment>, Vec<(String, String)>) {
+    let dir = self.thread_dir(id);
     let mut carried = Vec::new();
     let mut refused = Vec::new();
-    for rel in Project::files_in(dir) {
+    for rel in Project::files_in(&dir) {
       let path = dir.join(&rel);
       let name = self.relative(&path);
       match Project::classify(&rel) {
@@ -3111,9 +2955,7 @@ impl Project {
   /// the project's ignore rules (D29).
   ///
   /// An associated function because it consults nothing on `Project` -- the
-  /// same reason [`Project::classify`] is one. See
-  /// [`Project::collect_attachments_in`] for why the directory is a parameter
-  /// rather than something derived from an id.
+  /// same reason [`Project::classify`] is one.
   ///
   /// **IT WAS `thread_files_in` UNTIL 2026-09-05 AND THE BODY NEVER CHANGED.**
   /// Nothing in it is thread-specific -- its own doc said so, in the sentence
@@ -3183,97 +3025,6 @@ impl Project {
         path: self.relative(path),
         kind,
       })
-  }
-
-  /// Whether this project's canon is in a form this binary can read.
-  ///
-  /// TWO independent signals, and each closes a hole the other cannot see:
-  ///
-  /// - the **declaration** -- `intent_version` below 3 -- catches a project
-  ///   with nothing in it yet, which has no evidence to find and is still not
-  ///   a v3 project, because migration is what stamps the version;
-  /// - the **evidence** -- a thread directory with a v2 `info.md` and no v3
-  ///   `thread.json` -- catches a config claiming 3.0.0 over canon that is
-  ///   not, which is a HALF-migrated estate and strictly worse than an
-  ///   unmigrated one: half of it answers and half is invisible.
-  ///
-  /// `project_id` is deliberately not the marker, though D15's wording makes
-  /// it look like the obvious candidate. It is a migration-PROVENANCE stamp,
-  /// and a project created natively under v3 was never migrated at all, so
-  /// gating on it would refuse every project that never needed migrating.
-  ///
-  /// The evidence check is a `read_dir` plus two `stat`s per entry, and it is
-  /// paid on every read. Measured A/B on a 200-thread v3 project, debug build,
-  /// `intent st list` x60 interleaved: **+0.61 ms** against a 13.74 ms floor.
-  /// Interleaved and taking the minimum because the first attempt at this
-  /// measured the unchecked build as SLOWER -- process-spawn noise is larger
-  /// than the effect, so a before/after pair of runs says nothing.
-  ///
-  /// That is the price of never mistaking "cannot see it" for "it is not
-  /// there", and it is the right side of hv's daily-driver ruling: sync is
-  /// allowed to be expensive, reads are not, and half a millisecond is not
-  /// where reads become expensive.
-  pub fn migration(&self) -> Migration {
-    let parsed = parse_version(&self.config.intent_version);
-    let declared_pre_v3 = parsed.is_some_and(|(major, _, _)| major < 3);
-    let legacy_threads = self.legacy_thread_ids();
-
-    if !declared_pre_v3 && legacy_threads.is_empty() {
-      return Migration::Done;
-    }
-    Migration::Pending(Pending {
-      declared: self.config.intent_version.clone(),
-      below_floor: parsed.is_some_and(|v| v < MIGRATION_FLOOR),
-      legacy_threads,
-    })
-  }
-
-  /// Thread directories carrying v2 canon and no v3 canon, sorted.
-  ///
-  /// The discriminator is `thread.json` being ABSENT, never `info.md` being
-  /// present: v3 renders `info.md` as a generated view, so every healthy
-  /// migrated thread has both, and a rule keyed on `info.md` alone would flag
-  /// every project in existence.
-  ///
-  /// **Two levels, because v2 has two.** `intent st done` RELOCATES a thread
-  /// to `st/<STATUS>/<ID>/`, so a one-level scan sees only the threads that
-  /// are still open. Measured on this repository when this was one level: it
-  /// found ST0056 and missed the 55 threads under `COMPLETED/`, `CANCELLED/`
-  /// and `NOT-STARTED/`. The declaration signal happened to catch it anyway,
-  /// which is exactly how a hole like this survives -- the case it fails on is
-  /// a project whose live threads are migrated and whose ARCHIVE is not, and
-  /// that project would have read as fully migrated.
-  ///
-  /// **And the question is PER THREAD, not per directory, which is the half
-  /// that was missing and which made a successful migration unreadable.**
-  /// `collect_legacy` can only ask whether `thread.json` sits BESIDE the
-  /// `info.md` it found. After a migration it never does: canon is written to
-  /// `st/<ID>/` and the v2 original stays where v2 left it, so every archived
-  /// thread answers "no `thread.json` here" while its canon sits one directory
-  /// up. Measured on this estate: 56 threads migrated, exit 0, 311 files
-  /// written -- and then 55 ids reported unmigrated, every one of them with
-  /// `st/<ID>/thread.json` present. **The detector was flagging the SOURCE of
-  /// a migration that had already succeeded** (ic), and every verb but `info`
-  /// refused, writes included, with a remedy that loops: a second `upgrade`
-  /// exits 0, reports 311 files, and changes nothing.
-  ///
-  /// So an id with canon anywhere is SUPERSEDED wherever else it appears, not
-  /// pending. That is the same rule `7628a02b` gave the ingest walk when canon
-  /// began winning on re-read; this is the one reader that never got it.
-  ///
-  /// **The retain does NOT weaken the case the two-level scan exists for**, and
-  /// the two are told apart by the same fact rather than by a special case: a
-  /// genuinely unmigrated archive has no `st/<ID>/thread.json` to find, so it
-  /// survives the filter and still convicts. Both directions are driven, in
-  /// one fixture, in `unmigrated_project.rs` -- a filter tested only on the
-  /// estate it is meant to clear is indistinguishable from deleting the check.
-  fn legacy_thread_ids(&self) -> Vec<String> {
-    let mut ids = Vec::new();
-    collect_legacy(&self.st_dir(), true, &mut ids);
-    ids.sort();
-    ids.dedup();
-    ids.retain(|id| !self.thread_json(id).is_file());
-    ids
   }
 
   /// Every issue with committed canon, by id, sorted.
@@ -3439,20 +3190,37 @@ impl Project {
 mod tests {
   use super::*;
 
-  /// **THE PRE-v2.10 REMEDY NAMES THE HOP BELOW v2.9.0.** v2.19.0's own
-  /// `intent upgrade` refuses a project below v2.9.0 ("the upgrade floor is
-  /// v2.9.0"), and a project with `.intent/config.json` can be any v2 from 2.0
-  /// up, so a remedy naming v2.19.0 alone sent that part of its population to a
-  /// refusal. Driven with v2.19.0 on a v2.8.0 project before this changed.
+  /// **A CONFIG DECLARING A VERSION BEFORE 3 IS AN UNREADABLE CONFIG.** It is
+  /// refused at open, as a config this binary cannot read, so the commit gate's
+  /// readers answer could-not-judge for it and every other door refuses it,
+  /// and the refusal names the version it declares.
   #[test]
-  fn the_pre_v2_10_remedy_names_the_route_below_the_v2_9_floor() {
-    let remedy = crate::remedy::Remedy::remedy(&ProjectError::PreV210("p".to_string()));
-    assert!(
-      remedy.contains("below v2.9.0") && remedy.contains("v2.11.14"),
-      "the remedy sends a project below v2.9.0 to v2.19.0's refusal: {remedy}"
-    );
-  }
+  fn a_config_declaring_a_version_before_3_is_refused_as_unreadable() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let declared = format!("{}.0.0", OLDEST_READ_MAJOR - 1);
+    let path = Project::config_path(dir.path());
+    std::fs::create_dir_all(path.parent().expect("a config sits in a directory"))
+      .expect("config dir");
+    std::fs::write(&path, format!(r#"{{"intent_version":"{declared}"}}"#)).expect("seed");
 
+    let refused = Project::open(dir.path()).expect_err("a config before 3 is refused");
+    assert!(
+      matches!(&refused, ProjectError::PreV3 { declared: d, .. } if *d == declared),
+      "expected the pre-3 refusal naming {declared}, got {refused:?}"
+    );
+    assert!(
+      refused.config_unread(),
+      "a config before 3 must answer as unread"
+    );
+    assert!(
+      crate::remedy::Remedy::remedy(&refused).contains(&declared),
+      "the remedy names the version the config declares"
+    );
+
+    let current = format!("{OLDEST_READ_MAJOR}.0.0");
+    std::fs::write(&path, format!(r#"{{"intent_version":"{current}"}}"#)).expect("reseed");
+    Project::open(dir.path()).expect("a config declaring the oldest read version opens");
+  }
   fn git(args: &[&std::ffi::OsStr]) {
     let status = std::process::Command::new("git")
       .args(args)

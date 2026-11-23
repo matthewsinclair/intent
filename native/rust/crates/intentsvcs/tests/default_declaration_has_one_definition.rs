@@ -1,4 +1,4 @@
-//! ST0057 **AT-11.3, covering AC-11.3**: `intent init`, the migration and
+//! ST0057 **AT-11.3, covering AC-11.3**: `intent init`, the upgrade and
 //! `organize --default` are three WRITERS of `.intentfiles` and ONE definition
 //! of what the default declares.
 //!
@@ -64,12 +64,12 @@
 //! | mutation                                    | expected             | observed                            |
 //! | ------------------------------------------- | -------------------- | ----------------------------------- |
 //! | `init` writes a literal header              | proof red, writer 1  | red at the writer-1 assertion       |
-//! | the migration writes a literal              | proof red, writer 2  | red at the writer-2 assertion       |
+//! | the upgrade writes a literal                | proof red, writer 2  | red at the writer-2 assertion       |
 //! | the verb writes a literal                   | proof red, writer 3  | red at the writer-3 assertion       |
 //! | a line added to the function's header       | proof GREEN          | green -- all three moved together   |
 //! | the predicate reverted to `!is_closed()`    | corpus control red   | red at the corpus control           |
 //! | the predicate replaced by `false`           | both controls red    | both red, and the proof still GREEN |
-//! | the migration regenerates a present file    | present-arm red      | red at the present-arm assertion    |
+//! | the upgrade regenerates a present file      | present-arm red      | red at the present-arm assertion    |
 //!
 //! **THE `false` ROW IS THE WHOLE ARGUMENT FOR THE TWO CONTROLS, AND IT IS THE
 //! ONE I DID NOT PREDICT BEFORE RUNNING IT.** A `default_declaration` that
@@ -85,35 +85,27 @@
 //! FUNCTION must not redden the proof, or the test would punish every
 //! legitimate edit and teach a maintainer to pin literals.
 //!
-//! # AC-11.3's migration clause -- _realises only those threads_
+//! # AC-11.3's upgrade clause -- _realises only those threads_
 //!
-//! **THIS SECTION USED TO SAY THE CLAUSE WAS NOT COVERED HERE, AND IT IS NOW.**
-//! `the_migration_realises_only_what_it_declares` is below. When this file was
-//! written the migration declared the WIP set AFTER `migrate::plan` had already
-//! realised everything, so the declaration landed over a fully realised tree
-//! and the clause was unmet; the note said so and pointed at the gap. The
-//! behaviour landed 2026-08-27 (`migrate::plan` filters against the bytes it is
-//! about to write) and the assertion follows it.
+//! `the_upgrade_realises_only_what_it_declares` is below. The upgrade's plan
+//! filters against the declaration it is about to write, so it realises only
+//! the threads that declaration names.
 //!
-//! **WHAT THE CLAUSE CANNOT MEAN, AND THE TEST BELOW IS SHAPED BY IT.**
-//! `WriteSet` has no remove, so a v2 estate's non-WIP thread directories stay
-//! on disk holding their v2 content. "Realises only those threads" is therefore
-//! a claim about what the migration WRITES, never about what survives -- and
-//! the test asserts both halves: the v3-only view appears for the declared
-//! thread and for no other, and every undeclared thread's file is byte-identical
-//! to what it was before the run. **The residue is AC-11.4's state, not a
-//! hole**, and `organize` reports it as to-remove-and-blocked.
+//! **Writer 2 was the v2 conversion until v2 went** (`intent upgrade` no longer
+//! converts a v2 estate). It is now the upgrade of a 3.4.0 project with no
+//! manifest, which folds the same function's answer into the records: the
+//! same one definition, reached through the door that still writes it.
 //!
 //! # ST0096 WP-01: two of the three writers now write the records
 //!
 //! `init` makes a project born upgraded and writes no manifest, and the
-//! migration folds its declaration into each record's `realised` and removes
+//! upgrade folds its declaration into each record's `realised` and removes
 //! the file. So their output is compared as the realised SET the records
 //! declare, against the same function's answer read through
 //! [`realised_from`]. The verb still writes `.intentfiles` in 3.4.0's format,
 //! which is the corpus it is driven on here.
 
-use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate_in_git, v2_thread};
+use crate::common::{Fixture, facade_ctx, sample_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::intentfiles::{Realised, declared_by_records, default_declaration, realised_from};
 use intentsvcs::model::{Thread, ThreadStatus};
@@ -149,34 +141,14 @@ fn assert_no_manifest(project: &Project, who: &str) {
 /// This estate's threads and their statuses, as the tool holds them.
 ///
 /// **The INPUT comes from the tool and the OUTPUT comes from the function, and
-/// that is the whole shape of the assertion.** The test is not claiming to know
-/// which statuses the migrator assigned -- that is AC-10.3's question. It
-/// claims only that the manifest is this function applied to whatever they
-/// turned out to be.
+/// that is the whole shape of the assertion.** It claims only that the
+/// declaration is this function applied to whatever the statuses are.
 fn statuses(facade: &Facade) -> Vec<(String, ThreadStatus)> {
   facade
     .st_list()
     .iter()
     .map(|t| (t.id.stored(), t.status))
     .collect()
-}
-
-/// A v2 estate carrying one thread of each status v2 can express.
-///
-/// **Triage is absent because v2 has no such status** -- `legacy::thread_status`
-/// maps `tbc` to Not Started and nothing to Triage, deliberately. Corpus B
-/// below supplies it.
-fn v2_corpus() -> Fixture {
-  let fx = v2_estate_in_git();
-  v2_thread(&fx, "ST0001", "WIP");
-  v2_thread(&fx, "ST0002", "Not Started");
-  v2_thread(&fx, "ST0003", "On Hold");
-  v2_thread(&fx, "ST0004", "Completed");
-  v2_thread(&fx, "ST0005", "Cancelled");
-  // The estate is written first and committed last, which is both what the
-  // migration precondition requires and the order a real project reaches one in.
-  fx.git_commit_all();
-  fx
 }
 
 /// A canon thread at `id` with `status`, otherwise the sample.
@@ -189,7 +161,24 @@ fn thread_at(id: &str, status: ThreadStatus) -> Thread {
   t
 }
 
-/// A v3 estate whose WIP set is DIFFERENT from the v2 corpus's.
+/// A 3.4.0 project with no manifest, one thread at each status the default
+/// tells apart, for the upgrade to declare.
+///
+/// **Triage is left to the other corpus**, so the two corpora's WIP sets
+/// differ and the controls below can fail.
+fn upgrade_corpus() -> Fixture {
+  // 3.4.0's format with no `.intentfiles`, so the upgrade folds the status
+  // default into the records (ST0096 WP-01).
+  let fx = Fixture::ordinal();
+  fx.write_thread(&thread_at("ST0001", ThreadStatus::Wip));
+  fx.write_thread(&thread_at("ST0002", ThreadStatus::NotStarted));
+  fx.write_thread(&thread_at("ST0003", ThreadStatus::Hold));
+  fx.write_thread(&thread_at("ST0004", ThreadStatus::Completed));
+  fx.write_thread(&thread_at("ST0005", ThreadStatus::Cancelled));
+  fx
+}
+
+/// A v3 estate whose WIP set is DIFFERENT from the upgrade corpus's.
 ///
 /// Different on purpose: it is what makes
 /// `control_the_three_writers_do_not_all_write_the_same_bytes` able to fail, and
@@ -223,17 +212,18 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
     "`init` must declare the function's answer for an empty estate: nothing"
   );
 
-  // WRITER 2 -- the migration, through `Facade::upgrade` on a v2 estate.
-  let converted = v2_corpus();
-  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+  // WRITER 2 -- the upgrade, through `Facade::upgrade` on a 3.4.0 project
+  // with no manifest.
+  let converted = upgrade_corpus();
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a 3.4.0 project upgrades");
   let migrated =
-    Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
-  assert_no_manifest(migrated.project(), "the migration");
+    Facade::open(converted.project(), facade_ctx()).expect("open the upgraded project");
+  assert_no_manifest(migrated.project(), "the upgrade");
   assert_eq!(
     records_declare(&migrated),
     realised_from(&default_declaration(&statuses(&migrated), &[])),
-    "the migration must fold the function's answer for the corpus it just \
-     converted into the records"
+    "the upgrade must fold the function's answer for the corpus it just \
+     upgraded into the records"
   );
 
   // WRITER 3 -- the `organize --default` verb, on a different corpus again.
@@ -258,10 +248,10 @@ fn the_three_writers_all_derive_their_content_from_the_one_function() {
 /// above would hold for a caller using either rule.
 #[test]
 fn control_the_corpus_can_tell_the_candidate_definitions_apart() {
-  let converted = v2_corpus();
-  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+  let converted = upgrade_corpus();
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a 3.4.0 project upgrades");
   let migrated =
-    Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
+    Facade::open(converted.project(), facade_ctx()).expect("open the upgraded project");
   let corpus = statuses(&migrated);
 
   let wip_only = default_declaration(&corpus, &[]);
@@ -305,10 +295,10 @@ fn control_the_three_writers_do_not_all_write_the_same_bytes() {
     &Facade::open(Project::open(fresh.path()).expect("open"), facade_ctx()).expect("open"),
   );
 
-  let converted = v2_corpus();
-  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+  let converted = upgrade_corpus();
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a 3.4.0 project upgrades");
   let from_migration = records_declare(
-    &Facade::open(converted.project(), facade_ctx()).expect("open the converted estate"),
+    &Facade::open(converted.project(), facade_ctx()).expect("open the upgraded project"),
   );
 
   let declared = v3_corpus();
@@ -331,18 +321,18 @@ fn control_the_three_writers_do_not_all_write_the_same_bytes() {
 
 /// AC-11.3's other half for the re-run: **present means touch nothing.**
 ///
-/// The arm that fails SILENTLY. A migration that regenerated the declaration
-/// would look identical on a fresh conversion and would quietly discard a hand
-/// realisation on every re-run. Once converted, the declaration is on the
+/// The arm that fails SILENTLY. An upgrade that regenerated the declaration
+/// would look identical on a first run and would quietly discard a hand
+/// realisation on every re-run. Once upgraded, the declaration is on the
 /// records (ST0096 WP-01), so the hand realisation is `st hydrate`'s, on the
 /// record of a COMPLETED thread, which no regeneration from status produces.
 #[test]
 fn upgrade_over_a_present_manifest_changes_not_one_byte() {
-  let converted = v2_corpus();
-  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+  let converted = upgrade_corpus();
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a 3.4.0 project upgrades");
   let project = converted.project();
 
-  let mut facade = Facade::open(project.clone(), facade_ctx()).expect("open the converted estate");
+  let mut facade = Facade::open(project.clone(), facade_ctx()).expect("open the upgraded project");
   facade
     .hydrate(&intentsvcs::address::Address {
       authority: None,
@@ -359,7 +349,7 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
   drop(facade);
   let by_hand = std::fs::read_to_string(project.thread_json("ST0004")).expect("ST0004's record");
 
-  Facade::upgrade(&project, &facade_ctx()).expect("a converted estate re-runs");
+  Facade::upgrade(&project, &facade_ctx()).expect("an upgraded project re-runs");
   assert_eq!(
     std::fs::read_to_string(project.thread_json("ST0004")).expect("ST0004's record"),
     by_hand,
@@ -367,40 +357,25 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
      status discards every hand realisation the estate had recorded"
   );
 }
-/// **AC-11.3's MIGRATION CLAUSE: _realises only those threads_.**
+/// **AC-11.3's UPGRADE CLAUSE: _realises only those threads_.**
 ///
 /// The corpus is one WIP thread and four that are not, so the declared set and
-/// the converted set genuinely differ -- **on a corpus of WIP threads alone this
-/// test would pass against a migration that realised everything**, which is the
+/// the upgraded set genuinely differ -- **on a corpus of WIP threads alone this
+/// test would pass against an upgrade that realised everything**, which is the
 /// same vacuity `control_the_corpus_can_tell_the_candidate_definitions_apart`
 /// exists to refuse one function along.
-///
-/// **`acceptance.md` IS THE INSTRUMENT BECAUSE v2 HAD NO SUCH FILE.** Its
-/// presence is unambiguous evidence that THIS run rendered a v3 view for that
-/// thread; asking whether `info.md` exists could not tell a view the migration
-/// wrote from the v2 file that was always there.
-///
-/// **AN UNDECLARED THREAD'S v2 VIEW GOES, AND ITS ATTACHMENT STAYS** (issue
-/// 0597). Nothing renders over the v2 `info.md` of a thread the migration does
-/// not declare, so the prune removes it as a v2 leftover once canon holds the
-/// thread; the attachment beside it carries the same v2 stamp and is kept byte
-/// for byte, because the prune takes generated views and never the directory.
 #[test]
-fn the_migration_realises_only_what_it_declares() {
-  let converted = v2_corpus();
-  let v2_stamped = converted.read("intent/st/ST0003/info.md");
-  converted.write_file("intent/st/ST0003/design.md", &v2_stamped);
-  converted.git_commit_all();
-  let before = crate::common::tree(converted.root());
+fn the_upgrade_realises_only_what_it_declares() {
+  let converted = upgrade_corpus();
 
-  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
+  Facade::upgrade(&converted.project(), &facade_ctx()).expect("a 3.4.0 project upgrades");
 
   let after = crate::common::tree(converted.root());
   let migrated =
-    Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
+    Facade::open(converted.project(), facade_ctx()).expect("open the upgraded project");
 
   // The declaration is folded into the records (ST0096 WP-01).
-  assert_no_manifest(migrated.project(), "the migration");
+  assert_no_manifest(migrated.project(), "the upgrade");
   let declared: Vec<String> = migrated
     .st_list()
     .iter()
@@ -410,30 +385,17 @@ fn the_migration_realises_only_what_it_declares() {
   assert_eq!(
     declared,
     vec!["ST0001".to_string()],
-    "the corpus has exactly one WIP thread, so the migration must declare exactly it"
+    "the corpus has exactly one WIP thread, so the upgrade must declare exactly it"
   );
 
   assert!(
     after.contains_key("intent/st/ST0001/acceptance.md"),
-    "the declared thread was not realised -- the migration wrote no v3 view for it"
+    "the declared thread was not realised -- the upgrade wrote no view for it"
   );
-
   for id in ["ST0002", "ST0003", "ST0004", "ST0005"] {
     assert!(
       !after.contains_key(&format!("intent/st/{id}/acceptance.md")),
-      "{id} is NOT declared and the migration realised it anyway"
-    );
-    let rel = format!("intent/st/{id}/info.md");
-    assert!(
-      before.contains_key(&rel) && !after.contains_key(&rel),
-      "{id} is undeclared, so its v2 {rel} is a leftover nothing renders over, and the \
-       prune removes it"
+      "{id} is NOT declared and the upgrade realised it anyway"
     );
   }
-  let attachment = "intent/st/ST0003/design.md";
-  assert_eq!(
-    after.get(attachment),
-    before.get(attachment),
-    "the attachment beside an undeclared thread's v2 view is kept byte for byte"
-  );
 }

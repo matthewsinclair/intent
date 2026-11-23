@@ -143,8 +143,6 @@ mod attachment_naming_gate;
 mod attachment_path_must_name_a_place_in_the_thread;
 #[path = "attachment_put_refuses_what_it_cannot_carry.rs"]
 mod attachment_put_refuses_what_it_cannot_carry;
-#[path = "authored_row_round_trip.rs"]
-mod authored_row_round_trip;
 #[path = "authored_sections_have_one_form.rs"]
 mod authored_sections_have_one_form;
 #[path = "backup_missing.rs"]
@@ -309,60 +307,16 @@ mod intentfiles_grammar;
 mod intentfiles_is_the_list;
 #[path = "intentfiles_names_artefacts_only.rs"]
 mod intentfiles_names_artefacts_only;
-#[path = "issue_estate.rs"]
-mod issue_estate;
 #[path = "l5_asks_only_about_criteria_still_in_scope.rs"]
 mod l5_asks_only_about_criteria_still_in_scope;
-#[path = "legacy_at_citation_annotation.rs"]
-mod legacy_at_citation_annotation;
-#[path = "legacy_at_status_annotation.rs"]
-mod legacy_at_status_annotation;
-#[path = "legacy_at_unbalanced_bracket.rs"]
-mod legacy_at_unbalanced_bracket;
-#[path = "legacy_at_without_a_subject.rs"]
-mod legacy_at_without_a_subject;
-#[path = "legacy_bucket_attachments.rs"]
-mod legacy_bucket_attachments;
-#[path = "legacy_bucketed_residue.rs"]
-mod legacy_bucketed_residue;
-#[path = "legacy_citation_and_prose_covers.rs"]
-mod legacy_citation_and_prose_covers;
-#[path = "legacy_covers_plus.rs"]
-mod legacy_covers_plus;
-#[path = "legacy_covers_token_rule.rs"]
-mod legacy_covers_token_rule;
-#[path = "legacy_document_conservation.rs"]
-mod legacy_document_conservation;
-#[path = "legacy_leftovers.rs"]
-mod legacy_leftovers;
-#[path = "legacy_marker_and_descope.rs"]
-mod legacy_marker_and_descope;
-#[path = "legacy_row_accounting.rs"]
-mod legacy_row_accounting;
-#[path = "legacy_satisfied_verdict.rs"]
-mod legacy_satisfied_verdict;
-#[path = "legacy_scope_carry.rs"]
-mod legacy_scope_carry;
-#[path = "legacy_unread_field.rs"]
-mod legacy_unread_field;
-#[path = "legacy_vocabulary.rs"]
-mod legacy_vocabulary;
 #[path = "lifecycle_verbs_edit_the_list.rs"]
 mod lifecycle_verbs_edit_the_list;
 #[path = "mandatory_fields_reach_a_reader.rs"]
 mod mandatory_fields_reach_a_reader;
 #[path = "marker_has_one_home.rs"]
 mod marker_has_one_home;
-#[path = "migrate_hooks_continuity.rs"]
-mod migrate_hooks_continuity;
-#[path = "migrate_refusal.rs"]
-mod migrate_refusal;
-#[path = "migrate_v2_project.rs"]
-mod migrate_v2_project;
 #[path = "migration_dirty_check_reads_content.rs"]
 mod migration_dirty_check_reads_content;
-#[path = "migrator_determinism.rs"]
-mod migrator_determinism;
 #[path = "migrator_population_is_canon.rs"]
 mod migrator_population_is_canon;
 #[path = "model_laws.rs"]
@@ -403,8 +357,6 @@ mod test_target_topology_guard;
 mod the_source_tokeniser_is_measured;
 #[path = "the_usage_endpoint_names_each_failure.rs"]
 mod the_usage_endpoint_names_each_failure;
-#[path = "upgrade_dehydrates_undeclared_thread_views.rs"]
-mod upgrade_dehydrates_undeclared_thread_views;
 
 #[path = "a_removed_file_leaves_the_file_index.rs"]
 mod a_removed_file_leaves_the_file_index;
@@ -448,8 +400,6 @@ mod organize_prunes_what_it_emptied;
 mod output_shape;
 #[path = "pin_writes_to_the_list.rs"]
 mod pin_writes_to_the_list;
-#[path = "preamble_conservation.rs"]
-mod preamble_conservation;
 #[path = "prose_ingest_fts.rs"]
 mod prose_ingest_fts;
 #[path = "realisation_is_recorded.rs"]
@@ -464,8 +414,6 @@ mod record_timestamps;
 mod records_list_ordinals_by_number_then_hashed_records_by_creation;
 #[path = "refused_ingest_blocks_egest.rs"]
 mod refused_ingest_blocks_egest;
-#[path = "related_links.rs"]
-mod related_links;
 #[path = "related_links_have_their_own_verbs.rs"]
 mod related_links_have_their_own_verbs;
 #[path = "remedy_coverage.rs"]
@@ -529,8 +477,6 @@ mod sync_scope;
 mod sync_to_disk_materialises_a_canon_authored_attachment;
 #[path = "sync_to_store_keeps_board_rows.rs"]
 mod sync_to_store_keeps_board_rows;
-#[path = "template_pins.rs"]
-mod template_pins;
 #[path = "text_realisation.rs"]
 mod text_realisation;
 #[path = "the_archive_block_is_kept_in_place.rs"]
@@ -547,8 +493,6 @@ mod the_estate_reader_pins_claude_codes_session_fields;
 mod the_index_is_built_from_the_tree_and_read_from_the_store;
 #[path = "the_index_scope_is_the_repository.rs"]
 mod the_index_scope_is_the_repository;
-#[path = "the_migrator_says_what_it_did_not_carry.rs"]
-mod the_migrator_says_what_it_did_not_carry;
 #[path = "the_one_mint.rs"]
 mod the_one_mint;
 #[path = "the_semantic_tier_is_staged_and_its_seams_hold.rs"]
@@ -561,16 +505,12 @@ mod the_switch_points_the_link_set;
 mod the_tree_function_names_the_running_tree;
 #[path = "the_upgrade_writes_the_releases_layout.rs"]
 mod the_upgrade_writes_the_releases_layout;
-#[path = "thread_body_conservation.rs"]
-mod thread_body_conservation;
 #[path = "thread_prose_carried.rs"]
 mod thread_prose_carried;
 #[path = "todo_watermark.rs"]
 mod todo_watermark;
 #[path = "triples_are_the_shared_derivation.rs"]
 mod triples_are_the_shared_derivation;
-#[path = "unmigrated_project.rs"]
-mod unmigrated_project;
 #[path = "unparsed_state.rs"]
 mod unparsed_state;
 #[path = "unpin_removes_from_the_list.rs"]
@@ -613,8 +553,6 @@ mod wb_writes_are_recorded;
 mod wbmigrate_reads_a_board;
 #[path = "wp_prose_roundtrip.rs"]
 mod wp_prose_roundtrip;
-#[path = "wp_scaffolding_drop.rs"]
-mod wp_scaffolding_drop;
 #[path = "write_moves_only_what_changed.rs"]
 mod write_moves_only_what_changed;
 #[path = "write_path_canon_always.rs"]

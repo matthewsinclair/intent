@@ -629,7 +629,7 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
   ),
   (
     "upgrade",
-    "unmigrated_project.rs -- it needs a pre-migration v2 project, not a v3 fixture",
+    "the_upgrade_writes_the_releases_layout.rs and intent-cli/tests/upgrade_command.rs -- it needs a project in an earlier canon format, not a fixture born upgraded",
   ),
   (
     "organize",

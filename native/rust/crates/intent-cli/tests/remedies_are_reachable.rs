@@ -13,11 +13,11 @@
 //!
 //! **A STATIC SCAN IS ALSO THE WRONG POPULATION, AND ITS OWN POSITIVE CONTROL
 //! SAID SO.** A scan of lines containing `remedy:` cannot see a DELEGATED
-//! remedy: `FacadeError::Unmigrated(pending) => pending.remedy()` puts the
-//! literal in a `Remedy` impl one call away, and `unmigrated_project.rs`
-//! already asserts that refusal names `intent upgrade`. **The instrument could
-//! not contain the one instance the estate already tests for**, which is what
-//! sent this file to a dynamic harvest.
+//! remedy: `ProjectError::NotFound`'s puts the literal in a `Remedy` impl one
+//! call away, and `lang_surface.rs` already asserts that refusal names
+//! `intent init`. **The instrument could not contain the one instance the
+//! estate already tests for**, which is what sent this file to a dynamic
+//! harvest.
 //!
 //! # What the criterion actually forbids, in two shapes
 //!
@@ -551,9 +551,9 @@ fn every_emitted_remedy_names_a_verb_this_build_has_wired() {
 /// which is `flag_reachability.rs`'s hardest-won lesson: a control built from
 /// the same list as the scanner can only confirm the shapes that list already
 /// has, and is structurally unable to find a missing one. So the instance
-/// pinned here is one the ESTATE asserts elsewhere -- `unmigrated_project.rs`
-/// requires the unmigrated refusal to name `intent upgrade` -- and not one this
-/// file's own regex found.
+/// pinned here is one the ESTATE asserts elsewhere -- `lang_surface.rs`
+/// requires discovery's refusal outside a project to name `intent init` --
+/// and not one this file's own regex found.
 ///
 /// **IT IS ALSO THE EXACT INSTANCE A STATIC SCAN COULD NOT SEE**, because that
 /// remedy is delegated through a `Remedy` impl and never appears on a line
@@ -569,29 +569,23 @@ fn the_harvest_reaches_a_remedy_the_estate_asserts_elsewhere() {
      an empty set and would pass on any binary whatever"
   );
 
-  let unmigrated = tempfile::tempdir().expect("tempdir");
-  std::fs::create_dir_all(unmigrated.path().join("intent/.config")).expect("mkdir");
-  std::fs::write(
-    unmigrated.path().join("intent/.config/config.json"),
-    "{\"intent_version\":\"2.19.0\",\"project_name\":\"U\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}\n",
-  )
-  .expect("write config");
+  let outside = tempfile::tempdir().expect("tempdir");
   let out = crate::common::intent()
     .args(["st", "list"])
-    .current_dir(unmigrated.path())
+    .current_dir(outside.path())
     .env("HOME", fx.home.path())
     .output()
     .expect("runs");
   let text = String::from_utf8_lossy(&out.stderr).into_owned();
   assert!(
     text.contains("remedy: "),
-    "the unmigrated refusal carries no remedy, so the delegated-remedy shape this file exists to \
+    "discovery's refusal carries no remedy, so the delegated-remedy shape this file exists to \
      reach has stopped existing: {text}"
   );
   assert!(
-    references(&text).iter().any(|r| r == "upgrade"),
-    "the reference extractor did not find `intent upgrade` in the unmigrated refusal, which \
-     `unmigrated_project.rs` asserts is there -- so the extractor, not the estate, is what \
+    references(&text).iter().any(|r| r == "init"),
+    "the reference extractor did not find `intent init` in discovery's refusal, which \
+     `lang_surface.rs` asserts is there -- so the extractor, not the estate, is what \
      changed: {text}"
   );
 }
@@ -996,7 +990,7 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
   assert!(
     !refs.is_empty(),
     "no command references were extracted from any `remedy()` body, which cannot be right while \
-     the estate asserts elsewhere that the unmigrated refusal names `intent upgrade`"
+     the estate asserts elsewhere that discovery's refusal names `intent init`"
   );
 
   let inherited: BTreeSet<String> = INHERITED_UNREACHABLE

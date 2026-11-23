@@ -807,10 +807,8 @@ impl TShirt {
   /// **Case-insensitive, and that is not a seventh value.** `l` and `L` are the
   /// same one of the six the dispatch table declares; requiring the shift key
   /// would refuse a correct answer over its typography. Anything outside the six
-  /// is `None` -- v2's long forms (`Small`, `Medium`) are a FOREIGN vocabulary
-  /// read at ingest, and [`crate::legacy`] adds them there rather than here,
-  /// because the set an operator may type and the set v2 may have written are
-  /// different questions that happen to overlap.
+  /// is `None`: a long form (`Small`, `Medium`) a record carries is kept as
+  /// written, never parsed into one of the six.
   pub fn parse(raw: &str) -> Option<Self> {
     let want = raw.trim().to_ascii_lowercase();
     Self::ALL

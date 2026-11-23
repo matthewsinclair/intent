@@ -1,4 +1,4 @@
-//! `intent upgrade` -- the migration door, driven through the real binary.
+//! `intent upgrade` -- the upgrade door, driven through the real binary.
 //!
 //! The facade-level tests prove `Facade::upgrade` does the right thing when
 //! called. They cannot prove the verb is REACHABLE, and reachability was the
@@ -10,36 +10,19 @@
 //! So these tests drive the process. What they pin is narrow and each clause
 //! earns its place:
 //!
-//!   1. the door opens, converts, and stamps the version LAST;
-//!   2. running it again is byte-identical and SAYS it read from canon;
-//!   3. a blocked estate is left exactly as it was found, stamp included.
+//!   1. the door opens and leaves the store's directory gitignored;
+//!   2. running it again is byte-identical;
+//!   3. a refused project is left exactly as it was found, stamp included.
 //!
 //! (3) is the one that would be expensive to get wrong, and it is the one a
 //! facade test cannot make on its own: "nothing was written" is a claim about
 //! the filesystem after a process exited, not about a return value.
 //!
-//! # This file is **AT-10.16**, AC-10.3's second covering row
+//! # It was AT-10.16, AC-10.3's covering row at the binary
 //!
-//! It was covering some of AC-10.3's limbs before it carried any
-//! contract id at all -- canon emitted, gitignore converged (including the
-//! negative that the rule is a PATH rule and not `*.db`), and now the stamp --
-//! **driven end to end through the shipped binary, while the row read
-//! `to-write` and a second test was written for the same criterion.**
-//!
-//! **This is yet another instance of that class in one day and the first where
-//! the uncited coverage was PARTIAL, which is the harder kind to find.** The
-//! practice that caught the others is subject-grep-first-then-drive-the-verb; a
-//! subject grep that hits this file tells you it touches `upgrade` and
-//! **nothing about WHICH limbs**, so the coverage still has to be read out line
-//! by line. There is no cheaper instrument for the partial case.
-//!
-//! **Two rows and not one widened row** (vc, and it is `AT-10.15`'s precedent):
-//! the schema gives one `file` per row, the estate already does one-AC-two-ATs
-//! at AC-00.7, AC-00.9, AC-00.11 and AC-03.7, and the AND gate then holds
-//! AC-10.3 open until both are green. `AT-10.3` cites the LIBRARY layer, the
-//! tests over `Facade::upgrade`. This cites the BINARY. A verb can be correct
-//! in the library and unreachable through the door -- which is the gap this
-//! file was created for and is recorded above.
+//! AC-10.3 asked a v2 estate to convert in one commit. ST1c2db93 U4 removed
+//! the v2 conversion, so AC-10.3 is withdrawn and AT-10.16 is n/a; the arms
+//! here drive `intent upgrade` on a v3 project through the shipped binary.
 
 use std::collections::BTreeMap;
 
@@ -80,25 +63,27 @@ fn run_under_home(
   )
 }
 
-/// A project declaring v2, which is what the migrator is for.
+/// A project whose `config.json` declares `version` and nothing else.
 ///
-/// **The declared version is a v2 one and not 3.0.0**, unlike
-/// `ingest_command`'s fixture: `ingest` reads v2 markdown into a project that
-/// is already v3, and this verb is the transition itself. Stating it as v2 is
-/// what makes the stamp observable -- against a v3 fixture the most important
-/// assertion in this file would pass without the code doing anything.
-///
-/// **The version is a parameter because the floor is a behaviour**, and the
-/// only honest way to test a floor is with the same estate either side of it.
-/// Put `root` under git with its estate COMMITTED, which is what `0271`'s
-/// migration preconditions require: a repository (the documented rollback is
-/// `git revert <the migration commit>`, and there is nothing to revert without
-/// one) and a clean tree (a migration commit assembled over uncommitted work
-/// could not be reverted without taking that work too).
+/// **The version is a parameter because the refusal is a behaviour**: a
+/// project declaring a v2 version is refused, and one declaring a v3 version
+/// is the ordinary project the other arms drive.
+fn project_declaring(dir: &std::path::Path, version: &str) {
+  std::fs::create_dir_all(dir.join("intent/.config")).expect("mkdir");
+  std::fs::write(
+    dir.join("intent/.config/config.json"),
+    format!(
+      "{{\"intent_version\":\"{version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}}\n"
+    ),
+  )
+  .expect("write config");
+}
+
+/// Put `root` under git with its estate COMMITTED, so the upgrade starts from
+/// a clean tree and what it changed is what `git status` shows.
 ///
 /// **CALLED AFTER THE ESTATE IS WRITTEN, NEVER BEFORE.** Committing first would
-/// leave every file that follows untracked, which is dirty, and the fixture
-/// would be refused for the correct reason while looking like it was set up.
+/// leave every file that follows untracked, which is dirty.
 fn git_ready(root: &std::path::Path) {
   for args in [
     ["init", "-q"].as_slice(),
@@ -118,17 +103,6 @@ fn git_ready(root: &std::path::Path) {
       .success();
     assert!(ok, "git {args:?} failed at {}", root.display());
   }
-}
-
-fn v2_project(dir: &std::path::Path, version: &str) {
-  std::fs::create_dir_all(dir.join("intent/.config")).expect("mkdir");
-  std::fs::write(
-    dir.join("intent/.config/config.json"),
-    format!(
-      "{{\"intent_version\":\"{version}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"rust\"]}}\n"
-    ),
-  )
-  .expect("write config");
 }
 
 fn declared_version(dir: &std::path::Path) -> String {
@@ -220,112 +194,52 @@ fn first_difference(
     .map(|p| format!("{p} appeared on the second run"))
 }
 
-/// The door opens, converts the estate, and stamps the version.
+/// **Running it twice is byte-identical, and the store's directory is
+/// ignored.**
+///
+/// Under the fix-forward ruling an interrupted upgrade is recovered by running
+/// it again, so a re-run that changed anything would make the documented
+/// remedy destructive. The plain re-run is the cheap half and the one that
+/// regresses silently.
 #[test]
-fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
+fn running_it_twice_leaves_the_tree_byte_identical() {
   let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
-  crate::common::v2_thread(dir.path(), "ST0002", "Completed");
-
-  assert_eq!(
-    declared_version(dir.path()),
-    "2.19.0",
-    "the fixture must start as v2 or this test proves nothing"
-  );
-
-  git_ready(dir.path());
-  let (_, err, code) = run(&["upgrade"], dir.path());
-  assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
-  assert!(
-    err.contains("2 thread(s)"),
-    "it reports what it converted: {err}"
-  );
-
-  // The stamp. Written LAST, so its presence means every earlier step landed.
-  //
-  // **THIS WAS `assert_ne!(.., "2.19.0")` AND THAT ASSERTED THE WRONG THING.**
-  // It said the version CHANGED, not that it is right -- passing on a stamp of
-  // `banana`, of `2.19.1`, of anything at all -- in the only test that drives
-  // the stamp end to end through the binary. Required by vc 2026-08-20, and it
-  // is the five-limbs argument arriving INSIDE a limb: one "it converted"
-  // passing over a wrong value.
-  //
-  // Equality against the binary's own `INTENT_VER` is the identity claim; the
-  // major-3 check is the CRITERION's claim and is independent of that constant,
-  // so it still fails if `INTENT_VER` is itself ever wrong.
-  let stamped = declared_version(dir.path());
-  assert_eq!(
-    stamped,
-    intentsvcs::faces::INTENT_VER,
-    "the migrated project does not declare the version of the binary that migrated it, \
-     so v2 tooling would go on treating this estate as its own"
-  );
-  assert!(
-    stamped.starts_with("3."),
-    "the criterion says 3.0.0: {stamped:?}"
-  );
-
-  // Canon, which is what the estate is FOR.
-  for id in ["ST0001", "ST0002"] {
-    assert!(
-      dir
-        .path()
-        .join("intent/.canon/st")
-        .join(format!("{id}.json"))
-        .is_file(),
-      "no committed canon for {id}"
-    );
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "rerun-fixture"], root);
+  assert_eq!(code, 0, "init: {err}");
+  for title in ["A thread", "Another thread"] {
+    let (_, err, code) = run(&["st", "new", title], root);
+    assert_eq!(code, 0, "st new: {err}");
   }
 
-  // The store's directory is ignored by the same operation that creates it,
-  // so a migrated project cannot commit a database by accident.
-  let ignored = std::fs::read_to_string(dir.path().join(".gitignore")).unwrap_or_default();
+  git_ready(root);
+  let (_, err1, code1) = run(&["upgrade"], root);
+  assert_eq!(code1, 0, "first run: {err1}");
+  let after_first = tree(root);
+
+  // **Anti-vacuity.** Two empty trees compare equal, so the comparison below
+  // is only worth running if the first one left canon to compare.
+  assert!(
+    after_first.keys().any(|p| p.starts_with("intent/.canon/")),
+    "the first run left no canon, so comparing the trees would prove nothing"
+  );
+
+  // The store's directory is ignored by the same operation, so an upgraded
+  // project cannot commit a database by accident.
+  let ignored = std::fs::read_to_string(root.join(".gitignore")).unwrap_or_default();
   assert!(
     ignored.lines().any(|l| l.trim() == "intent/.cache/"),
-    "the runtime store is not gitignored after a migration: {ignored:?}"
+    "the runtime store is not gitignored after an upgrade: {ignored:?}"
   );
   assert!(
     !ignored.contains("*.db"),
     "the ignore rule is a PATH rule -- `*.db` would swallow a database the \
      user wants tracked: {ignored:?}"
   );
-}
 
-/// **Running it twice is byte-identical, and the second run says why.**
-///
-/// This is the property the cutover rests on. Under the fix-forward ruling an
-/// interrupted migration is recovered by running it again, so a re-run that
-/// changed anything would make the documented remedy destructive -- which it
-/// was, until canon-wins landed: Phase A re-read what Phase B had written and
-/// the estate grew by a few hundred bytes every time, monotonically, with every
-/// count reconciling and nothing blocking.
-///
-/// The SIGKILL arm belongs to the interruption harness and is deliberately not
-/// duplicated here. This is the plain re-run, which is the cheap half and the
-/// one that regresses silently.
-#[test]
-fn running_it_twice_leaves_the_tree_byte_identical() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
-  crate::common::v2_thread(dir.path(), "ST0002", "Completed");
-
-  git_ready(dir.path());
-  let (_, err1, code1) = run(&["upgrade"], dir.path());
-  assert_eq!(code1, 0, "first run: {err1}");
-  let after_first = tree(dir.path());
-
-  // **Anti-vacuity.** Two empty trees compare equal, so the comparison below
-  // is only worth running if the first one actually produced the canon.
-  assert!(
-    after_first.contains_key("intent/.canon/st/ST0001.json"),
-    "the first run wrote no canon, so comparing the trees would prove nothing"
-  );
-
-  let (_, err2, code2) = run(&["upgrade"], dir.path());
+  let (_, err2, code2) = run(&["upgrade"], root);
   assert_eq!(code2, 0, "second run: {err2}");
-  let after_second = tree(dir.path());
+  let after_second = tree(root);
 
   assert_eq!(
     after_first.len(),
@@ -337,213 +251,45 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
     "a re-run is not idempotent: {}",
     first_difference(&after_first, &after_second).unwrap_or_default()
   );
-
-  // **It reports the re-run rather than presenting it as fresh work.** The
-  // accretion was invisible precisely because every count reconciled and the
-  // command looked like it had done the job each time.
-  assert!(
-    err2.contains("already migrated"),
-    "the second run did not say it read from committed canon: {err2}"
-  );
 }
 
-/// **A blocked estate is left exactly as it was found, stamp included.**
+/// **A project declaring a version before 3 is refused, never converted, and
+/// is left exactly as it was found, stamp included.**
 ///
-/// The refusal is structural -- the plan is an uncommitted `WriteSet` -- but
-/// "nothing was written" is a claim about the filesystem after the process
-/// exited, so it is asserted where it can actually be observed.
-///
-/// The stamp is the clause that matters most. A refusal that stamped anyway
-/// would leave the estate declaring v3 with no canon: v2 refuses a project
-/// from the future and v3 finds nothing to read, so the project would be
-/// locked out of both toolchains at once with no tool left to repair it.
+/// This build does not read such a config, so the upgrade refuses at discovery,
+/// before it reads or writes anything. "Nothing was written"
+/// is a claim about the filesystem after the process exited, so it is
+/// asserted where it can be observed.
 #[test]
-fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
+fn a_v2_project_is_refused_and_left_as_it_was() {
   let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
-  // Residue in a LIVE thread, which blocks (hv's ruling: closed threads carry).
-  let info = dir.path().join("intent/st/ST0001/info.md");
-  let text = std::fs::read_to_string(&info).expect("read");
-  std::fs::write(&info, text.replace("status: WIP", "status: Banana")).expect("write");
-
+  let declared = format!("{}.19.0", intentsvcs::project::OLDEST_READ_MAJOR - 1);
+  let declared = declared.as_str();
+  project_declaring(dir.path(), declared);
   let before = tree(dir.path());
 
-  git_ready(dir.path());
   let (out, err, code) = run(&["upgrade"], dir.path());
   assert_eq!(
     code, 1,
-    "a blocked migration is a verdict (1), never an unavailable tool (2) -- \
-     consumers written against v2 read 2 as fail-open: {err}{out}"
-  );
-
-  assert_eq!(
-    declared_version(dir.path()),
-    "2.19.0",
-    "a refused migration stamped the version anyway, which would lock the \
-     estate out of v2 AND v3 at once"
+    "a refusal is a verdict (1), never an unavailable tool (2): {err}{out}"
   );
   assert!(
-    !dir.path().join("intent/.canon/st/ST0001.json").exists(),
-    "a refused migration wrote canon"
+    err.contains(declared),
+    "the refusal names the version declared: {err}"
+  );
+  assert_eq!(
+    declared_version(dir.path()),
+    declared,
+    "a refused upgrade stamped the version anyway"
   );
   assert!(
     !dir.path().join("intent/.cache/intent.db").exists(),
-    "a refused migration left a v3 store inside a v2 estate"
-  );
-
-  let after = tree(dir.path());
-  assert!(
-    first_difference(&before, &after).is_none(),
-    "a refused migration changed the estate: {}",
-    first_difference(&before, &after).unwrap_or_default()
-  );
-}
-
-/// **A REFUSAL IS A WORK LIST, AND EVERY LINE OF IT APPEARS EXACTLY ONCE.**
-///
-/// `FacadeError::MigrationBlocked` carried `#[error("{0}")]` beside `#[from]`.
-/// `#[from]` implies `#[source]`, so the whole classed report printed once as
-/// the message and once again as its own cause -- summary line included.
-/// Measured on this fixture: eleven lines for two findings, `refused 2
-/// finding(s)` twice, the first occurrence mid-output where it reads as the end
-/// of the list.
-///
-/// **The rule was already written down one level below and survived being
-/// written down, because the violation used a different spelling.**
-/// `Blocked::Residue` deliberately does not carry its `Refusal` as a
-/// `#[source]` and says why at `migrate.rs:110` -- "a source here renders the
-/// whole list twice and every residue count reads double". A reader checking
-/// the outer variant against that comment looks for `#[source]` and does not
-/// find one.
-///
-/// **Why it is worth a test rather than a fix.** The doubling is invisible in
-/// the small: two findings look like a verbose error. **It scales with the
-/// estate**, and the operator who most needs the list is the one with the
-/// dirtiest estate -- ic's `show_tail` finding is the same hazard from the
-/// display end, where a clipped work list sends someone to fix nine of ten and
-/// hit the tenth on the next run.
-///
-/// The count is asserted, not the layout: a formatting change should not red
-/// this, and a line coming back twice must.
-#[test]
-fn a_refusal_names_each_finding_exactly_once() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  for (id, bad) in [("ST0001", "Banana"), ("ST0002", "Kumquat")] {
-    crate::common::v2_thread(dir.path(), id, "WIP");
-    let info = dir.path().join("intent/st").join(id).join("info.md");
-    let text = std::fs::read_to_string(&info).expect("read");
-    std::fs::write(
-      &info,
-      text.replace("status: WIP", &format!("status: {bad}")),
-    )
-    .expect("write");
-  }
-
-  git_ready(dir.path());
-  let (out, err, code) = run(&["upgrade"], dir.path());
-  assert_eq!(code, 1, "premise: the estate must actually block");
-  let report = format!("{err}{out}");
-
-  for id in ["ST0001", "ST0002"] {
-    assert_eq!(
-      report.matches(&format!("intent/st/{id}/info.md")).count(),
-      1,
-      "{id} is named more than once, so the operator's work list is longer \
-       than the work:\n{report}"
-    );
-  }
-  assert_eq!(
-    report.matches("refused 2 finding(s)").count(),
-    1,
-    "the summary count appears twice, and the first one reads as the end of \
-     the list:\n{report}"
-  );
-}
-
-/// **AT-10.1: a sub-floor estate is refused, and the SAME estate at the floor
-/// is not.**
-///
-/// The row cites THIS file rather than a `migrate_floor.rs` (vc's ruling): the
-/// citation describes where the test lives, and summoning an artefact into
-/// existence because a row names it is the pointer driving the code.
-///
-/// The floor exists because 2.19.0 is where the acceptance-test row grammar
-/// landed. An estate below it converted directly skips that migration, so its
-/// rows arrive in v3 in a grammar v3 was never told about -- silently, because
-/// nothing on the conversion path looks.
-///
-/// **Both halves, in one test, over one estate differing in one field.** The
-/// refusal arm alone would pass just as happily against a migrator that
-/// refused everything, and that is not a hypothetical failure mode: the defect
-/// this closes was the exact mirror of it, a floor checked on the door that
-/// READS and never on the door that WRITES. A test that cannot tell "refuses
-/// correctly" from "refuses" is the same kind of instrument as the one that
-/// missed the bug.
-///
-/// Found by vc driving the fleet through the committed door: Utilz declares
-/// 2.18.0 and was converted clean -- 61 files, 9 threads, stamped, no
-/// complaint. **Every estate the four of us built by hand declares 2.19.0,
-/// because that is what our own repo declares and it is what we copy**, so
-/// this arm had no possible input until a corpus nobody here authored supplied
-/// one. A guard that cannot be reached and a guard that works are the same
-/// green.
-#[test]
-fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() {
-  let below = tempfile::tempdir().expect("tempdir");
-  v2_project(below.path(), "2.18.0");
-  crate::common::v2_thread(below.path(), "ST0001", "Completed");
-  let before = tree(below.path());
-
-  git_ready(below.path());
-  let (out, err, code) = run(&["upgrade"], below.path());
-  assert_eq!(code, 1, "a sub-floor estate is refused: {err}{out}");
-  assert!(
-    err.contains("2.18.0"),
-    "the refusal names the version the project actually declares, because that \
-     is what the operator has to go and change: {err}"
+    "a refused upgrade left a store behind"
   );
   assert!(
-    err.contains("v2.19.0 release"),
-    "and the remedy is the TWO-HOP, through a v2 route that exists (issue 0333) \
-     -- naming the v3 migrator here would send the operator back to the command \
-     that just refused them: {err}"
-  );
-
-  assert_eq!(
-    declared_version(below.path()),
-    "2.18.0",
-    "a refused migration stamped the version anyway"
-  );
-  assert!(
-    !below.path().join("intent/.canon/st/ST0001.json").exists(),
-    "a refused migration wrote canon"
-  );
-  assert!(
-    first_difference(&before, &tree(below.path())).is_none(),
-    "a refused migration changed the estate: {}",
-    first_difference(&before, &tree(below.path())).unwrap_or_default()
-  );
-
-  // The control. Same estate, same threads, one field different.
-  let at_floor = tempfile::tempdir().expect("tempdir");
-  v2_project(at_floor.path(), "2.19.0");
-  crate::common::v2_thread(at_floor.path(), "ST0001", "Completed");
-
-  git_ready(at_floor.path());
-  let (_, err2, code2) = run(&["upgrade"], at_floor.path());
-  assert_eq!(
-    code2, 0,
-    "the SAME estate at the floor must convert -- without this the arm above \
-     passes against a migrator that refuses everything: {err2}"
-  );
-  assert!(
-    at_floor
-      .path()
-      .join("intent/.canon/st/ST0001.json")
-      .is_file(),
-    "the control estate reported success and wrote no canon"
+    first_difference(&before, &tree(dir.path())).is_none(),
+    "a refused upgrade changed the project: {}",
+    first_difference(&before, &tree(dir.path())).unwrap_or_default()
   );
 }
 
@@ -576,7 +322,7 @@ fn a_dry_run_says_the_gate_will_come_from_a_different_install() {
   std::fs::write(&pointer, format!("{}\n", other.display())).expect("write pointer");
 
   let project = tempfile::tempdir().expect("tempdir");
-  v2_project(project.path(), "3.0.0");
+  project_declaring(project.path(), "3.0.0");
   git_ready(project.path());
 
   let (out, err, code) = run_under_home(&["claude", "upgrade"], project.path(), home.path());
@@ -611,7 +357,7 @@ fn a_dry_run_says_the_gate_will_come_from_a_different_install() {
 fn a_hook_canon_cannot_rewrite_is_named_with_its_reason() {
   let home = tempfile::tempdir().expect("tempdir");
   let project = tempfile::tempdir().expect("tempdir");
-  v2_project(project.path(), "3.0.0");
+  project_declaring(project.path(), "3.0.0");
   git_ready(project.path());
   let hook = project.path().join(".git/hooks/pre-commit");
   let block = "# intent-chain-block:start (generated by intent claude upgrade)\n_intent_chain=x\n# intent-chain-block:end\n";
@@ -687,65 +433,6 @@ fn a_store_git_tracks_is_named_until_it_is_untracked() {
   assert!(
     !format!("{out}{err}").contains("store-tracked"),
     "an untracked store is not named: {out}{err}"
-  );
-}
-
-/// Issue 0596. **A first conversion examines the undeclared views, so it prints
-/// no "not examined" line before its `ok:`.**
-///
-/// The upgrade opened its facade on the Project discovered before the
-/// conversion, whose config still declared 2.19.0 after the stamp had landed on
-/// disk, so the open was refused as unmigrated and the dehydration of
-/// undeclared views never ran on a first conversion. Red at the base on every
-/// v2 layout, this one included.
-#[test]
-fn a_first_conversion_examines_the_views_of_undeclared_threads() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
-  git_ready(dir.path());
-
-  let (out, err, code) = run(&["upgrade"], dir.path());
-  assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
-  assert!(
-    !format!("{out}{err}").contains("not examined"),
-    "the first conversion skipped the dehydration of undeclared views: {out}{err}"
-  );
-}
-
-/// Issue 0597. **An On Hold thread, which v2 keeps at the flat path, converts
-/// to an estate doctor passes, and the next upgrade refuses nothing.**
-///
-/// v2 has no hold bucket and the conversion leaves the thread undeclared, so
-/// its v2 `info.md` stayed at its v3 view path: doctor exited 1 with view-skew
-/// on the fresh estate and the second upgrade printed a refusal to dehydrate it
-/// before its `ok:`. Red at the base on all three counts.
-#[test]
-fn a_flat_on_hold_thread_converts_to_an_estate_doctor_passes() {
-  let dir = tempfile::tempdir().expect("tempdir");
-  v2_project(dir.path(), "2.19.0");
-  crate::common::v2_thread(dir.path(), "ST0001", "WIP");
-  crate::common::v2_thread(dir.path(), "ST0002", "On Hold");
-  git_ready(dir.path());
-
-  let (_, err, code) = run(&["upgrade"], dir.path());
-  assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
-  assert!(
-    !dir.path().join("intent/st/ST0002/info.md").exists(),
-    "the held thread's v2 info.md survived the conversion: {err}"
-  );
-
-  let (out, err, code) = run(&["doctor"], dir.path());
-  assert_eq!(
-    code, 0,
-    "doctor fails the freshly converted estate: {out}{err}"
-  );
-
-  let (out, err, code) = run(&["upgrade"], dir.path());
-  assert_eq!(code, 0, "second run: {err}");
-  assert!(
-    !format!("{out}{err}").contains("refusing to dehydrate"),
-    "the second upgrade refuses the held thread's view: {out}{err}"
   );
 }
 

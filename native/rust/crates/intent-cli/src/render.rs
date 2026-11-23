@@ -101,7 +101,6 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
-    Some(("ingest", m)) => ingest(m),
     Some(("export", m)) => export(m),
     Some(("todo", m)) => todo(m),
     Some(("sync", m)) => sync(m),
@@ -716,7 +715,7 @@ fn cache_marking_line(marking: &intentsvcs::dropbox::Marking, root: &Path) -> St
 /// duplicated write this estate has paid for (issue 0442).
 ///
 /// **AN UNANSWERABLE WATCHING QUESTION READS AS "NOT WATCHED" HERE, AND
-/// `engine()`'s `sync`/`ingest` ARM READS THE SAME `Err` AS A REFUSAL. THE
+/// `engine()`'s `sync` ARM READS THE SAME `Err` AS A REFUSAL. THE
 /// DISAGREEMENT IS THE DESIGN; DO NOT TIDY THE TWO INTO AGREEMENT.** Both ask
 /// one predicate, [`watching_this_project`]. For `sync` a wrong "no" starts a
 /// second sync engine beside the daemon, so it refuses when it cannot tell.
@@ -853,7 +852,7 @@ fn watched_by_a_daemon(root: &Path) -> Result<bool, Failure> {
 fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<bool, Failure> {
   let canonical = root.canonicalize().map_err(|e| {
     Failure::Unavailable(format!(
-      "error: intentd is answering at {endpoint}, and `{}` could not be resolved to ask whether it is being watched: {e}\n  remedy: `sync` and `ingest` must not run beside a daemon watching the same tree, and this build cannot tell whether it is. Stop the daemon and run again",
+      "error: intentd is answering at {endpoint}, and `{}` could not be resolved to ask whether it is being watched: {e}\n  remedy: `sync --to-store` must not run beside a daemon watching the same tree, and this build cannot tell whether it is. Stop the daemon and run again",
       root.display()
     ))
   })?;
@@ -877,10 +876,10 @@ fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<boo
       "error: intentd is answering at {endpoint} but refused to list its projects, so this build cannot tell whether it is watching this tree: {message}\n  remedy: {remedy}"
     ))),
     Ok(other) => Err(Failure::Unavailable(format!(
-      "error: intentd answered the registry with {other:?}, which is not a registry\n  remedy: this is a fault in this build rather than in the project. `sync` and `ingest` refuse rather than run beside a daemon whose state cannot be read"
+      "error: intentd answered the registry with {other:?}, which is not a registry\n  remedy: this is a fault in this build rather than in the project. `sync --to-store` refuses rather than run beside a daemon whose state cannot be read"
     ))),
     Err(e) => Err(Failure::Unavailable(format!(
-      "error: intentd is answering at {endpoint} but could not be asked whether it is watching this tree: {e}\n  remedy: `sync` and `ingest` must not run beside a daemon watching the same tree. Stop the daemon and run again"
+      "error: intentd is answering at {endpoint} but could not be asked whether it is watching this tree: {e}\n  remedy: `sync --to-store` must not run beside a daemon watching the same tree. Stop the daemon and run again"
     ))),
   }
 }
@@ -915,8 +914,8 @@ fn context_or_unjudged() -> Result<(Project, FacadeContext), Failure> {
 /// more: it has to run on a project that cannot be opened, since that is when
 /// someone reaches for it. Every other verb goes on through [`engine`].
 pub(crate) fn context() -> Result<(Project, FacadeContext), Failure> {
-  // Issue 0333: the error's own remedy, so a pre-v2.10 project is told its route
-  // rather than to run `intent init` over it.
+  // The error's own remedy, so a refused config is told its route rather than
+  // to run `intent init` over it.
   context_refusing(|e| {
     use intentsvcs::remedy::Remedy;
     Failure::from(e.render())
@@ -5917,202 +5916,32 @@ fn report_index(
 /// job when it found things -- so writing findings to stderr would put the
 /// answer on the error channel. The nonzero exit is what a script reads, in
 /// the same shape `ac gate` uses.
-/// `intent upgrade` -- the migration door, and the only verb whose subject is
-/// the state every other verb refuses.
+/// `intent upgrade` -- bring this project's canon, views and store to this
+/// build's release.
 ///
 /// **It goes through [`context`] and NOT [`open`]**, for the reason `doctor`
-/// does: `open` loads canon through a gate that turns away an unmigrated
-/// project, and an unmigrated project is the only estate this verb exists for.
-/// Routing it through the usual door would make the remedy refuse the thing it
-/// is the remedy for -- and the binary already prints `run intent upgrade` when
-/// it refuses, so that spelling has to work.
+/// does: `open` loads canon in the format this build writes, and the move to
+/// that format is this verb's own job.
 ///
 /// **The exit codes are 0 and 1, and deliberately never 2.** [`Failure::Error`]
 /// is "the command ran and the answer is no", which is exactly what a blocked
-/// migration is; `Unavailable` (2) says this build cannot answer the question
-/// at all, and consumers written against v2 read it as fail-open. A refusal to
-/// convert an estate that would lose data is a verdict, not an absence, and
-/// reporting it as 2 would invite exactly the wrong response.
+/// upgrade is; `Unavailable` (2) says this build cannot answer the question at
+/// all, and is read as fail-open.
 ///
 /// **Nothing is written when it refuses** -- structural, not careful: the
 /// facade plans into an uncommitted `WriteSet`.
-///
-/// The flags v2 carried here (`--backup-dir`, `--no-backup`) are NOT wired,
-/// because the table holds them at `disposition: pending` and pending does not
-/// ship. That is a live question -- v3 rolls back through git, so v2's backup
-/// flags may not apply at all -- and wiring them to satisfy the shape would
-/// answer it by accident, in a renderer, which is not where it gets answered.
 fn upgrade() -> Result<(), Failure> {
   let (project, ctx) = context()?;
   // The whole operation, including the refusal. `fail` renders the message,
   // the cause chain and the remedy, and `MigrationBlocked` delegates its
-  // remedy to `Blocked` -- which knows whether the estate needs repairing
-  // under v2 or whether the migrator itself failed. Those are different
-  // actions for different people, so this arm must not flatten them into one
-  // hand-written sentence the way `ingest` does for its own single case.
+  // remedy to `Blocked`, which knows whether a record needs repairing or the
+  // upgrade itself failed.
   let done = Facade::upgrade(&project, &ctx).map_err(fail)?;
-
-  // Carried findings get `ingest`'s treatment for `ingest`'s reason: the
-  // section header prints ONCE, and each line goes through `carried_line`
-  // rather than `Display`, which would lead with `residue:` and append a
-  // remedy telling the operator to fix a row the ruling says converts as it is.
-  if !done.carried.is_empty() {
-    println!("carried (converts as-is, no action):");
-    for finding in &done.carried {
-      println!("{}", finding.carried_line());
-    }
-  }
-
-  // **Per section, on stdout, beside `carried` -- never a count.** A total
-  // reconciles arithmetically and tells nobody which section went, and a
-  // decision the migration does not name cannot be told from one it never
-  // made. Two verdicts: `dropped` removes a section from canon, `deferred`
-  // keeps it and stands the renderer's own copy down.
-  //
-  // **The deferral row exists because vc could not read a zero** -- their
-  // `DOUBLED-SECTION 20 -> 0` is produced identically by a migrator that
-  // deferred to the author and by one that stopped generating the section, and
-  // they separated the two only by going and reading which pointer survived.
-  if !done.dispositions.is_empty() {
-    println!("sections not carried as-is:");
-    for d in &done.dispositions {
-      println!(
-        "  {} -- ## {} -- {} -- {}",
-        d.owner,
-        d.heading,
-        d.verdict.as_str(),
-        d.reason
-      );
-    }
-  }
-
-  // **THE BUILD GAP, PER ARTEFACT, ON STDOUT BESIDE THE OTHER DISPOSITIONS.**
-  //
-  // The stderr line below says a directory's worth of files is not carried;
-  // this says WHICH. **The estate already held that standard and was applying
-  // it to the smaller class**: `legacy.rs` names each oversized attachment
-  // individually with its own reason -- 8 files here -- while the whiteboard
-  // arrived as one directory noun standing for 624 of them on this repository
-  // and 1,386 on Lamplight. A collapse is least defensible in exactly the
-  // direction it was being applied.
-  //
-  // **STDOUT AND NOT STDERR, ON THE SPLIT THE LINE BELOW ALREADY DECLARES**:
-  // stderr carries the migration describing its own REACH, stdout carries the
-  // per-artefact record. This is the second.
-  //
-  // The section header prints ONCE (ic, on the canary: nine carried findings
-  // and nine copies of their header), and each line goes through
-  // `not_built_line` rather than `Display`, which would lead `residue:` and
-  // append the class remedy to every one of 624 lines.
-  let not_built = intentsvcs::sync::migration_not_yet_built_artefacts(&project);
-  if !not_built.is_empty() {
-    // **THE HEADER DOES NOT RESTATE THE CLAIM THE STDERR LINE MAKES.** Both
-    // derive from `NOT_YET_BUILT` and the first draft had them saying the same
-    // sentence twice, four lines apart -- the divergent-copy shape in prose,
-    // which drifts exactly as readily as the code kind. The claim is made
-    // once, below; this introduces the enumeration and counts it.
-    println!("not yet carried, per artefact ({}):", not_built.len());
-    for finding in &not_built {
-      println!("{}", finding.not_built_line());
-    }
-    // **THE CLASS REMEDY, ONCE.** It is the only place the report says nothing
-    // is owed, and saying it per line is how an enumeration becomes unreadable
-    // -- which would put the directory noun back, spelled out at length. The
-    // class's is the right one because no carried finding sets its own (issue
-    // 0738); one that did would need `finding::by_class_and_remedy` here.
-    println!(
-      "  {}",
-      intentsvcs::finding::FindingClass::ModelledNotBuilt.remedy()
-    );
-  }
 
   eprintln!(
     "migrated: {} thread(s), {} issue(s), {} file(s) written",
     done.threads, done.issues, done.files
   );
-  // **THE MIGRATION SAYS WHAT IT DID NOT CARRY, WHICH IS AC-10.8's PROPERTY ON
-  // THE INGEST SIDE** (issue 0183, vc's ruling 2026-08-31). Without it every
-  // non-canon file in the estate reports UNACCOUNTED to
-  // `conservation_check.sh` -- 347 on the canary, 135 on baize -- and no member
-  // of the AC-10.5 corpus can satisfy either disjunct of the criterion.
-  //
-  // **THE TWO LINES ARE SEPARATE BECAUSE THEY ARE DIFFERENT CLAIMS**, and
-  // collapsing them was the defect this nearly shipped as. The first says the
-  // model does not cover these; the second says the model DOES cover these and
-  // no build carries them yet. 110 of baize's 135 are the whiteboard, which
-  // `data-model.md` moved INTO the model at D30 -- reporting those as
-  // out-of-model would have contradicted an hv ruling, and would have closed by
-  // fiat a gap that closes on its own when WP-14 lands.
-  //
-  // On stderr with the counts, not stdout with the dispositions: this is the
-  // migration describing its own reach, not a per-artefact record.
-  eprintln!("{}", intentsvcs::sync::migration_not_carried());
-  if let Some(gap) = intentsvcs::sync::migration_not_yet_built() {
-    eprintln!("{gap}");
-  }
-  // **Printed only when it happened, because on a first run it is noise and on
-  // a re-run it is the only thing the operator actually wants to know.** It is
-  // a count of threads whose SOURCE differed, not of work skipped: they are in
-  // the plan like any other and re-emit byte-identical canon.
-  //
-  // **It reports the observation and NOT a cause, and the first version of
-  // this line got that wrong.** It said "a previous run of this command was
-  // interrupted", which is ONE of at least three ways to arrive here -- the
-  // others being a run that completed normally, and, until `426416e1`, a
-  // project stuck in the loop where every re-run reported success and changed
-  // nothing. ic caught it on a tree that had never been interrupted; their
-  // gate's arm B prints this same line where interruption genuinely IS the
-  // cause, and nothing in the output told the two apart.
-  //
-  // **The migrator was not present when that canon was written and must not
-  // narrate it.** Same class as a fabricated timestamp: an invented cause is
-  // indistinguishable by inspection from a recorded one, and it is worse than
-  // silence because it sends the reader looking for an interruption that never
-  // happened.
-  if !done.already_migrated.is_empty() {
-    eprintln!(
-      "already migrated: {} thread(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged",
-      done.already_migrated.len()
-    );
-  }
-  // **A SEPARATE LINE RATHER THAN A SECOND CLAUSE ON THE ONE ABOVE**, because
-  // the two populations reach it by different routes and can differ: a v2
-  // estate mid-conversion has already-migrated threads and no canon issues at
-  // all. Folding them into one sentence would make a zero on either side read
-  // as a statement about both.
-  if !done.already_migrated_issues.is_empty() {
-    eprintln!(
-      "already migrated: {} issue(s) had committed canon and were re-emitted from it rather than converted -- their content is unchanged",
-      done.already_migrated_issues.len()
-    );
-  }
-  // **THE BUCKET INGEST IS NAMED PATH BY PATH TOO** (issue 0319), and so is
-  // what it declined: a file the carry refused is left on disk and withheld
-  // from every prune, so the operator needs its reason, not a total.
-  for path in &done.ingested {
-    eprintln!("ingested: {}", path.display());
-  }
-  for skipped in &done.not_ingested {
-    eprintln!(
-      "not ingested: {} -- {}",
-      skipped.path.display(),
-      skipped.reason
-    );
-  }
-  if !done.prune_deferred.is_empty() {
-    eprintln!(
-      "prune deferred: this run ingested v2 bucket files, so it removes none of the v2 tree -- `intent organize` names each file the removal takes, and `intent organize --apply` removes them"
-    );
-    for path in &done.prune_deferred {
-      eprintln!("  deferred: {}", path.display());
-    }
-  }
-  // **THE v2 PRUNE IS NAMED PATH BY PATH, NEVER COUNTED** (WP-02, AC-02.2).
-  // A removal an operator cannot review is the one line of a migration that
-  // matters most, and a total is not a review.
-  for path in &done.pruned {
-    eprintln!("pruned: {}", path.display());
-  }
   // ST0096 WP-01: the manifest's rows are now each record's own `realised`.
   if let Some(path) = &done.manifest_folded {
     eprintln!("removed: {} (folded into the records)", path.display());
@@ -6177,36 +6006,6 @@ fn upgrade() -> Result<(), Failure> {
   }
   for refusal in &done.dehydrate_refused {
     eprintln!("{refusal}");
-  }
-  // **AND THE REFUSAL NAMES EVERY FILE, not the first one.** A refusal reporting
-  // one of several trains an operator to fix that one and re-run into the next.
-  if !done.prune_withheld.is_empty() {
-    eprintln!(
-      "prune refused: the v2 tree stays, because the store does not hold every one of its files"
-    );
-    for withheld in &done.prune_withheld {
-      eprintln!(
-        "  withheld: {} -- {}",
-        withheld.path.display(),
-        withheld.reason
-      );
-    }
-  }
-  // **A WORKLIST, NOT A REFUSAL, AND NOTHING REWRITES THESE** (AC-02.4). A path
-  // inside authored prose is a sentence about where something was; rewriting it
-  // would be this tool editing a human's words to match its own filesystem.
-  if !done.pointers.is_empty() {
-    eprintln!(
-      "pointers: authored file(s) naming a v2 bucket path -- read and reword them yourself, nothing here has changed them"
-    );
-    for pointer in &done.pointers {
-      eprintln!(
-        "  {}:{} names {}",
-        pointer.path.display(),
-        pointer.line,
-        pointer.names
-      );
-    }
   }
   // **WHAT THIS RUN CHANGED, ONE LINE A DIRECTORY, AND THE FILE THAT NAMES
   // EVERY PATH** (issue 0745, intent-cc's design): the file's set and these
@@ -6650,9 +6449,8 @@ fn use_verb(m: &ArgMatches) -> Result<(), Failure> {
 /// daemon watches this tree, by the predicate the engine door asks.
 fn deinit(m: &ArgMatches) -> Result<(), Failure> {
   use intentsvcs::deinit::{self, Act};
-  // An unmigrated project is refused by the door `lang` and `modules` share:
-  // what deinit could prove Intent's is read through a project v3 can open.
-  let project = migrated_project()?;
+  // What deinit could prove Intent's is read through a project v3 can open.
+  let (project, _) = context()?;
   let root = project.root().to_path_buf();
   let all = m.get_flag("all");
   if all && watched_by_a_daemon(&root)? {
@@ -8123,11 +7921,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
 /// front of it would train the operator to answer without reading -- which
 /// spends the one question this verb gets to ask.
 fn confirm_destructive_plan(planned: &intentsvcs::organize::Report) -> Result<(), Failure> {
-  // **THE v2 PRUNE COUNTS AS A REMOVAL HERE, because it is one.** A confirm
-  // that omitted it would ask about the views and then remove a bucket tree the
-  // operator was never asked about -- the silent-deletion shape this prompt
-  // exists for.
-  let removing = planned.dehydrated.len() + planned.pruned.len() + planned.pruned_legacy.len();
+  let removing = planned.dehydrated.len() + planned.pruned.len();
   if removing == 0 {
     return Ok(());
   }
@@ -8202,8 +7996,8 @@ impl Tense {
 enum Verbosity {
   /// `--quiet`: the summary line, every removal, and refusals. Nothing else.
   Quiet,
-  /// The default: everything except the inventory -- the unclaimed directories
-  /// and the files behind a v2 prune refusal -- each announced as withheld.
+  /// The default: everything except the inventory, the unclaimed directories,
+  /// announced as withheld.
   Normal,
   /// `--verbose`: everything this verb knows.
   Verbose,
@@ -8377,7 +8171,7 @@ fn render_organize_report(
     format!(" ({blocked} blocked)")
   };
   println!(
-    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} {}, {} unclaimed{}, {} diverged, {} refused",
+    "{head} {} {}, {} {}, {} unchanged, {} {}{}, {} {}, {} unclaimed{}, {} diverged, {} refused",
     report.hydrated.len(),
     if previewing { "to hydrate" } else { "hydrated" },
     report.rewritten.len(),
@@ -8400,12 +8194,6 @@ fn render_organize_report(
     // in one evening, same shape, different field.
     report.pruned.len(),
     if previewing { "to prune" } else { "pruned" },
-    report.pruned_legacy.len(),
-    if previewing {
-      "to prune (v2)"
-    } else {
-      "pruned (v2)"
-    },
     report.unclaimed.len(),
     // **THE DIGEST RIDES ON THE SUMMARY LINE, WHICH IS THE ONLY LINE THAT MUST
     // ANSWER `DID ANYTHING CHANGE` WITHOUT A FLAG.** Grouping the 199 paths by
@@ -8429,13 +8217,7 @@ fn render_organize_report(
     }
   }
   if verbosity.shows_removals() {
-    for (label, paths) in [
-      (rem, &report.dehydrated),
-      (prn, &report.pruned),
-      // **NAMED UNDER THE SAME PREDICATE AS EVERY OTHER REMOVAL.** `--quiet`
-      // withholds what a run WRITES and never what it removes.
-      ("pruned (v2)", &report.pruned_legacy),
-    ] {
+    for (label, paths) in [(rem, &report.dehydrated), (prn, &report.pruned)] {
       for path in paths {
         println!("  {label}: {}", show(path));
       }
@@ -8506,24 +8288,6 @@ fn render_organize_report(
       println!("  diverged: {}", show(path));
     }
   }
-  // **THE FILES BEHIND THE v2 PRUNE REFUSAL ARE INVENTORY, AND GROUP LIKE THE
-  // UNCLAIMED DIRECTORIES DO** (issue 0318). The refusal itself is one class
-  // line on stderr at every verbosity; which files it covers, and why each is
-  // unheld, is the list an operator reads when they go to fix it. Named under
-  // `--verbose`, announced as withheld at the default with the figure, and
-  // absent under `--quiet` like every other inventory line.
-  if let Some(class) = report.legacy_unheld() {
-    if verbosity.shows_inventory() {
-      for (path, reason) in &class.files {
-        println!("  unheld (v2): {} -- {reason}", show(path));
-      }
-    } else if verbosity.shows_body() {
-      println!(
-        "  unheld (v2): {} file(s) not listed -- `intent organize --verbose` lists them",
-        class.files.len()
-      );
-    }
-  }
 
   // **THE FOOTER IS BELT-AND-BRACES, NOT THE MECHANISM.** The per-line tense
   // above is what makes a preview unmistakable; this says it once more in plain
@@ -8543,17 +8307,7 @@ fn render_organize_report(
   // refusals are the most valuable thing on the screen: they are the answer to
   // "what will happen if I now type `--apply`", which is the only question the
   // preview exists to answer.
-  //
-  // **EXCEPT THE v2 PRUNE, WHICH IS ONE REFUSAL SAID ONCE** (issue 0318). The
-  // prune is all or nothing, so N unheld files are one fact about the estate,
-  // and N copies of an `error:` line with its remedy buried the refusals that
-  // ARE about their file. The class line and its remedy print here at every
-  // verbosity; the files it covers are inventory, listed on stdout above.
-  if let Some(class) = report.legacy_unheld() {
-    eprintln!("{}", class.line(!previewing));
-    eprintln!("{}", class.remedy_line());
-  }
-  for refusal in report.refused_outside_classes() {
+  for refusal in &report.refused {
     eprintln!("{}", refusal.render());
   }
 
@@ -8985,9 +8739,8 @@ fn print_search_index_probes(r: &intentsvcs::doctor::SearchIndexReading) {
 /// an ungrouped line, asked once for the group instead of once per member.
 ///
 /// Order is first-appearance rather than sorted: the report's own order already
-/// carries meaning (`FindingClass::meta`'s rank puts `Unmigrated` first because
-/// everything else is downstream of it), and re-sorting here would quietly
-/// discard it.
+/// carries meaning (`FindingClass::meta`'s rank), and re-sorting here would
+/// quietly discard it.
 fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Finding>) {
   for group in intentsvcs::finding::by_class_and_remedy(findings) {
     let class = group.class;
@@ -9077,9 +8830,8 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // (vc, 2026-09-12, issue 0308). `no Intent project found` and `config is not
   // valid Intent config` answered 1 -- the code `doctor` uses for *I read this
   // estate and it is red* -- so the pre-commit gate, which refuses on 1, refused
-  // every commit in a directory `doctor` could not read at all. Exit 4 is the
-  // same *could not judge* the `Report` answers for an unmigrated project, and
-  // the gate fails OPEN on it through the arm it has had since issue 0043.
+  // every commit in a directory `doctor` could not read at all. Exit 4 is
+  // *could not judge*, and the gate fails OPEN on it through the arm it has had since issue 0043.
   //
   // Scoped to `doctor` on purpose: every other command's `no project` really is
   // an error about the request, and widening this would change codes nobody has
@@ -9400,121 +9152,15 @@ fn doctor_summary(report: &intentsvcs::doctor::Report) -> String {
 /// three-way one a copy would have been left behind answering the old contract
 /// on whichever face nobody tested.
 ///
-/// 0 clean or advisory only; 1 blocking findings in an estate this run read; 4
-/// an estate it could not judge. The report itself has already been printed on
-/// both paths, so 1 is silent -- the verdict is on stdout where machines read
-/// it -- and 4 says out loud that nothing here is a verdict on anyone's work,
-/// because a consumer meeting the difference for the first time should not have
-/// to infer it from an exit code.
+/// 0 clean or advisory only; 1 blocking findings in an estate this run read. An
+/// estate it could not judge never reaches a report: the project discovery
+/// before it answers 4. The report itself has already been printed, so 1 is
+/// silent -- the verdict is on stdout where machines read it.
 fn doctor_verdict(report: &intentsvcs::doctor::Report) -> Result<(), Failure> {
   match report.exit_code() {
     0 => Ok(()),
-    4 => Err(Failure::Unjudgeable(
-      "this estate could not be judged, so nothing above is a verdict on your work -- the finding says what to do first"
-        .to_string(),
-    )),
     // The report above IS the message; the exit code is the machine's copy.
     _ => Err(Failure::Verdict),
-  }
-}
-
-/// Read an estate's MARKDOWN into the store through the API gate -- the
-/// recovery path and the v2 migrator, behind one verb.
-///
-/// **`[PATH]` is optional, and the asymmetry is the argument for it.** Given, we
-/// ingest that tree: the migrator's case, where the estate belongs to another
-/// project. Omitted, this project's own markdown: the recovery case, where you
-/// are already standing in it. A migrator invoked on another tree names it; a
-/// user recovering their own estate does not have to say where they are.
-///
-/// **The project is opened WITHOUT a facade, deliberately.** [`Facade::open`]
-/// loads canon, and an estate that has to be read from markdown is one whose
-/// canon is missing or was never written -- so opening a facade first would
-/// require the project to be migrated before it could be migrated.
-///
-/// **`--from-md` IS WITHDRAWN, AND THIS COMMENT USED TO ASSERT THAT THIS ARM
-/// READ IT.** It did not. `fn ingest` reads exactly one thing, `opt(a, "path")?`
-/// -- and the only `from_md` token in the body is `Facade::ingest_from_md`, a
-/// FUNCTION NAME, so a grep for the flag "confirmed" the false sentence by
-/// matching the call. **A mention-versus-use error asserting the exact property
-/// AC-06.8 measures, inside the function AC-06.8 is about.**
-///
-/// The substance the comment was carrying is right and survives it: this is a
-/// mode flag with ONE mode, because the other thing bare `ingest` could have
-/// meant -- rebuilding the store from committed JSON canon -- is already
-/// `intent sync --from-disk` (`Facade::sync_from_disk`), so giving bare
-/// `ingest` that meaning would be two commands for one operation. **Markdown is
-/// what is left, and it is the whole of what is left.**
-///
-/// ic said so when the flag was declared and was overruled on the procedural
-/// ground that withdrawal would contradict ratified rows. vc reversed that on
-/// 2026-09-09 after driving the premise: AC-10.2 and AC-10.3 contain zero
-/// occurrences of the flag and ratify the capability's BEHAVIOUR rather than the
-/// flag's EXISTENCE. `disposition: retire`, with the basis at the table row.
-fn ingest(a: &ArgMatches) -> Result<(), Failure> {
-  let project = match opt(a, "path")? {
-    Some(path) => Project::open(std::path::Path::new(&path)).map_err(|e| {
-      format!(
-        "error: {e}\n  remedy: give `intent ingest` the root of an Intent project -- the directory holding `intent/`, not the markdown itself"
-      )
-    })?,
-    None => context()?.0,
-  };
-  let scan = Facade::ingest_from_md(&project).map_err(fail)?;
-
-  // **The residue report, in migration.md's format: one line per finding,
-  // machine-parseable, human-actionable, and NEVER truncated.** A capped list
-  // reads as complete when it is not, which on a migration means an operator
-  // fixing what they were shown and hitting the rest one command later.
-  for finding in &scan.residue {
-    println!("{finding}");
-  }
-  // Carried findings are printed too, and marked, because the counts have to
-  // reconcile: hv's ruling is that a closed thread's legacy grammar CONVERTS
-  // rather than blocking, and a report that showed only blockers would leave
-  // the operator unable to tell "nothing wrong" from "not looked at".
-  // **The header is a SECTION header, so it prints once** (ic, measured on the
-  // canary: nine carried findings, nine copies of it). And each line goes
-  // through `carried_line` rather than `Display`, because `Display` leads with
-  // `residue:` -- the word this report reserves for the blocking bucket -- and
-  // appends a remedy telling the operator to fix a row the ruling says converts
-  // as it is. The counts said `0 blocking, 9 carried` while every line above
-  // them said otherwise.
-  if !scan.carried.is_empty() {
-    println!("carried (converts as-is, no action):");
-    for finding in &scan.carried {
-      println!("{}", finding.carried_line());
-    }
-  }
-
-  let wps: usize = scan.threads.iter().map(|t| t.wps.len()).sum();
-  let criteria: usize = scan.threads.iter().map(|t| t.criteria.len()).sum();
-  let tests: usize = scan.threads.iter().map(|t| t.tests.len()).sum();
-  eprintln!(
-    "read: {} thread(s), {wps} work package(s), {criteria} criteria, {tests} acceptance test(s)",
-    scan.threads.len()
-  );
-  eprintln!(
-    "residue: {} blocking, {} carried",
-    scan.residue.len(),
-    scan.carried.len()
-  );
-
-  if scan.residue.is_empty() {
-    // **It says what it did NOT do.** This is the read-only half of the
-    // migration; someone who runs it and sees "ok" will otherwise assume their
-    // project has been converted, and then be surprised by either answer to
-    // "did it work".
-    eprintln!("ok: this estate parses -- nothing was read into a store and nothing was written");
-    Ok(())
-  } else {
-    // Live-thread residue BLOCKS. The remedy names the fixing environment,
-    // which is v2: this binary refuses what it cannot convert without loss,
-    // and the tool that can repair a v2 artefact is the last v2 release.
-    Err(
-      "error: this estate has residue in live steel threads, so migrating it now would lose data\n  remedy: fix the rows named above under v2 tooling, then run this again -- the `carried:` lines are not yours to fix, they convert as they are"
-        .into(),
-    )
   }
 }
 
@@ -10601,9 +10247,10 @@ fn lang_show(m: &ArgMatches) -> Result<(), Failure> {
 /// at 0, and a name outside the catalogue is printed rather than refused:
 /// `lang init` refuses it at the door, and the gate and `critic` name it.
 ///
-/// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, as `guards` does and for the
-/// same reason: the commit gate reads its languages from here. And it answers
-/// 4 where it cannot read the project at all, for the gate to fail open on
+/// **IT ANSWERS THROUGH DISCOVERY ALONE**, as `guards` does and for the same
+/// reason: the commit gate reads its languages from here. And it answers 4
+/// where it cannot read the project at all, a config declaring a version before
+/// 3 included, for the gate to fail open on
 /// ([`context_or_unjudged`]).
 fn lang_declared() -> Result<(), Failure> {
   let (project, _) = context_or_unjudged()?;
@@ -10627,43 +10274,6 @@ fn lang_of_path(m: &ArgMatches) -> Result<(), Failure> {
     println!("{lang}");
   }
   Ok(())
-}
-
-/// The project a `lang` write may touch -- **discovered AND past the migration
-/// gate**, which are two questions and were answered as one.
-///
-/// **`context()` IS NOT THE GATE, AND THE FIRST VERSION OF THIS FAMILY USED IT.**
-/// It discovers a project and stops; the migration check lives in
-/// `Facade::open`, and `lang init` / `lang remove` do not need a facade, so they
-/// reached for the lighter call and skipped the gate with it. Measured on a
-/// fixture: `intent lang init rust` in an UNMIGRATED v2 project exited 0 and
-/// rewrote its `config.json` into v3 shape -- adding `author`, `intent_dir` and
-/// the `todo` block while leaving `intent_version: 2.19.0` in place. A v3 binary
-/// half-migrating a v2 project, silently, from a command about languages.
-///
-/// It refuses through `FacadeError::Unmigrated` rather than composing a message,
-/// so the operator meets the same wording and the same remedy here as from every
-/// other refusal -- one home for what "this project has not been migrated" says.
-/// A project, refused unless it has been migrated.
-///
-/// **`context()` DISCOVERS A PROJECT AND STOPS; THE MIGRATION GATE LIVES IN
-/// `Facade::open`, WHICH A COMMAND THAT NEEDS NO STORE NEVER CALLS.** Wired
-/// without this, `intent lang init rust` in an unmigrated v2 project exited 0
-/// and rewrote its `config.json` into v3 shape with `intent_version: 2.19.0`
-/// left in place. `unmigrated_surface.rs` caught it.
-///
-/// **RENAMED FROM `lang_project` WHEN `modules` BECAME THE SECOND CALLER.** The
-/// two have nothing to do with each other except this, and a helper named for
-/// its first caller is how the second one gets a copy instead
-/// (IN-AG-HIGHLANDER-001).
-fn migrated_project() -> Result<Project, Failure> {
-  let (project, _) = context()?;
-  match project.migration() {
-    intentsvcs::project::Migration::Done => Ok(project),
-    intentsvcs::project::Migration::Pending(pending) => {
-      Err(fail(intentsvcs::facade::FacadeError::Unmigrated(pending)))
-    }
-  }
 }
 
 /// `intent config`: only `config set`, for the keys this build sets (issue
@@ -10694,7 +10304,7 @@ fn config_set(m: &ArgMatches) -> Result<(), Failure> {
       e.remedy()
     )));
   }
-  let project = migrated_project()?;
+  let (project, _) = context()?;
   let mut config = project.config().clone();
   let changed = config
     .set(&key, &value)
@@ -10726,7 +10336,7 @@ fn config_set(m: &ArgMatches) -> Result<(), Failure> {
 /// `init` reads as project initialisation.
 fn lang_declare(m: &ArgMatches) -> Result<(), Failure> {
   let langs = lang_many(m)?;
-  declare_languages(&migrated_project()?, &langs)
+  declare_languages(&context()?.0, &langs)
 }
 
 /// Declare `langs` in `project`'s config, printing a line per language and a
@@ -10785,7 +10395,7 @@ fn report_declarations(outcomes: &[(String, bool)], failed: usize) -> Result<(),
 /// up after a rename.
 fn lang_undeclare(m: &ArgMatches) -> Result<(), Failure> {
   let langs = lang_many(m)?;
-  let project = migrated_project()?;
+  let (project, _) = context()?;
   let mut config = project.config().clone();
 
   for lang in &langs {
@@ -10902,7 +10512,7 @@ fn modules_usage() -> Result<(), Failure> {
 /// verdict without a second line on stderr contradicting the first on stdout.
 fn modules_find(m: &ArgMatches) -> Result<(), Failure> {
   let term = m.get_one::<String>("term").cloned().unwrap_or_default();
-  let project = migrated_project()?;
+  let (project, _) = context()?;
   let text =
     intentsvcs::modules::read_registry(project.root()).map_err(|e| Failure::Error(e.render()))?;
   let rows = intentsvcs::modules::find_rows(&text, &term);
@@ -10928,7 +10538,7 @@ fn modules_find(m: &ArgMatches) -> Result<(), Failure> {
 /// like one that passed. A reader needs the denominator before the count, so it
 /// leads.
 fn modules_check() -> Result<(), Failure> {
-  let project = migrated_project()?;
+  let (project, _) = context()?;
   let languages = project.config().languages.clone();
   let report = intentsvcs::modules::check(project.root(), &languages)
     .map_err(|e| Failure::Error(e.render()))?;
@@ -13706,8 +13316,8 @@ fn help_root() -> Result<(), Failure> {
 /// structurally blind to it: a table that classifies failures BY exit code puts
 /// a failure returning `0` in the success row by construction.
 ///
-/// **The split this function now holds: an unmigrated project is not a failure
-/// of `info`; an unresolvable install is.** Project state degrades to what can
+/// **The split this function now holds: a project it cannot read is not a
+/// failure of `info`; an unresolvable install is.** Project state degrades to what can
 /// honestly be printed. Install resolution is the tool's own footing -- if it
 /// is gone, the guards the gate builds from this output genuinely cannot run,
 /// and saying so is the only useful answer.
@@ -13856,52 +13466,38 @@ fn info_project(cwd: Option<&std::path::Path>) {
   println!();
 
   println!("Steel Threads:");
-  match project.migration() {
-    // **An unmigrated project gets the reason and the remedy, never a zero.**
-    // Counting v2 canon here would mean a second thread reader living outside
-    // `legacy.rs`, and reporting `Total: 0` for an estate of 56 is the
-    // confident-answer-from-partial-evidence bug this thread exists to end
-    // (AC-10.7: "no threads found" and "threads this binary cannot see" are
-    // the same empty vector).
-    intentsvcs::project::Migration::Pending(pending) => {
-      println!("  {pending}");
-      println!("  remedy: {}", pending.remedy());
+  let ctx = FacadeContext::for_project(
+    &project,
+    env!("CARGO_PKG_VERSION"),
+    origin_of_this_call(Origin::Terminal),
+  );
+  match engine(project, ctx, StoreNeed::Shared) {
+    Ok(facade) => {
+      let threads = facade.st_list();
+      let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
+      // **v2's five buckets, including the one the model can now tell
+      // apart and this view still cannot.** v2 bucketed by DIRECTORY, so
+      // everything left at `intent/st/` read as In Progress -- `Triage`
+      // and `Hold` included. The dispatch table pins this entry
+      // `as-observed` with `corrected` ratified for the argument handling
+      // ONLY, so the buckets stay v2's and the rollup is recorded here
+      // rather than quietly widened. Raised with vc as a view question,
+      // not decided in a render function.
+      let in_progress =
+        count(ThreadStatus::Wip) + count(ThreadStatus::Hold) + count(ThreadStatus::Triage);
+      println!("  Total:           {}", threads.len());
+      println!("  In Progress:     {in_progress}");
+      println!("  Completed:       {}", count(ThreadStatus::Completed));
+      println!("  Not Started:     {}", count(ThreadStatus::NotStarted));
+      println!("  Cancelled:       {}", count(ThreadStatus::Cancelled));
     }
-    intentsvcs::project::Migration::Done => {
-      let ctx = FacadeContext::for_project(
-        &project,
-        env!("CARGO_PKG_VERSION"),
-        origin_of_this_call(Origin::Terminal),
-      );
-      match engine(project, ctx, StoreNeed::Shared) {
-        Ok(facade) => {
-          let threads = facade.st_list();
-          let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
-          // **v2's five buckets, including the one the model can now tell
-          // apart and this view still cannot.** v2 bucketed by DIRECTORY, so
-          // everything left at `intent/st/` read as In Progress -- `Triage`
-          // and `Hold` included. The dispatch table pins this entry
-          // `as-observed` with `corrected` ratified for the argument handling
-          // ONLY, so the buckets stay v2's and the rollup is recorded here
-          // rather than quietly widened. Raised with vc as a view question,
-          // not decided in a render function.
-          let in_progress =
-            count(ThreadStatus::Wip) + count(ThreadStatus::Hold) + count(ThreadStatus::Triage);
-          println!("  Total:           {}", threads.len());
-          println!("  In Progress:     {in_progress}");
-          println!("  Completed:       {}", count(ThreadStatus::Completed));
-          println!("  Not Started:     {}", count(ThreadStatus::NotStarted));
-          println!("  Cancelled:       {}", count(ThreadStatus::Cancelled));
-        }
-        Err(e) => {
-          // This site wants the TEXT, and takes it from the failure rather
-          // than re-formatting the cause: `fail` builds the string with
-          // `FacadeError::render`, so the in-process wording is unchanged, and
-          // the routed case gets its own sentence for free instead of being
-          // reported as a store that would not open.
-          println!("  unavailable: {}", e.message().unwrap_or_default());
-        }
-      }
+    Err(e) => {
+      // This site wants the TEXT, and takes it from the failure rather
+      // than re-formatting the cause: `fail` builds the string with
+      // `FacadeError::render`, so the in-process wording is unchanged, and
+      // the routed case gets its own sentence for free instead of being
+      // reported as a store that would not open.
+      println!("  unavailable: {}", e.message().unwrap_or_default());
     }
   }
   println!();
@@ -13914,10 +13510,9 @@ fn info_project(cwd: Option<&std::path::Path>) {
 /// IT.** The gate read the declaration with its own jq program beside the
 /// binary's `Config::guards`, and now runs what this prints.
 ///
-/// **IT ANSWERS IN A PROJECT NOBODY HAS MIGRATED**, through discovery alone and
-/// never `Facade::open`, for `critic`'s reason: its consumer is the commit gate,
-/// which refuses the commit on a refusal from here, so a migration refusal
-/// would block every commit in every unmigrated project. **A CONFIG IT CANNOT
+/// **IT ANSWERS THROUGH DISCOVERY ALONE** and never `Facade::open`, for
+/// `critic`'s reason: its consumer is the commit gate, which refuses the
+/// commit on a refusal from here. **A CONFIG IT CANNOT
 /// READ AT ALL ANSWERS 4**, which the gate fails open on, saying so
 /// ([`context_or_unjudged`]); a guard it reads and refuses answers 1. serde
 /// refuses an unknown key in a guard while the config is parsed, so that one
@@ -14747,19 +14342,6 @@ fn print_notes(notes: &[Note], subject: &str) {
       Note::EditUnsearched => eprintln!(
         "note: this project is not a git repository, so neither HEAD nor the next commit was searched for the old text"
       ),
-      Note::HeldByV2Bucket {
-        thread,
-        dir,
-        home,
-        files,
-      } => {
-        eprintln!(
-          "note: {thread} is declared but NOT realised -- the v2 status bucket {dir} still holds {files} file(s), and realising from the store would leave them behind"
-        );
-        eprintln!(
-          "  remedy: `git mv {dir} {home}`, then `intent organize --apply`. Until then every write skips its views, and `organize` / `st hydrate` refuse it"
-        );
-      }
       Note::FiatClosedSoleCover(acs) => {
         eprintln!(
           "warning: {subject} was the ONLY test covering {}, which stay(s) unsatisfied with nothing left that could satisfy them:",
@@ -17172,11 +16754,10 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     Some(("generate", _)) => {
       // **`open`, not `context`, and the difference is a defect this shipped
       // with for thirteen minutes.** `context` only DISCOVERS the project, so
-      // the first cut emitted a v3 `AGENTS.md` over an unmigrated v2 estate at
+      // the first cut emitted an `AGENTS.md` over a project it could not open at
       // exit 0 -- a generator answering about a project it cannot read. Only
       // `doctor` is entitled to `context`, because it is the verb you reach for
-      // precisely when the project will not open. Found by dc's
-      // `unmigrated_surface` sweep, which is the row that exists for this.
+      // precisely when the project will not open.
       let f = open()?;
       // The composition (install home + rootfiles render, watermark-free
       // context) moved into `Facade::agents_generate` when the MCP tier gave

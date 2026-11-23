@@ -485,48 +485,31 @@ fn the_gate_fails_open_and_names_the_language_when_the_critic_cannot_answer() {
   );
 }
 
-/// **ISSUE 0045 (vc): an UNMIGRATED project must still be able to commit, and
-/// this test exists to fail on a day that has not arrived.**
+/// **ISSUE 0045 (vc): a project whose config this binary cannot read must still
+/// be able to commit.** The name is AT-10.9's citation and is kept for it; the
+/// state it drives is now a config declaring an `intent_version` before 3,
+/// which every door refuses as a config this binary cannot read.
 ///
-/// The shipped gate reads `1` from `intent critic` as FINDINGS and blocks. But
-/// `Facade::open` calls `readable()` before anything else, so **every
-/// facade-opening command in an unmigrated project returns `Unmigrated ->
-/// Failure::Error -> 1`.** Build `critic` on `Facade::open` -- which is the
-/// obvious right thing to reach for -- and the gate blocks every commit in
-/// every unmigrated project, printing a remedy about findings that do not
-/// exist while the true remedy sits on screen above it, overridden.
-///
-/// **THE DAY ARRIVED ON 2026-08-20 AND THE TEST HELD.** This doc used to read
-/// *it passes today only because `critic` is unbuilt and answers 2 -- a
-/// reprieve nobody chose, and it ends when WP-07 does.* WP-07 ended at
-/// `5043d0c4`, and measured in a git-initialised unmigrated fixture the built
-/// `critic` exits **0** and scans normally: dc built it on the project-optional
-/// path, so `Facade::open`'s `readable()` is never reached and the refusal this
-/// test feared never forms.
-///
-/// **Recorded rather than deleted, because the two outcomes look identical from
-/// the green.** A test written to fail on a named day, which does not fail on
-/// that day, has either been vindicated or quietly lost its subject -- and the
-/// only thing that tells them apart is someone checking WHY it passed on the
-/// day. It was vindicated: the hazard it named was real, was reachable by the
-/// obvious implementation, and was avoided.
+/// The shipped gate reads `1` from `intent critic` as FINDINGS and blocks, and
+/// every facade-opening command refuses such a project at 1. `critic` reads
+/// its project optionally and warns instead, and the gate's other readers
+/// answer could-not-judge (4), which the gate fails open on.
 ///
 /// **The control is what stops this being decorative.** A guard that merely
-/// asserts "the gate returned 0" would pass on a fixture that was never
-/// unmigrated at all, which is the vacuous shape this file's own header records
-/// shipping as 0038. So the fixture is proven unmigrated first, through the
-/// same binary, and the refusal it produces is the exact one that would reach
-/// the gate.
+/// asserts "the gate returned 0" would pass on a fixture whose config read
+/// fine, which is the vacuous shape this file's own header records shipping as
+/// 0038. So the refusal is proven first, through the same binary, at the code
+/// the gate reads as findings.
 #[test]
 fn an_unmigrated_project_can_still_commit() {
-  // The fixture is genuinely in the state under test, and the refusal that
-  // would reach the gate is genuinely reachable -- at the code the gate reads
-  // as findings.
+  let declared = format!("{}.0.0", intentsvcs::project::OLDEST_READ_MAJOR - 1);
   let dir = tempfile::tempdir().expect("tempdir");
   std::fs::create_dir_all(dir.path().join("intent/.config")).expect("mkdir");
   std::fs::write(
     dir.path().join("intent/.config/config.json"),
-    "{\"intent_version\":\"2.19.0\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}\n",
+    format!(
+      "{{\"intent_version\":\"{declared}\",\"project_name\":\"P\",\"author\":\"cc\",\"intent_dir\":\"intent\",\"languages\":[\"shell\"]}}\n"
+    ),
   )
   .expect("write config");
   let control = crate::common::intent()
@@ -537,27 +520,24 @@ fn an_unmigrated_project_can_still_commit() {
   assert_eq!(
     control.status.code(),
     Some(1),
-    "precondition: a facade-opening command in an unmigrated project refuses at 1 -- the code the gate reads as findings. If this is no longer true the test \
+    "precondition: a facade-opening command refuses this project at 1 -- the code the gate reads as findings. If this is no longer true the test \
      below is guarding nothing"
   );
   assert!(
-    String::from_utf8_lossy(&control.stderr).contains("not been migrated"),
-    "precondition: and it refuses for the MIGRATION reason, not some other one"
+    String::from_utf8_lossy(&control.stderr).contains(&declared),
+    "precondition: and it refuses for the declared version, not some other reason"
   );
 
-  let (code, stderr) = shipped_hook_in("2.19.0", "shell");
+  let (code, stderr) = shipped_hook_in(&declared, "shell");
 
   assert_eq!(
     code,
     Some(0),
-    "the shipped gate blocked a commit in an unmigrated project. **A command the gate invokes is answering in the code it reads as findings** -- almost \
-     certainly `critic` built on `Facade::open`, whose `readable()` refuses before anything else runs. `doctor` and the migrator are already exempt because \
-     their job IS this state; `critic` needs exempting on a different ground -- its consumer fails CLOSED on the refusal code.\n\nTWO CAUSES REACH THIS ASSERTION AND THEY LIVE IN DIFFERENT SUBSYSTEMS. The second is ENVIRONMENTAL and is what CI hit on `macos-latest`: this project ARMS IN-SH-CODE-001 and IN-SH-CODE-002 on `shellcheck`, and the critic REFUSES -- correctly -- when an armed rule cannot be enforced, so a machine without the tool blocks the commit for a reason that has nothing to do with migration state. **The discriminator is in the stderr below**: `UNENFORCED` plus a rule id names the missing tool, and `not been migrated` names the facade. Install shellcheck before hunting in the code.\n{stderr}"
+    "the shipped gate blocked a commit in a project whose config this binary cannot read. **A command the gate invokes is answering in the code it reads as findings.**\n\nTWO CAUSES REACH THIS ASSERTION AND THEY LIVE IN DIFFERENT SUBSYSTEMS. The second is ENVIRONMENTAL and is what CI hit on `macos-latest`: this project ARMS IN-SH-CODE-001 and IN-SH-CODE-002 on `shellcheck`, and the critic REFUSES -- correctly -- when an armed rule cannot be enforced, so a machine without the tool blocks the commit for a reason that has nothing to do with the config. **The discriminator is in the stderr below**: `UNENFORCED` plus a rule id names the missing tool.\n{stderr}"
   );
   assert!(
     !stderr.contains("commit blocked by findings"),
-    "and it must never claim findings it does not have. The true remedy -- run `intent upgrade` -- is printed by the refusal and then overridden by one that \
-     cannot be followed:\n{stderr}"
+    "and it must never claim findings it does not have:\n{stderr}"
   );
 }
 

@@ -26,12 +26,15 @@ setup() {
   cd "${TEST_TEMP_DIR}" || exit 1
 
   # Minimal Intent project skeleton.
-  # `languages` field (v2.11.0+, ST0037) is the explicit declaration that
+  # `languages` field (ST0037) is the explicit declaration that
   # tells the hook which critics to invoke. Tests that target a different
   # language set should override this in their own setup.
+  # The config declares 3.0.0, which doctor reads, so doctor counts the hook
+  # these tests copy into .git/hooks/ as a gate that is not running; every
+  # config here acknowledges that one class, with its reason.
   mkdir -p intent/.config
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir"]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir"],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   touch mix.exs
 
@@ -316,7 +319,7 @@ EOF
   # fixture that would otherwise trigger critic-elixir is staged but the
   # commit proceeds because the elixir critic is not invoked.
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
   git add intent/.config mix.exs test/bad_test.exs
@@ -329,7 +332,7 @@ EOF
   # an Elixir test file is staged. Demonstrates the explicit-config
   # contract: file presence is not detection.
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["shell"]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["shell"],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
   git add intent/.config mix.exs test/bad_test.exs
@@ -342,7 +345,7 @@ EOF
   # languages with no headless code critic instead of invoking them and printing
   # a per-language "invocation error ... fail-open" line on every commit.
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["author","content"]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["author","content"],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   echo "# a doc" > README.md
   git add intent/.config mix.exs README.md
@@ -357,7 +360,7 @@ EOF
   # elixir must still block on a bad fixture while author is skipped without the
   # drift noise -- the gate runs code critics and skips prose disciplines.
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir","author"]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir","author"],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
   git add intent/.config mix.exs test/bad_test.exs
@@ -597,7 +600,7 @@ declare_languages() {  # declare_languages elixir rust ...
   local langs=""
   for l in "$@"; do langs="${langs}${langs:+,}\"${l}\""; done
   cat > intent/.config/config.json <<EOF
-{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[${langs}]}
+{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[${langs}],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
 EOF
   git add intent/.config
 }
@@ -679,8 +682,8 @@ EOF
   assert_success
   assert_output_contains "no rust rule was asked of any of the ${staged} file(s) given"
   assert_output_contains "1 of 1 declared language(s) enforced"
-  # The critic's own unenforced lines, not doctor's: the fixture declares Intent
-  # 2.11.0, which doctor reads as unmigrated, and doctor's exit 4 says UNENFORCED too.
+  # The critic's own unenforced lines: a doctor that could not judge the
+  # fixture would print UNENFORCED lines of its own on its exit 4.
   refute_output_contains "rust is UNENFORCED in this commit"
   refute_output_contains "went UNENFORCED"
   refute_output_contains "ok: no rust findings"
@@ -704,9 +707,9 @@ shim_doctor() {  # shim_doctor red | clean | unjudgeable
         echo "  echo 'doctor: 0 finding(s)'"
         echo '  exit 0' ;;
       # **THE CODE DOCTOR ACTUALLY EMITS FOR AN ESTATE IT CANNOT JUDGE**: no
-      # project, a config that will not parse, a project not migrated. The gate
-      # must fail OPEN on it or every v2 project on the fleet stops committing
-      # the day it installs this. The same `*)` arm covers an older binary
+      # project, a config that will not parse or declares a version before 3.
+      # The gate must fail OPEN on it, or a project this build cannot read
+      # stops committing the day it installs this. The same `*)` arm covers an older binary
       # answering clap's 2 for a verb it does not have.
       unjudgeable)
         echo "  echo 'error: no Intent project found' >&2"

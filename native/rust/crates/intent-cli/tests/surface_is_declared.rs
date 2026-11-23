@@ -213,9 +213,7 @@ fn offered_paths() -> Offered {
 ///
 /// The vocabulary is read by KIND rather than by argument name, because the
 /// name is not stable across families -- `command`, `verb` and `subcommand` are
-/// all in use. That is the same read
-/// `unmigrated_surface::the_surface_exemption_states_the_precondition_it_rests_on`
-/// already makes.
+/// all in use.
 fn declared(table: &dispatch::Table, segments: &[String]) -> bool {
   let path = segments.join(" ");
   let entries = dispatch::shipped_entries(table);

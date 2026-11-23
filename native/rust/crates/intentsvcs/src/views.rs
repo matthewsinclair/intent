@@ -528,7 +528,7 @@ fn section_body(text: &str) -> String {
 /// list here -- in the module that owns the format -- is what makes the two
 /// halves one fact rather than two that agree today.
 ///
-/// **IT IS CLOSED, AND THAT IS THE WHOLE DESIGN.** `legacy::scan` parses an
+/// **IT IS CLOSED, AND THAT IS THE WHOLE DESIGN.** v2's reader parsed an
 /// `info.md` into `preamble`/`objective`/`context`/`body` where `body` is an
 /// OPEN catch-all -- everything that is not Objective or Context. Pointed at a
 /// v3 view that catch-all swallows `## Work Packages`, `## Acceptance` and
@@ -2173,19 +2173,6 @@ pub(crate) fn whiteboard_writer(project: &Project, path: &std::path::Path) -> Op
       .and_then(|f| f.strip_suffix(".md"))
       .map(str::to_string),
   }
-}
-
-/// Whether the whiteboard writes this path for a node: its `board.json`
-/// record, its board view or one of its inbox views.
-///
-/// **A node's authored files beside them are not**, a script or a note under
-/// `intent/whiteboard/<node>/`, because nothing renders them and their author
-/// can reword them.
-pub(crate) fn is_whiteboard_written(project: &Project, path: &std::path::Path) -> bool {
-  let is_board = path.file_name().is_some_and(|f| f == "board.json")
-    && path.parent().and_then(std::path::Path::parent) == Some(project.whiteboard_dir().as_path());
-  // The board's team declaration is the whiteboard's too (ST0092 WP-03).
-  is_board || path == project.declaration_json() || whiteboard_owner(project, path).is_some()
 }
 
 /// A stored instant as a board renders it: minute granularity, `Z`-marked.

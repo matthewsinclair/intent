@@ -195,8 +195,6 @@ mod hv_seat_door;
 mod id_read_only_never_writes_the_store;
 #[path = "info_exit_code.rs"]
 mod info_exit_code;
-#[path = "ingest_command.rs"]
-mod ingest_command;
 #[path = "init_from_empty_dir.rs"]
 mod init_from_empty_dir;
 #[path = "init_mints_an_identity.rs"]
@@ -372,8 +370,6 @@ mod two_clones_and_two_worktrees_that_each_mint_merge_with_no_repair;
 mod two_clones_that_mint_one_id_are_repaired_by_remint;
 #[path = "uninstall_names_what_it_removed.rs"]
 mod uninstall_names_what_it_removed;
-#[path = "unmigrated_surface.rs"]
-mod unmigrated_surface;
 #[path = "upgrade_command.rs"]
 mod upgrade_command;
 #[path = "upgrade_installs_the_gate_releaser.rs"]

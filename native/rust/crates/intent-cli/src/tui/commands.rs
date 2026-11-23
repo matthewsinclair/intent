@@ -176,8 +176,8 @@ pub enum Act {
 ///   reason.
 pub const CLI_ROSTER: &[&str] = &[
   "st", "wp", "ac", "at", "todo", "info", "config", "doctor", "agents", "claude", "critic", "lang",
-  "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema", "export", "ingest",
-  "backup", "organize", "edit", "events", "surface",
+  "llm", "learn", "modules", "plugin", "ext", "version", "sync", "schema", "export", "backup",
+  "organize", "edit", "events", "surface",
 ];
 
 /// One offer in the palette.

@@ -1,9 +1,11 @@
 {
   "id": "AT-10.4",
-  "kind": "test",
+  "kind": "non-test",
   "file": "native/rust/crates/intentsvcs/tests/migrate_hooks_continuity.rs",
+  "prose": "Retired with its test, native/rust/crates/intentsvcs/tests/migrate_hooks_continuity.rs, under ST1c2db93 U4 (the v2 removal); nothing runs it now.",
   "covers": [
     "AC-10.4"
   ],
-  "status": "green"
+  "status": "n-a",
+  "note": "N/A on hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc); ST1c2db93 U4 removes the v2 importer, the migration gate and intent ingest: its test, native/rust/crates/intentsvcs/tests/migrate_hooks_continuity.rs, drove v2 behaviour that is removed, and the file goes with it."
 }

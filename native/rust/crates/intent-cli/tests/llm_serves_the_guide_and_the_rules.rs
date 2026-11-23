@@ -185,9 +185,8 @@ fn the_workflow_section_is_written_and_covers_what_it_promises() {
 ///
 /// This exists because the same wrong claim was made twice by the same author
 /// within an hour: that `intent ingest --from-md` carries markdown into the
-/// store. It does not. `Facade::ingest_from_md` takes `&Project`, returns a
-/// `legacy::Scan`, and reaches no store -- it reports that an estate parses
-/// (issue 0097). The first telling went into a peer message and was retracted;
+/// store. It did not: it reached no store and only reported that an estate
+/// parsed (issue 0097), and the verb has since been removed with v2. The first telling went into a peer message and was retracted;
 /// **the second was already compiled into the shipped guide, and the retraction
 /// did not reach it.**
 ///
@@ -207,13 +206,12 @@ fn the_guide_does_not_claim_markdown_reaches_the_store() {
   assert_eq!(code, 0, "the guide renders");
 
   // **SCOPED TO THE AUTHORED HALF, and the reason is a finding in itself.**
-  // The generated half carries `intent ingest`'s own `help` string from the
-  // dispatch table, which until 0097 read "Ingest markdown into the store
+  // The generated half carries each row's `help` string from the dispatch
+  // table, and `intent ingest`'s once read "Ingest markdown into the store
   // through the API gate (the recovery path, and the v2 migrator)" -- this
   // exact false claim at the surface-declaration level, and where the author's
-  // error came from. The table now says the verb writes nothing, and
-  // `ingest_command.rs` pins that; this arm stays on the half a person writes,
-  // so it never tempts anyone to hand-edit a generated line to go green.
+  // error came from. This arm stays on the half a person writes, so it never
+  // tempts anyone to hand-edit a generated line to go green.
   let authored = guide
     .split_once("## Workflows, methodology and conventions")
     .expect("the authored half is present")

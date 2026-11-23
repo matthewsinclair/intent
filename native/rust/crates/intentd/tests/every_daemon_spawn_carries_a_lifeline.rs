@@ -153,7 +153,7 @@ fn serving_spawns() -> Vec<Spawn> {
       // nine times, and those nine are most of what took the machine to load
       // 500 on 2026-09-10.
       // **THE TWO WORDS MUST BE ADJACENT ARGUMENTS, NOT MERELY BOTH PRESENT.**
-      // `unmigrated_surface.rs:568` is a TABLE of subcommand names --
+      // A test file once held a TABLE of subcommand names --
       // `("daemon", &["restart", "run", "start", "status", "stop"])` -- and a
       // check that asked only whether both words appeared reported it as an
       // unguarded daemon start. Mention versus use, in the guard against it,
