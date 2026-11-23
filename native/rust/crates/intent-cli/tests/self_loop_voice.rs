@@ -334,9 +334,9 @@ fn wp_rescope_reports_the_second_call_as_a_no_op() {
 /// guessing.
 ///
 /// **`Small` is the interesting refusal.** It is a size v2's free-text `scope:`
-/// field really does contain, and `legacy.rs` still reads it at ingest -- so this
-/// asserts the boundary rather than an accident: the set an operator may type and
-/// the set v2 may have written are different questions, and only the first one is
+/// field really did contain, and a stored package may still carry it in
+/// `scope_legacy` -- so this asserts the boundary rather than an accident: the set
+/// an operator may type and the set v2 may have written are different questions, and only the first one is
 /// this positional's.
 #[test]
 fn wp_rescope_refuses_a_size_outside_the_six_and_names_them() {

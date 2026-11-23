@@ -710,11 +710,9 @@ This mirrors the upgrade-doesn't-clobber contract: sync leaves a locally changed
 
 ## Upgrade notes
 
-**Coming from v2, the migration path is `docs/migrating-from-v2.md` in the repository.** That is the live guide and it describes the rewrite; this section carries only the LLM-canon-specific notes, which are the ones this document is responsible for.
+**This build does not support an Intent v2 project: Intent 3.5.1 is the last release that converts one.** This section carries only the LLM-canon-specific notes, which are the ones this document is responsible for.
 
-**`intent upgrade` converts the store and the thread tree and leaves the LLM canon alone.** It writes no `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json` or pre-commit hook. After it, run `intent claude upgrade` to see what differs from canon and `intent claude upgrade --apply` to converge: `AGENTS.md` and a generated `CLAUDE.md` are regenerated (the project block carried across), a hand-authored `CLAUDE.md` is held unless `--force`, `usage-rules.md` and `.intent_critic.yml` are kept as they are, `.claude/settings.json` is written to canon (held if it is not Intent's, unless `--force`) and `.mcp.json` seeded unless `--skip-settings`, `.prettierignore` gains the generated views, and the pre-commit chain block and carrier are installed with the `post-merge`, `post-checkout` and `post-rewrite` carriers. Per-project `.claude/scripts/*.sh` copies from v2 are inert, because the hooks run from the install.
-
-**v3 converts a project last upgraded by v2.19.0, and nothing older.** Bring an older project to v2.19.0 with v2's own `intent upgrade` first; `docs/migrating-from-v2.md` covers the path.
+**`intent upgrade` converts the store and the thread tree and leaves the LLM canon alone.** It writes no `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json` or pre-commit hook. After it, run `intent claude upgrade` to see what differs from canon and `intent claude upgrade --apply` to converge: `AGENTS.md` and a generated `CLAUDE.md` are regenerated (the project block carried across), a hand-authored `CLAUDE.md` is held unless `--force`, `usage-rules.md` and `.intent_critic.yml` are kept as they are, `.claude/settings.json` is written to canon (held if it is not Intent's, unless `--force`) and `.mcp.json` seeded unless `--skip-settings`, `.prettierignore` gains the generated views, and the pre-commit chain block and carrier are installed with the `post-merge`, `post-checkout` and `post-rewrite` carriers.
 
 ## See also
 
@@ -724,7 +722,6 @@ This mirrors the upgrade-doesn't-clobber contract: sync leaves a locally changed
 - `intent/docs/rules.md` — rule authoring guide.
 - `intent/docs/critics.md` — Critic subagent contract and report format.
 - `intent/docs/writing-extensions.md` — the design for extensions at `~/.local/share/intent/ext/`, which v3 does not build.
-- `docs/migrating-from-v2.md` — the v2 to v3 migration guide.
 - `intent/llm/MODULES.md` — Highlander module registry, where the project keeps one.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart, where the project keeps one.
 - `intent/.canon/st/ST0035.json` — the decision log behind D1 to D10, as canon, with its `design.md` attached; D4 above reverses its recorded D4. D11's record is `intent/.canon/st/ST0044.json`.

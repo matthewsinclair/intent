@@ -37,7 +37,6 @@
 #   - `bin/.devbin/cmd/shared/currency.lib` (`artefact_pair_marker`), and
 #     through it `cmd/cli` and the build arms that source it
 #   - `intent/st/ST0056/parity/tools/self_provenance_check.sh`
-#   - `intent/st/ST0056/parity/tools/interrupt_rig.sh`
 #   - `intent/st/ST0056/parity/tools/provenance_fields_check.sh`
 #
 # Each parity tool HARD STOPS at exit 2 if it cannot read this file. There is no

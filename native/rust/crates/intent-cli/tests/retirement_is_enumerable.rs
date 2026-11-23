@@ -70,7 +70,7 @@ fn run(argv: &[&str]) -> i32 {
 
 /// **A REGISTER PATH IS A SPELLING, NOT AN ARGUMENT LIST.**
 ///
-/// `st repair` is TWO argv elements. Passed as one it is an unrecognized
+/// `st renumber` is TWO argv elements. Passed as one it is an unrecognized
 /// subcommand at rc=1 -- which is indistinguishable from a command that never
 /// existed, so the first run of this test reported the retirement refusal as
 /// absent on every multi-word row. **The strict `== 2` below is what caught
@@ -291,10 +291,10 @@ fn the_published_roster_and_the_refusal_path_read_one_definition() {
   // list they consult afterwards must agree, or the list is advice about a
   // different binary.
   //
-  // It matters more than it looks: `table.retired()` alone names `organize`,
-  // which this build RECLAIMED and which RUNS. A roster built from disposition
-  // alone would tell an operator to strip a working command out of their
-  // scripts.
+  // It matters more than it looks: `table.retired()` alone would name a
+  // retired row whose path a shipped row also spells, and that command RUNS.
+  // A roster built from disposition alone would tell an operator to strip a
+  // working command out of their scripts.
   let table = dispatch::table();
   let in_process: Vec<String> = spine::retired_and_unreachable(&table)
     .into_iter()

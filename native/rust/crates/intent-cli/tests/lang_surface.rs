@@ -182,32 +182,6 @@ fn a_shared_pack_is_refused_rather_than_shown() {
   );
 }
 
-/// **`lang sync` IS RETIRED: absent from help AND refused at exit 2.**
-///
-/// Both halves, because either alone is survivable. A verb missing from help but
-/// still answering is undiscoverable rather than retired; a verb that refuses
-/// while help still advertises it sends the reader at a wall.
-#[test]
-fn sync_is_retired_in_both_places() {
-  let help = stdout(&run(&["lang"]));
-  assert!(
-    !help.contains("sync"),
-    "`lang sync` is retired but still advertised: {help}"
-  );
-
-  let out = run(&["lang", "sync"]);
-  assert_eq!(
-    out.status.code(),
-    Some(2),
-    "a retired verb exits 2 (unavailable), not 1 (a negative verdict about the caller's work)"
-  );
-  assert!(
-    stderr(&out).contains("retired"),
-    "the refusal should say so: {}",
-    stderr(&out)
-  );
-}
-
 /// **THE MUTATING HALF IS GATED AND THE READING HALF IS NOT.**
 ///
 /// This is the one property a family-level exemption would destroy, so it is

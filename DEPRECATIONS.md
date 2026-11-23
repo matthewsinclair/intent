@@ -1,13 +1,38 @@
 ---
-verblock: "24 Sep 2026:v0.8: Matthew Sinclair - Updated for Intent v3.2.1"
-intent_version: 3.2.1
+verblock: "23 Nov 2026:v0.9: Matthew Sinclair - Updated for Intent v3.5.2"
+intent_version: 3.5.2
 ---
 
 # Intent Deprecations
 
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
 
-Each entry's migration path is written for the version it names. To bring a v2 project to v3, see [Migrating from v2](docs/migrating-from-v2.md).
+Each entry's migration path is written for the version it names.
+
+## November 2026 (v3.5.2): converting a v2 project, and the refusals of the v2 commands
+
+### What was deprecated
+
+The conversion of an Intent v2 project, with `intent ingest`, which checked that one would convert. And the refusal by name of the retired v2 spellings: `st organize`, `st organise`, `st repair`, `st_zero`, `st bootstrap`, `lang sync`, `treeindex`, `fileindex`, `agents template`, `claude prime`, `claude rules index` and `claude ws`, the aliases `at done`, `at notdone`, `issues new` and `lang rm`, and `intent init --with-st0000`.
+
+### Why it was deprecated
+
+Intent v2 no longer exists anywhere, so there is nothing left to convert and no v2 script left to tell what happened to its commands.
+
+### Migration path
+
+- Convert a v2 project with Intent 3.5.1, the last release that converts one, then use this build.
+- Use `intent at green`, `intent at red`, `intent issues add` and `intent lang remove` in place of the four aliases.
+- Remove any remaining call to the retired spellings from your scripts.
+
+### Impact
+
+- A project whose config declares a version before 3 is refused, with a remedy naming Intent 3.5.1.
+- Each spelling above is now an unknown command or flag, refused by the parser rather than by name.
+
+### Version deprecated
+
+Intent version 3.5.2.
 
 ## September 2026 (v3.1.0): `intent claude rules index`, and `intent at new --status`
 
@@ -75,7 +100,7 @@ v2 kept a project's truth in markdown and parsed it back out on every read. v3 k
 
 ### Migration path
 
-Run `intent ingest` to check that a v2 project would migrate, then `intent upgrade` to migrate it. [Migrating from v2](docs/migrating-from-v2.md) covers the hop and what to check afterwards. Remove `INTENT_HOME` from your environment, and remove calls to retired commands from your scripts.
+Convert a v2 project with Intent 3.5.1, the last release that converts one: this build does not. Remove `INTENT_HOME` from your environment, and remove calls to retired commands from your scripts.
 
 ### Impact
 

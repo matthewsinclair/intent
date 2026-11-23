@@ -463,13 +463,6 @@ fn collect(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), RulesError> {
 /// fragment of a sentence. Requiring column zero makes a list item structurally
 /// unable to be mistaken for a key, which is stronger than any amount of care.
 ///
-/// **`legacy.rs` HAS A PRIVATE FLAT READER AND IT IS DELIBERATELY NOT REUSED.**
-/// It parses v2 ST and issue frontmatter, which is flat, so it splits every line
-/// including indented ones. Folding the two is the right end state -- top-level-
-/// only is strictly more correct for flat frontmatter too -- but it changes the
-/// v2 migrator, and doing that inside a hosting change would put a migration
-/// regression and a new command in one diff.
-///
 /// Values are trimmed and a single pair of surrounding quotes is stripped, so
 /// `title: "Foo"` and `title: Foo` read the same. A colon INSIDE a value
 /// survives: the split is on the first colon only, so `title: Foo: bar` yields

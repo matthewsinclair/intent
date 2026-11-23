@@ -9382,11 +9382,6 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// because there is not one yet, so reaching for the facade would refuse the
 /// command on the exact condition it is meant to remove.
 ///
-/// **`--with-st0000` IS RETIRED** (hv's decision 3, 2026-09-11), with the
-/// `st bootstrap` it would have run, so clap refuses it before this arm. It was
-/// refused here by name while that command was unimplemented, with a remedy
-/// promising the step once the command landed -- which it will not.
-///
 /// **`--lang` WAS REFUSED THE SAME WAY UNTIL ISSUE `0187`, AND IS NOW HONOURED.**
 /// The refusal said `intent lang init` was not implemented, which stopped
 /// being true when it shipped, and the guard kept firing on the expired premise.
@@ -13448,6 +13443,15 @@ fn info_project(cwd: Option<&std::path::Path>) {
 
   let project = match Project::discover(cwd) {
     Ok(project) => project,
+    // A project this build will not read is still a project: saying "not in
+    // one" would send the operator to `intent init` over their own repository.
+    // Exit 0 stands, as above; the refusal and its remedy are printed.
+    Err(e @ intentsvcs::project::ProjectError::PreV3 { .. }) => {
+      println!("  {e}");
+      println!("  remedy: {}", e.remedy());
+      println!();
+      return;
+    }
     Err(_) => {
       println!("  Not in an Intent project directory");
       println!();
@@ -14498,9 +14502,8 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
 /// **IT HAD A SIBLING UNTIL ST0069 AC-14.12: `intent claude ws <verb> [wsid]`,
 /// the provisioner.** `new` / `list` / `archive` / `hygiene` managed the board
 /// as FILES; WP-14 makes a node a ROW and `intent wb` manages the model those
-/// verbs were a view of, so the row is retired in `dispatch-table.json` and the
-/// spelling is answered by the retirement matcher at rc=2 naming `intent wb
-/// register`. **THE ENUM THAT SELECTED BETWEEN THE TWO WENT WITH IT**, rather
+/// verbs were a view of, so the row is gone from `dispatch-table.json` and the
+/// spelling is an unknown command. **THE ENUM THAT SELECTED BETWEEN THE TWO WENT WITH IT**, rather
 /// than being left as a one-variant selector: a parameter that can take one
 /// value reads as a seam and is a residue.
 ///
@@ -16001,7 +16004,7 @@ fn hook(a: &ArgMatches) -> Result<(), Failure> {
 /// Replace this process with `bash <script> <args...>`, or fail BY NAME.
 ///
 /// **Extracted because there are now two doors, not because it is tidier.**
-/// `claude hook` and `claude start`/`claude ws` both resolve a shipped shell
+/// `claude hook` and `claude start` both resolve a shipped shell
 /// asset out of [`intentsvcs::install::home`] and hand the process to it, and
 /// the load-bearing part of that dance is the `is_file` check: without it an
 /// absent asset reaches the shell and comes back as an opaque `127`, which
@@ -18264,32 +18267,38 @@ mod tests {
   /// **`IN-AG-RED-CONTROL-001` in its quietest form** -- not a control that
   /// broke, but one that never could break, wearing a name that says it does.
   ///
-  /// The fixture was `bootstrap` until hv's decision 3 retired it (2026-09-11),
-  /// and with it the last real unwired verb under a wired family: `repair` was
-  /// retired before it. **So the subject is now SYNTHETIC** -- a copy of the
-  /// table with `st bootstrap` declared again, which is the state the real row
-  /// was in. The arm under test is the spine's, not the row's, so a declared
-  /// row with no dispatch arm is all the subject has to be.
+  /// The table holds no real unwired verb under a wired family, so **the
+  /// subject is SYNTHETIC**: a copy of the table with a verb declared under
+  /// `st` that no dispatch arm serves, cloned from `st list` so it parses with
+  /// no arguments. The arm under test is the spine's, not the row's, so a
+  /// declared row with no dispatch arm is all the subject has to be.
   #[test]
   fn an_unwired_verb_in_a_wired_family_is_sent_to_that_family() {
     let mut table = dispatch::table();
-    let entry = table
+    let st = table
       .families
       .iter_mut()
-      .flat_map(|f| f.entries.iter_mut())
-      .find(|e| e.path == "st bootstrap")
-      .expect("the retired `st bootstrap` row is still in the table");
-    entry.disposition = "keep".to_string();
-    entry.target.state = "corrected".to_string();
+      .find(|f| f.name == "st")
+      .expect("the table has an `st` family");
+    let mut entry = st
+      .entries
+      .iter()
+      .find(|e| e.path == "st list")
+      .expect("`st list` is in the table")
+      .clone();
+    entry.path = "st unbuilt".to_string();
+    entry.aliases.clear();
+    entry.hidden_aliases.clear();
+    st.entries.push(entry);
     let matches = crate::spine::build(&table)
-      .try_get_matches_from(["intent", "st", "bootstrap"])
-      .expect("`st bootstrap` is DECLARED in this copy, so it parses -- it has no dispatch arm");
+      .try_get_matches_from(["intent", "st", "unbuilt"])
+      .expect("`st unbuilt` is DECLARED in this copy, so it parses -- it has no dispatch arm");
     let failure = run(&matches).expect_err("an unwired verb fails");
     assert_eq!(failure.code(), 2, "an unwired verb must exit 2, never 1");
 
     let message = failure.message().expect("Unavailable carries a message");
     assert!(
-      message.contains("`st bootstrap`"),
+      message.contains("`st unbuilt`"),
       "family and verb are joined with a space when both are present: {message}"
     );
     assert!(

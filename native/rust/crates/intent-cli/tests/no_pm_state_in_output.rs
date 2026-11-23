@@ -300,12 +300,10 @@ fn every_declared_commands_help_carries_no_pm_state() {
     offenders.join("\n  ")
   );
 
-  // **THE CARVE-OUT IS NO LONGER PROVEN ON THE REAL SURFACE, SINCE
-  // 2026-09-11, AND THE CHECK ABOVE NOW RUNS WITHOUT THAT CONTROL.** The only
-  // shipped help text naming `ST0000` was `st bootstrap`'s and `init
-  // --with-st0000`'s, and hv's decision 3 retired both. The assertion that
-  // some help mentioned it is deleted rather than satisfied by planting help
-  // text. What remains is the planted-string proof in
+  // **THE CARVE-OUT IS NOT PROVEN ON THE REAL SURFACE, AND THE CHECK ABOVE
+  // RUNS WITHOUT THAT CONTROL.** No shipped help text names `ST0000`, and an
+  // assertion that some help mentioned it would have to be satisfied by
+  // planting help text. What remains is the planted-string proof in
   // `the_rule_keys_on_referent_and_not_on_shape` -- `ST0000` stays green,
   // `ST0056` goes red -- not a proof on what ships.
 }

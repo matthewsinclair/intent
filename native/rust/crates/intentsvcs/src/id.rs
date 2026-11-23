@@ -2187,8 +2187,8 @@ fn named_reading(raw: &str) -> NamedReading {
 
 /// Every steel thread `text` names, in the order they first appear, each once.
 ///
-/// **ONE SCANNER WHERE THERE WERE TWO** (`legacy.rs` read v2 prose with one,
-/// `contract.rs` read cited lines with another; issue I88f333f made it read
+/// **ONE SCANNER WHERE THERE WERE TWO** (`contract.rs` read cited lines with one,
+/// and a second reader read prose; issue I88f333f made it read
 /// through the waist). A word is a run of ASCII letters and digits, and a word
 /// names a thread when [`marked`] reads it as one: an ordinal, a hashed id's
 /// stored form, or its shown front. So `ST3f9a2c1` is that thread's front, and

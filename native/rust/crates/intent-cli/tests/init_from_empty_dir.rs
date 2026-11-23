@@ -148,32 +148,6 @@ fn init_refuses_an_existing_project() {
   );
 }
 
-/// **A FLAG WHOSE SUBSYSTEM IS ABSENT REFUSES BY NAME.** `--with-st0000` is
-/// `disposition: keep` in the table, so it is not withheld -- it is declared
-/// and its machinery is not built. Accepting it would report a project set up
-/// in a way it is not, and nothing downstream would ever say so. `--lang` was
-/// in this loop until issue `0187`: its machinery shipped, and the refusal kept
-/// firing on the expired premise. It is covered by the two tests below.
-#[test]
-fn a_flag_whose_subsystem_is_unimplemented_refuses_rather_than_ignoring() {
-  {
-    let (flag, args) = ("--with-st0000", vec!["init", "p", "--with-st0000"]);
-    let dir = empty_dir();
-    let (_, err, code) = run(&args, dir.path());
-    assert_ne!(code, 0, "`{flag}` was accepted with nothing behind it");
-    assert!(
-      err.contains(flag),
-      "the refusal does not name the flag the operator typed: {err}"
-    );
-    // AND IT LEFT NOTHING BEHIND. A refusal that half-initialised would be
-    // worse than either accepting or refusing cleanly.
-    assert!(
-      !dir.path().join("intent/.config/config.json").exists(),
-      "`{flag}` refused and still created a project"
-    );
-  }
-}
-
 /// `init --lang` creates the project AND declares the languages (issue
 /// `0187`). Both separators the table
 /// declares are exercised, and the declaration is read back from the config

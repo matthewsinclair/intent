@@ -215,7 +215,8 @@ fn upgrade_realises_only_what_the_manifest_declares() {
 /// This file's subject is that the migrator's population comes from CANON and
 /// not from the filesystem, and for four days that was true of threads only.
 /// `plan` topped `threads` up from committed canon and passed `issues` straight
-/// through from `legacy::scan`, which derives them from a v2 estate -- so on an
+/// through from a scan of the disk, which found them only where a thread had a
+/// directory -- so on an
 /// already-migrated project the scan found none, `store.rebuild` ran off the
 /// empty vector, and **every issue in the project was destroyed at rc=0 under
 /// an `ok:`.** dc measured it on a probe (5 held, `0 issue(s)` reported, 0 left)

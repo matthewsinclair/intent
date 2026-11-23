@@ -204,33 +204,30 @@ Manage steel threads for the project
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
 
-| command                             | args          | flags                                                                    | help                                                                                                                                                                                                                     | disposition |
-| ----------------------------------- | ------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| `st`                                | <command>     | help/--help/-h                                                           | Manage steel threads for the project                                                                                                                                                                                     | keep        |
-| `st new`                            | <title>       | -s/--start                                                               | Create a new steel thread                                                                                                                                                                                                | keep        |
-| `st start`                          | <id>          | --                                                                       | Mark a steel thread as in progress                                                                                                                                                                                       | keep        |
-| `st done`                           | <id>          | --keep, --date <YYYY-MM-DD>                                              | Mark a steel thread as complete                                                                                                                                                                                          | keep        |
-| `st cancel`                         | <id>          | --reason <text>, --keep, --date <YYYY-MM-DD>                             | Mark a steel thread as cancelled, with a reason                                                                                                                                                                          | keep        |
-| `st triage`                         | <id>          | --                                                                       | Move a triaged thread out of Triage into NotStarted                                                                                                                                                                      | new-surface |
-| `st hold`                           | <id>          | --reason <text>                                                          | Put a thread on hold, with a reason                                                                                                                                                                                      | new-surface |
-| `st resume`                         | <id>          | --                                                                       | Take a thread off hold and back into Wip                                                                                                                                                                                 | new-surface |
-| `st reopen`                         | <id>          | --reason <text>                                                          | Reopen a completed thread back into Wip, with a reason                                                                                                                                                                   | new-surface |
-| `st reinstate`                      | <id>          | --reason <text>                                                          | Reinstate a cancelled thread into NotStarted, with a reason                                                                                                                                                              | new-surface |
-| `st hydrate`                        | <id>          | --overwrite                                                              | Add a steel thread to .intentfiles and write its files                                                                                                                                                                   | new-surface |
-| `st dehydrate`                      | <id>          | --                                                                       | Remove a steel thread from .intentfiles and delete its files                                                                                                                                                             | new-surface |
-| `st list`                           | --            | --status <status>, --width <n>, --markdown, --format terminal/md, --slug | List steel threads (default: in progress only)                                                                                                                                                                           | keep        |
-| `st show`                           | <id> [file]   | --                                                                       | Show details of a specific steel thread                                                                                                                                                                                  | keep        |
-| `st edit`                           | <id> [file]   | --editor, --path                                                         | Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one; the files a realise writes are named on stderr as `wrote:` lines | keep        |
-| `st attach`                         | <id> <path>   | --from <file>                                                            | Write an attachment's content from a local file                                                                                                                                                                          | new-surface |
-| `st detach`                         | <id> <path>   | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                                                                                                           | new-surface |
-| `st renumber`                       | <old> <new>   | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                                                                                                             | retire      |
-| `st remint`                         | <id>          | --                                                                       | Move an ordinal steel thread to its git-style id, with everything that names it structurally                                                                                                                             | new-surface |
-| `st relate`                         | <id> <target> | --note <text>                                                            | Link a thread to another, or replace the note on a link it already carries                                                                                                                                               | new-surface |
-| `st unrelate`                       | <id> <target> | --                                                                       | Drop a thread's link to another, including a link to a thread that no longer exists                                                                                                                                      | new-surface |
-| `st sync`                           | --            | --write, --width <n>, --format terminal/md                               | Print the steel thread index; with `--write`, write it and each thread's projection to disk                                                                                                                              | keep        |
-| `st repair`                         | [id]          | --write                                                                  | Repair malformed steel thread metadata                                                                                                                                                                                   | retire      |
-| `st organize` (alias `st organise`) | --            | --write                                                                  | Organize ST files in directories by status                                                                                                                                                                               | retire      |
-| `st bootstrap`                      | --            | --audit-only, --dry-run, --deliverable <id>                              | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones                                                                                       | retire      |
+| command        | args          | flags                                                                    | help                                                                                                                                                                                                                     | disposition |
+| -------------- | ------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| `st`           | <command>     | help/--help/-h                                                           | Manage steel threads for the project                                                                                                                                                                                     | keep        |
+| `st new`       | <title>       | -s/--start                                                               | Create a new steel thread                                                                                                                                                                                                | keep        |
+| `st start`     | <id>          | --                                                                       | Mark a steel thread as in progress                                                                                                                                                                                       | keep        |
+| `st done`      | <id>          | --keep, --date <YYYY-MM-DD>                                              | Mark a steel thread as complete                                                                                                                                                                                          | keep        |
+| `st cancel`    | <id>          | --reason <text>, --keep, --date <YYYY-MM-DD>                             | Mark a steel thread as cancelled, with a reason                                                                                                                                                                          | keep        |
+| `st triage`    | <id>          | --                                                                       | Move a triaged thread out of Triage into NotStarted                                                                                                                                                                      | new-surface |
+| `st hold`      | <id>          | --reason <text>                                                          | Put a thread on hold, with a reason                                                                                                                                                                                      | new-surface |
+| `st resume`    | <id>          | --                                                                       | Take a thread off hold and back into Wip                                                                                                                                                                                 | new-surface |
+| `st reopen`    | <id>          | --reason <text>                                                          | Reopen a completed thread back into Wip, with a reason                                                                                                                                                                   | new-surface |
+| `st reinstate` | <id>          | --reason <text>                                                          | Reinstate a cancelled thread into NotStarted, with a reason                                                                                                                                                              | new-surface |
+| `st hydrate`   | <id>          | --overwrite                                                              | Add a steel thread to .intentfiles and write its files                                                                                                                                                                   | new-surface |
+| `st dehydrate` | <id>          | --                                                                       | Remove a steel thread from .intentfiles and delete its files                                                                                                                                                             | new-surface |
+| `st list`      | --            | --status <status>, --width <n>, --markdown, --format terminal/md, --slug | List steel threads (default: in progress only)                                                                                                                                                                           | keep        |
+| `st show`      | <id> [file]   | --                                                                       | Show details of a specific steel thread                                                                                                                                                                                  | keep        |
+| `st edit`      | <id> [file]   | --editor, --path                                                         | Open a steel thread file, realising the thread if it is not on disk: in $VISUAL or $EDITOR on a terminal, and as a printed path when stdout is not one; the files a realise writes are named on stderr as `wrote:` lines | keep        |
+| `st attach`    | <id> <path>   | --from <file>                                                            | Write an attachment's content from a local file                                                                                                                                                                          | new-surface |
+| `st detach`    | <id> <path>   | --                                                                       | Remove an attachment from a thread, leaving its file on disk for you to delete                                                                                                                                           | new-surface |
+| `st renumber`  | <old> <new>   | --                                                                       | Move a steel thread to a free id, with everything that names it structurally                                                                                                                                             | retire      |
+| `st remint`    | <id>          | --                                                                       | Move an ordinal steel thread to its git-style id, with everything that names it structurally                                                                                                                             | new-surface |
+| `st relate`    | <id> <target> | --note <text>                                                            | Link a thread to another, or replace the note on a link it already carries                                                                                                                                               | new-surface |
+| `st unrelate`  | <id> <target> | --                                                                       | Drop a thread's link to another, including a link to a thread that no longer exists                                                                                                                                      | new-surface |
+| `st sync`      | --            | --write, --width <n>, --format terminal/md                               | Print the steel thread index; with `--write`, write it and each thread's projection to disk                                                                                                                              | keep        |
 
 ### `st`
 
@@ -774,96 +771,6 @@ Print the steel thread index; with `--write`, write it and each thread's project
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
 - **facade:** sync_to_disk
-
-### `st repair`
-
-Repair malformed steel thread metadata
-
-- **v2:** bin/intent_st:1212-1433
-- **Arguments:**
-  - `id` (st-id, arity `0..1`)
-    - Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0000` and `0000` ONLY
-- **Flags:**
-  - `--write` (bool) -- Apply the repairs; without it the command is a dry run
-    - **disposition:** retire
-    - **disposition basis:** Retired with its command (hv, 2026-08-28, issue 0118). A retired command never reaches clap, so neither can its flags -- the generator refuses the mismatch rather than shipping a flag with no door.
-- **Exit codes:**
-  - `0` -- repaired or dry-run reported
-  - `1` -- `error: Unknown option or invalid steel thread ID: <arg>`
-  - `1` -- `error: Steel thread not found: <ID>`
-- **stdout:** per-thread findings
-- **stderr:** `error: ...`
-- **Defects observed in v2:**
-  - DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works.
-- **Target:** `retire` -- ratified: hv, 2026-08-28, on issue 0118. **v3 HAS NO SUBJECT FOR THIS VERB.** v2's `st repair` fixes MALFORMED FRONTMATTER -- `bin/intent_st:1250+`, 'Check if frontmatter is malformed (all on one line with \\n)' -- in a hand-authored markdown artefact. In v3 `info.md` is a GENERATED VIEW: `doctor` re-renders every view to detect a hand-edited one, and the remedy for a mangled view is regeneration, not repair. A verb whose entire subject is now regenerated has nothing left to do. **AND IT WAS NEVER THE DOOR 0118 NEEDED**, which is what made this ruling reachable: 0118 reasoned that `repair` is the last exit of a closed loop doctor recruits operators into, and the loop is real, but the exit it named was never the door to that room -- Conflab's findings are threads missing `completed`, which v2's repair never touched. The actual unblock is `--date` on the closing verbs, ruled in the same round and landed at bd5894df.
-- **Note:** **THE BARE-NUMBER ID QUESTION IS NOT ANSWERED BY THIS AND MUST NOT BE READ AS ANSWERED.** The row previously carried, as `target.question`: "Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced." That question is about v3's id parser, not about this verb, and retiring the verb removes its only current caller rather than settling it. It stays open on its own row, unanswered by implementation.
-- **spelling:** _(declared empty)_
-- **MCP:** not exposed -- **mutates**
-- **Wants review:**
-  - uncertain on `exposed_on_mcp`
-  - Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output.
-- **recoverability:** one-way
-
-### `st organize`
-
-Organize ST files in directories by status
-
-- **v2:** bin/intent_st:1434-1609; the `organise` -> `organize` normalisation is at bin/intent_st:289-292
-- **Flags:**
-  - `--write` (bool) -- Move the files; without it the command is a dry run
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-- **Exit codes:**
-  - `0` -- swept
-  - `1` -- `error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`
-- **stdout:** `Already organized: <ID> in intent/st/<STATUS>` per thread
-- **stderr:** `error: ...`; a move collision also prints mv's raw stderr
-- **Observed notes:** `organise` is an alias ONLY here, one level down. `intent organise` at top level is `error: Unknown command 'organise'` -- measured both.
-- **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
-- **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (different output, nothing shared).
-- **spelling:** _(declared empty)_
-- **MCP:** not exposed -- **mutates**
-
-### `st bootstrap`
-
-Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones
-
-- **v2:** bin/intent_st_zero, reached in v2 by both `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610-1612 execs the binary). Only the second was ever documented by the command itself.
-- **Flags:**
-  - `--audit-only` (bool) -- Show gap analysis only, no changes
-    - **disposition:** retire
-    - **disposition basis:** RETIRED 2026-09-11 with its command, `st bootstrap`, by hv's decision 3 (ST0058 AC-00.3). A retired command never reaches clap, so neither can its flags.
-  - `--dry-run` (bool) -- Show what would change, no writes
-    - **disposition:** retire
-    - **disposition basis:** RETIRED 2026-09-11 with its command, `st bootstrap`, by hv's decision 3 (ST0058 AC-00.3). A retired command never reaches clap, so neither can its flags.
-  - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
-    - **disposition:** retire
-    - **disposition basis:** RETIRED 2026-09-11 with its command, `st bootstrap`, by hv's decision 3 (ST0058 AC-00.3). A retired command never reaches clap, so neither can its flags.
-- **Exit codes:**
-  - `0` -- bare -- prints `Usage: intent st zero install` and exits 0
-- **stdout:** the usage line
-- **stderr:** --
-- **Defects observed in v2:**
-  - UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.
-  - INV-07 at inverted -- bare invocation prints only usage and exits 0, where every other family exits 1
-- **Target:** `retire` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. hv, 2026-08-15, ruling applied at commit c1cca8c4
-- **Note:** `install` COLLAPSED into the bare form, deliberately, as part of the same correction. It was the only value of the subcommand and the real verb hiding a level down; keeping it gives `intent st bootstrap install`, two stacked verbs, which rebuilds the exact defect this ruling removes. The audit path is already a flag (`--audit-only`), so nothing is lost. Landed rather than asked because delivering the ruled verb on top of the unruled noise word would deliver the problem in a new costume; one sentence reverses it.
-- **spelling:** _(declared empty)_
-- **retired by:** hv, decision 3 (2026-09-11, ST0058 AC-00.3): STRUCK. It answered `is a known command that is not implemented yet` while canon told agents to run it, and it will not be built. RETIRED RATHER THAN DELETED so the path still refuses at rc=2 with `was retired in Intent v3` (issue 0044) and not clap's generic rc=1; `spelling` is empty because nothing replaces it. The target state it carried before is kept below as history. The ST0000 bootstrap it would have run, and `init --with-st0000` which was refused pending it, are retired with it.
-- **consequence:** `intent bootstrap` (top level) already exists and means "first-time setup: create global Intent configuration". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.
-- **face:** surviving
-- **never built:** false
-- **rulings:**
-  - `0.state`: ratified
-  - `0.authority`: hv
-  - `0.date`: 2026-08-15
-  - `0.record`: c1cca8c4
-- **MCP:** not exposed -- **mutates**
-- **Wants review:**
-  - uncertain on `exposed_on_mcp`
-  - One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for.
-- **Cross-reference:** THE surviving face until hv's decision 3 retired it (2026-09-11). The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.
-- **recoverability:** one-way
 
 ## Family: `wp`
 
@@ -1511,16 +1418,16 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
 - `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/rust/crates/intentsvcs/src/model.rs).
 
-| command                       | args          | flags                                                                                                                | help                                                                              | disposition |
-| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
-| `at`                          | <command>     | --                                                                                                                   | Acceptance test commands                                                          | keep        |
-| `at list`                     | <stid>        | --                                                                                                                   | List ATs (id, reference, status)                                                  | keep        |
-| `at lint`                     | <stid>        | --fix                                                                                                                | Check AT rows against the grammar                                                 | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                                        | Set an AT green                                                                   | keep        |
-| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                                        | Set an AT red                                                                     | keep        |
-| `at na`                       | <stid> <atid> | --note <text>                                                                                                        | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
-| `at new`                      | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind test/non-test, --status to-write/red/green/n-a, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
-| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --kind <test/non-test>, --covers <ac-id>, --note <text>                               | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
+| command    | args          | flags                                                                                                                | help                                                                              | disposition |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `at`       | <command>     | --                                                                                                                   | Acceptance test commands                                                          | keep        |
+| `at list`  | <stid>        | --                                                                                                                   | List ATs (id, reference, status)                                                  | keep        |
+| `at lint`  | <stid>        | --fix                                                                                                                | Check AT rows against the grammar                                                 | keep        |
+| `at green` | <stid> <atid> | --note <text>                                                                                                        | Set an AT green                                                                   | keep        |
+| `at red`   | <stid> <atid> | --note <text>                                                                                                        | Set an AT red                                                                     | keep        |
+| `at na`    | <stid> <atid> | --note <text>                                                                                                        | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
+| `at new`   | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind test/non-test, --status to-write/red/green/n-a, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
+| `at edit`  | <stid> <atid> | --file <path>, --prose <text>, --kind <test/non-test>, --covers <ac-id>, --note <text>                               | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
 
 ### `at`
 
@@ -1762,19 +1669,19 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args        | flags                                                                             | help                                                                                  | disposition |
-| --------------------------------- | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------- |
-| `issues`                          | [command]   | --project <project>, --width <n>, --format terminal/md                            | Track issues without the ceremony of a steel thread                                   | keep        |
-| `issues list`                     | --          | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                                           | keep        |
-| `issues add` (alias `issues new`) | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                                                   | keep        |
-| `issues edit`                     | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity                         | new-surface |
-| `issues show`                     | <id>        | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                                                   | keep        |
-| `issues close`                    | <id>        | --                                                                                | Mark an issue done: OPEN -> CLOSED                                                    | keep        |
-| `issues open`                     | <id>        | --                                                                                | Reopen an issue: CLOSED -> OPEN                                                       | keep        |
-| `issues renumber`                 | <old> <new> | --                                                                                | Move an issue to a free number, with its canon file and view                          | retire      |
-| `issues remint`                   | <id>        | --                                                                                | Move an ordinal issue to its git-style id, with everything that names it structurally | new-surface |
-| `issues hydrate`                  | <id>        | --                                                                                | Add an issue to .intentfiles and write its files                                      | retire      |
-| `issues dehydrate`                | <id>        | --                                                                                | Remove an issue from .intentfiles and delete its files                                | retire      |
+| command            | args        | flags                                                                             | help                                                                                  | disposition |
+| ------------------ | ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------- |
+| `issues`           | [command]   | --project <project>, --width <n>, --format terminal/md                            | Track issues without the ceremony of a steel thread                                   | keep        |
+| `issues list`      | --          | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                                           | keep        |
+| `issues add`       | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                                                   | keep        |
+| `issues edit`      | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity                         | new-surface |
+| `issues show`      | <id>        | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                                                   | keep        |
+| `issues close`     | <id>        | --                                                                                | Mark an issue done: OPEN -> CLOSED                                                    | keep        |
+| `issues open`      | <id>        | --                                                                                | Reopen an issue: CLOSED -> OPEN                                                       | keep        |
+| `issues renumber`  | <old> <new> | --                                                                                | Move an issue to a free number, with its canon file and view                          | retire      |
+| `issues remint`    | <id>        | --                                                                                | Move an ordinal issue to its git-style id, with everything that names it structurally | new-surface |
+| `issues hydrate`   | <id>        | --                                                                                | Add an issue to .intentfiles and write its files                                      | retire      |
+| `issues dehydrate` | <id>        | --                                                                                | Remove an issue from .intentfiles and delete its files                                | retire      |
 
 ### `issues`
 
@@ -2408,9 +2315,9 @@ Initialize a new Intent project in the current directory
 
 - Templates are read from `lib/templates/` at `INTENT_HOME`. In v3 they are embedded in the binary (WP-07, rust-embed), which removes the whole class of broken-install failure this command currently has to report.
 
-| command | args           | flags                                                               | help                                                     | disposition |
-| ------- | -------------- | ------------------------------------------------------------------- | -------------------------------------------------------- | ----------- |
-| `init`  | [project_name] | --with-st0000, --lang <list>, --contracts root/dotclaude, --help/-h | Initialize a new Intent project in the current directory | keep        |
+| command | args           | flags                                                | help                                                     | disposition |
+| ------- | -------------- | ---------------------------------------------------- | -------------------------------------------------------- | ----------- |
+| `init`  | [project_name] | --lang <list>, --contracts root/dotclaude, --help/-h | Initialize a new Intent project in the current directory | keep        |
 
 ### `init`
 
@@ -2420,9 +2327,6 @@ Initialize a new Intent project in the current directory
 - **Arguments:**
   - `project_name` (string, arity `0..1`), default `the current directory name`
 - **Flags:**
-  - `--with-st0000` (bool) -- Bootstrap all ST0000 deliverables after init
-    - **disposition:** retire
-    - **disposition basis:** RETIRED 2026-09-11 by hv's decision 3 (ST0058 AC-00.3), in the same commit as `st bootstrap`: it is the same door by a second entrance. It shipped as `keep` with an arm that refused it because the ST0000 bootstrap was not implemented, and that refusal promised the step would work `once the command lands` -- false once the command was struck.
   - `--lang` `<list>` (string) -- Comma- or space-separated languages to install canon for
     - Accepts: eg `--lang elixir` or `--lang elixir,rust,shell`
     - **disposition:** keep
@@ -2618,49 +2522,6 @@ Upgrade an Intent project to the current version
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
 
-## Family: `organize`
-
-Organize steel threads into status directories based on their metadata
-
-- **v2 source:** `bin/intent_organize`
-- **v2 help file:** none
-- **Owning work package:** --
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
-
-- **A live Highlander violation, registered in the very file that exists to prevent it.** MODULES.md gives `bin/intent_organize` this job AND gives `bin/intent_st` an `organize` verb. Measured against one thread in a fresh project the two share no output: the top-level form prints `ok: moved 0, kept 0` plus per-directory counts, the `st` form prints `Already organized: ST0001 in intent/st/NOT-STARTED`.
-- **`intent organise` is NOT a top-level alias** -- it answers `error: Unknown command 'organise'`. The alias exists only one level down, at `intent st organise` (normalised at bin/intent_st:289-292). Both measured.
-- The flags differ between the two faces too: this one takes `--dry-run` (dry by request), `st organize` takes `--write` (dry by default). Opposite polarity for the same operation.
-
-| command    | args | flags                | help                                                                   | disposition |
-| ---------- | ---- | -------------------- | ---------------------------------------------------------------------- | ----------- |
-| `organize` | --   | --dry-run, --help/-h | Organize steel threads into status directories based on their metadata | retire      |
-
-### `organize`
-
-Organize steel threads into status directories based on their metadata
-
-- **v2:** bin/intent_organize
-- **Flags:**
-  - `--dry-run` (bool) -- Preview changes without making them
-    - OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--help`, `-h` (bool) -- Print the usage block
-    - **disposition:** intrinsic
-    - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- bare
-  - `0` -- `--help` -- exit 0
-  - `1` -- unknown flag
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** `ok: moved N, kept M` plus per-directory counts
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot or the wrong format, so the disorder this repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
-- **Note:** Retiring both faces dissolves the Highlander violation rather than resolving it -- nobody has to choose which implementation was right.
-- **spelling:** _(declared empty)_
-- **MCP:** not exposed -- **mutates**
-- **Cross-reference:** `st organize` is the other face; see the `st` family.
-
 ## Family: `agents`
 
 Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
@@ -2673,15 +2534,14 @@ Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 - **parity.md's table said this family was just `sync`. Measured, its verbs are** init, generate, sync, validate, template.
 - A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
 
-| command           | args                | flags             | help                                                                                           | disposition |
-| ----------------- | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------- | ----------- |
-| `agents`          | [command]           | --                | Manage AGENTS.md for Intent projects                                                           | keep        |
-| `agents init`     | --                  | --template <name> | Initialize AGENTS.md at project root                                                           | keep        |
-| `agents generate` | --                  | --                | Emit generated AGENTS.md content to stdout                                                     | keep        |
-| `agents sync`     | --                  | --                | Regenerate AGENTS.md from current project state                                                | keep        |
-| `agents validate` | --                  | --                | Validate AGENTS.md shape and required sections                                                 | keep        |
-| `agents layout`   | <layout>            | --                | Move the two agent contracts to the root or into .claude/, and set the project's contracts key | new-surface |
-| `agents template` | [subcommand] [name] | --                | Manage AGENTS.md templates                                                                     | retire      |
+| command           | args      | flags             | help                                                                                           | disposition |
+| ----------------- | --------- | ----------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| `agents`          | [command] | --                | Manage AGENTS.md for Intent projects                                                           | keep        |
+| `agents init`     | --        | --template <name> | Initialize AGENTS.md at project root                                                           | keep        |
+| `agents generate` | --        | --                | Emit generated AGENTS.md content to stdout                                                     | keep        |
+| `agents sync`     | --        | --                | Regenerate AGENTS.md from current project state                                                | keep        |
+| `agents validate` | --        | --                | Validate AGENTS.md shape and required sections                                                 | keep        |
+| `agents layout`   | <layout>  | --                | Move the two agent contracts to the root or into .claude/, and set the project's contracts key | new-surface |
 
 ### `agents`
 
@@ -2790,38 +2650,6 @@ Move the two agent contracts to the root or into .claude/, and set the project's
 - **recoverability anomaly:** WITHHELD BECAUSE WHERE A PROJECT KEEPS ITS CONTRACTS IS A DECLARATION, NOT A TIDY-UP (ST0083, hv's ruling 1: the layout is an explicit per-project key). The act is reversible -- `agents layout` back to the other value restores it -- and is still the person's to ask for, as `wb register` is: an agent moving a project's contracts unasked is the move this key exists to make deliberate.
 - **facade:** agents_layout
 
-### `agents template`
-
-Manage AGENTS.md templates
-
-- **v2:** plugin dispatch
-- **Arguments:**
-  - `subcommand` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`
-  - `name` (string, arity `0..1`)
-- **Exit codes:**
-  - `0` -- listed (bare or `list`), or `show <name>` where the template dir holds an AGENTS.md
-  - `1` -- `show` with no name -- `error: template name required` + a `Usage:` line, BOTH ON STDOUT
-  - `1` -- `show <name>` where the dir has no AGENTS.md -- `error: template '<name>' not found` ON STDOUT; true for SEVEN of the eight names `list` prints (0058)
-  - `1` -- any other subcommand -- `Unknown template subcommand: <x>` + a `Usage:` line, ON STDOUT and with NO `error:` prefix (0058)
-- **stdout:** **SEVERAL ARMS, ONE ROW, and the schema cannot yet say so (0058).** `list` (and the bare invocation, byte-identical) prints `Available AGENTS.md templates:` then `  - <name>` per DIRECTORY under the plugin's `templates/`. `show <name>` cats `templates/<name>/AGENTS.md`. The two failure arms print to stdout too -- see `exit`. **No `stdout_exact` is declared: the list arm's content is the plugin's template DIRECTORY LISTING, so a literal template would assert that v3 reproduces v2's plugin layout, which is a different claim from reproducing its output.**
-- **stderr:** **NOTHING. STDERR IS EMPTY ON EVERY ARM, INCLUDING BOTH FAILURES -- an INV-01 violation, measured (0058).** This field previously read "`error: ...` on stderr (INV-01)", a compliance claim nothing had checked, so anything auditing INV-01 from the register rather than from the binary passed this row. Verified by splitting the streams: `intent agents template rust 2>&1 1>/dev/null` prints nothing.
-- **Observed notes:** **`show` was absent from `values` until 2026-08-17 and v3's clap surface renders from this row, so the subcommand was on course to be dropped silently (0058).** v2's own usage line names it: `Usage: intent agents template [list|show <name>]`. **`default: "list"` was also absent** -- `intent_agents:769` is `local subcommand="${1:-list}"`, and the bare invocation is byte-identical to `list`, measured. **AND `list` ADVERTISES SEVEN NAMES `show` CANNOT DELIVER**: `list` enumerates directories (`-d`), `show` requires `<dir>/AGENTS.md` (`-f`), and only `elixir/` has one -- the other seven hold the ST0035 per-language canon packs (`ARCHITECTURE.md` + `RULES.md`). `list`'s subject is "directories under templates/" and `show`'s is "directories containing AGENTS.md"; the output cannot tell them apart. `list` did not break -- its meaning was changed underneath it by an unrelated feature and nothing re-read it.
-- **Target:** `retire` -- ratified: ic 2026-08-17, on vc's split -- **THE CLASS IS DECIDABLE AND THE REMEDY IS NOT, AND ONLY THE CLASS WAS EVER MINE.** The test for `corrected` is whether the v2 behaviour is simply wrong, and `list` printing `rust` while `show rust` answers `not found` IS wrong -- not as an implementation error but as an OUTPUT MAKING A FALSE CLAIM ABOUT ITS SIBLING. How it came to be wrong is a question about blame; `corrected` is a question about the behaviour. Reproducing it would launder a v2 defect into a v3 requirement, which `parity.md` forbids in as many words. **Ruling the class NOW is the point rather than a formality**: `as-observed` left the row BUILDABLE AS-IS, so the one outcome nobody wants was the one the register was licensing while the question sat open. All three candidate remedies satisfy `corrected`, so nothing waits on the remedy being chosen. **The INV-01 half needs no ruling from anyone** -- errors on stdout, one with no `error:` prefix, is `corrected` on its face. **THE REMEDY IS NOW RULED TOO, BY hv, AND THE TWO RULINGS ARE DELIBERATELY SEPARATE FIELDS.** The class (this field) says v2's behaviour is wrong and v3 must not reproduce it; the remedy (`remedy`) says what v3 does instead. Collapsing them would have made the class contingent on the remedy -- and the class was decidable months before anyone knew which of three answers to pick, which is exactly why it was ruled first. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. ic, 2026-08-17, CLASS ruled on vc's split; the measurement and argument are at commit `632d9d86`. hv, 2026-08-17, REMEDY ruled in session to ic and recorded verbatim in this commit's message. **The earlier value cited `issue 0058` and that citation no longer resolves**: hv cleared the tracker at `9a9c7799` (findings live in commits; an issue is an external user's report against a release and nothing else), so the sha is now the only record here that leads anywhere. **CORRECTING THE SENTENCE THAT STOOD HERE, WHICH GLUED TWO POPULATIONS INTO ONE NUMBER.** It claimed a number of other `target` fields still cite an issue number with no sha beside it. Fields that carry no sha are a wider set than the ones lacking any record, because the grammar accepts a FILE too; the sentence glued the two sets into one. The denominator rule was ratified an hour earlier at `835bf848` and this is its author's neighbour breaking it. Swept at `b865db12` and the rows re-anchored here.
-- **spelling:** _(declared empty)_
-- **retired by:** hv, decision 3 (2026-09-11, ST0058 AC-00.3): STRUCK. It answered `is a known command that is not implemented yet` while canon told agents to run it, and it will not be built. RETIRED RATHER THAN DELETED so the path still refuses at rc=2 with `was retired in Intent v3` (issue 0044) and not clap's generic rc=1; `spelling` is empty because nothing replaces it. The target state it carried before is kept below as history.
-- **remedy:** **RULED BY hv, 2026-08-17: `list` REPORTS WHAT EACH DIRECTORY ACTUALLY OFFERS, AND `show` SERVES BOTH KINDS.** Of the three remedies put to them -- narrow `list`, widen `show`, split the namespace -- this is the one that stops the two subjects being conflated instead of picking a winner between them. `list` prints the AGENTS.md templates and the ST0035 canon packs as SEPARATE, LABELLED groups; `show <name>` resolves either kind. **So no name `list` prints is a name `show` refuses, which is the whole defect, and nothing becomes undiscoverable to fix it** -- narrowing `list` would have satisfied the class by hiding seven real canon packs from the only command that enumerates them, trading a false claim for a silent omission. That is the trade `guide_refs_check.sh` was built over: a wrong answer earns an error the reader can react to, while a missing one reads as a capability the tool does not have. **The shape of the fix follows the shape of the cause.** `list` broke because ST0035 moved a second population into `templates/` and nothing re-read what `list` meant -- one directory, two kinds, one output. The remedy makes the second kind visible rather than pretending the directory is still homogeneous.
-- **rulings:**
-  - `0.state`: ratified
-  - `0.authority`: ic
-  - `0.date`: 2026-08-17
-  - `0.record`: 632d9d86
-  - `1.state`: ratified
-  - `1.authority`: hv
-  - `1.date`: 2026-08-17
-  - `1.record`: 632d9d86
-- **MCP:** not exposed -- read-only
-- **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:768-801 -- `list` reads the templates dir, `show` cats one file; no write primitive on any arm, so `read` is now grounded rather than assumed
-
 ## Family: `claude`
 
 Claude Code integration: subagents, skills, rules, hooks, workstreams
@@ -2836,18 +2664,15 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
 - `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
 
-| command              | args             | flags                             | help                                                     | disposition |
-| -------------------- | ---------------- | --------------------------------- | -------------------------------------------------------- | ----------- |
-| `claude`             | <subcommand>     | --                                | Claude Code integration                                  | keep        |
-| `claude subagents`   | <verb> [name]... | -v, --force/-f, --all, --dry-run  | Manage Claude Code subagents                             | keep        |
-| `claude skills`      | <verb> [name]... | -v, --force/-f, --dry-run, --all  | Manage Claude Code skills                                | keep        |
-| `claude rules`       | [verb] [id]      | --lang <lang>                     | List and show rule-library rules and the critic contract | keep        |
-| `claude rules index` | --               | --                                | Regenerate rules/index.json (canon only)                 | retire      |
-| `claude hook`        | <name>           | --                                | Run a named Intent hook                                  | keep        |
-| `claude upgrade`     | --               | --apply, --force, --skip-settings | Apply Claude canon to the project                        | keep        |
-| `claude prime`       | --               | --                                | Generate MEMORY.md content for a Claude session          | retire      |
-| `claude ws`          | <verb> [wsid]    | --                                | Manage whiteboard workstreams                            | retire      |
-| `claude start`       | <ws>             | --                                | Launch a Claude session bound to a workstream            | keep        |
+| command            | args             | flags                             | help                                                     | disposition |
+| ------------------ | ---------------- | --------------------------------- | -------------------------------------------------------- | ----------- |
+| `claude`           | <subcommand>     | --                                | Claude Code integration                                  | keep        |
+| `claude subagents` | <verb> [name]... | -v, --force/-f, --all, --dry-run  | Manage Claude Code subagents                             | keep        |
+| `claude skills`    | <verb> [name]... | -v, --force/-f, --dry-run, --all  | Manage Claude Code skills                                | keep        |
+| `claude rules`     | [verb] [id]      | --lang <lang>                     | List and show rule-library rules and the critic contract | keep        |
+| `claude hook`      | <name>           | --                                | Run a named Intent hook                                  | keep        |
+| `claude upgrade`   | --               | --apply, --force, --skip-settings | Apply Claude canon to the project                        | keep        |
+| `claude start`     | <ws>             | --                                | Launch a Claude session bound to a workstream            | keep        |
 
 ### `claude`
 
@@ -2855,7 +2680,7 @@ Claude Code integration
 
 - **v2:** bin/intent (explicit `claude` arm)
 - **Arguments:**
-  - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `ws`, `start`
+  - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `start`
 - **Exit codes:**
   - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical `error: Unknown claude subcommand. Try: ...`
 - **stdout:** --
@@ -2970,22 +2795,6 @@ List and show rule-library rules and the critic contract
 - **MCP:** not exposed -- read-only
 - **recoverability anomaly:** RECOVERABILITY DROPPED 2026-09-16 WITH THE RECLASSIFICATION (vc's ruling, on ic's review of issue 0331), AND THE SUPERSEDED VALUE IS NAMED SO THIS FIELD STILL PARSES AS AN ARGUMENT: the row read `mutate` and `idempotent`, and the only basis for `mutate` was `index`'s write primitives, which hv's ruling of 2026-09-15 retired with the rules-index trio. `list`, `show` and `validate` write nothing, so the row is a `read`, and `dispatch.rs` refuses a read that declares recoverability. **THE WITHHOLD GROUND IS UNTOUCHED BY THAT**, the same as `llm usage_rules`, whose reclassification is the precedent. WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
-### `claude rules index`
-
-Regenerate rules/index.json (canon only)
-
-- **v2:** bin/intent claude arm, the `index` value of `claude rules`
-- **Exit codes:**
-  - `0` -- regenerated
-- **stdout:** the regeneration report
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** In v2 it MUTATED `INTENT_HOME`: it rewrote a tracked file, intent/plugins/claude/rules/index.json, in the installation. v3.0.3 shipped the spelling as a value of `claude rules` answering `is a known command that is not implemented yet`.
-- **Target:** `retire` -- ratified: hv, 2026-09-15, rulings item 3 (issue 0331 (a)): every dead artefact is deleted, and the rules-index trio (index-generator.md, rules/index.json, index.json.template) went with `index` struck from `claude rules`'s verb values in d843f7aea. This row is issue 0475: striking the VALUE left the spelling with no retired row, so 3.1.0 answered it with clap's generic `unrecognized subcommand` at exit 1 where `claude ws`, withdrawn the same way, answers the retired refusal at exit 2. vc ruled the retire row 2026-09-19.
-- **Note:** `spelling` is empty because nothing replaces it: v3 serves the rule library from the binary (`intent claude rules list` and `show` read it directly), so there is no index file for anything to regenerate. RETIRED RATHER THAN LEFT ABSENT so a script still calling it is told the command is gone, at the exit code the gate and every other retired spelling use.
-- **spelling:** _(declared empty)_
-- **MCP:** not exposed -- **mutates**
-- **recoverability:** idempotent
-
 ### `claude hook`
 
 Run a named Intent hook
@@ -3031,49 +2840,6 @@ Apply Claude canon to the project
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
-
-### `claude prime`
-
-Generate MEMORY.md content for a Claude session
-
-- **v2:** bin/intent claude arm
-- **Exit codes:**
-  - `0` -- emitted
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the primed memory content
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Consumes `intent/.config/learnings.md` (written by `intent learn`).
-- **Defects observed in v2:**
-  - INV-06 at intent_claude_prime:212 writes `Error:` to stdout -- one of the parked plugin-bin sites
-- **Target:** `retire`
-- **spelling:** _(declared empty)_
-- **retired by:** hv, decision 3 (2026-09-11, ST0058 AC-00.3): STRUCK. It answered `is a known command that is not implemented yet` while canon told agents to run it, and it will not be built. RETIRED RATHER THAN DELETED so the path still refuses at rc=2 with `was retired in Intent v3` (issue 0044) and not clap's generic rc=1; `spelling` is empty because nothing replaces it. It carried target state `as-observed`.
-- **MCP:** not exposed -- **mutates**
-- **MCP classification grounded in:** intent/plugins/claude/bin/intent_claude_prime:250-251 -- `mkdir -p "$memory_dir"` then `echo "$content" > "$memory_path"`
-- **recoverability:** idempotent
-- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
-
-### `claude ws`
-
-Manage whiteboard workstreams
-
-- **v2:** bin/intent claude arm (ST0047)
-- **Arguments:**
-  - `verb` (subcommand, arity `1`) -- one of: `new`, `list`, `archive`, `hygiene`
-  - `wsid` (string, arity `0..1`)
-- **Exit codes:**
-  - `0` -- scaffolded / listed / archived / linted
-  - `1` -- unknown verb
-  - `1` -- workstream not found
-- **stdout:** the workstream table, or scaffold confirmation
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** `hygiene` enforces the line-oriented `key: value` header contract (D13) and says nothing about YAML validity, because validity is not the contract.
-- **Target:** `retire` -- ratified: hv, 2026-08-25, carried as ST0069 AC-14.12 and recorded by vc under the pen: the four verbs `new` / `list` / `archive` / `hygiene` are gone and `intent wb` answers instead. The criterion exists to give `AC-12.1`'s cut exception an end that is ENFORCED rather than remembered -- an unsatisfied AC blocks `wp done`, so the exception retires at the moment WP-14 tries to close whether or not anyone recalls why the row is here. AND hv AGAIN 2026-09-12, ruling that ST0069 completes and that WP-14 reifies the whiteboard in 3.0.2 -- the two rulings together are the whole warrant, the first that the family ends and the second that it ends HERE rather than in a later release. Ratified under vc's pen and landed by ic at 2026-09-13 10:44Z; the cutover's board migration landed ahead of this, so this is the landing that follows it rather than the one that opens it.
-- **Note:** **WHAT FALSIFIED D14, WHICH THIS ROW CARRIED UNTIL NOW: `D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.`** hv ruled 2026-09-12 that ST0069 completes and that WP-14 reifies the whiteboard in 3.0.2 -- so the restructure D14 deferred to a 3.2 bus ST happened two releases early, and `ports as-is` lost its subject rather than its schedule. The four verbs managed the board as FILES; a node is now a ROW and `intent/whiteboard/<id>/` is the rendered view of it. **THE ROW IS RETIRED ON BOTH FIELDS DELIBERATELY**: `Entry::is_shipped()` reads both and fails OPEN, so `retire` on one alone would strike the door while the other field still read `keep`. The spelling names where the capability went -- `intent wb register` creates a node, `intent wb status` lists them, `intent wb show` reads one whole board, and the two whiteboard guards plus `intent doctor` are what `hygiene` was reaching for. It SHIPPED in 3.0.1 and is withdrawn in 3.0.2, which is a user-visible removal and is why the CHANGELOG carries it under Removed.
-- **spelling:** intent wb register
-- **MCP:** not exposed -- **mutates**
-- **recoverability:** idempotent
-- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `claude start`
 
@@ -3169,16 +2935,15 @@ Declared languages: which languages a project has declared
 - The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.
 - **THE HELP STRINGS MOVED WITH THE BEHAVIOUR, 2026-08-25 (cc).** Every one of them named installing templates -- `intent lang --help` sold `Install per-language canon` over a verb that installs nothing. Recorded because the row edits this landing was sequenced as did not include them: a row's `target.state` and its `help` are two claims about one verb, and only one of them is what a user reads.
 
-| command                         | args      | flags   | help                                                                      | disposition |
-| ------------------------------- | --------- | ------- | ------------------------------------------------------------------------- | ----------- |
-| `lang`                          | [command] | --      | Declared-language management                                              | keep        |
-| `lang list`                     | --        | --      | List the languages a project may declare                                  | keep        |
-| `lang declared`                 | --        | --      | Print the languages this project declares, one per line                   | new-surface |
-| `lang show`                     | <lang>    | --      | Show what declaring a language does                                       | keep        |
-| `lang of`                       | <path>    | --      | Print the language Intent assigns a path, or nothing                      | new-surface |
-| `lang init`                     | <lang>... | --      | Declare one or more languages (idempotent; multi-lang)                    | keep        |
-| `lang remove` (alias `lang rm`) | <lang>... | --      | Undeclare one or more languages (idempotent; multi-lang)                  | keep        |
-| `lang sync`                     | --        | --check | Converge the Language Packs block in RULES.md for every declared language | retire      |
+| command         | args      | flags | help                                                     | disposition |
+| --------------- | --------- | ----- | -------------------------------------------------------- | ----------- |
+| `lang`          | [command] | --    | Declared-language management                             | keep        |
+| `lang list`     | --        | --    | List the languages a project may declare                 | keep        |
+| `lang declared` | --        | --    | Print the languages this project declares, one per line  | new-surface |
+| `lang show`     | <lang>    | --    | Show what declaring a language does                      | keep        |
+| `lang of`       | <path>    | --    | Print the language Intent assigns a path, or nothing     | new-surface |
+| `lang init`     | <lang>... | --    | Declare one or more languages (idempotent; multi-lang)   | keep        |
+| `lang remove`   | <lang>... | --    | Undeclare one or more languages (idempotent; multi-lang) | keep        |
 
 ### `lang`
 
@@ -3312,28 +3077,6 @@ Undeclare one or more languages (idempotent; multi-lang)
 - **recoverability:** idempotent
 - **note:** **WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- "Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the fields are one claim and the generator will not let them disagree in silence.
 - **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
-
-### `lang sync`
-
-Converge the Language Packs block in RULES.md for every declared language
-
-- **v2:** bin/intent_lang sync arm
-- **Flags:**
-  - `--check` (bool) -- Report without writing; exit 1 if any entry is missing or stale
-    - Retires WITH its verb. Recorded rather than deleted so the surface still says v2 had it: a flag that vanishes from the register is indistinguishable from one that was never measured.
-    - **disposition:** retire
-- **Exit codes:**
-  - `0` -- converged, or `ok: no declared languages; nothing to sync`
-  - `1` -- --check found a missing or stale entry
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the convergence report
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Observed notes:** Touches ONLY the Language Packs block -- never the RULES-<lang>.md files, which `init` overwrites.
-- **Target:** `retire` -- ratified: vc, 2026-08-25, on issue 0068 -- TWO INDEPENDENT REASONS, either sufficient. (1) `sync` converges the `Language Packs` block in `intent/llm/RULES.md` for every declared language; `init` now installs nothing, so there is no divergence for it to converge. (2) Pointing that block at the live rules would put the declared-language set in a SECOND HOME -- `config.json`'s `languages` array is authoritative (ST0037), and a markdown block restating it is a copy that drifts silently.
-- **Note:** v2's upgrade ledger calls `lang sync` and not `lang init` (issue 0005), deliberately: `init` `cp`s over hand-edited files, so it is the wrong thing for an unattended upgrade. **That reasoning retires WITH the verb rather than surviving it** -- v3's `init` overwrites nothing, so the hazard the ledger was routing around no longer exists.
-- **spelling:** _(declared empty)_
-- **MCP:** not exposed -- **mutates**
-- **recoverability:** idempotent
 
 ## Family: `llm`
 
@@ -3706,244 +3449,6 @@ Scaffold a new extension -- not implemented in this build (exits 2)
   - `0.record`: 803ff46d
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
-
-## Family: `treeindex`
-
-Generate LLM-oriented directory summaries
-
-- **v2 source:** `bin/intent_treeindex`
-- **v2 help file:** none
-- **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
-
-- **Every test in `tests/unit/treeindex_commands.bats` execs `bin/intent_treeindex` DIRECTLY, bypassing the dispatcher entirely -- burn ratio zero.** The file reads as CLI-shaped and is not; that discovery is the reason the register classifies by burn measurement rather than by reading assertions.
-- D21: the treeindex cache location is unchanged until WP-06 ports the command. If it moves under `intent/.cache/`, that is its own register entry.
-
-| command     | args  | flags                                                                           | help                                      | disposition |
-| ----------- | ----- | ------------------------------------------------------------------------------- | ----------------------------------------- | ----------- |
-| `treeindex` | <dir> | --depth/-d <n>, --check, --dry-run, --force, --prune, --model <name>, --help/-h | Generate LLM-oriented directory summaries | retire      |
-
-### `treeindex`
-
-Generate LLM-oriented directory summaries
-
-- **v2:** bin/intent_treeindex
-- **Arguments:**
-  - `dir` (path, arity `1`)
-    - NEVER the project root -- always a subdirectory
-- **Flags:**
-  - `--depth`, `-d` `<n>` (integer) -- How deep to descend
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--check` (bool) -- Report without writing
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--dry-run` (bool) -- Preview
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--force` (bool) -- Regenerate even if current
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--prune` (bool) -- Remove stale index entries
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--model` `<name>` (string) -- Model to summarise with
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--help`, `-h` (bool) -- Print the usage block
-    - **disposition:** intrinsic
-    - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `1` -- bare -- prints usage to STDOUT and exits 1
-  - `1` -- `--help` -- identical, exit 1
-  - `1` -- unknown flag -- output on stdout AND on stderr, exit 1
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the usage block, or per-directory progress
-- **stderr:** the unknown-option note
-- **Defects observed in v2:**
-  - INV-07 at `treeindex --help`
-  - INV-06 at the unknown-flag path writes to BOTH streams -- a rare case among the probes
-- **Target:** `retire` -- ratified: hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the [SQLite db]. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21. **EXECUTED 2026-08-25 by vc under hv's direction, ten days after ratification.** It sat unexecuted because it is T0 of WP-13 (XL, Not Started) and was bundled behind the search tiers, while T0 depends on nothing -- so the ruling was made, recorded, and parked. Landed: `/in-essentials` rules 3 and 4 (renumbered 1-7), the `in-handoff` skill, `intent/.treeindex/` and its `.gitignore` rule, `lib/templates/_treeindexignore`, the `.treeindexignore` install + gitignore-normalise machinery in `intent_claude_upgrade`, and the canon references in README, usage-rules, MODULES, ARCHITECTURE, working-with-llms and the example. **TWO THINGS DELIBERATELY KEPT.** `bin/intent_treeindex` and its 53-test bats file stay: hv ruled `bin/` decided whole and separately, and the `--help` entry is DERIVED from the script's existence rather than written anywhere, so it is not separable from the script. And `.treeindex` stays in `sync.rs` `SKIPPED_DIRS`: v3 never generates the cache, but a consumer migrating off v2 carries it on disk, and retiring a producer is not a reason to stop recognising its residue.
-- **Note:** D21's subordinate clause ("the treeindex cache location is unchanged until WP-06 ports the command") assumed a port. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker, and **STRUCK THE SAME DAY by D31** -- `design.md:227` now carries it struck-through with the reason. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) was never affected and AC-01.4 did not reopen. **THIS NOTE READ AS OUTSTANDING FOR TEN DAYS AFTER IT WAS CLOSED**, and vc carried it forward as live work on that reading: a note describing a defect does not learn that the defect was fixed, so the fix has to come back and close the note by hand.
-- **spelling:** _(declared empty)_
-- **consequence:** Removes a large block of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct.
-- **MCP:** not exposed -- **mutates**
-
-## Family: `fileindex`
-
-Maintain checkbox file indexes
-
-- **v2 source:** `bin/intent_fileindex`
-- **v2 help file:** none
-- **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **THIN**
-
-- The widest short-flag surface in the CLI (-C -U -X -f -h -i -r -v), and the only family where short flags carry meaning beyond an alias for a long form.
-- Nearly every test in `tests/unit/fileindex_commands.bats` bypasses the dispatcher (burn 2/47), the same shape as treeindex.
-- **hv RULED THIS ON 2026-08-26 (A4): `fileindex` FOLLOWS `treeindex` INTO RETIREMENT.** This bullet previously read that hv had not yet ruled, and it stayed false for five days because the ruling was folded into `.history/` before it was executed. The thinness evidence it carried is kept because it is still true and it is what made the decision cheap: Nearly every test in `tests/unit/fileindex_commands.bats` bypasses the dispatcher (burn 2/47), the same shape as `treeindex`, so the conformance suite barely notices either way. (vc, 2026-08-14; ruling recorded by cc, 2026-08-31.)
-
-| command     | args                  | flags                                                                                                                                               | help                           | disposition |
-| ----------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------- |
-| `fileindex` | [startdir] [filespec] | --check/-C, --uncheck/-U, --toggle/-X, --file/-f <path>, --index/-i <path>, --index-dir <path>, --intent-dir <path>, --no-intent, -r, -v, --help/-h | Maintain checkbox file indexes | retire      |
-
-### `fileindex`
-
-Maintain checkbox file indexes
-
-- **v2:** bin/intent_fileindex
-- **Arguments:**
-  - `startdir` (path, arity `0..1`)
-  - `filespec` (string, arity `0..1`)
-- **Flags:**
-  - `--check`, `-C` (bool) -- Mark checked
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--uncheck`, `-U` (bool) -- Mark unchecked
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--toggle`, `-X` (bool) -- Flip the mark
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--file`, `-f` `<path>` (string) -- Target file
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--index`, `-i` `<path>` (string) -- Index file
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--index-dir` `<path>` (string) -- Index directory
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--intent-dir` `<path>` (string) -- Intent directory
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--no-intent` (bool) -- Operate without an Intent project
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `-r` (bool) -- Recurse
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `-v` (bool) -- Verbose
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
-  - `--help`, `-h` (bool) -- Print the usage block
-    - **disposition:** intrinsic
-    - **disposition basis:** `intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration.
-- **Exit codes:**
-  - `0` -- bare -- prints `[ ]`, exit 0
-  - `1` -- `--help` -- usage to STDOUT, exit 1
-  - `1` -- unknown flag -- output on STDOUT, `Unknown option: ...`, exit 1
-  - `0` -- outside a project -- prints `[ ]`, exit 0
-- **stdout:** the checkbox line, or the usage block
-- **stderr:** --
-- **Defects observed in v2:**
-  - INV-07 at `fileindex --help`
-  - INV-06 at the unknown-flag error goes to STDOUT
-  - INV-01 at `Unknown option: ...` carries no `error:` prefix
-- **Target:** `retire` -- ratified: hv, 2026-08-26 00:19Z -- **A4 `fileindex` -- RETIRE IT, correct the table.** Verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:179`. Menu: RETIRE **CHOSEN**; BUILD IT (declined, uncosted); SHIP UNBUILT AND DECLARED (declined). Under the same evening's `AC-00.5` ruling a retirement must become ENUMERABLE, which is why the row carries `spelling: ""` rather than merely flipping its disposition. **THIS SUPERSEDES THE ROW'S EARLIER `corrected` RATIFICATION** (hv, 2026-08-14, via parity.md's `Corrected` class, on whether `--help` exits 0). That question was real and is now moot: a retired command has no `--help` to exit from. The measurement behind it is dropped rather than carried, because a dated note answering a dead question is how a row accumulates two states. **EXECUTED 2026-08-31 by cc, five days after ratification, and it was unexecuted because it was ARCHIVE-ONLY** -- vc's 2026-08-30 fold keyed on DATED where hv's rule keys on DONE, so an unexecuted ruling was carried into `.history/` and nobody greps `.history/` at pickup. Found by dc, restored to hv's live board by vc, recorded in issue 0182. **WHAT SHIPPED IN THE MEANTIME WAS THE OPTION hv DECLINED**: the row read `keep`/`corrected` while the binary refused with the UNWIRED marker -- _not implemented yet_ means LATER and hv ruled NEVER, which is `AC-00.5`'s own subject firing on the verb its ruling was quoted at. -- behaviour: Retired whole. `fileindex` does not reach clap (`spine::build` skips a family whose entry is not `is_shipped()`), so it is absent from `--help`, refuses by name through `retired_refusal`, and is enumerable via `intent surface retired` -- the three properties `treeindex` already has by the same mechanism. `bin/intent_fileindex` and its bats file are NOT in scope here: hv ruled `bin/` decided whole and separately, the same carve-out `treeindex` records.
-- **spelling:** _(declared empty)_
-- **rulings:**
-  - `0.state`: ratified
-  - `0.authority`: hv
-  - `0.date`: 2026-08-26
-  - `0.record`: intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:179
-- **MCP:** not exposed -- **mutates**
-- **Wants review:**
-  - uncertain on `exposed_on_mcp`
-  - Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work.
-- **recoverability:** idempotent
-- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
-
-## Family: `help`
-
-Show usage for Intent or one of its commands
-
-- **v2 source:** `bin/intent_help`
-- **v2 help file:** none
-- **Owning work package:** WP-05
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
-
-- **This family is RETIRED AND REPLACED in v3, not ported: help is generated from this dispatch table (AC-05.1).** That retires the entire `lib/help/` mechanism along with its drift.
-- The drift is the argument. `lib/help/` held help files for only some of the `bin/intent_*` scripts, so most commands had none. Its `@usage:` / `@options:` / `@arguments:` / `@examples:` grammar is used exactly ONCE each. `stzero.help.md` is named against `bin/intent_st_zero`, and `rules.help.md` documents a `claude` SUBcommand as though it were top-level. At v2.19.0 it still describes `upgrade` as an STP migration.
-- `bin/intent_help` also hand-maintains its command list behind a skip list rather than enumerating the surface, so the list and the surface are two things that must be kept in agreement by hand. **`lib/help/` therefore cannot be used as the v2 spec to port from** -- which is precisely why this table was measured from `bin/**` and by invocation instead.
-
-| command | args      | flags | help                                         | disposition |
-| ------- | --------- | ----- | -------------------------------------------- | ----------- |
-| `help`  | [command] | --    | Show usage for Intent or one of its commands | retire      |
-
-### `help`
-
-Show usage for Intent or one of its commands
-
-- **v2:** bin/intent_help; the no-help fallthrough is at bin/intent_help:37
-- **Arguments:**
-  - `command` (string, arity `0..1`)
-- **Exit codes:**
-  - `0` -- bare -- command list, exit 0
-  - `1` -- `--help` -- `error: Unknown command '--help'`, exit 1
-  - `1` -- unknown argument -- `error: Unknown command '<arg>'`
-  - `0` -- outside a project -- lists, exit 0
-- **stdout:** the command list, or one command's help
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - INV-07 at `intent help --help` fails outright -- asking help for help is an error
-  - Most commands have no help file, so `intent help <cmd>` silently falls through to a no-help path for most of the surface.
-- **Target:** `retire` -- ratified: AC-05.1 -- the dispatch table is the SSOT and help text is generated from it, asserted by test -- behaviour: The `help` COMMAND survives as a surface; its v2 IMPLEMENTATION (lib/help/ + the hand-maintained list + the skip list) does not.
-- **spelling:** _(declared empty)_
-- **spelling note:** **`""` HERE IS TRANSITIONAL AND DATED, NOT A SETTLED CLAIM (ic, 2026-08-26).** It declares that the RETIRED v2 `help` implementation is replaced by nothing, which is true of the v2 face. **hv ruled the same day that a v3 `help` surface IS IN THE 3.0.0 CUT** -- `<cmd> help` renders man-style `.md` on the WHY/WHAT while `<cmd> --help` keeps the params/HOW -- **so this row is scheduled to follow the `organize` pattern**: the v2 face stays retired and the TOKEN is reclaimed by a new program, declared in `new_surface` with a `name_reclaimed` ratification. **The retirement message stops firing the moment `help` is reachable, because `spine.rs` walks the BUILT surface** -- so this value is correct until that lands and unreachable afterwards. Recorded because a bare `""` would otherwise read as _nothing will ever replace this_, which hv has already contradicted. **THE HELD SPELLING IS RELEASED BY `intent#0086`** -- named here because the note itself is the only thing that can tell a reader what would move this value, and it went unread repeatedly on 2026-08-30: nodes diagnosed the row, authorised a fix and routed it before either opened the note that had already answered them (dc's finding, driven).
-- **MCP:** not exposed -- read-only
-- **Wants review -- the classification disagrees with the verb name:** Classified `false` despite being the single most harmless command in the table. In v3 help RENDERS FROM this file, so an MCP client already holds every string `help` would print; exposing it would be a second copy of the surface description, which is the thing this file exists to prevent.
-
-## Family: `st_zero`
-
-Retrofit ST0000 deliverables into brownfield projects
-
-- **v2 source:** `bin/intent_st_zero`
-- **v2 help file:** `lib/help/stzero.help.md`
-- **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
-
-- NAME DRIFT in the help file: `lib/help/stzero.help.md` against `bin/intent_st_zero`. One of the reasons `lib/help/` cannot serve as the v2 spec to port from -- see the `help` family.
-- Reachable as both `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610 execs this binary). Its own usage block says `intent st zero install`, so it documents only the second.
-- parity.md flags this family as a candidate for a ratified RETIRE if the fleet does not use it -- decided at port time, in the register. That one ruling decides both spellings.
-
-| command   | args      | flags                                       | help                                                  | disposition |
-| --------- | --------- | ------------------------------------------- | ----------------------------------------------------- | ----------- |
-| `st_zero` | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | retire      |
-
-### `st_zero`
-
-Retrofit ST0000 deliverables into brownfield projects
-
-- **v2:** bin/intent_st_zero
-- **Arguments:**
-  - `command` (subcommand, arity `0..1`) -- one of: `install`
-- **Flags:**
-  - `--audit-only` (bool) -- Show gap analysis only, no changes
-    - **disposition:** retire
-    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
-  - `--dry-run` (bool) -- Show what would change, no writes
-    - **disposition:** retire
-    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
-  - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
-    - **disposition:** retire
-    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
-- **Exit codes:**
-  - `0` -- bare -- prints `Usage: intent st zero install [options]`, exit 0
-  - `0` -- `--help` -- same, exit 0
-  - `1` -- unknown verb -- `error: Unknown st zero command: <v>. Run 'intent st zero help' for usage.`
-  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
-- **stdout:** the gap analysis and install report
-- **stderr:** `error: ...` on stderr (INV-01)
-- **Defects observed in v2:**
-  - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
-- **Target:** `retire` -- ratified: hv, 2026-08-15: "`st_zero` is wrong and the root spelling dies." APPLIED as `retire` per vc's ruling of 2026-08-15, which chose this over teaching the spine to read `target.spelling`. Two reasons, and the second decides it: building a general rename facility for a population of ONE reads as foresight and ships as unused surface; and more importantly, the alternative makes this row assert something hv did NOT ratify. `corrected` says "this v2 command survives, renamed" -- a different and softer claim than "the root spelling dies", adopted for mechanical convenience. A mechanism that changes what a ratified row MEANS is not a neutral choice of mechanism. Reconsider at the SECOND instance, not before.
-- **Note:** MEASURED 2026-08-15: before this change the v3 binary offered BOTH `intent st_zero` and `intent st bootstrap`, because `is_shipped()` reads `disposition` and the command name comes from `entry.path` -- so `target.spelling` was declared and unread. `target.spelling` STAYS on this row as the human-readable record of the successor; it is simply not machine-read. The successor `st bootstrap` carries the behaviour and its own live copies of these flags.
-- **spelling:** _(declared empty)_
-- **spelling note:** Named `intent st bootstrap` as the successor until hv's decision 3 (2026-09-11, ST0058 AC-00.3) struck that path too. Since issue 0044 this field is RENDERED in the refusal, and a refusal must never send anyone to a struck door, so nothing replaces this now.
-- **consequence:** The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was.
-- **face:** deleted
-- **never built:** true
-- **MCP:** not exposed -- **mutates**
 
 ## Family: `version`
 
@@ -5241,7 +4746,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 | `bootstrap` | covered                                  |
 | `doctor`    | covered                                  |
 | `upgrade`   | covered                                  |
-| `organize`  | covered                                  |
 | `agents`    | covered                                  |
 | `claude`    | covered                                  |
 | `critic`    | covered                                  |
@@ -5251,10 +4755,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 | `modules`   | covered                                  |
 | `plugin`    | covered                                  |
 | `ext`       | covered                                  |
-| `treeindex` | covered                                  |
-| `fileindex` | THIN                                     |
-| `help`      | covered                                  |
-| `st_zero`   | covered                                  |
 | `version`   | covered                                  |
 
 ### `config` -- HOLE
@@ -5263,12 +4763,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 - **Why it matters:** This family already has no v2 behaviour to be faithful to (no output on either stream, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.
 - **The trap:** `tests/unit/config.bats` EXISTS and mostly burns, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.
 - **Action:** WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction.
-
-### `fileindex` -- THIN
-
-- **Finding:** a few burning tests. Nearly all of `tests/unit/fileindex_commands.bats` bypasses the dispatcher entirely.
-- **Why it matters:** The dispatcher path for `fileindex` is almost untested, so most of what the register counts as fileindex coverage does not constrain the v3 binary at all.
-- **Action:** Either accept it as a named thin spot in the register, or add dispatcher-level tests at WP-06. Naming it is the minimum; silence would let a whole file of tests read as coverage.
 
 ### `*` -- METHOD
 
@@ -5465,7 +4959,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 - **v2:** new-surface
 - **acceptance:** ST0057 AC-04.1 through AC-04.6
-- **name reclaimed:** **THE NAME IS RECLAIMED, THE v2 FACE STAYS RETIRED, AND THE TWO SHARE NOTHING BUT THE WORD** (hv, 2026-08-19). The `organize` FAMILY in this table is the v2 command -- `bin/intent_organize` plus `st organize` -- which moved ST directories into status folders, and whose ratified retire of 2026-08-14 is untouched: a strictly structured model cannot hold data in the wrong place, so the disorder it repaired cannot arise. This row is a different program that happens to take the same word: it hydrates and dehydrates artefacts against `.intentfiles`. **ASSERTIONS FORBADE THE TOKEN, NOT THE FACE** -- `dispatch.rs`, `spine.rs` and `dispatch_ssot.rs` each hard-coded the string `organize`, so the ratification was expressed three times and in a form that could not tell a reclaimed name from a resurrected command. All three now key on the retired v2 ANTECEDENT, which is the thing hv actually retired.
 - **disposition:** new-surface
 - **recoverability:** idempotent
 - **flag polarity ruled by ic:** **OPEN, AND DELIBERATELY NOT DECIDED HERE.** The v2 family's own notes record the defect this row must not inherit: the two v2 faces took OPPOSITE polarity for the same operation -- top-level `organize` acted by default with `--dry-run` to preview, `st organize` previewed by default with `--write` to act. That is a command-surface call and the surface is ic's (AC-05.1); hv ruled the NAME, not the flags. Recorded as an open row rather than settled by whoever wired the entry, because a polarity chosen at build time is exactly how the v2 pair came to disagree. NOTE FOR WHOEVER RULES IT: this verb REMOVES FILES, and the removal is gated on the store reproducing them byte for byte -- so the blast radius is bounded, but it is not zero, and `--dry-run`-style act-by-default puts the destructive path on the short spelling. **RULED 2026-08-19 -- see the `--apply` flag's `disposition_basis` above.** The row is kept rather than deleted because it records WHY the polarity was left open by whoever wired the entry, and that reasoning is the reason the ruling was available to be made by the node that owns the surface instead of settled silently in a commit about something else.
@@ -5703,7 +5196,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 
 - **v2:** new-surface
 - **acceptance:** ST0058 AC-00.6 (driven by vc 2026-08-30). The row's falsifier is _any capability reachable by a flag and refused by its subcommand twin, or the reverse_, and `intent --help` rc=0 against `intent help` rc=2 was its last live instance -- issue 0086.
-- **name reclaimed:** **THE NAME IS RECLAIMED, THE v2 FACE STAYS RETIRED, AND THIS FOLLOWS `organize` EXACTLY.** The `help` FAMILY in this table is `bin/intent_help`, whose retire is untouched and whose reasons are unchanged: `lib/help/` held help files for only some commands, its grammar was used once each, and it hand-maintained a command list behind a skip list rather than enumerating the surface. **None of that is ported.** The token is taken by a different program: a spelling of the help clap already renders from the compiled-in dispatch table. **AND `spine.rs` FORBADE THE TOKEN RATHER THAN THE FACE** -- `.disable_help_subcommand(true)` -- which is the same three-assertions shape `organize` hit.
 - **disposition:** new-surface
 - **one home:** **THIS SHIPS NO HELP TEXT OF ITS OWN, AND THAT IS THE POINT.** The arm rebuilds the clap `Command` from the same compiled-in table `--help` uses and asks IT to render, so the twin AC-00.6 is about cannot drift apart later -- there is one renderer with more than one spelling. The estate already carries several homes for _what is Intent_ (`--help`'s command list, `intent llm`'s generated agent guide, `intent info`'s install-and-project status); **a fourth authored page would have been the Highlander violation this row exists to avoid**, and writing one is what `bin/intent_help` did.
 - **root only:** **ROOT ONLY, AND THE ARG IS DELIBERATELY ABSENT** (hv, 2026-08-30). The v2 `help` entry declared `command` at arity `0..1`; this row declares no args, because the live twin-pair AC-00.6 fires on is the ROOT one and per-command help already answers as `intent <cmd> --help`. Declaring the arg here would ship a third spelling of per-command help while hv's post-tag `<cmd> help` is a DIFFERENT surface with different content, and the table would then carry a promise the post-tag ruling has to unmake.

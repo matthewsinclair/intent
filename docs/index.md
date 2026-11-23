@@ -21,7 +21,6 @@ Intent gives it a place to live that ages with the code instead of away from it.
 | Understand the model before you commit to it    | [Concepts](concepts/)                                |
 | Wire it into your coding agent                  | [Working with coding agents](working-with-agents.md) |
 | Run more than one session in one checkout       | [Banking work](banking.md)                           |
-| Move a v2 project to v3                         | [Migrating from v2](migrating-from-v2.md)            |
 | Look up a command                               | [Command reference](reference/)                      |
 | Find out whether what you hit is a known defect | [Known defects](known-defects.md)                    |
 
@@ -45,7 +44,7 @@ Intent's answer is to make the reasoning a tracked object with a state the tool 
 
 ## What this documentation covers
 
-This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). The two are not interchangeable, and nothing in the released v2 stops you mixing them: v2.19.0 does not recognise a v3 project and writes v2-shaped files into it. Take v2 off your `PATH` once a project is migrated; [Migrating from v2](migrating-from-v2.md) describes the hop.
+This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). This build does not support a v2 project: Intent 3.5.1 is the last release that converts one.
 
 Deeper authoring guides — writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents — live at `intent/docs/` in this repository. They are not part of the installed tool. This set links across to them rather than duplicating them.
 

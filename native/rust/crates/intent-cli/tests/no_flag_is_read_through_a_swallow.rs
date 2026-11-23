@@ -45,10 +45,8 @@ use std::path::Path;
 /// identical to a predicate. As a declared pair, a second entry is an edit
 /// somebody has to justify -- and the assertion below is an EQUALITY, so adding
 /// one goes red.
-// **EMPTY SINCE 2026-09-11.** Its one entry was `init`'s `with-st0000` drift
-// check, and hv's decision 3 retired that flag with `st bootstrap`, so the
-// site is gone. An empty list forgives nothing: every `try_get_one::<bool>`
-// in `render.rs` is now an offender.
+// **EMPTY.** No site in `render.rs` keeps the expression. An empty list
+// forgives nothing: every `try_get_one::<bool>` in `render.rs` is an offender.
 const EXEMPT: &[(&str, &str)] = &[];
 
 fn render_rs() -> String {

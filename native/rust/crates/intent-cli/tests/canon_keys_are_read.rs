@@ -6,8 +6,7 @@
 //! reported agreement -- because a JSON file cannot say whether anyone is
 //! listening. `Flag.required`/`default`/`value`, `Entry.exposed_on_mcp`,
 //! `Entry.read_or_mutate`, and `Entry.aliases`, which was the one that
-//! surfaced: `at done` and `at notdone` were declared `disposition: keep` and
-//! did not exist in the binary.
+//! surfaced: aliases declared on shipped rows did not exist in the binary.
 //!
 //! Each instance-fix closed its own instance and nothing else. This is the
 //! check that makes the next one impossible to ship quietly.

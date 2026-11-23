@@ -1,15 +1,21 @@
 //! **A `spelling_note` recording a HELD spelling names the issue that would
 //! release it, in the note's own text.**
 //!
-//! `help`'s note is why this file exists. It says, correctly and at length,
-//! that `target.spelling: ""` is *transitional and dated*, that hv ruled a v3
-//! `help` surface into the cut on 2026-08-26, and that the value is right only
-//! until that lands. **Nothing read it.** So `spine.rs` went on rendering
-//! *there is no v3 replacement -- remove it from any script that calls it*,
-//! `intent surface retired` published the same, and on 2026-08-30 nodes
-//! diagnosed the row, authorised a fix and routed it to another node before
-//! anyone opened the note that had already answered the question. A ruling
-//! recorded where no instrument looks is a ruling with no gate.
+//! A note once said, correctly and at length, that its row's `target.spelling:
+//! ""` was *transitional and dated* and right only until a ruled surface
+//! landed. **Nothing read it.** So `spine.rs` went on rendering *there is no v3
+//! replacement -- remove it from any script that calls it*, `intent surface
+//! retired` published the same, and nodes diagnosed the row, authorised a fix
+//! and routed it to another node before anyone opened the note that had
+//! already answered the question. A ruling recorded where no instrument looks
+//! is a ruling with no gate.
+//!
+//! **No note in the table is held today**, so every row below is `Durable` and
+//! the held disposition is not declared: a variant nothing constructs is dead
+//! code. The day a note holds a spelling, `Note` gains `Scheduled(issue)` and
+//! this file asserts the note's own text names that issue -- the shape
+//! `declared_values_are_enforced.rs`'s `Unenforced(issue)` had until its last
+//! slot was enforced and the variant went with it (issue 0398).
 //!
 //! # THE LIMIT, AND IT IS LARGER THAN WHAT THIS FILE COVERS
 //!
@@ -38,32 +44,19 @@ use intent_cli::dispatch;
 
 /// What a `spelling_note` is doing, decided by a person and recorded here.
 ///
-/// **`Scheduled` is a classification, not an exemption** -- it pins the held
-/// value to the issue that would release it, so the exposure cannot be silence,
-/// and it reds the moment the note stops naming that issue. The shape was
-/// `declared_values_are_enforced.rs`'s, whose `Unenforced(issue)` disposition
-/// solved the neighbouring problem the same way until its last slot was enforced
-/// and the variant went with it (issue 0398); the vocabulary differs because a
+/// The vocabulary differs from `declared_values_are_enforced.rs`'s because a
 /// note is not a slot, and a slot's dispositions say nothing about prose.
 #[derive(Debug)]
 enum Note {
   /// Explains a spelling that is settled. Nothing about it expires.
   Durable,
-  /// The annotated spelling is HELD, pending a decision already taken
-  /// elsewhere. Names the issue tracking the gap.
-  Scheduled(&'static str),
 }
 
 /// **Every `spelling_note` in the table, and adding one without deciding about
 /// it FAILS.** An undeclared entry is a failure rather than a skip, for the
 /// reason `mutation_completeness.rs` gives about a `State` field with no drive
 /// arm: nobody has decided about it, and a quiet pass reads as coverage.
-const CLASSIFIED: [(&str, Note); 3] = [
-  ("help:spelling_note", Note::Scheduled("0086")),
-  ("schema:spelling_note", Note::Durable),
-  // Settled: hv's decision 3 struck the successor it named, so none remains.
-  ("st_zero:spelling_note", Note::Durable),
-];
+const CLASSIFIED: &[(&str, Note)] = &[("schema:spelling_note", Note::Durable)];
 
 /// Collect every `spelling_note` in the raw table, keyed by the nearest
 /// enclosing row that names itself.
@@ -122,9 +115,9 @@ fn every_spelling_note_is_classified_and_a_held_one_names_its_issue() {
     assert!(
       CLASSIFIED.iter().any(|(k, _)| k == key),
       "`{key}` is a `spelling_note` nobody has classified. Decide: `Durable` if the spelling it \
-       explains is settled, or `Scheduled(issue)` if the spelling is HELD pending a decision \
-       taken elsewhere -- and if it is held, the note must name that issue in its own text, \
-       because a reader of the TABLE must find it without reading this file"
+       explains is settled. If it is HELD pending a decision taken elsewhere, give `Note` a \
+       `Scheduled(issue)` arm and make the note name that issue in its own text, because a \
+       reader of the TABLE must find it without reading this file"
     );
   }
 
@@ -134,24 +127,6 @@ fn every_spelling_note_is_classified_and_a_held_one_names_its_issue() {
       "`{key}` is classified here and is not in the table. **This is the direction a roster \
        fails silently in**: the classification outlives the note and goes on describing prose \
        that is gone. Delete the row"
-    );
-  }
-
-  for (key, note) in CLASSIFIED {
-    let Note::Scheduled(issue) = note else {
-      continue;
-    };
-    let text = found
-      .iter()
-      .find(|(k, _)| k == key)
-      .map(|(_, text)| text.as_str())
-      .expect("completeness is asserted above");
-    assert!(
-      text.contains(issue),
-      "`{key}` is classified `Scheduled({issue})` and its own text does not name that issue. \
-       **The point is that the TABLE carries the pointer, not this file** -- a reader who opens \
-       the note must be told what would release the held spelling, without knowing this test \
-       exists. Write `intent#{issue}` into the note"
     );
   }
 }

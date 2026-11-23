@@ -192,7 +192,7 @@ impl From<Refusal> for IngestError {
 /// Validate ONE thread's committed canon: parse, then the two checks that only
 /// make sense against the id the file was found under.
 ///
-/// **Public because `legacy.rs` needs the answer and must not grow a second
+/// **Public because `migrate.rs` needs the answer and must not grow a second
 /// strict reader to get it.** After a migration, `st/<ID>/thread.json` is the
 /// SOURCE and the markdown beside it is a generated view, so Phase A asks this
 /// rather than re-parsing the view -- which is what let a re-run absorb the
@@ -201,7 +201,7 @@ impl From<Refusal> for IngestError {
 ///
 /// It takes the text rather than reading the file, so the caller owns the IO and
 /// its error type. `read` propagates an unreadable file as an `IngestError`;
-/// `legacy.rs` has already established the file exists.
+/// `migrate.rs` reads the file itself and reports one it cannot read.
 pub fn read_thread(project: &Project, id: &str, text: &str) -> Result<Thread, Vec<Finding>> {
   let (mut thread, format) = read_thread_file(project, id, text)?;
   // **THE WHOLE THREAD, AS [`read`] HOLDS IT** (ST0096 WP-05): a caller that

@@ -517,23 +517,22 @@ fn help_verb() -> Command {
 /// thing to remember three times.
 ///
 /// Callers filter on `is_shipped()` before reaching here, which is what keeps
-/// `st organise` retired: it is an alias on a `retire` row, and registering it
-/// would bring a withdrawn command back through its old spelling while the
-/// canonical one stays gone.
+/// an alias on a `retire` row retired: registering it would bring a withdrawn
+/// command back through its old spelling while the canonical one stays gone.
 fn command_for(name: &str, entry: &Entry) -> Command {
   let mut cmd = Command::new(name.to_string())
     .about(entry.help.clone())
     .disable_help_subcommand(true);
   for alias in entry.alias_verbs() {
-    // VISIBLE, because v2 lists them: `done|notdone <stid> <atid>  Aliases for
-    // green | red`. A hidden alias would work and be undiscoverable, which is
-    // a different way of not shipping it.
+    // VISIBLE, because a declared alias is a documented spelling: a hidden one
+    // would work and be undiscoverable, which is a different way of not
+    // shipping it.
     cmd = cmd.visible_alias(alias.to_string());
   }
   // **ACCEPTED AND NEVER SHOWN** -- `alias`, not `visible_alias`. See
   // `Entry::hidden_aliases` for why this is a separate list rather than a flag
   // on the one above: these are two dispositions, and the visible one's reason
-  // (v2 documents the spelling, so hiding it would be a way of not shipping it)
+  // (the spelling is documented, so hiding it would be a way of not shipping it)
   // is exactly what does NOT apply to a courtesy spelling.
   for alias in &entry.hidden_aliases {
     cmd = cmd.alias(alias.to_string());
@@ -1042,7 +1041,7 @@ fn slot_flag_refusal(
 ///
 /// **AN EXACT MATCH IS NEVER AMBIGUOUS**, which is not a special case but the
 /// rule that makes prefixes safe at all: `intent st` is a command even though
-/// `st_zero` also begins with `st`, and a build that called that ambiguous would
+/// `status` would also begin with `st`, and a build that called that ambiguous would
 /// retire a verb by adding one beside it.
 fn ambiguous_prefix_refusal(root: &clap::Command, argv: &[String]) -> Option<String> {
   let mut cmd = root;
@@ -1264,12 +1263,13 @@ pub fn replacement(entry: &Entry) -> Replacement<'_> {
 ///
 /// **`table.retired()` ALONE IS NOT THAT ANSWER, AND PUBLISHING IT WOULD BE
 /// WORSE THAN PUBLISHING NOTHING.** It selects on `!is_shipped()`, which reads
-/// two declared fields and asks nothing about the built surface. `organize` has
+/// two declared fields and asks nothing about the built surface. A path with
 /// TWO rows -- one under `families` dispositioned `retire`, one under
-/// `new_surface` -- so it is in `populations.shipped` AND
-/// `populations.retired`, it satisfies `!is_shipped()` on the first row, and it
-/// RUNS. A caller branching on the unfiltered list deletes a working verb from
-/// their automation, which is the exact harm `retired_refusal`'s own comment
+/// `new_surface` -- would be in `populations.shipped` AND
+/// `populations.retired`, would satisfy `!is_shipped()` on the first row, and
+/// would RUN, as `organize` did until its retired row was removed. A caller
+/// branching on the unfiltered list deletes a working verb from their
+/// automation, which is the exact harm `retired_refusal`'s own comment
 /// records being measured: a shipped verb telling an operator who mistyped a
 /// flag that the command does not exist and to remove it from their scripts.
 ///
@@ -1302,7 +1302,7 @@ pub fn retired_and_unreachable(table: &Table) -> Vec<(&Entry, Vec<Vec<&str>>)> {
     .collect()
 }
 
-/// A v2 command this build retired, named as such, or `None`.
+/// A command this build retired, named as such, or `None`.
 ///
 /// **Consulted only AFTER clap has failed, and that ordering is the safety
 /// property.** The shipped surface stays the sole authority on what works: a
@@ -1319,17 +1319,17 @@ pub fn retired_and_unreachable(table: &Table) -> Vec<(&Entry, Vec<Vec<&str>>)> {
 /// paraphrased into the binary.
 fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   let given: Vec<&str> = argv.iter().skip(1).map(String::as_str).collect();
-  // **The spelling the operator TYPED, not the canonical path.** `st organise`
-  // is an alias on a retired row; answering it by naming `st organize` asks
-  // someone mid-migration to reconcile two spellings before they can read the
-  // one fact they need, and the difference is a single letter.
+  // **The spelling the operator TYPED, not the canonical path.** Where a retired
+  // row carries an alias, answering it by naming the canonical path asks the
+  // operator to reconcile two spellings before they can read the one fact they
+  // need.
   // **A NAME THIS BUILD SHIPS IS NEVER ANSWERED AS RETIRED, AND WITHOUT THIS THE
   // DOC COMMENT ABOVE IS ASPIRATIONAL RATHER THAN TRUE.** It says a name clap
   // can parse is dispatched and never reaches here. That holds for a name clap
   // parses SUCCESSFULLY -- and a usage error on a LIVE command lands here too,
   // carrying a name that a retired row may also spell.
   //
-  // **MEASURED, ON THE ONE RECLAIMED NAME THE ESTATE HAS:** `intent organize
+  // **MEASURED, ON THE ONE RECLAIMED NAME THE ESTATE HAD:** `intent organize
   // --zzz-not-a-flag` answered _`intent organize` was retired in Intent v3 and
   // is not a command in this build_, remedy _there is no v3 replacement --
   // remove it from any script that calls it_, at exit 2. A shipped, working verb
@@ -1343,8 +1343,8 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   // Re-deriving reachability from dispositions would put a second authority in
   // front of the built surface -- the exact failure the doc comment above warns
   // about, rebuilt inside the guard against it. Walking the spelling token by
-  // token is what keeps `st organize` retired while `organize` is live: `st` is
-  // reachable, `organize` UNDER it is not, and only the whole path answers.
+  // token is what keeps a retired verb under a live family retired: the family is
+  // reachable, the verb UNDER it is not, and only the whole path answers.
   let (entry, typed) = retired_and_unreachable(table)
     .into_iter()
     .find_map(|(e, gone)| {
@@ -1451,10 +1451,10 @@ mod tests {
   /// on membership instead of on an exit code, and a caller branching on the
   /// unfiltered roster would delete a working verb from their automation.
   ///
-  /// `organize` is the case, and it is not hypothetical: it has two rows -- one
-  /// under `families` dispositioned `retire`, one under `new_surface` -- so it
-  /// is in `populations.shipped` AND `populations.retired` at once, satisfies
-  /// `!is_shipped()` on the first row, and dispatches.
+  /// The case is a retired row whose path a shipped row also spells: it
+  /// satisfies `!is_shipped()` and still dispatches. The committed table no
+  /// longer holds one, so the subject is SYNTHETIC: a copy of the table with a
+  /// retired twin of `st list` added beside the shipped row.
   ///
   /// **BOTH ARMS ARE LOAD-BEARING AND THEY FAIL FOR DIFFERENT REASONS.** The
   /// first says the naive roster really does carry the trap, so this test is
@@ -1463,13 +1463,21 @@ mod tests {
   /// passes against a roster with no filter at all.
   #[test]
   fn the_enumerable_roster_excludes_a_retired_name_this_build_reclaimed() {
-    let table = dispatch::table();
+    let real_retired: Vec<String> = retired_and_unreachable(&dispatch::table())
+      .iter()
+      .map(|(e, _)| e.path.clone())
+      .collect();
+    assert!(
+      !real_retired.is_empty(),
+      "the committed table retires nothing, so the last arm below would measure nothing"
+    );
+    let table = with_a_retired_twin_of_st_list();
 
     let naive: Vec<&str> = table.retired().iter().map(|e| e.path.as_str()).collect();
     assert!(
-      naive.contains(&"organize"),
-      "`table.retired()` no longer carries `organize`, so this test is measuring nothing. Either \
-       the table changed or the trap moved: read the row before deleting the arm. naive roster: {naive:?}"
+      naive.contains(&"st list"),
+      "`table.retired()` does not carry the retired twin, so this test is measuring nothing. \
+       naive roster: {naive:?}"
     );
 
     let enumerable: Vec<&str> = retired_and_unreachable(&table)
@@ -1477,18 +1485,76 @@ mod tests {
       .map(|(e, _)| e.path.as_str())
       .collect();
     assert!(
-      !enumerable.contains(&"organize"),
-      "`organize` is reachable in the built surface and this roster publishes it as retired. A \
+      !enumerable.contains(&"st list"),
+      "`st list` is reachable in the built surface and this roster publishes it as retired. A \
        caller branching on membership would remove a working command from their scripts. \
        enumerable roster: {enumerable:?}"
     );
 
     // A filter that removed everything would satisfy the arm above and be
     // useless, so the roster must still name the commands that really are gone.
+    for path in &real_retired {
+      assert!(
+        enumerable.contains(&path.as_str()),
+        "the enumerable roster dropped `{path}`, which IS retired and unreachable -- the filter \
+         is removing more than the reclaimed names. enumerable roster: {enumerable:?}"
+      );
+    }
+  }
+
+  /// The committed table, plus a retired twin of the shipped `st list`: a name
+  /// this build reclaimed, which the committed table no longer holds.
+  fn with_a_retired_twin_of_st_list() -> dispatch::Table {
+    let mut table = dispatch::table();
+    let st = table
+      .families
+      .iter_mut()
+      .find(|f| f.name == "st")
+      .expect("the table has an `st` family");
+    let mut twin = st
+      .entries
+      .iter()
+      .find(|e| e.path == "st list")
+      .expect("`st list` is in the table")
+      .clone();
+    twin.disposition = "retire".to_string();
+    twin.target.state = "retire".to_string();
+    st.entries.push(twin);
+    table
+  }
+
+  /// **A USAGE ERROR ON A SHIPPED NAME IS NEVER ANSWERED AS RETIRED**, even
+  /// where a retired row spells the same name: `retired_refusal` is reached
+  /// after clap fails, and a mistyped flag on a working verb is such a failure.
+  /// The control is a retired name that is not shipped, which the same call
+  /// does answer, so the `None` is the guard and not a refusal that never fires.
+  #[test]
+  fn a_shipped_name_with_a_bad_flag_is_not_answered_as_retired() {
+    let table = with_a_retired_twin_of_st_list();
+    let argv = |words: &[&str]| -> Vec<String> {
+      std::iter::once("intent")
+        .chain(words.iter().copied())
+        .map(str::to_string)
+        .collect()
+    };
+    let (gone, spellings) = retired_and_unreachable(&table)
+      .into_iter()
+      .next()
+      .expect("the committed table retires a name this build does not ship");
+    let typed = spellings
+      .first()
+      .expect("a retired row has a spelling")
+      .clone();
     assert!(
-      enumerable.contains(&"treeindex"),
-      "the enumerable roster dropped `treeindex`, which IS retired and unreachable -- the filter \
-       is removing more than the reclaimed names. enumerable roster: {enumerable:?}"
+      retired_refusal(&table, &argv(&typed)).is_some(),
+      "the control: `{}` is retired and unreachable, and is not answered as retired",
+      gone.path
+    );
+    assert_eq!(
+      retired_refusal(&table, &argv(&["st", "list", "--zzz-not-a-flag"])),
+      None,
+      "a usage error on the shipped `st list` was answered as retired, because a retired row \
+       also spells it"
     );
   }
 
@@ -1686,9 +1752,9 @@ mod tests {
   /// **The SECOND site, and it needed its own case because a mutation escaped.**
   ///
   /// `with_args` builds a slot whose verbs come from a `values` array rather
-  /// than from sibling entries -- `claude rules` and `agents template` are the
-  /// shipped shape. The case above flips a family with SIBLING verbs, which
-  /// takes the other branch entirely, **so reverting this site to the inline
+  /// than from sibling entries -- `claude rules` is the shipped shape. The case
+  /// above flips a family with SIBLING verbs, which takes the other branch
+  /// entirely, **so reverting this site to the inline
   /// `arity == "1"` passed every test in the crate.**
   ///
   /// One rule with two call sites needs two cases; covering the site that was
@@ -1777,12 +1843,11 @@ mod tests {
     for expected in ["st", "wp", "ac", "at", "issues", "todo", "doctor"] {
       assert!(names.contains(&expected.to_string()), "missing {expected}");
     }
-    // **DERIVED, NOT NAMED.** This used to assert `!names.contains("organize")`,
-    // which stopped being true when hv reclaimed the name for v3 (2026-08-19) --
-    // and a literal could not tell that from a retired command coming back. The
-    // property actually wanted is that nothing reaches the surface without a
-    // shipped row behind it, which covers every retire at once and needs no edit
-    // the next time one is ruled either way.
+    // **DERIVED, NOT NAMED.** A literal family name cannot tell a reclaimed
+    // name from a retired command coming back. The property actually wanted is
+    // that nothing reaches the surface without a shipped row behind it, which
+    // covers every retire at once and needs no edit the next time one is ruled
+    // either way.
     let shipped_families: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
       .iter()
       .map(|e| e.family())

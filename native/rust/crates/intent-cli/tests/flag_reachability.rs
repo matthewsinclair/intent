@@ -857,10 +857,9 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           checked += 1;
           // **TWO CONDITIONS, AND THE SECOND IS THE THIRD APERTURE THIS CHECK
           // HAS HAD TO GROW.** The accessor scan is the precise signal and it
-          // cannot see an id spelled anywhere but a call site -- dc's `init`
-          // loops over `[("with-st0000", ..), ("lang", ..)]` and passes each
-          // through a variable, so the id is spelled at `render.rs:2194` and
-          // read, and the scan called it unread.
+          // cannot see an id spelled anywhere but a call site -- a renderer that
+          // loops over a list of ids and passes each through a variable spells
+          // the id in the list and reads it, and the scan calls it unread.
           //
           // A whole-file literal scan alone would be the OPPOSITE mistake: it
           // is what would have called `st new -s` read because `start` is all
@@ -1025,12 +1024,12 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
 /// pin that expires is a pin somebody will notice moving.
 ///
 /// - **An unwired leaf under a WIRED root has NO INSTANCE on the surface since
-///   2026-09-11**, when hv's decision 3 retired `st bootstrap`, the last one.
-///   It was the instance the family-keyed probe got wrong, in the direction
-///   that graded inert flags as wired. Its positive pin is deleted rather than
-///   borrowed: the one home for that behaviour is now `render.rs`'s in-process
+///   2026-09-11**. It was the instance the family-keyed probe got wrong, in
+///   the direction that graded inert flags as wired. Its positive pin is
+///   deleted rather than borrowed: the one home for that behaviour is
+///   `render.rs`'s in-process
 ///   `an_unwired_verb_in_a_wired_family_is_sent_to_that_family`, over a table
-///   copy that declares `st bootstrap` again. This probe drives the real
+///   copy that declares an unwired verb under `st`. This probe drives the real
 ///   binary, so it has no subject for that direction until a real one exists.
 /// - `claude skills` is WIRED under a `claude` whose bare form refuses: driven
 ///   2026-08-31, `intent claude skills list` answers rc=0 with the canon

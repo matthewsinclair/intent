@@ -365,7 +365,7 @@ fn the_declared_predicate_answers_both_ways_and_knows_both_forms() {
      absence reported 21 working commands as undeclared"
   );
   assert!(
-    declared(&table, &seg("lang rm")),
+    declared(&table, &seg("outs")),
     "and an ALIAS is a spelling the binary genuinely offers, so `Entry::spellings()` is the read \
      rather than `Entry::path`"
   );

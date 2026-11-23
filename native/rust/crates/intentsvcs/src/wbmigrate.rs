@@ -1,9 +1,8 @@
 //! Carry a hand-authored whiteboard board into the model (ST0069 WP-14,
 //! AC-14.9).
 //!
-//! **SEPARATE FROM `legacy.rs` BECAUSE THE SUBJECT IS DIFFERENT**: that module
-//! reads a v2 ESTATE, this one reads the protocol's own board form. What it
-//! takes from there whole is the accounting -- carried and uncarried reported
+//! **IT READS THE PROTOCOL'S OWN BOARD FORM**, and took one thing whole from the
+//! v2 estate reader that went in 3.5.2: the accounting -- carried and uncarried reported
 //! PER ITEM, never as a total, because **a count that reconciles arithmetically
 //! tells nobody which line went**, and a drop with no record is
 //! indistinguishable from a line that was never there.

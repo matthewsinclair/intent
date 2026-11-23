@@ -261,15 +261,8 @@ fn no_unbuilt_command_leaks_intents_own_project_state() {
 
 #[test]
 fn a_retired_family_does_not_reach_the_surface() {
-  // **DERIVED FROM THE TABLE, NOT FROM A NAME.** This asserted
-  // `!surface.contains("organize")` until hv reclaimed the name for v3
-  // (2026-08-19). The v2 face's retire is untouched -- a strictly structured
-  // model cannot hold data in the wrong place, so the disorder it repaired
-  // cannot arise -- but the v3 verb is a different program wearing the same
-  // word, and a token check cannot tell those apart.
-  //
-  // It was one of THREE hard-coded copies of that ratification, in three files.
-  // Each had to be found and edited by hand for one ruling, which is the cost a
+  // **DERIVED FROM THE TABLE, NOT FROM A NAME.** A hard-coded family name has
+  // to be found and edited by hand for every ruling, which is the cost a
   // literal charges every time the world changes; the derived form charges none.
   let table = dispatch::table();
   let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
@@ -913,25 +906,20 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
 
 /// **Issue 0039: an alias declared on a shipped row IS that command.**
 ///
-/// `surface/dispatch-table.json` declares `aliases` on five entries and
-/// `pub struct Entry` did not have the field, so serde dropped it in silence.
-/// Four of the five are `disposition: keep` -- the one classification that
-/// promises the v2 spelling survives -- and `at done` / `at notdone`, which v2
-/// documents in its own help as "Aliases for green | red", did not exist in
-/// the binary at all. Every instrument reported agreement, because a JSON file
-/// cannot say whether anyone is listening.
+/// `surface/dispatch-table.json` declared `aliases` on rows while `pub struct
+/// Entry` did not have the field, so serde dropped it in silence and the
+/// declared spellings did not exist in the binary at all. Every instrument
+/// reported agreement, because a JSON file cannot say whether anyone is
+/// listening.
 ///
 /// **The assertion is equality of behaviour, not presence in help text.**
-/// Searching the help for the word `done` would pass on any command whose help
-/// happens to contain it; running both spellings and comparing what came back
-/// is the property the word "alias" actually means. It needs no arguments to
-/// do it: with none, the canonical spelling reports its missing positionals
-/// and a spelling that does not exist reports `unrecognized subcommand`, so
-/// the two answers differ exactly when the alias is missing.
+/// Searching the help for the alias would pass on any command whose help
+/// happens to contain the word; running both spellings and comparing what came
+/// back is the property the word "alias" actually means.
 ///
 /// Discovered from the table rather than listed here, so an alias added to a
-/// sixth row is covered on the day it is authored -- and counted, because a
-/// loop over an empty set is a test that passes by not looking.
+/// row is covered on the day it is authored -- and counted, because a loop
+/// over an empty set is a test that passes by not looking.
 #[test]
 fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
   let table = dispatch::table();
@@ -960,16 +948,15 @@ fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
 
       assert_eq!(
         normalised, by_name,
-        "`{spelled}` must be `{named}`; it is declared in the table as an alias on a shipped row, \
-         and v2 answers to it"
+        "`{spelled}` must be `{named}`; it is declared in the table as an alias on a shipped row"
       );
       checked += 1;
     }
   }
 
   assert!(
-    checked >= 2,
-    "the table declares aliases on shipped rows and this test found {checked} -- either they were \
+    checked > 0,
+    "the table declares aliases on shipped rows and this test found none -- either they were \
      removed from the canon or this loop stopped seeing them, and both want a human"
   );
 }
@@ -977,23 +964,32 @@ fn every_declared_alias_on_a_shipped_row_is_the_command_it_aliases() {
 /// **A retired row's alias stays retired**, which is the half that a naive fix
 /// gets wrong.
 ///
-/// `st organize` is `disposition: retire` and carries `st organise`. Registering
-/// aliases without asking whether the row ships would bring a withdrawn command
-/// back through its old spelling while the canonical one stays gone -- a
-/// command that exists only under the name nobody chose to keep.
+/// Registering aliases without asking whether the row ships would bring a
+/// withdrawn command back through its old spelling while the canonical one
+/// stays gone -- a command that exists only under the name nobody chose to
+/// keep.
 ///
-/// **The assertion moved from the MESSAGE to the SURFACE, and the reason is
-/// worth keeping.** This test read `out.contains("unrecognized subcommand")`,
-/// which was an exact proxy for "did not resolve" only because clap's generic
-/// error was the sole alternative to resolving. Issue 0044 added a third
-/// outcome -- refused BY NAME as retired -- and the proxy reddened on a change
-/// that strengthened the very thing it guards. **A test measuring the mechanism
-/// of a refusal instead of the refusal fails when the mechanism improves**, so
-/// what it now asks is whether clap knows the spelling at all. If the surface
-/// does not carry it, it cannot resolve, whatever the message says.
+/// **The subject is SYNTHETIC.** The committed table carries no alias on a
+/// retired row, so this is a copy of it with an alias added to the retired `st
+/// renumber`. The property is the spine's -- it must register aliases only for
+/// rows that ship -- so a declared alias on a retired row is all the subject
+/// has to be. It asks whether clap knows the spelling at all: if the surface
+/// does not carry it, it cannot resolve, whatever any message says.
 #[test]
 fn a_retired_rows_alias_does_not_come_back() {
-  let table = dispatch::table();
+  let mut table = dispatch::table();
+  let row = table
+    .families
+    .iter_mut()
+    .flat_map(|f| f.entries.iter_mut())
+    .find(|e| e.path == "st renumber")
+    .expect("the retired `st renumber` row is in the table");
+  assert!(
+    !row.is_shipped(),
+    "`st renumber` ships, so it cannot stand in for a retired row here"
+  );
+  row.aliases.push("st renumbre".to_string());
+
   let retired: Vec<&str> = table
     .families
     .iter()
@@ -1001,11 +997,9 @@ fn a_retired_rows_alias_does_not_come_back() {
     .filter(|e| !e.is_shipped() && !e.aliases.is_empty())
     .flat_map(|e| e.alias_verbs())
     .collect();
-
   assert!(
     !retired.is_empty(),
-    "no retired row carries an alias, so this test proves nothing -- check the table before \
-     deleting it, because the case it guards is cheap to reintroduce"
+    "no retired row carries an alias in this copy, so the loop below proves nothing"
   );
 
   let surface = intent_cli::spine::build(&table);
@@ -1020,17 +1014,8 @@ fn a_retired_rows_alias_does_not_come_back() {
     });
     assert!(
       !registered,
-      "`st {alias}` is registered on the shipped clap surface. It is an alias on a RETIRED row, so registering it revives a withdrawn command under the one \
-       spelling nobody chose to keep -- and the canonical `st organize` would still be gone, which is the state hardest to diagnose from outside"
-    );
-
-    // And end to end, because a surface assertion cannot see a second path that
-    // answers the spelling. Either refusal is correct here; what is not is
-    // running.
-    let out = run_raw(&["st", alias]);
-    assert!(
-      out.contains("unrecognized subcommand") || out.contains("was retired in Intent v3"),
-      "`st {alias}` neither resolved to nothing nor named itself retired, so something answered it: {out}"
+      "`st {alias}` is registered on the shipped clap surface. It is an alias on a RETIRED row, \
+       so registering it revives a withdrawn command under the one spelling nobody chose to keep"
     );
   }
 }

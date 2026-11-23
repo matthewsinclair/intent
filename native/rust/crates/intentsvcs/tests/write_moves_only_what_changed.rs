@@ -683,21 +683,6 @@ const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
     "fc",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, projected estate byte-identical. **DECLARED AHEAD OF ITS ARM ON PURPOSE, WHICH IS THE ONE ORDERING THIS BUCKET IS FOR**: ic authored the row so the service side could be built against a fixed shape rather than a guessed one, and the row generates a real clap subcommand today. The SERVICE side is built and green (`Facade::ac_fc`, `fiat_close_is_stamped_by_the_database.rs`), so what is missing is the renderer arm alone -- and the driven case goes RED the day it lands, which is what forces the re-bucket rather than leaving a live mutator in an excuse list. Driven WITH `--because`, because clap refuses its absence at rc=1 before dispatch, and a case passing on that refusal would prove nothing about the unwired arm.",
   ),
-  // **`st bootstrap` LEFT THIS BUCKET ON 2026-09-11** (hv's decision 3,
-  // ST0058 AC-00.3): struck rather than built, its row is retired, so it is
-  // no longer a shipped mutator and there is nothing here to excuse.
-  // **`st repair` LEFT THIS BUCKET THE SAME WAY, ON 2026-08-28** (hv, issue
-  // 0118). v2's `st repair` fixed malformed frontmatter in a hand-authored
-  // file; v3 generates that file, so a mangled one is reported by `doctor` and
-  // repaired by regeneration. The verb has no subject left, the row is retired
-  // in the dispatch table, and there is nothing here to excuse.
-  //
-  // **The membership check fired on its own again** -- `bucketed but not a
-  // shipped mutator: ["st repair"]` -- which is the fifth site that named this
-  // verb and the fifth to announce itself rather than drift. The other four
-  // were assertions ABOUT the verb; this one is an accounting entry, and it is
-  // the only one that would have inflated a debt figure if it had stayed.
-  //
   // **`issues hydrate` AND `issues dehydrate` LEFT THIS BUCKET BY LEAVING THE
   // SURFACE** (hv, 2026-08-20): issues are canon-and-store only, both rows are
   // retired in the dispatch table, so they are no longer shipped mutators and
@@ -987,17 +972,11 @@ const UNPROVEN: &[&str] = &[
   // came to be written at all.
   "daemon restart",
   "ext new",
-  // `fileindex` left this roster on 2026-08-31 by being RETIRED (hv's A4,
-  // executed at `c6515ad6`), not by being proven. A retired verb is not a
-  // shipped mutator, so it cannot be unproven either -- and the arm below is
-  // an EQUALITY, which is what turned the retirement into a red here rather
-  // than into a roster that quietly outlived its subject.
   "init",
   "learn",
   // **`llm usage_rules` LEFT THIS ROSTER ON 2026-09-02 BY BEING RECLASSIFIED,
-  // NOT BY BEING PROVEN** -- the same way `fileindex` left it by being retired,
-  // and caught the same way, by the EQUALITY arm rather than by anyone
-  // remembering. `--symlink` was the only thing on that row that ever wrote;
+  // NOT BY BEING PROVEN**, and caught by the EQUALITY arm rather than by
+  // anyone remembering. `--symlink` was the only thing on that row that ever wrote;
   // vc withdrew it under the pen (issue 0181), so `read_or_mutate` moved
   // `mutate` -> `read` and the entry is no longer a shipped mutator. An entry
   // that is not a shipped mutator cannot be an unproven one.

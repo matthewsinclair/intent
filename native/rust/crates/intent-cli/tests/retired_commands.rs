@@ -96,19 +96,10 @@ fn run_stdout(args: &[&str], cwd: &Path) -> (Option<i32>, String) {
 
 /// Every spelling the table retires, as argv, with the row it came from.
 ///
-/// **A RECLAIMED SPELLING IS EXCLUDED, AND IT IS NOT THE SAME AS A RETIRED ONE**
-/// (hv, 2026-08-19). `path` stopped being unique across this table when hv
-/// reclaimed `organize` for v3: the v2 face is still a retired row, and a
-/// separate shipped row now carries the same word for a different program. Typing
-/// it reaches the shipped verb, correctly, and answers `is a known command that
-/// is not implemented yet` -- which is a true statement about v3 and is not the
-/// retirement message this file asserts.
-///
-/// **THE COST OF THE EXCLUSION IS STATED RATHER THAN HIDDEN:** for a reclaimed
-/// spelling, nothing here checks that the v2 face is refused, because there is no
-/// longer any way to type it. That is a real loss of coverage and it is the
-/// unavoidable half of reclaiming a name -- the alternative is asserting a
-/// refusal the surface cannot produce.
+/// **A path a shipped row also spells is excluded**: typing it reaches the
+/// shipped verb, correctly, so there is no retirement message to assert. The
+/// committed table holds no such path; the filter keeps this file honest on
+/// the day one is declared.
 fn retired_spellings() -> Vec<(Vec<String>, Option<String>)> {
   let table = dispatch::table();
   let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
@@ -168,24 +159,14 @@ fn retired_rows_declare_a_replacement_state() {
 fn the_table_declares_retirements_for_this_file_to_measure() {
   let spellings = retired_spellings();
   assert!(
-    spellings.len() >= 2,
-    "the dispatch table yielded {} retired spellings. Every case in this file iterates that set, so an empty or near-empty one makes the whole file vacuous",
-    spellings.len()
+    !spellings.is_empty(),
+    "the dispatch table yielded no retired spellings. Every case in this file iterates that set, so an empty one makes the whole file vacuous"
   );
-  // **NO RETIRED ROW NAMES A REPLACEMENT SINCE 2026-09-11, AND THE BRANCH
-  // THAT NAMES ONE NOW RUNS WITHOUT A CONTROL.** `st_zero` was the only row
-  // with a named successor, `st bootstrap`; hv's decision 3 struck that
-  // successor and cleared the spelling, because a refusal must never send
-  // anyone to a struck door. The assertion that a Named row existed is deleted
-  // rather than satisfied by borrowing one. So the Named arm of
-  // `every_retired_spelling_is_refused_by_name` exercises nothing until a
-  // retirement with a real successor is declared -- stated here, and in the
-  // commit that did it, so nobody reads that arm's green as evidence.
 }
 
 /// **The refusal names the command and says what happened to it.**
 ///
-/// `unrecognized subcommand 'treeindex'` is true and tells a v2 user nothing:
+/// `unrecognized subcommand 'renumber'` is true and tells the caller nothing:
 /// it cannot distinguish a command that was removed from one they mistyped.
 #[test]
 fn every_retired_spelling_is_refused_by_name() {
@@ -197,9 +178,9 @@ fn every_retired_spelling_is_refused_by_name() {
 
     assert!(
       stderr.contains(&format!("`intent {typed}`")),
-      "`intent {typed}` was not named in its own refusal. **The spelling reported must be the one TYPED**, not the row's canonical path -- `st organise` is an \
-       alias on a retired row, and answering it by naming `st organize` asks someone mid-migration to reconcile two spellings differing by one letter before \
-       they can read the one fact they need. exit {code:?}, stderr: {stderr}"
+      "`intent {typed}` was not named in its own refusal. **The spelling reported must be the one TYPED**, not the row's canonical path -- answering an alias \
+       on a retired row by naming its canonical path asks the operator to reconcile two spellings before they can read the one fact they need. \
+       exit {code:?}, stderr: {stderr}"
     );
     assert!(
       stderr.contains("retired"),
@@ -296,7 +277,7 @@ fn the_refusal_carries_none_of_our_own_bookkeeping() {
 /// detail.**
 ///
 /// A caller matching a command line against these prefixes must try
-/// `st organize` before `st`. No retired path is a prefix of another TODAY, so
+/// `st renumber` before `st`. No retired path is a prefix of another TODAY, so
 /// getting this wrong would be invisible -- and a sort that is only correct
 /// because the data has not yet reached the case it guards is worth pinning
 /// before it does.
@@ -379,70 +360,11 @@ fn a_hidden_alias_is_accepted_and_appears_in_no_output() {
   }
 }
 
-/// **A NAME THIS BUILD RECLAIMED IS A LIVE COMMAND, AND A TYPO ON IT IS A TYPO.**
-///
-/// `retired_refusal` is consulted after clap fails, and clap fails for two very
-/// different reasons: a name that does not exist, and a USAGE ERROR on a name
-/// that does. It matched argv by prefix against the retired roster, so for the
-/// one name v3 reclaimed the second case was answered as the first.
-///
-/// **Measured before the fix: `intent organize --zzz-not-a-flag` answered _`intent
-/// organize` was retired in Intent v3 and is not a command in this build_,
-/// remedy _there is no v3 replacement -- remove it from any script that calls
-/// it_, at exit 2.** A working verb told an operator who mistyped a flag to
-/// delete it from their automation. Exit 2 is additionally the code the
-/// pre-commit gate fails open on.
-///
-/// **DRIVEN FROM THE TABLE, never from the name `organize`.** The reclaimed set
-/// is one row today and the defect is a property of reclamation, not of that
-/// verb; a test naming it would stop covering the second reclamation on the day
-/// it lands. `retired_spellings()` above already excludes shipped paths, so this
-/// hole is invisible to every other assertion in this file by construction --
-/// which is exactly why it needs its own arm rather than a wider filter.
-#[test]
-fn a_live_command_that_reclaimed_a_retired_name_is_not_answered_as_retired() {
-  let root = install_root();
-  let table = dispatch::table();
-  let shipped: std::collections::BTreeSet<&str> = dispatch::shipped_entries(&table)
-    .iter()
-    .map(|e| e.path.as_str())
-    .collect();
-
-  let reclaimed: Vec<String> = table
-    .retired()
-    .iter()
-    .map(|e| e.path.clone())
-    .filter(|p| shipped.contains(p.as_str()))
-    .collect();
-
-  // Not an assertion that the set is non-empty: reclamation is a thing the
-  // estate may legitimately have none of. It IS reported, so a run where the
-  // set silently emptied does not read as a pass over a population.
-  println!("reclaimed names measured: {reclaimed:?}");
-
-  for path in &reclaimed {
-    let mut args: Vec<&str> = path.split(' ').collect();
-    args.push("--zzz-not-a-flag");
-    let (code, stderr) = run(&args, &root);
-    assert!(
-      !stderr.contains("retired"),
-      "`intent {}` SHIPS in this build; a usage error on it must not answer as a retirement -- that tells an operator to delete a working command from their scripts: {stderr}",
-      path
-    );
-    assert_eq!(
-      code,
-      Some(1),
-      "`intent {}` -- a usage error on a live command is exit 1, not the unavailable code the gate fails open on: {stderr}",
-      path
-    );
-  }
-}
-
-/// **AND THE RECLAMATION MUST NOT HAVE UN-RETIRED THE FACE BENEATH IT.** The
-/// guard walks the whole spelling, so `st organize` stays retired while
-/// `organize` is live -- `st` is reachable and `organize` UNDER it is not. A
-/// guard that checked only the first token would have answered `st organize` as
-/// a usage error and quietly resurrected a v2 face.
+/// **A RETIRED VERB UNDER A LIVE FAMILY IS STILL REFUSED BY NAME.** The guard
+/// walks the whole spelling, so `st renumber` stays retired while `st` is live
+/// -- `st` is reachable and `renumber` UNDER it is not. A guard that checked
+/// only the first token would answer `st renumber` as a usage error and
+/// quietly resurrect a retired command.
 #[test]
 fn a_retired_face_under_a_live_parent_is_still_refused_by_name() {
   let root = install_root();

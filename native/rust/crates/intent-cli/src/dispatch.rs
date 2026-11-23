@@ -258,27 +258,24 @@ pub struct Entry {
   /// reach a user's terminal. Kept because the field is theirs and dropping it
   /// would make the table unparseable for a reason that is not the table's.
   pub owner_wp: String,
-  /// The v2 spellings that must keep working, eg `done` for `at green`.
+  /// Second spellings that must keep working, eg `outs` for `outstanding`.
   ///
-  /// **Issue 0039: this was authored on five rows and absent from this struct**,
-  /// so serde dropped it in silence and `at done` / `at notdone` -- which v2
-  /// documents in its own help as "Aliases for green | red" -- did not exist in
-  /// the binary at all. Four of the five rows are `disposition: keep`, which is
-  /// the one classification that promises the v2 spelling survives, so the
-  /// table declared four commands and shipped two.
+  /// **Issue 0039: this was authored on rows and absent from this struct**, so
+  /// serde dropped it in silence and the declared aliases did not exist in the
+  /// binary at all.
   ///
-  /// Registered by the spine for rows that SHIP, never unconditionally: `st
-  /// organise` is an alias on a `retire` row, and registering it would bring a
-  /// retired command back through its old spelling.
+  /// Registered by the spine for rows that SHIP, never unconditionally: an
+  /// alias on a `retire` row would bring a retired command back through its
+  /// old spelling.
   #[serde(default)]
   pub aliases: Vec<String>,
   /// Spellings that are ACCEPTED and never SHOWN.
   ///
   /// **A second list rather than a flag on the first, because they are two
   /// dispositions rather than one list with an attribute.** `aliases` above is
-  /// registered VISIBLE on the stated ground that v2 documents those spellings
-  /// (`done|notdone`) and a hidden one would be undiscoverable -- "a different
-  /// way of not shipping it". That reasoning is correct and stays.
+  /// registered VISIBLE on the stated ground that a declared alias is a
+  /// documented spelling (`outs`) and a hidden one would be undiscoverable --
+  /// "a different way of not shipping it". That reasoning is correct and stays.
   ///
   /// **This list is for the opposite case: a spelling accepted as a COURTESY
   /// that must never become a second name for the verb.** hv, 2026-08-19, on
@@ -741,7 +738,7 @@ pub struct Target {
   #[serde(default)]
   pub state: String,
   /// What the command is spelled as instead, where a retirement has a
-  /// replacement. `Some("intent st bootstrap")` on `st_zero`; `Some("")` on a
+  /// replacement. `Some("intent st remint <id>")` on `st renumber`; `Some("")` on a
   /// retirement that genuinely replaces nothing.
   ///
   /// **`Option` RATHER THAN `String`, AND THE DISTINCTION IS THE WHOLE POINT:
@@ -787,7 +784,7 @@ impl Table {
   /// Every entry the table retires, LONGEST PATH FIRST.
   ///
   /// The order is the whole contract of this function. A caller matching a
-  /// command line against these prefixes must try `st organize` before `st`,
+  /// command line against these prefixes must try `st renumber` before `st`,
   /// or a two-segment retirement is answered by whatever one-segment row
   /// happens to sit above it -- and today that would be silent, because no
   /// retired path is currently a prefix of another. **A sort that is only
@@ -827,14 +824,14 @@ impl Entry {
     self.disposition != "retire" && self.target.state != "retire"
   }
 
-  /// Every spelling this entry answered to in v2 -- its own path first, then
+  /// Every spelling this entry answers to -- its own path first, then
   /// its aliases, each as whole space-separated segments.
   ///
   /// Whole paths rather than last segments, because the caller here is matching
   /// against argv from the front. `alias_verbs` below answers a different
   /// question (what clap registers on an already-placed subcommand) and the two
-  /// must not be confused: `st organise` is one segment to clap and two to
-  /// anything reading a command line.
+  /// must not be confused: a two-segment alias is one segment to clap and two
+  /// to anything reading a command line.
   pub fn spellings(&self) -> Vec<Vec<&str>> {
     std::iter::once(self.path.as_str())
       .chain(self.aliases.iter().map(String::as_str))
@@ -1046,7 +1043,7 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
         ));
       }
     }
-    // An alias is written as a FULL path (`at done` beside `at green`), so the
+    // An alias is written as a FULL path (`outs` beside `outstanding`), so the
     // spelling clap registers is its last segment and everything before it has
     // to be this entry's own prefix. If they disagree the alias names a
     // different command, and registering its last segment here would attach it
@@ -1723,8 +1720,8 @@ mod tests {
       // fixtures for path decomposition, and declaring a daemon op on one
       // would put a serving claim into a test that no table makes.
       serving_op: None,
-      // Added when `Entry` gained the field for dc's accepted-but-never-shown
-      // `organise` alias. Empty here: these are fixtures for a different
+      // Added when `Entry` gained the field for the accepted-but-never-shown
+      // `organise` spelling of `organize`. Empty here: these are fixtures for a different
       // property and inventing an alias would put a spelling into a test that
       // no table declares.
       hidden_aliases: Vec::new(),
@@ -1830,34 +1827,12 @@ mod tests {
   }
 
   #[test]
-  fn retired_entries_are_not_shipped_but_pending_hv_ones_are() {
+  fn a_pending_hv_ruling_does_not_unship_a_command() {
+    // That a retired row does not ship is `is_shipped` itself, so it is not
+    // asserted here: `retired()` and `shipped_entries` read the same two
+    // fields. What can go wrong is a third state read as a retirement.
     let t = table();
     let shipped = shipped_entries(&t);
-    // **THE RETIRE IS OF A FACE, NOT OF A WORD** (hv, 2026-08-19). This used to
-    // read `!e.path.starts_with("organize")`, which forbade the TOKEN -- and a
-    // token check cannot tell a name being reclaimed from a command being
-    // resurrected. hv retired `bin/intent_organize` and `st organize`, the pair
-    // that moved ST directories into status folders; ST0057's `organize` is a
-    // different program that reconciles the tree against `.intentfiles` and
-    // shares nothing with it but the spelling.
-    //
-    // Keyed on the v2 ANTECEDENT, which is the thing that was actually retired
-    // and the one field a reclaimed name cannot accidentally satisfy: a
-    // new-surface row carries `new-surface` there by construction.
-    assert!(
-      !shipped.iter().any(|e| e.v2 == "bin/intent_organize"),
-      "the v2 `organize` face is a ratified retire (hv, 2026-08-14): a strictly structured model cannot hold data in the wrong place, so the disorder it repaired cannot arise"
-    );
-    // And the reclamation is ASSERTED, not merely permitted. Loosening the line
-    // above without this one would leave the v3 verb free to vanish from the
-    // table with nothing noticing -- a check that stops forbidding something is
-    // not the same as one that requires it.
-    assert!(
-      shipped
-        .iter()
-        .any(|e| e.path == "organize" && e.v2 == "new-surface"),
-      "the v3 `organize` verb is reclaimed (hv, 2026-08-19) and must ship"
-    );
     assert!(
       shipped.iter().any(|e| e.target.state == "pending-hv"),
       "a pending usage-convention ruling does not remove a command from the surface"

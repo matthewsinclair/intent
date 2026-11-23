@@ -499,13 +499,10 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
 fn invariant_every_shipped_verb_answers_identically_down_every_route() {
   let table = dispatch::table();
 
-  // **DEDUPED, AND KEYED ON THE ROW RATHER THAN THE PATH.** `organize` is two
-  // rows and sits in `populations.shipped` AND `populations.retired`; driving
-  // a path lets whichever row is reached first decide what was tested. The
-  // duplicate is a live defect in the register (`declared` double-counts it,
-  // so the conservation sum balances through two cancelling errors) and is
-  // being closed separately -- this harness must not inherit it, and must not
-  // paper over it either, so the count below is reported.
+  // **DEDUPED, AND KEYED ON THE ROW RATHER THAN THE PATH.** A path carried by
+  // two rows would let whichever row is reached first decide what was tested,
+  // so this harness must not inherit such a duplicate, and must not paper over
+  // it either: the count below is reported.
   let mut argvs: Vec<Vec<String>> = Vec::new();
   let mut excluded: Vec<(String, String)> = Vec::new();
   let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();

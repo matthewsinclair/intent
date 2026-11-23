@@ -3,6 +3,8 @@
   "text": "**An INTERRUPTED migration and an uninterrupted one reach the same end state, and the interruption is DEMONSTRATED rather than simulated.** (vc 2026-08-18, minted on the moratorium lift; the instruments predated the criterion.) A partial run killed mid-flight and then re-run must produce the estate an uninterrupted run produces -- **and the evidence must show the kill was real**, since a hand-rolled partial write proves only that the harness can truncate a file. The discriminating artefact is the temp-and-rename residue a real process death leaves and a simulated one never does. **Both readings must be taken against a BINARY PINNED BY CONTENT HASH, never by its self-reported provenance marker** (ic 2026-08-18, on a live casualty): a marker can stay byte-identical across two behaviourally different builds, so a paired reading keyed on the marker certifies pairs that are not pairs. **AND THIS IS NOT A `dirty-` WORKAROUND (dc 2026-08-18): NO PROVENANCE MARKER OF ANY DESIGN CAN DISTINGUISH TWO BUILDS OF ONE SOURCE**, so a future clean marker fails identically. The pin is by content hash because the property required is byte identity of the ARTEFACT, which no self-report can carry.",
   "kind": "test",
   "state": {
-    "is": "computed"
+    "is": "withdrawn",
+    "reason": "hv, 2026-11-23: \"THERE IS NO V2 ANYWHERE. EVER.\" (relayed by vc). The behaviour this criterion asks for served v2 projects and is removed by ST1c2db93 U4, with the tests that covered it.",
+    "by": "vc"
   }
 }

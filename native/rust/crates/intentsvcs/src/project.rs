@@ -758,8 +758,8 @@ pub struct Config {
   ///
   /// **`st_prefix` lands here, and that is the retirement working rather than
   /// a leak** (issue 0040, hv). The field is gone from the type -- the prefix
-  /// is fixed at `crate::id::THREAD_PREFIX` -- so a v2 project that
-  /// declared it keeps the declaration in the file, byte for byte, instead of
+  /// is fixed at `crate::id::THREAD_PREFIX` -- so a project whose config
+  /// declares it keeps the declaration in the file, byte for byte, instead of
   /// having it silently dropped on the first rewrite. v3 does not honour it.
   /// Retiring a knob nobody uses is fine; retiring it under someone who does,
   /// without telling them, is the silent data change this thread exists to
@@ -2729,8 +2729,8 @@ impl Project {
   /// its acceptance view, its work packages' covers, its attachments), and its
   /// canon record with everything under `.canon/st/<ID>/` beside it. An issue
   /// owns its canon record and its view. Nothing else is owned by a thread or
-  /// an issue: a project-level view, a board, a directory that is not an id,
-  /// and a v2 status bucket, whose paths are legacy's to read.
+  /// an issue: a project-level view, a board, and a directory that is not an
+  /// id.
   ///
   /// `path` is relative to the project root, or absolute. **The id is read by
   /// [`crate::id::ThreadId::parse`] and [`crate::id::IssueId::parse`], and a

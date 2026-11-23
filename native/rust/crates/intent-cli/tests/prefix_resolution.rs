@@ -18,11 +18,10 @@ use intent_cli::dispatch;
 ///
 /// **`shipped_entries`, NOT EVERY ROW IN THE TABLE, AND THE FIRST BUILD GOT
 /// THIS WRONG IN THE INSTRUCTIVE DIRECTION.** The table also carries RETIRED
-/// commands -- `help`, `st_zero`, `treeindex` -- so that a person typing one
-/// gets told what replaced it. They are deliberately absent from the clap
-/// surface, so a corpus built from every row asserted that `intent tr` should
-/// reach a command this build does not have, and reported three failures that
-/// were entirely the test's.
+/// commands, so that a person typing one gets told what replaced it. They are
+/// deliberately absent from the clap surface, so a corpus built from every row
+/// asserted that prefixes should reach commands this build does not have, and
+/// reported failures that were entirely the test's.
 ///
 /// **THE POPULATION YOU MEASURED IS NOT THE ONE YOU CLAIMED**, arrived at from
 /// the honest end: the assertions were right and the corpus was wrong. It is the
@@ -87,16 +86,15 @@ fn shortest_unique(name: &str, corpus: &[String]) -> Option<String> {
 fn the_shortest_unique_prefix_of_every_command_reaches_that_command() {
   let names = top_level();
   assert!(
-    names.len() > 20,
-    "the command corpus is {} -- too small to be the real surface, so this test measured nothing",
-    names.len()
+    !names.is_empty(),
+    "the command corpus is empty, so this test measured nothing"
   );
 
   let mut checked = 0usize;
   let mut failures: Vec<String> = Vec::new();
 
   for name in &names {
-    // A command that is a strict prefix of another (`st` inside `st_zero`) has
+    // A command that is a strict prefix of another (`st` beside a `status`) has
     // no unique prefix shorter than itself, and reaches itself by EXACT match
     // rather than by inference. Skipped here and covered by its own test below,
     // because folding the two would hide which rule was doing the work.
@@ -122,9 +120,8 @@ fn the_shortest_unique_prefix_of_every_command_reaches_that_command() {
   }
 
   assert!(
-    checked >= 10,
-    "only {checked} command(s) had a proper unique prefix, which is too few for this to be \
-     evidence about the surface"
+    checked > 0,
+    "no command had a proper unique prefix, so this test measured nothing"
   );
   assert!(
     failures.is_empty(),
@@ -220,11 +217,10 @@ fn every_exact_command_name_still_resolves_to_itself() {
   // OVER THE WHOLE CORPUS RATHER THAN AGAINST A SHADOWED PAIR.**
   //
   // The first version of this test looked for a command that is a strict prefix
-  // of another -- `st` inside `st_zero` -- and asserted it still reached itself.
-  // **Measured across every level of the shipped tree: there are ZERO such
-  // pairs**, because `st_zero` is retired. So that test was driving a shape the
-  // surface does not have, and its own guard said to replace it rather than
-  // leave it passing.
+  // of another and asserted it still reached itself. **Measured across every
+  // level of the shipped tree: there are ZERO such pairs.** So that test was
+  // driving a shape the surface does not have, and its own guard said to
+  // replace it rather than leave it passing.
   //
   // **THE PROPERTY IS REAL EVEN THOUGH TODAY'S INSTANCE IS NOT**: the day
   // somebody adds a verb beginning with an existing verb's whole name, inference

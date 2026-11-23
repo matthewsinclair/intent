@@ -208,11 +208,12 @@ fn the_interactive_flag_is_retired_in_both_places() {
 }
 
 /// Both verbs read a PROJECT file, so neither answers from a project whose
-/// config declares a version before 3, as `plugin` and `lang list` do. The fallback is written down: `CLAUDE.md`
+/// config declares a version before 3, as `plugin` and `lang list` do. The
+/// fallback is written down: `CLAUDE.md`
 /// tells an agent to drive `intent modules find` and to fall back to a grep if
 /// it does not answer.
 #[test]
-fn a_modules_verb_refuses_an_unmigrated_project() {
+fn a_modules_verb_refuses_a_pre_v3_project() {
   let declared = format!("{}.0.0", intentsvcs::project::OLDEST_READ_MAJOR - 1);
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
@@ -220,7 +221,7 @@ fn a_modules_verb_refuses_an_unmigrated_project() {
   std::fs::create_dir_all(root.join("intent/llm")).expect("mkdir");
   std::fs::write(
     root.join("intent/.config/config.json"),
-    format!(r#"{{"intent_version":"{declared}","project_name":"Legacy"}}"#),
+    format!(r#"{{"intent_version":"{declared}","project_name":"PreV3"}}"#),
   )
   .expect("write config");
   std::fs::write(root.join("intent/llm/MODULES.md"), EMPTY_REGISTRY).expect("write registry");

@@ -238,11 +238,10 @@ fn a_healthy_estate_whose_content_shrinks_still_egests() {
 /// # Two failed substitutions, recorded because each found something
 ///
 /// **Removing only `intent/.canon/st` does not work**: with canon gone and the
-/// rendered `info.md` files still present, `Project` reads the estate as an
-/// UNMIGRATED v2 project and `Facade::open` refuses first
-/// (`Unmigrated(Pending { legacy_threads: [...] })`). A second, independent
-/// guard over the same evidence happens to cover that shape -- which is worth
-/// knowing, and is why the thread directories go too.
+/// rendered `info.md` files still present, `Facade::open` refused first, when
+/// this was written, on a guard that read such a tree as one still to convert.
+/// That guard went with the conversion in 3.5.2; the thread directories still
+/// go too, so the subject stays the shrink and nothing else.
 ///
 /// **Doing it on ISSUES does not work either, and the reason is a hole rather
 /// than a quirk**: zero issues in the store produces no shrink because ISSUES

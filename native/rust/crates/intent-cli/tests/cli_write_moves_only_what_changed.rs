@@ -4,8 +4,8 @@
 //! `intentsvcs`' `write_moves_only_what_changed.rs` (AT-03.15) is the other
 //! half. It drives `Facade` methods, and AT-03.15's own note records why that
 //! is a boundary rather than a backlog: of the verbs it could not reach,
-//! **nearly all appear nowhere in the facade surface at all** -- `st repair`,
-//! `st bootstrap`, `st sync` reach no `intentsvcs` path, and the `todo` family
+//! **nearly all appear nowhere in the facade surface at all** -- `st sync`
+//! reaches no `intentsvcs` path, and the `todo` family
 //! resolves only into `intent-cli`'s `render.rs`/`spine.rs`. No number of extra
 //! cases in that file can reach them. **This is the second instrument it named:
 //! a CLI-level driver that runs the binary and snapshots the estate around it.**
@@ -44,9 +44,7 @@
 //! The verbs came here as "unproven". **Only a few of them write.** The rest
 //! are classified `mutate` on a surface that never drove them:
 //!
-//! - `st bootstrap`, `st repair` -- `rc=2`, *was retired in Intent v3*.
-//!   `st bootstrap` answered *not implemented yet* until hv's decision 3
-//!   retired it (2026-09-11); `st repair` was retired before it.
+//! - `st renumber` -- `rc=2`, *was retired in Intent v3*.
 //! - `at lint --fix` -- `rc=1`, *`at lint --fix` is not implemented in v3*. The
 //!   whole reason `at lint` was classified `mutate` is a flag that does not
 //!   exist; the bare form leaves the estate byte-identical.
@@ -291,9 +289,8 @@ enum Expect {
 
 /// A command the surface has RETIRED, which is a different refusal from an
 /// unbuilt one: unwired says *not yet*, this says *not ever, and here is what
-/// to do instead*. `st repair` moved between the two on 2026-08-28 without its
-/// behaviour changing at all -- still rc=2, still writes nothing -- so the
-/// distinction lives entirely in the sentence.
+/// to do instead*. Both exit 2 and write nothing, so the distinction lives
+/// entirely in the sentence.
 const RETIRED_PHRASE: &str = "was retired in Intent v3";
 
 struct Case {
@@ -438,12 +435,12 @@ fn cases() -> Vec<Case> {
       why: "`--fix` is retired (0139), so clap refuses it and the estate stays byte-identical -- it was the only thing that ever earned `at lint` a `mutate` classification, and the row is now `read`",
     },
     Case {
-      verb: "st bootstrap",
-      args: &["st", "bootstrap"],
+      verb: "st renumber",
+      args: &["st", "renumber", FIRST],
       prep: NOOP,
       expect: Expect::WritesNothing(2),
       must_say: Some(RETIRED_PHRASE),
-      why: "rc=2, `was retired in Intent v3` -- declared and unwired until hv's decision 3 retired it (2026-09-11)",
+      why: "rc=2, `was retired in Intent v3` -- classified `mutate`, retired by ST0095, and a refusal must move nothing",
     },
     Case {
       verb: "fc",
@@ -467,14 +464,6 @@ fn cases() -> Vec<Case> {
             without it this would measure the machine refusing. `--because` is still supplied \
             deliberately: clap refuses at rc=1 before dispatch without it, which would pass for the \
             wrong reason",
-    },
-    Case {
-      verb: "st repair",
-      args: &["st", "repair"],
-      prep: NOOP,
-      expect: Expect::WritesNothing(2),
-      must_say: Some(RETIRED_PHRASE),
-      why: "rc=2, writes nothing -- but RETIRED rather than unwired since hv's ruling on issue 0118. v2's `st repair` fixed malformed frontmatter in a hand-authored file; v3 generates that file, so `doctor` reports a hand-edit and the remedy is regeneration. The verb has no subject left. It stays in this table because the property under test is unchanged -- a refusal must move nothing -- and only its reason moved",
     },
     Case {
       verb: "todo notdone",

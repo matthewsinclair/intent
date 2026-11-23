@@ -8,7 +8,7 @@ Your code says what it does and version control says when it changed. Neither sa
   $ brew install matthewsinclair/intent/intent
 ```
 
-The Homebrew build is for macOS on Apple silicon and for [Linux](./docs/install.md#linux); anywhere else, [build from source](./docs/install.md#from-source). Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
+The Homebrew build is for macOS on Apple silicon and for [Linux](./docs/install.md#linux); anywhere else, [build from source](./docs/install.md#from-source). Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md). This build does not support an Intent v2 project: Intent 3.5.1 is the last release that converts one.
 
 ## What it is
 
@@ -93,7 +93,7 @@ Create a steel thread for the change, record what you are trying to achieve and 
 
 ## Getting help
 
-- [Documentation](./docs/index.md) — install, getting started, concepts, command reference, migration
+- [Documentation](./docs/index.md) — install, getting started, concepts, command reference
 - [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not check the support tree (the only parts of the install it reads are the templates it compares the project's root files and pre-commit gate against); `intent claude rules list` is the check that the support tree arrived
 - [GitHub Issues](https://github.com/matthewsinclair/intent/issues) — bug reports
 

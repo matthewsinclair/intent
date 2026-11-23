@@ -20,8 +20,8 @@
 //! **Shipped, not declared, and the two sets differ.** The table
 //! is a PARITY REGISTER before it is a command list: a row records that the
 //! question was asked about v2, never that the answer was yes. Rendering every
-//! DECLARED row would tell an agent to call `intent st_zero`, which hv
-//! explicitly ruled dead.
+//! DECLARED row would tell an agent to call `intent st renumber`, which
+//! ST0095 retired.
 //!
 //! **Why this is not in `render.rs`.** That module is parse -> facade ->
 //! render and nearly every function in it opens a project; this one touches no
@@ -591,48 +591,13 @@ mod tests {
     let in_new: Vec<&str> = table.new_surface.iter().map(|e| e.path.as_str()).collect();
 
     // **DECLARED, NOT FILTERED**, for the reason the mode machine's Esc
-    // exemption is declared: a predicate excluding `organize` would also pass
-    // for a path that started overlapping by accident, because the known
-    // defect and the new one look identical to a filter. Asserted by EQUALITY,
-    // so a SECOND overlap fails here even while this one stands.
-    const KNOWN_OVERLAP: &[(&str, &str)] = &[
-      (
-        "organize",
-        "ONE WORD, TWO DIFFERENT PROGRAMS -- NOT ONE PROGRAM DECLARED TWICE, AND NOT A DEFECT. hv \
-       ruled the reclamation on 2026-08-19 and the ruling is recorded in the `new_surface` row's \
-       own `name_reclaimed` field: the v2 face stays retired and the two share nothing but the \
-       word. The family row is `bin/intent_organize`, which moved ST directories into status \
-       folders (`--dry-run`), retired 2026-08-14. The `new_surface` row is a different program \
-       that hydrates and dehydrates artefacts against `.intentfiles` (`--apply`, `--default`, \
-       `--force`). Both declarations are correct as written. **NOTHING IS LATENT: `is_shipped()` \
-       is `disposition != retire && target.state != retire`, the family row is `retire` on BOTH, \
-       so `shipped_entries` filters it out and `entry(table, \"organize\")` has exactly one \
-       candidate to find.** Table order decides nothing here. The entry stays because this check \
-       counts PATHS and a path-keyed census still double-counts -- so it is a permanent declared \
-       fact, not a parked defect. RECORDED BY ic 2026-08-30, after escalating it to hv as a \
-       contradiction that did not exist: an intersection on `path` can only find a shared path, so \
-       it could not have told these two apart, and the field that settled it was sitting in the \
-       row.",
-      ),
-      (
-        "help",
-        "ONE WORD, TWO DIFFERENT PROGRAMS, AND THE SECOND INSTANCE OF THE EXACT SHAPE `organize` \
-       RECORDS ABOVE. hv ruled `help` INTO the 3.0.0 cut at the ROOT ONLY on 2026-08-30, and the \
-       family row's own `target.spelling_note` had SCHEDULED this reclamation since 2026-08-26 -- \
-       _this row is scheduled to follow the `organize` pattern_ -- so the overlap is a ruling \
-       landing rather than a drift. The family row is `bin/intent_help` plus the whole `lib/help/` \
-       mechanism, retired for its drift: 11 help files for 27 commands, each grammar used once, \
-       and `upgrade` still described as an STP migration at v2.19.0. The `new_surface` row is a \
-       different program that ships NO help text of its own -- it rebuilds the clap `Command` from \
-       the compiled-in table and asks IT to render, so `intent help` and `intent --help` are two \
-       spellings of ONE renderer and cannot drift apart. **NOTHING IS LATENT, for the same reason \
-       as `organize`: the family row is `retire` on BOTH `disposition` and `target.state`, so \
-       `shipped_entries` filters it out and `entry(table, \"help\")` has exactly one candidate. \
-       Table order decides nothing here either.** RECORDED BY vc 2026-08-30 while closing ST0058 \
-       AC-00.6, whose falsifier is a capability present by one spelling and refused by its twin; \
-       `intent --help` rc=0 against `intent help` rc=2 was its last live instance (issue 0086).",
-      ),
-    ];
+    // exemption is declared: a predicate excluding a path would also pass for
+    // a path that started overlapping by accident, because a known overlap and
+    // a new one look identical to a filter. Asserted by EQUALITY, so any
+    // overlap fails here until it is declared with its reason. The table holds
+    // none: `organize` and `help` each had a retired family row beside the
+    // shipped one until those rows were removed.
+    const KNOWN_OVERLAP: &[(&str, &str)] = &[];
 
     let overlap: Vec<&str> = in_new
       .iter()
@@ -796,13 +761,10 @@ mod tests {
   fn no_retired_command_appears() {
     let table = dispatch::table();
     let text = guide();
-    // **`path` IS NO LONGER UNIQUE ACROSS THE TABLE, AND THAT IS RULED RATHER
-    // THAN ACCIDENTAL** (hv, 2026-08-19). The table is two registers in one: a
-    // parity record of what became of each v2 command, and a declaration of what
-    // v3 ships. When hv reclaimed `organize` for v3 those two registers came to
-    // hold the same word -- a retired v2 face and a shipped v3 verb -- so a
-    // reclaimed name is excluded here by asking whether a SHIPPED row also
-    // carries it.
+    // **A RETIRED PATH THAT A SHIPPED ROW ALSO SPELLS IS NOT A RETIRED COMMAND**
+    // (hv, 2026-08-19, when `organize` was reclaimed). The committed table holds
+    // no such pair today, but one is legal, so a reclaimed name is excluded here
+    // by asking whether a SHIPPED row also carries it.
     //
     // **THE RESIDUAL BLIND SPOT IS NAMED RATHER THAN LEFT TO BE FOUND.** For a
     // reclaimed path this test can no longer tell the retired row's heading from

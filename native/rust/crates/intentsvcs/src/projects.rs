@@ -310,9 +310,13 @@ fn rewrite(
 /// Why a directory holding an Intent config was not registered.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Refusal {
-  /// The config is missing, unreadable, not a config, or declares a version
-  /// before 3 ([`crate::project::ProjectError::PreV3`]).
+  /// The config is missing, unreadable or not a config.
   ConfigDoesNotParse(String),
+  /// The config declares a version before
+  /// [`crate::project::OLDEST_READ_MAJOR`] ([`crate::project::ProjectError::PreV3`]),
+  /// which parses and which this build does not convert. Carries the declared
+  /// version.
+  PreV3(String),
   /// It sits in a bare git repository (issue 0609), whatever its config holds.
   /// Named apart from `ConfigDoesNotParse`, whose label would send the operator
   /// to a config that parses. It carries no path: the line that reports it
@@ -324,6 +328,11 @@ impl std::fmt::Display for Refusal {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
       Self::ConfigDoesNotParse(why) => write!(f, "config does not parse: {why}"),
+      Self::PreV3(declared) => write!(
+        f,
+        "config declares Intent {declared}, before {}",
+        crate::project::OLDEST_READ_MAJOR
+      ),
       Self::BareRepository => write!(f, "in {}", crate::project::BARE_REPOSITORY),
     }
   }
@@ -333,6 +342,7 @@ impl std::fmt::Display for Refusal {
 pub fn assess(root: &Path) -> Result<(), Refusal> {
   Project::open(root).map(|_| ()).map_err(|e| match e {
     ProjectError::BareRepository(_) => Refusal::BareRepository,
+    ProjectError::PreV3 { declared, .. } => Refusal::PreV3(declared),
     other => Refusal::ConfigDoesNotParse(other.to_string()),
   })
 }
@@ -635,11 +645,11 @@ mod tests {
     match first.refused.as_slice() {
       [
         (broken, Refusal::ConfigDoesNotParse(_)),
-        (old, Refusal::ConfigDoesNotParse(why)),
+        (old, Refusal::PreV3(declared)),
       ] => {
         assert_eq!(*broken, from.join("broken"));
         assert_eq!(*old, from.join("old"));
-        assert!(why.contains(&old_version), "{why}");
+        assert_eq!(*declared, old_version);
       }
       other => panic!("expected broken and old refused with their reasons, got {other:?}"),
     }
