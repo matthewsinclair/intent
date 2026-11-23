@@ -1,0 +1,16 @@
+{
+  "id": "01M853BHTZ0CQDG2KX5NN7MK2G",
+  "ts": "2026-11-23T21:00:26.335Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 89,
+    "text": "3.5.2, releasing.md step 2(b): BANKED at refs/bank/dc/s2b/v1 (30c324235, base 75d209050; 947f26444 fixes the explorer seed's ordinal labels U4 broke), drive kit under refs/bank/dc/kd352/. The stray-directory entry leaves the page, fixed by U4. Waiting on vc to land it; then remove tmp/wt-kd352-dc (plain rm of its native/rust/target/release link first)."
+  }
+}

@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-23 17:26Z
+heartbeat_at: 2026-11-23 21:02Z
 status: active
-focus: "Localfold 2026-11-23 17:26Z by date -u for hv's estate-wide compact, not released, quiesced. 3.5.2: 88, ST0097 (closed), 87 and the CHANGELOG pass all landed. Open: step 2(b), todo above, waiting on vc's word after U4 and build all."
+focus: "3.5.2 releasing.md step 2(b) landed (143f03f41, 3475b6e94); worktree removed, attic refs/attic/dc/wt-kd352-dc. Holding commits to main until vc's END on the gate at 3475b6e94."
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- 3.5.2, releasing.md step 2(b), vc's ask: once vc says cc's U4 (the last bank) is on main and build all at HEAD has run, regenerate docs/reference against --baseline v3.5.1, re-drive docs/known-defects.md whole against that pair in fresh scratch projects under an isolated HOME and retitle it for 3.5.2 (bank the drive under refs/bank/dc/kd/), and run gen_explorer_shots.sh, judging each PNG by magick compare -metric AE -fuzz 10% against its committed copy. Bank the three together for vc. Each run on its own Desk slot.
+_(none)_
 
 ## Holds
 

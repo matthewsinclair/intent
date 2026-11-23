@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "b43bbd8a-78f9-46a0-a162-157b91263503",
-    "heartbeat_at": "2026-11-23T17:26:54.284Z",
+    "heartbeat_at": "2026-11-23T21:02:54.156Z",
     "status": "active",
-    "focus": "Localfold 2026-11-23 17:26Z by date -u for hv's estate-wide compact, not released, quiesced. 3.5.2: 88, ST0097 (closed), 87 and the CHANGELOG pass all landed. Open: step 2(b), todo above, waiting on vc's word after U4 and build all.",
+    "focus": "3.5.2 releasing.md step 2(b) landed (143f03f41, 3475b6e94); worktree removed, attic refs/attic/dc/wt-kd352-dc. Holding commits to main until vc's END on the gate at 3475b6e94.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
@@ -3344,9 +3344,11 @@
       "node": "dc",
       "kind": "todo",
       "seq": 89,
-      "text": "3.5.2, releasing.md step 2(b), vc's ask: once vc says cc's U4 (the last bank) is on main and build all at HEAD has run, regenerate docs/reference against --baseline v3.5.1, re-drive docs/known-defects.md whole against that pair in fresh scratch projects under an isolated HOME and retitle it for 3.5.2 (bank the drive under refs/bank/dc/kd/), and run gen_explorer_shots.sh, judging each PNG by magick compare -metric AE -fuzz 10% against its committed copy. Bank the three together for vc. Each run on its own Desk slot.",
-      "state": "live",
-      "recorded_at": "2026-11-23T17:26:51.401Z"
+      "text": "3.5.2, releasing.md step 2(b): BANKED at refs/bank/dc/s2b/v1 (30c324235, base 75d209050; 947f26444 fixes the explorer seed's ordinal labels U4 broke), drive kit under refs/bank/dc/kd352/. The stray-directory entry leaves the page, fixed by U4. Waiting on vc to land it; then remove tmp/wt-kd352-dc (plain rm of its native/rust/target/release link first).",
+      "state": "archived",
+      "archived_at": "2026-11-23T21:02:53.318Z",
+      "recorded_at": "2026-11-23T17:26:51.401Z",
+      "edited_at": "2026-11-23T21:00:26.335Z"
     }
   ],
   "sent": [
