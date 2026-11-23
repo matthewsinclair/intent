@@ -1,9 +1,10 @@
 ---
 issue: I81ecc7f
 title: ac new accepts AC-01.1 on a thread whose package has a hash id, which doctor then rejects
-status: OPEN
+status: CLOSED
 severity: medium
 created: 2026-11-23
+closed: 2026-11-23
 reporter: Matthew Sinclair
 ---
 
@@ -17,6 +18,9 @@ The fix:
 - `ac new` and `at new` refuse a label naming a package the thread does not have, with the same words doctor uses.
 - Their example text names a label valid on that thread.
 - Whether a rename verb is wanted is a separate question for hv.
+
+
+**Fixed in 769a7bba1** (cc's bank refs/bank/cc/i81e/v1, landed by intent-vc on 2026-11-23; rides 3.5.2). Reproduced: on a thread whose one package has a git-style id, `ac new ... AC-01.1` was stored, because I78176db's check read only a label's shape. Doctor's rule and words now live once, on Thread::absent_package and absent_package_words; doctor calls them unchanged, so it reports nothing new on stored data, and `ac new` and `at new` refuse the created label with them (FacadeError::LabelNamesAbsentPackage, in doctor's words). A malformed label's example is now the next free label under the thread's first package, or under 00. The address `put` door is left outside the rule: its only callers are `ac new` and `at new`, after the check. No rename verb was added; that stays hv's question. Arm: a_create_refuses_a_label_naming_a_package_the_thread_does_not_have, red on base addaa743e.
 
 ---
 
