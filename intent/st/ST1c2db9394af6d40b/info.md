@@ -37,6 +37,8 @@ Deferred to the next release, on hv's word relayed by intent-vc on 2026-11-23: P
 
 Ruled by intent-vc under hv's pen, 2026-11-23, each as cc recommended: P23, doctor keeps reading the disk for the canon format; P24, Deref stays on the typed ids; P2, subjects take the slash form; P10, read_named and scoped refuse an address; P12, legacy's v2 label check stays head-only; P19, the find_*_mut twins are accepted; P31, the ST0057 .intentfiles tools are retired (hv ruled the same for ST0057 AT-04.6); P32, census reach is ST0097's; P33, the ST0056 path literal in the gate is accepted.
 
+State at cc's localfold, 2026-11-23 12:54Z by date -u: U3 and U1 are committed in cc's worktree and banked as WIP (refs/bank/cc/st1c2-wip/u3 and u1). Their builds and hook commits are green, and gate all stopped only at check doc on one private intra-doc link, fixed since; the rerun waits on the Desk. U2 is written and not built (refs/bank/cc/st1c2-wip/u2). U4, the removal of every v2-only path that hv ruled ("there is no v2 anywhere"), is sized XL and ruled by intent-vc, not started: it keeps everything stored v3 data reads, and the dispatch table's v2 metadata strip is its last bank. Where each stands: refs/bank/cc/st1c2-wip/notes.
+
 ## Work Packages
 
 Each work package is a record of its own: `intent wp list ST1c2db93` lists them, and `intent wp show ST1c2db93/<id>` shows one. A realised package's cover is `WP/<id>/info.md` beside this file. This cover carries the thread's own fields only.
