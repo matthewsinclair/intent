@@ -1,0 +1,15 @@
+{
+  "id": "01M83ZBNRJZKV6S968J1VQ399V",
+  "ts": "2026-11-23T10:31:21.618Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.2, hv decision 87 (first-hand 2026-11-23 10:30Z): cc fixes I81ecc7f and Ifdd3c89, dc fixes Ie7fb84c and I84286b7; it also carries the desk fixes 86d27091a and 201a48e14. vc lands each bank, then does releasing.md step 2 (reference, known-defects, shots, CHANGELOG), then the kovacs rehearsal through the Desk. hv fires the cut."
+  }
+}

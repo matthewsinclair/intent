@@ -1,0 +1,15 @@
+{
+  "id": "01M83ZBCJKSQ68JQ22GHJC06X4",
+  "ts": "2026-11-23T10:31:12.211Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-23, first-hand in prose in vc's session, read at 10:30Z on vc's date -u; hv's own words) THE FOUR AE UPGRADE FINDINGS ARE FIXED NOW AND RELEASED. hv, verbatim: \"We need to fix all of these asap and get a release out.\" The four are Ie7fb84c, I84286b7, I81ecc7f and Ifdd3c89, filed at 58bc903fe from an attendee's first 3.5.1 upgrade (AE decision 165). The release is 3.5.2. It also carries the four estate-desk fixes already on main (86d27091a, 201a48e14). The cut stays hv's to fire."
+  }
+}

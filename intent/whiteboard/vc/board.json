@@ -5,9 +5,9 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "5af3bd13-884c-4502-be68-30788850cf56",
-    "heartbeat_at": "2026-11-22T15:18:22.558Z",
-    "status": "paused",
-    "focus": "2026-11-22 15:18Z by date -u: closed for the day on hv's word. The four desk fixes are on main and pushed (dce4de39c, local and upstream), with no release; they ship with the next cut. Waiting on hv: ic's fold, Gtools' guard, zeop-cordee-papillon at 3.5.0, the fleet push, hv's board.",
+    "heartbeat_at": "2026-11-23T10:30:24.503Z",
+    "status": "active",
+    "focus": "2026-11-23 10:30Z by date -u: hv first-hand, fix the four AE upgrade findings asap and release 3.5.2. cc: I81ecc7f, Ifdd3c89. dc: Ie7fb84c, I84286b7.",
     "claims": [],
     "recorded_at": "2026-09-13T10:24:12.873Z",
     "authored_at": "2026-09-13 10:18Z",
@@ -3164,6 +3164,14 @@
       "state": "archived",
       "archived_at": "2026-11-22T15:18:20.587Z",
       "recorded_at": "2026-11-22T14:24:06.046Z"
+    },
+    {
+      "node": "vc",
+      "kind": "doing",
+      "seq": 67,
+      "text": "3.5.2, hv decision 87 (first-hand 2026-11-23 10:30Z): cc fixes I81ecc7f and Ifdd3c89, dc fixes Ie7fb84c and I84286b7; it also carries the desk fixes 86d27091a and 201a48e14. vc lands each bank, then does releasing.md step 2 (reference, known-defects, shots, CHANGELOG), then the kovacs rehearsal through the Desk. hv fires the cut.",
+      "state": "live",
+      "recorded_at": "2026-11-23T10:31:21.618Z"
     }
   ],
   "sent": [
