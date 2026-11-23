@@ -1,0 +1,15 @@
+{
+  "id": "01M845BKEAYD74DB5VRA1T3XBN",
+  "ts": "2026-11-23T12:16:10.709Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ie99dbb6dd6b95cc8"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "upgrade mints a different project_id on each branch of a project that has none, so branches upgraded apart conflict on config.json"
+  }
+}

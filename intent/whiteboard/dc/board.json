@@ -9,7 +9,8 @@
     "status": "active",
     "focus": "Localfolded after the 3.5.1 cut (v3.5.1 at 1cc654e5a). Next: hv's post-3.5.1 scope, todos 87 and 88.",
     "claims": [
-      "ST0097"
+      "ST0097",
+      "ISSUE:Ie99dbb6dd6b95cc8"
     ],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:09Z",
