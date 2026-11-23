@@ -281,7 +281,8 @@ pub enum Carries {
   /// is over (issue `0670`).
   Ambiguous(Vec<String>),
   /// The row cites `<file>:<line>`, and that line does not carry the id: the
-  /// line asked for, and the lines of the file that do carry it, each 1-based.
+  /// line asked for, and the lines of the file that carry it and name no other
+  /// thread, each 1-based.
   NotOnLine { line: usize, carrying: Vec<usize> },
 }
 
@@ -369,12 +370,15 @@ fn judge_text(
           Carries::Yes
         }
       }
+      // The lines offered for a re-cite are the ones the cited line would
+      // pass on: a line naming only other threads is theirs, so `ST0006
+      // AT-01.1` is never offered to another thread's AT-01.1 (issue Ifdd3c89).
       _ => Carries::NotOnLine {
         line: n,
         carrying: text
           .lines()
           .enumerate()
-          .filter(|(_, l)| crate::id::carries_token(l, at_id))
+          .filter(|(_, l)| crate::id::carries_token(l, at_id) && !names_another_thread(l, thread))
           .map(|(i, _)| i + 1)
           .collect(),
       },
@@ -1110,7 +1114,7 @@ pub fn literal_id_finding(
     Carries::NotOnLine { line, carrying } => {
       let file = citation(path).path;
       let lines = if carrying.is_empty() {
-        "no line of the file carries it".to_string()
+        format!("no line of the file carries it for {thread_id}")
       } else {
         format!(
           "the lines that carry it are {}",

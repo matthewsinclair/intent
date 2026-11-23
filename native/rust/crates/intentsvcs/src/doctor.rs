@@ -1477,19 +1477,14 @@ fn model_checks(thread: &Thread, canon: &Canon, files: &ThreadFiles, out: &mut V
   // Only `Descoped` and `Withdrawn` -- the two states that mean the requirement
   // stopped being asked for -- go quiet here.
   for criterion in &thread.criteria {
-    if let crate::id::Group::Package(seq) = crate::id::group_of(&criterion.id)
-      && criterion.state.in_scope()
-      && !thread.wps.is_empty()
-      && !thread.wps.iter().any(|w| w.seq == seq)
+    // The rule and its words are `Thread::absent_package`'s, which `ac new`
+    // and `at new` ask before they write (issue I81ecc7f).
+    if criterion.state.in_scope()
+      && let Some(seq) = thread.absent_package(&criterion.id)
     {
       add(
         files.ac(&criterion.id),
-        format!(
-          "{} belongs to {}, which {} does not have",
-          criterion.id,
-          seq.heading(),
-          thread.id.shown()
-        ),
+        thread.absent_package_words(&criterion.id, seq),
         FindingClass::ModelInconsistent,
       );
     }

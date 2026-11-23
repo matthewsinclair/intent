@@ -696,7 +696,7 @@ fn at_edit_repairs_a_mis_migrated_kind_and_cannot_recreate_the_disagreement() {
 }
 
 /// **0135: the cross-facade window is closed, and this pins it.** Two facades
-/// open before either writes, so both find `AC-09.1` free in canon loaded at
+/// open before either writes, so both find `AC-03.12` free in canon loaded at
 /// open. The first create lands; the second is derived from a thread the first
 /// has since changed, and the thread write's compare-and-swap (`5ef0667c`,
 /// filed for 0206 after 0135 was) refuses it -- so the first writer's text is
@@ -711,7 +711,7 @@ fn two_facades_opened_before_either_writes_cannot_both_create_one_child_id() {
   first
     .ac_new(
       "ST0001",
-      "AC-09.1",
+      "AC-03.12",
       "the first writer's text",
       AcKind::NonTest,
     )
@@ -719,7 +719,7 @@ fn two_facades_opened_before_either_writes_cannot_both_create_one_child_id() {
   let err = second
     .ac_new(
       "ST0001",
-      "AC-09.1",
+      "AC-03.12",
       "the second writer's text",
       AcKind::NonTest,
     )
@@ -730,7 +730,7 @@ fn two_facades_opened_before_either_writes_cannot_both_create_one_child_id() {
     "the second create must be refused by the thread write, not land: {err}"
   );
   assert_eq!(
-    criterion(&fx.facade_on_disk(), "AC-09.1").text,
+    criterion(&fx.facade_on_disk(), "AC-03.12").text,
     "the first writer's text",
     "the store does not hold the first writer's criterion"
   );

@@ -539,6 +539,14 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .ac_new("ST0056", "AC-banana", "a sentence", AcKind::NonTest)
       .expect_err("a create refuses a malformed label"),
   ));
+  // Issue I81ecc7f: the thread has WP-02 and WP-03, so a `09` group names a
+  // package it does not have.
+  out.push((
+    "a criterion label naming a package the thread does not have",
+    facade
+      .ac_new("ST0056", "AC-09.1", "a sentence", AcKind::NonTest)
+      .expect_err("a create refuses a label doctor would report"),
+  ));
   out.push((
     "acceptance test id already taken",
     facade
@@ -601,7 +609,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     facade
       .at_new(
         "ST0056",
-        "AT-99.1",
+        "AT-03.12",
         AtKind::Test,
         None,
         None,
@@ -1289,6 +1297,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Git(_) => "Git",
     FacadeError::CriterionExists { .. } => "CriterionExists",
     FacadeError::LabelMalformed { .. } => "LabelMalformed",
+    FacadeError::LabelNamesAbsentPackage { .. } => "LabelNamesAbsentPackage",
     FacadeError::TestExists { .. } => "TestExists",
     FacadeError::NothingToChange { .. } => "NothingToChange",
     FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
@@ -1481,6 +1490,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Git",
   "CriterionExists",
   "LabelMalformed",
+  "LabelNamesAbsentPackage",
   "TestExists",
   "NothingToChange",
   "NoSuchWorkPackage",

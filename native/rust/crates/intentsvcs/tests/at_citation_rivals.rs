@@ -191,3 +191,49 @@ fn the_one_parser_reads_a_line_only_from_a_positive_decimal_suffix() {
   assert_eq!(citation("tests/a.bats:x").path, "tests/a.bats:x");
   assert_eq!(citation("tests/a:b.bats").path, "tests/a:b.bats");
 }
+
+/// Issue Ifdd3c89: a cited line that does not carry the id is refused with the
+/// lines that do, and a line naming another thread's AT of the same id is not
+/// among them: it is that thread's arm, never this row's.
+#[test]
+fn a_cited_lines_refusal_never_offers_a_line_naming_another_thread() {
+  let fx = Fixture::new();
+  let lines = [
+    "# the arm with no id over it",
+    "@test \"x\" {",
+    "# ST0007 AT-3.5",
+    "@test \"the other thread's arm\" {",
+    "# AT-3.5",
+    "@test \"a bare arm\" {",
+  ];
+  fx.write_file(FILE, &(lines.join("\n") + "\n"));
+  let at = |text: &str| {
+    lines
+      .iter()
+      .position(|l| *l == text)
+      .expect("a fixture line")
+      + 1
+  };
+  let cited = format!("{FILE}:{}", at(lines[0]));
+  let threads = vec![
+    thread_with(
+      "ST0007",
+      ThreadStatus::Completed,
+      vec![row("AT-3.5", FILE, AtStatus::Green)],
+    ),
+    thread_with(
+      "ST0011",
+      ThreadStatus::Wip,
+      vec![row("AT-3.5", &cited, AtStatus::Green)],
+    ),
+  ];
+  let refs = ProjectRefs::new(fx.root(), &threads);
+  assert_eq!(
+    refs.carries_id(&cited, "AT-3.5", "ST0011"),
+    Carries::NotOnLine {
+      line: at(lines[0]),
+      carrying: vec![at("# AT-3.5")]
+    },
+    "the line naming ST0007 is not offered"
+  );
+}

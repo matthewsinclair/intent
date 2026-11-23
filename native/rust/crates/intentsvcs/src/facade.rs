@@ -1962,6 +1962,22 @@ pub enum FacadeError {
   LabelMalformed {
     label: String,
     kind: crate::id::LabelKind,
+    /// A label of `kind` valid on the thread, for the remedy's example
+    /// (issue I81ecc7f): `AC-01.1` is not one on a thread whose packages
+    /// carry git-style ids.
+    example: String,
+  },
+  /// A create was given a well-formed label whose group names a package the
+  /// thread does not have (issue I81ecc7f). The words are doctor's, from
+  /// [`crate::model::Thread::absent_package_words`], so the verb refuses what
+  /// doctor would report, in doctor's words.
+  #[error("{words}")]
+  LabelNamesAbsentPackage {
+    st: String,
+    label: String,
+    words: String,
+    /// A label of the same kind valid on the thread.
+    example: String,
   },
   /// The AT-side sibling of [`Self::CriterionExists`], carrying the same
   /// mechanism and the same window. Separate because the remedy names a
@@ -3975,11 +3991,14 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchTest { st, .. } => {
         format!("run `intent at list {st}` to see the tests in its contract")
       }
-      Self::LabelMalformed { kind, .. } => format!(
+      Self::LabelMalformed { kind, example, .. } => format!(
         "nothing was written. Give the label as {}: the group is the thread's \
-         `00` or one of its packages, eg `{}-01.1`, and the sequence is digits",
-        kind.form(),
-        kind.head()
+         `00` or one of its packages, eg `{example}`, and the sequence is digits",
+        kind.form()
+      ),
+      Self::LabelNamesAbsentPackage { st, example, .. } => format!(
+        "nothing was written. Group the label under the thread's `00` or one of its \
+         packages, eg `{example}`; `intent wp list {st}` shows the packages"
       ),
       Self::CriterionExists { st, ac } => format!(
         "nothing was written and {ac} still holds the text, kind and state it held. To reword \
@@ -8710,6 +8729,30 @@ impl Facade {
       _ => Err(FacadeError::LabelMalformed {
         label: label.to_string(),
         kind,
+        example: self.st_show(thread)?.example_label(kind),
+      }),
+    }
+  }
+
+  /// The label a create stores: [`Facade::whole_label`], refused when its
+  /// group names a package the thread does not have (issue I81ecc7f), by the
+  /// rule doctor reports a stored row under. Only the created row's label is
+  /// asked: a `covers` list names rows already stored, which doctor judges.
+  fn created_label(
+    &self,
+    thread: &str,
+    label: &str,
+    kind: crate::id::LabelKind,
+  ) -> Result<String, FacadeError> {
+    let owner = self.st_show(thread)?;
+    let whole = self.whole_label(thread, label, kind)?;
+    match owner.absent_package(&whole) {
+      None => Ok(whole),
+      Some(seq) => Err(FacadeError::LabelNamesAbsentPackage {
+        st: owner.id.shown(),
+        words: owner.absent_package_words(&whole, seq),
+        label: whole,
+        example: owner.example_label(kind),
       }),
     }
   }
@@ -18982,7 +19025,7 @@ impl Facade {
     text: &str,
     kind: AcKind,
   ) -> Result<Outcome, FacadeError> {
-    let whole = self.whole_label(st, ac, crate::id::LabelKind::Criterion)?;
+    let whole = self.created_label(st, ac, crate::id::LabelKind::Criterion)?;
     let ac = whole.as_str();
     if self.st_show(st)?.criteria.iter().any(|c| c.id == ac) {
       return Err(FacadeError::CriterionExists {
@@ -19054,7 +19097,7 @@ impl Facade {
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     // A package prefix in a label's group is stored whole (ST0095 WP-07).
-    let whole = self.whole_label(st, at, crate::id::LabelKind::Test)?;
+    let whole = self.created_label(st, at, crate::id::LabelKind::Test)?;
     let at = whole.as_str();
     let covers = covers
       .into_iter()

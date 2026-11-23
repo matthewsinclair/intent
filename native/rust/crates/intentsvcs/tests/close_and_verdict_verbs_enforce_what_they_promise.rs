@@ -27,7 +27,7 @@ fn green_is_reachable_only_from_red() {
   facade
     .at_new(
       "ST0001",
-      "AT-09.1",
+      "AT-03.12",
       AtKind::Test,
       None,
       None,
@@ -39,7 +39,7 @@ fn green_is_reachable_only_from_red() {
   let said = format!(
     "{:?}",
     facade
-      .at_set("ST0001", "AT-09.1", AtStatus::Green, None)
+      .at_set("ST0001", "AT-03.12", AtStatus::Green, None)
       .expect_err("green straight from to-write is refused")
   );
   assert!(
@@ -47,18 +47,18 @@ fn green_is_reachable_only_from_red() {
     "refused for the wrong reason: {said}"
   );
   assert_eq!(
-    status_of(&facade, "AT-09.1"),
+    status_of(&facade, "AT-03.12"),
     AtStatus::ToWrite,
     "a refused verdict moved the row"
   );
 
   facade
-    .at_set("ST0001", "AT-09.1", AtStatus::Red, None)
+    .at_set("ST0001", "AT-03.12", AtStatus::Red, None)
     .expect("red from to-write");
   facade
-    .at_set("ST0001", "AT-09.1", AtStatus::Green, None)
+    .at_set("ST0001", "AT-03.12", AtStatus::Green, None)
     .expect("green from red");
-  assert_eq!(status_of(&facade, "AT-09.1"), AtStatus::Green);
+  assert_eq!(status_of(&facade, "AT-03.12"), AtStatus::Green);
 }
 
 /// 0337 (b): `n/a` belongs to a non-test row and `red`/`green` to a test row.

@@ -86,8 +86,8 @@ use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion};
 use intentsvcs::remedy::Remedy;
 
-const NEW_AC: &str = "AC-09.1";
-const NEW_AT: &str = "AT-09.1";
+const NEW_AC: &str = "AC-03.12";
+const NEW_AT: &str = "AT-03.12";
 
 // ---------------------------------------------------------------------------
 // AC-08.6 -- a criterion is creatable through the surface
@@ -96,7 +96,7 @@ const NEW_AT: &str = "AT-09.1";
 /// The plain claim: the row is absent, the verb is driven, the row exists.
 ///
 /// The absence is ASSERTED rather than assumed -- if the fixture ever gained an
-/// `AC-09.1`, this file would be testing an update while claiming a create.
+/// `AC-03.12`, this file would be testing an update while claiming a create.
 #[test]
 fn ac_new_creates_a_criterion_that_did_not_exist() {
   let fx = Fixture::new();
@@ -243,10 +243,10 @@ fn ac_new_honours_the_kind_state_invariant() {
   let mut facade = fx.facade();
 
   facade
-    .ac_new("ST0001", "AC-09.1", "test-backed", AcKind::Test)
+    .ac_new("ST0001", "AC-03.12", "test-backed", AcKind::Test)
     .expect("creates");
   facade
-    .ac_new("ST0001", "AC-09.2", "not test-backed", AcKind::NonTest)
+    .ac_new("ST0001", "AC-03.13", "not test-backed", AcKind::NonTest)
     .expect("creates");
 
   let state_of = |facade: &intentsvcs::facade::Facade, id: &str| {
@@ -260,11 +260,11 @@ fn ac_new_honours_the_kind_state_invariant() {
   };
 
   assert!(
-    matches!(state_of(&facade, "AC-09.1"), AcState::Computed {}),
+    matches!(state_of(&facade, "AC-03.12"), AcState::Computed {}),
     "a test-backed criterion starts `computed` -- its satisfaction is DERIVED, so any other start claims a measurement nothing ran"
   );
   assert!(
-    matches!(state_of(&facade, "AC-09.2"), AcState::Unsatisfied { .. }),
+    matches!(state_of(&facade, "AC-03.13"), AcState::Unsatisfied { .. }),
     "a non-test criterion starts `unsatisfied` -- `computed` would claim a derivation with nothing to derive from"
   );
 }
@@ -611,6 +611,9 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
 /// array in natural order, every test covering `AC-01.1`.
 fn numbered_thread() -> intentsvcs::model::Thread {
   let mut thread = sample_thread("ST0001");
+  // No packages, so its `01` group is a grouping device a create may use
+  // (issue I81ecc7f: on a thread with packages it must name one of them).
+  thread.wps.clear();
   thread.criteria = (1..=10)
     .map(|n| Criterion {
       id: format!("AC-01.{n}"),
@@ -798,4 +801,78 @@ fn a_create_refuses_a_malformed_label_and_writes_nothing() {
     "a refused create wrote a criterion"
   );
   assert_eq!(after.tests, before.tests, "a refused create wrote a test");
+}
+
+/// Issue I81ecc7f: on a thread whose one package has a git-style id, `ac new`
+/// and `at new` refuse an `01` group in doctor's own words and write nothing,
+/// a malformed label's example names a label valid on that thread, and that
+/// example is taken.
+#[test]
+fn a_create_refuses_a_label_naming_a_package_the_thread_does_not_have() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  let package = intentsvcs::id::WpId::parse("c2e4a1b0").expect("a git-style package id");
+  thread.wps.truncate(1);
+  thread.wps[0].seq = package;
+  fx.write_thread(&thread);
+  let mut facade = fx.facade();
+  let before = facade.canon().threads[0].clone();
+  let words = |label: &str| {
+    format!(
+      "{label} belongs to {}, which {} does not have",
+      intentsvcs::id::WpId::from_ordinal(1)
+        .expect("package 01")
+        .heading(),
+      thread.id.shown()
+    )
+  };
+
+  let err = facade
+    .ac_new("ST0001", "AC-01.1", "a sentence", AcKind::NonTest)
+    .expect_err("a group naming no package of the thread is refused");
+  assert!(
+    matches!(err, FacadeError::LabelNamesAbsentPackage { .. }),
+    "refused for the package, not for another reason: {err:?}"
+  );
+  assert_eq!(err.to_string(), words("AC-01.1"), "doctor's words");
+  let valid = format!("AC-{}.1", package.stored());
+  assert!(
+    err.remedy().contains(&format!("eg `{valid}`")),
+    "the example is a label valid on this thread: {}",
+    err.remedy()
+  );
+  let err = facade
+    .at_new(
+      "ST0001",
+      "AT-01.1",
+      AtKind::NonTest,
+      None,
+      Some("p".to_string()),
+      vec![],
+      None,
+    )
+    .expect_err("a test label naming no package of the thread is refused");
+  assert!(
+    matches!(err, FacadeError::LabelNamesAbsentPackage { .. }),
+    "refused for the package, not for another reason: {err:?}"
+  );
+  assert_eq!(err.to_string(), words("AT-01.1"), "doctor's words");
+  let after = &facade.canon().threads[0];
+  assert_eq!(
+    after.criteria, before.criteria,
+    "a refused create wrote a criterion"
+  );
+  assert_eq!(after.tests, before.tests, "a refused create wrote a test");
+
+  let err = facade
+    .ac_new("ST0001", "AC-banana", "a sentence", AcKind::NonTest)
+    .expect_err("a malformed label is refused");
+  assert!(
+    err.remedy().contains(&format!("eg `{valid}`")),
+    "the example is a label valid on this thread: {}",
+    err.remedy()
+  );
+  facade
+    .ac_new("ST0001", &valid, "a sentence", AcKind::NonTest)
+    .expect("the example is taken");
 }

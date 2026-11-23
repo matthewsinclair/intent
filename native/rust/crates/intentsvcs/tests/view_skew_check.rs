@@ -337,7 +337,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
     facade
       .ac_new(
         "ST0001",
-        "AC-09.1",
+        "AC-03.12",
         "added after the close",
         AcKind::NonTest,
       )
@@ -349,7 +349,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
 
   let (before, after, manifest) = drive(false);
   assert!(
-    !before.contains("AC-09.1") && after.contains("AC-09.1"),
+    !before.contains("AC-03.12") && after.contains("AC-03.12"),
     "the store is ahead and the disk held its last render, so the view is refreshed: {after}"
   );
   assert_eq!(

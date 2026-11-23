@@ -1106,6 +1106,56 @@ pub enum FiatRow {
 }
 
 impl Thread {
+  /// The package `label`'s group names when this thread does not have it, or
+  /// `None`. **THE ONE RULE FOR A LABEL'S PACKAGE** (issue I81ecc7f): doctor
+  /// reports a stored criterion that breaks it, and `ac new` and `at new`
+  /// refuse a label that would, so those verbs and doctor cannot disagree.
+  /// The address `put` door is not one of them: it takes a label as the
+  /// address spells it, and doctor judges what it stores. A
+  /// thread with no packages has none to name, so its groups are grouping
+  /// devices and none is absent (doctor's exemption, measured on six threads).
+  pub fn absent_package(&self, label: &str) -> Option<WpId> {
+    match crate::id::group_of(label) {
+      crate::id::Group::Package(seq)
+        if !self.wps.is_empty() && !self.wps.iter().any(|w| w.seq == seq) =>
+      {
+        Some(seq)
+      }
+      _ => None,
+    }
+  }
+
+  /// The words for a label whose package this thread does not have: doctor's
+  /// finding and the create's refusal both print them.
+  pub fn absent_package_words(&self, label: &str, seq: WpId) -> String {
+    format!(
+      "{label} belongs to {}, which {} does not have",
+      seq.heading(),
+      self.id.shown()
+    )
+  }
+
+  /// A label of `kind` valid and free on this thread, for a refusal's
+  /// example: grouped under its first package, or under the thread's `00`
+  /// when it has none, at the sequence after the last one that group holds.
+  pub fn example_label(&self, kind: crate::id::LabelKind) -> String {
+    let group = self
+      .wps
+      .first()
+      .map_or_else(|| crate::id::THREAD_GROUP.to_string(), |w| w.seq.stored());
+    let head = format!("{}-{group}.", kind.head());
+    let held: Vec<&str> = match kind {
+      crate::id::LabelKind::Criterion => self.criteria.iter().map(|c| c.id.as_str()).collect(),
+      crate::id::LabelKind::Test => self.tests.iter().map(|t| t.id.as_str()).collect(),
+    };
+    let next = held
+      .iter()
+      .filter_map(|id| id.strip_prefix(&head)?.parse::<u32>().ok())
+      .max()
+      .map_or(1, |n| n + 1);
+    format!("{head}{next}")
+  }
+
   /// **EVERY FIAT RECORD THIS THREAD HOLDS, AND THE ONE WALK OF THEM** (the
   /// ST0095 close critic's Highlander finding on issue I4fc4495): the thread's
   /// own, each work package's, each criterion's `AcState::Fiat` and each
