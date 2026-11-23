@@ -230,25 +230,28 @@ TXT
   set_from "$W3" objective <<'TXT'
 Send one receipt per captured charge, even when the processor calls back twice.
 TXT
+  # A criterion or test of a package is grouped under the package id the verb
+  # minted, never an ordinal: a git-style package has no ordinal alias (ST1c2db93).
+  P1="${W1##*/}" P2="${W2##*/}" P3="${W3##*/}"
   intent wp start "$W1" >> "$LOG"
 
   intent ac new "$T1" AC-00.1 --text "The payment page names the processor that handles the card" >> "$LOG"
-  intent ac new "$T1" AC-01.1 --kind test --text "The card number never reaches our servers: the form posts a token" >> "$LOG"
-  intent ac new "$T1" AC-02.1 --kind test --text "A card the processor declines leaves no order behind" >> "$LOG"
-  intent ac new "$T1" AC-02.2 --kind test --text "A captured charge is recorded as exactly one order" >> "$LOG"
-  intent ac new "$T1" AC-03.1 --kind test --text "A captured charge sends exactly one receipt" >> "$LOG"
+  intent ac new "$T1" "AC-$P1.1" --kind test --text "The card number never reaches our servers: the form posts a token" >> "$LOG"
+  intent ac new "$T1" "AC-$P2.1" --kind test --text "A card the processor declines leaves no order behind" >> "$LOG"
+  intent ac new "$T1" "AC-$P2.2" --kind test --text "A captured charge is recorded as exactly one order" >> "$LOG"
+  intent ac new "$T1" "AC-$P3.1" --kind test --text "A captured charge sends exactly one receipt" >> "$LOG"
   mkdir -p test/payments
-  printf '# AT-01.1: the payment form posts a token, never the card number\n' > test/payments/tokenise_test.exs
-  printf '# AT-02.1: a declined card leaves no order behind\n' > test/payments/decline_test.exs
-  printf '# AT-02.2: a captured charge is recorded as exactly one order\n' > test/payments/capture_test.exs
-  intent at new "$T1" AT-01.1 --covers AC-01.1 --file test/payments/tokenise_test.exs >> "$LOG"
-  intent at new "$T1" AT-02.1 --covers AC-02.1 --file test/payments/decline_test.exs >> "$LOG"
-  intent at new "$T1" AT-02.2 --covers AC-02.2 --file test/payments/capture_test.exs >> "$LOG"
-  intent at red "$T1" AT-01.1 >> "$LOG"
-  intent at green "$T1" AT-01.1 >> "$LOG"
-  intent at red "$T1" AT-02.1 >> "$LOG"
-  intent at green "$T1" AT-02.1 >> "$LOG"
-  intent at red "$T1" AT-02.2 --note "fails when the processor sends the capture callback twice" >> "$LOG"
+  printf "# AT-$P1.1: the payment form posts a token, never the card number\n" > test/payments/tokenise_test.exs
+  printf "# AT-$P2.1: a declined card leaves no order behind\n" > test/payments/decline_test.exs
+  printf "# AT-$P2.2: a captured charge is recorded as exactly one order\n" > test/payments/capture_test.exs
+  intent at new "$T1" "AT-$P1.1" --covers "AC-$P1.1" --file test/payments/tokenise_test.exs >> "$LOG"
+  intent at new "$T1" "AT-$P2.1" --covers "AC-$P2.1" --file test/payments/decline_test.exs >> "$LOG"
+  intent at new "$T1" "AT-$P2.2" --covers "AC-$P2.2" --file test/payments/capture_test.exs >> "$LOG"
+  intent at red "$T1" "AT-$P1.1" >> "$LOG"
+  intent at green "$T1" "AT-$P1.1" >> "$LOG"
+  intent at red "$T1" "AT-$P2.1" >> "$LOG"
+  intent at green "$T1" "AT-$P2.1" >> "$LOG"
+  intent at red "$T1" "AT-$P2.2" --note "fails when the processor sends the capture callback twice" >> "$LOG"
   intent ac satisfy "$T1" AC-00.1 --evidence "Checked on the staging payment page" >> "$LOG"
   intent wp done "$W1" >> "$LOG"
   intent wp start "$W2" >> "$LOG"
