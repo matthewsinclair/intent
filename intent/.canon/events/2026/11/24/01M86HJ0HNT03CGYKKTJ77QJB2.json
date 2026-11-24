@@ -1,0 +1,15 @@
+{
+  "id": "01M86HJ0HNT03CGYKKTJ77QJB2",
+  "ts": "2026-11-24T10:27:52.512Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I6f2e257874be018f"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The MCP test helper parses the server's stdout lossily, so output that is not UTF-8 passes unseen"
+  }
+}
