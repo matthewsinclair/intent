@@ -12,12 +12,16 @@
 # reader of HEAD, so a trigger that stops admitting the candidate goes red at
 # the commit that breaks it rather than at the next cut.
 #
-# THAT ONE RUN CARRIES EVERY LEG. tests.yml calls rust.yml for a candidate, and
-# its test-macos job, its rust job, test-summary's every-leg rule and rust.yml's
-# macOS matrix entry each key on the candidate's ref. A prefix that drifted
-# from the one the cut pushes would skip the macOS leg AND excuse the skip, so
-# the run would read green with a leg missing. The third test holds each of
-# those keys to the prefix config names.
+# THAT ONE RUN CARRIES THE RUST LEG. tests.yml calls rust.yml for a candidate,
+# and its rust job and test-summary's rust-leg rule each key on the candidate's
+# ref. A prefix that drifted from the one the cut pushes would skip the rust leg
+# AND excuse the skip, so the run would read green with a leg missing. The third
+# test holds each of those keys to the prefix config names.
+#
+# THE CANDIDATE'S RUN HAS NO macOS LEG (hv decision 97). The cut's local macos
+# leg on rhadamanth is its macOS proof. tests.yml's test-macos job,
+# test-summary's macOS-leg rule and rust.yml's macOS matrix entry key on a run
+# by hand alone. The fourth test holds each of those to that key.
 
 load "../lib/test_helper.bash"
 
@@ -75,17 +79,21 @@ job_if() {
   done
 }
 
-@test "AT-04.1: a candidate's run carries the macOS leg and rust.yml's job, each keyed on the prefix config names" {
-  local tmpl key site
+@test "AT-04.1: a candidate's run carries rust.yml's job, keyed on the prefix config names" {
+  local tmpl key
   tmpl="$(candidate_template)"
   [ -n "$tmpl" ]
   key="startsWith(github.ref, 'refs/heads/${tmpl%%\{tag\}*}')"
   echo "key: $key"
   grep -qx '    uses: ./.github/workflows/rust.yml' "$WF/tests.yml"
   grep -qx '  workflow_call:' "$WF/rust.yml"
-  for site in "$(job_if "$WF/tests.yml" test-macos)" "$(job_if "$WF/tests.yml" rust)" \
-    "$(grep -m1 '^ *every_leg=' "$WF/tests.yml")" "$(grep -m1 '^ *os: ' "$WF/rust.yml")"; do
-    echo "site: $site"
-    grep -qF -- "$key" <<<"$site"
-  done
+  grep -qF -- "$key" <<<"$(job_if "$WF/tests.yml" rust)"
+  grep -qF -- "$key" <<<"$(grep -m1 '^ *rust_leg=' "$WF/tests.yml")"
+}
+
+@test "AT-04.1: the macOS leg runs by hand alone, never on a candidate" {
+  local dispatch="github.event_name == 'workflow_dispatch'"
+  [ "$(job_if "$WF/tests.yml" test-macos)" = "    if: \${{ $dispatch }}" ]
+  [ "$(grep -m1 '^ *macos_leg=' "$WF/tests.yml")" = "          macos_leg=\"\${{ $dispatch }}\"" ]
+  grep -qF -- "fromJSON($dispatch && '[\"macos-latest\", \"ubuntu-latest\"]' || '[\"ubuntu-latest\"]')" <<<"$(grep -m1 '^ *os: ' "$WF/rust.yml")"
 }

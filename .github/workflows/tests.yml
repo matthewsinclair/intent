@@ -5,9 +5,10 @@ on:
     # MAIN, AND A RELEASE'S CANDIDATE, NEVER ITS TAG (ST0091 WP-04, devbin's
     # D64). A cut pushes its release commit to `candidate/<tag>` and reads this
     # workflow's run there (release.ci.workflow) before it tags anything, so the
-    # commit that ships is green on every leg, macOS and rust.yml's included,
-    # before it is tagged; a run at the tag would test that commit again, after
-    # it is public. The release commit's files (VERSION, CHANGELOG.md) lie
+    # commit that ships is green on Linux and on rust.yml's job before it is
+    # tagged; a run at the tag would test that commit again, after it is public.
+    # The cut's local macos leg on rhadamanth is its macOS proof, so the
+    # candidate's run has no macOS job (hv decision 97). The release commit's files (VERSION, CHANGELOG.md) lie
     # outside the ignore list below, so its candidate's push starts a run, which
     # devbin's pre-flight asks of `ci-state --fires` before anything is stamped.
     branches: [main, "candidate/**"]
@@ -292,11 +293,11 @@ jobs:
 
   test-macos:
     name: Test on macOS
-    # ONLY FOR A RELEASE OR BY HAND (hv, fleet decision 30, restated
-    # 2026-09-25): a push to main or a pull request runs Linux alone. A release
-    # is its candidate, the push the cut reads before it tags (ST0091 WP-04), so
-    # this keys on the candidate's ref, as the rust job and test-summary below do.
-    if: ${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}
+    # ONLY BY HAND. A push to main or a pull request runs Linux alone (hv,
+    # fleet decision 30, restated 2026-09-25). A release's candidate runs Linux
+    # alone too (hv decision 97): the cut's local macos leg on rhadamanth is
+    # its macOS proof, and a GitHub macOS runner that is not free stops no cut.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: macos-latest
     # The suite points HOME at fixture directories, and Intent resolves its
     # per-user paths from the XDG_* variables before HOME. GitHub's Linux
@@ -566,12 +567,13 @@ jobs:
           echo "All test jobs have completed."
           echo "Check individual job results above for details."
 
-          # A RELEASE, OR A RUN BY HAND, NEEDS EVERY LEG. The macOS job and the
-          # rust job are skipped elsewhere by their `if:`, and only there is a
-          # skip no failure.
-          every_leg="${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}"
-          leg_ok() { [ "$1" == "success" ] || { [ "$1" == "skipped" ] && [ "$every_leg" != "true" ]; }; }
-          if [ "${{ needs.test-linux.result }}" == "success" ] && leg_ok "${{ needs.test-macos.result }}" && leg_ok "${{ needs.rust.result }}"; then
+          # EACH LEG IS NEEDED WHERE ITS JOB RUNS. A run by hand needs the
+          # macOS job. A release's candidate, or a run by hand, needs the rust
+          # job. Where a job's `if:` skips it, the skip is no failure.
+          macos_leg="${{ github.event_name == 'workflow_dispatch' }}"
+          rust_leg="${{ startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch' }}"
+          leg_ok() { [ "$1" == "success" ] || { [ "$1" == "skipped" ] && [ "$2" != "true" ]; }; }
+          if [ "${{ needs.test-linux.result }}" == "success" ] && leg_ok "${{ needs.test-macos.result }}" "$macos_leg" && leg_ok "${{ needs.rust.result }}" "$rust_leg"; then
             echo "✅ All tests passed!"
           else
             echo "❌ Some tests failed. Please review the logs."

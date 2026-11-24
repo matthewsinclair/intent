@@ -71,12 +71,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS RUNS ONLY FOR A RELEASE OR BY HAND (hv, fleet decision 30,
-        # restated 2026-09-25): a push to main or a pull request runs Linux alone.
-        # A release is its candidate, which tests.yml calls this for (ST0091
-        # WP-04). Called, the `github` context is the caller's, so a candidate's
-        # ref and a dispatch of tests.yml both reach this as they are.
-        os: ${{ fromJSON((startsWith(github.ref, 'refs/heads/candidate/') || github.event_name == 'workflow_dispatch') && '["macos-latest", "ubuntu-latest"]' || '["ubuntu-latest"]') }}
+        # macOS RUNS ONLY BY HAND. A push to main or a pull request runs Linux
+        # alone (hv, fleet decision 30, restated 2026-09-25). A release's
+        # candidate, which tests.yml calls this for (ST0091 WP-04), runs Linux
+        # alone too (hv decision 97): the cut's local macos leg on rhadamanth is
+        # its macOS proof. Called, the `github` context is the caller's, so a
+        # dispatch of tests.yml reaches this as it is.
+        os: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '["macos-latest", "ubuntu-latest"]' || '["ubuntu-latest"]') }}
     runs-on: ${{ matrix.os }}
     # The suite points HOME at fixture directories, and Intent resolves its
     # per-user paths from the XDG_* variables before HOME. GitHub's Linux
