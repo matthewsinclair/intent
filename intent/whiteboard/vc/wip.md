@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- After 3.5.2 (released 2026-11-24 at fabbffd8c): lib/templates/llm/_CLAUDE.md restates two global rules (sizes only, no hand wrap) now in ~/.config/claude/house-rules.md; cut them (geodica-estate's ask). Open, outside 3.5.2: Ia87820b (restated-global-rule check), I5adc617 (HTTP 5 s test), I53c0c22 (Webber backup gaps), cc's mcp_session lossy-parse finding.
+- Post-3.5.2 follow-ups are in intent/wip.md TODO. (edited)
 
 ## Holds
 
