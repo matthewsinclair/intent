@@ -1,0 +1,15 @@
+{
+  "id": "01M86R19Z6RRAE936CD79WTAJ8",
+  "ts": "2026-11-24T12:21:05.126Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "b353 (next release, hv's one batch): banked at refs/bank/cc/b353/v2 = 4ed7e6d4b on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. In it: I5adc617, I6f2e257, I53c0c22 (vc option b), Ia87820b, ST1c2db93 P22 and P30, hv decision 91 template dashes and the restated-rule cuts, I7bc038a, If6f0257, the doc link fix, and docs/reference regenerated against v3.5.2. Arms at base (hv D2): I53c0c22 red, P30 red, I5adc617 green as it came, I6f2e257 no red possible, P22 and Ia87820b absent. Last gate all (935b77daf) rc 1: reference stale and one doc link, both fixed in v2. OPEN, scope frozen by intent-vc: four AE findings, not yet reproduced except finding 2. #2 doctor root-file-behind after a fresh init did not reproduce on 3.5.2 (0 findings, 1 advisory, before and after the first commit). Still to do: read the advisory with --verbose. #4 at new should print the state and next verb, and at green's refusal should name at red. #5 issues close --reason writes the Resolution. #6 a closed issue's unrealised-view advisory. Then dc's bank joins the line, then one gate all at the tip. No release work before that."
+  }
+}

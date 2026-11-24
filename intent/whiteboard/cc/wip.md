@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 10:42Z
+heartbeat_at: 2026-11-24 12:21Z
 status: active
-focus: "2026-11-24 10:42Z by date -u: localfold, not released. 3.5.2 is released (v3.5.2 at fabbffd8c). Five shipped issues are closed. Open and mine: I5adc617 and I6f2e257. Holding for vc's word."
+focus: "2026-11-24 12:21Z by date -u: localfold before a compact, not released. b353 banked at refs/bank/cc/b353/v2 = 4ed7e6d4b. Four AE findings open (see doing). Gate all waits for dc's bank."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-_(none)_
+- b353 (next release, hv's one batch): banked at refs/bank/cc/b353/v2 = 4ed7e6d4b on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. In it: I5adc617, I6f2e257, I53c0c22 (vc option b), Ia87820b, ST1c2db93 P22 and P30, hv decision 91 template dashes and the restated-rule cuts, I7bc038a, If6f0257, the doc link fix, and docs/reference regenerated against v3.5.2. Arms at base (hv D2): I53c0c22 red, P30 red, I5adc617 green as it came, I6f2e257 no red possible, P22 and Ia87820b absent. Last gate all (935b77daf) rc 1: reference stale and one doc link, both fixed in v2. OPEN, scope frozen by intent-vc: four AE findings, not yet reproduced except finding 2. #2 doctor root-file-behind after a fresh init did not reproduce on 3.5.2 (0 findings, 1 advisory, before and after the first commit). Still to do: read the advisory with --verbose. #4 at new should print the state and next verb, and at green's refusal should name at red. #5 issues close --reason writes the Resolution. #6 a closed issue's unrealised-view advisory. Then dc's bank joins the line, then one gate all at the tip. No release work before that.
 
 ## TODO
 
