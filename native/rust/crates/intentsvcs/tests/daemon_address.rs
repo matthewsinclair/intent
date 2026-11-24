@@ -612,3 +612,119 @@ fn the_two_failures_are_distinguishable_and_their_remedies_disagree() {
     "the UNREADABLE remedy offers a deletion, and nothing here has read the file to know a daemon does not own it"
   );
 }
+
+/// A published loopback listener standing where a stale address points: it
+/// answers ONE connection with `reply` and keeps the line it was sent.
+///
+/// The foreign-HOME case itself is driven against a real intentd in
+/// `intentd/tests/routing_against_a_real_daemon.rs`; this stands in only where
+/// a real daemon cannot: an older daemon's answer, and what the probe sends.
+struct OneReply {
+  addr: SocketAddr,
+  _published: Published,
+  done: std::sync::Arc<std::sync::atomic::AtomicBool>,
+  sent: std::thread::JoinHandle<Option<Vec<u8>>>,
+}
+
+impl OneReply {
+  fn at(dirs: &intentsvcs::userstate::Dirs, reply: Vec<u8>) -> OneReply {
+    use std::io::{BufRead, Write};
+    use std::sync::atomic::Ordering;
+    let (listener, published) = Published::bind_loopback_under(dirs).expect("bind and publish");
+    let addr = listener.local_addr().expect("local_addr");
+    listener
+      .set_nonblocking(true)
+      .expect("a listener that can be asked and not wait");
+    let done = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let finished = std::sync::Arc::clone(&done);
+    let sent = std::thread::spawn(move || {
+      loop {
+        match listener.accept() {
+          Ok((stream, _)) => {
+            stream.set_nonblocking(false).expect("a blocking stream");
+            let mut sent = Vec::new();
+            std::io::BufReader::new(&stream)
+              .read_until(b'\n', &mut sent)
+              .expect("read the probe");
+            (&stream).write_all(&reply).expect("reply");
+            return Some(sent);
+          }
+          // Nothing connected yet; once the caller is done, nothing will.
+          Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+            if finished.load(Ordering::Acquire) {
+              return None;
+            }
+            std::thread::yield_now();
+          }
+          Err(e) => panic!("the listener failed: {e}"),
+        }
+      }
+    });
+    OneReply {
+      addr,
+      _published: published,
+      done,
+      sent,
+    }
+  }
+
+  /// The line the probe sent, or `None` when nothing connected.
+  fn finish(self) -> Option<Vec<u8>> {
+    self.done.store(true, std::sync::atomic::Ordering::Release);
+    self.sent.join().expect("the listener thread")
+  }
+}
+
+/// The skew case: an intentd from before the identity probe does not know the
+/// frame and answers it as a request it cannot parse. It cannot prove whose it
+/// is, so it stays a candidate, as it was before the probe existed; dropping it
+/// could route in-process beside this HOME's own older daemon.
+///
+/// The refusal is built by today's `wire`, which is the shape an older daemon
+/// sends: a parse refusal framed as a response, naming no HOME.
+#[test]
+fn an_intentd_from_before_the_identity_probe_stays_a_candidate() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let dirs = intentsvcs::userstate::Dirs::at_home(dir.path());
+  let _token = daemon::Token::mint_under(&dirs).expect("this home's token");
+  let refusal = intentsvcs::wire::parse_request(b"{\"intent_probe\":2}\n")
+    .expect_err("an older daemon cannot parse the identity probe as a request");
+  let older = OneReply::at(
+    &dirs,
+    intentsvcs::wire::frame(&refusal).expect("frame the refusal"),
+  );
+  let addr = older.addr;
+  let candidate = tcp_candidate(dir.path());
+  assert!(
+    older.finish().is_some(),
+    "the control: the client asked the listener whose it is"
+  );
+  assert_eq!(
+    candidate,
+    Some(addr),
+    "an older intentd that names no HOME was dropped, so a CLI could run in-process beside this HOME's own daemon"
+  );
+}
+
+/// The identity probe carries no secret: the listener it reaches may be
+/// another HOME's daemon, and the token guards this HOME's HTTP face.
+#[test]
+fn the_identity_probe_carries_no_secret() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let dirs = intentsvcs::userstate::Dirs::at_home(dir.path());
+  let token = daemon::Token::mint_under(&dirs).expect("this home's token");
+  let listener = OneReply::at(&dirs, daemon::identity_reply(&token.fingerprint()));
+  tcp_candidate(dir.path());
+  let sent = listener
+    .finish()
+    .expect("the control: the client asked the listener whose it is");
+  assert!(
+    daemon::is_identity_frame(&sent),
+    "the control: what reached the listener is the identity probe: {:?}",
+    String::from_utf8_lossy(&sent)
+  );
+  assert!(
+    !String::from_utf8_lossy(&sent).contains(token.secret()),
+    "the identity probe sent this HOME's token to the listener"
+  );
+}

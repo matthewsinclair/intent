@@ -21,8 +21,40 @@
 //! verdict could come from anything at that address, and the point is that it
 //! came from this process.
 
-use crate::common::RunningDaemon;
-use intentsvcs::daemon::Route;
+use crate::common::{RunningDaemon, short_dir};
+use intentsvcs::daemon::{self, Route};
+use intentsvcs::userstate::{self, Dirs};
+
+/// Issue I75b8995: a stale address file that names ANOTHER HOME's live daemon
+/// does not route there.
+///
+/// Home B's daemon is gone and left its token and address behind; the address
+/// names the port home A's real intentd now holds, as the shared preferred
+/// port makes happen. Before the identity probe, B's CLI routed to A's daemon.
+#[test]
+fn a_stale_address_naming_another_homes_daemon_does_not_route_there() {
+  let a = RunningDaemon::start();
+  let a_tcp = a
+    .tcp()
+    .expect("the control: home A's own daemon keeps its TCP candidate");
+
+  let b = Dirs::at_home(&short_dir("intent-fixture-foreign-home"));
+  let _b_token = daemon::Token::mint_under(&b).expect("home B's token, left by its dead daemon");
+  let a_address = userstate::daemon_address_file_under(&Dirs::at_home(a.home()));
+  let b_address = userstate::daemon_address_file_under(&b);
+  std::fs::copy(&a_address, &b_address).expect("home B's stale address names A's port");
+
+  let candidates = daemon::candidates_under(&b).expect("home B's candidates");
+  assert!(
+    !candidates.contains(&a_tcp),
+    "home B kept {a_tcp} as a candidate, but the daemon there named home A: a CLI in B would send its verbs to A's daemon. Candidates: {candidates:?}"
+  );
+  assert_eq!(
+    daemon::route(&candidates),
+    Route::InProcess,
+    "home B has no daemon of its own, so it runs in-process"
+  );
+}
 
 #[test]
 fn a_running_intentd_is_routed_to_and_a_stopped_one_is_not() {

@@ -243,6 +243,110 @@ pub fn is_probe_frame(bytes: &[u8]) -> bool {
   without_trailing_space(bytes) == without_trailing_space(PROBE_FRAME)
 }
 
+/// The probe that asks a TCP listener WHOSE daemon it is (issue I75b8995).
+///
+/// **IT CARRIES NO SECRET.** The listener it is sent to may be another HOME's
+/// daemon, which is the case it exists to find, so a frame holding this HOME's
+/// token would hand that token to the wrong daemon. The daemon answers with
+/// the fingerprint of its own token and the client compares.
+///
+/// The `2` is [`IDENTITY_VERSION`], spelled in bytes because a const frame
+/// cannot be formatted; a test pins the two together.
+const IDENTITY_FRAME: &[u8] = b"{\"intent_probe\":2}\n";
+
+/// The `intent_probe` value the identity probe and its reply carry.
+const IDENTITY_VERSION: u64 = 2;
+
+/// Is this the identity probe, so the daemon can answer it before dispatching?
+pub fn is_identity_frame(bytes: &[u8]) -> bool {
+  bytes.trim_ascii_end() == IDENTITY_FRAME.trim_ascii_end()
+}
+
+/// How many hex digits of the token's sha256 name a HOME.
+///
+/// Enough that two HOMEs on one machine do not collide by chance; the
+/// fingerprint is an accident guard, not a credential.
+const FINGERPRINT_HEX: usize = 16;
+
+/// The name a daemon gives its HOME in an identity reply: the first
+/// `FINGERPRINT_HEX` hex digits of the sha256 of its token's secret.
+///
+/// **NOT THE SECRET, AND NOT A PROOF.** It tells this HOME's daemon from
+/// another HOME's daemon that happens to hold the port. It does not stop a
+/// process on this machine that answers with a fingerprint it read, and
+/// neither does the transport (see [`Endpoint`]).
+pub fn fingerprint(secret: &str) -> String {
+  crate::model::sha256_hex(secret.as_bytes())
+    .chars()
+    .take(FINGERPRINT_HEX)
+    .collect()
+}
+
+/// A daemon's answer to the identity probe, naming its HOME by [`fingerprint`].
+pub fn identity_reply(fingerprint: &str) -> Vec<u8> {
+  let mut line =
+    serde_json::json!({ "intent_probe": IDENTITY_VERSION, "home": fingerprint }).to_string();
+  line.push('\n');
+  line.into_bytes()
+}
+
+/// What a TCP listener said about whose daemon it is.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Identity {
+  /// It named this HOME's fingerprint.
+  Ours,
+  /// It named another HOME's fingerprint: another HOME's daemon.
+  Foreign,
+  /// It named no fingerprint: an intentd from before the identity probe, or
+  /// nothing that answers. Kept, as before the probe existed, because
+  /// dropping it could route in-process beside this HOME's own older daemon.
+  /// So another HOME's OLDER daemon on the port is still reached: the guard
+  /// closes the hole once every HOME's daemon answers the identity probe.
+  Unproven,
+}
+
+/// Read one identity reply against the fingerprint this HOME expects.
+pub fn read_identity(reply: &[u8], expected: &str) -> Identity {
+  let Ok(value) = serde_json::from_slice::<serde_json::Value>(reply.trim_ascii_end()) else {
+    return Identity::Unproven;
+  };
+  if value["intent_probe"] != IDENTITY_VERSION {
+    return Identity::Unproven;
+  }
+  match value["home"].as_str() {
+    Some(home) if home == expected => Identity::Ours,
+    Some(_) => Identity::Foreign,
+    None => Identity::Unproven,
+  }
+}
+
+/// Ask the listener at `addr` whose daemon it is.
+///
+/// **THE READ IS BOUNDED BY THE REPLY'S OWN LENGTH.** The listener may not be
+/// ours, and `PROBE_DEADLINE` bounds each read, not the whole line, so a
+/// listener dripping bytes with no newline would otherwise hold the CLI. A
+/// longer answer, eg an older daemon's refusal, is cut short, does not parse,
+/// and reads as [`Identity::Unproven`], which it is.
+fn identity_at(addr: &SocketAddr, expected: &str) -> Identity {
+  use std::io::BufRead;
+  let longest =
+    u64::try_from(identity_reply(&"0".repeat(FINGERPRINT_HEX)).len()).unwrap_or(u64::MAX);
+  let Ok(mut stream) = TcpStream::connect_timeout(addr, PROBE_DEADLINE) else {
+    return Identity::Unproven;
+  };
+  if stream.set_deadline(PROBE_DEADLINE).is_err()
+    || stream.write_all(IDENTITY_FRAME).is_err()
+    || stream.flush().is_err()
+  {
+    return Identity::Unproven;
+  }
+  let mut reply = Vec::new();
+  match std::io::BufReader::new(stream.take(longest)).read_until(b'\n', &mut reply) {
+    Ok(read) if read > 0 => read_identity(&reply, expected),
+    _ => Identity::Unproven,
+  }
+}
+
 /// A connected stream the probe can drive, whatever it is connected over.
 ///
 /// **THE ROUND TRIP IS WRITTEN ONCE AND BOTH TRANSPORTS DRIVE IT.** `std` gives
@@ -816,7 +920,10 @@ pub fn candidates() -> Result<Vec<Endpoint>, DaemonError> {
 }
 
 /// [`candidates`] against any [`crate::userstate::Dirs`]: the one ambient read stays above, and the
-/// policy below is a pure mapping a test can drive against a temp directory.
+/// policy below reads only under `dirs`, so a test can drive it against a temp directory.
+///
+/// **NOT PURE: IT ASKS A PUBLISHED TCP LISTENER WHOSE IT IS** (issue I75b8995),
+/// one loopback round trip bounded by `PROBE_DEADLINE`, before `route` probes.
 ///
 /// The same split `crate::userstate::daemon_state_dir_under` uses, for the
 /// same reason -- without it the only way to test this is to mutate `$HOME`,
@@ -836,7 +943,27 @@ pub fn candidates_under(dirs: &crate::userstate::Dirs) -> Result<Vec<Endpoint>, 
     Ok(text) => {
       let trimmed = text.trim();
       match trimmed.parse::<SocketAddr>() {
-        Ok(addr) => found.push(Endpoint::Tcp(addr)),
+        // **A STALE ADDRESS FILE CAN NAME ANOTHER HOME'S DAEMON** (issue
+        // I75b8995): every intentd prefers one port, and a killed daemon's
+        // file outlives it. A listener that names another HOME is dropped;
+        // one that names none is kept, as before the probe existed. No token
+        // file keeps it too, for the same reason; a token that cannot be READ
+        // is a fault and refuses, by the rule above, rather than quietly
+        // switching the guard off.
+        Ok(addr) => {
+          let foreign = match Token::read_under(dirs) {
+            Ok(secret) => identity_at(&addr, &fingerprint(&secret)) == Identity::Foreign,
+            Err(DaemonError::Unpublishable { source, .. })
+              if source.kind() == std::io::ErrorKind::NotFound =>
+            {
+              false
+            }
+            Err(fault) => return Err(fault),
+          };
+          if !foreign {
+            found.push(Endpoint::Tcp(addr));
+          }
+        }
         Err(_) => {
           return Err(DaemonError::MalformedAddress {
             path: published,
@@ -1156,6 +1283,11 @@ impl Token {
   /// The secret this guard minted.
   pub fn secret(&self) -> &str {
     &self.secret
+  }
+
+  /// This run's [`fingerprint`], which the identity reply names.
+  pub fn fingerprint(&self) -> String {
+    fingerprint(&self.secret)
   }
 
   /// Whether a presented value is this run's secret.
@@ -1527,6 +1659,15 @@ impl Drop for Bound {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn the_identity_frame_spells_the_identity_version() {
+    let spelled = serde_json::json!({ "intent_probe": IDENTITY_VERSION }).to_string();
+    assert!(
+      is_identity_frame(spelled.as_bytes()),
+      "IDENTITY_FRAME's bytes and IDENTITY_VERSION disagree: the frame is not {spelled}"
+    );
+  }
 
   #[test]
   fn lsof_pids_are_sorted_deduplicated_and_exclude_the_caller() {

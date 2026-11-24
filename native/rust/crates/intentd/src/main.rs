@@ -302,6 +302,9 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   // cannot write its secret does not come up: the alternative is a published
   // port whose only protection failed silently.
   let token = Arc::new(intentsvcs::daemon::Token::mint_under(dirs).map_err(StartupError::Address)?);
+  // The name the identity probe answers with (issue I75b8995): a hash of the
+  // token, never the token, because the asker may be another HOME's client.
+  let home: Arc<str> = token.fingerprint().into();
 
   let (tcp, published) = Published::bind_loopback_under(dirs).map_err(StartupError::Address)?;
 
@@ -392,7 +395,9 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry), Arc::clone(&stop))); }
+        Ok((stream, _)) => {
+          tokio::spawn(answer(stream, Arc::clone(&registry), Arc::clone(&stop), Arc::clone(&home)));
+        }
         Err(e) => accept_failed("unix", e).await,
       },
       accepted = tcp.accept() => match accepted {
@@ -407,6 +412,7 @@ async fn serve_under(dirs: &userstate::Dirs, lifeline: Lifeline) -> Result<(), S
             stream,
             Arc::clone(&registry),
             Arc::clone(&stop),
+            Arc::clone(&home),
             http_tx.clone(),
           ));
         }
@@ -644,6 +650,7 @@ async fn sort_by_first_byte(
   stream: tokio::net::TcpStream,
   registry: Arc<Registry>,
   stop: Arc<tokio::sync::Notify>,
+  home: Arc<str>,
   http: tokio::sync::mpsc::Sender<tokio::net::TcpStream>,
 ) {
   let mut first = [0u8; 1];
@@ -655,7 +662,7 @@ async fn sort_by_first_byte(
   }
 
   if first[0] == b'{' {
-    answer(stream, registry, stop).await;
+    answer(stream, registry, stop, home).await;
     return;
   }
 
@@ -665,8 +672,12 @@ async fn sort_by_first_byte(
   let _ = http.send(stream).await;
 }
 
-async fn answer<S>(stream: S, registry: Arc<Registry>, stop: Arc<tokio::sync::Notify>)
-where
+async fn answer<S>(
+  stream: S,
+  registry: Arc<Registry>,
+  stop: Arc<tokio::sync::Notify>,
+  home: Arc<str>,
+) where
   S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
 {
   let (readable, mut writable) = tokio::io::split(stream);
@@ -695,6 +706,13 @@ where
 
     if daemon::is_probe_frame(&line) {
       let _ = writable.write_all(daemon::PROBE_REPLY).await;
+      let _ = writable.flush().await;
+      return;
+    }
+    // Whose daemon this is, by a hash of its token (issue I75b8995), so a
+    // client reading a stale address file can tell its own from another's.
+    if daemon::is_identity_frame(&line) {
+      let _ = writable.write_all(&daemon::identity_reply(&home)).await;
       let _ = writable.flush().await;
       return;
     }
