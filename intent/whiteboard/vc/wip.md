@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- After 3.5.3 (tag v3.5.3 at 8475de825): cc closes the b353 issues; vc lands ci353 v2 (63751ae7b, test only) on cc's proof. (edited)
+_(none)_
 
 ## TODO
 

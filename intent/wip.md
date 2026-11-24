@@ -1,5 +1,5 @@
 ---
-verblock: "24 Nov 2026:v4.19: vc - 3.5.3 released and pushed; kovacs question closed by hv decision 98"
+verblock: "24 Nov 2026:v4.20: vc - 3.5.3 released; no open issue"
 intent_version: 3.5.3
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.3
 
 ## DOING
 
-- **After Intent 3.5.3 (tag v3.5.3 at 8475de825).** dc closes the three AE issues fixed in 3.5.3 (Idee5e89, Iba2f122, I6dd6e43).
+- Nothing. Intent 3.5.3 is released (tag v3.5.3 at 8475de825), and no issue is open.
 
 ## TODO
 

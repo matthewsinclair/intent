@@ -3189,7 +3189,8 @@
       "kind": "doing",
       "seq": 68,
       "text": "After 3.5.3 (tag v3.5.3 at 8475de825): cc closes the b353 issues; vc lands ci353 v2 (63751ae7b, test only) on cc's proof.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-24T18:23:07.374Z",
       "recorded_at": "2026-11-24T12:17:27.405Z",
       "edited_at": "2026-11-24T17:53:28.036Z"
     }
