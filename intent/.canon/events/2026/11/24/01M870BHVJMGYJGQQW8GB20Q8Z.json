@@ -1,0 +1,15 @@
+{
+  "id": "01M870BHVJMGYJGQQW8GB20Q8Z",
+  "ts": "2026-11-24T14:46:34.741Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24 14:45Z by devbin-vc's date -u, in devbin-vc's window; relayed by devbin-vc, not heard first-hand by vc; hv's words as relayed) \"You have the Pen and the Desk. You have approval across all Claudes here to run whatever is needed to get the unified plan executed.\" devbin-vc reads it as pre-approving the 3.5.3 cut with its push, tap and formula, Intent main's push, the brew rollout, and the records and closes (devbin decision 294). vc's reading, not hv's words: vc goes ahead without waiting on hv through the landing, build all, the main push and the dry run, which hv decisions 80 and 90 already allow. The cut itself still waits for hv, because its confirm reads /dev/tty and hv decision 3 and the --no-confirm ban stand, and a relayed approval is not hv's keystroke. A red before a tag stops and waits."
+  }
+}
