@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I7bc038a5fbbe9d93",
   "origin": "01M86Q2VEABTE2FZ6R4T3H8QH0",
-  "realised": true,
   "slug": "a-label-refusal-s-remedy-points-at-wp-list-which",
   "title": "A label refusal's remedy points at wp list, which does not show the 8-hex group the label needs",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-24",
+  "closed": "2026-11-24",
   "reporter": "Matthew Sinclair",
-  "body": "Raised by AE, through intent-vc, on 2026-11-24. Reproduced on Intent 3.5.2 (fabbffd8c).\n\n## Problem\n\n`intent ac new <st> AC-01.1 ...` on a thread with git-style packages refuses with the remedy \"Group the label under the thread's `00` or one of its packages, eg `AC-81453070.1`; `intent wp list ST6d1f96f` shows the packages\". `intent wp list` and `intent wp show` show each package's 4-hex shown form (\"8145\", \"WP-8145\"), not the 8-hex group that a label stores. So the remedy sends the reader to a list that does not hold the form it asks for.\n\nWhere: `FacadeError::LabelNamesAbsentPackage`'s remedy (intentsvcs/src/facade.rs).\n\n## Fix\n\nThe remedy names each group the thread has, whole: `00` and each package's stored 8-hex id, so the reader does not need a second command. Owner cc, size XS.\n\n## Related\n\nAE also reports that `ac new <st> AC-7655.3` (a 4-hex package prefix) passes and is stored as `AC-76555923.3`. That is on purpose in the code: `Facade::whole_label` completes a package prefix in a label's group and stores it whole (design, \"Criteria and tests\"). hv decision 92 says labels take no prefix. intent-vc puts that to hv. This issue does not change it.\n"
+  "body": "Raised by AE, through intent-vc, on 2026-11-24. Reproduced on Intent 3.5.2 (fabbffd8c).\n\n## Problem\n\n`intent ac new <st> AC-01.1 ...` on a thread with git-style packages refuses with the remedy \"Group the label under the thread's `00` or one of its packages, eg `AC-81453070.1`; `intent wp list ST6d1f96f` shows the packages\". `intent wp list` and `intent wp show` show each package's 4-hex shown form (\"8145\", \"WP-8145\"), not the 8-hex group that a label stores. So the remedy sends the reader to a list that does not hold the form it asks for.\n\nWhere: `FacadeError::LabelNamesAbsentPackage`'s remedy (intentsvcs/src/facade.rs).\n\n## Fix\n\nThe remedy names each group the thread has, whole: `00` and each package's stored 8-hex id, so the reader does not need a second command. Owner cc, size XS.\n\n## Related\n\nAE also reports that `ac new <st> AC-7655.3` (a 4-hex package prefix) passes and is stored as `AC-76555923.3`. That is on purpose in the code: `Facade::whole_label` completes a package prefix in a label's group and stores it whole (design, \"Criteria and tests\"). hv decision 92 says labels take no prefix. intent-vc puts that to hv. This issue does not change it.\n\nResolution: Fixed in the b353 batch, landed on main at b15c70157. Released in v3.5.3 (tag v3.5.3 at 8475de825)."
 }

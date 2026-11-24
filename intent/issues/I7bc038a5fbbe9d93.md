@@ -1,9 +1,10 @@
 ---
 issue: I7bc038a
 title: A label refusal's remedy points at wp list, which does not show the 8-hex group the label needs
-status: OPEN
+status: CLOSED
 severity: low
 created: 2026-11-24
+closed: 2026-11-24
 reporter: Matthew Sinclair
 ---
 
@@ -22,6 +23,8 @@ The remedy names each group the thread has, whole: `00` and each package's store
 ## Related
 
 AE also reports that `ac new <st> AC-7655.3` (a 4-hex package prefix) passes and is stored as `AC-76555923.3`. That is on purpose in the code: `Facade::whole_label` completes a package prefix in a label's group and stores it whole (design, "Criteria and tests"). hv decision 92 says labels take no prefix. intent-vc puts that to hv. This issue does not change it.
+
+Resolution: Fixed in the b353 batch, landed on main at b15c70157. Released in v3.5.3 (tag v3.5.3 at 8475de825).
 
 ---
 

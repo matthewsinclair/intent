@@ -1,9 +1,10 @@
 ---
 issue: Ie66a7eb
 title: issues close names no view, and the unrealised-view advisory does not say it is safe (AE finding 6)
-status: OPEN
+status: CLOSED
 severity: low
 created: 2026-11-24
+closed: 2026-11-24
 reporter: Matthew Sinclair
 ---
 
@@ -12,6 +13,8 @@ AE found this on 3.5.2. After `intent issues close <id>`, `intent doctor` gives 
 This is by design: a close stops realising the issue, and the next `intent organize --apply` or `intent sync --apply` removes its view. The store keeps the record. But the close named no file, where a thread close names each one, and the advisory did not say that this is expected and safe.
 
 Fix (b353): `issues close` names the view that the next organize removes and says that this is expected and safe. The unrealised-view advisory says plainly that a closed record's view leaves the tree, and that the store keeps the record.
+
+Resolution: Fixed in the b353 batch, landed on main at b15c70157. Released in v3.5.3 (tag v3.5.3 at 8475de825).
 
 ---
 
