@@ -1997,18 +1997,33 @@ pub fn running_idle_value(slots: &Slots, idle_name: impl Fn(&str) -> Option<Stri
 /// Every request not finished, oldest first by its sort key, which is its own
 /// `asked_at` or, for a hand-back, the `--place-of` request's: the one order
 /// the queue and every lane's queue share.
+///
+/// **A HAND-BACK TAKES THE PRIOR REQUEST'S ID AS ITS TIE-BREAK TOO, NOT ITS
+/// OWN.** `asked_at` is the ask file's mtime, and Linux stamps it from the
+/// coarse clock, so two asks a few milliseconds apart can carry the same one;
+/// ids are minted in order, so the tie falls to the id. A hand-back's own id
+/// is newer than everything asked before it, so with its own id a tie put it
+/// behind the request its place was ahead of.
 fn queue_order(slots: &Slots) -> Vec<&Request> {
-  let key = |r: &Request| {
-    r.ask
-      .record
-      .place_of
-      .as_deref()
-      .and_then(|p| slots.request(p))
-      .map_or(r.ask.at, |p| p.ask.at)
-  };
   let mut open: Vec<&Request> = slots.requests.iter().filter(|r| !r.finished()).collect();
-  open.sort_by(|a, b| key(a).cmp(&key(b)).then_with(|| a.id().cmp(b.id())));
+  open.sort_by(|a, b| {
+    let (a_place, b_place) = (place_in_queue(slots, a), place_in_queue(slots, b));
+    (a_place.ask.at, a_place.id())
+      .cmp(&(b_place.ask.at, b_place.id()))
+      .then_with(|| a.id().cmp(b.id()))
+  });
   open
+}
+
+/// The request whose place `r` takes in the queue: its `--place-of` request
+/// where it has one still on record, else itself.
+fn place_in_queue<'a>(slots: &'a Slots, r: &'a Request) -> &'a Request {
+  r.ask
+    .record
+    .place_of
+    .as_deref()
+    .and_then(|p| slots.request(p))
+    .unwrap_or(r)
 }
 
 /// The reader's `queue`: every request not finished, in `queue_order`.
@@ -2820,8 +2835,18 @@ mod tests {
         },
       )
     };
-    let (first, _) = ask(&h.dirs, &me, "heavy", "first", AskArgs::default()).expect("ask");
-    let (later, _) = ask(&h.dirs, &me, "heavy", "later", AskArgs::default()).expect("ask");
+    let (first, first_file) = ask(&h.dirs, &me, "heavy", "first", AskArgs::default()).expect("ask");
+    let (later, later_file) = ask(&h.dirs, &me, "heavy", "later", AskArgs::default()).expect("ask");
+    // The two asks share one mtime, as Linux's coarse clock gives two asks a
+    // few milliseconds apart, so the order below rests on the tie-break.
+    let asked = std::fs::metadata(&first_file)
+      .and_then(|m| m.modified())
+      .expect("the first ask's mtime");
+    std::fs::File::options()
+      .write(true)
+      .open(&later_file)
+      .and_then(|f| f.set_modified(asked))
+      .expect("pin the later ask to the first's mtime");
     grant(&h.dirs, &ctl, &first, &lanes(&["heavy"]), &quiet).expect("grant");
     revoke(&h.dirs, &ctl, &first, "the load moved").expect("revoke before the start");
     let (again, _) = re_ask(first.as_str()).expect("re-ask in place");

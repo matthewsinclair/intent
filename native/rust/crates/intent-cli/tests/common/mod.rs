@@ -513,6 +513,20 @@ pub fn children_of(pid: u32) -> Vec<String> {
     .collect()
 }
 
+/// What the kernel says this pid's executable is now.
+///
+/// `comm` is the image name, which is precisely what `exec` replaces and
+/// `spawn` does not.
+pub fn image_of(pid: u32) -> String {
+  let out = Command::new("ps")
+    .args(["-o", "comm=", "-p", &pid.to_string()])
+    .output()
+    .expect("ps runs");
+  let name = String::from_utf8_lossy(&out.stdout).trim().to_string();
+  // `ps` prints the full path for an executable launched by path.
+  name.rsplit('/').next().map(str::to_string).unwrap_or(name)
+}
+
 /// A real `intentd`, started through the shipped `intent daemon run`.
 pub struct RealDaemon {
   child: Child,
@@ -584,12 +598,17 @@ impl RealDaemon {
        and any test using this as a witness is measuring nothing"
     );
     // **THE EXEC ASSUMPTION, CHECKED WHERE IT IS RELIED ON.** `pid()` is the
-    // server only while `daemon run` execs. A grandchild here means it now
-    // spawns, `pid()` has quietly become the wrapper's, and the assertion
-    // above still passes -- so this is the arm that would catch it.
-    assert!(
-      children_of(self.pid()).is_empty(),
-      "`intent daemon run` has a child process, so it no longer execs into intentd -- \
+    // server only while `daemon run` execs, and then the process at that pid
+    // IS `intentd`. A spawn would leave `intent` there, `pid()` the wrapper's,
+    // and the assertion above still passing -- so this is the arm that would
+    // catch it. It asks the pid's own name rather than whether it has
+    // children: `intentd` runs `ps` (and on macOS `sysctl` and `lsof`) from
+    // its census tick, whose first round fires at start, so a child is no
+    // evidence of a wrapper.
+    assert_eq!(
+      image_of(self.pid()),
+      "intentd",
+      "the process `intent daemon run` left at `pid()` is not intentd, so it no longer execs -- \
        `pid()` is now the wrapper's and is no longer a witness for which daemon answered"
     );
     self
@@ -612,6 +631,18 @@ impl RealDaemon {
     &self.home
   }
 
+  /// The socket path this daemon's home derives.
+  ///
+  /// **NOT [`RealDaemon::endpoint`], WHICH IS A ROUTE AND NOT AN ADDRESS.**
+  /// `route` takes the first candidate that answers its probe inside
+  /// `PROBE_DEADLINE`, so a loaded host can time the socket out and route to
+  /// the TCP understudy. Its port is whichever one the daemon got, and after
+  /// a kill the stale address file can name a port another daemon now holds.
+  /// A test about where this daemon lives connects to this.
+  pub fn socket(&self) -> PathBuf {
+    intentsvcs::userstate::daemon_socket_under(&intentsvcs::userstate::Dirs::at_home(&self.home))
+  }
+
   pub fn endpoint(&self) -> Option<Endpoint> {
     let candidates =
       daemon::candidates_under(&intentsvcs::userstate::Dirs::at_home(&self.home)).ok()?;
@@ -629,20 +660,26 @@ impl RealDaemon {
   /// does -- that is the phantom this crate's routing tests spend three
   /// fixtures on. `Op::Registry` requires a serving `intentd`, so waiting on it
   /// makes the fixture unfalsifiably real rather than merely present.
+  ///
+  /// **IT ASKS AT THIS HOME'S SOCKET, NEVER THROUGH THE ROUTE.** Every intentd
+  /// prefers TCP port 51737, and a killed daemon leaves its address file
+  /// naming it. Another test's daemon can then hold that port, and a route
+  /// through the stale file reaches it, so the wait returns while this
+  /// daemon is still `intent` resolving its sibling. Only this daemon binds
+  /// the socket its home derives.
   pub fn wait_until_it_answers_a_real_op(&self) {
+    let socket = Endpoint::Unix(self.socket());
     for _ in 0..ATTEMPTS {
-      if let Some(endpoint) = self.endpoint()
-        && matches!(
-          wire::ask(
-            &endpoint,
-            &Request {
-              root: self.home.clone(),
-              op: Op::Registry,
-            },
-          ),
-          Ok(Response::Registry { .. })
-        )
-      {
+      if matches!(
+        wire::ask(
+          &socket,
+          &Request {
+            root: self.home.clone(),
+            op: Op::Registry,
+          },
+        ),
+        Ok(Response::Registry { .. })
+      ) {
         return;
       }
       std::thread::sleep(PAUSE);

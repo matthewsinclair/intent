@@ -19,12 +19,14 @@
 //! **SO THE DISCRIMINATING ASSERTION IS ABOUT THE PROCESS WE LAUNCHED, NEVER
 //! ABOUT WHETHER A DAEMON APPEARED.** Under `spawn` the pid we hold stays
 //! `intent` and grows an `intentd` child; under `exec` that same pid IS
-//! `intentd` and has no children. Both arms are checked, because the second is
-//! what makes the first impossible to satisfy by accident.
+//! `intentd` and has no `intentd` child. Both arms are checked, because the
+//! second is what makes the first impossible to satisfy by accident.
 
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
+
+use crate::common::{children_of, image_of};
 
 /// How many times a condition is asked before the test gives up on it.
 ///
@@ -62,32 +64,6 @@ fn short_dir(prefix: &str) -> PathBuf {
   ));
   std::fs::create_dir_all(&dir).expect("create an isolated directory");
   dir
-}
-
-/// What the kernel says this pid's executable is now.
-///
-/// `comm` is the image name, which is precisely what `exec` replaces and
-/// `spawn` does not.
-fn image_of(pid: u32) -> String {
-  let out = Command::new("ps")
-    .args(["-o", "comm=", "-p", &pid.to_string()])
-    .output()
-    .expect("ps runs");
-  let name = String::from_utf8_lossy(&out.stdout).trim().to_string();
-  // `ps` prints the full path for an executable launched by path.
-  name.rsplit('/').next().map(str::to_string).unwrap_or(name)
-}
-
-/// The pids whose parent is `pid`.
-fn children_of(pid: u32) -> Vec<String> {
-  let out = Command::new("pgrep")
-    .args(["-P", &pid.to_string()])
-    .output()
-    .expect("pgrep runs");
-  String::from_utf8_lossy(&out.stdout)
-    .split_whitespace()
-    .map(str::to_string)
-    .collect()
 }
 
 /// `intent daemon run`, killed and cleaned up when this value is dropped.
@@ -191,14 +167,20 @@ fn daemon_run_replaces_its_own_image_rather_than_starting_a_child() {
   // **THE ARM THAT MAKES THE FIRST ONE IMPOSSIBLE TO SATISFY BY ACCIDENT.**
   // A `spawn` implementation leaves the launched pid as `intent` with an
   // `intentd` CHILD. Asserting the image alone would be a strong test already;
-  // asserting that there is no child as well means no arrangement of parent and
-  // child processes can pass this without the exec actually having happened.
-  let children = children_of(pid);
+  // asserting that it has no `intentd` child as well means no arrangement of
+  // parent and child processes can pass this without the exec actually having
+  // happened. **AN `intentd` CHILD, NOT ANY CHILD**: the daemon's census tick
+  // runs `ps` (and on macOS `sysctl` and `lsof`) from its first round at start,
+  // so a child of some other image is the daemon at work, not a spawn.
+  let daemons: Vec<String> = children_of(pid)
+    .into_iter()
+    .filter(|child| image_of(child.parse().expect("pgrep prints pids")) == "intentd")
+    .collect();
   assert!(
-    children.is_empty(),
-    "pid {pid} is running `intentd` and ALSO has children {children:?}. An exec leaves no child \
-     behind -- this is a spawn wearing the right image name, which is the implementation \
-     AC-08.9's `same binary, not two code paths` forbids"
+    daemons.is_empty(),
+    "pid {pid} is running `intentd` and ALSO has `intentd` children {daemons:?}. An exec leaves \
+     no daemon below it -- this is a spawn wearing the right image name, which is the \
+     implementation AC-08.9's `same binary, not two code paths` forbids"
   );
 
   // **THE CONTROL: THE FIXTURE'S OWN `HOME` IS WHERE THE DAEMON WENT.** Without

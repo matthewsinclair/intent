@@ -103,16 +103,6 @@ fn a_bridge_call_after_a_daemon_restart_reaches_the_new_daemon() {
     pid_before, pid_after,
     "the serving pid did not change, so no restart happened and the survival below proves nothing"
   );
-  assert_eq!(
-    daemon.endpoint(),
-    {
-      // Re-derive the endpoint the same way the client does; it must be
-      // unchanged, which is why the pid is the witness and not this.
-
-      daemon.endpoint()
-    },
-    "sanity: the endpoint is read the same way twice"
-  );
 
   // After: a fresh bridge call re-resolves per request and reaches the NEW
   // daemon. A cached connection to the old process would be a dead socket here.

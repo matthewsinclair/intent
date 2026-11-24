@@ -23,9 +23,6 @@ fn a_restart_replaces_the_process_and_keeps_the_address() {
   let daemon = RealDaemon::start();
   let before_pid = daemon.pid();
   let before_home = daemon.home().to_path_buf();
-  let before_endpoint = daemon
-    .endpoint()
-    .expect("a daemon that answered `Op::Registry` has an endpoint");
 
   let daemon = daemon.restart();
 
@@ -47,11 +44,16 @@ fn a_restart_replaces_the_process_and_keeps_the_address() {
     "restart must reuse the home -- a new home makes it a fresh daemon rather than a restart, \
      and the routing question the row asks disappears"
   );
-  assert_eq!(
-    Some(before_endpoint),
-    daemon.endpoint(),
-    "the socket path is derived from HOME alone, so a restart cannot move it -- if this ever \
-     fails, `pid()` is no longer the only witness and AC-09.3's test may use the endpoint"
+  // **THE NEW DAEMON LISTENS AT THE OLD ADDRESS.** The home derives the socket
+  // path, so the check is that something accepts on it now, a connect and not
+  // `endpoint()`: that is a route, whose probe a loaded host can time out to
+  // the TCP understudy, and that port can belong to another daemon.
+  let socket = daemon.socket();
+  assert!(
+    std::os::unix::net::UnixStream::connect(&socket).is_ok(),
+    "nothing accepts on {} after the restart, so the restarted daemon is not at the address \
+     its home derives",
+    socket.display()
   );
 }
 
