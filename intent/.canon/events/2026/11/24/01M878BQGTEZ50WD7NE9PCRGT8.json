@@ -1,0 +1,16 @@
+{
+  "id": "01M878BQGTEZ50WD7NE9PCRGT8",
+  "ts": "2026-11-24T17:06:23.898Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 68,
+    "text": "3.5.3 batch b353 landed on main (b15c70157); local main 68484d35b 'release: v3.5.3', not pushed, no tag. The cut stopped at the legs step three times, each time on GitHub macOS runner capacity only (last run 45441581189). Waits on hv: resume a 4th time, or hold."
+  }
+}

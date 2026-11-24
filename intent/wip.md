@@ -1,5 +1,5 @@
 ---
-verblock: "24 Nov 2026:v4.16: vc - localfold; b353 frozen, waits on dc's bank, then one gate all"
+verblock: "24 Nov 2026:v4.17: vc - localfold; 3.5.3 cut red on macOS runner capacity only, waits on hv"
 intent_version: 3.5.2
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.2
 
 ## DOING
 
-- **Intent 3.5.3, batch b353 (hv, 2026-11-24: fix every open issue in one go, then one release).** The scope is FROZEN, agreed with devbin-vc and recorded in PLAN.md chain B (`~/Devel/scratch/estate-plan/PLAN.md`, devbin-vc its only writer). It holds I53c0c22 (hv-pen ruling (b): never migrate), I5adc617, I6f2e257, Ia87820b (a doctor advisory on person-written text only), ST1c2db93 P22 and P30, hv decision 91 (template dashes, restated-rule cuts), the docs/reference regen for v3.5.2, the restated.rs doc link, I7bc038a and If6f0257 (AE remedy texts), and AE attendee findings 1 to 7. cc owns 2 (root-file-behind after init), 4 (at new state, at green remedy), 5 (issues close --reason) and 6 (unrealised-view after close). dc owns 1 (critic gate with no language), 3 (/in-session in a Perl project) and 7 (Stop hook text). cc's line was refs/bank/cc/b353/v1 = 935b77daf; its gate all gave rc 1 on the reference regen and the doc link, both fixed for v2. Next: dc banks its three; cc takes dc's bank into its line and books ONE gate all at the tip, with no extra test layer. Then land, build all, devbin-vc pushes, dry run, READY to hv, and hv cuts 3.5.3. Label prefix: hv decision 92 (the 4-hex door ships and stays; not yet hv's own ruling).
+- **Intent 3.5.3, batch b353 (hv, 2026-11-24: fix every open issue in one go, then one release).** The batch is on main at b15c70157, with the CHANGELOG at 7aaaa4bda. Local main is 68484d35b "release: v3.5.3". It is not pushed and has no tag. The cut (`bin/devbin release v3.5.3`) stops at the legs step. Local, kovacs and macos legs are green. The candidate CI is red only because GitHub gave the macOS jobs no runner. No test failed. Last run: 45441581189. Next: hv chooses to resume the cut again when runners have capacity, or to hold it. After the tag: `intent daemon start`, switch to brew, and cc closes the b353 issues.
 
 ## TODO
 
