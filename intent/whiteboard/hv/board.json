@@ -990,6 +990,14 @@
       "state": "live",
       "recorded_at": "2026-11-24T11:51:41.192Z",
       "edited_at": "2026-11-24T12:08:08.074Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 93,
+      "text": "(hv, 2026-11-24 11:45Z, relayed by devbin-vc as PLAN.md D5, not heard first-hand by vc) hv decision 36 stands: intent use and intent install are Intent's own, and devbin removes Intent from issue 0326's adopter list. This closes the question that devbin decision 150 raised.",
+      "state": "live",
+      "recorded_at": "2026-11-24T12:17:25.471Z"
     }
   ],
   "sent": [],

@@ -1,0 +1,15 @@
+{
+  "id": "01M86QTKEZ7D1HQ62YATKYBMYY",
+  "ts": "2026-11-24T12:17:25.471Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24 11:45Z, relayed by devbin-vc as PLAN.md D5, not heard first-hand by vc) hv decision 36 stands: intent use and intent install are Intent's own, and devbin removes Intent from issue 0326's adopter list. This closes the question that devbin decision 150 raised."
+  }
+}

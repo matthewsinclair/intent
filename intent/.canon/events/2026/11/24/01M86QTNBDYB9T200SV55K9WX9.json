@@ -1,0 +1,15 @@
+{
+  "id": "01M86QTNBDYB9T200SV55K9WX9",
+  "ts": "2026-11-24T12:17:27.405Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.3 batch b353, frozen; see intent/wip.md DOING. Waits on dc's bank, then cc's one gate all, then land, build all, push, dry run and READY."
+  }
+}

@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-24 06:55Z
+heartbeat_at: 2026-11-24 12:17Z
 status: active
-focus: "2026-11-24 06:37Z by date -u: localfold on hv's call before a compact, not released. 3.5.2 waits on cc's v3 gate all; see doing 67."
+focus: "2026-11-24 12:17Z by date -u: localfold before a compact, not released. b353 frozen; waits on dc's bank, then one gate all."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- 3.5.3 batch b353, frozen; see intent/wip.md DOING. Waits on dc's bank, then cc's one gate all, then land, build all, push, dry run and READY.
 
 ## TODO
 
