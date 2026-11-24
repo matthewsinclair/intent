@@ -1,5 +1,5 @@
 ---
-verblock: "24 Nov 2026:v4.20: vc - 3.5.3 released; no open issue"
+verblock: "24 Nov 2026:v4.21: vc - I3c24d2a landed; waits on the next release"
 intent_version: 3.5.3
 ---
 
@@ -7,9 +7,9 @@ intent_version: 3.5.3
 
 ## DOING
 
-- Nothing. Intent 3.5.3 is released (tag v3.5.3 at 8475de825), and no issue is open.
+- Nothing in flight. The Linux `intent app` fix (issue I3c24d2a) is on main at 5c9d3fd32 and in CHANGELOG's `3.5.4 - in progress` section. The issue stays open until a release ships it, and hv has not called that release.
 
 ## TODO
 
-- ST0089 stays parked (hv decision 59) until hv rules on its policy.
-- Parked for hv since 2026-11-10: threads ST0060, ST0077, ST0082, ST0084 and ST0085; Laksa's and Conflab's releases; the deferred list. Their text is `git show f16dce4a7:intent/wip.md`.
+- Parked for hv, Not Started: vault for local credentials (ST0060), level 3 toolchain-only references (ST0077), Windows through WSL 2 (ST0082), parity tooling out of ST0056 (ST0084), passive prompt injection (ST0085), and the fold and compact policy (ST0089, hv decision 59).
+- Parked for hv since 2026-11-10: Laksa's and Conflab's releases, and the deferred list. Their text is `git show f16dce4a7:intent/wip.md`.

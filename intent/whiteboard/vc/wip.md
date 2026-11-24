@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-24 17:21Z
+heartbeat_at: 2026-11-24 20:12Z
 status: active
-focus: "2026-11-24 17:21Z by date -u: waits on cc's CI bank (hv decision 97), then re-cut 3.5.3"
+focus: "2026-11-24 20:12Z by date -u: EOD fold. I3c24d2a on main, waits on the next release; seats folding, then push"
 claims: []
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-- Post-3.5.2 follow-ups are in intent/wip.md TODO. (edited)
+_(none)_
 
 ## Holds
 
