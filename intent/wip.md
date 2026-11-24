@@ -1,13 +1,13 @@
 ---
-verblock: "24 Nov 2026:v4.17: vc - localfold; 3.5.3 cut red on macOS runner capacity only, waits on hv"
-intent_version: 3.5.2
+verblock: "24 Nov 2026:v4.18: vc - 3.5.3 released; b353 issue closes and ci353 v2 follow"
+intent_version: 3.5.3
 ---
 
 # Work In Progress
 
 ## DOING
 
-- **Intent 3.5.3, batch b353 (hv, 2026-11-24: fix every open issue in one go, then one release).** The batch is on main at b15c70157, with the CHANGELOG at 7aaaa4bda. Local main is 68484d35b "release: v3.5.3". It is not pushed and has no tag. The cut (`bin/devbin release v3.5.3`) stops at the legs step. Local, kovacs and macos legs are green. The candidate CI is red only because GitHub gave the macOS jobs no runner. No test failed. Last run: 45441581189. Next: hv chooses to resume the cut again when runners have capacity, or to hold it. After the tag: `intent daemon start`, switch to brew, and cc closes the b353 issues.
+- **After Intent 3.5.3 (tag v3.5.3 at 8475de825).** cc closes the b353 issues. cc runs the proof of ci353 v2 (refs/bank/cc/ci353/v2 = 63751ae7b, test only), then vc lands it on main by its one path, tests/unit/release_candidate_trigger.bats.
 
 ## TODO
 

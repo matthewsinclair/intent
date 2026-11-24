@@ -3188,10 +3188,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 68,
-      "text": "3.5.3 batch b353 on main (b15c70157). hv decision 97: candidate CI on Linux only. Waits on cc's bank refs/bank/cc/ci353/v1. Then vc drops the unpushed release commit 68484d35b, lands the bank by path and re-cuts v3.5.3 on the Desk's slot under hv decision 96.",
+      "text": "After 3.5.3 (tag v3.5.3 at 8475de825): cc closes the b353 issues; vc lands ci353 v2 (63751ae7b, test only) on cc's proof.",
       "state": "live",
       "recorded_at": "2026-11-24T12:17:27.405Z",
-      "edited_at": "2026-11-24T17:21:04.193Z"
+      "edited_at": "2026-11-24T17:53:28.036Z"
     }
   ],
   "sent": [

@@ -1,0 +1,16 @@
+{
+  "id": "01M87B1XF4ZZJ6SDPPN2VX2RP0",
+  "ts": "2026-11-24T17:53:28.036Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 68,
+    "text": "After 3.5.3 (tag v3.5.3 at 8475de825): cc closes the b353 issues; vc lands ci353 v2 (63751ae7b, test only) on cc's proof."
+  }
+}

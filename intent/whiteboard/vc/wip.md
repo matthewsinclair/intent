@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.3 batch b353 on main (b15c70157). hv decision 97: candidate CI on Linux only. Waits on cc's bank refs/bank/cc/ci353/v1. Then vc drops the unpushed release commit 68484d35b, lands the bank by path and re-cuts v3.5.3 on the Desk's slot under hv decision 96. (edited)
+- After 3.5.3 (tag v3.5.3 at 8475de825): cc closes the b353 issues; vc lands ci353 v2 (63751ae7b, test only) on cc's proof. (edited)
 
 ## TODO
 
