@@ -1,0 +1,13 @@
+# The tool's facts, written by devbin from bin/.devbin/config.yaml's install:
+# block (docs/dev-opt-brew.md, T1 and T3). Do not edit it: in a checkout,
+# bin/devbin build and bin/devbin upgrade write it again.
+manifest: .intent-install
+input: :(literal)native/rust/Cargo.toml
+input: :(literal)native/rust/Cargo.lock
+input: :(literal)native/rust/build-support
+input: :(literal)native/rust/crates
+input: :(literal)native/rust/rustfmt.toml
+input: :(literal)surface
+input: :(literal)docs/design
+input: :(literal)lib/templates/llm
+input: :(literal)lib/templates/prj

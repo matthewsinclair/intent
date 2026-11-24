@@ -119,6 +119,7 @@ tool_dev_line() {
 tool_build() {
   local launcher="$1" line again
   shift
+  tool_facts_sync || die "cannot write $DEVBIN_TOOL_FACTS from the install: block (above)"
   line="$(tool_dev_line)" || die "cannot work out the version line the build is to carry (above)"
   export _DEVBIN_BUILD_STAMPED=1 DEVBIN_VERSION_LINE="$line"
   "$launcher" build "$@" || return $?
@@ -168,28 +169,15 @@ tool_runtime_set() {
 # Each exclude is a glob below <from>, read as git reads `:(exclude,glob)`
 # pathspecs: `*` stays within a directory and `**` crosses them.
 _tool_set_file() {
-  local label="$1" path="$2" from="$3" g f rel listed
-  local -a ex=() spec=()
-  while IFS= read -r g; do
-    [ -n "$g" ] && ex+=("$g")
-  done < <(cfg_tool_file_excludes "$label")
-  if [ ! -d "$PROJECT_ROOT/$from" ] || ! tool_tracked "$from"; then
-    if [ "${#ex[@]}" -gt 0 ]; then
-      printf 'install.files.%s lists excludes, and its from, %s, is no directory git tracks files below -- excludes apply to such a directory alone\n' "$label" "$from" >&2
-      return 1
-    fi
+  local label="$1" path="$2" from="$3" f rel listed specs
+  local -a spec=()
+  if ! _tool_is_dir_entry "$from"; then
+    _tool_no_excludes "$label" "$from" || return 1
     _tool_set_row "$path" "$from"
     return 0
   fi
-  spec=(":(literal)$from")
-  for g in ${ex[@]+"${ex[@]}"}; do
-    listed="$(git_readonly -C "$PROJECT_ROOT" ls-files -- ":(glob)$from/$g")" || return 1
-    if [ -z "$listed" ]; then
-      printf 'install.files.%s.excludes: %s matches no file git tracks below %s -- a renamed directory would ship whole, so name what is there, or drop the exclude\n' "$label" "$g" "$from" >&2
-      return 1
-    fi
-    spec+=(":(exclude,glob)$from/$g")
-  done
+  specs="$(_tool_dir_specs "$label" "$from")" || return 1
+  mapfile -t spec <<<"$specs"
   # One read whose status is checked, never a process substitution, which
   # would lose a failed git. core.quotePath off leaves non-ASCII names as they
   # are; git still quotes a name holding a quote, a backslash or a control
@@ -206,12 +194,153 @@ _tool_set_file() {
   done <<<"$listed"
 }
 
+# _tool_is_dir_entry <from> -- rc 0 when <from> is a directory git tracks
+# files below, an entry that ships what git tracks there (I2bae9ce).
+_tool_is_dir_entry() {
+  [ -d "$PROJECT_ROOT/$1" ] && tool_tracked "$1"
+}
+
+# _tool_no_excludes <label> <from> -- rc 0 when install.files.<label>, whose
+# from <from> is no such directory, lists no excludes; else says why, rc 1.
+_tool_no_excludes() {
+  [ -n "$(cfg_tool_file_excludes "$1")" ] || return 0
+  printf 'install.files.%s lists excludes, and its from, %s, is no directory git tracks files below -- excludes apply to such a directory alone\n' "$1" "$2" >&2
+  return 1
+}
+
+# _tool_dir_specs <label> <from> -- the git pathspecs of the directory entry
+# install.files.<label>, whose from is <from>, one a line: the directory, then
+# one exclude for each glob its excludes list. THE ONE PLACE they are spelled:
+# the publish lists the set through them, and .devbin-tool carries them
+# (tool_set_pathspecs). Prints why and returns 1 for an exclude that matches
+# no file git tracks there, since a renamed directory would then ship whole.
+_tool_dir_specs() {
+  local label="$1" from="$2" g listed ex
+  ex="$(cfg_tool_file_excludes "$label")" || return 1
+  printf '%s\n' ":(literal)$from"
+  while IFS= read -r g; do
+    [ -n "$g" ] || continue
+    listed="$(git_readonly -C "$PROJECT_ROOT" ls-files -- ":(glob)$from/$g")" || return 1
+    if [ -z "$listed" ]; then
+      printf 'install.files.%s.excludes: %s matches no file git tracks below %s -- a renamed directory would ship whole, so name what is there, or drop the exclude\n' "$label" "$g" "$from" >&2
+      return 1
+    fi
+    printf '%s\n' ":(exclude,glob)$from/$g"
+  done <<<"$ex"
+}
+
 _tool_set_row() {
   if tool_tracked "$2"; then
     printf '%s\t%s\ttracked\n' "$1" "$2"
   else
     printf '%s\t%s\tproduct\n' "$1" "$2"
   fi
+}
+
+# --- the tool facts: .devbin-tool (T1, T3; issue I6b3b75f) -------------------
+#
+# A TOOL'S OWN CODE NEEDS TWO FACTS ITS install: BLOCK DECLARES, and it can read
+# the block in neither place it needs them. In opt and brew it reads its
+# manifest by name, for its version line and its doctor's rows, and those
+# trees carry no bin/.devbin. In dev it reads +dirty from its runtime set, and
+# devbin's config reader needs bash 5, where a tool may run under the bash 3.2
+# macOS ships. So devbin writes both into one plain file at a path the contract
+# fixes, <root>/.devbin-tool, which any shell reads with `while read`:
+#
+#   manifest: <install.manifest>
+#   set: <pathspec>      the runtime set as git pathspecs, one a line
+#   input: <pathspec>    each declared build input
+#
+# A reader passes the `set` pathspecs to `git status --porcelain
+# --untracked-files=no`, since the set ships what git tracks, and the `input`
+# ones to `git status --porcelain --untracked-files=all`, since a new input
+# changes a build. A build product is in neither: its inputs are its build's
+# (a compiled tool prints the line stamped into it).
+#
+# IN DEV IT IS TRACKED, AND HELD TO THE BLOCK as a lock file is to its source:
+# build and upgrade write it where it differs, publish refuses a stale one,
+# and doctor fails it. It is in no runtime set, so a change to it alone makes
+# no line +dirty. In opt and brew the publish writes it beside the manifest,
+# and the manifest does not list it. devbin's own trees carry none: devbin
+# reads its own config.
+DEVBIN_TOOL_FACTS=.devbin-tool
+
+# tool_set_pathspecs -- the runtime set as git pathspecs, one a line, each
+# once: each link's and each file entry's `from` that git tracks, as itself,
+# and each directory entry as its pathspecs (_tool_dir_specs). A product is no
+# line. rc 1 when the declaration cannot be read.
+tool_set_pathspecs() {
+  local links files name from label path
+  links="$(cfg_tool_links)" || return 1
+  files="$(cfg_tool_files)" || return 1
+  {
+    while IFS=$'\t' read -r name from; do
+      [ -n "$name" ] || continue
+      if tool_tracked "$from"; then printf '%s\n' ":(literal)$from"; fi
+    done <<<"$links"
+    while IFS=$'\t' read -r label path from; do
+      [ -n "$label" ] || continue
+      if _tool_is_dir_entry "$from"; then
+        _tool_dir_specs "$label" "$from" || return 1
+      elif tool_tracked "$from"; then
+        printf '%s\n' ":(literal)$from"
+      fi
+    done <<<"$files"
+  } | awk '!seen[$0]++'
+  [ "${PIPESTATUS[0]}" -eq 0 ]
+}
+
+# tool_facts_text -- the content of .devbin-tool for this checkout's install:
+# block, as tool_facts_write writes it. rc 1 when the block cannot be read.
+tool_facts_text() {
+  local m specs inputs p
+  m="$(cfg_tool_manifest)" || return 1
+  specs="$(tool_set_pathspecs)" || return 1
+  inputs="$(cfg_build_input_paths)" || return 1
+  printf '%s\n' "# The tool's facts, written by devbin from bin/.devbin/config.yaml's install:" \
+    '# block (docs/dev-opt-brew.md, T1 and T3). Do not edit it: in a checkout,' \
+    '# bin/devbin build and bin/devbin upgrade write it again.'
+  printf 'manifest: %s\n' "$m"
+  while IFS= read -r p; do
+    [ -z "$p" ] || printf 'set: %s\n' "$p"
+  done <<<"$specs"
+  while IFS= read -r p; do
+    [ -z "$p" ] || printf 'input: :(literal)%s\n' "$p"
+  done <<<"$inputs"
+}
+
+# tool_facts_state <root> -- `current` when <root>/.devbin-tool holds
+# tool_facts_text, `stale` when it holds other bytes, `missing` when there is
+# none. rc 1 when the block cannot be read.
+tool_facts_state() {
+  local want f="$1/$DEVBIN_TOOL_FACTS"
+  want="$(tool_facts_text)" || return 1
+  if [ ! -f "$f" ]; then
+    printf 'missing\n'
+  elif [ "$(cat "$f")" = "$want" ]; then
+    printf 'current\n'
+  else
+    printf 'stale\n'
+  fi
+}
+
+# tool_facts_write <root> -- write tool_facts_text to <root>/.devbin-tool
+# through replace_file (lib/helpers), staged beside it and renamed over it, so
+# a reader never sees half a file. rc 1 when it cannot.
+tool_facts_write() {
+  replace_file "$1/$DEVBIN_TOOL_FACTS" tool_facts_text
+}
+
+# tool_facts_sync -- in a tool's checkout, write .devbin-tool where it is not
+# current, and say so on stderr: build and upgrade call it. Writes nothing in
+# devbin's own trees, which carry none. rc 1 when it cannot say or write.
+tool_facts_sync() {
+  local state
+  [ "$(use_target "$PROJECT_ROOT")" = tool ] || return 0
+  state="$(tool_facts_state "$PROJECT_ROOT")" || return 1
+  [ "$state" != current ] || return 0
+  tool_facts_write "$PROJECT_ROOT" || return 1
+  printf '  wrote      %s (the install: block changed; commit it with the block)\n' "$DEVBIN_TOOL_FACTS" >&2
 }
 
 # tool_publish <prefix> <force> <managed> -- publish the project's tool from
@@ -228,7 +357,7 @@ _tool_set_row() {
 # tree does not hold, and the manifest is written last: T3's four keys, the
 # tree's version line under `line`, and each file's sum.
 tool_publish() {
-  local prefix="${1%/}" force="$2" managed="$3" name m ver sha want set place from kind got word owner files removed line n mine
+  local prefix="${1%/}" force="$2" managed="$3" name m ver sha want set place from kind got word owner files removed line n mine src
   name="$(cfg_formula_name)" || return 1
   m="$(cfg_tool_manifest)" || return 1
   ver="$(read_version "$(cfg_version_from)" version-file 2>/dev/null || true)"
@@ -236,6 +365,9 @@ tool_publish() {
   [ "$sha" != unknown ] || die "cannot publish $name: git cannot name the commit of $PROJECT_ROOT, so the install would claim none"
   _tool_publish_clean "$name" "$sha"
   _tool_publish_target "$prefix" "$name" "$m" "$force"
+  if [ "$managed" != brew ]; then
+    _tool_publish_facts "$name"
+  fi
   set="$(tool_runtime_set)" || die "cannot read $name's runtime set from the install: block (above)"
   if grep -q $'\tproduct$' <<<"$set"; then
     "$PROJECT_ROOT/bin/devbin" build || die "the build failed (above), so $name was not published"
@@ -254,15 +386,19 @@ tool_publish() {
   done <<<"$set"
   word=opt
   owner="$name"
+  src=""
   if [ "$managed" = brew ]; then
     word=brew
     owner=brew
+  else
+    physical_dir "$PROJECT_ROOT" src || die "cannot resolve the checkout $PROJECT_ROOT, which an opt manifest names as its source_tree"
   fi
   removed="$(_tool_publish_write "$prefix" "$m" "$set")" || die "failed to write the install at $prefix (above)"
   files="$(_tool_tree_files "$prefix" "$set")" || die "cannot list what the install at $prefix holds (above)"
   line="$(tool_line "$name" "$ver" "$word" "$sha")"
-  _tool_publish_manifest "$prefix" "$m" "$name" "$ver" "$sha" "$owner" "$line" "$files" ||
+  _tool_publish_manifest "$prefix" "$m" "$name" "$ver" "$sha" "$owner" "$line" "$files" "$src" ||
     die "failed to write the manifest at $prefix/$m (above)"
+  tool_facts_write "$prefix" || die "failed to write $DEVBIN_TOOL_FACTS at $prefix (above)"
   n="$(nonempty_lines "$files")"
   printf '  published  %s file(s) to %s\n' "$n" "$prefix"
   while IFS= read -r place; do
@@ -280,6 +416,19 @@ _tool_publish_clean() {
   die "refusing to publish $1: its inputs differ from $2, so the install would claim a commit its bytes are not
 $(printf '%s\n' "$state" | sed 's/^/       /')
        commit or stash them, then publish"
+}
+
+# _tool_publish_facts <name> -- refuse an opt publish while this checkout's
+# .devbin-tool is not its install: block's (tool_facts_state), naming the
+# build that writes it: the tool reads its facts from it in dev. A brew
+# publish runs in a tag's checkout and is not refused: the keg's copy is
+# written from the block either way.
+_tool_publish_facts() {
+  local state
+  state="$(tool_facts_state "$PROJECT_ROOT")" || die "cannot read $1's install: block for $DEVBIN_TOOL_FACTS (above)"
+  [ "$state" != current ] || return 0
+  die "refusing to publish $1: this checkout's $DEVBIN_TOOL_FACTS is $state, and the tool reads its facts from it
+       write it, then commit it with the block:  $DEVBIN_INVOKE build"
 }
 
 # _tool_publish_target <prefix> <name> <manifest> <force> -- refuse a prefix the
@@ -360,16 +509,26 @@ _tool_tree_files() {
 }
 
 # _tool_publish_manifest <prefix> <manifest> <name> <version> <sha> <owner>
-# <line> <files> -- the manifest in T3's form: `tool`, `version`,
-# `source_commit` and `managed_by` (<owner>: the tool's name, or brew), then
+# <line> <files> [<source tree>] -- the manifest in T3's form: `tool`,
+# `version`, `source_commit` and `managed_by` (<owner>: the tool's name, or
+# brew), then
 # `line`, the tree's version line, which a compiled binary prints from here,
-# then one `<sha256>  <path>` line a file, in <files>' order.
+# then `source_tree` where <source tree> is given, then one `<sha256>  <path>`
+# line a file, in <files>' order.
+#
+# SOURCE_TREE IS THE CHECKOUT AN OPT TREE WAS PUBLISHED FROM (issue I79fb280),
+# so a tool's dev-only refusal can name where to run. An opt tree stays on its
+# machine, so the path never leaves it, and no tracked file holds it (devbin's
+# own manifest, which every project tracks, records the kind of its source
+# alone: issue 0153). A keg gets none, since brew deletes its build checkout.
+# It informs and nothing more: no reader refuses on a path that is gone.
 _tool_publish_manifest() {
   local p="$1" m="$2" sums row
   sums="$(_sha256_of_set "$p" "$8")" || return 1
   mkdir -p "$(dirname "$p/$m")" || return 1
   {
     printf '# tool: %s\n# version: %s\n# source_commit: %s\n# managed_by: %s\n# line: %s\n' "$3" "$4" "$5" "$6" "$7"
+    [ -z "${9:-}" ] || printf '# source_tree: %s\n' "$9"
     while IFS= read -r row; do
       [ -n "$row" ] && printf '%s  %s\n' "${row%%$'\t'*}" "${row#*$'\t'}"
     done <<<"$sums"

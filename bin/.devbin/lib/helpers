@@ -67,30 +67,18 @@ bash_floor_refuse() {
     "${DEVBIN_NAME:-devbin}" "$_DEVBIN_BASH_FLOOR" "${1:-unknown}" "${2:-unknown}" >&2
   [ -z "${3:-}" ] || printf '  %s\n' "$3" >&2
   case "${2:-}" in */*) d="${2%/*}" ;; esac
-  case "${HOMEBREW_PREFIX:-}" in
-    /*) _bash_floor_found "$d" "$HOMEBREW_PREFIX/bin/bash" ;;
-    *) _bash_floor_found "$d" /opt/homebrew/bin/bash /usr/local/bin/bash ;;
-  esac ||
+  _bash_floor_found "$d" ||
     printf '  macOS ships bash 3.2 permanently -- install a current one:  brew install bash, or apt-get install bash\n' >&2
   exit 1
 }
 
-# _bash_floor_found <dir> <bash>... -- name, on stderr, the first <bash> that
-# meets the floor, with the PATH that finds it: its directory ahead of <dir>.
-# Non-zero when none does.
+# _bash_floor_found <dir> -- name, on stderr, the first bash the search finds
+# at the floor (bash_floor_find, below), with the PATH that finds it: its
+# directory ahead of <dir>. Non-zero when none does.
 _bash_floor_found() {
-  local d="$1" b v
-  shift
-  for b in "$@"; do
-    [ -x "$b" ] || continue
-    # Single-quoted on purpose: the CHILD bash expands this, not this one.
-    # shellcheck disable=SC2016
-    v="$("$b" -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null)" || continue
-    bash_meets_floor "$v" || continue
-    printf '  a bash >= %s is at %s -- put %s ahead of %s on PATH (for cron or a hook, in the job'"'"'s own PATH)\n' "$_DEVBIN_BASH_FLOOR" "$b" "${b%/bash}" "$d" >&2
-    return 0
-  done
-  return 1
+  local d="$1" b
+  b="$(bash_floor_find)" || return 1
+  printf '  a bash >= %s is at %s -- put %s ahead of %s on PATH (for cron or a hook, in the job'"'"'s own PATH)\n' "$_DEVBIN_BASH_FLOOR" "$b" "${b%/bash}" "$d" >&2
 }
 
 # _DEVBIN_BASH_FLOOR -- devbin's floor, the major version of bash it runs on
@@ -102,14 +90,65 @@ _DEVBIN_BASH_FLOOR=5
 # bash_meets_floor <major> -- rc 0 when <major>, a bash's BASH_VERSINFO[0], is
 # at devbin's floor or above; non-zero for anything else, a word that is not a
 # number included. The one comparison with the floor: the load guard below,
-# the refusal's search, require_path_bash_floor and doctor's bash row all ask
-# it.
+# the refusal's search, require_path_bash_floor, doctor's bash row and the
+# lanes runner all ask it.
 bash_meets_floor() {
   case "${1:-}" in
     '' | *[!0-9]*) return 1 ;;
   esac
   [ "$1" -ge "$_DEVBIN_BASH_FLOOR" ]
 }
+
+# bash_floor_candidates -- the bashes the search asks, one a line, in order:
+# HOMEBREW_PREFIX's alone when the prefix is set and absolute, else the two
+# places Homebrew installs by default on macOS (above: why these and no others).
+bash_floor_candidates() {
+  case "${HOMEBREW_PREFIX:-}" in
+    /*) printf '%s\n' "$HOMEBREW_PREFIX/bin/bash" ;;
+    *) printf '%s\n' /opt/homebrew/bin/bash /usr/local/bin/bash ;;
+  esac
+}
+
+# bash_floor_major <bash> -- the major version <bash> reports, asked of <bash>
+# itself, never read from this shell; rc 1 when it is no program that answers.
+bash_floor_major() {
+  [ -x "$1" ] || return 1
+  # Single-quoted on purpose: the CHILD bash expands this, not this one.
+  # shellcheck disable=SC2016
+  "$1" -c 'printf %s "${BASH_VERSINFO[0]}"' 2>/dev/null
+}
+
+# bash_floor_find [<bash>...] -- the first <bash> that meets the floor, printed,
+# asked in the order given; with none given, bash_floor_candidates'. rc 1 when
+# none does. The refusal names what it finds, and the lanes runner runs itself
+# again under it (issue I5a905ad).
+bash_floor_find() {
+  local b v
+  local -a found=()
+  if [ $# -eq 0 ]; then
+    while IFS= read -r b; do
+      [ -z "$b" ] || found[${#found[@]}]="$b"
+    done <<EOF
+$(bash_floor_candidates)
+EOF
+    set -- "${found[@]}"
+  fi
+  for b in "$@"; do
+    v="$(bash_floor_major "$b")" || continue
+    bash_meets_floor "$v" || continue
+    printf '%s\n' "$b"
+    return 0
+  done
+  return 1
+}
+
+# THE FLOOR ALONE, FOR A CALLER UNDER ANY BASH (issue I5a905ad). The lanes
+# runner is started under the bash its suite runs under, which an older-shell
+# gate puts first on PATH, so it sources this file with _DEVBIN_FLOOR_ONLY set,
+# gets the floor and the search above, finds a bash at the floor, and runs
+# itself again under it. The return is before the floor's check and the load
+# guard, so its later, whole source of this file loads everything as usual.
+[ -z "${_DEVBIN_FLOOR_ONLY:-}" ] || return 0
 
 # THE FLOOR IS CHECKED WHERE EVERY PROCESS PASSES (issue 0076). It lived in the
 # dispatcher alone, and handlers are separate processes: one run directly, or

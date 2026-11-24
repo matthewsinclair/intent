@@ -1104,7 +1104,8 @@ _left_off_brew() {
 # bin/devbin use switches it (use_target; docs/dev-opt-brew.md, T3 to T5; issue
 # 0326). devbin's own switch is check_switch's, above. These rows are the
 # tool's: its copies in this checkout against the line a build here carries
-# (_check_tool_dev), its link set's switch, with the note when it was left off
+# (_check_tool_dev), its facts file against its install: block
+# (_check_tool_facts), its link set's switch, with the note when it was left off
 # brew (_check_tool_switch), and each opt or brew tree the set serves against
 # that tree's manifest (_check_tool_trees).
 #
@@ -1119,10 +1120,30 @@ check_tool() {
   . "$DEVBIN_LIB/tool"
   formula="$(cfg_formula_name 2>/dev/null)" || return 0
   links="$(cfg_tool_links 2>/dev/null)" || return 0
+  _check_tool_facts "$formula"
   _check_tool_dev "$formula" "$links"
   _check_tool_switch "$formula" "$links"
   _check_tool_trees "$formula" "$links"
   return 0
+}
+
+# _check_tool_facts <formula> -- this checkout's .devbin-tool against its
+# install: block (tool_facts_state; issue I6b3b75f): a pass when they agree,
+# and a FAILURE naming the build that writes it when the file is stale or
+# missing, since the tool reads its facts from it.
+_check_tool_facts() {
+  local state
+  if ! state="$(tool_facts_state "$PROJECT_ROOT" 2>/dev/null)"; then
+    _fail "$1 facts: $DEVBIN_TOOL_FACTS cannot be checked, since the install: block cannot be read"
+    return 0
+  fi
+  case "$state" in
+    current) _pass "$1 facts: $DEVBIN_TOOL_FACTS holds its install: block's manifest and runtime set" ;;
+    *)
+      _fail "$1 facts: $DEVBIN_TOOL_FACTS is $state, and the tool reads its manifest and runtime set from it"
+      _detail "write it, then commit it with the block:  $DEVBIN_INVOKE build"
+      ;;
+  esac
 }
 
 # _check_tool_dev <formula> <links> -- each link's copy in this checkout

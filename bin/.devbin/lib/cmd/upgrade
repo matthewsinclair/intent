@@ -474,6 +474,23 @@ EOF
     die "the runtime is upgraded, but devbin's line-ending block is not in .gitattributes (above)"
   [ "$lf" = kept ] || lf_block_said "$lf"
 
+  # THE TOOL'S FACTS, KEPT (issue I6b3b75f): in a project that declares a tool,
+  # .devbin-tool is written where it is not its install: block's, as build
+  # writes it, and said only then. An upgrade from a runtime that knows no such
+  # file writes none, so the file comes with the next upgrade, which runs this
+  # code: a second run, which copies nothing, writes it.
+  # The config is read through the runtime just written, as the next command
+  # will read it.
+  # shellcheck source=lib/config
+  . "$DEVBIN_LIB/config"
+  if ! cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1; then
+    warn "the runtime is upgraded, but $DEVBIN_DIR/config.yaml cannot be read, so the tool's facts file was not checked: $DEVBIN_INVOKE doctor says why"
+  elif [ "$(use_target "$dstroot")" = tool ]; then
+    # shellcheck source=lib/tool
+    . "$DEVBIN_LIB/tool"
+    tool_facts_sync || die "the runtime is upgraded, but $DEVBIN_TOOL_FACTS could not be written from the install: block (above)"
+  fi
+
   # An empty report is indistinguishable from a run that did nothing because it
   # broke. Every path above prints only when it changed something, so the
   # all-unchanged case has to say so explicitly.

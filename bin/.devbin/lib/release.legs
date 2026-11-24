@@ -39,13 +39,13 @@
 #
 # THE REMOTE HALF GOES OVER `ssh <host> 'bash -s'`, never wrapped in `bash -c`
 # or `bash -lc`: the host's own non-interactive startup sets the environment
-# the gates run in (on kovacs, zsh's ~/.zshenv), and bash -s inherits it. Each
-# remote half is a function here, sent by its own definition under
-# `set -euo pipefail` (release_leg_remote), so what runs on the host is what
-# this file holds and what shellcheck reads. The leg's log opens with PATH and
-# where each tool the gates use resolves, so a missing tool is read in the log
-# and the gate's own refusal is the red. Nothing in the remote half asks for a
-# GNU-only flag: a host's coreutils may be uutils.
+# the gates run in (eg zsh's ~/.zshenv, where zsh is the host's shell), and
+# bash -s inherits it. Each remote half is a function here, sent by its own
+# definition under `set -euo pipefail` (release_leg_remote), so what runs on
+# the host is what this file holds and what shellcheck reads. The leg's log
+# opens with PATH and where each tool the gates use resolves, so a missing tool
+# is read in the log and the gate's own refusal is the red. Nothing in the
+# remote half asks for a GNU-only flag: a host's coreutils may be uutils.
 #
 # R GOES OVER BY `git send-pack`, NEVER `git push`. The bare repo is a
 # transport to a test machine: nothing public moves, and a project's pre-push

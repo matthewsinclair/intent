@@ -27,6 +27,8 @@ A project whose suite has a runner of its own, declared as the option's `run:`, 
     export BATS_LIB_PATH=<your bats library>
     "$DEVBIN_LIB/bats-lanes" <your test directory>
 
+The runner needs bash 5 or later. The suite runs under the bash the PATH finds, which is the bash `bats` and each test start with. So a gate that runs the suite under an older bash, such as macOS's `/bin/bash` 3.2, puts that bash first on PATH and calls the runner as above, and needs no other setting. When the runner itself starts under a bash below 5, it looks for one at 5 or later where Homebrew installs it (`$HOMEBREW_PREFIX/bin/bash`, else `/opt/homebrew/bin/bash` and `/usr/local/bin/bash`) and runs itself again under that bash, once. The PATH does not change, so every test still runs under the older bash, and the run's first line names both bashes. Where it finds none, it refuses and names the fallback: plain `bats` with the project's own flags, in one lane.
+
 ## The verdict is a file
 
 A sealed gate writes `tmp/test/<stamp>.<SUFFIX>.out` under the project root, with an `.errors` companion beside it. `<SUFFIX>` names the gate, eg `MIX`, and `<stamp>` is the UTC date and minute, with seconds and then a counter added on a collision. The `.out` log opens with a record of the command line devbin ran, one argument per line.
