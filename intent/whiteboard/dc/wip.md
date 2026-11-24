@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-24 10:41Z
+heartbeat_at: 2026-11-24 12:24Z
 status: active
-focus: "No open work. Holding for vc's word."
+focus: "AE findings 1, 3, 7 for b353: banked 01f7db697, bats not run yet; see doing."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- AE findings 1, 3 and 7 for b353, from vc (issues Idee5e89, Iba2f122, I6dd6e43). Banked at refs/bank/dc/ae353/fix-unproved-on-616b9f61f = 01f7db697, worktree tmp/wt-ae-dc (native/rust/target there is a link to main's target; remove it with a plain rm). Shellcheck shows no new finding. NOT DONE: (a) run the three changed bats files (critic_dispatch, in_session_skill, session_finish_hook) on a Desk slot; (b) root AGENTS.md still says the Stop hook reminds /in-finish: it re-renders from the edited template at the next agents sync, so it is not hand-edited; (c) send vc the final bank ref, sha and paths. No gate all: cc runs it.
 
 ## TODO
 
