@@ -1,0 +1,15 @@
+{
+  "id": "01M86TJ2R01QRK16CN00DQHHM3",
+  "ts": "2026-11-24T13:05:11.952Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I8867c4ae30a17e22"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "at new does not name the new row's state, and at green's refusal does not name at red (AE finding 4)"
+  }
+}

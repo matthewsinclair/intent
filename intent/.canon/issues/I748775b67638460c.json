@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I748775b67638460c",
+  "origin": "01M86TJ40B8VV495X64NN1XM2T",
+  "realised": true,
+  "slug": "issues-close-takes-no-reason-to-record-as-the-re",
+  "title": "issues close takes no reason to record as the Resolution (AE finding 5)",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "AE found this on 3.5.2. `intent issues close` takes no note or reason, so a close that records how the issue was resolved needs an `issues edit` first.\n\nFix (b353): `intent issues close --reason <text>` adds `Resolution: <text>` to the issue's body in the same close. A blank reason is refused. A reason given to an issue that is already closed writes nothing, and the CLI says so.\n"
+}

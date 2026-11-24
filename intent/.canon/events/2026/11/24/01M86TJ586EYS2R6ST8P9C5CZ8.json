@@ -1,0 +1,15 @@
+{
+  "id": "01M86TJ586EYS2R6ST8P9C5CZ8",
+  "ts": "2026-11-24T13:05:14.519Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ie66a7eb05aefabbb"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "issues close names no view, and the unrealised-view advisory does not say it is safe (AE finding 6)"
+  }
+}

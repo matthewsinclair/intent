@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I2aaf979b21f4b416",
+  "origin": "01M86TJ1F4N8GQFP1NYTSJHNHX",
+  "realised": true,
+  "slug": "intent-lang-init-after-intent-init-leaves-agents",
+  "title": "intent lang init after intent init leaves AGENTS.md behind its render (AE finding 2)",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "AE found this on 3.5.2. `intent doctor` reports root-file-behind for AGENTS.md soon after `intent init`.\n\nReproduced on brew 3.5.2: the cause is `intent lang init` (or `intent lang remove`) after `intent init`, not `intent init` itself. `intent init --lang <lang>` is clean. The lang verbs write the languages to `intent/.config/config.json`, and AGENTS.md lists a line for each declared language, but the lang verbs do not render AGENTS.md again.\n\nFix (b353): `intent lang init` and `intent lang remove` render AGENTS.md through `agents sync`'s writer when the project has one, and name it on a `wrote:` line when its bytes move.\n"
+}
