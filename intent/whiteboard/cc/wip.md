@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 07:14Z
+heartbeat_at: 2026-11-24 09:01Z
 status: active
 focus: "2026-11-24 07:15Z by date -u: localfold, not released. 3.5.2 CI-fix bank v4 2a7c9e2d9 green (gate all rc 0), with vc to land; then remove tmp/wt-ci352-cc. Waiting on vc's word after the compact."
 claims: [ST1c2db9394af6d40b]
