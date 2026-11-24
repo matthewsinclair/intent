@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 13:27Z
+heartbeat_at: 2026-11-24 13:35Z
 status: active
-focus: "2026-11-24 13:27Z by date -u: b353 banked at refs/bank/cc/b353/v3 = d07ebf01d with dc's bank and AE 2/4/5/6. Waits on vc's one gate all."
+focus: "2026-11-24 13:35Z by date -u: b353 banked at refs/bank/cc/b353/v4 = bdcde3b41 (decision 94 in). Waits on vc's one gate all."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-- b353 (next release, hv's one batch): banked at refs/bank/cc/b353/v3 = d07ebf01d on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. v2's content (I5adc617, I6f2e257, I53c0c22, Ia87820b, ST1c2db93 P22 and P30, hv decision 91, I7bc038a, If6f0257), then dc's bank 01f7db697 as 01cbbb001 (AE 1, 3, 7), then AE 2, 4, 5, 6 as 667bebed6 (I2aaf979, I8867c4a, I748775b, Ie66a7eb, filed on main at c6ac21ca4), AGENTS.md synced (7392fddb7), docs/reference regenerated (d07ebf01d). Slot 01M86TMV rc 0: clippy, doc, targeted tests, build all. Waits: vc books ONE gate all plus test shell at this tip with devbin-vc; cc books nothing. Open to vc: config set commands.* still leaves AGENTS.md behind while the lang verbs now render it. Close the issues only after the release. (edited)
+- b353 (next release, hv's one batch): banked at refs/bank/cc/b353/v4 = bdcde3b41 on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. v3 d07ebf01d (v2's content, dc's bank as 01cbbb001, AE 2/4/5/6 as 667bebed6, AGENTS.md synced, docs/reference regenerated) plus hv decision 94: config set commands.* renders AGENTS.md like the lang verbs (bdcde3b41, under I2aaf979, extended on main at 00f5dd22d). Slot 01M86W40 rc 0. Waits: vc books ONE gate all plus test shell at this tip with devbin-vc; cc books nothing. Close the issues only after the release. (edited)
 
 ## TODO
 
