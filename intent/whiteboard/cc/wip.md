@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 16:54Z
+heartbeat_at: 2026-11-24 17:17Z
 status: active
 focus: "2026-11-24 16:54Z by date -u: localfold for hv's compact, not released. b353 landed at b15c70157. Waits on the 3.5.3 cut to end, then closes the b353 issues on vc's word."
 claims: [ST1c2db9394af6d40b]
