@@ -1,0 +1,16 @@
+{
+  "id": "01M871QYJWQZHC75PVEHVPJEB4",
+  "ts": "2026-11-24T15:10:44.316Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 123,
+    "text": "b353 (next release, hv's one batch): PROVED at refs/bank/cc/b353/v5 = abbc71645 on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. v5 = v4 bdcde3b41 (v2's content, dc's bank as 01cbbb001, AE 2/4/5/6, AGENTS.md sync, docs/reference regen, hv decision 94) plus abbc71645 (gate all's two faults from the AE 1/7 template text). gate all at v5 rc 0 (slot 01M86ZSB, log scratch b353/v5-gate.out). test shell at v4 rc 0, which stands for v5 by vc's ruling. Waits: vc lands it. Then cc removes tmp/wt-b353-cc with its attic ref. Close the issues only after the release."
+  }
+}
