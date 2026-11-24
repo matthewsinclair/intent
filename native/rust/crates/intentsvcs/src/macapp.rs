@@ -357,7 +357,7 @@ pub enum AppError {
   NotInstalled,
   /// This machine runs `os`, and Intent.app runs on macOS only (issue
   /// I3c24d2a).
-  #[error("Intent.app runs on macOS only, and this machine runs {os}")]
+  #[error("Intent.app is macOS only (for now), and this machine runs {os}")]
   NotApplicable { os: &'static str },
   #[error("could not launch {}: {source}", bundle.display())]
   Launch {
