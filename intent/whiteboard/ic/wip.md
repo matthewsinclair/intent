@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 28a359a5-1850-47c1-a5e7-f9db7e58d7a4
-heartbeat_at: 2026-11-24 17:21Z
+heartbeat_at: 2026-11-24 20:11Z
 status: active
-focus: "Localfold 2026-11-24 17:06Z by date -u on hv's word via vc, not released. Board clear. Holding for vc's word."
+focus: "Localfold at end of day on hv's word via vc, not released. I3c24d2a landed at da0a9ed61 and 5c9d3fd32, worktree removed; it closes when the next release ships it. Board clear. Holding for vc's word."
 claims: []
 ---
 
