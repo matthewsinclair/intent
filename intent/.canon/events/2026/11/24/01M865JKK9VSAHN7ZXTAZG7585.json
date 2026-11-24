@@ -1,0 +1,15 @@
+{
+  "id": "01M865JKK9VSAHN7ZXTAZG7585",
+  "ts": "2026-11-24T06:58:29.111Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ia87820b5c09fb4d3"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Flag a project CLAUDE.md, AGENTS.md or memory line that restates a global rule"
+  }
+}
