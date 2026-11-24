@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "I6dd6e43c73993aeb",
   "origin": "01M86QKS55ZSKNYW6CXQGRGTMA",
-  "realised": true,
   "slug": "stop-hook-tells-the-reader-to-run-in-finish-at-t",
   "title": "Stop hook tells the reader to run /in-finish at the end of every turn",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-24",
+  "closed": "2026-11-24",
   "reporter": "Matthew Sinclair",
-  "body": "AE found this on 3.5.2. intent-vc gave it to dc for the b353 batch.\n\nClaude Code runs the Stop hook at the end of each turn, not at the end of a session. When the tree has uncommitted paths, `session-finish` prints \"Session wrap-up reminder: N uncommitted path(s). Run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.\" after every such turn. `/in-finish` commits. In AE's course the attendee reviews and commits by hand, so the advice is wrong for that reader at every turn.\n\nFix: the hook names the uncommitted paths (the first few, then a count of the rest) and gives no instruction. `/in-finish` stays a session-end step, which the skill and CLAUDE.md already say. A clean tree, and a tree that git cannot read, show nothing. The docs that say the Stop hook reminds the reader to run `/in-finish` change to match.\n"
+  "body": "AE found this on 3.5.2. intent-vc gave it to dc for the b353 batch.\n\nClaude Code runs the Stop hook at the end of each turn, not at the end of a session. When the tree has uncommitted paths, `session-finish` prints \"Session wrap-up reminder: N uncommitted path(s). Run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.\" after every such turn. `/in-finish` commits. In AE's course the attendee reviews and commits by hand, so the advice is wrong for that reader at every turn.\n\nFix: the hook names the uncommitted paths (the first few, then a count of the rest) and gives no instruction. `/in-finish` stays a session-end step, which the skill and CLAUDE.md already say. A clean tree, and a tree that git cannot read, show nothing. The docs that say the Stop hook reminds the reader to run `/in-finish` change to match.\n\nResolution: Fixed in v3.5.3 at 8475de825 (landed through b15c70157): the Stop hook names up to five uncommitted paths, and it gives no /in-finish instruction."
 }

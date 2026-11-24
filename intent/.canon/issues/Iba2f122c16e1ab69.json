@@ -2,12 +2,12 @@
   "schema": "intent/issue@4.0",
   "id": "Iba2f122c16e1ab69",
   "origin": "01M86QKRT66FY4A8NJ7R59VKK9",
-  "realised": true,
   "slug": "in-session-reads-mix-exs-in-a-project-that-does",
   "title": "/in-session reads mix.exs in a project that does not declare elixir",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-11-24",
+  "closed": "2026-11-24",
   "reporter": "Matthew Sinclair",
-  "body": "AE found this on 3.5.2 in a Perl project. intent-vc gave it to dc for the b353 batch.\n\n`/in-session` step 3, \"Elixir dep-based fan-out\", says \"When `mix.exs` is present, read it\". The step does not depend on the declared languages. In a project that does not declare `elixir`, an agent reads `mix.exs` to find out if it is present. The read fails, and the session shows \"1 failed\".\n\nFix: step 3 runs only when `elixir` is a declared language. The agent tests for `mix.exs` with `test -f mix.exs` and does not read a file that may not exist. An absent `mix.exs` is not a failure. Step 6 reports only the skills for the declared languages.\n"
+  "body": "AE found this on 3.5.2 in a Perl project. intent-vc gave it to dc for the b353 batch.\n\n`/in-session` step 3, \"Elixir dep-based fan-out\", says \"When `mix.exs` is present, read it\". The step does not depend on the declared languages. In a project that does not declare `elixir`, an agent reads `mix.exs` to find out if it is present. The read fails, and the session shows \"1 failed\".\n\nFix: step 3 runs only when `elixir` is a declared language. The agent tests for `mix.exs` with `test -f mix.exs` and does not read a file that may not exist. An absent `mix.exs` is not a failure. Step 6 reports only the skills for the declared languages.\n\nResolution: Fixed in v3.5.3 at 8475de825 (landed through b15c70157): /in-session runs its mix.exs step only when elixir is declared, and the step tests for mix.exs first."
 }
