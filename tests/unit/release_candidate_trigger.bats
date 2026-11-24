@@ -15,13 +15,16 @@
 # THAT ONE RUN CARRIES THE RUST LEG. tests.yml calls rust.yml for a candidate,
 # and its rust job and test-summary's rust-leg rule each key on the candidate's
 # ref. A prefix that drifted from the one the cut pushes would skip the rust leg
-# AND excuse the skip, so the run would read green with a leg missing. The third
-# test holds each of those keys to the prefix config names.
+# AND excuse the skip, so the run would read green with a leg missing. The test
+# "a candidate's run carries rust.yml's job" holds each of those keys to the
+# prefix config names.
 #
 # THE CANDIDATE'S RUN HAS NO macOS LEG (hv decision 97). The cut's local macos
 # leg on rhadamanth is its macOS proof. tests.yml's test-macos job,
 # test-summary's macOS-leg rule and rust.yml's macOS matrix entry key on a run
-# by hand alone. The fourth test holds each of those to that key.
+# by hand alone. The test "the macOS leg runs by hand alone" holds each of
+# those to that key, and holds test-summary's gate line to pass each leg's rule
+# with that leg's result.
 
 load "../lib/test_helper.bash"
 
@@ -47,12 +50,12 @@ push_trigger_keys() {
   ' "$1"
 }
 
-# The `if:` line of job <job> in workflow <file>.
-job_if() {
-  awk -v job="$2" '
+# The `<key>:` line of job <job> in workflow <file>.
+job_line() {
+  awk -v job="$2" -v key="$3" '
     $0 ~ "^  " job ":[[:space:]]*$" { injob = 1; next }
     injob && /^  [^[:space:]#]/ { injob = 0 }
-    injob && /^    if:/ { print; exit }
+    injob && $0 ~ "^    " key ":" { print; exit }
   ' "$1"
 }
 
@@ -80,20 +83,35 @@ job_if() {
 }
 
 @test "AT-04.1: a candidate's run carries rust.yml's job, keyed on the prefix config names" {
-  local tmpl key
+  local tmpl key dispatch="github.event_name == 'workflow_dispatch'" uses rust_if rust_leg
   tmpl="$(candidate_template)"
   [ -n "$tmpl" ]
   key="startsWith(github.ref, 'refs/heads/${tmpl%%\{tag\}*}')"
+  uses="$(job_line "$WF/tests.yml" rust uses)"
+  rust_if="$(job_line "$WF/tests.yml" rust if)"
+  rust_leg="$(grep -m1 '^ *rust_leg=' "$WF/tests.yml")"
   echo "key: $key"
-  grep -qx '    uses: ./.github/workflows/rust.yml' "$WF/tests.yml"
+  echo "uses: $uses"
+  echo "rust if: $rust_if"
+  echo "rust_leg: $rust_leg"
   grep -qx '  workflow_call:' "$WF/rust.yml"
-  grep -qF -- "$key" <<<"$(job_if "$WF/tests.yml" rust)"
-  grep -qF -- "$key" <<<"$(grep -m1 '^ *rust_leg=' "$WF/tests.yml")"
+  [ "$uses" = "    uses: ./.github/workflows/rust.yml" ]
+  [ "$rust_if" = "    if: \${{ $key || $dispatch }}" ]
+  [ "$rust_leg" = "          rust_leg=\"\${{ $key || $dispatch }}\"" ]
 }
 
 @test "AT-04.1: the macOS leg runs by hand alone, never on a candidate" {
-  local dispatch="github.event_name == 'workflow_dispatch'"
-  [ "$(job_if "$WF/tests.yml" test-macos)" = "    if: \${{ $dispatch }}" ]
-  [ "$(grep -m1 '^ *macos_leg=' "$WF/tests.yml")" = "          macos_leg=\"\${{ $dispatch }}\"" ]
-  grep -qF -- "fromJSON($dispatch && '[\"macos-latest\", \"ubuntu-latest\"]' || '[\"ubuntu-latest\"]')" <<<"$(grep -m1 '^ *os: ' "$WF/rust.yml")"
+  local dispatch="github.event_name == 'workflow_dispatch'" macos_if macos_leg os gate
+  macos_if="$(job_line "$WF/tests.yml" test-macos if)"
+  macos_leg="$(grep -m1 '^ *macos_leg=' "$WF/tests.yml")"
+  os="$(grep -m1 '^ *os: ' "$WF/rust.yml")"
+  gate="$(grep -m1 'needs.test-linux.result' "$WF/tests.yml")"
+  echo "test-macos if: $macos_if"
+  echo "macos_leg: $macos_leg"
+  echo "os: $os"
+  echo "gate: $gate"
+  [ "$macos_if" = "    if: \${{ $dispatch }}" ]
+  [ "$macos_leg" = "          macos_leg=\"\${{ $dispatch }}\"" ]
+  [ "$os" = "        os: \${{ fromJSON($dispatch && '[\"macos-latest\", \"ubuntu-latest\"]' || '[\"ubuntu-latest\"]') }}" ]
+  [ "$gate" = '          if [ "${{ needs.test-linux.result }}" == "success" ] && leg_ok "${{ needs.test-macos.result }}" "$macos_leg" && leg_ok "${{ needs.rust.result }}" "$rust_leg"; then' ]
 }
