@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 17:55Z
+heartbeat_at: 2026-11-24 20:11Z
 status: active
-focus: "2026-11-24 17:55Z by date -u: b353 issues closed at 7cd75db2c, released in v3.5.3. ci353 v1 landed at fc77b3a87; v2 (refs/bank/cc/ci353/v2 = 63751ae7b, test only) waits on its Desk slot, then vc lands it."
+focus: "2026-11-24 20:11Z by date -u: localfold at end of day, not released. Board clear. 3.5.3 released; the b353 issues are closed at 7cd75db2c; ci353 landed at fc77b3a87 and c64704162."
 claims: [ST1c2db9394af6d40b]
 ---
 
