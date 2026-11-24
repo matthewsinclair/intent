@@ -1,0 +1,15 @@
+{
+  "id": "01M861F15247Y51NHTVMHS8A1P",
+  "ts": "2026-11-24T05:46:37.925Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I5adc61704f84e1f6"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "A daemon_status test's fixed 5 s HTTP read timeout reds under load"
+  }
+}

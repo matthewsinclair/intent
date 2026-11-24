@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I5adc61704f84e1f6",
+  "origin": "01M861F15247Y51NHTVMHS8A1P",
+  "realised": true,
+  "slug": "a-daemon-status-test-s-fixed-5-s-http-read-timeo",
+  "title": "A daemon_status test's fixed 5 s HTTP read timeout reds under load",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "The test `daemon_status_answers_a_machine::live_names_a_browser_address_that_serves_a_page_without_a_token` uses a fixed 5 s read timeout. Under load it fails without a fault in the code.\n\nSeen: gate all on rhadamanth at 05:33Z to 05:45Z on 2026-11-24, at bank deec193a5. `plain_get` (intent-cli/tests/daemon_status_answers_a_machine.rs) panicked at `read_to_end` with WouldBlock (os error 35). The 5-minute load average was about 70.\n\nCause: `plain_get` sets `set_read_timeout(Some(Duration::from_secs(5)))`, and one `read_to_end` must finish inside it. A slow host or a busy CI runner can take longer for the daemon to answer the first GET.\n\nFix direction: do not use a wall-clock deadline as the verdict. Wait for the daemon by the harness's readiness wait (it answers a real op first), then read with no fixed deadline short enough to fail a slow answer. Or retry the GET a bounded number of times, as `ATTEMPTS` does in tests/common. The test then fails only when the page does not come, not when it is slow.\n"
+}
