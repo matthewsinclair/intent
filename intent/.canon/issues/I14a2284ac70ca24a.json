@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I14a2284ac70ca24a",
+  "origin": "01M85Z5F7WYZRQD4Q95E8V3ZJR",
+  "realised": true,
+  "slug": "restart-test-compares-a-route-not-an-address-a-t",
+  "title": "Restart test compares a route, not an address: a timed-out unix probe routes to the TCP understudy",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "CI run 45328303838 (3.5.2 candidate at 029297dee) failed the_daemon_harness_can_restart::a_restart_replaces_the_process_and_keeps_the_address at tests/the_daemon_harness_can_restart.rs:50, on ubuntu-latest: left Some(Unix(<home>/.local/state/intent/run/intentd.sock)), right Some(Tcp(127.0.0.1:51737)), the same home.\n\n`RealDaemon::endpoint()` is `daemon::route(candidates_under(home))`: the first candidate whose probe completes a round trip inside `PROBE_DEADLINE` (250ms). On a loaded runner the unix probe after the restart timed out, so the route fell to the TCP understudy, whose port is new with every daemon. The test compared a route, not the address its comment names (\"derived from HOME alone\"). The two arms are not a cross-test HOME race: the left is this test's own home.\n\nmcp_bridge_restart.rs carried a tautological `endpoint() == endpoint()` assertion with the same exposure.\n\nFix (test-only): `RealDaemon::socket()` returns the socket path the home derives, and the restart test asserts that a plain `UnixStream::connect` to it succeeds after the restart (no probe deadline), so the new daemon is observed at the old address. The tautological assertion goes.\n"
+}

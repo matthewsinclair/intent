@@ -1,0 +1,15 @@
+{
+  "id": "01M85Z5HA4ZGM3EE69R1G2FCKD",
+  "ts": "2026-11-24T05:06:29.338Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ief26a29bdc6310cf"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "Slots queue: a hand-back tie-breaks on its own id and loses its place when two asks share an mtime"
+  }
+}

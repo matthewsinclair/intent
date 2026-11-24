@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "Ief26a29bdc6310cf",
+  "origin": "01M85Z5HA4ZGM3EE69R1G2FCKD",
+  "realised": true,
+  "slug": "slots-queue-a-hand-back-tie-breaks-on-its-own-id",
+  "title": "Slots queue: a hand-back tie-breaks on its own id and loses its place when two asks share an mtime",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "CI run 45328303838 (3.5.2 candidate at 029297dee) failed intentsvcs estate::slots::tests::a_hand_back_keeps_its_place_from_a_grant_revoked_before_its_start at slots.rs:2835 on ubuntu-latest: the queue read [later, again] where [again, later] was expected.\n\n`queue_order` sorts open requests by `asked_at`, or for a hand-back (`--place-of`) the prior request's `asked_at`, then by the request's OWN id. `asked_at` is the ask file's mtime, which Linux stamps from the coarse clock, so `first` and `later`, asked a few milliseconds apart, carried one mtime. The tie then fell to the ids, and the hand-back's own id, minted after `later`'s, sorted it behind the request whose place it was ahead of. This is a product ordering defect on Linux, not only a test flake: a hand-back can lose its place to a request asked in the same clock tick as the one it replaces.\n\nFix: the sort key is `(place.asked_at, place.id)`, the prior request's id as well as its time, with the request's own id as the last tie-break. The test pins the two asks to one mtime, so the tie is exercised on every platform.\n"
+}
