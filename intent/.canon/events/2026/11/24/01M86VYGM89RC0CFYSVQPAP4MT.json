@@ -1,0 +1,15 @@
+{
+  "id": "01M86VYGM89RC0CFYSVQPAP4MT",
+  "ts": "2026-11-24T13:29:27.945Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24, by selection in vc's question dialog; the options' wording vc's, the choice hv's and vc's recommendation) ONE RULE FOR CONFIG WRITERS AND AGENTS.md, IN b353: `intent config set commands.*` rewrites AGENTS.md through the same library door the lang verbs use (Facade::agents_sync_if_present), so no config change leaves AGENTS.md behind. Issue 0678's test changes to match. cc builds it before b353's one gate all."
+  }
+}

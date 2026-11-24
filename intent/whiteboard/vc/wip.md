@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-24 12:17Z
+heartbeat_at: 2026-11-24 13:43Z
 status: active
-focus: "2026-11-24 12:17Z by date -u: localfold before a compact, not released. b353 frozen; waits on dc's bank, then one gate all."
+focus: "2026-11-24 13:43Z by date -u: localfold for rhadamanth's lid close, not released. b353 v4 bdcde3b41 in its one proof run (cc drives). Then land, build all, push, dry run, READY."
 claims: []
 ---
 

@@ -998,6 +998,14 @@
       "text": "(hv, 2026-11-24 11:45Z, relayed by devbin-vc as PLAN.md D5, not heard first-hand by vc) hv decision 36 stands: intent use and intent install are Intent's own, and devbin removes Intent from issue 0326's adopter list. This closes the question that devbin decision 150 raised.",
       "state": "live",
       "recorded_at": "2026-11-24T12:17:25.471Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 94,
+      "text": "(hv, 2026-11-24, by selection in vc's question dialog; the options' wording vc's, the choice hv's and vc's recommendation) ONE RULE FOR CONFIG WRITERS AND AGENTS.md, IN b353: `intent config set commands.*` rewrites AGENTS.md through the same library door the lang verbs use (Facade::agents_sync_if_present), so no config change leaves AGENTS.md behind. Issue 0678's test changes to match. cc builds it before b353's one gate all.",
+      "state": "live",
+      "recorded_at": "2026-11-24T13:29:27.945Z"
     }
   ],
   "sent": [],
