@@ -43,6 +43,6 @@
   ],
   "title": "TeamDeclaration",
   "type": "object",
-  "x-intent-ver": "3.5.2",
+  "x-intent-ver": "3.5.3",
   "x-schema-json-ver": 28
 }
