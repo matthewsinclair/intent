@@ -1,0 +1,15 @@
+{
+  "id": "01M86Q2X1FMSHVEYHXY5S6ZE4H",
+  "ts": "2026-11-24T12:04:28.865Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "If6f025779f93b43d"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intent set refuses a thread prefix in an address, and its remedy offers that prefix"
+  }
+}

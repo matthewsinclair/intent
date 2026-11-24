@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "If6f025779f93b43d",
+  "origin": "01M86Q2X1FMSHVEYHXY5S6ZE4H",
+  "realised": true,
+  "slug": "intent-set-refuses-a-thread-prefix-in-an-address",
+  "title": "intent set refuses a thread prefix in an address, and its remedy offers that prefix",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "Raised by AE, through intent-vc, on 2026-11-24. Reproduced on Intent 3.5.2 (fabbffd8c).\n\n## Problem\n\n`intent set intent:///threads/ST6d1f96f/wp/81453070 objective --from <file>` refuses with \"`ST6d1f96f` is not a steel thread id\". Its remedy offers \"a hashed id or a unique prefix of its hex, eg ST3f9a2c1\", which is the form that it refuses.\n\nCause: `Facade::set` matched the address's thread, as typed, against each stored id. It never completed a prefix. `put`, `post`, `edit`, `detach_attachment` and the realisation doors each ask `Facade::whole_address` first, so they take a unique prefix. `put_attachment` had the same gap as `set`.\n\n## Fix\n\n`Facade::set` and `Facade::put_attachment` ask `whole_address` first, as every other address door does. A prefix that is accepted at every door is the Highlander answer. This reaches the CLI's `intent set`, intentd's `Op::Set` and the TUI's edit handoff, because all three call `Facade::set`. Owner cc, size XS.\n"
+}
