@@ -1,0 +1,15 @@
+{
+  "id": "01M860GT695SPM3KG8Z6NCXDD1",
+  "ts": "2026-11-24T05:30:07.453Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I53c0c22af0eaf622"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "intentd's daily backup skips Webber's store on some days (8 snapshots in 16 days)"
+  }
+}
