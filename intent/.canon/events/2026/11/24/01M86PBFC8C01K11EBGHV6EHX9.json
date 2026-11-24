@@ -1,0 +1,15 @@
+{
+  "id": "01M86PBFC8C01K11EBGHV6EHX9",
+  "ts": "2026-11-24T11:51:41.192Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24, two answers in this order) NO 4-HEX PREFIX IN AC OR AT LABELS. First, in vc's question dialog, hv chose \"Yes, add it to this batch\". Then, in devbin-vc's window by AskUserQuestion, after vc put the conflict with PLAN.md D1 (hv's word at 11:45Z) to hv, hv chose \"No prefix, D1 stands\"; relayed by devbin-vc, not heard first-hand by vc. The second answer replaces the first. Labels stay AC-<the package's 8 hex>.1 and AC-00.1, and AT labels take the same form. b353 is proved as banked at 935b77daf. The prefix may be a later issue if attendees ask."
+  }
+}
