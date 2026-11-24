@@ -961,6 +961,14 @@
       "text": "(hv, 2026-11-24, by selection in vc's question dialog, answered by 06:03Z on vc's date -u; the question's and options' wording vc's, the choice hv's, against vc's recommendation) 3.5.2 WAITS FOR I75b8995: a CLI can route to another HOME's daemon over TCP 51737 after a crash, since the CLI does not check which daemon answered. hv chose \"Hold 3.5.2 for the fix\" over \"Cut 3.5.2 without it\". cc designs the version skew first, then builds the HOME-token fix with a skew test on top of the CI-fix bank, under one gate all.",
       "state": "live",
       "recorded_at": "2026-11-24T06:03:32.076Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 90,
+      "text": "(hv, 2026-11-24, by selection in vc's question dialog; the question's and options' wording vc's, the choice hv's and vc's recommendation) THE FIVE MCP TESTS RIDE 3.5.2: mcp_stdio_serves, the_mcp_organize_door, wb_archive_message, no_removal_is_unannounced and migrated_guards_still_refuse write every frame before they read a reply, so each can hang as I37f8e18 did. hv chose \"Fix them in 3.5.2\" over \"Cut 3.5.2 now\". cc moves them to the fixed session helper; one gate all, then build all, push, dry run and READY.",
+      "state": "live",
+      "recorded_at": "2026-11-24T07:22:10.455Z"
     }
   ],
   "sent": [],

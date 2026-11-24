@@ -1,0 +1,15 @@
+{
+  "id": "01M866XZMQ1D0V3608FRQ919B5",
+  "ts": "2026-11-24T07:22:10.455Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24, by selection in vc's question dialog; the question's and options' wording vc's, the choice hv's and vc's recommendation) THE FIVE MCP TESTS RIDE 3.5.2: mcp_stdio_serves, the_mcp_organize_door, wb_archive_message, no_removal_is_unannounced and migrated_guards_still_refuse write every frame before they read a reply, so each can hang as I37f8e18 did. hv chose \"Fix them in 3.5.2\" over \"Cut 3.5.2 now\". cc moves them to the fixed session helper; one gate all, then build all, push, dry run and READY."
+  }
+}

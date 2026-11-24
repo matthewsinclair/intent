@@ -5,7 +5,7 @@
     "name": "Validation Claude",
     "role": "validation",
     "session_id": "5af3bd13-884c-4502-be68-30788850cf56",
-    "heartbeat_at": "2026-11-24T06:36:21.485Z",
+    "heartbeat_at": "2026-11-24T06:55:28.706Z",
     "status": "active",
     "focus": "2026-11-24 06:37Z by date -u: localfold on hv's call before a compact, not released. 3.5.2 waits on cc's v3 gate all; see doing 67.",
     "claims": [],
@@ -3169,10 +3169,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 67,
-      "text": "3.5.2, hv decisions 87, 88 and 89. Two cuts stopped red at legs on candidate CI (runs 45326139850 and 45328303838), with nothing tagged. The release commit 029297dee was reset off main and kept at refs/attic/vc/release-v3.5.2-try1. Upstream main is at 3475b6e94. OPEN: cc's refs/bank/cc/ci352/v3 (188842aa4, on b1ed72e56) holds the CI test fixes (I5207bf7, I14a2284, Ief26a29) and I75b8995 (the identity probe, no secret on TCP); its gate all was running at 06:33Z. Then: land v3, build all, push, release --dry-run with a clean tree and intentd stopped, READY, and hv runs bin/devbin release v3.5.2. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze.",
+      "text": "3.5.2, hv decisions 87, 88, 89 and 90. Two cuts stopped red at legs on candidate CI (runs 45326139850 and 45328303838), with nothing tagged. The release commit 029297dee was reset off main and kept at refs/attic/vc/release-v3.5.2-try1. Upstream main is at 3475b6e94. cc's v4 is on main (f3a168417, 96bb28a6c, 3ecd74577): the CI reds, I75b8995 and I37f8e18. OPEN: cc's v5 moves the five write-then-read MCP tests that I37f8e18 names to the fixed helper (hv decision 90), under one gate all. Then: land v5, build all at HEAD, push, release --dry-run with a clean tree and intentd stopped, READY, and hv runs bin/devbin release v3.5.2. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze.",
       "state": "live",
       "recorded_at": "2026-11-23T10:31:21.618Z",
-      "edited_at": "2026-11-24T06:36:20.414Z"
+      "edited_at": "2026-11-24T07:22:28.283Z"
     }
   ],
   "sent": [
