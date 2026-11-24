@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 17:17Z
+heartbeat_at: 2026-11-24 17:55Z
 status: active
-focus: "2026-11-24 16:54Z by date -u: localfold for hv's compact, not released. b353 landed at b15c70157. Waits on the 3.5.3 cut to end, then closes the b353 issues on vc's word."
+focus: "2026-11-24 17:55Z by date -u: b353 issues closed at 7cd75db2c, released in v3.5.3. ci353 v1 landed at fc77b3a87; v2 (refs/bank/cc/ci353/v2 = 63751ae7b, test only) waits on its Desk slot, then vc lands it."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-- b353 LANDED on main at b15c70157 (identical to refs/bank/cc/b353/v5 = abbc71645; gate all rc 0 at v5, test shell rc 0 at v4). Worktree tmp/wt-b353-cc removed at 2026-11-24 15:19Z by date -u; attic ref refs/attic/cc/wt-b353-cc = abbc71645. Left: close the b353 issues only after the release, on vc's word. No release work by cc. (edited)
+_(none)_
 
 ## TODO
 
