@@ -40,12 +40,12 @@ It is opt-in: absent until a project asks for it with `commands.formula.enabled:
                       release repository's owner, over ssh
     formula.repo      assets: the repository whose release carries the
                       assets; default the release repository
-    formula.sums      assets: the sums file's name on that release; default
-                      SHA256SUMS
+    formula.sums      assets, and a source formula's cask: the sums file's
+                      name on the release; default SHA256SUMS
     formula.assets    assets: the assets the templates take a sha256 of, each
                       a name on the release, which may hold {version}
-    formula.cask      assets: a cask template, from the project root; none:
-                      no cask
+    formula.cask      either mode: a cask template, from the project root;
+                      none: no cask
     formula.bash      true: on macOS each of the tool's links is an env
                       script that puts the formula's bash first on PATH;
                       default false, a link
@@ -100,6 +100,10 @@ render also refuses:
 
 The cask, where formula.cask names one, is rendered from the same release and goes to the tap in the same commit as the formula, as `Casks/<template's name>`, so the tap never holds a formula and a cask from different releases.
 
+## A cask beside a source formula
+
+In source mode, formula.cask names a cask too, eg for an app the release attaches as a zip (issue Iab013e2). The formula still builds from the tag's checkout, as above. The cask is filled as assets mode fills one: `@@VERSION@@` is the release's version, and each `@@SHA256:<name>@@` is the sum the release's sums file gives for `<name>`, with `{version}` read as the version. The names the cask's placeholders hold are its assets, since formula.assets is not read in source mode, and each is placed once. The sums come from the release repository's release, or from the file `--sums` names, and render then takes `<cask-out>`. publish pushes the cask to `Casks/<template's name>` in the same commit as the formula. formula.repo and formula.assets are still refused in source mode.
+
 In both modes, a placeholder left after filling is refused by name, so a misspelt one cannot ship, and a refusal writes nothing.
 
 In both modes, every line a render writes of its own, its header and the install body it generates, passes `brew style`, so a tap whose CI runs it needs no exception for them. The template's own lines are the project's to keep within Homebrew's style.
@@ -112,7 +116,7 @@ The template's own header, its leading run of `#` comment and blank lines, is ab
 
 ## Before the tag: check
 
-`bin/devbin formula check` takes no argument and writes nothing. It fills the templates as render does, through the same code, with a stand-in tag, version and commit, and in assets mode a stand-in sum for each asset formula.assets lists, so every refusal above that does not depend on the tag is reached before there is one: a placeholder missing, repeated or left over, the install body and what comes before `@@INSTALL@@`, the post-install step's place, and in assets mode each asset placed once, in the cask as in the formula. It exits 0 saying the template renders, and the cask with it where formula.cask names one, or exits 1 with render's own refusal.
+`bin/devbin formula check` takes no argument and writes nothing. It fills the templates as render does, through the same code, with a stand-in tag, version and commit, and a stand-in sum for each asset, the names formula.assets lists in assets mode and the names a source formula's cask holds, so every refusal above that does not depend on the tag is reached before there is one: a placeholder missing, repeated or left over, the install body and what comes before `@@INSTALL@@`, the post-install step's place, and in assets mode each asset placed once, in the cask as in the formula. It exits 0 saying the template renders, and the cask with it where formula.cask names one, or exits 1 with render's own refusal.
 
 What it cannot read is what only the tag gives: the commit the tag names, and in assets mode the release's sums file, which render reads at the publish.
 

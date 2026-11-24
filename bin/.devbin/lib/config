@@ -1146,8 +1146,10 @@ cfg_macos_artefact() {
 #             release repository's owner
 #   repo      assets: the repository whose release carries the assets and its
 #             sums; default the release repository
-#   sums      assets: the sums file's name on that release
-#   cask      assets: a cask template, from the project root; none: no cask
+#   sums      assets, and a source formula's cask: the sums file's name on
+#             the release
+#   cask      either mode: a cask template, from the project root; none: no
+#             cask
 #   assets    assets: the asset names the templates take a sha256 of, each may
 #             hold {version}
 #   bash      true when the tool's links run under the bash the formula depends

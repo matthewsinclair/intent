@@ -25,6 +25,8 @@
 #
 #   source   @@TAG@@ and @@REVISION@@, exactly one of each: the tag and the
 #            commit it names, read from git. brew builds from that checkout.
+#            A cask beside it (formula.cask, issue Iab013e2) is filled as
+#            assets mode fills one, its assets the names its placeholders hold.
 #   assets   @@VERSION@@, the release's version, read from the tag through
 #            release.tag; @@SHA256:<asset>@@, one per asset in formula.assets,
 #            each read from the release's sums file, never computed here from
@@ -333,12 +335,16 @@ formula_settings() {
   is_ruby_word "$F_MANIFEST" || die "install.manifest '$F_MANIFEST' holds a character a keg path never does"
   case "$F_MODE" in
     source)
-      for k in repo cask; do
-        v="$(cfg_formula_get "$k")" || exit 1
-        [ -z "$v" ] || die "formula.$k is declared, and formula.mode is source, which reads it nowhere"
-      done
+      v="$(cfg_formula_get repo)" || exit 1
+      [ -z "$v" ] || die "formula.repo is declared, and formula.mode is source, which reads it nowhere"
       [ -z "$(cfg_formula_list assets)" ] ||
         die "formula.assets is declared, and formula.mode is source, which reads it nowhere"
+      # A SOURCE FORMULA MAY SHIP A CASK BESIDE IT (issue Iab013e2): an app the
+      # release attaches as a zip, pinned by the release's sums file as in
+      # assets mode. The cask's assets are the names its @@SHA256:<name>@@
+      # placeholders hold (source_cask), since nothing else here downloads one.
+      F_CASK="$(cfg_formula_get cask)" || exit 1
+      F_SUMS="$(cfg_formula_get sums)" || exit 1
       ;;
     assets)
       F_SUMS="$(cfg_formula_get sums)" || exit 1
@@ -493,16 +499,27 @@ bash_build_fill() {
   printf '%s' "$out"
 }
 
-# render_source <tag> <file> -- the formula for <tag>, filled from the template
-# and written to <file> under the render's own header (rendered_text), with the
-# commit it names on stdout. Dies, writing nothing, on a tag or a template it
-# cannot fill.
+# render_source <tag> <file> [<cask-file> <sums-text>] -- the formula for <tag>,
+# filled from the template and written to <file> under the render's own header
+# (rendered_text), and the cask to <cask-file> where formula.cask names one,
+# filled from the release's version and <sums-text> as assets mode fills its
+# cask (issue Iab013e2), with the commit the tag names on stdout. Dies, writing
+# nothing, on a tag, a template or a sums file it cannot fill.
 render_source() {
-  local tag="$1" file="$2" commit filled
+  local tag="$1" file="$2" cfile="${3:-}" sums="${4:-}" commit filled version cout
   commit="$(formula_revision "$tag")"
   source_template "$tag"
   filled="$(source_filled "$tag" "$commit" && printf .)" || exit 1
   filled="${filled%.}"
+  if [ -n "$F_CASK" ]; then
+    version="$(tag_version "$tag")"
+    source_cask
+    sums_cover "$sums" "$version"
+    cout="$(assets_filled cask "$version" "$commit" "$sums" && printf .)" || exit 1
+    cout="${cout%.}"
+    replace_file "$cfile" rendered_text "$A_CMAGIC" "$cout" "$tag" "$commit" "$F_CASK" ||
+      die "cannot write the cask to $cfile (above)"
+  fi
   replace_file "$file" rendered_text "$TPL_MAGIC" "$filled" "$tag" "$commit" "$F_TEMPLATE" ||
     die "cannot write the formula to $file (above)"
   printf '%s\n' "$commit"
@@ -967,7 +984,7 @@ A_FMAGIC="" A_FTEXT="" A_CMAGIC="" A_CTEXT=""
 # substitution. Nothing here reads git or the release's sums: `formula check`
 # runs it before any tag exists (issue I3ce05fa).
 assets_templates() {
-  local text a seen n
+  local text
   ASSETS_SEEN=()
   text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
   template_split "${text%.}"
@@ -983,14 +1000,68 @@ assets_templates() {
     assets_check "$A_CTEXT" "$F_CASK" cask
     [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
   fi
-  # EACH ASSET ONCE, ACROSS THE FORMULA AND THE CASK.
+  assets_once formula.assets
+}
+
+# assets_once <what> -- die, naming <what> (where the asset names come from),
+# on an asset of F_ASSETS that ASSETS_SEEN, the placeholders assets_check read,
+# does not hold exactly once.
+assets_once() {
+  local a seen n
   for a in "${F_ASSETS[@]}"; do
     n=0
     for seen in ${ASSETS_SEEN[@]+"${ASSETS_SEEN[@]}"}; do
       [ "$seen" != "$a" ] || n=$((n + 1))
     done
     [ "$n" = 1 ] ||
-      die "formula.assets names $a, and the templates hold its @@SHA256:$a@@ $n time(s), where they hold it exactly once"
+      die "$1 names $a, and the templates hold its @@SHA256:$a@@ $n time(s), where they hold it exactly once"
+  done
+}
+
+# source_cask -- in source mode, read the cask template formula.cask names into
+# A_CMAGIC and A_CTEXT, set F_ASSETS to the names its @@SHA256:<name>@@
+# placeholders hold, in order, and die, naming it, on one render cannot fill
+# (assets_check, as assets mode checks its cask), on a name the release core
+# would not take as an asset's, or on one placed twice. Nothing where no cask
+# is declared. Runs in the caller's shell, never in a substitution; reads no
+# git and no sums, so `formula check` runs it before any tag exists.
+source_cask() {
+  local text rest name why
+  [ -n "$F_CASK" ] || return 0
+  text="$(file_text "$F_CASK")" || die "cannot read the cask template at $PROJECT_ROOT/$F_CASK"
+  template_split "${text%.}"
+  [ -n "$TPL_BODY" ] || die "$F_CASK holds nothing after its header, so there is no cask to render"
+  A_CMAGIC="$TPL_MAGIC" A_CTEXT="$TPL_BODY"
+  F_ASSETS=()
+  rest="$A_CTEXT"
+  while [[ "$rest" =~ @@SHA256:([^@[:space:]]+)@@ ]]; do
+    name="${BASH_REMATCH[1]}"
+    rest="${rest#*"${BASH_REMATCH[0]}"}"
+    case " ${F_ASSETS[*]-} " in
+      *" $name "*) ;;
+      *) F_ASSETS+=("$name") ;;
+    esac
+  done
+  [ "${#F_ASSETS[@]}" -gt 0 ] ||
+    die "$F_CASK holds no @@SHA256:<name>@@, so nothing in it is pinned to the release's sums"
+  for name in "${F_ASSETS[@]}"; do
+    if why="$(release_name_problem "${name//"{version}"/0.0.0}")"; then
+      die "$F_CASK: @@SHA256:$name@@: $why"
+    fi
+  done
+  ASSETS_SEEN=()
+  assets_check "$A_CTEXT" "$F_CASK" cask
+  [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
+  assets_once "$F_CASK"
+}
+
+# sums_cover <sums> <version> -- die, rendering nothing, on an asset of F_ASSETS
+# the sums file's text <sums> does not name for <version>.
+sums_cover() {
+  local a
+  for a in "${F_ASSETS[@]}"; do
+    [ -n "$(sums_of "$1" "${a//"{version}"/"$2"}")" ] ||
+      die "the release's sums file names no asset ${a//"{version}"/"$2"}, so its sha256 is not known and nothing was rendered"
   done
 }
 
@@ -1017,15 +1088,12 @@ assets_filled() {
 }
 
 render_assets() {
-  local tag="$1" file="$2" cfile="$3" sums="$4" version commit a out cout
+  local tag="$1" file="$2" cfile="$3" sums="$4" version commit out cout
   version="$(tag_version "$tag")"
   commit="$(formula_revision "$tag")"
   assets_templates
   # EACH ASSET'S SUM FROM THE FILE.
-  for a in "${F_ASSETS[@]}"; do
-    [ -n "$(sums_of "$sums" "${a//"{version}"/"$version"}")" ] ||
-      die "the release's sums file names no asset ${a//"{version}"/"$version"}, so its sha256 is not known and nothing was rendered"
-  done
+  sums_cover "$sums" "$version"
   out="$(assets_filled formula "$version" "$commit" "$sums" && printf .)" || exit 1
   out="${out%.}"
   if [ -n "$F_CASK" ]; then
@@ -1056,7 +1124,7 @@ cmd_render() {
     esac
   done
   formula_settings
-  if [ "$F_MODE" = source ]; then
+  if [ "$F_MODE" = source ] && [ -z "$F_CASK" ]; then
     [ "${#pos[@]}" -eq 2 ] && [ -z "$sums_file" ] || die "usage: $DEVBIN_INVOKE formula render <tag> <out>"
     commit="$(render_source "${pos[0]}" "${pos[1]}")"
     printf 'formula: wrote %s, %s %s at %s\n' "${pos[1]}" "$F_NAME" "${pos[0]}" "$commit"
@@ -1073,7 +1141,11 @@ cmd_render() {
   # shellcheck disable=SC2064 # expanded now: $work is this function's local
   trap "rm -rf -- $(printf '%q' "$work")" EXIT
   sums="$(release_sums "$tag" "$work" "$sums_file")"
-  commit="$(render_assets "$tag" "$out" "$cout" "$sums")"
+  if [ "$F_MODE" = source ]; then
+    commit="$(render_source "$tag" "$out" "$cout" "$sums")"
+  else
+    commit="$(render_assets "$tag" "$out" "$cout" "$sums")"
+  fi
   printf 'formula: wrote %s, %s %s at %s\n' "$out" "$F_NAME" "$tag" "$commit"
   [ -z "$F_CASK" ] || printf 'formula: wrote the cask to %s\n' "$cout"
 }
@@ -1188,17 +1260,21 @@ cmd_publish() {
   fpath="Formula/$F_NAME.rb"
   paths=("$fpath")
   mkdir -p "$clone/Formula"
-  if [ "$F_MODE" = source ]; then
+  [ -z "$F_CASK" ] || {
+    cpath="Casks/$(basename "$F_CASK")"
+    paths+=("$cpath")
+    mkdir -p "$clone/Casks"
+  }
+  if [ "$F_MODE" = source ] && [ -z "$F_CASK" ]; then
     commit="$(render_source "$tag" "$clone/$fpath")"
   else
-    [ -z "$F_CASK" ] || {
-      cpath="Casks/$(basename "$F_CASK")"
-      paths+=("$cpath")
-      mkdir -p "$clone/Casks"
-    }
     mkdir -p "$work/sums"
     sums="$(release_sums "$tag" "$work/sums")"
-    commit="$(render_assets "$tag" "$clone/$fpath" "${cpath:+$clone/$cpath}" "$sums")"
+    if [ "$F_MODE" = source ]; then
+      commit="$(render_source "$tag" "$clone/$fpath" "$clone/$cpath" "$sums")"
+    else
+      commit="$(render_assets "$tag" "$clone/$fpath" "${cpath:+$clone/$cpath}" "$sums")"
+    fi
   fi
   # Read with its status, never inside the test: a status that failed would
   # read as a tap already carrying the release.
@@ -1267,14 +1343,15 @@ cmd_check() {
   if [ "$F_MODE" = source ]; then
     source_template "$stand_tag"
     source_filled "$stand_tag" "$stand_commit" >/dev/null || exit 1
+    source_cask
   else
     assets_templates
-    for a in "${F_ASSETS[@]}"; do
-      sums+="$stand_commit$stand_commit"'  '"${a//"{version}"/"$stand_version"}"$'\n'
-    done
-    assets_filled formula "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
-    [ -z "$F_CASK" ] || assets_filled cask "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
   fi
+  for a in ${F_ASSETS[@]+"${F_ASSETS[@]}"}; do
+    sums+="$stand_commit$stand_commit"'  '"${a//"{version}"/"$stand_version"}"$'\n'
+  done
+  [ "$F_MODE" = source ] || assets_filled formula "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
+  [ -z "$F_CASK" ] || assets_filled cask "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
   if [ -n "$F_CASK" ]; then
     printf 'formula: %s and the cask %s render: every check that needs no tag passed\n' "$F_TEMPLATE" "$F_CASK"
   else

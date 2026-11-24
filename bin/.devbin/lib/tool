@@ -334,6 +334,12 @@ tool_facts_write() {
 # tool_facts_sync -- in a tool's checkout, write .devbin-tool where it is not
 # current, and say so on stderr: build and upgrade call it. Writes nothing in
 # devbin's own trees, which carry none. rc 1 when it cannot say or write.
+#
+# A FILE WRITTEN WHERE THERE WAS NONE IS NEW TO THE PROJECT'S TESTS TOO (issue
+# I0702984). An opt publish refuses a checkout with no .devbin-tool
+# (_tool_publish_facts), so a test that builds a copy of the checkout and
+# publishes from it fails once the file exists in the real tree and not in the
+# copy. So the first write says what such a test must copy.
 tool_facts_sync() {
   local state
   [ "$(use_target "$PROJECT_ROOT")" = tool ] || return 0
@@ -341,6 +347,8 @@ tool_facts_sync() {
   [ "$state" != current ] || return 0
   tool_facts_write "$PROJECT_ROOT" || return 1
   printf '  wrote      %s (the install: block changed; commit it with the block)\n' "$DEVBIN_TOOL_FACTS" >&2
+  [ "$state" = missing ] || return 0
+  printf '  note       %s is new: a test that builds a copy of this checkout to publish from must copy it, or the publish refuses the copy\n' "$DEVBIN_TOOL_FACTS" >&2
 }
 
 # tool_publish <prefix> <force> <managed> -- publish the project's tool from

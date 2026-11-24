@@ -740,8 +740,8 @@ formula:
   # template: packaging/homebrew/demo.rb   # undeclared: packaging/homebrew/<name>.rb
   # tap: ssh://git@git.example/example/homebrew-demo.git   # undeclared: homebrew-<name> under the release repository's owner
   # repo: example/demo-dist   # assets: undeclared: the release repository
-  sums: SHA256SUMS            # assets: the sums file's name on the release
-  # cask: packaging/homebrew/demo-app.rb   # assets: undeclared: no cask
+  sums: SHA256SUMS            # assets, and a source formula's cask: the sums file's name on the release
+  # cask: packaging/homebrew/demo-app.rb   # either mode: undeclared: no cask
   # assets:                   # assets: each name may hold {version}
   #   - demo-aarch64-apple-darwin
   bash: false                 # true: on macOS each of the tool's links is an env script putting the formula's bash first on PATH
