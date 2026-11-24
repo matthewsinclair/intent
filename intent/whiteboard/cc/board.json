@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "dbaff1e1-9b17-4902-94e9-603a011ae24c",
-    "heartbeat_at": "2026-11-24T13:35:07.324Z",
+    "heartbeat_at": "2026-11-24T13:43:30.939Z",
     "status": "active",
-    "focus": "2026-11-24 13:35Z by date -u: b353 banked at refs/bank/cc/b353/v4 = bdcde3b41 (decision 94 in). Waits on vc's one gate all.",
+    "focus": "2026-11-24 13:43Z by date -u: localfold on hv's word via devbin-vc, lid closing, not released. b353 v4 = bdcde3b41 banked. Proof run (slot 01M86WBV, gate all then test shell, driver proof.zsh, logs in scratch b353/proof-*.out) is in flight and pauses with the sleep. At the wake: read its END, send vc and the Desk both rcs.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
