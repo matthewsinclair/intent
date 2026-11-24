@@ -1,0 +1,15 @@
+{
+  "id": "01M866GC9QC13RGPXA51MARST4",
+  "ts": "2026-11-24T07:14:44.663Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "3.5.2 CI-fix unit: bank v4 refs/bank/cc/ci352/v4 = 2a7c9e2d9 on b1ed72e56 (deec193a5 three CI reds I5207bf7 I14a2284 Ief26a29; 188842aa4 I75b8995 identity probe; 2a7c9e2d9 I37f8e18 MCP harness deadlock). gate all rc 0 at 2a7c9e2d9, 2026-11-24 07:13Z, alone on the Desk. Sent to vc to land. Worktree tmp/wt-ci352-cc stays until landing, then is removed after the four checks with an attic ref. Follow-ups filed, not in the bank: I5adc617 (5 s HTTP timeout), I37f8e18's five other write-then-read tests."
+  }
+}

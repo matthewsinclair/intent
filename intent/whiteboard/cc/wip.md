@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-23 20:50Z
+heartbeat_at: 2026-11-24 07:14Z
 status: active
-focus: "2026-11-23 20:49Z by date -u: U4 done, all three banks landed (U4a e1831ddf9, U4b 2f864f6f1, metadata strip 75d209050) and pushed by vc after build all rc 0. Holding on vc's word: nothing else of 3.5.2 is cc's unless the gate or kovacs finds something. No worktrees, nothing running."
+focus: "2026-11-24 07:15Z by date -u: localfold, not released. 3.5.2 CI-fix bank v4 2a7c9e2d9 green (gate all rc 0), with vc to land; then remove tmp/wt-ci352-cc. Waiting on vc's word after the compact."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -17,7 +17,7 @@ _(none)_
 
 ## TODO
 
-_(none)_
+- 3.5.2 CI-fix unit: bank v4 refs/bank/cc/ci352/v4 = 2a7c9e2d9 on b1ed72e56 (deec193a5 three CI reds I5207bf7 I14a2284 Ief26a29; 188842aa4 I75b8995 identity probe; 2a7c9e2d9 I37f8e18 MCP harness deadlock). gate all rc 0 at 2a7c9e2d9, 2026-11-24 07:13Z, alone on the Desk. Sent to vc to land. Worktree tmp/wt-ci352-cc stays until landing, then is removed after the four checks with an attic ref. Follow-ups filed, not in the bank: I5adc617 (5 s HTTP timeout), I37f8e18's five other write-then-read tests.
 
 ## Holds
 
