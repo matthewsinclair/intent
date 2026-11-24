@@ -1,0 +1,15 @@
+{
+  "id": "01M862DZVCPHZS4KNG9BSPK8W3",
+  "ts": "2026-11-24T06:03:32.076Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24, by selection in vc's question dialog, answered by 06:03Z on vc's date -u; the question's and options' wording vc's, the choice hv's, against vc's recommendation) 3.5.2 WAITS FOR I75b8995: a CLI can route to another HOME's daemon over TCP 51737 after a crash, since the CLI does not check which daemon answered. hv chose \"Hold 3.5.2 for the fix\" over \"Cut 3.5.2 without it\". cc designs the version skew first, then builds the HOME-token fix with a skew test on top of the CI-fix bank, under one gate all."
+  }
+}

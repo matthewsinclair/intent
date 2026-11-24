@@ -953,6 +953,14 @@
       "text": "(hv, 2026-11-23, by selection in vc's question dialogs, answered by 11:52Z on vc's date -u; the questions' and options' wording vc's, each choice hv's and vc's recommendation) FOUR 3.5.2 SCOPE RULINGS. (1) ST0057 AT-04.6: \"Retire it, row to n-a\". sparse_tree_equals_manifest.sh measured intent/.intentfiles, which the 3.5.0 format move removed. (2) ST1c2db93 P22, the single older-render predicate (L): \"Next release\". (3) ST1c2db93 P30, the canon-ignore-guard hook fix: \"Next release\", so no hook change ships to attendees in 3.5.2. (4) The v2-only instruments conservation_check.sh, estate_census.sh and fleet_corpus_conservation.sh: \"No, retire them\". No v2 estate remains to convert, and ST0056 AT-10.5 goes to n-a.",
       "state": "live",
       "recorded_at": "2026-11-23T11:52:55.038Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 89,
+      "text": "(hv, 2026-11-24, by selection in vc's question dialog, answered by 06:03Z on vc's date -u; the question's and options' wording vc's, the choice hv's, against vc's recommendation) 3.5.2 WAITS FOR I75b8995: a CLI can route to another HOME's daemon over TCP 51737 after a crash, since the CLI does not check which daemon answered. hv chose \"Hold 3.5.2 for the fix\" over \"Cut 3.5.2 without it\". cc designs the version skew first, then builds the HOME-token fix with a skew test on top of the CI-fix bank, under one gate all.",
+      "state": "live",
+      "recorded_at": "2026-11-24T06:03:32.076Z"
     }
   ],
   "sent": [],
