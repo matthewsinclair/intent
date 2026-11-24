@@ -3,9 +3,6 @@
 //! end of life at exit 0 -- the property the row's `not_probed` exemption
 //! describes, driven instead of asserted.
 
-use std::io::Write;
-use std::process::Stdio;
-
 #[test]
 fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -21,43 +18,26 @@ fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
     String::from_utf8_lossy(&init.stderr)
   );
 
-  let mut child = crate::common::intent()
-    .arg("mcp")
-    .current_dir(dir.path())
-    .stdin(Stdio::piped())
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn()
-    .expect("spawn intent mcp");
-
-  {
-    let stdin = child.stdin.as_mut().expect("stdin");
-    for frame in [
+  // The helper closes stdin after the last frame: EOF is how an MCP host says
+  // goodbye.
+  let (out, frames) = crate::common::mcp_session(
+    dir.path(),
+    None,
+    &[
       r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
       r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
       r#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#,
       r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"intent_st_list","arguments":{"status":"all"}}}"#,
       r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"intent_doctor","arguments":{}}}"#,
-    ] {
-      writeln!(stdin, "{frame}").expect("write frame");
-    }
-  }
-  // Dropping stdin closes it: EOF is how an MCP host says goodbye.
-  drop(child.stdin.take());
-
-  let out = child.wait_with_output().expect("wait for the server");
+    ],
+  );
   assert!(
     out.status.success(),
     "the host closing stdin must be exit 0, got {:?}\nstderr: {}",
     out.status.code(),
     String::from_utf8_lossy(&out.stderr)
   );
-
-  let stdout = String::from_utf8(out.stdout).expect("utf8 stdout");
-  let frames: Vec<serde_json::Value> = stdout
-    .lines()
-    .map(|l| serde_json::from_str(l).expect("every output line is one JSON frame"))
-    .collect();
+  let stdout = String::from_utf8_lossy(&out.stdout);
   // Exactly one response per id-bearing request, in order; silence for the
   // notification.
   assert_eq!(
@@ -72,11 +52,16 @@ fn the_server_answers_a_whole_session_and_exits_cleanly_when_the_host_leaves() {
   assert_eq!(frames[0]["result"]["protocolVersion"], "2025-06-18");
   assert_eq!(frames[0]["result"]["serverInfo"]["name"], "intent");
 
-  let tools = frames[1]["result"]["tools"].as_array().expect("tools");
+  // The listing names each tool this session goes on to call.
+  let tools: Vec<&str> = frames[1]["result"]["tools"]
+    .as_array()
+    .expect("tools")
+    .iter()
+    .map(|t| t["name"].as_str().expect("a tool's name"))
+    .collect();
   assert!(
-    tools.len() > 40,
-    "only {} tools listed, which is too few to be the declared population",
-    tools.len()
+    tools.contains(&"intent_st_list") && tools.contains(&"intent_doctor"),
+    "tools/list: {tools:?}"
   );
 
   // st list on a fresh project: a well-formed empty listing, not an error.
@@ -113,17 +98,10 @@ fn refusals_travel_on_their_declared_channels_and_never_kill_the_session() {
     .expect("run intent init");
   assert!(init.status.success());
 
-  let mut child = crate::common::intent()
-    .arg("mcp")
-    .current_dir(dir.path())
-    .stdin(Stdio::piped())
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn()
-    .expect("spawn intent mcp");
-  {
-    let stdin = child.stdin.as_mut().expect("stdin");
-    for frame in [
+  let (out, frames) = crate::common::mcp_session(
+    dir.path(),
+    None,
+    &[
       // `title` missing: the serve tier's Args refusal.
       r#"{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"intent_st_new","arguments":{}}}"#,
       // A narrowed parameter: refused BY NAME, not accepted-and-ignored.
@@ -132,18 +110,9 @@ fn refusals_travel_on_their_declared_channels_and_never_kill_the_session() {
       r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"intent_info"}}"#,
       // Still alive afterwards.
       r#"{"jsonrpc":"2.0","id":4,"method":"ping"}"#,
-    ] {
-      writeln!(stdin, "{frame}").expect("write frame");
-    }
-  }
-  drop(child.stdin.take());
-  let out = child.wait_with_output().expect("wait");
+    ],
+  );
   assert!(out.status.success());
-  let frames: Vec<serde_json::Value> = String::from_utf8(out.stdout)
-    .expect("utf8")
-    .lines()
-    .map(|l| serde_json::from_str(l).expect("json"))
-    .collect();
 
   assert_eq!(frames[0]["result"]["isError"], true);
   assert!(

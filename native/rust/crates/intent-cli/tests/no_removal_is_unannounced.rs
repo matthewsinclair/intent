@@ -405,27 +405,16 @@ fn the_mcp_organize_tool_refuses_to_apply_a_plan_the_caller_was_not_shown() {
         r#"{{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{{"name":"intent_organize","arguments":{args}}}}}"#
       ),
     ];
-    let mut child = crate::common::intent()
-      .arg("mcp")
-      .current_dir(root)
-      .env("HOME", testkit::fixture_home())
-      .stdin(std::process::Stdio::piped())
-      .stdout(std::process::Stdio::piped())
-      .stderr(std::process::Stdio::piped())
-      .spawn()
-      .expect("spawn intent mcp");
-    {
-      use std::io::Write as _;
-      let stdin = child.stdin.as_mut().expect("stdin");
-      for frame in &frames {
-        writeln!(stdin, "{frame}").expect("write frame");
-      }
-    }
-    drop(child.stdin.take());
-    let out = child.wait_with_output().expect("wait");
-    let frame: serde_json::Value = String::from_utf8_lossy(&out.stdout)
-      .lines()
-      .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+    let frames: Vec<&str> = frames.iter().map(String::as_str).collect();
+    let (out, answers) = crate::common::mcp_session(root, None, &frames);
+    assert!(
+      out.status.success(),
+      "the session must end at exit 0, got {:?}\nstderr: {}",
+      out.status.code(),
+      String::from_utf8_lossy(&out.stderr)
+    );
+    let frame = answers
+      .into_iter()
       .find(|v| v.get("id").and_then(|i| i.as_u64()) == Some(2))
       .expect("an answer to the tool call");
     let text = frame

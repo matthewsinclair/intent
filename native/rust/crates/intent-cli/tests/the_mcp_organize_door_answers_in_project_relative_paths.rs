@@ -16,9 +16,6 @@
 //! in -- guard on the wrong side of the wire -- is not closed by that: the
 //! server has to still be calling it, with the project IT opened.
 
-use std::io::Write;
-use std::process::Stdio;
-
 /// Every field of the `organize` answer that carries paths. Named exhaustively
 /// rather than sampled, because the defect was one closure feeding ALL of them
 /// and an arm reading `unclaimed` alone would pass a fix applied to one field.
@@ -61,31 +58,16 @@ fn the_mcp_organize_door_answers_in_project_relative_paths() {
   std::fs::create_dir_all(&thread).expect("thread dir");
   std::fs::write(thread.join("diagram.png"), b"not a render\n").expect("unclaimed file");
 
-  let mut child = crate::common::intent()
-    .arg("mcp")
-    .current_dir(root)
-    .stdin(Stdio::piped())
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn()
-    .expect("spawn intent mcp");
-  {
-    let stdin = child.stdin.as_mut().expect("stdin");
-    for frame in [
+  let (out, frames) = crate::common::mcp_session(
+    root,
+    None,
+    &[
       r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"drive","version":"0"}}}"#,
       r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
       r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"intent_organize","arguments":{}}}"#,
-    ] {
-      writeln!(stdin, "{frame}").expect("write frame");
-    }
-  }
-  drop(child.stdin.take());
-  let out = child.wait_with_output().expect("wait for the server");
-  let stdout = String::from_utf8(out.stdout).expect("utf8 stdout");
-  let frames: Vec<serde_json::Value> = stdout
-    .lines()
-    .map(|l| serde_json::from_str(l).expect("every output line is one JSON frame"))
-    .collect();
+    ],
+  );
+  let stdout = String::from_utf8_lossy(&out.stdout);
   let call = frames
     .iter()
     .find(|f| f["id"].as_i64() == Some(2))

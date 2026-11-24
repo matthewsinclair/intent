@@ -380,13 +380,16 @@ fn the_resolver_answers_and_the_hook_does_not_fail_open() {
     .stdout(std::process::Stdio::piped())
     .spawn()
     .expect("spawn sed");
-  {
+  // **SED IS FED ON ITS OWN THREAD** (issue I37f8e18), so its output is read
+  // while its input is written, and a full stdout pipe cannot block the feed.
+  let mut stdin = sed.stdin.take().expect("sed stdin");
+  let input = [info.stdout.as_slice(), info.stderr.as_slice()].concat();
+  let feed = std::thread::spawn(move || {
     use std::io::Write;
-    let stdin = sed.stdin.as_mut().expect("sed stdin");
-    stdin.write_all(&info.stdout).expect("feed sed");
-    stdin.write_all(&info.stderr).expect("feed sed");
-  }
+    stdin.write_all(&input).expect("feed sed");
+  });
   let resolved = sed.wait_with_output().expect("sed output");
+  feed.join().expect("the sed feed");
   let value = String::from_utf8_lossy(&resolved.stdout)
     .lines()
     .next()
