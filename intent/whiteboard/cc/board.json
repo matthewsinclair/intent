@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "dbaff1e1-9b17-4902-94e9-603a011ae24c",
-    "heartbeat_at": "2026-11-24T15:10:46.241Z",
+    "heartbeat_at": "2026-11-24T15:19:46.916Z",
     "status": "active",
-    "focus": "2026-11-24 15:10Z by date -u: b353 proved at refs/bank/cc/b353/v5 = abbc71645 (gate all rc 0). Waits on vc to land.",
+    "focus": "2026-11-24 15:19Z by date -u: b353 landed at b15c70157, worktree removed. Waits on the release to close its issues.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
@@ -2654,10 +2654,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 123,
-      "text": "b353 (next release, hv's one batch): PROVED at refs/bank/cc/b353/v5 = abbc71645 on base b1cc56a8b, worktree tmp/wt-b353-cc, branch cc/b353. v5 = v4 bdcde3b41 (v2's content, dc's bank as 01cbbb001, AE 2/4/5/6, AGENTS.md sync, docs/reference regen, hv decision 94) plus abbc71645 (gate all's two faults from the AE 1/7 template text). gate all at v5 rc 0 (slot 01M86ZSB, log scratch b353/v5-gate.out). test shell at v4 rc 0, which stands for v5 by vc's ruling. Waits: vc lands it. Then cc removes tmp/wt-b353-cc with its attic ref. Close the issues only after the release.",
+      "text": "b353 LANDED on main at b15c70157 (identical to refs/bank/cc/b353/v5 = abbc71645; gate all rc 0 at v5, test shell rc 0 at v4). Worktree tmp/wt-b353-cc removed at 2026-11-24 15:19Z by date -u; attic ref refs/attic/cc/wt-b353-cc = abbc71645. Left: close the b353 issues only after the release, on vc's word. No release work by cc.",
       "state": "live",
       "recorded_at": "2026-11-24T12:21:05.126Z",
-      "edited_at": "2026-11-24T15:10:44.316Z"
+      "edited_at": "2026-11-24T15:19:32.700Z"
     }
   ],
   "sent": [

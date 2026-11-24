@@ -1,0 +1,16 @@
+{
+  "id": "01M87282JWMH88K5MQ067HCS1J",
+  "ts": "2026-11-24T15:19:32.700Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 123,
+    "text": "b353 LANDED on main at b15c70157 (identical to refs/bank/cc/b353/v5 = abbc71645; gate all rc 0 at v5, test shell rc 0 at v4). Worktree tmp/wt-b353-cc removed at 2026-11-24 15:19Z by date -u; attic ref refs/attic/cc/wt-b353-cc = abbc71645. Left: close the b353 issues only after the release, on vc's word. No release work by cc."
+  }
+}
