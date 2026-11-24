@@ -12342,6 +12342,14 @@ fn app_status() -> Result<(), Failure> {
     macapp::State::NotInstalled => Err(Failure::Unavailable(app_message(
       &macapp::AppError::NotInstalled,
     ))),
+    // **EXIT 0 AND NO REMEDY** (issue I3c24d2a): nothing is missing, and no
+    // install works on this OS.
+    macapp::State::NotApplicable { os } => {
+      println!(
+        "Intent.app does not apply to this platform: it runs on macOS only, and this machine runs {os}"
+      );
+      Ok(())
+    }
   }
 }
 

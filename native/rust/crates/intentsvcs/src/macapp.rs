@@ -78,18 +78,35 @@ pub enum State {
   Installed { bundle: PathBuf },
   /// No bundle in any location this machine builds or installs to.
   NotInstalled,
+  /// This machine runs `os`, and Intent.app runs on macOS only (issue
+  /// I3c24d2a). Nothing is missing, so nothing is to be done.
+  NotApplicable { os: &'static str },
 }
 
 impl State {
   /// `0` running, `1` installed and not running, `2` not installed -- geodica's
   /// convention, kept so a script written against one tool reads the other.
+  /// Not applicable is `0`: the operator has nothing to start or install.
   pub fn code(&self) -> i32 {
     match self {
-      Self::Running { .. } => 0,
+      Self::Running { .. } | Self::NotApplicable { .. } => 0,
       Self::Installed { .. } => 1,
       Self::NotInstalled => 2,
     }
   }
+}
+
+/// The OS that Intent.app is built for and runs on.
+const APP_OS: &str = "macos";
+
+/// `os` when Intent.app does not apply to it, else `None` (issue I3c24d2a).
+///
+/// **THE ONE PLATFORM CHECK OF THIS MODULE.** [`status`] and [`start`] read it,
+/// and [`restart`] reads it through [`start`]. It takes the OS as a parameter
+/// so a test on macOS can drive the other answer; the one ambient read is
+/// `std::env::consts::OS`, at each call.
+fn foreign_os(os: &'static str) -> Option<&'static str> {
+  (os != APP_OS).then_some(os)
 }
 
 /// Every bundle location this machine can produce, in the order a running app
@@ -304,6 +321,14 @@ pub fn pid() -> Option<u32> {
 
 /// Where the app is, what it is doing, and nothing derived beyond that.
 pub fn status() -> State {
+  status_on(std::env::consts::OS)
+}
+
+/// [`status`] on a machine that runs `os`.
+fn status_on(os: &'static str) -> State {
+  if let Some(os) = foreign_os(os) {
+    return State::NotApplicable { os };
+  }
   match running() {
     Some((pid, bundle)) => {
       // **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST.** An app
@@ -330,6 +355,10 @@ pub enum AppError {
     "Intent.app is not built or installed on this machine -- looked in /Applications and in the build output"
   )]
   NotInstalled,
+  /// This machine runs `os`, and Intent.app runs on macOS only (issue
+  /// I3c24d2a).
+  #[error("Intent.app runs on macOS only, and this machine runs {os}")]
+  NotApplicable { os: &'static str },
   #[error("could not launch {}: {source}", bundle.display())]
   Launch {
     bundle: PathBuf,
@@ -378,6 +407,8 @@ impl crate::remedy::Remedy for AppError {
   fn remedy(&self) -> String {
     match self {
       Self::NotInstalled => not_installed_remedy(crate::install::home().ok().as_deref()),
+      // **NEVER AN INSTALL.** No install of Intent.app works on this OS.
+      Self::NotApplicable { .. } => "Intent.app runs on macOS only. On this OS, use the `intent` CLI, which does everything the app shows.".to_string(),
       Self::Launch { bundle, .. } => format!(
         "LaunchServices refused to open `{}`. Check the bundle is complete -- `bin/devbin macos app-verify` reports a missing executable or Info.plist -- and rebuild it with `bin/devbin macos app-build` if it is not.",
         bundle.display()
@@ -403,6 +434,14 @@ impl crate::remedy::Remedy for AppError {
 /// process with no such registration -- which is why `app-run` exists as a
 /// separate developer verb and is deliberately not what this does.
 pub fn start() -> Result<(u32, PathBuf), AppError> {
+  start_on(std::env::consts::OS)
+}
+
+/// [`start`] on a machine that runs `os`.
+fn start_on(os: &'static str) -> Result<(u32, PathBuf), AppError> {
+  if let Some(os) = foreign_os(os) {
+    return Err(AppError::NotApplicable { os });
+  }
   if let Some((pid, bundle)) = running() {
     return Ok((pid, bundle.unwrap_or_else(|| PathBuf::from("(unknown)"))));
   }
@@ -551,6 +590,28 @@ mod tests {
     assert_eq!(running.code(), 0);
     assert_eq!(installed.code(), 1);
     assert_eq!(State::NotInstalled.code(), 2);
+  }
+
+  #[test]
+  fn status_off_macos_is_not_applicable_and_exits_0() {
+    // Issue I3c24d2a: on Linux this said "not installed", with a cask remedy.
+    let state = status_on("linux");
+    assert_eq!(state, State::NotApplicable { os: "linux" });
+    assert_eq!(state.code(), 0);
+  }
+
+  #[test]
+  fn start_off_macos_refuses_as_not_applicable_and_never_names_an_install() {
+    // restart runs start, so this arm covers restart too.
+    let Err(e) = start_on("linux") else {
+      panic!("start on linux must refuse");
+    };
+    assert!(
+      matches!(e, AppError::NotApplicable { os: "linux" }),
+      "{e:?}"
+    );
+    let remedy = crate::remedy::Remedy::remedy(&e);
+    assert!(!remedy.contains("install"), "{remedy}");
   }
 
   #[test]
