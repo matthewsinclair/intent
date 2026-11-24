@@ -986,9 +986,10 @@
       "node": "hv",
       "kind": "decision",
       "seq": 92,
-      "text": "(hv, 2026-11-24, two answers in this order) NO 4-HEX PREFIX IN AC OR AT LABELS. First, in vc's question dialog, hv chose \"Yes, add it to this batch\". Then, in devbin-vc's window by AskUserQuestion, after vc put the conflict with PLAN.md D1 (hv's word at 11:45Z) to hv, hv chose \"No prefix, D1 stands\"; relayed by devbin-vc, not heard first-hand by vc. The second answer replaces the first. Labels stay AC-<the package's 8 hex>.1 and AC-00.1, and AT labels take the same form. b353 is proved as banked at 935b77daf. The prefix may be a later issue if attendees ask.",
+      "text": "(hv, 2026-11-24, two answers in this order) THE COURSE TEACHES THE FULL 8 HEX IN AC AND AT LABELS. First, in vc's question dialog, hv chose \"Yes, add it to this batch\" (a 4-hex package prefix in labels). Then, in devbin-vc's window by AskUserQuestion, after vc put the conflict with PLAN.md D1 (hv's word at 11:45Z) to hv, hv chose \"No prefix, D1 stands\"; relayed by devbin-vc, not heard first-hand by vc. The second answer replaces the first. Corrected forward the same day on a fact found after it: the prefix door already ships in 3.5.2 by design (Facade::whole_label completes a unique 4-hex package prefix and stores the label whole). Option (a), keep the door as shipped with no code change and teach the 8 hex, is devbin-vc's call and vc's recommendation, and hv was told; it is not yet hv's own ruling, and hv may still choose to remove the door.",
       "state": "live",
-      "recorded_at": "2026-11-24T11:51:41.192Z"
+      "recorded_at": "2026-11-24T11:51:41.192Z",
+      "edited_at": "2026-11-24T12:08:08.074Z"
     }
   ],
   "sent": [],

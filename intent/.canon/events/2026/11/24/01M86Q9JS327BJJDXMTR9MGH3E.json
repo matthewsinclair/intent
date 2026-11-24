@@ -1,0 +1,16 @@
+{
+  "id": "01M86Q9JS327BJJDXMTR9MGH3E",
+  "ts": "2026-11-24T12:08:08.074Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "seq": 92,
+    "text": "(hv, 2026-11-24, two answers in this order) THE COURSE TEACHES THE FULL 8 HEX IN AC AND AT LABELS. First, in vc's question dialog, hv chose \"Yes, add it to this batch\" (a 4-hex package prefix in labels). Then, in devbin-vc's window by AskUserQuestion, after vc put the conflict with PLAN.md D1 (hv's word at 11:45Z) to hv, hv chose \"No prefix, D1 stands\"; relayed by devbin-vc, not heard first-hand by vc. The second answer replaces the first. Corrected forward the same day on a fact found after it: the prefix door already ships in 3.5.2 by design (Facade::whole_label completes a unique 4-hex package prefix and stores the label whole). Option (a), keep the door as shipped with no code change and teach the 8 hex, is devbin-vc's call and vc's recommendation, and hv was told; it is not yet hv's own ruling, and hv may still choose to remove the door."
+  }
+}
