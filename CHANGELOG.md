@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.4] - in progress
+
+### Fixed
+
+- **`intent app` says that Intent.app is macOS only (for now) on another OS** (issue I3c24d2a). On Linux, `intent app status` reported a missing Intent.app and offered a Homebrew cask that does not install there. It now prints `Intent.app is macOS only (for now). This machine runs linux.` and exits 0. `intent app start` and `intent app restart` refuse with the same words and a remedy that names the `intent` CLI.
+
 ## [3.5.3] - 2026-11-24
 
 ### Fixed
