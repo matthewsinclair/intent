@@ -2535,6 +2535,26 @@ object_title() {
   printf '%s\n' "${title//\{version\}/$2}"
 }
 
+# cut_formula_renders <launcher> -- pre-flight's formula half (issue I3ce05fa):
+# the project's formula command's check, run through <launcher> with no
+# terminal, which runs every check render makes of the templates that needs no
+# tag and writes nothing. Prints the refusal and returns 1 when it fails.
+#
+# A CUT FOUND ITS FORMULA COULD NOT RENDER ONLY ONCE IT WAS PUBLIC: Molt's 1.4.7
+# tagged, pushed and made its release object, and then its after: step's
+# formula publish refused a template holding no @@INSTALL@@, leaving a published
+# release and no formula. Nothing such a refusal turns on depends on the tag, so
+# pre-flight asks it before anything is stamped.
+cut_formula_renders() {
+  local out last
+  if out="$("$1" formula check </dev/null 2>&1)"; then
+    return 0
+  fi
+  last="$(printf '%s\n' "$out" | sed '/^[[:space:]]*$/d' | sed -n '$p')"
+  printf "this project's formula built-in is enabled, and the formula does not render: %s -- fix the template first, or the release goes public with no formula (bin/devbin formula check says what render refuses)" "${last:-formula check failed and said nothing}"
+  return 1
+}
+
 # cut_gh_signed_in <object> -- pre-flight's gh half: gh is there,
 # the repository resolves, and gh is signed in to its host. Prints the refusal
 # and returns 1; `object: none` never needs gh.
@@ -2951,6 +2971,21 @@ cut_run() {
   # command runs here, as the released cut's brew note reads it.
   if [ "$formula_step" = yes ] && ! command_active formula; then
     refusals+=("release.formula is true, and this project has no formula command for the formula step to run -- enable the built-in (commands.formula.enabled: true), or leave release.formula out")
+  fi
+
+  # A CUT RENDERS ITS FORMULA FIRST (issue I3ce05fa): wherever the formula
+  # built-in is enabled, its check runs here, before anything is stamped, and
+  # its refusal is the cut's. It asks no question of the cut's own lines: a
+  # formula is published by the formula step, by an after: line, or by a
+  # project command an after: line runs (a post-cut, a cut publish), and no
+  # reading of those lines could see the last. A project that enables the
+  # built-in and publishes outside its cut is refused for a template its next
+  # publish would refuse too. A formula command the project owns is its own,
+  # and offers no check devbin knows of, so it is not asked.
+  if command_active formula && ! project_owns_command formula; then
+    if ! out="$(cut_formula_renders "$launcher")"; then
+      refusals+=("$out")
+    fi
   fi
 
   # THE CANDIDATE'S TARGET AND REF (ST0011): where the cut has a candidate leg

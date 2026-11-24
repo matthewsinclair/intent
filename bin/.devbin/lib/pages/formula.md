@@ -1,4 +1,5 @@
     bin/devbin formula render <tag> <out> [<cask-out>] [--sums <file>]
+    bin/devbin formula check
     bin/devbin formula publish [--tap <url>] [--pull]
 
 Render this project's Homebrew formula from a release, and publish it to the project's tap. The formula is rendered, never typed: it is kept as a template in the project, and devbin fills its placeholders from git and from the release, so nobody types a tag, a commit or a checksum.
@@ -9,6 +10,10 @@ It is opt-in: absent until a project asks for it with `commands.formula.enabled:
                            checkout, to <out>, and the cask to <cask-out> where
                            formula.cask names one; a relative path is read from
                            the project root, where devbin runs every command
+    check                  run every check render makes of the templates that
+                           needs no tag, before one exists, and write nothing;
+                           every cut's pre-flight runs it, wherever this
+                           built-in is enabled
     publish [--tap <url>]  render the newest release into a fresh clone of the
                            tap, and once you say yes, commit it and push it. A
                            tap that already carries the render is left as it is,
@@ -59,6 +64,8 @@ In both modes the template's install holds exactly one `@@INSTALL@@`, on a line 
 
 A source template's body is the publish alone. An assets template's asks the stage which it holds, so one formula can build one platform from the tag's checkout and install the release's assets on another. Lines the template keeps in its install go after `@@INSTALL@@`. Nothing else comes before it in the install, blank and comment lines aside: a template whose install runs a line there is refused, naming the line, since the body devbin generates lays out the stage it is given, and an asset is packed rooted at the install root. `@@FINISH@@`, a second form, is retired, and a template holding it is refused by name, as formula.bin is in the config.
 
+A source formula's install runs `bin/devbin`, which needs bash 5 or later, and Homebrew's build on macOS has the system's bash, 3.2, unless the formula depends on a newer one. So render writes `depends_on "bash" => :build` itself, at the formula's top level, before its first dependency, OS block, resource, patch or install, and before the comment lines directly above that line, on Linux too, since nothing promises a system bash at that floor. Where the template already depends on bash at runtime, as one with formula.bash true does, that dependency is there at the build too, and render writes nothing. A source template holding a bash build dependency of its own is refused, since render keeps the one line. An assets formula's install runs `bin/devbin` only where the stage holds a tag's checkout, and render writes no bash dependency for it.
+
 Each line of the assets' layout answers a way such a keg fails. GitHub serves a release asset with no executable bit and Homebrew's install keeps the mode it is given, so without the 0755, brew installs the keg and nothing in it runs. The manifest is the dev/opt/brew contract's, T3's: `tool`, `version`, `source_commit` and `managed_by: brew` as `# key: value` lines, and `line`, the keg's version line, then one `<sha256>  <path>` line for each file under libexec, the manifest itself left out, sorted bytewise.
 
 ## Source mode
@@ -102,6 +109,14 @@ In both modes, every line a render writes of its own, its header and the install
 In both modes, each file that render writes opens with a header of its own, below any magic comment it keeps. The header says the file was rendered by devbin's formula built-in, names the template by its path from the project root, the tag and the commit the tag names, and says to edit the template rather than the file, which the next render replaces. A template declared with an absolute path is read under the project root too, and named without its leading slashes, so no path on the maintainer's machine reaches the tap.
 
 The template's own header, its leading run of `#` comment and blank lines, is about the template, so it is dropped; a `=begin` block is no part of it. Only what follows the header ships, so only that is validated and filled: a placeholder written in the header is neither counted nor filled, and a template with nothing after its header is refused. A Ruby magic comment in the header, such as `# frozen_string_literal: true`, an Emacs mode line, or an encoding named on the first line, is kept at the top with a blank line after it, since Ruby reads most of them only before the first code.
+
+## Before the tag: check
+
+`bin/devbin formula check` takes no argument and writes nothing. It fills the templates as render does, through the same code, with a stand-in tag, version and commit, and in assets mode a stand-in sum for each asset formula.assets lists, so every refusal above that does not depend on the tag is reached before there is one: a placeholder missing, repeated or left over, the install body and what comes before `@@INSTALL@@`, the post-install step's place, and in assets mode each asset placed once, in the cask as in the formula. It exits 0 saying the template renders, and the cask with it where formula.cask names one, or exits 1 with render's own refusal.
+
+What it cannot read is what only the tag gives: the commit the tag names, and in assets mode the release's sums file, which render reads at the publish.
+
+Every cut runs it at pre-flight, before anything is stamped, tagged or pushed, wherever this built-in is enabled, whatever the cut's own lines say: a formula is published by release.formula's step, by an `after:` line, or by a project command an `after:` line runs, and no reading of those lines could see the last. A project that enables the built-in and publishes outside its cuts is refused for a template its next publish would refuse too. A formula that does not render refuses the cut there, in the same run as every other refusal, naming render's reason, so a release is never public without its formula. It runs for devbin's own formula built-in only: a project whose own handler or `commands.formula.run:` line answers `formula` decides for itself what its publish checks.
 
 ## Which release publish publishes
 

@@ -434,8 +434,9 @@ _cfg_path_known() {
       # is its manifest, from its tree's root (T3). install.links.<name> is
       # each link of its link set (T5), with its file in the dev tree.
       # install.files.<label> is the rest of its runtime set (T1): path, its
-      # place in opt and brew; from, its file in the dev tree; platforms, the
-      # platforms it ships on. The readers are cfg_tool_links, cfg_tool_files
+      # place in opt and brew; from, its file in the dev tree, or a directory git
+      # tracks files below; excludes, globs below such a directory that do not
+      # ship (issue I2bae9ce); platforms, the platforms it ships on. The readers are cfg_tool_links, cfg_tool_files
       # and cfg_tool_manifest. install.switch and install.publish name the
       # tool's own switch (T5) and publish (T2), commands devbin names and never
       # runs, which withhold its own use and install in the tool's checkout
@@ -455,6 +456,7 @@ _cfg_path_known() {
         case "${p[3]}" in path | from) return 0 ;; esac
       fi
       [ "$n" -eq 5 ] && [ "${p[1]}" = files ] && [ "${p[3]}" = platforms ] && _cfg_is_index "${p[4]}" && return 0
+      [ "$n" -eq 5 ] && [ "${p[1]}" = files ] && [ "${p[3]}" = excludes ] && _cfg_is_index "${p[4]}" && return 0
       return 1
       ;;
     help)
@@ -1330,6 +1332,17 @@ cfg_tool_files() {
     p="$(cfg_get "install.files.$l.path" "")"
     f="$(cfg_get "install.files.$l.from" "")"
     printf '%s\t%s\t%s\n' "$l" "$p" "${f:-$p}"
+  done
+}
+
+# cfg_tool_file_excludes <label> -- the globs install.files.<label>.excludes
+# lists, one a line, in the order it declares them, each relative to the
+# file's `from`, a directory git tracks files below (issue I2bae9ce); nothing
+# where it lists none.
+cfg_tool_file_excludes() {
+  local i IFS=$' \t\n'
+  for i in $(cfg_list "install.files.$1.excludes"); do
+    cfg_get "install.files.$1.excludes.$i"
   done
 }
 

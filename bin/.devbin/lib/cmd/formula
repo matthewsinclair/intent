@@ -9,6 +9,8 @@
 #   render <tag> <out> [<cask-out>] [--sums <file>]
 #                          write the formula for <tag> to <out>, and the cask to
 #                          <cask-out> where formula.cask names one
+#   check                  every check render makes that needs no tag, writing
+#                          nothing, which release's pre-flight runs before the tag
 #   publish [--tap <url>] [--pull]
 #                          render the newest release into a fresh clone of the
 #                          tap, and, once a person says yes, commit it and push it;
@@ -95,6 +97,7 @@ ASSETS_WHY="" ASSETS_SEEN=()
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE formula render <tag> <out> [<cask-out>] [--sums <file>]
+       $DEVBIN_INVOKE formula check
        $DEVBIN_INVOKE formula publish [--tap <url>] [--pull]
 
   render <tag> <out>     write the Homebrew formula for <tag>, an annotated tag
@@ -103,6 +106,10 @@ usage: $DEVBIN_INVOKE formula render <tag> <out> [<cask-out>] [--sums <file>]
                          from the project root, where devbin runs every command).
                          In assets mode the sha256 of each asset is read from the
                          release's sums file, or from <file> with --sums
+  check                  run every check render makes of the templates that
+                         needs no tag, before one exists, and write nothing;
+                         every cut's pre-flight runs it, wherever this built-in
+                         is enabled
   publish [--tap <url>]  render the newest release into a fresh clone of the tap,
                          and, once you say yes, commit it and push it; a tap that
                          already carries it is left as it is
@@ -363,22 +370,32 @@ tag_version() {
 
 # --- source mode -----------------------------------------------------------
 
-# render_source <tag> <file> -- the formula for <tag>, filled from the template
-# and written to <file> under the render's own header (rendered_text), with the
-# commit it names on stdout. Dies, writing nothing, on a tag or a template it
-# cannot fill.
-render_source() {
-  local tag="$1" file="$2" commit text why filled left
-  commit="$(formula_revision "$tag")"
+# source_template <tag> -- read the source template into TPL_MAGIC and
+# TPL_BODY (template_split), and die, naming it, on a template render cannot
+# fill for <tag>: nothing after its header, a placeholder count, a tag no
+# release carries, or an install body (install_refusal). Runs in the caller's
+# shell, never in a substitution. Nothing here reads git: `formula check` runs
+# it with a stand-in tag before any tag exists (issue I3ce05fa).
+source_template() {
+  local text why
   text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
   text="${text%.}"
   template_split "$text"
   [ -n "$TPL_BODY" ] || die "$F_TEMPLATE holds nothing after its header, so there is no formula to render"
-  why="$(formula_refusal "$TPL_BODY" "$tag")"
+  why="$(formula_refusal "$TPL_BODY" "$1")"
   [ -z "$why" ] || die "$F_TEMPLATE: $why"
   why="$(install_refusal "$TPL_BODY" "$F_TEMPLATE")"
   [ -z "$why" ] || die "$why"
-  filled="$(formula_fill "$TPL_BODY" "$tag" "$commit" && printf .)"
+  why="$(bash_build_refusal "$TPL_BODY" "$F_TEMPLATE")"
+  [ -z "$why" ] || die "$why"
+}
+
+# source_filled <tag> <commit> -- TPL_BODY filled for <tag> and <commit>, on
+# stdout: the pins, the install body, the post-install step after the install,
+# and no placeholder left. Dies, naming the template, on one it cannot fill.
+source_filled() {
+  local filled left
+  filled="$(formula_fill "$TPL_BODY" "$1" "$2" && printf .)"
   filled="${filled%.}"
   filled="$(fill_block "$filled" @@INSTALL@@ "$(install_ruby source)" && printf .)" ||
     die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
@@ -386,8 +403,106 @@ render_source() {
   filled="$(post_install_fill "$filled" "$(post_install_ruby)" && printf .)" ||
     die "$F_TEMPLATE: its install, def install, has no end at its own indent, after which the post-install step goes"
   filled="${filled%.}"
+  if ! depends_on_bash_runtime "$filled"; then
+    filled="$(bash_build_fill "$filled" "$(bash_build_ruby)" && printf .)" ||
+      die "$F_TEMPLATE: its install, def install, is not at the formula's top level, before which the bash build dependency goes"
+    filled="${filled%.}"
+  fi
   left="$(leftover_placeholder "$filled")"
   [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder source mode fills, and it would ship as written"
+  printf '%s' "$filled"
+}
+
+# --- the install body's bash (issue I5e17433) --------------------------------
+#
+# A SOURCE FORMULA'S INSTALL RUNS bin/devbin, which refuses any bash below 5,
+# and Homebrew's build on macOS has /bin/bash, 3.2, unless the formula depends
+# on a newer one. Molt 1.4.8's install failed there. So render writes the
+# dependency itself, the one place it is kept, wherever the template does not
+# already depend on bash at runtime (a runtime dependency is there at the build
+# too, as devbin's own formula.bash one is), and a source template holding its
+# own build line is refused (bash_build_refusal), so no template has to
+# remember it. On Linux too, since nothing promises a system bash at the floor.
+
+# depends_on_bash_runtime <text> -- rc 0 when the formula <text> depends on bash
+# at runtime: a `depends_on "bash"` line with nothing after it. Pure.
+depends_on_bash_runtime() {
+  [[ $'\n'$1$'\n' =~ $'\n'[[:blank:]]*depends_on\ \"bash\"[[:blank:]]*$'\r'?$'\n' ]]
+}
+
+# bash_build_refusal <text> <what> -- why the source template body <text>
+# (named <what>) may not be filled, or nothing: a `depends_on "bash" => :build`
+# of its own, which render writes (bash_build_ruby). Pure.
+bash_build_refusal() {
+  if [[ $'\n'$1 =~ $'\n'[[:blank:]]*depends_on\ \"bash\"[[:blank:]]*=\>[[:blank:]]*:build ]]; then
+    printf "%s depends on bash at the build itself, and that line is devbin's, which render writes wherever the install body runs bin/devbin: remove it from the template\n" "$2"
+  fi
+}
+
+# bash_build_ruby -- the bash build dependency render writes, one line per line
+# and unindented (bash_build_fill indents it). Pure.
+bash_build_ruby() {
+  printf '%s\n' "# GENERATED by devbin's formula built-in: the install runs bin/devbin," \
+    "# which needs bash 5 or later, where macOS's own is 3.2." \
+    'depends_on "bash" => :build'
+}
+
+# bash_build_fill <text> <block> -- the formula body <text> with <block> written
+# at its top level, at the indent of its install, `def install`, before the
+# first line there that opens a dependency, an OS or arch block, a resource, a
+# patch or the install itself, and before the comment lines directly above that
+# line, which are about it; a blank line follows the block unless that line is
+# another dependency, so the dependencies stay one group. Homebrew's
+# component order puts dependencies there, and a build dependency named "bash"
+# sorts first among them. Each line is ended as that line is, so a CRLF
+# template gets CRLF lines (fill_block). Pure. Fails, printing nothing, where
+# <text> has no `def install` line.
+bash_build_fill() {
+  local text="$1" block="$2" indent="" i k=-1 eol l out="" add anchor
+  local -a lines=()
+  while IFS= read -r l || [ -n "$l" ]; do lines+=("$l"); done < <(printf '%s' "$text")
+  for i in "${!lines[@]}"; do
+    if [[ "${lines[$i]}" =~ ^([[:blank:]]*)def\ install[[:blank:]]*(#.*)?$'\r'?$ ]]; then
+      indent="${BASH_REMATCH[1]}"
+      break
+    fi
+  done
+  [ -n "$indent" ] || return 1
+  for i in "${!lines[@]}"; do
+    if [[ "${lines[$i]}" == "$indent"[a-z]* ]] && [[ "${lines[$i]#"$indent"}" =~ ^(depends_on|uses_from_macos|on_[a-z_]+|resource|patch|def\ install)([[:blank:]]|$'\r'|$) ]]; then
+      k="$i"
+      break
+    fi
+  done
+  [ "$k" -ge 0 ] || return 1
+  anchor="${lines[$k]#"$indent"}"
+  while [ "$k" -gt 0 ] && [[ "${lines[$((k - 1))]}" =~ ^"$indent"#.*$ ]]; do k=$((k - 1)); done
+  eol=$'\n'
+  [[ "${lines[$k]}" != *$'\r' ]] || eol=$'\r\n'
+  add=""
+  while IFS= read -r l; do
+    if [ -n "$l" ]; then add+="$indent$l$eol"; else add+="$eol"; fi
+  done <<<"$block"
+  [[ "$anchor" == depends_on* ]] || add+="$eol"
+  for i in "${!lines[@]}"; do
+    [ "$i" != "$k" ] || out+="$add"
+    out+="${lines[$i]}"
+    if [ "$i" -lt "$((${#lines[@]} - 1))" ]; then out+=$'\n'; fi
+  done
+  [[ "$text" != *$'\n' ]] || out+=$'\n'
+  printf '%s' "$out"
+}
+
+# render_source <tag> <file> -- the formula for <tag>, filled from the template
+# and written to <file> under the render's own header (rendered_text), with the
+# commit it names on stdout. Dies, writing nothing, on a tag or a template it
+# cannot fill.
+render_source() {
+  local tag="$1" file="$2" commit filled
+  commit="$(formula_revision "$tag")"
+  source_template "$tag"
+  filled="$(source_filled "$tag" "$commit" && printf .)" || exit 1
+  filled="${filled%.}"
   replace_file "$file" rendered_text "$TPL_MAGIC" "$filled" "$tag" "$commit" "$F_TEMPLATE" ||
     die "cannot write the formula to $file (above)"
   printf '%s\n' "$commit"
@@ -840,26 +955,35 @@ release_sums() {
 # and the cask where formula.cask names one, filled and written, each under the
 # render's own header (rendered_text), with the commit on stdout. Dies, writing
 # nothing, on anything it cannot fill.
-render_assets() {
-  local tag="$1" file="$2" cfile="$3" sums="$4" version commit text ctext="" fmagic cmagic="" a seen n left out cout
+# What assets_templates read, for assets_filled and the render: each template's
+# kept magic comments and its body, the cask's empty where formula.cask names
+# none.
+A_FMAGIC="" A_FTEXT="" A_CMAGIC="" A_CTEXT=""
+
+# assets_templates -- read the assets formula template, and the cask's where
+# formula.cask names one, into the A_ globals, and die, naming it, on one render
+# cannot fill (assets_check), or on an asset of formula.assets the two do not
+# place exactly once between them. Runs in the caller's shell, never in a
+# substitution. Nothing here reads git or the release's sums: `formula check`
+# runs it before any tag exists (issue I3ce05fa).
+assets_templates() {
+  local text a seen n
   ASSETS_SEEN=()
-  version="$(tag_version "$tag")"
-  commit="$(formula_revision "$tag")"
   text="$(file_text "$F_TEMPLATE")" || die "cannot read the formula template at $PROJECT_ROOT/$F_TEMPLATE"
   template_split "${text%.}"
   [ -n "$TPL_BODY" ] || die "$F_TEMPLATE holds nothing after its header, so there is no formula to render"
-  fmagic="$TPL_MAGIC" text="$TPL_BODY"
-  assets_check "$text" "$F_TEMPLATE" formula
+  A_FMAGIC="$TPL_MAGIC" A_FTEXT="$TPL_BODY" A_CMAGIC="" A_CTEXT=""
+  assets_check "$A_FTEXT" "$F_TEMPLATE" formula
   [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
   if [ -n "$F_CASK" ]; then
-    ctext="$(file_text "$F_CASK")" || die "cannot read the cask template at $PROJECT_ROOT/$F_CASK"
-    template_split "${ctext%.}"
+    text="$(file_text "$F_CASK")" || die "cannot read the cask template at $PROJECT_ROOT/$F_CASK"
+    template_split "${text%.}"
     [ -n "$TPL_BODY" ] || die "$F_CASK holds nothing after its header, so there is no cask to render"
-    cmagic="$TPL_MAGIC" ctext="$TPL_BODY"
-    assets_check "$ctext" "$F_CASK" cask
+    A_CMAGIC="$TPL_MAGIC" A_CTEXT="$TPL_BODY"
+    assets_check "$A_CTEXT" "$F_CASK" cask
     [ -z "$ASSETS_WHY" ] || die "$ASSETS_WHY"
   fi
-  # EACH ASSET ONCE, ACROSS THE FORMULA AND THE CASK, AND ITS SUM FROM THE FILE.
+  # EACH ASSET ONCE, ACROSS THE FORMULA AND THE CASK.
   for a in "${F_ASSETS[@]}"; do
     n=0
     for seen in ${ASSETS_SEEN[@]+"${ASSETS_SEEN[@]}"}; do
@@ -867,25 +991,49 @@ render_assets() {
     done
     [ "$n" = 1 ] ||
       die "formula.assets names $a, and the templates hold its @@SHA256:$a@@ $n time(s), where they hold it exactly once"
+  done
+}
+
+# assets_filled <formula|cask> <version> <commit> <sums> -- that template, as
+# assets_templates read it, filled, on stdout: the formula with its install
+# body and its post-install step, and no placeholder left in either. Dies,
+# naming the template, on one it cannot fill.
+assets_filled() {
+  local out left what="$F_TEMPLATE" text="$A_FTEXT"
+  [ "$1" = formula ] || what="$F_CASK" text="$A_CTEXT"
+  if [ "$1" = formula ]; then
+    out="$(assets_fill "$text" "$2" "$3" "$4" formula && printf .)" ||
+      die "$what: @@INSTALL@@ does not stand alone on its line"
+    out="${out%.}"
+    out="$(post_install_fill "$out" "$(post_install_ruby)" && printf .)" ||
+      die "$what: its install, def install, has no end at its own indent, after which the post-install step goes"
+  else
+    out="$(assets_fill "$text" "$2" "$3" "$4" cask && printf .)"
+  fi
+  out="${out%.}"
+  left="$(leftover_placeholder "$out")"
+  [ -z "$left" ] || die "$what: $left is no placeholder assets mode fills, and it would ship as written"
+  printf '%s' "$out"
+}
+
+render_assets() {
+  local tag="$1" file="$2" cfile="$3" sums="$4" version commit a out cout
+  version="$(tag_version "$tag")"
+  commit="$(formula_revision "$tag")"
+  assets_templates
+  # EACH ASSET'S SUM FROM THE FILE.
+  for a in "${F_ASSETS[@]}"; do
     [ -n "$(sums_of "$sums" "${a//"{version}"/"$version"}")" ] ||
       die "the release's sums file names no asset ${a//"{version}"/"$version"}, so its sha256 is not known and nothing was rendered"
   done
-  out="$(assets_fill "$text" "$version" "$commit" "$sums" formula && printf .)" ||
-    die "$F_TEMPLATE: @@INSTALL@@ does not stand alone on its line"
+  out="$(assets_filled formula "$version" "$commit" "$sums" && printf .)" || exit 1
   out="${out%.}"
-  out="$(post_install_fill "$out" "$(post_install_ruby)" && printf .)" ||
-    die "$F_TEMPLATE: its install, def install, has no end at its own indent, after which the post-install step goes"
-  out="${out%.}"
-  left="$(leftover_placeholder "$out")"
-  [ -z "$left" ] || die "$F_TEMPLATE: $left is no placeholder assets mode fills, and it would ship as written"
   if [ -n "$F_CASK" ]; then
-    cout="$(assets_fill "$ctext" "$version" "$commit" "$sums" cask && printf .)"
+    cout="$(assets_filled cask "$version" "$commit" "$sums" && printf .)" || exit 1
     cout="${cout%.}"
-    left="$(leftover_placeholder "$cout")"
-    [ -z "$left" ] || die "$F_CASK: $left is no placeholder assets mode fills, and it would ship as written"
-    replace_file "$cfile" rendered_text "$cmagic" "$cout" "$tag" "$commit" "$F_CASK" || die "cannot write the cask to $cfile (above)"
+    replace_file "$cfile" rendered_text "$A_CMAGIC" "$cout" "$tag" "$commit" "$F_CASK" || die "cannot write the cask to $cfile (above)"
   fi
-  replace_file "$file" rendered_text "$fmagic" "$out" "$tag" "$commit" "$F_TEMPLATE" || die "cannot write the formula to $file (above)"
+  replace_file "$file" rendered_text "$A_FMAGIC" "$out" "$tag" "$commit" "$F_TEMPLATE" || die "cannot write the formula to $file (above)"
   printf '%s\n' "$commit"
 }
 
@@ -1096,12 +1244,54 @@ cmd_publish() {
   [ "$pull" = no ] || tap_pull "$tap"
 }
 
+# cmd_check -- `formula check`: every check render makes of the templates that
+# needs no tag, run before one exists, writing nothing (issue I3ce05fa).
+#
+# A CUT FOUND A TEMPLATE RENDER REFUSES ONLY ONCE IT WAS PUBLIC. Its formula
+# publish runs after the tag, the push and the release object, so a template
+# with no @@INSTALL@@ left a published release and no formula. Nothing a
+# template is refused for depends on the tag: its placeholders, its install
+# body, the post-install step's place, a placeholder left over and, in assets
+# mode, each asset placed once. So check fills the templates as render does,
+# through the same source_template and source_filled, or assets_templates and
+# assets_filled, with a stand-in tag, commit, version and sums, and discards
+# what they print. What it cannot read is what only the tag gives: the commit
+# the tag names, a tag no release template makes, and in assets mode the
+# release's sums file. Every cut's pre-flight runs it, wherever this built-in
+# is enabled.
+cmd_check() {
+  local stand_tag=v0.0.0 stand_version=0.0.0 stand_commit a sums=""
+  [ "$#" -eq 0 ] || die "usage: $DEVBIN_INVOKE formula check"
+  stand_commit="$(printf '0%.0s' {1..40})"
+  formula_settings
+  if [ "$F_MODE" = source ]; then
+    source_template "$stand_tag"
+    source_filled "$stand_tag" "$stand_commit" >/dev/null || exit 1
+  else
+    assets_templates
+    for a in "${F_ASSETS[@]}"; do
+      sums+="$stand_commit$stand_commit"'  '"${a//"{version}"/"$stand_version"}"$'\n'
+    done
+    assets_filled formula "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
+    [ -z "$F_CASK" ] || assets_filled cask "$stand_version" "$stand_commit" "$sums" >/dev/null || exit 1
+  fi
+  if [ -n "$F_CASK" ]; then
+    printf 'formula: %s and the cask %s render: every check that needs no tag passed\n' "$F_TEMPLATE" "$F_CASK"
+  else
+    printf 'formula: %s renders: every check that needs no tag passed\n' "$F_TEMPLATE"
+  fi
+}
+
 main() {
   cd "$PROJECT_ROOT"
   case "${1:-}" in
     render)
       shift
       cmd_render "$@"
+      ;;
+    check)
+      shift
+      cmd_check "$@"
       ;;
     publish)
       shift

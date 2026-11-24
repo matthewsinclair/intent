@@ -263,6 +263,10 @@ install:
   #     from: examples/config.toml
   #     platforms:
   #       - macos
+  #   share:                     # a directory: what git tracks below it ships, at its path
+  #     path: share
+  #     excludes:                # globs below it that do not ship (git pathspec globs)
+  #       - "*/test/**"
 
 # --- help ------------------------------------------------------------------
 #

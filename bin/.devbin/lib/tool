@@ -26,18 +26,16 @@ _DEVBIN_TOOL_LOADED=1
 # no file tracked, none declared and no record yet, the caller reads the whole
 # tree. rc 1 when the declaration cannot be read.
 tool_build_paths() {
-  local links files name from label
-  links="$(cfg_tool_links)" || return 1
-  files="$(cfg_tool_files)" || return 1
+  local set place from kind
+  # The runtime set as the publish reads it (tool_runtime_set), so a file an
+  # exclude leaves out of a directory entry makes no line +dirty, since it
+  # ships nowhere (issue I2bae9ce).
+  set="$(tool_runtime_set)" || return 1
   {
-    while IFS=$'\t' read -r name from; do
-      [ -n "$name" ] || continue
+    while IFS=$'\t' read -r place from kind; do
+      [ -n "$place" ] || continue
       _tool_build_from "$from"
-    done <<<"$links"
-    while IFS=$'\t' read -r label _ from; do
-      [ -n "$label" ] || continue
-      _tool_build_from "$from"
-    done <<<"$files"
+    done <<<"$set"
     cfg_build_input_paths
   } | LC_ALL=C sort -u
 }
@@ -151,8 +149,61 @@ tool_runtime_set() {
   done <<<"$links"
   while IFS=$'\t' read -r label path from; do
     [ -n "$label" ] || continue
-    _tool_set_row "$path" "$from"
+    _tool_set_file "$label" "$path" "$from" || return 1
   done <<<"$files"
+}
+
+# _tool_set_file <label> <path> <from> -- the rows of install.files.<label>: a
+# file, one row (_tool_set_row); a directory git tracks files below, one
+# `tracked` row for each of them, at its path below <path>, less those its
+# excludes match (issue I2bae9ce). Prints why and returns 1 for an exclude
+# that matches no file git tracks there, and for excludes on an entry that is
+# not such a directory.
+#
+# A DIRECTORY SHIPS WHAT GIT TRACKS BELOW IT, as macos.pack.files packs one,
+# never a `cp -R` of whatever lies there: a dirty dev tree's untracked files,
+# its ignored build output and the tests a tool keeps beside its code stayed
+# out of no install that way, and a runtime set such as Utilz's (every tracked
+# file under opt/ but each utility's test/) could only be listed file by file.
+# Each exclude is a glob below <from>, read as git reads `:(exclude,glob)`
+# pathspecs: `*` stays within a directory and `**` crosses them.
+_tool_set_file() {
+  local label="$1" path="$2" from="$3" g f rel listed
+  local -a ex=() spec=()
+  while IFS= read -r g; do
+    [ -n "$g" ] && ex+=("$g")
+  done < <(cfg_tool_file_excludes "$label")
+  if [ ! -d "$PROJECT_ROOT/$from" ] || ! tool_tracked "$from"; then
+    if [ "${#ex[@]}" -gt 0 ]; then
+      printf 'install.files.%s lists excludes, and its from, %s, is no directory git tracks files below -- excludes apply to such a directory alone\n' "$label" "$from" >&2
+      return 1
+    fi
+    _tool_set_row "$path" "$from"
+    return 0
+  fi
+  spec=(":(literal)$from")
+  for g in ${ex[@]+"${ex[@]}"}; do
+    listed="$(git_readonly -C "$PROJECT_ROOT" ls-files -- ":(glob)$from/$g")" || return 1
+    if [ -z "$listed" ]; then
+      printf 'install.files.%s.excludes: %s matches no file git tracks below %s -- a renamed directory would ship whole, so name what is there, or drop the exclude\n' "$label" "$g" "$from" >&2
+      return 1
+    fi
+    spec+=(":(exclude,glob)$from/$g")
+  done
+  # One read whose status is checked, never a process substitution, which
+  # would lose a failed git. core.quotePath off leaves non-ASCII names as they
+  # are; git still quotes a name holding a quote, a backslash or a control
+  # character, and such a name is refused rather than shipped under the wrong path.
+  listed="$(git_readonly -C "$PROJECT_ROOT" -c core.quotePath=false ls-files -- "${spec[@]}")" || return 1
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    if [[ "$f" == \"* ]]; then
+      printf 'install.files.%s: git names %s only quoted, and a runtime file is named plainly -- rename it\n' "$label" "$f" >&2
+      return 1
+    fi
+    rel="${f#"$from"/}"
+    printf '%s/%s\t%s\ttracked\n' "$path" "$rel" "$f"
+  done <<<"$listed"
 }
 
 _tool_set_row() {
