@@ -1,5 +1,5 @@
 ---
-verblock: "23 Nov 2026:v4.11: vc - localfold on hv's second call; 3.5.2 waits on U4 and devbin 0.1.29"
+verblock: "24 Nov 2026:v4.12: vc - localfold; 3.5.2 waits on cc v3 (CI fix + I75b8995), then re-cut"
 intent_version: 3.5.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 3.5.1
 
 ## DOING
 
-- **Intent 3.5.2 (hv decisions 87 and 88, 2026-11-23: fix everything, release asap).** Main is pushed to local and upstream at e1e84abb8, after build all rc 0 at that HEAD. Every 3.5.2 bank is landed except cc's ST1c2db93 U4, the v2 removal, which comes as three banks: U4a (survey P1 to P5, whose Desk rerun is queued), U4b (AT rows to n-a, the v2 parity tools, dispatch rows and aliases, docs) and the metadata strip, last. U4's proof upgrades v3.4.0, v3.5.0, v3.5.1 and a 3.5.1 fleet repo to doctor 0, and its bank carries its CHANGELOG entry. After U4: build all and push; dc's releasing.md step 2(b) (reference against v3.5.1, known-defects re-driven and retitled, explorer shots); the kovacs rehearsal through the Desk; the whole local gate with clippy at the tip; then vc's READY to hv, who fires the cut. READY also waits on devbin 0.1.29 (I514ea74: the formula's brew style offense on brew 7.0.15), which needs hv's cut of devbin and hv's brew upgrade, then devbin-vc's sweep into Intent. AE's attendees take 3.5.2 from the tap, so a repo upgraded at 3.5.1 must get 0 doctor findings with no action, and no hook may change. vc's board doing 67 has the commits.
+- **Intent 3.5.2 (hv decisions 87, 88 and 89).** Every 3.5.2 change but cc's v3 bank is on local main; upstream main is at 3475b6e94. Two cuts stopped red at legs on candidate CI, with nothing tagged: run 45326139850 and run 45328303838 failed on flaky daemon-harness and slots tests (I5207bf7, I14a2284, Ief26a29). The unpushed release commit 029297dee was reset off main and is kept at refs/attic/vc/release-v3.5.2-try1. hv decision 89 holds 3.5.2 for I75b8995 (a CLI can route to another HOME's daemon over TCP 51737): the fix is an identity probe that sends no secret. cc's bank refs/bank/cc/ci352/v3 (188842aa4, on b1ed72e56) carries both fixes; its gate all was running at 06:33Z. Next: land v3, build all at HEAD, push, then `bin/devbin release v3.5.2 --dry-run` with a clean tree and intentd stopped (it is stopped now), then READY to hv, who runs `bin/devbin release v3.5.2`. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze. Filed and outside 3.5.2: I5adc617 (an HTTP 5 s test red under load), I53c0c22 (Webber's daily backup gaps, from webber-vc).
 
 ## TODO
 

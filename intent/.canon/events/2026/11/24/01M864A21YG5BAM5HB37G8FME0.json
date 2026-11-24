@@ -1,0 +1,16 @@
+{
+  "id": "01M864A21YG5BAM5HB37G8FME0",
+  "ts": "2026-11-24T06:36:20.414Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 67,
+    "text": "3.5.2, hv decisions 87, 88 and 89. Two cuts stopped red at legs on candidate CI (runs 45326139850 and 45328303838), with nothing tagged. The release commit 029297dee was reset off main and kept at refs/attic/vc/release-v3.5.2-try1. Upstream main is at 3475b6e94. OPEN: cc's refs/bank/cc/ci352/v3 (188842aa4, on b1ed72e56) holds the CI test fixes (I5207bf7, I14a2284, Ief26a29) and I75b8995 (the identity probe, no secret on TCP); its gate all was running at 06:33Z. Then: land v3, build all, push, release --dry-run with a clean tree and intentd stopped, READY, and hv runs bin/devbin release v3.5.2. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze."
+  }
+}

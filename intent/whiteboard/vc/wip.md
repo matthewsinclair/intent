@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-23 17:38Z
+heartbeat_at: 2026-11-24 06:36Z
 status: active
-focus: "2026-11-23 17:26Z by date -u: localfold on hv's estate-wide call (via devbin-vc); 3.5.2 waits on cc's U4 and devbin 0.1.29, see doing 67. Not released."
+focus: "2026-11-24 06:37Z by date -u: localfold on hv's call before a compact, not released. 3.5.2 waits on cc's v3 gate all; see doing 67."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.2, hv decisions 87 and 88. Landed since the first fold: dc's 88 plus ST0097 A and B (8e041900d), 87 (527ef407c) and CHANGELOG (9c073f0ee); cc's ST1c2db93 U3 (00ddbb494), U1 (8ddb863d1) and U2 with I086e953 (d1928ba2a); ic's I4da7c22 (8c4423dd4, e1e84abb8). Earlier: the desk fixes, I81ecc7f, Ifdd3c89, Ie7fb84c, I84286b7, Iae1e02a, Ic884775, Ie99dbb6. PUSHED at e1e84abb8 after build all rc 0. OPEN: cc's U4 as U4a (Desk rerun queued), U4b and then the metadata strip; then build all and push, dc's step 2(b), the kovacs rehearsal, the whole local gate, and READY. READY also waits on devbin 0.1.29 (I514ea74, the formula's brew style offense): hv cuts devbin and runs brew upgrade, then devbin-vc sweeps it into Intent. (edited)
+- 3.5.2, hv decisions 87, 88 and 89. Two cuts stopped red at legs on candidate CI (runs 45326139850 and 45328303838), with nothing tagged. The release commit 029297dee was reset off main and kept at refs/attic/vc/release-v3.5.2-try1. Upstream main is at 3475b6e94. OPEN: cc's refs/bank/cc/ci352/v3 (188842aa4, on b1ed72e56) holds the CI test fixes (I5207bf7, I14a2284, Ief26a29) and I75b8995 (the identity probe, no secret on TCP); its gate all was running at 06:33Z. Then: land v3, build all, push, release --dry-run with a clean tree and intentd stopped, READY, and hv runs bin/devbin release v3.5.2. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze. (edited)
 
 ## TODO
 
