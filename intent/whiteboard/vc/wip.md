@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-24 17:06Z
+heartbeat_at: 2026-11-24 17:21Z
 status: active
-focus: "2026-11-24 17:06Z by date -u: localfold before compact, not released. 3.5.3 cut red 3 times on macOS runner capacity only; no tag; local main 68484d35b unpushed. Waits on hv: resume or hold."
+focus: "2026-11-24 17:21Z by date -u: waits on cc's CI bank (hv decision 97), then re-cut 3.5.3"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.3 batch b353 landed on main (b15c70157); local main 68484d35b 'release: v3.5.3', not pushed, no tag. The cut stopped at the legs step three times, each time on GitHub macOS runner capacity only (last run 45441581189). Waits on hv: resume a 4th time, or hold. (edited)
+- 3.5.3 batch b353 on main (b15c70157). hv decision 97: candidate CI on Linux only. Waits on cc's bank refs/bank/cc/ci353/v1. Then vc drops the unpushed release commit 68484d35b, lands the bank by path and re-cuts v3.5.3 on the Desk's slot under hv decision 96. (edited)
 
 ## TODO
 

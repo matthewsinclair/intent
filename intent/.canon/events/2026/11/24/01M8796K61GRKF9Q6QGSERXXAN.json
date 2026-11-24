@@ -1,0 +1,16 @@
+{
+  "id": "01M8796K61GRKF9Q6QGSERXXAN",
+  "ts": "2026-11-24T17:21:04.193Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 68,
+    "text": "3.5.3 batch b353 on main (b15c70157). hv decision 97: candidate CI on Linux only. Waits on cc's bank refs/bank/cc/ci353/v1. Then vc drops the unpushed release commit 68484d35b, lands the bank by path and re-cuts v3.5.3 on the Desk's slot under hv decision 96."
+  }
+}
