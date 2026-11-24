@@ -332,6 +332,33 @@ pub fn mcp_session_with_env(
     cmd.env("HOME", home);
   }
   let mut child = cmd.spawn().expect("spawn intent mcp");
+  // **THE REPLIES ARE READ WHILE THE FRAMES ARE WRITTEN** (issue I37f8e18).
+  // Writing every frame first deadlocks once the replies fill the stdout pipe:
+  // the server blocks writing, stops reading stdin, and this blocks writing.
+  // The pipe's size moves with memory pressure, so that hung one gate run in
+  // several. Each output is drained on its own thread from the start.
+  let drain = |pipe: Option<Box<dyn std::io::Read + Send>>| {
+    let mut pipe = pipe.expect("a piped output");
+    std::thread::spawn(move || {
+      let mut bytes = Vec::new();
+      pipe
+        .read_to_end(&mut bytes)
+        .expect("read the server's output");
+      bytes
+    })
+  };
+  let stdout = drain(
+    child
+      .stdout
+      .take()
+      .map(|p| Box::new(p) as Box<dyn std::io::Read + Send>),
+  );
+  let stderr = drain(
+    child
+      .stderr
+      .take()
+      .map(|p| Box::new(p) as Box<dyn std::io::Read + Send>),
+  );
   {
     let stdin = child.stdin.as_mut().expect("stdin");
     for frame in frames {
@@ -341,7 +368,11 @@ pub fn mcp_session_with_env(
     stdin.flush().expect("flush");
   }
   drop(child.stdin.take());
-  let out = child.wait_with_output().expect("wait for the server");
+  let out = std::process::Output {
+    status: child.wait().expect("wait for the server"),
+    stdout: stdout.join().expect("the stdout reader"),
+    stderr: stderr.join().expect("the stderr reader"),
+  };
   let parsed = String::from_utf8_lossy(&out.stdout)
     .lines()
     .map(|line| {
