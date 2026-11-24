@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "I75b89950309a3f04",
+  "origin": "01M860FBT90CNAJWQYZK9ECB2H",
+  "realised": true,
+  "slug": "a-cli-can-route-to-another-home-s-daemon-through",
+  "title": "A CLI can route to another HOME's daemon through a stale intentd.addr on the shared preferred port",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "A CLI can route to a daemon that serves a different HOME. It does not check which daemon answers.\n\nHow it happens:\n- Every intentd binds TCP 127.0.0.1:51737 when it can (`Published::PREFERRED`, intentsvcs/src/daemon.rs:1009), and publishes the address in `intentd.addr` under its HOME.\n- SIGKILL or a crash leaves `intentd.addr` on disk.\n- `daemon::candidates_under` (daemon.rs:824) appends that address as the TCP candidate without a check.\n- `daemon::route` (daemon.rs:410) takes the first candidate that answers the probe. `completes_a_round_trip` (daemon.rs:285) accepts any byte back, and `PROBE_REPLY` (daemon.rs:220) names no HOME.\n- `wire::ask` (wire.rs:704) sends `{root, op}` with no HOME and no token.\n- So when this HOME's unix socket does not answer, and another HOME's daemon holds 51737, the CLI sends its verbs to that daemon. Examples: another OS user on the machine, or a fixture or dev HOME.\n\nEffect: the other daemon opens this project's store under its own uid and HOME, beside any engine this HOME starts. That breaks \"never two sync engines live at once\". A daemon of another user can read and write this user's project.\n\nSeen in the test suite: the daemon harness reached another test's daemon on 51737 through a stale address file (CI run 45328303838, ubuntu, `right: Some(Tcp(127.0.0.1:51737))`; and one local full run). The harness now waits on the home's own socket (I14a2284). This issue is the product fault under it.\n\ndaemon.rs:299-310 already says the TCP transport needs a token and has none.\n\nFix direction: bind the TCP route to this HOME's token (`Token::mint_under`, intentd/src/main.rs:304). The client sends the token over TCP and the daemon refuses a mismatch. The client treats the refusal as \"not this HOME's daemon\". The probe frame is matched by exact bytes (`is_probe_frame`, daemon.rs:235). So a new frame to an intentd that is still running from before an upgrade needs a skew design, or routing to that daemon breaks. Size M.\n"
+}
