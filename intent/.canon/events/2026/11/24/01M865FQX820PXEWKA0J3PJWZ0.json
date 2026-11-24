@@ -1,0 +1,15 @@
+{
+  "id": "01M865FQX820PXEWKA0J3PJWZ0",
+  "ts": "2026-11-24T06:56:55.219Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I37f8e18f82cd1476"
+  },
+  "payload": {
+    "severity": "medium",
+    "title": "The MCP test harness deadlocks when the server's replies fill the stdout pipe before all frames are written"
+  }
+}
