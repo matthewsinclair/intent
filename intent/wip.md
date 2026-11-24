@@ -1,5 +1,5 @@
 ---
-verblock: "24 Nov 2026:v4.13: vc - 3.5.2 released at fabbffd8c"
+verblock: "24 Nov 2026:v4.14: vc - after the compact, fix every open issue in one batch, then one release"
 intent_version: 3.5.2
 ---
 
@@ -7,11 +7,10 @@ intent_version: 3.5.2
 
 ## DOING
 
-- Nothing in flight. Intent 3.5.2 is released (tag v3.5.2 at fabbffd8c, 2026-11-24).
+- **After the compact (hv, 2026-11-24): fix EVERY open issue in one batch, then ONE release.** Intent 3.5.2 is released (tag v3.5.2 at fabbffd8c). The open issues are I5adc617 (an HTTP 5 s test red under load), I53c0c22 (Webber daily backup gaps), I6f2e257 (the MCP test helper parses stdout lossily) and Ia87820b (a check for a restated global rule, design first). Also cut the two global rules (sizes only, no hand wrap) out of lib/templates/llm/_CLAUDE.md. Read `intent outstanding` again first. No build all, push, dry run or READY until every one is fixed and proven in one gate all. hv decides any deferral, from the full list.
 
 ## TODO
 
-- After 3.5.2: cut the two global rules (sizes only, no hand wrap) out of lib/templates/llm/_CLAUDE.md, now that ~/.config/claude/house-rules.md holds them. Open issues outside 3.5.2: Ia87820b (a check for a restated global rule), I5adc617 (an HTTP 5 s test red under load), I53c0c22 (Webber backup gaps), I6f2e257 (the MCP test helper parses stdout lossily).
 - hv: whether a brew intentd should run on kovacs at all. One has run there since 2026-11-16; issue 0703 made the shell suite independent of it.
 - hv: devbin's decision 150 lists Intent among issue 0326's adopters, where hv decision 36 keeps `intent use` and `intent install` as Intent's own.
 - ST0089 stays parked (hv decision 59) until hv rules on its policy.
