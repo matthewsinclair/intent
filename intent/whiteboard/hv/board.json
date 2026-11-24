@@ -1031,6 +1031,14 @@
       "text": "(hv, 2026-11-24 17:16Z by devbin-vc's date -u, in devbin-vc's window; relayed by devbin-vc as its decision 296, not heard first-hand by vc; the wording of this record vc's) RHADAMANTH'S LOCAL MACOS LEG IS THE MACOS PROOF OF AN INTENT CUT. The candidate CI runs on Linux only: tests.yml skips test-macos on candidate/ refs and Test Summary accepts the skip; rust.yml's matrix on candidate/ refs is ubuntu-latest only; workflow_dispatch keeps macOS. cc builds it; vc drops the unpushed release commit 68484d35b, keeps the fold commits, lands it and re-cuts 3.5.3 on the Desk's slot, under hv decision 96.",
       "state": "live",
       "recorded_at": "2026-11-24T17:17:09.202Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 98,
+      "text": "(hv, 2026-11-24, first-hand in prose in vc's session; hv's words) NO INTENTD ON KOVACS. \"No. As I have said many times. Its an Ubuntu VM on this mac. It doesn't need an intentd.\" kovacs runs the cut's legs only. No seat starts an intentd there, and no plan asks the question again. At 2026-11-24 no intentd runs on kovacs.",
+      "state": "live",
+      "recorded_at": "2026-11-24T18:20:18.897Z"
     }
   ],
   "sent": [],

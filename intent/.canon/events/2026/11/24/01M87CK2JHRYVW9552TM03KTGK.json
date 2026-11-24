@@ -1,0 +1,15 @@
+{
+  "id": "01M87CK2JHRYVW9552TM03KTGK",
+  "ts": "2026-11-24T18:20:18.897Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-24, first-hand in prose in vc's session; hv's words) NO INTENTD ON KOVACS. \"No. As I have said many times. Its an Ubuntu VM on this mac. It doesn't need an intentd.\" kovacs runs the cut's legs only. No seat starts an intentd there, and no plan asks the question again. At 2026-11-24 no intentd runs on kovacs."
+  }
+}
