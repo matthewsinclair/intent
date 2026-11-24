@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.3] - 2026-11-24
+
+### Fixed
+
+- **intentd backs up every listed project each day, not only the ones it has open** (issue I53c0c22). After a restart, the daily backup sweep asked only the stores that something had routed to the daemon, so a listed project nobody opened was backed up only on the days someone used it. The sweep now also reads the stamp of each listed project it does not hold open, without opening it for write, and backs it up when one is due. It skips a store this build would create, migrate or refuse, so the sweep never changes the shape of a store.
+- **`intent lang init`, `intent lang remove` and `intent config set commands.*` render AGENTS.md again** (issue I2aaf979). Each one changed the config and left AGENTS.md behind it, so `intent doctor` then reported the contract as behind its config. All three now render AGENTS.md when the file exists and name it on a `wrote:` line. `config set` no longer prints `next: intent agents sync`.
+- **`intent at new` says what to run next** (issue I8867c4a). It now prints the new row's state, `to-write`, and the `intent at red` command that moves it on. `intent at green` on a row that is not red now says to run `intent at red <ST> <AT>` first.
+- **`intent issues close` names the view it leaves to be removed** (issue Ie66a7eb). A close unrealises the issue, so the next `organize --apply` removes its view under `intent/issues/`, and the store keeps the record. `issues close` now names that view and says this is expected and safe, as a thread close does, and so does doctor's unrealised-view advisory.
+- **`intent set` takes a thread's short id in an address** (issue If6f0257). `intent:///threads/<prefix>/wp/<id>` was refused, and the remedy offered that same prefix. `intent set` now completes the prefix as the other doors do. This reaches `intent set`, intentd and the TUI's edit handoff.
+- **A label refusal names the groups a label can use** (issue I7bc038a). `ac new` and `at new` pointed at `intent wp list`, which shows a package's short id, but a label's group is the package's whole id. The remedy now names each group the thread has, whole: `00` and each package's id.
+- **The pre-commit critic gate no longer reports a declared language with no rule pack as its own breakage** (issue Idee5e89). It now asks `intent lang list` which languages this build can check, skips any other declared language with one line that names it, and does not block the commit. The enforced line counts only the languages a critic checked.
+- **The Stop hook names the uncommitted files and gives no instruction** (issue I6dd6e43). Claude Code runs it at the end of every turn, and it told the reader to run `/in-finish` each time. It now lists the first five uncommitted paths and a count of the rest. A clean tree shows nothing.
+- **`/in-session` reads `mix.exs` only in a project that declares elixir** (issue Iba2f122). An absent `mix.exs` is not a failure, and the skill reports only the skills for the declared languages.
+- **`doctor`, the write guard and `organize` agree on a view an older Intent rendered** (ST1c2db93). Only `organize` during an upgrade compared a view with its render in each earlier canon format, so doctor could call a view stale that `st dehydrate` refused as hand-edited. All of them now use the same check, and doctor reports such a view as a stale render.
+- **The canon-ignore guard checks git-style canon files** (ST1c2db93). Its probes named ordinal files that no new record uses, so an ignore rule that reached only a new thread's or issue's file passed. The probes now name git-style files.
+
+### Added
+
+- **`intent issues close --reason <text>`** (issue I748775b). The reason goes into the issue's body as `Resolution: <text>`, in the same close. A blank reason is refused, and a reason on an issue that is already closed is added as an edit, so it is never dropped.
+- **`intent doctor` reports a project sentence that repeats a global Claude rule** (issue Ia87820b). It reads what a person wrote in the project, the user block of CLAUDE.md or AGENTS.md and the project's Claude memory notes, and reports each sentence that is the same as one in the global CLAUDE.md or AGENTS.md, as `restated-global-rule`. It finds an exact repeat only, never compares text that Intent's templates generate, and does not change doctor's exit code.
+
+### Changed
+
+- **The generated AGENTS.md and CLAUDE.md no longer use " -- " dashes.** Each one is now a full stop, a comma or a colon.
+
 ## [3.5.2] - 2026-11-24
 
 ### Fixed
