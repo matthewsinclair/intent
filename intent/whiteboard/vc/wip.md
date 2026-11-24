@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-23 17:26Z
+heartbeat_at: 2026-11-23 17:38Z
 status: active
 focus: "2026-11-23 17:26Z by date -u: localfold on hv's estate-wide call (via devbin-vc); 3.5.2 waits on cc's U4 and devbin 0.1.29, see doing 67. Not released."
 claims: []
