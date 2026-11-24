@@ -602,11 +602,68 @@ async fn sweep_backups(registry: Arc<Registry>) {
   // from the store each time, every one after the first would answer `NotYet`.
   // Work with no effect, at the moment the machine is already loaded.
   sweep.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+  // The listed projects already told why they are not being backed up, so a
+  // standing reason is said once a run and not once a sweep.
+  let mut told = std::collections::HashMap::new();
   loop {
     sweep.tick().await;
     for handle in registry.handles().await {
       handle.consider_backup().await;
     }
+    // **AND EVERY LISTED PROJECT THIS DAEMON HAS NOT OPENED** (issue
+    // I53c0c22): a store opens on first contact, so after a restart a project
+    // nobody routed here was never asked. Each is asked on a blocking task,
+    // one after another, so a sweep holds one store at a time.
+    for root in registry.unopened_listed().await {
+      let asked = root.clone();
+      match tokio::task::spawn_blocking(move || intentsvcs::backup::if_due_unopened(&asked)).await {
+        Ok(answer) => report_unopened(&root, answer, &mut told),
+        Err(e) => elogln!(
+          "warning: intentd: the scheduled backup of `{}` stopped: {e}\n  remedy: this is a fault in intentd rather than in the project; `intent backup` in the project takes one",
+          root.display()
+        ),
+      }
+    }
+  }
+}
+
+/// What the sweep says about a listed project it asked without opening it
+/// (issue I53c0c22). The policy is `intentsvcs::backup::if_due_unopened`'s,
+/// and an outcome of [`intentsvcs::backup::if_due`] is said by
+/// `store::say_backup`, the one renderer an open project's sweep uses too.
+/// Only the skip is this door's own.
+fn report_unopened(
+  root: &std::path::Path,
+  answer: Result<intentsvcs::backup::Unopened, intentsvcs::backup::BackupError>,
+  told: &mut std::collections::HashMap<std::path::PathBuf, bool>,
+) {
+  let told = told.entry(root.to_path_buf()).or_default();
+  match answer {
+    Ok(intentsvcs::backup::Unopened::Ran(ran)) => store::say_backup(root, Ok(ran), told),
+    Err(e) => store::say_backup(root, Err(e), told),
+    Ok(intentsvcs::backup::Unopened::Skipped(opening)) => {
+      if !*told {
+        *told = true;
+        elogln!(
+          "warning: intentd: `{}` is NOT being backed up: its store {}, and this intentd speaks schema {}, so the sweep leaves it unopened rather than change it\n  remedy: run `intent backup` in the project with the Intent it uses. `intent doctor` there reports backup-stale until a snapshot is taken.",
+          root.display(),
+          unopened_because(opening),
+          intentsvcs::store::SCHEMA_VERSION
+        );
+      }
+    }
+  }
+}
+
+/// Why opening a store would change it or be refused, as the skip line says.
+fn unopened_because(opening: intentsvcs::store::Opening) -> String {
+  use intentsvcs::store::{Opening, Refusal};
+  match opening {
+    Opening::Create => "does not exist".to_string(),
+    Opening::Migrate { from } => format!("is at schema {from}"),
+    Opening::Refuse(Refusal::Newer { found }) => format!("is at schema {found}"),
+    Opening::Refuse(Refusal::Unstamped) => "carries no schema stamp".to_string(),
+    Opening::Open => "is at this schema".to_string(),
   }
 }
 

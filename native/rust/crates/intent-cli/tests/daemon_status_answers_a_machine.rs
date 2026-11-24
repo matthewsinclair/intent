@@ -152,14 +152,22 @@ fn live_names_a_browser_address_that_serves_a_page_without_a_token() {
   );
 }
 
+/// How long [`plain_get`] waits for the page before it calls the test hung.
+///
+/// **A HANG GUARD, NOT A VERDICT** (issue I5adc617). A 5 s deadline failed a
+/// slow answer on a host at load average 70, with no fault in the daemon.
+/// [`RealDaemon::start`] already waits until the daemon answers a real op, so
+/// this bound only stops a page that never comes from holding the suite.
+const HANG_GUARD: std::time::Duration = std::time::Duration::from_secs(120);
+
 /// One unauthenticated `GET`, returning the status line.
 fn plain_get(authority: &str, path: &str) -> String {
   use std::io::{Read, Write};
 
   let mut stream = std::net::TcpStream::connect(authority).expect("connect to the published port");
   stream
-    .set_read_timeout(Some(std::time::Duration::from_secs(5)))
-    .expect("set a deadline");
+    .set_read_timeout(Some(HANG_GUARD))
+    .expect("set the hang guard");
   write!(
     stream,
     "GET {path} HTTP/1.1\r\nHost: {authority}\r\nConnection: close\r\n\r\n"

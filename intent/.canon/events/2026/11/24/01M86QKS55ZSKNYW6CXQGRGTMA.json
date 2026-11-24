@@ -1,0 +1,15 @@
+{
+  "id": "01M86QKS55ZSKNYW6CXQGRGTMA",
+  "ts": "2026-11-24T12:13:41.934Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "I6dd6e43c73993aeb"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Stop hook tells the reader to run /in-finish at the end of every turn"
+  }
+}

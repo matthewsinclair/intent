@@ -105,6 +105,18 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   assert_file_contains "$SKILL" ":phoenix_live_view"
 }
 
+@test "in-session runs the mix.exs fan-out only when elixir is declared (issue Iba2f122)" {
+  # A Perl project read mix.exs to find out if it existed, and the session
+  # showed "1 failed" for a language it never declared.
+  local step3
+  step3="$(awk '/^### 3\./{on=1; next} /^### /{on=0} on' "$SKILL")"
+  # shellcheck disable=SC2016 # the backticks are the skill's own text
+  [[ "$step3" == *'only when `elixir` is a declared language'* ]] \
+    || fail "step 3 does not depend on the declared languages: $step3"
+  [[ "$step3" == *'test -f mix.exs'* ]] \
+    || fail "step 3 does not test for mix.exs before it reads it: $step3"
+}
+
 # ====================================================================
 # CLAUDE.md wiring
 # ====================================================================

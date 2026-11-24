@@ -115,6 +115,14 @@ impl Sigil {
     }
   }
 
+  /// The id family of the records this sigil declares.
+  pub fn kind(&self) -> crate::id::IdKind {
+    match self {
+      Sigil::SteelThread => crate::id::IdKind::Thread,
+      Sigil::Issue => crate::id::IdKind::Issue,
+    }
+  }
+
   /// The wire form, which is also the only accepted spelling.
   pub fn as_str(&self) -> &'static str {
     match self {

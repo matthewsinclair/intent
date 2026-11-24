@@ -59,7 +59,7 @@ If the array is empty or missing, no language-specific essentials skills load. T
 
 ### 3. Elixir dep-based fan-out
 
-When `mix.exs` is present, read it and invoke by dependency:
+**Run this step only when `elixir` is a declared language.** When it is not, skip the step and report nothing for it: a project that does not declare `elixir` has nothing here to load and nothing here to fail. When it is, test for the file with `test -f mix.exs` before you read it, and never read a file to find out whether it exists. An absent `mix.exs` is not a failure: skip the fan-out and say nothing about it. When `mix.exs` is present, read it and invoke by dependency:
 
 - Depends on `:ash` or `:ash_postgres` -> invoke `/in-ash-ecto-essentials`
 - Depends on `:phoenix_live_view` -> invoke `/in-phoenix-liveview`
@@ -84,7 +84,7 @@ The whiteboard is the live cross-session coordination channel; `wip.md` is the p
 
 ### 6. Confirm and proceed
 
-Report the skill set loaded in one line so the user can spot an unexpected match. Do not wait for further instructions; proceed with whatever the user was already asking for.
+Report the skill set loaded in one line so the user can spot an unexpected match. Name only the skills for the declared languages, and report nothing as failed for a language the project does not declare. Do not wait for further instructions; proceed with whatever the user was already asking for.
 
 ## Persistent reminders
 

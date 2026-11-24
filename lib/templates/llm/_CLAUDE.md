@@ -2,7 +2,7 @@
 
 # [[PROJECT_NAME]]
 
-This project is built with Intent -- run `intent --version` for the version it is running. The primary config file for AI coding agents is `AGENTS.md`, beside this file, and the `@AGENTS.md` line at the top of this file loads it. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
+This project is built with Intent. Run `intent --version` for the version it is running. The primary config file for AI coding agents is `AGENTS.md`, beside this file, and the `@AGENTS.md` line at the top of this file loads it. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
 ## Required on every session
 

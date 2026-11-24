@@ -577,6 +577,21 @@ AGGREGATE=0
 # Languages whose critic did not run. Collected rather than counted so the
 # digest below can NAME them -- see the summary block after the loop.
 UNENFORCED=()
+# Declared languages that this build has no rule pack for.
+# The gate does not call the critic for them: there is nothing to enforce,
+# so a skip is the correct result and not the gate's own breakage.
+NOPACK=()
+# Declared languages whose critic ran and gave an answer (0, 1 or 3).
+CHECKED=()
+# The languages this build can serve, from `intent lang list`, so the gate
+# keeps no language list of its own. When the binary does not answer, the
+# set stays empty and every declared language goes to the critic, as before.
+SERVED=" "
+served_out="$(intent lang list 2>/dev/null)" && while IFS= read -r served_line; do
+  case "$served_line" in
+    "  "[a-z]*) SERVED="${SERVED}${served_line#  } " ;;
+  esac
+done <<<"$served_out"
 # Rules the PROJECT disabled in `.intent_critic.yml`, summed across languages
 # (ruled by hv 2026-09-22). A COUNT and not the ids, matching what
 # the critic itself prints: the ids are in the project's own committed file and
@@ -595,8 +610,13 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # prints a spurious "fail-open" line -- the gate needs no language knowledge
     # of its own, and cannot drift from the CLI.
     # Capture output so we can surface findings only when present.
+    if [ "$SERVED" != " " ] && [ "${SERVED#* "$lang" }" = "$SERVED" ]; then
+      NOPACK+=("$lang")
+      continue
+    fi
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?
+    case "$rc" in 0|1|3) CHECKED+=("$lang") ;; esac
     # EACH OUTCOME ITS OWN ARM, NOT A BUCKET. `*)` used to swallow every rc that
     # was not 0 or 1 and fail open on all of them, which was fine only while
     # exactly one such code existed. The rule is that a tool-armed rule REFUSES
@@ -715,6 +735,14 @@ if [ "${#LANGS[@]}" -eq 0 ]; then
   echo "  why: $SCOPE_NOTE" >&2
   echo "  the commit is NOT blocked by this. Declare a language with \`intent lang init <lang>\` if" >&2
   echo "  this project has code the rule library covers; otherwise only the guards above are enforcing." >&2
+fi
+# A skip for a language with no rule pack is reported on its own line, so it
+# is not read as breakage. It does not block the commit.
+if [ "${#NOPACK[@]}" -gt 0 ]; then
+  echo "intent critic gate: skipped ${NOPACK[*]}: this build has no rule pack for it, so no critic can check it. The commit is not blocked. \`intent lang list\` names the languages this build can check." >&2
+fi
+if [ "${#LANGS[@]}" -eq 0 ]; then
+  :
 elif [ "${#UNENFORCED[@]}" -gt 0 ]; then
   echo "" >&2
   echo "intent critic gate: ${#UNENFORCED[@]} of ${#LANGS[@]} declared language(s) went UNENFORCED (${UNENFORCED[*]})." >&2
@@ -725,7 +753,9 @@ else
   # The two arms above already say a critic did not run or went unenforced, and
   # a reader of either is not being told rules were enforced -- this line is the
   # one that makes that claim, so it is the one that owes its denominator.
-  echo "intent critic gate: ${#LANGS[@]} of ${#LANGS[@]} declared language(s) enforced (${LANGS[*]}), ${DISABLED_RULES} rule(s) disabled by this project." >&2
+  checked_names="none"
+  [ "${#CHECKED[@]}" -gt 0 ] && checked_names="${CHECKED[*]}"
+  echo "intent critic gate: ${#CHECKED[@]} of ${#LANGS[@]} declared language(s) enforced (${checked_names}), ${DISABLED_RULES} rule(s) disabled by this project." >&2
 fi
 
 # ---- Estate health: `intent doctor` ----

@@ -35,6 +35,8 @@ mod common;
 mod a_daemon_indexes_a_project_when_it_opens_it;
 #[path = "a_daemon_outlives_nobody.rs"]
 mod a_daemon_outlives_nobody;
+#[path = "a_listed_project_nobody_opened_is_backed_up.rs"]
+mod a_listed_project_nobody_opened_is_backed_up;
 #[path = "a_source_edit_reaches_the_index_and_costs_canon_nothing.rs"]
 mod a_source_edit_reaches_the_index_and_costs_canon_nothing;
 #[path = "an_ingest_never_reverts_a_newer_store_write.rs"]

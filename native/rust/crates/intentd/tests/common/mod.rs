@@ -48,6 +48,18 @@ pub const PAUSE: Duration = Duration::from_millis(20);
 /// rather than the host.
 pub const ARM_ATTEMPTS: u32 = ATTEMPTS * 12;
 
+/// Whether `done` answers true within `attempts`, a [`PAUSE`] between each
+/// ask: the one bounded wait an arm runs, so its body holds no loop of its own.
+pub fn poll_until(attempts: u32, mut done: impl FnMut() -> bool) -> bool {
+  (0..attempts).any(|_| {
+    let answered = done();
+    if !answered {
+      std::thread::sleep(PAUSE);
+    }
+    answered
+  })
+}
+
 /// A short, unique directory under `/tmp`.
 ///
 /// **NOT `tempfile`, AND NOT FOR TIDINESS.** A unix socket address is a
@@ -135,7 +147,19 @@ impl RunningDaemon {
   /// whose subject is read from somewhere `HOME` does not reach, eg Claude
   /// Code's directory under `CLAUDE_CONFIG_DIR`.
   pub fn start_with(vars: &[(&str, &Path)]) -> RunningDaemon {
-    let home = short_dir("intentd-home");
+    RunningDaemon::start_in(short_dir("intentd-home"), vars, Stdio::null())
+  }
+
+  /// [`RunningDaemon::start`] under `home`, a directory the test has already
+  /// filled, with the daemon's stderr written to `err_log`: for a test whose
+  /// subject is what the daemon finds at start and says about it.
+  pub fn start_logging(home: PathBuf, err_log: &Path) -> RunningDaemon {
+    let file = std::fs::File::create(err_log)
+      .unwrap_or_else(|e| panic!("create {}: {e}", err_log.display()));
+    RunningDaemon::start_in(home, &[], Stdio::from(file))
+  }
+
+  fn start_in(home: PathBuf, vars: &[(&str, &Path)], stderr: Stdio) -> RunningDaemon {
     // **THE LIFELINE (`ST0073`), AND IT IS WHAT MAKES THE `Drop` GUARD BELOW A
     // BELT RATHER THAN THE ONLY STRAP.** `Drop` runs on a normal return or an
     // unwinding panic and NOT on an interrupted `cargo test`, a killed build or
@@ -157,7 +181,7 @@ impl RunningDaemon {
       .envs(vars.iter().copied())
       .stdin(Stdio::piped())
       .stdout(Stdio::null())
-      .stderr(Stdio::null())
+      .stderr(stderr)
       .spawn()
       .expect("intentd is built beside this test by cargo");
     let running = RunningDaemon { child, home };

@@ -99,6 +99,7 @@ pub mod realise;
 pub mod remedy;
 pub mod renumber;
 pub mod resolve;
+pub mod restated;
 pub mod rootfiles;
 pub mod roster_readme;
 pub mod rules;

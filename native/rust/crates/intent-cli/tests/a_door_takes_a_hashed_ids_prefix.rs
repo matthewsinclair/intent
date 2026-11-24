@@ -53,6 +53,43 @@ fn st_show_issues_show_and_wp_show_take_a_prefix() {
     ok(root, &["edit", "st", &thread.stored(), "--path"]),
     "`edit st` opens by the shown form what it opens by the whole id"
   );
+  // Issue If6f0257: `set` takes the thread's shown form in an address, as
+  // every other door does.
+  let objective = "An objective set through a prefix";
+  ok(
+    root,
+    &[
+      "set",
+      &format!(
+        "{}/threads/{}/wp/{}",
+        intentsvcs::address::SCHEME,
+        thread.shown(),
+        package.stored()
+      ),
+      "objective",
+      objective,
+    ],
+  );
+  // The same value set through the whole id changes nothing, so the write by
+  // the shown form reached that package.
+  assert!(
+    ok(
+      root,
+      &[
+        "set",
+        &format!(
+          "{}/threads/{}/wp/{}",
+          intentsvcs::address::SCHEME,
+          thread.stored(),
+          package.stored()
+        ),
+        "objective",
+        objective,
+      ],
+    )
+    .contains("already unchanged"),
+    "`set` wrote the package its address names by the thread's shown form"
+  );
 
   // `edit issue` is refused by kind before any id is read (issue 0334), so the
   // issue arm of `edit`'s door is reached through `browse`, which reads its id

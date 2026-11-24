@@ -1,0 +1,15 @@
+{
+  "id": "01M86QKRT66FY4A8NJ7R59VKK9",
+  "ts": "2026-11-24T12:13:41.583Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Iba2f122c16e1ab69"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "/in-session reads mix.exs in a project that does not declare elixir"
+  }
+}

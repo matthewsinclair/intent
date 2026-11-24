@@ -3,20 +3,22 @@
 # session-finish.sh -- Intent Stop hook
 #
 # Purpose:
-#   Remind the operator to fold the session (`/in-finish`) when there is
-#   actually something to fold.
+#   Name the uncommitted paths at the end of a turn, when there are any. It
+#   gives no instruction: Claude Code runs a Stop hook at the end of every
+#   turn, and `/in-finish` is a session-end step.
 #
 # Contract:
 #   - Invoked by `.claude/settings.json` Stop hook, via `intent claude hook
 #     session-finish`.
 #   - Receives Claude Code Stop event JSON on stdin (unused).
-#   - Writes one JSON object to stdout, `{"systemMessage": "<reminder>"}`.
+#   - Writes one JSON object to stdout, `{"systemMessage": "<paths>"}`, or
+#     nothing.
 #     Claude Code shows a hook's `systemMessage` in the transcript
 #     (code.claude.com/docs/en/hooks-guide: "Message shown in transcript").
 #     Plain stdout is added to context only for UserPromptSubmit,
 #     UserPromptExpansion, SessionStart and PostModelSwitch, and the docs do not
-#     say where a Stop hook's plain stdout goes, so the reminder this hook
-#     printed as plain text may have reached nobody.
+#     say where a Stop hook's plain stdout goes, so a line this hook printed
+#     as plain text may reach nobody.
 #   - EXIT 0 ALWAYS, AND NEVER 2. This is a hard contract, not a default --
 #     see below.
 #
@@ -46,31 +48,48 @@ set -u
 
 project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 
-# Best-effort dirty check. Three outcomes and only one of them is silent:
-#   dirty      -> remind; there is work to fold
-#   clean      -> say nothing; a reminder with nothing behind it is noise, and
-#                 a hook that fires identically every time carries no signal
-#   unknowable -> remind; not a git tree, or git absent. Defaulting to the
-#                 reminder keeps the pre-routing behaviour whenever the
-#                 condition cannot be evaluated, so routing never makes a
-#                 project quieter than the inline echo was.
-dirty_count=""
-if command -v git >/dev/null 2>&1 \
-  && git -C "$project_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1
+# Best-effort dirty check. Only a dirty tree prints anything:
+#   dirty      -> name the uncommitted paths, the first few and a count of the
+#                 rest, and give no instruction. Claude Code runs a Stop hook at
+#                 the end of EVERY TURN, not at the end of a session, so an
+#                 instruction here is repeated at every turn. `/in-finish`
+#                 commits, and a reader who reviews and commits by hand must not
+#                 be told to run it after each turn. It stays a session-end
+#                 step, which the skill and CLAUDE.md say.
+#   clean      -> say nothing; a line with nothing behind it is noise.
+#   unknowable -> say nothing; not a git tree, or git absent. With no
+#                 instruction left to give, there is no fact to report either.
+if ! command -v git >/dev/null 2>&1 \
+  || ! git -C "$project_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1
 then
-  dirty_count="$(git -C "$project_dir" status --porcelain 2>/dev/null | wc -l | tr -d '[:space:]' || true)"
-fi
-
-if [ -n "$dirty_count" ] && [ "$dirty_count" = "0" ]; then
   exit 0
 fi
 
-# Built with printf rather than jq, which this hook must not depend on: the
-# message is fixed text and a count of digits, so nothing in it needs escaping.
-if [ -n "$dirty_count" ]; then
-  printf '{"systemMessage":"Session wrap-up reminder: %s uncommitted path(s). Run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit."}\n' "$dirty_count"
-else
-  printf '{"systemMessage":"Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit."}\n'
+dirty="$(git -C "$project_dir" status --porcelain 2>/dev/null || true)"
+[ -n "$dirty" ] || exit 0
+
+# The number of paths the message names before it counts the rest.
+shown_max=5
+count=0
+shown=""
+while IFS= read -r line; do
+  [ -n "$line" ] || continue
+  count=$((count + 1))
+  if [ "$count" -le "$shown_max" ]; then
+    # Porcelain v1: two status columns and a space, then the path. git quotes
+    # a path with an unusual character in C style, so only a backslash and a
+    # double quote need escaping for JSON.
+    path="$(printf '%s' "${line:3}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    shown="${shown:+$shown, }$path"
+  fi
+done <<<"$dirty"
+
+rest=""
+if [ "$count" -gt "$shown_max" ]; then
+  rest=", and $((count - shown_max)) more"
 fi
+
+# Built with printf rather than jq, which this hook must not depend on.
+printf '{"systemMessage":"%s uncommitted path(s): %s%s."}\n' "$count" "$shown" "$rest"
 
 exit 0

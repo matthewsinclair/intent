@@ -841,6 +841,13 @@ fn a_create_refuses_a_label_naming_a_package_the_thread_does_not_have() {
     "the example is a label valid on this thread: {}",
     err.remedy()
   );
+  // Issue I7bc038a: the remedy names each group whole, because `wp list`
+  // shows a package's shorter shown form.
+  assert!(
+    err.remedy().contains(&format!("`{}`", package.stored())) && !err.remedy().contains("wp list"),
+    "the remedy names the package's whole group itself: {}",
+    err.remedy()
+  );
   let err = facade
     .at_new(
       "ST0001",

@@ -32,7 +32,7 @@ fn bytes_matching_the_render_are_cleared_for_removal() {
   fx.write_file("gated.md", RENDERED);
   let step = step_at(&fx, "gated.md", Some(RENDERED));
   assert!(
-    gate(&step).is_ok(),
+    gate(&step, &[]).is_ok(),
     "a file the store reproduces exactly carries nothing that removing it would destroy"
   );
 }
@@ -42,7 +42,7 @@ fn a_hand_edited_view_is_refused_and_the_path_is_named() {
   let fx = Fixture::new();
   fx.write_file("gated.md", "# ST0001\n\nSomebody wrote this by hand.\n");
   let step = step_at(&fx, "gated.md", Some(RENDERED));
-  match gate(&step) {
+  match gate(&step, &[]) {
     Err(OrganizeError::HandEdited { path, bytes }) => {
       assert_eq!(path, fx.path("gated.md"), "the refusal must name the path");
       assert_eq!(bytes, "# ST0001\n\nSomebody wrote this by hand.\n".len());
@@ -60,7 +60,7 @@ fn one_byte_of_difference_is_enough() {
   fx.write_file("gated.md", &format!("{RENDERED}\n"));
   let step = step_at(&fx, "gated.md", Some(RENDERED));
   assert!(
-    matches!(gate(&step), Err(OrganizeError::HandEdited { .. })),
+    matches!(gate(&step, &[]), Err(OrganizeError::HandEdited { .. })),
     "a single trailing newline is a difference, and the file holds it while the store does not"
   );
 }
@@ -71,7 +71,7 @@ fn a_step_with_no_rendered_bytes_is_refused_rather_than_passed() {
   fx.write_file("gated.md", RENDERED);
   let step = step_at(&fx, "gated.md", None);
   assert!(
-    matches!(gate(&step), Err(OrganizeError::HandEdited { .. })),
+    matches!(gate(&step, &[]), Err(OrganizeError::HandEdited { .. })),
     "with nothing to compare against, `the store carries this` is UNPROVEN -- and unproven is not permission"
   );
 }
@@ -83,7 +83,7 @@ fn an_unreadable_file_is_an_error_not_a_clearance() {
   // every subsequent report would say the removal was proven safe.
   let fx = Fixture::new();
   let step = step_at(&fx, "never-written.md", Some(RENDERED));
-  match gate(&step) {
+  match gate(&step, &[]) {
     Err(OrganizeError::Io { path, .. }) => {
       assert_eq!(path, fx.path("never-written.md"))
     }
@@ -98,7 +98,7 @@ fn the_refusal_tells_the_operator_where_the_edit_belongs() {
   // edit goes, because the file they edited is the one the model overwrites.
   let fx = Fixture::new();
   fx.write_file("gated.md", "hand written\n");
-  let err = gate(&step_at(&fx, "gated.md", Some(RENDERED))).unwrap_err();
+  let err = gate(&step_at(&fx, "gated.md", Some(RENDERED)), &[]).unwrap_err();
   let text = err.to_string();
   assert!(
     text.contains("canon"),

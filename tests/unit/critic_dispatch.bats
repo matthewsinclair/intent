@@ -127,6 +127,20 @@ run_hook_inner() {
   [ ! -f "$CALL_LOG" ] || [ "$(grep -c '^critic ' "$CALL_LOG" || true)" -eq 0 ]
 }
 
+@test "hook skips a declared language with no rule pack and says why (issue Idee5e89)" {
+  # perl is a language this build cannot serve, and shell is one it can. The
+  # gate asks `intent lang list`, so the served set is the binary's own.
+  run run_hook_with_languages '["perl","shell"]'
+  [ "$status" -eq 0 ]
+  grep -q '^critic shell --staged --severity-min ' "$CALL_LOG" \
+    || fail "no critic shell invocation: $(cat "$CALL_LOG")"
+  run grep '^critic perl' "$CALL_LOG"
+  [ "$status" -ne 0 ] || fail "the gate called the critic for perl: $output"
+  run run_hook_with_languages '["perl","shell"]'
+  assert_output_contains "skipped perl: this build has no rule pack for it"
+  [[ "$output" != *"UNENFORCED"* ]] || fail "a skip read as breakage: $output"
+}
+
 @test "hook fails open outside an Intent project" {
   local repo="$TEST_TEMP_DIR/bare-repo"
   mkdir -p "$repo"

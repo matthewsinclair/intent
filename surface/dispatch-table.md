@@ -1333,7 +1333,7 @@ Track issues without the ceremony of a steel thread
 | `issues add`       | <title>     | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                                                   | keep        |
 | `issues edit`      | <id>        | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity                         | new-surface |
 | `issues show`      | <id>        | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                                                   | keep        |
-| `issues close`     | <id>        | --                                                                                | Mark an issue done: OPEN -> CLOSED                                                    | keep        |
+| `issues close`     | <id>        | --reason <text>                                                                   | Mark an issue done: OPEN -> CLOSED                                                    | keep        |
 | `issues open`      | <id>        | --                                                                                | Reopen an issue: CLOSED -> OPEN                                                       | keep        |
 | `issues renumber`  | <old> <new> | --                                                                                | Move an issue to a free number, with its canon file and view                          | retire      |
 | `issues remint`    | <id>        | --                                                                                | Move an ordinal issue to its git-style id, with everything that names it structurally | new-surface |
@@ -1475,6 +1475,9 @@ Mark an issue done: OPEN -> CLOSED
 
 - **Arguments:**
   - `id` (issue-id, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- How the issue was resolved. Optional: the close adds it to the issue's body as its `Resolution:` line, in the same event
+    - **disposition:** keep
 - **Target:** `as-observed`
 - **Open question for hv:** **v2 SPELLS ONE CONDITION SEVERAL WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of every row at once.** v2's source sites produce different rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home.
 - **no op:** `ok: issue <NNNN> already CLOSED`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).

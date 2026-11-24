@@ -723,6 +723,12 @@ fn examine(
   report
     .findings
     .extend(hook_script_orphaned_findings(project));
+  // Beside the root files and for their reason: a sentence the contracts or
+  // the memory notes repeat from a global file is a fact about files, and a
+  // store that will not open has them (issue Ia87820b).
+  report
+    .findings
+    .extend(restated_global_rule_findings(project));
 
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
@@ -3461,6 +3467,85 @@ fn author_placeholder_finding(project: &Project) -> Option<Finding> {
     FindingClass::AuthorPlaceholder,
     format!("`author` in {file} {what}, so the records this project writes name nobody"),
   ))
+}
+
+/// Each sentence of the project's contracts or Claude Code memory notes that a
+/// global Claude file already says (issue Ia87820b): one finding at the
+/// project's line, naming the global line. The comparison is
+/// [`crate::restated`]'s.
+///
+/// **A CHECK THAT DID NOT RUN DOES NOT READ AS ONE THAT FOUND NOTHING.** With
+/// no Claude dir and no `CLAUDE_CONFIG_DIR` there is nothing to compare, and
+/// nothing is said. A Claude dir that cannot be found, a `CLAUDE_CONFIG_DIR`
+/// naming no directory, and each file that is there and could not be read are
+/// each said as an advisory.
+fn restated_global_rule_findings(project: &Project) -> Vec<Finding> {
+  let not_compared = |subject: String, why: String| {
+    Finding::new(
+      subject,
+      FindingClass::Advisory,
+      format!("{why}, so no project line was compared with the global Claude files"),
+    )
+  };
+  let claude = match crate::userstate::claude_dir() {
+    Ok(claude) => claude,
+    Err(e) => {
+      return vec![
+        not_compared(
+          "CLAUDE_CONFIG_DIR".to_string(),
+          format!("the Claude dir was not found ({e})"),
+        )
+        .with_remedy(crate::remedy::Remedy::remedy(&e)),
+      ];
+    }
+  };
+  if !claude.is_dir() {
+    if !crate::userstate::claude_dir_configured() {
+      return Vec::new();
+    }
+    return vec![not_compared(
+      claude.display().to_string(),
+      format!(
+        "`CLAUDE_CONFIG_DIR` names {}, which is not a directory",
+        claude.display()
+      ),
+    )];
+  }
+  // A memory note sits under the Claude dir, outside the project, so it is
+  // named whole rather than relative to a root it is not under.
+  let named = |path: &std::path::Path| match path.strip_prefix(project.root()) {
+    Ok(_) => project.relative(path),
+    Err(_) => path.display().to_string(),
+  };
+  let global = crate::restated::global_files(&claude);
+  let local = crate::restated::project_files(project, &claude);
+  let unread = global.unread.iter().chain(&local.unread).map(|u| {
+    Finding::new(
+      named(&u.path),
+      FindingClass::Advisory,
+      format!(
+        "{} could not be read ({}), so its lines were not compared with the global Claude files",
+        u.path.display(),
+        u.cause
+      ),
+    )
+  });
+  let found = crate::restated::restatements(&global.texts, &local.texts)
+    .into_iter()
+    .map(|found| {
+      Finding::new(
+        named(&found.project.path),
+        FindingClass::RestatedGlobalRule,
+        format!(
+          "line {} repeats {}:{}, a global Claude file every session loads",
+          found.project.line,
+          found.global.path.display(),
+          found.global.line
+        ),
+      )
+      .at_line(u32::try_from(found.project.line).unwrap_or(u32::MAX))
+    });
+  unread.chain(found).collect()
 }
 
 /// Each `.claude/scripts/*.sh` whose header names Intent and that no hook

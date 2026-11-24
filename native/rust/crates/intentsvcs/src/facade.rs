@@ -2006,6 +2006,9 @@ pub enum FacadeError {
     words: String,
     /// A label of the same kind valid on the thread.
     example: String,
+    /// Each group a label on the thread may take, whole: `00` and each
+    /// package's stored id (issue I7bc038a).
+    groups: Vec<String>,
   },
   /// The AT-side sibling of [`Self::CriterionExists`], carrying the same
   /// mechanism and the same window. Separate because the remedy names a
@@ -2218,6 +2221,9 @@ pub enum FacadeError {
     from: String,
     /// The states the declared graph accepts this verb from.
     legal: String,
+    /// The command that moves the subject to a state in `legal`, where the
+    /// caller can name one. The remedy names it as the step to run first.
+    first: Option<String>,
   },
   #[error("`{verb}` requires a reason and was given none")]
   ReasonRequired { verb: &'static str },
@@ -3993,9 +3999,18 @@ impl crate::remedy::Remedy for FacadeError {
          `00` or one of its packages, eg `{example}`, and the sequence is digits",
         kind.form()
       ),
-      Self::LabelNamesAbsentPackage { st, example, .. } => format!(
-        "nothing was written. Group the label under the thread's `00` or one of its \
-         packages, eg `{example}`; `intent wp list {st}` shows the packages"
+      // **THE GROUPS THEMSELVES, NOT A LIST THAT HOLDS ANOTHER FORM** (issue
+      // I7bc038a): `wp list` shows a package's 4-hex shown form, and a label's
+      // group is the package's whole stored id.
+      Self::LabelNamesAbsentPackage {
+        st, example, groups, ..
+      } => format!(
+        "nothing was written. Group the label under one of the groups {st} has, {}, eg `{example}`",
+        groups
+          .iter()
+          .map(|g| format!("`{g}`"))
+          .collect::<Vec<_>>()
+          .join(", ")
       ),
       Self::CriterionExists { st, ac } => format!(
         "nothing was written and {ac} still holds the text, kind and state it held. To reword \
@@ -4054,6 +4069,12 @@ impl crate::remedy::Remedy for FacadeError {
         // a remedy outliving the estate it was written against.
         RERENDER_REMEDY.to_string()
       }
+      Self::IllegalTransition {
+        verb,
+        legal,
+        first: Some(first),
+        ..
+      } => format!("run `{first}` first: `{verb}` is declared only from: {legal}"),
       Self::IllegalTransition { verb, legal, .. } => {
         format!(
           "`{verb}` is declared only from: {legal}. The machine has no terminal states, so there IS a route from here -- move through the states rather than around them"
@@ -4670,6 +4691,9 @@ pub enum Note {
   /// decide otherwise.
   DehydratesOnNextOrganize {
     paths: Vec<String>,
+    /// The kind of record the close is about, so the note names the verb
+    /// that reads it back (AE finding 6).
+    sigil: Sigil,
     /// The format the project keeps realisation in, so the note says what
     /// the close does to it in that format's words (todo 78):
     /// [`intentfiles::RealisationWords::closing_unrealises`], [`intentfiles::RealisationWords::closing_kept`].
@@ -4916,6 +4940,15 @@ impl Outcome {
   /// rendered has overwritten nobody's work, so there is nothing to say --
   /// the same objection the event log makes to recording a no-op.
   #[must_use]
+  /// A move, carrying `notes` when there are any.
+  pub fn moved_with(notes: Vec<Note>) -> Self {
+    if notes.is_empty() {
+      Self::Moved
+    } else {
+      Self::MovedWith { notes }
+    }
+  }
+
   pub fn with_overwrites(self, applied: Applied) -> Self {
     let mut folded = Vec::new();
     if !applied.foreign.is_empty() {
@@ -5289,6 +5322,15 @@ fn declared_list_edit(op: &str) -> Option<(Sigil, ListAction)> {
     // `st.*` op is named above, derived from the edge table rather than from a
     // list anyone maintains.
     _ => None,
+  }
+}
+
+/// An issue's `body` with `line` added as its last paragraph: the one form of
+/// a `Resolution:` line (AE finding 5).
+fn with_resolution(body: &str, line: &str) -> String {
+  match body.trim_end() {
+    "" => line.to_string(),
+    kept => format!("{kept}\n\n{line}"),
   }
 }
 
@@ -7477,11 +7519,7 @@ impl Facade {
   /// alone, the file reached disk and not the index, so a running daemon's
   /// canon watch read the rewrite as an external edit and ingested it.
   pub fn agents_sync(&mut self) -> Result<std::path::PathBuf, FacadeError> {
-    let target = self.project.root().join(crate::sync::root_file_path(
-      "AGENTS.md",
-      self.project.config().contracts,
-    ));
-    let before = std::fs::read(&target).ok();
+    let before = std::fs::read(self.agents_target()).ok();
     let path = crate::rootfiles::generate(
       self.project.root(),
       "AGENTS.md",
@@ -7495,6 +7533,25 @@ impl Facade {
       self.landed.push(path.clone());
     }
     Ok(path)
+  }
+
+  /// [`Facade::agents_sync`] where the project keeps an `AGENTS.md`, and
+  /// nothing where it keeps none. A `lang` verb calls it after it writes the
+  /// declared languages, which the contract lists (AE finding 2), so doctor
+  /// does not read the contract as behind them.
+  pub fn agents_sync_if_present(&mut self) -> Result<Option<std::path::PathBuf>, FacadeError> {
+    if !self.agents_target().exists() {
+      return Ok(None);
+    }
+    self.agents_sync().map(Some)
+  }
+
+  /// Where this project keeps `AGENTS.md`, by its `contracts` layout.
+  fn agents_target(&self) -> std::path::PathBuf {
+    self.project.root().join(crate::sync::root_file_path(
+      "AGENTS.md",
+      self.project.config().contracts,
+    ))
   }
 
   /// `intent agents layout <root|dotclaude>` (ST0083 WP-03, AC-03.2): move the
@@ -8572,6 +8629,7 @@ impl Facade {
         words: owner.absent_package_words(&whole, seq),
         label: whole,
         example: owner.example_label(kind),
+        groups: owner.label_groups(),
       }),
     }
   }
@@ -8845,7 +8903,33 @@ impl Facade {
       ctx.todo_watermark = after.todo_watermark.clone();
     }
     let plan = organize::plan(&self.project, canon, &realised, &ctx, &tree, digest);
-    Ok((plan, previous))
+    // **EVERY REMOVAL IS ALSO GATED AGAINST ITS RENDER IN AN EARLIER CANON
+    // FORMAT** (issue 0746, made every door's by ST1c2db93 P22). After the
+    // move to the release's canon format, a tracked view differs from today's
+    // render because the renderer changed. doctor calls that view stale, so
+    // organize removes it as doctor's remedy says, by the one predicate. Built
+    // only when the plan removes something.
+    let earlier = self.removals_earlier(canon, &ctx, plan.with(organize::Action::Dehydrate));
+    Ok((plan.with_earlier_renders(earlier), previous))
+  }
+
+  /// Each removal's render in every earlier canon format, for the steps
+  /// `removals` names (ST1c2db93 P22): what each plan that removes something
+  /// carries, so organize, `st hydrate` and `st dehydrate` gate a removal as
+  /// doctor's skew and the write guard judge the same view. Renders nothing
+  /// when nothing is removed.
+  fn removals_earlier<'s>(
+    &self,
+    canon: &Canon,
+    ctx: &views::RenderContext<'_>,
+    removals: impl Iterator<Item = &'s organize::Step>,
+  ) -> BTreeMap<std::path::PathBuf, Vec<String>> {
+    let removals: std::collections::BTreeSet<&std::path::Path> =
+      removals.map(|s| s.path.as_path()).collect();
+    if removals.is_empty() {
+      return BTreeMap::new();
+    }
+    views::earlier_renders(&self.project, canon, ctx, |p| removals.contains(p))
   }
 
   /// One run of organize, shared by [`Facade::organize_as_shown`] and
@@ -8885,31 +8969,8 @@ impl Facade {
           .collect()
       };
       let canon = &self.canon;
-      let plan = plan
-        .only_dehydrating(|p| views.contains(p) && views::owner(&self.project, p, canon).is_some());
-      // **A VIEW THE OLD RENDERER WOULD WRITE IS GATED AGAINST THAT RENDER TOO**
-      // (issue 0746, cc's meaning, vc's ruling). This run is the upgrade's,
-      // after the move to the release's canon format, where a tracked view of
-      // an unrealised record differs from today's render because the renderer
-      // changed. Each candidate is also rendered in every earlier format and
-      // met by the same gate, footer tolerance and nothing wider, so a view
-      // carrying any byte a person wrote, committed or not, is still kept.
-      let mut earlier = BTreeMap::new();
-      for format in crate::canon_format::CanonFormat::EARLIER {
-        let mut ctx = self.render_ctx()?;
-        ctx.canon_format = format;
-        for view in views::render_all(&self.project, &self.canon, &ctx) {
-          if plan
-            .with(organize::Action::Dehydrate)
-            .any(|s| s.path == view.path)
-          {
-            earlier
-              .entry(view.path)
-              .or_insert_with(|| view.content.into_bytes());
-          }
-        }
-      }
-      plan.with_earlier_renders(earlier)
+      plan
+        .only_dehydrating(|p| views.contains(p) && views::owner(&self.project, p, canon).is_some())
     } else {
       plan
     };
@@ -9156,10 +9217,8 @@ impl Facade {
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
-    let whole = {
-      let ctx = self.render_ctx()?;
-      organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest)
-    };
+    let ctx = self.render_ctx()?;
+    let whole = organize::plan(&self.project, &self.canon, &realised, &ctx, &tree, digest);
 
     // **SCOPED TO THIS ARTEFACT'S DIRECTORY, AND THE FILTER IS WHY THIS IS NOT
     // AN `organize`.** `intent edit ST0001` must not reconcile the estate; it
@@ -9183,14 +9242,20 @@ impl Facade {
       .filter(|s| s.path.starts_with(&home))
       .cloned()
       .collect();
+    let earlier_renders = self.removals_earlier(
+      &self.canon,
+      &ctx,
+      mine
+        .iter()
+        .filter(|s| s.action == organize::Action::Dehydrate),
+    );
     let mut scoped = organize::Plan {
       steps: mine,
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root,
       project: whole.project,
-      // Only the upgrade's run renders in an earlier format (issue 0746).
-      earlier_renders: BTreeMap::new(),
+      earlier_renders,
     };
     // **THE BYTES THAT WOULD GO ARE READ BEFORE ANY ARE WRITTEN.** A `Verify`
     // step is a view this artefact owns that is already on disk; the plan
@@ -9593,17 +9658,15 @@ impl Facade {
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
     let (tree, digest) =
       organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
-    let whole = {
-      let ctx = self.render_ctx()?;
-      organize::plan(
-        &self.project,
-        &self.canon,
-        &realised_after,
-        &ctx,
-        &tree,
-        digest,
-      )
-    };
+    let ctx = self.render_ctx()?;
+    let whole = organize::plan(
+      &self.project,
+      &self.canon,
+      &realised_after,
+      &ctx,
+      &tree,
+      digest,
+    );
 
     // Whole-estate plan, narrow act -- the same split `hydrate` documents:
     // classification needs the estate as its denominator, and this verb was
@@ -9638,12 +9701,26 @@ impl Facade {
     // one thing and the disk another, which is the exact divergence this verb
     // is ordered to prevent.** So a step this run cannot remove refuses the run,
     // naming the file and what made it unremovable.
+    // Each removal is gated against its earlier canon format's render too, by
+    // the one builder every door asks (ST1c2db93 P22).
+    let earlier_renders = self.removals_earlier(
+      &self.canon,
+      &ctx,
+      mine
+        .iter()
+        .filter(|s| s.action == organize::Action::Dehydrate),
+    );
     let refusals: Vec<String> = mine
       .iter()
       .filter_map(|s| match s.action {
         // The one removable action; the gate alone decides whether the store
         // can put these bytes back.
-        organize::Action::Dehydrate => organize::gate(s).err().map(|e| e.to_string()),
+        organize::Action::Dehydrate => organize::gate(
+          s,
+          earlier_renders.get(&s.path).map_or(&[], Vec::as_slice),
+        )
+          .err()
+          .map(|e| e.to_string()),
         // Kept by design -- and keeping it means the thread does not leave the
         // tree, which is what this verb was asked for.
         other => Some(format!(
@@ -9666,8 +9743,7 @@ impl Facade {
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root,
       project: whole.project,
-      // Only the upgrade's run renders in an earlier format (issue 0746).
-      earlier_renders: BTreeMap::new(),
+      earlier_renders,
     };
     // **ANNOUNCED HERE, WHICH IS THE LAST MOMENT BEFORE ANYTHING IS
     // IRREVERSIBLE.** Every refusal above has already been taken, so what is
@@ -18040,14 +18116,7 @@ impl Facade {
     if adds {
       notes.extend(self.realise_relisted(id));
     }
-    Ok(
-      if notes.is_empty() {
-        Outcome::Moved
-      } else {
-        Outcome::MovedWith { notes }
-      }
-      .with_overwrites(foreign),
-    )
+    Ok(Outcome::moved_with(notes).with_overwrites(foreign))
   }
 
   /// Enforce a declared [`transitions::Guard::GatePass`], and only where it is
@@ -18117,6 +18186,7 @@ impl Facade {
       subject: subject.to_string(),
       from: from.to_string(),
       legal: transitions::accepted_from(entity, field, verb).join(", "),
+      first: None,
     })
   }
 
@@ -19785,12 +19855,22 @@ impl Facade {
         crate::model::enum_str(&status),
       );
       if !transitions::permits_to("AcceptanceTest", "status", "at.set", &from_s, &to_s) {
+        let legal = transitions::accepted_from_to("AcceptanceTest", "status", "at.set", &to_s);
+        // AE finding 4: where the declared graph reaches this status from one
+        // state alone, eg green from red, the remedy names the command that
+        // sets that state.
+        let first = match legal.as_slice() {
+          [only] => serde_json::from_value::<AtStatus>(json!(only))
+            .ok()
+            .and_then(|state| state.command(st, at)),
+          _ => None,
+        };
         return Err(FacadeError::IllegalTransition {
           verb: "at.set",
           subject: crate::id::scoped_address(st, at),
           from: from_s,
-          legal: transitions::accepted_from_to("AcceptanceTest", "status", "at.set", &to_s)
-            .join(", "),
+          legal: legal.join(", "),
+          first,
         });
       }
     }
@@ -20937,6 +21017,12 @@ impl Facade {
     bytes: &[u8],
   ) -> Result<Outcome, FacadeError> {
     require_local(address)?;
+    // **A PREFIX IS COMPLETED HERE, AS AT EVERY OTHER ADDRESS DOOR** (issue
+    // If6f0257): `put`, `post`, `edit` and the realisation doors ask
+    // [`Facade::whole_address`] first, so a thread prefix that every door
+    // takes is taken here too.
+    let whole = self.whole_address(address)?;
+    let address = &whole;
     let AddrEntity::Attachment { thread, path } = &address.entity else {
       return Err(FacadeError::WriteNotAddressable {
         url: address.to_url(),
@@ -21189,6 +21275,12 @@ impl Facade {
     value: Value,
   ) -> Result<Outcome, FacadeError> {
     require_local(address)?;
+    // **A PREFIX IS COMPLETED HERE, AS AT EVERY OTHER ADDRESS DOOR** (issue
+    // If6f0257): until this, `set` matched the typed thread against the
+    // stored id, so `intent:///threads/ST6d1f96f/wp/81453070` was refused with
+    // a remedy that offers exactly that prefix.
+    let whole = self.whole_address(address)?;
+    let address = &whole;
 
     let url = address.to_url();
     let refuse = |field: &str, why: String| FacadeError::FieldNotWritable {
@@ -21769,12 +21861,43 @@ impl Facade {
 
   /// Close an issue.
   pub fn issue_close(&mut self, number: crate::id::IssueId) -> Result<Outcome, FacadeError> {
-    self.set_issue_status(number, IssueStatus::Closed, "issues.close")
+    self.issue_close_with(number, None)
+  }
+
+  /// Close an issue and, when `reason` is given, add it to the issue's body as
+  /// its `Resolution:` line in the same event (AE finding 5), so a close needs
+  /// no edit first. A blank reason is refused: it would write an empty line.
+  pub fn issue_close_with(
+    &mut self,
+    number: crate::id::IssueId,
+    reason: Option<&str>,
+  ) -> Result<Outcome, FacadeError> {
+    let resolution = match reason.map(str::trim) {
+      None => None,
+      Some("") => {
+        return Err(FacadeError::NothingToChange {
+          subject: format!("issue {}", number.shown()),
+          offered: vec!["--reason <text>, with text in it".to_string()],
+        });
+      }
+      Some(text) => Some(format!("Resolution: {text}")),
+    };
+    // An issue that is already closed takes the line through `issues.edit`, so
+    // a reason is never dropped. A later close adds a further line: each one
+    // records the close it came with.
+    let issue = self.issue_show(number)?;
+    if let Some(line) = &resolution
+      && issue.status == IssueStatus::Closed
+    {
+      let body = with_resolution(&issue.body, line);
+      return self.issue_edit(number, Some(&body), None, None);
+    }
+    self.set_issue_status(number, IssueStatus::Closed, "issues.close", resolution)
   }
 
   /// Reopen a closed issue.
   pub fn issue_open(&mut self, number: crate::id::IssueId) -> Result<Outcome, FacadeError> {
-    self.set_issue_status(number, IssueStatus::Open, "issues.open")
+    self.set_issue_status(number, IssueStatus::Open, "issues.open", None)
   }
 
   /// The shared setter, in the same shape as [`Facade::set_thread_status`] and
@@ -21797,6 +21920,7 @@ impl Facade {
     number: crate::id::IssueId,
     status: IssueStatus,
     op: &'static str,
+    resolution: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     let from = self.issue_show(number)?.status;
     if from == status {
@@ -21826,11 +21950,18 @@ impl Facade {
       IssueStatus::Closed => Some(String::new()),
       IssueStatus::Open => None,
     };
+    // AE finding 5: the close records how the issue was resolved, as the
+    // body's last paragraph.
+    if let Some(line) = resolution {
+      issue.body = with_resolution(&issue.body, &line);
+    }
     // Before `apply` for the reason `issue_add` records: the projection runs
     // inside it and reads the manifest, so an edit made afterwards is invisible
     // to the very write it is supposed to govern.
     // Before the first write, the manifest included (issue 0739).
     self.refuse_a_store_not_this_checkouts()?;
+    // Read BEFORE anything is written -- see [`Facade::closing_notes`].
+    let notes = self.closing_notes(op, &number.stored(), ListEdit::AsDeclared)?;
     self.realise_on_record(op, &number.stored(), ListEdit::AsDeclared, &mut next)?;
     let before = self.edit_list(op, &number.stored(), ListEdit::AsDeclared)?;
     // Issue 0376: closes refused on a locked store had already taken their ISSUE rows out of the manifest.
@@ -21849,7 +21980,7 @@ impl Facade {
         return Err(refused);
       }
     };
-    Ok(Outcome::Moved.with_overwrites(applied))
+    Ok(Outcome::moved_with(notes).with_overwrites(applied))
   }
 
   /// **EVERY MINT IN A PROJECT `intent upgrade` HAS NOT MOVED REFUSES** (hv
@@ -22776,6 +22907,7 @@ impl Facade {
       let json = crate::canon_format::encode_issue(issue, format)?;
       before.insert(self.project.issue_json(issue.number), json.into_bytes());
     }
+    let earlier = views::EarlierRenders::new(&self.project, &self.canon, &ctx);
     Ok(
       candidates
         .into_iter()
@@ -22785,6 +22917,8 @@ impl Facade {
         // with the handled marks it carried before 0612. Nobody's work is under
         // any of them. Issue 0385: the first write after an upgrade
         // warned for every such view, and 0539 found that again for boards.
+        // A view in an earlier canon format's shape is excused too, by the
+        // same builder doctor and organize ask (ST1c2db93 P22).
         .filter(|(path, disk)| {
           before.get(path).is_some_and(|prior| {
             prior != disk
@@ -22792,6 +22926,7 @@ impl Facade {
                 views::view_kind(&self.project, path),
                 &String::from_utf8_lossy(disk),
                 &String::from_utf8_lossy(prior),
+                earlier.of(path),
               )
               .is_none()
           })
@@ -22824,19 +22959,21 @@ impl Facade {
   /// is not a clean bill of health taken on credit; it is the one case where
   /// the answer does not depend on the check.
   fn closing_notes(&self, op: &str, id: &str, list: ListEdit) -> Result<Vec<Note>, FacadeError> {
-    if list == ListEdit::Suppressed
-      || !matches!(declared_list_edit(op), Some((_, ListAction::Remove)))
-    {
+    let Some((sigil, ListAction::Remove)) = declared_list_edit(op) else {
+      return Ok(Vec::new());
+    };
+    if list == ListEdit::Suppressed {
       return Ok(Vec::new());
     }
     // **EVERY PATH THE REMOVAL WOULD TAKE, COMMITTED ONES INCLUDED.** The
     // uncommitted-attachment warning below is the sharpest case and a strict
     // subset; a committed view is still a file that leaves the operator's
     // working tree, and it left without being named.
-    let mut notes = match self.dehydration_paths(id)? {
+    let mut notes = match self.dehydration_paths(sigil, id)? {
       paths if paths.is_empty() => Vec::new(),
       paths => vec![Note::DehydratesOnNextOrganize {
         paths,
+        sigil,
         format: self.canon_format()?,
       }],
     };
@@ -22844,7 +22981,8 @@ impl Facade {
     // an attachment-less thread cannot be uncertain about them -- see this
     // function's own doc. It is asked SECOND now, because the removal list above
     // is about files on disk and does not depend on the store carrying any.
-    if self.st_show(id)?.attachments.is_empty() {
+    // An issue carries no attachments (AE finding 6).
+    if sigil == Sigil::Issue || self.st_show(id)?.attachments.is_empty() {
       return Ok(notes);
     }
     let scope = SyncScope::Threads(vec![id.to_string()]);
@@ -22885,11 +23023,11 @@ impl Facade {
   /// the wrong one of its two faults, chosen by which diagnostic ran first. A
   /// note may say less than it would like; it may not change what the verb
   /// answers.
-  fn dehydration_paths(&self, id: &str) -> Result<Vec<String>, FacadeError> {
+  fn dehydration_paths(&self, sigil: Sigil, id: &str) -> Result<Vec<String>, FacadeError> {
     let Realised::Declared(mut declared) = self.realised_in(&self.canon)? else {
       return Ok(Vec::new());
     };
-    if !declared.remove(&intentfiles::declared_key(Sigil::SteelThread, id)) {
+    if !declared.remove(&intentfiles::declared_key(sigil, id)) {
       return Ok(Vec::new());
     }
     let previous = self.store.file_index().map_err(FacadeError::Store)?;
@@ -22909,7 +23047,10 @@ impl Facade {
         .steps
         .into_iter()
         .filter(|step| step.action.is_destructive())
-        .filter(|step| self.owning_thread(&step.path, &self.canon).as_deref() == Some(id))
+        .filter(|step| {
+          views::owner(&self.project, &step.path, &self.canon)
+            .is_some_and(|owner| owner.kind() == sigil.kind() && owner.stored() == id)
+        })
         .map(|step| self.project.relative(&step.path))
         .collect(),
     )

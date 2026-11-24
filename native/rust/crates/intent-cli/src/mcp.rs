@@ -1185,7 +1185,11 @@ fn tool_answer(
     }
     "issues close" => {
       let number = issue_number(path, f, need_s(path, map, "id")?)?;
-      Ok(outcome_json(&f.issue_close(number)?, &number.stored()))
+      let reason = opt_s(path, map, "reason")?;
+      Ok(outcome_json(
+        &f.issue_close_with(number, reason)?,
+        &number.stored(),
+      ))
     }
     "issues open" => {
       let number = issue_number(path, f, need_s(path, map, "id")?)?;

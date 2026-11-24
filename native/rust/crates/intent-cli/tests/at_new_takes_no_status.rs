@@ -126,3 +126,41 @@ fn without_a_status_a_test_row_starts_at_to_write() {
     "a test row starts at its kind's entry: {row}"
   );
 }
+
+/// AE finding 4: `at new` says which state the row starts in and which verb
+/// moves it on, and `at green` on that row names `at red` as the step to run
+/// first.
+#[test]
+fn a_new_row_names_its_state_and_green_names_red_first() {
+  let (dir, st) = seeded();
+  let file = "tests/a_probe.rs";
+  std::fs::create_dir_all(dir.path().join("tests")).expect("the test dir");
+  std::fs::write(dir.path().join(file), "").expect("the cited test file");
+  let next = format!("intent at red {st} AT-01.1");
+
+  let (out, err, code) = run(
+    dir.path(),
+    &[
+      "at",
+      "new",
+      st.as_str(),
+      "AT-01.1",
+      "--covers",
+      "AC-01.1",
+      "--file",
+      file,
+    ],
+  );
+  assert_eq!(code, 0, "the create must succeed: {out:?} {err:?}");
+  assert!(
+    out.contains("state: to-write") && out.contains(&format!("next: `{next}`")),
+    "`at new` must name the row's state and the next verb: {out}"
+  );
+
+  let (out, err, code) = run(dir.path(), &["at", "green", st.as_str(), "AT-01.1"]);
+  assert_ne!(code, 0, "green before red must be refused: {out:?}");
+  assert!(
+    err.contains(&format!("run `{next}` first")),
+    "the refusal must name `at red` as the step to run first: {err}"
+  );
+}

@@ -606,3 +606,60 @@ pub fn against_creation<I: Ord>(id: impl Fn(&str) -> I) -> (&'static str, &'stat
     .find(|(e, l)| id(e) > id(l))
     .expect("two origins whose ids run against their creation")
 }
+
+// ---------------------------------------------------------------------------
+// A store at another schema, made without SQLite
+// ---------------------------------------------------------------------------
+
+/// Bytes 60 to 63 of an SQLite header, `user_version`, big-endian: the stamp
+/// `Store::opening_at` reads. No test crate links SQLite (design D06), so a
+/// store at another schema is made by stamping it.
+const USER_VERSION: std::ops::Range<usize> = 60..64;
+
+/// Stamp the checkpointed store at `db` as schema `version`, and return its
+/// bytes as stamped.
+pub fn stamp_schema(db: &Path, version: i32) -> Vec<u8> {
+  let mut bytes = std::fs::read(db).unwrap_or_else(|e| panic!("read {}: {e}", db.display()));
+  bytes[USER_VERSION].copy_from_slice(&version.to_be_bytes());
+  std::fs::write(db, &bytes).unwrap_or_else(|e| panic!("stamp {}: {e}", db.display()));
+  bytes
+}
+
+/// The store at `db` is checkpointed, so its header is its stamp and its bytes
+/// are all it holds: no write-ahead log beside it.
+pub fn assert_checkpointed(db: &Path) {
+  assert!(
+    db.is_file() && !wal_of(db).exists(),
+    "the verbs leave a checkpointed store at {}, so its header is its stamp",
+    db.display()
+  );
+}
+
+/// No write reached the store at `db` by way of its write-ahead log.
+///
+/// **A WAL STORE TAKES A WRITE IN ITS LOG FIRST**, so a byte comparison of the
+/// main file alone stays green under the write it exists to catch. A read-only
+/// open may create the side files where they are absent, and a log with no
+/// frame in it holds no write: absent or empty is the clean answer.
+pub fn assert_no_wal_frames(db: &Path, after: &str) {
+  let wal = wal_of(db);
+  let frames = match std::fs::metadata(&wal) {
+    Ok(meta) => meta.len(),
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => 0,
+    Err(e) => panic!(
+      "{after}: the write-ahead log at {} was not read: {e}",
+      wal.display()
+    ),
+  };
+  assert!(
+    frames == 0,
+    "{after} left a write-ahead log of {frames} byte(s) at {}: a write reached the store",
+    wal.display()
+  );
+}
+
+fn wal_of(db: &Path) -> PathBuf {
+  let mut name = db.as_os_str().to_os_string();
+  name.push("-wal");
+  PathBuf::from(name)
+}

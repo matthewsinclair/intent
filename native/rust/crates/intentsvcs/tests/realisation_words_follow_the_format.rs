@@ -241,6 +241,7 @@ fn the_close_notes_json_is_its_kind_and_paths_in_either_format() {
       intentsvcs::facade::notes_json(&[intentsvcs::facade::Note::DehydratesOnNextOrganize {
         paths: vec!["intent/st/ST0001/info.md".to_string()],
         format,
+        sigil: intentsvcs::intentfiles::Sigil::SteelThread,
       }]);
     let note = json
       .as_array()

@@ -315,7 +315,7 @@ fn an_undeclared_opaque_attachment_matching_the_store_passes_the_gate() {
   let fx = Fixture::new();
   let path = reference_md(&fx.project());
   let step = opaque_removal(&fx, &path, NOT_UTF8);
-  let verdict = gate(&step).map_err(|e| e.to_string());
+  let verdict = gate(&step, &[]).map_err(|e| e.to_string());
   assert!(
     verdict.is_ok(),
     "the working copy is exactly the store's bytes, so its removal is proven safe: {verdict:?}"
@@ -329,7 +329,7 @@ fn a_changed_opaque_working_copy_is_refused_as_an_edit() {
   let fx = Fixture::new();
   let path = reference_md(&fx.project());
   let step = opaque_removal(&fx, &path, b"\xff\xfe a changed binary copy");
-  let verdict = gate(&step);
+  let verdict = gate(&step, &[]);
   assert!(
     matches!(verdict, Err(OrganizeError::HandEdited { .. })),
     "a differing opaque copy must be refused as an edit: {:?}",

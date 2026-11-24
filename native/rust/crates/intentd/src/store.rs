@@ -720,19 +720,41 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
   // Until `intent explore` became a second door, this function called `due`
   // and then `cycle` itself; two doors composing the same pair is two
   // implementations that agree today.
-  match intentsvcs::backup::if_due(facade.project(), facade.store(), || {}) {
+  let outcome = intentsvcs::backup::if_due(facade.project(), facade.store(), || {});
+  // A backup that keeps failing must not also stop the index check that
+  // rides the same sweep.
+  let check_index = matches!(outcome, Ok(intentsvcs::backup::Ran::Took(_)) | Err(_));
+  say_backup(root, outcome, said_why_it_is_not_backing_up);
+  if check_index {
+    check_prose_index(facade, root);
+  }
+}
+
+/// What the daemon says about one project's scheduled backup, open or not
+/// (issue I53c0c22): the one renderer of an [`intentsvcs::backup::Ran`], so a
+/// project says the same thing whether the daemon holds it open or the sweep
+/// reached it through its listing.
+///
+/// **THE OUTCOME IS PRINTED BECAUSE THERE IS NOBODY TO RETURN IT TO**
+/// (`IN-AG-NO-SILENT-001`). A success is one line a day on a daily schedule.
+/// `told` holds whether this project's standing reason for taking none has
+/// been said, so it is said once a run and not once a sweep.
+pub(crate) fn say_backup(
+  root: &Path,
+  outcome: Result<intentsvcs::backup::Ran, intentsvcs::backup::BackupError>,
+  told: &mut bool,
+) {
+  match outcome {
     Ok(intentsvcs::backup::Ran::Took(ran)) => {
-      let project = facade.project();
       logln!(
         "intentd: backed up `{}` to {}{}",
         root.display(),
-        project.relative(&ran.written),
+        intentsvcs::project::relative(root, &ran.written),
         match ran.removed.len() {
           0 => String::new(),
           n => format!(" ({n} expired snapshot(s) removed)"),
         }
       );
-      check_prose_index(facade, root);
     }
     Ok(intentsvcs::backup::Ran::NotYet) => {}
     // **ANNOUNCED, NOT SILENT, THOUGH IT IS NOT AN ERROR.** The operator asked
@@ -742,20 +764,20 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
     // sentence deliberately says what remains true, because the setting stops
     // the sweep and stops nothing else.
     Ok(intentsvcs::backup::Ran::Disabled) => {
-      if !*said_why_it_is_not_backing_up {
-        *said_why_it_is_not_backing_up = true;
+      if !*told {
+        *told = true;
         logln!(
           "intentd: `{}` has backup.enabled = false, so no scheduled backup is being taken. `intent backup` still takes one when you ask, and `intent doctor` still reports a stale one.",
           root.display()
         );
       }
     }
-    // **SAID ONCE, NOT ONCE A SWEEP.** See the flag's declaration on the store
-    // thread; and `doctor` is what an operator actually meets, which reports
-    // the same setting from the same config with the remedy attached.
+    // **SAID ONCE, NOT ONCE A SWEEP.** `doctor` is what an operator actually
+    // meets, which reports the same setting from the same config with the
+    // remedy attached.
     Ok(intentsvcs::backup::Ran::Unschedulable(value)) => {
-      if !*said_why_it_is_not_backing_up {
-        *said_why_it_is_not_backing_up = true;
+      if !*told {
+        *told = true;
         elogln!(
           "warning: intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of {}\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
           root.display(),
@@ -774,9 +796,6 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_
         e,
         e.remedy()
       );
-      // A backup that keeps failing must not also stop the index check that
-      // rides the same sweep.
-      check_prose_index(facade, root);
     }
   }
 }

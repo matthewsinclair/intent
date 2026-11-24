@@ -6,10 +6,9 @@
 //! opened, exit 2, with doctor's `store` object under `--format json`, so one
 //! runner reads both doors.
 
-use crate::common::{
-  STORE, assert_checkpointed, assert_no_wal_frames, created, ok, run, stamp_older_schema,
-};
+use crate::common::{STORE, created, ok, run, stamp_older_schema};
 use intentsvcs::store::SCHEMA_VERSION;
+use testkit::{assert_checkpointed, assert_no_wal_frames};
 
 /// `id --read-only --format json <token>` in `root`: its JSON and exit code.
 fn id_read_only(root: &std::path::Path, token: &str) -> (serde_json::Value, i32) {

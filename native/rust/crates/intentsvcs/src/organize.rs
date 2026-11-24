@@ -283,34 +283,26 @@ pub struct Plan {
   /// reading a name off the path.
   pub project: Project,
   /// Each removal's render in an earlier canon format, which [`Plan::run`]
-  /// also gates it against (issue 0746). Empty on every plan but the one
-  /// [`Plan::with_earlier_renders`] fills, which only the upgrade's
-  /// post-landing dehydrate asks for: organize's own rule is unchanged.
+  /// also gates it against (issue 0746). The facade fills it on every plan
+  /// that removes something, through [`crate::views::earlier_renders`], the
+  /// builder doctor's skew and the write guard ask too (ST1c2db93 P22).
   ///
   /// **A VIEW THE OLD RENDERER WOULD WRITE CARRIES NO HAND EDIT.** After the
   /// move to the release's canon format, a tracked view of a record the
   /// project does not realise differs from its render because the renderer
   /// changed, which the gate against today's render cannot tell from a person's
   /// edit. Against the render in the format the view was written in, it can:
-  /// the same [`gate`], with its footer tolerance and nothing wider, so a view
+  /// the same [`gate`] question, with its footer tolerance and nothing wider, so a view
   /// carrying any byte a person wrote, committed or not, is still kept (issue
   /// 0316 holds whole).
-  pub earlier_renders: BTreeMap<PathBuf, Vec<u8>>,
+  pub earlier_renders: BTreeMap<PathBuf, Vec<String>>,
 }
 
 impl Plan {
-  /// [`gate`] against today's render, and, where it refuses, against the
-  /// step's render in an earlier canon format (issue 0746): one gate, asked of
-  /// each render this plan holds, and the first refusal kept for the report.
-  fn gate_in_any_format(&self, step: &Step) -> Result<(), OrganizeError> {
-    gate(step).or_else(|refused| match self.earlier_renders.get(&step.path) {
-      Some(earlier) => gate(&Step {
-        content: Some(earlier.clone()),
-        ..step.clone()
-      })
-      .map_err(|_| refused),
-      None => Err(refused),
-    })
+  /// A removal's render in each earlier canon format: the `earlier` its
+  /// [`gate`] takes (ST1c2db93 P22).
+  fn earlier_of(&self, path: &Path) -> &[String] {
+    self.earlier_renders.get(path).map_or(&[], Vec::as_slice)
   }
 
   /// The thread that owns a step's path, as [`Project::owner_of`] answers it.
@@ -343,7 +335,7 @@ impl Plan {
 
   /// This plan, with each removal also gated against its render in an
   /// earlier canon format: see [`Plan::earlier_renders`] (issue 0746).
-  pub fn with_earlier_renders(self, earlier_renders: BTreeMap<PathBuf, Vec<u8>>) -> Plan {
+  pub fn with_earlier_renders(self, earlier_renders: BTreeMap<PathBuf, Vec<String>>) -> Plan {
     Plan {
       earlier_renders,
       ..self
@@ -1327,7 +1319,7 @@ impl Plan {
       // Every step is gated first, and one refusal withholds the rest of its thread; an issue view stays per file.
       let gated: Vec<(&Step, Result<(), OrganizeError>)> = self
         .with(Action::Dehydrate)
-        .map(|step| (step, self.gate_in_any_format(step)))
+        .map(|step| (step, gate(step, self.earlier_of(&step.path))))
         .collect();
       let refused_threads: BTreeSet<String> = gated
         .iter()
@@ -1488,7 +1480,7 @@ impl Plan {
 /// A view the renderer cannot reproduce at all is refused too, on the same
 /// ground: if there are no bytes to compare against, the claim "the store
 /// carries this" is unproven, and unproven is not permission.
-pub fn gate(step: &Step) -> Result<(), OrganizeError> {
+pub fn gate(step: &Step, earlier: &[String]) -> Result<(), OrganizeError> {
   debug_assert!(step.action.is_destructive(), "gate is for removals only");
   // **READ AS BYTES** (issue 0338 (i)). `read_to_string` failed a non-UTF-8
   // working copy as an I/O error before any comparison, which told the operator
@@ -1496,7 +1488,7 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
   let on_disk = std::fs::read(&step.path).map_err(|e| io_err(&step.path, e))?;
   match &step.content {
     Some(carried) if *carried == on_disk => Ok(()),
-    Some(carried) if only_renderer_owned_text_moved(&on_disk, carried) => Ok(()),
+    Some(carried) if only_renderer_owned_text_moved(&on_disk, carried, earlier) => Ok(()),
     _ => Err(OrganizeError::HandEdited {
       path: step.path.clone(),
       bytes: on_disk.len(),
@@ -1511,12 +1503,15 @@ pub fn gate(step: &Step) -> Result<(), OrganizeError> {
 ///
 /// **`board` IS `false` BY CONSTRUCTION**: a removal here is of a thread's or an
 /// issue's view, never a node's board, so what is left is text the renderer owns.
-fn only_renderer_owned_text_moved(on_disk: &[u8], carried: &[u8]) -> bool {
+fn only_renderer_owned_text_moved(on_disk: &[u8], carried: &[u8], earlier: &[String]) -> bool {
   match (std::str::from_utf8(on_disk), std::str::from_utf8(carried)) {
-    (Ok(disk), Ok(rendered)) => {
-      crate::views::rendered_by_an_older_intent(crate::views::ViewKind::Other, disk, rendered)
-        .is_some()
-    }
+    (Ok(disk), Ok(rendered)) => crate::views::rendered_by_an_older_intent(
+      crate::views::ViewKind::Other,
+      disk,
+      rendered,
+      earlier,
+    )
+    .is_some(),
     _ => false,
   }
 }

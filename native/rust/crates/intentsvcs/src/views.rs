@@ -1159,6 +1159,9 @@ pub enum OlderRender {
   /// An inbox view in the shape before issue 0612, its headings marked
   /// `(handled)`, with any text the renderer owns differing besides.
   InboxBefore0612,
+  /// A view in the shape an earlier canon format renders (issue 0746), with
+  /// any text the renderer owns differing besides.
+  EarlierCanonFormat,
 }
 
 /// Which kind of view a path is, as [`rendered_by_an_older_intent`] asks it:
@@ -1200,15 +1203,25 @@ pub(crate) fn view_kind(project: &Project, path: &std::path::Path) -> ViewKind {
 /// the 0612 shape of an inbox, each of no other view, because the invariant
 /// that makes each exact holds there alone (see [`board_before_0532`] and
 /// [`inbox_without_handled_marks`]).
+///
+/// **`earlier` IS THE VIEW'S RENDER IN EACH EARLIER CANON FORMAT** (ST1c2db93
+/// P22, from issue 0746). After a move to the release's canon format, a view
+/// the old renderer wrote differs from today's render because the renderer
+/// changed. The view is excused when it is one of those renders, or differs
+/// from one only in text the renderer owns, and nothing wider, so a byte a
+/// person wrote is still caught. Until P22 only organize's upgrade run asked
+/// this, so doctor called a view stale that the write guard called edited.
+/// [`earlier_renders`] is the one builder of the slice.
 pub fn rendered_by_an_older_intent(
   kind: ViewKind,
   on_disk: &str,
   rendered: &str,
+  earlier: &[String],
 ) -> Option<OlderRender> {
   if differs_only_in_renderer_owned_text(on_disk, rendered) {
     return Some(OlderRender::RendererOwnedText);
   }
-  match kind {
+  let shape = match kind {
     ViewKind::Board => {
       board_rendered_before_0532(on_disk, rendered).then_some(OlderRender::BoardBefore0532)
     }
@@ -1216,6 +1229,73 @@ pub fn rendered_by_an_older_intent(
       inbox_rendered_before_0612(on_disk, rendered).then_some(OlderRender::InboxBefore0612)
     }
     ViewKind::Other => None,
+  };
+  shape.or_else(|| {
+    earlier
+      .iter()
+      .any(|prior| prior == on_disk || differs_only_in_renderer_owned_text(on_disk, prior))
+      .then_some(OlderRender::EarlierCanonFormat)
+  })
+}
+
+/// Each view's render in every earlier canon format than `ctx`'s, for the
+/// views `wanted` names: the `earlier` that [`rendered_by_an_older_intent`]
+/// takes (ST1c2db93 P22).
+///
+/// **ONE BUILDER FOR EVERY DOOR**: doctor's skew, the write guard and
+/// organize's removal gate each ask it, so a view one door excuses is excused
+/// by all three. A format equal to `ctx`'s is skipped, because its render is
+/// today's.
+pub fn earlier_renders(
+  project: &Project,
+  canon: &Canon,
+  ctx: &RenderContext<'_>,
+  wanted: impl Fn(&std::path::Path) -> bool,
+) -> std::collections::BTreeMap<PathBuf, Vec<String>> {
+  let mut earlier: std::collections::BTreeMap<PathBuf, Vec<String>> =
+    std::collections::BTreeMap::new();
+  for format in crate::canon_format::CanonFormat::EARLIER {
+    if format == ctx.canon_format {
+      continue;
+    }
+    let mut then = ctx.clone();
+    then.canon_format = format;
+    for view in render_all(project, canon, &then) {
+      if wanted(&view.path) {
+        earlier.entry(view.path).or_default().push(view.content);
+      }
+    }
+  }
+  earlier
+}
+
+/// [`earlier_renders`] of every view, built the first time a door asks, so a
+/// pass where every view matches today's render renders nothing more.
+pub struct EarlierRenders<'a> {
+  project: &'a Project,
+  canon: &'a Canon,
+  ctx: &'a RenderContext<'a>,
+  built: std::cell::OnceCell<std::collections::BTreeMap<PathBuf, Vec<String>>>,
+}
+
+impl<'a> EarlierRenders<'a> {
+  pub fn new(project: &'a Project, canon: &'a Canon, ctx: &'a RenderContext<'a>) -> Self {
+    EarlierRenders {
+      project,
+      canon,
+      ctx,
+      built: std::cell::OnceCell::new(),
+    }
+  }
+
+  /// The view at `path` in each earlier canon format; empty when none
+  /// renders it.
+  pub fn of(&self, path: &std::path::Path) -> &[String] {
+    self
+      .built
+      .get_or_init(|| earlier_renders(self.project, self.canon, self.ctx, |_| true))
+      .get(path)
+      .map_or(&[], Vec::as_slice)
   }
 }
 
@@ -2738,6 +2818,7 @@ pub fn skew_against(
   let format = crate::intentfiles::reported_format(project);
   let words = crate::intentfiles::words(project, format);
   let realised_by = words.realiser();
+  let earlier = EarlierRenders::new(project, canon, ctx);
   let mut findings = Vec::new();
   for view in render_all(project, canon, ctx) {
     let rel = project.relative(&view.path);
@@ -2807,10 +2888,14 @@ pub fn skew_against(
       // store did not move: an older Intent rendered it. Deciding this after
       // the skew arm would leave a label on a blocking finding, and with
       // `doctor` on the pre-commit gate (issue `0308`) that is a commit outage
-      // in every estate on the day it upgrades.
+      // in every estate on the day it upgrades. A view in an earlier canon
+      // format's shape is the same case, one renderer further back (ST1c2db93
+      // P22), and the same verb clears it.
       Ok(on_disk)
-        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
-          == Some(OlderRender::RendererOwnedText) =>
+        if matches!(
+          rendered_by_an_older_intent(kind, &on_disk, &view.content, earlier.of(&view.path)),
+          Some(OlderRender::RendererOwnedText | OlderRender::EarlierCanonFormat)
+        ) =>
       {
         // **THE VERB DEPENDS ON WHETHER THE VIEW IS REALISED** (by
         // `.intentfiles` in 3.4.0's format, by its record in an upgraded
@@ -2852,7 +2937,7 @@ pub fn skew_against(
       // upgrades. Asked of a node's board and of no other view, so an
       // indentation change anywhere else still reads as the hand edit it may be.
       Ok(on_disk)
-        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
+        if rendered_by_an_older_intent(kind, &on_disk, &view.content, earlier.of(&view.path))
           == Some(OlderRender::BoardBefore0532) =>
       {
         findings.push(
@@ -2877,7 +2962,7 @@ pub fn skew_against(
       // Asked of an inbox and of no other view, and only of the `(handled)`
       // marks and text the renderer owns.
       Ok(on_disk)
-        if rendered_by_an_older_intent(kind, &on_disk, &view.content)
+        if rendered_by_an_older_intent(kind, &on_disk, &view.content, earlier.of(&view.path))
           == Some(OlderRender::InboxBefore0612) =>
       {
         findings.push(
@@ -3098,8 +3183,7 @@ pub fn skew_against(
 /// What doctor says of a view that a project's record no longer realises and
 /// that is still on disk, byte for byte its render (issue 0707). No id in it,
 /// so `doctor` lists a directory's worth on one line.
-const UNREALISED_VIEW_KEPT: &str =
-  "the project does not realise its record, so every clone's `intent sync --apply` removes it";
+const UNREALISED_VIEW_KEPT: &str = "its record is not realised, eg it is closed, so every clone's `intent sync --apply` removes the view and the store keeps the record";
 
 /// What [`skew_against`] says of a view no commit carries (ST0096, AC-02.3):
 /// shown when it is not this clone's current render, and never counted.
@@ -3769,12 +3853,12 @@ mod tests {
     let now = wb_board(&b, &ctx());
     let older = board_before_0532(&now);
     assert_eq!(
-      rendered_by_an_older_intent(ViewKind::Board, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Board, &older, &now, &[]),
       Some(OlderRender::BoardBefore0532),
       "a node's board in the older shape"
     );
     assert_eq!(
-      rendered_by_an_older_intent(ViewKind::Other, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Other, &older, &now, &[]),
       None,
       "the same bytes in any other view are an edit"
     );
@@ -3789,7 +3873,7 @@ mod tests {
     );
     for kind in [ViewKind::Board, ViewKind::Inbox, ViewKind::Other] {
       assert_eq!(
-        rendered_by_an_older_intent(kind, &older_footer, &now),
+        rendered_by_an_older_intent(kind, &older_footer, &now, &[]),
         Some(OlderRender::RendererOwnedText),
         "text the renderer owns is excused in every view, {kind:?}"
       );
@@ -3798,7 +3882,8 @@ mod tests {
       rendered_by_an_older_intent(
         ViewKind::Board,
         &older.replacen("git log -1", "git log -2", 1),
-        &now
+        &now,
+        &[]
       ),
       None,
       "a hand edit in an older-shaped board is not an older render"
@@ -3821,12 +3906,12 @@ mod tests {
       "precondition: the older render carries the mark"
     );
     assert_eq!(
-      rendered_by_an_older_intent(ViewKind::Inbox, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Inbox, &older, &now, &[]),
       Some(OlderRender::InboxBefore0612),
       "an inbox carrying the marks an older Intent wrote"
     );
     assert_eq!(
-      rendered_by_an_older_intent(ViewKind::Board, &older, &now),
+      rendered_by_an_older_intent(ViewKind::Board, &older, &now, &[]),
       None,
       "the same bytes in a board view are an edit"
     );
@@ -3843,7 +3928,7 @@ mod tests {
     )
     .replacen(heading, marked, 1);
     assert_eq!(
-      rendered_by_an_older_intent(ViewKind::Inbox, &older_footer, &now),
+      rendered_by_an_older_intent(ViewKind::Inbox, &older_footer, &now, &[]),
       Some(OlderRender::InboxBefore0612),
       "and under an older footer"
     );
@@ -3851,7 +3936,8 @@ mod tests {
       rendered_by_an_older_intent(
         ViewKind::Inbox,
         &older.replacen("the order", "the 0rder", 1),
-        &now
+        &now,
+        &[]
       ),
       None,
       "a hand edit in an older-shaped inbox still differs"
@@ -3860,10 +3946,61 @@ mod tests {
       rendered_by_an_older_intent(
         ViewKind::Inbox,
         &now.replacen("\nthe order\n", "\nthe order (handled)\n", 1),
-        &now
+        &now,
+        &[]
       ),
       None,
       "a mark anywhere but the end of a heading is an edit"
+    );
+  }
+
+  /// ST1c2db93 P22: the one older-render question takes a view's render in
+  /// each earlier canon format, so a cover the old renderer wrote is an older
+  /// render at every door, and a hand edit in it is still an edit.
+  #[test]
+  fn the_one_older_render_question_excuses_an_earlier_canon_formats_render_and_nothing_wider() {
+    let t = with_wp("ST0075", "wip", "not-started");
+    let release = RenderContext {
+      canon_format: crate::canon_format::CanonFormat::CURRENT,
+      ..ctx()
+    };
+    let now = info(&t, &release);
+    let then: Vec<String> = crate::canon_format::CanonFormat::EARLIER
+      .iter()
+      .map(|&canon_format| {
+        info(
+          &t,
+          &RenderContext {
+            canon_format,
+            ..ctx()
+          },
+        )
+      })
+      .collect();
+    let older = then.first().expect("an earlier canon format").clone();
+    assert_ne!(
+      older, now,
+      "precondition: the formats render the cover apart"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(ViewKind::Other, &older, &now, &then),
+      Some(OlderRender::EarlierCanonFormat),
+      "the cover an earlier format renders"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(ViewKind::Other, &older, &now, &[]),
+      None,
+      "without the earlier render, the same bytes read as an edit"
+    );
+    assert_eq!(
+      rendered_by_an_older_intent(
+        ViewKind::Other,
+        &older.replacen("the work package", "the work packages", 1),
+        &now,
+        &then
+      ),
+      None,
+      "a hand edit in an earlier format's cover is still an edit"
     );
   }
 

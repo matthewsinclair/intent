@@ -476,7 +476,7 @@ fn assemble(
           action: crate::organize::Action::Dehydrate,
           content: attachment.as_bytes().map(<[u8]>::to_vec),
         };
-        crate::organize::gate(&step).map_err(|refused| match refused {
+        crate::organize::gate(&step, &[]).map_err(|refused| match refused {
           crate::organize::OrganizeError::HandEdited { .. } => Blocked::DirtyAttachment {
             path: project.relative(&step.path),
           },

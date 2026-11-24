@@ -318,6 +318,33 @@ pub fn user_block_is_empty(text: &str) -> bool {
   kept.trim().is_empty()
 }
 
+/// The text of a contract a person wrote, line for line (issue Ia87820b): a
+/// generated contract with every line outside its user block made empty, so
+/// a line number still names the file's own line, and a contract Intent did
+/// not generate whole. A generated contract with no user block, such as
+/// `AGENTS.md`, holds no text a person wrote.
+pub fn authored_lines(name: &str, text: &str) -> String {
+  if !is_generated_contract(name, text) {
+    return text.to_string();
+  }
+  let Some((start, end)) = user_block_span(text) else {
+    return text.lines().map(|_| "\n").collect();
+  };
+  let mut at = 0;
+  text
+    .split_inclusive('\n')
+    .map(|line| {
+      let from = at;
+      at += line.len();
+      if from >= start && at <= end {
+        line.to_string()
+      } else {
+        "\n".to_string()
+      }
+    })
+    .collect()
+}
+
 /// The span strictly between the two markers, as byte offsets.
 ///
 /// Offsets rather than lines so the carried text goes back byte for byte,

@@ -4,9 +4,9 @@ This is the primary tool-agnostic config file for AI coding agents working on th
 
 ## Project Overview
 
-[[PROJECT_NAME]] -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
+[[PROJECT_NAME]]: an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
-**Run `intent llm guide` before you start.** It prints the agent guide for the exact build you are standing on: every command this build ships, what each one is for, whether it reads or mutates, and whether it can be undone. It is generated from the tool rather than maintained by hand, so it cannot describe a command that is not there or omit one that is -- which is the failure a written command reference has whenever the tool moves and the document does not.
+**Run `intent llm guide` before you start.** It prints the agent guide for the exact build you are standing on: every command this build ships, what each one is for, whether it reads or mutates, and whether it can be undone. It is generated from the tool rather than maintained by hand, so it cannot describe a command that is not there or omit one that is. That is the failure a written command reference has whenever the tool moves and the document does not.
 
 ## Development Environment
 
@@ -102,7 +102,7 @@ intent wp start <thread>/<pkg> # mark WIP
 intent wp done <thread>/<pkg>  # mark done
 ```
 
-Never create steel thread or work package directories by hand -- always use the CLI.
+Never create steel thread or work package directories by hand. Always use the CLI.
 
 ## Critic Family
 
@@ -119,16 +119,16 @@ The installed Intent tool's headless runner (`intent critic <lang>`: rules armed
 
 Cross-language principles govern all Intent projects. Every language pack concretises them; the critics enforce them.
 
-- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
-- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
-- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
-- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
+- **Highlander** (`IN-AG-HIGHLANDER-001`): there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`): Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`): coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`): every failure surfaces; rescue-and-swallow is forbidden.
 
 Read any of them with `intent claude rules show <id>`. The terse DO / NEVER contract for this project lives in `usage-rules.md`, where the project keeps one.
 
 ## Rule Library
 
-The coding-rule library is served by the installed Intent tool, not vendored into this project. Access rules through the CLI below -- each rule carries YAML frontmatter, a Detection heuristic, and bad/good examples. Skills cite rule IDs; critics enforce them.
+The coding-rule library is served by the installed Intent tool, not vendored into this project. Access rules through the CLI below. Each rule carries YAML frontmatter, a Detection heuristic, and bad/good examples. Skills cite rule IDs; critics enforce them.
 
 ```bash
 intent claude rules list        # enumerate
@@ -140,11 +140,11 @@ What is installed is read live, never listed here: `intent claude skills list` a
 
 ## Session Hooks
 
-`.claude/settings.json`, once `intent claude upgrade --apply` has written it, wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up).
+`.claude/settings.json`, once `intent claude upgrade --apply` has written it, wires Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate: block first prompt until `/in-session` runs), **Stop** (name the uncommitted paths at the end of a turn; `/in-finish` stays a session-end step).
 
 ## Testing Instructions
 
-1. Run the project's tests, as Build and Test Commands says, before making changes -- establish a baseline.
+1. Run the project's tests, as Build and Test Commands says, before making changes, to establish a baseline.
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.
@@ -160,20 +160,20 @@ What is installed is read live, never listed here: `intent claude skills list` a
 
 In the Intent source repository (https://github.com/matthewsinclair/intent), not this project:
 
-- `intent/docs/working-with-llms.md` -- canon tech note (narrative).
-- `intent/docs/critics.md` -- critic contract.
-- `intent/docs/rules.md` -- rule library authoring guide.
-- `intent/docs/writing-extensions.md` -- extension author guide.
-- `intent/docs/pre-commit-hook.md` -- pre-commit critic gate install + configure.
+- `intent/docs/working-with-llms.md`: canon tech note (narrative).
+- `intent/docs/critics.md`: critic contract.
+- `intent/docs/rules.md`: rule library authoring guide.
+- `intent/docs/writing-extensions.md`: extension author guide.
+- `intent/docs/pre-commit-hook.md`: pre-commit critic gate install + configure.
 
 In this project:
 
-- `intent/llm/MODULES.md` -- OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
-- `intent/llm/DECISION_TREE.md` -- OPTIONAL code-placement flow chart. `intent init` does not create one; where a project has one, it was chosen for that project and describes that project's own stack.
-- `intent/llm/RULES.md`, `intent/llm/ARCHITECTURE.md` -- this project's own rules and architecture, seeded empty by `intent init` for the project to author.
-- `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`); `intent/.config/` -- configuration.
-- `CLAUDE.md` -- Claude-specific overlay.
-- `usage-rules.md` -- DO / NEVER contract for this project, where it keeps one (seeded by `intent claude upgrade --apply` in the root layout when absent, not seeded in the `.claude/` layout, and never overwritten; `intent init` does not create it).
+- `intent/llm/MODULES.md`: OPTIONAL module registry (Highlander enforcement). To check for prior art, ask the index first: `intent search --kind def <name>` answers whether a thing with that name already exists anywhere in the tree, and the answer carries the index's own freshness. When it says the index is not complete for the paths that matter, fall back to grep. Where the project keeps a registry, `intent modules find <name>` searches that as well. `intent init` does not create a registry, so for most projects the index is the whole answer.
+- `intent/llm/DECISION_TREE.md`: OPTIONAL code-placement flow chart. `intent init` does not create one; where a project has one, it was chosen for that project and describes that project's own stack.
+- `intent/llm/RULES.md`, `intent/llm/ARCHITECTURE.md`: this project's own rules and architecture, seeded empty by `intent init` for the project to author.
+- `intent/`: steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`); `intent/.config/`: configuration.
+- `CLAUDE.md`: Claude-specific overlay.
+- `usage-rules.md`: DO / NEVER contract for this project, where it keeps one (seeded by `intent claude upgrade --apply` in the root layout when absent, not seeded in the `.claude/` layout, and never overwritten; `intent init` does not create it).
 
 ---
 

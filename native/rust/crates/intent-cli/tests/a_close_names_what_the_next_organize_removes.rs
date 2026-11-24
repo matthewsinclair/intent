@@ -240,3 +240,51 @@ fn a_close_in_an_upgraded_project_says_it_unrealises_the_record() {
     "a manifest's word in an upgraded project's note: {err:#?}"
   );
 }
+
+/// A project with one issue, closed with `reason`. It answers the project, the
+/// issue's id as its mint printed it, and the close's stdout and stderr.
+fn a_closed_issue(reason: &str) -> (tempfile::TempDir, String, String, String) {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (_, err, code) = run(&["init", "issue-close-fixture"], root);
+  assert_eq!(code, 0, "fixture init failed: {err}");
+  let (out, err, code) = run(&["issues", "add", "An issue that closes"], root);
+  assert_eq!(code, 0, "fixture issues add failed: {err}");
+  let issue = crate::common::created(&out);
+  let (out, err, code) = run(
+    &["issues", "close", issue.as_str(), "--reason", reason],
+    root,
+  );
+  assert_eq!(code, 0, "the close itself failed: {err}");
+  (dir, issue, out, err)
+}
+
+/// AE finding 6: a close names the issue's view that the next organize
+/// removes, and says that this is expected and safe.
+#[test]
+fn an_issue_close_names_its_view_and_says_it_is_safe() {
+  let (dir, issue, _, err) = a_closed_issue("a probe");
+  let view = format!("intent/issues/{issue}.md");
+  assert!(
+    dir.path().join(&view).exists(),
+    "control: the close leaves {view} on disk until the next organize"
+  );
+  assert!(
+    err.contains(&view) && err.contains("expected and safe"),
+    "the close did not name {view} as safe to lose: {err:?}"
+  );
+}
+
+/// AE finding 5: `issues close --reason` writes the issue's `Resolution:`
+/// line, so a close needs no edit first.
+#[test]
+fn an_issue_close_with_a_reason_writes_its_resolution() {
+  let reason = "fixed by a probe";
+  let (dir, issue, _, _) = a_closed_issue(reason);
+  let (out, err, code) = run(&["issues", "show", issue.as_str()], dir.path());
+  assert_eq!(code, 0, "issues show failed: {err}");
+  assert!(
+    out.contains(&format!("Resolution: {reason}")),
+    "the close did not record its reason as the resolution: {out}"
+  );
+}

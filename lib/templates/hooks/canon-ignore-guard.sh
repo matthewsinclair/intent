@@ -73,10 +73,13 @@ while IFS= read -r p; do
 done < <(git ls-files "$CANON_DIR" 2>/dev/null | head -200)
 # Future artefacts. These do not exist and do not need to: the damage a rule
 # does to a file that has not been created yet is invisible until someone
-# notices it never travelled.
+# notices it never travelled. Intent mints every new id git-style, so the
+# future thread and issue are named with the worked example's hex, which names
+# no record (`intentsvcs::id::EXAMPLE_HEX`). An ordinal file is a real path or
+# nothing: none is minted again.
 PROBES+=(
-  "${CANON_DIR}/st/ST9999.json"
-  "${CANON_DIR}/issues/9999.json"
+  "${CANON_DIR}/st/ST3f9a2c1d4e5f6a7b.json"
+  "${CANON_DIR}/issues/I3f9a2c1d4e5f6a7b.json"
   "${CANON_DIR}/.probe-a-path-that-will-exist-later"
 )
 

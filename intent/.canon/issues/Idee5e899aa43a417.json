@@ -1,0 +1,13 @@
+{
+  "schema": "intent/issue@4.0",
+  "id": "Idee5e899aa43a417",
+  "origin": "01M86QKRFK7CDM9G7M9644EBHV",
+  "realised": true,
+  "slug": "pre-commit-critic-gate-reports-a-declared-langua",
+  "title": "Pre-commit critic gate reports a declared language with no rule pack as its own breakage",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-11-24",
+  "reporter": "Matthew Sinclair",
+  "body": "AE found this on 3.5.2 in a Perl project. intent-vc gave it to dc for the b353 batch.\n\nReproduction (dc, 3.5.2 brew, a scratch project made with `intent init`):\n\n1. With `languages: []`, a commit passes. The gate prints \"0 of 0 declared language(s) -- NO code critic ran\" and says why. This half is correct.\n2. With `languages: [\"perl\"]`, written by hand because `intent lang init perl` refuses, a commit passes too. But the gate prints \"intent critic (perl) did not check (exit 2) -- perl is UNENFORCED\", then the critic's usage error, then \"the gate fails open on its own breakage by design\" and \"the gate is not protecting what you think it is\".\n\nThe gate is not broken in step 2. Intent has no rule pack for Perl, so there is nothing to enforce. The gate reports a correct skip as its own breakage. devbin's format and toolchain gates skip in the same case and say why.\n\nFix: the gate asks `intent lang list` which languages this build can serve. For a declared language that is not in that list, the gate does not call the critic. It prints one line that names the language and says that this build has no rule pack for it, so its critic is skipped. The commit is not blocked. The gate keeps no language list of its own.\n"
+}

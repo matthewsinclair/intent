@@ -245,6 +245,16 @@ pub enum FindingClass {
   /// **SHOWN AND NOT COUNTED, FOR `RootFileBehind`'s REASON**: the project
   /// carries it from v2 rather than from anything done since.
   HookScriptOrphaned,
+  /// A sentence of the project's `CLAUDE.md`, `AGENTS.md` or a Claude Code
+  /// memory note that a global Claude file already says (issue Ia87820b,
+  /// [`crate::restated`]): a second copy of one rule, which drifts when the
+  /// global copy changes.
+  ///
+  /// **SHOWN AND NOT COUNTED, BECAUSE THE GLOBAL FILES ARE THE USER'S OWN.**
+  /// They differ between users and between machines, so counting this would
+  /// let one commit pass on one machine and be refused on another for a reason
+  /// that says nothing about what it carries.
+  RestatedGlobalRule,
   /// `intent/.cache` sits under a Dropbox folder and is not marked ignored by
   /// the client (ST0083 WP-07), so the client syncs a live store and its WAL
   /// to every device that shares the folder.
@@ -680,7 +690,7 @@ impl FindingClass {
       Self::UnrealisedView => (
         6,
         "unrealised-view",
-        "`intent organize` lists each view it would remove, and `intent organize --apply` removes them, while the store keeps every record. Where git tracks them, remove them once, on main, and commit that: until then every branch's `intent sync --apply` removes them again, and each merge request carries the same deletion. Not counted: each is byte for byte what the store renders, so nothing is lost",
+        "this is expected and safe: a view leaves the tree when its record stops being realised, as a close does to an issue or a thread, and the store keeps the record, which `intent issues show` and `intent st show` read. `intent organize` lists each view it would remove, and `intent organize --apply` removes them. Where git tracks them, remove them once, on main, and commit that: until then every branch's `intent sync --apply` removes them again, and each merge request carries the same deletion. Not counted: each is byte for byte what the store renders, so nothing is lost",
       ),
       Self::AggregateViewStale => (
         6,
@@ -711,6 +721,11 @@ impl FindingClass {
         6,
         "hook-script-orphaned",
         "remove each file the finding names with the command it gives: v2 wrote these hook scripts into every project, v3 serves its hooks from the installed Intent and reads none of them, and no hook command here runs them. Not counted: the project carries them from v2 rather than from anything done since",
+      ),
+      Self::RestatedGlobalRule => (
+        6,
+        "restated-global-rule",
+        "delete the project's sentence, so the global file is its one home; in a root file Intent generates, delete it from the user block, or from the template under `lib/templates/` it renders from. Not counted: the global files are the user's own, and differ between machines",
       ),
       Self::ProseIndexDuplicated => (
         6,
@@ -1033,6 +1048,7 @@ impl FindingClass {
         | Self::SettingsHookMissing
         | Self::AuthorPlaceholder
         | Self::HookScriptOrphaned
+        | Self::RestatedGlobalRule
         | Self::InstallLinkShadowed
         | Self::InstallLinkSplit
     )
@@ -1078,6 +1094,7 @@ impl FindingClass {
           | Self::SettingsHookMissing
           | Self::AuthorPlaceholder
           | Self::HookScriptOrphaned
+          | Self::RestatedGlobalRule
       )
   }
 

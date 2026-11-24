@@ -87,7 +87,7 @@ fn a_view_an_older_renderer_wrote_is_cleared_for_removal() {
   let rendered = rendered_cover(&fx);
   fx.write_file(VIEW, &as_an_older_renderer_wrote_it(&rendered));
   assert!(
-    gate(&step(&fx, &rendered)).is_ok(),
+    gate(&step(&fx, &rendered), &[]).is_ok(),
     "a view that differs only in the footer and cover paragraph an older Intent wrote was \
      refused as a possible hand edit -- the 65 refusals of issue 0446"
   );
@@ -108,7 +108,7 @@ fn a_hand_edit_under_an_older_renderers_footer_is_still_refused() {
   fx.write_file(VIEW, &edited);
   assert!(
     matches!(
-      gate(&step(&fx, &rendered)),
+      gate(&step(&fx, &rendered), &[]),
       Err(OrganizeError::HandEdited { .. })
     ),
     "a hand edit was cleared because the renderer's text around it had also moved -- the mask \
@@ -127,7 +127,7 @@ fn text_appended_after_an_older_footer_is_the_authors_and_still_refuses() {
   fx.write_file(VIEW, &appended);
   assert!(
     matches!(
-      gate(&step(&fx, &rendered)),
+      gate(&step(&fx, &rendered), &[]),
       Err(OrganizeError::HandEdited { .. })
     ),
     "text after the banner's line is the author's, and masking the footer must not mask it"

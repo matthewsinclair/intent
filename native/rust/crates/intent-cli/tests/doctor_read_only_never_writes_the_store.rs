@@ -9,10 +9,9 @@
 //! An older store is made by `common::stamp_older_schema`, on a store that is
 //! checkpointed first, so no write-ahead log holds a page 1 that shadows it.
 
-use crate::common::{
-  STORE, assert_checkpointed, assert_no_wal_frames, ok, run, stamp_older_schema,
-};
+use crate::common::{STORE, ok, run, stamp_older_schema};
 use intentsvcs::store::SCHEMA_VERSION;
+use testkit::{assert_checkpointed, assert_no_wal_frames};
 
 /// `doctor --read-only --format json` in `root`: its JSON and its exit code.
 fn doctor_read_only(root: &std::path::Path) -> (serde_json::Value, i32) {

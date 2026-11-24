@@ -1135,6 +1135,14 @@ impl Thread {
     )
   }
 
+  /// Each group a label on this thread may take, whole: the thread's `00`,
+  /// then each package's stored id, in package order (issue I7bc038a).
+  pub fn label_groups(&self) -> Vec<String> {
+    std::iter::once(crate::id::THREAD_GROUP.to_string())
+      .chain(self.wps.iter().map(|w| w.seq.stored()))
+      .collect()
+  }
+
   /// A label of `kind` valid and free on this thread, for a refusal's
   /// example: grouped under its first package, or under the thread's `00`
   /// when it has none, at the sequence after the last one that group holds.
@@ -1651,6 +1659,28 @@ impl AtStatus {
       AtKind::Test => Self::ToWrite,
       AtKind::NonTest => Self::Na,
     }
+  }
+
+  /// The status a row moves to next, where the declared order names one (AE
+  /// finding 4): a test row is written, then seen red, then made green.
+  pub fn next(self) -> Option<Self> {
+    match self {
+      Self::ToWrite => Some(Self::Red),
+      Self::Red => Some(Self::Green),
+      Self::Green | Self::Na | Self::Fiat => None,
+    }
+  }
+
+  /// The `intent at` command that sets this status on row `at` of thread `st`,
+  /// where a verb sets it: the one spelling of that command (AE finding 4).
+  pub fn command(self, st: &str, at: &str) -> Option<String> {
+    let verb = match self {
+      Self::Red => "red",
+      Self::Green => "green",
+      Self::Na => "na",
+      Self::ToWrite | Self::Fiat => return None,
+    };
+    Some(format!("intent at {verb} {st} {at}"))
   }
 
   /// The status as a human reads it -- in a printed line, in `at list`, and in

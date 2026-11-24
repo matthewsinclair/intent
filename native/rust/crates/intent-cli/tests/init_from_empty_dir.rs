@@ -313,10 +313,45 @@ fn init_lists_the_config_relative_like_every_other_file() {
   );
 }
 
+/// AE finding 2: a language declared or removed after `intent init` renders
+/// `AGENTS.md` in the same act, so doctor never reads the contract as behind
+/// the languages the project declares.
+#[test]
+fn a_language_verb_renders_the_contract_it_changes() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p"], dir.path());
+  assert_eq!(code, 0, "init refused: {out}{err}");
+
+  leaves_the_contract_current(dir.path(), "init");
+  leaves_the_contract_current(dir.path(), "remove");
+}
+
+/// Run `intent lang <verb> rust` in `root`, and assert that it names the
+/// contract it rendered and that doctor, which answers, reads no root file as
+/// behind.
+fn leaves_the_contract_current(root: &std::path::Path, verb: &str) {
+  let (out, err, code) = run(&["lang", verb, "rust"], root);
+  assert_eq!(code, 0, "`lang {verb}` refused: {out}{err}");
+  assert!(
+    out.contains("wrote: AGENTS.md"),
+    "`lang {verb}` did not name the contract it rendered: {out}"
+  );
+  let (out, err, code) = run(&["doctor", "--format", "json"], root);
+  assert_eq!(
+    code, 0,
+    "doctor did not answer after `lang {verb}`: {out}{err}"
+  );
+  assert!(
+    !out.contains("root-file-behind"),
+    "doctor reads the contract as behind after `lang {verb}`: {out}{err}"
+  );
+}
+
 /// **A PROJECT WITHOUT `bin/devbin` DECLARES ITS OWN COMMANDS** (issue 0678):
 /// `intent config set commands.build|commands.test` writes them to the config,
-/// doctor reads the contract as behind until `intent agents sync` renders them,
-/// the rendered contract validates, an empty value removes one, and any other
+/// renders them into AGENTS.md through `agents sync`'s writer in the same act
+/// (hv decision 94), so doctor never reads the contract as behind them, the
+/// rendered contract validates, an empty value removes one, and any other
 /// key, or a value of more than one line, is refused with nothing written.
 #[test]
 fn config_set_declares_the_commands_agents_sync_renders() {
@@ -340,8 +375,10 @@ fn config_set_declares_the_commands_agents_sync_renders() {
     let (out, err, code) = run(&["config", "set", key, value], dir.path());
     assert_eq!(code, 0, "`config set {key}` refused: {out}{err}");
     assert!(
-      out.contains("ok:") && out.contains("wrote: intent/.config/config.json"),
-      "`config set {key}` did not report its write: {out}"
+      out.contains("ok:")
+        && out.contains("wrote: intent/.config/config.json")
+        && out.contains("wrote: AGENTS.md"),
+      "`config set {key}` did not report its writes: {out}"
     );
   }
   assert_eq!(
@@ -349,22 +386,16 @@ fn config_set_declares_the_commands_agents_sync_renders() {
     serde_json::json!({ "build": build, "test": test })
   );
 
-  let (out, err, _) = run(&["doctor", "--format", "json"], dir.path());
-  assert!(
-    out.contains("root-file-behind") && out.contains("AGENTS.md"),
-    "doctor did not read the contract as behind its declared commands: {out}{err}"
-  );
-  let (out, err, code) = run(&["agents", "sync"], dir.path());
-  assert_eq!(code, 0, "agents sync refused: {out}{err}");
   let page = agents();
   assert!(
     page.contains(build) && page.contains(test),
-    "agents sync did not render the declared commands:\n{page}"
+    "`config set` did not render the declared commands:\n{page}"
   );
-  let (out, err, _) = run(&["doctor", "--format", "json"], dir.path());
+  let (out, err, code) = run(&["doctor", "--format", "json"], dir.path());
+  assert_eq!(code, 0, "doctor did not answer: {out}{err}");
   assert!(
     !out.contains("root-file-behind"),
-    "doctor reads a synced contract as behind: {out}{err}"
+    "doctor reads the contract as behind its declared commands: {out}{err}"
   );
   let (out, err, code) = run(&["agents", "validate"], dir.path());
   assert_eq!(

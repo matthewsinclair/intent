@@ -59,9 +59,7 @@ When an instrument misses a defect it should have caught, the population is wron
 
 ## Commit discipline
 
-- T-shirt sizing only (XS / S / M / L / XL / XXL). No clock-time estimates.
 - Commit messages explain the why, not the what. The diff is authoritative for "what".
-- No Claude attribution. No `Co-Authored-By` lines for AI assistance. Author the commit; that is the contract.
 
 ## Pointers
 

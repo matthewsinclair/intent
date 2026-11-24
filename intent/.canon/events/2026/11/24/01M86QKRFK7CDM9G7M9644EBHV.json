@@ -1,0 +1,15 @@
+{
+  "id": "01M86QKRFK7CDM9G7M9644EBHV",
+  "ts": "2026-11-24T12:13:41.243Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Idee5e899aa43a417"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "Pre-commit critic gate reports a declared language with no rule pack as its own breakage"
+  }
+}

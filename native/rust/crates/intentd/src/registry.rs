@@ -263,6 +263,38 @@ impl Registry {
       .collect()
   }
 
+  /// The roots the project registry lists that this daemon has not opened and
+  /// that are still on disk: the projects the backup sweep reaches without
+  /// opening them (issue I53c0c22).
+  ///
+  /// **LISTED AND NOT OPENED STAYS NOT OPENED.** The sweep backs these up
+  /// through a store of its own that it closes again, and registers, watches
+  /// and ingests nothing, so first contact stays the one way a project opens.
+  pub async fn unopened_listed(&self) -> Vec<PathBuf> {
+    let listed = self
+      .listed
+      .lock()
+      .unwrap_or_else(|poisoned| poisoned.into_inner())
+      .clone();
+    let projects = self.projects.lock().await;
+    listed
+      .into_iter()
+      .filter(|root| !projects.contains_key(root))
+      .filter(|root| match root.try_exists() {
+        Ok(there) => there,
+        // **A REFUSED PROBE IS NOT "ABSENT"**: said, so a listed project the
+        // daemon cannot reach does not drop out of the sweep without a word.
+        Err(e) => {
+          elogln!(
+            "warning: intentd: `{}` is listed and could not be probed ({e}), so the backup sweep did not ask it\n  remedy: check that this user can search the path, or remove it from the project registry",
+            root.display()
+          );
+          false
+        }
+      })
+      .collect()
+  }
+
   /// A live feed for a project, opening it if this is first contact.
   ///
   /// **IT GOES THROUGH `handle_for` RATHER THAN AROUND IT**, so a subscription

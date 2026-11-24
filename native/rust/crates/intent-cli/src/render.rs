@@ -3628,6 +3628,22 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         )
         .map_err(fail)?;
       reported(&mut f, &outcome, &id, "created");
+      // AE finding 4: say which state the new row is in and which verb moves it.
+      let status = f
+        .at_list(&st)
+        .map_err(fail)?
+        .iter()
+        .find(|t| t.id == id)
+        .map(|t| t.status)
+        .ok_or_else(|| {
+          Failure::Error(format!(
+            "error: {id} was created and is not in {st}'s contract\n  remedy: run `intent at list {st}` to see the tests the store holds"
+          ))
+        })?;
+      println!("state: {}", status.display());
+      if let Some(next) = status.next().and_then(|s| s.command(&st, &id)) {
+        println!("next: `{next}`");
+      }
       Ok(())
     }
     // **THE RE-CITE DOOR, AND IT IS WHY THE REFUSAL BESIDE IT IS SAFE TO SHIP.**
@@ -10284,7 +10300,7 @@ fn config(m: &ArgMatches) -> Result<(), Failure> {
 
 /// `intent config set <key> <value>` (issue 0678): the key list, the refusals
 /// and the change are [`intentsvcs::project::Config::set`]'s; this writes the
-/// file as `lang init` does and says what to run next.
+/// file and renders `AGENTS.md` as `lang init` does (hv decision 94).
 fn config_set(m: &ArgMatches) -> Result<(), Failure> {
   use intentsvcs::remedy::Remedy;
   let key = arg(m, "key")?;
@@ -10320,8 +10336,7 @@ fn config_set(m: &ArgMatches) -> Result<(), Failure> {
       intentsvcs::rootfiles::DEVBIN
     );
   }
-  println!("next: `intent agents sync` renders the change into AGENTS.md");
-  Ok(())
+  render_agents_after_config()
 }
 
 /// `intent lang init <lang>...` -- declare one or more languages.
@@ -10356,7 +10371,9 @@ fn declare_languages(project: &Project, langs: &[String]) -> Result<(), Failure>
   // language would rewrite the file N times for one command and leave a partial
   // declaration behind if the third name were rejected mid-loop.
   write_config_naming_it(project, &config)?;
-  report_declarations(&outcomes, failed)
+  let reported = report_declarations(&outcomes, failed);
+  render_agents_after_config()?;
+  reported
 }
 
 /// The lines `intent lang init` and `intent init --lang` print for what they
@@ -10408,6 +10425,7 @@ fn lang_undeclare(m: &ArgMatches) -> Result<(), Failure> {
 
   println!();
   println!("Summary: {} language(s) processed.", langs.len());
+  render_agents_after_config()?;
   Ok(())
 }
 
@@ -10426,6 +10444,18 @@ fn write_config_naming_it(
   if std::fs::read(&path).ok() != before {
     print_written(&intentsvcs::facade::written_from(project, &[path], &[]));
   }
+  Ok(())
+}
+
+/// Render `AGENTS.md` again after a verb wrote the config: `lang init`, `lang
+/// remove` and `config set` (AE finding 2, hv decision 94). The contract lists
+/// the declared languages and commands, so without this render `intent doctor`
+/// reads the contract as behind right after such a verb. The render goes through `agents sync`'s one writer, which names the file only
+/// when its bytes moved. A project with no `AGENTS.md` gets none.
+fn render_agents_after_config() -> Result<(), Failure> {
+  let mut f = open()?;
+  f.agents_sync_if_present().map_err(fail)?;
+  print_written(&f.take_landed());
   Ok(())
 }
 
@@ -13948,7 +13978,10 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     Some(("close", a)) => {
       let number = issue_arg(a, "id")?;
       let mut f = issues_open(m, Answer::Write)?.0;
-      let outcome = f.issue_close(number).map_err(fail)?;
+      let reason = opt(a, "reason")?;
+      let outcome = f
+        .issue_close_with(number, reason.as_deref())
+        .map_err(fail)?;
       reported(
         &mut f,
         &outcome,
@@ -14276,7 +14309,26 @@ fn print_notes(notes: &[Note], subject: &str) {
       // record rather than a warning off the act -- but a file leaving the
       // working tree unnamed is the silent half, whether or not it is
       // recoverable.
-      Note::DehydratesOnNextOrganize { paths, format } => {
+      Note::DehydratesOnNextOrganize {
+        paths,
+        sigil: intentsvcs::intentfiles::Sigil::Issue,
+        ..
+      } => {
+        eprintln!(
+          "note: this close takes the issue's view out of the tree at the next `intent organize --apply`:"
+        );
+        for path in paths {
+          eprintln!("  {path}");
+        }
+        eprintln!(
+          "  remedy: nothing to do. This is expected and safe: the store keeps the issue, and `intent issues show` reads it"
+        );
+      }
+      Note::DehydratesOnNextOrganize {
+        paths,
+        format,
+        sigil: intentsvcs::intentfiles::Sigil::SteelThread,
+      } => {
         eprintln!(
           "note: this {} {subject}, so the next `intent organize --apply` will remove:",
           intentsvcs::intentfiles::RealisationWords::closing_unrealises(*format)
@@ -16801,8 +16853,9 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     // register declares the exit code as 1.** That is deliberately NOT `init`'s
     // own rc=2: this is a verb declining a job, not a build unable to answer.
     // The register carries no `--force` and none is invented here -- v2 had one
-    // and the v3 surface dropped it, which makes `sync` the only path that
-    // rewrites a file somebody may have edited.
+    // and the v3 surface dropped it, so `sync` and the `lang` verbs, which
+    // render the contract after they change its languages, are the paths that
+    // rewrite a file somebody may have edited.
     Some(("init", _)) => {
       let mut f = open()?;
       let contracts = f.project().config().contracts;

@@ -7,7 +7,7 @@
 
 use std::time::Duration;
 
-use crate::common::{ARM_ATTEMPTS, PAUSE, RunningDaemon, project};
+use crate::common::{ARM_ATTEMPTS, RunningDaemon, poll_until, project};
 use intentsvcs::projects::{self, AddedBy};
 use intentsvcs::userstate::{self, Dirs};
 use intentsvcs::wire::{Op, RegisteredProject, Request, Response};
@@ -39,12 +39,8 @@ fn a_project_added_to_the_registry_is_listed_without_a_restart() {
   let sentinel = project("Sentinel").canonicalize().expect("canonical root");
   projects::add(&file, std::slice::from_ref(&sentinel), AddedBy::Discover)
     .expect("register the sentinel");
-  let listed = (0..ARM_ATTEMPTS).any(|_| {
-    let found = registry(&daemon, &alpha).iter().any(|p| p.root == sentinel);
-    if !found {
-      std::thread::sleep(PAUSE);
-    }
-    found
+  let listed = poll_until(ARM_ATTEMPTS, || {
+    registry(&daemon, &alpha).iter().any(|p| p.root == sentinel)
   });
   let _ = std::fs::remove_dir_all(&sentinel);
   assert!(

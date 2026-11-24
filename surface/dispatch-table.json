@@ -2813,7 +2813,17 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "How the issue was resolved. Optional: the close adds it to the issue's body as its `Resolution:` line, in the same event",
+              "disposition": "keep"
+            }
+          ],
           "target": {
             "state": "as-observed",
             "question": "**v2 SPELLS ONE CONDITION SEVERAL WAYS AND v3 HAS ONE ERROR, so `as-observed` cannot be true of every row at once.** v2's source sites produce different rendered messages: `Issue not found in OPEN: <ID>` and `Issue not found in CLOSED: <ID>` from `move_issue` (bin/intent_issues:285, `$from` varying), and `Issue not found: <ID>` with no bucket from `cmd_show` (:255). v3 has a single `FacadeError::NoSuchIssue { number }` -- `no issue {number:04} in this project` (facade.rs:114-115) -- which is bucket-agnostic on purpose and carries a remedy naming the bucket trap directly (`run intent issues list --kind all ...`, facade.rs:286-288). **That is a better answer than any of the three and it is still a deviation**, so it wants deciding rather than discovering as a diff later (cc, 2026-08-17, wiring Machine 4). **`target.state` is deliberately NOT moved off `as-observed` pending that call**: the condition, the exit code and the stream all match, and only the wording differs -- but `as-observed` should not be read as covering the text. Held for vc. `issues open` and `issues show` carry the same condition and point here; this is its one home.",

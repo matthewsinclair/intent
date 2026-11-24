@@ -468,11 +468,11 @@ fn the_gate_fails_open_and_names_the_language_when_the_critic_cannot_answer() {
      must be bypassed is a guard nobody keeps.\n{stderr}"
   );
   assert!(
-    stderr.contains("UNENFORCED"),
-    "and it must say WHAT WENT UNCHECKED, rather than passing silently. **If this reds after a \
-     reword of the `*)` arm or the digest in lib/templates/hooks/pre-commit.sh, the hook is \
-     probably fine and this string is the stale half** -- the property is that the gate names \
-     the unchecked language, not that it uses this word:\n{stderr}"
+    stderr.contains("The commit is not blocked"),
+    "and it must say WHAT WENT UNCHECKED, rather than passing silently: the gate says that no \
+     critic checked the language and that the commit is not blocked. **If this reds after a reword of \
+     the `*)` arm or the digest in lib/templates/hooks/pre-commit.sh, the hook is probably fine \
+     and this string is the stale half**:\n{stderr}"
   );
   assert!(
     stderr.contains("klingon"),

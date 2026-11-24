@@ -99,7 +99,7 @@ assert_guard() { # $1 BLOCK|PASS
 }
 
 @test "a rule that reaches only a FUTURE canon path is refused" {
-  printf 'target/\nintent/.canon/st/ST9*\n' > .gitignore
+  printf 'target/\nintent/.canon/st/ST3*\n' > .gitignore
   git add .gitignore
   assert_guard BLOCK
 }

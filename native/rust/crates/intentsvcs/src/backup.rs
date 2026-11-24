@@ -54,6 +54,21 @@ pub enum BackupError {
     #[source]
     source: std::io::Error,
   },
+  /// A listed project's config could not be read, so its store was not
+  /// reached (issue I53c0c22).
+  #[error("reading the project at {root}: {source}")]
+  Project {
+    root: PathBuf,
+    #[source]
+    source: crate::project::ProjectError,
+  },
+  /// A listed project's store could not be read or opened (issue I53c0c22).
+  #[error("opening the store of {root}: {source}")]
+  Open {
+    root: PathBuf,
+    #[source]
+    source: StoreError,
+  },
 }
 
 impl crate::remedy::Remedy for BackupError {
@@ -74,6 +89,8 @@ impl crate::remedy::Remedy for BackupError {
       Self::Prune { .. } => {
         "an expired snapshot could not be removed; the backup itself succeeded, so this is disk hygiene rather than data loss".to_string()
       }
+      Self::Project { source, .. } => crate::remedy::Remedy::remedy(source),
+      Self::Open { source, .. } => crate::remedy::Remedy::remedy(source),
     }
   }
 }
@@ -523,6 +540,49 @@ pub fn if_due(
     Due::Disabled => Ran::Disabled,
     Due::Unschedulable(value) => Ran::Unschedulable(value),
   })
+}
+
+/// Take a scheduled backup of the project at `root`, whose store no process
+/// asked for, if one is due (issue I53c0c22).
+///
+/// **intentd's SWEEP REACHED ONLY THE STORES IT HELD OPEN**, and a store opens
+/// on first contact, so after a restart a listed project nobody routed to the
+/// daemon was backed up only on the days someone ran `explore` in it: Webber
+/// had 8 snapshots in 16 days. The sweep now asks this of every listed project
+/// it has not opened, and [`if_due`] decides exactly as for an open one.
+///
+/// **IT NEVER CHANGES A STORE'S SHAPE** (vc, 2026-11-24, under hv's pen). The
+/// project may use another Intent build, and opening its store could migrate
+/// it. So the stamp is read first, through [`Store::opening_at`], which opens
+/// nothing for write, and a store this build would create, migrate or refuse
+/// is left as it is: [`Unopened::Skipped`]. `doctor`'s `backup-stale` is the
+/// signal for a store skipped this way. Nothing is created where no store is.
+pub fn if_due_unopened(root: &std::path::Path) -> Result<Unopened, BackupError> {
+  let project = Project::open(root).map_err(|source| BackupError::Project {
+    root: root.to_path_buf(),
+    source,
+  })?;
+  let db = project.db_path();
+  let open = |source| BackupError::Open {
+    root: root.to_path_buf(),
+    source,
+  };
+  match Store::opening_at(&db).map_err(open)? {
+    crate::store::Opening::Open => {}
+    opening => return Ok(Unopened::Skipped(opening)),
+  }
+  let store = Store::open(&db).map_err(open)?;
+  Ok(Unopened::Ran(if_due(&project, &store, || {})?))
+}
+
+/// What [`if_due_unopened`] did.
+#[derive(Debug)]
+pub enum Unopened {
+  /// The store is at this build's schema, and [`if_due`] answered.
+  Ran(Ran),
+  /// The store was not opened, because opening it would write its shape or
+  /// be refused: what opening it would have done.
+  Skipped(crate::store::Opening),
 }
 
 /// What [`if_due`] did.
