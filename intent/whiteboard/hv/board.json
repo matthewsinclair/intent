@@ -1023,6 +1023,14 @@
       "state": "live",
       "recorded_at": "2026-11-24T14:47:37.044Z",
       "edited_at": "2026-11-24T14:49:55.527Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 97,
+      "text": "(hv, 2026-11-24 17:16Z by devbin-vc's date -u, in devbin-vc's window; relayed by devbin-vc as its decision 296, not heard first-hand by vc; the wording of this record vc's) RHADAMANTH'S LOCAL MACOS LEG IS THE MACOS PROOF OF AN INTENT CUT. The candidate CI runs on Linux only: tests.yml skips test-macos on candidate/ refs and Test Summary accepts the skip; rust.yml's matrix on candidate/ refs is ubuntu-latest only; workflow_dispatch keeps macOS. cc builds it; vc drops the unpushed release commit 68484d35b, keeps the fold commits, lands it and re-cuts 3.5.3 on the Desk's slot, under hv decision 96.",
+      "state": "live",
+      "recorded_at": "2026-11-24T17:17:09.202Z"
     }
   ],
   "sent": [],
