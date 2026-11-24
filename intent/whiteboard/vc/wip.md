@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- 3.5.2, hv decisions 87, 88, 89 and 90. Two cuts stopped red at legs on candidate CI (runs 45326139850 and 45328303838), with nothing tagged. The release commit 029297dee was reset off main and kept at refs/attic/vc/release-v3.5.2-try1. Upstream main is at 3475b6e94. cc's v4 is on main (f3a168417, 96bb28a6c, 3ecd74577): the CI reds, I75b8995 and I37f8e18. OPEN: cc's v5 moves the five write-then-read MCP tests that I37f8e18 names to the fixed helper (hv decision 90), under one gate all. Then: land v5, build all at HEAD, push, release --dry-run with a clean tree and intentd stopped, READY, and hv runs bin/devbin release v3.5.2. After the tag: restart intentd from a Claude shell and tell devbin-vc; lift the seats' freeze. (edited)
+_(none)_
 
 ## TODO
 
-_(none)_
+- After 3.5.2 (released 2026-11-24 at fabbffd8c): lib/templates/llm/_CLAUDE.md restates two global rules (sizes only, no hand wrap) now in ~/.config/claude/house-rules.md; cut them (geodica-estate's ask). Open, outside 3.5.2: Ia87820b (restated-global-rule check), I5adc617 (HTTP 5 s test), I53c0c22 (Webber backup gaps), cc's mcp_session lossy-parse finding.
 
 ## Holds
 
