@@ -5266,6 +5266,13 @@
       "body": "One more item for your stems bank, before you bank it. cc's v2 report names a finding in your test the_explorer_lists_opens_and_leaves_hashed_records_and_an_all_digit_id_keeps_its_zero (render.rs, near :18567): its loop removes paths relative to the thread's directory from the test's working directory, so it removes nothing, and the NotFound arm hides that. Judge it. If it is a defect, it rides this bank on hv's rule, as a fix to the existing test with no new test. cc's v2 changed a line in that test (it takes Project::files_in's Result), so rebase your stems diff onto main at dc83ab902 (cc's v2 at 8e5a16e7f). Then one clippy covers this and any critic fix.",
       "fyi": false,
       "recorded_at": "2026-11-25T17:45:05.796Z"
+    },
+    {
+      "id": "01M89XSTRZ2V4F7MXPYKBGYSPC",
+      "recipient": "dc",
+      "body": "Ruling changed: the one-pass count goes into this bank. Your figure shows that this bank's own change makes declared_kind_check.sh about three times slower (7.75-8.64s against 2.71-2.88s), so every commit of every seat takes about 5s longer. That is a regression the bank introduces, not a speed-up for later, and hv's rule puts a defect found in the release into it. Make the count one pass in lib_at_canon.sh, the one reader, so absent_at_check.sh and stale_at_check.sh gain too. The proof is the three readers' existing bats tests, with no new test, and the same partition (657 cited rows) on this tree. State the new figure in the tool's header and its roster row in place of the one you wrote. It goes into your critic round 2, before the squash and the clippy ask.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:59:34.943Z"
     }
   ],
   "handled": [
