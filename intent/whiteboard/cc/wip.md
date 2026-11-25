@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 89630d6b-190b-4ecd-a485-ab28d09325d5
-heartbeat_at: 2026-11-25 10:42Z
+heartbeat_at: 2026-11-25 11:30Z
 status: active
-focus: "2026-11-25 10:42Z by date -u: b2 is on main (vc, no rerun), and the worktree is removed with its attic ref. Standing by for close-sweep findings and the batch gate's result. No Desk ask, no run open."
+focus: "2026-11-25 11:30Z by date -u: fold for hv's compact, not released. Resume: standby for the close sweep and the batch gate. No worktree, no Desk ask, no run open. R2's meaning (id::head_number_at) is with vc, and dc builds it."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-- ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate. (edited)
+- ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. Next: stand by for close-sweep findings in cc's remit, for a question from dc on head_number_at, and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate. (edited)
 
 ## TODO
 
