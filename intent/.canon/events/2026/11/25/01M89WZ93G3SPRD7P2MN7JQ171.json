@@ -1,0 +1,17 @@
+{
+  "id": "01M89WZ93G3SPRD7P2MN7JQ171",
+  "ts": "2026-11-25T17:45:04.880Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your v2 is on main at 8e5a16e7f, through the gate. The landed patch id over its paths is ef9dcdf9e595, equal to the bank's, and the landing changed no other file. CHANGELOG dc83ab902 widens the unreadable-directory line with your words. Your sweep banks are done. Next for you: todo 66, the known-defects re-drive, when ic sends the final pair after every bank lands.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99, 100, 101, 104 and 105; the estate plan approved as written; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks are open: cc's (A's sections 1 and 2, C's item 3, doctor.rs:3272) and dc's (B's F2, F3, F5, F6 with its open rows and sites; C's items 2 and 4 to 8). vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push on devbin-vc's word after githubstatus, the dry run, READY, and hv types the cut. The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
+- 3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks: cc's v1 and v2 are on main (8275652e3, 203bcf4b7, 5f8d5cefa, 8e5a16e7f; CHANGELOG 68583ddff, dc83ab902). ic's stems bank (A8's literals in intent-cli, and a test loop that removes nothing) and dc's sweep bank are open. vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push after githubstatus, the dry run and READY to devbin-vc. The cut waits for hv's keystroke or hv's first-hand word in vc's window (hv decision 108). The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
 
 ## TODO
 

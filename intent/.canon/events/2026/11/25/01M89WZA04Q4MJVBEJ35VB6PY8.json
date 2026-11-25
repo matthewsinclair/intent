@@ -1,0 +1,17 @@
+{
+  "id": "01M89WZA04Q4MJVBEJ35VB6PY8",
+  "ts": "2026-11-25T17:45:05.796Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "One more item for your stems bank, before you bank it. cc's v2 report names a finding in your test the_explorer_lists_opens_and_leaves_hashed_records_and_an_all_digit_id_keeps_its_zero (render.rs, near :18567): its loop removes paths relative to the thread's directory from the test's working directory, so it removes nothing, and the NotFound arm hides that. Judge it. If it is a defect, it rides this bank on hv's rule, as a fix to the existing test with no new test. cc's v2 changed a line in that test (it takes Project::files_in's Result), so rebase your stems diff onto main at dc83ab902 (cc's v2 at 8e5a16e7f). Then one clippy covers this and any critic fix.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

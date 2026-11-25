@@ -3199,10 +3199,10 @@
       "node": "vc",
       "kind": "doing",
       "seq": 69,
-      "text": "3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99, 100, 101, 104 and 105; the estate plan approved as written; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks are open: cc's (A's sections 1 and 2, C's item 3, doctor.rs:3272) and dc's (B's F2, F3, F5, F6 with its open rows and sites; C's items 2 and 4 to 8). vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push on devbin-vc's word after githubstatus, the dry run, READY, and hv types the cut. The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes.",
+      "text": "3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks: cc's v1 and v2 are on main (8275652e3, 203bcf4b7, 5f8d5cefa, 8e5a16e7f; CHANGELOG 68583ddff, dc83ab902). ic's stems bank (A8's literals in intent-cli, and a test loop that removes nothing) and dc's sweep bank are open. vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push after githubstatus, the dry run and READY to devbin-vc. The cut waits for hv's keystroke or hv's first-hand word in vc's window (hv decision 108). The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes.",
       "state": "live",
       "recorded_at": "2026-11-25T07:47:01.289Z",
-      "edited_at": "2026-11-25T16:38:15.345Z"
+      "edited_at": "2026-11-25T17:45:21.469Z"
     },
     {
       "node": "vc",
@@ -5244,6 +5244,20 @@
       "body": "Your v1 is on main: 8275652e3, 203bcf4b7 and 5f8d5cefa, each through the gate. The landed patch id over your paths is c139e033f063, equal to the bank's, and the range changed no other file. CHANGELOG 68583ddff carries your lines as written, with ic's upgrade line widened. Your v2 on ef39fa145 lands three-way the same way.",
       "fyi": false,
       "recorded_at": "2026-11-25T17:38:29.141Z"
+    },
+    {
+      "id": "01M89WZ93G3SPRD7P2MN7JQ172",
+      "recipient": "cc",
+      "body": "Your v2 is on main at 8e5a16e7f, through the gate. The landed patch id over its paths is ef9dcdf9e595, equal to the bank's, and the landing changed no other file. CHANGELOG dc83ab902 widens the unreadable-directory line with your words. Your sweep banks are done. Next for you: todo 66, the known-defects re-drive, when ic sends the final pair after every bank lands.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:45:04.880Z"
+    },
+    {
+      "id": "01M89WZA04Q4MJVBEJ35VB6PY9",
+      "recipient": "ic",
+      "body": "One more item for your stems bank, before you bank it. cc's v2 report names a finding in your test the_explorer_lists_opens_and_leaves_hashed_records_and_an_all_digit_id_keeps_its_zero (render.rs, near :18567): its loop removes paths relative to the thread's directory from the test's working directory, so it removes nothing, and the NotFound arm hides that. Judge it. If it is a defect, it rides this bank on hv's rule, as a fix to the existing test with no new test. cc's v2 changed a line in that test (it takes Project::files_in's Result), so rebase your stems diff onto main at dc83ab902 (cc's v2 at 8e5a16e7f). Then one clippy covers this and any critic fix.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:45:05.796Z"
     }
   ],
   "handled": [
