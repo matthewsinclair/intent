@@ -1,0 +1,14 @@
+{
+  "id": "01M8A021KB64KSE5K605A1H9WT",
+  "ts": "2026-11-25T18:39:01.231Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/partition_closes_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

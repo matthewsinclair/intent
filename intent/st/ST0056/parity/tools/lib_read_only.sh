@@ -288,12 +288,18 @@ ro_id_answer() {
 }
 
 # ro_st_tokens <path> -- THE ONE READING of a path under `intent/st/` for the
-# door's callers: what to ask the door about it, one `<token> <kind>` line,
-# tab-separated, per question. `intent/st/<dir>/<file>` asks whether `<dir>` is
+# door's callers: what to ask the door about it, one `<token> <kind> [view]`
+# line, tab-separated, per question. `intent/st/<dir>/<file>` asks whether `<dir>` is
 # a thread; `intent/st/<dir>/WP/<package>/info.md` also asks whether
 # `<dir>/<package>` is a work package. Any other path asks nothing. A caller
 # builds its tokens with this and looks each path up with it, so the two halves
 # cannot read one path two ways.
+#
+# It also names the views. When the path is the generated view of a record,
+# the line for that record carries a third field, `view`. The views are a
+# thread's `info.md` and `acceptance.md`, and a package's `info.md`
+# (`intentsvcs::project::INFO_VIEW` and `ACCEPTANCE_VIEW`). A caller reads that
+# field to know a view, and names no view file itself.
 ro_st_tokens() {
   local rest dir file pkg
   rest="${1#intent/st/}"
@@ -301,10 +307,13 @@ ro_st_tokens() {
   dir="${rest%%/*}"
   file="${rest#*/}"
   [ -n "$dir" ] && [ -n "$file" ] && [ "$file" != "$rest" ] || return 0
-  printf '%s\tthread\n' "$dir"
+  case "$file" in
+    info.md | acceptance.md) printf '%s\tthread\tview\n' "$dir" ;;
+    *) printf '%s\tthread\n' "$dir" ;;
+  esac
   pkg="${file#WP/}"
   if [ "$pkg" != "$file" ] && [ "${pkg#*/}" = info.md ]; then
-    printf '%s/%s\twp\n' "$dir" "${pkg%%/*}"
+    printf '%s/%s\twp\tview\n' "$dir" "${pkg%%/*}"
   fi
   return 0
 }

@@ -1,0 +1,14 @@
+{
+  "id": "01M89WN7WMB496A0DWB9QKDZCY",
+  "ts": "2026-11-25T17:39:35.962Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/rulings_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

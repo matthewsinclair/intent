@@ -94,7 +94,7 @@ FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --from) FROM="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,50p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) awk '/^#!/ { next } /^#/ { print; next } { exit }' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "partition: unknown argument: $1" >&2; exit 2 ;;
   esac
 done

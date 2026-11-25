@@ -168,17 +168,28 @@ RO_TAG="rulings"
 RO_WORK="$(mktemp -d "${TMPDIR:-/tmp}/rulings.XXXXXX")" ||
   die "no temporary directory for the id door's run"
 trap 'staged_cleanup; rm -rf "$RO_WORK"' EXIT
-# An issue record is asked by its address, `intent:///issues/<id>`, which names the
+# issue_token <record> -- the door's token for an `issue <id>` record. An issue
+# record is asked by its address, `intent:///issues/<id>`, which names the
 # issue collection alone: bare digits such as 0088 also spell thread ST0088, and
-# the door rightly answers them ambiguous.
+# the door rightly answers them ambiguous. The tokens asked below and
+# record_resolves both take the address from here, so the two halves cannot
+# spell one issue two ways.
+issue_token() {
+  printf 'intent:///issues/%s\n' "${1#issue }"
+}
 # Each case arm below opens with `(`: bash 3.2 reads an arm's bare `)` inside
 # `$( )` as the substitution's end. No comment goes inside it, for the same reason.
-DOOR_TOKENS="$(printf '%s\n' "$ROWS" | cut -f5 | while IFS= read -r rec; do
+# The pipeline runs under pipefail in its own subshell, so a stage that fails
+# refuses with its cause. Without it a failed stage left the tokens empty, and
+# every record the door answers for (an issue, or a path under intent/st/ that
+# is not on disk) then read as dangling. No stage stops reading early, so
+# pipefail arms no SIGPIPE here.
+DOOR_TOKENS="$(set -o pipefail; printf '%s\n' "$ROWS" | cut -f5 | while IFS= read -r rec; do
   case "$rec" in
-    ("issue "?*) printf 'intent:///issues/%s\n' "${rec#issue }" ;;
+    ("issue "?*) issue_token "$rec" ;;
     (*) ro_st_tokens "${rec%%:*}" | cut -f1 ;;
   esac
-done | awk 'NF && !seen[$0]++')"
+done | awk 'NF && !seen[$0]++')" || die "could not read the records the rulings cite into the door's tokens"
 # What this verdict reads, for a pair that cannot answer (todo 88): the table,
 # the records its rulings cite, and these tools. A commit that changes none of
 # them passes unchecked, said as such; any other refuses. A table given from
@@ -214,23 +225,22 @@ fi
 # still dangles. Whether `<thread>` is a thread, and which canon file holds it,
 # is the id door's answer, read above.
 in_thread_canon() {
-  local rel="$1" asks tok kind id canon file stored
+  local rel="$1" asks tok kind mark view=0 id canon file stored
   # What the path asks of the door is lib_read_only.sh's one reading of it, and
   # each question must have been answered yes: the thread, and for a package's
-  # view (`WP/<package>/info.md`) the package too.
+  # view (`WP/<package>/info.md`) the package too. The same reading marks a
+  # view, the thread's or a package's, which renders from the canon.
   asks="$(ro_st_tokens "$rel")"
   [ -n "$asks" ] || return 1
-  while IFS=$'\t' read -r tok kind; do
+  while IFS=$'\t' read -r tok kind mark; do
     ro_id_is "$tok" "$kind" || return 1
+    [ "$mark" != view ] || view=1
   done <<<"$asks"
   id="${asks%%$'\t'*}"
   canon="$REPO_ROOT/$(ro_id_canon "$id")"
   [ -f "$canon" ] || return 1
-  case "$asks" in *$'\t'wp) return 0 ;; esac
+  [ "$view" -eq 0 ] || return 0
   file="${rel#intent/st/"$id"/}"
-  case "$file" in
-    info.md | acceptance.md) return 0 ;;
-  esac
   # An attachment's record is in the thread's file in 3.4.0's canon format, and
   # a file of its own in the release's (ST0096 WP-05):
   # `intent/.canon/records/<stored id>/attachments/<path>.json`, beside the
@@ -248,7 +258,7 @@ record_resolves() {
       [ -f "$ST_DIR/parity.md" ]
       ;;
     "issue "?*)
-      ro_id_is "intent:///issues/${rec#issue }" issue
+      ro_id_is "$(issue_token "$rec")" issue
       ;;
     *.md|*.rs|*.sh|*.json|*.toml|*.txt|*.md:*|*.rs:*|*.sh:*|*.json:*|*.toml:*|*.txt:*)
       [ -e "$REPO_ROOT/${rec%%:*}" ] || [ -e "$ST_DIR/${rec%%:*}" ] || in_thread_canon "${rec%%:*}"

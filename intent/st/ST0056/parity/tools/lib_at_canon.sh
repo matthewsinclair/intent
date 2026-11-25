@@ -1,20 +1,23 @@
 # shellcheck shell=bash
 #
 # lib_at_canon.sh -- the shell guards' one reading of the thread canon's AT rows
-# (issue 0733). SOURCED, never run, by a tool that then calls at_canon_root.
+# (issue 0733). SOURCED, never run, by a tool that then enters its project
+# root, by at_canon_root or by a cd of its own, before at_canon_ready.
+# declared_kind_check.sh enters its ROOT itself, so that the canon it reads and
+# the artefacts it judges are under one root.
 #
 # BASH 3.2, NOT 5: the commit gate runs these tools through `#!/usr/bin/env
 # bash`, which on a Mac can be /bin/bash 3.2.57, so no associative array,
-# mapfile, `local -n` or case-changing expansion here or in either tool. A
-# report-only tool that refuses on a missing feature blocks every commit.
+# mapfile, `local -n` or case-changing expansion here or in a tool that reads
+# it. A report-only tool that refuses on a missing feature blocks every commit.
 #
-# Readers: absent_at_check.sh and stale_at_check.sh. Each keeps only its own
-# judgement, which rows it examines and what a finding is; how the canon is
-# found, read and refused lives here once. Before this file each tool read the
-# canon its own way, and they disagreed on what an unreadable row was:
-# absent_at let a status of null, a number or a misspelt word fall quietly out
-# of its population, and stale_at kept a thread with no status in scope as
-# `unknown`.
+# Readers: absent_at_check.sh, stale_at_check.sh, and declared_kind_check.sh.
+# Each keeps only its own judgement, which rows it examines and what a finding
+# is; how the canon is found, read and refused lives here once. Before this
+# file each tool read the canon its own way, and they disagreed on what an
+# unreadable row was: absent_at let a status of null, a number or a misspelt
+# word fall quietly out of its population, and stale_at kept a thread with no
+# status in scope as `unknown`.
 #
 # THE RULE IS NO SILENT ERRORS. Anything this reader cannot read refuses with
 # exit status 2 and a remedy, and never reads as clean or as in scope:
@@ -27,7 +30,9 @@
 #     or holds a control character, a kind outside AtKind, a status outside
 #     AtStatus, a file that is neither null nor a string without a control
 #     character, or that names a line and no file;
-#   - a line of the canon pass this reader cannot read.
+#   - a line of the canon pass this reader cannot read;
+#   - a tool's at_thread or at_row that returns non-zero, so a row the tool
+#     could not take is not lost without a word.
 # A thread with no `tests` key holds no rows and is read as such: 60 of 96
 # threads carried none on 2026-11-20, every one a thread with no AT row.
 #
@@ -258,7 +263,11 @@ at_canon_expand() {
 }
 
 at_canon_read() {
-  local scan threads="$#"
+  # The tab the loops below split on, made once. Made inside each loop's IFS, it
+  # forked a subshell for every line of the canon pass, and that was most of a
+  # read's time on this tree (ST1c2db93 close sweep).
+  local scan threads="$#" tab
+  tab="$(printf '\t')"
   at_canon_expand "$@"
   set -- "${AT_CANON_INPUTS[@]}"
   # JQ READS ITS FILES AS ONE STREAM, so a file cut off mid-value runs on into
@@ -291,7 +300,7 @@ at_canon_read() {
   # finding from a canon it then refuses.
   local kind a b c d e bad=0 seen=""
   AT_CANON_ROWS=0
-  while IFS="$(printf '\t')" read -r kind a b c d e; do
+  while IFS="$tab" read -r kind a b c d e; do
     case "$kind" in
       FILE) seen="${seen}${a}"$'\n' ;;
       THREAD | ROW) ;;
@@ -310,28 +319,50 @@ at_canon_read() {
   # EACH FILE HOLDS ONE JSON VALUE, counted here because jq never sees an empty
   # file: it yields nothing for it, so an empty thread file would read as no
   # thread at all, and a file holding two values would read every row twice.
-  # Each name is a JSON string, one per line, matched whole: no associative
-  # array, because the gate may run this under macOS's bash 3.2.
   # The list of names is read into a variable first, so a jq that cannot make
-  # it refuses rather than leaving a loop that checks nothing; grep's own
-  # status is read too, since 0 and 1 are answers and 2 is a failure.
-  local names named n grc
+  # it refuses rather than leaving a count that checks nothing.
+  # THE COUNT IS ONE awk PASS, NOT A grep FOR EACH FILE. A grep for each file
+  # cost a read of this tree's canon seconds (ST1c2db93 close sweep). awk
+  # counts in its own array, because bash 3.2, which the gate may
+  # run, has none. Each name is a JSON string, one per line, matched whole. The
+  # names seen come first, then an empty line, then the names given; no name is
+  # an empty line, so the empty line divides them. awk prints each name given
+  # that does not hold one value, and last how many names it read. A total that
+  # is not every file refuses, so an awk that stopped early leaves no file
+  # unchecked.
+  local names counted n named total=""
   names="$(jq -n -r '$ARGS.positional[] | tojson' --args "$@")" && [ -n "$names" ] || {
     at_canon_refuse "could not list the $# canon file(s) to count their JSON values" \
       "this reader needs jq 1.6 or later, for --args"
     return
   }
-  while IFS= read -r named; do
-    grc=0
-    n="$(grep -cxF -- "$named" <<<"$seen")" || grc=$?
-    if [ "$grc" -gt 1 ]; then
-      bad=$((bad + 1))
-      echo "error: ${named}: its JSON values could not be counted (grep exited ${grc})" >&2
-    elif [ "$n" != 1 ]; then
-      bad=$((bad + 1))
-      echo "error: ${named}: holds ${n} JSON value(s), not one" >&2
-    fi
-  done <<<"$names"
+  counted="$(
+    printf '%s\n%s\n' "$seen" "$names" |
+      awk '
+        !given && $0 == "" { given = 1; next }
+        !given { held[$0]++; next }
+        { files++; n = held[$0] + 0; if (n != 1) print n "\t" $0 }
+        END { print "FILES\t" files + 0 }
+      '
+  )" || {
+    at_canon_refuse "could not count the JSON values of the $# canon file(s)" \
+      "this reader needs awk; a canon it cannot count must refuse, never report clean"
+    return
+  }
+  while IFS="$tab" read -r n named; do
+    case "$n" in
+      FILES) total="$named" ;;
+      *)
+        bad=$((bad + 1))
+        echo "error: ${named}: holds ${n} JSON value(s), not one" >&2
+        ;;
+    esac
+  done <<<"$counted"
+  [ "$total" = "$#" ] || {
+    at_canon_refuse "counted the JSON values of ${total:-no} file(s), not of all $# canon file(s)" \
+      "a canon it cannot count must refuse, never report clean"
+    return
+  }
 
   if [ "$bad" -gt 0 ]; then
     at_canon_refuse "${bad} thing(s) in the thread canon could not be read, each named above" \
@@ -344,10 +375,22 @@ at_canon_read() {
     return
   fi
 
-  while IFS="$(printf '\t')" read -r kind a b c d e; do
+  while IFS="$tab" read -r kind a b c d e; do
     case "$kind" in
-      THREAD) at_thread "$a" "$b" ;;
-      ROW) at_row "$a" "$b" "$c" "$d" "$e" ;;
+      THREAD)
+        at_thread "$a" "$b" || {
+          at_canon_refuse "the tool's at_thread failed on thread ${a}" \
+            "an at_thread returns 0 for every thread it takes; fix the tool"
+          return
+        }
+        ;;
+      ROW)
+        at_row "$a" "$b" "$c" "$d" "$e" || {
+          at_canon_refuse "the tool's at_row failed on ${a}/${b}" \
+            "an at_row returns 0 for every row it takes; fix the tool"
+          return
+        }
+        ;;
     esac
   done <<<"$scan"
   return 0

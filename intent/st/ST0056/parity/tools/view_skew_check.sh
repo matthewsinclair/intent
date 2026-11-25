@@ -248,9 +248,11 @@ fi
 # view lives at `intent/st/<thread>/info.md`, `acceptance.md` or
 # `WP/<package>/info.md`, and whether `<thread>` is a thread is asked of the
 # door, never matched by a pattern here, so a hashed thread's view is named as
-# an ordinal's is. Every candidate directory goes to the door in one call,
-# read-only through lib_read_only.sh, which refuses rather than migrates this
-# checkout's store, and only when the change carries a candidate at all.
+# an ordinal's is. Which paths are views is lib_read_only.sh's one reading of a
+# path, ro_st_tokens, which marks each view. Every candidate directory goes to
+# the door in one call, read-only through lib_read_only.sh, which refuses rather
+# than migrates this checkout's store, and only when the change carries a
+# candidate at all.
 thread_views=""
 unconfirmed=""
 # Asked only on a run that is otherwise clean: the note below prints only then,
@@ -261,15 +263,14 @@ if [ "$TRIGGERED" -eq 1 ] && [ "$rc" -eq 0 ]; then
   . "$HERE/lib_read_only.sh"
   view_paths=()
   for p in $CHANGED; do
-    case "${p##*/}" in info.md | acceptance.md) ;; *) continue ;; esac
-    asks="$(ro_st_tokens "$p")"
-    [ -n "$asks" ] || continue
-    file="${p#intent/st/"${asks%%$'\t'*}"/}"
-    case "$asks" in
-      *$'\t'wp) ;;
-      *) case "$file" in info.md | acceptance.md) ;; *) continue ;; esac ;;
-    esac
-    view_paths+=("$p")
+    # A view is marked in the third field of its record's line, read exactly as
+    # rulings_check.sh reads it.
+    while IFS=$'\t' read -r _ _ mark; do
+      if [ "$mark" = view ]; then
+        view_paths+=("$p")
+        break
+      fi
+    done <<<"$(ro_st_tokens "$p")"
   done
   if [ "${#view_paths[@]}" -gt 0 ]; then
     RO_ROOT="$ROOT"
@@ -280,7 +281,7 @@ if [ "$TRIGGERED" -eq 1 ] && [ "$rc" -eq 0 ]; then
     ro_ids_for "${view_paths[@]}"
     for p in "${view_paths[@]}"; do
       confirmed=1
-      while IFS=$'\t' read -r token kind; do
+      while IFS=$'\t' read -r token kind _; do
         ro_id_is "$token" "$kind" && continue
         confirmed=0
         unconfirmed="$unconfirmed  $p -- the door answers $(ro_id_answer "$token") for $kind $token"$'\n'

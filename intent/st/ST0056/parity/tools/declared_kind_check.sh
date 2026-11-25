@@ -54,11 +54,17 @@
 # exists would refuse in CI and in every clone, which is the population most
 # likely to carry a divergence nobody has looked at.
 #
-# **AND IT READS THAT EXTRACT FROM THE WORKING TREE. IT TAKES NO GIT READ AT
-# ALL FOR ITS VERDICT** -- `jq` over `$ROOT/intent/.canon/st/*.json` on disk,
-# and `[ -e "$ROOT/$file" ]` for the artefact. The only `git` calls in this file
-# are in the attribution block at the bottom, which cannot change a count or an
-# exit code.
+# **AND IT READS THAT EXTRACT FROM THE WORKING TREE.** It reads the thread
+# canon under `$ROOT` through lib_at_canon.sh (`intent/.canon/st/*.json` and
+# the rows under `intent/.canon/records/*/at/`, in the vocabulary of
+# `$ROOT/schema/thread.schema.json`, without which it refuses), and tests each
+# artefact with `[ -e "$ROOT/$file" ]`. git enters the verdict only through
+# lib_read_only.sh's id door, in two places: the door answers from a copy of
+# the working tree's `intent/` that `git ls-files` lists (tracked files, and
+# untracked ones git does not ignore), and when the pair cannot answer, the
+# paths the commit stages (`git diff --cached`) decide whether the run passes
+# unchecked or refuses. The other `git` calls in this file are in the
+# attribution block at the bottom, which cannot change a count or an exit code.
 #
 # **THIS SENTENCE USED TO OPEN `READS THE COMMITTED CANON EXTRACT`, AND THE WORD
 # `COMMITTED` WAS NAMING THE ARTEFACT CLASS -- extract rather than store -- WHILE
@@ -90,9 +96,6 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
-# shellcheck source=lib_citation.sh
-. "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
 # The one rule for where the canon keeps a thread and its AT rows, read by the
 # canon read below and by the attribution at the end, in either mode.
 # shellcheck source=lib_at_canon.sh
@@ -103,12 +106,10 @@ CITES=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --cites) CITES="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,60p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) awk '/^#!/ { next } /^#/ { print; next } { exit }' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "declared-kind: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
-
-command -v jq >/dev/null 2>&1 || { echo "declared-kind: jq is required" >&2; exit 2; }
 
 # ---------------------------------------------------------------------------
 # The citation list. `--cites` takes a TSV of `thread<TAB>at<TAB>status<TAB>file`
@@ -124,35 +125,40 @@ if [ -n "$CITES" ]; then
   SOURCE_LABEL="fixture: $CITES"
   CITE_TSV="$(cat "$CITES")"
 else
-  CANON_DIR="$ROOT/$AT_CANON_DIR"
-  [ -d "$CANON_DIR" ] || { echo "declared-kind: no canon extract at $CANON_DIR" >&2; exit 2; }
   # **NOT `committed`** -- this is the on-disk extract, verdict-bearing as it
   # stands in the working tree. See the header: the old label said `committed`
   # and three nodes read it as a git read.
   SOURCE_LABEL="canon extract as it stands in the WORKING TREE: intent/.canon/st/*.json and intent/.canon/records/*/at/*.json"
-  # **ONE jq OVER EVERY THREAD, NOT ONE PER THREAD.** The per-file loop spawned
-  # 69 processes and was most of a second; `input_filename` carries the thread id
-  # that `basename` was being spawned to supply. Cost is a disposition argument,
-  # so a tool asking to be gated does not get to be gratuitously slow first.
   # BOTH CANON FORMATS, by lib_at_canon.sh's one rule for where a thread's rows
   # are: `.tests[]` in a flat thread file, or one file per row under
   # records/<ID>/at/ in the release format (thread@4.0, ST0096 WP-05).
-  at_canon_expand "$CANON_DIR"/*.json
+  # The rows are lib_at_canon.sh's one reading of the canon, the one
+  # stale_at_check.sh and absent_at_check.sh use. at_canon_read reads every
+  # file in one jq pass and gives each row with its thread, so this tool keeps
+  # no rule of its own for which thread a row belongs to. The canon is read
+  # under ROOT, the tree whose artefacts this tool judges, and a refusal says
+  # so, because the lib's own words name paths under the working directory.
+  # Issue Ia6e3769: a row jq could not read was no row, so the check judged
+  # fewer rows than the canon holds and could pass over the one it skipped.
+  # at_canon_read refuses with exit 2 on anything it cannot read, before it
+  # gives any row.
+  # **COST, MEASURED 2026-11-25 (dc)** with /usr/bin/time -p, 5 runs each,
+  # darwin/arm64, load about 4 over 16 cores, over 657 cited rows: 2.56-2.94s
+  # through the lib, against 2.71-2.88s for this tool's own single jq read
+  # before it moved onto the lib (at 7bbbe4135). Both print the same partition.
+  # The lib's read first made this tool 7.75-8.64s. It ran one grep for each
+  # file to count the file's JSON values, and forked a subshell for every line
+  # it split. It now counts in one pass and makes its tab once, which also took
+  # absent_at_check.sh and stale_at_check.sh from seconds to 0.40-0.43s.
   CITE_TSV="$(
-    jq -r --arg line_re "$CITATION_LINE_RE" --arg row_re "$AT_CANON_ROW_RE" '
-      (input_filename | test($row_re)) as $row_file
-      | (if $row_file then input_filename | split("/") | .[-3]
-         else input_filename | sub(".*/"; "") | sub("\\.json$"; "") end) as $t
-      | (if $row_file then [.] else (.tests // []) end)[]
-      | select((.file // "") != "")
-      | [$t, .id, .status, (.file | sub($line_re; ""))] | @tsv
-    ' "${AT_CANON_INPUTS[@]}"
-  )" || {
-    # Issue Ia6e3769: a row jq could not read was no row, so the check judged
-    # fewer rows than the canon holds and could pass over the one it skipped.
-    echo "declared-kind: the thread canon could not be read (jq's message above says which file) -- refusing rather than judging the rows it could read" >&2
-    exit 2
-  }
+    cd "$ROOT" || { echo "declared-kind: cannot enter $ROOT to read its canon" >&2; exit 2; }
+    at_thread() { :; }
+    at_row() { [ -z "$5" ] || printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$4" "$5"; }
+    { at_canon_ready && at_canon_read "${AT_CANON_FILES[@]}"; } || {
+      echo "declared-kind: the canon above is read under ROOT, $ROOT" >&2
+      exit 2
+    }
+  )" || exit 2
 fi
 
 [ -n "$CITE_TSV" ] || { echo "declared-kind: no citations found -- refusing rather than reporting a clean estate over an empty set" >&2; exit 2; }

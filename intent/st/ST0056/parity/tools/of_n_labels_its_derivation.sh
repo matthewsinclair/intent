@@ -80,7 +80,7 @@ die() { echo "of-n-labels: $*" >&2; exit 2; }
 while [ $# -gt 0 ]; do
   case "$1" in
     --verbose) VERBOSE=1; shift ;;
-    -h|--help) sed -n '2,45p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) awk '/^#!/ { next } /^#/ { print; next } { exit }' "${BASH_SOURCE[0]}"; exit 0 ;;
     -*) die "unknown option: $1" ;;
     *) TARGETS="$TARGETS $1"; shift ;;
   esac
