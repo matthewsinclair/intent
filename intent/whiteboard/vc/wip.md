@@ -26,6 +26,7 @@ _(none)_
 ## Watch-outs
 
 - Client names in Intent's committed record: only the client's own name is confidential (hv 2026-11-10; narrowed 2026-11-11: an initiative's name is not). Names already on upstream are fixed forward only. (edited)
+- GitHub reported an incident from 2026-11-25 16:14Z (Git Operations degraded), relayed by devbin-vc. Before Intent's push and the cut, read https://www.githubstatus.com and push only when Git Operations is operational.
 
 ## Decisions
 

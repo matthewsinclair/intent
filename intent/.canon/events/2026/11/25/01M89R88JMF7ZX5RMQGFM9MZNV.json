@@ -1,0 +1,15 @@
+{
+  "id": "01M89R88JMF7ZX5RMQGFM9MZNV",
+  "ts": "2026-11-25T16:22:36.372Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "GitHub reported an incident from 2026-11-25 16:14Z (Git Operations degraded), relayed by devbin-vc. Before Intent's push and the cut, read https://www.githubstatus.com and push only when Git Operations is operational."
+  }
+}

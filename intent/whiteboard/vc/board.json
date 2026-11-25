@@ -3221,6 +3221,14 @@
       "state": "archived",
       "archived_at": "2026-11-25T15:05:14.617Z",
       "recorded_at": "2026-11-25T15:00:30.799Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 36,
+      "text": "GitHub reported an incident from 2026-11-25 16:14Z (Git Operations degraded), relayed by devbin-vc. Before Intent's push and the cut, read https://www.githubstatus.com and push only when Git Operations is operational.",
+      "state": "live",
+      "recorded_at": "2026-11-25T16:22:36.372Z"
     }
   ],
   "sent": [
