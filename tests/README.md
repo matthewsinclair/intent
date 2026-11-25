@@ -82,7 +82,6 @@ load "../lib/test_helper.bash"
 - `create_test_project "name" [dir]` - Creates a test Intent project whose `intent_version` is `INTENT_FIXTURE_VERSION`, or `VERSION` when that is unset
 - `run_intent <args>` - Runs `$INTENT_BIN` with the arguments
 - `setup_fake_home` / `teardown_fake_home` - Points `HOME` at a per-test sandbox under `TEST_TEMP_DIR`, and restores it
-- `write_exempt_acceptance "st_dir"` - Writes an `acceptance.md` the close gate treats as exempt
 - `assert_success` - Asserts command succeeded (exit 0)
 - `assert_failure` - Asserts command failed (exit non-zero)
 - `assert_output "text"` - Checks output matches exactly

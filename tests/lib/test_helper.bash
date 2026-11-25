@@ -81,47 +81,33 @@ teardown_fake_home() {
   fi
 }
 
-# Helper function to create a test Intent project
+# create_test_project [name] [dir] -- make the smallest project the binary
+# opens, and print its directory.
 #
-# The declared version follows the BINARY UNDER TEST, defaulting to the version
-# the conformance harness actually points at. It said "2.10.0" for years, which
-# was harmless while only v2 ever read it and stopped being harmless the moment
-# v3 learned to detect an unmigrated project (AC-10.7): 2.10.0 is below the
-# v2.19.0 migration floor, so the shared builder for 38 .bats files produced a
-# project the v3 binary correctly REFUSES at fixture construction, before any
-# assertion runs -- and the refusal lands in the same place in the output as
-# "family not wired yet", on files already expected to be red. Found by ic,
-# who measured it rather than inferring it from my claim that the fixtures
-# were fine; they were fine in Rust and not here.
+# It writes intent/.config/config.json and nothing else. The binary knows a
+# project by that file alone (`intentsvcs::project::Project::open`). A fixture
+# that needs a project's tree makes it with `intent init` under a sandboxed
+# HOME, as pr_thread_ref.bats does.
 #
-# An env var rather than a hardcoded version because the same files run against
-# both binaries -- that is what parity means -- and a v2 baseline is entitled
-# to a fixture declaring a v2 version.
+# The config declares INTENT_FIXTURE_VERSION, which tests/run_tests.sh exports
+# from VERSION, or VERSION itself when that is not set, so a direct single-file
+# `bats` run declares the same version as a run through the runner. NOT
+# `get_intent_version()` below: that answers a different question (the
+# installation's version, INTENT_HOME first) and falls back to a version
+# written by hand, which is a silent wrong answer.
 #
-# THE DEFAULT READS `VERSION`, THE SAME FILE `tests/run_tests.sh:61` READS, SO
-# THE TWO AGREE BY CONSTRUCTION RATHER THAN BY BEING REMEMBERED AT A RELEASE.
-# It used to be a literal `3.0.0`, and the runner defended itself while this
-# did not: `run_tests.sh` has exported this from VERSION since `e474b419`, so
-# only a DIRECT single-file `bats` run reached the literal -- the invocation
-# our own guidance prefers. That built a v3 fixture, drove the v2 binary at it,
-# and every test died on the version guard, which reads as "family not wired
-# yet" on files already expected to be red.
-#
-# Re-derived 2026-08-21 before changing it: 41 files call create_test_project
-# and NONE of them drive the v3 binary; the 6 files that touch it never call
-# this. Nothing anywhere reads INTENT_FIXTURE_VERSION except the runner that
-# sets it. So the literal was wrong in 41 of the 41 cases where it could fire.
-#
-# NOT `get_intent_version()` below, deliberately: that answers a different
-# question (the INSTALLATION's version, INTENT_HOME first) and falls back to a
-# hardcoded 2.2.1, which is a silent wrong answer -- the class this removes.
+# A version it cannot read, or that reads empty, and a directory or a file it
+# cannot make each fail the function, so the caller's `$(create_test_project
+# ...)` fails where the fixture broke, not later as "not a project".
 create_test_project() {
   local project_name="${1:-Test Project}"
   local dir="${2:-$TEST_TEMP_DIR/test-project}"
-  local version="${INTENT_FIXTURE_VERSION:-$(cat "${INTENT_PROJECT_ROOT}/VERSION")}"
+  local version="${INTENT_FIXTURE_VERSION:-}"
 
-  mkdir -p "$dir/intent/.config"
-  cat > "$dir/intent/.config/config.json" << EOF
+  [ -n "$version" ] || version="$(cat "${INTENT_PROJECT_ROOT}/VERSION")" || return 1
+  [ -n "$version" ] || return 1
+  mkdir -p "$dir/intent/.config" || return 1
+  cat > "$dir/intent/.config/config.json" << EOF || return 1
 {
   "intent_version": "$version",
   "project_name": "$project_name",
@@ -129,30 +115,8 @@ create_test_project() {
   "created_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }
 EOF
-  
-  # Create standard directories
-  mkdir -p "$dir/intent/st/COMPLETED"
-  mkdir -p "$dir/intent/st/NOT-STARTED"
-  mkdir -p "$dir/intent/st/CANCELLED"
-  mkdir -p "$dir/intent/eng/tpd"
-  mkdir -p "$dir/intent/ref"
-  mkdir -p "$dir/intent/llm"
 
   echo "$dir"
-}
-
-# Write an acceptance.md that the close-gate treats as exempt, into an ST dir.
-# ST0048's gate refuses an empty or missing contract; a fixture that exercises
-# ST/WP mechanics (not the acceptance contract itself) declares the sanctioned
-# escape so the close path is reached.
-write_exempt_acceptance() {
-  local st_dir="$1"
-  cat > "$st_dir/acceptance.md" << 'ACCEPTANCE_EOF'
----
-acceptance: exempt
----
-# Acceptance (exempt -- fixture exercises ST/WP mechanics, not the gate)
-ACCEPTANCE_EOF
 }
 
 # Helper function to run intent command
