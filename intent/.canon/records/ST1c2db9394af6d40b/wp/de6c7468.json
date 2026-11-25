@@ -1,0 +1,10 @@
+{
+  "id": "de6c7468",
+  "origin": "01M88VVVF925HAVCVVSGT7G4V3",
+  "title": "The gate's tools read each layout from one place",
+  "scope": "XS",
+  "status": "not-started",
+  "objective": "The commit gate and its parity tools spell each layout once, and they read AT rows where the store keeps them.",
+  "body": "## Rows\n\nReport E's Report C row C (missed row 17). Report E's Report C row M, the part inside one file (missed row 22). `id_pattern_check.sh:56`, found by dc in Phase 0.\n\n## Deliverables\n\n- `intent/st/ST0056/parity/tools/declared_kind_check.sh:360-361` attributes AT rows by the log of their own files under `intent/.canon/records/<ID>/at/`, through `lib_at_canon.sh`'s layout. Since ST0096 WP-05 the thread file holds no rows, so today the line names the last change to the thread's cover.\n- `bin/.devbin/cmd/precommit:134-156` spells the ST0056 tools root once, and `--list-guards` and `TOOLS` read it. `bin/.devbin/cut/gate:73` reads the same root. The location does not move, as P33's ruling says.\n- The comment at `intent/st/ST0056/parity/tools/id_pattern_check.sh:56` no longer names `realise_plan.sh`, which was retired at 8e041900d.\n\n## Approach\n\nOne variable for the root. The attribution reads the row files that `lib_at_canon.sh` already names.\n\n## Dependencies\n\nNone.\n\n## Risks\n\nA mistyped root drops a guard from the gate, and the gate stays green. The guard list from `--list-guards` is the same before and after the change.\n\n## Verification\n\nBefore the bank, the builder runs clippy and critic-shell on its diff, and `--list-guards` gives the same guards before and after the change. That catches a guard that drops out of the gate, which a green gate does not show.\n\nThe batch decides this package: one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD, after the last bank lands, booked by vc with the Desk. No gate and no suite runs for this bank alone.\n\n## Seat and size\n\ndc (bin and the parity tools). XS.\n",
+  "preamble": ""
+}

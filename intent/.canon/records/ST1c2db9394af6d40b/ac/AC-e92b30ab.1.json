@@ -1,0 +1,8 @@
+{
+  "id": "AC-e92b30ab.1",
+  "text": "`intentsvcs::id::label_at` is the one reader of a criterion or test label in text, and no copy of it is left in `intent-cli/tests/common`.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

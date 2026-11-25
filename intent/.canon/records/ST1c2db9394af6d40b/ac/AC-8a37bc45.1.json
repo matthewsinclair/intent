@@ -1,0 +1,8 @@
+{
+  "id": "AC-8a37bc45.1",
+  "text": "`ThreadExists` names a thread by its shown form, and the event schema's subject id names both id families.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

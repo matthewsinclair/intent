@@ -1,0 +1,193 @@
+# ST1c2db93 design: every report row at HEAD, and the residue
+
+This document records where each row of the seven banked reports stands, and which package takes each row that is still open. It is the record that the thread's objective calls for: a row left as it is gets its reason here.
+
+## How the rows were checked
+
+- Sources: the seven reports under `refs/bank/vc/st0095/` (highlander-close-A, -B and -C, close-E, close-F1, -F2 and -F3), cc's triage `refs/bank/cc/st1c2/triage` (pieces P1 to P33), and the units that landed from it.
+- Revision: main at bd1aa3c6c. The next commit, 6ed3b73dd, changes boards only.
+- Who checked what, read only, on 2026-11-25: cc checked intentsvcs, intentd and the Rust integration tests. ic checked intent-cli, MCP and the TUI. dc checked bin, hooks, CI, packaging, the parity tools, the shipped prose and the templates.
+- Paths: `isvc/` is `native/rust/crates/intentsvcs/src/`, `cli/` is `native/rust/crates/intent-cli/src/`, and `P56/` is `intent/st/ST0056/parity/tools/`.
+
+## What landed before Phase 0
+
+| Unit                                        | Commit                          | Release | Pieces                                                       |
+| ------------------------------------------- | ------------------------------- | ------- | ------------------------------------------------------------ |
+| hv decision 86, cc's unit                   | bfe387912                       | 3.5.1   | I88f333f, I91dd457, I78176db, I4fc4495, Ic7d939d             |
+| hv decision 86, dc's unit                   | ee25c55d4                       | 3.5.1   | Ib383ad5, If83ae7c                                           |
+| U3, tests and prose                         | 00ddbb494                       | 3.5.2   | P13, P25, P26, P27, P28a, P28b, P29                          |
+| U1, the id grammar                          | 8ddb863d1                       | 3.5.2   | P1, P2, P3, P4, P5, P8, P9, P10, P12 (render half), P14, P15 |
+| U2, realisation, kinds and paths            | d1928ba2a                       | 3.5.2   | P6, P7, P11, P16, P17, P18, P20, P21; I086e953               |
+| U4a, U4b and the metadata strip, v2 removal | e1831ddf9, 2f864f6f1, 75d209050 | 3.5.2   | every v2-only path, legacy.rs with it                        |
+| ST0097 units A and B                        | 8e041900d                       | 3.5.2   | P31; the census scripts                                      |
+| b353                                        | b15c70157                       | 3.5.3   | P22, P30                                                     |
+
+## Dispositions
+
+- **Landed**: one home now, at the commit named.
+- **Ruled**: left as it is on a ruling, named.
+- **Not a copy**: the row is not a second home of the concern, for the reason given.
+- **Out of scope**: not an id or a realisation concern, so outside this thread's objective.
+- **Moot**: the code is gone.
+- **Residual**: still a second home. The package named takes it.
+
+## Report A: intentsvcs production code
+
+| Row     | What                                                    | At HEAD    | Where                                                                                                                         |
+| ------- | ------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| A1      | The contract gate's thread scanner knew no git-style id | Landed     | I88f333f; `isvc/id.rs:2196` returns typed ids                                                                                 |
+| A2      | todo.md ordered threads by hex                          | Landed     | Ib383ad5; `isvc/views.rs:1869` asks `id::record_order`                                                                        |
+| A3      | acceptance.md ordered package groups as text            | Landed     | Ib383ad5                                                                                                                      |
+| A4      | Three validators for a criterion label                  | Landed     | I91dd457; `isvc/preconditions.rs:429` asks `id::label_kind`; legacy.rs went with U4a                                          |
+| A5      | A thread-scoped subject written by hand at 13 sites     | Landed     | U1 P1; `id::scoped_address` (`isvc/id.rs:984`)                                                                                |
+| A6      | `ISSUE:<id>` composed in two modules                    | Landed     | U1 P3; `id::read_claim` (`isvc/id.rs:1073`). `CLAIM_ISSUE_PREFIX` stays as a copy that a test holds equal (`isvc/id.rs:2785`) |
+| A7      | Two label comparators                                   | Landed     | U1 P14; `id::id_order` alone (`isvc/id.rs:2348`)                                                                              |
+| A8      | Path segments spelled more than once                    | Landed     | U2 P7; the `project.rs` constants, which `address.rs` `VIEW_NAMES` reads                                                      |
+| A9      | The address's package segment was not validated         | Landed     | U1 P9; `id::address_segment` (`isvc/id.rs:1433`)                                                                              |
+| A10     | The realisation flag and the wire kinds set by hand     | Landed     | U2 P6; `set_realised` (`isvc/facade.rs:23835`), `Subject::of`, `IdKind::wire`                                                 |
+| A11     | The claim form sentence left out git-style ids          | Landed     | U1 P4; `CLAIM_ADDRESS_FORMS` (`isvc/id.rs:162`)                                                                               |
+| A12     | `Project::thread_ids` returned text                     | Landed     | U1 P8; `Vec<ThreadId>` (`isvc/project.rs:2992`)                                                                               |
+| A, doc  | renumber.rs said ids are minted highest-plus-one        | Landed     | U2 P7                                                                                                                         |
+| A, sha2 | `sha2` called beside `model::sha256_hex`                | Not a copy | It hashes whiteboard message ids, files and payloads, not record ids                                                          |
+
+## Report B: Rust outside intentsvcs production, and the tests
+
+| Row          | What                                                                            | At HEAD                 | Where                                                                                                                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1           | Three test label scanners with three grammars                                   | Residual                | Two tests read through `common::label_at` (U3 P13). The `cli/mcp.rs` unit test keeps its own grammar and cannot reach `tests/common`. Packages: the label reader (cc), then intent-cli (ic)                                                     |
+| B2           | The address check at two CLI doors of three                                     | Landed                  | Ic7d939d; U1 P10                                                                                                                                                                                                                                |
+| B3           | AC and AT told apart by a literal prefix                                        | Landed                  | U1 P12; `fc` asks `id::label_kind`                                                                                                                                                                                                              |
+| B4           | A package heading spelled the separator                                         | Landed                  | U1 P1; `cli/show.rs:49` calls `id::scoped_address`                                                                                                                                                                                              |
+| B5           | `.intentfiles` read by hand in tests                                            | Ruled                   | vc at 42de84456: the V3 manifest pairs stay                                                                                                                                                                                                     |
+| B6           | Canon and realised paths built by hand in tests                                 | Residual, realised half | The canon half landed (U3 P26). Realised view paths are still built by hand, eg `st_dehydrate_round_trips_with_hydrate.rs:221, 352`, `a_write_names_the_view_it_rewrote.rs:154`, `search_surface.rs:97, 258, 340`. Package: the Rust tests (dc) |
+| B7           | Thread canon written by hand in two test crates                                 | Residual                | `intent-cli/tests/common/mod.rs:1492` `thread_canon` and `intentd/tests/common/mod.rs:334` `write_thread` each call themselves the one copy. Package: the Rust tests (dc)                                                                       |
+| B8           | Ordinal ids formatted by hand                                                   | Residual                | `intentd/tests/daemon_watch.rs:341, 362` (package: the Rust tests, dc) and `cli/tui/app.rs:2470, 2472` (package: intent-cli, ic)                                                                                                                |
+| B9           | Marker and hex split three times in tests                                       | Not a copy              | Each reads the waist's own constants, and `id.rs` has no hex accessor on purpose                                                                                                                                                                |
+| B, counts    | Hard-coded counts in two tests                                                  | Landed                  | U3 P27                                                                                                                                                                                                                                          |
+| B, short     | `short` (`intentd/src/web.rs:358`) and `short_commit` (`cli/tui/layout.rs:540`) | Out of scope            | They shorten a build commit, not a record id, and they agree on every stamp that build-support writes                                                                                                                                           |
+| B, short_dir | `short_dir` written three times in tests                                        | Out of scope            | A temporary directory's name, not an id                                                                                                                                                                                                         |
+
+## Report C: non-Rust
+
+| Row        | What                                                           | At HEAD                                   | Where                                                                                                                                                                |
+| ---------- | -------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1, C2, C3 | Three parity tools predict `ST0001`                            | Landed                                    | If83ae7c, 71b3f1f72; each reads `minted_id`                                                                                                                          |
+| C4         | The census scripts scan ordinal ids                            | Landed                                    | ST0097 A and B (8e041900d)                                                                                                                                           |
+| C5         | canon_commit_check reads the canon layout and `.intentfiles`   | Not a copy                                | A history reader: it reads `.intentfiles` only for a flat-format thread at a past revision, and no verb answers realisation at a revision                            |
+| C6         | `ro_st_tokens` knows the realised tree's layout                | Not a copy                                | The one accepted shell layout reader. The door gives every verdict                                                                                                   |
+| C7         | pr-thread-ref.sh parses the terminal format and cuts a package | Residual, cut half                        | The format half landed (U3 P29). `.github/scripts/pr-thread-ref.sh:100` still cuts a package to its thread with `sub("/.*"; "")`. Package: the CI script (dc)        |
+| C8         | Shipped prose restates the id constants                        | Landed                                    | U3 P28a and U1; pinned by `intent-cli/tests/shipped_prose_states_the_id_constants.rs`                                                                                |
+| C9         | Schema descriptions name ordinal ids only                      | Residual, event half                      | `schema/thread.schema.json` landed (U3 P28b). `schema/event.schema.json:7` comes from the doc comment at `isvc/event.rs:362`. Package: the id forms (cc)             |
+| C10        | Bats `created:` readers                                        | Landed                                    | U3 P29                                                                                                                                                               |
+| C11, C12   | `.intentfiles` tools and their fixtures                        | Landed                                    | Retired at 8e041900d                                                                                                                                                 |
+| C13        | estate_census case arms; fixture_probe.sh                      | Landed, census half; residual, probe half | The census half retired at 8e041900d. `P56/fixture_probe.sh` is v2-only, and vc decision 134 retires it with the inventory it serves. Package: the v2 inventory (dc) |
+| C14        | Layout and view paths in config files and a smoke              | Not a copy                                | Config files and a smoke cannot ask the binary, and none of them parses an id                                                                                        |
+| C15        | The id-pattern guard's reach                                   | Not a copy                                | The census is empty and C1 to C3 are fixed, so neither remedy applies. A bats fixture's literal is proved by its own run                                             |
+
+## Report E: start clusters against the close
+
+Rows that repeat a row above are named once, with the row they repeat.
+
+| Row                                     | At HEAD                                    | Where                                                                                                                                                                                                                           |
+| --------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1, C7, C8, C9, C12                     | Landed                                     | As A1 to A4; C9's create half is I78176db; C12 is I4fc4495                                                                                                                                                                      |
+| C3, C5, C10, C13, C15                   | Landed                                     | U1 P9, P1, P8, P3, P4 and P2; vc ruled the slash form for subjects (P2)                                                                                                                                                         |
+| C11                                     | Landed                                     | U2 P6; `isvc/doctor.rs` has no `"work package"` literal                                                                                                                                                                         |
+| A3a                                     | Landed                                     | U2 P17: one read, `read_manifest` (`isvc/facade.rs:8668`), and one write. `repin` reads inline for the reason its doc comment gives. I086e953                                                                                   |
+| A3b, A4.1, A4.2, A4.6                   | Landed                                     | U2 P7                                                                                                                                                                                                                           |
+| A4.4, A4.5                              | Moot                                       | The v2 buckets went with U4a                                                                                                                                                                                                    |
+| A4.8                                    | Landed                                     | U2 P18; `artefact_dir` (`isvc/facade.rs:679`)                                                                                                                                                                                   |
+| A4.9                                    | Ruled                                      | P19: the `find_*_mut` twins stay (vc under hv's pen, 2026-11-23)                                                                                                                                                                |
+| D2, D8, D10                             | Landed                                     | U1 P1, U1 P4, U2 P11 (`Address::local`)                                                                                                                                                                                         |
+| D9, T7                                  | Residual                                   | As B1                                                                                                                                                                                                                           |
+| T1                                      | Residual                                   | As B7                                                                                                                                                                                                                           |
+| T2                                      | Ruled                                      | As B5                                                                                                                                                                                                                           |
+| T3                                      | Moot                                       | The v2 fixtures went with U4a                                                                                                                                                                                                   |
+| T4, T5                                  | Landed                                     | U3 P25: one one-thread helper in each crate, because testkit takes no dependencies                                                                                                                                              |
+| T6, T9                                  | Landed                                     | U3 P26                                                                                                                                                                                                                          |
+| T8                                      | Residual                                   | As B8                                                                                                                                                                                                                           |
+| B4                                      | Residual                                   | As B6                                                                                                                                                                                                                           |
+| Report C's A, B, E, G, H, I, J and C3.2 | Landed or moot                             | As Report C above                                                                                                                                                                                                               |
+| Report C's C                            | Residual                                   | `P56/declared_kind_check.sh:360-361` attributes AT rows by the log of the thread file, but since ST0096 WP-05 the rows are under `intent/.canon/records/<ID>/at/`. So it names the wrong commit. Package: the gate's tools (dc) |
+| Report C's D                            | Landed                                     | U3: critic_global_rig drops `st_prefix`                                                                                                                                                                                         |
+| Report C's F                            | Landed, design half; not a copy, bats half | U3 named both families in design-system.md. The bats `ST0001/WP-01` list is width filler for a guard that reads no id                                                                                                           |
+| Report C's K                            | Landed, probe; residual, refusal text      | P30 (b15c70157). `lib/templates/hooks/canon-ignore-guard.sh:210` still names `ST9999.json`, which the probe set no longer holds. Package: shipped text (dc)                                                                     |
+| Report C's L                            | Landed, skill half; residual, docs half    | U1 pinned the skill to `CLAIM_ADDRESS_FORMS`. `intent/docs/working-with-llms.md:512` is an unpinned copy. Package: shipped text (dc)                                                                                            |
+| Report C's M                            | Ruled, with a residue in one file          | P33: the ST0056 location stays. `bin/.devbin/cmd/precommit:134-156` spells the tools root about 20 times, and `bin/.devbin/cut/gate:73` once more. Package: the gate's tools (dc)                                               |
+| Report C's C4                           | Landed                                     | U3: docs/explorer.md and .github/workflows/README.md                                                                                                                                                                            |
+| Close B #2, new                         | Landed                                     | Ic7d939d                                                                                                                                                                                                                        |
+| Records noticed                         | Settled                                    | ST0095 WP-13 is Done. canon_commit_check's `.intentfiles` arm is C5                                                                                                                                                             |
+
+The 23 misses each map to a row above: 1 is C12, 2 is C9, 3 is C15, 4 is C11, 5 is A3a, 6 is A4.4 and A4.5, 7 is A4.6, 8 is A4.8, 9 is A4.9, 10 is A4.1, 11 is D8, 12 is D10, 13 and 14 are T4 and T5, 15 and 16 are T6 and T9, 17 is Report C's C, 18 is D, 19 is F, 20 is K, 21 is L, 22 is M and 23 is C4.
+
+## Report F1: critic-rust on 62045266e
+
+| Row                                                   | At HEAD | Where                                                                               |
+| ----------------------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| H1, the claim grammar                                 | Landed  | U1 P3; `id::read_claim`                                                             |
+| H2, the marker predicate four times                   | Landed  | U1 P5; `marked_hex` (`isvc/id.rs:1372`)                                             |
+| H3, `thread_of` and `rethreaded`                      | Landed  | `Entity::thread` and `Entity::with_thread` (`isvc/address.rs:184, 205`), exhaustive |
+| H4, the event stamp's day                             | Landed  | U1 P15; `LoggedStamp` (`isvc/event.rs:728`)                                         |
+| H5, two part refusals                                 | Landed  | U1 P5; `package_part_refused` (`isvc/id.rs:1993`)                                   |
+| H6, the 0/1/many fold                                 | Landed  | U1 P5; `Found::from_hits` (`isvc/id.rs:1587`)                                       |
+| `events().ok()?` and the `filter_map` over candidates | Landed  | Neither is in `isvc/facade.rs`; `records_of` returns a `Result`                     |
+| The clone in `address.rs`                             | Landed  | Not in `isvc/address.rs`                                                            |
+| `UnknownId.kinds` as text                             | Landed  | U2 P6; `Vec<IdKind>` (`isvc/facade.rs:2176`)                                        |
+| The wanted kind at two doors                          | Landed  | U1 P5; `NamedReading::wanted` (`isvc/id.rs:2143`)                                   |
+| `resolve.rs` folds a refusal                          | Landed  | U1 P5                                                                               |
+| The CLI classifies a target                           | Landed  | U2 P21; `id::target` (`isvc/id.rs:1935`)                                            |
+| The short-prefix red control                          | Landed  | U3 P27                                                                              |
+
+## Report F2: critic-rust on 42de84456
+
+| Row                                                                 | At HEAD      | Where                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1, `v2_thread` twice                                               | Moot         | The v2 fixtures went with U4a                                                                                                                                                                                                                                   |
+| H2, the realisation wording                                         | Landed       | U2 P16; `intentfiles::RealisationWords`                                                                                                                                                                                                                         |
+| H3, `skew_against` reads the canon format again                     | Residual     | `isvc/views.rs:2818` reads it, and its caller `isvc/doctor.rs:2203` read it already to build `realised`. P23's ruling kept the disk as doctor's source. Its second half, that the check takes its caller's format, did not land. Package: the canon format (cc) |
+| H4, `ST01{n:02}`                                                    | Residual     | As B8                                                                                                                                                                                                                                                           |
+| H5, three thread canon writers                                      | Residual     | As B7                                                                                                                                                                                                                                                           |
+| H6, `facade_on` twins                                               | Not a copy   | Each doc names its twin and the reason: testkit takes no dependencies                                                                                                                                                                                           |
+| The `None` arm in views.rs                                          | Landed       | Not in `isvc/views.rs`                                                                                                                                                                                                                                          |
+| No test of `ThreadSummary::shown_id`'s refusal (`isvc/wire.rs:319`) | Out of scope | A coverage point, not a second home. hv's rule adds no test during a release                                                                                                                                                                                    |
+| `unwrap_or_default` on the project id                               | Landed       | U3 P25; `facade_on` expects a project id                                                                                                                                                                                                                        |
+
+## Report F3: critic-shell
+
+| Row                                                        | At HEAD | Where                                                           |
+| ---------------------------------------------------------- | ------- | --------------------------------------------------------------- |
+| The integer compare and the two copies of the bash-3 check | Landed  | U3 P27; `require_bin_bash_3` (`tests/lib/test_helper.bash:480`) |
+
+## Carried in, outside the reports
+
+| Item                                      | At HEAD         | Where                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| d86c (5)(a), one older-render predicate   | Landed          | P22 (b15c70157): `views::rendered_by_an_older_intent` takes `earlier`, and `earlier_renders` is the one builder for every door                                                                                                                                                                                                                                                                       |
+| d86c (5)(b), store or disk for a reporter | Ruled           | P23: doctor reads the disk. Its second half is F2's H3                                                                                                                                                                                                                                                                                                                                               |
+| ST0095 WP-04's owed answers               | Landed or ruled | C1 is P9, W2 is P20, W4 and the typed `Descoped.to` landed, R7 is P24 (ruled: `Deref` stays), W12 is A2 and A3, W9 is P1 and R1 is P12. ic's WP-10 held W1, W3 and R2, and ic found each closed at HEAD (refs/bank/ic/st0095/wp10-notes-20261119c): W1 by c437d1d83 (the MCP resource names call `show.rs`'s headings), W3 by issue 0713's doors, and R2 by `worked_address` and `id::not_a_package` |
+| Rulings of 2026-11-23                     | Ruled           | P2, P10, P12, P19, P23, P24, P31, P32 and P33, each as cc recommended, by vc under hv's pen                                                                                                                                                                                                                                                                                                          |
+
+## Found in Phase 0
+
+- `FacadeError::ThreadExists { id: String }` (`isvc/facade.rs:1898`, built at `isvc/facade.rs:22626` from the store's key) prints the stored form, so a git-style thread is named by sixteen hex. P20 made `NoSuchThread` print the shown form. Package: the id forms (cc).
+- `intent id`'s Unknown verdict names the forms it searched (`isvc/facade.rs:5781`), and `whole_address` names the id families (`isvc/facade.rs:2176`). Not a copy: they answer two questions, and the doc comment at `isvc/facade.rs:8269` records why the porcelain keeps the form.
+- `P56/id_pattern_check.sh:56` names `realise_plan.sh`, which was retired. Package: the gate's tools (dc).
+- `lib/templates/prj/_wip.md:7` and the canon-ignore guard's probe hex (`lib/templates/hooks/canon-ignore-guard.sh:81-82`) are unpinned shipped copies of the example form. Package: shipped text (dc).
+- `intent ac list` and `intent at list` order git-style package groups by their hex, and acceptance.md orders them by when each package was made (Ib383ad5). The list doors return the stored label order (`isvc/facade.rs:6608`, `isvc/facade.rs:21574`). Package: one order for a thread's criteria and tests (cc).
+
+## The residue, as packages
+
+| Package                                                            | Id             | Seat | Size | Rows                                                                     |
+| ------------------------------------------------------------------ | -------------- | ---- | ---- | ------------------------------------------------------------------------ |
+| One reader of a criterion or test label in text                    | ST1c2db93/e92b | cc   | XS   | B1, E D9 and T7 (the home)                                               |
+| The canon format, read once for a skew check                       | ST1c2db93/8a88 | cc   | XS   | F2 H3, P23's second half                                                 |
+| An id that a person reads is in its shown form, in both families   | ST1c2db93/8a37 | cc   | XS   | C9 (event half), `ThreadExists`                                          |
+| A thread's criteria and tests list in one order at every face      | ST1c2db93/744e | cc   | S    | Found in Phase 0, Ib383ad5's class                                       |
+| intent-cli's last hand-made label grammar and ordinal ids          | ST1c2db93/efe0 | ic   | XS   | B1 and B8 (the intent-cli half), the stray doc line at `render.rs:9966`  |
+| The Rust tests take ids, records and realised paths from the waist | ST1c2db93/d0fd | dc   | S    | B6 (realised half), B7, B8 (the intentd half), E T1 and B4, F2 H4 and H5 |
+| The gate's tools read each layout from one place                   | ST1c2db93/de6c | dc   | XS   | Report C's C and M, `id_pattern_check.sh:56`                             |
+| pr-thread-ref names a work package whole                           | ST1c2db93/e4b0 | dc   | XS   | C7 (cut half)                                                            |
+| Shipped text states what the code does, and every copy is pinned   | ST1c2db93/ce27 | dc   | XS   | Report C's K and L, the two unpinned shipped forms                       |
+| The v2 bats-estate inventory retires                               | ST1c2db93/5cc0 | dc   | M    | C13 (probe half), vc decision 134                                        |
+
+Docs that do not ship and that show an example id (docs/concepts/steel-threads.md, docs/explorer.md, docs/install.md, docs/design/design-system.md, .github/workflows/README.md and usage-rules.md) are illustrations. They stay as they are, and no test pins them.

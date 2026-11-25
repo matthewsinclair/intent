@@ -1,0 +1,15 @@
+{
+  "id": "01M88VVPWG7N188VKBPMAF0MD9",
+  "ts": "2026-11-25T08:06:24.923Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST1c2db9394af6d40b/8a88de21"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "The canon format, read once for a skew check"
+  }
+}

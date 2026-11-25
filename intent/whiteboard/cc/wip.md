@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: dbaff1e1-9b17-4902-94e9-603a011ae24c
-heartbeat_at: 2026-11-24 20:11Z
+session_id: 89630d6b-190b-4ecd-a485-ab28d09325d5
+heartbeat_at: 2026-11-25 08:11Z
 status: active
-focus: "2026-11-24 20:11Z by date -u: localfold at end of day, not released. Board clear. 3.5.3 released; the b353 issues are closed at 7cd75db2c; ci353 landed at fc77b3a87 and c64704162."
+focus: "2026-11-25 08:11Z by date -u: ST1c2db93 Phase 0 written and committed, holding for hv's review through vc"
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## DOING
 
-_(none)_
+- ST1c2db93 Phase 0 (hv decision 99, for 3.5.4): every row of the seven reports checked at bd1aa3c6c with ic and dc. design.md records each row, and each residual concern is one package with one non-test criterion, for cc, ic or dc. AC-00.1 is the close sweep. Committed as one commit; holding for hv's review through vc. No code changes until hv approves. (edited)
 
 ## TODO
 

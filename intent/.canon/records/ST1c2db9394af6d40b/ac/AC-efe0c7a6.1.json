@@ -1,0 +1,8 @@
+{
+  "id": "AC-efe0c7a6.1",
+  "text": "intent-cli's MCP tracker-id test reads labels through `id::label_at`, its TUI fixture makes ids with `ThreadId::from_ordinal`, and the stray doc line at `render.rs:9966` is gone.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

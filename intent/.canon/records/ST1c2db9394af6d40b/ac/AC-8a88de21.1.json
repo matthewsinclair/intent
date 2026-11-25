@@ -1,0 +1,8 @@
+{
+  "id": "AC-8a88de21.1",
+  "text": "A skew check takes the canon format that its caller read, and reads none itself.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

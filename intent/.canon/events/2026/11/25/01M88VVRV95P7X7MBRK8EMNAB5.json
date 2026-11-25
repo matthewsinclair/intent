@@ -1,0 +1,15 @@
+{
+  "id": "01M88VVRV95P7X7MBRK8EMNAB5",
+  "ts": "2026-11-25T08:06:26.932Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wp.new",
+  "subject": {
+    "type": "wp",
+    "id": "ST1c2db9394af6d40b/efe0c7a6"
+  },
+  "payload": {
+    "scope": "S",
+    "title": "intent-cli's last hand-made label grammar and ordinal ids"
+  }
+}

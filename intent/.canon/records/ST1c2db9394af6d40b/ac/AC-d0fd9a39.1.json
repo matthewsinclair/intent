@@ -1,0 +1,8 @@
+{
+  "id": "AC-d0fd9a39.1",
+  "text": "No Rust test formats an ordinal id, writes a thread record, or builds a realised path that it reads or writes on disk by hand, where the waist or `Project` has one.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}

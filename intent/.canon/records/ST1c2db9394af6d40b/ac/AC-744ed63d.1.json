@@ -1,0 +1,8 @@
+{
+  "id": "AC-744ed63d.1",
+  "text": "`intent ac list` and `intent at list` give a thread's rows in the order acceptance.md shows them: the thread's group, then each package's group in the package list's order.",
+  "kind": "non-test",
+  "state": {
+    "is": "unsatisfied"
+  }
+}
