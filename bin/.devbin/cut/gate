@@ -70,7 +70,7 @@ shared="$here/../cmd/shared"
 . "$shared/guard.lib"
 
 CHECK="${1:-}"
-TOOLS="$PROJECT_ROOT/intent/st/ST0056/parity/tools"
+TOOLS="$PROJECT_ROOT/$GUARD_TOOLS_REL"
 AGAIN="commit the fix, then cut again; nothing has been tagged"
 
 # refuse <what> [<remedy>] -- the check's refusal, exit 1.

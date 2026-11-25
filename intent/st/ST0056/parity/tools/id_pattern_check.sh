@@ -53,12 +53,12 @@
 #     `\d{4}` or `\d\d\d\d` -- that no `-`, `[` or `]` borders, which is how it
 #     tells an issue id from a date.
 #   - NOT SEEN, since each also spells things that are no id or hides the
-#     prefix: a bare `printf '%04d'` (realise_plan.sh mints an issue id that
-#     way; stub files are numbered so), a BRE interval `[0-9]\{4\}` (a Rust
-#     edition's year), `ST.{4}`, a fixed-width cut (`cut -c`, `${x:0:N}`), a
-#     prefix in a class or an alternation (`S[T]`, `(ST|AT)`, `[Ss][Tt]`, a
-#     case-blind `grep -i`), an extglob `ST+([0-9])`, `issue-NNNN`, a bare
-#     two-digit package number, and the hashed shape ST0095 brings.
+#     prefix: a bare `printf '%04d'` (stub files are numbered so), a BRE
+#     interval `[0-9]\{4\}` (a Rust edition's year), `ST.{4}`, a fixed-width
+#     cut (`cut -c`, `${x:0:N}`), a prefix in a class or an alternation
+#     (`S[T]`, `(ST|AT)`, `[Ss][Tt]`, a case-blind `grep -i`), an extglob
+#     `ST+([0-9])`, `issue-NNNN`, a bare two-digit package number, and the
+#     hashed shape ST0095 brings.
 #   - A needle is a fixed string, so a line already holding a listed needle may
 #     carry a second, different pattern unseen.
 #   - Files outside ROOTS (eg tests/, native/rust/, docs/), including one a root

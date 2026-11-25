@@ -30,6 +30,13 @@
 # is refused, since reading its guard as either kind would claim a meaning its
 # caller never gave.
 
+# WHERE BOTH GATES FIND THEIR GUARDS: the ST0056 apparatus directory, as a
+# path from the project root. The commit gate (cmd/precommit, its
+# --list-guards roster and its TOOLS) and a cut gate (cut/gate) build each
+# guard's path from this one spelling.
+# shellcheck disable=SC2034 # read by the gates that source this file
+GUARD_TOOLS_REL="intent/st/ST0056/parity/tools"
+
 # guard_verdict <status> <kind> -- what the exit <status> of a guard of <kind>,
 # `gating` or `report-only`, says, on stdout: `pass` for 0, `finding` for a
 # gating guard's 1, and for any other status the one wording of no verdict,

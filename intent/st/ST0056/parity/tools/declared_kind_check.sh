@@ -93,6 +93,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The one reading of a citation, `<file>` or `<file>:<line>` (issue 0670).
 # shellcheck source=lib_citation.sh
 . "$HERE/lib_citation.sh" || { echo "error: cannot read lib_citation.sh beside this tool" >&2; exit 2; }
+# The one rule for where the canon keeps a thread and its AT rows, read by the
+# canon read below and by the attribution at the end, in either mode.
+# shellcheck source=lib_at_canon.sh
+. "$HERE/lib_at_canon.sh" || { echo "declared-kind: cannot read lib_at_canon.sh beside this tool" >&2; exit 2; }
 ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 
 CITES=""
@@ -120,7 +124,7 @@ if [ -n "$CITES" ]; then
   SOURCE_LABEL="fixture: $CITES"
   CITE_TSV="$(cat "$CITES")"
 else
-  CANON_DIR="$ROOT/intent/.canon/st"
+  CANON_DIR="$ROOT/$AT_CANON_DIR"
   [ -d "$CANON_DIR" ] || { echo "declared-kind: no canon extract at $CANON_DIR" >&2; exit 2; }
   # **NOT `committed`** -- this is the on-disk extract, verdict-bearing as it
   # stands in the working tree. See the header: the old label said `committed`
@@ -133,8 +137,6 @@ else
   # BOTH CANON FORMATS, by lib_at_canon.sh's one rule for where a thread's rows
   # are: `.tests[]` in a flat thread file, or one file per row under
   # records/<ID>/at/ in the release format (thread@4.0, ST0096 WP-05).
-  # shellcheck source=lib_at_canon.sh
-  . "$HERE/lib_at_canon.sh" || { echo "declared-kind: cannot read lib_at_canon.sh beside this tool" >&2; exit 2; }
   at_canon_expand "$CANON_DIR"/*.json
   CITE_TSV="$(
     jq -r --arg line_re "$CITATION_LINE_RE" --arg row_re "$AT_CANON_ROW_RE" '
@@ -357,8 +359,16 @@ if [ "$DISAGREE" -gt 0 ]; then
   DEDUPED_THREADS="$(printf '%s\n' "$FINDING_THREADS" | awk 'NF && !seen[$0]++')"
   while IFS= read -r t; do
     [ -n "$t" ] || continue
-    last="$(git -C "$ROOT" log -1 --format='%h  %an, %ar -- %s' -- "intent/.canon/st/$t.json" 2>/dev/null)"
-    [ -n "$last" ] || last="(no git history readable for intent/.canon/st/$t.json)"
+    # A thread's AT rows are their own files under records/<ID>/at/ in the
+    # release format, and its thread file in the flat format. at_canon_expand
+    # names them, thread file first, and the log of the row files says whose
+    # change put the rows here. Since ST0096 WP-05 the thread file holds no
+    # rows, so its log names the last change to the thread's cover.
+    at_canon_expand "$ROOT/$AT_CANON_DIR/$t.json"
+    rows=("${AT_CANON_INPUTS[@]:1}")
+    [ "${#rows[@]}" -gt 0 ] || rows=("${AT_CANON_INPUTS[0]}")
+    last="$(git -C "$ROOT" log -1 --format='%h  %an, %ar -- %s' -- "${rows[@]}" 2>/dev/null)"
+    [ -n "$last" ] || last="(no git history readable for $t's rows: ${rows[*]#"$ROOT"/})"
     echo "    $t -- citing canon last moved at $last"
   done <<< "$DEDUPED_THREADS"
 

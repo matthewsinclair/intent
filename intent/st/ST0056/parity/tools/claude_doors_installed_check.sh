@@ -53,11 +53,10 @@ UNWIRED='is a known command that is not implemented yet'
 #
 # A DOOR IS AN ARRAY, NOT A STRING. `ws new probe` must reach argv as TWO
 # tokens, and the way to say that is `read -r -a` plus a quoted expansion --
-# not an unquoted $verb leaning on word-splitting. The sibling instrument
-# docs_defect_disposition_check.sh already does it this way for the same
-# reason, and the shell critic is right to refuse the other spelling: under
-# zsh the unquoted form does not split at all, so the tool would have driven
-# a single verb named "new probe" and reported it unreachable on EVERY build.
+# not an unquoted $verb leaning on word-splitting. The shell critic is right
+# to refuse the other spelling: under zsh the unquoted form does not split at
+# all, so the tool would have driven a single verb named "new probe" and
+# reported it unreachable on EVERY build.
 DOORS_PRE=('list' 'new probe' 'hygiene')
 DOORS_POST=('archive probe')
 EXPECTED_DOORS=5

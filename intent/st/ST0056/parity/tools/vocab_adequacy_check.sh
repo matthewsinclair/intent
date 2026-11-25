@@ -26,8 +26,8 @@
 # certifies the unfinished state as finished, which is the defect, committed by
 # its own remedy. The fix is a vocabulary that can hold the state.
 #
-# REACH, IN THE OUTPUT AND NOT ONLY HERE (AC-00.10, and `rig_selftest.sh:60`'s
-# rule that a limit not in the output is not a limit the reader has):
+# REACH, IN THE OUTPUT AND NOT ONLY HERE (AC-00.10, and the rule that a limit
+# not in the output is not a limit the reader has):
 #   * IN REACH -- a declared machine-read state sitting beside authored prose in
 #     one object, where the prose says that state is not reached.
 #   * OUT OF REACH -- a vocabulary inadequate with NO prose beside it. That is
