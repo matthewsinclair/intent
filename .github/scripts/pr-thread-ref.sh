@@ -7,14 +7,16 @@
 # pattern for an id's shape, so a git-style id is found as an ordinal is. The
 # first word the door answers as a thread, or as a work package of one,
 # decides: the door's `id` verdict names the record's canon, so it is the
-# existence check too.
+# existence check too. A record is named as the door gives it, a work package
+# by its whole address: this script cuts no address itself (ST1c2db93 WP-e4b0).
 #
 # Exit 0: a thread is named and exists, or no word names one (a notice only).
 # Exit 1: the first word that names a thread names one this project does not
 #   hold, or names more than one.
 # Exit 2: the door did not answer, eg a binary built before WP-10 has no
-#   `intent id`, or it answered fewer words than it was asked. That fails the
-#   job: this script never falls back to a pattern.
+#   `intent id`, it answered fewer words than it was asked, or an `id` verdict
+#   lacks the id it names. That fails the job: this script never falls back to
+#   a pattern.
 #
 # Run from the project root, with INTENT_BIN naming the binary the job built
 # (pr-checks.yml sets it), and jq on PATH to read the door's JSON. bash 3.2
@@ -97,13 +99,21 @@ VERDICT="$(printf '%s\n' "$ANSWERS" | jq -r '
        elif .answer == "unknown" then (.kinds | join(","))
        else "" end) as $kind
     | select($kind == "thread" or $kind == "wp")
-    | if .answer == "id" then "found " + (.id | sub("/.*"; ""))
+    | if .answer == "id" then
+        (if (.id | type) == "string" and .id != "" then "found " + .kind + " " + .id
+         else error("an id verdict without the id it names") end)
       elif .answer == "unknown" then "unknown " + .token
       else "ambiguous " + .token end) // empty')" ||
   unanswered "its answers lack the fields this check reads"
 
 case "$VERDICT" in
   "") no_reference ;;
+  "found thread "*)
+    RECORD="Steel thread" NOUN="thread" ID="${VERDICT#found thread }"
+    ;;
+  "found wp "*)
+    RECORD="Work package" NOUN="work package" ID="${VERDICT#found wp }"
+    ;;
   "unknown "*)
     echo "❌ Error: Steel thread ${VERDICT#unknown } not found"
     exit 1
@@ -112,8 +122,9 @@ case "$VERDICT" in
     echo "❌ Error: ${VERDICT#ambiguous } names more than one thread; give more of its id"
     exit 1
     ;;
+  *) unanswered "its verdict is not one this check reads: $VERDICT" ;;
 esac
 
-echo "✅ Steel thread reference found"
-echo "Referenced thread: ${VERDICT#found }"
-echo "✅ Steel thread ${VERDICT#found } exists"
+echo "✅ $RECORD reference found"
+echo "Referenced $NOUN: $ID"
+echo "✅ $RECORD $ID exists"

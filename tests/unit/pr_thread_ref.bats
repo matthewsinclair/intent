@@ -62,6 +62,16 @@ stand_in() {
   refute_output_contains "Referenced thread"
 }
 
+@test "a work package the body names is found whole, as the door gives it, with no address cut" {
+  local pkg
+  pkg="$(mint wp new "$THREAD" "Draft the list")" || fail "wp new minted no package"
+  check "Lands ${pkg} at last."
+  assert_success
+  assert_output_contains "Referenced work package: ${pkg}"
+  assert_output_contains "Work package ${pkg} exists"
+  refute_output_contains "Referenced thread"
+}
+
 @test "a work package of a thread the project does not hold fails the check" {
   check "Lands ST9999/01 at last."
   assert_failure
@@ -88,4 +98,15 @@ stand_in() {
   [ "$status" -eq 2 ] || fail "expected exit 2 (no verdict for the words asked), got $status: $output"
   assert_output_contains "verdict(s) for the"
   refute_output_contains "No steel thread reference found"
+}
+
+@test "an id verdict without the id it names fails the check and never passes with an empty id" {
+  # One word, so the door's one verdict answers every word it was asked, and
+  # only the missing id can refuse it.
+  local bare
+  bare="$(stand_in bare-bin "printf '%s\n' '{\"answers\":[{\"answer\":\"id\",\"kind\":\"wp\",\"token\":\"ST3f9a2c1/c2e4\"}]}'")"
+  check "ST3f9a2c1/c2e4" "$bare"
+  [ "$status" -eq 2 ] || fail "expected exit 2 (an id verdict without its id), got $status: $output"
+  assert_output_contains "did not answer \`intent id\`"
+  refute_output_contains "exists"
 }
