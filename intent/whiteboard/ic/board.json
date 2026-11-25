@@ -5,12 +5,10 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7094e76d-9fa3-4492-aee2-b7f170af7adb",
-    "heartbeat_at": "2026-11-25T19:33:32.260Z",
+    "heartbeat_at": "2026-11-25T19:58:42.368Z",
     "status": "active",
-    "focus": "2026-11-25 19:14Z by date -u: batch run 1 was red at 21691a41f only on doc links to private items in cc's files. cc fixes them, and dc runs the batch again at a clean HEAD. No commit to main from dc's next START to its last END (watchout 39). If cc's doc check finds a link in ic's files, ic gives its word to fix it in cc's commit. After a green batch, on vc's word: wp done for the efe0 claim. No run, slot or worktree is held.",
-    "claims": [
-      "ST1c2db9394af6d40b/efe0c7a6"
-    ],
+    "focus": "2026-11-25 19:58Z by date -u: ic's close step for ST1c2db93 is done after the green batch at 5d58e6b6e. AC-efe0c7a6.1 is satisfied with named evidence, efe0 is done, and the efe0 claim is released. dc runs its close steps next, then vc. ic holds no claim, slot or worktree, and waits for vc's word on what follows the close.",
+    "claims": [],
     "recorded_at": "2026-09-13T10:24:12.872Z",
     "authored_at": "2026-09-13 10:11Z",
     "migrated_at": "2026-09-13T11:03:59.755Z"
@@ -3223,7 +3221,8 @@
       "kind": "doing",
       "seq": 158,
       "text": "ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. vc's close sweep is done, and ic's items in it landed at 13754d86f. Standing by for the batch gate.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-25T19:58:41.489Z",
       "recorded_at": "2026-11-25T10:43:07.146Z",
       "edited_at": "2026-11-25T16:38:10.419Z"
     },

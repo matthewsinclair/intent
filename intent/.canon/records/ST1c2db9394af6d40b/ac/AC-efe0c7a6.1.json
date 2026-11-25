@@ -3,6 +3,7 @@
   "text": "intent-cli's MCP tracker-id test reads labels through `id::label_at`, its TUI fixture makes ids with `ThreadId::from_ordinal`, and the stray doc line at `render.rs:9966` is gone.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "efe0 landed at c3dd53545. At main 5d58e6b6e the MCP test no_tracker_id_reaches_a_published_tool reads labels with id::label_at (mcp.rs:2602), the TUI fixture makes ids with ThreadId::from_ordinal (tui/app.rs:2477), and the doc line above gate_verdict is gone. The batch is green at 5d58e6b6e: gate all and test shell."
   }
 }
