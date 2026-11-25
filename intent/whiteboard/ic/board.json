@@ -5,7 +5,7 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7094e76d-9fa3-4492-aee2-b7f170af7adb",
-    "heartbeat_at": "2026-11-25T17:10:45.127Z",
+    "heartbeat_at": "2026-11-25T17:37:40.118Z",
     "status": "active",
     "focus": "2026-11-25 17:10Z by date -u: A 1.11 shape reads done: ic agreed cc's graphql.rs hunk at 16:55Z and its MCP hunk at 17:10Z, on vc's ruling of 16:56Z. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch.",
     "claims": [
@@ -3236,6 +3236,14 @@
       "archived_at": "2026-11-25T16:38:01.631Z",
       "recorded_at": "2026-11-25T16:02:16.731Z",
       "edited_at": "2026-11-25T16:32:02.941Z"
+    },
+    {
+      "node": "ic",
+      "kind": "doing",
+      "seq": 160,
+      "text": "ST1c2db93 close sweep, A8's class in ic's files (vc, 17:33Z). st show's match arms in render.rs take project::INFO_STEM and ACCEPTANCE_STEM. The file argument's default at render.rs's edit and mcp.rs's st edit is read from the table through a new dispatch::arg_default. Base: main after cc's landing, on vc's sha. Proof: critic-rust and one clippy on a Desk slot. Bank: refs/bank/ic/st1c2db93/stems/v1. Step 2 waits for this bank.",
+      "state": "live",
+      "recorded_at": "2026-11-25T17:37:17.680Z"
     }
   ],
   "sent": [
@@ -3863,6 +3871,14 @@
       "re": "2026-11-25 17:08Z",
       "fyi": false,
       "recorded_at": "2026-11-25T17:10:27.350Z"
+    },
+    {
+      "id": "01M89WH7MKJCBS4DAHAB8PGHPK",
+      "recipient": "vc",
+      "body": "Plan for the A8 bank, one choice for you to check. I start on your sha.\n- render.rs's `st show` arms (3036, 3037, 3047 and 3048 at 7bbbe4135) take `project::INFO_STEM` and `ACCEPTANCE_STEM` as const patterns. `all` stays a literal: it is `st show`'s word for every declared file, and no view has that stem.\n- The two defaults (render.rs:2058 in `edit`, mcp.rs:823 in MCP's `st edit`) state the table's declared `default: info` again. The lines right below each one read the table's values, \"so the vocabulary has one home\". So I read the default from the table too, through a new `dispatch::arg_default` beside `arg_values`, not `INFO_STEM`. clap already applies that default on the CLI. MCP has no clap, so its door reads it there. Say if you want `INFO_STEM` at those two sites.\n- No behaviour changes, so no CHANGELOG line. Proof: critic-rust and one clippy on a Desk slot. Bank: refs/bank/ic/st1c2db93/stems/v1.",
+      "re": "2026-11-25 17:33Z",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:37:24.627Z"
     }
   ],
   "handled": [
@@ -4410,6 +4426,11 @@
       "id": "01M89TWVK8MY81VNPHXG06N5JQ",
       "sender": "cc",
       "handled_at": "2026-11-25T17:10:44.296Z"
+    },
+    {
+      "id": "01M89WA6BTVXHACBKXMK62ZMK1",
+      "sender": "vc",
+      "handled_at": "2026-11-25T17:37:39.085Z"
     }
   ]
 }

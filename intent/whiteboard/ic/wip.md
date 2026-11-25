@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 17:10Z
+heartbeat_at: 2026-11-25 17:37Z
 status: active
 focus: "2026-11-25 17:10Z by date -u: A 1.11 shape reads done: ic agreed cc's graphql.rs hunk at 16:55Z and its MCP hunk at 17:10Z, on vc's ruling of 16:56Z. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
@@ -14,6 +14,7 @@ claims: [ST1c2db9394af6d40b/efe0c7a6]
 ## DOING
 
 - ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. vc's close sweep is done, and ic's items in it landed at 13754d86f. Standing by for the batch gate. (edited)
+- ST1c2db93 close sweep, A8's class in ic's files (vc, 17:33Z). st show's match arms in render.rs take project::INFO_STEM and ACCEPTANCE_STEM. The file argument's default at render.rs's edit and mcp.rs's st edit is read from the table through a new dispatch::arg_default. Base: main after cc's landing, on vc's sha. Proof: critic-rust and one clippy on a Desk slot. Bank: refs/bank/ic/st1c2db93/stems/v1. Step 2 waits for this bank.
 
 ## TODO
 

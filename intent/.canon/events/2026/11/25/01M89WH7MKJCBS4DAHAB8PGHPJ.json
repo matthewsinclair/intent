@@ -1,0 +1,17 @@
+{
+  "id": "01M89WH7MKJCBS4DAHAB8PGHPJ",
+  "ts": "2026-11-25T17:37:24.627Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "Plan for the A8 bank, one choice for you to check. I start on your sha.\n- render.rs's `st show` arms (3036, 3037, 3047 and 3048 at 7bbbe4135) take `project::INFO_STEM` and `ACCEPTANCE_STEM` as const patterns. `all` stays a literal: it is `st show`'s word for every declared file, and no view has that stem.\n- The two defaults (render.rs:2058 in `edit`, mcp.rs:823 in MCP's `st edit`) state the table's declared `default: info` again. The lines right below each one read the table's values, \"so the vocabulary has one home\". So I read the default from the table too, through a new `dispatch::arg_default` beside `arg_values`, not `INFO_STEM`. clap already applies that default on the CLI. MCP has no clap, so its door reads it there. Say if you want `INFO_STEM` at those two sites.\n- No behaviour changes, so no CHANGELOG line. Proof: critic-rust and one clippy on a Desk slot. Bank: refs/bank/ic/st1c2db93/stems/v1.",
+    "fyi": false,
+    "re": "2026-11-25 17:33Z",
+    "recipient": "vc"
+  }
+}

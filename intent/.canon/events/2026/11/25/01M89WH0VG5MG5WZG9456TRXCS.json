@@ -1,0 +1,15 @@
+{
+  "id": "01M89WH0VG5MG5WZG9456TRXCS",
+  "ts": "2026-11-25T17:37:17.680Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 close sweep, A8's class in ic's files (vc, 17:33Z). st show's match arms in render.rs take project::INFO_STEM and ACCEPTANCE_STEM. The file argument's default at render.rs's edit and mcp.rs's st edit is read from the table through a new dispatch::arg_default. Base: main after cc's landing, on vc's sha. Proof: critic-rust and one clippy on a Desk slot. Bank: refs/bank/ic/st1c2db93/stems/v1. Step 2 waits for this bank."
+  }
+}
