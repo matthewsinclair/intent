@@ -29,7 +29,7 @@
 # Exit codes: 0 the shots are written, 1 a step failed, 2 usage or a missing
 # prerequisite.
 
-# inputs: native/rust/crates/intent-cli/examples/explorer_shots.rs native/rust/Cargo.lock
+# inputs: native/rust/crates/intent-cli/examples/explorer_shots.rs native/rust/Cargo.lock bin/.devbin/cmd/shared/mint.lib
 # inputs-exempt: INTENT -- the explorer is driven, not read: the shots show whichever `intent` is on PATH, which `bin/devbin build all` builds from this tree
 
 set -euo pipefail
@@ -77,6 +77,10 @@ command -v jq >/dev/null || die "no jq on PATH" "install jq (\`brew install jq\`
 command -v cargo >/dev/null || die "no cargo on PATH" "install the Rust toolchain (https://rustup.rs), which builds the explorer_shots example"
 [ ! -e "$DEMO" ] \
   || die "$DEMO already exists" "a run is in progress, or one was kept with --keep: remove it with \`rm -rf $DEMO\` once nothing is using it"
+# minted_id: the one reader of the id a mint verb made, which mint() below asks.
+# shellcheck source=bin/.devbin/cmd/shared/mint.lib
+. "$ROOT/bin/.devbin/cmd/shared/mint.lib" \
+  || die "could not source $ROOT/bin/.devbin/cmd/shared/mint.lib" "run this from an Intent checkout, which carries it"
 
 # `intent 3.2.7 (<tree>, <sha12>[+dirty]) dev` (ST0087 WP-01, issue 0647) -- the
 # version and the commit are the two things every shot must not show.
@@ -177,11 +181,12 @@ set_from() {
 
 # mint <verb...> -- run a verb that mints, keep its output in LOG, and print the id
 # it names on its `created:` line, which is how a script reads a minted id (ST0095
-# WP-02). A project mints git-style ids, so no id is spelled in this file: each
-# is the one the verb printed (ST0095 AC-03.3). A verb that refuses, or mints
-# nothing, is a step that failed: its whole output goes to stderr, since LOG is
-# removed with the run, and it exits 1, which under -e the assignment it feeds
-# carries out of the seed.
+# WP-02). The line is read by mint.lib's minted_id, which refuses no such line or
+# more than one. A project mints git-style ids, so no id is spelled in this file:
+# each is the one the verb printed (ST0095 AC-03.3). A verb that refuses, or
+# mints nothing, is a step that failed: its whole output goes to stderr, since
+# LOG is removed with the run, and it exits 1, which under -e the assignment it
+# feeds carries out of the seed.
 mint() {
   local out id
   out="$(intent "$@" 2>&1)" || {
@@ -190,9 +195,8 @@ mint() {
     exit 1
   }
   printf '%s\n' "$out" >> "$LOG"
-  id="$(printf '%s\n' "$out" | awk '$1 == "created:" { print $2; exit }')"
-  [ -n "$id" ] || {
-    printf 'error: `intent %s` printed no created: line:\n%s\n' "$*" "$out" >&2
+  id="$(minted_id "$out")" || {
+    printf 'error: `intent %s` printed no one created: line:\n%s\n' "$*" "$out" >&2
     exit 1
   }
   printf '%s' "$id"
