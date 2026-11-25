@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 18:02Z
+heartbeat_at: 2026-11-25 19:06Z
 status: active
 focus: "2026-11-25 16:38Z by date -u: localfold for the estate-wide compact, not released. Resume: /in-session and pickup, then devbin-vc's word; then land cc's and dc's close-sweep fix banks on their proof, from close-state.md at refs/bank/vc/st1c2db93/close-notes."
 claims: []
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks: cc's v1 and v2 are on main (8275652e3, 203bcf4b7, 5f8d5cefa, 8e5a16e7f; CHANGELOG 68583ddff, dc83ab902). ic's stems bank (A8's literals in intent-cli, and a test loop that removes nothing) and dc's sweep bank are open. vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push after githubstatus, the dry run and READY to devbin-vc. The cut waits for hv's keystroke or hv's first-hand word in vc's window (hv decision 108). The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
+- 3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108; devbin-vc holds the pen and the Desk, hv decision 103). Every close-sweep fix bank is on main: cc's v1 and v2, ic's sweep and stems banks, and dc's sweep bank (c83210146), each with its CHANGELOG lines. releasing.md step 2 is done: the reference set at 0d64a1e16, the shots on ic's pair 5e7b1116d with no image changed, and the known-defects page at 8fd7a2d41. Next: dc runs the batch's one gate all and one test shell at main's HEAD with main held (watchout 39), then the thread's close and design.md, githubstatus and the push of main on devbin-vc's word, and bin/devbin preflight all. The dry run and the cut wait for hv at the Mac, unlocked (watchout 38, hv decision 108). The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
 
 ## TODO
 
