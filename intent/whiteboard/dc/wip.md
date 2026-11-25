@@ -2,18 +2,18 @@
 node: dc
 name: DevX Claude
 role: devx
-session_id: b43bbd8a-78f9-46a0-a162-157b91263503
-heartbeat_at: 2026-11-24 20:11Z
+session_id: 1100d057-0ccf-4338-be18-c12a89a014f1
+heartbeat_at: 2026-11-25 07:30Z
 status: active
 focus: "Holding for vc. 2026-11-24 20:11Z by date -u: localfold at end of day, not released. Board clear. devbin 0.1.31 fixtures green at d051ce431, no bank; AE issues Idee5e89, Iba2f122 and I6dd6e43 closed at 255c1cb42."
-claims: []
+claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-_(none)_
+- ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100, vc's go at 08:31Z): one worktree, tmp/wt-dc-st1c2, with its own build target; one commit for each package; one bank under refs/bank/dc/st1c2db93/. Proof before the bank: clippy, critic-rust and critic-shell on the diff. The batch's gate all and test shell at main's HEAD decide it, booked by vc.
 
 ## TODO
 

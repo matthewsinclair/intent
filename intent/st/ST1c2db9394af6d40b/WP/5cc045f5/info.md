@@ -2,7 +2,7 @@
 wp_id: WP-5cc0
 title: The v2 bats-estate inventory retires
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-5cc0: The v2 bats-estate inventory retires

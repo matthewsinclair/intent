@@ -1,0 +1,15 @@
+{
+  "id": "01M88XJH7QSJYTHGCW3V1YQ2TM",
+  "ts": "2026-11-25T08:36:21.367Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100, vc's go at 08:31Z): one worktree, tmp/wt-dc-st1c2, with its own build target; one commit for each package; one bank under refs/bank/dc/st1c2db93/. Proof before the bank: clippy, critic-rust and critic-shell on the diff. The batch's gate all and test shell at main's HEAD decide it, booked by vc."
+  }
+}
