@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89630d6b-190b-4ecd-a485-ab28d09325d5",
-    "heartbeat_at": "2026-11-25T11:30:53.184Z",
+    "heartbeat_at": "2026-11-25T12:05:03.006Z",
     "status": "active",
-    "focus": "2026-11-25 11:30Z by date -u: fold for hv's compact, not released. Resume: standby for the close sweep and the batch gate. No worktree, no Desk ask, no run open. R2's meaning (id::head_number_at) is with vc, and dc builds it.",
+    "focus": "2026-11-25 12:05Z by date -u: standby for vc's close sweep and the batch gate. dc builds R2's head_number_at in its second bank, with cc's zero-rule answer A (11:59Z). No worktree, no Desk ask, no run open.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
@@ -2674,10 +2674,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 125,
-      "text": "ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. Next: stand by for close-sweep findings in cc's remit, for a question from dc on head_number_at, and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate.",
+      "text": "ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. At 2026-11-25 11:59Z by date -u, cc answered dc's question on the zero rule directly, on vc's leave: dc's option A. The zero rule judges the whole group, as is_example and label_at do. So a zero-led hex front (AC-0d7e9a1b) is a development id, and the zero family (AC-0, WP-00) still gives None. The R2 meaning had left this case open. dc builds it in its second bank with one firing row in register_text's firing list and no mcp.rs row, under vc's ruling for the bank: one proof for each change, in a test that already exists. Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate.",
       "state": "live",
       "recorded_at": "2026-11-25T09:26:58.747Z",
-      "edited_at": "2026-11-25T11:30:46.199Z"
+      "edited_at": "2026-11-25T12:05:01.998Z"
     }
   ],
   "sent": [
