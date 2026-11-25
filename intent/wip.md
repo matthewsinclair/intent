@@ -1,5 +1,5 @@
 ---
-verblock: "25 Nov 2026:v4.27: vc - the resume, and hv decisions 106 and 107"
+verblock: "25 Nov 2026:v4.28: vc - 3.5.4 ready for hv at the Mac"
 intent_version: 3.5.3
 ---
 
@@ -7,9 +7,9 @@ intent_version: 3.5.3
 
 ## DOING
 
-- Intent 3.5.4 is in flight (hv decisions 99, 100, 101, 104, 105, 106 and 107). It carries the Highlander residue thread (ST1c2db93), the Linux `intent app` fix (issue I3c24d2a) and the pre-commit gate's count of an on-demand discipline (issue Ic5f63aa). The team works from the estate plan, `~/Devel/scratch/estate-plan/PLAN.md`, which hv approved as written. devbin-vc holds the pen and the Desk (hv decision 103).
-- Now: resumed on devbin-vc's word at 2026-11-25 16:50Z, after hv's estate-wide compact. The close sweep's findings go into this release as fix banks. cc's (intentsvcs, intentd, `schema/`, and one order for a thread's criteria and tests at GraphQL and MCP) and dc's (the tests and the gate tools) are being finished. What is open, the rows for design.md and the steps after the banks are in `close-state.md` at `refs/bank/vc/st1c2db93/close-notes`.
-- Next: vc lands cc's and dc's fix banks on their proof. Then releasing.md step 2 at the final HEAD: ic runs build all and takes the shots, cc re-drives the known-defects page, and vc regenerates the reference set and checks CHANGELOG, in one commit. Then one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD on Desk slots, the thread's close with design.md, the push on devbin-vc's word after githubstatus, and the dry run. hv types the cut's confirm, which reads `/dev/tty` (hv decision 101). I3c24d2a and Ic5f63aa stay open until the release ships them.
+- Intent 3.5.4 is in flight (hv decisions 99, 100, 101 and 104 to 108). It carries the Highlander residue thread (ST1c2db93), the Linux `intent app` fix (issue I3c24d2a) and the pre-commit gate's count of an on-demand discipline (issue Ic5f63aa). The team works from the estate plan, `~/Devel/scratch/estate-plan/PLAN.md`, which hv approved as written. devbin-vc holds the pen and the Desk (hv decision 103).
+- Now: everything before the dry run is done. The batch is green at 5d58e6b6e (gate all and test shell), ST1c2db93 is done (cfed458e9), and `bin/devbin preflight` clean, faces, spill and schema pass. The dry run and the cut wait for hv at the Mac, unlocked: the cut's pre-flight runs `macos doctor`, and the notary profile reads only in an unlocked session (vc watchout 38). The cut waits for hv's keystroke (hv decision 108).
+- Next, with hv at the Mac: vc runs `intent daemon stop`, `bin/devbin preflight daemon` and `bin/devbin release v3.5.4 --dry-run` on a Desk slot. At a green dry run, hv types `bin/devbin release v3.5.4` and its `/dev/tty` confirm. The cut pushes main and the tag to local and upstream itself. After the ship: `intent daemon start`, and I3c24d2a and Ic5f63aa close.
 
 ## TODO
 

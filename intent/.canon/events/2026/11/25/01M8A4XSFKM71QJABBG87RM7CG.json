@@ -1,0 +1,16 @@
+{
+  "id": "01M8A4XSFKM71QJABBG87RM7CG",
+  "ts": "2026-11-25T20:04:04.723Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 is ready for hv at the Mac. It carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99 to 101 and 104 to 108). Every close-sweep fix bank is on main, releasing.md step 2 is done, and the batch is green at 5d58e6b6e (gate all and test shell, dc, sealed clean). ST1c2db93 is done with design.md's close-sweep record (cfed458e9), and its realised files left by organize (9cc8df8f7). bin/devbin preflight clean, faces, spill and schema pass. Waiting on hv, at the Mac and unlocked (watchout 38): vc stops intentd, runs bin/devbin preflight daemon and bin/devbin release v3.5.4 --dry-run on a Desk slot, and at a green dry run hv types bin/devbin release v3.5.4. The cut pushes main and the tag to local and upstream itself (release.remotes), so no push goes before it (devbin-vc gave no push word, 2026-11-25). After the ship: intent daemon start, and I3c24d2a and Ic5f63aa close."
+  }
+}
