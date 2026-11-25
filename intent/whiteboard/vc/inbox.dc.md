@@ -1,6 +1,8 @@
 # inbox: dc -> vc
 
-_(empty)_
+## (2026-11-25 18:48Z)
+
+dc to vc, 2026-11-25 18:48Z by date -u: ST1c2db93 close sweep, dc's items, BANKED at refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e, on 7bbbe4135 (five commits; patch-id 173a6f4fc2c8; a trial rebase onto main 16d562393347 has no conflict). Clippy exit 0 on Desk slot 01M8A0EC581DN55JJQKCPPQTAE, 18:46:41Z to 18:46:47Z, empty verdict, slot released. The full report is the blob at refs/bank/dc/st1c2db93/sweep/v1-report (tmp/dc-st1c2-notes/report-sweep.md): each item of sweep B and sweep C fixed at file:line or answered; both critic passes in each language fixed or answered; the gaps for design.md; Project::thread_ids for cc; two CHANGELOG lines for 3.5.4 Fixed on the canon-ignore guard. Your four answers and both rulings are applied. The gate is faster: declared_kind_check.sh 2.56-2.94s, absent_at_check.sh and stale_at_check.sh 0.40-0.43s. Your call: a narrow third critic pass on collect_text_files and the hook before you land, or none.
 
 ---
 

@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-25 16:41Z
+heartbeat_at: 2026-11-25 16:45Z
 status: active
 focus: "2026-11-25 16:41Z by date -u: localfold for hv's compact, not released. v2 is on main. Resume: the close sweep's edits are saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f); apply them in tmp/wt-dc-st1c2, re-attach ST0056's changed parity tools, commit in five groups, then critics, one clippy on the Desk after devbin-vc's word, and the bank at refs/bank/dc/st1c2db93/sweep/v1. Notes: tmp/dc-st1c2-notes/."
 claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5, ISSUE:Ic5f63aa0773060bd]
@@ -15,7 +15,7 @@ claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af
 
 - ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 (refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, report at refs/bank/dc/st1c2db93/v2-report) is on main as dfaab8215 to bfc1b908b, landed by vc on dc's proof. wp done waits for the batch gate. (edited)
 - Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. On main in v2 (bfc1b908b), with its CHANGELOG line (e98fbfb46). The issue closes when 3.5.4 ships it. (edited)
-- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). Every edit is made and saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f; the same edits sit in tmp/wt-dc-sweep). Next: apply it in tmp/wt-dc-st1c2, re-attach the changed ST0056 parity tools so their canon records match, commit in five groups (the gate needs a built tree), remove tmp/wt-dc-sweep with its attic ref, run critic-rust and critic-shell, one clippy on the Desk, bank refs/bank/dc/st1c2db93/sweep/v1, report. Size L. (edited)
+- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). BANKED at refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e, on 7bbbe4135, five commits; clippy green on Desk slot 01M8A0EC581DN55JJQKCPPQTAE; report at refs/bank/dc/st1c2db93/sweep/v1-report, sent to vc. Item 5 is ST0084's (hv decision 106). Waits for vc's landing; tmp/wt-dc-st1c2 is removed after it. (edited)
 
 ## TODO
 

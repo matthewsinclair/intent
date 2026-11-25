@@ -1,0 +1,16 @@
+{
+  "id": "01M8A0KWRH41EWN0QZ59EK1W8J",
+  "ts": "2026-11-25T18:48:46.097Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 178,
+    "text": "ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). BANKED at refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e, on 7bbbe4135, five commits; clippy green on Desk slot 01M8A0EC581DN55JJQKCPPQTAE; report at refs/bank/dc/st1c2db93/sweep/v1-report, sent to vc. Item 5 is ST0084's (hv decision 106). Waits for vc's landing; tmp/wt-dc-st1c2 is removed after it."
+  }
+}

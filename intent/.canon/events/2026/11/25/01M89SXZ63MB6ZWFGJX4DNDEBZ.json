@@ -1,0 +1,15 @@
+{
+  "id": "01M89SXZ63MB6ZWFGJX4DNDEBZ",
+  "ts": "2026-11-25T16:51:56.227Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "hold",
+    "text": "ST1c2db93 close sweep item 5 (stale_at_check.sh reads its ids through lib_read_only.sh's ro_ids): held until hv's answer reaches dc through vc. devbin-vc put it to hv: fix it in 3.5.4, or park it in ST0084 as vc recommends. If hv chooses the fix, it goes into the sweep bank before dc's clippy."
+  }
+}
