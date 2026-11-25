@@ -343,17 +343,20 @@ EOF
 @test "declared prose language (author/content) does not error the gate or fail-open (issue 0003)" {
   # A project that declares author/content must commit cleanly: the gate skips
   # languages with no headless code critic instead of invoking them and printing
-  # a per-language "invocation error ... fail-open" line on every commit.
-  cat > intent/.config/config.json <<'EOF'
-{"intent_version":"3.0.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["author","content"],"doctor":{"acknowledged":{"gate-not-running":"the fixture copies the shipped hook into .git/hooks/ to drive it"}}}
-EOF
+  # a per-language "invocation error ... fail-open" line on every commit. It
+  # names them as on demand and does not count them as enforced (issue
+  # Ic5f63aa).
+  local prose=(author content)
+  declare_languages "${prose[@]}"
   echo "# a doc" > README.md
-  git add intent/.config mix.exs README.md
+  git add mix.exs README.md
   run git commit -m "prose langs"
   assert_success
   refute_output_contains "invocation error"
   refute_output_contains "fail-open"
   refute_output_contains "must be a language"
+  assert_output_contains "of ${#prose[@]} declared language(s) enforced (none)"
+  assert_output_contains "on demand, not checked by this gate: ${prose[*]}"
 }
 
 @test "mixed code+prose: elixir critic still fires, prose skipped cleanly (issue 0003)" {

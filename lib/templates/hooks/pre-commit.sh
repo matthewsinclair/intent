@@ -592,6 +592,22 @@ served_out="$(intent lang list 2>/dev/null)" && while IFS= read -r served_line; 
     "  "[a-z]*) SERVED="${SERVED}${served_line#  } " ;;
   esac
 done <<<"$served_out"
+# Declared languages that have no headless code critic: a prose discipline
+# (author, content) that a critic subagent reviews on demand. The gate does not
+# dispatch them and does not count them as enforced, because no check of them
+# runs here (issue Ic5f63aa): `intent critic <lang> --staged` is a no-op for
+# them, and its exit 0 read as an enforced language.
+ONDEMAND=()
+# The languages that have a headless code critic, from `intent critic
+# --languages`, so the gate keeps no language list of its own. When the binary
+# does not answer, the set stays empty and every served language goes to the
+# critic, as before.
+CRITICS=" "
+critics_out="$(intent critic --languages 2>/dev/null)" && while IFS= read -r critic_line; do
+  case "$critic_line" in
+    [a-z]*) CRITICS="${CRITICS}${critic_line} " ;;
+  esac
+done <<<"$critics_out"
 # Rules the PROJECT disabled in `.intent_critic.yml`, summed across languages
 # (ruled by hv 2026-09-22). A COUNT and not the ids, matching what
 # the critic itself prints: the ids are in the project's own committed file and
@@ -604,16 +620,20 @@ DISABLED_RULES=0
 # the iteration safe across bash versions.
 if [ "${#LANGS[@]}" -gt 0 ]; then
   for lang in "${LANGS[@]}"; do
-    # Every declared language is dispatched; `intent critic` owns the code-vs-
-    # prose classification (its single registry). A prose / on-demand discipline
-    # (author, content) returns a clean exit 0 no-op, so it neither blocks nor
-    # prints a spurious "fail-open" line -- the gate needs no language knowledge
-    # of its own, and cannot drift from the CLI.
-    # Capture output so we can surface findings only when present.
+    # `intent critic` owns the code-vs-prose classification (its single
+    # registry), and `--languages` is its answer, so the gate needs no language
+    # knowledge of its own and cannot drift from the CLI. A served language
+    # with no headless code critic is on demand: it is not dispatched, because
+    # the critic's no-op exit 0 would count it as enforced (issue Ic5f63aa).
     if [ "$SERVED" != " " ] && [ "${SERVED#* "$lang" }" = "$SERVED" ]; then
       NOPACK+=("$lang")
       continue
     fi
+    if [ "$CRITICS" != " " ] && [ "${CRITICS#* "$lang" }" = "$CRITICS" ]; then
+      ONDEMAND+=("$lang")
+      continue
+    fi
+    # Capture output so we can surface findings only when present.
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?
     case "$rc" in 0|1|3) CHECKED+=("$lang") ;; esac
@@ -741,11 +761,16 @@ fi
 if [ "${#NOPACK[@]}" -gt 0 ]; then
   echo "intent critic gate: skipped ${NOPACK[*]}: this build has no rule pack for it, so no critic can check it. The commit is not blocked. \`intent lang list\` names the languages this build can check." >&2
 fi
+# An on-demand discipline is named on its own, on the line that counts the
+# declared languages. So whenever `intent critic --languages` answers, that
+# count includes no check that did not run (issue Ic5f63aa).
+ondemand_note=""
+[ "${#ONDEMAND[@]}" -gt 0 ] && ondemand_note="; on demand, not checked by this gate: ${ONDEMAND[*]}"
 if [ "${#LANGS[@]}" -eq 0 ]; then
   :
 elif [ "${#UNENFORCED[@]}" -gt 0 ]; then
   echo "" >&2
-  echo "intent critic gate: ${#UNENFORCED[@]} of ${#LANGS[@]} declared language(s) went UNENFORCED (${UNENFORCED[*]})." >&2
+  echo "intent critic gate: ${#UNENFORCED[@]} of ${#LANGS[@]} declared language(s) went UNENFORCED (${UNENFORCED[*]})${ondemand_note}." >&2
   echo "  the commit is NOT blocked by this -- the gate fails open on its own breakage by design." >&2
   echo "  nothing else reports this, so if it persists the gate is not protecting what you think it is." >&2
 else
@@ -755,7 +780,7 @@ else
   # one that makes that claim, so it is the one that owes its denominator.
   checked_names="none"
   [ "${#CHECKED[@]}" -gt 0 ] && checked_names="${CHECKED[*]}"
-  echo "intent critic gate: ${#CHECKED[@]} of ${#LANGS[@]} declared language(s) enforced (${checked_names}), ${DISABLED_RULES} rule(s) disabled by this project." >&2
+  echo "intent critic gate: ${#CHECKED[@]} of ${#LANGS[@]} declared language(s) enforced (${checked_names}), ${DISABLED_RULES} rule(s) disabled by this project${ondemand_note}." >&2
 fi
 
 # ---- Estate health: `intent doctor` ----

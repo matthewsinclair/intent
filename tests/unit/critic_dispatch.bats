@@ -110,21 +110,28 @@ run_hook_inner() {
   bash "$HOOK"
 }
 
+# A dispatch has the shape `critic <lang> --staged`. The gate also reads its
+# roster with `critic --languages`, which is not a dispatch (issue Ic5f63aa).
+DISPATCH='^critic [a-z][a-z]* --staged '
+
 @test "hook dispatches one critic invocation per declared language" {
-  run run_hook_with_languages '["elixir","rust"]'
+  local langs='["elixir","rust"]'
+  run run_hook_with_languages "$langs"
   [ "$status" -eq 0 ]
   assert_file_exists "$CALL_LOG"
   grep -q '^critic elixir --staged --severity-min ' "$CALL_LOG" \
     || fail "no critic elixir invocation: $(cat "$CALL_LOG")"
   grep -q '^critic rust --staged --severity-min ' "$CALL_LOG" \
     || fail "no critic rust invocation: $(cat "$CALL_LOG")"
-  [ "$(grep -c '^critic ' "$CALL_LOG")" -eq 2 ]
+  [ "$(grep -c "$DISPATCH" "$CALL_LOG")" -eq "$(jq length <<<"$langs")" ] \
+    || fail "not one dispatch per declared language: $(cat "$CALL_LOG")"
 }
 
 @test "hook with empty languages runs no critic and exits 0" {
   run run_hook_with_languages '[]'
   [ "$status" -eq 0 ]
-  [ ! -f "$CALL_LOG" ] || [ "$(grep -c '^critic ' "$CALL_LOG" || true)" -eq 0 ]
+  [ ! -f "$CALL_LOG" ] || [ "$(grep -c "$DISPATCH" "$CALL_LOG" || true)" -eq 0 ] \
+    || fail "a critic ran with no language declared: $(cat "$CALL_LOG")"
 }
 
 @test "hook skips a declared language with no rule pack and says why (issue Idee5e89)" {

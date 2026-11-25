@@ -65,10 +65,15 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     "hooks/pre-commit.sh",
     "critic",
     Policy::Invokes(
-      "The gate loop. 0 = clean, **1 = findings, BLOCKS THE COMMIT**, 2+ = invocation error and fails open. \
+      "The gate loop. 0 = clean, **1 = findings, BLOCKS THE COMMIT**, **3 = a rule the project armed \
+       could not be enforced here, BLOCKS THE COMMIT**, and any other code fails open, loudly, because \
+       the gate does not know what it means. \
        Issue 0038 is this row: every v3 failure took 1, so an unimplemented command read as findings that \
        did not exist. Issue 0045 is this row too, from the other side -- anything answering 1 for a \
-       PROJECT-STATE reason blocks every commit, which is why `critic` must not be built on `Facade::open`.",
+       PROJECT-STATE reason blocks every commit, which is why `critic` must not be built on `Facade::open`. \
+       Before the loop, `intent critic --languages` names the languages that have a headless code critic. \
+       When it answers non-zero or names no language, the set stays empty and every served language goes \
+       to the critic as before, so this read never blocks a commit (issue Ic5f63aa).",
     ),
   ),
   (

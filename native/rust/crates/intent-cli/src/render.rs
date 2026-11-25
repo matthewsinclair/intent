@@ -17020,10 +17020,12 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
     .ok_or_else(|| Failure::Unavailable("error: a language is required".into()))?;
 
   // **`author` AND `content` ARE A CLEAN NO-OP, NOT AN ERROR.** Prose critique
-  // is on-demand via the `critic-prose` subagent; the gate dispatches every
-  // declared language and must not print a spurious refusal for the two that
-  // legitimately have no headless runner (issue 0003 -- the gate carries no
-  // language knowledge of its own and cannot drift from this registry).
+  // is on-demand via the `critic-prose` subagent. The gate takes the languages
+  // it dispatches from `--languages` above, so it does not run these two (issue
+  // Ic5f63aa). A caller that does run one, eg a gate whose `--languages` read
+  // gave no list, must not get a spurious refusal for a language that has no
+  // headless runner (issue 0003: the gate carries no language knowledge of its
+  // own and cannot drift from this registry).
   if lang == "author" || lang == "content" {
     return Ok(());
   }

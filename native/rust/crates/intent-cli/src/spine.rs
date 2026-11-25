@@ -624,12 +624,15 @@ fn positionals_of(mut cmd: Command, entry: &Entry, only: Option<&[String]>) -> C
     // `--languages`, which `render::critic` answers on its first line before a
     // language is read -- and clap refused the invocation before that line
     // could run, so a flag `--help` advertises as answering-and-exiting exited
-    // 1 and printed nothing. `bin/.devbin/lib/cmd/check` is the one consumer
-    // and it fails CLOSED, naming the cause. **The canon pre-commit gate does
-    // NOT use this flag and was never opened by it** -- it reads the languages
-    // array from config with `jq` and dispatches the positional spelling. The
-    // measurement, and the fleet-wide claim it corrects, are in
-    // `flag_reachability.rs` beside the test rather than restated here.
+    // 1 and printed nothing. `bin/.devbin/lib/cmd/check` was the one consumer
+    // then, and it fails CLOSED, naming the cause. **The canon pre-commit gate
+    // did NOT use this flag then and was never opened by it**: it read the
+    // languages array from config with `jq` and dispatched the positional
+    // spelling. Since issue Ic5f63aa the gate reads this flag to tell a code
+    // language from an on-demand one, and a flag that gives no list leaves it
+    // on that old dispatch. The measurement, and the fleet-wide claim it
+    // corrects, are in `flag_reachability.rs` beside the test rather than
+    // restated here.
     //
     // **THE TWO CALLS ARE EXCLUSIVE, AND THAT IS clap's RULE RATHER THAN A
     // PREFERENCE HERE.** `.required(true)` beside `required_unless_present` is

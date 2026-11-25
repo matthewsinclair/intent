@@ -1149,14 +1149,17 @@ fn the_check_separates_a_read_id_from_an_unread_one() {
 /// **The claim reaching this file was that the canon pre-commit hook lists a
 /// project's languages with this flag, gets the refusal, and so fails OPEN
 /// fleet-wide. It does not, and the correction matters more than the fix.**
-/// `lib/templates/hooks/pre-commit.sh` reads the `languages` array straight out
-/// of `intent/.config/config.json` with `jq` and dispatches
+/// `lib/templates/hooks/pre-commit.sh` read the `languages` array straight out
+/// of `intent/.config/config.json` with `jq` and dispatched
 /// `intent critic <lang> --staged` per language -- the positional spelling,
-/// which works. `--languages` appears NOWHERE in the shipped install
+/// which works. `--languages` appeared NOWHERE in the shipped install
 /// (`grep -rn -- '--languages'` over `libexec/`, positive-controlled against a
 /// string known to be there). The fleet's gates were never opened by this.
+/// Since issue Ic5f63aa the hook reads `--languages` to tell a code language
+/// from an on-demand one. A binary whose flag gives no list leaves the hook on
+/// its old dispatch, so the flag's refusal still opens no gate.
 ///
-/// The one real consumer is `bin/.devbin/lib/cmd/check`, and it fails CLOSED:
+/// The one real consumer was `bin/.devbin/lib/cmd/check`, and it fails CLOSED:
 /// it captures the exit code and dies naming the cause. So the blast radius is
 /// the devbin estates, loudly, and the defect that remains is the plain one --
 /// **`--help` advertises a flag that does not work.** That is worth fixing on
