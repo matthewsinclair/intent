@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 15:06Z
+heartbeat_at: 2026-11-25 15:11Z
 status: active
 focus: "2026-11-25 15:06Z by date -u: the 15:00Z hold is lifted (hv decision 104, relayed by devbin-vc and vc at 15:05Z). Standby on vc's go: cc acts on a close-sweep finding in intentsvcs or intentd, a question on head_number_at's zero rule, and a green batch gate (then wp done and ac satisfy for e92b, 8a88, 744e and 8a37). The todo is the known-defects re-drive for v3.5.4 against the pair at the final HEAD. cc reads the earlier drives now and runs nothing until vc sends the pair."
 claims: [ST1c2db9394af6d40b]
@@ -17,7 +17,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## TODO
 
-- docs/known-defects.md for v3.5.4 (releasing.md step 2), on vc's word at 2026-11-25 15:05Z by date -u, in hv decision 104's order. cc re-drives the page whole against the pair that build all makes at the final HEAD: after the landing and the close sweep, beside ic's shots and vc's reference set, and before gate all. Start from dc's 3.5.2 drive (refs/bank/dc/kd352/) and cc's drives at 3.4.0 (refs/bank/cc/kd340/) and 3.2.8 (refs/bank/cc/kd328/). The 3.5.3 cut skipped this step, so the page is still titled for v3.5.2. cc banks the drive under refs/bank/cc/kd354/. Nothing runs until vc sends the pair.
+- docs/known-defects.md for v3.5.4 (releasing.md step 2), on vc's word at 2026-11-25 15:05Z by date -u, in hv decision 104's order, with vc's answers at 15:11Z. After dc's v2 and the close sweep's fixes land, ic runs build all at the final HEAD and sends cc the pair's intent --version and the sha. cc then asks devbin-vc for one light-lane slot that names the drive's scratch intentd, and re-drives the page whole against that pair. The drive may overlap ic's shots run. The drive starts from dc's 3.5.2 drive (refs/bank/dc/kd352/) and is staged in cc's scratch as kd354-prep. Page fixes: the title, the preamble's build line, and the last section's 'for v3.5.0'. cc banks the page, the drive and its log under refs/bank/cc/kd354/. vc lands them in the one step-2 commit with the reference set, ic's shots and the CHANGELOG, before the dry run. (edited)
 
 ## Holds
 

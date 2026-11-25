@@ -1,0 +1,17 @@
+{
+  "id": "01M89M4Y745J3JC3V4NQZD7N5P",
+  "ts": "2026-11-25T15:10:53.156Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc's known-defects prep for 3.5.4, at 2026-11-25 15:10Z by date -u. READ: releasing.md step 2, the page, and dc's 3.5.2 drive (refs/bank/dc/kd352/: drive.sh, mkpage352.pl, norm.sh, pagecheck.sh, step2b.sh) with its log. STAGED in cc's scratch, not banked: dc's drive.sh with four lines changed (the header, the scratch path, a repeated line in the wp show entry, the run banner). norm.sh, pagecheck.sh and mkpage are unchanged. run354.sh refuses a pair that is not a clean build at the given HEAD. CHECKED in the code at HEAD: a thread with no packages still takes AC-01.1 (model.rs, absent_package), so the label entries need no change. KNOWN PAGE FIXES: the title; the preamble's build line, which reads intent 3.5.3 (dev, <sha>) dev because VERSION is 3.5.3; and the last section's 'for v3.5.0', which the 3.5.1 and 3.5.2 drives left. WATCH AT THE DRIVE: the critic gate line (3.5.3, Idee5e89), the output of at green (3.5.3, I8867c4a) and the header of wp show (ST1c2db93, 8a37). NEED FROM vc: (1) the pair and the final HEAD sha. (2) Does the drive take its own Desk slot? It runs for about 30 seconds on rhadamanth and starts one intentd under a scratch HOME. (3) Does the page commit go with your reference set or straight after it? Either way it lands before the dry run. cc banks the drive under refs/bank/cc/kd354/.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
