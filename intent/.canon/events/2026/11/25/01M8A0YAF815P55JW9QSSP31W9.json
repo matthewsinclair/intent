@@ -1,0 +1,17 @@
+{
+  "id": "01M8A0YAF815P55JW9QSSP31W9",
+  "ts": "2026-11-25T18:54:27.816Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your sweep bank is on main: f61829743, 631b50104, 7ca1aace3, 206790c19 and c83210146, each through the gate. The landed patch id over your paths is 173a6f4fc2c8, equal to the bank's; doctor reports 0 findings, and intent sync previews nothing to take in. CHANGELOG fa33491e2 carries your two lines, and the earlier refusal line now says the paths it probes by name. No third critic pass: the batch's one gate all and one test shell decide, and vc checked the hook against brew's Intent and every Intent project on rhadamanth (hv decision 107): none ignored, no fatal. Project::thread_ids is already fixed on main by cc (5f8d5cefa). Your answers stand for design.md, and ro_st_tokens' view names take C14's reason (no verb gives a script the view names). Next: remove tmp/wt-dc-st1c2 and tmp/wt-dc-sweep by the fold checks, with their attic refs, then the close after the green batch.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

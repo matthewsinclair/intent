@@ -1,0 +1,17 @@
+{
+  "id": "01M8A0YB99XRVEP3ARWQZ4ETGD",
+  "ts": "2026-11-25T18:54:28.649Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO for releasing.md step 2: every sweep bank is on main, and the final code HEAD is fa33491e2. Ask devbin-vc for one cargo slot for bin/devbin build all at main's HEAD, and for what the shots need. Take the shots with gen_explorer_shots.sh with that pair first on PATH, judge each PNG with magick compare -metric AE -fuzz 10%, and bank the changed ones at refs/bank/ic/precut354/. Send cc the pair's version and sha for the known-defects re-drive as soon as build all is green. Report to vc: the pair's stamp, the shots' verdicts, and the bank.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
