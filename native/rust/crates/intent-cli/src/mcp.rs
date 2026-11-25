@@ -316,8 +316,8 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
         prop.insert(
           "description".into(),
           json!(format!(
-            "an acceptance criterion id, eg AC-0.0 or AC-{}.1",
-            intentsvcs::id::EXAMPLE_WP_HEX
+            "an acceptance criterion id, eg {}",
+            intentsvcs::id::LabelKind::Criterion.examples()
           )),
         );
       }
@@ -326,8 +326,8 @@ fn schema(entry: &Entry, verb: Option<&str>) -> Result<Value, Undeclarable> {
         prop.insert(
           "description".into(),
           json!(format!(
-            "an acceptance test id, eg AT-0.0 or AT-{}.1",
-            intentsvcs::id::EXAMPLE_WP_HEX
+            "an acceptance test id, eg {}",
+            intentsvcs::id::LabelKind::Test.examples()
           )),
         );
       }
@@ -2551,9 +2551,18 @@ mod tests {
   /// ZERO id is a format illustration -- information about the OPERATOR's
   /// project -- while any specific id is information about us, which is the
   /// leak D37 names ("(ST0056 WP-06)" was the real instance). The sweep
-  /// therefore bans specific-looking ids and admits exactly the zero family.
+  /// therefore bans specific-looking ids and admits only the format examples:
+  /// the zero family and the waist's worked example.
   #[test]
   fn no_tracker_id_reaches_a_published_tool() {
+    let heading = intentsvcs::id::WP_HEADING_PREFIX;
+    // The heads the extra below reads: each label kind's head and its dash,
+    // and a package's heading.
+    let heads: Vec<String> = intentsvcs::id::LabelKind::ALL
+      .into_iter()
+      .map(|kind| format!("{}-", kind.head()))
+      .chain([heading.to_string()])
+      .collect();
     let specific = |text: &str| {
       // A record id as a face prints it, of either family, read by the waist
       // (issue 0736), one whole word at a time: a word runs to the next
@@ -2562,7 +2571,7 @@ mod tests {
       // is not information about us.
       if let Some(id) = text
         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
-        .flat_map(|run| match run.strip_prefix("WP-") {
+        .flat_map(|run| match run.strip_prefix(heading) {
           Some(rest) => vec![&run[..run.len() - rest.len() + rest.find('-').unwrap_or(rest.len())]],
           None => run.split('-').collect(),
         })
@@ -2570,25 +2579,38 @@ mod tests {
       {
         return Some(id.to_string());
       }
-      let bytes: Vec<char> = text.chars().collect();
-      // WP-/AC-/AT- followed by any digit sequence containing a nonzero digit
-      // before the next non-id character: the criterion and test labels,
-      // which are no record's id.
-      for i in 0..bytes.len() {
-        for tag in ["WP-", "AC-", "AT-"] {
-          let t: Vec<char> = tag.chars().collect();
-          if bytes[i..].starts_with(&t) {
-            let rest: String = bytes[i + t.len()..]
-              .iter()
-              .take_while(|c| c.is_ascii_digit() || **c == '.')
-              .collect();
-            if rest.chars().any(|c| c.is_ascii_digit() && c != '0') {
-              return Some(format!("{tag}{rest}"));
-            }
-          }
-        }
+      // Where a word starts: the first byte, or a byte after one that is not a
+      // letter or a digit, so a `-` starts a word too (`pre-WP-06`).
+      let bytes = text.as_bytes();
+      let starts: Vec<usize> = (0..bytes.len())
+        .filter(|&i| i == 0 || !bytes[i - 1].is_ascii_alphanumeric())
+        .collect();
+      // A criterion or test label, read by the waist's one reader (ST1c2db93).
+      // Its group is digits or a git-style package's whole stored id, and the
+      // zero family and the worked example are format examples to it.
+      if let Some(label) = starts
+        .iter()
+        .find_map(|&i| intentsvcs::id::label_at(bytes, i).and_then(|end| text.get(i..end)))
+      {
+        return Some(label.to_string());
       }
-      None
+      // This scanner's own extra: a label's head or a package's heading, then
+      // a number, eg `AC-09`, `WP-6` or the `WP-10` of `WP-10a`. That is no
+      // label and no id a face prints, but hand-written prose can leak one. A
+      // number of zeros is a format example, by the waist's rule.
+      starts.iter().find_map(|&i| {
+        let head = heads
+          .iter()
+          .find(|h| bytes[i..].starts_with(h.as_bytes()))?;
+        let from = i + head.len();
+        let digits = bytes[from..]
+          .iter()
+          .take_while(|b| b.is_ascii_digit())
+          .count();
+        let number = text.get(from..from + digits)?;
+        let example = intentsvcs::id::is_example(&format!("{heading}{number}"));
+        (!number.is_empty() && !example).then(|| format!("{head}{number}"))
+      })
     };
     // The detector's own controls: it must SEE a leak and PASS the zero forms.
     assert_eq!(specific("gate ST0056 blocked"), Some("ST0056".into()));
@@ -2603,6 +2625,18 @@ mod tests {
     assert_eq!(specific(&format!("see {issue}.")), Some(issue));
     assert_eq!(specific(&format!("owed by {package}")), Some(package));
     assert_eq!(specific("the ST0056-era rule"), Some("ST0056".into()));
+    // And a label whose group is a git-style package's stored id, which the
+    // digits-only grammar never saw: this origin's group opens with a letter.
+    // The worked examples are format examples, a zero group with a real
+    // sequence is a label, and so is a bare number behind a head (ST1c2db93).
+    let label = intentsvcs::id::regrouped(
+      "AC-01.2",
+      intentsvcs::id::WpId::from_origin("a planted git-style package"),
+    );
+    assert_eq!(specific(&format!("per {label}")), Some(label));
+    assert_eq!(specific(&intentsvcs::id::LabelKind::Test.examples()), None);
+    assert_eq!(specific("per AC-00.1"), Some("AC-00.1".into()));
+    assert_eq!(specific("per AC-09"), Some("AC-09".into()));
     // The waist's own form sentences are worked examples, not our records.
     for form in [
       intentsvcs::id::THREAD_ID_FORM,
@@ -2615,7 +2649,7 @@ mod tests {
       let published = format!("{} {} {}", t.name, t.description, t.input_schema);
       if let Some(leak) = specific(&published) {
         panic!(
-          "tool `{}` publishes an Intent tracker id (`{leak}`): D37 -- a zero id is a format            example, a specific one is information about us",
+          "tool `{}` publishes an Intent tracker id (`{leak}`): D37 -- a zero id is a format example, a specific one is information about us",
           t.name
         );
       }

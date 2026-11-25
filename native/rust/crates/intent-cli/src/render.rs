@@ -9963,8 +9963,7 @@ fn print_versions(faces: &[intentsvcs::faces::SchemaFace]) {
   }
 }
 
-/// `ST0000` or `ST0000/03`.
-/// The close gate's verdict for a thread or `<ST>/<NN>`, printed as the gate's
+/// The close gate's verdict for a thread or one of its packages, printed as the gate's
 /// own line: `ac gate` and `wp gate` both answer through here, so the two doors
 /// cannot drift (issue 0310).
 fn gate_verdict(target: &str) -> Result<(), Failure> {

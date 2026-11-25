@@ -1909,8 +1909,9 @@ mod tests {
   /// move a cursor nothing draws.
   #[test]
   fn a_rows_pane_draws_its_cursor_and_scrolls_to_keep_it_on_screen() {
+    let member = |i: usize| format!("m{i:02}");
     let members: Vec<Row> = (0..30)
-      .map(|i| Row::new(format!("m{i:02}"), "member", "text"))
+      .map(|i| Row::new(member(i), "member", "text"))
       .collect();
     let rows = vec![
       Row::named("title", "title", "ST0056", "text"),
@@ -1924,13 +1925,17 @@ mod tests {
       Pane::Detail,
       "Tab did not reach the rows pane"
     );
-    for _ in 0..20 {
+    let steps = 20;
+    for _ in 0..steps {
       app.on_key(key(KeyCode::Down), &rows);
     }
-    assert_eq!(app.detail_focus.map(Focus::index), Some(20));
+    assert_eq!(app.detail_focus.map(Focus::index), Some(steps));
     let screen = super::super::run::screen_for(&app, &rows, 60);
     let painted = screen.painted(0, 24);
-    let Some((line, ink)) = painted.iter().find(|(line, _)| line.starts_with("m20")) else {
+    let Some((line, ink)) = painted
+      .iter()
+      .find(|(line, _)| line.starts_with(&member(steps)))
+    else {
       panic!("the pane never scrolled to the cursor's row: {painted:#?}");
     };
     assert!(
@@ -2464,12 +2469,15 @@ mod tests {
 
   /// A list long enough that a page is a real distance rather than the whole
   /// thing -- a fixture that fits on one screen cannot tell a page from an end.
-  fn long_list(n: usize) -> Vec<Row> {
+  /// The waist makes each id from its ordinal (ST1c2db93 efe0), so the fixture
+  /// spells no id's width.
+  fn long_list(n: u32) -> Vec<Row> {
     (0..n)
       .map(|i| {
-        Row::new(format!("ST{i:04}"), format!("thread {i}"), "button").opening(View::Item {
+        let id = intentsvcs::id::ThreadId::from_ordinal(i).expect("an ordinal thread id");
+        Row::new(id.shown(), format!("thread {i}"), "button").opening(View::Item {
           kind: "thread".into(),
-          id: format!("ST{i:04}"),
+          id: id.stored(),
         })
       })
       .collect()
@@ -2487,29 +2495,31 @@ mod tests {
   #[test]
   fn page_and_home_and_end_move_the_body_list() {
     let rows = long_list(50);
+    let last = rows.len() - 1;
     let mut app = App::explore();
     app.point_at(rows.len());
-    app.page_rows = 10;
+    let page = 10;
+    app.page_rows = page;
 
     app.on_key(key(KeyCode::PageDown), &rows);
     assert_eq!(
       app.focus.map(Focus::index),
-      Some(10),
+      Some(page),
       "PageDown did not move a page"
     );
     app.on_key(key(KeyCode::PageDown), &rows);
-    assert_eq!(app.focus.map(Focus::index), Some(20));
+    assert_eq!(app.focus.map(Focus::index), Some(2 * page));
     app.on_key(key(KeyCode::PageUp), &rows);
     assert_eq!(
       app.focus.map(Focus::index),
-      Some(10),
+      Some(page),
       "PageUp did not move a page back"
     );
 
     app.on_key(key(KeyCode::End), &rows);
     assert_eq!(
       app.focus.map(Focus::index),
-      Some(49),
+      Some(last),
       "End did not reach the last row"
     );
     app.on_key(key(KeyCode::Home), &rows);
@@ -2532,7 +2542,7 @@ mod tests {
     app.on_key(key(KeyCode::PageDown), &rows);
     assert_eq!(
       app.focus.map(Focus::index),
-      Some(49),
+      Some(last),
       "PageDown at the bottom wrapped instead of clamping"
     );
   }
@@ -2558,7 +2568,7 @@ mod tests {
     );
     // Home and End need no viewport, so they still work.
     app.on_key(key(KeyCode::End), &rows);
-    assert_eq!(app.focus.map(Focus::index), Some(49));
+    assert_eq!(app.focus.map(Focus::index), Some(rows.len() - 1));
   }
 
   /// **HOME AND END ARE GUARDED KEYS: the list while the composer is empty, the
@@ -2578,7 +2588,7 @@ mod tests {
     app.on_key(key(KeyCode::End), &rows);
     assert_eq!(
       app.focus.map(Focus::index),
-      Some(49),
+      Some(rows.len() - 1),
       "End on an empty composer must move the list"
     );
 
