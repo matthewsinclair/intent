@@ -1,0 +1,16 @@
+{
+  "id": "01M89SASZXS33X0G2QN8KY47VG",
+  "ts": "2026-11-25T16:41:28.317Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 176,
+    "text": "ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 (refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, report at refs/bank/dc/st1c2db93/v2-report) is on main as dfaab8215 to bfc1b908b, landed by vc on dc's proof. wp done waits for the batch gate."
+  }
+}

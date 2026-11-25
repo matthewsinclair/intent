@@ -1,0 +1,16 @@
+{
+  "id": "01M89SAW6A51982B3P2W40CQG3",
+  "ts": "2026-11-25T16:41:30.570Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 178,
+    "text": "ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). Every edit is made and saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f; the same edits sit in tmp/wt-dc-sweep). Next: apply it in tmp/wt-dc-st1c2, re-attach the changed ST0056 parity tools so their canon records match, commit in five groups (the gate needs a built tree), remove tmp/wt-dc-sweep with its attic ref, run critic-rust and critic-shell, one clippy on the Desk, bank refs/bank/dc/st1c2db93/sweep/v1, report. Size L."
+  }
+}

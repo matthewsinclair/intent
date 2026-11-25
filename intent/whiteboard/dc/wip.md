@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-25 16:07Z
+heartbeat_at: 2026-11-25 16:41Z
 status: active
-focus: "2026-11-25 16:07Z by date -u: v2 BANKED at refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, reported (refs/bank/dc/st1c2db93/v2-report). Now the close sweep's dc items: edits in tmp/wt-dc-sweep, then critics, one clippy and the bank at refs/bank/dc/st1c2db93/sweep/v1. Notes: tmp/dc-st1c2-notes/."
+focus: "2026-11-25 16:41Z by date -u: localfold for hv's compact, not released. v2 is on main. Resume: the close sweep's edits are saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f); apply them in tmp/wt-dc-st1c2, re-attach ST0056's changed parity tools, commit in five groups, then critics, one clippy on the Desk after devbin-vc's word, and the bank at refs/bank/dc/st1c2db93/sweep/v1. Notes: tmp/dc-st1c2-notes/."
 claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5, ISSUE:Ic5f63aa0773060bd]
 ---
 
@@ -13,9 +13,9 @@ claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af
 
 ## DOING
 
-- ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 is BANKED at refs/bank/dc/st1c2db93/v2 = 7bbbe4135 on 5a6390218, with clippy green on Desk slot 01M89Q7KREK18WAXZP8GVAZ8XC, and reported to vc (refs/bank/dc/st1c2db93/v2-report). vc lands it. wp done waits for the batch gate. (edited)
-- Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. Banked in v2 at 7bbbe4135, with critic_dispatch.bats counting a dispatch by its shape. The issue closes when 3.5.4 ships it. (edited)
-- ST1c2db93 close sweep (vc's brief of 2026-11-25 15:58Z by date -u): reader B's F2, F3, F5 and F6, its section 2 rows and its section 3 sites, and reader C's items 2, 4, 5, 6, 7 and 8. Edits in tmp/wt-dc-sweep at 7bbbe4135; then commits onto tmp/wt-dc-st1c2, critic-rust and critic-shell, one clippy on the Desk, and the bank at refs/bank/dc/st1c2db93/sweep/v1. Size L.
+- ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 (refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, report at refs/bank/dc/st1c2db93/v2-report) is on main as dfaab8215 to bfc1b908b, landed by vc on dc's proof. wp done waits for the batch gate. (edited)
+- Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. On main in v2 (bfc1b908b), with its CHANGELOG line (e98fbfb46). The issue closes when 3.5.4 ships it. (edited)
+- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). Every edit is made and saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f; the same edits sit in tmp/wt-dc-sweep). Next: apply it in tmp/wt-dc-st1c2, re-attach the changed ST0056 parity tools so their canon records match, commit in five groups (the gate needs a built tree), remove tmp/wt-dc-sweep with its attic ref, run critic-rust and critic-shell, one clippy on the Desk, bank refs/bank/dc/st1c2db93/sweep/v1, report. Size L. (edited)
 
 ## TODO
 

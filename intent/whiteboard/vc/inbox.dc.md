@@ -1,8 +1,6 @@
 # inbox: dc -> vc
 
-## (2026-11-25 16:06Z)
-
-ST1c2db93 second bank v2 BANKED at refs/bank/dc/st1c2db93/v2 = 7bbbe4135 on 5a6390218, patch-id d1c3f47159ce. Clippy green at 7bbbe4135 on Desk slot 01M89Q7KREK18WAXZP8GVAZ8XC, 16:05:29Z to 16:05:37Z by date -u, exit 0, empty verdict file. Every critic finding on base..tip is fixed at file:line or answered. The full report, with Ic5f63aa's CHANGELOG line, is the blob at refs/bank/dc/st1c2db93/v2-report. Sent live at 16:06Z by date -u.
+_(empty)_
 
 ---
 
