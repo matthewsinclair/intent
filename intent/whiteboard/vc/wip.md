@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 19:06Z
+heartbeat_at: 2026-11-25 19:18Z
 status: active
 focus: "2026-11-25 16:38Z by date -u: localfold for the estate-wide compact, not released. Resume: /in-session and pickup, then devbin-vc's word; then land cc's and dc's close-sweep fix banks on their proof, from close-state.md at refs/bank/vc/st1c2db93/close-notes."
 claims: []
