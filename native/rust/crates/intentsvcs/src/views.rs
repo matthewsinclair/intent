@@ -2115,9 +2115,9 @@ pub fn issue(issue: &Issue, ctx: &RenderContext<'_>) -> String {
 ///
 /// **The single answer, consulted by the write path and the diagnostic path
 /// alike.** `Facade::projection` uses it to decide what to WRITE and
-/// [`skew`] uses it to decide what a missing file MEANS; two copies would let
-/// those two disagree about whether a view should exist, which is exactly the
-/// divergence `.intentfiles` exists to settle.
+/// [`skew_against`] uses it to decide what a missing file MEANS; two copies
+/// would let those two disagree about whether a view should exist, which is
+/// exactly the divergence `.intentfiles` exists to settle.
 ///
 /// **THE PATH IS READ BY [`Project::owner_of`], AND CANON SAYS WHETHER THE
 /// RECORD IT NAMES EXISTS.** Neither half spells the layout or an id's pattern,
@@ -2164,11 +2164,11 @@ pub enum Undeclared {
 /// inside an `is_some_and` or an `&&` is `false` -- which reads as *this view's
 /// owner is declared*, the one answer that is never safe to assume. The
 /// projection carried that sentence and wrote 284 views against a manifest
-/// declaring none; `skew`'s absent-view arm carried it and reported all 284 as
-/// missing, at rc=1, on a tree `organize` had just made correct. **Neither was
-/// found by a fixture**: every arm that reaches an issue does so through
-/// `issues add`, which declares it, so no fixture built that way can hold an
-/// undeclared issue -- and every one of the estate's was.
+/// declaring none; the skew check's absent-view arm carried it and reported
+/// all 284 as missing, at rc=1, on a tree `organize` had just made correct.
+/// **Neither was found by a fixture**: every arm that reaches an issue does so
+/// through `issues add`, which declares it, so no fixture built that way can
+/// hold an undeclared issue -- and every one of the estate's was.
 ///
 /// `None` here means nothing is undeclared: either the artefact is declared, or
 /// the path is a project-level view -- `todo.md`, `steel_threads.md` -- which
@@ -2775,30 +2775,18 @@ pub fn write_all(
 }
 
 /// The skew check (AC-03.4): regenerate every view and name any that differs
-/// from what is on disk.
+/// from what is on disk. doctor runs it.
 ///
 /// A hand-edited view is CAUGHT, never silently outvoted. The distinction
 /// matters: `write_all` would overwrite the edit without a word, and the
 /// person who made it would have no way to know their change was discarded.
-/// `doctor` runs this; the migrator runs it before it converges.
 ///
-/// With no record of what the store last rendered, every difference is
-/// counted, and every view is one a commit carries; [`skew_against`] is the
-/// same check given both answers (issue 0630, ST0096).
-pub fn skew(
-  project: &Project,
-  canon: &Canon,
-  ctx: &RenderContext<'_>,
-  realised: &crate::intentfiles::Realised,
-) -> Vec<Finding> {
-  skew_against(project, canon, ctx, realised, &|_, _| false, &|_| false)
-}
-
-/// [`skew`], given a way to ask whether a view's bytes are the store's last
-/// render of it: `last_render(path, sha256)`, the path project-relative (issue
-/// 0630). A view on disk that is that render, byte for byte, is a write still
-/// landing, and it is reported as store-stale rather than counted as a hand
-/// edit.
+/// **GIVEN A WAY TO ASK WHETHER A VIEW'S BYTES ARE THE STORE'S LAST RENDER OF
+/// IT**: `last_render(path, sha256)`, the path project-relative (issue 0630). A
+/// view on disk that is that render, byte for byte, is a write still landing,
+/// and it is reported as store-stale rather than counted as a hand edit. A
+/// caller with no record of what the store last rendered answers false, and
+/// then every difference is counted.
 ///
 /// **AND GIVEN WHICH VIEWS NO COMMIT CARRIES**: `own_render(path)`, the path
 /// project-relative, is true for an aggregate view git does not track (ST0096,
@@ -2806,16 +2794,21 @@ pub fn skew(
 /// of its store, as `intent/.cache/` is, and a fresh clone has none, so it is
 /// shown when it is missing or differs from the render, with the verb that
 /// renders it, and never counted: the commit gate refuses what a commit
-/// carries, and a commit carries it neither way.
+/// carries, and a commit carries it neither way. A caller that knows of no such
+/// view answers false, and then every view is one a commit carries.
+///
+/// **`format` IS THE CANON FORMAT THE CALLER READ `realised` IN** (ST1c2db93
+/// 8a88), so the realisation set and the words that name its realiser come
+/// from one read. The check does not read the format itself.
 pub fn skew_against(
   project: &Project,
   canon: &Canon,
   ctx: &RenderContext<'_>,
+  format: crate::canon_format::CanonFormat,
   realised: &crate::intentfiles::Realised,
   last_render: &dyn Fn(&str, &str) -> bool,
   own_render: &dyn Fn(&str) -> bool,
 ) -> Vec<Finding> {
-  let format = crate::intentfiles::reported_format(project);
   let words = crate::intentfiles::words(project, format);
   let realised_by = words.realiser();
   let earlier = EarlierRenders::new(project, canon, ctx);

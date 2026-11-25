@@ -381,7 +381,7 @@ fn assemble(
   // **That state is AC-11.4's, not a hole** -- `organize` (preview) reports it
   // as to-remove-and-blocked with every pre-existing file intact, driven on a
   // fixture 2026-08-27: `0 to remove (2 blocked)`. And a STALE undeclared view
-  // is still caught: `views::skew` walks `render_all` over all canon and
+  // is still caught: `views::skew_against` walks `render_all` over all canon and
   // consults `Realised` only in its file-ABSENT arm, so an undeclared file that
   // differs from the model reports `view-skew` -- driven on the same fixture,
   // against a control where the identical undeclared thread with a CURRENT file

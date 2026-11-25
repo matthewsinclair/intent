@@ -21,16 +21,38 @@ fn canon() -> Canon {
   }
 }
 
+/// The skew check as these tests ask it: with no record of what the store last
+/// rendered and no view that a commit leaves out, so every difference counts.
+/// doctor asks the same door, [`views::skew_against`], with both answers.
+fn skew(
+  project: &intentsvcs::project::Project,
+  canon: &Canon,
+  ctx: &views::RenderContext<'_>,
+  format: intentsvcs::canon_format::CanonFormat,
+  realised: &intentsvcs::intentfiles::Realised,
+) -> Vec<intentsvcs::finding::Finding> {
+  views::skew_against(
+    project,
+    canon,
+    ctx,
+    format,
+    realised,
+    &|_, _| false,
+    &|_| false,
+  )
+}
+
 #[test]
 fn freshly_written_views_have_no_skew() {
   let fx = Fixture::new();
   let project = fx.project();
   views::write_all(&project, &canon(), &ctx()).expect("write");
 
-  let findings = views::skew(
+  let findings = skew(
     &project,
     &canon(),
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   );
   assert!(
@@ -51,10 +73,11 @@ fn a_hand_edited_view_is_caught_and_named() {
   );
   fx.write_file("intent/todo.md", &edited);
 
-  let findings = views::skew(
+  let findings = skew(
     &project,
     &canon(),
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   );
   assert_eq!(findings.len(), 1, "exactly the edited file: {findings:?}");
@@ -81,10 +104,11 @@ fn a_single_character_edit_is_caught() {
     &original.replacen("Steel Threads", "Steel threads", 1),
   );
 
-  let findings = views::skew(
+  let findings = skew(
     &project,
     &canon(),
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   );
   assert_eq!(findings.len(), 1);
@@ -98,10 +122,11 @@ fn a_missing_view_is_reported_as_skew() {
   views::write_all(&project, &canon(), &ctx()).expect("write");
   std::fs::remove_file(fx.path("intent/todo.md")).expect("rm");
 
-  let findings = views::skew(
+  let findings = skew(
     &project,
     &canon(),
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   );
   assert_eq!(findings.len(), 1);
@@ -129,10 +154,11 @@ fn a_title_change_skews_exactly_the_views_that_carry_the_title() {
   let mut changed = canon();
   changed.threads[0].title = "Intent v3.0.0 -- retitled".to_string();
 
-  let mut files: Vec<String> = views::skew(
+  let mut files: Vec<String> = skew(
     &project,
     &changed,
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   )
   .into_iter()
@@ -161,10 +187,11 @@ fn a_status_change_skews_the_index() {
   changed.threads[0].status = intentsvcs::model::ThreadStatus::Completed;
   changed.threads[0].completed = Some("2026-08-15".to_string());
 
-  let files: Vec<String> = views::skew(
+  let files: Vec<String> = skew(
     &project,
     &changed,
     &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
     &intentsvcs::intentfiles::Realised::NothingSaid,
   )
   .into_iter()
@@ -216,7 +243,13 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
   // them. The views it still has on disk, byte for byte their render, are
   // named as unrealised (issue 0707): shown, and never counted.
   let declared_none = Realised::Declared(std::collections::BTreeSet::new());
-  let findings = views::skew(&project, &canon(), &ctx(), &declared_none);
+  let findings = skew(
+    &project,
+    &canon(),
+    &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
+    &declared_none,
+  );
   let removed = ["intent/st/ST0056/info.md", "intent/st/ST0056/acceptance.md"];
   assert!(
     findings
@@ -240,7 +273,13 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
     .into_iter()
     .collect(),
   );
-  let findings = views::skew(&project, &canon(), &ctx(), &declared_st0056);
+  let findings = skew(
+    &project,
+    &canon(),
+    &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
+    &declared_st0056,
+  );
   // Counted findings only: a view of another record the manifest leaves
   // unrealised is named beside them, and is not what this arm is about.
   let files: Vec<&str> = findings
@@ -279,7 +318,13 @@ fn an_absent_or_unreadable_manifest_keeps_every_view_in_scope() {
   std::fs::remove_file(project.root().join("intent/st/ST0056/info.md")).expect("remove");
 
   for state in [Realised::NothingSaid, Realised::Unreadable] {
-    let findings = views::skew(&project, &canon(), &ctx(), &state);
+    let findings = skew(
+      &project,
+      &canon(),
+      &ctx(),
+      intentsvcs::intentfiles::reported_format(&project),
+      &state,
+    );
     assert_eq!(
       findings.len(),
       1,
@@ -397,7 +442,13 @@ fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
       .into_iter()
       .collect(),
   );
-  let findings = views::skew(&project, &canon, &ctx(), &thread_only);
+  let findings = skew(
+    &project,
+    &canon,
+    &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
+    &thread_only,
+  );
   assert!(
     findings.is_empty(),
     "an undeclared issue's view is absent by design, exactly as a thread's is: {findings:?}"
@@ -411,7 +462,13 @@ fn an_issues_absent_view_is_silent_only_where_the_manifest_says_undeclared() {
     .into_iter()
     .collect(),
   );
-  let findings = views::skew(&project, &canon, &ctx(), &with_the_issue);
+  let findings = skew(
+    &project,
+    &canon,
+    &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
+    &with_the_issue,
+  );
   assert_eq!(
     findings.len(),
     1,
@@ -449,7 +506,13 @@ fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
       .into_iter()
       .collect(),
   );
-  let findings = views::skew(&project, &canon, &ctx(), &thread_only);
+  let findings = skew(
+    &project,
+    &canon,
+    &ctx(),
+    intentsvcs::intentfiles::reported_format(&project),
+    &thread_only,
+  );
   assert_eq!(findings.len(), 1, "{findings:?}");
   assert_eq!(findings[0].file, "intent/issues/0021.md");
   assert_eq!(findings[0].class, FindingClass::ViewSkew);
@@ -506,7 +569,13 @@ fn a_skewed_unrealised_view_names_what_realises_it_in_each_format() {
       std::fs::write(&path, format!("{text}\nsomeone typed this by hand\n")).expect("edit");
     }
     let nothing = Realised::Declared(std::collections::BTreeSet::new());
-    views::skew(&project, &canon, &ctx(), &nothing)
+    skew(
+      &project,
+      &canon,
+      &ctx(),
+      intentsvcs::intentfiles::reported_format(&project),
+      &nothing,
+    )
   };
   // What a finding says and the one remedy it names (issue 0740): the hydrate
   // verb is a remedy, and the issue's realisation a fact of its detail.

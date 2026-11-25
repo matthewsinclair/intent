@@ -1811,7 +1811,7 @@ fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Fin
 /// on disk, by moniker.
 ///
 /// **A NODE NOT YET MIGRATED IS LEFT OUT ON BOTH SIDES**, for the reason
-/// `views::skew` skips it: its markdown is still the board, so it has no
+/// `views::skew_against` skips it: its markdown is still the board, so it has no
 /// `board.json` to be behind. Each node is diffed on its own so the finding
 /// can name it.
 fn stale_boards(held: &[Board], on_disk: &[Board]) -> Vec<String> {
@@ -2231,7 +2231,15 @@ fn file_checks(
     aggregate(rel)
       && matches!(tracked_views, Ok(Some(tracked)) if !tracked.iter().any(|path| path == rel))
   };
-  let skew = views::skew_against(project, canon, ctx, &realised, &last_render, &own_render);
+  let skew = views::skew_against(
+    project,
+    canon,
+    ctx,
+    format,
+    &realised,
+    &last_render,
+    &own_render,
+  );
   if let Some(Err(cause)) = after.get() {
     report.findings.push(Finding::new(
       "intent/.cache/intent.db",
