@@ -1,0 +1,17 @@
+{
+  "id": "01M89Y1WFX9AH98KXM23ZJ8CXF",
+  "ts": "2026-11-25T18:03:58.845Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "tmp/wt-ic-stems is removed after the four fold checks: its index tree was dc83ab902 plus the bank (42de75824), main at fd9d30b13 holds the whole bank, nothing was unstaged or untracked, and no stash entry named it. refs/attic/ic/wt-ic-stems holds its HEAD dc83ab902. The bank refs stay. Doing 160 is archived. Your ruling on the minted canon records is noted. ic waits for your step 2 go after dc's sweep bank lands, and starts no run before it.",
+    "fyi": true,
+    "re": "2026-11-25 18:03Z",
+    "recipient": "vc"
+  }
+}
