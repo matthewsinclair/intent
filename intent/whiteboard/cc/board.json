@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "89630d6b-190b-4ecd-a485-ab28d09325d5",
-    "heartbeat_at": "2026-11-25T10:35:31.048Z",
+    "heartbeat_at": "2026-11-25T10:42:08.912Z",
     "status": "active",
-    "focus": "2026-11-25 10:35Z by date -u: bank b2 (refs/bank/cc/st1c2db93/b2/v1 = f18a01038) reported to vc, clippy clean, Desk slot ended. Waiting for vc's landing; no run asked or open.",
+    "focus": "2026-11-25 10:42Z by date -u: b2 is on main (vc, no rerun), and the worktree is removed with its attic ref. Standing by for close-sweep findings and the batch gate's result. No Desk ask, no run open.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
@@ -2674,10 +2674,10 @@
       "node": "cc",
       "kind": "doing",
       "seq": 125,
-      "text": "ST1c2db93 build for 3.5.4 (hv decision 100). e92b is landed at ea005c4f6. Bank b2 is refs/bank/cc/st1c2db93/b2/v1 = f18a01038 on fdb5c2188: 8a88 (d00a38452), the e92b follow-up LabelKind::ALL and examples (8c17c87ae), 744e (7328f17dd) and 8a37 (f18a01038). critic-rust's findings are fixed in their commits, and clippy is clean. Reported to vc at 2026-11-25 10:35Z by date -u, and vc lands it. Next: when it is on main, remove tmp/wt-st1c2db93-cc by the skill's checks. wp done and ac satisfy wait for the batch gate.",
+      "text": "ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate.",
       "state": "live",
       "recorded_at": "2026-11-25T09:26:58.747Z",
-      "edited_at": "2026-11-25T10:35:29.982Z"
+      "edited_at": "2026-11-25T10:42:06.095Z"
     }
   ],
   "sent": [
