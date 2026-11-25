@@ -1387,13 +1387,13 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   out.push('\n');
 
   out.push_str("## Acceptance Criteria\n\n");
+  let criteria = thread.criteria_in_order();
   for group in groups(thread) {
     out.push_str(&format!("### {}\n\n", group_heading(thread, &group)));
     let mut any = false;
-    for c in thread
-      .criteria
+    for c in criteria
       .iter()
-      .filter(|c| section_of(&c.id) == group)
+      .filter(|c| crate::id::section_of(&c.id) == group)
     {
       out.push_str(&criterion_line(thread, c));
       any = true;
@@ -1405,10 +1405,14 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   }
 
   out.push_str("## Acceptance Tests\n\n");
+  let tests = thread.tests_in_order();
   for group in groups(thread) {
     out.push_str(&format!("### {}\n\n", group_heading(thread, &group)));
     let mut any = false;
-    for t in thread.tests.iter().filter(|t| section_of(&t.id) == group) {
+    for t in tests
+      .iter()
+      .filter(|t| crate::id::section_of(&t.id) == group)
+    {
       out.push_str(&test_line(t));
       any = true;
     }
@@ -1421,45 +1425,29 @@ pub fn acceptance(thread: &Thread, ctx: &RenderContext<'_>) -> String {
   finish(out, ctx, "the thread canon")
 }
 
-/// The section a label renders under: the thread's group, a package by its
-/// stored id however the label spells its group (issue 0712), or an unreadable
-/// group by its own text.
-fn section_of(label: &str) -> String {
-  match crate::id::group_of(label) {
-    crate::id::Group::Thread => crate::id::THREAD_GROUP.to_string(),
-    crate::id::Group::Package(wp) => wp.stored(),
-    crate::id::Group::Unreadable => crate::id::group_text(label).to_string(),
-  }
-}
-
-/// Every AC/AT section present: `00` (ST-level) first, then each package's in
-/// the package list's order, so a git-style package's section sits by when the
-/// package was made, not by its hex (issue Ib383ad5). `thread.wps` is already
-/// in `id::record_order`, which every loader establishes, and every view reads
-/// it as it stands. A section whose group names no package of the thread goes
-/// last, by `id::id_order`.
+/// Every AC/AT section present, in [`crate::id::section_order`]: `00`
+/// (ST-level) first, then each package's in the package list's order, so a
+/// git-style package's section sits by when the package was made, not by its
+/// hex (issue Ib383ad5). A section whose group names no package of the thread
+/// goes last. The rows under each section are in
+/// [`crate::id::thread_label_order`], the one order of every face that lists a
+/// thread's criteria or tests (ST1c2db93 744e).
 fn groups(thread: &Thread) -> Vec<String> {
-  let order: Vec<String> = std::iter::once(crate::id::THREAD_GROUP.to_string())
-    .chain(thread.wps.iter().map(|wp| wp.seq.stored()))
-    .collect();
-  let rank = |group: &str| order.iter().position(|o| o == group).unwrap_or(order.len());
+  let packages = thread.package_ids();
   let mut seen: Vec<String> = thread
     .criteria
     .iter()
-    .map(|c| section_of(&c.id))
-    .chain(thread.tests.iter().map(|t| section_of(&t.id)))
+    .map(|c| crate::id::section_of(&c.id))
+    .chain(thread.tests.iter().map(|t| crate::id::section_of(&t.id)))
     .collect();
-  seen.sort_by(|a, b| {
-    rank(a)
-      .cmp(&rank(b))
-      .then_with(|| crate::id::id_order(a, b))
-  });
+  seen.sort_by(|a, b| crate::id::section_order(&packages, a, b));
   seen.dedup();
   seen
 }
 
-/// A section's heading. `group` is [`section_of`]'s answer, so a package's
-/// group is its stored id and is read back with the stored-form reader.
+/// A section's heading. `group` is [`crate::id::section_of`]'s answer, so a
+/// package's group is its stored id and is read back with the stored-form
+/// reader.
 fn group_heading(thread: &Thread, group: &str) -> String {
   if group == crate::id::THREAD_GROUP {
     return "ST-level".to_string();

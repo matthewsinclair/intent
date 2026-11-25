@@ -2447,6 +2447,53 @@ pub fn id_order(a: &str, b: &str) -> Ordering {
   }
 }
 
+/// The section a label sits under, in acceptance.md and in every list of a
+/// thread's criteria or tests: the thread's [`THREAD_GROUP`], a package by its
+/// stored id however the label spells its group (issue 0712), or an unreadable
+/// group by its own text.
+pub fn section_of(label: &str) -> String {
+  match group_of(label) {
+    Group::Thread => THREAD_GROUP.to_string(),
+    Group::Package(wp) => wp.stored(),
+    Group::Unreadable => group_text(label).to_string(),
+  }
+}
+
+/// **WHERE A SECTION SITS IN ITS THREAD** (ST1c2db93 744e): the thread's own
+/// [`THREAD_GROUP`] first, then each package's section in `packages`' order,
+/// then a section that names no package of the thread. `packages` is the
+/// thread's package list, which every loader puts in [`record_order`], so a
+/// git-style package's section sits by when the package was made, never by
+/// its hex (issue Ib383ad5's class). The rank is read from the section's text,
+/// so a section has one rank, whatever its labels spell.
+pub fn section_rank(section: &str, packages: &[WpId]) -> usize {
+  if section == THREAD_GROUP {
+    return 0;
+  }
+  WpId::parse(section)
+    .ok()
+    .and_then(|wp| packages.iter().position(|p| *p == wp))
+    .map_or(packages.len() + 1, |at| at + 1)
+}
+
+/// The order of a thread's sections: by [`section_rank`], then by
+/// [`id_order`] on the section's text. [`id_order`] is total, so two sections
+/// are equal only when their text is.
+pub fn section_order(packages: &[WpId], a: &str, b: &str) -> Ordering {
+  section_rank(a, packages)
+    .cmp(&section_rank(b, packages))
+    .then_with(|| id_order(a, b))
+}
+
+/// **THE ONE ORDER OF A THREAD'S CRITERIA OR TESTS** (ST1c2db93 744e): by
+/// [`section_order`] on each label's [`section_of`], then by [`id_order`]
+/// within a section. acceptance.md and every face that lists them sort by it,
+/// through `Thread::criteria_in_order` and `Thread::tests_in_order`. The
+/// stored order stays [`id_order`]'s, so no canon byte moves.
+pub fn thread_label_order(packages: &[WpId], a: &str, b: &str) -> Ordering {
+  section_order(packages, &section_of(a), &section_of(b)).then_with(|| id_order(a, b))
+}
+
 // ---------------------------------------------------------------------------
 // The order of records: ordinals by number, then hashed records by creation.
 // ---------------------------------------------------------------------------

@@ -1106,6 +1106,33 @@ pub enum FiatRow {
 }
 
 impl Thread {
+  /// The thread's package ids in its package list's order, which every loader
+  /// puts in [`crate::id::record_order`]: the `packages` that
+  /// [`crate::id::section_order`] and [`crate::id::thread_label_order`] take.
+  pub fn package_ids(&self) -> Vec<crate::id::WpId> {
+    self.wps.iter().map(|wp| wp.seq).collect()
+  }
+
+  /// The thread's criteria in [`crate::id::thread_label_order`] (ST1c2db93
+  /// 744e): acceptance.md, `ac list` and the gate list them in this order.
+  pub fn criteria_in_order(&self) -> Vec<&Criterion> {
+    self.in_label_order(&self.criteria, |c| c.id.as_str())
+  }
+
+  /// The thread's tests in [`crate::id::thread_label_order`] (ST1c2db93 744e):
+  /// acceptance.md, `at list` and `at lint` list them in this order.
+  pub fn tests_in_order(&self) -> Vec<&AcceptanceTest> {
+    self.in_label_order(&self.tests, |t| t.id.as_str())
+  }
+
+  /// `rows` in [`crate::id::thread_label_order`], each row read by its label.
+  fn in_label_order<'a, T>(&self, rows: &'a [T], label: fn(&T) -> &str) -> Vec<&'a T> {
+    let packages = self.package_ids();
+    let mut ordered: Vec<&'a T> = rows.iter().collect();
+    ordered.sort_by(|a, b| crate::id::thread_label_order(&packages, label(a), label(b)));
+    ordered
+  }
+
   /// The package `label`'s group names when this thread does not have it, or
   /// `None`. **THE ONE RULE FOR A LABEL'S PACKAGE** (issue I81ecc7f): doctor
   /// reports a stored criterion that breaks it, and `ac new` and `at new`

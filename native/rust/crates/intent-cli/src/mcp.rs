@@ -1031,7 +1031,7 @@ fn tool_answer(
     // ----- acceptance tests -----
     "at list" => {
       let target = spec(path, f, need_s(path, map, "stid")?)?;
-      Ok(json!({ "tests": val(path, f.at_list(&target)?)? }))
+      Ok(json!({ "tests": val(path, &f.at_list(&target)?)? }))
     }
     "at lint" => {
       let target = spec(path, f, need_s(path, map, "stid")?)?;

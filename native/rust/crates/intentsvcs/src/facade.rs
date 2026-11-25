@@ -6605,9 +6605,18 @@ impl Facade {
     )
   }
 
+  /// A thread's criteria, in the order acceptance.md shows them
+  /// ([`Thread::criteria_in_order`], ST1c2db93 744e): the CLI, the TUI and the
+  /// MCP list door all read this one.
   pub fn ac_list(&self, st: &str) -> Result<Vec<AcRow>, FacadeError> {
     let thread = self.st_show(st)?;
-    Ok(thread.criteria.iter().map(|c| ac_row(thread, c)).collect())
+    Ok(
+      thread
+        .criteria_in_order()
+        .into_iter()
+        .map(|c| ac_row(thread, c))
+        .collect(),
+    )
   }
 
   /// One criterion, for `intent ac show` (0168): the criterion as stored --
@@ -21571,8 +21580,11 @@ impl Facade {
     Ok(Some(next))
   }
 
-  pub fn at_list(&self, st: &str) -> Result<&[AcceptanceTest], FacadeError> {
-    Ok(&self.st_show(st)?.tests)
+  /// A thread's tests, in the order acceptance.md shows them
+  /// ([`Thread::tests_in_order`], ST1c2db93 744e): the CLI, the TUI and the MCP
+  /// list door all read this one.
+  pub fn at_list(&self, st: &str) -> Result<Vec<&AcceptanceTest>, FacadeError> {
+    Ok(self.st_show(st)?.tests_in_order())
   }
 
   // -------------------------------------------------------------------------

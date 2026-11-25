@@ -864,9 +864,11 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     );
   }
 
+  // The order acceptance.md shows (ST1c2db93 744e), so the unsatisfied list
+  // this verdict names agrees with `ac list` and the view.
   let in_scope: Vec<&Criterion> = thread
-    .criteria
-    .iter()
+    .criteria_in_order()
+    .into_iter()
     .filter(|c| match &wanted {
       None => true,
       Some(group) => crate::id::group_of(&c.id) == *group,
@@ -1007,7 +1009,13 @@ pub fn contract_report(
   let mut examined = 0;
   let mut un = Unexamined::default();
 
-  for t in thread.tests.iter().filter(|t| in_scope(&t.id)) {
+  // The order acceptance.md shows (ST1c2db93 744e), so `at lint` and the
+  // gate name the rows in the order `at list` lists them.
+  for t in thread
+    .tests_in_order()
+    .into_iter()
+    .filter(|t| in_scope(&t.id))
+  {
     rows += 1;
     // L2/L3 apply to a REAL test row that claims to have been run. `to-write`
     // is exempt because a missing file is the CORRECT state for a test not yet
