@@ -1,0 +1,15 @@
+{
+  "id": "01M89BQG8AM4G1B1V6PA0BAH59",
+  "ts": "2026-11-25T12:43:44.286Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "issues.add",
+  "subject": {
+    "type": "issue",
+    "id": "Ic5f63aa0773060bd"
+  },
+  "payload": {
+    "severity": "low",
+    "title": "The pre-commit gate counts an on-demand prose discipline as enforced"
+  }
+}
