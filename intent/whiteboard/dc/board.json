@@ -5,9 +5,9 @@
     "name": "DevX Claude",
     "role": "devx",
     "session_id": "1100d057-0ccf-4338-be18-c12a89a014f1",
-    "heartbeat_at": "2026-11-25T07:30:18.352Z",
+    "heartbeat_at": "2026-11-25T09:27:03.657Z",
     "status": "active",
-    "focus": "Holding for vc. 2026-11-24 20:11Z by date -u: localfold at end of day, not released. Board clear. devbin 0.1.31 fixtures green at d051ce431, no bank; AE issues Idee5e89, Iba2f122 and I6dd6e43 closed at 255c1cb42.",
+    "focus": "2026-11-25 09:26Z by date -u: folded for hv's compact, not released. Resume in tmp/wt-dc-st1c2 at 4164d44d5 on ea005c4f6 (bank refs/bank/dc/st1c2db93/wip-on-ea005c4f6): de6c, e4b0, ce27 and d0fd committed, 5cc0 WIP. Next: 5cc0's last present-tense mentions (lib_currency, lib_staged, lib_surface and lib_mdfmt headers, implemented_check.sh:95, suite_vs_table_flags_check.sh header, the table's shared_vocabulary note), amend, then clippy on the Desk once the Utilz hold ends, critic-shell and critic-rust, bank, report to vc.",
     "claims": [
       "ST1c2db9394af6d40b/d0fd9a39",
       "ST1c2db9394af6d40b/de6c7468",
