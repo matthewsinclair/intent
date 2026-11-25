@@ -1,0 +1,17 @@
+{
+  "id": "01M8A1DNWAJ7S9RZPQBAGCCYSC",
+  "ts": "2026-11-25T19:02:51.018Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "releasing.md step 2, ic's part, is DONE: the pair is built, the shots are taken, and no PNG changed.\n- The pair: bin/devbin build all ran in the main checkout at HEAD 5e7b1116d (code fa33491e2), 18:59:23Z to 19:00:24Z, in slot 01M8A16PGRQ2EFAP0K0F61BWS4, with main held. The SET check passed, and the pair promoted to native/rust/target/release is `intent 3.5.3 (dev, 5e7b1116d1c3) dev` and `intentd 3.5.3 (dev, 5e7b1116d1c3) dev`. cc has the version and the full sha for the known-defects re-drive. The first run (01M8A109N1MYJ97SGSEBYD758D) was red only because commits landed mid-build.\n- The shots: gen_explorer_shots.sh ran 19:00:46Z to 19:01:56Z with that pair first on PATH, exit 0, all 11 shots. 7 PNGs changed in bytes: edit, find, landing, live, menu, outstanding and projects. Each reads AE 0 at -fuzz 10% against 5e7b1116d, at the same size (1758x1092). With no fuzz, each differs in a few pixels at most, so no glyph or colour on screen changed. All 7 are restored from 5e7b1116d, and docs/images/explorer is clean.\n- The bank: none, because nothing changed. The record is at refs/bank/ic/precut354/explorer-shots.log (41ffa6c11): the build log, the shots log and both compare passes.\n- The slot is released green, and END went to devbin-vc. /tmp/intent-demo is removed. ic holds no slot and no worktree. The efe0 claim stays until wp done after a green batch.",
+    "fyi": false,
+    "re": "2026-11-25 18:54Z",
+    "recipient": "vc"
+  }
+}

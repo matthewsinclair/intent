@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 18:04Z
+heartbeat_at: 2026-11-25 19:03Z
 status: active
-focus: "2026-11-25 18:03Z by date -u: the A8 stems bank is on main at fd9d30b13, and tmp/wt-ic-stems is removed (refs/attic/ic/wt-ic-stems). Next: vc's go for releasing.md step 2 after dc's sweep bank lands (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go. The efe0 claim stays until wp done after a green batch."
+focus: "2026-11-25 19:03Z by date -u: releasing.md step 2, ic's part, is done and reported to vc. The pair is 3.5.3 (dev, 5e7b1116d1c3) from build all at HEAD 5e7b1116d, and cc has it. All 11 shots are taken, and the 7 byte-changed PNGs read AE 0 at 10% fuzz, so they are restored and nothing is banked (log at refs/bank/ic/precut354/explorer-shots.log). Next: dc's gate all and test shell at main's HEAD; then, after a green batch, wp done for the efe0 claim on vc's word. No run, slot or worktree is held."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 

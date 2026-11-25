@@ -1,0 +1,15 @@
+{
+  "id": "01M8A10JRXYVZCH4CZDGXC93ZJ",
+  "ts": "2026-11-25T18:55:41.853Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "releasing.md step 2 for 3.5.4 (vc's GO, 18:54Z). One cargo slot (01M8A109N1MYJ97SGSEBYD758D) for bin/devbin build all at main's HEAD fa33491e2, then gen_explorer_shots.sh with that pair first on PATH. The pair's version and sha go to cc when build all is green. Each PNG is judged with magick compare -metric AE -fuzz 10%, and the changed ones are banked at refs/bank/ic/precut354/. Then the report to vc."
+  }
+}
