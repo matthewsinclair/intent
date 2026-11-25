@@ -2556,13 +2556,6 @@ mod tests {
   #[test]
   fn no_tracker_id_reaches_a_published_tool() {
     let heading = intentsvcs::id::WP_HEADING_PREFIX;
-    // The heads the extra below reads: each label kind's head and its dash,
-    // and a package's heading.
-    let heads: Vec<String> = intentsvcs::id::LabelKind::ALL
-      .into_iter()
-      .map(|kind| format!("{}-", kind.head()))
-      .chain([heading.to_string()])
-      .collect();
     let specific = |text: &str| {
       // A record id as a face prints it, of either family, read by the waist
       // (issue 0736), one whole word at a time: a word runs to the next
@@ -2594,22 +2587,15 @@ mod tests {
       {
         return Some(label.to_string());
       }
-      // This scanner's own extra: a label's head or a package's heading, then
-      // a number, eg `AC-09`, `WP-6` or the `WP-10` of `WP-10a`. That is no
-      // label and no id a face prints, but hand-written prose can leak one. A
-      // number of zeros is a format example, by the waist's rule.
+      // A bare head-number, which this scanner also counts: a label's head or a
+      // package's heading, then a number, eg `AC-09`, `WP-6` or the `WP-10` of
+      // `WP-10a`. That is no label and no id a face prints, but hand-written
+      // prose can leak one. The waist reads it (`intentsvcs::id::head_number_at`),
+      // and a group of all zeros is a format example there.
       starts.iter().find_map(|&i| {
-        let head = heads
-          .iter()
-          .find(|h| bytes[i..].starts_with(h.as_bytes()))?;
-        let from = i + head.len();
-        let digits = bytes[from..]
-          .iter()
-          .take_while(|b| b.is_ascii_digit())
-          .count();
-        let number = text.get(from..from + digits)?;
-        let example = intentsvcs::id::is_example(&format!("{heading}{number}"));
-        (!number.is_empty() && !example).then(|| format!("{head}{number}"))
+        intentsvcs::id::head_number_at(bytes, i)
+          .and_then(|end| text.get(i..end))
+          .map(str::to_string)
       })
     };
     // The detector's own controls: it must SEE a leak and PASS the zero forms.

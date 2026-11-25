@@ -1465,9 +1465,10 @@ pub fn check_spelling(raw: &str, kind: IdKind) -> Result<(), IdError> {
 ///
 /// **THE CALLER OWNS ITS WORD BOUNDARIES.** One word is one id: a package's
 /// address (`ST0096/05`) is a thread's id, a `/` and the package's bare form,
-/// and a caller that splits on `/` sees the thread. Where to split, which ids
-/// are exempt (the zero family, a reader's own) and which labels it also
-/// counts are each scanner's own subject.
+/// and a caller that splits on `/` sees the thread. The waist reads ids
+/// ([`marked`]), labels ([`label_at`]) and head-numbers ([`head_number_at`]),
+/// and decides which of them are examples. Where to split, which to count, and
+/// heads the waist does not name are each scanner's own.
 ///
 /// **A BARE ISSUE ORDINAL IS OUT OF REACH.** An ordinal issue is shown as its
 /// four digits with no marker (`0736`), which prose cannot tell from any other
@@ -1527,13 +1528,20 @@ pub fn marked(word: &str) -> Option<IdKind> {
 /// format text can name a real-looking id (cc's meaning, issue 0736).
 pub fn is_example(word: &str) -> bool {
   let behind = |marker: &str, example: &str| {
-    word.strip_prefix(marker).is_some_and(|rest| {
-      !rest.is_empty() && (rest.bytes().all(|b| b == b'0') || example.starts_with(rest))
-    })
+    word
+      .strip_prefix(marker)
+      .is_some_and(|rest| !rest.is_empty() && (all_zeros(rest) || example.starts_with(rest)))
   };
   behind(THREAD_PREFIX, EXAMPLE_HEX)
     || behind(ISSUE_MARKER, EXAMPLE_HEX)
     || behind(WP_HEADING_PREFIX, EXAMPLE_WP_HEX)
+}
+
+/// Whether `part` is all zeros: the zero rule that marks a format example
+/// (`ST0000`, `WP-00`, `AC-0.0`, `AT-00`). [`is_example`], [`label_at`] and
+/// [`head_number_at`] each ask it, so the waist spells the rule once.
+fn all_zeros(part: &str) -> bool {
+  part.bytes().all(|b| b == b'0')
 }
 
 /// The ids a typed prefix is completed against: the records the store holds.
@@ -2392,10 +2400,49 @@ pub fn label_at(text: &[u8], i: usize) -> Option<usize> {
   let label = std::str::from_utf8(&text[i..end]).ok()?;
   label_kind(label)?;
   let (_, group, seq) = label_parts(label)?;
-  let zeros = |part: &str| part.bytes().all(|b| b == b'0');
-  let example = (zeros(group) && zeros(seq))
-    || (!zeros(group) && is_example(&format!("{WP_HEADING_PREFIX}{group}")));
+  let example = (all_zeros(group) && all_zeros(seq))
+    || (!all_zeros(group) && is_example(&format!("{WP_HEADING_PREFIX}{group}")));
   (!example).then_some(end)
+}
+
+/// **THE ONE READER OF A BARE HEAD-NUMBER IN TEXT** (ST1c2db93, cc's meaning):
+/// the end of the number behind the head that starts at byte `i` of `text`, if
+/// one does, for a scanner that keeps tracker ids out of published text. The
+/// calling shape is [`label_at`]'s, and the caller owns the left boundary.
+///
+/// A head is a [`LabelKind`]'s head and a dash (`AC-`, `AT-`), or
+/// [`WP_HEADING_PREFIX`]. The number is the whole run of ASCII digits after
+/// the head, and the match ends at its last digit: `WP-10a` reads `WP-10`,
+/// and the digit-led front of a git-style heading, `WP-9a8b7c6d`, reads
+/// `WP-9`. A letter after the head is not a number, so `AC-c2e41a0b` and
+/// `WP-c2e4` give `None`.
+///
+/// A number of all zeros is a format example and gives `None` only when it is
+/// the whole group: the text ends after it, or the byte after it is not an
+/// ASCII letter or digit (`AC-0`, `AT-00.0`, `WP-00`). That is the group
+/// boundary that [`label_at`] reads, and the zero rule that [`is_example`] and
+/// [`label_at`] also ask. A zero-led hex front is not an example, so
+/// `WP-0a8b7c6d` reads `WP-0`.
+pub fn head_number_at(text: &[u8], i: usize) -> Option<usize> {
+  let rest = text.get(i..)?;
+  let head = LabelKind::ALL
+    .iter()
+    .map(|kind| kind.head().as_bytes())
+    .find(|head| rest.starts_with(head) && rest.get(head.len()) == Some(&b'-'))
+    .map(|head| head.len() + 1)
+    .or_else(|| {
+      rest
+        .starts_with(WP_HEADING_PREFIX.as_bytes())
+        .then_some(WP_HEADING_PREFIX.len())
+    })?;
+  let from = i + head;
+  let end = (from..text.len())
+    .find(|&at| !text[at].is_ascii_digit())
+    .unwrap_or(text.len());
+  let number = std::str::from_utf8(&text[from..end]).ok()?;
+  let whole_group = !text.get(end).is_some_and(u8::is_ascii_alphanumeric);
+  let example = whole_group && all_zeros(number);
+  (!number.is_empty() && !example).then_some(end)
 }
 
 /// The one order for a thread's criterion and test ids (issue 0643): natural,

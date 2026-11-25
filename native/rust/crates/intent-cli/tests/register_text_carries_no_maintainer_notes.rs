@@ -125,33 +125,23 @@ fn is_dev_id(w: &str) -> bool {
   let w = w.trim_matches(|c: char| !c.is_ascii_alphanumeric());
   // A criterion or test label, of either family's group, by the library's one
   // reader of a label in text (`intentsvcs::id::label_at`, ST1c2db93 P13), and
-  // beside it a bare `AC-09` or `AT-3` with no sequence, which is no label but
-  // is still a development id.
+  // beside it a bare head-number with no sequence (`AC-09`, `AT-3`, `WP-6`),
+  // which is no label but is still a development id, by the library's one
+  // reader of those (`intentsvcs::id::head_number_at`). Each reader leaves out
+  // its format examples: `label_at` a label whose group and sequence are all
+  // zeros, and `head_number_at` a group of all zeros.
   intentsvcs::id::label_at(w.as_bytes(), 0).is_some()
-    || dev_id_heads().iter().any(|p| {
-      w.strip_prefix(p.as_str())
-        .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
-    })
+    || intentsvcs::id::head_number_at(w.as_bytes(), 0).is_some()
+    || is_invariant(w)
     || (w.len() == 5 && w.starts_with("TN") && w[2..].chars().all(|c| c.is_ascii_digit()))
     || w.split(['/', ':', '.']).any(names_a_record)
 }
 
-/// The heads a bare development id opens with, each before a digit: a
-/// criterion's and a test's, from the label grammar's own heads and the dash
-/// after them; a work package heading's (`id::WP_HEADING_PREFIX`); and `INV-`,
-/// a dispatch-table invariant's, which no waist names (ST1c2db93 WP-d0fd).
-fn dev_id_heads() -> Vec<String> {
-  [
-    intentsvcs::id::LabelKind::Criterion,
-    intentsvcs::id::LabelKind::Test,
-  ]
-  .into_iter()
-  .map(|kind| format!("{}-", kind.head()))
-  .chain([
-    "INV-".to_string(),
-    intentsvcs::id::WP_HEADING_PREFIX.to_string(),
-  ])
-  .collect()
+/// `INV-` and a digit: a dispatch-table invariant's id. No waist names that
+/// head, so this scanner keeps it as its own (ST1c2db93 WP-d0fd).
+fn is_invariant(w: &str) -> bool {
+  w.strip_prefix("INV-")
+    .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
 }
 
 /// A record's id as a face prints it, of either family, read by the waist
@@ -256,6 +246,14 @@ fn each_detector_fires_on_its_shape_and_a_clean_text_passes() {
     ("Ruled on 2026-09-24 by the release", "date"),
     ("Exposed implies servable (AC-09.6)", "development id"),
     ("See INV-04 for the exit contract", "development id"),
+    // A label that only `label_at` reads: its group is all zeros, so
+    // `head_number_at` gives `None` for it.
+    ("Covered by AC-00.1", "development id"),
+    // A bare head-number, which only `head_number_at` reads: one row for each
+    // of its arms, and a zero-led hex front, which is not the zero family.
+    ("Ruled in AC-09", "development id"),
+    ("Owed by WP-6", "development id"),
+    ("Grouped under AC-0d7e9a1b", "development id"),
     (planted_label.as_str(), "development id"),
     (planted_thread.as_str(), "development id"),
     (planted_issue.as_str(), "development id"),
@@ -276,6 +274,7 @@ fn each_detector_fires_on_its_shape_and_a_clean_text_passes() {
     "USE IT when every node needs the same line, or to broadcast a ruling",
     "a `vc` in a code span is the reader's own name, not ours",
     "name a thread as ST0000, the reader's own",
+    "a format example such as AC-00 or WP-00",
     intentsvcs::id::THREAD_ID_FORM,
     intentsvcs::id::ISSUE_ID_FORM,
     intentsvcs::id::WP_ADDRESS_FORM,
