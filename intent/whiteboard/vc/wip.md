@@ -28,6 +28,7 @@ _(none)_
 - Client names in Intent's committed record: only the client's own name is confidential (hv 2026-11-10; narrowed 2026-11-11: an initiative's name is not). Names already on upstream are fixed forward only. (edited)
 - GitHub reported an incident from 2026-11-25 16:14Z (Git Operations degraded), relayed by devbin-vc. Before Intent's push and the cut, read https://www.githubstatus.com and push only when Git Operations is operational.
 - Before each landing that changes a shipped hook (lib/templates/hooks/), check the change against brew's Intent (no verb or flag newer than the brew release) and every Intent project on rhadamanth (for a new probe: git -C <repo> check-ignore -v --no-index <path>). Every Intent project's gate runs Intent main's hooks from the moment they land (hv decision 107).
+- Intent's dry run and its cut need rhadamanth unlocked, with hv at the Mac, from the pre-flight through the notary submit. Intent enables devbin's macOS stage (bin/.devbin/config.yaml, macos: enabled: true), so the cut's pre-flight runs macos doctor on macOS (devbin issue 0366), and the macOS leg signs and notarises before the tag. The notarytool profile is a data-protection keychain item, readable only while the login session is unlocked (devbin-dc's finding, relayed by devbin-vc on 2026-11-25; the fix, --keychain with the login keychain file, rides devbin 0.1.34). bin/devbin preflight all runs Intent's five pre-flight checks without it.
 
 ## Decisions
 
