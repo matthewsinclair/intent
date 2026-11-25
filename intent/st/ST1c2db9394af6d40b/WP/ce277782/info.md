@@ -2,7 +2,7 @@
 wp_id: WP-ce27
 title: Shipped text states what the code does, and every copy is pinned
 scope: XS
-status: WIP
+status: Done
 ---
 
 # WP-ce27: Shipped text states what the code does, and every copy is pinned

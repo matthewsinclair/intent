@@ -2,7 +2,7 @@
 wp_id: WP-de6c
 title: The gate's tools read each layout from one place
 scope: XS
-status: WIP
+status: Done
 ---
 
 # WP-de6c: The gate's tools read each layout from one place

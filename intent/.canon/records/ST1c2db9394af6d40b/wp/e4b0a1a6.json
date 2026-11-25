@@ -3,7 +3,7 @@
   "origin": "01M88VVWX3E7MKD0XEBABN6RDQ",
   "title": "pr-thread-ref names a work package whole",
   "scope": "XS",
-  "status": "wip",
+  "status": "done",
   "objective": "The PR check names a work package as the id door gives it, and it cuts no address itself.",
   "body": "## Rows\n\nC7, the cut half (triage P29). Found still open by dc at bd1aa3c6c.\n\n## Deliverables\n\n- `.github/scripts/pr-thread-ref.sh:100` drops `sub(\"/.*\"; \"\")` and names the package whole, eg \"Work package ST0096/01 exists\".\n- `tests/unit/pr_thread_ref.bats` follows.\n\n## Approach\n\ndc's option (a): the script reads the door's answer as it is, and no interface changes. Option (b), a `thread` field in the door's answer for a package, changes a contract (cc's meaning, ic's shape), and it is not taken.\n\n## Dependencies\n\nNone.\n\n## Risks\n\nA PR body that names only a package passes as before, and the message now names the package instead of its thread.\n\n## Verification\n\nBefore the bank, the builder runs clippy and critic-shell on its diff.\n\nThe batch decides this package: one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD, after the last bank lands, booked by vc with the Desk. No gate and no suite runs for this bank alone.\n\n## Seat and size\n\ndc (CI). XS.\n",
   "preamble": ""

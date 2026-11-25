@@ -2,7 +2,7 @@
 wp_id: WP-e4b0
 title: pr-thread-ref names a work package whole
 scope: XS
-status: WIP
+status: Done
 ---
 
 # WP-e4b0: pr-thread-ref names a work package whole

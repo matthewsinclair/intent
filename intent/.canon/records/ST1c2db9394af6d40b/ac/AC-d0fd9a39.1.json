@@ -3,6 +3,7 @@
   "text": "No Rust test formats an ordinal id, writes a thread record, or builds a realised path that it reads or writes on disk by hand, where the waist or `Project` has one.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "d0fd landed at fa836457c, fbeef6b29, 8ef49da2e, and c83210146; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

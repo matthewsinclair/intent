@@ -2,7 +2,7 @@
 wp_id: WP-d0fd
 title: The Rust tests take ids, records and realised paths from the waist
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-d0fd: The Rust tests take ids, records and realised paths from the waist

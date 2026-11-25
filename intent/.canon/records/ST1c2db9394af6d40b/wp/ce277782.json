@@ -3,7 +3,7 @@
   "origin": "01M88VVXZF1T6CXZMKX9TWX8PB",
   "title": "Shipped text states what the code does, and every copy is pinned",
   "scope": "XS",
-  "status": "wip",
+  "status": "done",
   "objective": "A shipped hook's text agrees with its code, and each shipped copy of an id form is pinned to the constants in `intentsvcs::id`.",
   "body": "## Rows\n\nReport E's Report C row K, the refusal text (missed row 20). Report E's Report C row L, the docs half (missed row 21). Two unpinned shipped copies, found by dc in Phase 0.\n\n## Deliverables\n\n- The refusal at `lib/templates/hooks/canon-ignore-guard.sh:210` names the probe set that the guard holds (`:80-84`). It does not name `ST9999.json`, which P30 removed from the set.\n- `intent-cli/tests/shipped_prose_states_the_id_constants.rs` also pins `lib/templates/prj/_wip.md:7`, the guard's probe hex (`canon-ignore-guard.sh:81-82`) and the claim forms at `intent/docs/working-with-llms.md:512`.\n\n## Approach\n\nAdd three subjects to the existing pin test. This is not a new test. The test finds each phrase by its text, as it does for its other subjects. The docs that do not ship stay as illustrations, and design.md records them.\n\n## Dependencies\n\nNone.\n\n## Risks\n\nA pin that reads a line number breaks at the next edit to its file. Each pin reads the phrase, not the line.\n\n## Verification\n\nBefore the bank, the builder runs clippy, critic-rust and critic-shell on its diff.\n\nThe batch decides this package: one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD, after the last bank lands, booked by vc with the Desk. No gate and no suite runs for this bank alone.\n\n## Seat and size\n\ndc (shipped prose and templates). XS.\n",
   "preamble": ""

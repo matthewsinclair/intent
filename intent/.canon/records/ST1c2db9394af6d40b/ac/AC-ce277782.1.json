@@ -3,6 +3,7 @@
   "text": "The canon-ignore guard's refusal names its own probe set, and each shipped copy of an id form is pinned to the constants in `intentsvcs::id`.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "ce27 landed at a8a49810d, 7ca1aace3, and de4f3dd7b; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

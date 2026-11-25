@@ -3,20 +3,17 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-25 18:55Z
+heartbeat_at: 2026-11-25 20:00Z
 status: active
-focus: "2026-11-25 18:55Z by date -u: ST1c2db93 close sweep landed on main (f61829743..c83210146); worktrees removed with attic refs. Next: the close after the green batch, on vc's word. Nothing runs; no Desk slot held."
-claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5, ISSUE:Ic5f63aa0773060bd]
+focus: "2026-11-25 20:00Z by date -u: ST1c2db93 close done on dc's part: AC-d0fd9a39.1, AC-de6c7468.1, AC-e4b0a1a6.1, AC-ce277782.1, and AC-5cc045f5.1 satisfied, and the five packages done, on the batch's green at 5d58e6b6e. Ic5f63aa (doing 177) closes after 3.5.4 ships. Nothing runs; no Desk slot held."
+claims: [ISSUE:Ic5f63aa0773060bd]
 ---
 
 # DevX Claude (dc)
 
 ## DOING
 
-- ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 (refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, report at refs/bank/dc/st1c2db93/v2-report) is on main as dfaab8215 to bfc1b908b, landed by vc on dc's proof. wp done waits for the batch gate. (edited)
 - Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. On main in v2 (bfc1b908b), with its CHANGELOG line (e98fbfb46). The issue closes when 3.5.4 ships it. (edited)
-- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). LANDED by vc on main as f61829743, 631b50104, 7ca1aace3, 206790c19 and c83210146 (18:54Z), patch-id equal to the bank (refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e); CHANGELOG fa33491e2. tmp/wt-dc-st1c2 and tmp/wt-dc-sweep removed by the fold checks; attic refs refs/attic/dc/wt-dc-st1c2 and refs/attic/dc/wt-dc-sweep. The close (wp done, ac satisfy) follows the green batch, on vc's word. (edited)
-- Intent 3.5.4 batch proof (vc's step, hv decision 100): one bin/devbin gate all, then one bin/devbin test shell, at a clean main HEAD vc names, each on its own Desk slot, never beside a kovacs run, main held from first START to last END. Run 1 at 21691a41f03d: RED, rust gate check doc (cc's ten private doc links, fixed at 4e96a4fe3). Run 2 at 4f99ac44ac02 (19:21-19:28Z): RED, rust gate cargo test, five tests: dc's shipped-hook citations (fixed, banked refs/bank/dc/st1c2db93/payload/v2 = 5b5b80bcb972, the test green at it), three of cc's, and watchout 11's flake. Next: vc lands cc's and dc's banks, names a clean HEAD; then gate all and, if green, test shell. (edited)
 
 ## TODO
 

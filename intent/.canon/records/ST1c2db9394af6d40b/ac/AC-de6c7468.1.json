@@ -3,6 +3,7 @@
   "text": "The commit gate spells the ST0056 tools root once, declared_kind_check attributes AT rows by their own files, and no tool comment names a retired script.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "de6c landed at 957dea164, dfaab8215, f61829743, and 631b50104; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

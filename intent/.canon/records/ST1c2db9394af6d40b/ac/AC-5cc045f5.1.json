@@ -3,6 +3,7 @@
   "text": "No file in Intent describes or measures the v2 bats estate, and the dispatch table carries neither `bats_coverage` nor `coverage_findings`.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "5cc0 landed at b8284ce8b and 206790c19; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

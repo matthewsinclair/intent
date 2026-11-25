@@ -3,6 +3,7 @@
   "text": "pr-thread-ref.sh names a work package as the id door gives it, and cuts no address itself.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "e4b0 landed at 2ec909591 and 01e3b6638; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }
