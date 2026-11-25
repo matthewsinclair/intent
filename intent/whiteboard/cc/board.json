@@ -5,9 +5,9 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "ef5e3583-d397-41cc-b149-e2db78caa1ce",
-    "heartbeat_at": "2026-11-25T17:42:17.488Z",
+    "heartbeat_at": "2026-11-25T17:46:02.604Z",
     "status": "active",
-    "focus": "2026-11-25 16:38Z by date -u: folded for hv's compact, on hv's word through devbin-vc and vc. Nothing runs, and no Desk slot is held. Resume: /in-session and pickup, then tmp/cc-sweep-notes/resume.md for the close-sweep bank (WIP at refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135), then todo 66.",
+    "focus": "2026-11-25 17:44Z by date -u: close-sweep bank v1 is on main (8275652e3, 203bcf4b7, 5f8d5cefa); v2 (refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5) is banked and with vc to land. Next: todo 66, the known-defects re-drive, when ic sends the final pair's version and sha; then doing 125's wp done and ac satisfy after a green batch gate.",
     "claims": [
       "ST1c2db9394af6d40b"
     ],
@@ -2692,10 +2692,11 @@
       "node": "cc",
       "kind": "doing",
       "seq": 126,
-      "text": "ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z and vc's GO at 16:51Z by date -u. v1 (refs/bank/cc/st1c2db93/sweep/v1 = ef39fa145) is on main as 8275652e3, 203bcf4b7 and 5f8d5cefa, with its CHANGELOG lines in 68583ddff (vc, 17:38Z). v2, on vc's two rulings of 17:33Z, is BANKED at 17:41Z: refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5 on ef39fa145, patch id ef9dcdf9e595, report v2-report, clippy rc 0 (slot 01M89WPXR47PJVK3FCP7VXFYDN). It makes Project::files_in return its walk errors, and it builds the view names in views.rs's prose and mask from one spelling. Reported to vc at 17:41Z. Next: vc lands v2; the worktree tmp/wt-cc-sweep is removed after the landing, by the fold checks; then todo 66.",
-      "state": "live",
+      "text": "ST1c2db93 close sweep (AC-00.1), cc's list: DONE. v1 is on main as 8275652e3, 203bcf4b7 and 5f8d5cefa, and v2 as 8e5a16e7f; CHANGELOG 68583ddff and dc83ab902 carry cc's lines (vc, 17:38Z and 17:45Z by date -u). The banks are refs/bank/cc/st1c2db93/sweep/v1 and v2, each with its report and clippy log. tmp/wt-cc-sweep is removed after the fold checks, and refs/attic/cc/wt-cc-sweep points at its HEAD, 2df7ad8d5 (vc decision 98); its base 7bbbe4135 is not an ancestor of main because vc lands by patch, and both landed patch ids equal the banks'.",
+      "state": "archived",
+      "archived_at": "2026-11-25T17:46:01.688Z",
       "recorded_at": "2026-11-25T16:00:46.785Z",
-      "edited_at": "2026-11-25T17:42:16.394Z"
+      "edited_at": "2026-11-25T17:46:00.592Z"
     }
   ],
   "sent": [
@@ -3990,6 +3991,11 @@
       "id": "01M89WK6MNG81YB9CEHE511H7G",
       "sender": "vc",
       "handled_at": "2026-11-25T17:42:23.588Z"
+    },
+    {
+      "id": "01M89WZ93G3SPRD7P2MN7JQ172",
+      "sender": "vc",
+      "handled_at": "2026-11-25T17:46:07.488Z"
     }
   ]
 }
