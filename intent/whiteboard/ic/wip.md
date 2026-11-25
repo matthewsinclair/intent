@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 1e6a05c6-ae48-4c9e-8e9e-2966dd8f4e56
-heartbeat_at: 2026-11-25 10:57Z
+heartbeat_at: 2026-11-25 11:00Z
 status: active
-focus: "2026-11-25 10:57Z by date -u: ST1c2db93/efe0 is banked at refs/bank/ic/st1c2db93/efe0/v1 = d3b131bc7 on 06cfc796c and reported to vc with its proof. Waiting for vc to land it on main. Nothing of mine runs, and no Desk ask is open."
+focus: "2026-11-25 11:00Z by date -u: ST1c2db93/efe0 landed at c3dd53545 and its worktree is removed (refs/attic/ic/wt-ic-efe0 holds its HEAD). Standing by for vc's close sweep and the batch gate; the claim stays until wp done. Nothing of mine runs, and no Desk ask is open."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST1c2db9394af6d40b/efe0c7a6]
 
 ## DOING
 
-- ST1c2db93/efe0 (XS) is banked at refs/bank/ic/st1c2db93/efe0/v1 = d3b131bc7 on 06cfc796c, patch id 2f8c8a33, and merges clean onto main b8284ce8b. Proof: Desk run 01M894SSF07C539P1066VBGVE2, build all and clippy both exit 0; the commit went through the hook. critic-rust: 0 critical, 0 warning, 3 recommendations on gaps older than efe0, reported to vc. Waiting for vc to land it; the WP and AC-efe0c7a6.1 stay for vc's close sweep. (edited)
+- ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. Standing by for vc's close sweep and the batch gate. (edited)
 
 ## TODO
 
