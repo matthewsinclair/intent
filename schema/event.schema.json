@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "description": "Natural id, eg `ST0000`, `ST0000/02`, `0021`.",
+          "description": "Natural id, ordinal or git-style, eg `ST0000`, `ST0000/02` or `0021`, and\n`ST3f9a2c1d4e5f6a7b`, `ST3f9a2c1d4e5f6a7b/c2e41a0b` or `I3f9a2c1d4e5f6a7b`.",
           "type": "string"
         },
         "type": {

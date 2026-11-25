@@ -1894,8 +1894,10 @@ pub enum FacadeError {
   /// a hashed thread is named as a table names it, never by sixteen hex.
   #[error("no steel thread {} in this project", .id.shown())]
   NoSuchThread { id: crate::id::ThreadId },
-  #[error("steel thread {id} already exists")]
-  ThreadExists { id: String },
+  /// The id is typed, so the message prints its shown form (ST1c2db93 8a37),
+  /// as [`Self::NoSuchThread`]'s does: never by sixteen hex.
+  #[error("steel thread {} already exists", .id.shown())]
+  ThreadExists { id: crate::id::ThreadId },
   /// The one mint made no id (ST0095 WP-06).
   #[error(transparent)]
   Mint(#[from] crate::id::MintError),
@@ -3955,7 +3957,12 @@ impl crate::remedy::Remedy for FacadeError {
         "run `intent st list` to see the threads this project has".to_string()
       }
       Self::ThreadExists { id } => {
-        format!("pick a different id, or work on the existing one with `intent st show {id}`")
+        let shown = id.shown();
+        format!(
+          "nothing was written, and thread {shown} still holds what it held. Re-run \
+           `intent st new` to take another id, or run `intent st show {shown}` to see \
+           that thread"
+        )
       }
       Self::Mint(cause) => cause.remedy(),
       Self::NothingToRemint { .. } => "nothing was written. Only an ordinal two branches both \
@@ -22635,10 +22642,15 @@ impl Facade {
       // `UNIQUE constraint failed` the store already translates away.
       .map_err(|e| match e {
         crate::store::StoreError::CreateHitAnExistingKey { kind, key } => match kind {
-          crate::id::IdKind::Thread => FacadeError::ThreadExists { id: key },
-          // The store spelled the key from an `IssueId`, so it reads back as
+          // The store spelled each key from a typed id, so it reads back as
           // one; if it ever did not, the store's own refusal is reported whole
-          // rather than as issue 0000, which is what a default made of it.
+          // rather than as a default id that names some other record.
+          crate::id::IdKind::Thread => match crate::id::ThreadId::parse(&key) {
+            Ok(id) => FacadeError::ThreadExists { id },
+            Err(_) => {
+              FacadeError::Store(crate::store::StoreError::CreateHitAnExistingKey { kind, key })
+            }
+          },
           crate::id::IdKind::Issue => match crate::id::IssueId::parse(&key) {
             Ok(number) => FacadeError::IssueExists { number },
             Err(_) => {
@@ -24062,7 +24074,7 @@ mod tests {
         id: crate::id::ThreadId::from_ordinal(99).expect("an ordinal thread"),
       },
       FacadeError::ThreadExists {
-        id: "ST0056".to_string(),
+        id: crate::id::ThreadId::from_ordinal(56).expect("an ordinal thread"),
       },
       FacadeError::NoSuchWorkPackage {
         st: "ST0056".to_string(),

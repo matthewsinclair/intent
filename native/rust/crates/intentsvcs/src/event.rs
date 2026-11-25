@@ -359,7 +359,8 @@ pub struct Subject {
   /// Entity type, eg `thread`, `wp`, `issue`.
   #[serde(rename = "type")]
   pub kind: String,
-  /// Natural id, eg `ST0000`, `ST0000/02`, `0021`.
+  /// Natural id, ordinal or git-style, eg `ST0000`, `ST0000/02` or `0021`, and
+  /// `ST3f9a2c1d4e5f6a7b`, `ST3f9a2c1d4e5f6a7b/c2e41a0b` or `I3f9a2c1d4e5f6a7b`.
   pub id: String,
 }
 
