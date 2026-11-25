@@ -26,8 +26,8 @@
 # certifies the unfinished state as finished, which is the defect, committed by
 # its own remedy. The fix is a vocabulary that can hold the state.
 #
-# REACH, IN THE OUTPUT AND NOT ONLY HERE (AC-00.10, and the rule that a limit
-# not in the output is not a limit the reader has):
+# REACH, IN THE OUTPUT AND NOT ONLY HERE (AC-00.10, whose amendment states that
+# a limit not in the output is not a limit the reader has):
 #   * IN REACH -- a declared machine-read state sitting beside authored prose in
 #     one object, where the prose says that state is not reached.
 #   * OUT OF REACH -- a vocabulary inadequate with NO prose beside it. That is
@@ -37,10 +37,12 @@
 #   * OUT OF REACH -- inadequacy the author never noticed. The signature IS the
 #     author noticing and writing it down.
 #   * The hedge vocabulary is OPEN and undercounts. A row saying its state is
-#     unreached in words this does not carry reads as clean, and the false
+#     unreached in words the tool does not match reads as clean, and the false
 #     negatives are the rows whose authors phrased it in their own words --
 #     `self_provenance_check.sh`'s finding, which this instrument inherits
-#     rather than escapes.
+#     rather than escapes. A row that says `not yet` reads as clean too: the
+#     pattern carries `not yet`, and the negation filter drops every hit that
+#     holds the word `not`.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,7 +54,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --table) TABLE="$2"; shift 2 ;;
     --fixtures) MODE=fixtures; shift ;;
-    -h|--help) sed -n '2,40p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    -h|--help) awk '/^#!/ { next } /^#/ { print; next } { exit }' "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "vocab-adequacy: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -220,6 +222,10 @@ vocab-adequacy:   It does NOT measure adequacy, which AC-00.13 states is not
 vocab-adequacy:   checkable. A vocabulary inadequate with no prose beside it, or
 vocab-adequacy:   one whose author never noticed, is invisible here BY
 vocab-adequacy:   CONSTRUCTION -- not a residual to close by widening a regex.
+vocab-adequacy:   The hedge vocabulary is OPEN and undercounts: a row whose prose
+vocab-adequacy:   says its state is not reached, in words the tool does not match,
+vocab-adequacy:   reads as clean. A row whose prose says `not yet` reads as clean
+vocab-adequacy:   too, because the tool drops every hit that holds the word `not`.
 REACH
 
 if [ "$hits" -eq 0 ]; then

@@ -1,0 +1,14 @@
+{
+  "id": "01M89B8W0MQ3KG4W6C4SVBP640",
+  "ts": "2026-11-25T12:35:44.937Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/vocab_adequacy_check.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}
