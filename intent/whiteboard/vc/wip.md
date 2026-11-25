@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
-heartbeat_at: 2026-11-25 11:49Z
-status: active
-focus: "2026-11-25 11:30Z by date -u: localfold for hv's second compact, not released. Resume: hold for devbin-vc's word, then land dc's second bank on its proof, then the close sweep (brief and pending design.md rows in vc's scratchpad), one batch gate, the pre-cut and READY."
+heartbeat_at: 2026-11-25 13:01Z
+status: paused
+focus: "2026-11-25 13:01Z by date -u: closed out for the reboot of rhadamanth on hv's word through devbin-vc, released. Resume: /in-session and pickup, then the Desk's word. dc banks its second bank after one clippy; vc lands it after ic reads head_number_at again, then the close sweep (refs/bank/vc/st1c2db93/close-notes), the pre-cut documents, one gate all and one test shell, the dry run, and the cut on hv decision 101."
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decisions 99 and 100). Now: dc builds its second bank: d0fd's fixture literals and record paths, the hand-written counts, id::head_number_at for efe0's R2 (cc's meaning, ic's agreement) and the critics' fixes. Next: vc's close sweep (AC-00.1), one gate all and one test shell at main's HEAD booked with the Desk, the pre-cut and dry run, then READY to hv for the cut and tap words. (edited)
+- 3.5.4 carries the Highlander residue thread (ST1c2db93), I3c24d2a and Ic5f63aa (hv decisions 99 and 100, and hv's rule that a fix found during the release goes into it). Closed out on 2026-11-25 for the reboot of rhadamanth. After the reboot: dc runs one clippy on the Desk for its second bank (saved at its WIP ref), banks it and reports. vc lands it on its proof, then runs the close sweep (its notes are at refs/bank/vc/st1c2db93/close-notes), the pre-cut documents, one gate all and one test shell at main's HEAD, and the dry run. hv pre-approved the cut and the tap on a green dry run (hv decision 101), and hv types the cut's confirm. (edited)
 
 ## TODO
 

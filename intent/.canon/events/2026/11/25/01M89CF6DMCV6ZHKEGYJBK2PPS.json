@@ -1,0 +1,16 @@
+{
+  "id": "01M89CF6DMCV6ZHKEGYJBK2PPS",
+  "ts": "2026-11-25T12:56:40.628Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 69,
+    "text": "3.5.4 carries the Highlander residue thread (ST1c2db93), I3c24d2a and Ic5f63aa (hv decisions 99 and 100, and hv's rule that a fix found during the release goes into it). Closed out on 2026-11-25 for the reboot of rhadamanth. After the reboot: dc runs one clippy on the Desk for its second bank (saved at its WIP ref), banks it and reports. vc lands it on its proof, then runs the close sweep (its notes are at refs/bank/vc/st1c2db93/close-notes), the pre-cut documents, one gate all and one test shell at main's HEAD, and the dry run. hv pre-approved the cut and the tap on a green dry run (hv decision 101), and hv types the cut's confirm."
+  }
+}
