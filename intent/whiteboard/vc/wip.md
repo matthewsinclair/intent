@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
-heartbeat_at: 2026-11-25 10:41Z
+heartbeat_at: 2026-11-25 10:55Z
 status: active
-focus: "2026-11-25 09:47Z by date -u: devbin-vc's GO (hv chose 'Resume all'). cc runs its critic and the b2 bank run; ic bases efe0 on main after cc's bank lands; dc finishes 5cc0, clippy, critics, bank. vc lands each bank on its proof, then the close sweep and one batch gate."
+focus: "2026-11-25 10:55Z by date -u: cc's b2 (to 06cfc796c) and dc's bank v1 (to b8284ce8b) are on main. Now: ic builds efe0; dc builds its second bank (fixture literals, hand counts, record paths, critic fixes). Then the close sweep and one batch gate."
 claims: []
 ---
 
