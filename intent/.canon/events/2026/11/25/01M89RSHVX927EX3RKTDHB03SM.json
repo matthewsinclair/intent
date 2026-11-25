@@ -1,0 +1,16 @@
+{
+  "id": "01M89RSHVX927EX3RKTDHB03SM",
+  "ts": "2026-11-25T16:32:02.941Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 159,
+    "text": "ST1c2db93 close sweep, ic's items on vc's brief of 15:58Z: F1, F4, F7 (with upgrade's .cache note), item 9, item 10, and the edit wp and browse wp refusal now id::not_a_package. BANKED at refs/bank/ic/st1c2db93/sweep/v1, patch-id 51518289938e, base 7bbbe4135 (dc's v2), from tmp/wt-ic-sweep. Clippy green in slot 01M89RMYW6ARDGNS6Y5WZG286P, log at refs/bank/ic/st1c2db93/sweep/v1-clippy.log; critic-rust's critical and critic-prose's points fixed. Reported to vc at 16:31Z. Waits for vc's landing; the worktree goes after it lands."
+  }
+}
