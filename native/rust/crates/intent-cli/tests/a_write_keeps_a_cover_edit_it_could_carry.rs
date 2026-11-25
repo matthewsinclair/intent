@@ -64,7 +64,15 @@ fn a_write_refuses_over_a_carriable_cover_edit_and_its_remedy_keeps_the_edit() {
     .split('`')
     .find(|span| span.starts_with("intent sync --to-store"))
     .unwrap_or_else(|| panic!("the refusal names no carrying verb:\n{refused}"));
-  assert_eq!(command, format!("intent sync --to-store {st}"));
+  // The thread as `intent st list` shows it (close sweep A 1.6). The remedy is
+  // run below, so the shown id is held to resolve.
+  assert_eq!(
+    command,
+    format!(
+      "intent sync --to-store {}",
+      intentsvcs::nav::shown_or_as_is(&st)
+    )
+  );
 
   let remedy: Vec<&str> = command.split_whitespace().skip(1).collect();
   step(root, &remedy);

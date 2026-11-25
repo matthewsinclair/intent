@@ -463,7 +463,10 @@ pub enum Response {
   /// vocabulary on the wire that could drift from the one the TUI reads.
   ///
   /// **`entity` IS THE INSTANCE, NOT THE KIND** -- `ST0056`, not `thread` --
-  /// which is §10a's own example and is what a heading needs. The KIND is
+  /// which is §10a's own example and is what a heading needs. It is the id in
+  /// its shown form, as every face prints one: `ST0056` or `ST3f9a2c1`, never
+  /// a git-style id's stored sixteen hex (ST1c2db93 close sweep, A 1.6). The
+  /// web shell only displays it, so no client reads it back. The KIND is
   /// deliberately absent: the caller named it in the url it sent, so putting
   /// it in the answer would be the response restating the question.
   Form {

@@ -166,9 +166,11 @@ fn the_browser_and_the_terminal_receive_one_derivation() {
     answer.get("error").is_none(),
     "the daemon refused the form op: {body}"
   );
+  // The instance in its shown form, which the web shell displays (close sweep
+  // A 1.6; ic's shape, 2026-11-25).
   assert_eq!(
     answer["entity"],
-    st.as_str(),
+    intentsvcs::nav::shown_or_as_is(&st).as_str(),
     "the answer names the instance, not the kind"
   );
 

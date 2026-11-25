@@ -242,8 +242,14 @@ fn detaching_an_attachment_the_thread_does_not_carry_is_refused_and_changes_noth
     ),
     "the refusal is not NoSuchAttachment: {err:?}"
   );
+  // The fixture writes the release's format, where a thread's attachments are
+  // records of their own (ST0096 WP-05), so the remedy names their directory
+  // (close sweep A4.6).
+  let carried = fx.project().relative(&fx.project().intent_dir().join(
+    intentsvcs::project::canon_children_rel("ST0001", intentsvcs::project::CANON_ATTACHMENTS_DIR),
+  ));
   assert!(
-    err.remedy().contains("intent/.canon/st/ST0001.json"),
+    err.remedy().contains(&carried),
     "the remedy does not say where the carried paths are: {}",
     err.remedy()
   );
