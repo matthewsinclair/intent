@@ -674,7 +674,9 @@ fn examine(
 
   if let Some(store) = store {
     report.findings.extend(backup_findings(project, store));
-    report.findings.extend(undeclared_op_findings(store));
+    report
+      .findings
+      .extend(undeclared_op_findings(project, store));
     report
       .findings
       .extend(index_unreadable_finding(project, store));
@@ -773,7 +775,7 @@ fn examine(
     Some(Ok(rows)) => rows,
     Some(Err(cause)) => {
       report.findings.push(Finding::new(
-        "intent/.cache/intent.db",
+        project.relative(&project.db_path()),
         FindingClass::Advisory,
         format!(
           "the file index was not read ({cause}), so a view a write is still landing reads as a hand edit"
@@ -1044,19 +1046,40 @@ pub(crate) struct ThreadFiles {
 }
 
 impl ThreadFiles {
-  pub(crate) fn of(project: &Project, thread: &Thread) -> Self {
-    let own = project.relative(&project.thread_json(&thread.id));
-    // **BY THE THREAD FILE'S OWN FORMAT**, as ingest reads it. The canon was
-    // read whole before any check runs, so this second read of the schema
-    // fails only if the file changed under the run; the finding then names
-    // the thread's own file, which still holds the thread.
-    let records = match crate::ingest::thread_file_format(project, &thread.id) {
-      Ok(crate::canon_format::CanonFormat::V4) => {
+  /// The files that hold `thread`'s children, **BY THE THREAD FILE'S OWN
+  /// FORMAT**, as ingest reads it. A thread file that does not read is the
+  /// caller's error: the facade returns it, and never gives 3.4.0's answer in
+  /// its place (close sweep, critic C1).
+  pub(crate) fn read(project: &Project, thread: &Thread) -> Result<Self, Vec<Finding>> {
+    let format = crate::ingest::thread_file_format(project, &thread.id)?;
+    Ok(Self::in_format(project, thread, format))
+  }
+
+  /// [`Self::read`] for a finding. The canon was read whole before any check
+  /// runs, so this second read of the schema fails only if the file changed
+  /// under the run; the finding then names the thread's own file, which still
+  /// holds the thread.
+  fn of(project: &Project, thread: &Thread) -> Self {
+    let format = crate::ingest::thread_file_format(project, &thread.id)
+      .unwrap_or(crate::canon_format::CanonFormat::V3);
+    Self::in_format(project, thread, format)
+  }
+
+  fn in_format(
+    project: &Project,
+    thread: &Thread,
+    format: crate::canon_format::CanonFormat,
+  ) -> Self {
+    let records = match format {
+      crate::canon_format::CanonFormat::V4 => {
         Some((project.relative(&project.intent_dir()), thread.id.stored()))
       }
-      Ok(crate::canon_format::CanonFormat::V3) | Err(_) => None,
+      crate::canon_format::CanonFormat::V3 => None,
     };
-    Self { own, records }
+    Self {
+      own: project.relative(&project.thread_json(&thread.id)),
+      records,
+    }
   }
 
   fn child(&self, rel: impl FnOnce(&str) -> String) -> String {
@@ -1749,7 +1772,7 @@ fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Fin
     Ok(moved) => moved,
     Err(cause) => {
       out.push(Finding::new(
-        "intent/.cache/intent.db",
+        project.relative(&project.db_path()),
         FindingClass::Advisory,
         format!("whether a board.json moved since the store recorded it was not read: {cause}"),
       ));
@@ -1759,7 +1782,7 @@ fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Fin
   let lacking = crate::model::boards_ahead_of_the_store(&held_boards, &canon.boards, &moved);
   if !lacking.is_empty() && (!held_boards.is_empty() || !is_empty_snapshot(&on_disk)) {
     out.push(Finding::new(
-      "intent/.cache/intent.db",
+      project.relative(&project.db_path()),
       FindingClass::StoreStale,
       format!(
         "board.json on disk records a migrated board the runtime store does not hold, or holds differently from a file that changed after the store last wrote it, for {} -- {}",
@@ -1775,7 +1798,7 @@ fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Fin
       .collect();
     if !stale.is_empty() {
       out.push(Finding::new(
-        "intent/.cache/intent.db",
+        project.relative(&project.db_path()),
         FindingClass::StoreStale,
         format!(
           "the runtime store's whiteboard rows do not match the board.json on disk for {} -- where the store is ahead, {}; where the file is ahead, the next ingest takes it. On a shared tree this is also the normal state for the duration of ANOTHER node's board write, so it is reported and never counted",
@@ -1814,7 +1837,7 @@ fn db_checks(canon: &Canon, project: &Project, access: Access, out: &mut Vec<Fin
   // itself with nobody acting.
   if on_disk != rebuilt {
     out.push(Finding::new(
-      "intent/.cache/intent.db",
+      project.relative(&project.db_path()),
       FindingClass::StoreStale,
       "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed. On a shared tree this is also the normal state for the duration of ANOTHER node's canon write, so it is reported and never counted",
     ));
@@ -1922,7 +1945,7 @@ fn event_checks(project: &Project, access: Access, out: &mut Vec<Finding>) {
     .collect();
   if let Some(first) = missing.first() {
     out.push(Finding::new(
-      "intent/.cache/intent.db",
+      project.relative(&project.db_path()),
       FindingClass::StoreStale,
       format!(
         "the store does not hold {} committed event file(s), first {first} -- they arrived by a pull or a checkout the store has not ingested, and the next ingest of the tree takes them, since event ingest only ever adds",
@@ -2256,7 +2279,7 @@ fn file_checks(
   );
   if let Some(Err(cause)) = after.get() {
     report.findings.push(Finding::new(
-      "intent/.cache/intent.db",
+      project.relative(&project.db_path()),
       FindingClass::Advisory,
       format!(
         "the file index was not read again after the views ({cause}), so a view whose write landed while doctor read it reads as a hand edit"
@@ -2595,7 +2618,7 @@ fn id_family_findings(canon: &Canon, project: &Project, report: &mut Report) {
 /// mean the roster is complete -- see [`crate::event::KNOWN_OPS`] for the gap
 /// it cannot see and for the two source-side tests that cover the directions
 /// this cannot.
-fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
+fn undeclared_op_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {
   // **A STORE THAT WILL NOT ANSWER IS SILENT, NOT A FINDING.** Every other
   // stage of `diagnose` degrades rather than refuses, and an unreadable event
   // table is a normal state on a store mid-migration. Reporting "0 undeclared"
@@ -2609,7 +2632,7 @@ fn undeclared_op_findings(store: &crate::store::Store) -> Vec<Finding> {
     .filter(|(op, _)| !crate::event::is_known_op(op))
     .map(|(op, count)| {
       Finding::new(
-        "intent/.cache/intent.db",
+        project.relative(&project.db_path()),
         FindingClass::Advisory,
         format!(
           "the event log holds {count} row(s) under the op `{op}`, which this build does not declare. \
@@ -3292,7 +3315,7 @@ fn store_tracked_finding(project: &Project) -> Option<Finding> {
       project.relative(&project.db_path()),
       "the store",
       cause,
-      "git ls-files intent/.cache",
+      &format!("git ls-files {}", project.relative(&project.cache_dir())),
     )),
   }
 }

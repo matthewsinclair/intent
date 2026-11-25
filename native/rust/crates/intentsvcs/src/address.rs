@@ -1076,7 +1076,7 @@ pub fn promote(input: &str) -> Result<Address, AddressError> {
   match crate::id::scoped(input) {
     Ok(Some(crate::id::Scoped::Package(thread, wp))) => {
       return parse(&format!(
-        "{SCHEME}/threads/{}/wp/{}",
+        "{SCHEME}/threads/{}/{WP_SEGMENT}/{}",
         thread.segment(),
         wp.segment()
       ));

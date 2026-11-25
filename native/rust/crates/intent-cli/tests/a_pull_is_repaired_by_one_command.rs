@@ -49,17 +49,9 @@ impl Team {
   /// repair is the one a branch cut before the upgrade carries: one ordinal,
   /// written by each clone with its own creation event. Bob's event is
   /// [`BOBS_CREATION`], which his record's new id derives from.
-  fn both_mint_the_same_id_and_bob_pulls(&self) -> (String, String) {
-    self.both_mint_the_same_id_and_bob_pulls_with(&[])
-  }
-
-  /// As [`Self::both_mint_the_same_id_and_bob_pulls`], with `bobs_packages`
-  /// under Bob's thread, so his thread has records of its own that the repair
-  /// must move with it.
-  fn both_mint_the_same_id_and_bob_pulls_with(
-    &self,
-    bobs_packages: &[(u32, &str)],
-  ) -> (String, String) {
+  /// `bobs_packages` go under Bob's thread, so his thread has records of its
+  /// own that the repair must move with it (close sweep A 1.3).
+  fn both_mint_the_same_id_and_bob_pulls(&self, bobs_packages: &[(u32, &str)]) -> (String, String) {
     let id = intentsvcs::id::ThreadId::from_ordinal(1)
       .expect("an ordinal thread")
       .stored();
@@ -216,7 +208,7 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
   let forge = &team.forge;
   // Bob's thread has a package, so it has a record of its own under
   // `.canon/records/`, which the repair moves with it (close sweep A 1.3).
-  let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls_with(&[(1, "Bob's first")]);
+  let (merge, minted) = team.both_mint_the_same_id_and_bob_pulls(&[(1, "Bob's first")]);
   // Where sync's repair moves this clone's thread: the git-style id its own
   // creation event mints (ST0095 WP-06), which this clone's log holds.
   let moved = intentsvcs::id::ThreadId::from_origin(BOBS_CREATION).stored();
@@ -276,6 +268,23 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
     left.text
   );
 
+  // Close sweep A 1.3: the repair restores and stages every path the thread
+  // owns, its records directory included. Before it, Bob's package record is
+  // under the id both clones minted.
+  let project = intentsvcs::project::Project::open(bob).expect("bob's project");
+  let package = intentsvcs::id::WpId::from_ordinal(1)
+    .expect("an ordinal package")
+    .stored();
+  let record_of = |thread: &str| {
+    project
+      .intent_dir()
+      .join(intentsvcs::project::canon_wp_rel(thread, &package))
+  };
+  assert!(
+    record_of(&minted).exists(),
+    "before the repair, bob's package record is under the minted {minted}"
+  );
+
   // `--yes` answers the reversible steps.
   let repaired = forge.intent_said(bob, &["sync", "--apply", "--yes"]);
   assert!(
@@ -316,19 +325,9 @@ fn a_merge_stopped_on_a_twice_minted_id_is_repaired_and_only_what_was_regenerate
       "sync staged a path it did not regenerate: {path}"
     );
   }
-  // Close sweep A 1.3: the repair restores and stages every path the thread
-  // owns, its records directory included. Bob's package record is staged under
-  // the id his thread moved to, and none is left under the id the pulled side
-  // keeps, which holds no package.
-  let project = intentsvcs::project::Project::open(bob).expect("bob's project");
-  let package = intentsvcs::id::WpId::from_ordinal(1)
-    .expect("an ordinal package")
-    .stored();
-  let record_of = |thread: &str| {
-    project
-      .intent_dir()
-      .join(intentsvcs::project::canon_wp_rel(thread, &package))
-  };
+  // After it, Bob's package record is staged under the id his thread moved
+  // to, and none is left under the id the pulled side keeps, which holds no
+  // package.
   let moved_record = project.relative(&record_of(&moved));
   assert!(
     staged.lines().any(|path| path == moved_record),

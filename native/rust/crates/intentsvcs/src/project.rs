@@ -1430,6 +1430,10 @@ pub const CACHE_DIR_NAME: &str = ".cache";
 /// See [`CACHE_DIR_NAME`].
 pub const DB_FILE_NAME: &str = "intent.db";
 
+/// The realisation manifest's name in the intent directory: the one spelling
+/// [`Project::intentfiles_path`] and a remedy that names the file take.
+pub const INTENTFILES_NAME: &str = ".intentfiles";
+
 #[derive(Debug, thiserror::Error)]
 pub enum ProjectError {
   #[error("no Intent project found at or above {0} (looked for intent/.config/config.json)")]
@@ -2393,7 +2397,7 @@ impl Project {
   /// instead. `Fixture::with_intent_dir` is what catches the alternative: a
   /// site spelling `intent/.intentfiles` itself lands somewhere else entirely.
   pub fn intentfiles_path(&self) -> PathBuf {
-    self.intent_dir().join(".intentfiles")
+    self.intent_dir().join(INTENTFILES_NAME)
   }
 
   /// `intent/.canon/` -- every artefact's committed structured canon (D57-1).
@@ -3118,26 +3122,18 @@ pub struct ThreadPaths {
 }
 
 impl ThreadPaths {
-  /// Every path, the record first: its name is a prefix of its sidecars'
-  /// directory's, so a reader that takes the first prefix a path starts with
-  /// must meet the record before the directory.
-  pub fn all(&self) -> [PathBuf; 4] {
-    [
-      self.record.clone(),
-      self.sidecars.clone(),
-      self.records.clone(),
-      self.realised.clone(),
-    ]
+  /// Every path, the record first: the sidecars directory's name, `<ID>`, is
+  /// a prefix of the record's, `<ID>.json`, so a reader that takes the first
+  /// prefix a path's text starts with must meet the record before the
+  /// directory.
+  pub fn all(self) -> [PathBuf; 4] {
+    [self.record, self.sidecars, self.records, self.realised]
   }
 
   /// The three directories, which a renumber moves whole. The record is the
   /// store's to write at the new id.
-  pub fn dirs(&self) -> [PathBuf; 3] {
-    [
-      self.realised.clone(),
-      self.sidecars.clone(),
-      self.records.clone(),
-    ]
+  pub fn dirs(self) -> [PathBuf; 3] {
+    [self.realised, self.sidecars, self.records]
   }
 }
 

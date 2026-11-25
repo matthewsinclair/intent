@@ -1127,12 +1127,32 @@ impl Thread {
     self.in_label_order(&self.tests, |t| t.id.as_str())
   }
 
+  /// The thread as a face that returns it whole gives it (ST1c2db93 744e,
+  /// close sweep A 1.11): its criteria and tests in
+  /// [`crate::id::thread_label_order`], the order [`Self::criteria_in_order`]
+  /// and [`Self::tests_in_order`] give. GraphQL's `thread` and `threads` and
+  /// MCP's `intent_st_show` return it. `intent export` keeps the stored order,
+  /// because it is the store's portable copy.
+  pub fn listed(&self) -> Thread {
+    let mut thread = self.clone();
+    self.sort_by_label(&mut thread.criteria, |c| c.id.as_str());
+    self.sort_by_label(&mut thread.tests, |t| t.id.as_str());
+    thread
+  }
+
   /// `rows` in [`crate::id::thread_label_order`], each row read by its label.
   fn in_label_order<'a, T>(&self, rows: &'a [T], label: fn(&T) -> &str) -> Vec<&'a T> {
-    let packages = self.package_ids();
     let mut ordered: Vec<&'a T> = rows.iter().collect();
-    ordered.sort_by(|a, b| crate::id::thread_label_order(&packages, label(a), label(b)));
+    self.sort_by_label(&mut ordered, |row| label(*row));
     ordered
+  }
+
+  /// **THE ONE SORT OF A THREAD'S CRITERIA OR TESTS**: `rows` in place, in
+  /// [`crate::id::thread_label_order`] under this thread's packages, each row
+  /// read by `label`. [`Self::in_label_order`] and [`Self::listed`] take it.
+  fn sort_by_label<R>(&self, rows: &mut [R], label: impl Fn(&R) -> &str) {
+    let packages = self.package_ids();
+    rows.sort_by(|a, b| crate::id::thread_label_order(&packages, label(a), label(b)));
   }
 
   /// The package `label`'s group names when this thread does not have it, or

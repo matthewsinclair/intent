@@ -263,7 +263,8 @@ impl Snapshot {
   fn of(facade: &Facade) -> Snapshot {
     Snapshot {
       project: facade.project().clone(),
-      threads: facade.st_list().into_iter().map(listed).collect(),
+      // Each thread whole as a face gives it (close sweep A 1.11).
+      threads: facade.st_list().into_iter().map(Thread::listed).collect(),
       issues: facade.issue_list().into_iter().cloned().collect(),
       boards: facade.boards().map_err(|e| e.render()),
       wp_days: facade.wp_created_days().map_err(|e| e.render()),
@@ -278,18 +279,6 @@ impl Snapshot {
   /// The snapshot's issue `id`, if it holds it.
   fn issue(&self, id: IssueId) -> Option<&Issue> {
     self.issues.iter().find(|i| i.number == id)
-  }
-}
-
-/// A thread as this face lists it (ST1c2db93 744e, close sweep A 1.11): its
-/// criteria and tests in [`Thread::criteria_in_order`] and
-/// [`Thread::tests_in_order`], the order acceptance.md, `ac list` and the gate
-/// show, not the order a git-style package's hex sorts them in.
-fn listed(thread: &Thread) -> Thread {
-  Thread {
-    criteria: thread.criteria_in_order().into_iter().cloned().collect(),
-    tests: thread.tests_in_order().into_iter().cloned().collect(),
-    ..thread.clone()
   }
 }
 

@@ -393,6 +393,15 @@ pub fn init_with_languages(
   // populated directory this check exists to protect -- a check that fires on
   // the safe case as readily as the dangerous one teaches people to work
   // around it.
+  //
+  // The intent directory this function writes into the config, and the store
+  // under it, are named once: the check below, the store's open and the
+  // config take them from here (close sweep A 1.13, critic W4).
+  let intent_dir = crate::project::default_intent_dir();
+  let store_path = root
+    .join(&intent_dir)
+    .join(crate::project::CACHE_DIR_NAME)
+    .join(crate::project::DB_FILE_NAME);
   let mut occupied: Vec<PathBuf> = plan
     .iter()
     .map(|(_, dest, _)| root.join(crate::sync::root_file_path(dest, contracts)))
@@ -401,18 +410,11 @@ pub fn init_with_languages(
         .iter()
         .map(|(dest, _)| root.join(crate::sync::root_file_path(dest, contracts))),
     )
-    .chain([root
-      .join(crate::project::default_intent_dir())
-      .join(crate::project::CACHE_DIR_NAME)
-      .join(crate::project::DB_FILE_NAME)])
+    .chain([store_path.clone()])
     // The index views `init` writes below (issue 0448), from their one
     // declaration. Joined here because the check runs before a `Project`
-    // exists to derive them, under the `intent_dir` this function writes into
-    // the config.
-    .chain(
-      crate::project::INDEX_VIEWS
-        .map(|view| root.join(crate::project::default_intent_dir()).join(view)),
-    )
+    // exists to derive them.
+    .chain(crate::project::INDEX_VIEWS.map(|view| root.join(&intent_dir).join(view)))
     .filter(|path| path.exists())
     .collect();
   if !occupied.is_empty() {
@@ -442,7 +444,7 @@ pub fn init_with_languages(
     serde_json::json!({ "intent_version": intent_version }),
   )
   .map_err(InitError::Mint)?;
-  let mut store = Store::open(&root.join("intent/.cache/intent.db")).map_err(InitError::Store)?;
+  let mut store = Store::open(&store_path).map_err(InitError::Store)?;
   let cache_marking = store.take_cache_marking();
   let stamp = store.append_event(&created).map_err(InitError::Store)?;
 
@@ -472,7 +474,6 @@ pub fn init_with_languages(
     crate::project::Contracts::Root => String::new(),
     crate::project::Contracts::Dotclaude => "  \"contracts\": \"dotclaude\",\n".to_string(),
   };
-  let intent_dir = crate::project::default_intent_dir();
   write(
     &config,
     &format!(

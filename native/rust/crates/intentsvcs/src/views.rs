@@ -2514,15 +2514,40 @@ pub enum ThreadView {
   WpInfo(crate::id::WpId),
 }
 
+/// One of a thread's views with the record it renders from: a work package's
+/// cover carries its package, so no reader pairs a view with a package by
+/// position (close sweep, critic W5).
+#[derive(Clone, Copy)]
+enum ViewSource<'t> {
+  Info,
+  Acceptance,
+  WpInfo(&'t WorkPackage),
+}
+
+impl ViewSource<'_> {
+  fn view(self) -> ThreadView {
+    match self {
+      ViewSource::Info => ThreadView::Info,
+      ViewSource::Acceptance => ThreadView::Acceptance,
+      ViewSource::WpInfo(wp) => ThreadView::WpInfo(wp.seq),
+    }
+  }
+}
+
+/// **WHICH VIEWS A THREAD HAS, SAID ONCE** (ST1c2db93 close sweep, A 1.10):
+/// its cover, its acceptance view, and each work package's cover in the
+/// thread's own package order. [`ThreadView::of`] lists them, [`thread_views`]
+/// renders each of them, and `organize` declares each one's path.
+fn view_sources(thread: &Thread) -> impl Iterator<Item = ViewSource<'_>> {
+  [ViewSource::Info, ViewSource::Acceptance]
+    .into_iter()
+    .chain(thread.wps.iter().map(ViewSource::WpInfo))
+}
+
 impl ThreadView {
-  /// **WHICH VIEWS A THREAD HAS, SAID ONCE** (ST1c2db93 close sweep, A 1.10):
-  /// its cover, its acceptance view, and each work package's cover in the
-  /// thread's own package order. [`thread_views`] renders each of them, and
-  /// `organize` declares each one's path.
+  /// The views `thread` has, in [`view_sources`]' order.
   pub fn of(thread: &Thread) -> Vec<ThreadView> {
-    let mut views = vec![ThreadView::Info, ThreadView::Acceptance];
-    views.extend(thread.wps.iter().map(|wp| ThreadView::WpInfo(wp.seq)));
-    views
+    view_sources(thread).map(ViewSource::view).collect()
   }
 
   /// The file's path within the thread's own directory.
@@ -2553,18 +2578,14 @@ impl ThreadView {
 /// paths and [`read_thread_file`] reads one back by name, so which views a
 /// thread has is said once rather than in the walk and again in the explorer.
 pub fn thread_views(thread: &Thread, ctx: &RenderContext<'_>) -> Vec<(ThreadView, String)> {
-  // `ThreadView::of` lists the packages in the thread's own order, so each
-  // package view takes the next package.
-  let mut packages = thread.wps.iter();
-  ThreadView::of(thread)
-    .into_iter()
-    .filter_map(|view| {
-      let text = match view {
-        ThreadView::Info => info(thread, ctx),
-        ThreadView::Acceptance => acceptance(thread, ctx),
-        ThreadView::WpInfo(_) => wp_info(thread, packages.next()?, ctx),
+  view_sources(thread)
+    .map(|source| {
+      let text = match source {
+        ViewSource::Info => info(thread, ctx),
+        ViewSource::Acceptance => acceptance(thread, ctx),
+        ViewSource::WpInfo(wp) => wp_info(thread, wp, ctx),
       };
-      Some((view, text))
+      (source.view(), text)
     })
     .collect()
 }

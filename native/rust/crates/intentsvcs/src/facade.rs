@@ -1639,14 +1639,16 @@ pub enum FacadeError {
   /// `WriteNotAddressable`, whose remedy is the `put` door's -- `PUT` json,
   /// `POST` to the collection -- which tells a terminal caller nothing about a
   /// `--covers` naming a criterion that does not exist.
+  ///
+  /// The message names the row by its address, which [`row_url`] forms from
+  /// `st` and `at` (close sweep A 1.12).
   #[error(
-    "`{url}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}"
+    "`{}` cannot be written: the row would not satisfy the acceptance-test contract: {findings}",
+    row_url(.st, .at)
   )]
   RowBreaksContract {
     st: String,
     at: String,
-    /// The row's address, as `Entity::At` forms it (close sweep A 1.12).
-    url: String,
     findings: String,
   },
   /// The SQL door was handed more than one statement (AC-17.1).
@@ -1973,13 +1975,16 @@ pub enum FacadeError {
   /// collides, so nothing ever moves one.
   #[error("{id} is already a git-style id, which never collides, so there is nothing to re-mint")]
   NothingToRemint { id: String },
-  /// `wp` is the package as a message names it: its heading (`WpId::heading`),
-  /// or, for a spelling that names no package, that spelling in its own words.
-  #[error("{st} has no {wp}")]
+  /// `st` is the thread as the caller holds it, and the message and the remedy
+  /// show it as `intent st list` does (close sweep A 1.6, critic W3), as the
+  /// two variants below do. `wp` is the package as a message names it: its
+  /// heading (`WpId::heading`), or, for a spelling that names no package, that
+  /// spelling in its own words.
+  #[error("{} has no {wp}", crate::nav::shown_or_as_is(.st))]
   NoSuchWorkPackage { st: String, wp: String },
-  #[error("no acceptance criterion {ac} in {st}")]
+  #[error("no acceptance criterion {ac} in {}", crate::nav::shown_or_as_is(.st))]
   NoSuchCriterion { st: String, ac: String },
-  #[error("no acceptance test {at} in {st}")]
+  #[error("no acceptance test {at} in {}", crate::nav::shown_or_as_is(.st))]
   NoSuchTest { st: String, at: String },
   /// **A CREATE LANDED ON A CRITERION ID THAT ALREADY EXISTS** (hv,
   /// 2026-08-28: a verb named `add`/`new` must FAIL on an existing key rather
@@ -4008,13 +4013,17 @@ impl crate::remedy::Remedy for FacadeError {
          every side's work packages, `git add` it and run `intent sync --apply --yes`. Do not \
          take a side here: either side could drop a package"
       ),
-      Self::NoSuchWorkPackage { st, .. } => contract::see_the_work_packages(st),
-      Self::NoSuchCriterion { st, .. } => {
-        format!("run `intent ac list {st}` to see the criteria in its contract")
+      Self::NoSuchWorkPackage { st, .. } => {
+        contract::see_the_work_packages(&crate::nav::shown_or_as_is(st))
       }
-      Self::NoSuchTest { st, .. } => {
-        format!("run `intent at list {st}` to see the tests in its contract")
-      }
+      Self::NoSuchCriterion { st, .. } => format!(
+        "run `intent ac list {}` to see the criteria in its contract",
+        crate::nav::shown_or_as_is(st)
+      ),
+      Self::NoSuchTest { st, .. } => format!(
+        "run `intent at list {}` to see the tests in its contract",
+        crate::nav::shown_or_as_is(st)
+      ),
       Self::LabelMalformed { kind, example, .. } => format!(
         "nothing was written. Give the label as {}: the group is the thread's \
          `00` or one of its packages, eg `{example}`, and the sequence is digits",
@@ -4186,8 +4195,9 @@ impl crate::remedy::Remedy for FacadeError {
       // Both families' claim forms, from the one sentence every claim
       // refusal quotes (close sweep rows C13 and A11).
       Self::MalformedIssueId { .. } => format!(
-        "{}; `intent/.intentfiles` and a board name {}",
+        "{}; `{}` in the intent directory and a board name {}",
         crate::id::ISSUE_ID_FORM,
+        crate::project::INTENTFILES_NAME,
         crate::id::CLAIM_ADDRESS_FORMS
       ),
       Self::NotAnId { refusal, .. } => refusal.remedy.clone(),
@@ -5551,26 +5561,25 @@ pub enum IngestCommit {
 /// subject the pass removed says so, because `took ST0003` read as an arrival
 /// when driven on a pulled deletion.
 fn changed_subjects(held: &(Vec<Thread>, Vec<Issue>), canon: &Canon) -> Vec<String> {
-  fn changed<T: PartialEq + crate::id::Ordered, K: PartialEq>(
-    before: &[T],
-    after: &[T],
-    key: impl Fn(&T) -> K,
-  ) -> Vec<(K, bool)> {
+  /// The record in `records` with `record`'s id, by the id the one record
+  /// order reads.
+  fn same<'r, T: crate::id::Ordered>(records: &'r [T], record: &T) -> Option<&'r T> {
+    records.iter().find(|r| r.order_id() == record.order_id())
+  }
+  fn changed<'r, T: PartialEq + crate::id::Ordered>(
+    before: &'r [T],
+    after: &'r [T],
+  ) -> Vec<(&'r T, bool)> {
     // Each subject once, as its record now or, when the pass removed it, as
     // it was, so the one record order can place it.
     let mut records: Vec<&T> = after.iter().collect();
-    records.extend(
-      before
-        .iter()
-        .filter(|b| !after.iter().any(|a| key(a) == key(b))),
-    );
+    records.extend(before.iter().filter(|&b| same(after, b).is_none()));
     records.sort_by(|a, b| crate::id::record_order(*a, *b));
     records
       .into_iter()
       .filter_map(|record| {
-        let k = key(record);
-        let now = after.iter().find(|t| key(t) == k);
-        (before.iter().find(|t| key(t) == k) != now).then_some((k, now.is_none()))
+        let now = same(after, record);
+        (same(before, record) != now).then_some((record, now.is_none()))
       })
       .collect()
   }
@@ -5578,15 +5587,15 @@ fn changed_subjects(held: &(Vec<Thread>, Vec<Issue>), canon: &Canon) -> Vec<Stri
     true => format!("{subject} (removed)"),
     false => subject,
   };
-  let threads = changed(&held.0, &canon.threads, |t| t.id.clone());
-  let issues = changed(&held.1, &canon.issues, |i| i.number);
+  let threads = changed(&held.0, &canon.threads);
+  let issues = changed(&held.1, &canon.issues);
   threads
     .into_iter()
-    .map(|(id, removed)| named(id.shown(), removed))
+    .map(|(thread, removed)| named(thread.id.shown(), removed))
     .chain(
       issues
         .into_iter()
-        .map(|(n, removed)| named(format!("issue {}", n.shown()), removed)),
+        .map(|(issue, removed)| named(format!("issue {}", issue.number.shown()), removed)),
     )
     .collect()
 }
@@ -5718,12 +5727,15 @@ impl IdRecord {
     }
   }
 
-  /// A work package's report under `owner`, its thread. `created` is the
-  /// day [`Facade::wp_created`] reads, which needs the log.
+  /// A work package's report under `owner`, its thread. `canon` is the file
+  /// that holds the package, by its thread file's own format, and `created`
+  /// the day [`Facade::wp_created`] reads from the log: both are reads that
+  /// can fail, so [`Facade::record_of`] makes them and passes them in.
   pub fn of_wp(
     project: &Project,
     owner: &Thread,
     package: &WorkPackage,
+    canon: String,
     created: Option<String>,
   ) -> Self {
     let thread = owner.id.stored();
@@ -5731,8 +5743,7 @@ impl IdRecord {
       kind: crate::id::IdKind::WorkPackage.wire(),
       id: crate::id::wp_address(&thread, package.seq),
       shown: crate::id::wp_address_shown(&owner.id, package.seq),
-      // By the thread file's own format, as doctor names a package's file.
-      canon: crate::doctor::ThreadFiles::of(project, owner).wp(&package.seq.stored()),
+      canon,
       path: project.relative(&project.wp_dir(&thread, package.seq)),
       title: package.title.clone(),
       created,
@@ -5776,6 +5787,16 @@ fn kind_list(kinds: &[crate::id::IdKind]) -> String {
     .map(crate::id::IdKind::wire)
     .collect::<Vec<_>>()
     .join(" or ")
+}
+
+/// A test row's address, as [`crate::address::Entity::At`] forms it, for
+/// [`FacadeError::RowBreaksContract`]'s message.
+fn row_url(st: &str, at: &str) -> String {
+  crate::address::Entity::At {
+    thread: st.to_string(),
+    at: at.to_string(),
+  }
+  .local_url()
 }
 
 /// The verb that lists a record family's collection, for a not-found's remedy.
@@ -6538,9 +6559,7 @@ impl Facade {
       .iter()
       .find(|w| w.seq == seq)
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        // The thread as a person reads it (close sweep A 1.6): a door passes
-        // the stored spelling, which is sixteen hex for a git-style id.
-        st: thread.id.shown(),
+        st: thread.id.stored(),
         wp: seq.heading(),
       })
   }
@@ -6558,7 +6577,7 @@ impl Facade {
   ) -> Result<&WorkPackage, FacadeError> {
     let crate::id::Spelled::Whole(seq) = wp else {
       return Err(FacadeError::NoSuchWorkPackage {
-        st: crate::nav::shown_or_as_is(thread),
+        st: thread.to_string(),
         wp: format!("work package `{}`", wp.segment()),
       });
     };
@@ -8256,7 +8275,8 @@ impl Facade {
   ///
   /// **THE ERROR IS A READ THAT FAILED, NEVER AN ANSWER** (issue 0732): a work
   /// package's created day comes from the log, and a log that cannot be read
-  /// is refused here rather than reported as a record with no day.
+  /// is refused here rather than reported as a record with no day. So is a
+  /// thread file that cannot be read for the file that holds its package.
   pub fn id_of(&self, token: &str) -> Result<IdAnswer, FacadeError> {
     use crate::remedy::Remedy;
     use crate::resolve::Resolution;
@@ -8367,9 +8387,11 @@ impl Facade {
 
   /// The report of the record `entity` names, if this project holds it.
   ///
-  /// **`Ok(None)` MEANS NOT HERE, AND NOTHING ELSE** (issue 0732): the one read
-  /// that can fail is a package's created day, from the log, and its failure
-  /// is this function's error, never a record reported without its day.
+  /// **`Ok(None)` MEANS NOT HERE, AND NOTHING ELSE** (issue 0732): the reads
+  /// that can fail are a package's created day, from the log, and the format
+  /// of its thread's file, which names the file that holds it. A failure of
+  /// either is this function's error, never a record reported without its
+  /// day or with another file as its canon.
   fn record_of(&self, entity: &AddrEntity) -> Result<Option<IdRecord>, FacadeError> {
     let project = &self.project;
     Ok(match self.canon_record(entity) {
@@ -8379,10 +8401,19 @@ impl Facade {
         project,
         owner,
         package,
+        self.thread_files(owner)?.wp(&package.seq.stored()),
         self.wp_created(package)?,
       )),
       Some(CanonRecord::Issue(issue)) => Some(IdRecord::of_issue(project, issue)),
     })
+  }
+
+  /// The files that hold `thread`'s children, by its file's own format, as
+  /// doctor names them (close sweep A 1.2). A thread file that does not read
+  /// is the error, never 3.4.0's answer in its place (critic C1).
+  fn thread_files(&self, thread: &Thread) -> Result<crate::doctor::ThreadFiles, FacadeError> {
+    crate::doctor::ThreadFiles::read(&self.project, thread)
+      .map_err(|found| FacadeError::Ingest(crate::finding::Refusal::new(found).into()))
   }
 
   /// **A WORK PACKAGE'S CREATED DAY** (cc's meaning, ST0095 WP-07): the day
@@ -14033,8 +14064,8 @@ impl Facade {
     taken: &[String],
   ) -> Result<(String, String), FacadeError> {
     use crate::id::Named;
-    let names = |dir: std::path::PathBuf| -> Result<Vec<String>, FacadeError> {
-      match std::fs::read_dir(&dir) {
+    let names = |dir: &std::path::Path| -> Result<Vec<String>, FacadeError> {
+      match std::fs::read_dir(dir) {
         Ok(entries) => Ok(
           entries
             .flatten()
@@ -14055,7 +14086,7 @@ impl Facade {
     let owners = |dirs: [std::path::PathBuf; 2]| -> Result<Vec<Named>, FacadeError> {
       let mut owners = Vec::new();
       for dir in dirs {
-        for name in names(dir.clone())? {
+        for name in names(&dir)? {
           owners.extend(self.project.owner_of(&dir.join(name)));
         }
       }
@@ -14491,7 +14522,7 @@ impl Facade {
     }
     Ok(
       crate::plan::both_sides_added_packages(&versions[0], &versions[1], &versions[2])
-        .then(|| id.to_string()),
+        .then_some(id),
     )
   }
 
@@ -17396,7 +17427,11 @@ impl Facade {
   ) -> Result<Renumbering, FacadeError> {
     self.refuse_a_store_not_this_checkouts()?;
     self.st_show(old)?;
-    let subject = format!("steel thread {}", crate::nav::shown_or_as_is(new));
+    let subject = format!(
+      "{} {}",
+      crate::id::IdKind::Thread.as_str(),
+      crate::nav::shown_or_as_is(new)
+    );
     if self.canon.threads.iter().any(|t| t.id == new) {
       return Err(FacadeError::RenumberTargetTaken {
         subject,
@@ -18488,7 +18523,7 @@ impl Facade {
       // scope nobody ever wrote. The envelope records what was actually there.
       .map(|w| w.scope_display())
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        st: crate::nav::shown_or_as_is(st),
+        st: st.to_string(),
         wp: seq.heading(),
       })?;
 
@@ -18518,7 +18553,7 @@ impl Facade {
       .iter_mut()
       .find(|w| w.seq == seq)
       .ok_or_else(|| FacadeError::NoSuchWorkPackage {
-        st: crate::nav::shown_or_as_is(st),
+        st: st.to_string(),
         wp: seq.heading(),
       })?;
     wp.scope = Some(scope);
@@ -19016,14 +19051,8 @@ impl Facade {
     if !introduced.is_empty() {
       // The thread as a person reads it, in the commands the remedy names and
       // in the row's address (close sweep A 1.6 and A 1.12).
-      let shown = crate::nav::shown_or_as_is(st);
       return Err(FacadeError::RowBreaksContract {
-        url: crate::address::Entity::At {
-          thread: shown.clone(),
-          at: row.id.clone(),
-        }
-        .local_url(),
-        st: shown,
+        st: crate::nav::shown_or_as_is(st),
         at: row.id.clone(),
         findings: introduced.join("; "),
       });
@@ -21174,7 +21203,7 @@ impl Facade {
         url: address.to_url(),
         path: path.clone(),
         thread: thread.clone(),
-        carried_in: crate::doctor::ThreadFiles::of(&self.project, holder).attachments(),
+        carried_in: self.thread_files(holder)?.attachments(),
       });
     }
     let (thread, path) = (thread.clone(), path.clone());

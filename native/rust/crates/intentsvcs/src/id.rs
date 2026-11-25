@@ -2261,12 +2261,19 @@ fn label_parts(label: &str) -> Option<(&str, &str, &str)> {
   Some((head, group, tail))
 }
 
+/// **THE ONE JOIN OF A LABEL**, the inverse of [`label_parts`]: its head, its
+/// group and its tail as `<head>-<group>.<tail>`. [`regrouped`] and
+/// [`label_of`] both build through it.
+fn label_join(head: &str, group: &str, tail: impl std::fmt::Display) -> String {
+  format!("{head}-{group}.{tail}")
+}
+
 /// `label` with its group replaced by `wp`'s stored id, so a group typed as a
 /// prefix is stored whole (ST0095 WP-07): the inverse of [`group_text`] for
 /// one group. A label with no group comes back as it is.
 pub fn regrouped(label: &str, wp: WpId) -> String {
   match label_parts(label) {
-    Some((head, _, tail)) => format!("{head}-{}.{tail}", wp.stored()),
+    Some((head, _, tail)) => label_join(head, &wp.stored(), tail),
     None => label.to_string(),
   }
 }
@@ -2278,10 +2285,10 @@ pub fn label_seq(label: &str) -> Option<u32> {
   label_parts(label)?.2.parse().ok()
 }
 
-/// A label of `kind` in `group` at `seq`, eg `AC-01.3`: the one constructor
-/// of a label, which [`label_parts`] splits back.
+/// A label of `kind` in `group` at `seq`, eg `AC-01.3`, joined by
+/// [`label_join`], which [`label_parts`] splits back.
 pub fn label_of(kind: LabelKind, group: &str, seq: u32) -> String {
-  format!("{}-{group}.{seq}", kind.head())
+  label_join(kind.head(), group, seq)
 }
 
 /// **THE ONE READER OF A LABEL'S GROUP** (issue 0712). There were five, and

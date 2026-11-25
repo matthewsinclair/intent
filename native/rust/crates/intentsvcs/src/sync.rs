@@ -67,7 +67,7 @@ pub fn root_file_path(name: &str, contracts: Contracts) -> PathBuf {
 /// Retiring a producer is not a reason to stop recognising its residue.
 /// `.backup/` matters for the same reason once D35's rolling snapshots land
 /// there: a copy of truth must never re-enter through the ingest gate.
-pub const SKIPPED_DIRS: &[&str] = &[".cache", ".treeindex", ".backup"];
+pub const SKIPPED_DIRS: &[&str] = &[crate::project::CACHE_DIR_NAME, ".treeindex", ".backup"];
 
 /// One member of the set an extract cannot carry.
 ///

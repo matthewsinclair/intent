@@ -815,8 +815,9 @@ fn tool_answer(
         ));
       }
       let id = spec(path, f, need_s(path, map, "id")?)?;
-      let t = f.st_show(&id)?;
-      val(path, t)
+      // The whole thread as a face gives it, as GraphQL does (close sweep A
+      // 1.11): its criteria and tests in the order acceptance.md shows.
+      val(path, &f.st_show(&id)?.listed())
     }
     "st edit" => {
       let id = spec(path, f, need_s(path, map, "id")?)?;
