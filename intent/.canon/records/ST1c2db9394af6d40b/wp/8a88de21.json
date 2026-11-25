@@ -3,7 +3,7 @@
   "origin": "01M88VVPWG7N188VKBPMAF0MD9",
   "title": "The canon format, read once for a skew check",
   "scope": "XS",
-  "status": "not-started",
+  "status": "wip",
   "objective": "A skew check words its findings in the canon format that its caller read, so the realisation set and its wording cannot come from two reads.",
   "body": "## Rows\n\nReport F2's H3 (triage P23, its second half). P23's ruling stands: doctor reads the canon format from the disk.\n\n## Deliverables\n\n- `views::skew_against` takes the `CanonFormat` that its caller read, and does not call `intentfiles::reported_format` itself (`intentsvcs/src/views.rs:2818`).\n- doctor passes the format that it read at `intentsvcs/src/doctor.rs:2203`. `views::skew` reads the reported format once and passes it on.\n- The call in `intentsvcs/tests/view_skew_check.rs` passes a format.\n\n## Approach\n\nAdd one parameter. The other route, a `Realised` that carries its format, changes a public type that more code reads.\n\n## Dependencies\n\nNone.\n\n## Risks\n\nA caller passes a format other than the one it read `realised` in. doctor passes one variable to both calls.\n\n## Verification\n\nBefore the bank, the builder runs clippy and critic-rust on its diff. No new test.\n\nThe batch decides this package: one `bin/devbin gate all` and one `bin/devbin test shell` at main's HEAD, after the last bank lands, booked by vc with the Desk. No gate and no suite runs for this bank alone.\n\n## Seat and size\n\ncc (intentsvcs). XS.\n",
   "preamble": ""

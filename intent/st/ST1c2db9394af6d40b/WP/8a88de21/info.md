@@ -2,7 +2,7 @@
 wp_id: WP-8a88
 title: The canon format, read once for a skew check
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-8a88: The canon format, read once for a skew check

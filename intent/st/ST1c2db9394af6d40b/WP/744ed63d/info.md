@@ -2,7 +2,7 @@
 wp_id: WP-744e
 title: A thread's criteria and tests list in one order at every face
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-744e: A thread's criteria and tests list in one order at every face
