@@ -1097,6 +1097,22 @@
       "state": "live",
       "recorded_at": "2026-11-25T16:22:27.859Z",
       "edited_at": "2026-11-25T16:22:35.446Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 106,
+      "text": "(hv, 2026-11-25, in devbin-vc's window, answered at 16:59Z by devbin-vc's date -u; relayed by devbin-vc at 17:00Z and read by vc by 17:01Z on vc's date -u; not heard first-hand by vc; the options' wording vc's, the choice hv's and vc's recommendation) THE stale_at_check.sh FIX PARKS IN ST0084. stale_at_check.sh, a report-only gate tool in ST0056's parity tools, builds a thread's canon path by hand, so it refuses a thread that a person names by its shown id (item 5 of ST1c2db93's close sweep, reader C). The gate runs it with no id, and its fix needs a new test fixture, which a release does not add. hv chose (a) over (b), a fix in dc's sweep bank with a built pair in the existing test file: the fix goes to parked ST0084 with the other parity-tool defects (hv decisions 104 and 105), dc writes nothing more for it, and it is not in 3.5.4.",
+      "state": "live",
+      "recorded_at": "2026-11-25T17:01:46.010Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 107,
+      "text": "(hv, 2026-11-25, in devbin-vc's window, answered at 16:59Z by devbin-vc's date -u; relayed by devbin-vc at 17:00Z and read by vc by 17:01Z on vc's date -u; not heard first-hand by vc; the options' wording vc's, the choice hv's and vc's recommendation) EVERY INTENT PROJECT'S GATE KEEPS RUNNING FROM INTENT'S DEV CHECKOUT. ~/.local/share/intent/home names Intent's dev checkout (written 2026-09-20 by intent bootstrap, its one writer), so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew binary from the moment a hook change lands. hv chose (a) over (b), intent bootstrap from brew, and (c), a parked thread on which tree a project's gate runs. The pointer stays. Before each landing that changes a shipped hook, vc checks the change against brew's Intent and every Intent project on rhadamanth (XS each time).",
+      "state": "live",
+      "recorded_at": "2026-11-25T17:01:46.896Z"
     }
   ],
   "sent": [],

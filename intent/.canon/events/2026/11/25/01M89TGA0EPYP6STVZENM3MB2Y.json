@@ -1,0 +1,17 @@
+{
+  "id": "01M89TGA0EPYP6STVZENM3MB2Y",
+  "ts": "2026-11-25T17:01:57.134Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "hv's answer on item 5 (hv decision 106, relayed by devbin-vc at 17:00Z): option (a). The stale_at_check.sh fix parks in ST0084 with the vocab and census tools, and you write nothing more for it. Release your hold on it. design.md records item 5 as Ruled, hv decision 106. devbin-vc puts your clippy first on cargo when you ask.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

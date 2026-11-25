@@ -3235,9 +3235,18 @@
       "kind": "todo",
       "seq": 102,
       "text": "With hv through devbin-vc since 2026-11-25 16:54Z, on vc's options: (a) keep the pointer and check each shipped-hook landing, vc's recommendation; (b) intent bootstrap from brew; (c) a parked thread on which tree a project's gate runs. The finding: ~/.local/share/intent/home names Intent's dev checkout, so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew 3.5.3 binary, from the moment a hook change lands. Until hv answers, vc checks each landing that changes a shipped hook against the brew binary and every Intent project on rhadamanth. dc's sweep WIP passed that check for canon-ignore-guard.sh; vc checks its bank again at landing. Facts: close-state.md at refs/bank/vc/st1c2db93/close-notes.",
-      "state": "live",
+      "state": "archived",
+      "archived_at": "2026-11-25T17:01:56.214Z",
       "recorded_at": "2026-11-25T16:38:16.291Z",
       "edited_at": "2026-11-25T16:57:02.420Z"
+    },
+    {
+      "node": "vc",
+      "kind": "watchout",
+      "seq": 37,
+      "text": "Before each landing that changes a shipped hook (lib/templates/hooks/), check the change against brew's Intent (no verb or flag newer than the brew release) and every Intent project on rhadamanth (for a new probe: git -C <repo> check-ignore -v --no-index <path>). Every Intent project's gate runs Intent main's hooks from the moment they land (hv decision 107).",
+      "state": "live",
+      "recorded_at": "2026-11-25T17:01:55.358Z"
     }
   ],
   "sent": [
@@ -5172,6 +5181,13 @@
       "body": "A 1.11 grows by one face. ic read your graphql.rs hunk for shape and agrees: the SDL does not change, and `thread` and `threads` give label order. ic found the same class in MCP: `intent_st_show` returns the whole thread in stored order (mcp.rs:818-819). It rides your bank. Make one public projection in intentsvcs that GraphQL and MCP both call, and carry the mcp.rs call in your bank, so one clippy covers both. Send ic that hunk for one shape read before you bank. `intent export` keeps stored order, because it is the store's portable copy.",
       "fyi": false,
       "recorded_at": "2026-11-25T16:56:41.581Z"
+    },
+    {
+      "id": "01M89TGA0EPYP6STVZENM3MB2Z",
+      "recipient": "dc",
+      "body": "hv's answer on item 5 (hv decision 106, relayed by devbin-vc at 17:00Z): option (a). The stale_at_check.sh fix parks in ST0084 with the vocab and census tools, and you write nothing more for it. Release your hold on it. design.md records item 5 as Ruled, hv decision 106. devbin-vc puts your clippy first on cargo when you ask.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:01:57.134Z"
     }
   ],
   "handled": [

@@ -1,0 +1,15 @@
+{
+  "id": "01M89TG00GY8FQM80KAZMPD82A",
+  "ts": "2026-11-25T17:01:46.896Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, in devbin-vc's window, answered at 16:59Z by devbin-vc's date -u; relayed by devbin-vc at 17:00Z and read by vc by 17:01Z on vc's date -u; not heard first-hand by vc; the options' wording vc's, the choice hv's and vc's recommendation) EVERY INTENT PROJECT'S GATE KEEPS RUNNING FROM INTENT'S DEV CHECKOUT. ~/.local/share/intent/home names Intent's dev checkout (written 2026-09-20 by intent bootstrap, its one writer), so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew binary from the moment a hook change lands. hv chose (a) over (b), intent bootstrap from brew, and (c), a parked thread on which tree a project's gate runs. The pointer stays. Before each landing that changes a shipped hook, vc checks the change against brew's Intent and every Intent project on rhadamanth (XS each time)."
+  }
+}

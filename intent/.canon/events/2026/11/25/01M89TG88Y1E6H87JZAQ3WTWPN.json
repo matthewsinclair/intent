@@ -1,0 +1,15 @@
+{
+  "id": "01M89TG88Y1E6H87JZAQ3WTWPN",
+  "ts": "2026-11-25T17:01:55.358Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "Before each landing that changes a shipped hook (lib/templates/hooks/), check the change against brew's Intent (no verb or flag newer than the brew release) and every Intent project on rhadamanth (for a new probe: git -C <repo> check-ignore -v --no-index <path>). Every Intent project's gate runs Intent main's hooks from the moment they land (hv decision 107)."
+  }
+}

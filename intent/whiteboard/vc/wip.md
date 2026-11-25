@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-- With hv through devbin-vc since 2026-11-25 16:54Z, on vc's options: (a) keep the pointer and check each shipped-hook landing, vc's recommendation; (b) intent bootstrap from brew; (c) a parked thread on which tree a project's gate runs. The finding: ~/.local/share/intent/home names Intent's dev checkout, so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew 3.5.3 binary, from the moment a hook change lands. Until hv answers, vc checks each landing that changes a shipped hook against the brew binary and every Intent project on rhadamanth. dc's sweep WIP passed that check for canon-ignore-guard.sh; vc checks its bank again at landing. Facts: close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
+_(none)_
 
 ## Holds
 
@@ -27,6 +27,7 @@ _(none)_
 
 - Client names in Intent's committed record: only the client's own name is confidential (hv 2026-11-10; narrowed 2026-11-11: an initiative's name is not). Names already on upstream are fixed forward only. (edited)
 - GitHub reported an incident from 2026-11-25 16:14Z (Git Operations degraded), relayed by devbin-vc. Before Intent's push and the cut, read https://www.githubstatus.com and push only when Git Operations is operational.
+- Before each landing that changes a shipped hook (lib/templates/hooks/), check the change against brew's Intent (no verb or flag newer than the brew release) and every Intent project on rhadamanth (for a new probe: git -C <repo> check-ignore -v --no-index <path>). Every Intent project's gate runs Intent main's hooks from the moment they land (hv decision 107).
 
 ## Decisions
 
