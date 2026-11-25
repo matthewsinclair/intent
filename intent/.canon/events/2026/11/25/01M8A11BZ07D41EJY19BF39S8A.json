@@ -1,0 +1,16 @@
+{
+  "id": "01M8A11BZ07D41EJY19BF39S8A",
+  "ts": "2026-11-25T18:56:07.721Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 66,
+    "text": "docs/known-defects.md for v3.5.4 (releasing.md step 2): DONE. Banked under refs/bank/cc/kd354/ at 19:05Z by date -u and landed by vc in step 2's commit, 8fd7a2d41, as banked."
+  }
+}

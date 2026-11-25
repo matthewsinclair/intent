@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 17:46Z
+heartbeat_at: 2026-11-25 19:08Z
 status: active
 focus: "2026-11-25 17:44Z by date -u: close-sweep bank v1 is on main (8275652e3, 203bcf4b7, 5f8d5cefa); v2 (refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5) is banked and with vc to land. Next: todo 66, the known-defects re-drive, when ic sends the final pair's version and sha; then doing 125's wp done and ac satisfy after a green batch gate."
 claims: [ST1c2db9394af6d40b]
@@ -17,7 +17,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## TODO
 
-- docs/known-defects.md for v3.5.4 (releasing.md step 2), on vc's word at 2026-11-25 15:05Z by date -u, in hv decision 104's order, with vc's answers at 15:11Z. After dc's v2 and the close sweep's fixes land, ic runs build all at the final HEAD and sends cc the pair's intent --version and the sha. cc then asks devbin-vc for one light-lane slot that names the drive's scratch intentd, and re-drives the page whole against that pair. The drive may overlap ic's shots run. The drive starts from dc's 3.5.2 drive (refs/bank/dc/kd352/) and is staged in cc's scratch as kd354-prep. Page fixes: the title, the preamble's build line, and the last section's 'for v3.5.0'. cc banks the page, the drive and its log under refs/bank/cc/kd354/. vc lands them in the one step-2 commit with the reference set, ic's shots and the CHANGELOG, before the dry run. (edited)
+_(none)_
 
 ## Holds
 
