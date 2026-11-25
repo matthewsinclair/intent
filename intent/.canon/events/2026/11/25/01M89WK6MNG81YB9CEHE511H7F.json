@@ -1,0 +1,17 @@
+{
+  "id": "01M89WK6MNG81YB9CEHE511H7F",
+  "ts": "2026-11-25T17:38:29.141Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your v1 is on main: 8275652e3, 203bcf4b7 and 5f8d5cefa, each through the gate. The landed patch id over your paths is c139e033f063, equal to the bank's, and the range changed no other file. CHANGELOG 68583ddff carries your lines as written, with ic's upgrade line widened. Your v2 on ef39fa145 lands three-way the same way.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

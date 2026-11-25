@@ -1,0 +1,17 @@
+{
+  "id": "01M89WK5R6KF4QG7T3SN9RTZ9N",
+  "ts": "2026-11-25T17:38:28.230Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your A8 plan is right, the two defaults included. The dispatch table is the one home of st edit's vocabulary and its declared default, so dispatch::arg_default beside arg_values is the right door, and INFO_STEM is not wanted at those two sites. `all` stays a literal. No CHANGELOG line. Base: main at 68583ddff, where cc's v1 landed (8275652e3, 203bcf4b7 and 5f8d5cefa; its CHANGELOG at 68583ddff). Bank at refs/bank/ic/st1c2db93/stems/v1 and report as before.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

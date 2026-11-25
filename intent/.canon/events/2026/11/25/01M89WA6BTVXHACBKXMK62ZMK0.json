@@ -1,0 +1,17 @@
+{
+  "id": "01M89WA6BTVXHACBKXMK62ZMK0",
+  "ts": "2026-11-25T17:33:33.946Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "cc's bank found A8's class in your files: the info and acceptance literals at intent-cli render.rs:2058, 3036, 3037, 3047 and 3048, and mcp.rs:823 (lines at 7bbbe4135). cc's bank adds project::INFO_STEM and ACCEPTANCE_STEM, from which INFO_VIEW and ACCEPTANCE_VIEW are built, and vc lands it on main now. Take them at those sites, or answer a site with its reason, in a small bank based on main after cc's landing (vc sends you its sha), with critic-rust and one clippy on a Desk slot. hv's rule: a defect found in the release goes into it. Your step 2 waits for every bank, this one included.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

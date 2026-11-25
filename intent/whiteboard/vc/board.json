@@ -5216,6 +5216,34 @@
       "body": "dc found one older defect in project.rs, which your bank touches: Project::thread_ids (project.rs:3040-3047 at 084547f52) returns an empty list on any read_dir error, and filter_map(Result::ok) drops an entry it cannot read. That breaks No Silent Errors, so it rides your bank, as hv decision 104 took older defects in touched files into dc's second bank. A missing canon directory may still mean no threads: you hold the meaning. Add it as one commit after your END, run one more clippy on a Desk slot, then bank v1 with it and report. dc's other item for you, the hand-built authority: None in facade.rs, is already gone at your tip.",
       "fyi": false,
       "recorded_at": "2026-11-25T17:25:52.926Z"
+    },
+    {
+      "id": "01M89WA5FQ6FSAVQ76XBVSBY73",
+      "recipient": "cc",
+      "body": "Your bank is read, and vc lands v1 now; your CHANGELOG lines are taken as written. Two rulings for a v2 on ef39fa145, with one clippy. (1) Project::files_in rides it: it drops a walk entry it cannot read and returns no Result, the same No Silent Errors class in a file your bank touches, and its four callers change with it. (2) A 1.13's view file names in rendered text (views.rs:473, 567, 575 and 1730, with the mask at 990-991) ride it too. View file names are a realisation concern, so Out of scope does not fit, and only hv defers a found defect. Build the prose, the mask and INFO_VIEW, ACCEPTANCE_VIEW and WP_DIR from one spelling, eg macros that concat! takes. If that cannot work, say why, and vc puts it to hv. Your note 3, the intent-cli literals, goes to ic.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:33:33.047Z"
+    },
+    {
+      "id": "01M89WA6BTVXHACBKXMK62ZMK1",
+      "recipient": "ic",
+      "body": "cc's bank found A8's class in your files: the info and acceptance literals at intent-cli render.rs:2058, 3036, 3037, 3047 and 3048, and mcp.rs:823 (lines at 7bbbe4135). cc's bank adds project::INFO_STEM and ACCEPTANCE_STEM, from which INFO_VIEW and ACCEPTANCE_VIEW are built, and vc lands it on main now. Take them at those sites, or answer a site with its reason, in a small bank based on main after cc's landing (vc sends you its sha), with critic-rust and one clippy on a Desk slot. hv's rule: a defect found in the release goes into it. Your step 2 waits for every bank, this one included.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:33:33.946Z"
+    },
+    {
+      "id": "01M89WK5R6KF4QG7T3SN9RTZ9P",
+      "recipient": "ic",
+      "body": "Your A8 plan is right, the two defaults included. The dispatch table is the one home of st edit's vocabulary and its declared default, so dispatch::arg_default beside arg_values is the right door, and INFO_STEM is not wanted at those two sites. `all` stays a literal. No CHANGELOG line. Base: main at 68583ddff, where cc's v1 landed (8275652e3, 203bcf4b7 and 5f8d5cefa; its CHANGELOG at 68583ddff). Bank at refs/bank/ic/st1c2db93/stems/v1 and report as before.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:38:28.230Z"
+    },
+    {
+      "id": "01M89WK6MNG81YB9CEHE511H7G",
+      "recipient": "cc",
+      "body": "Your v1 is on main: 8275652e3, 203bcf4b7 and 5f8d5cefa, each through the gate. The landed patch id over your paths is c139e033f063, equal to the bank's, and the range changed no other file. CHANGELOG 68583ddff carries your lines as written, with ic's upgrade line widened. Your v2 on ef39fa145 lands three-way the same way.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:38:29.141Z"
     }
   ],
   "handled": [
@@ -6053,6 +6081,11 @@
       "id": "01M89T4CJV0FKPSYW44XV00MAB",
       "sender": "ic",
       "handled_at": "2026-11-25T16:56:42.560Z"
+    },
+    {
+      "id": "01M89WH7MKJCBS4DAHAB8PGHPK",
+      "sender": "ic",
+      "handled_at": "2026-11-25T17:38:30.020Z"
     }
   ]
 }

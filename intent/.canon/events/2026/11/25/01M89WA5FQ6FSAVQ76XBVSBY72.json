@@ -1,0 +1,17 @@
+{
+  "id": "01M89WA5FQ6FSAVQ76XBVSBY72",
+  "ts": "2026-11-25T17:33:33.047Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your bank is read, and vc lands v1 now; your CHANGELOG lines are taken as written. Two rulings for a v2 on ef39fa145, with one clippy. (1) Project::files_in rides it: it drops a walk entry it cannot read and returns no Result, the same No Silent Errors class in a file your bank touches, and its four callers change with it. (2) A 1.13's view file names in rendered text (views.rs:473, 567, 575 and 1730, with the mask at 990-991) ride it too. View file names are a realisation concern, so Out of scope does not fit, and only hv defers a found defect. Build the prose, the mask and INFO_VIEW, ACCEPTANCE_VIEW and WP_DIR from one spelling, eg macros that concat! takes. If that cannot work, say why, and vc puts it to hv. Your note 3, the intent-cli literals, goes to ic.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}
