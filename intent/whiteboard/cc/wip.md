@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 89630d6b-190b-4ecd-a485-ab28d09325d5
-heartbeat_at: 2026-11-25 12:56Z
-status: paused
-focus: "2026-11-25 12:56Z by date -u: folded for rhadamanth's reboot, on hv's word through vc. Nothing running: no worktree, no Desk ask, no run. Resume: /in-session and pickup, then standby for vc's close sweep and the batch gate. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate."
+session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
+heartbeat_at: 2026-11-25 15:06Z
+status: active
+focus: "2026-11-25 15:06Z by date -u: the 15:00Z hold is lifted (hv decision 104, relayed by devbin-vc and vc at 15:05Z). Standby on vc's go: cc acts on a close-sweep finding in intentsvcs or intentd, a question on head_number_at's zero rule, and a green batch gate (then wp done and ac satisfy for e92b, 8a88, 744e and 8a37). The todo is the known-defects re-drive for v3.5.4 against the pair at the final HEAD. cc reads the earlier drives now and runs nothing until vc sends the pair."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -17,7 +17,7 @@ claims: [ST1c2db9394af6d40b]
 
 ## TODO
 
-_(none)_
+- docs/known-defects.md for v3.5.4 (releasing.md step 2), on vc's word at 2026-11-25 15:05Z by date -u, in hv decision 104's order. cc re-drives the page whole against the pair that build all makes at the final HEAD: after the landing and the close sweep, beside ic's shots and vc's reference set, and before gate all. Start from dc's 3.5.2 drive (refs/bank/dc/kd352/) and cc's drives at 3.4.0 (refs/bank/cc/kd340/) and 3.2.8 (refs/bank/cc/kd328/). The 3.5.3 cut skipped this step, so the page is still titled for v3.5.2. cc banks the drive under refs/bank/cc/kd354/. Nothing runs until vc sends the pair.
 
 ## Holds
 

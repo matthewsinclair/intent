@@ -1,0 +1,15 @@
+{
+  "id": "01M89KWK0Z4PAG9MCTYZPP9E63",
+  "ts": "2026-11-25T15:06:19.551Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "docs/known-defects.md for v3.5.4 (releasing.md step 2), on vc's word at 2026-11-25 15:05Z by date -u, in hv decision 104's order. cc re-drives the page whole against the pair that build all makes at the final HEAD: after the landing and the close sweep, beside ic's shots and vc's reference set, and before gate all. Start from dc's 3.5.2 drive (refs/bank/dc/kd352/) and cc's drives at 3.4.0 (refs/bank/cc/kd340/) and 3.2.8 (refs/bank/cc/kd328/). The 3.5.3 cut skipped this step, so the page is still titled for v3.5.2. cc banks the drive under refs/bank/cc/kd354/. Nothing runs until vc sends the pair."
+  }
+}

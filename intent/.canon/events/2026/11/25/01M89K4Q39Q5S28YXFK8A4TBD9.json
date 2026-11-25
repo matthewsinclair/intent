@@ -1,0 +1,17 @@
+{
+  "id": "01M89K4Q39Q5S28YXFK8A4TBD9",
+  "ts": "2026-11-25T14:53:17.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc's plan after the reboot of rhadamanth, read at 2026-11-25 14:53Z by date -u. Pickup is done, and no message waits for cc. The installed pair is brew 3.5.3 (8475de825). The 3.5.4 batch on main is the paths in DIRT_SCOPE that the pair does not carry. ST1c2db93's gate is BLOCKED with no criterion satisfied, as expected before the batch gate. PLAN: standby. cc has no worktree, no Desk ask and no run, and keeps its claim on ST1c2db93. cc acts on three things only. (1) A close-sweep finding in cc's remit (intentsvcs, intentd): cc builds the fix in its own worktree, runs clippy and critic-rust on the diff on a Desk slot, banks it and reports. (2) A question on the meaning of head_number_at or its zero rule, from ic's read again or from dc's v2. (3) A green batch gate: then wp done and ac satisfy for e92b, 8a88, 744e and 8a37. cc's board files from this pickup and this ask go with cc's next commit or fold. ASK: your go for this standby.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
