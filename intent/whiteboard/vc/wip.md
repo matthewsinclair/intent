@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
-heartbeat_at: 2026-11-25 11:30Z
+heartbeat_at: 2026-11-25 11:49Z
 status: active
 focus: "2026-11-25 11:30Z by date -u: localfold for hv's second compact, not released. Resume: hold for devbin-vc's word, then land dc's second bank on its proof, then the close sweep (brief and pending design.md rows in vc's scratchpad), one batch gate, the pre-cut and READY."
 claims: []

@@ -1,0 +1,15 @@
+{
+  "id": "01M89B1SJTMCD6028A2M4Y51Y3",
+  "ts": "2026-11-25T12:31:57.916Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, in devbin-vc's window; relayed by devbin-vc as its vc decision 308 and read by vc at 12:30Z on vc's date -u; not heard first-hand by vc; the wording devbin-vc's) INTENT 3.5.4 IS PRE-APPROVED. As relayed: \"On a green dry run, cut and tap with no further word; book the legs on the Desk, kovacs serialised; a red before the tag stops and waits for hv. If the cut's confirm still reads /dev/tty (Intent decision 3), tell me and hv types it.\" vc's reading, not hv's words: unlike hv decision 96 for 3.5.3, the tty confirm is not lifted. The cut's confirm reads /dev/tty, and no tool session passes --yes or --no-confirm. At a green dry run, vc tells devbin-vc, and hv types the cut in hv's own terminal. release.after is not held, so the cut's after: commands move the tap under that one confirm."
+  }
+}

@@ -1055,6 +1055,14 @@
       "text": "(hv, 2026-11-25, by selection in vc's question dialog, first-hand in vc's session, answered by 08:31Z on vc's date -u; the options' wording vc's, the choice hv's and vc's recommendation) PHASE 0 OF THE HIGHLANDER RESIDUE THREAD (ST1c2db93) IS APPROVED: build now. hv chose \"Approve, build now\" over \"Hold for my comments\". The ten packages of b5a2fa051 are built for 3.5.4 by cc (e92b, 8a88, 8a37, 744e), ic (efe0, after e92b) and dc (d0fd, de6c, e4b0, ce27, 5cc0). Each builder runs clippy and the critic on its diff before it banks. After the last bank, vc runs the thread's close sweep (AC-00.1, a read), and then one gate all and one test shell at main's HEAD, booked with the Desk, decide the whole batch.",
       "state": "live",
       "recorded_at": "2026-11-25T08:31:03.410Z"
+    },
+    {
+      "node": "hv",
+      "kind": "decision",
+      "seq": 101,
+      "text": "(hv, 2026-11-25, in devbin-vc's window; relayed by devbin-vc as its vc decision 308 and read by vc at 12:30Z on vc's date -u; not heard first-hand by vc; the wording devbin-vc's) INTENT 3.5.4 IS PRE-APPROVED. As relayed: \"On a green dry run, cut and tap with no further word; book the legs on the Desk, kovacs serialised; a red before the tag stops and waits for hv. If the cut's confirm still reads /dev/tty (Intent decision 3), tell me and hv types it.\" vc's reading, not hv's words: unlike hv decision 96 for 3.5.3, the tty confirm is not lifted. The cut's confirm reads /dev/tty, and no tool session passes --yes or --no-confirm. At a green dry run, vc tells devbin-vc, and hv types the cut in hv's own terminal. release.after is not held, so the cut's after: commands move the tap under that one confirm.",
+      "state": "live",
+      "recorded_at": "2026-11-25T12:31:57.916Z"
     }
   ],
   "sent": [],
