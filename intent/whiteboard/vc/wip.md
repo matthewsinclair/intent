@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 5af3bd13-884c-4502-be68-30788850cf56
-heartbeat_at: 2026-11-24 20:12Z
+session_id: 1d312e21-e59b-4085-8f87-1ac3574a0b61
+heartbeat_at: 2026-11-25 07:47Z
 status: active
-focus: "2026-11-24 20:12Z by date -u: EOD fold. I3c24d2a on main, waits on the next release; seats folding, then push"
+focus: "2026-11-25 07:47Z by date -u: 3.5.4 under way (hv decision 99); cc writes Phase 0 of ST1c2db93; vc waits for ready, then puts the review to hv"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-_(none)_
+- 3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decision 99). Now: cc writes Phase 0, and ic and dc read their remits' rows for cc. Next: hv reviews Phase 0, the seats build by remit, vc lands each bank on its builder's proof, then the pre-cut and READY to hv.
 
 ## TODO
 

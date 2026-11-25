@@ -1,0 +1,15 @@
+{
+  "id": "01M88TPJ8Z69H9ZWR36RQW48PP",
+  "ts": "2026-11-25T07:46:07.775Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, by selection in devbin-vc's window by AskUserQuestion; relayed by devbin-vc at 07:44Z on its date -u, not heard first-hand by vc; the options' wording devbin-vc's, built on vc's plan, the choice hv's) GO ALL, THREAD IN. Intent 3.5.4 carries the Highlander residue thread (ST1c2db93) and the Linux intent app fix (I3c24d2a). cc writes Phase 0 (work packages, criteria, sizes, a seat for each package) and stops for hv's review before any code. Every heavy and cargo run is booked with the Desk before it starts. At READY, vc asks hv for the cut and tap words or a pre-approval."
+  }
+}

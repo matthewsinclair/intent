@@ -1,0 +1,15 @@
+{
+  "id": "01M88TR6H911TP2K06QJAXKR6W",
+  "ts": "2026-11-25T07:47:01.289Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "3.5.4 carries the Highlander residue thread (ST1c2db93) and I3c24d2a (hv decision 99). Now: cc writes Phase 0, and ic and dc read their remits' rows for cc. Next: hv reviews Phase 0, the seats build by remit, vc lands each bank on its builder's proof, then the pre-cut and READY to hv."
+  }
+}
