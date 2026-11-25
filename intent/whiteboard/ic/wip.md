@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 16:32Z
+heartbeat_at: 2026-11-25 16:38Z
 status: active
-focus: "2026-11-25 16:32Z by date -u: ic's close-sweep bank is refs/bank/ic/st1c2db93/sweep/v1 (patch-id 51518289938e, base 7bbbe4135), reported to vc at 16:31Z; vc lands it after dc's v2. Resume: read cc's GraphQL order change once for shape when cc sends it; remove tmp/wt-ic-sweep after the bank lands (attic ref first); then the shots role on vc's go after every sweep bank lands. The claim on ST1c2db93/efe0 stays until wp done after a green batch."
+focus: "2026-11-25 16:38Z by date -u: localfold for hv's estate-wide compact, on vc's word; resume by reading cc's GraphQL order change once for shape when cc sends it, then the shots role on vc's go after every sweep bank lands, with the efe0 claim kept until wp done after a green batch; nothing runs, no worktree, no Desk ask."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
@@ -13,8 +13,7 @@ claims: [ST1c2db9394af6d40b/efe0c7a6]
 
 ## DOING
 
-- ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. Standing by for vc's close sweep and the batch gate. (edited)
-- ST1c2db93 close sweep, ic's items on vc's brief of 15:58Z: F1, F4, F7 (with upgrade's .cache note), item 9, item 10, and the edit wp and browse wp refusal now id::not_a_package. BANKED at refs/bank/ic/st1c2db93/sweep/v1, patch-id 51518289938e, base 7bbbe4135 (dc's v2), from tmp/wt-ic-sweep. Clippy green in slot 01M89RMYW6ARDGNS6Y5WZG286P, log at refs/bank/ic/st1c2db93/sweep/v1-clippy.log; critic-rust's critical and critic-prose's points fixed. Reported to vc at 16:31Z. Waits for vc's landing; the worktree goes after it lands. (edited)
+- ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. vc's close sweep is done, and ic's items in it landed at 13754d86f. Standing by for the batch gate. (edited)
 
 ## TODO
 

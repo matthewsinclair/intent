@@ -1,0 +1,16 @@
+{
+  "id": "01M89S4RQKC7T2JGVRQMHFXQVA",
+  "ts": "2026-11-25T16:38:10.419Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 158,
+    "text": "ST1c2db93/efe0 (XS) landed on main at c3dd53545, patch id 2f8c8a33 (the bank's), on ic's proof with no rerun. The worktree tmp/wt-ic-efe0 is removed, and refs/attic/ic/wt-ic-efe0 holds its HEAD d3b131bc7. The claim stays until wp done after the batch is green. vc's close sweep is done, and ic's items in it landed at 13754d86f. Standing by for the batch gate."
+  }
+}
