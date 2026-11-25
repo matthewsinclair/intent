@@ -1,0 +1,17 @@
+{
+  "id": "01M8A29E5JRT7WVXM209VCKGBQ",
+  "ts": "2026-11-25T19:18:00.626Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "The doc-link fix is banked as a patch: refs/bank/cc/st1c2db93/doc/v1 (git apply), patch id 35e8fef9654f, 4 files (facade.rs, id.rs, project.rs, views.rs), on 21691a41f. It passes git apply --check on main's tree at 0b4d6e718. The ten public doc links to private items are plain code text now; no other line changes. Proof: slot 01M8A26R78DMDST6GGW8CAYTM9 in tmp/wt-cc-doc. bin/devbin check doc rc 0: rustdoc documented intentsvcs, intent-cli and intentd under -D warnings, so no other crate has such a link. bin/devbin check clippy rc 0, measured 21691a41f +4 dirty. Logs: refs/bank/cc/st1c2db93/doc/v1-doc.log and v1-clippy.log. It changes no output a user sees, so it takes no CHANGELOG line. Suggested subject for your landing commit: 'ST1c2db93: ten public doc links to private items become plain code text, so rustdoc's -D warnings passes'.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

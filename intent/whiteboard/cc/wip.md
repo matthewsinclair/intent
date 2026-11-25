@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 19:08Z
+heartbeat_at: 2026-11-25 19:18Z
 status: active
-focus: "2026-11-25 17:44Z by date -u: close-sweep bank v1 is on main (8275652e3, 203bcf4b7, 5f8d5cefa); v2 (refs/bank/cc/st1c2db93/sweep/v2 = 2df7ad8d5) is banked and with vc to land. Next: todo 66, the known-defects re-drive, when ic sends the final pair's version and sha; then doing 125's wp done and ac satisfy after a green batch gate."
+focus: "2026-11-25 19:18Z by date -u: the doc-link fix for batch run 1's red is banked at refs/bank/cc/st1c2db93/doc/v1 (patch 35e8fef9654f; check doc and clippy green in slot 01M8A26R78DMDST6GGW8CAYTM9), with vc to land; tmp/wt-cc-doc goes after the landing, by the fold checks. Then dc's batch re-run, and doing 125's close steps on vc's word after a green batch."
 claims: [ST1c2db9394af6d40b]
 ---
 
