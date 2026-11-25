@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 19:58Z
+heartbeat_at: 2026-11-25 20:04Z
 status: active
-focus: "2026-11-25 19:58Z by date -u: ic's close step for ST1c2db93 is done after the green batch at 5d58e6b6e. AC-efe0c7a6.1 is satisfied with named evidence, efe0 is done, and the efe0 claim is released. dc runs its close steps next, then vc. ic holds no claim, slot or worktree, and waits for vc's word on what follows the close."
+focus: "2026-11-25 20:04Z by date -u: standing by on vc's word. ST1c2db93 is done (cfed458e9), and its realised files have left by organize (9cc8df8f7). The preflight checks pass, and Intent 3.5.4 waits only on hv at the Mac for the dry run and the cut. ic holds no claim, slot or worktree, and nothing of ic's runs until vc's word."
 claims: []
 ---
 
