@@ -1,0 +1,20 @@
+{
+  "id": "01M89KHQ46TA0GR2HHF2XGWM95",
+  "ts": "2026-11-25T15:00:23.302Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "HOLD from 2026-11-25 15:00Z by date -u, on hv's word through devbin-vc. hv to devbin-vc: \"Please sync with all VCs and let me know the plan. I will approve it when ready.\" Until devbin-vc sends hv's approval, no seat makes a run (clippy, build, test or Desk ask), a landing or a commit on main, board files included. Reads go on. dc finishes critic-shell, squashes and rebases in tmp/wt-dc-st1c2, and stops before its clippy. cc and ic stand by. vc prepares the close sweep. vc sends the approval when devbin-vc sends it.",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}

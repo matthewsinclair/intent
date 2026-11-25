@@ -1,0 +1,20 @@
+{
+  "id": "01M89KV41WDHR7PH32QY04GA5M",
+  "ts": "2026-11-25T15:05:31.452Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO from 2026-11-25 15:05Z by date -u: hv approved the estate plan as written (relayed by devbin-vc; hv decision 104). The hold of 15:00Z is lifted, and board commits on main may go again. Intent's line goes on in its order: dc's one clippy (the first cargo grant), dc's v2 bank, vc's landing, the close sweep and its fixes, build all and the shots (ic) with the known-defects re-drive (cc) and the reference set (vc), gate all and test shell, the thread's close, the push on devbin-vc's word, the dry run, and the cut on hv decision 101. hv's scope answer: dc's three older defects ride its bank, and the vocab_adequacy_check.sh fix stays in parked ST0084.",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "01M89KTJMG5A5XZJ97KDRARMQM",
+  "ts": "2026-11-25T15:05:13.764Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.decide",
+  "subject": {
+    "type": "node",
+    "id": "hv"
+  },
+  "payload": {
+    "kind": "decision",
+    "text": "(hv, 2026-11-25, in devbin-vc's window; relayed by devbin-vc and read by vc at 15:05Z on vc's date -u; not heard first-hand by vc; the wording of this record vc's) THE ESTATE PLAN IS APPROVED AS WRITTEN, AND ONE SCOPE ANSWER. hv asked devbin-vc to sync with every vc and present the plan, held every run, landing and commit on main until hv's approval (from 15:00Z), and then approved the plan as written. Intent's line goes on in its order: dc's one clippy, the landing, the close sweep and its fixes, build all and the shots with the known-defects re-drive, gate all and test shell, the thread's close, the push on devbin-vc's word, the dry run, and the cut on hv decision 101. Scope: the fail-open fix in vocab_adequacy_check.sh stays in ST0084, parked. The three other older defects that dc's critics found in files its second bank touches ride that bank: the hand-written counts in openness.rs, the st_dehydrate.rs walk that skips what it cannot read, and the SIGPIPE in pr-thread-ref.sh."
+  }
+}

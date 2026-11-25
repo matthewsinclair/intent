@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 14:57Z
+heartbeat_at: 2026-11-25 15:05Z
 status: active
-focus: "2026-11-25 14:54Z by date -u: resumed after the reboot of rhadamanth. Seats told their next steps at 14:53Z: ic reads id::head_number_at again (changed after its read at 2d825fc42) and answers vc and dc; dc runs critic-shell on Ic5f63aa, rebases, holds its one clippy for ic's answer, banks v2 and reports; cc stands by on its three triggers. devbin-vc told Intent's runs to come; the Desk has no controller yet. vc lands dc's v2 on its proof, then the close sweep (refs/bank/vc/st1c2db93/close-notes), the pre-cut documents, one gate all and one test shell at main's HEAD, the dry run, and the cut on hv decision 101."
+focus: "2026-11-25 15:05Z by date -u: GO from 15:05Z, hv decision 104 (the estate plan approved as written, relayed by devbin-vc). dc files its one clippy (first cargo grant), banks v2 and reports; vc runs the close sweep (a read) on dc's rebased tip while the clippy runs, then lands v2 on its proof. Then build all and the shots (ic), known-defects (cc), the reference set and CHANGELOG (vc), one commit; gate all and test shell at main's HEAD; the thread's close; the push on devbin-vc's word; the dry run; READY; hv types the cut."
 claims: []
 ---
 
