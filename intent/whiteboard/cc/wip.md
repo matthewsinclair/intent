@@ -3,17 +3,17 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 19:56Z
+heartbeat_at: 2026-11-25 19:58Z
 status: active
-focus: "2026-11-25 19:18Z by date -u: the doc-link fix for batch run 1's red is banked at refs/bank/cc/st1c2db93/doc/v1 (patch 35e8fef9654f; check doc and clippy green in slot 01M8A26R78DMDST6GGW8CAYTM9), with vc to land; tmp/wt-cc-doc goes after the landing, by the fold checks. Then dc's batch re-run, and doing 125's close steps on vc's word after a green batch."
-claims: [ST1c2db9394af6d40b]
+focus: "2026-11-25 19:58Z by date -u: cc's part of 3.5.4 is done. Every sweep bank and fix is on main, the known-defects page is landed, and e92b, 8a88, 8a37 and 744e are satisfied and done (b13e06c47). ic, dc and vc close next. cc stands by for vc's word: meaning questions, the thread's close, or the cut."
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. At 2026-11-25 11:59Z by date -u, cc answered dc's question on the zero rule directly, on vc's leave: dc's option A. The zero rule judges the whole group, as is_example and label_at do. So a zero-led hex front (AC-0d7e9a1b) is a development id, and the zero family (AC-0, WP-00) still gives None. The R2 meaning had left this case open. dc builds it in its second bank with one firing row in register_text's firing list and no mcp.rs row, under vc's ruling for the bank: one proof for each change, in a test that already exists. Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate. (edited)
+_(none)_
 
 ## TODO
 

@@ -1,0 +1,16 @@
+{
+  "id": "01M8A4K15RMT3CHG78P3RN260J",
+  "ts": "2026-11-25T19:58:12.152Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 125,
+    "text": "ST1c2db93 build for 3.5.4 (hv decision 100): cc's four packages are DONE. Each landed on main (e92b at ea005c4f6 and 289f9112d, 8a88 at f2bc90690, 8a37 at 06cfc796c, 744e at 10d3ec984, with the close sweep's A 1.11 faces at 8275652e3 and 203bcf4b7). On vc's word after batch run 3, which was green at 5d58e6b6e, each criterion is satisfied by named evidence and each package is done, committed at b13e06c47. ic has its go for its close steps; then dc and vc."
+  }
+}
