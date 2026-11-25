@@ -108,5 +108,6 @@ stand_in() {
   check "ST3f9a2c1/c2e4" "$bare"
   [ "$status" -eq 2 ] || fail "expected exit 2 (an id verdict without its id), got $status: $output"
   assert_output_contains "did not answer \`intent id\`"
+  assert_output_contains "an id verdict without the id it names"
   refute_output_contains "exists"
 }

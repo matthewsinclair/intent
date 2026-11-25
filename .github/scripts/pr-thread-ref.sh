@@ -14,9 +14,9 @@
 # Exit 1: the first word that names a thread names one this project does not
 #   hold, or names more than one.
 # Exit 2: the door did not answer, eg a binary built before WP-10 has no
-#   `intent id`, it answered fewer words than it was asked, or an `id` verdict
-#   lacks the id it names. That fails the job: this script never falls back to
-#   a pattern.
+#   `intent id`, it answered fewer words than it was asked, or the `id` verdict
+#   that decides lacks the id it names. That fails the job: this script never
+#   falls back to a pattern.
 #
 # Run from the project root, with INTENT_BIN naming the binary the job built
 # (pr-checks.yml sets it), and jq on PATH to read the door's JSON. bash 3.2
@@ -75,7 +75,9 @@ ANSWERS="$("$INTENT_BIN" id --format json "$@" 2>"$ERRS")" || RC=$?
 # unknown subcommand from a binary without `intent id`, which exits 1 like a
 # word that is not an id, or a binary that printed nothing at all.
 [ "$RC" -le 1 ] || unanswered "it exited $RC"
-SAID="$(awk 'NF' "$ERRS" | head -3)"
+# awk takes the first three lines itself: under pipefail, `| head -3` can end
+# awk by SIGPIPE, and set -e then stops the script before it gives its reason.
+SAID="$(awk 'NF && n++ < 3' "$ERRS")"
 if [ -n "$ANSWERS" ]; then
   VERDICTS="$(printf '%s\n' "$ANSWERS" | jq -e '
     if all(.answers[]; .answer == "id" or .answer == "unknown" or .answer == "ambiguous" or .answer == "not-an-id")
