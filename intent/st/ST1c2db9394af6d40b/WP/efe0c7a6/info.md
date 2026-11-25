@@ -2,7 +2,7 @@
 wp_id: WP-efe0
 title: intent-cli's last hand-made label grammar and ordinal ids
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-efe0: intent-cli's last hand-made label grammar and ordinal ids
