@@ -394,13 +394,14 @@ pub struct Arg {
   pub value_facades: std::collections::BTreeMap<String, String>,
   /// What the slot means when the caller leaves it out.
   ///
-  /// **Deserialized and validated, deliberately not rendered as a clap
-  /// `default_value` yet, and the reason is in the data.** Eight rows carry it
-  /// and seven are literals, but `init` reads `"the current directory name"`,
-  /// which is a DESCRIPTION OF A COMPUTATION rather than a value (ic,
-  /// measured). Wiring the field straight through would make `intent init`
-  /// name a project `the current directory name`, which is the confidently
-  /// wrong behaviour that having the field at all was supposed to prevent.
+  /// **Deserialized and validated for every arg, and given to clap as its
+  /// `default_value` for an `enum` arg only** (`spine.rs`, issue 0039's
+  /// remaining item). A `subcommand` default names a verb, which is a dispatch
+  /// decision and not a value. `init`'s `string` default reads `"the current
+  /// directory name"`, which is a DESCRIPTION OF A COMPUTATION rather than a
+  /// value (ic, measured). Given to clap, it would make `intent init` name a
+  /// project `the current directory name`. MCP has no clap, so an MCP door
+  /// reads an `enum` default through [`arg_default`].
   ///
   /// The discriminator is the arg's own `type`, not a list of exempt names:
   /// `enum` and `subcommand` have a CLOSED domain, so a default has to name a
@@ -1331,6 +1332,15 @@ pub fn all_entries(table: &Table) -> impl Iterator<Item = &Entry> {
     .chain(table.new_surface.iter())
 }
 
+/// One argument a table row declares, found by the row's path and the
+/// argument's name: the one lookup [`arg_values`] and [`arg_default`] share.
+/// `None` when the row or the argument is absent.
+fn declared_arg<'t>(table: &'t Table, path: &str, arg: &str) -> Option<&'t Arg> {
+  all_entries(table)
+    .find(|e| e.path == path)
+    .and_then(|e| e.args.iter().find(|a| a.name == arg))
+}
+
 /// The permitted values a table row declares for one of its arguments.
 ///
 /// **THE TABLE IS THE ONE HOME FOR A DECLARED VOCABULARY**, and this is the
@@ -1344,11 +1354,20 @@ pub fn all_entries(table: &Table) -> impl Iterator<Item = &Entry> {
 /// empty set must permit everything, because refusing everything on a lookup
 /// miss would turn a table typo into a dead command.
 pub fn arg_values(table: &Table, path: &str, arg: &str) -> Vec<String> {
-  all_entries(table)
-    .find(|e| e.path == path)
-    .and_then(|e| e.args.iter().find(|a| a.name == arg))
+  declared_arg(table, path, arg)
     .map(|a| a.values.clone())
     .unwrap_or_default()
+}
+
+/// The default a table row declares for one of its arguments: the value a
+/// door applies when the caller leaves the argument out (ST1c2db93 close
+/// sweep, A8's class). The spine gives an `enum` default to clap, so the CLI
+/// applies each row's own. MCP has no clap, so its door reads the row's
+/// default here. Both doors then take a row's default from that row.
+///
+/// `None` when the row, the argument or its default is absent.
+pub fn arg_default(table: &Table, path: &str, arg: &str) -> Option<String> {
+  declared_arg(table, path, arg).and_then(|a| a.default.clone())
 }
 
 /// Every shipped entry, ported and added alike, in table order.

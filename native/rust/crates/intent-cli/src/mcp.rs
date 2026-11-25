@@ -821,10 +821,25 @@ fn tool_answer(
     }
     "st edit" => {
       let id = spec(path, f, need_s(path, map, "id")?)?;
-      let file = opt_s(path, map, "file")?.unwrap_or("info").to_string();
       // The declared vocabulary, from the table -- the same home the CLI arm
       // reads, so the two doors cannot drift about what a file view is.
       let permitted = crate::dispatch::arg_values(table, "edit", "file");
+      // The default this tool's row declares: its schema publishes it, and clap
+      // applies it to `intent st edit`. MCP has no clap, so this door applies
+      // it. With no file and no declared default, the call is refused by name,
+      // with the set the check below enforces.
+      let file = match opt_s(path, map, "file")? {
+        Some(file) => file.to_string(),
+        None => crate::dispatch::arg_default(table, path, "file").ok_or_else(|| {
+          args_err(
+            path,
+            format!(
+              "no `file` is named, and this tool's row declares no default for it: name one of {}",
+              permitted.join(", ")
+            ),
+          )
+        })?,
+      };
       if !permitted.is_empty() && !permitted.iter().any(|v| v == &file) {
         return Err(args_err(
           path,

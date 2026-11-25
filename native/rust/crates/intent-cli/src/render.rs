@@ -2055,7 +2055,15 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
       }
     }
   };
-  let file = file.unwrap_or_else(|| "info".to_string());
+  // clap applies the default the verb's row declares, so `file` is `None` only
+  // when the caller names no file and that row declares no default. That is
+  // refused by name, before the vocabulary check below.
+  let Some(file) = file else {
+    return Err(Failure::Error(format!(
+      "error: no file is named, and the table declares no default file for this verb\n  remedy: name one of {}",
+      dispatch::arg_values(&dispatch::table(), "edit", "file").join(", ")
+    )));
+  };
 
   // **THE DECLARED VOCABULARY IS ENFORCED HERE, FROM THE TABLE, AND THE LAYER
   // IS THE POINT.** `surface/dispatch-table.json` declares
@@ -3033,8 +3041,8 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
         // are `crate::show::thread`, so this arm and `intent:///thread/<id>`
         // emit byte-identical text by construction rather than by two copies
         // agreeing today.
-        "info" => crate::show::thread(t).into_bytes(),
-        "acceptance" => f.st_contract(&id).map_err(fail)?.into_bytes(),
+        intentsvcs::project::INFO_STEM => crate::show::thread(t).into_bytes(),
+        intentsvcs::project::ACCEPTANCE_STEM => f.st_contract(&id).map_err(fail)?.into_bytes(),
         // **EVERY OTHER DECLARED FILE, IN THE ORDER THE TABLE DECLARES IT**, so a
         // value added to the row joins `all` without an edit here. A file the
         // thread does not carry is left out rather than refused: `all` asks for
@@ -3044,8 +3052,10 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
           for name in dispatch::arg_values(&dispatch::table(), "st show", "file") {
             let path = format!("{name}.md");
             let body = match name.as_str() {
-              "info" | "all" => continue,
-              "acceptance" => f.st_contract(&id).map_err(fail)?.into_bytes(),
+              intentsvcs::project::INFO_STEM | "all" => continue,
+              intentsvcs::project::ACCEPTANCE_STEM => {
+                f.st_contract(&id).map_err(fail)?.into_bytes()
+              }
               _ => match f.st_attachment(&id, &path) {
                 Ok(attachment) => attachment_bytes(&id, attachment)?,
                 Err(FacadeError::NotCarried { .. }) => continue,
@@ -18572,16 +18582,22 @@ mod tests {
     }
     let project = intentsvcs::project::Project::open(root).expect("the project opens");
     let mut canon = intentsvcs::ingest::read(&project).expect("the canon reads");
+    // For the store's files, whose -wal and -shm files may be absent.
     let remove = |path: &std::path::Path| match std::fs::remove_file(path) {
       Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-      done => done.expect("remove a minted record's file"),
+      done => done.expect("remove a store file"),
     };
     for t in &mut canon.threads {
+      // Remove the minted thread's realised files. `thread_files` names each
+      // one relative to the thread's directory, so the path joins that
+      // directory. A file it has just named is there, so a failed removal
+      // fails the test (ST1c2db93 close sweep, cc's v2 finding).
+      let tree = project.thread_dir(&t.id.stored());
       for path in project
         .thread_files(&t.id.stored())
         .expect("the thread's tree reads")
       {
-        remove(&path);
+        std::fs::remove_file(tree.join(&path)).expect("remove a minted thread's realised file");
       }
       let (id, origin) = if t.wps.is_empty() {
         (lettered.clone(), &lettered_origin)
@@ -18601,7 +18617,9 @@ mod tests {
       }
     }
     for i in &mut canon.issues {
-      remove(&project.issue_json(i.number));
+      // `ingest::read` read this record from this file, so it is there, and a
+      // failed removal fails the test.
+      std::fs::remove_file(project.issue_json(i.number)).expect("remove a minted issue's file");
       i.number = issue;
       i.origin = Some(issue_origin.clone());
       let path = project.issue_json(i.number);
