@@ -2,7 +2,7 @@
 wp_id: WP-8a37
 title: An id that a person reads is in its shown form, in both families
 scope: XS
-status: WIP
+status: Done
 ---
 
 # WP-8a37: An id that a person reads is in its shown form, in both families

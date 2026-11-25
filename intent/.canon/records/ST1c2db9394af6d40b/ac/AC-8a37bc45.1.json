@@ -3,6 +3,7 @@
   "text": "`ThreadExists` names a thread by its shown form, and the event schema's subject id names both id families.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "8a37 landed at 06cfc796c; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

@@ -3,6 +3,7 @@
   "text": "`intentsvcs::id::label_at` is the one reader of a criterion or test label in text, and no copy of it is left in `intent-cli/tests/common`.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "e92b landed at ea005c4f6 and 289f9112d; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

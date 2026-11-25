@@ -3,6 +3,7 @@
   "text": "`intent ac list` and `intent at list` give a thread's rows in the order acceptance.md shows them: the thread's group, then each package's group in the package list's order.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "744e landed at 10d3ec984, with the close sweep's GraphQL and MCP faces (A 1.11) at 8275652e3 and 203bcf4b7; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

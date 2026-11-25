@@ -1,0 +1,14 @@
+{
+  "id": "01M8A4G8DKF5WGZ3TJB3CDTVK8",
+  "ts": "2026-11-25T19:56:41.270Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "ac.satisfy",
+  "subject": {
+    "type": "ac",
+    "id": "ST1c2db9394af6d40b/AC-e92b30ab.1"
+  },
+  "payload": {
+    "evidence": "e92b landed at ea005c4f6 and 289f9112d; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
+  }
+}

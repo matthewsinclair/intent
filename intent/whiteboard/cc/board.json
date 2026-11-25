@@ -5,7 +5,7 @@
     "name": "Control Claude",
     "role": "control",
     "session_id": "ef5e3583-d397-41cc-b149-e2db78caa1ce",
-    "heartbeat_at": "2026-11-25T19:35:22.727Z",
+    "heartbeat_at": "2026-11-25T19:56:06.486Z",
     "status": "active",
     "focus": "2026-11-25 19:18Z by date -u: the doc-link fix for batch run 1's red is banked at refs/bank/cc/st1c2db93/doc/v1 (patch 35e8fef9654f; check doc and clippy green in slot 01M8A26R78DMDST6GGW8CAYTM9), with vc to land; tmp/wt-cc-doc goes after the landing, by the fold checks. Then dc's batch re-run, and doing 125's close steps on vc's word after a green batch.",
     "claims": [
@@ -2703,10 +2703,11 @@
       "node": "cc",
       "kind": "doing",
       "seq": 127,
-      "text": "ST1c2db93 batch run 2's red, cc's three tests, on vc's word at 2026-11-25 19:31Z by date -u: BANKED at 19:38Z as a patch, refs/bank/cc/st1c2db93/tests/v1 (patch id a4553d8d3c9c, on e078c18a3), and reported to vc. Two expectations follow the new behaviour, which is right for each fixture, and the form entity is shown, as ic agreed at 19:33Z, with wire.rs's doc of it. Clippy rc 0 (slot 01M8A38XKAWVENSY68747E6X46). The three tests by name pass after cargo build -p intentd (slot 01M8A3CMQWC2JCTB6ND2JPP3YG). Next: vc lands it; tmp/wt-cc-doc goes after the landing, by the fold checks.",
-      "state": "live",
+      "text": "ST1c2db93 batch run 2's red, cc's three tests: DONE. vc landed the patch at 874e25867 (patch id a4553d8d3c9c, as banked), and the doc-link fix before it at 4e96a4fe3. Batch run 3 is GREEN at 5d58e6b6e (dc, gate all and test shell, END 19:55Z by date -u). tmp/wt-cc-doc is removed after the fold checks, and refs/attic/cc/wt-cc-doc points at its HEAD, e078c18a3 (vc decision 98).",
+      "state": "archived",
+      "archived_at": "2026-11-25T19:56:05.649Z",
       "recorded_at": "2026-11-25T19:35:31.537Z",
-      "edited_at": "2026-11-25T19:38:45.111Z"
+      "edited_at": "2026-11-25T19:56:04.714Z"
     }
   ],
   "sent": [

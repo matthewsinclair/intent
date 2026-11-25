@@ -3,6 +3,7 @@
   "text": "A skew check takes the canon format that its caller read, and reads none itself.",
   "kind": "non-test",
   "state": {
-    "is": "unsatisfied"
+    "is": "satisfied",
+    "evidence": "8a88 landed at f2bc90690; batch run 3 green at 5d58e6b6e: gate all and test shell (dc, 2026-11-25)"
   }
 }

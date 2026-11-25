@@ -1,0 +1,16 @@
+{
+  "id": "01M8A4F4QANSBF1G08QWCPWE8G",
+  "ts": "2026-11-25T19:56:04.714Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 127,
+    "text": "ST1c2db93 batch run 2's red, cc's three tests: DONE. vc landed the patch at 874e25867 (patch id a4553d8d3c9c, as banked), and the doc-link fix before it at 4e96a4fe3. Batch run 3 is GREEN at 5d58e6b6e (dc, gate all and test shell, END 19:55Z by date -u). tmp/wt-cc-doc is removed after the fold checks, and refs/attic/cc/wt-cc-doc points at its HEAD, e078c18a3 (vc decision 98)."
+  }
+}
