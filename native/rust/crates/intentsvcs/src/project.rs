@@ -2479,14 +2479,12 @@ impl Project {
   /// walk that listed them anyway would hand the reader a path it then had to
   /// treat as missing. An absent whiteboard directory is the same answer as an
   /// empty one -- a project that has never run the protocol has no board, which
-  /// is not a defect to report.
+  /// is not a defect to report. A directory that does not read is the error
+  /// ([`Self::entries_in`]).
   pub fn board_nodes(&self) -> Result<Vec<String>, ProjectError> {
-    let Ok(entries) = std::fs::read_dir(self.whiteboard_dir()) else {
-      return Ok(Vec::new());
-    };
-    let mut nodes: Vec<String> = entries
-      .filter_map(Result::ok)
-      .map(|e| e.path())
+    let mut nodes: Vec<String> = self
+      .entries_in(&self.whiteboard_dir())?
+      .into_iter()
       .filter(|p| p.join("board.json").is_file())
       .filter_map(|p| p.file_name().and_then(|s| s.to_str()).map(str::to_string))
       .collect();
@@ -3035,23 +3033,42 @@ impl Project {
     out
   }
 
-  /// Every thread id with committed canon, sorted. Absent `st/` is an empty
-  /// project, not an error -- `intent init` creates the directory lazily.
-  pub fn thread_ids(&self) -> Result<Vec<crate::id::ThreadId>, ProjectError> {
-    let Ok(entries) = std::fs::read_dir(self.canon_st_dir()) else {
-      return Ok(Vec::new());
+  /// Every path directly in `dir`. **A MISSING DIRECTORY IS AN EMPTY LIST**:
+  /// `intent init` makes `.canon/st/` and `.canon/issues/` when the first
+  /// record is written, and a project that never ran the whiteboard has no
+  /// `whiteboard/`. Any other failure to read the directory or one of its
+  /// entries is the error, never a shorter list (No Silent Errors; dc's find
+  /// in the ST1c2db93 close sweep).
+  fn entries_in(&self, dir: &Path) -> Result<Vec<PathBuf>, ProjectError> {
+    let unread = |source| ProjectError::Io {
+      path: self.relative(dir),
+      source,
     };
+    let entries = match std::fs::read_dir(dir) {
+      Ok(entries) => entries,
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+      Err(e) => return Err(unread(e)),
+    };
+    let mut paths = Vec::new();
+    for entry in entries {
+      paths.push(entry.map_err(unread)?.path());
+    }
+    Ok(paths)
+  }
+
+  /// Every thread id with committed canon, sorted. Absent `st/` is an empty
+  /// project, not an error -- `intent init` creates the directory lazily. A
+  /// directory that does not read is the error ([`Self::entries_in`]).
+  pub fn thread_ids(&self) -> Result<Vec<crate::id::ThreadId>, ProjectError> {
     let mut ids = Vec::new();
-    for path in entries
-      .filter_map(Result::ok)
-      .map(|e| e.path())
-      .filter(|p| p.extension().is_some_and(|x| x == "json"))
-    {
-      ids.push(self.canon_name(
-        &path,
-        crate::id::IdKind::Thread.as_str(),
-        crate::id::ThreadId::parse,
-      )?);
+    for path in self.entries_in(&self.canon_st_dir())? {
+      if path.extension().is_some_and(|x| x == "json") {
+        ids.push(self.canon_name(
+          &path,
+          crate::id::IdKind::Thread.as_str(),
+          crate::id::ThreadId::parse,
+        )?);
+      }
     }
     // Typed, as [`Self::issue_numbers`] is (ST1c2db93 P8), and ordered by the
     // stored text it always was: a thread's typed order puts every ordinal
@@ -3079,25 +3096,19 @@ impl Project {
       })
   }
 
-  /// Every issue with committed canon, by id, sorted.
-  ///
-  /// A file whose name is not an issue id is passed over here, as it always
-  /// was; ST0095 WP-06 turns that into a refusal by name.
+  /// Every issue with committed canon, by id, sorted. A file whose name is not
+  /// an issue id is refused by name ([`Self::canon_name`]), and a directory
+  /// that does not read is the error ([`Self::entries_in`]).
   pub fn issue_numbers(&self) -> Result<Vec<crate::id::IssueId>, ProjectError> {
-    let Ok(entries) = std::fs::read_dir(self.issues_dir()) else {
-      return Ok(Vec::new());
-    };
     let mut ids = Vec::new();
-    for path in entries
-      .filter_map(Result::ok)
-      .map(|e| e.path())
-      .filter(|p| p.extension().is_some_and(|x| x == "json"))
-    {
-      ids.push(self.canon_name(
-        &path,
-        crate::id::IdKind::Issue.as_str(),
-        crate::id::IssueId::parse,
-      )?);
+    for path in self.entries_in(&self.issues_dir())? {
+      if path.extension().is_some_and(|x| x == "json") {
+        ids.push(self.canon_name(
+          &path,
+          crate::id::IdKind::Issue.as_str(),
+          crate::id::IssueId::parse,
+        )?);
+      }
     }
     ids.sort_unstable();
     Ok(ids)
