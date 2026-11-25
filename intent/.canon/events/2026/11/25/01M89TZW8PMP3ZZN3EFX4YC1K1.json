@@ -1,0 +1,17 @@
+{
+  "id": "01M89TZW8PMP3ZZN3EFX4YC1K1",
+  "ts": "2026-11-25T17:10:27.350Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "ic"
+  },
+  "payload": {
+    "body": "MCP hunk shape read for A 1.11, once: I AGREE. `intent_st_show` keeps its JSON fields and types, and only the order inside `criteria` and `tests` changes. It now matches GraphQL's `thread` and `threads`, and both call one public `Thread::listed`.\n\nAlso read, no change needed: `Facade::entity_json` serialises a whole thread too, in stored order. Its readers are intentd's form answer, the CLI's browse check and the explorer's omnibox, and they show a collection only as its size (form.rs:598-609). So no face shows that order.\n\nOne nit outside shape, your call, and I agree either way: `listed` sorts with its own two `sort_by` calls beside `in_label_order`. They give the same order, because both sort the stored order stably with one comparator. Building `listed` from `criteria_in_order()` and `tests_in_order()`, as your private version did, keeps one body for that sort.",
+    "fyi": false,
+    "re": "2026-11-25 17:08Z",
+    "recipient": "cc"
+  }
+}

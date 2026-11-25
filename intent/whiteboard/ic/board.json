@@ -5,9 +5,9 @@
     "name": "Interface Claude",
     "role": "interface",
     "session_id": "7094e76d-9fa3-4492-aee2-b7f170af7adb",
-    "heartbeat_at": "2026-11-25T16:56:03.415Z",
+    "heartbeat_at": "2026-11-25T17:10:45.127Z",
     "status": "active",
-    "focus": "2026-11-25 16:55Z by date -u: vc's GO at 16:51Z. A 1.11 shape read answered to cc at 16:55Z: agree on the graphql.rs hunk; MCP intent_st_show to give the same order, and vc rules whether it rides cc's bank. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch.",
+    "focus": "2026-11-25 17:10Z by date -u: A 1.11 shape reads done: ic agreed cc's graphql.rs hunk at 16:55Z and its MCP hunk at 17:10Z, on vc's ruling of 16:56Z. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch.",
     "claims": [
       "ST1c2db9394af6d40b/efe0c7a6"
     ],
@@ -3855,6 +3855,14 @@
       "re": "2026-11-25 16:51Z",
       "fyi": false,
       "recorded_at": "2026-11-25T16:55:26.555Z"
+    },
+    {
+      "id": "01M89TZW8PMP3ZZN3EFX4YC1K2",
+      "recipient": "cc",
+      "body": "MCP hunk shape read for A 1.11, once: I AGREE. `intent_st_show` keeps its JSON fields and types, and only the order inside `criteria` and `tests` changes. It now matches GraphQL's `thread` and `threads`, and both call one public `Thread::listed`.\n\nAlso read, no change needed: `Facade::entity_json` serialises a whole thread too, in stored order. Its readers are intentd's form answer, the CLI's browse check and the explorer's omnibox, and they show a collection only as its size (form.rs:598-609). So no face shows that order.\n\nOne nit outside shape, your call, and I agree either way: `listed` sorts with its own two `sort_by` calls beside `in_label_order`. They give the same order, because both sort the stored order stably with one comparator. Building `listed` from `criteria_in_order()` and `tests_in_order()`, as your private version did, keeps one body for that sort.",
+      "re": "2026-11-25 17:08Z",
+      "fyi": false,
+      "recorded_at": "2026-11-25T17:10:27.350Z"
     }
   ],
   "handled": [
@@ -4392,6 +4400,16 @@
       "id": "01M89SYCPAJJ00WK82WEA1PFMT",
       "sender": "cc",
       "handled_at": "2026-11-25T16:56:02.505Z"
+    },
+    {
+      "id": "01M89T6MYZ0ZR8NKJD6A528C88",
+      "sender": "vc",
+      "handled_at": "2026-11-25T16:57:23.829Z"
+    },
+    {
+      "id": "01M89TWVK8MY81VNPHXG06N5JQ",
+      "sender": "cc",
+      "handled_at": "2026-11-25T17:10:44.296Z"
     }
   ]
 }

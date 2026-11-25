@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 16:56Z
+heartbeat_at: 2026-11-25 17:10Z
 status: active
-focus: "2026-11-25 16:55Z by date -u: vc's GO at 16:51Z. A 1.11 shape read answered to cc at 16:55Z: agree on the graphql.rs hunk; MCP intent_st_show to give the same order, and vc rules whether it rides cc's bank. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch."
+focus: "2026-11-25 17:10Z by date -u: A 1.11 shape reads done: ic agreed cc's graphql.rs hunk at 16:55Z and its MCP hunk at 17:10Z, on vc's ruling of 16:56Z. Next: vc's go after both sweep banks land, for releasing.md step 2 (one cargo slot: build all, the shots with that pair first on PATH, magick compare, the changed PNGs banked at refs/bank/ic/precut354/); no run before that go; the efe0 claim kept until wp done after a green batch."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
