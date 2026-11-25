@@ -974,8 +974,9 @@ pub fn mint<I: Mintable>(
 const WP_SEPARATOR: char = '/';
 
 /// What a package's heading puts before its id, and what an operator may type
-/// before one: `WP-03`.
-const WP_HEADING_PREFIX: &str = "WP-";
+/// before one: `WP-03`. Public so that a scanner reading a package heading in
+/// text takes the marker from here (ST1c2db93, ic's MCP scanner).
+pub const WP_HEADING_PREFIX: &str = "WP-";
 
 /// **THE ONE WRITER OF A THREAD-SCOPED SUBJECT**: `thread`, the separator and
 /// `tail`, eg `ST0092/AC-01.1` or an attachment's `ST0092/design.md`. Event
@@ -2333,6 +2334,52 @@ pub fn label_kind(label: &str) -> Option<LabelKind> {
   let digits = |text: &str| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit());
   let grouped = digits(group) || WpId::parse(group).is_ok();
   (grouped && digits(seq)).then_some(kind)
+}
+
+/// **THE ONE READER OF A CRITERION OR TEST LABEL IN TEXT** (ST1c2db93 P13):
+/// the end of the label that starts at byte `i` of `text`, if one does, for a
+/// scanner that keeps tracker ids out of published text. The shape is
+/// [`label_kind`]'s, so no scanner writes a second label grammar, and a
+/// git-style package's group is read as its whole stored id (`AC-5d7e9a1b.1`),
+/// as an ordinal one (`AC-02.8`) is. A group in its four shown hex
+/// (`AC-5d7e.1`), which an operator may type, is not a label here, because a
+/// stored label carries the whole id. The label runs to the end of its
+/// sequence's digits, and only a letter or digit there refuses it: `AC-02.8's`
+/// is the label and an apostrophe. The caller owns the left boundary.
+///
+/// **AN EXAMPLE IS NOT A LABEL.** The zero family is this reader's own rule: a
+/// label whose group and sequence are all zeros (`AC-0.0`, `AT-00.0`). The
+/// worked package is [`is_example`]'s rule, so the label reader and the id
+/// reader exempt the same worked example: a group that is [`EXAMPLE_WP_HEX`]
+/// (`AC-c2e41a0b.1`), which the MCP input schemas publish. A group of zeros
+/// with a sequence that is not is the thread's own group, so `AC-00.1` is a
+/// label. [`is_example`] holds for `WP-00`, so it is asked only of a group
+/// that is not all zeros.
+pub fn label_at(text: &[u8], i: usize) -> Option<usize> {
+  let run = |from: usize, keep: fn(&u8) -> bool| {
+    (from..text.len())
+      .find(|&at| !keep(&text[at]))
+      .unwrap_or(text.len())
+  };
+  let dash = run(i, u8::is_ascii_alphanumeric);
+  if text.get(dash) != Some(&b'-') {
+    return None;
+  }
+  let dot = run(dash + 1, u8::is_ascii_alphanumeric);
+  if text.get(dot) != Some(&b'.') {
+    return None;
+  }
+  let end = run(dot + 1, u8::is_ascii_digit);
+  if text.get(end).is_some_and(u8::is_ascii_alphanumeric) {
+    return None;
+  }
+  let label = std::str::from_utf8(&text[i..end]).ok()?;
+  label_kind(label)?;
+  let (_, group, seq) = label_parts(label)?;
+  let zeros = |part: &str| part.bytes().all(|b| b == b'0');
+  let example = (zeros(group) && zeros(seq))
+    || (!zeros(group) && is_example(&format!("{WP_HEADING_PREFIX}{group}")));
+  (!example).then_some(end)
 }
 
 /// The one order for a thread's criterion and test ids (issue 0643): natural,

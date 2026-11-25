@@ -166,9 +166,10 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
   {
     return Some(end);
   }
-  // `AC-02.8`, `AT-00.11`, `AC-3f9a.1` -- a criterion or test label, read by
-  // the tests' one label reader, so a git-style package's group is read too.
-  if let Some(end) = crate::common::label_at(b, i) {
+  // `AC-02.8`, `AT-00.11`, `AC-5d7e9a1b.1` -- a criterion or test label, read
+  // by the library's one reader of a label in text (`intentsvcs::id::label_at`),
+  // so a git-style package's group is read too.
+  if let Some(end) = intentsvcs::id::label_at(b, i) {
     return Some(end);
   }
   // `D42` -- a design-decision number, counted only where a `D`-shaped id

@@ -123,10 +123,11 @@ fn is_date(w: &str) -> bool {
 
 fn is_dev_id(w: &str) -> bool {
   let w = w.trim_matches(|c: char| !c.is_ascii_alphanumeric());
-  // A criterion or test label, of either family's group, by the tests' one
-  // label reader (ST1c2db93 P13), and beside it a bare `AC-09` or `AT-3` with
-  // no sequence, which is no label but is still a development id.
-  crate::common::label_at(w.as_bytes(), 0).is_some()
+  // A criterion or test label, of either family's group, by the library's one
+  // reader of a label in text (`intentsvcs::id::label_at`, ST1c2db93 P13), and
+  // beside it a bare `AC-09` or `AT-3` with no sequence, which is no label but
+  // is still a development id.
+  intentsvcs::id::label_at(w.as_bytes(), 0).is_some()
     || ["AC-", "AT-", "INV-", "WP-"].iter().any(|p| {
       w.strip_prefix(p)
         .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))

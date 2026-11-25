@@ -1453,38 +1453,6 @@ pub fn created(out: &str) -> String {
   id.to_string()
 }
 
-/// **THE TESTS' ONE READER OF A CRITERION OR TEST LABEL IN TEXT** (ST1c2db93
-/// P13): the end of the label that starts at byte `i` of `text`, if one does.
-/// The shape is the library's (`intentsvcs::id::label_kind`), so a git-style
-/// package's group (`AC-3f9a.1`) is read as an ordinal one (`AC-02.8`) is, and
-/// no test writes a second label grammar. The label runs to the end of its
-/// sequence's digits, and only a letter or digit there refuses it: `AC-02.8's`
-/// is the label and an apostrophe. The zero family (`AC-0.0`, `AT-00.0`) is a
-/// format example, as `intentsvcs::id::is_example` holds for a record's id,
-/// and is not counted. The caller owns the left boundary.
-pub fn label_at(text: &[u8], i: usize) -> Option<usize> {
-  let run = |from: usize, keep: fn(&u8) -> bool| {
-    (from..text.len())
-      .find(|&at| !keep(&text[at]))
-      .unwrap_or(text.len())
-  };
-  let head = run(i, u8::is_ascii_alphanumeric);
-  if text.get(head) != Some(&b'-') {
-    return None;
-  }
-  let group = run(head + 1, u8::is_ascii_alphanumeric);
-  if text.get(group) != Some(&b'.') {
-    return None;
-  }
-  let end = run(group + 1, u8::is_ascii_digit);
-  if text.get(end).is_some_and(u8::is_ascii_alphanumeric) {
-    return None;
-  }
-  let label = std::str::from_utf8(&text[i..end]).ok()?;
-  let example = text[head + 1..end].iter().all(|&c| c == b'0' || c == b'.');
-  (intentsvcs::id::label_kind(label).is_some() && !example).then_some(end)
-}
-
 /// **THE ONE HAND-WRITTEN THREAD CANON** (ST0095 WP-10, T1): a 3.4.0-format
 /// record, `fields` laid over the minimum every reader takes. The schema is the
 /// canon's own constant and the id is `id`, so no test spells either, and each
