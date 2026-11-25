@@ -93,7 +93,8 @@ fn a_line_is_reported_only_where_the_indexed_bytes_are_still_on_the_disk() {
   // (b) THE FILE IS ON DISK CARRYING THE INDEXED BYTES. The line is found
   // rather than computed from an offset recorded at index time, so it is right
   // by construction.
-  std::fs::create_dir_all(fx.path("intent/st/ST0001")).expect("mkdir the thread dir");
+  std::fs::create_dir_all(fx.path(path).parent().expect("the file has a directory"))
+    .expect("mkdir the thread dir");
   std::fs::write(fx.path(path), BODY).expect("realise the attachment");
   let answer = f
     .search_all("quokka", &SearchQuery::default())

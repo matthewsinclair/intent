@@ -170,7 +170,7 @@ fn the_commit_unwind_cannot_be_torn_without_concurrent_interference() {
 #[test]
 fn a_rollback_that_cannot_restore_reports_the_estate_as_torn() {
   let fixture = Fixture::new();
-  let dir = fixture.path("intent/st");
+  let dir = fixture.project().st_dir();
   std::fs::create_dir_all(&dir).expect("mkdir");
 
   let mut set = WriteSet::new();
@@ -218,7 +218,7 @@ fn a_rollback_that_cannot_restore_reports_the_estate_as_torn() {
 #[test]
 fn a_rollback_that_can_restore_is_not_reported_as_torn() {
   let fixture = Fixture::new();
-  let dir = fixture.path("intent/st");
+  let dir = fixture.project().st_dir();
   std::fs::create_dir_all(&dir).expect("mkdir");
 
   let mut set = WriteSet::new();

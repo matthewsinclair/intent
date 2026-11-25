@@ -41,7 +41,7 @@ fn fixture() -> Fixture {
   fx.write_thread(&t);
   // Canon naming bytes that are not on disk is a refusal at ingest, so the
   // opaque half needs its sidecar before the fixture can be opened at all.
-  let side = fx.root().join("intent/.canon/st/ST0001");
+  let side = fx.project().canon_thread_dir("ST0001");
   std::fs::create_dir_all(&side).expect("mkdir sidecar dir");
   std::fs::write(side.join("mangle.sh"), NOT_UTF8).expect("write sidecar");
   fx

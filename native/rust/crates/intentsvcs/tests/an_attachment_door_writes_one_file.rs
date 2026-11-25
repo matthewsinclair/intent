@@ -23,8 +23,14 @@ fn address(path: &str) -> intentsvcs::address::Address {
 fn realised() -> Fixture {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file(&format!("intent/st/ST0001/{HELD}"), HELD_TEXT);
+  fx.write_at(&realised_file(&fx, HELD), HELD_TEXT);
   fx
+}
+
+/// The sample thread's realised file `name`, where the fixture's project puts
+/// it.
+fn realised_file(fx: &Fixture, name: &str) -> std::path::PathBuf {
+  fx.project().thread_dir("ST0001").join(name)
 }
 
 fn held_text(facade: &intentsvcs::facade::Facade) -> Option<String> {
@@ -62,7 +68,7 @@ fn a_second_attachment_one_disk_stores_as_a_held_ones_file_is_refused_by_the_hel
     "nothing of the refused name reached canon: {paths:?}"
   );
   assert_eq!(
-    std::fs::read_to_string(fx.path(&format!("intent/st/ST0001/{HELD}"))).expect("the held file"),
+    std::fs::read_to_string(realised_file(&fx, HELD)).expect("the held file"),
     HELD_TEXT,
     "the held file is untouched, on a disk that folds case as on one that does not"
   );
@@ -76,8 +82,7 @@ fn an_attach_over_a_held_attachment_replaces_the_realised_file_with_the_store() 
     .put_attachment(&address(HELD), b"# Reference, replaced\n")
     .expect("an attach over a held attachment is taken");
   assert_eq!(
-    std::fs::read_to_string(fx.path(&format!("intent/st/ST0001/{HELD}")))
-      .expect("the realised file"),
+    std::fs::read_to_string(realised_file(&fx, HELD)).expect("the realised file"),
     "# Reference, replaced\n",
     "the realised file holds the new bytes, so a watcher carries nothing old back"
   );
@@ -93,7 +98,7 @@ fn an_attach_over_an_unsynced_edit_is_refused_before_any_write() {
   let mut facade = fx.facade();
   // The hand edit lands after the store has read the tree, so the store does
   // not carry it.
-  let realised = fx.path(&format!("intent/st/ST0001/{HELD}"));
+  let realised = realised_file(&fx, HELD);
   std::fs::write(&realised, "# Reference, edited by hand\n").expect("hand edit");
   match facade.put_attachment(&address(HELD), b"# Reference, replaced\n") {
     Err(FacadeError::UnsyncedAttachment { thread, path }) => {
@@ -122,7 +127,7 @@ fn a_new_attachment_over_a_file_the_store_does_not_carry_is_refused_before_any_w
   let mut facade = fx.facade();
   // The author's file lands after the store has read the tree, so the store
   // does not carry it.
-  let authored = fx.path("intent/st/ST0001/notes.md");
+  let authored = realised_file(&fx, "notes.md");
   std::fs::write(&authored, "# the author's own notes\n").expect("write notes");
   match facade.put_attachment(&address("notes.md"), b"# attached over them\n") {
     Err(FacadeError::UnsyncedAttachment { thread, path }) => {
@@ -177,8 +182,8 @@ fn a_new_attachment_on_an_unrealised_thread_writes_no_file() {
   let mut thread = sample_thread("ST0001");
   thread.realised = false;
   fx.write_thread(&thread);
-  fx.write_file(
-    "intent/st/ST0001/left-by-hand.md",
+  fx.write_at(
+    &realised_file(&fx, "left-by-hand.md"),
     "# a hand mkdir's file\n",
   );
   let mut facade = fx.facade();
@@ -186,7 +191,7 @@ fn a_new_attachment_on_an_unrealised_thread_writes_no_file() {
     .put_attachment(&address(NEW), b"# New\n")
     .expect("a new attachment is taken");
   assert!(
-    !fx.path(&format!("intent/st/ST0001/{NEW}")).exists(),
+    !realised_file(&fx, NEW).exists(),
     "an unrealised thread's directory was written into"
   );
 }

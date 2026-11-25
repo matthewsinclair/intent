@@ -173,9 +173,10 @@ fn the_confirmation_names_its_scope_and_counts_what_changed() {
     "a run scoped to one thread confirms the whole store: {ok}"
   );
 
-  let extract = dir
-    .path()
-    .join(format!("intent/.canon/issues/{issue}.json"));
+  let extract = crate::common::issue_canon_file(
+    dir.path(),
+    intentsvcs::id::IssueId::parse(&issue).expect("an issue id"),
+  );
   let text = std::fs::read_to_string(&extract).expect("read the issue's extract");
   assert!(
     text.contains("An issue"),

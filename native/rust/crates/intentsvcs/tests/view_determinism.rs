@@ -84,10 +84,10 @@ fn writing_the_views_twice_leaves_the_bytes_unchanged() {
   let canon = canon();
 
   views::write_all(&project, &canon, &ctx()).expect("first write");
-  let after_first = fx.read("intent/st/steel_threads.md");
+  let after_first = fx.read_at(&project.steel_threads_view());
   views::write_all(&project, &canon, &ctx()).expect("second write");
   assert_eq!(
-    fx.read("intent/st/steel_threads.md"),
+    fx.read_at(&project.steel_threads_view()),
     after_first,
     "writing is idempotent"
   );
@@ -220,16 +220,17 @@ fn the_formatter_leaves_rendered_views_unchanged() {
   views::write_all(&project, &canon(), &ctx()).expect("write views");
 
   let targets = [
-    "intent/st/steel_threads.md",
-    "intent/todo.md",
-    "intent/st/ST0056/info.md",
-    "intent/st/ST0056/acceptance.md",
+    project.steel_threads_view(),
+    project.todo_view(),
+    project.info_view("ST0056"),
+    project.acceptance_view("ST0056"),
   ];
-  for rel in targets {
-    let before = fx.read(rel);
+  for path in targets {
+    let rel = fx.rel(&path);
+    let before = fx.read_at(&path);
     let status = std::process::Command::new("prettier")
       .arg("--write")
-      .arg(fx.path(rel))
+      .arg(&path)
       .output()
       .expect("run prettier");
     assert!(
@@ -237,7 +238,7 @@ fn the_formatter_leaves_rendered_views_unchanged() {
       "prettier failed on {rel}: {}",
       String::from_utf8_lossy(&status.stderr)
     );
-    let after = fx.read(rel);
+    let after = fx.read_at(&path);
     assert_eq!(
       before, after,
       "{rel} is not formatter-stable: the pre-commit hook would rewrite what the renderer just wrote, so every regeneration would oscillate and the skew check would flag files nobody edited"
@@ -293,17 +294,18 @@ fn authored_prose_emphasis_is_the_one_case_the_renderer_cannot_stabilise() {
   };
   views::write_all(&fx.project(), &canon, &ctx()).expect("write");
 
-  let before = fx.read("intent/st/ST0056/info.md");
+  let view = fx.project().info_view("ST0056");
+  let before = fx.read_at(&view);
   assert!(
     before.contains("*major*"),
     "precondition: the renderer passed the author's `*` through verbatim, as it must"
   );
   std::process::Command::new("prettier")
     .arg("--write")
-    .arg(fx.path("intent/st/ST0056/info.md"))
+    .arg(&view)
     .output()
     .expect("run prettier");
-  let after = fx.read("intent/st/ST0056/info.md");
+  let after = fx.read_at(&view);
 
   assert!(
     after.contains("_major_") && !after.contains("*major*"),

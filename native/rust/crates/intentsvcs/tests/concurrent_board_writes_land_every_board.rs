@@ -55,7 +55,7 @@ fn concurrent_edits_leave_every_board_holding_its_own_last_edit() {
     let events = event_files(&fx);
     for node in NODES {
       let edit = text(round, node);
-      let board = fx.read(&format!("intent/whiteboard/{node}/board.json"));
+      let board = fx.read_at(&fx.project().board_json(node));
       assert!(
         board.contains(&edit),
         "round {round}: {node}'s board.json lacks its own last edit, which the store holds"
@@ -81,6 +81,6 @@ fn event_files(fx: &Fixture) -> Vec<String> {
     }
   }
   let mut out = Vec::new();
-  walk(&fx.path("intent/.canon/events"), &mut out);
+  walk(&fx.project().events_dir(), &mut out);
   out
 }

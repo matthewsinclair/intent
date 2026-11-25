@@ -203,7 +203,8 @@ fn an_interior_dot_segment_is_refused_by_the_same_rule() {
 #[test]
 fn detach_removes_the_attachment_record_and_leaves_the_file_on_disk() {
   let fx = fixture();
-  fx.write_file("intent/st/ST0001/design.md", "# original\n");
+  let design = fx.project().thread_dir("ST0001").join("design.md");
+  fx.write_at(&design, "# original\n");
   let mut f = fx.facade();
   assert_eq!(
     paths(&mut f),
@@ -223,7 +224,7 @@ fn detach_removes_the_attachment_record_and_leaves_the_file_on_disk() {
     "design.md is still in ST0001's canon"
   );
   assert_eq!(
-    fx.read("intent/st/ST0001/design.md"),
+    fx.read_at(&design),
     "# original\n",
     "detach touched the file on disk, which is the operator's"
   );

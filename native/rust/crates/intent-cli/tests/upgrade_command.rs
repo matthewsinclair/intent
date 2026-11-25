@@ -219,8 +219,14 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
 
   // **Anti-vacuity.** Two empty trees compare equal, so the comparison below
   // is only worth running if the first one left canon to compare.
+  let canon = crate::common::dir_prefix(
+    root,
+    &intentsvcs::project::Project::open(root)
+      .expect("the project opens")
+      .canon_dir(),
+  );
   assert!(
-    after_first.keys().any(|p| p.starts_with("intent/.canon/")),
+    after_first.keys().any(|p| p.starts_with(&canon)),
     "the first run left no canon, so comparing the trees would prove nothing"
   );
 

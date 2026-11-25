@@ -67,11 +67,9 @@ fn a_hand_edited_view_is_caught_and_named() {
   let project = fx.project();
   views::write_all(&project, &canon(), &ctx()).expect("write");
 
-  let edited = format!(
-    "{}\nsomeone typed this by hand\n",
-    fx.read("intent/todo.md")
-  );
-  fx.write_file("intent/todo.md", &edited);
+  let todo = project.todo_view();
+  let edited = format!("{}\nsomeone typed this by hand\n", fx.read_at(&todo));
+  fx.write_at(&todo, &edited);
 
   let findings = skew(
     &project,
@@ -98,9 +96,10 @@ fn a_single_character_edit_is_caught() {
   let project = fx.project();
   views::write_all(&project, &canon(), &ctx()).expect("write");
 
-  let original = fx.read("intent/st/steel_threads.md");
-  fx.write_file(
-    "intent/st/steel_threads.md",
+  let index = project.steel_threads_view();
+  let original = fx.read_at(&index);
+  fx.write_at(
+    &index,
     &original.replacen("Steel Threads", "Steel threads", 1),
   );
 
@@ -120,7 +119,7 @@ fn a_missing_view_is_reported_as_skew() {
   let fx = Fixture::new();
   let project = fx.project();
   views::write_all(&project, &canon(), &ctx()).expect("write");
-  std::fs::remove_file(fx.path("intent/todo.md")).expect("rm");
+  std::fs::remove_file(project.todo_view()).expect("rm");
 
   let findings = skew(
     &project,
@@ -234,8 +233,11 @@ fn absence_is_silence_only_where_the_manifest_says_undeclared() {
   // Dehydrate: the views for ST0056 leave disk, exactly as `organize` removes
   // them. `todo.md` and `steel_threads.md` are project-level, belong to no
   // artefact, and stay -- so any finding below is about the thread's views.
-  for rel in ["intent/st/ST0056/info.md", "intent/st/ST0056/acceptance.md"] {
-    std::fs::remove_file(project.root().join(rel)).expect("dehydrate");
+  for view in [
+    project.info_view("ST0056"),
+    project.acceptance_view("ST0056"),
+  ] {
+    std::fs::remove_file(view).expect("dehydrate");
   }
 
   // ARM 1 -- the manifest declares NOTHING. The thread is not realised, its
@@ -372,7 +374,7 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
       })
       .expect("realise the thread");
     fx.write_manifest(NOTHING_DECLARED);
-    let view = fx.path("intent/st/ST0001/acceptance.md");
+    let view = fx.project().acceptance_view("ST0001");
     if hand_edit {
       let mut text = std::fs::read_to_string(&view).expect("the realised view");
       text.push_str("\na hand edit\n");
@@ -498,8 +500,9 @@ fn an_undeclared_issue_s_differing_view_names_a_remedy_that_clears_it() {
   let mut canon = canon();
   canon.issues = vec![crate::common::sample_issue(21)];
   views::write_all(&project, &canon, &ctx()).expect("write");
-  let edited = format!("{}\na leftover line\n", fx.read("intent/issues/0021.md"));
-  fx.write_file("intent/issues/0021.md", &edited);
+  let view = project.issue_view(crate::common::issue(21));
+  let edited = format!("{}\na leftover line\n", fx.read_at(&view));
+  fx.write_at(&view, &edited);
 
   let thread_only = Realised::Declared(
     [declared_key(Sigil::SteelThread, "ST0056")]

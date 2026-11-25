@@ -174,15 +174,16 @@ fn an_authored_file_beside_the_views_is_still_formatted() {
   }
 
   let root = repo_root();
-  let control = "intent/st/ST0056/design.md";
+  let project = crate::common::real_project();
+  let control = project.relative(&project.thread_dir("ST0056").join("design.md"));
   assert!(
-    root.join(control).exists(),
+    root.join(&control).exists(),
     "the control file {control} does not exist, so this arm proves nothing -- pick another \
      AUTHORED file that sits in the same directory as the generated views"
   );
 
   assert_eq!(
-    ignored_by_prettier(&root, control),
+    ignored_by_prettier(&root, &control),
     Some(false),
     "{control} is authored by a human and must still be formatted. It is ignored, which means \
      the exclusion is scoped to a TREE rather than to the generated set -- and a rule broad \

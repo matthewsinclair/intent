@@ -116,7 +116,7 @@ fn hydrating_something_already_on_disk_still_pins_it() {
   fx.write_manifest(MANIFEST);
   assert!(!is_pinned(&fx, "ST0001"), "precondition: not pinned");
   assert!(
-    fx.path("intent/st/ST0001/info.md").exists(),
+    fx.project().info_view("ST0001").exists(),
     "precondition: the files are present, so presence and pinned-ness disagree"
   );
 
@@ -248,7 +248,7 @@ fn another_project_s_address_is_refused_rather_than_ignored() {
     "got {err:?}"
   );
   assert!(
-    !fx.path("intent/st/ST0001/info.md").exists(),
+    !fx.project().info_view("ST0001").exists(),
     "and it must write nothing"
   );
 }

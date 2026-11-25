@@ -531,7 +531,7 @@ fn st_new_then_start_leaves_the_thread_realised_with_no_further_write() {
     "precondition: `st start` declares on the record"
   );
   assert!(
-    fx.path(&format!("intent/st/{id}/info.md")).exists(),
+    fx.project().info_view(&id).exists(),
     "a thread `st start` lists as realised must have its files on disk when the verb returns"
   );
 }
@@ -1058,7 +1058,7 @@ fn st_reopen_realises_the_attachments_with_the_views() {
     .organize(intentsvcs::organize::Mode::Apply)
     .expect("organize dehydrates the closed thread");
   assert!(
-    !fx.path("intent/st/ST0056/info.md").exists(),
+    !fx.project().info_view("ST0056").exists(),
     "precondition: the closed thread is dehydrated"
   );
 
@@ -1066,7 +1066,7 @@ fn st_reopen_realises_the_attachments_with_the_views() {
     .st_reopen("ST0056", "the contract grew after it closed")
     .expect("reopen");
   assert_eq!(
-    std::fs::read_to_string(fx.path("intent/st/ST0056/design.md"))
+    std::fs::read_to_string(fx.project().thread_dir("ST0056").join("design.md"))
       .ok()
       .as_deref(),
     Some("# Design\n"),

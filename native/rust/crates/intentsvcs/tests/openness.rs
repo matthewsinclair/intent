@@ -196,11 +196,6 @@ fn the_enumeration_reads_the_ddl_and_finds_every_table() {
   );
 
   assert!(
-    tables.len() >= 9,
-    "only {} tables enumerated -- the parse is not reading the DDL: {tables:?}",
-    tables.len()
-  );
-  assert!(
     tables.iter().any(|t| t == "doc_sections"),
     "the virtual table is a table and holds data: {tables:?}"
   );
@@ -569,8 +564,8 @@ fn populated() -> (Fixture, Vec<String>) {
   // Mutations rather than hand-written envelopes: the log has to carry what the
   // tool actually writes into it.
   //
-  // NOT `.ok()`. The first cut swallowed these and the four tests below all
-  // failed on the row-count precondition instead of on the refusal that caused
+  // NOT `.ok()`. The first cut swallowed these and the tests below all
+  // failed on the history precondition instead of on the refusal that caused
   // it -- a silent error in a fixture, which is the same defect as one in
   // production and harder to see. Two of the three verbs were illegal from the
   // fixture's own states (WP-02 is Done, so `wp start` is refused) and the
@@ -591,21 +586,20 @@ fn populated() -> (Fixture, Vec<String>) {
   // written through the store's own writer, because their verbs do not exist
   // yet and a hand-built INSERT here would be testing a second writer rather
   // than the one that ships.
-  for (node, name, role) in [
+  let nodes = [
     ("cc", "Control Claude", "control"),
     ("vc", "Validation Claude", "validation"),
-  ] {
-    let dir = fx.root().join("intent/whiteboard").join(node);
-    std::fs::create_dir_all(&dir).expect("node dir");
-    std::fs::write(
-      dir.join("wip.md"),
-      format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
-    )
-    .expect("write the header the roster is read from");
+  ];
+  for (node, name, role) in nodes {
+    fx.write_at(
+      &fx.project().wb_board_view(node),
+      &format!("---\nnode: {node}\nname: {name}\nrole: {role}\nstatus: active\n---\n"),
+    );
   }
   let registered = facade.register_roster().expect("register the roster");
   assert_eq!(
-    registered, 2,
+    registered,
+    nodes.len(),
     "precondition: the fixture registered the nodes it is about to round-trip"
   );
   let mut boards = facade.store().hydrate_boards().expect("boards");
@@ -654,18 +648,16 @@ fn populated() -> (Fixture, Vec<String>) {
       .expect("write the board rows the round trip is about");
   }
 
-  let ids: Vec<String> = facade
-    .store()
-    .events()
-    .expect("events")
-    .iter()
-    .map(|e| e.id.clone())
-    .collect();
-  assert!(
-    ids.len() >= 3,
-    "precondition: the fixture wrote history to round-trip, got {}",
-    ids.len()
-  );
+  // Each of the three verbs above writes its own event, named by its op, so the
+  // history to round-trip is checked against the verbs and not against a count.
+  let events = facade.store().events().expect("events");
+  for op in ["wp.reopen", "ac.descope", "st.hold"] {
+    assert!(
+      events.iter().any(|e| e.op == op),
+      "precondition: the fixture's `{op}` wrote history to round-trip"
+    );
+  }
+  let ids: Vec<String> = events.iter().map(|e| e.id.clone()).collect();
   (fx, ids)
 }
 
@@ -691,9 +683,26 @@ fn the_round_trip_carries_every_table_that_claims_a_file_form() {
     .sync_from_disk(&intentsvcs::sync::Scope::All)
     .expect("disk -> db");
 
-  let (threads, issues) = restored.store().load_canon().expect("load");
-  assert_eq!(threads.len(), 2, "both threads came back");
-  assert_eq!(issues.len(), 1, "the issue came back");
+  // Every thread and issue came back: the clone's ids, read from the key
+  // columns, equal those of the store the extract came from, and are not
+  // compared with a count written here. Two empty stores would also be equal,
+  // so the source's issue is checked first. The find of ST0056 below does the
+  // same for the threads.
+  let source = fx
+    .facade_on_disk()
+    .store()
+    .record_ids()
+    .expect("the source's ids");
+  assert!(
+    !source.1.is_empty(),
+    "precondition: the source holds an issue for the round trip to carry"
+  );
+  assert_eq!(
+    restored.store().record_ids().expect("the clone's ids"),
+    source,
+    "every thread and issue came back"
+  );
+  let (threads, _) = restored.store().load_canon().expect("load");
   // BY ID, not by index: the fixture grew a second thread and an index would
   // have kept passing while asserting about the wrong one.
   let mutated = threads
@@ -807,12 +816,13 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
     .sync_to_disk(&intentsvcs::sync::Scope::All)
     .expect("first emit");
 
+  let project = fx.project();
   let paths = [
-    "intent/.canon/st/ST0056.json",
-    "intent/.canon/issues/0021.json",
+    fx.rel(&project.thread_json("ST0056")),
+    fx.rel(&project.issue_json(crate::common::issue(21))),
     // A board's extract, which AC-14.1 holds to the same byte-for-byte rule as
     // every other file form: the fixture wrote its rows, so there is one to emit.
-    "intent/whiteboard/cc/board.json",
+    fx.rel(&project.board_json("cc")),
     // **NOT `intent/events.jsonl`.** It is produced by `intent export`, never
     // projected, so a second machine writes no bytes for it. The committed event
     // files are written once and never re-emitted, so they are not here either.
@@ -849,8 +859,8 @@ fn re_emitting_the_extract_reproduces_it_byte_for_byte() {
 /// re-emitting from the clone writes the same bytes.
 #[test]
 fn a_declared_team_round_trips_through_its_file() {
-  const FILE: &str = "intent/whiteboard/declaration.json";
   let fx = Fixture::new();
+  let file = |fx: &Fixture| fx.project().declaration_json();
   let mut facade = fx.facade_on_disk();
   facade
     .wb_init(&["team".to_string()], true, false)
@@ -862,7 +872,7 @@ fn a_declared_team_round_trips_through_its_file() {
       .expect("the declaration")
   };
   let declared = held(&fx).expect("the apply recorded a declaration");
-  let first = fx.read(FILE);
+  let first = fx.read_at(&file(&fx));
   let parsed: Value = serde_json::from_str(&first).expect("plain JSON");
   assert_eq!(parsed["base"], Value::from(declared.base.as_str()));
 
@@ -880,9 +890,10 @@ fn a_declared_team_round_trips_through_its_file() {
     .sync_to_disk(&intentsvcs::sync::Scope::All)
     .expect("second emit");
   assert_eq!(
-    elsewhere.read(FILE),
+    elsewhere.read_at(&file(&elsewhere)),
     first,
-    "{FILE} changed when nothing did"
+    "{} changed when nothing did",
+    fx.rel(&file(&fx))
   );
 }
 
@@ -920,18 +931,20 @@ fn the_file_forms_parse_as_plain_json_with_no_model_types() {
   // **Read from the EXPORT rather than the tree (D53)**: the form is unchanged
   // and still standard, and this arm's claim is about the FORM, so it follows
   // the form to wherever it is produced rather than lapsing with the projection.
-  let events = {
+  let (events, held_count) = {
     let held = fx.facade_on_disk().store().events().expect("events");
+    let held_count = held.len();
     let bundle = intentsvcs::export::Bundle::new("openness", Vec::new(), Vec::new(), held);
-    intentsvcs::export::log_part(&bundle)
+    let jsonl = intentsvcs::export::log_part(&bundle)
       .expect("the exporter emits the history form")
-      .1
+      .1;
+    (jsonl, held_count)
   };
   let lines: Vec<&str> = events.lines().filter(|l| !l.trim().is_empty()).collect();
-  assert!(
-    lines.len() >= 3,
-    "history reached the file: {}",
-    lines.len()
+  assert_eq!(
+    lines.len(),
+    held_count,
+    "every event the store holds reached the file, one line each"
   );
   for line in &lines {
     let envelope: Value = serde_json::from_str(line).expect("each line is an object on its own");

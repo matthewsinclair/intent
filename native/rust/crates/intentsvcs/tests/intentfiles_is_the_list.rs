@@ -180,7 +180,8 @@ fn a_second_run_with_an_unchanged_list_moves_nothing() {
   let mut facade = fx.facade_on_disk();
   facade.organize(Mode::Apply).expect("first");
 
-  let before: Vec<_> = std::fs::read_dir(fx.path("intent/st/ST0001"))
+  let thread = fx.project().thread_dir("ST0001");
+  let before: Vec<_> = std::fs::read_dir(&thread)
     .expect("dir")
     .filter_map(Result::ok)
     .map(|e| e.file_name())
@@ -188,7 +189,7 @@ fn a_second_run_with_an_unchanged_list_moves_nothing() {
 
   facade.organize(Mode::Apply).expect("second");
 
-  let after: Vec<_> = std::fs::read_dir(fx.path("intent/st/ST0001"))
+  let after: Vec<_> = std::fs::read_dir(&thread)
     .expect("dir")
     .filter_map(Result::ok)
     .map(|e| e.file_name())

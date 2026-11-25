@@ -132,29 +132,43 @@ fn summary(out: &Output) -> String {
 /// Every file under the project, with its bytes -- the only way to assert
 /// **AC-11.4** without trusting a report about what was written.
 fn tree(root: &std::path::Path) -> std::collections::BTreeMap<String, Vec<u8>> {
+  // A directory, an entry or a file that cannot be read stops the test, because
+  // a tree that leaves it out would compare less than the test claims.
   fn walk(
     dir: &std::path::Path,
     root: &std::path::Path,
     out: &mut std::collections::BTreeMap<String, Vec<u8>>,
   ) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for e in entries.flatten() {
-      let p = e.path();
+    let entries = std::fs::read_dir(dir)
+      .unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+    for entry in entries {
+      let p = entry
+        .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+        .path();
       if p.is_dir() {
         walk(&p, root, out);
-      } else if let Ok(bytes) = std::fs::read(&p) {
-        out.insert(
-          p.strip_prefix(root).unwrap_or(&p).display().to_string(),
-          bytes,
-        );
+      } else {
+        let bytes = std::fs::read(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()));
+        out.insert(intentsvcs::project::relative(root, &p), bytes);
       }
     }
   }
   let mut out = std::collections::BTreeMap::new();
   walk(root, root, &mut out);
   out
+}
+
+/// How many files of thread `id` are on disk under `root`, by a walk of the
+/// tree: the count a preview gives for that thread. A thread with no file on
+/// disk gives a count that proves nothing, so it is refused here.
+fn files_of(root: &std::path::Path, id: &str) -> usize {
+  let prefix = crate::common::thread_dir_prefix(root, id);
+  let n = tree(root).keys().filter(|k| k.starts_with(&prefix)).count();
+  assert!(
+    n > 0,
+    "{id} has no file on disk, so no count of its files proves anything"
+  );
+  n
 }
 
 // ---------------------------------------------------------------------------
@@ -179,6 +193,7 @@ fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
       .success(),
     "moving the first thread to WIP must succeed"
   );
+  let first_files = files_of(root, &first);
 
   let out = intent(root, &["organize", "--default"]);
   assert!(out.status.success(), "exit 0: {out:?}");
@@ -202,13 +217,13 @@ fn an_absent_manifest_is_written_from_status_and_declares_only_the_open() {
     "a declaration can be well formed and still name a state the tool cannot reach; \
      `diverged` is where that shows: {said}"
   );
-  // **THE CRITERION ALLOWS EITHER, SO THE ASSERTION IS ON THE PAIR.** Both mean
-  // the preview accepts the declaration; which of the two a given estate lands
-  // on is a fact about whether the files happen to be there, not about the
-  // declaration.
+  // **THE CRITERION ALLOWS `unchanged` OR `to hydrate`**: both mean that the
+  // preview accepts the declaration. This fixture is realised (see below), and
+  // files_of counts the files on disk, so the preview must call each of them
+  // unchanged.
   assert!(
-    said.contains("2 unchanged") || said.contains("2 to hydrate"),
-    "{first}'s two files must be accounted for as unchanged or to-hydrate: {said}"
+    said.contains(&format!(", {first_files} unchanged,")),
+    "{first}'s {first_files} files are on disk and must be accounted for as unchanged: {said}"
   );
 
   // **AND `refused` IS DELIBERATELY NOT ASSERTED HERE, WHICH NEEDS SAYING
@@ -359,6 +374,7 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
 
   let before = tree(root);
   let undeclared = crate::common::thread_dir_prefix(root, &second);
+  let second_files = files_of(root, &second);
   assert!(
     before.keys().any(|k| k.starts_with(&undeclared)),
     "the UNDECLARED thread must have REALISED files -- not merely canon -- or the \
@@ -393,9 +409,9 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   // as having been measured wrong on a real estate.
   let said = summary(&intent(root, &["organize"]));
   assert!(
-    said.contains("2 to remove"),
-    "the preview must report the undeclared thread's two files as removals an apply \
-     would make, rather than as nothing at all: {said}"
+    said.contains(&format!(", {second_files} to remove")),
+    "the preview must report the undeclared thread's {second_files} files as removals an \
+     apply would make, rather than as nothing at all: {said}"
   );
   assert!(
     said.contains("0 diverged"),
@@ -468,14 +484,15 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   );
   // `st start` realises the thread it declares since issue 0079, so the
   // declared-and-absent state this test needs is made by removing it.
+  let first_files = files_of(root, &first);
   std::fs::remove_dir_all(crate::common::thread_dir(root, &first))
     .expect("unrealise the started thread");
   std::fs::remove_file(crate::common::manifest_file(root)).expect("make --default act");
 
   let before = tree(root);
-  let declared = crate::common::thread_dir_prefix(root, &first);
+  let first_dir = crate::common::thread_dir_prefix(root, &first);
   assert!(
-    !before.keys().any(|k| k.starts_with(&declared)),
+    !before.keys().any(|k| k.starts_with(&first_dir)),
     "the DECLARED thread must be absent from disk, or there is nothing for an applying \
      `--default` to create and this test cannot fail:\n{:?}",
     before.keys().collect::<Vec<_>>()
@@ -487,6 +504,7 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   );
 
   let after = tree(root);
+  let events = crate::common::dir_prefix(root, &crate::common::events_dir(root));
   let created: Vec<_> = after
     .keys()
     .filter(|k| !before.contains_key(*k))
@@ -494,7 +512,7 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
     // The act's own record is a committed event file (ST0078 P1): canon and the
     // realised tree are the state, an event file is the act, and this property
     // is about the state.
-    .filter(|k| !k.starts_with("intent/.canon/events/"))
+    .filter(|k| !k.starts_with(&events))
     .collect();
   assert!(
     created.is_empty(),
@@ -506,8 +524,8 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   // the state that made the assertion above meaningful.
   let said = summary(&intent(root, &["organize"]));
   assert!(
-    said.contains("2 to hydrate"),
-    "the declared thread's two files are still waiting to be realised: {said}"
+    said.contains(&format!(": {first_files} to hydrate,")),
+    "the declared thread's {first_files} files are still waiting to be realised: {said}"
   );
 }
 

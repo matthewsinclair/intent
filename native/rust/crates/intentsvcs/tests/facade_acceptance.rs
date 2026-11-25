@@ -149,7 +149,7 @@ fn a_non_test_criterion_carries_its_evidence_inline() {
     "and the evidence lives INSIDE `Satisfied`, so it cannot outlive it"
   );
   assert!(
-    fx.read("intent/st/ST0056/acceptance.md")
+    fx.read_at(&fx.project().acceptance_view("ST0056"))
       .contains("the render was reviewed at 476f1e1"),
     "the evidence reaches the generated contract view"
   );
@@ -204,7 +204,7 @@ fn withdraw_records_its_reason_in_the_view() {
 
   assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Withdrawn);
   assert!(
-    fx.read("intent/st/ST0056/acceptance.md")
+    fx.read_at(&fx.project().acceptance_view("ST0056"))
       .contains("WITHDRAWN: the premise did not reproduce"),
     "the reason is on the record, which is the whole point of withdraw over deletion"
   );
@@ -439,7 +439,7 @@ fn satisfaction_has_no_second_home_to_go_stale() {
     "a test-backed criterion carries no satisfied field in canon; there is nowhere for a stale answer to live: {criterion}"
   );
   assert!(
-    fx.read("intent/st/ST0056/acceptance.md")
+    fx.read_at(&fx.project().acceptance_view("ST0056"))
       .contains("AC-03.1 strict ingest refuses schema-invalid canon -- satisfied: no (computed)"),
     "the view reports the computed answer and says it is computed"
   );

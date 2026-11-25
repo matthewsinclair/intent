@@ -702,7 +702,9 @@ use std::collections::BTreeSet;
 /// go stale in exactly the direction that matters: a NEW thread cited in
 /// payload would stop being detected on the day it was created.
 fn real_thread_ids() -> BTreeSet<String> {
-  let dir = repo_root().join("intent/.canon/st");
+  let dir = intentsvcs::project::Project::open(&repo_root())
+    .expect("this repository opens")
+    .canon_st_dir();
   let mut ids = BTreeSet::new();
   for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
     let path = entry.expect("a readable dir entry").path();

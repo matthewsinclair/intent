@@ -86,7 +86,7 @@ fn thread() -> Address {
 fn an_absent_artefact_is_realised_and_the_printed_path_exists() {
   let fx = fixture();
   assert!(
-    !fx.path("intent/st/ST0001/design.md").exists(),
+    !fx.project().thread_dir("ST0001").join("design.md").exists(),
     "precondition: the fixture starts DEHYDRATED -- if the file is already \
      there, this test cannot show that `edit` realised it"
   );
@@ -214,7 +214,7 @@ fn the_filename_refusal_writes_nothing_at_all() {
   let mut facade = fx.facade();
 
   // A clean starting point: no realised views, an empty-but-present manifest.
-  let dir = fx.path("intent/st/ST0001");
+  let dir = fx.project().thread_dir("ST0001");
   std::fs::remove_dir_all(&dir).ok();
   fx.write_manifest(MANIFEST);
 
@@ -260,7 +260,7 @@ fn the_filename_refusal_writes_nothing_at_all() {
 fn a_file_the_thread_does_not_carry_is_refused_before_anything_is_written() {
   let fx = fixture();
   let mut facade = fx.facade();
-  let dir = fx.path("intent/st/ST0001");
+  let dir = fx.project().thread_dir("ST0001");
   std::fs::remove_dir_all(&dir).ok();
   fx.write_manifest(MANIFEST);
 

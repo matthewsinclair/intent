@@ -105,7 +105,7 @@ fn every_thread_prose_file_is_carried_and_its_bytes_round_trip() {
   let project = Project::open(&root).expect("the real project opens");
   let canon = ingest::read(&project).expect("canon reads from the real estate");
 
-  let st_dir = root.join("intent/st");
+  let st_dir = project.st_dir();
   let mut found = Vec::new();
   walk(&st_dir, &mut found);
 

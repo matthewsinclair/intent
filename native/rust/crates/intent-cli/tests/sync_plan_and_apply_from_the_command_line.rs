@@ -60,27 +60,33 @@ fn a_pull_brings_a_thread(root: &Path, home: &Path) -> String {
   let out = run(home, &other, &["st", "new", "the thread a pull brought"]);
   assert_eq!(out.status.code(), Some(0), "{}", text(&out));
   let pulled = crate::common::created(&String::from_utf8_lossy(&out.stdout));
-  let canon = format!("intent/.canon/st/{pulled}.json");
-  std::fs::copy(other.join(canon.as_str()), root.join(canon.as_str()))
-    .expect("the pull brings the canon file");
+  std::fs::copy(
+    crate::common::thread_canon_file(&other, &pulled),
+    crate::common::thread_canon_file(root, &pulled),
+  )
+  .expect("the pull brings the canon file");
   pulled
 }
 
 /// Every file under the project, with its bytes, `.cache/` excluded.
 fn tree(root: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+  // A directory, an entry or a file that cannot be read stops the test, because
+  // a tree that leaves it out would compare less than the test claims.
   fn walk(dir: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for entry in entries.flatten() {
-      let path = entry.path();
+    let entries = std::fs::read_dir(dir)
+      .unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+    for entry in entries {
+      let path = entry
+        .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+        .path();
       if path.ends_with(".cache") {
         continue;
       }
       if path.is_dir() {
         walk(&path, out);
       } else {
-        out.push((path.clone(), std::fs::read(&path).unwrap_or_default()));
+        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        out.push((path, bytes));
       }
     }
   }

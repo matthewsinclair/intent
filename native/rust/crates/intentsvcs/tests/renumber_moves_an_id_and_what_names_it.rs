@@ -69,9 +69,13 @@ fn a_thread_renumber_moves_the_record_and_everything_that_names_it_structurally(
     "the old canon file is gone"
   );
   assert!(fx.canon_path("ST0003").exists());
-  assert!(!fx.path("intent/st/ST0001").exists());
-  assert_eq!(fx.read("intent/st/ST0003/notes.md"), "an unmodelled file\n");
-  let cover = fx.read("intent/st/ST0003/info.md");
+  let project = fx.project();
+  assert!(!project.thread_dir("ST0001").exists());
+  assert_eq!(
+    fx.read_at(&project.thread_dir("ST0003").join("notes.md")),
+    "an unmodelled file\n"
+  );
+  let cover = fx.read_at(&project.info_view("ST0003"));
   assert!(
     cover.contains("ST0003") && !cover.contains("ST0001"),
     "{cover}"
@@ -181,10 +185,11 @@ fn a_renumber_onto_an_id_only_the_tree_holds_is_refused_and_changes_nothing() {
 fn a_move_the_filesystem_refuses_puts_everything_back() {
   let (fx, mut f) = estate();
   let before = files(&fx);
-  let mode = fx.make_readonly("intent/st");
+  let threads = fx.rel(&fx.project().st_dir());
+  let mode = fx.make_readonly(&threads);
 
   let err = f.st_renumber("ST0001", "ST0003");
-  fx.restore_mode("intent/st", mode);
+  fx.restore_mode(&threads, mode);
   let err = err.expect_err("intent/st is not writable");
 
   assert!(matches!(err, FacadeError::RenumberDiskStep { .. }), "{err}");

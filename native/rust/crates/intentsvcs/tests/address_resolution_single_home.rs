@@ -88,12 +88,22 @@ fn d57_8_forms() -> Vec<(&'static str, Entity)> {
 #[test]
 fn every_d57_8_form_resolves() {
   let forms = d57_8_forms();
+  // The count is D57-8's own: the lines of its first fence, as canon carries
+  // ST0057's design.
+  let design = crate::common::st0057_design();
+  let text = design.text.as_deref().unwrap_or_else(|| {
+    panic!("ST0057's `design.md` is carried opaque, so D57-8 cannot be read from canon")
+  });
+  let declared = crate::common::d57_8_fences(text)
+    .first()
+    .map(Vec::len)
+    .unwrap_or_else(|| panic!("D57-8 carries no fence, so its forms cannot be counted"));
   assert_eq!(
     forms.len(),
-    9,
-    "D57-8 lists nine forms; this table is the denominator and must hold all of\n       \
-     them. A form added to the design without a row here goes unaddressable in\n       \
-     silence, which is the coverage gap the criterion names."
+    declared,
+    "D57-8's first fence declares {declared} forms; this table is the denominator and\n       \
+     must hold all of them. A form added to the design without a row here goes\n       \
+     unaddressable in silence, which is the coverage gap the criterion names."
   );
 
   for (url, expected) in forms {

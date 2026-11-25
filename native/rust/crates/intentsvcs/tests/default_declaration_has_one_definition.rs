@@ -388,13 +388,14 @@ fn the_upgrade_realises_only_what_it_declares() {
     "the corpus has exactly one WIP thread, so the upgrade must declare exactly it"
   );
 
+  let project = converted.project();
   assert!(
-    after.contains_key("intent/st/ST0001/acceptance.md"),
+    after.contains_key(&converted.rel(&project.acceptance_view("ST0001"))),
     "the declared thread was not realised -- the upgrade wrote no view for it"
   );
   for id in ["ST0002", "ST0003", "ST0004", "ST0005"] {
     assert!(
-      !after.contains_key(&format!("intent/st/{id}/acceptance.md")),
+      !after.contains_key(&converted.rel(&project.acceptance_view(id))),
       "{id} is NOT declared and the upgrade realised it anyway"
     );
   }

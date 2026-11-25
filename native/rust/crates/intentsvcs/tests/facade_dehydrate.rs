@@ -147,10 +147,11 @@ fn a_file_the_run_cannot_remove_refuses_it_and_names_it() {
   let fx = fixture();
   let mut f = fx.facade();
   f.hydrate(&at("ST0001")).expect("realises");
-  fx.write_file(
-    "intent/st/ST0001/a-human-put-this-here.md",
-    "not rendered, not stored\n",
-  );
+  let left = fx
+    .project()
+    .thread_dir("ST0001")
+    .join("a-human-put-this-here.md");
+  fx.write_at(&left, "not rendered, not stored\n");
 
   let err = f.dehydrate(&at("ST0001")).expect_err("refused");
   let rendered = err.render();
@@ -158,11 +159,7 @@ fn a_file_the_run_cannot_remove_refuses_it_and_names_it() {
     rendered.contains("a-human-put-this-here.md"),
     "the unremovable file is named: {rendered}"
   );
-  assert!(
-    fx.path("intent/st/ST0001/a-human-put-this-here.md")
-      .exists(),
-    "and it is still there"
-  );
+  assert!(left.exists(), "and it is still there");
 }
 
 // ---------------------------------------------------------------------------
@@ -181,7 +178,8 @@ fn a_refused_run_leaves_the_manifest_byte_identical() {
   let fx = fixture();
   let mut f = fx.facade();
   f.hydrate(&at("ST0001")).expect("realises");
-  fx.write_file("intent/st/ST0001/blocker.md", "unremovable\n");
+  let blocker = fx.project().thread_dir("ST0001").join("blocker.md");
+  fx.write_at(&blocker, "unremovable\n");
 
   let before = manifest_of(&fx);
   f.dehydrate(&at("ST0001")).expect_err("refused");
@@ -194,7 +192,7 @@ fn a_refused_run_leaves_the_manifest_byte_identical() {
   // **THE CONTROL, AND IT DIFFERS BY EXACTLY ONE FACT.** Same fixture, same
   // facade, same call -- only the blocker is gone. Without it, the assertion
   // above passes against a `dehydrate` that never writes the manifest at all.
-  std::fs::remove_file(fx.path("intent/st/ST0001/blocker.md")).expect("clear the blocker");
+  std::fs::remove_file(&blocker).expect("clear the blocker");
   f.dehydrate(&at("ST0001")).expect("now permitted");
   assert_ne!(
     manifest_of(&fx),
@@ -363,7 +361,8 @@ fn a_directory_the_run_could_not_empty_is_named() {
   let fx = fixture();
   let mut f = fx.facade();
   f.hydrate(&at("ST0001")).expect("realises");
-  std::fs::create_dir_all(fx.path("intent/st/ST0001/images")).expect("a surviving subdirectory");
+  std::fs::create_dir_all(fx.project().thread_dir("ST0001").join("images"))
+    .expect("a surviving subdirectory");
 
   let done = f
     .dehydrate(&at("ST0001"))

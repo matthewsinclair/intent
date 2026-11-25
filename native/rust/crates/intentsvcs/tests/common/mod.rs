@@ -340,13 +340,31 @@ impl Fixture {
   }
 
   pub fn write_file(&self, rel: &str, text: &str) {
-    let path = self.path(rel);
-    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
-    std::fs::write(&path, text).expect("write file");
+    self.write_at(&self.path(rel), text);
   }
 
   pub fn read(&self, rel: &str) -> String {
-    std::fs::read_to_string(self.path(rel)).expect("read file")
+    self.read_at(&self.path(rel))
+  }
+
+  /// Write `text` at `path`, a place this fixture's project names (eg
+  /// `fx.project().info_view(id)`), making its directory first. A test takes a
+  /// realised or canon path from `Project`, so it spells no layout by hand
+  /// (ST1c2db93 WP-d0fd).
+  pub fn write_at(&self, path: &Path, text: &str) {
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(path, text).expect("write file");
+  }
+
+  /// The text of the file at `path`, a place this fixture's project names.
+  pub fn read_at(&self, path: &Path) -> String {
+    std::fs::read_to_string(path).expect("read file")
+  }
+
+  /// `path`, a place this fixture's project names, relative to the root, as
+  /// the helpers that take a `rel` read it (`intentsvcs::project::relative`).
+  pub fn rel(&self, path: &Path) -> String {
+    intentsvcs::project::relative(self.root(), path)
   }
 
   /// The level-3 rows the on-disk store holds for one file (ST0076 WP-05), as
@@ -955,23 +973,30 @@ pub fn changed(
 // whose whole job is to stop a declaration drifting from its source.
 // ---------------------------------------------------------------------------
 
-/// The document that authorises every out-of-model declaration.
-pub const DATA_MODEL: &str = "intent/st/ST0056/data-model.md";
+/// The document that authorises every out-of-model declaration: ST0056's
+/// `data-model.md`, where this repository realises it, relative to its root.
+pub fn data_model() -> String {
+  let project = real_project();
+  project.relative(&project.thread_dir("ST0056").join("data-model.md"))
+}
 
 /// The heading the enumeration sits under.
 pub const OUT_OF_MODEL_HEADING: &str = "## What is deliberately not modelled";
 
 pub fn data_model_text() -> String {
-  let path = testkit::repo_root().join(DATA_MODEL);
-  std::fs::read_to_string(&path)
-    .unwrap_or_else(|e| panic!("AC-10.8 names {DATA_MODEL} as the enumeration's home: {e}"))
+  let rel = data_model();
+  std::fs::read_to_string(real_project().root().join(&rel))
+    .unwrap_or_else(|e| panic!("AC-10.8 names {rel} as the enumeration's home: {e}"))
 }
 
 /// The section, from its heading to the next one.
 pub fn out_of_model_section(text: &str) -> &str {
-  let start = text
-    .find(OUT_OF_MODEL_HEADING)
-    .unwrap_or_else(|| panic!("{DATA_MODEL} no longer carries `{OUT_OF_MODEL_HEADING}`"));
+  let start = text.find(OUT_OF_MODEL_HEADING).unwrap_or_else(|| {
+    panic!(
+      "{} no longer carries `{OUT_OF_MODEL_HEADING}`",
+      data_model()
+    )
+  });
   let rest = &text[start + OUT_OF_MODEL_HEADING.len()..];
   match rest.find("\n## ") {
     Some(end) => &rest[..end],
@@ -1075,8 +1100,8 @@ pub const SHARED_B: &str = "01M7WC0P8VR6FFPF2WGDKR2YCZ";
 /// pair.
 pub const APART: &str = "01M7WRV7ZXZZ47FFMJ6E15EWYN";
 
-/// THIS repository as a project, so a test that names a path in the real
-/// estate takes it from `Project` and opens the project in one place.
+/// THIS repository as a project. A test that names a path in the real estate
+/// takes it from the `Project` this returns.
 pub fn real_project() -> intentsvcs::project::Project {
   intentsvcs::project::Project::open(&testkit::repo_root()).expect("this repository opens")
 }
@@ -1097,4 +1122,52 @@ pub fn real_thread(id: &str) -> intentsvcs::model::Thread {
     .into_iter()
     .find(|t| t.id == id)
     .unwrap_or_else(|| panic!("this repository's canon carries {id}"))
+}
+
+/// ST0057's `design.md` as canon carries it: the durable home of D57-8, whose
+/// fences are the address forms. Read by the one reader of a project's canon,
+/// so either canon format reads (ST0095 WP-06; issue I9ed9ed4).
+pub fn st0057_design() -> intentsvcs::model::Attachment {
+  let thread = real_thread("ST0057");
+  let paths: Vec<String> = thread.attachments.iter().map(|a| a.path.clone()).collect();
+  thread
+    .attachments
+    .into_iter()
+    .find(|a| a.path == "design.md")
+    .unwrap_or_else(|| {
+      panic!(
+        "ST0057 canon carries no `design.md` attachment, so D57-8 has no durable\n  \
+         home to read the denominator from. Attachments present: {paths:?}"
+      )
+    })
+}
+
+/// D57-8's fenced blocks in `text`, ST0057's design, in order: the entity
+/// forms, then the collection addresses. Each block is its lines, trimmed and
+/// non-empty, without the info string on the opening delimiter's line. The
+/// section is bounded at the next same-level heading, so a later section's
+/// fences are not counted as D57-8's.
+pub fn d57_8_fences(text: &str) -> Vec<Vec<String>> {
+  let start = text
+    .find("## D57-8")
+    .unwrap_or_else(|| panic!("ST0057's design carries no `## D57-8` section"));
+  let section = &text[start..];
+  let section = match section[2..].find("\n## ") {
+    Some(offset) => &section[..offset + 2],
+    None => section,
+  };
+  section
+    .split("```")
+    .enumerate()
+    .filter(|(i, _)| i % 2 == 1)
+    .map(|(_, body)| {
+      body
+        .lines()
+        .skip(1) // the info string on the opening delimiter's line
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .map(str::to_owned)
+        .collect()
+    })
+    .collect()
 }

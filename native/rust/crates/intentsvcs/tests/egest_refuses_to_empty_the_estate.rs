@@ -275,8 +275,9 @@ fn a_face_that_would_shrink_is_refused_when_both_enumerations_read_zero() {
     store.rebuild(&[], &issues).expect("the threads are gone");
   }
   // And canon loses them too, so ARM ONE has nothing to fire on.
-  std::fs::remove_dir_all(fx.path("intent/.canon/st")).expect("canon goes");
-  std::fs::remove_dir_all(fx.path("intent/st/ST0056")).expect("and the rendered directory with it");
+  std::fs::remove_dir_all(fx.project().canon_st_dir()).expect("canon goes");
+  std::fs::remove_dir_all(fx.project().thread_dir("ST0056"))
+    .expect("and the rendered directory with it");
   assert!(
     fx.project().thread_ids().expect("enumerate").is_empty(),
     "precondition: ARM ONE HAS NOTHING TO FIRE ON -- canon agrees with the store"

@@ -278,12 +278,17 @@ fn a_closed_records_views_are_named_until_they_are_removed() {
     root,
     &["st", "cancel", st.as_str(), "--reason", "nobody needs it"],
   );
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
   let views = [
-    format!("intent/issues/{issue}.md"),
-    format!("intent/st/{st}/acceptance.md"),
+    project.issue_view(intentsvcs::id::IssueId::parse(&issue).expect("an issue id")),
+    project.acceptance_view(&st),
   ];
   for view in &views {
-    assert!(root.join(view).is_file(), "the close leaves {view} on disk");
+    assert!(
+      view.is_file(),
+      "the close leaves {} on disk",
+      view.display()
+    );
   }
 
   let (said, _) = doctor(root);
@@ -296,7 +301,11 @@ fn a_closed_records_views_are_named_until_they_are_removed() {
 
   ok(root, &["organize", "--apply"]);
   for view in &views {
-    assert!(!root.join(view).exists(), "organize --apply removes {view}");
+    assert!(
+      !view.exists(),
+      "organize --apply removes {}",
+      view.display()
+    );
   }
   let (said, _) = doctor(root);
   assert!(

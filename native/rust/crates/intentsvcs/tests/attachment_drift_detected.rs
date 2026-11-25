@@ -51,10 +51,15 @@ fn seeded() -> Fixture {
   let fx = Fixture::new();
   let thread = thread_with_an_attachment();
   fx.write_thread(&thread);
-  let dir = fx.path(&format!("intent/st/{ID}"));
+  let dir = fx.project().thread_dir(ID);
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(dir.join(REL), ORIGINAL).expect("write the working copy");
   fx
+}
+
+/// The attachment's working copy, where the fixture's project realises it.
+fn working_copy(fx: &Fixture) -> std::path::PathBuf {
+  fx.project().thread_dir(ID).join(REL)
 }
 
 fn drift(fx: &Fixture) -> Vec<Finding> {
@@ -89,7 +94,7 @@ fn an_attachment_that_matches_canon_is_not_reported() {
 fn an_attachment_edited_on_disk_is_reported_as_divergence_by_path() {
   let fx = seeded();
   std::fs::write(
-    fx.path(&format!("intent/st/{ID}/{REL}")),
+    working_copy(&fx),
     "# Reference\n\nEdited in the working copy, and nothing told the store.\n",
   )
   .expect("edit the working copy");
@@ -122,7 +127,7 @@ fn an_attachment_edited_on_disk_is_reported_as_divergence_by_path() {
 #[test]
 fn a_touched_file_whose_bytes_did_not_change_is_not_drift() {
   let fx = seeded();
-  let path = fx.path(&format!("intent/st/{ID}/{REL}"));
+  let path = working_copy(&fx);
   let before = std::fs::metadata(&path)
     .expect("stat")
     .modified()
@@ -167,7 +172,7 @@ fn a_touched_file_whose_bytes_did_not_change_is_not_drift() {
 #[test]
 fn an_attachment_that_is_not_realised_at_all_is_not_drift() {
   let fx = seeded();
-  std::fs::remove_file(fx.path(&format!("intent/st/{ID}/{REL}"))).expect("dehydrate it");
+  std::fs::remove_file(working_copy(&fx)).expect("dehydrate it");
 
   let found = drift(&fx);
   assert!(
@@ -188,11 +193,7 @@ fn an_attachment_that_is_not_realised_at_all_is_not_drift() {
 #[test]
 fn the_remedy_leads_with_the_step_that_cannot_lose_anything() {
   let fx = seeded();
-  std::fs::write(
-    fx.path(&format!("intent/st/{ID}/{REL}")),
-    "# Reference\n\nedited\n",
-  )
-  .expect("edit");
+  std::fs::write(working_copy(&fx), "# Reference\n\nedited\n").expect("edit");
 
   let found = drift(&fx);
   let remedy = found[0].class.remedy();
@@ -298,7 +299,7 @@ fn every_realised_attachment_in_the_estate_still_matches_canon() {
 fn the_routine_direction_leaves_an_authored_attachment_exactly_as_the_author_left_it() {
   const EDITED: &str = "# Reference\n\nEdited in the working copy, and the store never saw it.\n";
   let fx = seeded();
-  let realised = fx.path(&format!("intent/st/{ID}/{REL}"));
+  let realised = working_copy(&fx);
   std::fs::write(&realised, EDITED).expect("edit the working copy");
 
   // The store still holds ORIGINAL and the disk holds EDITED -- stated as an

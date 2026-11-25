@@ -142,7 +142,7 @@ fn realised(root: &Path) -> Vec<String> {
       if p.is_dir() {
         walk(&p, root, out);
       } else {
-        out.push(p.strip_prefix(root).unwrap_or(&p).display().to_string());
+        out.push(intentsvcs::project::relative(root, &p));
       }
     }
   }

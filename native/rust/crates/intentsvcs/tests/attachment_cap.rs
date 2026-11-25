@@ -22,7 +22,7 @@ const ID: &str = "ST0001";
 fn estate_with(rel: &str, bytes: usize) -> Fixture {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread(ID));
-  let path = fx.path(&format!("intent/st/{ID}")).join(rel);
+  let path = fx.project().thread_dir(ID).join(rel);
   std::fs::create_dir_all(path.parent().expect("a file has a parent")).expect("mkdir");
   std::fs::write(&path, vec![b'x'; bytes]).expect("write the file");
   fx

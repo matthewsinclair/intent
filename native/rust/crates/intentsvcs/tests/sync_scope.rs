@@ -245,7 +245,7 @@ fn a_scoped_restore_is_not_refused_by_a_hand_edit_in_a_thread_it_did_not_name() 
     .sync_from_disk(&Scope::All)
     .expect("index the covers");
 
-  let peers_cover = fx.path(&format!("intent/st/{PEERS}/info.md"));
+  let peers_cover = fx.project().info_view(PEERS);
   let cover = std::fs::read_to_string(&peers_cover).expect("the peer's cover is realised");
   assert!(
     cover.contains("## Objective\n"),

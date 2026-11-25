@@ -66,12 +66,15 @@ fn stdout(out: &Output) -> String {
 /// Every file under the project, relative and `/`-separated -- the population a
 /// removal is measured against.
 fn tree(root: &Path) -> BTreeSet<String> {
+  // A directory or an entry that cannot be read stops the test, because a tree
+  // that leaves it out would measure less than the test claims.
   fn walk(root: &Path, dir: &Path, out: &mut BTreeSet<String>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for entry in entries.flatten() {
-      let path = entry.path();
+    let entries = std::fs::read_dir(dir)
+      .unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+    for entry in entries {
+      let path = entry
+        .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+        .path();
       // `.git` and the store are not this verb's subject and churn on their own.
       if path
         .file_name()

@@ -95,11 +95,12 @@ fn an_opaque_attachment_is_carried_as_bytes_and_never_as_text() {
 #[test]
 fn the_bytes_live_in_canon_as_a_file_and_read_back_byte_identically() {
   let fx = Fixture::new();
+  let intent = fx.project().intent_dir();
   let thread = opaque_thread();
 
   let bundle = Bundle::new("opaque", vec![thread.clone()], Vec::new(), Vec::new());
   for (rel, body) in export::canon_parts(&bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
 
   let blobs = export::canon_blobs(&bundle);
@@ -118,7 +119,7 @@ fn the_bytes_live_in_canon_as_a_file_and_read_back_byte_identically() {
      look somewhere the bytes are not"
   );
   for (rel, bytes) in &blobs {
-    let path = fx.path(&format!("intent/{rel}"));
+    let path = intent.join(rel);
     std::fs::create_dir_all(path.parent().expect("a sidecar has a parent")).expect("mkdir");
     std::fs::write(&path, bytes).expect("write the sidecar");
   }
@@ -160,7 +161,7 @@ fn the_bytes_live_in_canon_as_a_file_and_read_back_byte_identically() {
     "it came back as a TEXT attachment, which means something decoded it lossily on the way"
   );
   assert_eq!(
-    std::fs::read(fx.path(&format!("intent/{blob_rel}"))).expect("the sidecar is on disk"),
+    std::fs::read(intent.join(blob_rel)).expect("the sidecar is on disk"),
     NOT_UTF8,
     "the file at the declared path does not hold the source bytes"
   );
@@ -177,8 +178,9 @@ fn the_bytes_live_in_canon_as_a_file_and_read_back_byte_identically() {
 fn canon_naming_a_sidecar_that_is_not_there_refuses_and_names_it() {
   let fx = Fixture::new();
   let bundle = Bundle::new("opaque", vec![opaque_thread()], Vec::new(), Vec::new());
+  let intent = fx.project().intent_dir();
   for (rel, body) in export::canon_parts(&bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
   // The sidecar is deliberately NOT written.
 
@@ -203,7 +205,7 @@ fn canon_naming_a_sidecar_that_is_not_there_refuses_and_names_it() {
 fn a_carryable_file_that_is_not_utf8_is_carried_opaque_rather_than_refused() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread(ID));
-  let dir = fx.path(&format!("intent/st/{ID}"));
+  let dir = fx.project().thread_dir(ID);
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(dir.join("binary.txt"), NOT_UTF8).expect("write");
   std::fs::write(dir.join("plain.txt"), "hello\n").expect("write");
@@ -270,11 +272,11 @@ fn the_estate_denominator_is_reported_and_every_opaque_attachment_in_it_round_tr
   );
 
   for (id, att) in &opaque {
-    let rel = format!(
-      "intent/{}",
-      intentsvcs::project::canon_blob_rel(id, &att.path)
-    );
-    let on_disk = std::fs::read(root.join(&rel))
+    let path = project
+      .intent_dir()
+      .join(intentsvcs::project::canon_blob_rel(id, &att.path));
+    let rel = project.relative(&path);
+    let on_disk = std::fs::read(&path)
       .unwrap_or_else(|e| panic!("{id}/{}: its sidecar at {rel} is unreadable: {e}", att.path));
     assert_eq!(
       att.as_bytes(),
@@ -304,7 +306,7 @@ fn a_non_utf8_attachment_survives_a_restore_then_a_restore() {
   const LATIN1: &[u8] = b"caf\xe9 cr\xe8me\n";
   let fx = Fixture::new();
   fx.write_thread(&sample_thread(ID));
-  let dir = fx.path(&format!("intent/st/{ID}"));
+  let dir = fx.project().thread_dir(ID);
   std::fs::create_dir_all(&dir).expect("mkdir");
   std::fs::write(dir.join("notes.txt"), LATIN1).expect("write");
   let scope = intentsvcs::sync::Scope::Threads(vec![ID.to_string()]);
@@ -332,10 +334,10 @@ fn a_non_utf8_attachment_survives_a_restore_then_a_restore() {
       "the {pass} restore changed the bytes"
     );
   }
-  let sidecar = fx.path(&format!(
-    "intent/{}",
-    intentsvcs::project::canon_blob_rel(ID, "notes.txt")
-  ));
+  let sidecar = fx
+    .project()
+    .intent_dir()
+    .join(intentsvcs::project::canon_blob_rel(ID, "notes.txt"));
   assert_eq!(
     std::fs::read(&sidecar).expect("canon holds the attachment's bytes"),
     LATIN1
@@ -345,11 +347,12 @@ fn a_non_utf8_attachment_survives_a_restore_then_a_restore() {
 /// Canon for `bundle` on disk the way an estate holds it: the JSON parts, and
 /// every opaque attachment's sidecar file beside them.
 fn write_canon(fx: &Fixture, bundle: &Bundle) {
+  let intent = fx.project().intent_dir();
   for (rel, body) in export::canon_parts(bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
   for (rel, bytes) in export::canon_blobs(bundle) {
-    let path = fx.path(&format!("intent/{rel}"));
+    let path = intent.join(rel);
     std::fs::create_dir_all(path.parent().expect("a sidecar has a parent")).expect("mkdir");
     std::fs::write(&path, bytes).expect("write the sidecar");
   }
@@ -374,7 +377,7 @@ fn hydrating_the_thread_writes_its_opaque_attachment_byte_for_byte() {
     .expect("the thread hydrates");
 
   assert_eq!(
-    std::fs::read(fx.path(&format!("intent/st/{ID}/{REL}")))
+    std::fs::read(fx.project().thread_dir(ID).join(REL))
       .ok()
       .as_deref(),
     Some(NOT_UTF8),

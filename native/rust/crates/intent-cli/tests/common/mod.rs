@@ -39,7 +39,8 @@ pub fn thread_canon_file(root: &std::path::Path, id: &str) -> std::path::PathBuf
 /// A thread's realised directory under `root`, whether or not it is on disk,
 /// where the project names it (`Project::thread_dir`). A test that reads or
 /// writes a thread's files on disk takes their path from here or from the
-/// helpers below (ST1c2db93 WP-d0fd).
+/// helpers below. A path that is also the text a verb prints, and that the
+/// test asserts, stays as the verb prints it (ST1c2db93 WP-d0fd).
 pub fn thread_dir(root: &std::path::Path, id: &str) -> std::path::PathBuf {
   intentsvcs::project::Project::open(root)
     .expect("the project opens")
@@ -49,10 +50,20 @@ pub fn thread_dir(root: &std::path::Path, id: &str) -> std::path::PathBuf {
 /// [`thread_dir`] as a walk of the tree names it: project-relative and ended
 /// with `/`, so the prefix of one id never matches another id.
 pub fn thread_dir_prefix(root: &std::path::Path, id: &str) -> String {
-  format!(
-    "{}/",
-    intentsvcs::project::relative(root, &thread_dir(root, id))
-  )
+  dir_prefix(root, &thread_dir(root, id))
+}
+
+/// `dir`, a directory under `root`, as a walk of the tree names what is in it:
+/// project-relative (`intentsvcs::project::relative`) and ended with `/`.
+pub fn dir_prefix(root: &std::path::Path, dir: &std::path::Path) -> String {
+  format!("{}/", intentsvcs::project::relative(root, dir))
+}
+
+/// The committed event files' directory under `root` (`Project::events_dir`).
+pub fn events_dir(root: &std::path::Path) -> std::path::PathBuf {
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .events_dir()
 }
 
 /// A thread's generated cover under `root` (`Project::info_view`).
@@ -1714,7 +1725,9 @@ pub fn ok(cwd: &Path, args: &[&str]) -> String {
 /// not paths alone, because in 3.4.0's format a package is inside its thread's
 /// file, so a write changes a file rather than adding one.
 pub fn canon_files(root: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
-  let canon = root.join("intent/.canon");
+  let canon = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .canon_dir();
   intentsvcs::project::Project::files_in(&canon)
     .into_iter()
     .map(|rel| {

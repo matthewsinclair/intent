@@ -75,7 +75,7 @@ fn relate_writes_the_link_to_the_store_canon_and_the_view_under_one_event() {
     fx.read_canon("ST0001").contains("builds on its design"),
     "canon carries the link"
   );
-  let cover = fx.read("intent/st/ST0001/info.md");
+  let cover = fx.read_at(&fx.project().info_view("ST0001"));
   assert!(
     cover.contains("- ST0002: builds on its design"),
     "the realised view lists the link:\n{cover}"

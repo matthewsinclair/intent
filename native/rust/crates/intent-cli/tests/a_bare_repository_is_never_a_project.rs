@@ -36,8 +36,8 @@ fn git_init_bare(dir: &Path) {
 /// Every path under `dir`, so "writes nothing" is a comparison, not a hope.
 fn tree(dir: &Path) -> Vec<String> {
   fn walk(root: &Path, dir: &Path, out: &mut Vec<String>) {
-    for entry in std::fs::read_dir(dir).expect("read the fixture").flatten() {
-      let path = entry.path();
+    for entry in std::fs::read_dir(dir).expect("read the fixture") {
+      let path = entry.expect("read an entry of the fixture").path();
       out.push(
         path
           .strip_prefix(root)

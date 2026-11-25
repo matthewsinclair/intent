@@ -217,7 +217,7 @@ fn the_gate_and_the_addressing_layer_cannot_disagree() {
 fn an_existing_violator_is_reported_and_never_removed() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread(ID));
-  let dir = fx.path(&format!("intent/st/{ID}"));
+  let dir = fx.project().thread_dir(ID);
   std::fs::create_dir_all(&dir).expect("mkdir");
   // **A name that is legal on the filesystem and cannot be ADDRESSED.** `?`
   // opens a query in the URL, so the address does not parse back to this path.

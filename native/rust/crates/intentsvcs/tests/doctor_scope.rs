@@ -254,9 +254,8 @@ fn a_disk_fact_is_reported_at_every_scope() {
   // A hand-edited generated view on a CLOSED thread. `sync --to-disk` repairs
   // it whatever the thread's status, so scoping it away would hide a live
   // divergence behind a finished thread.
-  let view = "intent/st/ST0001/info.md";
-  fx.write_file(
-    view,
+  fx.write_at(
+    &fx.project().info_view("ST0001"),
     "hand-written rubbish that the model does not render\n",
   );
 

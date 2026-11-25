@@ -810,7 +810,9 @@ fn organize_declines_with_0_and_refuses_a_forced_rewrite_with_1() {
     "the fixture needs a declared thread\nstderr: {}",
     String::from_utf8_lossy(&made.stderr)
   );
-  let canon = root.join("intent/.canon");
+  let canon = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .canon_dir();
   let before = canon_tree(&canon);
 
   assert_eq!(

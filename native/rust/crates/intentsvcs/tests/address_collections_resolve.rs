@@ -49,7 +49,6 @@
 //! blind to.
 
 use intentsvcs::address::{Entity, Format, parse};
-use intentsvcs::model::Thread;
 use sha2::{Digest, Sha256};
 use testkit::repo_root;
 
@@ -63,26 +62,7 @@ const STID: &str = "ST0056";
 /// silently short list -- a denominator that can shrink without saying so is
 /// the defect this row was minted for.
 fn d57_8_collection_fence() -> Vec<String> {
-  // Read by the one reader of a project's canon, so either canon format
-  // reads (ST0095 WP-06; issue I9ed9ed4).
-  let thread: Thread = crate::common::real_thread("ST0057");
-
-  let design = thread
-    .attachments
-    .iter()
-    .find(|a| a.path == "design.md")
-    .unwrap_or_else(|| {
-      panic!(
-        "ST0057 canon carries no `design.md` attachment, so D57-8 has no durable\n  \
-         home to read the denominator from. Attachments present: {:?}",
-        thread
-          .attachments
-          .iter()
-          .map(|a| &a.path)
-          .collect::<Vec<_>>()
-      )
-    });
-
+  let design = crate::common::st0057_design();
   let text = design.text.as_deref().unwrap_or_else(|| {
     panic!(
       "ST0057's `design.md` is carried OPAQUE (no `text`), so the fence cannot be\n  \
@@ -148,24 +128,7 @@ fn cross_check_against_disk(canon_sha: &str, canon_bytes: u64, canon_text: &str)
 /// third, "the second one" silently stops meaning the collections and this row
 /// would go on passing over the wrong list.
 fn second_fence_of_d57_8(text: &str) -> Vec<String> {
-  let start = text
-    .find("## D57-8")
-    .unwrap_or_else(|| panic!("ST0057's design carries no `## D57-8` section"));
-  let section = &text[start..];
-  // Bound at the next same-level heading so a later section's fences cannot be
-  // counted as D57-8's.
-  let section = match section[2..].find("\n## ") {
-    Some(offset) => &section[..offset + 2],
-    None => section,
-  };
-
-  let fences: Vec<&str> = section
-    .split("```")
-    .enumerate()
-    .filter(|(i, _)| i % 2 == 1)
-    .map(|(_, body)| body)
-    .collect();
-
+  let mut fences = crate::common::d57_8_fences(text);
   assert_eq!(
     fences.len(),
     2,
@@ -176,14 +139,7 @@ fn second_fence_of_d57_8(text: &str) -> Vec<String> {
     fences.len()
   );
 
-  let forms: Vec<String> = fences[1]
-    .lines()
-    .skip(1) // the info string on the opening delimiter's line
-    .map(str::trim)
-    .filter(|l| !l.is_empty())
-    .map(str::to_owned)
-    .collect();
-
+  let forms = fences.remove(1);
   assert!(
     !forms.is_empty(),
     "D57-8's second fence is empty, so the denominator would be vacuous"

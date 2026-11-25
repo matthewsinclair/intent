@@ -33,8 +33,8 @@ fn st_new_creates_canon_and_every_view() {
   );
 
   assert!(fx.canon_path(&id).is_file());
-  assert!(fx.path("intent/st/steel_threads.md").is_file());
-  assert!(fx.path("intent/todo.md").is_file());
+  assert!(fx.project().steel_threads_view().is_file());
+  assert!(fx.project().todo_view().is_file());
   // `st new` declares nothing (ST0096 WP-01): its record is not realised, so
   // the thread's own views wait for the verb that realises it.
   assert!(!facade.st_show(&id).expect("show").realised);
@@ -264,7 +264,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   // The cover's path from the project, never spelled by hand (ST0095 WP-06).
   let info = fx.project().info_view("ST0056");
   let info_before = std::fs::read_to_string(&info).expect("the cover");
-  let index_before = fx.read("intent/st/steel_threads.md");
+  let index_before = fx.read_at(&fx.project().steel_threads_view());
   let db_before = facade.store().derived_dump().expect("snapshot");
 
   // `intent/` read-only: writes into `intent/st/**` still succeed (they need
@@ -309,7 +309,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
     "the view that DID get written was restored, not left half-updated"
   );
   assert_eq!(
-    fx.read("intent/st/steel_threads.md"),
+    fx.read_at(&fx.project().steel_threads_view()),
     index_before,
     "the index too -- rollback is total, not best-effort on the file that failed"
   );
@@ -404,12 +404,12 @@ fn views_are_regenerated_by_every_mutation() {
   let fx = Fixture::new();
   let mut facade = fx.facade();
   let id = facade.st_new("a thread").expect("new");
-  let before = fx.read("intent/st/steel_threads.md");
+  let before = fx.read_at(&fx.project().steel_threads_view());
   assert!(before.contains("Triage"));
 
   facade.st_triage(&id).expect("triage");
   facade.st_start(&id).expect("start");
-  let after = fx.read("intent/st/steel_threads.md");
+  let after = fx.read_at(&fx.project().steel_threads_view());
   assert!(
     after.contains("WIP") && !after.contains("Not Started"),
     "the index reflects the mutation without anyone regenerating it by hand"

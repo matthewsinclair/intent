@@ -123,15 +123,13 @@ fn one_refused_file_withholds_every_removal_of_its_thread() {
     "# Design\n",
   ));
   fx.write_thread(&thread);
-  fx.write_file("intent/st/ST0001/design.md", "# Design\n");
   let project = fx.project();
+  let design = project.thread_dir("ST0001").join("design.md");
+  fx.write_at(&design, "# Design\n");
   let canon = intentsvcs::ingest::read(&project).expect("canon reads");
   intentsvcs::views::write_all(&project, &canon, &crate::common::ctx()).expect("write views");
-  let cover = fx.path("intent/st/ST0001/info.md");
-  let edited = format!(
-    "{}\n<!-- a hand edit -->\n",
-    fx.read("intent/st/ST0001/info.md")
-  );
+  let cover = project.info_view("ST0001");
+  let edited = format!("{}\n<!-- a hand edit -->\n", fx.read_at(&cover));
   std::fs::write(&cover, edited).expect("hand-edit the cover");
 
   // A manifest declaring none, so every file of ST0001 is planned for removal.
@@ -155,7 +153,7 @@ fn one_refused_file_withholds_every_removal_of_its_thread() {
     "precondition: the hand-edited cover is refused"
   );
   assert!(
-    fx.path("intent/st/ST0001/design.md").exists(),
+    design.exists(),
     "the attachment stays with the thread's refused cover: removed {:?}",
     report.dehydrated
   );
@@ -163,7 +161,7 @@ fn one_refused_file_withholds_every_removal_of_its_thread() {
     report
       .dehydrated
       .iter()
-      .all(|p| !p.starts_with(fx.path("intent/st/ST0001"))),
+      .all(|p| !p.starts_with(project.thread_dir("ST0001"))),
     "no file of the thread is removed: {:?}",
     report.dehydrated
   );

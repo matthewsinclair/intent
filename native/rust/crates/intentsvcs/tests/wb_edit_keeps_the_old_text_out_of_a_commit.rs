@@ -64,12 +64,19 @@ fn files_holding(fx: &Fixture, needle: &str) -> Vec<String> {
   out
 }
 
+/// The event directory as `files_holding` names its files: relative to the
+/// root and ended with `/`, where the fixture's project keeps it.
+fn events_prefix(fx: &Fixture) -> String {
+  format!("{}/", fx.rel(&fx.project().events_dir()))
+}
+
 /// The committed-or-not event files of one op, as their text.
 fn event_files(fx: &Fixture, op: &str) -> Vec<String> {
   let spelled = format!("\"op\": \"{op}\"");
+  let events = events_prefix(fx);
   files_holding(fx, &spelled)
     .into_iter()
-    .filter(|p| p.starts_with("intent/.canon/events/"))
+    .filter(|p| p.starts_with(&events))
     .map(|p| fx.read(&p))
     .collect()
 }
@@ -141,7 +148,7 @@ fn a_committed_origin_is_kept_and_a_wb_edit_records_the_new_text() {
     .expect("the item");
   assert_eq!(item.text, NEW);
   assert!(
-    fx.read("intent/whiteboard/cc/board.json").contains(NEW),
+    fx.read_at(&fx.project().board_json("cc")).contains(NEW),
     "the render honours the correction"
   );
 }
@@ -191,7 +198,7 @@ fn a_board_committed_without_its_event_is_named_and_the_draft_is_still_amended()
   let fx = Fixture::new();
   let mut f = board(&fx);
   let seq = f.wb_add("cc", WbItemKind::Todo, tricky).expect("add");
-  fx.git(&["add", "--", "intent/whiteboard/cc/board.json"]);
+  fx.git(&["add", "--", fx.rel(&fx.project().board_json("cc")).as_str()]);
   fx.git(&["commit", "-q", "-m", "the board without its event"]);
 
   let edited = f.wb_edit("cc", WbItemKind::Todo, seq, NEW).expect("edit");
@@ -235,12 +242,12 @@ fn the_same_text_moves_nothing_and_records_nothing() {
   let fx = Fixture::new();
   let mut f = board(&fx);
   let seq = f.wb_add("cc", WbItemKind::Todo, OLD).expect("add");
-  let before = fx.read("intent/whiteboard/cc/board.json");
+  let before = fx.read_at(&fx.project().board_json("cc"));
 
   let edited = f.wb_edit("cc", WbItemKind::Todo, seq, OLD).expect("edit");
 
   assert_eq!(edited, WbEdit::Unchanged);
-  assert_eq!(fx.read("intent/whiteboard/cc/board.json"), before);
+  assert_eq!(fx.read_at(&fx.project().board_json("cc")), before);
   assert!(event_files(&fx, "wb.edit").is_empty());
 }
 
@@ -263,7 +270,7 @@ fn another_nodes_item_is_not_addressable_and_the_refusal_names_the_board() {
   let remedy = refused.expect_err("refused").remedy();
   assert!(remedy.contains("intent wb show cc"), "{remedy}");
   assert!(
-    fx.read("intent/whiteboard/vc/board.json").contains(OLD),
+    fx.read_at(&fx.project().board_json("vc")).contains(OLD),
     "vc's item is untouched"
   );
 }
@@ -285,7 +292,7 @@ fn a_staged_draft_is_named_because_the_index_still_holds_the_old_text() {
   let fx = Fixture::new();
   let mut f = board(&fx);
   let seq = f.wb_add("cc", WbItemKind::Todo, OLD).expect("add");
-  fx.git(&["add", "-A", "--", "intent/.canon/events"]);
+  fx.git(&["add", "-A", "--", events_prefix(&fx).as_str()]);
   f.take_notes();
 
   let edited = f.wb_edit("cc", WbItemKind::Todo, seq, NEW).expect("edit");
@@ -323,13 +330,11 @@ fn a_carrier_less_item_never_borrows_a_later_items_creator() {
   // after it in the same words keeps its record byte for byte, and the edit
   // is recorded.
   let fx = Fixture::new();
-  let home = fx.root().join("intent/whiteboard/cc");
-  std::fs::create_dir_all(&home).expect("cc's directory");
-  std::fs::write(
-    home.join("wip.md"),
+  // A hand-authored board.
+  fx.write_at(
+    &fx.project().wb_board_view("cc"),
     "---\nnode: cc\nname: Control Claude\nrole: control\nstatus: active\n---\n\n# Control Claude (cc)\n\n## TODO\n\n- the shared wording\n",
-  )
-  .expect("a hand-authored board");
+  );
   let mut f = fx.facade_on_disk();
   f.register_roster().expect("register the roster");
   f.wb_migrate("cc", false).expect("carry cc's board");
@@ -449,11 +454,9 @@ fn a_carrier_the_rules_cannot_see_is_named_as_what_the_next_commit_would_carry()
     panic!("a carrier the rules cannot see is recorded, and the scan ran: {edited:?}");
   };
   let holding = files_holding(&fx, OLD);
+  let events = events_prefix(&fx);
   assert!(
-    !holding.is_empty()
-      && holding
-        .iter()
-        .all(|p| p.starts_with("intent/.canon/events/")),
+    !holding.is_empty() && holding.iter().all(|p| p.starts_with(&events)),
     "the rig leaves the old text in the creator's draft and nowhere else: {holding:?}"
   );
   assert_eq!(
@@ -517,7 +520,9 @@ fn a_peers_committed_multi_line_item_is_named_at_head_in_its_board_view() {
     .expect("vc's copy");
   fx.git_commit_all();
   assert!(
-    !fx.read("intent/whiteboard/vc/wip.md").contains(OLD_LINES),
+    !fx
+      .read_at(&fx.project().wb_board_view("vc"))
+      .contains(OLD_LINES),
     "the view sets the item's lines in, or this arm proves nothing"
   );
   let seq = f
@@ -551,7 +556,7 @@ fn a_re_edited_multi_line_items_board_view_is_named_at_head() {
     .expect("the first edit");
   fx.git_commit_all();
   assert!(
-    fx.read("intent/whiteboard/cc/wip.md")
+    fx.read_at(&fx.project().wb_board_view("cc"))
       .contains("- client ACME-4471 still owes: (edited)\n  - the countersigned order\n"),
     "precondition: the committed view carries the mark inside the text"
   );
@@ -574,7 +579,11 @@ fn a_staged_board_view_of_a_multi_line_item_is_named_as_the_next_commit_would_ca
   let fx = Fixture::new();
   let mut f = board(&fx);
   let seq = f.wb_add("cc", WbItemKind::Todo, OLD_LINES).expect("add");
-  fx.git(&["add", "--", "intent/whiteboard/cc/wip.md"]);
+  fx.git(&[
+    "add",
+    "--",
+    fx.rel(&fx.project().wb_board_view("cc")).as_str(),
+  ]);
   f.take_notes();
 
   let edited = f
@@ -684,25 +693,20 @@ fn an_announce_is_edited_in_every_copy_and_names_each_recipient() {
 /// two share a heading minute without depending on the clock, and neither has
 /// an event that sent it.
 fn carried_inbox(fx: &Fixture) -> Facade {
-  let vc = fx.root().join("intent/whiteboard/vc");
-  std::fs::create_dir_all(&vc).expect("vc's directory");
-  std::fs::write(
-    vc.join("wip.md"),
+  let project = fx.project();
+  fx.write_at(
+    &project.wb_board_view("vc"),
     "---\nnode: vc\nname: Validation Claude\nrole: validation\nstatus: active\n---\n\n# Validation Claude (vc)\n",
-  )
-  .expect("vc's board");
-  std::fs::write(
-    vc.join("inbox.cc.md"),
+  );
+  fx.write_at(
+    &project.wb_inbox_view("vc", "cc"),
     "# inbox: cc -> vc\n\n## (2026-09-12 09:00Z)\n\nthe first carried message\n\n## (2026-09-12 09:05Z)\n\nthe second carried message\n",
-  )
-  .expect("an inbox from cc");
-  let cc = fx.root().join("intent/whiteboard/cc");
-  std::fs::create_dir_all(&cc).expect("cc's directory");
-  std::fs::write(
-    cc.join("wip.md"),
+  );
+  // cc's header, so the roster carries the sender.
+  fx.write_at(
+    &project.wb_board_view("cc"),
     "---\nnode: cc\nname: Control Claude\nrole: control\nstatus: active\n---\n",
-  )
-  .expect("cc's header, so the roster carries the sender");
+  );
   let mut f = fx.facade_on_disk();
   f.register_roster().expect("register the roster");
   f.wb_migrate("vc", false).expect("carry vc's board");
@@ -890,13 +894,13 @@ fn an_edited_item_carries_the_mark_and_board_json_its_stamp() {
     edited.edited_at.is_some() && other.edited_at.is_none(),
     "{items:?}"
   );
-  let view = fx.read("intent/whiteboard/cc/wip.md");
+  let view = fx.read_at(&fx.project().wb_board_view("cc"));
   assert!(
     view.contains(&format!("- {NEW} (edited)\n")) && view.contains("- a line nobody edits\n"),
     "{view}"
   );
   assert!(
-    fx.read("intent/whiteboard/cc/board.json")
+    fx.read_at(&fx.project().board_json("cc"))
       .contains("\"edited_at\""),
     "board.json carries the stamp, so a rebuild keeps the mark"
   );
@@ -916,7 +920,7 @@ fn an_edited_message_carries_the_mark_in_its_heading() {
 
   f.wb_edit_message("cc", "vc", &anchor, NEW).expect("edit");
 
-  let inbox = fx.read("intent/whiteboard/vc/inbox.cc.md");
+  let inbox = fx.read_at(&fx.project().wb_inbox_view("vc", "cc"));
   assert!(
     inbox.contains(&format!("## ({anchor}) (edited)\n\n{NEW}\n")),
     "{inbox}"

@@ -54,16 +54,19 @@
 //! the disk rather than from the report; it is recorded because it is true, not
 //! because it was clever.
 //!
-//! # What "the tree" means here, and the ONE exclusion, named rather than left
+//! # What "the tree" means here, and the TWO exclusions, named rather than left
 //!
 //! Every file in the project is compared by its bytes **except `intent/.cache/`,
-//! which is the store.** The store is the SSOT and it RECORDS the trip: a
+//! which is the store, and the committed event files under
+//! `intent/.canon/events/`.** The store is the SSOT and it RECORDS the trip: a
 //! `disk.dehydrate` event and a `disk.hydrate` event, measured on this fixture.
-//! Requiring it to come back byte-identical would be requiring the tool to
-//! forget it did the work, which is the opposite of what this estate wants from
-//! its history. **Canon is NOT excluded** -- `intent/.canon/` is compared like
-//! any other file, and it holding still across the trip is part of the evidence
-//! that dehydration is a disk operation and never a loss.
+//! Each of those acts also writes its own committed event file, which is never
+//! removed (ST0078 P1). Requiring either to come back byte-identical would be
+//! requiring the tool to forget it did the work, which is the opposite of what
+//! this estate wants from its history. **The rest of canon is NOT excluded**:
+//! `intent/.canon/` outside its event files is compared like any other file,
+//! and it holding still across the trip is part of the evidence that
+//! dehydration is a disk operation and never a loss.
 //!
 //! # The ship gate is met, never bypassed, and the fixture pays for it
 //!
@@ -83,16 +86,15 @@
 //! any of them**; what it adds is the composition with `hydrate`, which nothing
 //! else asserts.
 //!
-//! # A harness note, because this file is the THIRD copy
+//! # A harness note, because `tree()` has copies
 //!
-//! `tree()` now appears here, in `organize_default_declaration.rs` and in
-//! `upgrade_command.rs`, and nearly every test file in this crate spells its
-//! own binary runner. Rust's integration-test model gives each file its own
-//! crate, so sharing needs a `tests/common/mod.rs` that does not exist here.
-//! **The duplication is real and it is reported rather than fixed in passing**:
-//! introducing a common module for one new file means migrating the two
-//! existing users, in a working tree other nodes are committing to, mid-cut.
-//! That is a decision to take deliberately, not a side effect of adding a test.
+//! `tree()` has a copy here and in other test files of this crate, eg
+//! `organize_default_declaration.rs` and `upgrade_command.rs`. This file takes
+//! its `Command` and its directory prefixes from `tests/common/mod.rs`
+//! (`common::intent`, `common::dir_prefix`). **The copies of `tree()` are not
+//! merged in passing**: they have different return shapes and exclusions, so
+//! one shared walk is a decision to take deliberately, not a side effect of a
+//! fix.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -181,32 +183,44 @@ fn project() -> (tempfile::TempDir, String, String) {
   (dir, gate, subject)
 }
 
-/// Every file under the project with its bytes, **except the store**. See the
-/// module note on the one exclusion.
+/// Every file under the project with its bytes, **except the store and the
+/// committed event files**. See the module note on the two exclusions.
 fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
-  fn walk(dir: &Path, root: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for e in entries.flatten() {
-      let p = e.path();
-      if p.is_dir() {
-        walk(&p, root, out);
-      } else if let Ok(bytes) = std::fs::read(&p) {
-        let rel = p.strip_prefix(root).unwrap_or(&p).display().to_string();
-        // **THE COMMITTED EVENT FILES ARE THE ACT RECORD, NOT THE TREE**
-        // (ST0078 P1, vc 2026-09-18): canon and the realised tree are the
-        // state, and each hydrate and dehydrate adds its own event file, which
-        // is never removed. A round trip is a property of the state.
-        if rel.starts_with("intent/.cache") || rel.starts_with("intent/.canon/events/") {
-          continue;
-        }
-        out.insert(rel, bytes);
+  // A directory, an entry or a file that cannot be read stops the test, because
+  // a tree that leaves it out would compare less than the test claims. The walk
+  // does not go into the store or the events directory, which the tree leaves
+  // out by design.
+  fn walk(dir: &Path, root: &Path, cache: &str, events: &str, out: &mut BTreeMap<String, Vec<u8>>) {
+    let entries = std::fs::read_dir(dir)
+      .unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+    for entry in entries {
+      let p = entry
+        .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+        .path();
+      let rel = intentsvcs::project::relative(root, &p);
+      // **THE COMMITTED EVENT FILES ARE THE ACT RECORD, NOT THE TREE**
+      // (ST0078 P1, vc 2026-09-18): canon and the realised tree are the
+      // state, and each hydrate and dehydrate adds its own event file, which
+      // is never removed. A round trip is a property of the state. Both
+      // prefixes end in `/`, so `{rel}/` matches the directory itself and
+      // everything under it.
+      let under = format!("{rel}/");
+      if under.starts_with(cache) || under.starts_with(events) {
+        continue;
       }
+      if p.is_dir() {
+        walk(&p, root, cache, events, out);
+        continue;
+      }
+      let bytes = std::fs::read(&p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()));
+      out.insert(rel, bytes);
     }
   }
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let cache = crate::common::dir_prefix(root, &project.cache_dir());
+  let events = crate::common::dir_prefix(root, &project.events_dir());
   let mut out = BTreeMap::new();
-  walk(root, root, &mut out);
+  walk(root, root, &cache, &events, &mut out);
   out
 }
 

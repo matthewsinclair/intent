@@ -55,7 +55,7 @@
 use std::collections::BTreeMap;
 
 use crate::common::{
-  DATA_MODEL, Fixture, OUT_OF_MODEL_HEADING, changed, data_model_text, out_of_model_enumeration,
+  Fixture, OUT_OF_MODEL_HEADING, changed, data_model, data_model_text, out_of_model_enumeration,
   out_of_model_section, sample_issue, sample_thread, tree,
 };
 use intentsvcs::sync::Scope;
@@ -78,6 +78,7 @@ const NOT_THE_FILE_ESTATE: &[&str] = &[".cache", ".config"];
 /// silently continuing to describe a document that has moved on.
 #[test]
 fn the_denominator_is_declared_where_the_criterion_says_it_is() {
+  let model_doc = data_model();
   let text = data_model_text();
   let section = out_of_model_section(&text);
   // **THE ENUMERATION HALF, NOT THE WHOLE SECTION, AND THAT WAS A LIVE HOLE IN
@@ -126,7 +127,7 @@ fn the_denominator_is_declared_where_the_criterion_says_it_is() {
   for member in NAMED_PAIR {
     assert!(
       section.contains(member),
-      "`{OUT_OF_MODEL_HEADING}` in {DATA_MODEL} no longer names `{member}`, so this test's \
+      "`{OUT_OF_MODEL_HEADING}` in {model_doc} no longer names `{member}`, so this test's \
        planted set has stopped being justified by the document AC-10.8 cites. Re-derive the \
        mapping from the section as it now reads -- do not adjust `NAMED_PAIR` to match the \
        test's expectations, which is the denominator certifying itself"
@@ -137,7 +138,7 @@ fn the_denominator_is_declared_where_the_criterion_says_it_is() {
   // is the only reason its contents are the expected difference here.
   assert!(
     text.contains("cannot reproduce from the DB alone"),
-    "{DATA_MODEL} no longer states that this set is what an export cannot reproduce from the \
+    "{model_doc} no longer states that this set is what an export cannot reproduce from the \
      DB, which is the sentence that makes it AC-10.8's expected difference rather than merely \
      a list of unmodelled things"
   );
@@ -244,6 +245,7 @@ fn deleting_the_file_estate_and_egesting_reproduces_every_modelled_file() {
 /// modelled is missing, and nothing outside the declared set differs.**
 #[test]
 fn the_only_difference_is_the_declared_out_of_model_set() {
+  let model_doc = data_model();
   let fx = Fixture::new();
   let before = estate_with_the_out_of_model_pair(&fx);
 
@@ -283,7 +285,7 @@ fn the_only_difference_is_the_declared_out_of_model_set() {
   assert!(
     unexplained.is_empty(),
     "these paths differ after a delete-and-egest and are NOT in the out-of-model set declared \
-     at {DATA_MODEL}. Either the egest is not an inverse of the ingest, or the declared set has \
+     at {model_doc}. Either the egest is not an inverse of the ingest, or the declared set has \
      grown and the document has not been updated to say so:\n  {}",
     unexplained.join("\n  ")
   );
@@ -295,7 +297,7 @@ fn the_only_difference_is_the_declared_out_of_model_set() {
     let rel = format!("intent/{member}");
     assert!(
       !after.contains_key(&rel),
-      "{rel} came back from an egest, so it IS reproducible from the DB and {DATA_MODEL} is \
+      "{rel} came back from an egest, so it IS reproducible from the DB and {model_doc} is \
        wrong to list it as out of model -- the enumeration has outlived the model"
     );
   }

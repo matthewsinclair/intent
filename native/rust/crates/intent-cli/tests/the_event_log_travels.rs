@@ -62,7 +62,7 @@ impl Clone<'_> {
 
   fn event_files(&self) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    walk(&self.root.join("intent/.canon/events"), &mut out);
+    walk(&crate::common::events_dir(&self.root), &mut out);
     out.sort();
     out
   }
@@ -128,17 +128,32 @@ fn an_act_on_one_clone_is_read_on_another_with_its_author() {
   let forge = Forge::new();
   let (alice, bob, st) = two_clones(&forge);
 
-  // Each of Alice's events is one file under its day, named by its id.
+  // Each of Alice's events is one file under its day, named by its id: one
+  // file for each act the store holds that travels, here init and st.new.
   let files = alice.event_files();
-  assert_eq!(files.len(), 2, "init and st.new, one file each: {files:?}");
+  let mut named: Vec<String> = files
+    .iter()
+    .map(|p| p.file_stem().expect("stem").to_string_lossy().into_owned())
+    .collect();
+  named.sort();
+  let mut travelling: Vec<String> = alice.events_json()["events"]
+    .as_array()
+    .expect("rows")
+    .iter()
+    .filter(|e| intentsvcs::event::travels(e["op"].as_str().expect("op")))
+    .map(|e| e["id"].as_str().expect("id").to_string())
+    .collect();
+  travelling.sort();
+  assert_eq!(
+    named, travelling,
+    "one file for each act that travels, named by its id: {files:?}"
+  );
   for path in &files {
     let e: serde_json::Value =
       serde_json::from_str(&std::fs::read_to_string(path).expect("read")).expect("json");
     let id = e["id"].as_str().expect("id");
     let ts = e["ts"].as_str().expect("ts");
-    let want = alice
-      .root
-      .join("intent/.canon/events")
+    let want = crate::common::events_dir(&alice.root)
       .join(&ts[..4])
       .join(&ts[5..7])
       .join(&ts[8..10])
@@ -373,7 +388,7 @@ fn upgrade_backfills_the_history_the_store_held_once() {
     "wb", "register", "al", "--name", "Alice", "--role", "worker",
   ]);
   alice.intent(&["wb", "touch", "--node", "al"]);
-  std::fs::remove_dir_all(alice.root.join("intent/.canon/events")).expect("rm events");
+  std::fs::remove_dir_all(crate::common::events_dir(&alice.root)).expect("rm events");
 
   let events = alice.events_json();
   let rows = events["events"].as_array().expect("rows");
