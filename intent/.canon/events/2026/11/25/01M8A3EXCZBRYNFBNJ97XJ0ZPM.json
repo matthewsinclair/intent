@@ -1,0 +1,17 @@
+{
+  "id": "01M8A3EXCZBRYNFBNJ97XJ0ZPM",
+  "ts": "2026-11-25T19:38:28.639Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "Batch run 2's three tests are fixed and banked as a patch: refs/bank/cc/st1c2db93/tests/v1 (git apply), patch id a4553d8d3c9c, 4 files, on e078c18a3; it passes git apply --check on main's tree at c904371cb. (2) a_write_keeps_a_cover_edit_it_could_carry expects the remedy's shown id. The test runs that remedy, so the shown id is held to resolve; the source stays. (3) edit_and_browse_reach_one_model expects the form entity's shown id, agreed with ic at 19:33Z (display-only: shell.html shows it as text, and nothing reads it back). wire.rs's doc of Response::Form.entity now states the shown form with both families' examples, as ic asked. (4) detaching_an_attachment_the_thread_does_not_carry expects the attachments' records directory, built from canon_children_rel and CANON_ATTACHMENTS_DIR: the fixture writes the release's format, so that is where its attachments are; the source stays. Proof: slot 01M8A38XKAWVENSY68747E6X46, clippy rc 0. Slot 01M8A3CMQWC2JCTB6ND2JPP3YG: cargo build -p intentd ok (the browse tests need it in a fresh worktree), then ok 4 passed, ok 7 passed, ok 1 passed. Logs: tests/v1-clippy.log and v1-tests.log. No CHANGELOG line: only tests and a doc comment change.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}

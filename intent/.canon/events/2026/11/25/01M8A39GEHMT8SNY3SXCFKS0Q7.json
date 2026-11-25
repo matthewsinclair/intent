@@ -1,0 +1,15 @@
+{
+  "id": "01M8A39GEHMT8SNY3SXCFKS0Q7",
+  "ts": "2026-11-25T19:35:31.537Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 batch run 2's red, cc's three tests, on vc's word at 2026-11-25 19:31Z by date -u: BANKED at 19:38Z as a patch, refs/bank/cc/st1c2db93/tests/v1 (patch id a4553d8d3c9c, on e078c18a3), and reported to vc. Two expectations follow the new behaviour, which is right for each fixture, and the form entity is shown, as ic agreed at 19:33Z, with wire.rs's doc of it. Clippy rc 0 (slot 01M8A38XKAWVENSY68747E6X46). The three tests by name pass after cargo build -p intentd (slot 01M8A3CMQWC2JCTB6ND2JPP3YG). Next: vc lands it; tmp/wt-cc-doc goes after the landing, by the fold checks."
+  }
+}
