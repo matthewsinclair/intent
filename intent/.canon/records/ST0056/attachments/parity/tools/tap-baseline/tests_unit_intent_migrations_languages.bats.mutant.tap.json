@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_intent_migrations_languages.bats.mutant.tap",
-  "text": "1..7\nok 1 step_languages_field_run: no RULES-*.md, no pre-commit hook -> languages: []\nok 2 step_languages_field_run: pre-commit hook present -> languages: [\"shell\"]\nok 3 step_languages_field_run: back-fill from RULES-*.md presence (alphabetical)\nok 4 step_languages_field_needs: absent -> needs (0); present -> not needed (1)\nok 5 step_languages_field_needs: missing config -> not needed (1)\nok 6 step_languages_field_run: missing config -> warning and skip\nok 7 step_languages_field_verify: false before back-fill, true after\n",
-  "bytes": 528,
-  "sha256": "398ee73ac06271729dc296f59c80135208113b7835475cb92231176390a99cac"
-}

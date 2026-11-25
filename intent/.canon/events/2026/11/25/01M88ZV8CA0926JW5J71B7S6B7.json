@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZV8CA0926JW5J71B7S6B7",
+  "ts": "2026-11-25T09:16:04.367Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/tap-baseline/tests_unit_intent_init_lang_flag.bats.default.tap"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

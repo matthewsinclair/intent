@@ -2,8 +2,7 @@
 # lib_currency.sh -- can a given artefact see a recent change, by CONTENT?
 #
 # SOURCED, NOT EXECUTED. It defines functions and forms no verdict, so it ships
-# 644 like `lib_staged.sh`, `lib_corpus.sh`, `lib_mdfmt.sh`, `lib_surface.sh`
-# and `lib_classify.sh`.
+# 644 like every other `lib_*.sh` in this directory.
 #
 # ==========================================================================
 # WHY THIS EXISTS

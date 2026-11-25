@@ -92,7 +92,7 @@ command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
 MARKER="$(sed -n 's/.*\(is a known command that is not implemented yet\).*/\1/p' "$RENDER_RS" | head -n 1)"
 [ -n "$MARKER" ] || die "could not derive the unimplemented marker from $RENDER_RS -- the message was reworded and this script would otherwise report every row implemented"
 
-# --- the timeout, resolved the way burn.sh resolves it ------------------------
+# --- the timeout: GNU timeout, then gtimeout, then none -----------------------
 # GNU `timeout` is not on macOS by default. Run WITHOUT one rather than skip the
 # sweep, and say which happened: a sweep that silently drops every row is worse
 # than one that might hang on a row nobody expected to.

@@ -2,8 +2,8 @@
 # lib_surface.sh -- the four populations of the dispatch table.
 #
 # SOURCED, NOT EXECUTED. It defines functions and exits nothing; running it
-# directly does nothing useful, so it ships 644 like `lib_corpus.sh` and unlike
-# every other tool in this directory.
+# directly does nothing useful, so it ships 644 like every other `lib_*.sh` in
+# this directory and unlike the tools beside it.
 #
 # WHY THE POPULATIONS HAVE A NAME. `.families[].entries[]` reads like the
 # command surface and is not it, in BOTH directions at once:

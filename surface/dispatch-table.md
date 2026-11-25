@@ -12,7 +12,6 @@
 - `disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.
 - Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.
 - There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.
-- Each v2 family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reported `treeindex` as well covered when every one of its tests exec'd `bin/intent_treeindex` directly and the dispatcher never saw them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**
 - `known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean.
 - Every entry declares `exposed_on_mcp` and `read_or_mutate` (AC-09.1, from EXP-03). The MCP tool list renders from this file like everything else, and the alternative was deriving it from the verb -- which dies on one pair alone: `ac gate` READS while `wp done` consults the same gate and WRITES, and the two do not share a spelling. Declare, do not derive. Both fields are REQUIRED on every row and the generator refuses a row missing either, because a defaulted field is how a new command joins the agent surface without anyone deciding it should.
 - `read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading ("what it does when you just run it") makes rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.
@@ -176,7 +175,6 @@ A write that takes `--node <human seat>` on a board that declares a team is refu
 Manage steel threads for the project
 
 - **Owning work package:** WP-04
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
@@ -625,7 +623,6 @@ Print the steel thread index; with `--write`, write it and each thread's project
 Manage work packages within steel threads
 
 - **Owning work package:** WP-04
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
@@ -838,7 +835,6 @@ Close-gate for one work package: exit non-zero + BLOCKED if its scoped criteria 
 Acceptance criteria: the ratified completeness boundary of a unit
 
 - **Owning work package:** WP-04
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - `ac` and `at` are two nouns over ONE binary (`bin/intent_acceptance`), dispatched on `$1` as the noun and `$2` as the verb. They share a usage block, so `intent ac --help` and `intent at --help` are the same text -- and both FAIL, because `--help` is parsed as the verb (INV-07).
 - An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (native/rust/crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
@@ -1125,7 +1121,6 @@ Reword a criterion, or write an unsatisfied one's note; a field you do not name 
 Acceptance tests: the small red-to-green tests that prove ACs
 
 - **Owning work package:** WP-04
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **parity.md's command-level table was wrong about this family and the deep pass corrected it.** The table said `lint [--fix], set, list`. Measured: `list, lint, red, green, na, done, notdone`. There is NO `set` verb -- `cmd_at_set` is an internal function -- and `done`/`notdone` are aliases for `green`/`red`. Evidence: `intent at set` answers `error: unknown at command: set`.
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
@@ -1321,7 +1316,6 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
 Track issues without the ceremony of a steel thread
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
@@ -1564,7 +1558,6 @@ Remove an issue from .intentfiles and delete its files
 A flat DOING / TODO / DONE view of steel threads and work packages
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - `intent/todo.md` is GENERATED from ST/WP status and is never hand-maintained. In v3 it is a generated view proper (WP-03), so the `update` verb becomes explicit regeneration rather than the thing that keeps it from going stale.
 - The DONE bucket is watermarked: `done --flush` advances a `## DONE:<T>` marker so completed threads fall out of the view without being deleted. That watermark is authored state with no home in the reified model yet -- flagged, since it is neither thread data nor a pure view.
@@ -1687,7 +1680,6 @@ Refused in this build: close with `intent todo done <spec>`, and reopen with `in
 Show the Intent process overview and project status
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Single-action command: no dispatch `case`, no flags parsed at all.
 
@@ -1714,7 +1706,6 @@ Show the Intent process overview and project status
 Display the resolved project configuration -- not implemented in this build (exits 2)
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **HOLE -- nothing in the estate invokes it**
 
 - **This command produces NO OUTPUT AT ALL in a project** -- nothing on either stream, exit 0, measured. `bin/intent_config` is primarily a LIBRARY: `bin/intent:211` sources it for `load_intent_config`, and the executable path is close to vestigial.
 - It is the clearest case in the surface of a command whose v3 shape is a decision rather than a port: `intent config` printing nothing is not a behaviour worth reproducing.
@@ -1816,7 +1807,6 @@ Set one configuration value; this build sets `commands.build` and `commands.test
 Initialize a new Intent project in the current directory
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Templates are read from `lib/templates/` at `INTENT_HOME`. In v3 they are embedded in the binary (WP-07, rust-embed), which removes the whole class of broken-install failure this command currently has to report.
 
@@ -1854,7 +1844,6 @@ Initialize a new Intent project in the current directory
 First-time setup: create global Intent configuration
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Runs OUTSIDE a project by design (measured: exit 0). It is one of the global commands.
 - Its own usage block says `Usage: intent_bootstrap [OPTIONS]` and `Initial setup for Intent v2.0.0` -- it names the underlying script rather than the `intent bootstrap` the user typed, and the version is nine minors stale. Both retire when help is generated from this table.
@@ -1889,7 +1878,6 @@ First-time setup: create global Intent configuration
 Diagnose common Intent configuration issues
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Runs outside a project (measured: exit 0), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
@@ -1955,7 +1943,6 @@ Diagnose common Intent configuration issues
 Upgrade an Intent project to the current version
 
 - **Owning work package:** WP-10
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **REPLACED, not ported.** D09's two-hop policy: v2's own upgrade ledger is never reimplemented in Rust. A project below the v2.19.0 floor runs v2's `intent upgrade` first, then the v3 migrator takes it from there. The two `intent_migrations_*` BATS files retire by design for the same reason.
 - `bin/intent_migrations` is mode 644 and is NOT a command -- it exists only to be sourced by the orchestrator, and `bin/intent_help`'s auto-list requires `-x`, so it is correctly absent from help. There is no `intent migrations` in the surface.
@@ -1985,7 +1972,6 @@ Upgrade an Intent project to the current version
 Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 
 - **Owning work package:** WP-07
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **parity.md's table said this family was just `sync`. Measured, its verbs are** init, generate, sync, validate, template.
 - A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
@@ -2068,7 +2054,6 @@ Move the two agent contracts to the root or into .claude/, and set the project's
 Claude Code integration: subagents, skills, rules, hooks, workstreams
 
 - **Owning work package:** WP-07
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - The largest family in the surface and the only one needing an explicit arm in `bin/intent` -- every other `bin/intent_<name>` auto-dispatches via the `*)` default case.
 - **`intent claude` bare, `--help`, an unknown flag and outside-a-project all produce the SAME error** (`error: Unknown claude subcommand. Try: ...`). Four distinct conditions, one message: a user who typed `--help` is told they used an unknown subcommand. It also means the family never reaches the project gate (INV-03's first exception).
@@ -2223,7 +2208,6 @@ Launch a Claude session bound to a workstream
 Run Intent rule-library critics against source files without invoking an LLM
 
 - **Owning work package:** WP-07
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **The only command in the shipped surface that legitimately uses exit code 2, AND IT IS FOR A USAGE ERROR, NOT FOR FINDINGS** -- `bin/intent_critic:89` (error_out) and `:95` (no args) exit 2; **findings-present is `exit 1` at `:348`**; `CRITIC_REFUSED` is `exit 3` at `:334` and `:347`. This note previously read `findings-present, distinct from failure` over those same two line numbers, which is backwards -- see INV-04's `corrected_2026_08_20` for why building to it would have failed the pre-commit gate OPEN on every finding. INV-04's named exception, and INV-02 must not flatten it.
 - Strict-proxy contract since ST0039: the headless runner enforces ONLY rules publishing a simple `Greppable proxy`, and REFUSES non-simple proxies with a once-per-rule stderr note rather than approximating them. A critic that silently approximates a rule reports findings the rule does not actually make.
@@ -2273,7 +2257,6 @@ Run Intent rule-library critics against source files
 Declared languages: which languages a project has declared
 
 - **Owning work package:** WP-07
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **parity.md's table said `init, remove, list`. Measured, its verbs are** list, show, init, remove, sync, plus `rm` as an alias of `remove`. Evidence: `intent lang sync` answers `ok: no declared languages; nothing to sync`.
 - The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.
@@ -2379,7 +2362,6 @@ Undeclare one or more languages (idempotent; multi-lang)
 LLM-related commands for working with AI assistants
 
 - **Owning work package:** WP-06 + WP-09
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - **The `intent llm` agent guide is regenerated from the dispatch table at WP-09** (design.md:85, the Lamplight DD-6 pattern), so this family is both a parity subject and a CONSUMER of this file.
 
@@ -2428,7 +2410,6 @@ Print the agent guide: every command this build ships, with what it does and whe
 Capture project-specific learnings for future LLM sessions
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Storage is `intent/.config/learnings.md`, consumed by `intent claude prime` for MEMORY.md injection.
 - Unusually for this surface, the primary action takes a POSITIONAL description and the verbs are expressed as flags (`--list`) rather than subcommands.
@@ -2462,7 +2443,6 @@ Capture project-specific learnings for future LLM sessions -- not implemented in
 Module registry guardrails and enforcement
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - One of the few v2 commands with DOCUMENTED exit codes in its own help: 0 clean, 1 issues found. Most of the surface documents none.
 - `check` honours `file::function` rows since v2.11.12, so a helper registered against a function name is not reported as missing.
@@ -2516,7 +2496,6 @@ Search MODULES.md for a term
 Discover installed Intent plugins and their commands
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Runs outside a project (measured: exit 0).
 
@@ -2558,7 +2537,6 @@ Show detailed information for a plugin
 Manage Intent user extensions -- not implemented in this build; nothing reads ~/.local/share/intent/ext/
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - Extensions live OUTSIDE the project, under `~/.local/share/intent/ext/`, so this family runs outside a project (measured: exit 0).
 - Its help block still marks verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help.
@@ -2637,7 +2615,6 @@ Scaffold a new extension -- not implemented in this build (exits 2)
 Print the Intent version
 
 - **Owning work package:** WP-06
-- **v2 BATS coverage (a record -- the cut deleted that suite):** **covered**
 
 - A global command: runs outside a project.
 - `get_intent_version` in bin/intent_helpers is THE single fallback site for version resolution (consolidated in v2.11.12); v3 bakes GIT_HASH into the version string (design.md:74).
@@ -3759,54 +3736,6 @@ Render a dedicated coordinator's working directory: the coordinator's contract a
 - **Detail:** **A BEHAVIOUR SPANNING VERBS ACROSS FAMILIES AND BOTH DOORS WAS NEVER ASKED ABOUT IN THIS ARTEFACT.** vc's sweep: seven `normalis` hits in the rendered register, every one about STATUS normalisation or `organise`->`organize`. Id normalisation appears nowhere. It was not recorded-and-deferred, which a reader could act on -- it was unrecorded, and **the register's whole claim is that a row's existence means the question was asked.** The gap was found by an operator typing `intent st edit 59`, not by the artefact. **SO THE FINDING IS ABOUT THE POPULATION AND NOT THIS ROW**: nothing here establishes that id normalisation is the only such question, and the method that missed it was not id-specific.
 - **Resolution:** AC-06.12 (2026-08-25) states the property and AT-06.12 covers it; landed at `58979836`. **The population question is SEPARATE and open, carried to hv by vc rather than closed here** -- a row added after the fact does not tell you what else was never asked.
 - **Consequence for the generator:** **NOTHING IN THIS GENERATOR WOULD HAVE CAUGHT IT AND NOTHING HERE NOW DOES.** The table's unit is the command and its declared flags; id normalisation is a property of ARGUMENT INTERPRETATION shared across many verbs and owned by none of them. A row per command cannot hold a fact that lives between commands. **So EXP-10 is closed for the instance and open for the class**, and adding a twelfth criterion did not narrow the population of questions never asked.
-
-## Parity holes -- what the v2 BATS suite did NOT cover
-
-**A record of the v2 bats suite, which the cut deleted.** A command family with no burning coverage was a parity hole: v3 could change it freely and that suite stayed green. Produced by `parity/tools/coverage_map.sh`, which joined these families against `burn-baseline.tsv` -- the join mattered, because a naive grep reported `treeindex` as well covered when every one of its tests exec'd `bin/intent_treeindex` directly and the dispatcher never saw them.
-
-| family      | verdict                                  |
-| ----------- | ---------------------------------------- |
-| `st`        | covered                                  |
-| `wp`        | covered                                  |
-| `ac`        | covered                                  |
-| `at`        | covered                                  |
-| `issues`    | covered                                  |
-| `todo`      | covered                                  |
-| `info`      | covered                                  |
-| `config`    | HOLE -- nothing in the estate invokes it |
-| `init`      | covered                                  |
-| `bootstrap` | covered                                  |
-| `doctor`    | covered                                  |
-| `upgrade`   | covered                                  |
-| `agents`    | covered                                  |
-| `claude`    | covered                                  |
-| `critic`    | covered                                  |
-| `lang`      | covered                                  |
-| `llm`       | covered                                  |
-| `learn`     | covered                                  |
-| `modules`   | covered                                  |
-| `plugin`    | covered                                  |
-| `ext`       | covered                                  |
-| `version`   | covered                                  |
-
-### `config` -- HOLE
-
-- **Finding:** NOTHING in the BATS estate invokes `intent config`. Zero files, zero tests.
-- **Why it matters:** This family already has no v2 behaviour to be faithful to (no output on either stream, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.
-- **The trap:** `tests/unit/config.bats` EXISTS and mostly burns, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.
-- **Action:** WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction.
-
-### `*` -- METHOD
-
-- **Finding:** The zero for `config` was calibrated before being believed: the same needle returns files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.
-- **Why it matters:** A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built.
-
-### `*` -- METHOD
-
-- **Finding:** Rows carried `evidence_class: measured` on a probe matrix that could not have reached the field they filled. The matrix is bare / --help / unknown flag / outside-a-project -- four invocations, no positional argument -- and `issues add`, `wp list` and `critic` each REQUIRE an argument to succeed, yet each declared a success-path `stdout`. Found by cc on `issues add` while reading v2 for Machine 4; generalised and bounded to three by ic the same day.
-- **Why it matters:** **An `evidence_class` names a METHOD, and nothing checked that the method reached the fields the row went on to assert.** The class was honest -- it says exactly which four invocations were run -- so the defect is not dishonesty but an unstated coverage claim: a reader takes `measured` as being about the ROW, when it is only ever about the PROBE. That is the same shape as a criterion stated more broadly than the one applied, which is what cost `populations.not_probed` a member the day before. It is also why the count matters: the first reading of this was a long list, and most of it is fine because bare IS their success path (`issues`, `todo`, `info`, `version`, the usage-block families). Only a row whose success needs an argument is exposed.
-- **The trap:** `measured` outranks `read` in every reading, so the three exposed rows looked like the BEST-evidenced rows in the table. `issues add` in particular carried a four-invocation matrix in its own `why`, which reads as diligence and is precisely the text that should have raised the question.
-- **Action:** All three now carry a direct observation of the success path alongside the matrix, and one of the three was WRONG when measured (`critic` declared only the findings report; the clean case prints a one-line `ok:` summary). No sweep beyond the three: the discriminator is `a required arg the matrix never supplied`, and it is mechanical, so it can be re-run rather than remembered.
 
 ## Families outstanding
 

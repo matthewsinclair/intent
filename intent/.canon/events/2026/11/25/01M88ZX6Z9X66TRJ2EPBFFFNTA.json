@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZX6Z9X66TRJ2EPBFFFNTA",
+  "ts": "2026-11-25T09:17:08.462Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/tap-baseline/tests_unit_rule_reference_skills.bats.default.tap"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

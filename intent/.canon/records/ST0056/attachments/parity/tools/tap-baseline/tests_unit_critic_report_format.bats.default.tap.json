@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_critic_report_format.bats.default.tap",
-  "text": "1..7\nok 1 text report: finding line is [SEVERITY] <id> at <file>:<line> with excerpt\nok 2 text report: severity sections are headed and ordered critical-first\nok 3 text report: clean run prints ok line and exits 0\nok 4 text report: --severity-min critical filters the warning finding\nok 5 json report: emits valid JSON with severity/rule_id/file/line/excerpt\nok 6 json report: clean run emits an empty array and exits 0\nok 7 exit codes: 1 on findings at threshold, 0 below threshold\n",
-  "bytes": 483,
-  "sha256": "a948502a9e805d648afcd2de54c2b23de132f276313f3c611fcc19b47d047a64"
-}

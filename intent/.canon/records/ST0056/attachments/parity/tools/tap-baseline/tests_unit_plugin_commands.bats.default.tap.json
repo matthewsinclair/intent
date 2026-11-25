@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_plugin_commands.bats.default.tap",
-  "text": "1..12\nok 1 plugin with no args lists plugins\nok 2 plugin list shows both plugins\nok 3 plugin list shows command syntax\nok 4 plugin list shows descriptions\nok 5 plugin show claude shows detailed info\nok 6 plugin show agents shows detailed info\nok 7 plugin show missing plugin errors\nok 8 plugin show with no name errors\nok 9 plugin help shows usage\nok 10 plugin --help shows usage\nok 11 plugin invalid subcommand errors\nok 12 plugin works from non-project directory\n",
-  "bytes": 465,
-  "sha256": "b3b85b3df90962f401c9bfed33d4de9d2c9321259a4442fe1c373fe71d97c175"
-}

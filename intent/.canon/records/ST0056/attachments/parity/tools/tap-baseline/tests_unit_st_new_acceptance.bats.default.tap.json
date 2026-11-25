@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_st_new_acceptance.bats.default.tap",
-  "text": "1..3\nok 1 info templates reference acceptance.md and restate no ACs\nok 2 st show and edit know the acceptance file type\nok 3 open STs ST0043 and ST0044 each have an acceptance.md\n",
-  "bytes": 179,
-  "sha256": "840a0a3f9926b55c89913b591f9af56b78fb52c5bd1b8916797180aa66478e82"
-}

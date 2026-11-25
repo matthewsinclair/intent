@@ -60,10 +60,10 @@ fn d57_8_forms() -> Vec<(&'static str, Entity)> {
       },
     ),
     (
-      "intent:///threads/ST0056/attachments/parity/tools/burn.sh",
+      "intent:///threads/ST0056/attachments/parity/tools/provenance_check.sh",
       Entity::Attachment {
         thread: "ST0056".into(),
-        path: "parity/tools/burn.sh".into(),
+        path: "parity/tools/provenance_check.sh".into(),
       },
     ),
     ("intent:///issues/0042", Entity::Issue { id: "0042".into() }),

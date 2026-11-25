@@ -40,6 +40,11 @@
 # So `register.md` is in the SAME class as `pertest.md`, not a class above it:
 # NOT re-derivable from committed state, at any price short of a full re-sweep.
 #
+# RETIRED 2026-11-25 (ST1c2db93 WP-5cc0, vc decision 134): `gen_register.sh`,
+# `gen_pertest.sh`, `register.md`, `pertest.md`, the burn sweep and the TAP
+# corpus behind them left with the v2 bats-estate inventory. The paragraphs
+# above and the counts below are the measurement as it stood before that.
+#
 # AND THE SAME QUESTION, ASKED OF THE OTHER 27, GAVE THE SAME ANSWER. The
 # reported blocker on `cmd-*.md` was "gen_inventory.sh does not honour OUT".
 # It does -- via OUTDIR. That was a naming mismatch, not a missing capability,
@@ -100,8 +105,6 @@ CHECKABLE="surface/dispatch-table.md|gen_dispatch_table.sh|surface/dispatch-tabl
 # holds an apostrophe or a parenthesis, and refuses the whole file.
 UNCHECKABLE=""
 IFS= read -r -d '' UNCHECKABLE <<'EOF' || true
-intent/st/ST0056/parity/register.md|WT ONLY -- a detached worktree at the measured revision, which is not a file and cannot be committed. CORRECTED 2026-08-16: this line used to say the generator "needs SP (raw burn.tsv, untracked and absent)". The burn input is committed at tools/burn-baseline.tsv and gen_register.sh now DEFAULTS to it, so SP is an override rather than a precondition. Verified today: byte-identical to the committed artefact with no SP and no BURN.
-intent/st/ST0056/parity/pertest.md|WT ONLY, same as register.md. CORRECTED 2026-08-16: this line used to say the generator needs "the ephemeral TAP ... which is not committed". The TAP corpus IS committed at tools/tap-baseline/ (196 files) and TAP_DIR defaults to it; BURN now defaults to the committed twin too. Verified today: byte-identical with no SP, no BURN and no TAP_DIR.
 intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). NOT un-re-derivable any more, only un-CHEAPLY-checkable: the probe TSV is committed at parity/probes/toplevel.tsv and the generator is a formatter fixed point, so a fresh render reproduces the committed files exactly. What it still needs is $WT, a detached worktree at the measured revision, because the verb and flag extractors read the v2 SOURCE rather than the probe data -- seconds of setup per run, and a slow gate is one that gets bypassed with --no-verify. To check on demand: git worktree add --detach <dir> 69d42a7, then SP=<scratch> WT=<dir> OUTDIR=<out> gen_inventory.sh, then diff against parity/.
 intent/st/ST0056/parity/cmd-*.md|same as README.md. 27 files, verified 27/27 BYTE-IDENTICAL to a fresh render on 2026-08-15 -- so these have a real content check now, just not one a pre-commit hook can afford. THIS ENTRY USED TO CLAIM committing the TSV would promote all 27 to CHECKABLE in one move. That was wrong twice over: the TSV was necessary and not sufficient (the worktree remains), and the generator ALSO emitted unaligned tables and a trailing blank line, so its output could never equal the committed file no matter what the input was. Both found by committing the TSV and actually running it. Recorded rather than quietly corrected, because a guard that names its own highest-leverage fix and is mistaken about it sends the next person the same way.
 EOF

@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_output_width.bats.default.tap",
-  "text": "1..6\nok 1 get_default_width reads dft_width from config\nok 2 get_default_width defaults to 120 when dft_width is absent\nok 3 st list stdout fills the terminal width and never truncates the slug\nok 4 st list and st sync resolve the same width over the same scope\nok 5 st sync --write index is canonical markdown, independent of terminal width\nok 6 explicit --width overrides the terminal width (list and sync alike)\n",
-  "bytes": 415,
-  "sha256": "94da6c2d19725218dc014beef645cd47704753e68d87dbdb061f5f3cc975dc55"
-}

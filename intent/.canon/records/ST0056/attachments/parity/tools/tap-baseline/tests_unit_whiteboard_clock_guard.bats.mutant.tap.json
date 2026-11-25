@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_whiteboard_clock_guard.bats.mutant.tap",
-  "text": "1..12\nok 1 clock guard: an honest stamp with a trailing Z passes\nok 2 clock guard: check A blocks a stamp in the future\nok 3 clock guard: check B blocks an entry heading with no Z\nok 4 clock guard: check B blocks a heartbeat with a T separator and no Z\nok 5 clock guard: check B blocks a heartbeat with a SPACE separator and no Z\nok 6 clock guard: check C blocks an append that goes backwards\nok 7 clock guard: control -- .history/ replays old stamps and must not block\nok 8 clock guard: control -- prose quoting a future stamp is reporting, not offending\nok 9 clock guard: control -- pre-existing breakage must not wedge the file\nok 10 clock guard: control -- a Re: anchor points backwards and must not block\nok 11 clock guard: a Re: anchor does not mask a genuinely out-of-order entry\nok 12 clock guard: control -- a project with no whiteboard is untouched\n",
-  "bytes": 859,
-  "sha256": "2da62c9603d857425df4955ba22894bd6a538eafc5d74e6f2e3d9ef97e94de73"
-}

@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_st_list_all_vocabulary.bats.default.tap",
-  "text": "1..7\nok 1 st list --status all emits a row for every thread on disk\nok 2 st list --status all exits 0 and still reports the anomaly\nok 3 a status the synonym table knows under another name lands in its group\nok 4 a status outside the vocabulary is still shown\nok 5 an out-of-vocabulary status is named on stderr with its id\nok 6 sync --write carries every thread into the committed index\nok 7 the presentation order survives collapsing the literal list\n",
-  "bytes": 453,
-  "sha256": "99daf6fee2b244a1a3e0bcda7ac85eb22b2cc0315bfa8305f95b90a7a8af1369"
-}

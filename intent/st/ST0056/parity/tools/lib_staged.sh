@@ -2,7 +2,7 @@
 # lib_staged.sh -- read a file from the INDEX, not from the working tree.
 #
 # SOURCED, NOT EXECUTED. It defines functions and forms no verdict, so it ships
-# 644 like `lib_corpus.sh`, `lib_mdfmt.sh`, `lib_surface.sh` and `lib_classify.sh`.
+# 644 like every other `lib_*.sh` in this directory.
 #
 # ==========================================================================
 # WHY THIS EXISTS

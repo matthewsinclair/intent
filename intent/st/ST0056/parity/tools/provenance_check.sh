@@ -20,10 +20,11 @@
 # things that actually worked all refused rather than reminded -- the clock
 # guard, and lib_corpus.sh. This is that shape for provenance.
 #
-# GROUPS, NOT A GLOBAL EQUALITY, and the distinction is the whole design. Three
-# independent measurements live in this directory and they are SUPPOSED to carry
-# different stamps: the burn sweep, the command-surface inventory, and the
-# dispatch table's observed data. A check demanding one revision across all of
+# GROUPS, NOT A GLOBAL EQUALITY, and the distinction is the whole design. The
+# independent measurements in this directory are SUPPOSED to carry different
+# stamps: the command-surface inventory and the dispatch table's observed data.
+# The burn sweep was a third until the v2 bats-estate inventory retired
+# (ST1c2db93 WP-5cc0). A check demanding one revision across all of
 # them would fail on its first run against a perfectly healthy tree, and the
 # first thing anyone does with a check that cries wolf is switch it off -- which
 # is the failure this whole toolchain keeps refusing.
@@ -152,18 +153,14 @@ check_group() {
   [ "$bad" -eq 0 ] && printf 'ok: %-22s %s file(s) @ %s\n' "$name" "$n" "$first"
 }
 
-check_group "burn artefacts" \
-  "Both are rendered from ONE sweep. A disagreement means one was regenerated against a different worktree than the baseline it was fed -- the data can be byte-identical and the provenance still wrong." \
-  "$P/register.md" "$P/pertest.md"
-
 check_group "command inventory" \
   "All cmd-*.md come from a single gen_inventory.sh run. A disagreement means the set was rebuilt piecemeal, so it describes no single state of the CLI." \
   "$P"/cmd-*.md
 
 # Deliberately its OWN group of one: `surface/dispatch-table.md` stamps when the
 # OBSERVED v2 data was measured, not when the view was last rendered. It moves
-# on a re-probe and not on a re-render, so it is unrelated to the two above and
-# pinning it to them would be wrong rather than strict.
+# on a re-probe and not on a re-render, so it is unrelated to the group above,
+# and pinning it to that group would be wrong rather than strict.
 check_group "dispatch-table view" "single artefact" "$ROOT/surface/dispatch-table.md"
 
 # ANY STAMPED ARTEFACT NOT IN A GROUP IS REPORTED. A new generator that starts
@@ -176,7 +173,7 @@ check_group "dispatch-table view" "single artefact" "$ROOT/surface/dispatch-tabl
 for f in "$P"/*.md "$ROOT/surface"/*.md; do
   [ -f "$f" ] || continue
   case "$f" in
-    "$P/register.md"|"$P/pertest.md"|"$P"/cmd-*.md|"$ROOT/surface/dispatch-table.md") continue ;;
+    "$P"/cmd-*.md|"$ROOT/surface/dispatch-table.md") continue ;;
   esac
   if [ "$SCOPE" = staged ]; then
     case "$STAGED" in *"${f#$ROOT/}"*) ;; *) continue ;; esac

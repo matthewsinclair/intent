@@ -2,8 +2,9 @@
 #
 # daemon_commands -- the `intent daemon` surface, which had ZERO tests.
 #
-# WHY IT EXISTS. `coverage_map.sh` reports command families nothing exercises,
-# and `daemon` was one of two at zero (the other is `config`). Measured before
+# WHY IT EXISTS. `coverage_map.sh`, since retired with the v2 bats-estate
+# inventory, reported command families nothing exercised, and `daemon` was one
+# of two at zero (the other was `config`). Measured before
 # writing a line: `grep -rn 'intent daemon' tests/` returned nothing, and the
 # single estate-wide `daemon` hit was a COMMENT in release_sidecars.bats:133.
 # The family's verbs sit on a surface a menubar app now consumes (ST0064),

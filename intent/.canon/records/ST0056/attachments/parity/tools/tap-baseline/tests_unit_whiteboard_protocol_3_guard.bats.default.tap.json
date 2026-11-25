@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_whiteboard_protocol_3_guard.bats.default.tap",
-  "text": "1..7\nok 1 in-whiteboard SKILL.md has no live 2.0 references\nok 2 chaining skills reference 3.0 subcommands and no shipped doc hard-codes the flat-file model\nok 3 a focus quoting a phrase is valid and renders with its quotes intact\nok 4 hygiene rejects a value that is not a single line\nok 5 hygiene rejects a board with no header block at all\nok 6 a missing recommended key warns without failing the gate\nok 7 the skill declares the block NOT YAML and the tool agrees\n",
-  "bytes": 468,
-  "sha256": "79a710fc69e78715abe78c073d3facd953e5a98a2dbf9a5ef344dff6f817c8a2"
-}

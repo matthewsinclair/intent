@@ -30,9 +30,9 @@
 //!
 //! **Deliberate exception to D05.** Unknown fields are PERMITTED here. The
 //! table is a specification document that carries far more than the CLI
-//! consumes -- provenance, coverage findings, per-entry defect references --
-//! and it will grow as ic's parity work continues. Strict rejection belongs on
-//! canon the tool owns and writes; this is an artefact the tool reads.
+//! consumes, such as provenance and per-entry defect references. Strict
+//! rejection belongs on canon the tool owns and writes; this is an artefact the
+//! tool reads.
 
 use serde::{Deserialize, Serialize};
 

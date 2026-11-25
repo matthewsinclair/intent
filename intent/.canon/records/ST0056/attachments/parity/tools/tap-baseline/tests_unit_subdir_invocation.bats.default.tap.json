@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_subdir_invocation.bats.default.tap",
-  "text": "1..7\nok 1 st list works from intent/st subdirectory\nok 2 st list works from a deeply nested directory\nok 3 st new from subdirectory creates ST at project root, not cwd\nok 4 wp list works from subdirectory\nok 5 doctor works from subdirectory\nok 6 outside any project, commands fail cleanly without creating .intent\nok 7 INTENT_ORIG_CWD is exported to subcommands\n",
-  "bytes": 362,
-  "sha256": "23dbe169851054f69ef69b8a72c97dc0713868b6074c5191412b2e62f1180dd9"
-}

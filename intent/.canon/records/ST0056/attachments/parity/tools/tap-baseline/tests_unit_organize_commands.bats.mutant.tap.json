@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_organize_commands.bats.mutant.tap",
-  "text": "1..4\nnot ok 1 intent organize dispatches (the documented spelling resolves a script)\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/organize_commands.bats, line 46)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 2 organize --dry-run previews moves without making them\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/organize_commands.bats, line 57)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 3 organize moves a Completed thread into COMPLETED/\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/organize_commands.bats, line 71)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nok 4 organize errors outside an Intent project\n",
-  "bytes": 989,
-  "sha256": "217bd3365f75d040facd365d35f21ffbdbd36709593abde7231836bcdc36fb57"
-}

@@ -101,7 +101,6 @@
     "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
     "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
     "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.",
-    "Each v2 family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reported `treeindex` as well covered when every one of its tests exec'd `bin/intent_treeindex` directly and the dispatcher never saw them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**",
     "`known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean.",
     "Every entry declares `exposed_on_mcp` and `read_or_mutate` (AC-09.1, from EXP-03). The MCP tool list renders from this file like everything else, and the alternative was deriving it from the verb -- which dies on one pair alone: `ac gate` READS while `wp done` consults the same gate and WRITES, and the two do not share a spelling. Declare, do not derive. Both fields are REQUIRED on every row and the generator refuses a row missing either, because a defaulted field is how a new command joins the agent surface without anyone deciding it should.",
     "`read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading (\"what it does when you just run it\") makes rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.",
@@ -1154,13 +1153,7 @@
           "recoverability": "idempotent",
           "facade": "sync_to_disk"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 22,
-        "files_vacuous": 0,
-        "burning_tests": 267,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "wp",
@@ -1548,13 +1541,7 @@
           },
           "facade": "gate"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 8,
-        "files_vacuous": 0,
-        "burning_tests": 79,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "ac",
@@ -2091,13 +2078,7 @@
           "recoverability": "reversible",
           "facade": "ac_edit"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 4,
-        "files_vacuous": 0,
-        "burning_tests": 57,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "at",
@@ -2499,13 +2480,7 @@
           "recoverability": "reversible",
           "facade": "at_edit"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 2,
-        "files_vacuous": 0,
-        "burning_tests": 30,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "issues",
@@ -2960,13 +2935,7 @@
           "recoverability": "reversible",
           "note": "**THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 20,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "todo",
@@ -3175,13 +3144,7 @@
           "recoverability": "reversible",
           "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 22,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "info",
@@ -3217,13 +3180,7 @@
           },
           "mcp_narrowed": "vc, 2026-08-30: the row's help promises the process overview and project status, and its CLI arm COMPOSES that answer (install home, version, running executable, project block) -- the recorded facade `st_list` was armscan's biggest READ, not a serving door. A tool whose description misdescribes its answer is worse for an agent than an absent one; an agent cannot detect the mismatch and will reason from a thread list as if it were the overview. Re-expose only with a door that serves the composed answer."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 3,
-        "files_vacuous": 0,
-        "burning_tests": 23,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "config",
@@ -3387,13 +3344,7 @@
           "recoverability": "reversible",
           "recoverability_anomaly": "REVERSIBLE AND WITHHELD FROM MCP, ON AUTHORSHIP (vc's ruling (A), 2026-11-11, on issue 0678). The project's declared build and test commands are a human's declaration, and AGENTS.md, the contract every agent reads, is rendered from them. The key list will grow to keys an agent must not set unasked, this row's own `backup.enabled` case among them, so exposure is decided when the family is built and not by its first two keys. The wiredness ground this replaced expired when the verb was built."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 0,
-        "files_vacuous": 0,
-        "burning_tests": 0,
-        "verdict": "HOLE -- nothing in the estate invokes it"
-      }
+      ]
     },
     {
       "name": "init",
@@ -3462,13 +3413,7 @@
           },
           "recoverability": "one-way"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 7,
-        "files_vacuous": 0,
-        "burning_tests": 55,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "bootstrap",
@@ -3532,13 +3477,7 @@
           "read_or_mutate": "mutate",
           "recoverability": "one-way"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 2,
-        "files_vacuous": 0,
-        "burning_tests": 16,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "doctor",
@@ -3662,13 +3601,7 @@
           },
           "facade": "doctor"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 11,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "upgrade",
@@ -3708,13 +3641,7 @@
           "read_or_mutate": "mutate",
           "recoverability": "one-way"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 4,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "agents",
@@ -3843,13 +3770,7 @@
           "recoverability_anomaly": "WITHHELD BECAUSE WHERE A PROJECT KEEPS ITS CONTRACTS IS A DECLARATION, NOT A TIDY-UP (ST0083, hv's ruling 1: the layout is an explicit per-project key). The act is reversible -- `agents layout` back to the other value restores it -- and is still the person's to ask for, as `wb register` is: an agent moving a project's contracts unasked is the move this key exists to make deliberate.",
           "facade": "agents_layout"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 4,
-        "files_vacuous": 1,
-        "burning_tests": 86,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "claude",
@@ -4241,13 +4162,7 @@
           },
           "recoverability": "one-way"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 30,
-        "files_vacuous": 2,
-        "burning_tests": 296,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "critic",
@@ -4362,13 +4277,7 @@
             "grounded_in": "bin/intent_critic -- no write primitive in the file; it reports and sets an exit code"
           }
         }
-      ],
-      "bats_coverage": {
-        "files_real": 2,
-        "files_vacuous": 0,
-        "burning_tests": 19,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "lang",
@@ -4533,13 +4442,7 @@
           "note": "**WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- \"Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool\" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the fields are one claim and the generator will not let them disagree in silence.",
           "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 3,
-        "files_vacuous": 0,
-        "burning_tests": 57,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "llm",
@@ -4613,13 +4516,7 @@
           "read_or_mutate": "read",
           "mcp_narrowed": "NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the MCP tool list IS this guide's answer -- _what can I do_ -- in the shape MCP defines, and for an MCP client the tool list is authoritative BY CONSTRUCTION. Exposing the guide gives an agent two differently-shaped answers to one question: a Highlander violation at the surface rather than in code, and the second home goes stale the instant a tool is added or withheld. The CLI surface keeps the row; this flag is about MCP only."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 5,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "learn",
@@ -4675,13 +4572,7 @@
           "recoverability": "idempotent",
           "recoverability_anomaly": "WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot."
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 18,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "modules",
@@ -4767,13 +4658,7 @@
             "grounded_in": "bin/intent_modules -- no write primitive in the file"
           }
         }
-      ],
-      "bats_coverage": {
-        "files_real": 1,
-        "files_vacuous": 0,
-        "burning_tests": 20,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "plugin",
@@ -4838,13 +4723,7 @@
             "grounded_in": "bin/intent_plugin -- no write primitive in the file"
           }
         }
-      ],
-      "bats_coverage": {
-        "files_real": 3,
-        "files_vacuous": 0,
-        "burning_tests": 35,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "ext",
@@ -4993,13 +4872,7 @@
             "narrowed_basis": "NARROWED 2026-08-31 (hv-directed; recommended by vc as ONE flip, on ic's principle that the flag should track the BINARY and not the roadmap). Live-verified on a CURRENT build, not inferred: this path answers `is a known command that is not implemented yet` at rc=2. Exposed-and-unwired is FALSE TODAY whatever anyone intends to build, and it is the same defect as an exemption justified by how a thing will behave once finished. RE-EXPOSE WITH THE ARM -- the wiring commit flips this back, and that is the whole cost. MEASUREMENT NOTE FOR ANYONE RE-CHECKING: clap's ARGUMENT VALIDATION RUNS BEFORE THE UNWIRED DISPATCH, so a bare drive of a path taking a required argument returns rc=1 `required arguments were not provided` and never reaches the refusal. Argument validation is part of the DECLARATION, not part of the implementation; supply the arguments or the check reads backwards. ITS PRIOR `recoverability_anomaly` IS DELETED WITH THIS NARROW AND REHOMED TO ISSUE 0177, NOT DISCARDED. That note recorded a real product gap -- `ext` ships list/show/validate/new and no `ext remove`, so nothing undoes a scaffold -- and it named withholding this row as one of its own two resolutions. This narrow took that resolution as a SIDE EFFECT rather than as a decision about `ext`, so the disagreement went away while the gap did not. The generator was right to refuse the stale note; the finding needed a home that is not a field about two other fields disagreeing."
           }
         }
-      ],
-      "bats_coverage": {
-        "files_real": 3,
-        "files_vacuous": 0,
-        "burning_tests": 41,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "version",
@@ -5038,13 +4911,7 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "read"
         }
-      ],
-      "bats_coverage": {
-        "files_real": 2,
-        "files_vacuous": 0,
-        "burning_tests": 65,
-        "verdict": "covered"
-      }
+      ]
     },
     {
       "name": "daemon",
@@ -7871,30 +7738,6 @@
     ],
     "known_limit": "The matrix's bare / --help / unknown-flag columns for commands untouched by those four commits are carried forward unre-run. Stated rather than papered over: a full re-probe is one `gen_inventory.sh` run and is the right move before WP-05 leans on this file, not before vc reviews its shape."
   },
-  "coverage_findings": [
-    {
-      "family": "config",
-      "verdict": "HOLE",
-      "finding": "NOTHING in the BATS estate invokes `intent config`. Zero files, zero tests.",
-      "why_it_matters": "This family already has no v2 behaviour to be faithful to (no output on either stream, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.",
-      "trap": "`tests/unit/config.bats` EXISTS and mostly burns, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.",
-      "action": "WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction."
-    },
-    {
-      "family": "*",
-      "verdict": "METHOD",
-      "finding": "The zero for `config` was calibrated before being believed: the same needle returns files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.",
-      "why_it_matters": "A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built."
-    },
-    {
-      "family": "*",
-      "verdict": "METHOD",
-      "finding": "Rows carried `evidence_class: measured` on a probe matrix that could not have reached the field they filled. The matrix is bare / --help / unknown flag / outside-a-project -- four invocations, no positional argument -- and `issues add`, `wp list` and `critic` each REQUIRE an argument to succeed, yet each declared a success-path `stdout`. Found by cc on `issues add` while reading v2 for Machine 4; generalised and bounded to three by ic the same day.",
-      "why_it_matters": "**An `evidence_class` names a METHOD, and nothing checked that the method reached the fields the row went on to assert.** The class was honest -- it says exactly which four invocations were run -- so the defect is not dishonesty but an unstated coverage claim: a reader takes `measured` as being about the ROW, when it is only ever about the PROBE. That is the same shape as a criterion stated more broadly than the one applied, which is what cost `populations.not_probed` a member the day before. It is also why the count matters: the first reading of this was a long list, and most of it is fine because bare IS their success path (`issues`, `todo`, `info`, `version`, the usage-block families). Only a row whose success needs an argument is exposed.",
-      "trap": "`measured` outranks `read` in every reading, so the three exposed rows looked like the BEST-evidenced rows in the table. `issues add` in particular carried a four-invocation matrix in its own `why`, which reads as diligence and is precisely the text that should have raised the question.",
-      "action": "All three now carry a direct observation of the success path alongside the matrix, and one of the three was WRONG when measured (`critic` declared only the findings report; the clean case prints a one-line `ok:` summary). No sweep beyond the three: the discriminator is `a required arg the matrix never supplied`, and it is mechanical, so it can be re-run rather than remembered."
-    }
-  ],
   "known_exposures": [
     {
       "id": "EXP-01",

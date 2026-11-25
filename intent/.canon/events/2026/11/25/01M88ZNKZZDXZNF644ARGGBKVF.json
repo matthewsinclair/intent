@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZNKZZDXZNF644ARGGBKVF",
+  "ts": "2026-11-25T09:12:59.652Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/burn.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_modules_commands.bats.default.tap",
-  "text": "1..20\nok 1 modules shows usage when no subcommand given\nok 2 modules help shows usage\nok 3 modules --help shows usage\nok 4 modules unknown subcommand shows error\nok 5 intent help shows modules command\nok 6 intent help modules shows modules help file\nok 7 modules check with matching registry reports clean\nok 8 modules check detects unregistered files\nok 9 modules check detects stale entries\nok 10 modules check resolves file::function rows by the function, not as a path\nok 11 modules check exits 0 when clean\nok 12 modules check exits 1 when issues found\nok 13 modules find returns matching entries\nok 14 modules find with no match reports no results\nok 15 modules find without argument shows error\nok 16 modules check errors when no MODULES.md\nok 17 modules find errors when no MODULES.md\nok 18 modules requires project context\nok 19 modules check --register shows registration guidance\nok 20 modules check unknown option shows error\n",
-  "bytes": 938,
-  "sha256": "0288a85d40461d52b69f3dd343f7b18e9cd97d535bf1b86e71277c3b19521bc4"
-}

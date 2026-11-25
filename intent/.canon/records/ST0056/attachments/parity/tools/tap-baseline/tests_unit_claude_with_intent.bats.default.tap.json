@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_claude_with_intent.bats.default.tap",
-  "text": "1..14\nok 1 AT-01.1 ws new scaffolds a protocol-3.0 node\nok 2 AT-01.4 hv is workstream zero (active) by default; working nodes paused\nok 3 AT-01.2 ws new refuses an existing wsid with no mutation\nok 4 AT-01.3 ws new rejects invalid ids with no partial scaffold\nok 5 AT-01.5 ws list prints one line per node from frontmatter, no writes\nok 6 AT-02.1 start assembles the verified claude argv (dry-run)\nok 7 AT-02.2 compose_ctx carries identity + pickup + plan instruction, not the board\nok 8 AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches\nok 9 AT-03.1 ws archive retires a node, history intact, gone from list\nok 10 AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report\nok 11 AT-03.3 ws hygiene leaves DOING content untouched\nok 12 AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)\nok 13 AT-04.1 invocable as intent claude start|ws through the dispatch\nok 14 AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)\n",
-  "bytes": 1002,
-  "sha256": "b439cd62befbdb82a0336c938e09b6d7cb46626e04976976dba2a78de543b2b8"
-}

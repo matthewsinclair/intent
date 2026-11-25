@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_global_commands.bats.default.tap",
-  "text": "1..11\nok 1 intent with no args shows info\nok 2 intent help works anywhere\nok 3 intent doctor works anywhere\nok 4 intent doctor surfaces interrupted-migration sentinel (ST0036)\nok 5 intent info works anywhere\nok 6 intent version works anywhere\nok 7 intent --version works anywhere\nok 8 intent bootstrap works anywhere\nok 9 intent init --help shows usage outside any project (global command)\nok 10 intent plugin works anywhere\nok 11 intent handles unknown command gracefully\n",
-  "bytes": 473,
-  "sha256": "ca9724a62952c076ad2280f53941d5c269f66e3bc7c857da9e25e6021bcf8f7d"
-}

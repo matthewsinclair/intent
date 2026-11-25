@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_swift.bats.mutant.tap",
-  "text": "1..9\nok 1 swift pack: every catalogued rule exists\nok 2 swift pack has the expected total rule count\nok 3 swift pack: each rule declares its canonical id\nok 4 swift pack: each rule declares language: swift\nnot ok 5 swift pack: each rule passes intent claude rules validate\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/rule_pack_swift.bats, line 66)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nnot ok 6 swift pack: rules list reports every swift id\n# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,\n#  in test file tests/unit/rule_pack_swift.bats, line 73)\n#   `assert_success' failed\n# Expected command to succeed, but it failed with status 1\n# Output:\nok 7 swift pack: each rule has a fenced swift code block in Bad section\nok 8 swift pack: each rule has a fenced swift code block in Good section\nok 9 swift pack: no sibling .swift files alongside RULE.md\n",
-  "bytes": 1018,
-  "sha256": "573677859d10862c0ad78fb97414f240413bff57d57d91e6354242cfae43f00a"
-}

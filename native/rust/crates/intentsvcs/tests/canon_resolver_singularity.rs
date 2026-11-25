@@ -28,10 +28,11 @@
 //! # Two regression cases, each refuting a sweep from the opposite direction
 //!
 //! **(a) The matched text is TRUE and the breakage is elsewhere.** ic's
-//! `parity/tools/gen_register.sh:256` describes what v2 did — correct prose
-//! that a `s|intent/st/|...|` sweep would rewrite into a false statement —
-//! while the half that actually breaks asserts where v3 canon lives and
-//! contains no `intent/st/` at all. **One line, refuted in both directions.**
+//! `parity/tools/gen_register.sh:256`, retired with the v2 bats-estate
+//! inventory (ST1c2db93 WP-5cc0), described what v2 did: correct prose that a
+//! `s|intent/st/|...|` sweep would have rewritten into a false statement, while
+//! the half that actually broke asserted where v3 canon lives and contained no
+//! `intent/st/` at all. **One line, refuted in both directions.**
 //!
 //! **(b) The literal is nowhere near the resolver.** `project.rs` carried the
 //! literal `intent/st/` in a doc comment and in a test, and at NEITHER of the

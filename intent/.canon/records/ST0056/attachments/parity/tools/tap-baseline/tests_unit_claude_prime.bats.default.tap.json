@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_claude_prime.bats.default.tap",
-  "text": "1..2\nok 1 claude prime --dry-run previews MEMORY.md without writing\nok 2 claude prime writes MEMORY.md under HOME/.claude/projects\n",
-  "bytes": 131,
-  "sha256": "b3e8ae786d032f69e58e94110780678fd549485e45e6679ada375e3315fbaff4"
-}

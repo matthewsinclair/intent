@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_learn_commands.bats.default.tap",
-  "text": "1..18\nok 1 learn shows usage when no args given\nok 2 learn help shows usage\nok 3 learn --help shows usage\nok 4 learn unknown option shows error\nok 5 intent help shows learn command\nok 6 intent help learn shows learn help file\nok 7 learn adds default footgun learning\nok 8 learn adds learning with worked category\nok 9 learn adds learning with failed category\nok 10 learn rejects invalid category\nok 11 learn --category without argument shows error\nok 12 learn without description shows error\nok 13 learn creates learnings file if missing\nok 14 learn appends multiple learnings to same category\nok 15 learn adds date prefix to entries\nok 16 learn --list shows learnings\nok 17 learn --list with no file shows message\nok 18 learn requires project context\n",
-  "bytes": 752,
-  "sha256": "980b26f221d8f61be1c26db6edd750b21f2450d2d3027c377d9cd8b0377714b0"
-}

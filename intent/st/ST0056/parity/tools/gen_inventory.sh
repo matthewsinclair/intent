@@ -37,11 +37,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SP="${SP:-}"
 # `WT` is REQUIRED, and it used to default to `$SP/wt` -- a convenience that
 # pointed at a scratch directory for a variable this script reads SOURCE from
-# (`script_for`, the help files) and stamps its revision from. It is the same
-# genuinely-exempt input `gen_register.sh` and `gen_pertest.sh` name: a detached
-# worktree at the measured revision, re-derivable by `git worktree add` and not
-# a file that could live here. Defaulting it to the current checkout would map
-# today's source onto a measurement taken at `69d42a7`.
+# (`script_for`, the help files) and stamps its revision from. It is a
+# genuinely-exempt input: a detached worktree at the measured revision,
+# re-derivable by `git worktree add` and not a file that could live here.
+# Defaulting it to the current checkout would map today's source onto a
+# measurement taken at `69d42a7`.
 WT="${WT:?set WT -- a detached worktree at the revision the inventory names, not just any checkout}"
 OUTDIR="${OUTDIR:-$HERE/..}"
 # `git rev-parse --short` picks its own length as the repo grows: the 2026-08-14
@@ -153,8 +153,7 @@ extract() {
 # substitution: five "command not found" lines above the real error, and the
 # quoted text silently deleted from the message. An error message that mangles
 # itself is worse than a terse one -- it is loudest exactly when someone is
-# already debugging. Backticks inside SINGLE quotes are literal and fine, which
-# is why the two hits in gen_pertest.sh and gen_register.sh are not this bug.
+# already debugging. Backticks inside SINGLE quotes are literal and fine.
 
 mkdir -p "$OUTDIR"
 

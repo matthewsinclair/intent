@@ -1,0 +1,14 @@
+{
+  "id": "01M893V1MQ0B5Z81KWTR4Y1AHM",
+  "ts": "2026-11-25T10:25:51.772Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.put",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/gen_inventory.sh"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

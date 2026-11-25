@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_rule_reference_skills.bats.default.tap",
-  "text": "1..5\nok 1 in-elixir-essentials references every Elixir code rule by ID\nok 2 in-elixir-testing references every Elixir test rule by ID\nok 3 in-ash-ecto-essentials references every Ash rule by ID\nok 4 in-phoenix-liveview references every LiveView and Phoenix rule by ID\nok 5 in-standards references every agnostic rule by ID\n",
-  "bytes": 323,
-  "sha256": "adcb3af23e9e62bd782d2f50e7696ea5572cc1a4b7af4fb8d7af748109c55730"
-}

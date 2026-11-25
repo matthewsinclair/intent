@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_set_e_increment_guard.bats.default.tap",
-  "text": "1..1\nok 1 no naked ((x++)) / ((x--)) increments under set -e (bash 5.x errexit footgun)\n",
-  "bytes": 88,
-  "sha256": "00b94ccc95bbb97917880d775d24775cf93b86e756981d6e093bdfab75d20b65"
-}

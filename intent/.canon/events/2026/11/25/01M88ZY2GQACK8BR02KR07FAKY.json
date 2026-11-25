@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZY2GQACK8BR02KR07FAKY",
+  "ts": "2026-11-25T09:17:36.668Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/tap-baseline/tests_unit_title_pipe_sanitize_guard.bats.mutant.tap"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

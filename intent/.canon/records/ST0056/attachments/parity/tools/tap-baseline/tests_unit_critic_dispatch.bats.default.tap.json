@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_critic_dispatch.bats.default.tap",
-  "text": "1..14\nok 1 in-review skill file exists\nok 2 in-review skill reads languages from intent/.config/config.json\nok 3 in-review skill names every critic\nok 4 in-review skill shows a Task() invocation for each critic\nok 5 in-review skill documents the polyglot dispatch path\nok 6 in-review skill does not document filesystem-probe-based detection\nok 7 in-review skill dispatches the prose packs (author + content) to critic-prose\nok 8 in-review skill documents the D7 prose/code-critic exclusion\nok 9 hook dispatches one critic invocation per declared language\nok 10 hook with empty languages runs no critic and exits 0\nok 11 hook fails open outside an Intent project\nok 12 hook fails open when the intent CLI is not on PATH\nok 13 hook blocks the commit when a critic reports findings\nok 14 hook fails open on critic invocation error (exit 2)\n",
-  "bytes": 837,
-  "sha256": "9872218f4f615d44292599abe528b819f0ec68ffed78b4477c4064ded55ea59a"
-}

@@ -15,18 +15,16 @@
 #   - `lib_surface.sh` / the `flags[].spellings[]` jq path reads the table's
 #     declared grammar. Its consumers are `gen_dispatch_table.sh` and
 #     `gen_cut_surface.sh` -- both GENERATORS.
-#   - `coverage_map.sh` joins the table to the estate at FAMILY granularity and
-#     answers "is a command family exercised by nothing?".
 #   - `surface_check.sh` compares the BINARY to the table.
 #
 # So the estate's flags are extracted, the table's flags are extracted, both are
 # rendered for a reader, and NOTHING FORMS A VERDICT ABOUT THE PAIR. A flag the
 # suite proves green and the table has never heard of is invisible to every one
-# of the instruments above: coverage_map sees the family covered, surface_check
-# sees the binary and the table agree about what the table contains, and the two
-# generators render exactly what they were handed. **A seam between two sound
-# instruments is invisible to both**, which is the whole reason this file exists
-# rather than a wider glob on one of them.
+# of the instruments above: surface_check sees the binary and the table agree
+# about what the table contains, and the two generators render exactly what
+# they were handed. **A seam between two sound instruments is invisible to
+# both**, which is the whole reason this file exists rather than a wider glob on
+# one of them.
 #
 # ==========================================================================
 # THE MEMBERSHIP RULE IS vc's, AND ITS THIRD CLAUSE IS THE ONE THAT COSTS

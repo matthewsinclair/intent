@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_rule_pack_elixir_runnable.bats.mutant.tap",
-  "text": "1..5\nok 1 every code-rule good.exs exits 0 under standalone elixir\nok 2 every test-rule good_test.exs exits 0 under standalone elixir\nok 3 every code-rule bad.exs exits 0 (antipattern still runs cleanly)\nok 4 every test-rule bad_test.exs exits 0 (antipattern still runs cleanly)\nok 5 every runnable example starts with '# EXPECTED: passes'\n",
-  "bytes": 340,
-  "sha256": "028c9216448e3aad5e0c4e45d628076d7a62f8470a15a73b1f26e3b120fd942f"
-}

@@ -52,12 +52,13 @@ EXEMPLAR_RULE="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/st
 # RUN AGAINST AN IMPLEMENTATION. IT HAD. IT PASSED.** The false sentence is
 # deleted rather than quoted -- a correction that reproduces its error keeps the
 # error alive, and a reader skimming finds the memorable wrong line either way.
-# `parity/tools/tap-baseline/tests_unit_rule_validator.bats.default.tap` records
-# all nine arms `ok`, including this one by its old name and including the ext
-# arm; the `.mutant.tap` beside it carries real bats failure output with line
-# numbers, so both are captures of actual runs rather than written
-# expectations; and `burn-baseline.tsv` grades the file `9 0 9 FULL` -- nine
-# tests, zero default failures, every one reaching the CLI.
+# `parity/tools/tap-baseline/tests_unit_rule_validator.bats.default.tap`
+# recorded all nine arms `ok`, including this one by its old name and including
+# the ext arm; the `.mutant.tap` beside it carried real bats failure output with
+# line numbers, so both were captures of actual runs rather than written
+# expectations; and `burn-baseline.tsv` graded the file `9 0 9 FULL`: nine
+# tests, zero default failures, every one reaching the CLI. All three retired
+# with the v2 bats-estate inventory (ST1c2db93 WP-5cc0).
 #
 # **SO THE CHOICE IS BETWEEN TWO IMPLEMENTED CONTRACTS, NOT BETWEEN A CONTRACT
 # AND A DEAD LETTER, AND THE RULING SURVIVES ON ITS OTHER LEG:** this is a

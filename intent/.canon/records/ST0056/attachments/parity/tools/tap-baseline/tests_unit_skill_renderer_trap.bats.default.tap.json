@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_skill_renderer_trap.bats.default.tap",
-  "text": "1..3\nok 1 skills directory exists\nok 2 no canon SKILL.md inlines positional/special-param tokens\nok 3 in-session ships its release-gate.sh helper\n",
-  "bytes": 146,
-  "sha256": "581e393f3d201e919268c2e3ab913945a26a81bbf868427524fd2cca210c75a4"
-}

@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZY62HRTN0KWC2XJ135JG5",
+  "ts": "2026-11-25T09:17:40.310Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/tap-baseline/tests_unit_whiteboard_clock_guard.bats.mutant.tap"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

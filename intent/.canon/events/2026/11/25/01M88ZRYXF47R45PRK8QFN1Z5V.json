@@ -1,0 +1,14 @@
+{
+  "id": "01M88ZRYXF47R45PRK8QFN1Z5V",
+  "ts": "2026-11-25T09:14:49.142Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "attachment.detach",
+  "subject": {
+    "type": "attachment",
+    "id": "ST0056/parity/tools/tap-baseline/tests_unit_ac_offscope_states.bats.default.tap"
+  },
+  "payload": {
+    "via": "address"
+  }
+}

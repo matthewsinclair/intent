@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_st_enumeration.bats.default.tap",
-  "text": "1..10\nok 1 a staging area under intent/st does not become duplicate live threads\nok 2 st sync --write does not persist a duplicate id into the committed index\nok 3 threads in every canonical bucket still resolve\nok 4 organize names a collision, finishes the sweep, and exits non-zero\nok 5 intent info counts threads, not directories that happen to sit in a bucket\nok 6 no command re-rolls the thread enumeration outside the helper\nok 7 an mv failure that is not a collision is diagnosed as what it is\nok 8 organize still exits zero and moves cleanly when there is no collision\nok 9 organize does not promote a staged copy into the live namespace\nok 10 doctor reports a duplicate id as a defect rather than an extra table row\n",
-  "bytes": 725,
-  "sha256": "c86c023add414f8401872b8a4f1a2f8050384873d5e49c0475df67effdfb2836"
-}

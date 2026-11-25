@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_basic.bats.mutant.tap",
-  "text": "1..4\nok 1 test helper is loaded\nok 2 intent executable exists\nok 3 can create test project\nnot ok 4 run_intent function works\n# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,\n#  in test file tests/unit/basic.bats, line 23)\n#   `assert_output_contains \"Intent version\"' failed\n# Expected output to contain: Intent version\n# Actual output:\n",
-  "bytes": 385,
-  "sha256": "45440fc9fd69b68c474908b6263107cec8ac1140fa1560a3a965339147ec4f39"
-}

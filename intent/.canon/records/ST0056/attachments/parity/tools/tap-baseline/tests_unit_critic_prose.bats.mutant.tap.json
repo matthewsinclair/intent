@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_critic_prose.bats.mutant.tap",
-  "text": "1..15\nok 1 critic-prose: directory has agent.md and metadata.json\nok 2 critic-prose: agent.md frontmatter declares name critic-prose\nok 3 critic-prose: registered in global-agents.json\nok 4 critic-prose: metadata.json is valid JSON naming critic-prose\nok 5 critic-prose: the old critic-author is fully retired (no dir, no manifest entry)\nok 6 critic-prose: agent.md grants Read, Grep, Glob, Bash\nok 7 critic-prose: agent.md grants neither Write nor Edit\nok 8 critic-prose: metadata.json tools are read-only\nok 9 critic-prose: agent.md defines both mode verbs\nok 10 critic-prose: agent.md names both tiers (style mechanical, craft judgment)\nok 11 critic-prose: agent.md loads the shared prose base\nok 12 critic-prose: agent.md serves both disciplines (author + content)\nok 13 critic-prose: agent.md resolves the discipline from declared languages\nok 14 critic-prose: agent.md wires the mechanical trope pass at IN-PR-STYLE-004\nok 15 critic-prose: agent.md emits the CRAFT-003 /in-detrope handoff, not an invocation\n",
-  "bytes": 1014,
-  "sha256": "e6fc1b7eee684e1358518211b2dea2fb47645a4b7d161dbb6b245abff5608e11"
-}

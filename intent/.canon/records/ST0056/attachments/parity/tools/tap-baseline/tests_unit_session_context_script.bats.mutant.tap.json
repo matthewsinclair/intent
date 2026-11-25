@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_session_context_script.bats.mutant.tap",
-  "text": "1..5\nok 1 session-context.sh exists and is executable\nok 2 emits project name and git context for a git project with wip.md\nok 3 emits project name and git context without wip.md\nok 4 degrades gracefully with no git\nok 5 does not persist session_id to a shared state file\n",
-  "bytes": 272,
-  "sha256": "719ce0ea7a3d8208bb4f9204b6a55c0c36f1fd6d45eed8c26f77903828929c50"
-}

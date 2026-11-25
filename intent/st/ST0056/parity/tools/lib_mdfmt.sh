@@ -1,7 +1,7 @@
 #!/bin/bash
 # lib_mdfmt.sh -- make a generated markdown view survive the repo formatter.
 #
-# SOURCED, NOT EXECUTED. Ships 644, like lib_corpus.sh.
+# SOURCED, NOT EXECUTED. Ships 644, like every other lib_*.sh here.
 #
 # THE PROBLEM, AND IT IS NOT COSMETIC. A generated view is committed, and the
 # repo's markdown formatter runs on commit. If the generator emits narrow tables
@@ -45,7 +45,8 @@ MD_ALIGNER='
     # and since the aligner then reproduces that width faithfully, the table is
     # stably wrong and looks deliberate.
     #
-    # Found in pertest.md, on the first artefact generated after this library
+    # Found in pertest.md (since retired with the v2 bats-estate inventory,
+    # ST1c2db93 WP-5cc0), on the first artefact generated after this library
     # was extracted: the repo formatter padded `class` to 41 (the widest actual
     # cell) and this padded it to 44 (a separator typed too long in the
     # preamble heredoc). Every commit would have diffed for ever, which is the

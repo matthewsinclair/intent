@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_intent_critic.bats.default.tap",
-  "text": "1..21\nok 1 intent_critic exists and is executable\nok 2 --help prints usage\nok 3 no args exits 2 with usage\nok 4 invalid language exits 2\nok 5 invalid --severity-min exits 2\nok 6 invalid --format exits 2\nok 7 no --files and no --staged exits 2\nok 8 --languages lists the code-critic languages, one per line, exit 0\nok 9 prose discipline 'author' is a clean no-op (exit 0), not an arg error\nok 10 prose discipline 'content' is a clean no-op (exit 0), not an arg error\nok 11 elixir bad fixture produces critical findings and exits 1\nok 12 elixir good fixture at critical threshold is clean, exits 0\nok 13 severity-min critical excludes warnings\nok 14 --format json produces parseable JSON\nok 15 --format json on clean fixture emits empty array\nok 16 stderr emits 'note: skipping <rule_id>' for rules whose proxy is not headless-runnable\nok 17 --staged outside git repo exits 2\nok 18 --staged with no staged files of the language exits 0\nok 19 disabled rule in .intent_critic.yml is suppressed\nok 20 non-disabled rule still fires when config disables a different rule\nok 21 intent critic dispatches to bin/intent_critic\n",
-  "bytes": 1116,
-  "sha256": "bd8fe597c56b6ed76c67a7740d5173422f99995c7eebf5ed73a4e3d9baeee7d3"
-}

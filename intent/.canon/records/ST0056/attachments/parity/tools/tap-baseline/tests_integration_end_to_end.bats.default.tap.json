@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_integration_end_to_end.bats.default.tap",
-  "text": "1..3\nok 1 complete workflow: create project, add steel thread, list it\nok 2 error handling: project commands fail gracefully outside project\nok 3 global commands work outside project\n",
-  "bytes": 183,
-  "sha256": "4266ae9264dff238eafd2968eb4a9e3b74f71f660f1c99128709b57bad22cd9e"
-}

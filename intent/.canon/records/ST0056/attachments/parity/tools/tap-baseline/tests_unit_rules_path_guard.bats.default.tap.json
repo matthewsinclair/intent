@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_rules_path_guard.bats.default.tap",
-  "text": "1..2\nok 1 no propagated or generated artefact references the local rules path\nok 2 canon LLM templates carry only placeholders the installer substitutes\n",
-  "bytes": 153,
-  "sha256": "ee94138dc6dfda66cd215b06357af0bf9aa379e4c479f073ec4d4fcd4135c042"
-}

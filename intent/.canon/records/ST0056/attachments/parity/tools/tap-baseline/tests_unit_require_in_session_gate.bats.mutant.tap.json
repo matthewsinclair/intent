@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_require_in_session_gate.bats.mutant.tap",
-  "text": "1..8\nok 1 require-in-session.sh exists and is executable\nok 2 INTENT_SKIP_IN_SESSION_GATE=1 short-circuits with exit 0 and empty stderr\nok 3 INTENT_SKIP_IN_SESSION_GATE=1 short-circuits with empty stdin\nok 4 empty INTENT_SKIP_IN_SESSION_GATE still gates\nok 5 unset INTENT_SKIP_IN_SESSION_GATE still gates\nok 6 gate resolves session_id from CLAUDE_CODE_SESSION_ID, not the payload\nok 7 slash-command prompt passes through without bypass\nok 8 sentinel pass-through still works without bypass\n",
-  "bytes": 490,
-  "sha256": "e7c5dbb7208ba23b397ddbdab8d91f04adb13d07f88351df6c1b9309e5e120c5"
-}

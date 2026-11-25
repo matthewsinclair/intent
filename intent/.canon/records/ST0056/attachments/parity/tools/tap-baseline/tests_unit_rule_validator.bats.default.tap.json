@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_rule_validator.bats.default.tap",
-  "text": "1..9\nok 1 rules validate passes the valid fixture\nok 2 rules validate passes the ext valid-ext fixture rule\nok 3 rules validate fails missing-frontmatter fixture\nok 4 rules validate fails bad-id fixture\nok 5 rules validate fails unresolved-reference fixture\nok 6 rules validate warns on unknown-field fixture (warning, not error)\nok 7 rules validate detects duplicate ids across files\nok 8 rules validate against strong-assertions exemplar passes\nok 9 rules validate fails when given a non-existent id and non-existent path\n",
-  "bytes": 524,
-  "sha256": "4e64cfc5e84056a261f98cfbe0a0c2cf2506080dfedeff56168a3e8eb17cbe10"
-}

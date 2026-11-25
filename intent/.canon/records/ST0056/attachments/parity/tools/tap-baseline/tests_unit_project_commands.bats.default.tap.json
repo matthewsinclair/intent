@@ -1,6 +1,0 @@
-{
-  "path": "parity/tools/tap-baseline/tests_unit_project_commands.bats.default.tap",
-  "text": "1..3\nok 1 intent st requires project - shows error outside project\nok 2 intent st list works inside project\nok 3 intent info shows project details when inside project\n",
-  "bytes": 167,
-  "sha256": "a44ab5440bd78ad28ee216d7456642b5e2f35435c3af952bfef149348b2027c2"
-}

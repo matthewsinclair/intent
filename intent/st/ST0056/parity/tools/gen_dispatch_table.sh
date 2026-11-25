@@ -27,10 +27,6 @@
 # D04 (generated views committed) applied to the first v3 artefact that had a
 # choice -- dogfooding the truth model rather than describing it.
 #
-# It is also the same shape as this directory's other generator: register.md is
-# rendered from burn-baseline.tsv by gen_register.sh and says "do not hand-edit
-# rows". One pattern, not two.
-#
 # NO SILENT EMPTY SURFACE. Every failure path here refuses loudly. A generator
 # that emits a well-formed empty document on missing input produces something
 # that reads exactly like a measurement of nothing, and the whole parity
@@ -865,13 +861,13 @@ $(printf '%s' "$KEY_UNCLASSED" | sed 's/^/  /')"
 #
 # **THE SECOND DIRECTION IS VALID HERE ONLY BECAUSE THIS VOCABULARY HAS ONE
 # HOME. Do not lift it to a vocabulary that does not.** `entry_dispositions` is
-# shared with the keep/retire/deviate register, where `deviate` has 47 rows in
-# `pertest.md` and 3 in `register.md` while having none here -- so the same
-# refusal applied there would fire on a correct value, correctly declared, with
-# 47 members one artefact away. **The premise is single-homedness, not
-# declaration.** Caught by vc 2026-08-15 on ic proposing to drop `deviate` after
-# reading zero rows: same rule, same author, same evening, and the second
-# application would have been wrong.
+# not checked this way: it declares `deviate` with no row, and the canon's
+# `shared_vocabulary` note says why that is correct. That note also records
+# that the first reason given, 47 `deviate` rows in `pertest.md` (retired with
+# the v2 bats-estate inventory, ST1c2db93 WP-5cc0), was wrong. Caught by vc
+# 2026-08-15 on ic proposing to drop `deviate` after reading zero rows: same
+# rule, same author, same evening, and the second application would have been
+# wrong.
 # EVERY VOCABULARY CHECK BELOW REFUSES ON AN ABSENT VOCABULARY BEFORE IT
 # REFUSES ON THE DATA, and all three needed it: measured 2026-08-15, deleting
 # `flag_dispositions` reported 95 flags as undeclared, deleting `target_states`
@@ -905,7 +901,7 @@ $(printf '%s' "$STATE_UNUSED" | sed 's/^/  /')"
 
 # Entry `disposition`, same treatment as `target.state` and DELIBERATELY ONE
 # DIRECTION ONLY. An undeclared or absent value is refused; a declared value no
-# row uses is NOT checked, because this vocabulary is shared with the register
+# row uses is NOT checked, because `deviate` is declared with no row by design
 # (see `shared_vocabulary` in the canon, and the note above). `pending` is
 # written explicitly and never expressed by omitting the field -- absence here
 # was a real breach, on the 8 `new_surface[]` rows, of the rationale the canon
@@ -1303,12 +1299,6 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
   emit "$FHELP"
   emit ""
   emit "- **Owning work package:** $WP"
-  if printf '%s' "$F" | jq -e '.bats_coverage' >/dev/null 2>&1; then
-    # THE VERDICT ONLY, NEVER THE TALLY (hv's count ban, 2026-09-11): the
-    # figures measured the v2 bats suite, which the cut deleted, and a count
-    # in a doc tells its reader nothing. The register keeps the numbers.
-    emit "- **v2 BATS coverage (a record -- the cut deleted that suite):** **$(printf '%s' "$F" | jq -r '.bats_coverage.verdict')**"
-  fi
   emit ""
   printf '%s' "$F" | jq -r '.family_notes[]? | "- " + .' >> "$OUT_TMP"
   # A false predicate is not an error. Under `set -e` a bare `cond && action`
@@ -1362,28 +1352,6 @@ if jq -e '.known_exposures' "$IN" >/dev/null 2>&1; then
     "- **Detail:** \(.detail)",
     "- **Resolution:** \(.resolution)",
     (if .consequence_for_this_generator then "- **Consequence for the generator:** \(.consequence_for_this_generator)" else empty end),
-    ""' "$IN" >> "$OUT_TMP"
-fi
-
-# --- Coverage findings ------------------------------------------------------
-if jq -e '.coverage_findings' "$IN" >/dev/null 2>&1; then
-  emit "## Parity holes -- what the v2 BATS suite did NOT cover"
-  emit ""
-  emit "**A record of the v2 bats suite, which the cut deleted.** A command family with no burning coverage was a parity hole: v3 could change it freely and that suite stayed green. Produced by \`parity/tools/coverage_map.sh\`, which joined these families against \`burn-baseline.tsv\` -- the join mattered, because a naive grep reported \`treeindex\` as well covered when every one of its tests exec'd \`bin/intent_treeindex\` directly and the dispatcher never saw them."
-  emit ""
-  emit "| family | verdict |"
-  emit "| ------ | ------- |"
-  jq -r "$JQ_LIB"'
-    .families[] | select(.bats_coverage) |
-    "| `\(.name)` | \(.bats_coverage.verdict | cell) |"
-  ' "$IN" >> "$OUT_TMP"
-  emit ""
-  jq -r '.coverage_findings[] |
-    "### `\(.family)` -- \(.verdict)\n",
-    "- **Finding:** \(.finding)",
-    "- **Why it matters:** \(.why_it_matters)",
-    (if .trap then "- **The trap:** \(.trap)" else empty end),
-    (if .action then "- **Action:** \(.action)" else empty end),
     ""' "$IN" >> "$OUT_TMP"
 fi
 
@@ -1506,8 +1474,8 @@ jq -r "$JQ_LIB"'
 # while quietly meaning something different by "aligned".
 # The aligner moved to lib_mdfmt.sh when gen_register.sh was found to have
 # exactly the same formatter skew -- 232 differing lines between its committed
-# view and a fresh regeneration of identical data. Two generators, one concern,
-# so the awk lives once and both source it.
+# view and a fresh regeneration of identical data. One concern, so the awk
+# lives once and every markdown generator here sources it.
 . "$HERE/lib_mdfmt.sh" || die "cannot source $HERE/lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter"
 md_align "$OUT_TMP" "$OUT_TMP.aligned" || die "table alignment failed"
 mv "$OUT_TMP.aligned" "$OUT_TMP" || die "table alignment failed to land"
