@@ -14,9 +14,14 @@
 //! does not ship but teaches the same forms. Each pin reads its phrase, never
 //! a line number, so an edit elsewhere in its file moves nothing here.
 
+use intentsvcs::event::EVENTS_DIR;
 use intentsvcs::id::{
-  CLAIM_ADDRESS_FORMS, EXAMPLE_HEX, EXAMPLE_WP_HEX, ISSUE_DIGITS, ISSUE_MARKER, MIN_PREFIX_HEX,
-  SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, WP_DIGITS, WP_SHOWN_HEX, prefix_floor,
+  CLAIM_ADDRESS_FORMS, EXAMPLE_HEX, EXAMPLE_WP_HEX, ISSUE_DIGITS, ISSUE_MARKER, IssueId, LabelKind,
+  MIN_PREFIX_HEX, SHOWN_HEX, THREAD_DIGITS, THREAD_PREFIX, WP_DIGITS, WP_SHOWN_HEX, prefix_floor,
+};
+use intentsvcs::project::{
+  CANON_DIR, canon_ac_rel, canon_at_rel, canon_attachment_rel, canon_blob_rel, canon_issue_rel,
+  canon_project_rel, canon_thread_rel, canon_wp_rel,
 };
 use testkit::repo_root;
 
@@ -60,7 +65,7 @@ fn read(rel: &str) -> String {
 fn assert_states(rel: &str, text: &str, phrase: &str) {
   assert!(
     text.contains(phrase),
-    "{rel} no longer states `{phrase}`, which `intentsvcs::id`'s constants spell: \
+    "{rel} no longer states `{phrase}`, which the constants in `intentsvcs` spell: \
      the prose and the constants have parted"
   );
 }
@@ -169,16 +174,57 @@ fn the_wip_template_states_the_id_constants() {
   assert_states(WIP_TEMPLATE, &read(WIP_TEMPLATE), &phrase);
 }
 
-/// The canon-ignore hook probes a future thread file and a future issue file,
-/// each named with the worked example's hex, which names no record.
+/// The event file the canon-ignore hook names under `events/`: a day and the
+/// ULID specification's example id. Any dated name serves, because the probe is
+/// about the directory the layout gives (`intentsvcs::event::EVENTS_DIR`).
+const EVENT_FILE: &str = "2026/01/01/01ARZ3NDEKTSV4RRFFQ69G5FAV.json";
+/// The attachment the canon-ignore hook names as opaque bytes under its future
+/// thread's directory in `st/`, for the same reason as [`EVENT_FILE`].
+const OPAQUE_ATTACHMENT: &str = "diagram.png";
+/// The attachment whose record the hook names under `records/`, for the same
+/// reason as [`OPAQUE_ATTACHMENT`].
+const RECORDED_ATTACHMENT: &str = "design.md";
+
+/// A canon path as the canon-ignore hook spells a probe: its own name for the
+/// canon directory, then the path the project's layout gives after
+/// `project::CANON_DIR`, in the double quotes the probe's line holds. The
+/// quotes keep a comment that mentions the path from standing in for the probe.
+fn probe_line(rel: &str) -> String {
+  let after = rel
+    .strip_prefix(CANON_DIR)
+    .unwrap_or_else(|| panic!("{rel} is not under {CANON_DIR}"));
+  format!("\"${{CANON_DIR}}{after}\"")
+}
+
+/// The canon-ignore hook probes, by name, a future canon file in each place the
+/// project's layout keeps a record: an event's file under `events/`, the
+/// thread's file and an opaque attachment's bytes under `st/`, a package, a
+/// criterion, a test, and an attachment under `records/`, and the issue's file.
+/// Each is named with the worked example's hex and labels, which name no
+/// record. It probes the project's state file by its name as well. Every path
+/// is the one `intentsvcs::project` and `intentsvcs::event` give.
 #[test]
 fn the_canon_ignore_guard_probes_the_worked_example() {
   let text = read(CANON_IGNORE_GUARD);
-  for phrase in [
-    format!("/st/{THREAD_PREFIX}{EXAMPLE_HEX}.json"),
-    format!("/issues/{ISSUE_MARKER}{EXAMPLE_HEX}.json"),
+  let thread = format!("{THREAD_PREFIX}{EXAMPLE_HEX}");
+  // The worked package's first label of each kind. This restates the second
+  // form `LabelKind::examples` gives, because no function gives one label:
+  // change the two together.
+  let label = |kind: LabelKind| format!("{}-{EXAMPLE_WP_HEX}.1", kind.head());
+  let issue = IssueId::parse(&format!("{ISSUE_MARKER}{EXAMPLE_HEX}"))
+    .expect("the worked example's hex makes an issue's stored id");
+  for rel in [
+    format!("{CANON_DIR}/{EVENTS_DIR}/{EVENT_FILE}"),
+    canon_thread_rel(&thread),
+    canon_blob_rel(&thread, OPAQUE_ATTACHMENT),
+    canon_wp_rel(&thread, EXAMPLE_WP_HEX),
+    canon_ac_rel(&thread, &label(LabelKind::Criterion)),
+    canon_at_rel(&thread, &label(LabelKind::Test)),
+    canon_attachment_rel(&thread, RECORDED_ATTACHMENT),
+    canon_issue_rel(issue),
+    canon_project_rel(),
   ] {
-    assert_states(CANON_IGNORE_GUARD, &text, &phrase);
+    assert_states(CANON_IGNORE_GUARD, &text, &probe_line(&rel));
   }
 }
 

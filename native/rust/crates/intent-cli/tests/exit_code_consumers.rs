@@ -179,7 +179,9 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
        subject is what git DOES with an ignore rule and `intent` has no opinion on that. The only \
        appearance is its own `intent gate:` message prefix on the inherited-breakage report, matching \
        the pre-commit gate it runs under. Its OWN exit codes are 0 clean/not-applicable/inherited-only \
-       and 1 this commit adds a rule reaching `intent/.canon/`. **WIRED 2026-08-20** -- it is dispatched \
+       and 1 this commit adds a rule reaching `intent/.canon/`, or a step the check needs failed (a git \
+       read, a command that reads git's answer, or the scratch tree of the staged ignore rules), so a \
+       step that could not run blocks the commit and never reads as clean. **WIRED 2026-08-20** -- it is dispatched \
        from the delegated roster in `pre-commit-guards.sh`, and its 1 blocks the commit. The clause here \
        used to read `nothing consults this guard, unwired pending the roster generalisation`, which was \
        true for the day it was written and silently false afterwards.",

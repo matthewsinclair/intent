@@ -39,11 +39,23 @@
 # not exist, which `check-ignore` is happy to answer for.
 #
 # Exit codes: 0 clean, not applicable, or inherited-only; 1 this commit adds a
-# rule that reaches canon, or the staged ignore rules could not be built to check.
+# rule that reaches canon, or a step the check needs failed: a git read, a
+# command that reads git's answer (grep, head, or awk), or the scratch tree of
+# the staged ignore rules.
 
 set -u
 
 CANON_DIR="intent/.canon"
+
+# EVERY STEP BELOW IS CHECKED. A step that failed and was taken as an empty
+# answer would read as "nothing to check" and exit 0, which is the silent pass
+# this guard exists to prevent. So a failed step refuses the commit and says
+# which step failed, below the failing command's own message.
+refuse() {
+  echo "BLOCKED: canon-ignore-guard could not $1." >&2
+  echo "  Nothing was checked, so nothing is allowed. Re-run the commit; if it repeats, report it." >&2
+  exit 1
+}
 
 # Not applicable: no canon in this project. Opt-in by presence, exactly like the
 # whiteboard guards -- nothing changes for a tree that has not relocated yet.
@@ -56,10 +68,14 @@ CANON_DIR="intent/.canon"
 # delimited string exactly the way the whiteboard guards do. A hook that
 # silently does nothing on the primary platform is the worst shape a guard
 # can take: it reports success having checked nothing.
-ignore_files="$(
-  git diff --cached --name-only --diff-filter=ACM 2>/dev/null |
-    grep -E '(^|/)\.gitignore$' || true
-)"
+# R as well as A, C, and M: a renamed ignore file takes its rules to a new
+# place, and every line at its new path reads as added below.
+staged="$(git diff --cached --name-only --diff-filter=ACMR)" ||
+  refuse "read which files this commit stages"
+# grep exits 1 when no staged path is an ignore file, which is an answer, and 2
+# when it could not run, which is not.
+ignore_files="$(grep -E '(^|/)\.gitignore$' <<<"$staged")"
+[ $? -le 1 ] || refuse "find the ignore files among the staged paths"
 
 # Nothing touched an ignore file, so no rule can have been added. This is the
 # overwhelmingly common path and it costs one `git diff`.
@@ -67,23 +83,51 @@ ignore_files="$(
 
 # The probe set: what canon looks like now, plus what it will look like next.
 # Real paths first so a failure names a file the operator can go and look at.
+# git's list is read whole before its head is taken, so a git that failed is
+# refused, not read as a canon with no files.
+tracked="$(git ls-files -- "$CANON_DIR")" || refuse "list the canon's tracked paths"
+sampled="$(head -200 <<<"$tracked")" || refuse "take the first of the canon's tracked paths"
 PROBES=()
 while IFS= read -r p; do
-  PROBES+=("$p")
-done < <(git ls-files "$CANON_DIR" 2>/dev/null | head -200)
-# Future artefacts. These do not exist and do not need to: the damage a rule
-# does to a file that has not been created yet is invisible until someone
-# notices it never travelled. Intent mints every new id git-style, so the
-# future thread and issue are named with the worked example's hex, which names
-# no record (`intentsvcs::id::EXAMPLE_HEX`). An ordinal file is a real path or
-# nothing: none is minted again. The refusal below prints this list, so it
-# names the probes the guard holds and no copy of them.
-FUTURE_PROBES=(
+  [ -n "$p" ] && PROBES+=("$p")
+done <<<"$sampled"
+# Named probes. A probe here need not exist: the damage a rule does to a file
+# that has not been created yet is invisible until someone notices it never
+# travelled. Intent mints every new id git-style, so the future thread, its
+# work package, the package's criterion and test, and the issue are named with
+# the worked example's hex and labels, which name no record
+# (`intentsvcs::id::EXAMPLE_HEX`, `EXAMPLE_WP_HEX`, and `LabelKind::examples`).
+# There is one probe for each place the project's layout keeps a record, each
+# at the path `intentsvcs::project` gives: the thread's file and an opaque
+# attachment's bytes under `st/`, a record of each kind under `records/` (a
+# package, a criterion, a test, and an attachment), the issue's file, and an
+# event's file under `events/` (`intentsvcs::event::EVENTS_DIR`), dated, with
+# the ULID specification's example id. An ordinal file is a real path or
+# nothing: none is minted again. The project's state file is probed by its name
+# as well (`canon_project_rel`). A project in 3.4.0's format may have none. The
+# real paths above are the first paths git lists, and the event files sort
+# first, so they can miss every other place; a canon with no event yet has no
+# real event path either. A named probe that is also a real path above is not
+# added again, so a rule that reaches it counts it once. The refusal below
+# prints this list, so it names the probes the guard holds and no copy of them.
+NAMED_PROBES=(
+  "${CANON_DIR}/events/2026/01/01/01ARZ3NDEKTSV4RRFFQ69G5FAV.json"
   "${CANON_DIR}/st/ST3f9a2c1d4e5f6a7b.json"
+  "${CANON_DIR}/st/ST3f9a2c1d4e5f6a7b/diagram.png"
+  "${CANON_DIR}/records/ST3f9a2c1d4e5f6a7b/wp/c2e41a0b.json"
+  "${CANON_DIR}/records/ST3f9a2c1d4e5f6a7b/ac/AC-c2e41a0b.1.json"
+  "${CANON_DIR}/records/ST3f9a2c1d4e5f6a7b/at/AT-c2e41a0b.1.json"
+  "${CANON_DIR}/records/ST3f9a2c1d4e5f6a7b/attachments/design.md.json"
   "${CANON_DIR}/issues/I3f9a2c1d4e5f6a7b.json"
+  "${CANON_DIR}/project.json"
   "${CANON_DIR}/.probe-a-path-that-will-exist-later"
 )
-PROBES+=("${FUTURE_PROBES[@]}")
+for p in "${NAMED_PROBES[@]}"; do
+  case $'\n'"$sampled"$'\n' in
+    *$'\n'"$p"$'\n'*) ;;
+    *) PROBES+=("$p") ;;
+  esac
+done
 
 # Which (file, line) pairs does THIS commit add? Read once, as `path:linenum`.
 # `--unified=0` so hunk headers give exact post-image line numbers with no
@@ -91,8 +135,10 @@ PROBES+=("${FUTURE_PROBES[@]}")
 added_pairs=""
 while IFS= read -r f; do
   [ -n "$f" ] || continue
+  hunks="$(git diff --cached --unified=0 -- "$f")" ||
+    refuse "read the lines this commit adds to $f"
   pairs="$(
-    git diff --cached --unified=0 -- "$f" 2>/dev/null |
+    printf '%s\n' "$hunks" |
       awk -v file="$f" '
         /^@@/ {
           # @@ -a,b +c,d @@ -- take c and d from the post-image side.
@@ -105,7 +151,7 @@ while IFS= read -r f; do
         /^\+/ && !/^\+\+\+/ { print file ":" line; line++ }
         /^[^+-]/ { line++ }
       '
-  )"
+  )" || refuse "number the lines this commit adds to $f"
   [ -n "$pairs" ] && added_pairs="${added_pairs}${pairs}"$'\n'
 done <<< "$ignore_files"
 
@@ -128,24 +174,29 @@ done <<< "$ignore_files"
 # A scratch tree that cannot be built REFUSES: checking the wrong rules, or
 # none, and exiting 0 is the silent pass this guard exists to prevent.
 refuse_unbuilt() {
-  echo "BLOCKED: canon-ignore-guard could not build the staged ignore rules to check ($1)." >&2
-  echo "  Nothing was checked, so nothing is allowed. Re-run the commit; if it repeats, report it." >&2
-  exit 1
+  refuse "build the staged ignore rules to check ($1)"
 }
-git_dir="$(git rev-parse --absolute-git-dir 2>/dev/null)" || refuse_unbuilt "no git directory"
+git_dir="$(git rev-parse --absolute-git-dir)" || refuse_unbuilt "no git directory"
 staged_rules="$(mktemp -d "${TMPDIR:-/tmp}/canon-ignore-XXXXXX")" || refuse_unbuilt "mktemp"
 trap 'rm -rf "$staged_rules"' EXIT
-staged_ignores="$(git ls-files -- '.gitignore' '*/.gitignore' 2>/dev/null)"
+staged_ignores="$(git ls-files -- '.gitignore' '*/.gitignore')" || refuse_unbuilt "git ls-files"
 if [ -n "$staged_ignores" ]; then
   printf '%s\n' "$staged_ignores" | git checkout-index --prefix="$staged_rules/" --stdin ||
     refuse_unbuilt "checkout-index"
 fi
+# check-ignore exits 0 when it ignores a probe and 1 when it ignores none, and
+# both are answers. Any other code, eg 128 for a fatal error, means git did not
+# answer, so the commit is refused, not read as clean.
 matches="$(
-  cd "$staged_rules" &&
-    git --git-dir="$git_dir" --work-tree="$staged_rules" \
-      check-ignore -v --no-index -- "${PROBES[@]}" 2>/dev/null || true
+  cd "$staged_rules" || exit 2
+  git --git-dir="$git_dir" --work-tree="$staged_rules" \
+    check-ignore -v --no-index -- "${PROBES[@]}"
 )"
-[ -n "$matches" ] || exit 0
+case $? in
+  0) ;;
+  1) exit 0 ;;
+  *) refuse "ask git which probes the staged ignore rules reach" ;;
+esac
 
 # `check-ignore -v` emits `<source>:<linenum>:<pattern>\t<pathname>`, one line
 # PER PATH. Split on the TAB, never on the colon -- a pattern may contain one,
@@ -174,12 +225,18 @@ while IFS= read -r m; do
   # was the ONLY reason the pipeline form was safe here -- adding `pipefail`
   # for hygiene would have armed the SIGPIPE race silently, while reading as
   # a tightening. Removed as a mechanism rather than left as an accident.
-  if grep -qxF -- "${src}:${lineno}" <<<"$added_pairs"; then
-    blocking_rules="${blocking_rules}${rule}"$'\n'
-    blocking_counts="${blocking_counts}${rule}	${path}"$'\n'
-  else
-    inherited_rules="${inherited_rules}${rule}"$'\n'
-  fi
+  # grep exits 1 when this commit did not add the rule's line, which is an
+  # answer, and 2 when it could not run, which is not: read as "not added", an
+  # added rule would pass as inherited.
+  grep -qxF -- "${src}:${lineno}" <<<"$added_pairs"
+  case $? in
+    0)
+      blocking_rules="${blocking_rules}${rule}"$'\n'
+      blocking_counts="${blocking_counts}${rule}	${path}"$'\n'
+      ;;
+    1) inherited_rules="${inherited_rules}${rule}"$'\n' ;;
+    *) refuse "match the rule ${rule} against the lines this commit adds" ;;
+  esac
 done <<< "$matches"
 
 # Inherited breakage is REPORTED AND NEVER FAILED ON, and it says so on the
@@ -212,6 +269,6 @@ echo "  If you meant a sibling, name it literally the way the others are named."
 echo "  The probe set includes paths that do NOT exist yet. So a rule that matches only" >&2
 echo "  FUTURE artefacts is caught here too. That is the same defect one day later, and" >&2
 echo "  the estate that suffers it never notices that a new thread stopped travelling." >&2
-echo "  The future paths it probes:" >&2
-printf '    %s\n' "${FUTURE_PROBES[@]}" >&2
+echo "  The paths it probes by name, whether or not they exist:" >&2
+printf '    %s\n' "${NAMED_PROBES[@]}" >&2
 exit 1
