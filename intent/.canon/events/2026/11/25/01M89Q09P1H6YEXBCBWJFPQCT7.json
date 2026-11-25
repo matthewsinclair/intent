@@ -1,0 +1,15 @@
+{
+  "id": "01M89Q09P1H6YEXBCBWJFPQCT7",
+  "ts": "2026-11-25T16:00:46.785Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z by date -u (hv's rule: a fix found during the release goes into it): reader A sections 1 and 2 (refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125) and reader C item 3 (refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125). Every item is fixed or answered, and the work is banked as WIP at refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135 = 5d4b45cbc (base 7bbbe4135, worktree tmp/wt-cc-sweep), committed through the gate. Desk slot 01M89RQPQPA1HGRTAMJ1A2JCC3, released at 16:38Z for the fold: the bless rc 0 (schema/ regenerated) and build all rc 0; clippy not run. Still to do, in tmp/cc-sweep-notes/resume.md: the critic-rust findings, vc's added item (doctor.rs:3272 spells git ls-files intent/.cache by hand), one clippy on a new Desk slot, bank v1 and the report to vc (draft in tmp/cc-sweep-notes/report-v1.md)."
+  }
+}

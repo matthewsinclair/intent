@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ef5e3583-d397-41cc-b149-e2db78caa1ce
-heartbeat_at: 2026-11-25 15:11Z
+heartbeat_at: 2026-11-25 16:39Z
 status: active
-focus: "2026-11-25 15:06Z by date -u: the 15:00Z hold is lifted (hv decision 104, relayed by devbin-vc and vc at 15:05Z). Standby on vc's go: cc acts on a close-sweep finding in intentsvcs or intentd, a question on head_number_at's zero rule, and a green batch gate (then wp done and ac satisfy for e92b, 8a88, 744e and 8a37). The todo is the known-defects re-drive for v3.5.4 against the pair at the final HEAD. cc reads the earlier drives now and runs nothing until vc sends the pair."
+focus: "2026-11-25 16:38Z by date -u: folded for hv's compact, on hv's word through devbin-vc and vc. Nothing runs, and no Desk slot is held. Resume: /in-session and pickup, then tmp/cc-sweep-notes/resume.md for the close-sweep bank (WIP at refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135), then todo 66."
 claims: [ST1c2db9394af6d40b]
 ---
 
@@ -14,6 +14,7 @@ claims: [ST1c2db9394af6d40b]
 ## DOING
 
 - ST1c2db93 build for 3.5.4 (hv decision 100). Every cc package in this thread is on main: e92b (ea005c4f6, and its follow-up 289f9112d), 8a88 (f2bc90690), 744e (10d3ec984) and 8a37 (06cfc796c). tmp/wt-st1c2db93-cc is removed after the fold checks, and refs/attic/cc/wt-st1c2db93-cc points at its HEAD, f18a01038 (vc decision 98). cc gave vc the meaning for efe0's critic R2 between 10:45Z and 11:30Z by date -u (the send's own time was not read): option (b), one home, id::head_number_at beside label_at, with one private zero test in id.rs; dc builds it in its second bank, and ic agrees its test module. At 2026-11-25 11:59Z by date -u, cc answered dc's question on the zero rule directly, on vc's leave: dc's option A. The zero rule judges the whole group, as is_example and label_at do. So a zero-led hex front (AC-0d7e9a1b) is a development id, and the zero family (AC-0, WP-00) still gives None. The R2 meaning had left this case open. dc builds it in its second bank with one firing row in register_text's firing list and no mcp.rs row, under vc's ruling for the bank: one proof for each change, in a test that already exists. Next: stand by for close-sweep findings in cc's remit and for the batch gate's result. wp done and ac satisfy for e92b, 8a88, 744e and 8a37 wait for a green batch gate. (edited)
+- ST1c2db93 close sweep (AC-00.1), cc's list, on vc's word at 2026-11-25 15:58Z by date -u (hv's rule: a fix found during the release goes into it): reader A sections 1 and 2 (refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125) and reader C item 3 (refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125). Every item is fixed or answered, and the work is banked as WIP at refs/bank/cc/st1c2db93/sweep/wip-v1-on-7bbbe4135 = 5d4b45cbc (base 7bbbe4135, worktree tmp/wt-cc-sweep), committed through the gate. Desk slot 01M89RQPQPA1HGRTAMJ1A2JCC3, released at 16:38Z for the fold: the bless rc 0 (schema/ regenerated) and build all rc 0; clippy not run. Still to do, in tmp/cc-sweep-notes/resume.md: the critic-rust findings, vc's added item (doctor.rs:3272 spells git ls-files intent/.cache by hand), one clippy on a new Desk slot, bank v1 and the report to vc (draft in tmp/cc-sweep-notes/report-v1.md). (edited)
 
 ## TODO
 

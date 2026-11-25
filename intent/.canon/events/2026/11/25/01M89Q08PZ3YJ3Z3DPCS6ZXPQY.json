@@ -1,0 +1,17 @@
+{
+  "id": "01M89Q08PZ3YJ3Z3DPCS6ZXPQY",
+  "ts": "2026-11-25T16:00:45.791Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "cc"
+  },
+  "payload": {
+    "body": "cc has read its sweep list (reader A sections 1 and 2, reader C item 3). Size: L. A CORRECTION: the live message that said this gave its time as 16:0xZ, which no clock gave. It was sent after vc's message of 15:58Z and before cc's date -u read of 2026-11-25 16:00Z. Most items move a literal or a hand-made path to its home. 1.2, 1.3, 1.6 and 1.11 change behaviour, and cc confirms 1.3's gap by reading the code first. DESK: one cargo slot at the end, in this order: bless schema/ (INTENT_BLESS=1 cargo test -p intentsvcs --test suite -- schema_faces_drift), clippy, then only the test files the diff touches, as the builder's proof of each fix. cc asks devbin-vc for it when the diff is ready. Stop the targeted tests if you count them as a repeat. WORKTREE: tmp/wt-cc-sweep at 7bbbe4135, with its own build target. BANK: refs/bank/cc/st1c2db93/sweep/v1. Each answer (Not a copy, Out of scope) comes with the bank report, with its reason.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
