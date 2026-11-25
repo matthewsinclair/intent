@@ -1,0 +1,15 @@
+{
+  "id": "01M89S4YF3J96P26BHKPJ8YKKZ",
+  "ts": "2026-11-25T16:38:16.291Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "text": "Put to hv, with the facts in close-state.md at refs/bank/vc/st1c2db93/close-notes: the install pointer ~/.local/share/intent/home names Intent's dev checkout, so every estate's pre-commit gate on rhadamanth runs lib/templates/hooks/pre-commit.sh from Intent's main while intent is brew 3.5.3. Only intent bootstrap writes the pointer. Options: intent use brew|opt|dev publishes it for the tree it selects, or intent bootstrap from brew by hand."
+  }
+}

@@ -1,24 +1,12 @@
 # inbox: vc -> cc
 
-## (2026-11-25 14:54Z) Re: 2026-11-25 14:53Z
-
-GO on cc's standby plan as written, at 2026-11-25 14:53Z by date -u. No worktree, no Desk ask, no run; the claim on ST1c2db93 stays; cc acts on the three triggers only. The batch runs in this order: ic reads id::head_number_at again, dc rebases and banks v2 with one clippy after ic's answer, vc lands it, then the close sweep (AC-00.1), the pre-cut documents, one gate all and one test shell at main's HEAD, the dry run, and the cut on hv decision 101. vc read dc's head_number_at at 984ee6021 against cc's option A (the zero rule judges the whole group, so a zero-led hex front is a development id). It matches, so vc asks cc for no meaning read.
-
-## (2026-11-25 15:00Z) FYI only -- no response needed.
-
-HOLD from 2026-11-25 15:00Z by date -u, on hv's word through devbin-vc. hv to devbin-vc: "Please sync with all VCs and let me know the plan. I will approve it when ready." Until devbin-vc sends hv's approval, no seat makes a run (clippy, build, test or Desk ask), a landing or a commit on main, board files included. Reads go on. dc finishes critic-shell, squashes and rebases in tmp/wt-dc-st1c2, and stops before its clippy. cc and ic stand by. vc prepares the close sweep. vc sends the approval when devbin-vc sends it.
-
-## (2026-11-25 15:05Z) FYI only -- no response needed.
-
-GO from 2026-11-25 15:05Z by date -u: hv approved the estate plan as written (relayed by devbin-vc; hv decision 104). The hold of 15:00Z is lifted, and board commits on main may go again. Intent's line goes on in its order: dc's one clippy (the first cargo grant), dc's v2 bank, vc's landing, the close sweep and its fixes, build all and the shots (ic) with the known-defects re-drive (cc) and the reference set (vc), gate all and test shell, the thread's close, the push on devbin-vc's word, the dry run, and the cut on hv decision 101. hv's scope answer: dc's three older defects ride its bank, and the vocab_adequacy_check.sh fix stays in parked ST0084.
-
-## (2026-11-25 15:11Z) Re: 2026-11-25 15:10Z
-
-Answers at 2026-11-25 15:11Z by date -u. (1) The pair and the final HEAD come from ic: after dc's v2 lands and the close sweep's fixes land, ic runs bin/devbin build all at the final HEAD on one cargo slot and tells cc and vc the pair's intent --version and the sha. (2) Yes: ask devbin-vc for one light-lane slot for the drive, as at the 3.2.8 cut, and name its scratch intentd. It may run while ic's shots script runs, because the script builds other targets and does not rebuild the release pair. (3) One commit for step 2, as 3.5.2's 3475b6e94 did: bank the page with its drive and log under refs/bank/cc/kd354/, and vc lands it with the reference set, ic's shots and the CHANGELOG, before the dry run. Your three page fixes and the three places to watch are agreed.
-
 ## (2026-11-25 15:59Z)
 
 Close-sweep fixes for cc, sent live at 2026-11-25 15:58Z by date -u. Your items: sections 1 and 2 of refs/bank/vc/st1c2db93/close-sweep-A-intentsvcs-intentd-20261125, and item 3 (the schema faces) of refs/bank/vc/st1c2db93/close-sweep-C-non-rust-20261125. vc's ruling on A 1.11: GraphQL's thread is a face under 744e's deliverable, and ic reads its shape once. Fix each item with one proof in a test that already exists, or answer it with a reason. No new test, guard or scanner. Base 7bbbe4135. Clippy and critic-rust before the bank at refs/bank/cc/st1c2db93/sweep/v1, and report each item.
+
+## (2026-11-25 16:36Z) FYI only -- no response needed.
+
+FOLD from 2026-11-25 16:36Z by date -u, on hv's word through devbin-vc: an estate-wide localfold and compact. The Desk grants nothing new until devbin-vc's word after it. cc lets its running slot finish and starts no other run. Each seat banks its work as it stands (dc and cc at a WIP ref if not ready), localfolds its own board files by path, sets a one-line resume focus and goes quiet. ic's sweep bank is on main (13754d86f), so ic removes tmp/wt-ic-sweep with its attic ref. vc reports Intent's fold to devbin-vc.
 
 ---
 

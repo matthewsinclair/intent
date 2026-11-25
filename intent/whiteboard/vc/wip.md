@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 16:17Z
+heartbeat_at: 2026-11-25 16:38Z
 status: active
-focus: "2026-11-25 16:17Z by date -u: dc's v2 is on main as dfaab8215, 01e3b6638, fbeef6b29, 8ef49da2e and bfc1b908b (the range's patch id is the bank's, d1c3f47159ce; doctor 0 findings), and CHANGELOG takes Ic5f63aa's line for 3.5.4. The three close-sweep fix banks are in progress: cc (L), ic (M), dc (L), each one clippy on cargo, P0. Then vc reads each fix against its finding and lands them, design.md records every row, the organize cleanup of 32 closed views (vc decision 108), then build all and the shots, known-defects, the reference set, one step-2 commit, gate all and test shell, the close, the push, the dry run, READY."
+focus: "2026-11-25 16:38Z by date -u: localfold for the estate-wide compact, not released. Resume: /in-session and pickup, then devbin-vc's word; then land cc's and dc's close-sweep fix banks on their proof, from close-state.md at refs/bank/vc/st1c2db93/close-notes."
 claims: []
 ---
 
@@ -13,11 +13,11 @@ claims: []
 
 ## DOING
 
-- 3.5.4 carries the Highlander residue thread (ST1c2db93), I3c24d2a and Ic5f63aa (hv decisions 99, 100 and 104; the estate plan approved as written). The close sweep (AC-00.1) ran on dc's v2 tree a5690ba51 with three independent readers; their reports are refs/bank/vc/st1c2db93/close-sweep-{A-intentsvcs-intentd,B-intent-cli-and-tests,C-non-rust}-20261125. Their findings go into this release (hv's rule), as three fix banks: cc (A's sections 1 and 2, C's item 3), ic (B's F1, F4, F7; C's items 9 and 10), dc (B's F2, F3, F5, F6 and its open rows and sites; C's items 2 and 4 to 8), sent at 15:58Z. C's item 1 (instrument_reach_census.sh) goes to parked ST0084 by hv decision 104's reasoning, unless hv pulls it in. Order: dc's v2 clippy and bank, vc lands v2; the three fix banks, vc reads each fix against its finding and lands them; design.md records every row; then build all and the shots (ic), known-defects (cc), the reference set and CHANGELOG (vc), one step-2 commit; one gate all and one test shell at main's HEAD; the thread's close; the push on devbin-vc's word; the dry run; READY; hv types the cut (hv decision 101). (edited)
+- 3.5.4 carries ST1c2db93, I3c24d2a and Ic5f63aa (hv decisions 99, 100, 101, 104 and 105; the estate plan approved as written; devbin-vc holds the pen and the Desk, hv decision 103). The close sweep's fix banks are open: cc's (A's sections 1 and 2, C's item 3, doctor.rs:3272) and dc's (B's F2, F3, F5, F6 with its open rows and sites; C's items 2 and 4 to 8). vc lands each on its proof, then releasing.md step 2 (ic: build all and the shots; cc: known-defects; vc: the reference set and CHANGELOG), one gate all and one test shell at main's HEAD, the thread's close and design.md, the push on devbin-vc's word after githubstatus, the dry run, READY, and hv types the cut. The full state is close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
 
 ## TODO
 
-_(none)_
+- Put to hv, with the facts in close-state.md at refs/bank/vc/st1c2db93/close-notes: the install pointer ~/.local/share/intent/home names Intent's dev checkout, so every estate's pre-commit gate on rhadamanth runs lib/templates/hooks/pre-commit.sh from Intent's main while intent is brew 3.5.3. Only intent bootstrap writes the pointer. Options: intent use brew|opt|dev publishes it for the tree it selects, or intent bootstrap from brew by hand.
 
 ## Holds
 

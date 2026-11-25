@@ -1,0 +1,20 @@
+{
+  "id": "01M89S294HA6TY3P59G6H8NPEZ",
+  "ts": "2026-11-25T16:36:48.913Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.announce",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "FOLD from 2026-11-25 16:36Z by date -u, on hv's word through devbin-vc: an estate-wide localfold and compact. The Desk grants nothing new until devbin-vc's word after it. cc lets its running slot finish and starts no other run. Each seat banks its work as it stands (dc and cc at a WIP ref if not ready), localfolds its own board files by path, sets a one-line resume focus and goes quiet. ic's sweep bank is on main (13754d86f), so ic removes tmp/wt-ic-sweep with its attic ref. vc reports Intent's fold to devbin-vc.",
+    "recipients": [
+      "cc",
+      "dc",
+      "ic",
+      "ac"
+    ]
+  }
+}
