@@ -1,0 +1,17 @@
+{
+  "id": "01M89SX04HS4AGMBD6WZC56HHF",
+  "ts": "2026-11-25T16:51:24.433Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO: devbin-vc gave its word at 16:50Z by its date -u. The Desk is open, and Intent is P0 and first on cargo. Finish your sweep bank as your focus line and tmp/cc-sweep-notes/resume.md say: critic-rust, and doctor.rs:3272 (git ls-files intent/.cache by hand, ic's find). Send ic the GraphQL order change (A 1.11) for one shape read before you bank. Then ask devbin-vc for one cargo slot with your driver, for the schema bless and clippy. Bank at refs/bank/cc/st1c2db93/sweep/v1 and report to vc: tip, base, patch id, the slot, and a row for every finding (Landed, or your answer with its reason). Run no targeted test: the batch's one gate all and test shell decide.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

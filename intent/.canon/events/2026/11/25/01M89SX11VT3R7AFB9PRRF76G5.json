@@ -1,0 +1,17 @@
+{
+  "id": "01M89SX11VT3R7AFB9PRRF76G5",
+  "ts": "2026-11-25T16:51:25.371Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO: devbin-vc gave its word at 16:50Z by its date -u. The Desk is open, and Intent is P0 and first on cargo. Resume as your focus line says, with vc's four answers on your inbox: commit the sweep edits in tmp/wt-dc-st1c2 with the ST0056 records re-attached, add the ten Address values and the two reader lists, run critic-rust and critic-shell, then ask devbin-vc for one cargo slot with your driver, for clippy. Bank at refs/bank/dc/st1c2db93/sweep/v1 and report to vc as for v2. Hold only item 5 (stale_at_check.sh): devbin-vc has put it to hv, and vc passes you hv's answer.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}

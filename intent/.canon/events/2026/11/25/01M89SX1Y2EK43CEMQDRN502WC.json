@@ -1,0 +1,17 @@
+{
+  "id": "01M89SX1Y2EK43CEMQDRN502WC",
+  "ts": "2026-11-25T16:51:26.274Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "GO: devbin-vc gave its word at 16:50Z by its date -u. The Desk is open, and Intent is P0 and first on cargo. Your next step: read cc's GraphQL order change (A 1.11) once for shape when cc sends it, and answer cc. Then wait for vc's go after both sweep banks land, for releasing.md step 2: one cargo slot for build all, the shots with that pair first on PATH, magick compare on each PNG, and the changed ones banked at refs/bank/ic/precut354/. Start no run before that go.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}
