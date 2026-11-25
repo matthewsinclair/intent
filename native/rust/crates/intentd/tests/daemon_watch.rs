@@ -412,7 +412,10 @@ fn git(dir: &Path, args: &[&str]) {
 /// beside the daemon's writer as
 /// `a_source_edit_reaches_the_index_and_costs_canon_nothing.rs` reads it.
 fn recorded(root: &Path) -> Vec<intentsvcs::sync::FileEntry> {
-  intentsvcs::store::Store::open(&root.join("intent/.cache/intent.db"))
+  let store = intentsvcs::project::Project::open(root)
+    .expect("the watched project opens")
+    .db_path();
+  intentsvcs::store::Store::open(&store)
     .expect("the daemon's store opens beside it")
     .file_index()
     .expect("the file index reads")
@@ -454,7 +457,7 @@ fn a_pulled_render_of_a_recorded_view_is_ingested_and_then_left_alone() {
   arm(&daemon, &ours);
 
   let address =
-    intentsvcs::address::parse(&format!("intent:///threads/{id}")).expect("an addressable thread");
+    intentsvcs::address::Address::local(intentsvcs::address::Entity::Thread { id: id.clone() });
   crate::common::facade_on(&ours)
     .hydrate(&address)
     .expect("the thread's views realise");
@@ -541,16 +544,17 @@ fn a_stray_file_at_a_view_path_is_ingested_at_most_once() {
   thread_ids(&daemon, &root);
   let rest = arm(&daemon, &root);
 
-  let rel = "intent/issues/0099.md";
   let project = intentsvcs::project::Project::open(&root).expect("the fixture opens");
+  let stray =
+    project.issue_view(intentsvcs::id::IssueId::from_ordinal(99).expect("an issue ordinal"));
+  let rel = project.relative(&stray);
   assert!(
     project
       .generated_view_patterns()
       .iter()
-      .any(|pattern| intentsvcs::search::glob_matches(pattern, rel)),
+      .any(|pattern| intentsvcs::search::glob_matches(pattern, &rel)),
     "`{rel}` matches no generated view's pattern, so this arm would not be asking about a view"
   );
-  let stray = root.join(rel);
   std::fs::create_dir_all(stray.parent().expect("a parent")).expect("mkdir");
   std::fs::write(
     &stray,
@@ -588,7 +592,9 @@ fn a_stray_file_edited_after_its_ingest_is_ingested_once_more_and_then_left_alon
   thread_ids(&daemon, &root);
   let rest = arm(&daemon, &root);
 
-  let stray = root.join("intent/issues/0099.md");
+  let stray = intentsvcs::project::Project::open(&root)
+    .expect("the fixture opens")
+    .issue_view(intentsvcs::id::IssueId::from_ordinal(99).expect("an issue ordinal"));
   std::fs::create_dir_all(stray.parent().expect("a parent")).expect("mkdir");
   std::fs::write(&stray, "# 0099\n\nFirst seen.\n").expect("write the stray");
   until("the daemon ingested the stray", || {

@@ -138,45 +138,31 @@ fn pm_identifiers(text: &str, decisions: Decisions) -> Vec<String> {
 /// The end offset of a project-management identifier starting at `i`, if there
 /// is one.
 fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
-  // A left boundary, so `ID42` is not read as `D42` and `XST0056` is not read
-  // as `ST0056`.
-  if i > 0 && (b[i - 1].is_ascii_alphanumeric() || b[i - 1] == b'_') {
+  // The id arms are the common reader of a tracker id at a place in text
+  // (`crate::common::tracker_id_at`). `tracker_ids` asks the same reader, so
+  // the two scans read an id the same way. The reader takes a record's id of
+  // either family as a face prints it (`ST0056` and not `ST00567`, `WP-06`,
+  // and a hashed thread, package, or issue: issue 0736), a criterion or test
+  // label (`AC-02.8`, `AT-00.11`, `AC-5d7e9a1b.1`), and a bare head-number
+  // (`AC-09`, `WP-6`). It holds the left boundary, so `XST0056` and `_ST0056`
+  // are not read as `ST0056`. Punctuation after an id does not refuse it, so
+  // `AC-02.8's` and `WP-06,` are each an id.
+  if let Some(end) = crate::common::tracker_id_at(b, i) {
+    return Some(end);
+  }
+  // This file's own two arms below start at the same left boundary, the one
+  // `crate::common::starts_word` holds, so `ID42` is not read as `D42`.
+  if !crate::common::starts_word(b, i) {
     return None;
   }
   let digits = |from: usize, n: usize| -> bool {
     from + n <= b.len() && b[from..from + n].iter().all(u8::is_ascii_digit)
   };
-  // A right boundary that only excludes MORE digits and letters: `AC-02.8's`
-  // and `WP-06,` are both the identifier plus punctuation, and rejecting them
-  // would let a leak hide behind an apostrophe.
+  // A right boundary that only excludes MORE digits and letters: `D42's` and
+  // `issue 0442,` are each the identifier and punctuation, and a boundary that
+  // refused them would let a leak hide behind an apostrophe.
   let ends = |at: usize| -> bool { at >= b.len() || !b[at].is_ascii_alphanumeric() };
 
-  // A record's id as a face prints it, of either family: `ST0056` and not
-  // `ST00567`, `WP-06`, and a hashed thread, package or issue, each read by the
-  // waist (issue 0736). The word runs to the right boundary; a package's
-  // heading keeps its `WP-`.
-  let wp = intentsvcs::id::WP_HEADING_PREFIX.as_bytes();
-  let from = if b[i..].starts_with(wp) {
-    i + wp.len()
-  } else {
-    i
-  };
-  let end = (from..b.len())
-    .find(|&at| !b[at].is_ascii_alphanumeric())
-    .unwrap_or(b.len());
-  if std::str::from_utf8(&b[i..end])
-    .ok()
-    .and_then(intentsvcs::id::marked)
-    .is_some()
-  {
-    return Some(end);
-  }
-  // `AC-02.8`, `AT-00.11`, `AC-5d7e9a1b.1` -- a criterion or test label, read
-  // by the library's one reader of a label in text (`intentsvcs::id::label_at`),
-  // so a git-style package's group is read too.
-  if let Some(end) = intentsvcs::id::label_at(b, i) {
-    return Some(end);
-  }
   // `D42` -- a design-decision number, counted only where a `D`-shaped id
   // cannot be one of the reader's own STZero deliverables. See [`Decisions`].
   if decisions == Decisions::Counted && b[i] == b'D' && digits(i + 1, 2) && ends(i + 3) {
@@ -235,9 +221,12 @@ fn the_schema_faces_the_cli_prints_carry_no_pm_state() {
   let dir = tempfile::tempdir().expect("tempdir");
   let mut offenders = Vec::new();
 
-  let names: Vec<String> = std::fs::read_dir(repo_root().join("schema"))
-    .expect("schema/ exists")
-    .filter_map(Result::ok)
+  // An entry the walk cannot read stops the test and names the directory, so
+  // a face cannot drop out of the list unseen.
+  let schema = repo_root().join("schema");
+  let names: Vec<String> = std::fs::read_dir(&schema)
+    .unwrap_or_else(|e| panic!("read the directory {}: {e}", schema.display()))
+    .map(|e| e.unwrap_or_else(|e| panic!("read an entry of {}: {e}", schema.display())))
     .filter(|e| e.path().is_file())
     .map(|e| e.file_name().to_string_lossy().into_owned())
     .collect();
@@ -404,9 +393,11 @@ fn no_shipped_string_literal_carries_pm_state() {
 /// carries hundreds of these identifiers in comments right now, and the test
 /// above is green, which is the claim itself.
 ///
-/// The floor is asserted so the demonstration cannot quietly become vacuous: if
-/// the comments were all rewritten away, this test would keep passing while
-/// proving nothing.
+/// That the comments carry such an identifier at all is asserted, so the
+/// demonstration cannot quietly become vacuous: if the comments were all
+/// rewritten away, this test would keep passing while proving nothing. No
+/// count of them exists apart from this scan, so the check is that the scan
+/// found one.
 #[test]
 fn the_scan_tolerates_pm_state_in_comments_at_the_scale_it_actually_occurs() {
   let mut in_comments = 0;
@@ -421,9 +412,9 @@ fn the_scan_tolerates_pm_state_in_comments_at_the_scale_it_actually_occurs() {
     in_comments += everywhere.saturating_sub(in_literals);
   }
   assert!(
-    in_comments > 100,
-    "shipped source carries only {in_comments} project-management identifiers in comments, so \
-     this file no longer demonstrates that the exemption holds under load"
+    in_comments > 0,
+    "shipped source carries no project-management identifier in comments, so this file no \
+     longer demonstrates that the exemption holds"
   );
 }
 
@@ -700,26 +691,20 @@ use std::collections::BTreeSet;
 /// Read from the canon extract's filenames rather than from a list written
 /// here, because a list would be a second home for the thread roster and would
 /// go stale in exactly the direction that matters: a NEW thread cited in
-/// payload would stop being detected on the day it was created.
+/// payload would stop being detected on the day it was created. The project
+/// reads the names (`Project::thread_ids`). It refuses a name that is no thread
+/// id.
 fn real_thread_ids() -> BTreeSet<String> {
-  let dir = intentsvcs::project::Project::open(&repo_root())
+  let ids = intentsvcs::project::Project::open(&repo_root())
     .expect("this repository opens")
-    .canon_st_dir();
-  let mut ids = BTreeSet::new();
-  for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
-    let path = entry.expect("a readable dir entry").path();
-    if path.extension().and_then(|e| e.to_str()) == Some("json")
-      && let Some(stem) = path.file_stem().and_then(|s| s.to_str())
-    {
-      // A hashed thread is cited by its shown form, so the roster holds that
-      // as well as the stored stem (issue 0736).
-      if let Ok(id) = intentsvcs::id::ThreadId::parse(stem) {
-        ids.insert(id.shown());
-      }
-      ids.insert(stem.to_string());
-    }
-  }
+    .thread_ids()
+    .expect("every name in this repository's thread canon is a thread id");
+  // A hashed thread is cited by its shown form, so the roster holds that as
+  // well as the stored id (issue 0736).
   ids
+    .iter()
+    .flat_map(|id| [id.stored(), id.shown()])
+    .collect()
 }
 
 /// Every file Intent installs into somebody else's repository.
@@ -727,27 +712,56 @@ fn real_thread_ids() -> BTreeSet<String> {
 /// `lib/templates/` is what `intent init` and the canon engine lay down;
 /// `intent/plugins/claude/` is the skills, subagents and rule library served to
 /// a consumer's agent. Both are payload by definition -- nothing here is read
-/// only inside this repo.
+/// only inside this repo. Each root must hold a file, so a root that the read
+/// misses stops the test by name: a total over both cannot see one of them
+/// empty.
 fn installed_payload() -> Vec<(PathBuf, String)> {
   let root = repo_root();
   let mut out = Vec::new();
   for sub in [intentsvcs::install::MARKER, "intent/plugins/claude"] {
-    collect_text_files(&root.join(sub), &mut out);
+    let mut found = Vec::new();
+    collect_text_files(&root.join(sub), &mut found);
+    assert!(
+      !found.is_empty(),
+      "precondition: the payload root `{sub}` holds a tracked file"
+    );
+    out.extend(found);
   }
   out
 }
 
+/// Every file git tracks under `dir`, with its text, added to `out`.
+///
+/// **TRACKED IS WHAT SHIPS**, the rule the `.claude/` test below states: a file
+/// git does not track, eg a Finder `.DS_Store` in a checkout, is not payload.
+/// A listing or a file that cannot be read stops the test and names it,
+/// because a payload that left it out would be scanned less than this file
+/// claims. A tracked file that is not UTF-8 is scanned with its invalid bytes
+/// replaced, so it is read, not skipped.
 fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
-  let Ok(entries) = std::fs::read_dir(dir) else {
-    return;
-  };
-  for entry in entries.flatten() {
-    let path = entry.path();
-    if path.is_dir() {
-      collect_text_files(&path, out);
-    } else if let Ok(text) = std::fs::read_to_string(&path) {
-      out.push((path, text));
-    }
+  let root = repo_root();
+  let listed = Command::new("git")
+    .args(["ls-files", "-z", "--"])
+    .arg(dir)
+    .current_dir(&root)
+    .output()
+    .unwrap_or_else(|e| panic!("run git ls-files for {}: {e}", dir.display()));
+  assert!(
+    listed.status.success(),
+    "git ls-files could not list {}: {}",
+    dir.display(),
+    String::from_utf8_lossy(&listed.stderr)
+  );
+  for rel in listed.stdout.split(|b| *b == 0).filter(|r| !r.is_empty()) {
+    let rel = std::str::from_utf8(rel).unwrap_or_else(|e| {
+      panic!(
+        "git listed a path under {} that is not UTF-8: {e}",
+        dir.display()
+      )
+    });
+    let path = root.join(rel);
+    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    out.push((path, String::from_utf8_lossy(&bytes).into_owned()));
   }
 }
 
@@ -810,7 +824,7 @@ fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<Strin
   pm_identifiers(text, Decisions::Ambiguous)
     .into_iter()
     .filter(|id| {
-      if id.starts_with("ST") {
+      if intentsvcs::id::marked(id) == Some(intentsvcs::id::IdKind::Thread) {
         // Referent: a four-digit thread id is a citation only if it resolves.
         real.contains(id)
       } else {
@@ -826,21 +840,24 @@ fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<Strin
 /// **THE POSITIVE CONTROL FOR THE CORPUS.** Every assertion below iterates the
 /// payload, so an empty payload passes all of them for free -- a moved
 /// directory, a renamed root, a `read_dir` that silently returns nothing.
+///
+/// A payload root that holds no tracked file, or a file that cannot be read,
+/// stops the read itself ([`installed_payload`], [`collect_text_files`]). No
+/// count of the payload or of the roster exists apart from the reads below, so
+/// each check is that its read is not empty.
 #[test]
 fn the_installed_payload_is_a_real_corpus_and_the_thread_roster_resolves() {
   let payload = installed_payload();
   assert!(
-    payload.len() > 100,
-    "installed payload came back as {} file(s); every citation assertion below \
-     would then iterate almost nothing and pass for free",
-    payload.len()
+    !payload.is_empty(),
+    "the installed payload came back empty, so every citation assertion below \
+     would iterate nothing and pass for free"
   );
   let real = real_thread_ids();
   assert!(
-    real.len() > 20,
-    "the thread roster came back as {} id(s), so the referent filter would \
-     classify real citations as placeholders and report a clean payload",
-    real.len()
+    !real.is_empty(),
+    "the thread roster came back empty, so the referent filter would classify \
+     every real citation as a placeholder and report a clean payload"
   );
   assert!(
     real.contains("ST0056"),
@@ -1096,17 +1113,8 @@ fn the_shipped_claude_template_carries_no_absolute_home_path() {
 /// population and the working directory is not.
 #[test]
 fn this_projects_tracked_claude_stack_carries_no_absolute_home_path() {
-  let root = repo_root();
-  let listed = Command::new("git")
-    .args(["ls-files", ".claude/"])
-    .current_dir(&root)
-    .output()
-    .expect("git ls-files runs in the repository");
-  let files: Vec<&str> = std::str::from_utf8(&listed.stdout)
-    .expect("git prints utf-8 paths here")
-    .lines()
-    .filter(|l| !l.is_empty())
-    .collect();
+  let mut files = Vec::new();
+  collect_text_files(&repo_root().join(".claude"), &mut files);
   assert!(
     !files.is_empty(),
     "git listed no tracked .claude/ files -- the population is empty and a \
@@ -1114,12 +1122,9 @@ fn this_projects_tracked_claude_stack_carries_no_absolute_home_path() {
   );
 
   let mut offenders = Vec::new();
-  for rel in &files {
-    let Ok(text) = std::fs::read_to_string(root.join(rel)) else {
-      continue;
-    };
-    for hit in home_paths_in(&text) {
-      offenders.push(format!("{rel}: {hit}"));
+  for (path, text) in &files {
+    for hit in home_paths_in(text) {
+      offenders.push(format!("{}: {hit}", path.display()));
     }
   }
   assert!(

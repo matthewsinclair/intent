@@ -262,14 +262,21 @@ fn the_refusal_carries_none_of_our_own_bookkeeping() {
   for (argv, _) in retired_spellings() {
     let args: Vec<&str> = argv.iter().map(String::as_str).collect();
     let (_, stderr) = run(&args, &root);
-    for marker in ["AC-", "AT-", "WP-", "ST00", "D21", "hv,", "ratification"] {
-      assert!(
-        !stderr.contains(marker),
-        "the refusal for `intent {}` leaked `{marker}` -- that is our project's bookkeeping reaching a user's terminal (D37), and the likely route is a \
-         ratification note being printed rather than the structural fields: {stderr}",
-        argv.join(" ")
-      );
-    }
+    // The waist does not name the other marks of a ratification note. This test
+    // keeps them as its own.
+    let mut leaked = crate::common::tracker_ids(&stderr);
+    leaked.extend(
+      ["D21", "hv,", "ratification"]
+        .into_iter()
+        .filter(|marker| stderr.contains(*marker))
+        .map(str::to_string),
+    );
+    assert!(
+      leaked.is_empty(),
+      "the refusal for `intent {}` leaked {leaked:?} -- that is our project's bookkeeping reaching a user's terminal (D37), and the likely route is a \
+       ratification note being printed rather than the structural fields: {stderr}",
+      argv.join(" ")
+    );
   }
 }
 

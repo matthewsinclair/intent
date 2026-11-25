@@ -154,7 +154,7 @@ fn line_whitespace_is_settled_before_the_id_is_read() {
 fn no_file_in_the_estate_can_be_named_as_an_artefact() {
   let root = repo_root();
   let project = Project::open(&root).expect("this repository is a project");
-  let st_dir = root.join("intent").join("st");
+  let st_dir = project.st_dir();
 
   let mut tried = 0usize;
   for entry in std::fs::read_dir(&st_dir).expect("intent/st is readable") {

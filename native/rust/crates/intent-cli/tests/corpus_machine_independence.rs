@@ -100,14 +100,19 @@ impl Fixture {
   }
 
   fn thread(&self, id: &str) {
-    self.write(
-      &format!("intent/.canon/st/{id}.json"),
-      crate::common::thread_canon(
-        id,
-        serde_json::json!({ "status": "wip", "created": "2026-08-14" }),
-      )
-      .as_bytes(),
+    crate::common::write_thread_canon(
+      self.root(),
+      id,
+      serde_json::json!({ "status": "wip", "created": "2026-08-14" }),
     );
+  }
+
+  /// `name` in the directory that holds the realised threads
+  /// (`Project::st_dir`), outside any one thread's directory, relative to the
+  /// root as `write` and git take it.
+  fn stray(&self, name: &str) -> String {
+    let project = intentsvcs::project::Project::open(self.root()).expect("the project opens");
+    project.relative(&project.st_dir().join(name))
   }
 
   /// Run a command with the temporary git config in force.
@@ -136,16 +141,14 @@ impl Fixture {
 fn a_global_gitignore_rule_does_not_shrink_the_corpus() {
   let fx = Fixture::new();
   fx.thread("ST0001");
-  fx.write(&format!("intent/st/{PROBE}"), NOT_UTF8);
-  fx.write("intent/st/shared.bin", NOT_UTF8);
+  let probe = fx.stray(PROBE);
+  fx.write(&probe, NOT_UTF8);
+  fx.write(&fx.stray("shared.bin"), NOT_UTF8);
 
   // THE ORACLE. git's own answer under this exact configuration. If git does
   // not consider the probe ignored, the temporary global config never took
   // effect and everything below would pass for the wrong reason.
-  let (ignored_by_git, _) = fx.run(
-    "git",
-    &["check-ignore", "-q", &format!("intent/st/{PROBE}")],
-  );
+  let (ignored_by_git, _) = fx.run("git", &["check-ignore", "-q", &probe]);
   assert!(
     ignored_by_git,
     "the fixture is not live: git does not see {PROBE} as ignored under the \

@@ -1010,6 +1010,12 @@ pub fn declared_paths() -> Vec<String> {
 
 /// Shipped source: the three crates that become binaries or are linked into
 /// one.
+///
+/// Each crate must give at least one file, so a crate the walk misses stops
+/// the test by name. A total cannot see a missing crate, for the reason
+/// [`declared_paths`] gives. No count of a crate's files exists apart from
+/// this walk, so the check is that the walk found one. A directory the walk
+/// cannot read stops the test in [`collect_rs`].
 pub fn shipped_sources() -> Vec<PathBuf> {
   let crates = Path::new(env!("CARGO_MANIFEST_DIR"))
     .parent()
@@ -1017,23 +1023,28 @@ pub fn shipped_sources() -> Vec<PathBuf> {
     .to_path_buf();
   let mut files = Vec::new();
   for name in ["intent-cli", "intentsvcs", "intentd"] {
-    collect_rs(&crates.join(name).join("src"), &mut files);
+    let mut found = Vec::new();
+    collect_rs(&crates.join(name).join("src"), &mut found);
+    assert!(
+      !found.is_empty(),
+      "precondition: the shipped crate `{name}` has source"
+    );
+    files.extend(found);
   }
-  assert!(
-    files.len() > 10,
-    "precondition: the shipped crates have source, found {}",
-    files.len()
-  );
   files.sort();
   files
 }
 
+/// Every `.rs` file under `dir`, added to `out`. A directory or an entry the
+/// walk cannot read stops the test and names the path, because a walk that
+/// left it out would scan less than its caller claims.
 pub fn collect_rs(dir: &Path, out: &mut Vec<PathBuf>) {
-  let Ok(entries) = std::fs::read_dir(dir) else {
-    return;
-  };
-  for e in entries.filter_map(Result::ok) {
-    let p = e.path();
+  let entries =
+    std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+  for entry in entries {
+    let p = entry
+      .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+      .path();
     if p.is_dir() {
       collect_rs(&p, out);
     } else if p.extension().is_some_and(|x| x == "rs") {
@@ -1256,25 +1267,31 @@ pub fn refuse_a_stale_sibling_daemon() {
   );
 }
 
-/// The newest modification time under `dir`, and the file carrying it.
+/// The newest modification time under `dir`, and the file carrying it. A
+/// directory, an entry or a file's time the walk cannot read stops the test
+/// and names the path, because a walk that skipped it could pass the stale
+/// daemon check against an older newest source.
 fn newest_source(
   dir: &Path,
   newest: &mut std::time::SystemTime,
   newest_path: &mut std::path::PathBuf,
 ) {
-  let Ok(entries) = std::fs::read_dir(dir) else {
-    return;
-  };
-  for entry in entries.flatten() {
+  let entries =
+    std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+  for entry in entries {
+    let entry = entry.unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()));
     let path = entry.path();
     if path.is_dir() {
       newest_source(&path, newest, newest_path);
-    } else if path.extension().is_some_and(|e| e == "rs")
-      && let Ok(at) = entry.metadata().and_then(|m| m.modified())
-      && at > *newest
-    {
-      *newest = at;
-      *newest_path = path;
+    } else if path.extension().is_some_and(|e| e == "rs") {
+      let at = entry
+        .metadata()
+        .and_then(|m| m.modified())
+        .unwrap_or_else(|e| panic!("read the modified time of {}: {e}", path.display()));
+      if at > *newest {
+        *newest = at;
+        *newest_path = path;
+      }
     }
   }
 }
@@ -1613,22 +1630,55 @@ pub fn seed_creation_event(root: &std::path::Path, id: &str, op: &str, kind: &st
   std::fs::write(&path, bytes).expect("write the event file");
 }
 
-/// Seed an ORDINAL issue as committed canon, for the reason
-/// [`seed_ordinal_thread`] gives.
-pub fn seed_ordinal_issue(root: &std::path::Path, number: u32, title: &str) {
-  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
-  let id = intentsvcs::id::IssueId::from_ordinal(number).expect("an issue ordinal that fits");
-  let path = project.issue_json(id);
-  std::fs::create_dir_all(path.parent().expect("the issue canon directory")).expect("mkdir");
-  let canon = serde_json::json!({
+/// **THE ONE HAND-WRITTEN ISSUE CANON** (ST1c2db93 close sweep, F2), as
+/// [`thread_canon`] is a thread's. It is a 3.4.0-format record of ordinal
+/// issue `number`, with `fields` laid over the minimum every reader takes. The
+/// schema is the canon's own constant, so no test spells it. The file goes
+/// where the project keeps the record's issue.
+///
+/// **THE WAIST WRITES THE BYTES.** The one decoder of an issue
+/// (`ingest::decode_issue`) reads the record, and the one encoder
+/// (`canon_format::encode_issue`) writes it. This function always asks it for
+/// 3.4.0's format, whatever format the project is in, and every release reads
+/// that format by the file's own schema. So the file holds the bytes 3.4.0
+/// writes for that record. In a project born in the release's format, Intent writes the
+/// release's format, so these are not the bytes Intent writes there. A field
+/// that no reader takes stops the test here, before any verb runs.
+pub fn write_issue_canon(root: &std::path::Path, number: u32, fields: serde_json::Value) {
+  let serde_json::Value::Object(mut canon) = serde_json::json!({
     "schema": intentsvcs::canon_format::ISSUE_SCHEMA_V3,
     "number": number,
     "slug": "an-issue",
-    "title": title,
+    "title": "An issue",
     "status": "open",
     "created": "2026-08-15",
+  }) else {
+    unreachable!("a json! object literal is an object");
+  };
+  let serde_json::Value::Object(over) = fields else {
+    panic!("write_issue_canon overlays an object of fields, got {fields}");
+  };
+  canon.extend(over);
+  let issue = intentsvcs::ingest::decode_issue(
+    "write_issue_canon's record",
+    serde_json::Value::Object(canon),
+  )
+  .unwrap_or_else(|findings| {
+    panic!("write_issue_canon's record does not read as an issue: {findings:?}")
   });
-  std::fs::write(&path, format!("{canon:#}\n")).expect("write the issue's canon");
+  let bytes =
+    intentsvcs::canon_format::encode_issue(&issue, intentsvcs::canon_format::CanonFormat::V3)
+      .expect("an issue the decoder read encodes in 3.4.0's format");
+  let project = intentsvcs::project::Project::open(root).expect("a project with its config");
+  let path = project.issue_json(issue.number);
+  std::fs::create_dir_all(path.parent().expect("the issue canon directory")).expect("mkdir");
+  std::fs::write(&path, bytes).expect("write the issue's canon");
+}
+
+/// Seed an ORDINAL issue as committed canon, for the reason
+/// [`seed_ordinal_thread`] gives.
+pub fn seed_ordinal_issue(root: &std::path::Path, number: u32, title: &str) {
+  write_issue_canon(root, number, serde_json::json!({ "title": title }));
 }
 
 /// The canon at `root`, read by the library's own reader, which writes
@@ -1694,6 +1744,67 @@ pub fn package_of(wp: &str) -> intentsvcs::id::WpId {
     .unwrap_or_else(|| panic!("`{wp}` is not a work package's address"));
   intentsvcs::id::WpId::parse(package)
     .unwrap_or_else(|e| panic!("`{wp}` does not end in a package's stored id: {e}"))
+}
+
+/// Whether a word starts at byte `i` of `bytes`: `i` is 0, or the byte before
+/// it is not an ASCII letter, digit, or `_`. The one left boundary of an id in a
+/// text in this test crate, which [`tracker_id_at`] asks, and
+/// `no_pm_state_in_output.rs`'s reader of its own two kinds of id as well.
+pub fn starts_word(bytes: &[u8], i: usize) -> bool {
+  i == 0 || !(bytes[i - 1].is_ascii_alphanumeric() || bytes[i - 1] == b'_')
+}
+
+/// The end of Intent's own tracker id that starts at byte `i` of `bytes`, if
+/// one does (D37). An id starts a word ([`starts_word`]), so `XST0056` and
+/// `_ST0056` hold no id. The id waist reads the id, and its readers go in this
+/// order: a record's id as a face prints it (`id::marked`), which runs to the
+/// next byte that is not a letter or a digit; a criterion or test label
+/// (`id::label_at`); and a bare head-number (`id::head_number_at`). A package's
+/// heading keeps its `WP-`. Each reader leaves out its format examples, so
+/// `ST0000` and `AC-0.0` are not ours.
+pub fn tracker_id_at(bytes: &[u8], i: usize) -> Option<usize> {
+  let rest = bytes.get(i..)?;
+  if !starts_word(bytes, i) {
+    return None;
+  }
+  let heading = intentsvcs::id::WP_HEADING_PREFIX.as_bytes();
+  let from = if rest.starts_with(heading) {
+    i + heading.len()
+  } else {
+    i
+  };
+  let word = (from..bytes.len())
+    .find(|&at| !bytes[at].is_ascii_alphanumeric())
+    .unwrap_or(bytes.len());
+  let record = std::str::from_utf8(&bytes[i..word])
+    .ok()
+    .filter(|w| intentsvcs::id::marked(w).is_some() && !intentsvcs::id::is_example(w))
+    .map(|_| word);
+  record
+    .or_else(|| intentsvcs::id::label_at(bytes, i))
+    .or_else(|| intentsvcs::id::head_number_at(bytes, i))
+}
+
+/// Intent's own tracker ids in `text`, in the order they occur: the id that
+/// [`tracker_id_at`] reads at each place.
+///
+/// **ONE READER IN EACH TEST CRATE** (ST1c2db93 close sweep, F3).
+/// [`tracker_id_at`] is the one reader of a tracker id at a place in text in
+/// each test crate. In intent-cli's tests, `identifier_at` in
+/// `no_pm_state_in_output.rs` asks that crate's copy and adds design-decision
+/// and issue numbers. `is_dev_id` in
+/// `register_text_carries_no_maintainer_notes.rs` reads a whole word through
+/// the same waist calls and adds invariant and TN ids. The twins of these two
+/// functions are in `intentsvcs/tests/common/mod.rs`. A test crate cannot use
+/// another test crate's common module, so each crate keeps one copy. Change
+/// the two together.
+pub fn tracker_ids(text: &str) -> Vec<String> {
+  (0..text.len())
+    .filter_map(|i| {
+      let end = tracker_id_at(text.as_bytes(), i)?;
+      text.get(i..end).map(str::to_string)
+    })
+    .collect()
 }
 
 /// Run the binary under test in `cwd` under the fixture home, with a lifeline

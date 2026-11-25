@@ -54,7 +54,7 @@ fn the_mcp_organize_door_answers_in_project_relative_paths() {
   // **A FILE NO RENDERER PRODUCES AND NO CANON CLAIMS**, which is organize's
   // fifth row: reported, never acted on. It is the cheapest population that
   // puts a real walked path into the answer.
-  let thread = root.join("intent").join("st").join(st.as_str());
+  let thread = crate::common::thread_dir(root, &st);
   std::fs::create_dir_all(&thread).expect("thread dir");
   std::fs::write(thread.join("diagram.png"), b"not a render\n").expect("unclaimed file");
 

@@ -555,14 +555,10 @@ fn put_still_replaces_and_that_is_the_hole_this_leaves() {
   };
   facade
     .put(
-      &Address {
-        authority: None,
-        entity: Entity::Ac {
-          thread: "ST0001".to_string(),
-          ac: "AC-03.2".to_string(),
-        },
-        format: None,
-      },
+      &Address::local(Entity::Ac {
+        thread: "ST0001".to_string(),
+        ac: "AC-03.2".to_string(),
+      }),
       &serde_json::to_string(&replacement).expect("serialises"),
     )
     .expect("an addressed PUT replaces, which is its contract");

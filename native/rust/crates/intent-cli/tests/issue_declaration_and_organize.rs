@@ -127,7 +127,9 @@ fn seed_thread(root: &std::path::Path, n: u32, title: &str) -> String {
 
 /// The realised view of the issue whose id is `issue`.
 fn view(root: &std::path::Path, issue: &str) -> std::path::PathBuf {
-  root.join(format!("intent/issues/{issue}.md"))
+  intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .issue_view(intentsvcs::id::IssueId::parse(issue).expect("a stored issue id"))
 }
 
 // ---------------------------------------------------------------------------

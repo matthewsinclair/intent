@@ -92,7 +92,10 @@ fn an_ancestor_emptied_by_its_child_goes_in_the_same_run() {
     .expect("realise everything");
   undeclare(&fx, &["ST0001"]);
 
-  let wp_dir = fx.project().thread_dir("ST0001").join("WP");
+  let wp_dir = fx
+    .project()
+    .thread_dir("ST0001")
+    .join(intentsvcs::project::WP_DIR);
   assert!(
     wp_dir.is_dir(),
     "precondition: the WP directory is realised"

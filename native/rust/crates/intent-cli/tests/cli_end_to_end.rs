@@ -113,8 +113,11 @@ fn ok(root: &Path, args: &[&str]) -> String {
 #[test]
 fn the_first_command_in_a_fresh_project_succeeds() {
   let dir = project();
+  let cache = intentsvcs::project::Project::open(dir.path())
+    .expect("the fresh project opens")
+    .cache_dir();
   assert!(
-    !dir.path().join("intent/.cache").exists(),
+    !cache.exists(),
     "precondition: the gitignored cache directory does not exist yet"
   );
   let out = ok(dir.path(), &["st", "new", "Add a Rust-based CLI"]);
@@ -250,8 +253,12 @@ fn set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field() {
   let st = crate::common::created(&ok(root, &["st", "new", "A thread"]));
   let wp = crate::common::created(&ok(root, &["wp", "new", st.as_str(), "A package"]));
   let seq = crate::common::package_of(&wp);
-  let wp_address = format!("intent:///threads/{st}/wp/{}", seq.stored());
-  let st_address = format!("intent:///threads/{st}");
+  let wp_address = intentsvcs::address::Entity::Wp {
+    thread: st.clone(),
+    wp: intentsvcs::id::Spelled::Whole(seq),
+  }
+  .local_url();
+  let st_address = intentsvcs::address::Entity::Thread { id: st.clone() }.local_url();
 
   let body = "The package's real body.\n\nIt spans lines, which is why it comes from a file.\n";
   let file = root.join("wp-body.md");
@@ -755,12 +762,12 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
   // verb. Asserted here rather than left to review because the pressure to put
   // it back is real -- the id is genuinely the most informative thing WE know,
   // and it is information about us, not about the operator's problem.
-  for leak in ["ST00", "WP-", "AC-", "AT-"] {
-    assert!(
-      !unwired_err.contains(leak),
-      "shipped output carries Intent's own project-management state ({leak}): {unwired_err}"
-    );
-  }
+  let leaks = crate::common::tracker_ids(&unwired_err);
+  assert!(
+    leaks.is_empty(),
+    "shipped output carries Intent's own project-management state ({}): {unwired_err}",
+    leaks.join(", ")
+  );
 }
 
 /// The generated views are real markdown a human can read, and carry the
@@ -1685,7 +1692,11 @@ fn st_relate_and_unrelate_write_the_links_and_set_names_them() {
     "{again}"
   );
 
-  let set = run(root, &["set", "intent:///threads/ST0001", "related", "[]"]);
+  let url = intentsvcs::address::Entity::Thread {
+    id: "ST0001".to_string(),
+  }
+  .local_url();
+  let set = run(root, &["set", &url, "related", "[]"]);
   assert_eq!(set.status.code(), Some(EXIT_ERROR));
   let said = String::from_utf8_lossy(&set.stderr);
   assert!(

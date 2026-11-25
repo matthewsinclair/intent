@@ -115,28 +115,30 @@ fn a_word_in_authored_thread_prose_is_found() {
   );
 }
 
-/// Source 2: authored issue bodies (`issues/<nnnn>.md`).
+/// Source 2: an issue's body, which the issue's canon record holds.
 ///
-/// The canon is hand-written because the issue verbs are not ported yet. That
-/// is legitimate for JSON canon -- it is exactly the bytes the tool writes --
-/// and `issues/<nnnn>.md` is an AUTHORED file under D02, so writing it by hand
-/// is the supported workflow rather than a v2-style manual edit.
+/// The test seeds ordinal issue 0001 with a body through `write_issue_canon`,
+/// which writes 3.4.0's format. Every release reads that format by the file's
+/// own schema. This project is born in the release's format, so the file is
+/// not the bytes Intent writes here. `intent sync --to-store` reads it into the
+/// store, and the hit names the canon file.
 #[test]
 fn a_word_in_an_issue_body_is_found() {
   let dir = project();
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
 
-  let issues = crate::common::issues_canon_dir(root);
-  std::fs::create_dir_all(&issues).expect("mkdir issues");
-  std::fs::write(
-    crate::common::issue_canon_file(
-      root,
-      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
-    ),
-    "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"# 0001: Pelican drift\\n\\nThe pelican index drifts after a rebuild.\\n\"\n}\n",
-  )
-  .expect("write issue canon");
+  crate::common::write_issue_canon(
+    root,
+    1,
+    serde_json::json!({
+      "slug": "pelican-drift",
+      "title": "Pelican drift",
+      "status": "open",
+      "created": "2026-08-14",
+      "body": "# 0001: Pelican drift\n\nThe pelican index drifts after a rebuild.\n"
+    }),
+  );
   restore_from_disk(root);
 
   let hits = ok(root, &["search", "pelican"]);
@@ -546,16 +548,17 @@ fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
     "# Notes\n\nA first paragraph.\n\n## Detail\n\nThe kestrel combinator returns its first argument.\n",
   )
   .expect("author prose");
-  let issues = crate::common::issues_canon_dir(root);
-  std::fs::create_dir_all(&issues).expect("mkdir issues");
-  std::fs::write(
-    crate::common::issue_canon_file(
-      root,
-      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
-    ),
-    "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"The pelican index drifts after a rebuild.\\n\"\n}\n",
-  )
-  .expect("write issue canon");
+  crate::common::write_issue_canon(
+    root,
+    1,
+    serde_json::json!({
+      "slug": "pelican-drift",
+      "title": "Pelican drift",
+      "status": "open",
+      "created": "2026-08-14",
+      "body": "The pelican index drifts after a rebuild.\n"
+    }),
+  );
   restore_from_disk(root);
 
   // The FILE's own line for the phrase, read off disk rather than the index.

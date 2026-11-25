@@ -202,31 +202,36 @@ fn an_issue_body_is_indexed_against_its_issue() {
   assert_eq!(hits[0].owner_type, "issue");
   assert_eq!(hits[0].owner_id, crate::common::issue(21).stored());
   assert_eq!(
-    hits[0].file, "intent/.canon/issues/0021.json",
-    "the hit addresses the canon that holds the prose, not a markdown file \
-     beside it -- under disk-optional there may be no such file to name"
+    hits[0].file,
+    fx.issue_canon_rel(crate::common::issue(21)),
+    "the hit addresses the canon that holds the prose, not the issue's realised \
+     view: under disk-optional there may be no such file to name"
   );
 }
 
-/// The counter-arm: a body-shaped file beside the canon is NOT a second home.
+/// The counter-arm: a body-shaped file at the issue's realised view
+/// (`Project::issue_view`, under `intent/issues/`) is NOT a second home.
 ///
 /// Without this, the test above passes whether the field is indexed or the old
 /// file branch is -- the two are indistinguishable when the fixture writes
 /// both, which is how the removed branch survived having no producer.
 #[test]
-fn a_markdown_file_beside_the_issue_canon_is_not_indexed() {
+fn a_markdown_file_at_the_issue_view_is_not_indexed() {
   let fx = Fixture::new();
   let mut issue = crate::common::sample_issue(21);
   issue.body = "# 0021\n\nThe modelled prose.\n".to_string();
   fx.write_issue(&issue);
-  fx.write_file("intent/issues/0021.md", "# 0021\n\nA quokka wrote this.\n");
+  fx.write_at(
+    &fx.project().issue_view(issue.number),
+    "# 0021\n\nA quokka wrote this.\n",
+  );
 
   let mut store = Store::open_in_memory().expect("open");
   ingest::load(&fx.project(), &mut store).expect("load");
 
   assert!(
     store.search("quokka").expect("search").is_empty(),
-    "a file beside the canon is not canon: an issue's prose has one home"
+    "a file at the issue's view is not canon: an issue's prose has one home"
   );
   assert_eq!(
     store.search("modelled").expect("search").len(),

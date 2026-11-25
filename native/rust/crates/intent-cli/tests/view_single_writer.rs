@@ -143,7 +143,10 @@ fn consumer_with_a_rendered_view() -> (tempfile::TempDir, String) {
     ],
   );
   assert_eq!(rc, 0, "create the issue: {out}");
-  let view = format!("intent/issues/{}.md", crate::common::created(&out));
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let issue =
+    intentsvcs::id::IssueId::parse(&crate::common::created(&out)).expect("a stored issue id");
+  let view = project.relative(&project.issue_view(issue));
   // D02: the store is the SSOT, and this renders every view it realises.
   let (out, rc) = run(root, &["sync", "--to-disk"]);
   assert_eq!(rc, 0, "render the view: {out}");

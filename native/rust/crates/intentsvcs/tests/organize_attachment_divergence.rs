@@ -36,7 +36,7 @@ fn canon() -> Canon {
 
 /// The path `sample_thread`'s first attachment realises to.
 fn reference_md(project: &intentsvcs::project::Project) -> PathBuf {
-  project.st_dir().join("ST0001").join("reference.md")
+  project.thread_dir("ST0001").join("reference.md")
 }
 
 /// The sha the store carries for it, taken from the one constructor rather than
@@ -179,7 +179,7 @@ fn a_nested_attachment_path_is_realised_under_the_thread() {
   // lands outside the thread directory in a real tree.
   let fx = Fixture::new();
   let project = fx.project();
-  let nested = project.st_dir().join("ST0001").join("parity/cmd-st.md");
+  let nested = project.thread_dir("ST0001").join("parity/cmd-st.md");
   let steps = plan_in(&fx, DECLARED, TreeState::default());
   assert_eq!(
     step_for(&steps, &nested).map(|s| s.action),

@@ -50,7 +50,14 @@ fn the_refusal_names_an_attachment_held_uncommitted_outside_this_commit() {
   let dir = tempfile::tempdir().expect("tempdir");
   let root = dir.path();
   let file = root.join("intent/st/ST0001/f.sh");
-  let extract = root.join("intent/.canon/st/ST0001.json");
+  // This fixture is a scratch repository, not a `Fixture`, so
+  // `Fixture::canon_rel`, the home of this path, is out of its reach. It has
+  // no Intent config, so no `Project` opens on it, and the library does not
+  // export the default intent directory. So the path is `canon_thread_rel`,
+  // the project's own spelling of the canon path, under `intent/`, the
+  // default intent directory.
+  let extract_rel = format!("intent/{}", intentsvcs::project::canon_thread_rel("ST0001"));
+  let extract = root.join(&extract_rel);
   std::fs::create_dir_all(file.parent().expect("parent")).expect("mkdir");
   std::fs::create_dir_all(extract.parent().expect("parent")).expect("mkdir");
 
@@ -63,7 +70,7 @@ fn the_refusal_names_an_attachment_held_uncommitted_outside_this_commit() {
   // A peer's edit, uncommitted, and canon regenerated from a store that took it.
   std::fs::write(&file, b"new\n").expect("write");
   std::fs::write(&extract, canon(b"new\n")).expect("write");
-  git(root, &["add", "intent/.canon/st/ST0001.json"]);
+  git(root, &["add", &extract_rel]);
 
   let out = command("bash", root)
     .arg(

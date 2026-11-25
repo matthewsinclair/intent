@@ -55,6 +55,13 @@ fn ids(v: &[String]) -> Vec<&str> {
   v.iter().map(String::as_str).collect()
 }
 
+/// The denominator a readable declaration of `declared` entries prints: the
+/// gate checks every entry it declares. A test takes `declared` from the
+/// entries it wrote, so no count is written by hand.
+fn denominator(declared: usize) -> String {
+  format!("{declared} checked of {declared} declared")
+}
+
 // ---------------------------------------------------------------------------
 // THE DECLARATION IS READ, NOT RESTATED
 // ---------------------------------------------------------------------------
@@ -165,25 +172,31 @@ fn every_unmet_precondition_is_named_not_just_the_first() {
 fn the_denominator_is_printed_on_both_answers() {
   // A gate that prints its counts only when it refuses cannot be told, on a
   // quiet run, from a gate that checked nothing.
-  let refusing = preconditions::check(&canon_of(vec![declaring_thread(&[
+  let refusing_entries = [
     (
       "AC-00.3",
       AcKind::NonTest,
       AcState::Unsatisfied { note: None },
     ),
     ("AC-00.4", AcKind::NonTest, met("landed")),
-  ])]));
-  let permitting = preconditions::check(&canon_of(vec![declaring_thread(&[
+  ];
+  let permitting_entries = [
     ("AC-00.3", AcKind::NonTest, met("landed")),
     ("AC-00.4", AcKind::NonTest, met("landed")),
-  ])]));
+  ];
+  let refusing = preconditions::check(&canon_of(vec![declaring_thread(&refusing_entries)]));
+  let permitting = preconditions::check(&canon_of(vec![declaring_thread(&permitting_entries)]));
 
   assert!(
-    refusing.to_string().contains("2 checked of 2 declared"),
+    refusing
+      .to_string()
+      .contains(&denominator(refusing_entries.len())),
     "got: {refusing}"
   );
   assert!(
-    permitting.to_string().contains("2 checked of 2 declared"),
+    permitting
+      .to_string()
+      .contains(&denominator(permitting_entries.len())),
     "the permitting answer prints the same pair, or a quiet run proves nothing: {permitting}"
   );
   assert_eq!(refusing.checked().len(), refusing.declared().len());
@@ -486,9 +499,10 @@ fn no_refusal_this_gate_can_produce_names_this_project_s_own_paperwork() {
   ];
   for why in every {
     let rendered = why.to_string();
+    let leaked = crate::common::tracker_ids(&rendered);
     assert!(
-      !rendered.contains("ST00") && !rendered.contains("AC-0"),
-      "a shipped refusal must not name this project's own paperwork: {rendered}"
+      leaked.is_empty(),
+      "a shipped refusal must not name this project's own paperwork ({leaked:?}): {rendered}"
     );
   }
 }
@@ -560,17 +574,15 @@ fn materialise(p: &intentsvcs::organize::Plan) {
 #[test]
 fn no_file_is_removed_while_a_precondition_is_unmet() {
   let fx = Fixture::new();
-  let (doomed, p) = one_removal(
-    &fx,
-    declaring_thread(&[
-      (
-        "AC-00.3",
-        AcKind::NonTest,
-        AcState::Unsatisfied { note: None },
-      ),
-      ("AC-00.4", AcKind::NonTest, met("landed")),
-    ]),
-  );
+  let declared = [
+    (
+      "AC-00.3",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
+    ("AC-00.4", AcKind::NonTest, met("landed")),
+  ];
+  let (doomed, p) = one_removal(&fx, declaring_thread(&declared));
   let report = p
     .run(Mode::Apply, &|| "digest".to_string())
     .expect("apply returns");
@@ -593,7 +605,7 @@ fn no_file_is_removed_while_a_precondition_is_unmet() {
   let rendered = refusal.to_string();
   assert!(rendered.contains("AC-00.3"), "got: {rendered}");
   assert!(
-    rendered.contains("1 checked of 2 declared") || rendered.contains("2 checked of 2 declared"),
+    rendered.contains(&denominator(declared.len())),
     "the refusal must print the denominator: {rendered}"
   );
 }
@@ -657,8 +669,10 @@ fn one_refusal_covers_the_run_rather_than_one_per_file() {
     "digest".to_string(),
   );
   assert!(
-    p.with(Action::Dehydrate).count() >= 3,
-    "the fixture must offer several removals for this to measure anything"
+    p.with(Action::Dehydrate).count() >= present.len(),
+    "the fixture placed {} views of threads it does not realise, and the plan offers fewer \
+     removals than that, so this test measures too little",
+    present.len()
   );
   materialise(&p);
   let candidates: Vec<_> = p.with(Action::Dehydrate).map(|s| s.path.clone()).collect();

@@ -24,17 +24,18 @@ use intentsvcs::organize::{Mode, OrganizeError, Report};
 use intentsvcs::remedy::Remedy;
 use serde_json::json;
 
-const COVER: &str = "intent/st/ST0001/info.md";
 const HAND_LINE: &str = "A line written by hand under the Objective.";
 
 fn thread() -> Address {
-  Address {
-    authority: None,
-    entity: Entity::Thread {
-      id: "ST0001".to_string(),
-    },
-    format: None,
-  }
+  Address::local(Entity::Thread {
+    id: "ST0001".to_string(),
+  })
+}
+
+/// The thread's realised cover, where the fixture's project keeps it
+/// (`Project::info_view`), so no test spells its path.
+fn cover_of(fx: &Fixture) -> std::path::PathBuf {
+  fx.project().info_view("ST0001")
 }
 
 /// cc's measured sequence, to the point the copy goes back: realise the
@@ -49,11 +50,12 @@ fn put_back(fx: &Fixture, move_store: bool, edit: bool) -> (Facade, String) {
   fx.write_manifest("STEELTHREAD:ST0001\nSTEELTHREAD:ST0057\n");
   let mut f = fx.facade();
   f.hydrate(&thread()).expect("a declared thread realises");
-  let kept = fx.read(COVER);
+  let cover = cover_of(fx);
+  let kept = fx.read_at(&cover);
 
   f.dehydrate(&thread()).expect("dehydrate");
   assert!(
-    !fx.path(COVER).exists(),
+    !cover.exists(),
     "the dehydrated thread's cover is still on disk"
   );
   if move_store {
@@ -77,51 +79,53 @@ fn put_back(fx: &Fixture, move_store: bool, edit: bool) -> (Facade, String) {
     !edit || copy.contains(HAND_LINE),
     "the hand edit did not land in the copy, so this arm proves nothing"
   );
-  fx.write_file(COVER, &copy);
+  fx.write_at(&cover, &copy);
   let manifest = fx.read_manifest();
   fx.write_manifest(&format!("{manifest}STEELTHREAD:ST0001\n"));
   (f, copy)
 }
 
-fn named(paths: &[std::path::PathBuf]) -> bool {
-  paths.iter().any(|p| p.ends_with(COVER))
+/// Whether `paths` names the cover at `cover`.
+fn named(paths: &[std::path::PathBuf], cover: &std::path::Path) -> bool {
+  paths.iter().any(|p| p == cover)
 }
 
-fn cover_refusal(report: &Report) -> Option<&OrganizeError> {
+fn cover_refusal<'a>(report: &'a Report, cover: &std::path::Path) -> Option<&'a OrganizeError> {
   report
     .refused
     .iter()
-    .find(|e| matches!(e, OrganizeError::CoverDiverged { path, .. } if path.ends_with(COVER)))
+    .find(|e| matches!(e, OrganizeError::CoverDiverged { path, .. } if path == cover))
 }
 
 /// The preview and the act over a kept copy: `diverged` in both, the refusal
 /// in both naming the sync, nothing rewritten, and the file byte for byte the
 /// copy put back.
 fn assert_kept(fx: &Fixture, f: &mut Facade, copy: &str) {
+  let cover = cover_of(fx);
   let preview = f.organize(Mode::Preview).expect("preview");
   assert!(
-    named(&preview.diverged),
+    named(&preview.diverged, &cover),
     "the preview did not name the cover diverged: {:?}",
     preview.diverged
   );
   assert!(
-    !named(&preview.rewritten),
+    !named(&preview.rewritten, &cover),
     "the preview would rewrite the cover: {:?}",
     preview.rewritten
   );
 
   let report = f.organize(Mode::Apply).expect("apply");
   assert!(
-    !named(&report.rewritten),
+    !named(&report.rewritten, &cover),
     "--apply rewrote the cover: {:?}",
     report.rewritten
   );
   assert!(
-    named(&report.diverged),
+    named(&report.diverged, &cover),
     "--apply did not name the cover diverged: {:?}",
     report.diverged
   );
-  let refusal = cover_refusal(&report)
+  let refusal = cover_refusal(&report, &cover)
     .unwrap_or_else(|| panic!("--apply did not refuse the cover: {:?}", report.refused));
   assert!(
     refusal.remedy().contains("intent sync --to-store ST0001"),
@@ -129,7 +133,7 @@ fn assert_kept(fx: &Fixture, f: &mut Facade, copy: &str) {
     refusal.remedy()
   );
   assert_eq!(
-    fx.read(COVER),
+    fx.read_at(&cover),
     copy,
     "the cover on disk is not the copy put back"
   );
@@ -141,7 +145,7 @@ fn a_hand_edited_cover_put_back_and_re_declared_is_kept() {
   let (mut f, copy) = put_back(&fx, true, true);
   assert_kept(&fx, &mut f, &copy);
   assert!(
-    fx.read(COVER).contains(HAND_LINE),
+    fx.read_at(&cover_of(&fx)).contains(HAND_LINE),
     "the hand-written line is gone"
   );
 }
@@ -150,13 +154,14 @@ fn a_hand_edited_cover_put_back_and_re_declared_is_kept() {
 fn an_unedited_copy_over_an_unmoved_store_is_rendered_as_before() {
   let fx = Fixture::ordinal();
   let (mut f, _) = put_back(&fx, false, false);
+  let cover = cover_of(&fx);
   let report = f.organize(Mode::Apply).expect("apply");
   assert!(
-    named(&report.rewritten) || named(&report.unchanged),
+    named(&report.rewritten, &cover) || named(&report.unchanged, &cover),
     "the cover was neither rewritten nor found unchanged: {report:?}"
   );
   assert!(
-    !named(&report.diverged) && cover_refusal(&report).is_none(),
+    !named(&report.diverged, &cover) && cover_refusal(&report, &cover).is_none(),
     "a cover agreeing with the store was held: {report:?}"
   );
 }

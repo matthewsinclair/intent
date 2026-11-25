@@ -39,7 +39,7 @@ fn canon() -> Canon {
 }
 
 fn in_thread(fx: &Fixture, name: &str) -> PathBuf {
-  fx.project().st_dir().join("ST0001").join(name)
+  fx.project().thread_dir("ST0001").join(name)
 }
 
 fn step_for<'a>(steps: &'a [Step], path: &PathBuf) -> Option<&'a Step> {

@@ -410,7 +410,11 @@ fn a_store_git_tracks_is_named_until_it_is_untracked() {
   let (_, err, code) = run(&["st", "new", "A thread"], root);
   assert_eq!(code, 0, "st new: {err}");
   git_ready(root);
-  git(root, &["add", "-f", "intent/.cache/intent.db"]);
+  // The git commands take the store's path from its home. The assertions below
+  // spell the command the verb prints, which is what a user reads.
+  let project = intentsvcs::project::Project::open(root).expect("the project init made");
+  let store = project.relative(&project.db_path());
+  git(root, &["add", "-f", &store]);
   git(
     root,
     &["commit", "-q", "-m", "the store, as 3.0 committed it"],
@@ -429,7 +433,7 @@ fn a_store_git_tracks_is_named_until_it_is_untracked() {
     "a default doctor shows it, with the command: {said}"
   );
 
-  git(root, &["rm", "-q", "--cached", "intent/.cache/intent.db"]);
+  git(root, &["rm", "-q", "--cached", &store]);
   git(root, &["add", "-A"]);
   git(
     root,
@@ -493,6 +497,12 @@ fn the_upgrade_names_every_path_it_changed_and_its_two_steps_commit_them() {
   assert_eq!(code, 0, "the 3.4.0 project renders its views: {err}");
   git_ready(root);
   // 3.4.0 committed its aggregate views: every file git ignores but the store.
+  let cache = crate::common::dir_prefix(
+    root,
+    &intentsvcs::project::Project::open(root)
+      .expect("the 3.4.0 project")
+      .cache_dir(),
+  );
   let ignored: Vec<String> = nul_paths(&git_out(
     root,
     &[
@@ -504,7 +514,7 @@ fn the_upgrade_names_every_path_it_changed_and_its_two_steps_commit_them() {
     ],
   ))
   .into_iter()
-  .filter(|path| !path.starts_with("intent/.cache/"))
+  .filter(|path| !path.starts_with(&cache))
   .collect();
   assert!(
     !ignored.is_empty(),
@@ -520,11 +530,12 @@ fn the_upgrade_names_every_path_it_changed_and_its_two_steps_commit_them() {
 
   let (_, err, code) = run(&["upgrade"], root);
   assert_eq!(code, 0, "upgrade: {err}");
-  let paths_file = "intent/.cache/upgrade.paths";
-  let manifest_path = root.join(paths_file);
+  let project = intentsvcs::project::Project::open(root).expect("the upgraded project");
+  let manifest_path = project.upgrade_paths();
+  let paths_file = project.relative(&manifest_path);
   let manifest = nul_paths(&std::fs::read(&manifest_path).expect("the manifest is written"));
   assert!(
-    manifest.contains("intent/.intentfiles"),
+    manifest.contains(&project.relative(&project.intentfiles_path())),
     "the first upgrade does not name the manifest it folded and removed: {err}"
   );
   let untracked: std::collections::BTreeSet<String> = err
@@ -613,7 +624,7 @@ fn the_upgrade_removes_a_tracked_view_of_an_unrealised_record_and_its_commit_pas
   // Realised as 3.4.0 realised it, through the verb that hydrates.
   let (_, err, code) = run(&["st", "hydrate", &st], root);
   assert_eq!(code, 0, "the 3.4.0 project realises its thread: {err}");
-  let cover = project.st_dir().join(&st).join("info.md");
+  let cover = project.info_view(&st);
   // **THE CONTROL**: 3.4.0's cover tables each package by title, and the
   // release's cover replaces the table with a pointer to `intent wp list`. So
   // this cover differs from its release render in text a person could have
@@ -626,7 +637,10 @@ fn the_upgrade_removes_a_tracked_view_of_an_unrealised_record_and_its_commit_pas
   git_ready(root);
   // 0707's residue: the thread leaves the manifest and its views stay tracked.
   crate::common::seed_init_manifest(root);
-  git(root, &["add", "--", "intent/.intentfiles"]);
+  git(
+    root,
+    &["add", "--", &project.relative(&project.intentfiles_path())],
+  );
   git(
     root,
     &[
@@ -647,9 +661,9 @@ fn the_upgrade_removes_a_tracked_view_of_an_unrealised_record_and_its_commit_pas
       )),
     "the upgrade did not remove and name the cover 3.4.0's format renders: {err}"
   );
-  let paths_file = "intent/.cache/upgrade.paths";
+  let paths_file = project.relative(&project.upgrade_paths());
   assert!(
-    nul_paths(&std::fs::read(root.join(paths_file)).expect("the paths file is written"))
+    nul_paths(&std::fs::read(project.upgrade_paths()).expect("the paths file is written"))
       .contains(&cover_rel),
     "the paths file does not carry the cover's deletion: {err}"
   );

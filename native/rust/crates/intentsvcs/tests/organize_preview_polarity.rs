@@ -441,7 +441,7 @@ fn unclaimed_report(fx: &Fixture, names: &[&str]) -> (std::path::PathBuf, Report
   let project = fx.project();
   let present: std::collections::BTreeSet<std::path::PathBuf> = names
     .iter()
-    .map(|n| project.st_dir().join("ST0002").join(n))
+    .map(|n| project.thread_dir("ST0002").join(n))
     .collect();
   let p = plan(
     &project,

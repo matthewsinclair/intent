@@ -44,6 +44,66 @@ pub fn issue(ordinal: u32) -> IssueId {
   IssueId::from_ordinal(ordinal).expect("an issue ordinal that fits its width")
 }
 
+/// Whether a word starts at byte `i` of `bytes`: `i` is 0, or the byte before
+/// it is not an ASCII letter, digit, or `_`. The one left boundary of an id in a
+/// text in this test crate, which [`tracker_id_at`] asks.
+pub fn starts_word(bytes: &[u8], i: usize) -> bool {
+  i == 0 || !(bytes[i - 1].is_ascii_alphanumeric() || bytes[i - 1] == b'_')
+}
+
+/// The end of Intent's own tracker id that starts at byte `i` of `bytes`, if
+/// one does (D37). An id starts a word ([`starts_word`]), so `XST0056` and
+/// `_ST0056` hold no id. The id waist reads the id, and its readers go in this
+/// order: a record's id as a face prints it (`id::marked`), which runs to the
+/// next byte that is not a letter or a digit; a criterion or test label
+/// (`id::label_at`); and a bare head-number (`id::head_number_at`). A package's
+/// heading keeps its `WP-`. Each reader leaves out its format examples, so
+/// `ST0000` and `AC-0.0` are not ours.
+pub fn tracker_id_at(bytes: &[u8], i: usize) -> Option<usize> {
+  let rest = bytes.get(i..)?;
+  if !starts_word(bytes, i) {
+    return None;
+  }
+  let heading = intentsvcs::id::WP_HEADING_PREFIX.as_bytes();
+  let from = if rest.starts_with(heading) {
+    i + heading.len()
+  } else {
+    i
+  };
+  let word = (from..bytes.len())
+    .find(|&at| !bytes[at].is_ascii_alphanumeric())
+    .unwrap_or(bytes.len());
+  let record = std::str::from_utf8(&bytes[i..word])
+    .ok()
+    .filter(|w| intentsvcs::id::marked(w).is_some() && !intentsvcs::id::is_example(w))
+    .map(|_| word);
+  record
+    .or_else(|| intentsvcs::id::label_at(bytes, i))
+    .or_else(|| intentsvcs::id::head_number_at(bytes, i))
+}
+
+/// Intent's own tracker ids in `text`, in the order they occur: the id that
+/// [`tracker_id_at`] reads at each place.
+///
+/// **ONE READER IN EACH TEST CRATE** (ST1c2db93 close sweep, F3).
+/// [`tracker_id_at`] is the one reader of a tracker id at a place in text in
+/// each test crate. In intent-cli's tests, `identifier_at` in
+/// `no_pm_state_in_output.rs` asks that crate's copy and adds design-decision
+/// and issue numbers. `is_dev_id` in
+/// `register_text_carries_no_maintainer_notes.rs` reads a whole word through
+/// the same waist calls and adds invariant and TN ids. The twins of these two
+/// functions are in `intent-cli/tests/common/mod.rs`. A test crate cannot use
+/// another test crate's common module, so each crate keeps one copy. Change
+/// the two together.
+pub fn tracker_ids(text: &str) -> Vec<String> {
+  (0..text.len())
+    .filter_map(|i| {
+      let end = tracker_id_at(text.as_bytes(), i)?;
+      text.get(i..end).map(str::to_string)
+    })
+    .collect()
+}
+
 pub fn ctx() -> RenderContext<'static> {
   RenderContext {
     version: VERSION,
@@ -913,12 +973,17 @@ pub fn git_at(root: &Path, args: &[&str]) {
 /// *nothing was written* is structurally blind to exactly the artefact D01
 /// -reversed calls authoritative.
 pub fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
+  // A directory, an entry or a file that cannot be read stops the test and
+  // names the path, because a snapshot that left it out would compare less
+  // than the test claims. The walk does not go into `.git`, which the snapshot
+  // leaves out by design.
   fn walk(dir: &Path, root: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-      return;
-    };
-    for entry in entries.flatten() {
-      let path = entry.path();
+    let entries = std::fs::read_dir(dir)
+      .unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+    for entry in entries {
+      let path = entry
+        .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+        .path();
       // **`.git` IS NOT PART OF THE ESTATE, AND A SNAPSHOT THAT INCLUDES IT IS
       // ASSERTING ON SOMETHING NO TEST MEANS.** Harmless while no fixture was a
       // repository; `0271` makes migration fixtures git repositories, so every
@@ -931,14 +996,15 @@ pub fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
       }
       if path.is_dir() {
         walk(&path, root, out);
-      } else if let Ok(bytes) = std::fs::read(&path) {
-        let rel = path
-          .strip_prefix(root)
-          .expect("under root")
-          .to_string_lossy()
-          .into_owned();
-        out.insert(rel, bytes);
+        continue;
       }
+      let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+      let rel = path
+        .strip_prefix(root)
+        .expect("under root")
+        .to_string_lossy()
+        .into_owned();
+      out.insert(rel, bytes);
     }
   }
   let mut out = BTreeMap::new();

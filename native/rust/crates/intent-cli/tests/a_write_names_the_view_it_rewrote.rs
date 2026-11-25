@@ -263,9 +263,12 @@ fn a_mutation_whose_view_cannot_land_exits_zero_and_names_the_step() {
   );
   assert_eq!(code, 0, "precondition: the issue files: {err}");
   let issue = crate::common::created(&out);
-  let issues = root.join("intent/issues");
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let issues = project.issues_view_dir();
   assert!(
-    issues.join(format!("{issue}.md")).is_file(),
+    project
+      .issue_view(intentsvcs::id::IssueId::parse(&issue).expect("a stored issue id"))
+      .is_file(),
     "precondition: the issue's view is realised, so the edit has a view to write"
   );
   let mode = read_only(&issues);

@@ -72,25 +72,22 @@ fn a_text_attachment_goes_inline_and_an_opaque_one_goes_to_a_sidecar() {
     Attachment::opaque("logo.png", NOT_UTF8),
   ];
   fx.write_thread(&thread);
+  let intent = fx.project().intent_dir();
 
   let bundle = intentsvcs::export::Bundle::new("form", vec![thread], Vec::new(), Vec::new());
   for (rel, body) in intentsvcs::export::canon_parts(&bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
   let blobs = intentsvcs::export::canon_blobs(&bundle);
   for (rel, bytes) in &blobs {
-    let path = fx.path(&format!("intent/{rel}"));
+    let path = intent.join(rel);
     std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
     std::fs::write(&path, bytes).expect("write");
   }
 
   let json: Value = serde_json::from_str(&fx.read_canon("ST0001")).expect("canon is JSON");
-  let text_sidecar = fx
-    .path(&format!("intent/{}", canon_blob_rel("ST0001", "notes.md")))
-    .exists();
-  let opaque_sidecar = fx
-    .path(&format!("intent/{}", canon_blob_rel("ST0001", "logo.png")))
-    .exists();
+  let text_sidecar = intent.join(canon_blob_rel("ST0001", "notes.md")).exists();
+  let opaque_sidecar = intent.join(canon_blob_rel("ST0001", "logo.png")).exists();
 
   assert_eq!(
     stored(&json, 0, text_sidecar),
@@ -163,14 +160,14 @@ fn a_text_attachment_that_also_has_a_sidecar_is_detected() {
   let mut thread = sample_thread("ST0001");
   thread.attachments = vec![Attachment::new("notes.md", "# Notes\n")];
   fx.write_thread(&thread);
+  let intent = fx.project().intent_dir();
 
   let bundle = intentsvcs::export::Bundle::new("form", vec![thread], Vec::new(), Vec::new());
   for (rel, body) in intentsvcs::export::canon_parts(&bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
 
-  let rel = canon_blob_rel("ST0001", "notes.md");
-  let path = fx.path(&format!("intent/{rel}"));
+  let path = intent.join(canon_blob_rel("ST0001", "notes.md"));
   std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
   std::fs::write(&path, b"# Notes\n").expect("plant the sidecar");
 
@@ -246,16 +243,14 @@ fn a_planted_violation_is_reported_by_the_same_sweep() {
     Attachment::opaque("missing.png", NOT_UTF8),
   ];
   fx.write_thread(&thread);
+  let intent = fx.project().intent_dir();
   let bundle = intentsvcs::export::Bundle::new("form", vec![thread], Vec::new(), Vec::new());
   for (rel, body) in intentsvcs::export::canon_parts(&bundle).expect("canon serialises") {
-    fx.write_file(&format!("intent/{rel}"), &body);
+    fx.write_at(&intent.join(rel), &body);
   }
   // `doubled.md` is text AND gets a sibling. `missing.png` is opaque and its
   // sidecar is deliberately never written.
-  let planted = fx.path(&format!(
-    "intent/{}",
-    canon_blob_rel("ST0001", "doubled.md")
-  ));
+  let planted = intent.join(canon_blob_rel("ST0001", "doubled.md"));
   std::fs::create_dir_all(planted.parent().expect("parent")).expect("mkdir");
   std::fs::write(&planted, b"# Doubled\n").expect("plant");
 

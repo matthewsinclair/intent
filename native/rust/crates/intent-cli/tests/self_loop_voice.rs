@@ -69,15 +69,16 @@ fn seed(root: &Path) {
       ]
     }),
   );
-  std::fs::create_dir_all(crate::common::issues_canon_dir(root)).expect("mkdir issues");
-  std::fs::write(
-    crate::common::issue_canon_file(
-      root,
-      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
-    ),
-    "{\"schema\":\"intent/issue@3.0\",\"number\":1,\"slug\":\"a-thing\",\"title\":\"A thing\",\"status\":\"open\",\"created\":\"2026-08-01\"}\n",
-  )
-  .expect("write issue");
+  crate::common::write_issue_canon(
+    root,
+    1,
+    serde_json::json!({
+      "slug": "a-thing",
+      "title": "A thing",
+      "status": "open",
+      "created": "2026-08-01"
+    }),
+  );
 }
 
 fn run(root: &Path, args: &[&str]) -> Output {
@@ -155,10 +156,15 @@ fn wp_state(root: &Path) -> String {
 /// why it survived: `red` is spelled the same on the wire and to a human. `n/a` is
 /// not -- it is `n-a` in the JSON canon -- so a literal would have been right for
 /// three of the four statuses and wrong for the one that mattered (issue 0056).
+///
+/// The row is the line whose first word is `at`, compared whole, and the
+/// status is that row's second word. A prefix match is not used: `AT-01.1` as
+/// a prefix also matches the row of `AT-01.10`. A match anywhere in the line is
+/// not used either, because another row's text can name `at`.
 fn at_state(root: &Path, at: &str) -> String {
   stdout(&run(root, &["at", "list", "ST0001"]))
     .lines()
-    .find(|l| l.starts_with(at))
+    .find(|l| l.split_whitespace().next() == Some(at))
     .and_then(|l| l.split_whitespace().nth(1))
     .unwrap_or_else(|| panic!("no `{at}` row in `at list`"))
     .to_string()

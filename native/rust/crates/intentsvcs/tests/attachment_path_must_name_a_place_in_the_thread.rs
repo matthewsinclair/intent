@@ -43,14 +43,10 @@ fn fixture() -> Fixture {
 }
 
 fn address(path: &str) -> Address {
-  Address {
-    authority: None,
-    entity: Entity::Attachment {
-      thread: "ST0001".to_string(),
-      path: path.to_string(),
-    },
-    format: None,
-  }
+  Address::local(Entity::Attachment {
+    thread: "ST0001".to_string(),
+    path: path.to_string(),
+  })
 }
 
 fn paths(f: &mut intentsvcs::facade::Facade) -> Vec<String> {

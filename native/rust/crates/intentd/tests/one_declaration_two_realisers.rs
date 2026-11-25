@@ -61,7 +61,7 @@ fn stored_beside(root: &std::path::Path, id: &str, beside: &Thread) -> Thread {
 /// The edit, made the way the TUI realiser makes it: straight at the facade.
 fn through_the_in_process_door(root: &std::path::Path, id: &str, title: &str) {
   let address =
-    intentsvcs::address::parse(&format!("intent:///threads/{id}")).expect("an addressable thread");
+    intentsvcs::address::Address::local(intentsvcs::address::Entity::Thread { id: id.to_string() });
   open(root)
     .set(&address, "title", title.into())
     .expect("the title is settable");

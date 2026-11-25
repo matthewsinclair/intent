@@ -233,21 +233,20 @@ fn no_unbuilt_command_leaks_intents_own_project_state() {
     String::from_utf8_lossy(&out.stderr).to_string()
   };
 
+  // `every_shipped_family_in_the_table_reaches_the_surface` and
+  // `a_retired_family_does_not_reach_the_surface` compare the surface with the
+  // table. This sweep does not compare them again, and no other count of the
+  // surface exists, so its precondition is only that it has a family to walk.
   let families = surface_families();
-  assert!(
-    families.len() > 5,
-    "the sweep found almost no surface to walk: {families:?}"
-  );
+  assert!(!families.is_empty(), "the sweep found no surface to walk");
 
   let mut leaks = Vec::new();
   let mut seen = 0;
   for family in &families {
     let text = run(&[family.as_str()]);
     seen += 1;
-    for leak in ["ST00", "WP-", "AC-", "AT-"] {
-      if text.contains(leak) {
-        leaks.push(format!("`intent {family}` says {leak}: {}", text.trim()));
-      }
+    for leak in crate::common::tracker_ids(&text) {
+      leaks.push(format!("`intent {family}` says {leak}: {}", text.trim()));
     }
   }
 

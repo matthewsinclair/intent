@@ -86,18 +86,17 @@ fn seed(root: &Path) {
     }),
   );
 
-  std::fs::create_dir_all(crate::common::issues_canon_dir(root)).expect("mkdir issues");
-  std::fs::write(
-    crate::common::issue_canon_file(
-      root,
-      intentsvcs::id::IssueId::from_ordinal(1).expect("an issue ordinal"),
-    ),
-    r#"{ "schema": "intent/issue@3.0", "number": 1, "slug": "probe",
-  "title": "Probe issue", "status": "open", "created": "2026-08-17",
-  "severity": "low" }
-"#,
-  )
-  .expect("write issue");
+  crate::common::write_issue_canon(
+    root,
+    1,
+    serde_json::json!({
+      "slug": "probe",
+      "title": "Probe issue",
+      "status": "open",
+      "created": "2026-08-17",
+      "severity": "low"
+    }),
+  );
 }
 
 /// Returns the two channels SEPARATELY, and that separation is the point.

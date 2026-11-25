@@ -48,13 +48,9 @@ fn st_dehydrate_forgets_the_views_it_removes() {
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_thread(&gate_open());
   let mut f = fx.facade();
-  let at = Address {
-    authority: None,
-    entity: Entity::Thread {
-      id: "ST0001".to_string(),
-    },
-    format: None,
-  };
+  let at = Address::local(Entity::Thread {
+    id: "ST0001".to_string(),
+  });
   f.hydrate(&at).expect("a declared thread realises");
   f.take_landed();
   let before = rows(&f);

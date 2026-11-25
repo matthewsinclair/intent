@@ -334,13 +334,11 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
 
   let mut facade = Facade::open(project.clone(), facade_ctx()).expect("open the upgraded project");
   facade
-    .hydrate(&intentsvcs::address::Address {
-      authority: None,
-      entity: intentsvcs::address::Entity::Thread {
+    .hydrate(&intentsvcs::address::Address::local(
+      intentsvcs::address::Entity::Thread {
         id: "ST0004".to_string(),
       },
-      format: None,
-    })
+    ))
     .expect("a completed thread hydrates by hand");
   assert!(
     facade.st_show("ST0004").expect("ST0004").realised,

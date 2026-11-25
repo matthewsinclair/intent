@@ -24,7 +24,7 @@
 //! capabilities is not satisfied by one of them plus a refusal.
 
 use crate::common::{Fixture, sample_thread};
-use intentsvcs::address::parse;
+use intentsvcs::address::{Entity, parse};
 
 const NEW_AT: &str = r#"{"id":"AT-09.1","kind":"test",
   "file":"native/rust/crates/intentsvcs/tests/new.rs",
@@ -177,9 +177,11 @@ fn post_to_the_collection_creates_and_returns_the_new_address() {
   );
 
   // And the address it handed back actually resolves to the thing it made.
-  let id = url.rsplit('/').next().expect("an id");
+  let Entity::Thread { id } = parse(&url).expect("the returned address parses").entity else {
+    panic!("the returned address names a thread: {url}");
+  };
   assert_eq!(
-    facade.st_show(id).expect("the posted thread exists").title,
+    facade.st_show(&id).expect("the posted thread exists").title,
     "a thread the caller could not have named",
     "the returned address is usable -- an address naming nothing is not a create"
   );

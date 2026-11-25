@@ -819,14 +819,15 @@ fn edgeless_reaches_every_row_that_declares_no_edges() {
   );
 }
 
-/// Whether a note is free of Intent's own thread and work-package ids.
+/// Whether a note is free of Intent's own tracker ids, as
+/// `crate::common::tracker_ids` reads them.
 ///
-/// Deliberately narrow and deliberately here rather than shared: this is one
-/// last check at the point the string is DECLARED, and the emitted surfaces are
-/// covered end-to-end by `intent-cli`'s `no_pm_state_in_output.rs`, which
-/// drives the binary instead of reading the source.
+/// This is one last check at the point the string is DECLARED. The emitted
+/// surfaces are covered end-to-end by `intent-cli`'s
+/// `no_pm_state_in_output.rs`, which drives the binary instead of reading the
+/// source.
 fn pm_free(note: &str) -> bool {
-  !note.contains("WP-") && !note.contains("ST00")
+  crate::common::tracker_ids(note).is_empty()
 }
 
 // ---------------------------------------------------------------------------

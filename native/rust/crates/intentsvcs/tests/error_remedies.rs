@@ -396,13 +396,11 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "an address that is not an artefact",
     facade
-      .hydrate(&intentsvcs::address::Address {
-        authority: None,
-        entity: intentsvcs::address::Entity::Event {
+      .hydrate(&intentsvcs::address::Address::local(
+        intentsvcs::address::Entity::Event {
           id: "1".to_string(),
         },
-        format: None,
-      })
+      ))
       .expect_err("an event has no file form"),
   ));
   // **PROVOKED, AND IT NEEDS NOTHING BROKEN EITHER: a date the caller typed.**
@@ -433,13 +431,9 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "a field a state machine owns",
     facade
       .set(
-        &intentsvcs::address::Address {
-          authority: None,
-          entity: intentsvcs::address::Entity::Thread {
-            id: "ST0056".to_string(),
-          },
-          format: None,
-        },
+        &intentsvcs::address::Address::local(intentsvcs::address::Entity::Thread {
+          id: "ST0056".to_string(),
+        }),
         "status",
         serde_json::json!("done"),
       )
@@ -945,13 +939,9 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   let dehydrating = Fixture::ordinal();
   dehydrating.write_thread(&sample_thread("ST0056"));
   let mut d = dehydrating.facade();
-  let st0056 = intentsvcs::address::Address {
-    authority: None,
-    entity: intentsvcs::address::Entity::Thread {
-      id: "ST0056".to_string(),
-    },
-    format: None,
-  };
+  let st0056 = intentsvcs::address::Address::local(intentsvcs::address::Entity::Thread {
+    id: "ST0056".to_string(),
+  });
   // A manifest that parses and declares the thread, so `unpin` has something to
   // remove and the plan classifies the thread's files as this run's to act on.
   std::fs::write(
@@ -1021,14 +1011,10 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "an attachment path relative to the repository",
     facade
       .put_attachment(
-        &intentsvcs::address::Address {
-          authority: None,
-          entity: intentsvcs::address::Entity::Attachment {
-            thread: "ST0056".to_string(),
-            path: "intent/st/ST0056/parity/probe.txt".to_string(),
-          },
-          format: None,
-        },
+        &intentsvcs::address::Address::local(intentsvcs::address::Entity::Attachment {
+          thread: "ST0056".to_string(),
+          path: "intent/st/ST0056/parity/probe.txt".to_string(),
+        }),
         b"PROBE\n",
       )
       .expect_err("a repo-relative attachment path names nowhere in the thread"),
@@ -1049,14 +1035,12 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "a detach of an attachment the thread does not carry",
     facade
-      .detach_attachment(&intentsvcs::address::Address {
-        authority: None,
-        entity: intentsvcs::address::Entity::Attachment {
+      .detach_attachment(&intentsvcs::address::Address::local(
+        intentsvcs::address::Entity::Attachment {
           thread: "ST0056".to_string(),
           path: "never-attached.md".to_string(),
         },
-        format: None,
-      })
+      ))
       .expect_err("ST0056 carries no attachment at never-attached.md"),
   ));
   // **`0460`'s THREE REFUSALS, PROVOKED.** A link to a thread that does not

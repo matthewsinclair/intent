@@ -25,10 +25,7 @@ fn case_variant_of(own: &str) -> ThreadFile {
 fn thread_holding(rel: &str) -> Fixture {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
-  fx.write_file(
-    &format!("intent/st/ST0001/{rel}"),
-    "# the author's own notes\n",
-  );
+  fx.write_prose("ST0001", rel, "# the author's own notes\n");
   fx
 }
 

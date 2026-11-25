@@ -49,15 +49,17 @@ use intentsvcs::address::{AddressError, SCHEME, parse};
 use intentsvcs::project::{Project, ThreadFile, attachment_name};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use testkit::repo_root;
 
-/// Every file under `dir`, recursively.
+/// Every file under `dir`, recursively. A directory or an entry the walk
+/// cannot read stops the test and names the path, because a walk that left it
+/// out would examine less of the estate than the test claims.
 fn files_under(dir: &Path, out: &mut Vec<PathBuf>) {
-  let Ok(entries) = std::fs::read_dir(dir) else {
-    return;
-  };
-  for entry in entries.flatten() {
-    let path = entry.path();
+  let entries =
+    std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read the directory {}: {e}", dir.display()));
+  for entry in entries {
+    let path = entry
+      .unwrap_or_else(|e| panic!("read an entry of {}: {e}", dir.display()))
+      .path();
     match path.is_dir() {
       true => files_under(&path, out),
       false => out.push(path),
@@ -75,7 +77,7 @@ fn parse_with_segment(segment: &str) -> Result<(), AddressError> {
 
 #[test]
 fn every_generated_view_in_the_estate_is_refused_as_an_address_segment() {
-  let st_root = repo_root().join("intent").join("st");
+  let st_root = crate::common::real_project().st_dir();
   let mut threads = 0usize;
   let mut examined = 0usize;
   let mut basenames: BTreeSet<String> = BTreeSet::new();
@@ -83,8 +85,10 @@ fn every_generated_view_in_the_estate_is_refused_as_an_address_segment() {
   let Ok(entries) = std::fs::read_dir(&st_root) else {
     panic!("no estate at {} to walk", st_root.display());
   };
-  for entry in entries.flatten() {
-    let thread_dir = entry.path();
+  for entry in entries {
+    let thread_dir = entry
+      .unwrap_or_else(|e| panic!("read an entry of {}: {e}", st_root.display()))
+      .path();
     if !thread_dir.is_dir() {
       continue;
     }
@@ -173,14 +177,16 @@ fn refused_as_a_view(rel: &str) -> bool {
 /// refusal, or the ingest leaves it unheld and the prune withholds it forever.
 #[test]
 fn no_file_classify_calls_an_attachment_is_refused_as_a_view() {
-  let st_root = repo_root().join("intent").join("st");
+  let st_root = crate::common::real_project().st_dir();
   let mut examined = 0usize;
   let mut refused: Vec<String> = Vec::new();
   let Ok(entries) = std::fs::read_dir(&st_root) else {
     panic!("no estate at {} to walk", st_root.display());
   };
-  for entry in entries.flatten() {
-    let thread_dir = entry.path();
+  for entry in entries {
+    let thread_dir = entry
+      .unwrap_or_else(|e| panic!("read an entry of {}: {e}", st_root.display()))
+      .path();
     if !thread_dir.is_dir() {
       continue;
     }

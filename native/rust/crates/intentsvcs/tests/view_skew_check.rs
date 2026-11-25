@@ -365,13 +365,9 @@ fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_
     fx.write_manifest(NOTHING_DECLARED);
     let mut facade = fx.facade();
     facade
-      .hydrate(&Address {
-        authority: None,
-        entity: Entity::Thread {
-          id: "ST0001".to_string(),
-        },
-        format: None,
-      })
+      .hydrate(&Address::local(Entity::Thread {
+        id: "ST0001".to_string(),
+      }))
       .expect("realise the thread");
     fx.write_manifest(NOTHING_DECLARED);
     let view = fx.project().acceptance_view("ST0001");

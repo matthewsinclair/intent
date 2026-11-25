@@ -122,7 +122,10 @@ fn holds(daemon: &RealDaemon, root: &Path, id: &str) -> bool {
 /// not at all. `intent/.cache/` holds the store and is outside the watcher's
 /// scope by construction, so staging there costs nothing.
 fn write_sentinel(root: &Path, id: &str) {
-  let staged = root.join("intent/.cache").join(format!("{id}.json"));
+  let staged = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .cache_dir()
+    .join(format!("{id}.json"));
   std::fs::write(
     &staged,
     crate::common::thread_canon(
@@ -158,10 +161,9 @@ fn sync_to_disk_lands_beside_a_watching_daemon_and_costs_it_no_ingest() {
   let daemon = RealDaemon::start();
   let (root, issue) = project();
 
-  let view = root
-    .join("intent")
-    .join("issues")
-    .join(format!("{issue}.md"));
+  let view = intentsvcs::project::Project::open(&root)
+    .expect("the project opens")
+    .issue_view(intentsvcs::id::IssueId::parse(&issue).expect("a stored issue id"));
   assert!(
     view.exists(),
     "the fixture renders no {}, so there is no view to put behind the store",

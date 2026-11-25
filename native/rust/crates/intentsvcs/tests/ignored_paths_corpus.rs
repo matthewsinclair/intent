@@ -88,19 +88,51 @@ impl Project {
     std::fs::write(path, bytes).expect("write");
   }
 
+  /// Write a minimal thread's canon where the project keeps it, as
+  /// `Fixture::write_thread` writes a thread. The one decoder of a thread
+  /// (`ingest::decode_thread`) reads the record. The project's own canon
+  /// format (`ingest::canon_format`) and the one encoder of a thread's layout
+  /// (`canon_format::encode_thread_files`) give each file, under the intent
+  /// directory. This project has no project state, so its format is 3.4.0's,
+  /// and the thread is one file at `Project::thread_json`.
   fn thread(&self, id: &str) {
-    self.write(
-      &format!("intent/.canon/st/{id}.json"),
-      format!(
-        "{{\n  \"schema\": \"{}\",\n  \"id\": \"{id}\",\n  \"title\": \"A thread\",\n  \"status\": \"wip\",\n  \"created\": \"2026-08-14\",\n  \"objective\": \"\",\n  \"context\": \"\"\n}}\n",
-        intentsvcs::canon_format::THREAD_SCHEMA_V3
-      )
-      .as_bytes(),
-    );
+    let record = intentsvcs::ingest::decode_thread(
+      "the fixture's thread record",
+      serde_json::json!({
+        "schema": intentsvcs::canon_format::THREAD_SCHEMA_V3,
+        "id": id,
+        "title": "A thread",
+        "status": "wip",
+        "created": "2026-08-14",
+        "objective": "",
+        "context": ""
+      }),
+    )
+    .unwrap_or_else(|findings| {
+      panic!("the fixture's thread record does not read as a thread: {findings:?}")
+    });
+    let project = self.project();
+    let format = intentsvcs::ingest::canon_format(&project).expect("the canon format");
+    let intent = project.intent_dir();
+    for (rel, canon) in
+      intentsvcs::canon_format::encode_thread_files(&record, format).expect("render canon")
+    {
+      let path = intent.join(rel);
+      std::fs::create_dir_all(path.parent().expect("a canon dir")).expect("mkdir canon");
+      std::fs::write(&path, canon).expect("write the thread's canon");
+    }
   }
 
   fn project(&self) -> intentsvcs::project::Project {
     intentsvcs::project::Project::open(self.root()).expect("open")
+  }
+
+  /// `name` in the directory that holds the realised threads
+  /// (`Project::st_dir`), outside any one thread's directory, relative to the
+  /// root as `write` takes it and as the scan reports it.
+  fn stray(&self, name: &str) -> String {
+    let project = self.project();
+    project.relative(&project.st_dir().join(name))
   }
 
   /// The corpus rule lives in the SCAN, which is what decides whether a file
@@ -130,7 +162,7 @@ impl Project {
 fn the_same_unreadable_file_is_in_or_out_of_scope_by_ignore_status_alone() {
   let ignored = Project::new().with_git(".DS_Store\n");
   ignored.thread("ST0001");
-  ignored.write("intent/st/.DS_Store", NOT_UTF8);
+  ignored.write(&ignored.stray(".DS_Store"), NOT_UTF8);
   assert!(
     ignored.unparsed().is_empty(),
     "a gitignored path is not canon, so it cannot refuse the read: {:?}",
@@ -140,10 +172,10 @@ fn the_same_unreadable_file_is_in_or_out_of_scope_by_ignore_status_alone() {
 
   let in_scope = Project::new();
   in_scope.thread("ST0001");
-  in_scope.write("intent/st/.DS_Store", NOT_UTF8);
+  in_scope.write(&in_scope.stray(".DS_Store"), NOT_UTF8);
   assert_eq!(
     in_scope.unparsed(),
-    vec!["intent/st/.DS_Store".to_string()],
+    vec![in_scope.stray(".DS_Store")],
     "with no repository there are no ignore rules, so the same file IS in scope and strict ingest still refuses it -- the corpus narrowed, the strictness did not"
   );
   assert!(in_scope.resync().is_err(), "and the load refuses");
@@ -156,11 +188,14 @@ fn the_same_unreadable_file_is_in_or_out_of_scope_by_ignore_status_alone() {
 #[test]
 fn an_untracked_but_unignored_thread_still_ingests() {
   let fx = Project::new().with_git(".DS_Store\nintent/.cache/\n");
-  fx.thread("ST0001");
-  fx.write("intent/st/.DS_Store", NOT_UTF8);
+  let id = "ST0001";
+  fx.thread(id);
+  fx.write(&fx.stray(".DS_Store"), NOT_UTF8);
 
+  let project = fx.project();
+  let thread_file = project.relative(&project.thread_json(id));
   let status = Command::new("git")
-    .args(["status", "--porcelain", "intent/.canon/st/ST0001.json"])
+    .args(["status", "--porcelain", thread_file.as_str()])
     .current_dir(fx.root())
     .output()
     .expect("git status");
@@ -170,7 +205,8 @@ fn an_untracked_but_unignored_thread_still_ingests() {
   );
 
   let canon = fx.resync().expect("an untracked thread is still canon");
-  assert_eq!(canon.threads.len(), 1, "and it was actually read");
+  let read: Vec<&str> = canon.threads.iter().map(|t| t.id.as_str()).collect();
+  assert_eq!(read, [id], "and it was actually read");
 }
 
 /// Edge two: no repository means no ignore rules, so the corpus degrades to
@@ -179,11 +215,13 @@ fn an_untracked_but_unignored_thread_still_ingests() {
 #[test]
 fn a_project_without_git_still_has_a_corpus() {
   let fx = Project::new();
-  fx.thread("ST0001");
+  let id = "ST0001";
+  fx.thread(id);
   let canon = fx.resync().expect("ingest");
+  let read: Vec<&str> = canon.threads.iter().map(|t| t.id.as_str()).collect();
   assert_eq!(
-    canon.threads.len(),
-    1,
+    read,
+    [id],
     "no git means nothing ignored, not everything ignored"
   );
 }
@@ -199,10 +237,11 @@ fn a_project_without_git_still_has_a_corpus() {
 fn the_rule_is_general_and_not_a_ds_store_special_case() {
   let fx = Project::new().with_git("*.bin\n");
   fx.thread("ST0001");
-  fx.write("intent/st/artefact.bin", NOT_UTF8);
+  let artefact = "artefact.bin";
+  fx.write(&fx.stray(artefact), NOT_UTF8);
 
   assert!(
-    !intentsvcs::sync::SKIPPED_DIRS.contains(&"artefact.bin"),
+    !intentsvcs::sync::SKIPPED_DIRS.contains(&artefact),
     "precondition: nothing in the path-shape skip list covers this file"
   );
   assert!(
@@ -219,11 +258,11 @@ fn the_rule_is_general_and_not_a_ds_store_special_case() {
 fn a_negated_ignore_rule_puts_a_file_back_in_scope() {
   let fx = Project::new().with_git("*.bin\n!keep.bin\n");
   fx.thread("ST0001");
-  fx.write("intent/st/keep.bin", NOT_UTF8);
+  fx.write(&fx.stray("keep.bin"), NOT_UTF8);
 
   assert_eq!(
     fx.unparsed(),
-    vec!["intent/st/keep.bin".to_string()],
+    vec![fx.stray("keep.bin")],
     "git would commit this file, so it is in corpus, so strict ingest refuses it"
   );
 }
@@ -245,12 +284,12 @@ fn a_clone_local_exclude_does_not_shrink_the_corpus() {
     .with_git("*.bin\n")
     .with_local_exclude("local.dat\n");
   fx.thread("ST0001");
-  fx.write("intent/st/local.dat", NOT_UTF8);
-  fx.write("intent/st/shared.bin", NOT_UTF8);
+  fx.write(&fx.stray("local.dat"), NOT_UTF8);
+  fx.write(&fx.stray("shared.bin"), NOT_UTF8);
 
   assert_eq!(
     fx.unparsed(),
-    vec!["intent/st/local.dat".to_string()],
+    vec![fx.stray("local.dat")],
     "the committed `.gitignore` rule takes `shared.bin` out of corpus; the \
      clone-local exclude must NOT take `local.dat` out, because a fresh clone \
      would carry it"
@@ -267,16 +306,18 @@ fn a_clone_local_exclude_does_not_shrink_the_corpus() {
 fn each_finding_is_reported_exactly_once() {
   let fx = Project::new();
   fx.thread("ST0001");
-  for name in ["a", "b", "c"] {
-    fx.write(&format!("intent/st/{name}.DS_Store"), NOT_UTF8);
+  let names = ["a", "b", "c"];
+  for name in names {
+    fx.write(&fx.stray(&format!("{name}.DS_Store")), NOT_UTF8);
   }
 
   let err = fx.resync().expect_err("refused");
   let rendered = format!("{err}");
   let lines = rendered.lines().filter(|l| l.contains("residue:")).count();
   assert_eq!(
-    lines, 3,
-    "three unreadable files, three residue lines -- got:\n{rendered}"
+    lines,
+    names.len(),
+    "one residue line for each unreadable file, got:\n{rendered}"
   );
 }
 
@@ -304,6 +345,12 @@ fn the_scope_predicate_and_the_walk_cannot_disagree() {
   let p = Project::new().with_git("*.log\n");
   p.thread("ST0001");
   p.write("AGENTS.md", b"# agents\n");
+  // In scope: the thread's canon file and a ROOT_FILES member. The scan's
+  // floor and the predicate's positive control below both read this list.
+  let in_scope = [
+    p.project().thread_json("ST0001"),
+    p.root().join("AGENTS.md"),
+  ];
   // Out of scope, one per mechanism, so a single rule going missing is visible.
   p.write("intent/.cache/intent.db", b"SQLite format 3\x00"); // SKIPPED_DIRS
   p.write("intent/.backup/db-2026-08-30.sqlite", b"snapshot"); // SKIPPED_DIRS
@@ -319,8 +366,9 @@ fn the_scope_predicate_and_the_walk_cannot_disagree() {
     .map(|e| p.root().join(e.path))
     .collect();
   assert!(
-    scanned.len() >= 2,
-    "the fixture scanned {} path(s), which is too few for either direction to mean anything: {scanned:?}",
+    scanned.len() >= in_scope.len(),
+    "the fixture wrote {} file(s) in scope and scanned {} path(s), which is too few for either direction to mean anything: {scanned:?}",
+    in_scope.len(),
     scanned.len()
   );
 
@@ -355,14 +403,13 @@ fn the_scope_predicate_and_the_walk_cannot_disagree() {
     );
   }
 
-  // And the positive control for the predicate itself: a real in-scope path
+  // And the positive control for the predicate itself: each real in-scope path
   // must be included, or every exclusion above holds for the wrong reason.
-  assert!(
-    scope.includes(&p.root().join("intent/.canon/st/ST0001.json")),
-    "the predicate excludes a canon thread file, so it is not answering the question it claims to"
-  );
-  assert!(
-    scope.includes(&p.root().join("AGENTS.md")),
-    "the predicate excludes a ROOT_FILES member"
-  );
+  for path in &in_scope {
+    assert!(
+      scope.includes(path),
+      "the predicate excludes `{}`, a canon thread file or a ROOT_FILES member, so it is not answering the question it claims to",
+      path.display()
+    );
+  }
 }

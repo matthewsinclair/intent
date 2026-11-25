@@ -64,7 +64,7 @@ fn the_five_rows_of_d57_3() {
   let declared_absent = project.acceptance_view("ST0001");
   let undeclared_present = project.info_view("ST0002");
   let undeclared_absent = project.acceptance_view("ST0002");
-  let human_file = project.st_dir().join("ST0001").join("diagram.png");
+  let human_file = project.thread_dir("ST0001").join("diagram.png");
   let index_view = project.steel_threads_view();
 
   let tree = TreeState {
@@ -123,7 +123,7 @@ fn the_fifth_row_is_never_destructive() {
   // label a human reads.
   let fx = Fixture::new();
   let project = fx.project();
-  let human_file = project.st_dir().join("ST0001").join("diagram.png");
+  let human_file = project.thread_dir("ST0001").join("diagram.png");
   let p = plan(
     &project,
     &canon(),

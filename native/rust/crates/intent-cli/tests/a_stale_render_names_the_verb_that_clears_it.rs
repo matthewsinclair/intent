@@ -24,7 +24,9 @@ fn step(root: &Path, args: &[&str]) -> String {
 
 /// Rewrite each issue view's footer to name an older Intent.
 fn age_the_issue_views(root: &Path) -> Vec<String> {
-  let dir = root.join("intent/issues");
+  let dir = intentsvcs::project::Project::open(root)
+    .expect("the project opens")
+    .issues_view_dir();
   let mut names = Vec::new();
   for entry in std::fs::read_dir(&dir).expect("the issue views") {
     let path = entry.expect("an entry").path();
@@ -76,7 +78,11 @@ fn realised_stale_views_are_one_line_naming_the_verb_that_re_renders_them() {
   let root = dir.path();
   let raised = three_issues(root);
   let names = age_the_issue_views(root);
-  assert_eq!(names.len(), 3, "three realised issue views: {names:?}");
+  assert_eq!(
+    names.len(),
+    raised.len(),
+    "one realised view for each issue raised: {names:?}"
+  );
   // **IN THE ONE RECORD ORDER** (ST0095 WP-08): hashed issues list by
   // creation, so the views are named in the order the issues were raised.
   let names: Vec<String> = raised
@@ -92,7 +98,7 @@ fn realised_stale_views_are_one_line_naming_the_verb_that_re_renders_them() {
 
   let (line, _, command) = the_issue_line(root);
   assert!(
-    line.contains("3 views"),
+    line.contains(&format!("{} views", raised.len())),
     "the group counts its members: {line}"
   );
   assert!(
@@ -121,7 +127,7 @@ fn unrealised_stale_views_name_the_verb_that_removes_them() {
   let names = age_the_issue_views(root);
   assert_eq!(
     names.len(),
-    3,
+    issues.len(),
     "the closed issues' views are still on disk: {names:?}"
   );
 

@@ -109,13 +109,9 @@ fn hydrating_is_recorded_once_and_the_paths_are_named() {
   let fx = fixture();
   let mut facade = fx.facade_on_disk();
 
-  let address = Address {
-    authority: None,
-    entity: Entity::Thread {
-      id: "ST0001".to_string(),
-    },
-    format: None,
-  };
+  let address = Address::local(Entity::Thread {
+    id: "ST0001".to_string(),
+  });
   facade.hydrate(&address).expect("hydrate");
 
   assert_eq!(
@@ -160,13 +156,9 @@ fn dehydrating_is_recorded_and_names_every_file_it_removed() {
   fx.write_thread(&unrealised(gate_open()));
   let mut facade = fx.facade_on_disk();
 
-  let address = Address {
-    authority: None,
-    entity: Entity::Thread {
-      id: "ST0057".to_string(),
-    },
-    format: None,
-  };
+  let address = Address::local(Entity::Thread {
+    id: "ST0057".to_string(),
+  });
   facade.hydrate(&address).expect("hydrate");
 
   // Undeclare it: `st hold` takes the thread off the realised set on its

@@ -209,11 +209,10 @@ fn the_format_is_ignored_because_it_names_a_representation_not_an_artefact() {
     let mut facade = fx.facade();
     let paths = facade
       .hydrate(&Address {
-        authority: None,
-        entity: Entity::Thread {
-          id: "ST0001".to_string(),
-        },
         format,
+        ..Address::local(Entity::Thread {
+          id: "ST0001".to_string(),
+        })
       })
       .expect("hydratable regardless of format");
     out.push(

@@ -43,7 +43,7 @@ fn st_show_issues_show_and_wp_show_take_a_prefix() {
     ok(root, &["issues", "show", &issue.shown()]).contains("An issue typed by prefix"),
     "`issues show` takes the issue's shown form"
   );
-  let typed = format!("{}/{}", thread.shown(), package.shown());
+  let typed = intentsvcs::id::wp_address_shown(&thread, package);
   assert!(
     ok(root, &["wp", "show", &typed]).contains("A package typed by prefix"),
     "`wp show` takes `{typed}`, both halves prefixes"
@@ -60,12 +60,11 @@ fn st_show_issues_show_and_wp_show_take_a_prefix() {
     root,
     &[
       "set",
-      &format!(
-        "{}/threads/{}/wp/{}",
-        intentsvcs::address::SCHEME,
-        thread.shown(),
-        package.stored()
-      ),
+      &intentsvcs::address::Entity::Wp {
+        thread: thread.shown(),
+        wp: intentsvcs::id::Spelled::Whole(package),
+      }
+      .local_url(),
       "objective",
       objective,
     ],
@@ -77,12 +76,11 @@ fn st_show_issues_show_and_wp_show_take_a_prefix() {
       root,
       &[
         "set",
-        &format!(
-          "{}/threads/{}/wp/{}",
-          intentsvcs::address::SCHEME,
-          thread.stored(),
-          package.stored()
-        ),
+        &intentsvcs::address::Entity::Wp {
+          thread: thread.stored(),
+          wp: intentsvcs::id::Spelled::Whole(package),
+        }
+        .local_url(),
         "objective",
         objective,
       ],
