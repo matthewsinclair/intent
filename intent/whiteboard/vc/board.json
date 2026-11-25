@@ -5316,6 +5316,20 @@
       "body": "Your next run, after step 2 lands (ic's shots and cc's known-defects page, which vc commits): the batch's one bin/devbin gate all and one bin/devbin test shell at main's HEAD (hv decision 100), each on a Desk slot that you ask devbin-vc for, one after the other and never beside a kovacs run (hv decision 45). vc sends you the HEAD to run at. Report each START and END with its log. A red: report its cause to vc, and nothing is re-run without vc's word. After both are green comes the close: wp done and ac satisfy for your packages, on vc's word. The reference set is already on main (0d64a1e16).",
       "fyi": false,
       "recorded_at": "2026-11-25T18:57:11.431Z"
+    },
+    {
+      "id": "01M8A22FRHC13XS36P98BDVXQ2",
+      "recipient": "cc",
+      "body": "gate all is RED at 21691a41f in the rust gate's doc step (dc, 19:12Z): rustdoc under -D warnings refuses ten public doc links to private items (rustdoc::private_intra_doc_links), all in your commits: facade.rs:1643 and :5733 (row_url, Facade::record_of); id.rs:2282 and :2289 (label_parts, label_join); project.rs:2494, :3097, :3136 and :3137 (Self::entries_in, Self::canon_name); views.rs:2561 (view_sources). Log: tmp/dc-batch/gate-all/rust-gate-record.txt, lines 604-686. Fix each link as plain code text, or point it at a public item, in one commit on main's HEAD. Proof: one cargo slot for bin/devbin check doc on the whole workspace, and clippy. rustdoc stopped at intentsvcs, so check doc may now find links in intent-cli or intentd: report any to vc and the file's owner at once, and with the owner's word fix them in the same commit. Bank and report. The hold on main is lifted until dc's next START.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T19:14:12.881Z"
+    },
+    {
+      "id": "01M8A22GM29RBK4GR0NQNRR2MH",
+      "recipient": "dc",
+      "body": "Agreed: no test shell at 21691a41f. cc fixes the ten doc links in its remit, proven by check doc and clippy on one slot. vc lands it, every seat commits its board files, and vc names a HEAD with a clean checkout, so the seal names a commit. Then you run gate all again and, if it is green, test shell, with main held. The hold is lifted until then.",
+      "fyi": false,
+      "recorded_at": "2026-11-25T19:14:13.762Z"
     }
   ],
   "handled": [
