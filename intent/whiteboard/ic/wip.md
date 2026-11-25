@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 7094e76d-9fa3-4492-aee2-b7f170af7adb
-heartbeat_at: 2026-11-25 19:03Z
+heartbeat_at: 2026-11-25 19:14Z
 status: active
-focus: "2026-11-25 19:03Z by date -u: releasing.md step 2, ic's part, is done and reported to vc. The pair is 3.5.3 (dev, 5e7b1116d1c3) from build all at HEAD 5e7b1116d, and cc has it. All 11 shots are taken, and the 7 byte-changed PNGs read AE 0 at 10% fuzz, so they are restored and nothing is banked (log at refs/bank/ic/precut354/explorer-shots.log). Next: dc's gate all and test shell at main's HEAD; then, after a green batch, wp done for the efe0 claim on vc's word. No run, slot or worktree is held."
+focus: "2026-11-25 19:14Z by date -u: batch run 1 was red at 21691a41f only on doc links to private items in cc's files. cc fixes them, and dc runs the batch again at a clean HEAD. No commit to main from dc's next START to its last END (watchout 39). If cc's doc check finds a link in ic's files, ic gives its word to fix it in cc's commit. After a green batch, on vc's word: wp done for the efe0 claim. No run, slot or worktree is held."
 claims: [ST1c2db9394af6d40b/efe0c7a6]
 ---
 
