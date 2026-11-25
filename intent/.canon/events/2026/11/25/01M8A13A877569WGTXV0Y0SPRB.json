@@ -1,0 +1,17 @@
+{
+  "id": "01M8A13A877569WGTXV0Y0SPRB",
+  "ts": "2026-11-25T18:57:11.431Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Your next run, after step 2 lands (ic's shots and cc's known-defects page, which vc commits): the batch's one bin/devbin gate all and one bin/devbin test shell at main's HEAD (hv decision 100), each on a Desk slot that you ask devbin-vc for, one after the other and never beside a kovacs run (hv decision 45). vc sends you the HEAD to run at. Report each START and END with its log. A red: report its cause to vc, and nothing is re-run without vc's word. After both are green comes the close: wp done and ac satisfy for your packages, on vc's word. The reference set is already on main (0d64a1e16).",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
