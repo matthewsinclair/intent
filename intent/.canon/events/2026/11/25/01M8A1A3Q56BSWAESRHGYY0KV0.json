@@ -1,0 +1,15 @@
+{
+  "id": "01M8A1A3Q56BSWAESRHGYY0KV0",
+  "ts": "2026-11-25T19:00:54.117Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "watchout",
+    "text": "Main stays still while a run builds or checks the pair at HEAD: build all, gate all, test shell, the dry run and the cut. From the runner's START to its END, no seat commits to Intent's main, board commits included. The pair carries the HEAD current when it is built (hv decision 15), and the SET check refuses a pair whose stamp is not HEAD, whatever the commit touched. ic's first build all for 3.5.4 went red at 18:58Z on 2026-11-25 because vc's reference-set commit landed mid-build. The runner sends START and END to vc and the seats; vc holds every seat's commits between them (devbin-vc's rule, 2026-11-25)."
+  }
+}
