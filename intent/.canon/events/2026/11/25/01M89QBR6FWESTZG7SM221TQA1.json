@@ -1,0 +1,15 @@
+{
+  "id": "01M89QBR6FWESTZG7SM221TQA1",
+  "ts": "2026-11-25T16:07:02.095Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.add",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "text": "ST1c2db93 close sweep (vc's brief of 2026-11-25 15:58Z by date -u): reader B's F2, F3, F5 and F6, its section 2 rows and its section 3 sites, and reader C's items 2, 4, 5, 6, 7 and 8. Edits in tmp/wt-dc-sweep at 7bbbe4135; then commits onto tmp/wt-dc-st1c2, critic-rust and critic-shell, one clippy on the Desk, and the bank at refs/bank/dc/st1c2db93/sweep/v1. Size L."
+  }
+}

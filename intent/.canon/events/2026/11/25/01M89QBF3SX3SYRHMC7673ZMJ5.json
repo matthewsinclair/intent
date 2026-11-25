@@ -1,0 +1,16 @@
+{
+  "id": "01M89QBF3SX3SYRHMC7673ZMJ5",
+  "ts": "2026-11-25T16:06:52.793Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 176,
+    "text": "ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 is BANKED at refs/bank/dc/st1c2db93/v2 = 7bbbe4135 on 5a6390218, with clippy green on Desk slot 01M89Q7KREK18WAXZP8GVAZ8XC, and reported to vc (refs/bank/dc/st1c2db93/v2-report). vc lands it. wp done waits for the batch gate."
+  }
+}

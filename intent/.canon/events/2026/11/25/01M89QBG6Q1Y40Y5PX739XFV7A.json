@@ -1,0 +1,16 @@
+{
+  "id": "01M89QBG6Q1Y40Y5PX739XFV7A",
+  "ts": "2026-11-25T16:06:53.911Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 177,
+    "text": "Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. Banked in v2 at 7bbbe4135, with critic_dispatch.bats counting a dispatch by its shape. The issue closes when 3.5.4 ships it."
+  }
+}

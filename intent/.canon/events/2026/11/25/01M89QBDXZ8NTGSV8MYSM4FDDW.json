@@ -1,0 +1,17 @@
+{
+  "id": "01M89QBDXZ8NTGSV8MYSM4FDDW",
+  "ts": "2026-11-25T16:06:51.583Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "body": "ST1c2db93 second bank v2 BANKED at refs/bank/dc/st1c2db93/v2 = 7bbbe4135 on 5a6390218, patch-id d1c3f47159ce. Clippy green at 7bbbe4135 on Desk slot 01M89Q7KREK18WAXZP8GVAZ8XC, 16:05:29Z to 16:05:37Z by date -u, exit 0, empty verdict file. Every critic finding on base..tip is fixed at file:line or answered. The full report, with Ic5f63aa's CHANGELOG line, is the blob at refs/bank/dc/st1c2db93/v2-report. Sent live at 16:06Z by date -u.",
+    "fyi": false,
+    "re": null,
+    "recipient": "vc"
+  }
+}
