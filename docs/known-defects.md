@@ -1,6 +1,6 @@
-# Known defects in v3.5.2
+# Known defects in v3.5.4
 
-**Every defect on this page has been run against the build v3.5.2 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.5.1 (dev, 75d2090502fb) dev`, each in a fresh scratch project under an isolated `HOME`. A project this build makes mints git-style ids, so the threads and work packages in the transcripts below carry ids such as `STc4a3b1ba8d3762a6`, and a run of your own will mint different ones. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
+**Every defect on this page has been run against the build v3.5.4 is cut from.** Not inferred from our issue register: driven against that build before its version stamp moved, when `intent --version` printed `intent 3.5.3 (dev, 5e7b1116d1c3) dev`, each in a fresh scratch project under an isolated `HOME`. A project this build makes mints git-style ids, so the threads and work packages in the transcripts below carry ids such as `STc4a3b1ba8d3762a6`, and a run of your own will mint different ones. Where a claim could not be driven it is not on the page, and the last sections say what that leaves out.
 
 **A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
@@ -14,15 +14,15 @@
 
 ```
   $ intent search KDPROBE1 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-23T20:51:02.928Z"}
+  {"hits":["src/probe1.rs"],"complete":true,"reconciled":false,"reconciled_at":"2026-11-25T19:02:52.379Z"}
   $ intent search KDPROBE2 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-23T20:51:02.928Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-25T19:02:52.379Z"}
   $ intent search KDPROBE3 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-23T20:51:02.928Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-25T19:02:52.379Z"}
   $ intent search KDPROBE4 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-23T20:51:02.928Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-25T19:02:52.379Z"}
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled, reconciled_at: .index.reconciled_at}'
-  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-23T20:51:02.928Z"}
+  {"hits":[],"complete":true,"reconciled":false,"reconciled_at":"2026-11-25T19:02:52.379Z"}
   $ intent daemon stop
   ok: intentd stopped
   $ intent search KDPROBE5 --json | jq -c '{hits: [.groups[]?.hits[]?.path], complete: .index.complete, reconciled: .index.reconciled}'
@@ -38,11 +38,11 @@ The same search with the daemon stopped reconciles first and finds the file. How
 **`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). After writing a body with `intent set intent:///threads/<thread>/wp/<package> body <text>` and hydrating the thread, `intent/st/<thread>/WP/<package>/info.md` is on disk carrying that body, and:
 
 ```
-  $ intent wp show ST9d36de572f1c6cab/8637d85e
-  ST9d36de5/WP-8637: first package
+  $ intent wp show ST70b90a4fe1c80ce6/fcce6812
+  ST70b90a4/WP-fcce: first package
   status: Not Started
   scope: S
-  criteria: none scoped to ST9d36de5/8637
+  criteria: none scoped to ST70b90a4/fcce
 ```
 
 None of the body is shown. `intent wp --help` describes the verb as `Show work package info.md`, so the description and the behaviour disagree. Read the file directly if you want its body.
@@ -52,10 +52,10 @@ None of the body is shown. `intent wp --help` describes the verb as `Show work p
 **The close gate passes a test row that cites no file** (`intent#0213`, and `intent#0229`, a second row for the same code site filed from an independent report). Create an AT with the default `--kind test` and no `--file`, take it red and then green, and both of these exit 0:
 
 ```
-  $ intent at lint STd07ec824e0413e61
-  lint: STd07ec824e0413e61 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
-  $ intent ac gate STd07ec824e0413e61
-  gate: STd07ec824e0413e61 PASS -- 1/1 satisfied
+  $ intent at lint STc70d251df85c12b7
+  lint: STc70d251df85c12b7 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 with a verdict and NO READABLE CITATION)
+  $ intent ac gate STc70d251df85c12b7
+  gate: STc70d251df85c12b7 PASS -- 1/1 satisfied
 ```
 
 `at lint` names the row it did not examine and still answers `ok`; `ac gate` passes over it and says nothing.
@@ -90,4 +90,4 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 
 `intent --version` names the build you are on, as `intent <version> (<tree>, <sha>) <kind>`. The tree is where the binary is installed: `brew` for a Homebrew install, `dev` for a build in a git checkout, `opt` for a tree `intent install` published, and `unknown` when it is none of these. The sha is the commit the binary was built at, followed by `+dirty` in a dev tree when the build, or a file it reads from the tree, differs from that commit. The last word says which kind of build that is: `release` for a published release, which carries its tag's commit, and `dev` for a build of the tree between releases, which is the kind this page was driven on.
 
-**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `id`, `origin`, `realised`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.5.0, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue carries no field naming the version it was broken or fixed in (`intent issues show <id> --json` has `body`, `created`, `id`, `origin`, `realised`, `reporter`, `schema`, `severity`, `slug`, `status` and `title` and nothing about a build), so `intent issues list` cannot separate rows about a published build from rows about `main`. This page is that partition for v3.5.4, drawn by driving each row. **If you find an issue that seems to describe your version, check here before believing it.**
