@@ -1,0 +1,16 @@
+{
+  "id": "01M8A0ZYBBBMDC02G3MHMW7Z7T",
+  "ts": "2026-11-25T18:55:20.940Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "dc"
+  },
+  "payload": {
+    "kind": "doing",
+    "seq": 178,
+    "text": "ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). LANDED by vc on main as f61829743, 631b50104, 7ca1aace3, 206790c19 and c83210146 (18:54Z), patch-id equal to the bank (refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e); CHANGELOG fa33491e2. tmp/wt-dc-st1c2 and tmp/wt-dc-sweep removed by the fold checks; attic refs refs/attic/dc/wt-dc-st1c2 and refs/attic/dc/wt-dc-sweep. The close (wp done, ac satisfy) follows the green batch, on vc's word."
+  }
+}

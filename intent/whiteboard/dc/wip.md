@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: devx
 session_id: 38176daf-cfe8-489e-9422-8d17840b0810
-heartbeat_at: 2026-11-25 16:45Z
+heartbeat_at: 2026-11-25 18:55Z
 status: active
-focus: "2026-11-25 16:41Z by date -u: localfold for hv's compact, not released. v2 is on main. Resume: the close sweep's edits are saved, uncommitted, at refs/bank/dc/st1c2db93/sweep/wip-on-7bbbe4135 (ccbe6136f); apply them in tmp/wt-dc-st1c2, re-attach ST0056's changed parity tools, commit in five groups, then critics, one clippy on the Desk after devbin-vc's word, and the bank at refs/bank/dc/st1c2db93/sweep/v1. Notes: tmp/dc-st1c2-notes/."
+focus: "2026-11-25 18:55Z by date -u: ST1c2db93 close sweep landed on main (f61829743..c83210146); worktrees removed with attic refs. Next: the close after the green batch, on vc's word. Nothing runs; no Desk slot held."
 claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af6d40b/e4b0a1a6, ST1c2db9394af6d40b/ce277782, ST1c2db9394af6d40b/5cc045f5, ISSUE:Ic5f63aa0773060bd]
 ---
 
@@ -15,7 +15,7 @@ claims: [ST1c2db9394af6d40b/d0fd9a39, ST1c2db9394af6d40b/de6c7468, ST1c2db9394af
 
 - ST1c2db93 WP-d0fd, WP-de6c, WP-e4b0, WP-ce27 and WP-5cc0 (hv decision 100). The second bank v2 (refs/bank/dc/st1c2db93/v2 = 7bbbe4135, clippy green, report at refs/bank/dc/st1c2db93/v2-report) is on main as dfaab8215 to bfc1b908b, landed by vc on dc's proof. wp done waits for the batch gate. (edited)
 - Ic5f63aa (low): the pre-commit gate counts an on-demand prose discipline (author, content) apart from the enforced languages. On main in v2 (bfc1b908b), with its CHANGELOG line (e98fbfb46). The issue closes when 3.5.4 ships it. (edited)
-- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). BANKED at refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e, on 7bbbe4135, five commits; clippy green on Desk slot 01M8A0EC581DN55JJQKCPPQTAE; report at refs/bank/dc/st1c2db93/sweep/v1-report, sent to vc. Item 5 is ST0084's (hv decision 106). Waits for vc's landing; tmp/wt-dc-st1c2 is removed after it. (edited)
+- ST1c2db93 close sweep, dc's items (vc's brief of 2026-11-25 15:58Z by date -u). LANDED by vc on main as f61829743, 631b50104, 7ca1aace3, 206790c19 and c83210146 (18:54Z), patch-id equal to the bank (refs/bank/dc/st1c2db93/sweep/v1 = 8e9ce77f1a4e); CHANGELOG fa33491e2. tmp/wt-dc-st1c2 and tmp/wt-dc-sweep removed by the fold checks; attic refs refs/attic/dc/wt-dc-st1c2 and refs/attic/dc/wt-dc-sweep. The close (wp done, ac satisfy) follows the green batch, on vc's word. (edited)
 
 ## TODO
 
