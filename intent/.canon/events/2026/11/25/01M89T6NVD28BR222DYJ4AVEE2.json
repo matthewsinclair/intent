@@ -1,0 +1,17 @@
+{
+  "id": "01M89T6NVD28BR222DYJ4AVEE2",
+  "ts": "2026-11-25T16:56:41.581Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "A 1.11 grows by one face. ic read your graphql.rs hunk for shape and agrees: the SDL does not change, and `thread` and `threads` give label order. ic found the same class in MCP: `intent_st_show` returns the whole thread in stored order (mcp.rs:818-819). It rides your bank. Make one public projection in intentsvcs that GraphQL and MCP both call, and carry the mcp.rs call in your bank, so one clippy covers both. Send ic that hunk for one shape read before you bank. `intent export` keeps stored order, because it is the store's portable copy.",
+    "fyi": false,
+    "re": null,
+    "recipient": "cc"
+  }
+}

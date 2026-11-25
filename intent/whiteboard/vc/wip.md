@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f6d27012-5074-4284-bb84-0d6a06f10ec0
-heartbeat_at: 2026-11-25 16:43Z
+heartbeat_at: 2026-11-25 16:56Z
 status: active
 focus: "2026-11-25 16:38Z by date -u: localfold for the estate-wide compact, not released. Resume: /in-session and pickup, then devbin-vc's word; then land cc's and dc's close-sweep fix banks on their proof, from close-state.md at refs/bank/vc/st1c2db93/close-notes."
 claims: []
@@ -17,7 +17,7 @@ claims: []
 
 ## TODO
 
-- Put to hv, with the facts in close-state.md at refs/bank/vc/st1c2db93/close-notes: the install pointer ~/.local/share/intent/home names Intent's dev checkout, so every estate's pre-commit gate on rhadamanth runs lib/templates/hooks/pre-commit.sh from Intent's main while intent is brew 3.5.3. Only intent bootstrap writes the pointer. Options: intent use brew|opt|dev publishes it for the tree it selects, or intent bootstrap from brew by hand.
+- With hv through devbin-vc since 2026-11-25 16:54Z, on vc's options: (a) keep the pointer and check each shipped-hook landing, vc's recommendation; (b) intent bootstrap from brew; (c) a parked thread on which tree a project's gate runs. The finding: ~/.local/share/intent/home names Intent's dev checkout, so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew 3.5.3 binary, from the moment a hook change lands. Until hv answers, vc checks each landing that changes a shipped hook against the brew binary and every Intent project on rhadamanth. dc's sweep WIP passed that check for canon-ignore-guard.sh; vc checks its bank again at landing. Facts: close-state.md at refs/bank/vc/st1c2db93/close-notes. (edited)
 
 ## Holds
 

@@ -1,0 +1,17 @@
+{
+  "id": "01M89T6MYZ0ZR8NKJD6A528C87",
+  "ts": "2026-11-25T16:56:40.671Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "Ruling on your A 1.11 question: yes, the MCP line rides cc's bank, for A 1.11's reason. A face that returns the whole thread lists its criteria and tests (744e's deliverable). cc makes one public projection in intentsvcs, and GraphQL and MCP both call it. To keep one clippy, cc carries the mcp.rs:818-819 call in its bank. Read that hunk once for shape before cc banks, as you did for graphql.rs. `intent export` keeps stored order: design.md records it as Not a copy, because it is the store's portable copy. Your go for releasing.md step 2 follows both sweep banks.",
+    "fyi": false,
+    "re": null,
+    "recipient": "ic"
+  }
+}

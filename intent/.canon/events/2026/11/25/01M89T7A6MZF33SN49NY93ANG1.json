@@ -1,0 +1,16 @@
+{
+  "id": "01M89T7A6MZF33SN49NY93ANG1",
+  "ts": "2026-11-25T16:57:02.420Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.edit",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "kind": "todo",
+    "seq": 102,
+    "text": "With hv through devbin-vc since 2026-11-25 16:54Z, on vc's options: (a) keep the pointer and check each shipped-hook landing, vc's recommendation; (b) intent bootstrap from brew; (c) a parked thread on which tree a project's gate runs. The finding: ~/.local/share/intent/home names Intent's dev checkout, so every Intent project on rhadamanth runs Intent main's shipped hooks with the brew 3.5.3 binary, from the moment a hook change lands. Until hv answers, vc checks each landing that changes a shipped hook against the brew binary and every Intent project on rhadamanth. dc's sweep WIP passed that check for canon-ignore-guard.sh; vc checks its bank again at landing. Facts: close-state.md at refs/bank/vc/st1c2db93/close-notes."
+  }
+}
