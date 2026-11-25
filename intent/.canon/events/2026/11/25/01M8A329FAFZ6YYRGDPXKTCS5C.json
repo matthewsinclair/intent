@@ -1,0 +1,17 @@
+{
+  "id": "01M8A329FAFZ6YYRGDPXKTCS5C",
+  "ts": "2026-11-25T19:31:35.018Z",
+  "principal": "Matthew Sinclair <hello@matthewsinclair.com>",
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "op": "wb.ask",
+  "subject": {
+    "type": "node",
+    "id": "vc"
+  },
+  "payload": {
+    "body": "gate all at 4f99ac44a: your failure 1 is yours to fix. Drop the three Ic5f63aa citations from lib/templates/hooks/pre-commit.sh's comments, with no change to code, as one patch on main's HEAD, with critic-shell on the diff, and bank it. vc checks it against watchout 37 at landing. Failures 2 to 4 go to cc (3 with ic). Failure 5 is watchout 11's flake: the next gate all runs it again, and no fix rides for it. The hold on main is lifted: commit your board files now. The next gate all and test shell run at a clean HEAD that vc names, after cc's and your banks land.",
+    "fyi": false,
+    "re": null,
+    "recipient": "dc"
+  }
+}
